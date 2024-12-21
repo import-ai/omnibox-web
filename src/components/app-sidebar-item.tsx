@@ -1,23 +1,30 @@
-import {SidebarMenuAction, SidebarMenuButton, SidebarMenuItem,} from "@/components/ui/sidebar"
+import {
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 import {MoreHorizontal} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
+import React from "react";
 
 interface AppSidebarItemProps {
   level: number;
-  title: string;
+  title: React.ReactNode; // Updated to support JSX elements
+  actions?: Array<{ label: string; onClick: () => void }>; // Optional dropdown actions
 }
 
-export function AppSidebarItem({title, level}: AppSidebarItemProps) {
+export function AppSidebarItem({title, level, actions}: AppSidebarItemProps) {
   return (
-      <SidebarMenuItem style={{marginLeft: `${level}em`}}>
-        <SidebarMenuButton asChild>
-          <a>{title}</a>
-        </SidebarMenuButton>
+    <SidebarMenuItem style={{marginLeft: `${level}em`}}>
+      <SidebarMenuButton asChild>
+        <div>{title}</div>
+      </SidebarMenuButton>
+      {actions && actions.length > 0 && ( // Render dropdown only if actions are provided
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuAction>
@@ -25,17 +32,14 @@ export function AppSidebarItem({title, level}: AppSidebarItemProps) {
             </SidebarMenuAction>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" align="start">
-            <DropdownMenuItem>
-              <span>Doc</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <span>URL</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <span>File</span>
-            </DropdownMenuItem>
+            {actions.map((action, index) => (
+              <DropdownMenuItem key={index} onClick={action.onClick}>
+                <span>{action.label}</span>
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
-      </SidebarMenuItem>
-  )
+      )}
+    </SidebarMenuItem>
+  );
 }
