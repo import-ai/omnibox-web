@@ -1,7 +1,12 @@
-import { useEffect, useState, useCallback } from "react";
-import { Search, ChevronRight, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-
+import { MoreHorizontal, Search } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -10,135 +15,80 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { AppSidebarItem } from "@/components/app-sidebar-item";
 
-interface Resource {
+// Define the Resource type
+type Resource = {
   id: string;
   name: string;
-  resourceType: string;
-  space: string;
-  childCount: number;
-  children?: Resource[];
-  isExpanded?: boolean; // 是否展开
-  isLoading?: boolean; // 是否加载中
-}
+  // Add other properties if needed
+};
 
-const NAMESPACE = "test";
+const fetchResources = async (namespace: string, spaceType: string, parentId: string | null = null) => {
+  const response = await axios.get(
+    `/api/v1/resources?namespace=${namespace}&spaceType=${spaceType}${parentId ? `&parentId=${parentId}` : ""}`
+  );
+  return response.data;
+};
 
 export function AppSidebar() {
-  const [resources, setResources] = useState<Resource[]>([]);
+  const [privateResources, setPrivateResources] = useState<Resource[]>([]);
+  const [teamspaceResources, setTeamspaceResources] = useState<Resource[]>([]);
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, Resource[] | null>>({});
 
-  // Fetch child resources for a given parent
-  const fetchResources = useCallback(async (namespace: string, parentId?: string) => {
-    try {
-      const response = await axios.get(`/api/v1/resources`, { params: { namespace, parentId } });
-      const data: Resource[] = response.data;
-      console.log(data[0]);
-      return data;
-    } catch (error) {
-      console.error("Failed to fetch resources:", error);
-      return [];
-    }
+  useEffect(() => {
+    const loadInitialData = async () => {
+      const privateData = await fetchResources("test", "private");
+      setPrivateResources(privateData);
+
+      const teamspaceData = await fetchResources("test", "teamspace");
+      setTeamspaceResources(teamspaceData);
+    };
+
+    loadInitialData().then();
   }, []);
 
-  // Toggle expand/collapse for a specific resource
-  const toggleExpand = useCallback(
-    async (resourceId: string) => {
-      setResources((prev) => {
-        const toggleNode = (nodes: Resource[]): Resource[] => {
-          return nodes.map((node) => {
-            if (node.id === resourceId) {
-              // Toggle expanded state
-              const isExpanding = !node.isExpanded;
-              return {
-                ...node,
-                isExpanded: isExpanding,
-                isLoading: isExpanding && !node.children, // Start loading if expanding and no children
-              };
-            } else if (node.children) {
-              return {
-                ...node,
-                children: toggleNode(node.children),
-              };
-            }
-            return node;
-          });
-        };
-        return toggleNode(prev);
-      });
+  const handleExpand = async (namespace: string, spaceType: string, parentId: string) => {
+    if (!expandedNodes[parentId]) {
+      const childData = await fetchResources(namespace, spaceType, parentId);
+      setExpandedNodes((prev) => ({
+        ...prev,
+        [parentId]: childData,
+      }));
+    } else {
+      setExpandedNodes((prev) => ({
+        ...prev,
+        [parentId]: null, // Collapse the node
+      }));
+    }
+  };
 
-      // If expanding and no children loaded, fetch them
-      setResources((prev) => {
-        const addChildren = (nodes: Resource[]): Resource[] => {
-          return nodes.map((node) => {
-            if (node.id === resourceId && node.isExpanded && !node.children) {
-              fetchResources(NAMESPACE, resourceId).then((children) => {
-                setResources((current) => {
-                  const updateTree = (tree: Resource[]): Resource[] => {
-                    return tree.map((item) => {
-                      if (item.id === resourceId) {
-                        return {
-                          ...item,
-                          children,
-                          isLoading: false,
-                        };
-                      } else if (item.children) {
-                        return {
-                          ...item,
-                          children: updateTree(item.children),
-                        };
-                      }
-                      return item;
-                    });
-                  };
-                  return updateTree(current);
-                });
-              });
-            }
-            return node;
-          });
-        };
-        return addChildren(prev);
-      });
-    },
-    [fetchResources]
-  );
-
-  // Fetch root resources on initial load
-  useEffect(() => {
-    fetchResources(NAMESPACE).then((data) => setResources(data));
-  }, [fetchResources]);
-
-  // Recursive function to render resources
-  const renderResources = (resources: Resource[], level: number = 0) => {
-    return resources.map((resource) => (
-      <div key={resource.id}>
-        <AppSidebarItem
-          level={level}
-          title={
-            <div
-              style={{ display: "flex", alignItems: "center", cursor: resource.childCount > 0 ? "pointer" : "default" }}
-              onClick={resource.childCount > 0 ? () => toggleExpand(resource.id) : undefined}
-            >
-              {resource.childCount > 0 ? (
-                resource.isExpanded ? <ChevronDown /> : <ChevronRight />
-              ) : null}
-              <span style={{ marginLeft: 8 }}>{resource.name}</span>
-            </div>
-          }
-        />
-        {resource.isExpanded && resource.children && (
-          <SidebarMenu>
-            {renderResources(resource.children, level + 1)}
-          </SidebarMenu>
-        )}
-        {resource.isExpanded && resource.isLoading && (
-          <p style={{ marginLeft: 16 }}>Loading...</p>
-        )}
-      </div>
+  const renderResources = (resources: Resource[], namespace: string, spaceType: string, level: number = 0) => {
+    return resources.map((resource: Resource) => (
+      <SidebarMenuItem key={resource.id} style={{ marginLeft: `${level}em` }}>
+        <SidebarMenuButton asChild>
+          <p onClick={() => handleExpand(namespace, spaceType, resource.id)}>
+            {resource.name}
+          </p>
+        </SidebarMenuButton>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuAction>
+              <MoreHorizontal />
+            </SidebarMenuAction>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="right" align="start">
+            <DropdownMenuItem>Create Document</DropdownMenuItem>
+            <DropdownMenuItem>Upload File</DropdownMenuItem>
+            <DropdownMenuItem>Add Link</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {expandedNodes[resource.id] &&
+          renderResources(expandedNodes[resource.id] as Resource[], namespace, spaceType, level + 1)}
+      </SidebarMenuItem>
     ));
   };
 
@@ -160,11 +110,18 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Private</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>{renderResources(resources)}</SidebarMenu>
+            <SidebarMenu>
+              {renderResources(privateResources, "test", "private")}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Teamspace</SidebarGroupLabel>
+          <SidebarGroupLabel>teamspace</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {renderResources(teamspaceResources, "test", "teamspace")}
+            </SidebarMenu>
+          </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
