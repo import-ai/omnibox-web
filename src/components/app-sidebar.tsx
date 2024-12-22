@@ -123,20 +123,27 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
     )
   }
 
+  function Space({spaceType}: {spaceType: string}) {
+    const spaceTitle = `${spaceType.charAt(0).toUpperCase()}${spaceType.slice(1)}`
+    return (
+      <SidebarGroup>
+        <SidebarGroupLabel>{spaceTitle}</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {(child[rootResourceId[spaceType]] ?? []).map((resource) => (
+              <Tree key={resource.id} resource={resource} namespace={"test"} spaceType={spaceType}/>
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    )
+  }
+
   return (
     <Sidebar {...props}>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Private</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {(child[rootResourceId["private"]] ?? []).map((resource) => (
-                <Tree key={resource.id} resource={resource} namespace={"test"} spaceType={"private"}/>
-              ))
-              }
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <Space spaceType={"private"}/>
+        <Space spaceType={"teamspace"}/>
       </SidebarContent>
       <SidebarRail/>
     </Sidebar>
