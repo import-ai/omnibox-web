@@ -1,24 +1,21 @@
-import {useState, useEffect} from "react";
+import * as React from "react"
 import axios from "axios";
-import {MoreHorizontal, Search, ChevronRight, ChevronDown} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import {ChevronRight, File, Folder} from "lucide-react"
+
+import {Collapsible, CollapsibleContent, CollapsibleTrigger,} from "@/components/ui/collapsible"
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+  SidebarMenuSub,
+  SidebarRail,
+} from "@/components/ui/sidebar"
+
 
 type Resource = {
   id: string;
@@ -34,10 +31,11 @@ const fetchResources = async (namespace: string, spaceType: string, parentId: st
   return response.data;
 };
 
-export function AppSidebar({ setSelectedResource }: { setSelectedResource: (id: string) => void }) {
-  const [rootResourceId, setRootResourceId] = useState<Record<string, string>>({});
-  const [isExpanded, setIsExpanded] = useState<Record<string, boolean>>({});
-  const [child, setChild] = useState<Record<string, Resource[]>>({});
+export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
+  const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});  //
+  const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
+  const [isActivated, setIsActivated] = React.useState<Record<string, boolean>>({});  // key: resourceId
+  const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
 
   const updateChild = (resourceId: string, resources: Resource[]) => {
     setChild((prev) => ({
@@ -50,9 +48,14 @@ export function AppSidebar({ setSelectedResource }: { setSelectedResource: (id: 
         [resourceId]: false
       }));
     }
+    for (const resource of resources) {
+      if (!(resource.id in isActivated)) {
+        setIsActivated((prev) => ({...prev, [resource.id]: false}))
+      }
+    }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     const loadInitialData = async () => {
       for (const spaceType of ["private", "teamspace"]) {
         const resources: Resource[] = await fetchResources("test", spaceType);
@@ -81,81 +84,80 @@ export function AppSidebar({ setSelectedResource }: { setSelectedResource: (id: 
     }));
   };
 
-  const renderResources = (resources: Resource[], namespace: string, spaceType: string, level: number = 0) => {
-    return (resources ?? []).map((resource: Resource) => (
-      <SidebarMenuItem key={resource.id} style={{marginLeft: `${level}em`}}>
-        <SidebarMenuButton asChild>
-          <div style={{ userSelect: 'none', border: 'none' }}>
-            {resource.childCount > 0 && (
-              <a
-                onClick={() => handleExpand(namespace, spaceType, resource.id)}
-                style={{ cursor: 'pointer' }}
-              >
-                {isExpanded[resource.id] ? <ChevronDown/> : <ChevronRight/>}
-              </a>
-            )}
-            <a
-              onClick={() => handleTextClick(resource.id)}
-              style={{ cursor: 'pointer' }}
-            >
-              <span>{resource.name}</span>
-            </a>
-          </div>
-        </SidebarMenuButton>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuAction>
-              <MoreHorizontal/>
-            </SidebarMenuAction>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="start">
-            <DropdownMenuItem>Create Document</DropdownMenuItem>
-            <DropdownMenuItem>Upload File</DropdownMenuItem>
-            <DropdownMenuItem>Add Link</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        {child[resource.id] && isExpanded[resource.id] && renderResources(child[resource.id], namespace, spaceType, level + 1)}
-      </SidebarMenuItem>
-    ));
-  };
+  const handleActivate = (resourceId: string): void => {
+    setIsActivated((prev) => ({...prev, [resourceId]: true}))
+  }
 
-  const handleTextClick = (resourceId: string) => {
-    console.log(`Text clicked for resource: ${resourceId}`);
-    setSelectedResource(resourceId);
-  };
+  function Tree({namespace, spaceType, resource}: { namespace: string, spaceType: string, resource: Resource }) {
+    if (resource.childCount > 0) {
+      return (
+        <SidebarMenuItem onClick={() => handleActivate(resource.id)}>
+          <Collapsible
+            className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
+            open={isExpanded[resource.id]}
+          >
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton isActive={isActivated[resource.id]}>
+                <ChevronRight
+                  className="transition-transform"
+                  onClick={() => handleExpand(namespace, spaceType, resource.id)}
+                />
+                <Folder/>
+                {resource.name}
+              </SidebarMenuButton>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarMenuSub>
+                {(child[resource.id] ?? []).length > 0 &&
+                  child[resource.id].map((resource: Resource) => (
+                    <Tree key={resource.id} resource={resource} namespace={namespace} spaceType={spaceType}/>
+                  ))
+                }
+              </SidebarMenuSub>
+            </CollapsibleContent>
+          </Collapsible>
+        </SidebarMenuItem>
+      )
+    }
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          className="data-[active=true]:bg-transparent"
+          isActive={isActivated[resource.id]}
+          onClick={() => handleActivate(resource.id)}
+        >
+          <File/>
+          {resource.name}
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    )
+  }
+
+  function Space({spaceType}: { spaceType: string }) {
+    const spaceTitle = `${spaceType.charAt(0).toUpperCase()}${spaceType.slice(1)}`
+    return (
+      <SidebarGroup>
+        <SidebarGroupLabel>{spaceTitle}</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {(child[rootResourceId[spaceType]] ?? []).map((resource) => (
+              <Tree key={resource.id} resource={resource} namespace={"test"} spaceType={spaceType}/>
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    )
+  }
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <p>
-                <Search/>
-                <span>Search</span>
-              </p>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+    <Sidebar {...props}>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Private</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {renderResources(child[rootResourceId["private"]], "test", "private")}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>teamspace</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {renderResources(child[rootResourceId["teamspace"]], "test", "teamspace")}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <Space spaceType={"private"}/>
+        <Space spaceType={"teamspace"}/>
       </SidebarContent>
+      <SidebarRail/>
     </Sidebar>
-  );
+  )
 }
+
+
