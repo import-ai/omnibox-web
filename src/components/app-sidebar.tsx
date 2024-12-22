@@ -2,11 +2,7 @@ import * as React from "react"
 import axios from "axios";
 import {ChevronRight, File, Folder} from "lucide-react"
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import {Collapsible, CollapsibleContent, CollapsibleTrigger,} from "@/components/ui/collapsible"
 import {
   Sidebar,
   SidebarContent,
@@ -38,6 +34,7 @@ const fetchResources = async (namespace: string, spaceType: string, parentId: st
 export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
   const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});  //
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
+  const [isActivated, setIsActivated] = React.useState<Record<string, boolean>>({});  // key: resourceId
   const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
 
   const updateChild = (resourceId: string, resources: Resource[]) => {
@@ -50,6 +47,11 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
         ...prev,
         [resourceId]: false
       }));
+    }
+    for (const resource of resources) {
+      if (!(resource.id in isActivated)) {
+        setIsActivated((prev) => ({...prev, [resource.id]: false}))
+      }
     }
   };
 
@@ -82,16 +84,20 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
     }));
   };
 
+  const handleActivate = (resourceId: string): void => {
+    setIsActivated((prev) => ({...prev, [resourceId]: true}))
+  }
+
   function Tree({namespace, spaceType, resource}: { namespace: string, spaceType: string, resource: Resource }) {
     if (resource.childCount > 0) {
       return (
-        <SidebarMenuItem>
+        <SidebarMenuItem onClick={() => handleActivate(resource.id)}>
           <Collapsible
             className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
             open={isExpanded[resource.id]}
           >
             <CollapsibleTrigger asChild>
-              <SidebarMenuButton>
+              <SidebarMenuButton isActive={isActivated[resource.id]}>
                 <ChevronRight
                   className="transition-transform"
                   onClick={() => handleExpand(namespace, spaceType, resource.id)}
@@ -114,16 +120,20 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
       )
     }
     return (
-      <SidebarMenuButton
-        className="data-[active=true]:bg-transparent"
-      >
-        <File/>
-        {resource.name}
-      </SidebarMenuButton>
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          className="data-[active=true]:bg-transparent"
+          isActive={isActivated[resource.id]}
+          onClick={() => handleActivate(resource.id)}
+        >
+          <File/>
+          {resource.name}
+        </SidebarMenuButton>
+      </SidebarMenuItem>
     )
   }
 
-  function Space({spaceType}: {spaceType: string}) {
+  function Space({spaceType}: { spaceType: string }) {
     const spaceTitle = `${spaceType.charAt(0).toUpperCase()}${spaceType.slice(1)}`
     return (
       <SidebarGroup>
