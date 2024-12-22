@@ -1,5 +1,6 @@
 import * as React from "react"
-import { ChevronRight, File, Folder } from "lucide-react"
+import axios from "axios";
+import {ChevronRight, File, Folder} from "lucide-react"
 
 import {
   Collapsible,
@@ -64,78 +65,106 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type Resource = {
+  id: string;
+  name: string;
+  parentId: string;
+  childCount: number;
+};
+
+const fetchResources = async (namespace: string, spaceType: string, parentId: string | null = null): Promise<Resource[]> => {
+  const response = await axios.get(
+    `/api/v1/resources?namespace=${namespace}&spaceType=${spaceType}${parentId ? `&parentId=${parentId}` : ""}`
+  );
+  return response.data;
+};
+
+export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
+  const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});  //
+  const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
+  const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
+
+  const updateChild = (resourceId: string, resources: Resource[]) => {
+    setChild((prev) => ({
+      ...prev,
+      [resourceId]: resources
+    }));
+    if (!(resourceId in isExpanded)) {
+      setIsExpanded((prev) => ({
+        ...prev,
+        [resourceId]: false
+      }));
+    }
+  };
+
+  React.useEffect(() => {
+    const loadInitialData = async () => {
+      for (const spaceType of ["private", "teamspace"]) {
+        const resources: Resource[] = await fetchResources("test", spaceType);
+        if (resources.length > 0) {
+          const parentId = resources[0].parentId;
+          updateChild(parentId, resources);
+          setRootResourceId((prev) => ({...prev, [spaceType]: parentId}));
+        }
+      }
+    };
+
+    loadInitialData()
+  }, []);
+
   return (
     <Sidebar {...props}>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Changes</SidebarGroupLabel>
+          <SidebarGroupLabel>Private</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.changes.map((item, index) => (
-                <SidebarMenuItem key={index}>
-                  <SidebarMenuButton>
-                    <File />
-                    {item.file}
-                  </SidebarMenuButton>
-                  <SidebarMenuBadge>{item.state}</SidebarMenuBadge>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Files</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {data.tree.map((item, index) => (
-                <Tree key={index} item={item} />
-              ))}
+              {(child[rootResourceId["private"]] ?? []).map((resource) => (
+                <Tree key={resource.id} resource={resource} child={child}/>
+              ))
+              }
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarRail />
+      <SidebarRail/>
     </Sidebar>
   )
 }
 
-function Tree({ item }: { item: string | any[] }) {
-  const [name, ...items] = Array.isArray(item) ? item : [item]
-
-  if (!items.length) {
+function Tree({resource, child}: { resource: Resource, child: Record<string, Resource[]> }) {
+  if (resource.childCount > 0) {
     return (
-      <SidebarMenuButton
-        isActive={name === "button.tsx"}
-        className="data-[active=true]:bg-transparent"
-      >
-        <File />
-        {name}
-      </SidebarMenuButton>
+      <SidebarMenuItem>
+        <Collapsible
+          className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
+        >
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton>
+              <ChevronRight className="transition-transform"/>
+              <Folder/>
+              {resource.name}
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SidebarMenuSub>
+              {(child[resource.id] ?? []).length > 0 &&
+                child[resource.id].map((resource: Resource) => (
+                  <Tree key={resource.id} resource={resource} child={child}/>
+                ))
+              }
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        </Collapsible>
+      </SidebarMenuItem>
     )
   }
-
   return (
-    <SidebarMenuItem>
-      <Collapsible
-        className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
-        defaultOpen={name === "components" || name === "ui"}
-      >
-        <CollapsibleTrigger asChild>
-          <SidebarMenuButton>
-            <ChevronRight className="transition-transform" />
-            <Folder />
-            {name}
-          </SidebarMenuButton>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <SidebarMenuSub>
-            {items.map((subItem, index) => (
-              <Tree key={index} item={subItem} />
-            ))}
-          </SidebarMenuSub>
-        </CollapsibleContent>
-      </Collapsible>
-    </SidebarMenuItem>
+    <SidebarMenuButton
+      className="data-[active=true]:bg-transparent"
+    >
+      <File/>
+      {resource.name}
+    </SidebarMenuButton>
   )
 }
