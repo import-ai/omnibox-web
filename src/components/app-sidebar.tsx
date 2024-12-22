@@ -1,161 +1,141 @@
-import {useState, useEffect} from "react";
-import axios from "axios";
-import {MoreHorizontal, Search, ChevronRight, ChevronDown} from "lucide-react";
+import * as React from "react"
+import { ChevronRight, File, Folder } from "lucide-react"
+
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+  SidebarMenuSub,
+  SidebarRail,
+} from "@/components/ui/sidebar"
 
-type Resource = {
-  id: string;
-  name: string;
-  parentId: string;
-  childCount: number;
-};
+// This is sample data.
+const data = {
+  changes: [
+    {
+      file: "README.md",
+      state: "M",
+    },
+    {
+      file: "api/hello/route.ts",
+      state: "U",
+    },
+    {
+      file: "app/layout.tsx",
+      state: "M",
+    },
+  ],
+  tree: [
+    [
+      "app",
+      [
+        "api",
+        ["hello", ["route.ts"]],
+        "page.tsx",
+        "layout.tsx",
+        ["blog", ["page.tsx"]],
+      ],
+    ],
+    [
+      "components",
+      ["ui", "button.tsx", "card.tsx"],
+      "header.tsx",
+      "footer.tsx",
+    ],
+    ["lib", ["util.ts"]],
+    ["public", "favicon.ico", "vercel.svg"],
+    ".eslintrc.json",
+    ".gitignore",
+    "next.config.js",
+    "tailwind.config.js",
+    "package.json",
+    "README.md",
+  ],
+}
 
-const fetchResources = async (namespace: string, spaceType: string, parentId: string | null = null): Promise<Resource[]> => {
-  const response = await axios.get(
-    `/api/v1/resources?namespace=${namespace}&spaceType=${spaceType}${parentId ? `&parentId=${parentId}` : ""}`
-  );
-  return response.data;
-};
-
-export function AppSidebar({ setSelectedResource }: { setSelectedResource: (id: string) => void }) {
-  const [rootResourceId, setRootResourceId] = useState<Record<string, string>>({});
-  const [isExpanded, setIsExpanded] = useState<Record<string, boolean>>({});
-  const [child, setChild] = useState<Record<string, Resource[]>>({});
-
-  const updateChild = (resourceId: string, resources: Resource[]) => {
-    setChild((prev) => ({
-      ...prev,
-      [resourceId]: resources
-    }));
-    if (!(resourceId in isExpanded)) {
-      setIsExpanded((prev) => ({
-        ...prev,
-        [resourceId]: false
-      }));
-    }
-  };
-
-  useEffect(() => {
-    const loadInitialData = async () => {
-      for (const spaceType of ["private", "teamspace"]) {
-        const resources: Resource[] = await fetchResources("test", spaceType);
-        if (resources.length > 0) {
-          const parentId = resources[0].parentId;
-          updateChild(parentId, resources);
-          setRootResourceId((prev) => ({...prev, [spaceType]: parentId}));
-        }
-      }
-    };
-
-    loadInitialData()
-  }, []);
-
-  const handleExpand = async (namespace: string, spaceType: string, parentId: string) => {
-    if (!(parentId in child)) {
-      const childData = await fetchResources(namespace, spaceType, parentId);
-      setChild((prev) => ({
-        ...prev,
-        [parentId]: childData,
-      }));
-    }
-    setIsExpanded((prev) => ({
-      ...prev,
-      [parentId]: !isExpanded[parentId]
-    }));
-  };
-
-  const renderResources = (resources: Resource[], namespace: string, spaceType: string, level: number = 0) => {
-    return (resources ?? []).map((resource: Resource) => (
-      <SidebarMenuItem key={resource.id} style={{marginLeft: `${level}em`}}>
-        <SidebarMenuButton asChild>
-          <div style={{ userSelect: 'none', border: 'none' }}>
-            {resource.childCount > 0 && (
-              <a
-                onClick={() => handleExpand(namespace, spaceType, resource.id)}
-                style={{ cursor: 'pointer' }}
-              >
-                {isExpanded[resource.id] ? <ChevronDown/> : <ChevronRight/>}
-              </a>
-            )}
-            <a
-              onClick={() => handleTextClick(resource.id)}
-              style={{ cursor: 'pointer' }}
-            >
-              <span>{resource.name}</span>
-            </a>
-          </div>
-        </SidebarMenuButton>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuAction>
-              <MoreHorizontal/>
-            </SidebarMenuAction>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="start">
-            <DropdownMenuItem>Create Document</DropdownMenuItem>
-            <DropdownMenuItem>Upload File</DropdownMenuItem>
-            <DropdownMenuItem>Add Link</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        {child[resource.id] && isExpanded[resource.id] && renderResources(child[resource.id], namespace, spaceType, level + 1)}
-      </SidebarMenuItem>
-    ));
-  };
-
-  const handleTextClick = (resourceId: string) => {
-    console.log(`Text clicked for resource: ${resourceId}`);
-    setSelectedResource(resourceId);
-  };
-
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <p>
-                <Search/>
-                <span>Search</span>
-              </p>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+    <Sidebar {...props}>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Private</SidebarGroupLabel>
+          <SidebarGroupLabel>Changes</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {renderResources(child[rootResourceId["private"]], "test", "private")}
+              {data.changes.map((item, index) => (
+                <SidebarMenuItem key={index}>
+                  <SidebarMenuButton>
+                    <File />
+                    {item.file}
+                  </SidebarMenuButton>
+                  <SidebarMenuBadge>{item.state}</SidebarMenuBadge>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>teamspace</SidebarGroupLabel>
+          <SidebarGroupLabel>Files</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {renderResources(child[rootResourceId["teamspace"]], "test", "teamspace")}
+              {data.tree.map((item, index) => (
+                <Tree key={index} item={item} />
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarRail />
     </Sidebar>
-  );
+  )
+}
+
+function Tree({ item }: { item: string | any[] }) {
+  const [name, ...items] = Array.isArray(item) ? item : [item]
+
+  if (!items.length) {
+    return (
+      <SidebarMenuButton
+        isActive={name === "button.tsx"}
+        className="data-[active=true]:bg-transparent"
+      >
+        <File />
+        {name}
+      </SidebarMenuButton>
+    )
+  }
+
+  return (
+    <SidebarMenuItem>
+      <Collapsible
+        className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
+        defaultOpen={name === "components" || name === "ui"}
+      >
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton>
+            <ChevronRight className="transition-transform" />
+            <Folder />
+            {name}
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {items.map((subItem, index) => (
+              <Tree key={index} item={subItem} />
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </Collapsible>
+    </SidebarMenuItem>
+  )
 }
