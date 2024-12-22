@@ -34,7 +34,7 @@ const fetchResources = async (namespace: string, spaceType: string, parentId: st
   return response.data;
 };
 
-export function AppSidebar() {
+export function AppSidebar({ setSelectedResource }: { setSelectedResource: (id: string) => void }) {
   const [rootResourceId, setRootResourceId] = useState<Record<string, string>>({});
   const [isExpanded, setIsExpanded] = useState<Record<string, boolean>>({});
   const [child, setChild] = useState<Record<string, Resource[]>>({});
@@ -121,7 +121,7 @@ export function AppSidebar() {
 
   const handleTextClick = (resourceId: string) => {
     console.log(`Text clicked for resource: ${resourceId}`);
-    // Add your logic here for what should happen when the text is clicked
+    setSelectedResource(resourceId);
   };
 
   return (
