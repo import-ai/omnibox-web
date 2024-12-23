@@ -1,7 +1,7 @@
 import * as React from "react"
-import {useParams} from "react-router"
 import axios from "axios";
 import {ChevronRight, File, Folder} from "lucide-react"
+import {Link} from "react-router";
 
 import {Collapsible, CollapsibleContent, CollapsibleTrigger,} from "@/components/ui/collapsible"
 import {
@@ -16,42 +16,36 @@ import {
   SidebarMenuSub,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import {Resource} from "@/types/resources"
+import {Resource} from "@/types/resource"
 
 
 const baseUrl = "/api/v1/resources"
 const spaceTypes = ["private", "teamspace"]
 
-export function AppSidebar() {
+export function MainSidebar({payload}: { payload: { namespace: string, resource?: Resource } }) {
   const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
-  const [isActivated, setIsActivated] = React.useState<Record<string, boolean>>({});  // key: resourceId
   const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
-  const urlParams = useParams();
-  const meta = {
-    namespace: urlParams.namespace ?? "",
-    resourceId: urlParams.resourceId ?? ""
-  }
 
   const updateChild = (resourceId: string, resources: Resource[]) => {
     setChild((prev) => ({...prev, [resourceId]: resources}));
     if (!(resourceId in isExpanded)) {
       setIsExpanded((prev) => ({...prev, [resourceId]: false}));
     }
-    for (const resource of resources) {
-      if (!(resource.id in isActivated)) {
-        setIsActivated((prev) => ({...prev, [resource.id]: false}))
-      }
-    }
   };
 
   React.useEffect(() => {
-    for (const setter of [setRootResourceId, setIsExpanded, setIsActivated, setChild]) {
+    console.log("resourceId", payload.resource?.id);
+  }, [payload.resource?.id])
+
+  React.useEffect(() => {
+    console.log("namespace", payload.namespace);
+    for (const setter of [setRootResourceId, setIsExpanded, setChild]) {
       setter({});
     }
 
     for (const spaceType of spaceTypes) {
-      axios.get(baseUrl, {params: {namespace: meta.namespace, spaceType}}).then(response => {
+      axios.get(baseUrl, {params: {namespace: payload.namespace, spaceType}}).then(response => {
         const resources: Resource[] = response.data;
         if (resources.length > 0) {
           const parentId = resources[0].parentId;
@@ -60,7 +54,14 @@ export function AppSidebar() {
         }
       })
     }
-  }, [meta.namespace]);
+  }, [payload.namespace]);
+
+  const expand = (resourceId: string) => {
+    setIsExpanded((prev) => ({
+      ...prev,
+      [resourceId]: !isExpanded[resourceId]
+    }));
+  }
 
   const handleExpand = async (namespace: string, spaceType: string, parentId: string) => {
     if (!(parentId in child)) {
@@ -70,32 +71,26 @@ export function AppSidebar() {
           ...prev,
           [parentId]: childData,
         }));
+        expand(parentId);
       })
+    } else {
+      expand(parentId);
     }
-    setIsExpanded((prev) => ({
-      ...prev,
-      [parentId]: !isExpanded[parentId]
-    }));
+
   };
 
-  const handleActivate = (resourceId: string): void => {
-    setIsActivated((prev) => ({...prev, [resourceId]: true}))
-  }
 
   function Tree({namespace, spaceType, resource}: { namespace: string, spaceType: string, resource: Resource }) {
     if (resource.childCount > 0) {
       return (
-        <SidebarMenuItem onClick={() => handleActivate(resource.id)}>
+        <SidebarMenuItem>
           <Collapsible
             className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
             open={isExpanded[resource.id]}
           >
             <CollapsibleTrigger asChild>
-              <SidebarMenuButton isActive={resource.id == meta.resourceId}>
-                <ChevronRight
-                  className="transition-transform"
-                  onClick={() => handleExpand(namespace, spaceType, resource.id)}
-                />
+              <SidebarMenuButton onClick={() => handleExpand(namespace, spaceType, resource.id)}>
+                <ChevronRight className="transition-transform"/>
                 <Folder/>
                 {resource.name}
               </SidebarMenuButton>
@@ -117,11 +112,13 @@ export function AppSidebar() {
       <SidebarMenuItem>
         <SidebarMenuButton
           className="data-[active=true]:bg-transparent"
-          isActive={resource.id == meta.resourceId}
-          onClick={() => handleActivate(resource.id)}
+          isActive={resource.id == payload.resource?.id}
+          asChild
         >
-          <File/>
-          {resource.name}
+          <Link to={`/${payload.namespace}/${resource.id}`}>
+            <File/>
+            {resource.name}
+          </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
     )
@@ -147,7 +144,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         {spaceTypes.map((spaceType: string, index: number) => (
-          <Space key={index} spaceType={spaceType} namespace={meta.namespace}/>
+          <Space key={index} spaceType={spaceType} namespace={payload.namespace}/>
         ))}
       </SidebarContent>
       <SidebarRail/>
