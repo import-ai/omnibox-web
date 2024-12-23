@@ -1,6 +1,7 @@
 import * as React from "react"
 import axios from "axios";
 import {ChevronRight, File, Folder} from "lucide-react"
+import {Link} from "react-router";
 
 import {Collapsible, CollapsibleContent, CollapsibleTrigger,} from "@/components/ui/collapsible"
 import {
@@ -15,93 +16,81 @@ import {
   SidebarMenuSub,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import {Resource} from "@/types/resource"
 
 
-type Resource = {
-  id: string;
-  name: string;
-  parentId: string;
-  childCount: number;
-};
+const baseUrl = "/api/v1/resources"
+const spaceTypes = ["private", "teamspace"]
 
-const fetchResources = async (namespace: string, spaceType: string, parentId: string | null = null): Promise<Resource[]> => {
-  const response = await axios.get(
-    `/api/v1/resources?namespace=${namespace}&spaceType=${spaceType}${parentId ? `&parentId=${parentId}` : ""}`
-  );
-  return response.data;
-};
-
-export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
-  const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});  //
+export function MainSidebar({payload}: { payload: { namespace: string, resource?: Resource } }) {
+  const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
-  const [isActivated, setIsActivated] = React.useState<Record<string, boolean>>({});  // key: resourceId
   const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
 
   const updateChild = (resourceId: string, resources: Resource[]) => {
-    setChild((prev) => ({
-      ...prev,
-      [resourceId]: resources
-    }));
+    setChild((prev) => ({...prev, [resourceId]: resources}));
     if (!(resourceId in isExpanded)) {
-      setIsExpanded((prev) => ({
-        ...prev,
-        [resourceId]: false
-      }));
-    }
-    for (const resource of resources) {
-      if (!(resource.id in isActivated)) {
-        setIsActivated((prev) => ({...prev, [resource.id]: false}))
-      }
+      setIsExpanded((prev) => ({...prev, [resourceId]: false}));
     }
   };
 
   React.useEffect(() => {
-    const loadInitialData = async () => {
-      for (const spaceType of ["private", "teamspace"]) {
-        const resources: Resource[] = await fetchResources("test", spaceType);
+    console.log("resourceId", payload.resource?.id);
+  }, [payload.resource?.id])
+
+  React.useEffect(() => {
+    console.log("namespace", payload.namespace);
+    for (const setter of [setRootResourceId, setIsExpanded, setChild]) {
+      setter({});
+    }
+
+    for (const spaceType of spaceTypes) {
+      axios.get(baseUrl, {params: {namespace: payload.namespace, spaceType}}).then(response => {
+        const resources: Resource[] = response.data;
         if (resources.length > 0) {
           const parentId = resources[0].parentId;
           updateChild(parentId, resources);
           setRootResourceId((prev) => ({...prev, [spaceType]: parentId}));
         }
-      }
-    };
+      })
+    }
+  }, [payload.namespace]);
 
-    loadInitialData()
-  }, []);
+  const expand = (resourceId: string) => {
+    setIsExpanded((prev) => ({
+      ...prev,
+      [resourceId]: !isExpanded[resourceId]
+    }));
+  }
 
   const handleExpand = async (namespace: string, spaceType: string, parentId: string) => {
     if (!(parentId in child)) {
-      const childData = await fetchResources(namespace, spaceType, parentId);
-      setChild((prev) => ({
-        ...prev,
-        [parentId]: childData,
-      }));
+      axios.get(baseUrl, {params: {namespace, spaceType, parentId}}).then(response => {
+        const childData: Resource[] = response.data;
+        setChild((prev) => ({
+          ...prev,
+          [parentId]: childData,
+        }));
+        expand(parentId);
+      })
+    } else {
+      expand(parentId);
     }
-    setIsExpanded((prev) => ({
-      ...prev,
-      [parentId]: !isExpanded[parentId]
-    }));
+
   };
 
-  const handleActivate = (resourceId: string): void => {
-    setIsActivated((prev) => ({...prev, [resourceId]: true}))
-  }
 
   function Tree({namespace, spaceType, resource}: { namespace: string, spaceType: string, resource: Resource }) {
     if (resource.childCount > 0) {
       return (
-        <SidebarMenuItem onClick={() => handleActivate(resource.id)}>
+        <SidebarMenuItem>
           <Collapsible
             className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
             open={isExpanded[resource.id]}
           >
             <CollapsibleTrigger asChild>
-              <SidebarMenuButton isActive={isActivated[resource.id]}>
-                <ChevronRight
-                  className="transition-transform"
-                  onClick={() => handleExpand(namespace, spaceType, resource.id)}
-                />
+              <SidebarMenuButton onClick={() => handleExpand(namespace, spaceType, resource.id)}>
+                <ChevronRight className="transition-transform"/>
                 <Folder/>
                 {resource.name}
               </SidebarMenuButton>
@@ -123,17 +112,19 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
       <SidebarMenuItem>
         <SidebarMenuButton
           className="data-[active=true]:bg-transparent"
-          isActive={isActivated[resource.id]}
-          onClick={() => handleActivate(resource.id)}
+          isActive={resource.id == payload.resource?.id}
+          asChild
         >
-          <File/>
-          {resource.name}
+          <Link to={`/${payload.namespace}/${resource.id}`}>
+            <File/>
+            {resource.name}
+          </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
     )
   }
 
-  function Space({spaceType}: { spaceType: string }) {
+  function Space({spaceType, namespace}: { spaceType: string, namespace: string }) {
     const spaceTitle = `${spaceType.charAt(0).toUpperCase()}${spaceType.slice(1)}`
     return (
       <SidebarGroup>
@@ -141,7 +132,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroupContent>
           <SidebarMenu>
             {(child[rootResourceId[spaceType]] ?? []).map((resource) => (
-              <Tree key={resource.id} resource={resource} namespace={"test"} spaceType={spaceType}/>
+              <Tree key={resource.id} resource={resource} namespace={namespace} spaceType={spaceType}/>
             ))}
           </SidebarMenu>
         </SidebarGroupContent>
@@ -150,10 +141,11 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar {...props}>
+    <Sidebar>
       <SidebarContent>
-        <Space spaceType={"private"}/>
-        <Space spaceType={"teamspace"}/>
+        {spaceTypes.map((spaceType: string, index: number) => (
+          <Space key={index} spaceType={spaceType} namespace={payload.namespace}/>
+        ))}
       </SidebarContent>
       <SidebarRail/>
     </Sidebar>
