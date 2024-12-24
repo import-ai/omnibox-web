@@ -14,8 +14,8 @@ export function ThemeToggle() {
 
   const themeClass = (targetTheme: string) => {
     return (currentTheme: string) => {
-      const opacity: string = currentTheme === targetTheme ? "100" : "0"
-      return `h-[1.2rem] w-[1.2rem] transition-all transform opacity-${opacity} scale-${opacity}`
+      const currentClass: string = currentTheme === targetTheme ? "opacity-100 scale-100": "opacity-0 scale-0"
+      return `h-[1.2rem] w-[1.2rem] transition-all transform ${currentClass}`
     }
   }
 
