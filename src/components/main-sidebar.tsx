@@ -34,8 +34,22 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
     }
   };
 
+  const expandToRoot = (resource: Resource) => {
+    if (resource.parentId != rootResourceId[resource.spaceType] && !isExpanded[resource.parentId]) {
+      fetchChild(payload.namespace, resource.spaceType, resource.parentId).then(() => {
+        setIsExpanded((prev) => ({...prev, [resource.parentId]: true}));
+        axios.get(`${baseUrl}/${resource.parentId}`).then((response) => {
+          expandToRoot(response.data);
+        })
+      })
+    }
+  }
+
   React.useEffect(() => {
-  }, [payload.resource?.id])
+    if (payload.resource) {
+      expandToRoot(payload.resource);
+    }
+  }, [payload.resource?.parentId])
 
   React.useEffect(() => {
     for (const spaceType of spaceTypes) {
@@ -56,14 +70,11 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
     }
   }, [payload.namespace]);
 
-  const expand = (resourceId: string) => {
-    setIsExpanded((prev) => ({
-      ...prev,
-      [resourceId]: !isExpanded[resourceId]
-    }));
+  const expandToggle = (resourceId: string) => {
+    setIsExpanded((prev) => ({...prev, [resourceId]: !prev[resourceId]}));
   }
 
-  const handleExpand = async (namespace: string, spaceType: string, parentId: string) => {
+  const fetchChild = async (namespace: string, spaceType: string, parentId: string) => {
     if (!(parentId in child)) {
       axios.get(baseUrl, {params: {namespace, spaceType, parentId}}).then(response => {
         const childData: Resource[] = response.data;
@@ -71,13 +82,9 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
           ...prev,
           [parentId]: childData,
         }));
-        expand(parentId);
       })
-    } else {
-      expand(parentId);
     }
-
-  };
+  }
 
 
   function Tree({namespace, spaceType, resource}: { namespace: string, spaceType: string, resource: Resource }) {
@@ -89,7 +96,9 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
             open={isExpanded[resource.id]}
           >
             <CollapsibleTrigger asChild>
-              <SidebarMenuButton onClick={() => handleExpand(namespace, spaceType, resource.id)}>
+              <SidebarMenuButton onClick={
+                () => fetchChild(namespace, spaceType, resource.id).then(() => expandToggle(resource.id))
+              }>
                 <ChevronRight className="transition-transform"/>
                 <Folder/>
                 {resource.name}
