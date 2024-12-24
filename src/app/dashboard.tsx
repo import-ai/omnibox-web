@@ -15,6 +15,7 @@ const baseUrl = "/api/v1/resources"
 export default function Dashboard() {
   const {namespace, resourceId} = useParams();
   const [resource, setResource] = React.useState<Resource>();
+  const [isEditMode, setIsEditMode] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     if (resourceId) {
@@ -25,6 +26,14 @@ export default function Dashboard() {
       })
     }
   }, [namespace, resourceId])
+
+  const handleEditOrSave = () => {
+    if (isEditMode) {
+      setIsEditMode(false);
+    } else {
+      setIsEditMode(true);
+    }
+  }
 
   return (
     <SidebarProvider>
@@ -45,7 +54,7 @@ export default function Dashboard() {
             </Breadcrumb>
           </div>
           <div className="ml-auto px-3">
-            <NavActions/>
+            <NavActions payload={{isEditMode, handleEditOrSave}}/>
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">

@@ -13,10 +13,11 @@ import {
   LineChart,
   Link,
   MoreHorizontal,
+  Pencil,
+  Save,
   Settings2,
-  Star,
   Trash,
-  Trash2,
+  Trash2
 } from "lucide-react"
 
 import {Button} from "@/components/ui/button"
@@ -95,7 +96,7 @@ const data = [
   ],
 ]
 
-export function NavActions() {
+export function NavActions({payload}: { payload: { isEditMode: boolean, handleEditOrSave: () => void } }) {
   const [isOpen, setIsOpen] = React.useState(false)
 
   return (
@@ -104,8 +105,8 @@ export function NavActions() {
         Edit Oct 08
       </div>
       <ModeToggle/>
-      <Button variant="ghost" size="icon" className="h-7 w-7">
-        <Star/>
+      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={payload.handleEditOrSave}>
+        {payload.isEditMode ? <Save/> : <Pencil/>}
       </Button>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
