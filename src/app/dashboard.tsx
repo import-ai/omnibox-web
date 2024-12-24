@@ -24,16 +24,22 @@ function Editor({resourceId, vd, setVd}: {
   const domId: string = "md-editor"
   const {theme} = useTheme();
 
-  const editorTheme = React.useMemo(() => {
+  const currentTheme = React.useMemo<string>((): string => {
     if (theme === "system") {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "classic"
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
     }
-    return theme == "dark" ? "dark": "classic";
-  }, [theme])
+    return theme == "dark" ? "dark": "light";
+  }, [theme]);
 
-  React.useEffect(() => {
-    vd?.setTheme(editorTheme);
-  }, [editorTheme])
+  const setVditorTheme = (v: Vditor | undefined, targetTheme: string) => {
+    v?.setTheme(
+      targetTheme === "dark" ? "dark" : "classic",
+      targetTheme,
+      targetTheme === "dark" ? "github-dark" : "github"
+    );
+  };
+
+  React.useEffect(() => setVditorTheme(vd, currentTheme), [currentTheme]);
 
   React.useEffect(() => {
     if (!resourceId) {
@@ -45,7 +51,7 @@ function Editor({resourceId, vd, setVd}: {
       const v = new Vditor(domId, {
         after: () => {
           v.setValue(resource.content ?? "");
-          v.setTheme(editorTheme);
+          setVditorTheme(v, currentTheme);
           setVd(v);
         },
       });
@@ -85,6 +91,11 @@ export default function Dashboard() {
       }).catch(error => {
         console.error(error);
       })
+    }
+
+    return () => {
+      setIsEditMode(false);
+      setResource(undefined);
     }
   }, [namespace, resourceId])
 
