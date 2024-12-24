@@ -35,15 +35,9 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
   };
 
   React.useEffect(() => {
-    console.log("resourceId", payload.resource?.id);
   }, [payload.resource?.id])
 
   React.useEffect(() => {
-    console.log("namespace", payload.namespace);
-    for (const setter of [setRootResourceId, setIsExpanded, setChild]) {
-      setter({});
-    }
-
     for (const spaceType of spaceTypes) {
       axios.get(baseUrl, {params: {namespace: payload.namespace, spaceType}}).then(response => {
         const resources: Resource[] = response.data;
@@ -53,6 +47,12 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
           setRootResourceId((prev) => ({...prev, [spaceType]: parentId}));
         }
       })
+    }
+
+    return () => {
+      for (const setter of [setRootResourceId, setIsExpanded, setChild]) {
+        setter({});
+      }
     }
   }, [payload.namespace]);
 

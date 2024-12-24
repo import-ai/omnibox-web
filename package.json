@@ -29,7 +29,8 @@
     "react-router": "^7.1.0",
     "remark-gfm": "^4.0.0",
     "tailwind-merge": "^2.5.5",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "vditor": "^3.10.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

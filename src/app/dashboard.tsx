@@ -1,7 +1,7 @@
 import {MainSidebar} from "@/components/main-sidebar"
 import {useParams} from "react-router";
 import * as React from "react";
-import {Resource} from "@/types/resource";
+import {type Resource} from "@/types/resource";
 import axios from "axios";
 import Markdown from "react-markdown";
 import {SidebarInset, SidebarProvider, SidebarTrigger,} from "@/components/ui/sidebar"
@@ -9,12 +9,80 @@ import {NavActions} from "@/components/nav-actions"
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage,} from "@/components/ui/breadcrumb"
 import {Separator} from "@/components/ui/separator"
 import remarkGfm from "remark-gfm";
+import Vditor from "vditor"
+import "vditor/dist/index.css"
+import "@/styles/vditor-patch.css"
+import {useTheme} from "@/components/theme-provider";
 
 const baseUrl = "/api/v1/resources"
+
+function Editor({resourceId, vd, setVd}: {
+  resourceId: string | undefined,
+  vd: Vditor | undefined,
+  setVd: React.Dispatch<React.SetStateAction<Vditor | undefined>>
+}) {
+  const domId: string = "md-editor"
+  const {theme} = useTheme();
+
+  const currentTheme = React.useMemo<string>((): string => {
+    if (theme === "system") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+    }
+    return theme == "dark" ? "dark": "light";
+  }, [theme]);
+
+  const setVditorTheme = (v: Vditor | undefined, targetTheme: string) => {
+    v?.setTheme(
+      targetTheme === "dark" ? "dark" : "classic",
+      targetTheme,
+      targetTheme === "dark" ? "github-dark" : "github"
+    );
+  };
+
+  React.useEffect(() => setVditorTheme(vd, currentTheme), [currentTheme]);
+
+  React.useEffect(() => {
+    if (!resourceId) {
+      throw new Error("Resource ID is required");
+    }
+
+    axios.get(`${baseUrl}/${resourceId}`).then(response => {
+      const resource: Resource = response.data;
+      const v = new Vditor(domId, {
+        after: () => {
+          v.setValue(resource.content ?? "");
+          setVditorTheme(v, currentTheme);
+          setVd(v);
+        },
+      });
+    }).catch(error => {
+      throw error
+    })
+
+    return () => {
+      vd?.destroy();
+      setVd(undefined);
+    }
+  }, [resourceId])
+
+  return (
+    <div id={domId} className="vditor vditor-reset"></div>
+  )
+}
+
+function Render({children}: { children: string }) {
+  return (
+    <div className="prose dark:prose-invert lg:prose-lg">
+      <Markdown remarkPlugins={[remarkGfm]}>{children}</Markdown>
+    </div>
+  )
+}
 
 export default function Dashboard() {
   const {namespace, resourceId} = useParams();
   const [resource, setResource] = React.useState<Resource>();
+  const [isEditMode, setIsEditMode] = React.useState<boolean>(false);
+  const [vd, setVd] = React.useState<Vditor>();
 
   React.useEffect(() => {
     if (resourceId) {
@@ -24,7 +92,36 @@ export default function Dashboard() {
         console.error(error);
       })
     }
+
+    return () => {
+      setIsEditMode(false);
+      setResource(undefined);
+    }
   }, [namespace, resourceId])
+
+
+  const handelCancelEdit = () => {
+    if (isEditMode) {
+      setIsEditMode(false);
+    } else {
+      throw new Error("Invalid state");
+    }
+  }
+
+  const handleEditOrSave = () => {
+    if (isEditMode) {
+      const content = vd?.getValue();
+      axios.patch(`${baseUrl}/${resourceId}`, {content}).then(response => {
+        const delta: Response = response.data;
+        if (Object.values(delta).some(value => value !== undefined)) {
+          setResource(prev => prev && {...prev, content});
+        }
+        setIsEditMode(false);
+      })
+    } else {
+      setIsEditMode(true);
+    }
+  }
 
   return (
     <SidebarProvider>
@@ -45,15 +142,15 @@ export default function Dashboard() {
             </Breadcrumb>
           </div>
           <div className="ml-auto px-3">
-            <NavActions/>
+            <NavActions payload={{isEditMode, handleEditOrSave, handelCancelEdit}}/>
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
-          <div className="prose dark:prose-invert lg:prose-lg">
-            <Markdown remarkPlugins={[remarkGfm]}>
-              {resource?.content}
-            </Markdown>
-          </div>
+          {
+            isEditMode ?
+              <Editor resourceId={resourceId} vd={vd} setVd={setVd}/> :
+              <Render>{resource?.content ?? ""}</Render>
+          }
         </div>
       </SidebarInset>
     </SidebarProvider>

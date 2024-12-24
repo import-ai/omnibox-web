@@ -13,10 +13,12 @@ import {
   LineChart,
   Link,
   MoreHorizontal,
+  Pencil,
+  PencilOff,
+  Save,
   Settings2,
-  Star,
   Trash,
-  Trash2,
+  Trash2
 } from "lucide-react"
 
 import {Button} from "@/components/ui/button"
@@ -30,7 +32,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import {ModeToggle} from "@/components/mode-toggle.tsx";
+import {ThemeToggle} from "@/components/theme-toggle.tsx";
 
 const data = [
   [
@@ -95,7 +97,9 @@ const data = [
   ],
 ]
 
-export function NavActions() {
+export function NavActions({payload}: {
+  payload: { isEditMode: boolean, handleEditOrSave: () => void, handelCancelEdit: () => void }
+}) {
   const [isOpen, setIsOpen] = React.useState(false)
 
   return (
@@ -103,9 +107,14 @@ export function NavActions() {
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         Edit Oct 08
       </div>
-      <ModeToggle/>
-      <Button variant="ghost" size="icon" className="h-7 w-7">
-        <Star/>
+      <ThemeToggle/>
+      {payload.isEditMode &&
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={payload.handelCancelEdit}>
+          <PencilOff/>
+        </Button>
+      }
+      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={payload.handleEditOrSave}>
+        {payload.isEditMode ? <Save/> : <Pencil/>}
       </Button>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
