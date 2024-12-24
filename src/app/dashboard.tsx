@@ -8,6 +8,7 @@ import {SidebarInset, SidebarProvider, SidebarTrigger,} from "@/components/ui/si
 import {NavActions} from "@/components/nav-actions"
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage,} from "@/components/ui/breadcrumb"
 import {Separator} from "@/components/ui/separator"
+import remarkGfm from "remark-gfm";
 
 const baseUrl = "/api/v1/resources"
 
@@ -49,8 +50,7 @@ export default function Dashboard() {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="prose dark:prose-invert lg:prose-lg">
-            <h1>{resource?.name}</h1>
-            <Markdown>
+            <Markdown remarkPlugins={[remarkGfm]}>
               {resource?.content}
             </Markdown>
           </div>

@@ -19,12 +19,8 @@ import {
   Trash2,
 } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import {Button} from "@/components/ui/button"
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {
   Sidebar,
   SidebarContent,
@@ -102,10 +98,6 @@ const data = [
 export function NavActions() {
   const [isOpen, setIsOpen] = React.useState(false)
 
-  React.useEffect(() => {
-    setIsOpen(true)
-  }, [])
-
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className="hidden font-medium text-muted-foreground md:inline-block">
@@ -113,7 +105,7 @@ export function NavActions() {
       </div>
       <ModeToggle/>
       <Button variant="ghost" size="icon" className="h-7 w-7">
-        <Star />
+        <Star/>
       </Button>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
@@ -122,7 +114,7 @@ export function NavActions() {
             size="icon"
             className="h-7 w-7 data-[state=open]:bg-accent"
           >
-            <MoreHorizontal />
+            <MoreHorizontal/>
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -138,7 +130,8 @@ export function NavActions() {
                       {group.map((item, index) => (
                         <SidebarMenuItem key={index}>
                           <SidebarMenuButton>
-                            <item.icon /> <span>{item.label}</span>
+                            <item.icon/>
+                            <span>{item.label}</span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       ))}
