@@ -11,6 +11,8 @@ import {Separator} from "@/components/ui/separator"
 import remarkGfm from "remark-gfm";
 import Vditor from "vditor"
 import "vditor/dist/index.css"
+import "@/styles/vditor-patch.css"
+import {useTheme} from "@/components/theme-provider";
 
 const baseUrl = "/api/v1/resources"
 
@@ -20,6 +22,18 @@ function Editor({resourceId, vd, setVd}: {
   setVd: React.Dispatch<React.SetStateAction<Vditor | undefined>>
 }) {
   const domId: string = "md-editor"
+  const {theme} = useTheme();
+
+  const editorTheme = React.useMemo(() => {
+    if (theme === "system") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "classic"
+    }
+    return theme == "dark" ? "dark": "classic";
+  }, [theme])
+
+  React.useEffect(() => {
+    vd?.setTheme(editorTheme);
+  }, [editorTheme])
 
   React.useEffect(() => {
     if (!resourceId) {
@@ -31,8 +45,9 @@ function Editor({resourceId, vd, setVd}: {
       const v = new Vditor(domId, {
         after: () => {
           v.setValue(resource.content ?? "");
+          v.setTheme(editorTheme);
           setVd(v);
-        }
+        },
       });
     }).catch(error => {
       throw error
@@ -45,7 +60,15 @@ function Editor({resourceId, vd, setVd}: {
   }, [resourceId])
 
   return (
-    <div id={domId} className="vditor"></div>
+    <div id={domId} className="vditor vditor-reset"></div>
+  )
+}
+
+function Render({children}: { children: string }) {
+  return (
+    <div className="prose dark:prose-invert lg:prose-lg">
+      <Markdown remarkPlugins={[remarkGfm]}>{children}</Markdown>
+    </div>
   )
 }
 
@@ -65,11 +88,25 @@ export default function Dashboard() {
     }
   }, [namespace, resourceId])
 
+
+  const handelCancelEdit = () => {
+    if (isEditMode) {
+      setIsEditMode(false);
+    } else {
+      throw new Error("Invalid state");
+    }
+  }
+
   const handleEditOrSave = () => {
     if (isEditMode) {
       const content = vd?.getValue();
-      console.log(content);
-      setIsEditMode(false);
+      axios.patch(`${baseUrl}/${resourceId}`, {content}).then(response => {
+        const delta: Response = response.data;
+        if (Object.values(delta).some(value => value !== undefined)) {
+          setResource(prev => prev && {...prev, content});
+        }
+        setIsEditMode(false);
+      })
     } else {
       setIsEditMode(true);
     }
@@ -94,17 +131,15 @@ export default function Dashboard() {
             </Breadcrumb>
           </div>
           <div className="ml-auto px-3">
-            <NavActions payload={{isEditMode, handleEditOrSave}}/>
+            <NavActions payload={{isEditMode, handleEditOrSave, handelCancelEdit}}/>
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
-          <div className="prose dark:prose-invert lg:prose-lg">
-            {
-              isEditMode ?
-                <Editor resourceId={resourceId} vd={vd} setVd={setVd}/> :
-                <Markdown remarkPlugins={[remarkGfm]}>{resource?.content}</Markdown>
-            }
-          </div>
+          {
+            isEditMode ?
+              <Editor resourceId={resourceId} vd={vd} setVd={setVd}/> :
+              <Render>{resource?.content ?? ""}</Render>
+          }
         </div>
       </SidebarInset>
     </SidebarProvider>
