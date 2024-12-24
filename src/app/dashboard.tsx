@@ -1,7 +1,7 @@
 import {MainSidebar} from "@/components/main-sidebar"
 import {useParams} from "react-router";
 import * as React from "react";
-import {Resource} from "@/types/resource";
+import {type Resource} from "@/types/resource";
 import axios from "axios";
 import Markdown from "react-markdown";
 import {SidebarInset, SidebarProvider, SidebarTrigger,} from "@/components/ui/sidebar"
@@ -9,13 +9,51 @@ import {NavActions} from "@/components/nav-actions"
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage,} from "@/components/ui/breadcrumb"
 import {Separator} from "@/components/ui/separator"
 import remarkGfm from "remark-gfm";
+import Vditor from "vditor"
+import "vditor/dist/index.css"
 
 const baseUrl = "/api/v1/resources"
+
+function Editor({resourceId, vd, setVd}: {
+  resourceId: string | undefined,
+  vd: Vditor | undefined,
+  setVd: React.Dispatch<React.SetStateAction<Vditor | undefined>>
+}) {
+  const domId: string = "md-editor"
+
+  React.useEffect(() => {
+    if (!resourceId) {
+      throw new Error("Resource ID is required");
+    }
+
+    axios.get(`${baseUrl}/${resourceId}`).then(response => {
+      const resource: Resource = response.data;
+      const v = new Vditor(domId, {
+        after: () => {
+          v.setValue(resource.content ?? "");
+          setVd(v);
+        }
+      });
+    }).catch(error => {
+      throw error
+    })
+
+    return () => {
+      vd?.destroy();
+      setVd(undefined);
+    }
+  }, [resourceId])
+
+  return (
+    <div id={domId} className="vditor"></div>
+  )
+}
 
 export default function Dashboard() {
   const {namespace, resourceId} = useParams();
   const [resource, setResource] = React.useState<Resource>();
   const [isEditMode, setIsEditMode] = React.useState<boolean>(false);
+  const [vd, setVd] = React.useState<Vditor>();
 
   React.useEffect(() => {
     if (resourceId) {
@@ -29,6 +67,8 @@ export default function Dashboard() {
 
   const handleEditOrSave = () => {
     if (isEditMode) {
+      const content = vd?.getValue();
+      console.log(content);
       setIsEditMode(false);
     } else {
       setIsEditMode(true);
@@ -59,9 +99,11 @@ export default function Dashboard() {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="prose dark:prose-invert lg:prose-lg">
-            <Markdown remarkPlugins={[remarkGfm]}>
-              {resource?.content}
-            </Markdown>
+            {
+              isEditMode ?
+                <Editor resourceId={resourceId} vd={vd} setVd={setVd}/> :
+                <Markdown remarkPlugins={[remarkGfm]}>{resource?.content}</Markdown>
+            }
           </div>
         </div>
       </SidebarInset>
