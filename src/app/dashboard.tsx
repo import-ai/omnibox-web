@@ -3,43 +3,35 @@ import {useParams} from "react-router";
 import * as React from "react";
 import {type Resource} from "@/types/resource";
 import axios from "axios";
-import Markdown from "react-markdown";
 import {SidebarInset, SidebarProvider, SidebarTrigger,} from "@/components/ui/sidebar"
 import {NavActions} from "@/components/nav-actions"
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage,} from "@/components/ui/breadcrumb"
 import {Separator} from "@/components/ui/separator"
-import remarkGfm from "remark-gfm";
 import Vditor from "vditor"
 import "vditor/dist/index.css"
 import "@/styles/vditor-patch.css"
 import {useTheme} from "@/components/theme-provider";
 
 const baseUrl = "/api/v1/resources"
+type VditorTheme = {
+  theme: "dark" | "classic",
+  contentTheme: "light" | "dark",
+  codeTheme: "github" | "github-dark"
+}
 
-function Editor({resourceId, vd, setVd}: {
+function Editor({resourceId, vd, setVd, theme}: {
   resourceId: string | undefined,
   vd: Vditor | undefined,
-  setVd: React.Dispatch<React.SetStateAction<Vditor | undefined>>
+  setVd: React.Dispatch<React.SetStateAction<Vditor | undefined>>,
+  theme: VditorTheme
 }) {
   const domId: string = "md-editor"
-  const {theme} = useTheme();
 
-  const currentTheme = React.useMemo<string>((): string => {
-    if (theme === "system") {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-    }
-    return theme == "dark" ? "dark": "light";
-  }, [theme]);
-
-  const setVditorTheme = (v: Vditor | undefined, targetTheme: string) => {
-    v?.setTheme(
-      targetTheme === "dark" ? "dark" : "classic",
-      targetTheme,
-      targetTheme === "dark" ? "github-dark" : "github"
-    );
+  const setVditorTheme = (v: Vditor | undefined, theme: VditorTheme) => {
+    v?.setTheme(theme.theme, theme.contentTheme, theme.codeTheme);
   };
 
-  React.useEffect(() => setVditorTheme(vd, currentTheme), [currentTheme]);
+  React.useEffect(() => setVditorTheme(vd, theme), [theme.theme, theme.contentTheme, theme.codeTheme]);
 
   React.useEffect(() => {
     if (!resourceId) {
@@ -49,9 +41,15 @@ function Editor({resourceId, vd, setVd}: {
     axios.get(`${baseUrl}/${resourceId}`).then(response => {
       const resource: Resource = response.data;
       const v = new Vditor(domId, {
+        preview: {
+          hljs: {
+            defaultLang: "plain",
+            lineNumber: true
+          }
+        },
         after: () => {
           v.setValue(resource.content ?? "");
-          setVditorTheme(v, currentTheme);
+          setVditorTheme(v, theme);
           setVd(v);
         },
       });
@@ -70,11 +68,30 @@ function Editor({resourceId, vd, setVd}: {
   )
 }
 
-function Render({children}: { children: string }) {
+function Render({markdown, theme}: { markdown: string, theme: VditorTheme }) {
+  const element = React.useRef<HTMLDivElement>(null);
+  const [isRendered, setIsRendered] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (element.current) {
+      Vditor.preview(element.current, markdown, {
+        theme: {
+          current: theme.theme
+        },
+        mode: theme.contentTheme,
+        hljs: {
+          defaultLang: "plain",
+          style: theme.codeTheme,
+          lineNumber: true
+        }
+      }).then(() => setIsRendered(true));
+    }
+    return () => {
+      setIsRendered(false);
+    }
+  }, [markdown, theme.theme, theme.contentTheme, theme.codeTheme])
   return (
-    <div className="prose dark:prose-invert lg:prose-lg">
-      <Markdown remarkPlugins={[remarkGfm]}>{children}</Markdown>
-    </div>
+    <div ref={element} hidden={!isRendered}></div>
   )
 }
 
@@ -83,6 +100,19 @@ export default function Dashboard() {
   const [resource, setResource] = React.useState<Resource>();
   const [isEditMode, setIsEditMode] = React.useState<boolean>(false);
   const [vd, setVd] = React.useState<Vditor>();
+  const {theme} = useTheme();
+
+  const vditorTheme = React.useMemo<VditorTheme>((): VditorTheme => {
+    const currentTheme = theme === "system" ?
+      (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : (
+        theme === "dark" ? "dark" : "light"
+      )
+    return {
+      theme: currentTheme === "dark" ? "dark" : "classic",
+      contentTheme: currentTheme,
+      codeTheme: currentTheme === "dark" ? "github-dark" : "github"
+    }
+  }, [theme]);
 
   React.useEffect(() => {
     if (resourceId) {
@@ -148,8 +178,8 @@ export default function Dashboard() {
         <div className="flex flex-1 flex-col gap-4 p-4">
           {
             isEditMode ?
-              <Editor resourceId={resourceId} vd={vd} setVd={setVd}/> :
-              <Render>{resource?.content ?? ""}</Render>
+              <Editor resourceId={resourceId} vd={vd} setVd={setVd} theme={vditorTheme}/> :
+              (resource?.content ? <Render markdown={resource?.content} theme={vditorTheme}/> : <></>)
           }
         </div>
       </SidebarInset>
