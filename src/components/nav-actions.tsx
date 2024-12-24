@@ -13,18 +13,15 @@ import {
   LineChart,
   Link,
   MoreHorizontal,
+  Pencil,
+  Save,
   Settings2,
-  Star,
   Trash,
-  Trash2,
+  Trash2
 } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import {Button} from "@/components/ui/button"
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {
   Sidebar,
   SidebarContent,
@@ -34,7 +31,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import {ModeToggle} from "@/components/mode-toggle.tsx";
+import {ModeToggle} from "@/components/mode-toggle";
 
 const data = [
   [
@@ -99,12 +96,13 @@ const data = [
   ],
 ]
 
-export function NavActions() {
+export function NavActions({payload}: {
+  payload: {
+    editMode: boolean,
+    handleEditOrSave: () => void
+  }
+}) {
   const [isOpen, setIsOpen] = React.useState(false)
-
-  React.useEffect(() => {
-    setIsOpen(true)
-  }, [])
 
   return (
     <div className="flex items-center gap-2 text-sm">
@@ -112,8 +110,8 @@ export function NavActions() {
         Edit Oct 08
       </div>
       <ModeToggle/>
-      <Button variant="ghost" size="icon" className="h-7 w-7">
-        <Star />
+      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={payload.handleEditOrSave}>
+        {payload.editMode ? <Save/> : <Pencil/>}
       </Button>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
@@ -122,7 +120,7 @@ export function NavActions() {
             size="icon"
             className="h-7 w-7 data-[state=open]:bg-accent"
           >
-            <MoreHorizontal />
+            <MoreHorizontal/>
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -138,7 +136,8 @@ export function NavActions() {
                       {group.map((item, index) => (
                         <SidebarMenuItem key={index}>
                           <SidebarMenuButton>
-                            <item.icon /> <span>{item.label}</span>
+                            <item.icon/>
+                            <span>{item.label}</span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       ))}

@@ -16,7 +16,7 @@ import {
   SidebarMenuSub,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import {Resource} from "@/types/resource"
+import {type Resource} from "@/types/resource"
 
 
 const baseUrl = "/api/v1/resources"
