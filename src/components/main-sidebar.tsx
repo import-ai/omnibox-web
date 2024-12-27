@@ -1,6 +1,6 @@
 import * as React from "react"
 import axios from "axios";
-import {ChevronRight, File, Folder} from "lucide-react"
+import {ChevronRight, File, Folder, MoreHorizontal} from "lucide-react"
 import {Link} from "react-router";
 
 import {Collapsible, CollapsibleContent, CollapsibleTrigger,} from "@/components/ui/collapsible"
@@ -10,13 +10,19 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarMenu,
+  SidebarMenu, SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarRail,
 } from "@/components/ui/sidebar"
 import {Resource} from "@/types/resource"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 
 const baseUrl = "/api/v1/resources"
@@ -92,17 +98,43 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
       return (
         <SidebarMenuItem>
           <Collapsible
-            className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
+            className="group/collapsible [&[data-state=open]>div>a>svg:first-child]:rotate-90"
             open={isExpanded[resource.id]}
           >
             <CollapsibleTrigger asChild>
-              <SidebarMenuButton onClick={
-                () => fetchChild(namespace, spaceType, resource.id).then(() => expandToggle(resource.id))
-              }>
-                <ChevronRight className="transition-transform"/>
-                <Folder/>
-                {resource.name}
-              </SidebarMenuButton>
+              <div>
+                <SidebarMenuButton
+                  asChild
+                  isActive={resource.id == payload.resource?.id}
+                >
+                  <Link to={`/${payload.namespace}/${resource.id}`}>
+                    <ChevronRight className="transition-transform" onClick={
+                      (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        fetchChild(namespace, spaceType, resource.id).then(() => expandToggle(resource.id));
+                      }
+                    }/>
+                    {resource.resourceType === "folder" ? <Folder/> : <File/>}
+                    {resource.name}
+                  </Link>
+                </SidebarMenuButton>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuAction>
+                      <MoreHorizontal/>
+                    </SidebarMenuAction>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side="right" align="start">
+                    <DropdownMenuItem>
+                      Foo
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      Bar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarMenuSub>
@@ -129,6 +161,21 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
             {resource.name}
           </Link>
         </SidebarMenuButton>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuAction>
+              <MoreHorizontal/>
+            </SidebarMenuAction>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="right" align="start">
+            <DropdownMenuItem>
+              Foo
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              Bar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarMenuItem>
     )
   }
