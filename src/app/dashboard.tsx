@@ -177,9 +177,9 @@ export default function Dashboard() {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
           {
-            isEditMode ?
+            (isEditMode ?
               <Editor resourceId={resourceId} vd={vd} setVd={setVd} theme={vditorTheme}/> :
-              (resource?.content ? <Render markdown={resource?.content} theme={vditorTheme}/> : <></>)
+              (resource?.content ? <Render markdown={resource?.content} theme={vditorTheme}/> : <></>))
           }
         </div>
       </SidebarInset>

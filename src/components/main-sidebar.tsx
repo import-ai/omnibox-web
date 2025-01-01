@@ -127,10 +127,10 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
                   </DropdownMenuTrigger>
                   <DropdownMenuContent side="right" align="start">
                     <DropdownMenuItem>
-                      Foo
+                      Create
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      Bar
+                      Chat
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
