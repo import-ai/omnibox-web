@@ -11,94 +11,20 @@ import Vditor from "vditor"
 import "vditor/dist/index.css"
 import "@/styles/vditor-patch.css"
 import {useTheme} from "@/components/theme-provider";
+import {VditorTheme} from "@/types/vditor";
+import {Editor} from "@/components/resource/editor"
+import {Render} from "@/components/resource/render"
 
 const baseUrl = "/api/v1/resources"
-type VditorTheme = {
-  theme: "dark" | "classic",
-  contentTheme: "light" | "dark",
-  codeTheme: "github" | "github-dark"
-}
 
-function Editor({resourceId, vd, setVd, theme}: {
-  resourceId: string | undefined,
-  vd: Vditor | undefined,
-  setVd: React.Dispatch<React.SetStateAction<Vditor | undefined>>,
-  theme: VditorTheme
-}) {
-  const domId: string = "md-editor"
 
-  const setVditorTheme = (v: Vditor | undefined, theme: VditorTheme) => {
-    v?.setTheme(theme.theme, theme.contentTheme, theme.codeTheme);
-  };
+type PageMode = "chat" | "view" | "edit"
 
-  React.useEffect(() => setVditorTheme(vd, theme), [theme.theme, theme.contentTheme, theme.codeTheme]);
-
-  React.useEffect(() => {
-    if (!resourceId) {
-      throw new Error("Resource ID is required");
-    }
-
-    axios.get(`${baseUrl}/${resourceId}`).then(response => {
-      const resource: Resource = response.data;
-      const v = new Vditor(domId, {
-        preview: {
-          hljs: {
-            defaultLang: "plain",
-            lineNumber: true
-          }
-        },
-        after: () => {
-          v.setValue(resource.content ?? "");
-          setVditorTheme(v, theme);
-          setVd(v);
-        },
-      });
-    }).catch(error => {
-      throw error
-    })
-
-    return () => {
-      vd?.destroy();
-      setVd(undefined);
-    }
-  }, [resourceId])
-
-  return (
-    <div id={domId} className="vditor vditor-reset"></div>
-  )
-}
-
-function Render({markdown, theme}: { markdown: string, theme: VditorTheme }) {
-  const element = React.useRef<HTMLDivElement>(null);
-  const [isRendered, setIsRendered] = React.useState<boolean>(false);
-
-  React.useEffect(() => {
-    if (element.current) {
-      Vditor.preview(element.current, markdown, {
-        theme: {
-          current: theme.theme
-        },
-        mode: theme.contentTheme,
-        hljs: {
-          defaultLang: "plain",
-          style: theme.codeTheme,
-          lineNumber: true
-        }
-      }).then(() => setIsRendered(true));
-    }
-    return () => {
-      setIsRendered(false);
-    }
-  }, [markdown, theme.theme, theme.contentTheme, theme.codeTheme])
-  return (
-    <div ref={element} hidden={!isRendered}></div>
-  )
-}
 
 export default function Dashboard() {
   const {namespace, resourceId} = useParams();
   const [resource, setResource] = React.useState<Resource>();
-  const [isEditMode, setIsEditMode] = React.useState<boolean>(false);
+  const [pageMode, setPageMode] = React.useState<PageMode>("chat");
   const [vd, setVd] = React.useState<Vditor>();
   const {theme} = useTheme();
 
@@ -118,38 +44,42 @@ export default function Dashboard() {
     if (resourceId) {
       axios.get(`${baseUrl}/${resourceId}`).then(response => {
         setResource(response.data);
+        setPageMode("view");
       }).catch(error => {
         console.error(error);
       })
+    } else {
+      setPageMode("chat");
     }
 
     return () => {
-      setIsEditMode(false);
+      setPageMode("chat");
       setResource(undefined);
+      vd?.destroy();
     }
   }, [namespace, resourceId])
 
 
   const handelCancelEdit = () => {
-    if (isEditMode) {
-      setIsEditMode(false);
+    if (pageMode === "edit") {
+      setPageMode("view");
     } else {
       throw new Error("Invalid state");
     }
   }
 
   const handleEditOrSave = () => {
-    if (isEditMode) {
+    if (pageMode === "edit") {
       const content = vd?.getValue();
       axios.patch(`${baseUrl}/${resourceId}`, {content}).then(response => {
         const delta: Response = response.data;
         if (Object.values(delta).some(value => value !== undefined)) {
           setResource(prev => prev && {...prev, content});
         }
-        setIsEditMode(false);
+        setPageMode("view")
       })
     } else {
-      setIsEditMode(true);
+      setPageMode("edit");
     }
   }
 
@@ -172,14 +102,15 @@ export default function Dashboard() {
             </Breadcrumb>
           </div>
           <div className="ml-auto px-3">
-            <NavActions payload={{isEditMode, handleEditOrSave, handelCancelEdit}}/>
+            <NavActions payload={{isEditMode: pageMode === "edit", handleEditOrSave, handelCancelEdit}}/>
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
           {
-            (isEditMode ?
-              <Editor resourceId={resourceId} vd={vd} setVd={setVd} theme={vditorTheme}/> :
-              (resource?.content ? <Render markdown={resource?.content} theme={vditorTheme}/> : <></>))
+            pageMode === "chat" ? <div></div> :
+              (pageMode === "edit" ?
+                <Editor resourceId={resourceId} vd={vd} setVd={setVd} theme={vditorTheme}/> :
+                (resource?.content ? <Render markdown={resource?.content} theme={vditorTheme}/> : <></>))
           }
         </div>
       </SidebarInset>
