@@ -2,30 +2,28 @@ import Vditor from "vditor";
 import * as React from "react";
 import axios from "axios";
 import type {Resource} from "@/types/resource.tsx";
-import {VditorTheme} from "@/types/vditor";
 import {API_BASE_URL} from "@/constants";
+import {useResource} from "@/components/provider/resource-provider";
+import {useVditorTheme} from "@/hooks/use-vditor-theme"
+import {useGlobalContext} from "@/components/provider/context-provider";
 
-export function Editor({resourceId, vd, setVd, theme}: {
+export function Editor({resourceId}: {
   resourceId: string | undefined,
-  vd: Vditor | undefined,
-  setVd: React.Dispatch<React.SetStateAction<Vditor | undefined>>,
-  theme: VditorTheme
 }) {
   const domId: string = "md-editor"
-
-  const setVditorTheme = (v: Vditor | undefined, theme: VditorTheme) => {
-    v?.setTheme(theme.theme, theme.contentTheme, theme.codeTheme);
-  };
-
-  React.useEffect(() => setVditorTheme(vd, theme), [theme.theme, theme.contentTheme, theme.codeTheme]);
+  const {setResource} = useResource();
+  const globalContext = useGlobalContext();
+  const {vditor, setVditor} = globalContext.vditorState;
+  const theme = useVditorTheme();
 
   React.useEffect(() => {
     if (!resourceId) {
       throw new Error("Resource ID is required");
     }
 
-    axios.get(`${API_BASE_URL}/${resourceId}`).then(response => {
+    axios.get(`${API_BASE_URL}/resources/${resourceId}`).then(response => {
       const resource: Resource = response.data;
+      setResource(resource);
       const v = new Vditor(domId, {
         preview: {
           hljs: {
@@ -35,17 +33,17 @@ export function Editor({resourceId, vd, setVd, theme}: {
         },
         after: () => {
           v.setValue(resource.content ?? "");
-          setVditorTheme(v, theme);
-          setVd(v);
-        },
+          v.setTheme(theme.theme, theme.contentTheme, theme.codeTheme);
+          setVditor(v);
+        }
       });
     }).catch(error => {
       throw error
     })
 
     return () => {
-      vd?.destroy();
-      setVd(undefined);
+      vditor?.destroy();
+      setVditor(undefined);
     }
   }, [resourceId])
 
