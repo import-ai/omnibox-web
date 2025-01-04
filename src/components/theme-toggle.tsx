@@ -1,7 +1,7 @@
 import {Moon, Sun, SunMoon} from "lucide-react"
 
 import {Button} from "@/components/ui/button"
-import {useTheme, type Theme} from "@/components/provider/theme-provider.tsx"
+import {useTheme, type Theme} from "@/components/provider/theme-provider"
 
 export function ThemeToggle() {
   const {theme, setTheme} = useTheme()

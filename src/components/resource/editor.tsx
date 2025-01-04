@@ -1,7 +1,7 @@
 import Vditor from "vditor";
 import * as React from "react";
 import axios from "axios";
-import type {Resource} from "@/types/resource.tsx";
+import type {Resource} from "@/types/resource";
 import {API_BASE_URL} from "@/constants";
 import {useResource} from "@/components/provider/resource-provider";
 import {useVditorTheme} from "@/hooks/use-vditor-theme"

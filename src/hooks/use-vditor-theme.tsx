@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useTheme} from "@/components/provider/theme-provider.tsx";
+import {useTheme} from "@/components/provider/theme-provider";
 
 export type VditorTheme = {
   theme: "dark" | "classic",
