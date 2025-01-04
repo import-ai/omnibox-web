@@ -1,7 +1,7 @@
 import {SidebarInset, SidebarTrigger} from "@/components/ui/sidebar";
 import {Separator} from "@/components/ui/separator";
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb";
-import {NavResourceActions} from "@/components/nav-resource-actions.tsx";
+import {NavResourceActions} from "@/components/nav-resource-actions";
 import {Outlet} from "react-router";
 import {useResource} from "@/components/provider/resource-provider";
 import "vditor/dist/index.css"

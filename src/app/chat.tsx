@@ -1,34 +1,148 @@
 import * as React from 'react';
 import {SidebarInset, SidebarTrigger} from "@/components/ui/sidebar";
 import {Button} from "@/components/ui/button";
-import {Textarea} from "@/components/ui/textarea.tsx";
-import {Separator} from "@/components/ui/separator.tsx";
-import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb.tsx";
+import {Textarea} from "@/components/ui/textarea";
+import {Separator} from "@/components/ui/separator";
+import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb";
 import {NavChatActions} from "@/components/nav-chat-actions";
-import {ArrowUp} from "lucide-react";
-import {Markdown} from "@/components/markdown.tsx";
+import {Markdown} from "@/components/markdown";
+import {useLocation, useNavigate, useParams} from "react-router";
+import {Resource} from "@/types/resource";
 
-// Define the type for chat messages
 type Message = {
   role: 'user' | 'assistant';
   content: string;
 };
 
+type ChatBaseResponse = {
+  response_type: "delta" | "citation" | "citation_list";
+};
+
+type ChatDeltaResponse = ChatBaseResponse & {
+  response_type: "delta";
+  delta: string;
+};
+
+type Citation = {
+  title: string
+  snippet: string
+  link: string
+};
+
+type ChatCitationListResponse = ChatBaseResponse & {
+  response_type: "citation_list";
+  citation_list: Citation[];
+};
+
+type LocationState = {
+  resources: Resource[] | undefined,
+  parents: Resource[] | undefined
+}
+
 export function Chat() {
+  const {namespace} = useParams();
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState<string>("");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [locationState, setLocationState] = React.useState<LocationState | undefined>();
+  const [isStreaming, setIsStreaming] = React.useState<boolean>(false);
 
-  const handleSend = () => {
-    if (input.trim()) {
-      setMessages([...messages, {role: 'user', content: input}]);
+  React.useEffect(() => {
+    if (location.state) {
+      setLocationState({
+        parents: location.state?.parents,
+        resources: location.state?.resources
+      });
+      navigate(location.pathname, {state: null});  // clear the state
+    }
+  }, [location.state, location.pathname]);
+
+
+  const handleSend = async () => {
+    if (input.trim() && namespace) {
+      setIsStreaming(true);
+
+      const parents: Resource[] | undefined = locationState?.parents;
+      const parentIds: string[] | null = parents ? parents.map((r) => r.id) : null;
+
+      const resources: Resource[] | undefined = locationState?.resources;
+      const resourceIds: string[] | null = resources ? resources.map((r) => r.id) : null;
+
+      let localMessages: Message[] = [...messages, {role: 'user', content: input}];
+
+      setMessages(localMessages);
       setInput("");
-      // Simulate assistant response
-      setTimeout(() => {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {role: 'assistant', content: "This is an automated response."},
-        ]);
-      }, 1000);
+
+      const body = {
+        session_id: "fake_id",
+        query: localMessages[localMessages.length - 1].content,
+        namespace: namespace,
+        parent_ids: parentIds,
+        resource_ids: resourceIds
+      };
+
+      console.log({body});
+
+      const response = await fetch('/api/v1/grimoire/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('ReadableStream not yet supported in this browser.');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let firstToken: boolean = true;
+      let responseText: string = "";
+      let citationList: Citation[] = [];
+
+      while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+
+        if (chunk.startsWith('data:')) {
+          const output = chunk.slice(5).trim();
+          if (output === "[DONE]") {
+            break;
+          }
+          const chatResponse: ChatDeltaResponse | ChatCitationListResponse = JSON.parse(output);
+          if (chatResponse.response_type === "delta") {
+            responseText += chatResponse.delta;
+            for (let i = 0; i < citationList.length; i++) {
+              responseText = responseText.replace(`<cite:${i + 1}>`, `[[${i + 1}]](#/${namespace}/${citationList[i].link})`);
+            }
+            localMessages = [...(firstToken ? localMessages : localMessages.slice(0, -1)), {
+              role: 'assistant',
+              content: responseText
+            }];
+            setMessages(localMessages);
+            if (firstToken) {
+              firstToken = false;
+            }
+            /*
+            if (!isStreaming) {
+              break;
+            }
+             */
+          } else if (chatResponse.response_type === "citation_list") {
+            citationList = chatResponse.citation_list;
+          }
+        }
+      }
+
+      setIsStreaming(false);
     }
   };
 
@@ -74,19 +188,23 @@ export function Chat() {
                 className="w-full resize-none border-none rounded-t-3xl"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (e.shiftKey) {
-                      setInput(input + "\n");
-                      const textarea = e.target as HTMLTextAreaElement;
-                      textarea.scrollTop = textarea.scrollHeight;
-                    } else {
-                      handleSend();
+                    if (e.metaKey || e.ctrlKey) {
+                      e.preventDefault();
+                      handleSend().then();
                     }
                   }
                 }}
               />
               <div className="flex justify-end mb-1 mr-1">
-                <Button onClick={handleSend} className="rounded-full" disabled={input.length === 0}><ArrowUp/></Button>
+                {isStreaming ?
+                  <Button
+                    onClick={() => setIsStreaming(false)} className="rounded-full"
+                  >Stop</Button> :
+                  <Button
+                    onClick={handleSend} className="rounded-full"
+                    disabled={input.length === 0}
+                  >Send</Button>
+                }
               </div>
             </div>
           </div>

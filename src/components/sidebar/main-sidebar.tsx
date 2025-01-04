@@ -1,7 +1,7 @@
 import * as React from "react"
 import axios from "axios";
 import {ChevronRight, Command, File, Folder, MoreHorizontal, Search} from "lucide-react"
-import {Link, useParams} from "react-router";
+import {Link, useNavigate, useParams} from "react-router";
 
 import {Collapsible, CollapsibleContent, CollapsibleTrigger,} from "@/components/ui/collapsible"
 import {
@@ -36,6 +36,7 @@ export function MainSidebar() {
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
   const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
   const {namespace} = useParams();
+  const navigate = useNavigate();
   const {resource} = useResource();
 
   if (!namespace) {
@@ -101,6 +102,13 @@ export function MainSidebar() {
     }
   }
 
+  const chatWithParent = (r: Resource) => {
+    navigate("./", {state: {parents: [r]}});
+  }
+
+  const chat= (r: Resource) => {
+    navigate("./", {state: {resources: [r]}});
+  }
 
   function Tree({namespace, spaceType, res}: { namespace: string, spaceType: string, res: Resource }) {
     if (res.childCount > 0) {
@@ -138,7 +146,10 @@ export function MainSidebar() {
                     <DropdownMenuItem>
                       Create
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => chatWithParent(res)}>
+                      Chat with Dir
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => chat(res)}>
                       Chat
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -178,10 +189,10 @@ export function MainSidebar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" align="start">
             <DropdownMenuItem>
-              Foo
+              Create
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              Bar
+            <DropdownMenuItem onClick={() => chat(res)}>
+              Chat
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

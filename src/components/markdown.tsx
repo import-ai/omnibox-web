@@ -1,10 +1,9 @@
 import * as React from "react";
-import {useVditorTheme} from "@/hooks/use-vditor-theme.tsx";
+import {useVditorTheme} from "@/hooks/use-vditor-theme";
 import Vditor from "vditor";
 
 export function Markdown({content}: { content: string }) {
   const element = React.useRef<HTMLDivElement>(null);
-  const [isRendered, setIsRendered] = React.useState<boolean>(false);
   const theme = useVditorTheme();
 
   React.useEffect(() => {
@@ -19,13 +18,10 @@ export function Markdown({content}: { content: string }) {
           style: theme.codeTheme,
           lineNumber: true
         }
-      }).then(() => setIsRendered(true));
-    }
-    return () => {
-      setIsRendered(false);
+      }).then();
     }
   }, [content, theme])
   return (
-    <div ref={element} style={{display: isRendered ? "block" : "none"}}/>
+    <div ref={element}/>
   )
 }
