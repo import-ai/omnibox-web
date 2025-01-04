@@ -6,15 +6,15 @@ import {API_BASE_URL} from "@/constants";
 import {useResource} from "@/components/provider/resource-provider";
 import {useVditorTheme} from "@/hooks/use-vditor-theme"
 import {useGlobalContext} from "@/components/provider/context-provider";
+import {useParams} from "react-router";
 
-export function Editor({resourceId}: {
-  resourceId: string | undefined,
-}) {
+export function Editor() {
   const domId: string = "md-editor"
   const {setResource} = useResource();
   const globalContext = useGlobalContext();
   const {vditor, setVditor} = globalContext.vditorState;
   const theme = useVditorTheme();
+  const {resourceId} = useParams();
 
   React.useEffect(() => {
     if (!resourceId) {
