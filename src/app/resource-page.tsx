@@ -1,9 +1,11 @@
-import {SidebarInset, SidebarTrigger} from "@/components/ui/sidebar.tsx";
-import {Separator} from "@/components/ui/separator.tsx";
-import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb.tsx";
-import {NavActions} from "@/components/nav-actions.tsx";
+import {SidebarInset, SidebarTrigger} from "@/components/ui/sidebar";
+import {Separator} from "@/components/ui/separator";
+import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb";
+import {NavResourceActions} from "@/components/nav-resource-actions";
 import {Outlet} from "react-router";
-import {useResource} from "@/components/provider/resource-provider.tsx";
+import {useResource} from "@/components/provider/resource-provider";
+import "vditor/dist/index.css"
+import "@/styles/vditor-patch.css"
 
 export function ResourcePage() {
   const {resource} = useResource();
@@ -28,7 +30,7 @@ export function ResourcePage() {
             </Breadcrumb>
           </div>
           <div className="ml-auto px-3">
-            <NavActions/>
+            <NavResourceActions/>
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">

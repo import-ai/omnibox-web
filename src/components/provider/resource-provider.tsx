@@ -2,8 +2,8 @@ import {createContext, useContext, useState, useEffect} from 'react';
 import * as React from 'react'
 import {useParams} from "react-router";
 import axios from "axios";
-import {API_BASE_URL} from "@/constants.tsx";
-import {Resource} from "@/types/resource.tsx"
+import {API_BASE_URL} from "@/constants";
+import {Resource} from "@/types/resource"
 
 type ResourceProviderState = {
   resource: Resource | undefined,
@@ -37,6 +37,8 @@ export const ResourceProvider = ({children, ...props}: { children: React.ReactNo
       }).catch(error => {
         console.error(error);
       })
+    } else {
+      setResource(undefined);
     }
   }, [namespace, resourceId]);
 

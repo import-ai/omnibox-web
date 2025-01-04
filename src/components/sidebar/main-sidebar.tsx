@@ -1,7 +1,7 @@
 import * as React from "react"
 import axios from "axios";
-import {ChevronRight, File, Folder, MoreHorizontal} from "lucide-react"
-import {Link, useParams} from "react-router";
+import {ChevronRight, Command, File, Folder, MoreHorizontal, Search} from "lucide-react"
+import {Link, useNavigate, useParams} from "react-router";
 
 import {Collapsible, CollapsibleContent, CollapsibleTrigger,} from "@/components/ui/collapsible"
 import {
@@ -9,7 +9,7 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarGroupLabel, SidebarHeader,
   SidebarMenu, SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -23,7 +23,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import {useResource} from "@/components/provider/resource-provider.tsx";
+import {useResource} from "@/components/provider/resource-provider";
+import {NamespaceSwitcher} from "@/components/sidebar/namespace-switcher";
+import {NavMain} from "@/components/sidebar/nav-main";
 
 
 const baseUrl = "/api/v1/resources"
@@ -34,6 +36,7 @@ export function MainSidebar() {
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
   const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
   const {namespace} = useParams();
+  const navigate = useNavigate();
   const {resource} = useResource();
 
   if (!namespace) {
@@ -99,31 +102,38 @@ export function MainSidebar() {
     }
   }
 
+  const chatWithParent = (r: Resource) => {
+    navigate("./", {state: {parents: [r]}});
+  }
 
-  function Tree({namespace, spaceType, resource}: { namespace: string, spaceType: string, resource: Resource }) {
-    if (resource.childCount > 0) {
+  const chat= (r: Resource) => {
+    navigate("./", {state: {resources: [r]}});
+  }
+
+  function Tree({namespace, spaceType, res}: { namespace: string, spaceType: string, res: Resource }) {
+    if (res.childCount > 0) {
       return (
         <SidebarMenuItem>
           <Collapsible
             className="group/collapsible [&[data-state=open]>div>a>svg:first-child]:rotate-90"
-            open={isExpanded[resource.id]}
+            open={isExpanded[res.id]}
           >
             <CollapsibleTrigger asChild>
               <div>
                 <SidebarMenuButton
                   asChild
-                  isActive={resource.id == resource?.id}
+                  isActive={res.id == resource?.id}
                 >
-                  <Link to={`/${namespace}/${resource.id}`}>
+                  <Link to={`/${namespace}/${res.id}`}>
                     <ChevronRight className="transition-transform" onClick={
                       (event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        fetchChild(namespace, spaceType, resource.id).then(() => expandToggle(resource.id));
+                        fetchChild(namespace, spaceType, res.id).then(() => expandToggle(res.id));
                       }
                     }/>
-                    {resource.resourceType === "folder" ? <Folder/> : <File/>}
-                    {resource.name}
+                    {res.resourceType === "folder" ? <Folder/> : <File/>}
+                    {res.name}
                   </Link>
                 </SidebarMenuButton>
                 <DropdownMenu>
@@ -136,7 +146,10 @@ export function MainSidebar() {
                     <DropdownMenuItem>
                       Create
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => chatWithParent(res)}>
+                      Chat with Dir
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => chat(res)}>
                       Chat
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -145,9 +158,9 @@ export function MainSidebar() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarMenuSub>
-                {(child[resource.id] ?? []).length > 0 &&
-                  child[resource.id].map((resource: Resource) => (
-                    <Tree key={resource.id} resource={resource} namespace={namespace} spaceType={spaceType}/>
+                {(child[res.id] ?? []).length > 0 &&
+                  child[res.id].map((r: Resource) => (
+                    <Tree key={r.id} res={r} namespace={namespace} spaceType={spaceType}/>
                   ))
                 }
               </SidebarMenuSub>
@@ -160,12 +173,12 @@ export function MainSidebar() {
       <SidebarMenuItem>
         <SidebarMenuButton
           className="data-[active=true]:bg-transparent"
-          isActive={resource.id == resource?.id}
+          isActive={res.id == resource?.id}
           asChild
         >
-          <Link to={`/${namespace}/${resource.id}`}>
+          <Link to={`/${namespace}/${res.id}`}>
             <File/>
-            {resource.name}
+            {res.name}
           </Link>
         </SidebarMenuButton>
         <DropdownMenu>
@@ -176,10 +189,10 @@ export function MainSidebar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" align="start">
             <DropdownMenuItem>
-              Foo
+              Create
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              Bar
+            <DropdownMenuItem onClick={() => chat(res)}>
+              Chat
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -194,8 +207,8 @@ export function MainSidebar() {
         <SidebarGroupLabel>{spaceTitle}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {(child[rootResourceId[spaceType]] ?? []).map((resource) => (
-              <Tree key={resource.id} resource={resource} namespace={namespace} spaceType={spaceType}/>
+            {(child[rootResourceId[spaceType]] ?? []).map((r) => (
+              <Tree key={r.id} res={r} namespace={namespace} spaceType={spaceType}/>
             ))}
           </SidebarMenu>
         </SidebarGroupContent>
@@ -205,6 +218,10 @@ export function MainSidebar() {
 
   return (
     <Sidebar>
+      <SidebarHeader>
+        <NamespaceSwitcher namespaces={[{name: "test", logo: Command}]}/>
+        <NavMain items={[{title: "Search", url: "./", icon: Search}]}/>
+      </SidebarHeader>
       <SidebarContent>
         {spaceTypes.map((spaceType: string, index: number) => (
           <Space key={index} spaceType={spaceType} namespace={namespace}/>

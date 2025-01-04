@@ -37,9 +37,9 @@ import axios from "axios";
 import {useGlobalContext} from "@/components/provider/context-provider";
 import {API_BASE_URL} from "@/constants";
 import {useParams, useNavigate} from "react-router";
-import {useResource} from "@/components/provider/resource-provider.tsx";
+import {useResource} from "@/components/provider/resource-provider";
 
-const data = [
+export const data = [
   [
     {
       label: "Customize Page",
@@ -102,7 +102,7 @@ const data = [
   ],
 ]
 
-export function NavActions() {
+export function NavResourceActions() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = React.useState(false)
   const {resourceId} = useParams();
