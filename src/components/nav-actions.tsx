@@ -32,7 +32,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import {ThemeToggle} from "@/components/theme-toggle.tsx";
+import {ThemeToggle} from "@/components/theme-toggle";
+import axios from "axios";
+import {useGlobalContext} from "@/components/provider/context-provider";
+import {API_BASE_URL} from "@/constants";
+import {useParams, useNavigate} from "react-router";
+import {useResource} from "@/components/provider/resource-provider.tsx";
 
 const data = [
   [
@@ -97,10 +102,26 @@ const data = [
   ],
 ]
 
-export function NavActions({payload}: {
-  payload: { isEditMode: boolean, handleEditOrSave: () => void, handelCancelEdit: () => void }
-}) {
+export function NavActions() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = React.useState(false)
+  const {resourceId} = useParams();
+  const {setResource} = useResource();
+  const globalContext = useGlobalContext();
+  const vditor = globalContext.vditorState.vditor;
+
+  const handleSave = () => {
+      const content = vditor?.getValue();
+      if (content) {
+        axios.patch(`${API_BASE_URL}/resources/${resourceId}`, {content}).then(response => {
+          const delta: Response = response.data;
+          if (Object.values(delta).some(value => value !== undefined)) {
+            setResource(prev => prev && {...prev, content});
+          }
+          navigate(".");
+        })
+      }
+  }
 
   return (
     <div className="flex items-center gap-2 text-sm">
@@ -108,14 +129,20 @@ export function NavActions({payload}: {
         Edit Oct 08
       </div>
       <ThemeToggle/>
-      {payload.isEditMode &&
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={payload.handelCancelEdit}>
-          <PencilOff/>
-        </Button>
+      {
+        vditor ? <>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleSave}>
+            <Save/>
+          </Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(".")}>
+            <PencilOff/>
+          </Button>
+        </> : <>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate("edit")}>
+            <Pencil/>
+          </Button>
+        </>
       }
-      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={payload.handleEditOrSave}>
-        {payload.isEditMode ? <Save/> : <Pencil/>}
-      </Button>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button

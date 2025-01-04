@@ -1,7 +1,7 @@
 import * as React from "react"
 import axios from "axios";
 import {ChevronRight, File, Folder, MoreHorizontal} from "lucide-react"
-import {Link} from "react-router";
+import {Link, useParams} from "react-router";
 
 import {Collapsible, CollapsibleContent, CollapsibleTrigger,} from "@/components/ui/collapsible"
 import {
@@ -23,15 +23,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {useResource} from "@/components/provider/resource-provider.tsx";
 
 
 const baseUrl = "/api/v1/resources"
 const spaceTypes = ["private", "teamspace"]
 
-export function MainSidebar({payload}: { payload: { namespace: string, resource?: Resource } }) {
+export function MainSidebar() {
   const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
   const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
+  const {namespace} = useParams();
+  const {resource} = useResource();
+
+  if (!namespace) {
+    throw new Error("namespace is required");
+  }
 
   const updateChild = (resourceId: string, resources: Resource[]) => {
     setChild((prev) => ({...prev, [resourceId]: resources}));
@@ -42,7 +49,7 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
 
   const expandToRoot = (resource: Resource) => {
     if (resource.parentId != rootResourceId[resource.spaceType] && !isExpanded[resource.parentId]) {
-      fetchChild(payload.namespace, resource.spaceType, resource.parentId).then(() => {
+      fetchChild(namespace, resource.spaceType, resource.parentId).then(() => {
         setIsExpanded((prev) => ({...prev, [resource.parentId]: true}));
         axios.get(`${baseUrl}/${resource.parentId}`).then((response) => {
           expandToRoot(response.data);
@@ -52,14 +59,14 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
   }
 
   React.useEffect(() => {
-    if (payload.resource) {
-      expandToRoot(payload.resource);
+    if (resource) {
+      expandToRoot(resource);
     }
-  }, [payload.resource?.parentId])
+  }, [resource])
 
   React.useEffect(() => {
     for (const spaceType of spaceTypes) {
-      axios.get(baseUrl, {params: {namespace: payload.namespace, spaceType}}).then(response => {
+      axios.get(baseUrl, {params: {namespace, spaceType}}).then(response => {
         const resources: Resource[] = response.data;
         if (resources.length > 0) {
           const parentId = resources[0].parentId;
@@ -74,7 +81,7 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
         setter({});
       }
     }
-  }, [payload.namespace]);
+  }, [namespace]);
 
   const expandToggle = (resourceId: string) => {
     setIsExpanded((prev) => ({...prev, [resourceId]: !prev[resourceId]}));
@@ -105,9 +112,9 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
               <div>
                 <SidebarMenuButton
                   asChild
-                  isActive={resource.id == payload.resource?.id}
+                  isActive={resource.id == resource?.id}
                 >
-                  <Link to={`/${payload.namespace}/${resource.id}`}>
+                  <Link to={`/${namespace}/${resource.id}`}>
                     <ChevronRight className="transition-transform" onClick={
                       (event) => {
                         event.preventDefault();
@@ -127,10 +134,10 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
                   </DropdownMenuTrigger>
                   <DropdownMenuContent side="right" align="start">
                     <DropdownMenuItem>
-                      Foo
+                      Create
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      Bar
+                      Chat
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -153,10 +160,10 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
       <SidebarMenuItem>
         <SidebarMenuButton
           className="data-[active=true]:bg-transparent"
-          isActive={resource.id == payload.resource?.id}
+          isActive={resource.id == resource?.id}
           asChild
         >
-          <Link to={`/${payload.namespace}/${resource.id}`}>
+          <Link to={`/${namespace}/${resource.id}`}>
             <File/>
             {resource.name}
           </Link>
@@ -200,7 +207,7 @@ export function MainSidebar({payload}: { payload: { namespace: string, resource?
     <Sidebar>
       <SidebarContent>
         {spaceTypes.map((spaceType: string, index: number) => (
-          <Space key={index} spaceType={spaceType} namespace={payload.namespace}/>
+          <Space key={index} spaceType={spaceType} namespace={namespace}/>
         ))}
       </SidebarContent>
       <SidebarRail/>
