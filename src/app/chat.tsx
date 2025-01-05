@@ -180,7 +180,7 @@ export function Chat() {
                      }`}>
                   <div className="mr-2 flex items-center text-sm">
                     {rc.type === "parent" ? <Folder className="w-4 h-4"/> : <File className="w-4 h-4"/>}
-                    <Link className="ml-1" to={rc.resource.id}>{rc.resource.name}</Link>
+                    <Link className="ml-1" to={rc.resource.id}>{rc.resource.name ?? "Untitled"}</Link>
                   </div>
                   <button onClick={() => removeTag(index)} className="focus:outline-none">
                     <X className="w-4 h-4"/>

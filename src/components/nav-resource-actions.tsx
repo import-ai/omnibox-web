@@ -20,6 +20,7 @@ import {
   Trash,
   Trash2
 } from "lucide-react"
+import {formatDistanceToNow} from 'date-fns';
 
 import {Button} from "@/components/ui/button"
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
@@ -36,8 +37,9 @@ import {ThemeToggle} from "@/components/theme-toggle";
 import axios from "axios";
 import {useGlobalContext} from "@/components/provider/global-context-provider";
 import {API_BASE_URL} from "@/constants";
-import {useParams, useNavigate} from "react-router";
+import {useNavigate, useParams} from "react-router";
 import {useResource} from "@/components/provider/resource-provider";
+import {Resource} from "@/types/resource.tsx";
 
 export const data = [
   [
@@ -106,27 +108,35 @@ export function NavResourceActions() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = React.useState(false)
   const {resourceId} = useParams();
-  const {setResource} = useResource();
+  const {resource, setResource} = useResource();
   const globalContext = useGlobalContext();
   const vditor = globalContext.vditorState.vditor;
 
   const handleSave = () => {
-      const content = vditor?.getValue();
-      if (content) {
-        axios.patch(`${API_BASE_URL}/resources/${resourceId}`, {content}).then(response => {
-          const delta: Response = response.data;
-          if (Object.values(delta).some(value => value !== undefined)) {
-            setResource(prev => prev && {...prev, content});
-          }
-          navigate(".");
-        })
-      }
+    const content = vditor?.getValue();
+    if (content) {
+      axios.patch(`${API_BASE_URL}/resources/${resourceId}`, {content}).then(response => {
+        const delta: Resource = response.data;
+        setResource((prev) => ({...prev, ...delta}));
+        navigate(".");
+      })
+    }
   }
+
+  const timeDisplay = React.useMemo(() => {
+    if (resource?.updatedAt) {
+      return "Updated " + formatDistanceToNow(new Date(resource.updatedAt), {addSuffix: true});
+    }
+    if (resource?.createdAt) {
+      return "Created " + formatDistanceToNow(new Date(resource.createdAt), {addSuffix: true});
+    }
+    return ""
+  }, [resource?.updatedAt, resource?.createdAt])
 
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className="hidden font-medium text-muted-foreground md:inline-block">
-        Edit Oct 08
+        {timeDisplay}
       </div>
       <ThemeToggle/>
       {

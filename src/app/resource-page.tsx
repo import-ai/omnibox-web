@@ -23,7 +23,7 @@ export function ResourcePage() {
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbPage className="line-clamp-1">
-                    {resource.name}
+                    {resource.name ?? "Untitled"}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
