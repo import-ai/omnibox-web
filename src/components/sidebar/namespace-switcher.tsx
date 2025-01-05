@@ -59,7 +59,7 @@ export function NamespaceSwitcher({namespaces}: { namespaces: Namespace[] }) {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator/>
-            <DropdownMenuItem className="gap-2 p-2">
+            <DropdownMenuItem className="gap-2 p-2" disabled>
               <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4"/>
               </div>
