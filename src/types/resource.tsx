@@ -1,10 +1,22 @@
+export type ResourceType = "doc" | "file" | "link" | "folder";
+
 export type Resource = {
   id: string;
+
   namespace: string;
-  resourceType: "doc" | "file" | "link" | "folder";
+  resourceType: ResourceType;
   spaceType: "private" | "teamspace";
-  name: string;
-  content?: string;
+
   parentId: string;
   childCount: number;
+
+  name?: string;
+  content?: string;
+
+  tags?: string[];
+
+  // ISO 8601
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string;
 };
