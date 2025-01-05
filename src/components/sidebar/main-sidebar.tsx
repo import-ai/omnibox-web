@@ -31,12 +31,42 @@ import {NavMain} from "@/components/sidebar/nav-main";
 const baseUrl = "/api/v1/resources"
 const spaceTypes = ["private", "teamspace"]
 
+function ResourceDropdownMenu({res}: { res: Resource }) {
+  const navigate = useNavigate();
+  const chatWithParent = (r: Resource) => {
+    navigate("./", {state: {parents: [r]}});
+  }
+
+  const chat = (r: Resource) => {
+    navigate("./", {state: {resources: [r]}});
+  }
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <SidebarMenuAction>
+          <MoreHorizontal/>
+        </SidebarMenuAction>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="right" align="start">
+        <DropdownMenuItem>
+          Create
+        </DropdownMenuItem>
+        {res.childCount > 0 && <DropdownMenuItem onClick={() => chatWithParent(res)}>
+          Chat with Dir
+        </DropdownMenuItem>}
+        <DropdownMenuItem onClick={() => chat(res)}>
+          Chat
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 export function MainSidebar() {
   const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
   const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
   const {namespace} = useParams();
-  const navigate = useNavigate();
   const {resource} = useResource();
 
   if (!namespace) {
@@ -102,14 +132,6 @@ export function MainSidebar() {
     }
   }
 
-  const chatWithParent = (r: Resource) => {
-    navigate("./", {state: {parents: [r]}});
-  }
-
-  const chat= (r: Resource) => {
-    navigate("./", {state: {resources: [r]}});
-  }
-
   function Tree({namespace, spaceType, res}: { namespace: string, spaceType: string, res: Resource }) {
     if (res.childCount > 0) {
       return (
@@ -120,10 +142,7 @@ export function MainSidebar() {
           >
             <CollapsibleTrigger asChild>
               <div>
-                <SidebarMenuButton
-                  asChild
-                  isActive={res.id == resource?.id}
-                >
+                <SidebarMenuButton asChild isActive={res.id == resource?.id}>
                   <Link to={`/${namespace}/${res.id}`}>
                     <ChevronRight className="transition-transform" onClick={
                       (event) => {
@@ -136,24 +155,7 @@ export function MainSidebar() {
                     {res.name}
                   </Link>
                 </SidebarMenuButton>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuAction>
-                      <MoreHorizontal/>
-                    </SidebarMenuAction>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent side="right" align="start">
-                    <DropdownMenuItem>
-                      Create
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => chatWithParent(res)}>
-                      Chat with Dir
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => chat(res)}>
-                      Chat
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <ResourceDropdownMenu res={res}/>
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -171,31 +173,10 @@ export function MainSidebar() {
     }
     return (
       <SidebarMenuItem>
-        <SidebarMenuButton
-          className="data-[active=true]:bg-transparent"
-          isActive={res.id == resource?.id}
-          asChild
-        >
-          <Link to={`/${namespace}/${res.id}`}>
-            <File/>
-            {res.name}
-          </Link>
+        <SidebarMenuButton className="data-[active=true]:bg-transparent" isActive={res.id == resource?.id} asChild>
+          <Link to={`/${namespace}/${res.id}`}><File/>{res.name}</Link>
         </SidebarMenuButton>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuAction>
-              <MoreHorizontal/>
-            </SidebarMenuAction>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="start">
-            <DropdownMenuItem>
-              Create
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => chat(res)}>
-              Chat
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ResourceDropdownMenu res={res}/>
       </SidebarMenuItem>
     )
   }
