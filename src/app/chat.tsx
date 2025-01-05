@@ -6,7 +6,7 @@ import {Separator} from "@/components/ui/separator";
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb";
 import {NavChatActions} from "@/components/nav-chat-actions";
 import {Markdown} from "@/components/markdown";
-import {useParams} from "react-router";
+import {Link, useParams} from "react-router";
 import {useGlobalContext} from "@/components/provider/global-context-provider";
 import {File, Folder, X} from "lucide-react";
 
@@ -175,20 +175,22 @@ export function Chat() {
             {
               resourcesCondition.map((rc, index) => (
                 <div key={index}
-                     className={`flex items-center text-black dark:text-white rounded-full px-3 py-1 mr-2 mb-2 ${
+                     className={`flex items-center text-black dark:text-white rounded-full px-2 mr-2 h-6 ${
                        rc.type === "parent" ? 'bg-green-200 dark:bg-green-500' : 'bg-blue-200 dark:bg-blue-500'
                      }`}>
                   <div className="mr-2 flex items-center text-sm">
                     {rc.type === "parent" ? <Folder className="w-4 h-4"/> : <File className="w-4 h-4"/>}
-                    <span className="ml-1">{rc.resource.name}</span>
+                    <Link className="ml-1" to={rc.resource.id}>{rc.resource.name}</Link>
                   </div>
-                  <button onClick={() => removeTag(index)} className="focus:outline-none"><X/></button>
+                  <button onClick={() => removeTag(index)} className="focus:outline-none">
+                    <X className="w-4 h-4"/>
+                  </button>
                 </div>
               ))
             }
             {
               resourcesCondition.length > 1 &&
-              <Button onClick={() => setResourcesCondition([])} className="rounded-full px-3 py-1 mr-2 mb-2">
+              <Button onClick={() => setResourcesCondition([])} className="rounded-full px-2 h-6">
                 Clear All
               </Button>
             }
@@ -212,13 +214,8 @@ export function Chat() {
               />
               <div className="flex justify-end mb-1 mr-1">
                 {isStreaming ?
-                  <Button
-                    onClick={() => setIsStreaming(false)} className="rounded-full"
-                  >Stop</Button> :
-                  <Button
-                    onClick={handleSend} className="rounded-full"
-                    disabled={input.length === 0}
-                  >Send</Button>
+                  <Button onClick={() => setIsStreaming(false)} className="rounded-full">Stop</Button> :
+                  <Button onClick={handleSend} className="rounded-full" disabled={input.length === 0}>Send</Button>
                 }
               </div>
             </div>

@@ -1,14 +1,13 @@
 import {ThemeProvider} from "@/components/provider/theme-provider";
-import {HashRouter, Outlet, Route, Routes} from "react-router"
+import {HashRouter, Route, Routes} from "react-router"
 import LoginPage from "@/app/login-page";
-import {ResourceProvider} from "@/components/provider/resource-provider"
 import {GlobalContextProvider} from "@/components/provider/global-context-provider";
 import {ResourcePage} from "@/app/resource-page";
 import {Render} from "@/components/resource/render";
 import {Editor} from "@/components/resource/editor";
 import {Chat} from "@/app/chat"
-import {MainSidebar} from "@/components/sidebar/main-sidebar";
-import {SidebarProvider} from "@/components/ui/sidebar";
+import {NamespaceBase} from "@/components/namespace-base";
+
 
 function App() {
 
@@ -17,14 +16,7 @@ function App() {
       <GlobalContextProvider>
         <HashRouter>
           <Routes>
-            <Route path=":namespace" element={
-              <ResourceProvider>
-                <SidebarProvider>
-                  <MainSidebar/>
-                  <Outlet/>
-                </SidebarProvider>
-              </ResourceProvider>
-            }>
+            <Route path=":namespace" element={<NamespaceBase/>}>
               <Route index element={<Chat/>}/>
               <Route path=":resourceId" element={<ResourcePage/>}>
                 <Route index element={<Render/>}/>
