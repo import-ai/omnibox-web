@@ -7,7 +7,7 @@ import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/comp
 import {NavChatActions} from "@/components/nav-chat-actions";
 import {Markdown} from "@/components/markdown";
 import {useParams} from "react-router";
-import {useGlobalContext} from "@/components/provider/global-context-provider.tsx";
+import {useGlobalContext} from "@/components/provider/global-context-provider";
 import {File, Folder, X} from "lucide-react";
 
 type Message = {
@@ -174,19 +174,23 @@ export function Chat() {
           <div className="flex flex-wrap">
             {
               resourcesCondition.map((rc, index) => (
-              <div key={index}
-                 className={`flex items-center text-black dark:text-white rounded-full px-3 py-1 mr-2 mb-2 ${
-                   rc.type === "parent" ? 'bg-green-200 dark:bg-green-500' : 'bg-blue-200 dark:bg-blue-500'
-                 }`}>
-                <div className="mr-2 flex items-center text-sm">
-                {rc.type === "parent" ? <Folder className="w-4 h-4"/> : <File className="w-4 h-4"/>}
-                <span className="ml-1">{rc.resource.name}</span>
+                <div key={index}
+                     className={`flex items-center text-black dark:text-white rounded-full px-3 py-1 mr-2 mb-2 ${
+                       rc.type === "parent" ? 'bg-green-200 dark:bg-green-500' : 'bg-blue-200 dark:bg-blue-500'
+                     }`}>
+                  <div className="mr-2 flex items-center text-sm">
+                    {rc.type === "parent" ? <Folder className="w-4 h-4"/> : <File className="w-4 h-4"/>}
+                    <span className="ml-1">{rc.resource.name}</span>
+                  </div>
+                  <button onClick={() => removeTag(index)} className="focus:outline-none"><X/></button>
                 </div>
-                <button onClick={() => removeTag(index)} className="focus:outline-none">
-                <X/>
-                </button>
-              </div>
               ))
+            }
+            {
+              resourcesCondition.length > 1 &&
+              <Button onClick={() => setResourcesCondition([])} className="rounded-full px-3 py-1 mr-2 mb-2">
+                Clear All
+              </Button>
             }
           </div>
           <div className="items-center mt-4 border-2 rounded-3xl border-gray-200 dark:border-gray-700">

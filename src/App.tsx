@@ -17,7 +17,7 @@ function App() {
       <GlobalContextProvider>
         <HashRouter>
           <Routes>
-            <Route path="/:namespace" element={
+            <Route path=":namespace" element={
               <ResourceProvider>
                 <SidebarProvider>
                   <MainSidebar/>
@@ -31,7 +31,7 @@ function App() {
                 <Route path="edit" element={<Editor/>}/>
               </Route>
             </Route>
-            <Route path="/login" element={<LoginPage/>}/>
+            <Route path="login" element={<LoginPage/>}/>
           </Routes>
         </HashRouter>
       </GlobalContextProvider>

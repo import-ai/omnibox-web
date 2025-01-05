@@ -1,6 +1,6 @@
 import * as React from "react"
 import axios from "axios";
-import {ChevronRight, Command, File, Folder, MoreHorizontal, Search} from "lucide-react"
+import {ChevronRight, Command, File, Folder, MoreHorizontal, Sparkles} from "lucide-react"
 import {Link, useNavigate, useParams} from "react-router";
 
 import {Collapsible, CollapsibleContent, CollapsibleTrigger,} from "@/components/ui/collapsible"
@@ -9,24 +9,21 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel, SidebarHeader,
-  SidebarMenu, SidebarMenuAction,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarRail,
 } from "@/components/ui/sidebar"
 import {Resource} from "@/types/resource"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {useResource} from "@/components/provider/resource-provider";
 import {NamespaceSwitcher} from "@/components/sidebar/namespace-switcher";
 import {NavMain} from "@/components/sidebar/nav-main";
-import {useGlobalContext, ResourceConditionType} from "@/components/provider/global-context-provider.tsx";
+import {ResourceConditionType, useGlobalContext} from "@/components/provider/global-context-provider";
 
 
 const baseUrl = "/api/v1/resources"
@@ -204,7 +201,7 @@ export function MainSidebar() {
     <Sidebar>
       <SidebarHeader>
         <NamespaceSwitcher namespaces={[{name: "test", logo: Command}]}/>
-        <NavMain items={[{title: "Search", url: "./", icon: Search}]}/>
+        <NavMain items={[{title: "Chat", url: "./", icon: Sparkles}]}/>
       </SidebarHeader>
       <SidebarContent>
         {spaceTypes.map((spaceType: string, index: number) => (
