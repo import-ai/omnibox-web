@@ -5,7 +5,7 @@ import type {Resource} from "@/types/resource";
 import {API_BASE_URL} from "@/constants";
 import {useResource} from "@/components/provider/resource-provider";
 import {useVditorTheme} from "@/hooks/use-vditor-theme"
-import {useGlobalContext} from "@/components/provider/context-provider";
+import {useGlobalContext} from "@/components/provider/global-context-provider";
 import {useParams} from "react-router";
 
 export function Editor() {

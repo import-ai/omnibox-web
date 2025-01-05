@@ -2,7 +2,7 @@ import {ThemeProvider} from "@/components/provider/theme-provider";
 import {HashRouter, Outlet, Route, Routes} from "react-router"
 import LoginPage from "@/app/login-page";
 import {ResourceProvider} from "@/components/provider/resource-provider"
-import {GlobalContextProvider} from "@/components/provider/context-provider";
+import {GlobalContextProvider} from "@/components/provider/global-context-provider";
 import {ResourcePage} from "@/app/resource-page";
 import {Render} from "@/components/resource/render";
 import {Editor} from "@/components/resource/editor";

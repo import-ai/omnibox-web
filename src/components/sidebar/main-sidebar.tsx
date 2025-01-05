@@ -26,20 +26,23 @@ import {
 import {useResource} from "@/components/provider/resource-provider";
 import {NamespaceSwitcher} from "@/components/sidebar/namespace-switcher";
 import {NavMain} from "@/components/sidebar/nav-main";
+import {useGlobalContext, ResourceConditionType} from "@/components/provider/global-context-provider.tsx";
 
 
 const baseUrl = "/api/v1/resources"
 const spaceTypes = ["private", "teamspace"]
 
 function ResourceDropdownMenu({res}: { res: Resource }) {
+  const globalContext = useGlobalContext();
+  const {resourcesCondition, setResourcesCondition} = globalContext.resourcesConditionState;
   const navigate = useNavigate();
-  const chatWithParent = (r: Resource) => {
-    navigate("./", {state: {parents: [r]}});
+  const addToChatContext = (r: Resource, type: ResourceConditionType) => {
+    if (!resourcesCondition.some((rc) => rc.resource.id === r.id && rc.type === type)) {
+      setResourcesCondition((prev) => ([...prev, {resource: r, type}]));
+    }
+    navigate("./");
   }
 
-  const chat = (r: Resource) => {
-    navigate("./", {state: {resources: [r]}});
-  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -51,11 +54,11 @@ function ResourceDropdownMenu({res}: { res: Resource }) {
         <DropdownMenuItem>
           Create
         </DropdownMenuItem>
-        {res.childCount > 0 && <DropdownMenuItem onClick={() => chatWithParent(res)}>
-          Chat with Dir
+        {res.childCount > 0 && <DropdownMenuItem onClick={() => addToChatContext(res, "parent")}>
+          Add all to Context
         </DropdownMenuItem>}
-        <DropdownMenuItem onClick={() => chat(res)}>
-          Chat
+        <DropdownMenuItem onClick={() => addToChatContext(res, "resource")}>
+          Add it to Context
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

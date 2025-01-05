@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/sidebar"
 import {ThemeToggle} from "@/components/theme-toggle";
 import axios from "axios";
-import {useGlobalContext} from "@/components/provider/context-provider";
+import {useGlobalContext} from "@/components/provider/global-context-provider";
 import {API_BASE_URL} from "@/constants";
 import {useParams, useNavigate} from "react-router";
 import {useResource} from "@/components/provider/resource-provider";
