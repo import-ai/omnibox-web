@@ -6,8 +6,9 @@ import {Separator} from "@/components/ui/separator";
 import {Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage} from "@/components/ui/breadcrumb";
 import {NavChatActions} from "@/components/nav-chat-actions";
 import {Markdown} from "@/components/markdown";
-import {useLocation, useNavigate, useParams} from "react-router";
-import {Resource} from "@/types/resource";
+import {Link, useParams} from "react-router";
+import {useGlobalContext} from "@/components/provider/global-context-provider";
+import {File, Folder, X} from "lucide-react";
 
 type Message = {
   role: 'user' | 'assistant';
@@ -34,40 +35,27 @@ type ChatCitationListResponse = ChatBaseResponse & {
   citation_list: Citation[];
 };
 
-type LocationState = {
-  resources: Resource[] | undefined,
-  parents: Resource[] | undefined
-}
 
 export function Chat() {
   const {namespace} = useParams();
+  const {resourcesCondition, setResourcesCondition} = useGlobalContext().resourcesConditionState;
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState<string>("");
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [locationState, setLocationState] = React.useState<LocationState | undefined>();
   const [isStreaming, setIsStreaming] = React.useState<boolean>(false);
 
-  React.useEffect(() => {
-    if (location.state) {
-      setLocationState({
-        parents: location.state?.parents,
-        resources: location.state?.resources
-      });
-      navigate(location.pathname, {state: null});  // clear the state
-    }
-  }, [location.state, location.pathname]);
+  const condition = React.useMemo(() => {
+    const parents = resourcesCondition.filter(rc => rc.type === "parent").map(rc => rc.resource);
+    const resources = resourcesCondition.filter(rc => rc.type === "resource").map(rc => rc.resource);
 
+    return {
+      parentIds: parents.length > 0 ? parents.map(r => r.id) : null,
+      resourceIds: resources.length > 0 ? resources.map(r => r.id) : null
+    };
+  }, [resourcesCondition]);
 
   const handleSend = async () => {
     if (input.trim() && namespace) {
       setIsStreaming(true);
-
-      const parents: Resource[] | undefined = locationState?.parents;
-      const parentIds: string[] | null = parents ? parents.map((r) => r.id) : null;
-
-      const resources: Resource[] | undefined = locationState?.resources;
-      const resourceIds: string[] | null = resources ? resources.map((r) => r.id) : null;
 
       let localMessages: Message[] = [...messages, {role: 'user', content: input}];
 
@@ -78,11 +66,9 @@ export function Chat() {
         session_id: "fake_id",
         query: localMessages[localMessages.length - 1].content,
         namespace: namespace,
-        parent_ids: parentIds,
-        resource_ids: resourceIds
+        parent_ids: condition.parentIds,
+        resource_ids: condition.resourceIds
       };
-
-      console.log({body});
 
       const response = await fetch('/api/v1/grimoire/stream', {
         method: 'POST',
@@ -146,6 +132,10 @@ export function Chat() {
     }
   };
 
+  const removeTag = (index: number) => {
+    setResourcesCondition((prev) => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <SidebarInset>
       <header className="flex h-14 shrink-0 items-center gap-2">
@@ -172,11 +162,38 @@ export function Chat() {
             {messages.map((message, index) => (
               <div key={index} className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
                 <div
-                  className={`inline-block p-2 rounded ${message.role === 'user' ? 'bg-blue-500 text-white dark:bg-blue-700' : 'bg-gray-200 text-black dark:bg-gray-700 dark:text-white'}`}>
+                  className={`inline-block p-2 rounded ${
+                    message.role === 'user' ?
+                      'bg-blue-500 text-white dark:bg-blue-700' :
+                      'bg-gray-200 text-black dark:bg-gray-700 dark:text-white'}`}>
                   <Markdown content={message.content}/>
                 </div>
               </div>
             ))}
+          </div>
+          <div className="flex flex-wrap">
+            {
+              resourcesCondition.map((rc, index) => (
+                <div key={index}
+                     className={`flex items-center text-black dark:text-white rounded-full px-2 mr-2 h-6 ${
+                       rc.type === "parent" ? 'bg-green-200 dark:bg-green-500' : 'bg-blue-200 dark:bg-blue-500'
+                     }`}>
+                  <div className="mr-2 flex items-center text-sm">
+                    {rc.type === "parent" ? <Folder className="w-4 h-4"/> : <File className="w-4 h-4"/>}
+                    <Link className="ml-1" to={rc.resource.id}>{rc.resource.name}</Link>
+                  </div>
+                  <button onClick={() => removeTag(index)} className="focus:outline-none">
+                    <X className="w-4 h-4"/>
+                  </button>
+                </div>
+              ))
+            }
+            {
+              resourcesCondition.length > 1 &&
+              <Button onClick={() => setResourcesCondition([])} className="rounded-full px-2 h-6">
+                Clear All
+              </Button>
+            }
           </div>
           <div className="items-center mt-4 border-2 rounded-3xl border-gray-200 dark:border-gray-700">
             <div className="relative flex flex-col">
@@ -197,13 +214,8 @@ export function Chat() {
               />
               <div className="flex justify-end mb-1 mr-1">
                 {isStreaming ?
-                  <Button
-                    onClick={() => setIsStreaming(false)} className="rounded-full"
-                  >Stop</Button> :
-                  <Button
-                    onClick={handleSend} className="rounded-full"
-                    disabled={input.length === 0}
-                  >Send</Button>
+                  <Button onClick={() => setIsStreaming(false)} className="rounded-full">Stop</Button> :
+                  <Button onClick={handleSend} className="rounded-full" disabled={input.length === 0}>Send</Button>
                 }
               </div>
             </div>

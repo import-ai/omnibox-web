@@ -33,8 +33,10 @@ export function ResourcePage() {
             <NavResourceActions/>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">
-          <Outlet/>
+        <div className="flex justify-center h-full p-4">
+          <div className="flex flex-col h-full max-w-3xl w-full">
+            <Outlet/>
+          </div>
         </div>
       </SidebarInset>
     </>

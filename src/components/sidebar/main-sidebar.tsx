@@ -1,6 +1,6 @@
 import * as React from "react"
 import axios from "axios";
-import {ChevronRight, Command, File, Folder, MoreHorizontal, Search} from "lucide-react"
+import {ChevronRight, Command, File, Folder, MoreHorizontal, Sparkles} from "lucide-react"
 import {Link, useNavigate, useParams} from "react-router";
 
 import {Collapsible, CollapsibleContent, CollapsibleTrigger,} from "@/components/ui/collapsible"
@@ -9,34 +9,64 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel, SidebarHeader,
-  SidebarMenu, SidebarMenuAction,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarRail,
 } from "@/components/ui/sidebar"
 import {Resource} from "@/types/resource"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {useResource} from "@/components/provider/resource-provider";
 import {NamespaceSwitcher} from "@/components/sidebar/namespace-switcher";
 import {NavMain} from "@/components/sidebar/nav-main";
+import {ResourceConditionType, useGlobalContext} from "@/components/provider/global-context-provider";
 
 
 const baseUrl = "/api/v1/resources"
 const spaceTypes = ["private", "teamspace"]
+
+function ResourceDropdownMenu({res}: { res: Resource }) {
+  const globalContext = useGlobalContext();
+  const {resourcesCondition, setResourcesCondition} = globalContext.resourcesConditionState;
+  const navigate = useNavigate();
+  const addToChatContext = (r: Resource, type: ResourceConditionType) => {
+    if (!resourcesCondition.some((rc) => rc.resource.id === r.id && rc.type === type)) {
+      setResourcesCondition((prev) => ([...prev, {resource: r, type}]));
+    }
+    navigate("./");
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <SidebarMenuAction>
+          <MoreHorizontal/>
+        </SidebarMenuAction>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="right" align="start">
+        <DropdownMenuItem>
+          Create
+        </DropdownMenuItem>
+        {res.childCount > 0 && <DropdownMenuItem onClick={() => addToChatContext(res, "parent")}>
+          Add all to Context
+        </DropdownMenuItem>}
+        <DropdownMenuItem onClick={() => addToChatContext(res, "resource")}>
+          Add it to Context
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 export function MainSidebar() {
   const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
   const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
   const {namespace} = useParams();
-  const navigate = useNavigate();
   const {resource} = useResource();
 
   if (!namespace) {
@@ -102,14 +132,6 @@ export function MainSidebar() {
     }
   }
 
-  const chatWithParent = (r: Resource) => {
-    navigate("./", {state: {parents: [r]}});
-  }
-
-  const chat= (r: Resource) => {
-    navigate("./", {state: {resources: [r]}});
-  }
-
   function Tree({namespace, spaceType, res}: { namespace: string, spaceType: string, res: Resource }) {
     if (res.childCount > 0) {
       return (
@@ -120,10 +142,7 @@ export function MainSidebar() {
           >
             <CollapsibleTrigger asChild>
               <div>
-                <SidebarMenuButton
-                  asChild
-                  isActive={res.id == resource?.id}
-                >
+                <SidebarMenuButton asChild isActive={res.id == resource?.id}>
                   <Link to={`/${namespace}/${res.id}`}>
                     <ChevronRight className="transition-transform" onClick={
                       (event) => {
@@ -136,24 +155,7 @@ export function MainSidebar() {
                     {res.name}
                   </Link>
                 </SidebarMenuButton>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuAction>
-                      <MoreHorizontal/>
-                    </SidebarMenuAction>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent side="right" align="start">
-                    <DropdownMenuItem>
-                      Create
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => chatWithParent(res)}>
-                      Chat with Dir
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => chat(res)}>
-                      Chat
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <ResourceDropdownMenu res={res}/>
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -171,31 +173,10 @@ export function MainSidebar() {
     }
     return (
       <SidebarMenuItem>
-        <SidebarMenuButton
-          className="data-[active=true]:bg-transparent"
-          isActive={res.id == resource?.id}
-          asChild
-        >
-          <Link to={`/${namespace}/${res.id}`}>
-            <File/>
-            {res.name}
-          </Link>
+        <SidebarMenuButton className="data-[active=true]:bg-transparent" isActive={res.id == resource?.id} asChild>
+          <Link to={`/${namespace}/${res.id}`}><File/>{res.name}</Link>
         </SidebarMenuButton>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuAction>
-              <MoreHorizontal/>
-            </SidebarMenuAction>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="start">
-            <DropdownMenuItem>
-              Create
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => chat(res)}>
-              Chat
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ResourceDropdownMenu res={res}/>
       </SidebarMenuItem>
     )
   }
@@ -220,7 +201,7 @@ export function MainSidebar() {
     <Sidebar>
       <SidebarHeader>
         <NamespaceSwitcher namespaces={[{name: "test", logo: Command}]}/>
-        <NavMain items={[{title: "Search", url: "./", icon: Search}]}/>
+        <NavMain items={[{title: "Chat", url: "./", icon: Sparkles}]}/>
       </SidebarHeader>
       <SidebarContent>
         {spaceTypes.map((spaceType: string, index: number) => (
