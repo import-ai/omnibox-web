@@ -70,7 +70,7 @@ export function Chat() {
         resource_ids: condition.resourceIds
       };
 
-      const response = await fetch('/api/v1/grimoire/stream', {
+      const response = await fetch('/api/v1/wizard/chat/stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

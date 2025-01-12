@@ -7,7 +7,7 @@ export function Markdown({content}: { content: string }) {
   const theme = useVditorTheme();
 
   React.useEffect(() => {
-    if (element.current && content) {
+    if (element.current) {
       Vditor.preview(element.current, content, {
         theme: {
           current: theme.theme
