@@ -18,7 +18,7 @@ import {
   SidebarMenuSub,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import {Resource, ResourceType} from "@/types/resource"
+import {Resource, ResourceType, SpaceType} from "@/types/resource"
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {useResource} from "@/components/provider/resource-provider";
 import {NamespaceSwitcher} from "@/components/sidebar/namespace-switcher";
@@ -28,51 +28,30 @@ import {ResourceTree, ResourceTreeNode} from "@/types/resource-tree.tsx";
 
 
 const baseUrl = "/api/v1/resources"
-const spaceTypes = ["private", "teamspace"]
+const spaceTypes: SpaceType[] = ["private", "teamspace"]
 
 export function MainSidebar() {
-  const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});
-  const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
   const {namespace} = useParams();
   const {resource} = useResource();
-  const {tree, setTree} = useGlobalContext().treeState;
+  const {treeMap, setTreeMap} = useGlobalContext().treeState;
   const navigate = useNavigate();
 
   if (!namespace) {
     throw new Error("namespace is required");
   }
 
-  const fetchResource = (rid: string) => {
-    axios.get(`${baseUrl}/${rid}`).then(response => {
-      const res: Resource = response.data;
-      setTree((prev) => {
-        prev.put(res);
-        return prev;
-      });
-    }).catch(error => {
-      console.error({error});
-      throw error;
-    });
-
-  }
-
-  const createResource = (namespace: string, spaceType: string, parentId: string, resourceType: ResourceType) => {
+  const createResource = async (namespace: string, spaceType: string, parentId: string, resourceType: ResourceType) => {
     axios.post(baseUrl, {namespace, spaceType, parentId, resourceType}).then(
       response => {
         const createdResource: Resource = response.data;
-        expandToRoot(createdResource);
-
-        // Update parent's child
-        setTree((prev) => {
-          prev.put(createdResource);
-          return prev;
+        const tree = treeMap[spaceType];
+        tree.getOrFetch(parentId).then(() => {
+          tree.put(createdResource);
+          setTreeMap((prev) => ({...prev, [spaceType]: tree}));
+          if (resourceType === "file") {
+            navigate(`${createdResource.id}/edit`);
+          }
         });
-        // Update parent's childCount
-        fetchResource(parentId);
-
-        if (resourceType === "file") {
-          navigate(`${createdResource.id}/edit`);
-        }
       }
     ).catch(error => {
       console.error({error});
@@ -80,17 +59,11 @@ export function MainSidebar() {
     });
   };
 
-  const deleteResource = (r: Resource) => {
-    axios.delete(`${baseUrl}/${r.id}`).then((response) => {
-      if (r.id === response.data.id) {
-        fetchResource(r.parentId);
-        setTree((prev) => {
-          prev.delete(r.id);
-          return prev;
-        });
-        if (!tree.get(resource?.id ?? "")) {
-          navigate(".");
-        }
+  const deleteResource = (r: Resource, spaceType: SpaceType) => {
+    const tree = treeMap[spaceType];
+    tree.delete(r.id).then(() => {
+      if (!tree.get(resource?.id ?? "")) {
+        navigate(".");
       }
     }).catch(error => {
       console.error({error});
@@ -98,71 +71,30 @@ export function MainSidebar() {
     });
   }
 
-  const expandToRoot = (resource: Resource) => {
-    if (resource.parentId != rootResourceId[resource.spaceType] && !isExpanded[resource.parentId]) {
-      fetchChild(namespace, resource.spaceType, resource.parentId).then(() => {
-        setTree((prev) => {
-          const node = prev.get(resource.parentId);
-          if (!node) {
-            throw new Error("Node not found");
-          }
-          node.isExpanded = true;
-          return prev
-        });
-        axios.get(`${baseUrl}/${resource.parentId}`).then((response) => {
-          expandToRoot(response.data);
-        })
-      })
-    }
-  }
-
   React.useEffect(() => {
     if (resource) {
-      expandToRoot(resource);
+      const tree = treeMap[resource.spaceType];
+      tree.expand(resource.id, true);
     }
   }, [resource])
 
   React.useEffect(() => {
     for (const spaceType of spaceTypes) {
-      axios.get(baseUrl, {params: {namespace, spaceType}}).then(response => {
-        const resources: Resource[] = response.data;
-        for (const r of resources) {
-          setTree((prev) => {
-            prev.put(r);
-            return prev;
-          });
-        }
-      })
+      const tree = new ResourceTree(namespace, spaceType);
+      tree.init().then(() =>
+        setTreeMap((prev) => ({...prev, [spaceType]: tree}))
+      );
     }
 
     return () => {
-      for (const setter of [setRootResourceId, setIsExpanded]) {
+      for (const setter of [setTreeMap]) {
         setter({});
       }
-      setTree(new ResourceTree());
     }
   }, [namespace]);
 
-  const expandToggle = (resourceId: string) => {
-    setIsExpanded((prev) => ({...prev, [resourceId]: !prev[resourceId]}));
-  }
 
-  const fetchChild = async (namespace: string, spaceType: string, parentId: string, cache: boolean = true) => {
-    const node = tree.get(parentId);
-    if (!(node?.children && cache)) {
-      axios.get(baseUrl, {params: {namespace, spaceType, parentId}}).then(response => {
-        const childData: Resource[] = response.data;
-        for (const r of childData) {
-          setTree((prev) => {
-            prev.put(r);
-            return prev;
-          });
-        }
-      })
-    }
-  }
-
-  function ResourceDropdownMenu({res}: { res: Resource }) {
+  function ResourceDropdownMenu({res, st}: { res: Resource, st: SpaceType }) {
     const globalContext = useGlobalContext();
     const {resourcesCondition, setResourcesCondition} = globalContext.resourcesConditionState;
     const navigate = useNavigate();
@@ -193,7 +125,7 @@ export function MainSidebar() {
           <DropdownMenuItem onClick={() => addToChatContext(res, "resource")}>
             Add it to Context
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => deleteResource(res)}>
+          <DropdownMenuItem onClick={() => deleteResource(res, st)}>
             Delete
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate(`${res.id}/edit`)}>
@@ -204,40 +136,37 @@ export function MainSidebar() {
     )
   }
 
-  function Tree({namespace, spaceType, res}: { namespace: string, spaceType: string, res?: Resource }) {
-    if (!res) {
-      return (<></>);
-    }
-    if (res.childCount > 0) {
+  function TreeView({node}: { node: ResourceTreeNode }) {
+    if (node.resource.childCount > 0) {
       return (
         <SidebarMenuItem>
           <Collapsible
             className="group/collapsible [&[data-state=open]>div>a>svg:first-child]:rotate-90"
-            open={isExpanded[res.id]}
+            open={node.isExpanded}
           >
             <CollapsibleTrigger asChild>
               <div>
-                <SidebarMenuButton asChild isActive={res.id == resource?.id}>
-                  <Link to={res.id}>
+                <SidebarMenuButton asChild isActive={node.resource.id == resource?.id}>
+                  <Link to={node.resource.id}>
                     <ChevronRight className="transition-transform" onClick={
                       (event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        fetchChild(namespace, spaceType, res.id).then(() => expandToggle(res.id));
+                        treeMap[node.resource.spaceType].expandToggle(node.resource.id).then();
                       }
                     }/>
-                    {res.resourceType === "folder" ? <Folder/> : <File/>}
-                    <span className="truncate">{res.name ?? "Untitled"}</span>
+                    {node.resource.resourceType === "folder" ? <Folder/> : <File/>}
+                    <span className="truncate">{node.resource.name ?? "Untitled"}</span>
                   </Link>
                 </SidebarMenuButton>
-                <ResourceDropdownMenu res={res}/>
+                <ResourceDropdownMenu res={node.resource} st={node.resource.spaceType}/>
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarMenuSub>
-                {(tree.get(res.id)?.children ?? []).map((n: ResourceTreeNode) => (
-                    <Tree key={n.id} res={n.resource} namespace={namespace} spaceType={spaceType}/>
-                  ))
+                {node.children.map((n: ResourceTreeNode) => (
+                  <TreeView key={n.resource.id} node={n}/>
+                ))
                 }
               </SidebarMenuSub>
             </CollapsibleContent>
@@ -247,15 +176,15 @@ export function MainSidebar() {
     }
     return (
       <SidebarMenuItem>
-        <SidebarMenuButton className="data-[active=true]:bg-transparent" isActive={res.id == resource?.id} asChild>
-          <Link to={res.id}><File/><span className="truncate">{res.name ?? "Untitled"}</span></Link>
+        <SidebarMenuButton className="data-[active=true]:bg-transparent" isActive={node.resource.id == resource?.id} asChild>
+          <Link to={node.resource.id}><File/><span className="truncate">{node.resource.name ?? "Untitled"}</span></Link>
         </SidebarMenuButton>
-        <ResourceDropdownMenu res={res}/>
+        <ResourceDropdownMenu res={node.resource} st={node.resource.spaceType}/>
       </SidebarMenuItem>
     )
   }
 
-  function Space({spaceType, namespace}: { spaceType: string, namespace: string }) {
+  function Space({spaceType, namespace}: { spaceType: SpaceType, namespace: string }) {
     const spaceTitle = `${spaceType.charAt(0).toUpperCase()}${spaceType.slice(1)}`
     return (
       <SidebarGroup>
@@ -268,11 +197,12 @@ export function MainSidebar() {
               </SidebarMenuAction>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="start">
-              <DropdownMenuItem onClick={() => createResource(namespace, spaceType, rootResourceId[spaceType], "file")}>
+              <DropdownMenuItem
+                onClick={() => createResource(namespace, spaceType, treeMap[spaceType].rootNode.resource.id, "file")}>
                 Create File
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => createResource(namespace, spaceType, rootResourceId[spaceType], "folder")}>
+                onClick={() => createResource(namespace, spaceType, treeMap[spaceType].rootNode.resource.id, "folder")}>
                 Create Folder
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -280,8 +210,8 @@ export function MainSidebar() {
         </div>
         <SidebarGroupContent>
           <SidebarMenu>
-            {(tree.get(rootResourceId[spaceType])?.children ?? []).map((n) => (
-              <Tree key={n.id} res={n.resource} namespace={namespace} spaceType={spaceType}/>
+            {treeMap[spaceType].rootNode?.children.map((n) => (
+              <TreeView key={n.resource.id} node={n}/>
             ))}
           </SidebarMenu>
         </SidebarGroupContent>
@@ -296,9 +226,14 @@ export function MainSidebar() {
         <NavMain items={[{title: "Chat", url: "./", icon: Sparkles}]}/>
       </SidebarHeader>
       <SidebarContent>
-        {spaceTypes.map((spaceType: string, index: number) => (
-          <Space key={index} spaceType={spaceType} namespace={namespace}/>
-        ))}
+        {
+          Object.values(treeMap).map((tree, index) => {
+            console.log({tree});
+            return (
+              <Space key={index} spaceType={tree.spaceType} namespace={namespace}/>
+            )
+          })
+        }
       </SidebarContent>
       <SidebarRail/>
     </Sidebar>
