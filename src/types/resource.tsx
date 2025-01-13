@@ -14,6 +14,7 @@ export type Resource = {
   content?: string;
 
   tags?: string[];
+  attrs?: Record<string, string>;
 
   // ISO 8601
   createdAt?: string;

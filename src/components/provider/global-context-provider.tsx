@@ -10,10 +10,19 @@ export type ResourcesCondition = {
   type: ResourceConditionType
 }
 
+export type EditorStateType = {
+  title?: string,
+  vditor?: Vditor
+}
+
 type GlobalContextProviderState = {
-  vditorState: {
-    vditor?: Vditor,
-    setVditor: React.Dispatch<React.SetStateAction<Vditor | undefined>>
+  editorState: {
+    editor: EditorStateType,
+    setEditor: React.Dispatch<React.SetStateAction<EditorStateType>>
+  },
+  resourceTreeViewState: {
+    child: Record<string, Resource[]>,
+    setChild: React.Dispatch<React.SetStateAction<Record<string, Resource[]>>>
   },
   resourcesConditionState: {
     resourcesCondition: ResourcesCondition[],
@@ -23,8 +32,13 @@ type GlobalContextProviderState = {
 
 
 const initialValue: GlobalContextProviderState = {
-  vditorState: {
-    setVditor: () => null
+  editorState: {
+    editor: {},
+    setEditor: () => null
+  },
+  resourceTreeViewState: {
+    child: {},
+    setChild: () => null
   },
   resourcesConditionState: {
     resourcesCondition: [],
@@ -44,11 +58,13 @@ export const useGlobalContext = (): GlobalContextProviderState => {
 };
 
 export const GlobalContextProvider = ({children, ...props}: { children: React.ReactNode }) => {
-  const [vditor, setVditor] = React.useState<Vditor>();
+  const [editor, setEditor] = React.useState<EditorStateType>({});
   const [resourcesCondition, setResourcesCondition] = React.useState<ResourcesCondition[]>([]);
+  const [child, setChild] = React.useState<Record<string, Resource[]>>({});
 
   const value = {
-    vditorState: {vditor, setVditor},
+    editorState: {editor, setEditor},
+    resourceTreeViewState: {child, setChild},
     resourcesConditionState: {resourcesCondition, setResourcesCondition}
   }
 
