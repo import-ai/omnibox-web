@@ -32,7 +32,7 @@ const spaceTypes = ["private", "teamspace"]
 export function MainSidebar() {
   const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
-  const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
+  const {child, setChild} = useGlobalContext().resourceTreeViewState;
   const {namespace} = useParams();
   const {resource} = useResource();
   const navigate = useNavigate();
@@ -192,6 +192,9 @@ export function MainSidebar() {
           <DropdownMenuItem onClick={() => createResource(namespace ?? "", res.spaceType, res.id, "folder")}>
             Create Folder
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate(`${res.id}/edit`)}>
+            Edit
+          </DropdownMenuItem>
           {res.childCount > 0 && <DropdownMenuItem onClick={() => addToChatContext(res, "parent")}>
             Add all to Context
           </DropdownMenuItem>}
@@ -200,9 +203,6 @@ export function MainSidebar() {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => deleteResource(res)}>
             Delete
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate(`${res.id}/edit`)}>
-            Edit
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

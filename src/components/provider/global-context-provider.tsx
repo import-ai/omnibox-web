@@ -20,6 +20,10 @@ type GlobalContextProviderState = {
     editor: EditorStateType,
     setEditor: React.Dispatch<React.SetStateAction<EditorStateType>>
   },
+  resourceTreeViewState: {
+    child: Record<string, Resource[]>,
+    setChild: React.Dispatch<React.SetStateAction<Record<string, Resource[]>>>
+  },
   resourcesConditionState: {
     resourcesCondition: ResourcesCondition[],
     setResourcesCondition: React.Dispatch<React.SetStateAction<ResourcesCondition[]>>
@@ -31,6 +35,10 @@ const initialValue: GlobalContextProviderState = {
   editorState: {
     editor: {},
     setEditor: () => null
+  },
+  resourceTreeViewState: {
+    child: {},
+    setChild: () => null
   },
   resourcesConditionState: {
     resourcesCondition: [],
@@ -52,9 +60,11 @@ export const useGlobalContext = (): GlobalContextProviderState => {
 export const GlobalContextProvider = ({children, ...props}: { children: React.ReactNode }) => {
   const [editor, setEditor] = React.useState<EditorStateType>({});
   const [resourcesCondition, setResourcesCondition] = React.useState<ResourcesCondition[]>([]);
+  const [child, setChild] = React.useState<Record<string, Resource[]>>({});
 
   const value = {
     editorState: {editor, setEditor},
+    resourceTreeViewState: {child, setChild},
     resourcesConditionState: {resourcesCondition, setResourcesCondition}
   }
 
