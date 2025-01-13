@@ -44,11 +44,13 @@ export function MainSidebar() {
   const fetchResource = (rid: string) => {
     axios.get(`${baseUrl}/${rid}`).then(response => {
       const res: Resource = response.data;
-      const parentId: string = res.parentId;
-      setChild((prev) => ({
-        ...prev,
-        [parentId]: prev[parentId].map((r) => r.id === rid ? res : r)
-      }));
+      const parentId: string | undefined = res.parentId;
+      if (parentId) {
+        setChild((prev) => ({
+          ...prev,
+          [parentId]: prev[parentId].map((r) => r.id === rid ? res : r)
+        }));
+      }
     }).catch(error => {
       console.error({error});
       throw error;
@@ -67,7 +69,9 @@ export function MainSidebar() {
         // Update parent's childCount
         fetchResource(parentId);
 
-        navigate(createdResource.id);
+        if (resourceType === "file") {
+          navigate(`${createdResource.id}/edit`);
+        }
       }
     ).catch(error => {
       console.error({error});
@@ -197,6 +201,9 @@ export function MainSidebar() {
           <DropdownMenuItem onClick={() => deleteResource(res)}>
             Delete
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate(`${res.id}/edit`)}>
+            Edit
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     )
@@ -222,7 +229,7 @@ export function MainSidebar() {
                       }
                     }/>
                     {res.resourceType === "folder" ? <Folder/> : <File/>}
-                    {res.name ?? "Untitled"}
+                    <span className="truncate">{res.name ?? "Untitled"}</span>
                   </Link>
                 </SidebarMenuButton>
                 <ResourceDropdownMenu res={res}/>
@@ -244,7 +251,7 @@ export function MainSidebar() {
     return (
       <SidebarMenuItem>
         <SidebarMenuButton className="data-[active=true]:bg-transparent" isActive={res.id == resource?.id} asChild>
-          <Link to={res.id}><File/>{res.name ?? "Untitled"}</Link>
+          <Link to={res.id}><File/><span className="truncate">{res.name ?? "Untitled"}</span></Link>
         </SidebarMenuButton>
         <ResourceDropdownMenu res={res}/>
       </SidebarMenuItem>
@@ -255,7 +262,25 @@ export function MainSidebar() {
     const spaceTitle = `${spaceType.charAt(0).toUpperCase()}${spaceType.slice(1)}`
     return (
       <SidebarGroup>
-        <SidebarGroupLabel>{spaceTitle}</SidebarGroupLabel>
+        <div className="flex items-center justify-between">
+          <SidebarGroupLabel>{spaceTitle}</SidebarGroupLabel>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuAction className="my-1.5">
+                <MoreHorizontal/>
+              </SidebarMenuAction>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="right" align="start">
+              <DropdownMenuItem onClick={() => createResource(namespace, spaceType, rootResourceId[spaceType], "file")}>
+                Create File
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => createResource(namespace, spaceType, rootResourceId[spaceType], "folder")}>
+                Create Folder
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         <SidebarGroupContent>
           <SidebarMenu>
             {(child[rootResourceId[spaceType]] ?? []).map((r) => (

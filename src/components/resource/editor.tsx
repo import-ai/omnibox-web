@@ -7,14 +7,19 @@ import {useResource} from "@/components/provider/resource-provider";
 import {useVditorTheme} from "@/hooks/use-vditor-theme"
 import {useGlobalContext} from "@/components/provider/global-context-provider";
 import {useParams} from "react-router";
+import {Input} from "@/components/ui/input.tsx";
 
 export function Editor() {
   const domId: string = "md-editor"
   const {setResource} = useResource();
   const globalContext = useGlobalContext();
-  const {vditor, setVditor} = globalContext.vditorState;
+  const {editor, setEditor} = globalContext.editorState;
   const theme = useVditorTheme();
   const {resourceId} = useParams();
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditor((prev) => ({...prev, title: e.target.value}));
+  };
 
   React.useEffect(() => {
     if (!resourceId) {
@@ -34,7 +39,7 @@ export function Editor() {
         after: () => {
           v.setValue(resource.content ?? "");
           v.setTheme(theme.theme, theme.contentTheme, theme.codeTheme);
-          setVditor(v);
+          setEditor({vditor: v, title: resource.name});
         }
       });
     }).catch(error => {
@@ -42,12 +47,21 @@ export function Editor() {
     })
 
     return () => {
-      vditor?.destroy();
-      setVditor(undefined);
+      editor?.vditor?.destroy();
+      setEditor({});
     }
   }, [resourceId])
 
   return (
-    <div id={domId} className="vditor vditor-reset"></div>
+    <div>
+      <Input
+        type="text"
+        value={globalContext.editorState.editor.title}
+        onChange={handleTitleChange}
+        placeholder="Enter title"
+        className="mb-4 p-2 border rounded"
+      />
+      <div id={domId} className="vditor vditor-reset"></div>
+    </div>
   )
 }

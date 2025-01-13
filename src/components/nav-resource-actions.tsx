@@ -110,12 +110,13 @@ export function NavResourceActions() {
   const {resourceId} = useParams();
   const {resource, setResource} = useResource();
   const globalContext = useGlobalContext();
-  const vditor = globalContext.vditorState.vditor;
+  const vditor = globalContext.editorState.editor.vditor;
 
   const handleSave = () => {
     const content = vditor?.getValue();
-    if (content) {
-      axios.patch(`${API_BASE_URL}/resources/${resourceId}`, {content}).then(response => {
+    const name = globalContext.editorState.editor.title;
+    if (content || name) {
+      axios.patch(`${API_BASE_URL}/resources/${resourceId}`, {content, name}).then(response => {
         const delta: Resource = response.data;
         setResource((prev) => ({...prev, ...delta}));
         navigate(".");
