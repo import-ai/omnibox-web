@@ -24,6 +24,7 @@ import {useResource} from "@/components/provider/resource-provider";
 import {NamespaceSwitcher} from "@/components/sidebar/namespace-switcher";
 import {NavMain} from "@/components/sidebar/nav-main";
 import {ResourceConditionType, useGlobalContext} from "@/components/provider/global-context-provider";
+import {ResourceTree, ResourceTreeNode} from "@/types/resource-tree.tsx";
 
 
 const baseUrl = "/api/v1/resources"
@@ -32,9 +33,9 @@ const spaceTypes = ["private", "teamspace"]
 export function MainSidebar() {
   const [rootResourceId, setRootResourceId] = React.useState<Record<string, string>>({});
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>({});  // key: resourceId
-  const [child, setChild] = React.useState<Record<string, Resource[]>>({});  // resourceId -> Resource[]
   const {namespace} = useParams();
   const {resource} = useResource();
+  const {tree, setTree} = useGlobalContext().treeState;
   const navigate = useNavigate();
 
   if (!namespace) {
@@ -44,13 +45,10 @@ export function MainSidebar() {
   const fetchResource = (rid: string) => {
     axios.get(`${baseUrl}/${rid}`).then(response => {
       const res: Resource = response.data;
-      const parentId: string | undefined = res.parentId;
-      if (parentId) {
-        setChild((prev) => ({
-          ...prev,
-          [parentId]: prev[parentId].map((r) => r.id === rid ? res : r)
-        }));
-      }
+      setTree((prev) => {
+        prev.put(res);
+        return prev;
+      });
     }).catch(error => {
       console.error({error});
       throw error;
@@ -65,7 +63,10 @@ export function MainSidebar() {
         expandToRoot(createdResource);
 
         // Update parent's child
-        updateChild(parentId, [...(child[parentId] ?? []), createdResource]);
+        setTree((prev) => {
+          prev.put(createdResource);
+          return prev;
+        });
         // Update parent's childCount
         fetchResource(parentId);
 
@@ -79,28 +80,17 @@ export function MainSidebar() {
     });
   };
 
-  const deleteChild = (r: Resource) => {
-    if (r.id in child) {
-      for (const c of child[r.id]) {
-        if (resource?.id === c.id) {
-          navigate(".");
-        }
-        deleteChild(c);
-      }
-    }
-  }
-
   const deleteResource = (r: Resource) => {
     axios.delete(`${baseUrl}/${r.id}`).then((response) => {
       if (r.id === response.data.id) {
-        if (r.parentId in child) {
-          updateChild(r.parentId, child[r.parentId].filter((resource) => resource.id !== r.id));
-        }
         fetchResource(r.parentId);
-        if (resource?.id === r.id) {
+        setTree((prev) => {
+          prev.delete(r.id);
+          return prev;
+        });
+        if (!tree.get(resource?.id ?? "")) {
           navigate(".");
         }
-        deleteChild(r);
       }
     }).catch(error => {
       console.error({error});
@@ -108,17 +98,17 @@ export function MainSidebar() {
     });
   }
 
-  const updateChild = (resourceId: string, resources: Resource[]) => {
-    setChild((prev) => ({...prev, [resourceId]: resources}));
-    if (!(resourceId in isExpanded)) {
-      setIsExpanded((prev) => ({...prev, [resourceId]: false}));
-    }
-  };
-
   const expandToRoot = (resource: Resource) => {
     if (resource.parentId != rootResourceId[resource.spaceType] && !isExpanded[resource.parentId]) {
       fetchChild(namespace, resource.spaceType, resource.parentId).then(() => {
-        setIsExpanded((prev) => ({...prev, [resource.parentId]: true}));
+        setTree((prev) => {
+          const node = prev.get(resource.parentId);
+          if (!node) {
+            throw new Error("Node not found");
+          }
+          node.isExpanded = true;
+          return prev
+        });
         axios.get(`${baseUrl}/${resource.parentId}`).then((response) => {
           expandToRoot(response.data);
         })
@@ -136,18 +126,20 @@ export function MainSidebar() {
     for (const spaceType of spaceTypes) {
       axios.get(baseUrl, {params: {namespace, spaceType}}).then(response => {
         const resources: Resource[] = response.data;
-        if (resources.length > 0) {
-          const parentId = resources[0].parentId;
-          updateChild(parentId, resources);
-          setRootResourceId((prev) => ({...prev, [spaceType]: parentId}));
+        for (const r of resources) {
+          setTree((prev) => {
+            prev.put(r);
+            return prev;
+          });
         }
       })
     }
 
     return () => {
-      for (const setter of [setRootResourceId, setIsExpanded, setChild]) {
+      for (const setter of [setRootResourceId, setIsExpanded]) {
         setter({});
       }
+      setTree(new ResourceTree());
     }
   }, [namespace]);
 
@@ -156,13 +148,16 @@ export function MainSidebar() {
   }
 
   const fetchChild = async (namespace: string, spaceType: string, parentId: string, cache: boolean = true) => {
-    if (!(parentId in child && cache)) {
+    const node = tree.get(parentId);
+    if (!(node?.children && cache)) {
       axios.get(baseUrl, {params: {namespace, spaceType, parentId}}).then(response => {
         const childData: Resource[] = response.data;
-        setChild((prev) => ({
-          ...prev,
-          [parentId]: childData,
-        }));
+        for (const r of childData) {
+          setTree((prev) => {
+            prev.put(r);
+            return prev;
+          });
+        }
       })
     }
   }
@@ -209,7 +204,10 @@ export function MainSidebar() {
     )
   }
 
-  function Tree({namespace, spaceType, res}: { namespace: string, spaceType: string, res: Resource }) {
+  function Tree({namespace, spaceType, res}: { namespace: string, spaceType: string, res?: Resource }) {
+    if (!res) {
+      return (<></>);
+    }
     if (res.childCount > 0) {
       return (
         <SidebarMenuItem>
@@ -237,9 +235,8 @@ export function MainSidebar() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarMenuSub>
-                {(child[res.id] ?? []).length > 0 &&
-                  child[res.id].map((r: Resource) => (
-                    <Tree key={r.id} res={r} namespace={namespace} spaceType={spaceType}/>
+                {(tree.get(res.id)?.children ?? []).map((n: ResourceTreeNode) => (
+                    <Tree key={n.id} res={n.resource} namespace={namespace} spaceType={spaceType}/>
                   ))
                 }
               </SidebarMenuSub>
@@ -283,8 +280,8 @@ export function MainSidebar() {
         </div>
         <SidebarGroupContent>
           <SidebarMenu>
-            {(child[rootResourceId[spaceType]] ?? []).map((r) => (
-              <Tree key={r.id} res={r} namespace={namespace} spaceType={spaceType}/>
+            {(tree.get(rootResourceId[spaceType])?.children ?? []).map((n) => (
+              <Tree key={n.id} res={n.resource} namespace={namespace} spaceType={spaceType}/>
             ))}
           </SidebarMenu>
         </SidebarGroupContent>

@@ -2,6 +2,7 @@ import * as React from 'react';
 import {createContext, useContext} from 'react';
 import Vditor from "vditor";
 import {type Resource} from "@/types/resource";
+import {ResourceTree} from "@/types/resource-tree";
 
 export type ResourceConditionType = "parent" | "resource";
 
@@ -20,6 +21,10 @@ type GlobalContextProviderState = {
     editor: EditorStateType,
     setEditor: React.Dispatch<React.SetStateAction<EditorStateType>>
   },
+  treeState: {
+    tree: ResourceTree,
+    setTree: React.Dispatch<React.SetStateAction<ResourceTree>>
+  }
   resourcesConditionState: {
     resourcesCondition: ResourcesCondition[],
     setResourcesCondition: React.Dispatch<React.SetStateAction<ResourcesCondition[]>>
@@ -31,6 +36,10 @@ const initialValue: GlobalContextProviderState = {
   editorState: {
     editor: {},
     setEditor: () => null
+  },
+  treeState: {
+    tree: new ResourceTree(),
+    setTree: () => null
   },
   resourcesConditionState: {
     resourcesCondition: [],
@@ -52,9 +61,11 @@ export const useGlobalContext = (): GlobalContextProviderState => {
 export const GlobalContextProvider = ({children, ...props}: { children: React.ReactNode }) => {
   const [editor, setEditor] = React.useState<EditorStateType>({});
   const [resourcesCondition, setResourcesCondition] = React.useState<ResourcesCondition[]>([]);
+  const [tree, setTree] = React.useState<ResourceTree>(new ResourceTree());
 
   const value = {
     editorState: {editor, setEditor},
+    treeState: {tree, setTree},
     resourcesConditionState: {resourcesCondition, setResourcesCondition}
   }
 
