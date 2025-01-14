@@ -134,13 +134,15 @@ export function MainSidebar() {
 
   React.useEffect(() => {
     for (const spaceType of spaceTypes) {
-      axios.get(baseUrl, {params: {namespace, spaceType}}).then(response => {
-        const resources: Resource[] = response.data;
-        if (resources.length > 0) {
-          const parentId = resources[0].parentId;
-          updateChild(parentId, resources);
-          setRootResourceId((prev) => ({...prev, [spaceType]: parentId}));
-        }
+      axios.get(`${baseUrl}/root`, {params: {namespace, spaceType}}).then(response => {
+        const rootResource: Resource = response.data;
+        setRootResourceId((prev) => ({...prev, [spaceType]: rootResource.id}));
+        axios.get(baseUrl, {params: {namespace, spaceType}}).then(response => {
+          const resources: Resource[] = response.data;
+          if (resources.length > 0) {
+            updateChild(rootResource.id, resources);
+          }
+        })
       })
     }
 
