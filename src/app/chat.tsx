@@ -16,13 +16,17 @@ type Message = {
 };
 
 type ChatBaseResponse = {
-  response_type: "delta" | "citation" | "citation_list";
+  response_type: "delta" | "citation" | "citation_list" | "done";
 };
 
 type ChatDeltaResponse = ChatBaseResponse & {
   response_type: "delta";
   delta: string;
 };
+
+type ChatDoneResponse = ChatBaseResponse & {
+  response_type: "done";
+}
 
 type Citation = {
   title: string
@@ -92,38 +96,47 @@ export function Chat() {
       let responseText: string = "";
       let citationList: Citation[] = [];
 
-      while (true) {
+      let loopFlag: boolean = true;
+
+      while (loopFlag) {
         const {done, value} = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
+        const sseResponse = decoder.decode(value);
 
-        if (chunk.startsWith('data:')) {
-          const output = chunk.slice(5).trim();
-          if (output === "[DONE]") {
-            break;
-          }
-          const chatResponse: ChatDeltaResponse | ChatCitationListResponse = JSON.parse(output);
-          if (chatResponse.response_type === "delta") {
-            responseText += chatResponse.delta;
-            for (let i = 0; i < citationList.length; i++) {
-              responseText = responseText.replace(`<cite:${i + 1}>`, `[[${i + 1}]](#/${namespace}/${citationList[i].link})`);
+        const chunks = sseResponse.split('\n\n');
+
+        for (const chunk of chunks) {
+          if (chunk.startsWith('data:')) {
+            const output = chunk.slice(5).trim();
+            let chatResponse: ChatDeltaResponse | ChatCitationListResponse | ChatDoneResponse = {} as any;
+            chatResponse = JSON.parse(output);
+            if (chatResponse.response_type === "done") {
+              loopFlag = false;
+              break
+            } else if (chatResponse.response_type === "delta") {
+              responseText += chatResponse.delta;
+              for (let i = 0; i < citationList.length; i++) {
+                responseText = responseText.replace(`<cite:${i + 1}>`, `[[${i + 1}]](#/${namespace}/${citationList[i].link})`);
+              }
+              localMessages = [...(firstToken ? localMessages : localMessages.slice(0, -1)), {
+                role: 'assistant',
+                content: responseText
+              }];
+              setMessages(localMessages);
+              if (firstToken) {
+                firstToken = false;
+              }
+              /*
+              if (!isStreaming) {
+                break;
+              }
+               */
+            } else if (chatResponse.response_type === "citation_list") {
+              citationList = chatResponse.citation_list;
+            } else {
+              console.error("Unknown response type", chatResponse);
             }
-            localMessages = [...(firstToken ? localMessages : localMessages.slice(0, -1)), {
-              role: 'assistant',
-              content: responseText
-            }];
-            setMessages(localMessages);
-            if (firstToken) {
-              firstToken = false;
-            }
-            /*
-            if (!isStreaming) {
-              break;
-            }
-             */
-          } else if (chatResponse.response_type === "citation_list") {
-            citationList = chatResponse.citation_list;
           }
         }
       }
