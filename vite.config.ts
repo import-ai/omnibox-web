@@ -6,7 +6,13 @@ import react from "@vitejs/plugin-react";
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd());
   return {
-    plugins: [react()],
+    plugins: [
+      react({
+        babel: {
+          presets: ["jotai/babel/preset"],
+        },
+      }),
+    ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

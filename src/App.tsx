@@ -1,12 +1,14 @@
-import { ThemeProvider } from "@/components/provider/theme-provider";
-import { HashRouter, Route, Routes } from "react-router";
-import LoginPage from "@/app/login-page";
-import { GlobalContextProvider } from "@/components/provider/global-context-provider";
-import { ResourcePage } from "@/app/resource-page";
-import { Render } from "@/components/resource/render";
-import { Editor } from "@/components/resource/editor";
 import { Chat } from "@/app/chat";
+import LoginPage from "@/app/login-page";
+import { ResourcePage } from "@/app/resource-page";
 import { NamespaceBase } from "@/components/namespace-base";
+import { GlobalContextProvider } from "@/components/provider/global-context-provider";
+import { ThemeProvider } from "@/components/provider/theme-provider";
+import { Editor } from "@/components/resource/editor";
+import { Render } from "@/components/resource/render";
+import { DevTools } from "jotai-devtools";
+import { HashRouter, Route, Routes } from "react-router";
+import "jotai-devtools/styles.css";
 
 function App() {
   return (
@@ -24,6 +26,7 @@ function App() {
             <Route path="login" element={<LoginPage />} />
           </Routes>
         </HashRouter>
+        <DevTools />
       </GlobalContextProvider>
     </ThemeProvider>
   );
