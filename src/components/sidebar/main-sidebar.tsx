@@ -1,4 +1,3 @@
-import * as React from "react";
 import axios from "axios";
 import {
   ChevronRight,
@@ -8,13 +7,27 @@ import {
   MoreHorizontal,
   Sparkles,
 } from "lucide-react";
+import * as React from "react";
 import { Link, useNavigate, useParams } from "react-router";
 
+import {
+  type ResourceConditionType,
+  useGlobalContext,
+} from "@/components/provider/global-context-provider";
+import { useResource } from "@/components/provider/resource-provider";
+import { NamespaceSwitcher } from "@/components/sidebar/namespace-switcher";
+import { NavMain } from "@/components/sidebar/nav-main";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -30,19 +43,6 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import type { Resource, ResourceType } from "@/types/resource";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useResource } from "@/components/provider/resource-provider";
-import { NamespaceSwitcher } from "@/components/sidebar/namespace-switcher";
-import { NavMain } from "@/components/sidebar/nav-main";
-import {
-  type ResourceConditionType,
-  useGlobalContext,
-} from "@/components/provider/global-context-provider";
 
 const baseUrl = "/api/v1/resources";
 const spaceTypes = ["private", "teamspace"];
@@ -153,7 +153,7 @@ export function MainSidebar() {
 
   const expandToRoot = (resource: Resource) => {
     if (
-      resource.parentId != rootResourceId[resource.spaceType] &&
+      resource.parentId !== rootResourceId[resource.spaceType] &&
       !isExpanded[resource.parentId]
     ) {
       fetchChild(namespace, resource.spaceType, resource.parentId).then(() => {
@@ -165,12 +165,14 @@ export function MainSidebar() {
     }
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     if (resource) {
       expandToRoot(resource);
     }
   }, [resource]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     for (const spaceType of spaceTypes) {
       axios
@@ -293,7 +295,7 @@ export function MainSidebar() {
           >
             <CollapsibleTrigger asChild>
               <div>
-                <SidebarMenuButton asChild isActive={res.id == resource?.id}>
+                <SidebarMenuButton asChild isActive={res.id === resource?.id}>
                   <Link to={res.id}>
                     <ChevronRight
                       className="transition-transform"
@@ -333,7 +335,7 @@ export function MainSidebar() {
       <SidebarMenuItem>
         <SidebarMenuButton
           className="data-[active=true]:bg-transparent"
-          isActive={res.id == resource?.id}
+          isActive={res.id === resource?.id}
           asChild
         >
           <Link to={res.id}>
@@ -413,7 +415,7 @@ export function MainSidebar() {
       </SidebarHeader>
       <SidebarContent>
         {spaceTypes.map((spaceType: string, index: number) => (
-          <Space key={index} spaceType={spaceType} namespace={namespace} />
+          <Space key={namespace} spaceType={spaceType} namespace={namespace} />
         ))}
       </SidebarContent>
       <SidebarRail />
