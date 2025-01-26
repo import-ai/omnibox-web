@@ -1,9 +1,13 @@
-"use client"
+"use client";
 
-import {MoreHorizontal} from "lucide-react"
+import { MoreHorizontal } from "lucide-react";
 
-import {Button} from "@/components/ui/button"
-import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Sidebar,
   SidebarContent,
@@ -12,19 +16,17 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import {ThemeToggle} from "@/components/theme-toggle";
-import {data} from "@/components/nav-resource-actions";
-
+} from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { data } from "@/components/nav-resource-actions";
 
 export function NavChatActions() {
-
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         Edit Oct 08
       </div>
-      <ThemeToggle/>
+      <ThemeToggle />
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -32,7 +34,7 @@ export function NavChatActions() {
             size="icon"
             className="h-7 w-7 data-[state=open]:bg-accent"
           >
-            <MoreHorizontal/>
+            <MoreHorizontal />
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -48,7 +50,7 @@ export function NavChatActions() {
                       {group.map((item, index) => (
                         <SidebarMenuItem key={index}>
                           <SidebarMenuButton>
-                            <item.icon/>
+                            <item.icon />
                             <span>{item.label}</span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -62,5 +64,5 @@ export function NavChatActions() {
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }
