@@ -10,6 +10,7 @@ import {
 import * as React from "react";
 import { Link, useNavigate, useParams } from "react-router";
 
+import { globalLoadingAtom } from "@/atoms";
 import {
   type ResourceConditionType,
   useGlobalContext,
@@ -43,6 +44,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import type { Resource, ResourceType } from "@/types/resource";
+import { useSetAtom } from "jotai";
 
 const baseUrl = "/api/v1/resources";
 const spaceTypes = ["private", "teamspace"];
@@ -63,7 +65,9 @@ export function MainSidebar() {
     throw new Error("namespace is required");
   }
 
+  const setIsLoading = useSetAtom(globalLoadingAtom);
   const fetchResource = (rid: string) => {
+    setIsLoading(true);
     axios
       .get(`${baseUrl}/${rid}`)
       .then((response) => {
@@ -79,6 +83,9 @@ export function MainSidebar() {
       .catch((error) => {
         console.error({ error });
         throw error;
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 
@@ -88,6 +95,8 @@ export function MainSidebar() {
     parentId: string,
     resourceType: ResourceType,
   ) => {
+    setIsLoading(true);
+
     axios
       .post(baseUrl, { namespace, spaceType, parentId, resourceType })
       .then((response) => {
@@ -106,6 +115,9 @@ export function MainSidebar() {
       .catch((error) => {
         console.error({ error });
         throw error;
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 

@@ -1,9 +1,11 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import type * as React from "react";
-import { useParams } from "react-router";
-import axios from "axios";
+import { globalLoadingAtom } from "@/atoms";
 import { API_BASE_URL } from "@/constants";
 import type { Resource } from "@/types/resource";
+import axios from "axios";
+import { useSetAtom } from "jotai";
+import { createContext, useContext, useEffect, useState } from "react";
+import type * as React from "react";
+import { useParams } from "react-router";
 
 type ResourceProviderState = {
   resource: Resource | undefined;
@@ -31,9 +33,12 @@ export const ResourceProvider = ({
 }: { children: React.ReactNode }) => {
   const { namespace, resourceId } = useParams();
   const [resource, setResource] = useState<Resource | undefined>();
+  const setIsLoading = useSetAtom(globalLoadingAtom);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (resourceId) {
+      setIsLoading(true);
       axios
         .get(`${API_BASE_URL}/resources/${resourceId}`)
         .then((response) => {
@@ -41,6 +46,9 @@ export const ResourceProvider = ({
         })
         .catch((error) => {
           console.error(error);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     } else {
       setResource(undefined);

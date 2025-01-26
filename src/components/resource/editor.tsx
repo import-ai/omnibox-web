@@ -1,13 +1,15 @@
-import Vditor from "vditor";
-import * as React from "react";
-import axios from "axios";
-import type { Resource } from "@/types/resource";
-import { API_BASE_URL } from "@/constants";
-import { useResource } from "@/components/provider/resource-provider";
-import { useVditorTheme } from "@/hooks/use-vditor-theme";
+import { globalLoadingAtom } from "@/atoms";
 import { useGlobalContext } from "@/components/provider/global-context-provider";
-import { useParams } from "react-router";
+import { useResource } from "@/components/provider/resource-provider";
 import { Input } from "@/components/ui/input.tsx";
+import { API_BASE_URL } from "@/constants";
+import { useVditorTheme } from "@/hooks/use-vditor-theme";
+import type { Resource } from "@/types/resource";
+import axios from "axios";
+import { useSetAtom } from "jotai";
+import * as React from "react";
+import { useParams } from "react-router";
+import Vditor from "vditor";
 
 export function Editor() {
   const domId: string = "md-editor";
@@ -20,12 +22,14 @@ export function Editor() {
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditor((prev) => ({ ...prev, title: e.target.value }));
   };
+  const setIsLoading = useSetAtom(globalLoadingAtom);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     if (!resourceId) {
       throw new Error("Resource ID is required");
     }
-
+    setIsLoading(true);
     axios
       .get(`${API_BASE_URL}/resources/${resourceId}`)
       .then((response) => {
@@ -47,6 +51,9 @@ export function Editor() {
       })
       .catch((error) => {
         throw error;
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
 
     return () => {
@@ -64,7 +71,7 @@ export function Editor() {
         placeholder="Enter title"
         className="mb-4 p-2 border rounded"
       />
-      <div id={domId} className="vditor vditor-reset"></div>
+      <div id={domId} className="vditor vditor-reset" />
     </div>
   );
 }
