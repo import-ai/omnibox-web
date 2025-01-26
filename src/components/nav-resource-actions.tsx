@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -18,12 +18,16 @@ import {
   Save,
   Settings2,
   Trash,
-  Trash2
-} from "lucide-react"
-import {formatDistanceToNow} from 'date-fns';
+  Trash2,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
-import {Button} from "@/components/ui/button"
-import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Sidebar,
   SidebarContent,
@@ -32,14 +36,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import {ThemeToggle} from "@/components/theme-toggle";
+} from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import axios from "axios";
-import {useGlobalContext} from "@/components/provider/global-context-provider";
-import {API_BASE_URL} from "@/constants";
-import {useNavigate, useParams} from "react-router";
-import {useResource} from "@/components/provider/resource-provider";
-import {Resource} from "@/types/resource.tsx";
+import { useGlobalContext } from "@/components/provider/global-context-provider";
+import { API_BASE_URL } from "@/constants";
+import { useNavigate, useParams } from "react-router";
+import { useResource } from "@/components/provider/resource-provider";
+import type { Resource } from "@/types/resource.tsx";
 
 export const data = [
   [
@@ -102,69 +106,94 @@ export const data = [
       icon: ArrowDown,
     },
   ],
-]
+];
 
 export function NavResourceActions() {
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = React.useState(false)
-  const {resourceId} = useParams();
-  const {resource, setResource} = useResource();
+  const [isOpen, setIsOpen] = React.useState(false);
+  const { resourceId } = useParams();
+  const { resource, setResource } = useResource();
   const globalContext = useGlobalContext();
   const vditor = globalContext.editorState.editor.vditor;
-  const {setChild} = globalContext.resourceTreeViewState;
+  const { setChild } = globalContext.resourceTreeViewState;
 
   const handleSave = () => {
     const content = vditor?.getValue();
     const name = globalContext.editorState.editor.title;
     if (content || name) {
-      axios.patch(`${API_BASE_URL}/resources/${resourceId}`, {content, name}).then(response => {
-        const delta: Resource = response.data;
-        setResource((prev) => ({...prev, ...delta}));
-        // Update the resource in tree view
-        const parentId = resource?.parentId;
-        if (parentId) {
-          setChild((prev) => {
-            const parent = prev[parentId];
-            const index = parent.findIndex((r) => r.id === resourceId);
-            parent[index] = {...parent[index], ...delta};
-            return {...prev, [parentId]: parent};
-          });
-        }
-        navigate(".");
-      });
+      axios
+        .patch(`${API_BASE_URL}/resources/${resourceId}`, { content, name })
+        .then((response) => {
+          const delta: Resource = response.data;
+          setResource((prev) => ({ ...prev, ...delta }));
+          // Update the resource in tree view
+          const parentId = resource?.parentId;
+          if (parentId) {
+            setChild((prev) => {
+              const parent = prev[parentId];
+              const index = parent.findIndex((r) => r.id === resourceId);
+              parent[index] = { ...parent[index], ...delta };
+              return { ...prev, [parentId]: parent };
+            });
+          }
+          navigate(".");
+        });
     }
-  }
+  };
 
   const timeDisplay = React.useMemo(() => {
     if (resource?.updatedAt) {
-      return "Updated " + formatDistanceToNow(new Date(resource.updatedAt), {addSuffix: true});
+      return (
+        "Updated " +
+        formatDistanceToNow(new Date(resource.updatedAt), { addSuffix: true })
+      );
     }
     if (resource?.createdAt) {
-      return "Created " + formatDistanceToNow(new Date(resource.createdAt), {addSuffix: true});
+      return (
+        "Created " +
+        formatDistanceToNow(new Date(resource.createdAt), { addSuffix: true })
+      );
     }
-    return ""
-  }, [resource?.updatedAt, resource?.createdAt])
+    return "";
+  }, [resource?.updatedAt, resource?.createdAt]);
 
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {timeDisplay}
       </div>
-      <ThemeToggle/>
-      {
-        vditor ? <>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleSave}>
-            <Save/>
+      <ThemeToggle />
+      {vditor ? (
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={handleSave}
+          >
+            <Save />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(".")}>
-            <PencilOff/>
-          </Button>
-        </> : <>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate("edit")}>
-            <Pencil/>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => navigate(".")}
+          >
+            <PencilOff />
           </Button>
         </>
-      }
+      ) : (
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => navigate("edit")}
+          >
+            <Pencil />
+          </Button>
+        </>
+      )}
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -172,7 +201,7 @@ export function NavResourceActions() {
             size="icon"
             className="h-7 w-7 data-[state=open]:bg-accent"
           >
-            <MoreHorizontal/>
+            <MoreHorizontal />
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -188,7 +217,7 @@ export function NavResourceActions() {
                       {group.map((item, index) => (
                         <SidebarMenuItem key={index}>
                           <SidebarMenuButton>
-                            <item.icon/>
+                            <item.icon />
                             <span>{item.label}</span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -202,5 +231,5 @@ export function NavResourceActions() {
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }

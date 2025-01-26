@@ -1,7 +1,7 @@
-FROM node:20 AS build
+FROM node:22 AS build
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm@10
+RUN corepack enable
 RUN pnpm install
 COPY . .
 RUN pnpm build
