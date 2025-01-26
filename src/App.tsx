@@ -9,11 +9,13 @@ import { Render } from "@/components/resource/render";
 import { DevTools } from "jotai-devtools";
 import { HashRouter, Route, Routes } from "react-router";
 import "jotai-devtools/styles.css";
+import { GlobalLoading } from "./components/loading";
 
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <GlobalContextProvider>
+        <GlobalLoading />
         <HashRouter>
           <Routes>
             <Route path=":namespace" element={<NamespaceBase />}>
