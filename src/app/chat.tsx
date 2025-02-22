@@ -110,13 +110,24 @@ export function Chat() {
 
       let loopFlag = true;
 
+      let buffer: string = "";
+
       while (loopFlag) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const sseResponse = decoder.decode(value);
+        let sseResponse = decoder.decode(value);
+        if (!sseResponse.endsWith("\n\n")) {
+          buffer += sseResponse;
+          continue;
+        }
 
-        const chunks = sseResponse.split("\n\n");
+        if (buffer) {
+          sseResponse = buffer + sseResponse;
+          buffer = "";
+        }
+
+        const chunks = [sseResponse];
 
         for (const chunk of chunks) {
           if (chunk.startsWith("data:")) {
