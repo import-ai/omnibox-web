@@ -19,7 +19,6 @@ jobs:
           cache: "pnpm"
 
       - run: |
-          pnpm install -g corepack
           corepack enable
 
       - name: Install dependencies
