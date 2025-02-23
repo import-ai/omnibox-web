@@ -111,32 +111,30 @@ export function Chat() {
       let loopFlag = true;
 
       let buffer: string = "";
+      let i: number = 0;
 
       while (loopFlag) {
         const { done, value } = await reader.read();
         if (done) break;
 
         let sseResponse = decoder.decode(value);
-        if (!sseResponse.endsWith("\n\n")) {
-          buffer += sseResponse;
-          continue;
-        }
+        buffer += sseResponse;
 
-        if (buffer) {
-          sseResponse = buffer + sseResponse;
-          buffer = "";
-        }
+        const chunks = buffer.split("\n\n");
 
-        const chunks = [sseResponse];
-
-        for (const chunk of chunks) {
+        while (i < chunks.length - 1) {
+          const chunk = chunks[i];
           if (chunk.startsWith("data:")) {
             const output = chunk.slice(5).trim();
             let chatResponse:
               | ChatDeltaResponse
               | ChatCitationListResponse
               | ChatDoneResponse = {} as any;
-            chatResponse = JSON.parse(output);
+            try {
+              chatResponse = JSON.parse(output);
+            } catch (e) {
+              break;
+            }
             if (chatResponse.response_type === "done") {
               loopFlag = false;
               break;
@@ -170,6 +168,7 @@ export function Chat() {
               console.error("Unknown response type", chatResponse);
             }
           }
+          i++;
         }
       }
 
