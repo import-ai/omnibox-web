@@ -19,7 +19,8 @@ jobs:
           cache: "pnpm"
 
       - run: |
-          corepack enable
+          corepack prepare pnpm@10.0.0 --activate
+          corepack use pnpm@10.0.0
 
       - name: Install dependencies
         run: pnpm install
