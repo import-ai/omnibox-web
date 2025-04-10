@@ -1,11 +1,11 @@
-export type ResourceType = "doc" | "file" | "link" | "folder";
+export type ResourceType = 'doc' | 'file' | 'link' | 'folder';
 
 export type Resource = {
   id: string;
 
   namespace: string;
   resourceType: ResourceType;
-  spaceType: "private" | "teamspace";
+  spaceType: 'private' | 'teamspace';
 
   parentId: string;
   childCount: number;

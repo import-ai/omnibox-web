@@ -1,9 +1,9 @@
-import * as React from "react";
-import { createContext, useContext } from "react";
-import type Vditor from "vditor";
-import type { Resource } from "@/types/resource";
+import * as React from 'react';
+import { createContext, useContext } from 'react';
+import type Vditor from 'vditor';
+import type { Resource } from '@/types/resource';
 
-export type ResourceConditionType = "parent" | "resource";
+export type ResourceConditionType = 'parent' | 'resource';
 
 export type ResourcesCondition = {
   resource: Resource;
@@ -52,7 +52,7 @@ const globalContext = createContext<GlobalContextProviderState>(initialValue);
 export const useGlobalContext = (): GlobalContextProviderState => {
   const context = useContext(globalContext);
   if (context === undefined) {
-    throw new Error("useResource must be used within a ResourceProvider");
+    throw new Error('useResource must be used within a ResourceProvider');
   }
   return context;
 };
@@ -60,7 +60,9 @@ export const useGlobalContext = (): GlobalContextProviderState => {
 export const GlobalContextProvider = ({
   children,
   ...props
-}: { children: React.ReactNode }) => {
+}: {
+  children: React.ReactNode;
+}) => {
   const [editor, setEditor] = React.useState<EditorStateType>({});
   const [resourcesCondition, setResourcesCondition] = React.useState<
     ResourcesCondition[]

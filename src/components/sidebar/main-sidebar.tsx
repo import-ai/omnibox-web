@@ -1,5 +1,5 @@
-import * as React from "react";
-import axios from "axios";
+import * as React from 'react';
+import axios from 'axios';
 import {
   ChevronRight,
   Command,
@@ -7,14 +7,14 @@ import {
   Folder,
   MoreHorizontal,
   Sparkles,
-} from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router";
+} from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router';
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from '@/components/ui/collapsible';
 import {
   Sidebar,
   SidebarContent,
@@ -28,24 +28,24 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarRail,
-} from "@/components/ui/sidebar";
-import type { Resource, ResourceType } from "@/types/resource";
+} from '@/components/ui/sidebar';
+import type { Resource, ResourceType } from '@/types/resource';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useResource } from "@/components/provider/resource-provider";
-import { NamespaceSwitcher } from "@/components/sidebar/namespace-switcher";
-import { NavMain } from "@/components/sidebar/nav-main";
+} from '@/components/ui/dropdown-menu';
+import { useResource } from '@/components/provider/resource-provider';
+import { NamespaceSwitcher } from '@/components/sidebar/namespace-switcher';
+import { NavMain } from '@/components/sidebar/nav-main';
 import {
   type ResourceConditionType,
   useGlobalContext,
-} from "@/components/provider/global-context-provider";
+} from '@/components/provider/global-context-provider';
 
-const baseUrl = "/api/v1/resources";
-const spaceTypes = ["private", "teamspace"];
+const baseUrl = '/api/v1/resources';
+const spaceTypes = ['private', 'teamspace'];
 
 export function MainSidebar() {
   const [rootResourceId, setRootResourceId] = React.useState<
@@ -60,7 +60,7 @@ export function MainSidebar() {
   const navigate = useNavigate();
 
   if (!namespace) {
-    throw new Error("namespace is required");
+    throw new Error('namespace is required');
   }
 
   const fetchResource = (rid: string) => {
@@ -99,7 +99,7 @@ export function MainSidebar() {
         // Update parent's childCount
         fetchResource(parentId);
 
-        if (resourceType === "file") {
+        if (resourceType === 'file') {
           navigate(`${createdResource.id}/edit`);
         }
       })
@@ -113,7 +113,7 @@ export function MainSidebar() {
     if (r.id in child) {
       for (const c of child[r.id]) {
         if (resource?.id === c.id) {
-          navigate(".");
+          navigate('.');
         }
         deleteChild(c);
       }
@@ -133,7 +133,7 @@ export function MainSidebar() {
           }
           fetchResource(r.parentId);
           if (resource?.id === r.id) {
-            navigate(".");
+            navigate('.');
           }
           deleteChild(r);
         }
@@ -235,7 +235,7 @@ export function MainSidebar() {
       ) {
         setResourcesCondition((prev) => [...prev, { resource: r, type }]);
       }
-      navigate("./");
+      navigate('./');
     };
 
     return (
@@ -248,14 +248,14 @@ export function MainSidebar() {
         <DropdownMenuContent side="right" align="start">
           <DropdownMenuItem
             onClick={() =>
-              createResource(namespace ?? "", res.spaceType, res.id, "file")
+              createResource(namespace ?? '', res.spaceType, res.id, 'file')
             }
           >
             Create File
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() =>
-              createResource(namespace ?? "", res.spaceType, res.id, "folder")
+              createResource(namespace ?? '', res.spaceType, res.id, 'folder')
             }
           >
             Create Folder
@@ -264,11 +264,11 @@ export function MainSidebar() {
             Edit
           </DropdownMenuItem>
           {res.childCount > 0 && (
-            <DropdownMenuItem onClick={() => addToChatContext(res, "parent")}>
+            <DropdownMenuItem onClick={() => addToChatContext(res, 'parent')}>
               Add all to Context
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem onClick={() => addToChatContext(res, "resource")}>
+          <DropdownMenuItem onClick={() => addToChatContext(res, 'resource')}>
             Add it to Context
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => deleteResource(res)}>
@@ -283,7 +283,11 @@ export function MainSidebar() {
     namespace,
     spaceType,
     res,
-  }: { namespace: string; spaceType: string; res: Resource }) {
+  }: {
+    namespace: string;
+    spaceType: string;
+    res: Resource;
+  }) {
     if (res.childCount > 0) {
       return (
         <SidebarMenuItem>
@@ -305,8 +309,8 @@ export function MainSidebar() {
                         );
                       }}
                     />
-                    {res.resourceType === "folder" ? <Folder /> : <File />}
-                    <span className="truncate">{res.name ?? "Untitled"}</span>
+                    {res.resourceType === 'folder' ? <Folder /> : <File />}
+                    <span className="truncate">{res.name ?? 'Untitled'}</span>
                   </Link>
                 </SidebarMenuButton>
                 <ResourceDropdownMenu res={res} />
@@ -338,7 +342,7 @@ export function MainSidebar() {
         >
           <Link to={res.id}>
             <File />
-            <span className="truncate">{res.name ?? "Untitled"}</span>
+            <span className="truncate">{res.name ?? 'Untitled'}</span>
           </Link>
         </SidebarMenuButton>
         <ResourceDropdownMenu res={res} />
@@ -349,7 +353,10 @@ export function MainSidebar() {
   function Space({
     spaceType,
     namespace,
-  }: { spaceType: string; namespace: string }) {
+  }: {
+    spaceType: string;
+    namespace: string;
+  }) {
     const spaceTitle = `${spaceType.charAt(0).toUpperCase()}${spaceType.slice(1)}`;
     return (
       <SidebarGroup>
@@ -368,7 +375,7 @@ export function MainSidebar() {
                     namespace,
                     spaceType,
                     rootResourceId[spaceType],
-                    "file",
+                    'file',
                   )
                 }
               >
@@ -380,7 +387,7 @@ export function MainSidebar() {
                     namespace,
                     spaceType,
                     rootResourceId[spaceType],
-                    "folder",
+                    'folder',
                   )
                 }
               >
@@ -408,8 +415,8 @@ export function MainSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <NamespaceSwitcher namespaces={[{ name: "test", logo: Command }]} />
-        <NavMain items={[{ title: "Chat", url: "./", icon: Sparkles }]} />
+        <NamespaceSwitcher namespaces={[{ name: 'test', logo: Command }]} />
+        <NavMain items={[{ title: 'Chat', url: './', icon: Sparkles }]} />
       </SidebarHeader>
       <SidebarContent>
         {spaceTypes.map((spaceType: string, index: number) => (

@@ -1,9 +1,9 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import type * as React from "react";
-import { useParams } from "react-router";
-import axios from "axios";
-import { API_BASE_URL } from "@/constants";
-import type { Resource } from "@/types/resource";
+import { createContext, useContext, useState, useEffect } from 'react';
+import type * as React from 'react';
+import { useParams } from 'react-router';
+import axios from 'axios';
+import { API_BASE_URL } from '@/constants';
+import type { Resource } from '@/types/resource';
 
 type ResourceProviderState = {
   resource: Resource | undefined;
@@ -20,7 +20,7 @@ const ResourceContext = createContext<ResourceProviderState>(initialState);
 export const useResource = () => {
   const context = useContext(ResourceContext);
   if (context === undefined) {
-    throw new Error("useResource must be used within a ResourceProvider");
+    throw new Error('useResource must be used within a ResourceProvider');
   }
   return context;
 };
@@ -28,7 +28,9 @@ export const useResource = () => {
 export const ResourceProvider = ({
   children,
   ...props
-}: { children: React.ReactNode }) => {
+}: {
+  children: React.ReactNode;
+}) => {
   const { namespace, resourceId } = useParams();
   const [resource, setResource] = useState<Resource | undefined>();
 

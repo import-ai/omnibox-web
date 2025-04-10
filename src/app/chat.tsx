@@ -1,36 +1,36 @@
-import * as React from "react";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
+import * as React from 'react';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
-import { NavChatActions } from "@/components/nav-chat-actions";
-import { Markdown } from "@/components/markdown";
-import { Link, useParams } from "react-router";
-import { useGlobalContext } from "@/components/provider/global-context-provider";
-import { File, Folder, X } from "lucide-react";
+} from '@/components/ui/breadcrumb';
+import { NavChatActions } from '@/components/nav-chat-actions';
+import { Markdown } from '@/components/markdown';
+import { Link, useParams } from 'react-router';
+import { useGlobalContext } from '@/components/provider/global-context-provider';
+import { File, Folder, X } from 'lucide-react';
 
 type Message = {
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
 };
 
 type ChatBaseResponse = {
-  response_type: "delta" | "citation" | "citation_list" | "done";
+  response_type: 'delta' | 'citation' | 'citation_list' | 'done';
 };
 
 type ChatDeltaResponse = ChatBaseResponse & {
-  response_type: "delta";
+  response_type: 'delta';
   delta: string;
 };
 
 type ChatDoneResponse = ChatBaseResponse & {
-  response_type: "done";
+  response_type: 'done';
 };
 
 type Citation = {
@@ -40,7 +40,7 @@ type Citation = {
 };
 
 type ChatCitationListResponse = ChatBaseResponse & {
-  response_type: "citation_list";
+  response_type: 'citation_list';
   citation_list: Citation[];
 };
 
@@ -49,15 +49,15 @@ export function Chat() {
   const { resourcesCondition, setResourcesCondition } =
     useGlobalContext().resourcesConditionState;
   const [messages, setMessages] = React.useState<Message[]>([]);
-  const [input, setInput] = React.useState<string>("");
+  const [input, setInput] = React.useState<string>('');
   const [isStreaming, setIsStreaming] = React.useState<boolean>(false);
 
   const condition = React.useMemo(() => {
     const parents = resourcesCondition
-      .filter((rc) => rc.type === "parent")
+      .filter((rc) => rc.type === 'parent')
       .map((rc) => rc.resource);
     const resources = resourcesCondition
-      .filter((rc) => rc.type === "resource")
+      .filter((rc) => rc.type === 'resource')
       .map((rc) => rc.resource);
 
     return {
@@ -72,24 +72,24 @@ export function Chat() {
 
       let localMessages: Message[] = [
         ...messages,
-        { role: "user", content: input },
+        { role: 'user', content: input },
       ];
 
       setMessages(localMessages);
-      setInput("");
+      setInput('');
 
       const body = {
-        session_id: "fake_id",
+        session_id: 'fake_id',
         query: localMessages[localMessages.length - 1].content,
         namespace: namespace,
         parent_ids: condition.parentIds,
         resource_ids: condition.resourceIds,
       };
 
-      const response = await fetch("/api/v1/wizard/chat/stream", {
-        method: "POST",
+      const response = await fetch('/api/v1/wizard/chat/stream', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
       });
@@ -99,18 +99,18 @@ export function Chat() {
       }
 
       if (!response.body) {
-        throw new Error("ReadableStream not yet supported in this browser.");
+        throw new Error('ReadableStream not yet supported in this browser.');
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let firstToken = true;
-      let responseText = "";
+      let responseText = '';
       let citationList: Citation[] = [];
 
       let loopFlag = true;
 
-      let buffer: string = "";
+      let buffer: string = '';
       let i: number = 0;
 
       while (loopFlag) {
@@ -120,11 +120,11 @@ export function Chat() {
         let sseResponse = decoder.decode(value);
         buffer += sseResponse;
 
-        const chunks = buffer.split("\n\n");
+        const chunks = buffer.split('\n\n');
 
         while (i < chunks.length - 1) {
           const chunk = chunks[i];
-          if (chunk.startsWith("data:")) {
+          if (chunk.startsWith('data:')) {
             const output = chunk.slice(5).trim();
             let chatResponse:
               | ChatDeltaResponse
@@ -135,10 +135,10 @@ export function Chat() {
             } catch (e) {
               break;
             }
-            if (chatResponse.response_type === "done") {
+            if (chatResponse.response_type === 'done') {
               loopFlag = false;
               break;
-            } else if (chatResponse.response_type === "delta") {
+            } else if (chatResponse.response_type === 'delta') {
               responseText += chatResponse.delta;
               for (let i = 0; i < citationList.length; i++) {
                 responseText = responseText.replace(
@@ -149,7 +149,7 @@ export function Chat() {
               localMessages = [
                 ...(firstToken ? localMessages : localMessages.slice(0, -1)),
                 {
-                  role: "assistant",
+                  role: 'assistant',
                   content: responseText,
                 },
               ];
@@ -162,10 +162,10 @@ export function Chat() {
                 break;
               }
                */
-            } else if (chatResponse.response_type === "citation_list") {
+            } else if (chatResponse.response_type === 'citation_list') {
               citationList = chatResponse.citation_list;
             } else {
-              console.error("Unknown response type", chatResponse);
+              console.error('Unknown response type', chatResponse);
             }
           }
           i++;
@@ -204,13 +204,13 @@ export function Chat() {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"}`}
+                className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}
               >
                 <div
                   className={`inline-block p-2 rounded ${
-                    message.role === "user"
-                      ? "bg-blue-500 text-white dark:bg-blue-700"
-                      : "bg-gray-200 text-black dark:bg-gray-700 dark:text-white"
+                    message.role === 'user'
+                      ? 'bg-blue-500 text-white dark:bg-blue-700'
+                      : 'bg-gray-200 text-black dark:bg-gray-700 dark:text-white'
                   }`}
                 >
                   <Markdown content={message.content} />
@@ -223,19 +223,19 @@ export function Chat() {
               <div
                 key={index}
                 className={`flex items-center text-black dark:text-white rounded-full px-2 mr-2 h-6 ${
-                  rc.type === "parent"
-                    ? "bg-green-200 dark:bg-green-500"
-                    : "bg-blue-200 dark:bg-blue-500"
+                  rc.type === 'parent'
+                    ? 'bg-green-200 dark:bg-green-500'
+                    : 'bg-blue-200 dark:bg-blue-500'
                 }`}
               >
                 <div className="mr-2 flex items-center text-sm">
-                  {rc.type === "parent" ? (
+                  {rc.type === 'parent' ? (
                     <Folder className="w-4 h-4" />
                   ) : (
                     <File className="w-4 h-4" />
                   )}
                   <Link className="ml-1" to={rc.resource.id}>
-                    {rc.resource.name ?? "Untitled"}
+                    {rc.resource.name ?? 'Untitled'}
                   </Link>
                 </div>
                 <button
@@ -264,7 +264,7 @@ export function Chat() {
                 placeholder="Type your message..."
                 className="w-full resize-none border-none rounded-t-3xl"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === 'Enter') {
                     if (e.metaKey || e.ctrlKey) {
                       e.preventDefault();
                       handleSend().then();

@@ -1,16 +1,16 @@
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
-import { NavResourceActions } from "@/components/nav-resource-actions";
-import { Outlet } from "react-router";
-import { useResource } from "@/components/provider/resource-provider";
-import "vditor/dist/index.css";
-import "@/styles/vditor-patch.css";
+} from '@/components/ui/breadcrumb';
+import { NavResourceActions } from '@/components/nav-resource-actions';
+import { Outlet } from 'react-router';
+import { useResource } from '@/components/provider/resource-provider';
+import 'vditor/dist/index.css';
+import '@/styles/vditor-patch.css';
 
 export function ResourcePage() {
   const { resource } = useResource();
@@ -28,7 +28,7 @@ export function ResourcePage() {
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbPage className="line-clamp-1">
-                    {resource.name ?? "Untitled"}
+                    {resource.name ?? 'Untitled'}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>

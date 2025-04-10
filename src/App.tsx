@@ -1,12 +1,12 @@
-import { ThemeProvider } from "@/components/provider/theme-provider";
-import { HashRouter, Route, Routes } from "react-router";
-import LoginPage from "@/app/login-page";
-import { GlobalContextProvider } from "@/components/provider/global-context-provider";
-import { ResourcePage } from "@/app/resource-page";
-import { Render } from "@/components/resource/render";
-import { Editor } from "@/components/resource/editor";
-import { Chat } from "@/app/chat";
-import { NamespaceBase } from "@/components/namespace-base";
+import { ThemeProvider } from '@/components/provider/theme-provider';
+import { HashRouter, Route, Routes } from 'react-router';
+import LoginPage from '@/app/login-page';
+import { GlobalContextProvider } from '@/components/provider/global-context-provider';
+import { ResourcePage } from '@/app/resource-page';
+import { Render } from '@/components/resource/render';
+import { Editor } from '@/components/resource/editor';
+import { Chat } from '@/app/chat';
+import { NamespaceBase } from '@/components/namespace-base';
 
 function App() {
   return (

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 import {
   ArrowDown,
   ArrowUp,
@@ -19,15 +19,15 @@ import {
   Settings2,
   Trash,
   Trash2,
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from '@/components/ui/popover';
 import {
   Sidebar,
   SidebarContent,
@@ -36,73 +36,73 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/theme-toggle";
-import axios from "axios";
-import { useGlobalContext } from "@/components/provider/global-context-provider";
-import { API_BASE_URL } from "@/constants";
-import { useNavigate, useParams } from "react-router";
-import { useResource } from "@/components/provider/resource-provider";
-import type { Resource } from "@/types/resource.tsx";
+} from '@/components/ui/sidebar';
+import { ThemeToggle } from '@/components/theme-toggle';
+import axios from 'axios';
+import { useGlobalContext } from '@/components/provider/global-context-provider';
+import { API_BASE_URL } from '@/constants';
+import { useNavigate, useParams } from 'react-router';
+import { useResource } from '@/components/provider/resource-provider';
+import type { Resource } from '@/types/resource.tsx';
 
 export const data = [
   [
     {
-      label: "Customize Page",
+      label: 'Customize Page',
       icon: Settings2,
     },
     {
-      label: "Turn into wiki",
+      label: 'Turn into wiki',
       icon: FileText,
     },
   ],
   [
     {
-      label: "Copy Link",
+      label: 'Copy Link',
       icon: Link,
     },
     {
-      label: "Duplicate",
+      label: 'Duplicate',
       icon: Copy,
     },
     {
-      label: "Move to",
+      label: 'Move to',
       icon: CornerUpRight,
     },
     {
-      label: "Move to Trash",
+      label: 'Move to Trash',
       icon: Trash2,
     },
   ],
   [
     {
-      label: "Undo",
+      label: 'Undo',
       icon: CornerUpLeft,
     },
     {
-      label: "View analytics",
+      label: 'View analytics',
       icon: LineChart,
     },
     {
-      label: "Version History",
+      label: 'Version History',
       icon: GalleryVerticalEnd,
     },
     {
-      label: "Show delete pages",
+      label: 'Show delete pages',
       icon: Trash,
     },
     {
-      label: "Notifications",
+      label: 'Notifications',
       icon: Bell,
     },
   ],
   [
     {
-      label: "Import",
+      label: 'Import',
       icon: ArrowUp,
     },
     {
-      label: "Export",
+      label: 'Export',
       icon: ArrowDown,
     },
   ],
@@ -136,7 +136,7 @@ export function NavResourceActions() {
               return { ...prev, [parentId]: parent };
             });
           }
-          navigate(".");
+          navigate('.');
         });
     }
   };
@@ -144,17 +144,17 @@ export function NavResourceActions() {
   const timeDisplay = React.useMemo(() => {
     if (resource?.updatedAt) {
       return (
-        "Updated " +
+        'Updated ' +
         formatDistanceToNow(new Date(resource.updatedAt), { addSuffix: true })
       );
     }
     if (resource?.createdAt) {
       return (
-        "Created " +
+        'Created ' +
         formatDistanceToNow(new Date(resource.createdAt), { addSuffix: true })
       );
     }
-    return "";
+    return '';
   }, [resource?.updatedAt, resource?.createdAt]);
 
   return (
@@ -177,7 +177,7 @@ export function NavResourceActions() {
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            onClick={() => navigate(".")}
+            onClick={() => navigate('.')}
           >
             <PencilOff />
           </Button>
@@ -188,7 +188,7 @@ export function NavResourceActions() {
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            onClick={() => navigate("edit")}
+            onClick={() => navigate('edit')}
           >
             <Pencil />
           </Button>

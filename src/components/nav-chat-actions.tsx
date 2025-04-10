@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from '@/components/ui/popover';
 import {
   Sidebar,
   SidebarContent,
@@ -16,9 +16,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { data } from "@/components/nav-resource-actions";
+} from '@/components/ui/sidebar';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { data } from '@/components/nav-resource-actions';
 
 export function NavChatActions() {
   return (

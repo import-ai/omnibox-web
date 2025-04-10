@@ -1,6 +1,6 @@
-import * as React from "react";
-import { useVditorTheme } from "@/hooks/use-vditor-theme";
-import Vditor from "vditor";
+import * as React from 'react';
+import { useVditorTheme } from '@/hooks/use-vditor-theme';
+import Vditor from 'vditor';
 
 export function Markdown({ content }: { content: string }) {
   const element = React.useRef<HTMLDivElement>(null);
@@ -14,7 +14,7 @@ export function Markdown({ content }: { content: string }) {
         },
         mode: theme.contentTheme,
         hljs: {
-          defaultLang: "plain",
+          defaultLang: 'plain',
           style: theme.codeTheme,
           lineNumber: true,
         },
