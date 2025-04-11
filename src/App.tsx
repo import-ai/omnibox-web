@@ -1,12 +1,15 @@
 import Layout from '@/layout';
 import Error from '@/layout/error';
 import { lazy, Suspense } from 'react';
-import LoginPage from '@/app/login-page';
 import { ThemeProvider } from '@/components/provider/theme-provider';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { GlobalContextProvider } from '@/components/provider/global-context-provider';
 
 const Chat = lazy(() => import('@/app/chat'));
+const LoginPage = lazy(() => import('@/app/user/login'));
+const ProfilePage = lazy(() => import('@/app/user/profile'));
+const RegisterPage = lazy(() => import('@/app/user/register'));
+const ForgotPasswordPage = lazy(() => import('@/app/user/password'));
 const ResourcePage = lazy(() => import('@/app/resource-page'));
 const Editor = lazy(() => import('@/components/resource/editor'));
 const Render = lazy(() => import('@/components/resource/render'));
@@ -18,6 +21,22 @@ const router = createBrowserRouter([
     element: <Layout />,
     errorElement: <Error />,
     children: [
+      {
+        path: 'login',
+        element: <LoginPage />,
+      },
+      {
+        path: 'register',
+        element: <RegisterPage />,
+      },
+      {
+        path: 'forgot-password',
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: 'profile',
+        element: <ProfilePage />,
+      },
       {
         path: ':namespace',
         element: <NamespaceBase />,
@@ -41,10 +60,6 @@ const router = createBrowserRouter([
             ],
           },
         ],
-      },
-      {
-        path: 'login',
-        element: <LoginPage />,
       },
     ],
   },

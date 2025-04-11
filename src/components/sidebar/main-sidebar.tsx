@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Space from '@/components/sidebar/space';
 import { Command, Sparkles } from 'lucide-react';
 import { NavMain } from '@/components/sidebar/nav-main';
@@ -19,6 +19,7 @@ const baseUrl = '/api/v1/resources';
 const spaceTypes = ['private', 'teamspace'];
 
 export function MainSidebar() {
+  const lastNamespace = useRef<string | null>(null);
   const [rootResourceId, setRootResourceId] = useState<Record<string, string>>(
     {}
   );
@@ -141,6 +142,10 @@ export function MainSidebar() {
   }, [resource]);
 
   useEffect(() => {
+    if (namespace === lastNamespace.current) {
+      return;
+    }
+    lastNamespace.current = namespace;
     for (const spaceType of spaceTypes) {
       axios
         .get(`${baseUrl}/root`, { params: { namespace, spaceType } })
@@ -160,12 +165,6 @@ export function MainSidebar() {
             });
         });
     }
-
-    return () => {
-      for (const setter of [setRootResourceId, setIsExpanded, setChild]) {
-        setter({});
-      }
-    };
   }, [namespace]);
 
   const expandToggle = (resourceId: string) => {
