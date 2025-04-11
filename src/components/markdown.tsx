@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { useVditorTheme } from '@/hooks/use-vditor-theme';
 import Vditor from 'vditor';
 

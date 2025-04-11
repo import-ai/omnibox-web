@@ -1,6 +1,4 @@
-'use client';
-
-import * as React from 'react';
+import React from 'react';
 import {
   ArrowDown,
   ArrowUp,
@@ -38,9 +36,8 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
-import axios from 'axios';
+import { http } from '@/utils/request';
 import { useGlobalContext } from '@/components/provider/global-context-provider';
-import { API_BASE_URL } from '@/constants';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useResource } from '@/components/provider/resource-provider';
 import type { Resource } from '@/types/resource.tsx';
@@ -121,10 +118,9 @@ export function NavResourceActions() {
     const content = vditor?.getValue();
     const name = globalContext.editorState.editor.title;
     if (content || name) {
-      axios
-        .patch(`${API_BASE_URL}/resources/${resourceId}`, { content, name })
-        .then((response) => {
-          const delta: Resource = response.data;
+      http
+        .patch(`/resources/${resourceId}`, { content, name })
+        .then((delta: Resource) => {
           setResource((prev) => ({ ...prev, ...delta }));
           // Update the resource in tree view
           const parentId = resource?.parentId;

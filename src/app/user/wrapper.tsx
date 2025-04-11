@@ -1,12 +1,19 @@
+import React from 'react';
 import { GalleryVerticalEnd } from 'lucide-react';
-import { LoginForm } from '@/components/login-form';
 
-export default function LoginPage() {
+interface WrapperPageProps {
+  image?: string;
+  children: React.ReactNode;
+}
+
+export default function WrapperPage(props: WrapperPageProps) {
+  const { children, image = '/assets/images/bg-hero.jpg' } = props;
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="relative hidden bg-muted lg:block">
         <img
-          src="/assets/images/bg-hero.jpg"
+          src={image}
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>
@@ -20,9 +27,7 @@ export default function LoginPage() {
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">
-            <LoginForm />
-          </div>
+          <div className="w-full max-w-xs">{children}</div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';

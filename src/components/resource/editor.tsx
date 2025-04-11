@@ -1,8 +1,7 @@
+import React from 'react';
 import Vditor from 'vditor';
-import * as React from 'react';
-import axios from 'axios';
+import { http } from '@/utils/request';
 import type { Resource } from '@/types/resource';
-import { API_BASE_URL } from '@/constants';
 import { useResource } from '@/components/provider/resource-provider';
 import { useVditorTheme } from '@/hooks/use-vditor-theme';
 import { useGlobalContext } from '@/components/provider/global-context-provider';
@@ -26,10 +25,9 @@ export default function Editor() {
       throw new Error('Resource ID is required');
     }
 
-    axios
-      .get(`${API_BASE_URL}/resources/${resourceId}`)
-      .then((response) => {
-        const resource: Resource = response.data;
+    http
+      .get(`/resources/${resourceId}`)
+      .then((resource: Resource) => {
         setResource(resource);
         const v = new Vditor(domId, {
           preview: {

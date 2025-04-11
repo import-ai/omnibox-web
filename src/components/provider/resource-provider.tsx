@@ -1,9 +1,8 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import type * as React from 'react';
+import React from 'react';
+import { http } from '@/utils/request';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '@/constants';
 import type { Resource } from '@/types/resource';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 type ResourceProviderState = {
   resource: Resource | undefined;
@@ -36,10 +35,10 @@ export const ResourceProvider = ({
 
   useEffect(() => {
     if (resourceId) {
-      axios
-        .get(`${API_BASE_URL}/resources/${resourceId}`)
+      http
+        .get(`/resources/${resourceId}`)
         .then((response) => {
-          setResource(response.data);
+          setResource(response);
         })
         .catch((error) => {
           console.error(error);

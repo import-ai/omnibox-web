@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -51,5 +51,5 @@ export const Password = React.forwardRef<HTMLInputElement, InputProps>(
 				`}</style>
       </div>
     );
-  },
+  }
 );

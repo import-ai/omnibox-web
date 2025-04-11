@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { useTheme } from '@/components/provider/theme-provider';
 
 export type VditorTheme = {
@@ -17,8 +17,8 @@ export function useVditorTheme(): VditorTheme {
           ? 'dark'
           : 'light'
         : theme === 'dark'
-          ? 'dark'
-          : 'light';
+        ? 'dark'
+        : 'light';
     return {
       theme: currentTheme === 'dark' ? 'dark' : 'classic',
       contentTheme: currentTheme,

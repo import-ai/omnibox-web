@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { createContext, useContext } from 'react';
 import type Vditor from 'vditor';
 import type { Resource } from '@/types/resource';

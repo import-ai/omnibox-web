@@ -15,7 +15,7 @@ import '@/styles/vditor-patch.css';
 export default function ResourcePage() {
   const { resource } = useResource();
   if (!resource) {
-    return <></>;
+    return null;
   }
   return (
     <>

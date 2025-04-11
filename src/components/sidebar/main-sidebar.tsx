@@ -1,7 +1,8 @@
-import axios from 'axios';
-import { useState, useEffect } from 'react';
+import { http } from '@/utils/request';
+// import SettingsPage from '@/app/user/profile';
 import Space from '@/components/sidebar/space';
 import { Command, Sparkles } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
 import { NavMain } from '@/components/sidebar/nav-main';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { Resource, ResourceType } from '@/types/resource';
@@ -15,10 +16,11 @@ import {
   SidebarContent,
 } from '@/components/ui/sidebar';
 
-const baseUrl = '/api/v1/resources';
+const baseUrl = 'resources';
 const spaceTypes = ['private', 'teamspace'];
 
 export function MainSidebar() {
+  const lastNamespace = useRef<string | null>(null);
   const [rootResourceId, setRootResourceId] = useState<Record<string, string>>(
     {}
   );
@@ -33,10 +35,9 @@ export function MainSidebar() {
   }
 
   const fetchResource = (rid: string) => {
-    axios
-      .get(`${baseUrl}/${rid}`)
-      .then((response) => {
-        const res: Resource = response.data;
+    http
+      .get(`/${baseUrl}/${rid}`)
+      .then((res: Resource) => {
         const parentId: string | undefined = res.parentId;
         if (parentId) {
           setChild((prev) => ({
@@ -57,10 +58,9 @@ export function MainSidebar() {
     parentId: string,
     resourceType: ResourceType
   ) => {
-    axios
-      .post(baseUrl, { namespace, spaceType, parentId, resourceType })
-      .then((response) => {
-        const createdResource: Resource = response.data;
+    http
+      .post(`/${baseUrl}`, { namespace, spaceType, parentId, resourceType })
+      .then((createdResource: Resource) => {
         expandToRoot(createdResource);
 
         // Update parent's child
@@ -90,10 +90,10 @@ export function MainSidebar() {
   };
 
   const deleteResource = (r: Resource) => {
-    axios
-      .delete(`${baseUrl}/${r.id}`)
+    http
+      .delete(`/${baseUrl}/${r.id}`)
       .then((response) => {
-        if (r.id === response.data.id) {
+        if (r.id === response.id) {
           if (r.parentId in child) {
             updateChild(
               r.parentId,
@@ -127,8 +127,8 @@ export function MainSidebar() {
     ) {
       fetchChild(namespace, resource.spaceType, resource.parentId).then(() => {
         setIsExpanded((prev) => ({ ...prev, [resource.parentId]: true }));
-        axios.get(`${baseUrl}/${resource.parentId}`).then((response) => {
-          expandToRoot(response.data);
+        http.get(`/${baseUrl}/${resource.parentId}`).then((response) => {
+          expandToRoot(response);
         });
       });
     }
@@ -141,31 +141,27 @@ export function MainSidebar() {
   }, [resource]);
 
   useEffect(() => {
+    if (namespace === lastNamespace.current) {
+      return;
+    }
+    lastNamespace.current = namespace;
     for (const spaceType of spaceTypes) {
-      axios
-        .get(`${baseUrl}/root`, { params: { namespace, spaceType } })
-        .then((response) => {
-          const rootResource: Resource = response.data;
+      http
+        .get(`/${baseUrl}/root`, { params: { namespace, spaceType } })
+        .then((rootResource: Resource) => {
           setRootResourceId((prev) => ({
             ...prev,
             [spaceType]: rootResource.id,
           }));
-          axios
-            .get(baseUrl, { params: { namespace, spaceType } })
-            .then((response) => {
-              const resources: Resource[] = response.data;
+          http
+            .get(`/${baseUrl}`, { params: { namespace, spaceType } })
+            .then((resources: Resource[]) => {
               if (resources.length > 0) {
                 updateChild(rootResource.id, resources);
               }
             });
         });
     }
-
-    return () => {
-      for (const setter of [setRootResourceId, setIsExpanded, setChild]) {
-        setter({});
-      }
-    };
   }, [namespace]);
 
   const expandToggle = (resourceId: string) => {
@@ -179,10 +175,9 @@ export function MainSidebar() {
     cache = true
   ) => {
     if (!(parentId in child && cache)) {
-      axios
-        .get(baseUrl, { params: { namespace, spaceType, parentId } })
-        .then((response) => {
-          const childData: Resource[] = response.data;
+      http
+        .get(`/${baseUrl}`, { params: { namespace, spaceType, parentId } })
+        .then((childData: Resource[]) => {
           setChild((prev) => ({
             ...prev,
             [parentId]: childData,
