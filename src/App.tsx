@@ -1,16 +1,16 @@
+import Layout from '@/layout';
+import Error from '@/layout/error';
+import { lazy, Suspense } from 'react';
+import LoginPage from '@/app/login-page';
 import { ThemeProvider } from '@/components/provider/theme-provider';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import LoginPage from '@/app/login-page';
-import { lazy, Suspense } from 'react';
-import Error from './error';
-import Layout from './layout';
 import { GlobalContextProvider } from '@/components/provider/global-context-provider';
 
-const NamespaceBase = lazy(() => import('@/components/namespace-base'));
 const Chat = lazy(() => import('@/app/chat'));
+const ResourcePage = lazy(() => import('@/app/resource-page'));
 const Editor = lazy(() => import('@/components/resource/editor'));
 const Render = lazy(() => import('@/components/resource/render'));
-const ResourcePage = lazy(() => import('@/app/resource-page'));
+const NamespaceBase = lazy(() => import('@/components/namespace-base'));
 
 const router = createBrowserRouter([
   {

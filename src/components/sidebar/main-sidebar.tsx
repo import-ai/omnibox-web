@@ -1,59 +1,28 @@
-import * as React from 'react';
 import axios from 'axios';
-import {
-  ChevronRight,
-  Command,
-  File,
-  Folder,
-  MoreHorizontal,
-  Sparkles,
-} from 'lucide-react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarRail,
-} from '@/components/ui/sidebar';
+import { useState, useEffect } from 'react';
+import Space from '@/components/sidebar/space';
+import { Command, Sparkles } from 'lucide-react';
+import { NavMain } from '@/components/sidebar/nav-main';
+import { useNavigate, useParams } from 'react-router-dom';
 import type { Resource, ResourceType } from '@/types/resource';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useResource } from '@/components/provider/resource-provider';
 import { NamespaceSwitcher } from '@/components/sidebar/namespace-switcher';
-import { NavMain } from '@/components/sidebar/nav-main';
+import { useGlobalContext } from '@/components/provider/global-context-provider';
 import {
-  type ResourceConditionType,
-  useGlobalContext,
-} from '@/components/provider/global-context-provider';
+  Sidebar,
+  SidebarRail,
+  SidebarHeader,
+  SidebarContent,
+} from '@/components/ui/sidebar';
 
 const baseUrl = '/api/v1/resources';
 const spaceTypes = ['private', 'teamspace'];
 
 export function MainSidebar() {
-  const [rootResourceId, setRootResourceId] = React.useState<
-    Record<string, string>
-  >({});
-  const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>(
+  const [rootResourceId, setRootResourceId] = useState<Record<string, string>>(
     {}
-  ); // key: resourceId
+  );
+  const [isExpanded, setIsExpanded] = useState<Record<string, boolean>>({}); // key: resourceId
   const { child, setChild } = useGlobalContext().resourceTreeViewState;
   const { namespace } = useParams();
   const { resource } = useResource();
@@ -165,13 +134,13 @@ export function MainSidebar() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (resource) {
       expandToRoot(resource);
     }
   }, [resource]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     for (const spaceType of spaceTypes) {
       axios
         .get(`${baseUrl}/root`, { params: { namespace, spaceType } })
@@ -222,198 +191,6 @@ export function MainSidebar() {
     }
   };
 
-  function ResourceDropdownMenu({ res }: { res: Resource }) {
-    const globalContext = useGlobalContext();
-    const { resourcesCondition, setResourcesCondition } =
-      globalContext.resourcesConditionState;
-    const navigate = useNavigate();
-    const addToChatContext = (r: Resource, type: ResourceConditionType) => {
-      if (
-        !resourcesCondition.some(
-          (rc) => rc.resource.id === r.id && rc.type === type
-        )
-      ) {
-        setResourcesCondition((prev) => [...prev, { resource: r, type }]);
-      }
-      navigate('./');
-    };
-
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <SidebarMenuAction>
-            <MoreHorizontal />
-          </SidebarMenuAction>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent side="right" align="start">
-          <DropdownMenuItem
-            onClick={() =>
-              createResource(namespace ?? '', res.spaceType, res.id, 'file')
-            }
-          >
-            Create File
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() =>
-              createResource(namespace ?? '', res.spaceType, res.id, 'folder')
-            }
-          >
-            Create Folder
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate(`${res.id}/edit`)}>
-            Edit
-          </DropdownMenuItem>
-          {res.childCount > 0 && (
-            <DropdownMenuItem onClick={() => addToChatContext(res, 'parent')}>
-              Add all to Context
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={() => addToChatContext(res, 'resource')}>
-            Add it to Context
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => deleteResource(res)}>
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-
-  function Tree({
-    namespace,
-    spaceType,
-    res,
-  }: {
-    namespace: string;
-    spaceType: string;
-    res: Resource;
-  }) {
-    if (res.childCount > 0) {
-      return (
-        <SidebarMenuItem>
-          <Collapsible
-            className="group/collapsible [&[data-state=open]>div>a>svg:first-child]:rotate-90"
-            open={isExpanded[res.id]}
-          >
-            <CollapsibleTrigger asChild>
-              <div>
-                <SidebarMenuButton asChild isActive={res.id == resource?.id}>
-                  <Link to={res.id}>
-                    <ChevronRight
-                      className="transition-transform"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        fetchChild(namespace, spaceType, res.id).then(() =>
-                          expandToggle(res.id)
-                        );
-                      }}
-                    />
-                    {res.resourceType === 'folder' ? <Folder /> : <File />}
-                    <span className="truncate">{res.name ?? 'Untitled'}</span>
-                  </Link>
-                </SidebarMenuButton>
-                <ResourceDropdownMenu res={res} />
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <SidebarMenuSub>
-                {(child[res.id] ?? []).length > 0 &&
-                  child[res.id].map((r: Resource) => (
-                    <Tree
-                      key={r.id}
-                      res={r}
-                      namespace={namespace}
-                      spaceType={spaceType}
-                    />
-                  ))}
-              </SidebarMenuSub>
-            </CollapsibleContent>
-          </Collapsible>
-        </SidebarMenuItem>
-      );
-    }
-    return (
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          className="data-[active=true]:bg-transparent"
-          isActive={res.id == resource?.id}
-          asChild
-        >
-          <Link to={res.id}>
-            <File />
-            <span className="truncate">{res.name ?? 'Untitled'}</span>
-          </Link>
-        </SidebarMenuButton>
-        <ResourceDropdownMenu res={res} />
-      </SidebarMenuItem>
-    );
-  }
-
-  function Space({
-    spaceType,
-    namespace,
-  }: {
-    spaceType: string;
-    namespace: string;
-  }) {
-    const spaceTitle = `${spaceType.charAt(0).toUpperCase()}${spaceType.slice(
-      1
-    )}`;
-    return (
-      <SidebarGroup>
-        <div className="flex items-center justify-between">
-          <SidebarGroupLabel>{spaceTitle}</SidebarGroupLabel>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuAction className="my-1.5">
-                <MoreHorizontal />
-              </SidebarMenuAction>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="start">
-              <DropdownMenuItem
-                onClick={() =>
-                  createResource(
-                    namespace,
-                    spaceType,
-                    rootResourceId[spaceType],
-                    'file'
-                  )
-                }
-              >
-                Create File
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  createResource(
-                    namespace,
-                    spaceType,
-                    rootResourceId[spaceType],
-                    'folder'
-                  )
-                }
-              >
-                Create Folder
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {(child[rootResourceId[spaceType]] ?? []).map((r) => (
-              <Tree
-                key={r.id}
-                res={r}
-                namespace={namespace}
-                spaceType={spaceType}
-              />
-            ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-    );
-  }
-
   return (
     <Sidebar>
       <SidebarHeader>
@@ -422,7 +199,19 @@ export function MainSidebar() {
       </SidebarHeader>
       <SidebarContent>
         {spaceTypes.map((spaceType: string, index: number) => (
-          <Space key={index} spaceType={spaceType} namespace={namespace} />
+          <Space
+            key={index}
+            spaceType={spaceType}
+            namespace={namespace}
+            isExpanded={isExpanded}
+            fetchChild={fetchChild}
+            expandToggle={expandToggle}
+            resource={resource || undefined}
+            createResource={createResource}
+            deleteResource={deleteResource}
+            data={child[rootResourceId[spaceType]]}
+            resourceType={rootResourceId[spaceType]}
+          />
         ))}
       </SidebarContent>
       <SidebarRail />
