@@ -6,10 +6,10 @@ import { API_BASE_URL } from '@/constants';
 import { useResource } from '@/components/provider/resource-provider';
 import { useVditorTheme } from '@/hooks/use-vditor-theme';
 import { useGlobalContext } from '@/components/provider/global-context-provider';
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input.tsx';
 
-export function Editor() {
+export default function Editor() {
   const domId: string = 'md-editor';
   const { setResource } = useResource();
   const globalContext = useGlobalContext();

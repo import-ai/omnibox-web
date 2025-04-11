@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { NavChatActions } from '@/components/nav-chat-actions';
 import { Markdown } from '@/components/markdown';
-import { Link, useParams } from 'react-router';
+import { Link, useParams } from 'react-router-dom';
 import { useGlobalContext } from '@/components/provider/global-context-provider';
 import { File, Folder, X } from 'lucide-react';
 
@@ -44,7 +44,7 @@ type ChatCitationListResponse = ChatBaseResponse & {
   citation_list: Citation[];
 };
 
-export function Chat() {
+export default function Chat() {
   const { namespace } = useParams();
   const { resourcesCondition, setResourcesCondition } =
     useGlobalContext().resourcesConditionState;
@@ -143,7 +143,7 @@ export function Chat() {
               for (let i = 0; i < citationList.length; i++) {
                 responseText = responseText.replace(
                   `<cite:${i + 1}>`,
-                  `[[${i + 1}]](#/${namespace}/${citationList[i].link})`,
+                  `[[${i + 1}]](#/${namespace}/${citationList[i].link})`
                 );
               }
               localMessages = [
@@ -204,7 +204,9 @@ export function Chat() {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}
+                className={`mb-4 ${
+                  message.role === 'user' ? 'text-right' : 'text-left'
+                }`}
               >
                 <div
                   className={`inline-block p-2 rounded ${

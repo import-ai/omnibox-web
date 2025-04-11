@@ -8,7 +8,7 @@ import {
   MoreHorizontal,
   Sparkles,
 } from 'lucide-react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import {
   Collapsible,
@@ -52,7 +52,7 @@ export function MainSidebar() {
     Record<string, string>
   >({});
   const [isExpanded, setIsExpanded] = React.useState<Record<string, boolean>>(
-    {},
+    {}
   ); // key: resourceId
   const { child, setChild } = useGlobalContext().resourceTreeViewState;
   const { namespace } = useParams();
@@ -86,7 +86,7 @@ export function MainSidebar() {
     namespace: string,
     spaceType: string,
     parentId: string,
-    resourceType: ResourceType,
+    resourceType: ResourceType
   ) => {
     axios
       .post(baseUrl, { namespace, spaceType, parentId, resourceType })
@@ -128,7 +128,7 @@ export function MainSidebar() {
           if (r.parentId in child) {
             updateChild(
               r.parentId,
-              child[r.parentId].filter((resource) => resource.id !== r.id),
+              child[r.parentId].filter((resource) => resource.id !== r.id)
             );
           }
           fetchResource(r.parentId);
@@ -207,7 +207,7 @@ export function MainSidebar() {
     namespace: string,
     spaceType: string,
     parentId: string,
-    cache = true,
+    cache = true
   ) => {
     if (!(parentId in child && cache)) {
       axios
@@ -230,7 +230,7 @@ export function MainSidebar() {
     const addToChatContext = (r: Resource, type: ResourceConditionType) => {
       if (
         !resourcesCondition.some(
-          (rc) => rc.resource.id === r.id && rc.type === type,
+          (rc) => rc.resource.id === r.id && rc.type === type
         )
       ) {
         setResourcesCondition((prev) => [...prev, { resource: r, type }]);
@@ -305,7 +305,7 @@ export function MainSidebar() {
                         event.preventDefault();
                         event.stopPropagation();
                         fetchChild(namespace, spaceType, res.id).then(() =>
-                          expandToggle(res.id),
+                          expandToggle(res.id)
                         );
                       }}
                     />
@@ -357,7 +357,9 @@ export function MainSidebar() {
     spaceType: string;
     namespace: string;
   }) {
-    const spaceTitle = `${spaceType.charAt(0).toUpperCase()}${spaceType.slice(1)}`;
+    const spaceTitle = `${spaceType.charAt(0).toUpperCase()}${spaceType.slice(
+      1
+    )}`;
     return (
       <SidebarGroup>
         <div className="flex items-center justify-between">
@@ -375,7 +377,7 @@ export function MainSidebar() {
                     namespace,
                     spaceType,
                     rootResourceId[spaceType],
-                    'file',
+                    'file'
                   )
                 }
               >
@@ -387,7 +389,7 @@ export function MainSidebar() {
                     namespace,
                     spaceType,
                     rootResourceId[spaceType],
-                    'folder',
+                    'folder'
                   )
                 }
               >

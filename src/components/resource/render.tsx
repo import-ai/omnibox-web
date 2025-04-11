@@ -2,7 +2,7 @@ import { useResource } from '@/components/provider/resource-provider';
 import { Markdown } from '@/components/markdown';
 import * as React from 'react';
 
-export function Render() {
+export default function Render() {
   const { resource } = useResource();
 
   const content = React.useMemo(() => {

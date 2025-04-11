@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type * as React from 'react';
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '@/constants';
 import type { Resource } from '@/types/resource';

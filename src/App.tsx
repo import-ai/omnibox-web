@@ -1,32 +1,63 @@
 import { ThemeProvider } from '@/components/provider/theme-provider';
-import { HashRouter, Route, Routes } from 'react-router';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import LoginPage from '@/app/login-page';
+import { lazy, Suspense } from 'react';
+import Error from './error';
+import Layout from './layout';
 import { GlobalContextProvider } from '@/components/provider/global-context-provider';
-import { ResourcePage } from '@/app/resource-page';
-import { Render } from '@/components/resource/render';
-import { Editor } from '@/components/resource/editor';
-import { Chat } from '@/app/chat';
-import { NamespaceBase } from '@/components/namespace-base';
 
-function App() {
+const NamespaceBase = lazy(() => import('@/components/namespace-base'));
+const Chat = lazy(() => import('@/app/chat'));
+const Editor = lazy(() => import('@/components/resource/editor'));
+const Render = lazy(() => import('@/components/resource/render'));
+const ResourcePage = lazy(() => import('@/app/resource-page'));
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    errorElement: <Error />,
+    children: [
+      {
+        path: ':namespace',
+        element: <NamespaceBase />,
+        children: [
+          {
+            index: true,
+            element: <Chat />,
+          },
+          {
+            path: ':resourceId',
+            element: <ResourcePage />,
+            children: [
+              {
+                index: true,
+                element: <Render />,
+              },
+              {
+                path: 'edit',
+                element: <Editor />,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        path: 'login',
+        element: <LoginPage />,
+      },
+    ],
+  },
+]);
+
+export default function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <GlobalContextProvider>
-        <HashRouter>
-          <Routes>
-            <Route path=":namespace" element={<NamespaceBase />}>
-              <Route index element={<Chat />} />
-              <Route path=":resourceId" element={<ResourcePage />}>
-                <Route index element={<Render />} />
-                <Route path="edit" element={<Editor />} />
-              </Route>
-            </Route>
-            <Route path="login" element={<LoginPage />} />
-          </Routes>
-        </HashRouter>
+        <Suspense>
+          <RouterProvider router={router} />
+        </Suspense>
       </GlobalContextProvider>
     </ThemeProvider>
   );
 }
-
-export default App;

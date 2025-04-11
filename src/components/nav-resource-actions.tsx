@@ -41,7 +41,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import axios from 'axios';
 import { useGlobalContext } from '@/components/provider/global-context-provider';
 import { API_BASE_URL } from '@/constants';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useResource } from '@/components/provider/resource-provider';
 import type { Resource } from '@/types/resource.tsx';
 

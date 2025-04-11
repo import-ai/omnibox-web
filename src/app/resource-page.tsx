@@ -7,12 +7,12 @@ import {
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
 import { NavResourceActions } from '@/components/nav-resource-actions';
-import { Outlet } from 'react-router';
+import { Outlet } from 'react-router-dom';
 import { useResource } from '@/components/provider/resource-provider';
 import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
 
-export function ResourcePage() {
+export default function ResourcePage() {
   const { resource } = useResource();
   if (!resource) {
     return <></>;
