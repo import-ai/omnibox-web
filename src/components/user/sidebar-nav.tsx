@@ -17,6 +17,7 @@ export function SidebarNav(props: SidebarNavProps) {
     <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
       {items.map((item) => (
         <Button
+          key={item.value}
           variant="ghost"
           className={cn(
             item.value === value

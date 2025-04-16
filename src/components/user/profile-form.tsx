@@ -1,88 +1,88 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { toast } from 'sonner';
+import { useEffect } from 'react';
+import useUser from '@/hooks/use-user';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
+import { Input } from '@/components/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
-  FormControl,
-  FormDescription,
-  FormField,
   FormItem,
   FormLabel,
+  FormField,
   FormMessage,
+  FormControl,
+  FormDescription,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { toast } from 'sonner';
-import { useState } from 'react';
 
 const profileFormSchema = z.object({
   username: z
     .string()
-    .min(2, {
-      message: '用户名至少2个字符',
-    })
-    .max(30, {
-      message: '用户名最多30个字符',
-    }),
+    .min(2, '用户名至少2个字符')
+    .max(32, '用户名最多32个字符'),
   email: z
-    .string({
-      required_error: '请选择一个邮箱地址',
-    })
-    .email(),
-  bio: z.string().max(160).min(4),
-  urls: z
-    .array(
-      z.object({
-        value: z.string().url({ message: '请输入有效的URL' }),
-      })
-    )
+    .string()
+    .email('请输入有效的邮箱地址')
+    .refine(
+      (email) => {
+        const allowedDomains = [
+          'gmail.com',
+          'outlook.com',
+          '163.com',
+          'qq.com',
+        ];
+        const domain = email.split('@')[1];
+        return allowedDomains.includes(domain);
+      },
+      {
+        message: '邮箱必须是 Gmail、Outlook、163 或 QQ 的邮箱',
+      }
+    ),
+  password: z
+    .string()
+    .min(8, '密码至少8个字符')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, '密码必须包含大小写字母和数字')
     .optional(),
+  password_repeat: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// 这里我们模拟一些默认值
-const defaultValues: Partial<ProfileFormValues> = {
-  username: 'shadcn',
-  email: 'm@example.com',
-  bio: 'I own a computer.',
-  urls: [{ value: 'https://shadcn.com' }],
-};
-
 export function ProfileForm() {
-  const [isLoading, setIsLoading] = useState(false);
-
+  const { user, loading, onChange } = useUser();
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
-    mode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: '',
+      username: '',
+      password_repeat: '',
+    },
   });
-
-  async function onSubmit(data: ProfileFormValues) {
-    setIsLoading(true);
-    console.log(data);
-    try {
-      // TODO: 实现更新个人信息的API调用
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success('个人资料已更新');
-    } catch (error) {
-      toast.error('更新失败');
-    } finally {
-      setIsLoading(false);
+  const handleSubmit = (data: ProfileFormValues) => {
+    if (data.password || data.password_repeat) {
+      if (data.password !== data.password_repeat) {
+        toast.error('两次输入的密码不一致');
+        return;
+      }
     }
-  }
+    onChange(data, () => {
+      toast.success('个人资料已更新');
+    });
+  };
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+    form.setValue('email', user.email);
+    form.setValue('username', user.username);
+  }, [user]);
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="username"
@@ -90,11 +90,9 @@ export function ProfileForm() {
             <FormItem>
               <FormLabel>用户名</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} disabled={loading} />
               </FormControl>
-              <FormDescription>
-                这是你的公开显示名称。你每30天只能更改一次。
-              </FormDescription>
+              <FormDescription>这是你的公开显示名称。</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -105,19 +103,16 @@ export function ProfileForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>邮箱</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="选择一个验证过的邮箱" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="m@example.com">m@example.com</SelectItem>
-                  <SelectItem value="m2@example.com">m2@example.com</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="邮箱"
+                  {...field}
+                  disabled={loading}
+                />
+              </FormControl>
               <FormDescription>
-                你可以在邮箱设置中管理验证过的邮箱地址。
+                Limit gmail、outlook、163、qq、only
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -125,23 +120,39 @@ export function ProfileForm() {
         />
         <FormField
           control={form.control}
-          name="bio"
+          name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>个人简介</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="介绍一下自己..."
-                  className="resize-none"
+                <Input
+                  type="password"
+                  placeholder="密码"
                   {...field}
+                  disabled={loading}
                 />
               </FormControl>
-              <FormDescription>你可以@提及其他用户和组织。</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isLoading} loading={isLoading}>
+        <FormField
+          control={form.control}
+          name="password_repeat"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="确认密码"
+                  {...field}
+                  disabled={loading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={loading} loading={loading}>
           更新个人资料
         </Button>
       </form>

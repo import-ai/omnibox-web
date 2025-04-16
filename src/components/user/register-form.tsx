@@ -17,10 +17,6 @@ import {
 
 const registerSchema = z
   .object({
-    nickname: z
-      .string()
-      .min(2, '显示名至少2个字符')
-      .max(32, '显示名最多32个字符'),
     username: z
       .string()
       .min(2, '用户名至少2个字符')
@@ -47,11 +43,11 @@ const registerSchema = z
       .string()
       .min(8, '密码至少8个字符')
       .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, '密码必须包含大小写字母和数字'),
-    confirmPassword: z.string(),
+    password_repeat: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.password === data.password_repeat, {
     message: '两次输入的密码不一致',
-    path: ['confirmPassword'],
+    path: ['password_repeat'],
   });
 
 type TRegisterForm = z.infer<typeof registerSchema>;
@@ -64,16 +60,16 @@ export function RegisterForm() {
     defaultValues: {
       email: '',
       username: '',
-      nickname: '',
       password: '',
-      confirmPassword: '',
+      password_repeat: '',
     },
   });
   const handleSubmit = (data: TRegisterForm) => {
     setIsLoading(true);
     http
-      .post('/api/user', data)
-      .then(() => {
+      .post('user', data)
+      .then((response) => {
+        console.log('注册成功', response);
         navigate('/test', { replace: true });
       })
       .finally(() => {
@@ -84,7 +80,7 @@ export function RegisterForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
+        {/* <FormField
           control={form.control}
           name="nickname"
           render={({ field }) => (
@@ -95,7 +91,7 @@ export function RegisterForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <FormField
           control={form.control}
           name="username"
@@ -147,7 +143,7 @@ export function RegisterForm() {
         />
         <FormField
           control={form.control}
-          name="confirmPassword"
+          name="password_repeat"
           render={({ field }) => (
             <FormItem>
               <FormControl>

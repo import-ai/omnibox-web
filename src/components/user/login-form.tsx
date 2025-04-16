@@ -58,8 +58,9 @@ export function LoginForm({
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     http
-      .post('/api/auth', data)
+      .post('auth', data)
       .then((response) => {
+        localStorage.setItem('uid', response.user_id);
         localStorage.setItem('token', response.access_token);
         navigate('/test', { replace: true });
       })

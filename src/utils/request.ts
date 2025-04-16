@@ -46,34 +46,29 @@ request.interceptors.response.use(
     if (isUndefined(config.mute) || !config.mute) {
       let errorMessage = '请求失败，请稍后重试';
 
-      if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            errorMessage = '请求参数错误';
-            break;
-          case 401:
-            errorMessage = '未授权，请重新登录';
-            // 可以在这里处理登录过期逻辑
-            break;
-          case 403:
-            errorMessage = '拒绝访问';
-            break;
-          case 404:
-            errorMessage = '请求地址不存在';
-            break;
-          case 500:
-            errorMessage = '服务器内部错误';
-            break;
-          default:
-            errorMessage = `请求失败：${error.response.status}`;
-        }
-      } else if (error.request) {
-        errorMessage = '网络异常，请检查网络连接';
+      switch (error.status) {
+        case 400:
+          errorMessage = '请求参数错误';
+          break;
+        case 401:
+          errorMessage = '未授权，请重新登录';
+          // 可以在这里处理登录过期逻辑
+          break;
+        case 403:
+          errorMessage = '拒绝访问';
+          break;
+        case 404:
+          errorMessage = '请求地址不存在';
+          break;
+        case 500:
+          errorMessage = '服务器内部错误';
+          break;
+        default:
+          errorMessage = `请求失败：${error.status}`;
       }
 
       toast.error(errorMessage);
     }
-
     return Promise.reject(error);
   }
 );
