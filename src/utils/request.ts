@@ -45,29 +45,44 @@ request.interceptors.response.use(
     const config = (error.config as RequestConfig) || {};
     if (isUndefined(config.mute) || !config.mute) {
       let errorMessage = '请求失败，请稍后重试';
-
-      switch (error.status) {
-        case 400:
-          errorMessage = '请求参数错误';
-          break;
-        case 401:
-          errorMessage = '未授权，请重新登录';
-          // 可以在这里处理登录过期逻辑
-          break;
-        case 403:
-          errorMessage = '拒绝访问';
-          break;
-        case 404:
-          errorMessage = '请求地址不存在';
-          break;
-        case 500:
-          errorMessage = '服务器内部错误';
-          break;
-        default:
-          errorMessage = `请求失败：${error.status}`;
+      if (
+        error.response &&
+        error.response.data &&
+        // @ts-ignore
+        error.response.data.message
+      ) {
+        // @ts-ignore
+        errorMessage = error.response.data.message;
+      } else {
+        switch (error.status) {
+          case 400:
+            errorMessage = '请求参数错误';
+            break;
+          case 401:
+            errorMessage = '未授权，请重新登录';
+            break;
+          case 403:
+            errorMessage = '拒绝访问';
+            break;
+          case 404:
+            errorMessage = '请求地址不存在';
+            break;
+          case 500:
+            errorMessage = '服务器内部错误';
+            break;
+          default:
+            errorMessage = `请求失败：${error.status}`;
+        }
       }
-
-      toast.error(errorMessage);
+      if (error.status === 401) {
+        localStorage.removeItem('uid');
+        localStorage.removeItem('token');
+        localStorage.removeItem('namespace');
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      }
+      toast.error(errorMessage, { position: 'top-center' });
     }
     return Promise.reject(error);
   }

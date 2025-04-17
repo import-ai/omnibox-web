@@ -1,19 +1,16 @@
 import Layout from '@/layout';
 import Error from '@/layout/error';
+import CoreApp from '@/hooks/app.class';
 import { lazy, Suspense } from 'react';
-import { ThemeProvider } from '@/components/provider/theme-provider';
+import AppContext from '@/hooks/app-context';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { GlobalContextProvider } from '@/components/provider/global-context-provider';
 
-const Chat = lazy(() => import('@/app/chat'));
-const LoginPage = lazy(() => import('@/app/user/login'));
-const RegisterPage = lazy(() => import('@/app/user/register'));
-const ForgotPasswordPage = lazy(() => import('@/app/user/password'));
-const ResourcePage = lazy(() => import('@/app/resource-page'));
-const Editor = lazy(() => import('@/components/resource/editor'));
-const Render = lazy(() => import('@/components/resource/render'));
-const NamespaceBase = lazy(() => import('@/components/namespace-base'));
+const LoginPage = lazy(() => import('@/page/user/login'));
+const NamespaceBase = lazy(() => import('@/page/namespace'));
+const RegisterPage = lazy(() => import('@/page/user/register'));
+const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
 
+const app = new CoreApp();
 const router = createBrowserRouter([
   {
     path: '/',
@@ -35,39 +32,17 @@ const router = createBrowserRouter([
       {
         path: ':namespace',
         element: <NamespaceBase />,
-        children: [
-          {
-            index: true,
-            element: <Chat />,
-          },
-          {
-            path: ':resourceId',
-            element: <ResourcePage />,
-            children: [
-              {
-                index: true,
-                element: <Render />,
-              },
-              {
-                path: 'edit',
-                element: <Editor />,
-              },
-            ],
-          },
-        ],
       },
     ],
   },
 ]);
 
-export default function App() {
+export default function Main() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <GlobalContextProvider>
-        <Suspense>
-          <RouterProvider router={router} />
-        </Suspense>
-      </GlobalContextProvider>
-    </ThemeProvider>
+    <AppContext.Provider value={app}>
+      <Suspense>
+        <RouterProvider router={router} />
+      </Suspense>
+    </AppContext.Provider>
   );
 }
