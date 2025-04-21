@@ -19,15 +19,13 @@ export function SidebarNav(props: SidebarNavProps) {
         <Button
           key={item.value}
           variant="ghost"
+          onClick={() => onChange(item.value)}
           className={cn(
             item.value === value
               ? 'bg-muted hover:bg-muted'
               : 'hover:bg-transparent hover:underline',
             'justify-start'
           )}
-          onChange={() => {
-            onChange(item.value);
-          }}
         >
           {item.label}
         </Button>

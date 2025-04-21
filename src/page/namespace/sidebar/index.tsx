@@ -7,7 +7,6 @@ import { Switcher } from '../switcher';
 import { http } from '@/utils/request';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Command, LoaderCircle } from 'lucide-react';
 import { SpaceType, Resource, ResourceType, IResourceData } from '@/interface';
 import {
   Sidebar,
@@ -27,7 +26,6 @@ export default function MainSidebar() {
   const params = useParams();
   const app = useApp();
   const [activeKey, onActiveKey] = useState(0);
-  const [loading, onLoading] = useState(true);
   const [expanding, onExpanding] = useState(0);
   const [expands, onExpands] = useState<Array<number>>([]);
   const namespace = params.namespace ? parseInt(params.namespace, 10) : 1;
@@ -116,23 +114,6 @@ export default function MainSidebar() {
   };
 
   useEffect(() => {
-    Promise.all(
-      spaceTypes.map((spaceType) =>
-        http.get(`/${baseUrl}/root`, { params: { namespace, spaceType } })
-      )
-    )
-      .then((response) => {
-        const state: IData = {};
-        response.forEach((item) => {
-          state[item.spaceType] = item;
-        });
-        onData(state);
-        onLoading(false);
-      })
-      .catch(() => {
-        onLoading(false);
-      });
-
     return app.on('resource_update', (delta: Resource) => {
       each(data, (resource, key) => {
         if (Array.isArray(resource.children) && resource.children.length > 0) {
@@ -149,6 +130,20 @@ export default function MainSidebar() {
       onData({ ...data });
     });
   }, []);
+
+  useEffect(() => {
+    Promise.all(
+      spaceTypes.map((spaceType) =>
+        http.get(`/${baseUrl}/root`, { params: { namespace, spaceType } })
+      )
+    ).then((response) => {
+      const state: IData = {};
+      response.forEach((item) => {
+        state[item.spaceType] = item;
+      });
+      onData(state);
+    });
+  }, [namespace]);
 
   useEffect(() => {
     if (activeKey <= 0) {
@@ -173,14 +168,10 @@ export default function MainSidebar() {
     app.fire('resource', node);
   }, [activeKey]);
 
-  if (loading) {
-    return <LoaderCircle />;
-  }
-
   return (
     <Sidebar>
       <SidebarHeader>
-        <Switcher namespaces={[{ name: 'test', logo: Command }]} />
+        <Switcher namespace={namespace} />
         <NavMain app={app} active={activeKey === 0} onActiveKey={onActiveKey} />
       </SidebarHeader>
       <SidebarContent>

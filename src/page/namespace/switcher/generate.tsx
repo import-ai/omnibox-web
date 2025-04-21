@@ -1,5 +1,5 @@
-import { UserPlus } from 'lucide-react';
-import InviteForm from '../form/invite';
+import GenerateForm from '../form/namespace';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,24 +9,24 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-export default function Invite() {
+export default function Generate() {
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button
           size="sm"
-          variant="outline"
-          className="text-muted-foreground h-7 gap-1 px-2"
+          variant="ghost"
+          className="w-full justify-start text-muted-foreground"
         >
-          <UserPlus />
-          邀请成员
+          <Plus className="size-4" />
+          添加空间
         </Button>
       </DialogTrigger>
       <DialogContent className="w-1/2 max-w-7xl">
         <DialogHeader>
-          <DialogTitle>邀请成员</DialogTitle>
+          <DialogTitle>添加空间</DialogTitle>
         </DialogHeader>
-        <InviteForm />
+        <GenerateForm />
       </DialogContent>
     </Dialog>
   );

@@ -14,6 +14,12 @@ export interface User {
   updated_at: string;
 }
 
+export type Namespace = {
+  id: number;
+  name: string;
+  collaborators?: string[];
+};
+
 export type SpaceType = 'private' | 'teamspace';
 export type ResourceType = 'doc' | 'file' | 'link' | 'folder';
 
