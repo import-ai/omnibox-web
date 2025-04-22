@@ -1,5 +1,7 @@
 import * as z from 'zod';
+import { toast } from 'sonner';
 import { useState } from 'react';
+import { http } from '@/utils/request';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
@@ -56,21 +58,38 @@ export default function InviteForm() {
   });
   const handleSubmit = (data: FormValues) => {
     setLoading(true);
-    console.log(data);
+    const namespace = localStorage.getItem('namespace');
+    http
+      .post(`namespaces/invite`, {
+        ...data,
+        namespace,
+        inviteUrl: `${location.origin}/user/invite`,
+        registerUrl: `${location.origin}/user/register-comfirm`,
+      })
+      .then(() => {
+        toast('已邀请');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-4 px-px"
+      >
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>邮箱</FormLabel>
               <FormControl>
                 <Input
                   type="email"
-                  placeholder="邮箱"
+                  autoComplete="email"
                   {...field}
                   disabled={loading}
                 />
@@ -95,12 +114,11 @@ export default function InviteForm() {
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="选择角色" />
+                      <SelectValue />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="owner">工作空间所有者</SelectItem>
-                    <SelectItem value="admin">管理员</SelectItem>
                     <SelectItem value="member">成员</SelectItem>
                   </SelectContent>
                 </Select>

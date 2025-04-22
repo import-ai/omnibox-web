@@ -3,10 +3,10 @@ import { http } from '@/utils/request';
 import { useState, useEffect } from 'react';
 
 export default function useUser() {
+  const uid = localStorage.getItem('uid');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const refetch = () => {
-    const uid = localStorage.getItem('uid');
     http
       .get(`user/${uid}`)
       .then(setUser)
@@ -14,12 +14,11 @@ export default function useUser() {
         setLoading(false);
       });
   };
-  const onChange = (data: Partial<User>, callback?: () => void) => {
-    const uid = localStorage.getItem('uid');
+  const onChange = (data: any, callback?: () => void) => {
     http
       .patch(`user/${uid}`, data)
-      .then((res) => {
-        setUser(res);
+      .then(() => {
+        setUser({ ...user, ...data });
         callback && callback();
       })
       .finally(() => {
@@ -28,8 +27,6 @@ export default function useUser() {
   };
 
   useEffect(refetch, []);
-
-  console.log(user);
 
   return { user, loading, onChange };
 }

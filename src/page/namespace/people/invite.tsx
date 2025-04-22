@@ -1,5 +1,4 @@
-import { UserPlus } from 'lucide-react';
-import InviteForm from '../people/invite-form';
+import InviteForm from './invite-form';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,13 +12,8 @@ export default function Invite() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-muted-foreground h-7 gap-1 px-2"
-        >
-          <UserPlus />
-          邀请成员
+        <Button size="sm" variant="default">
+          添加成员
         </Button>
       </DialogTrigger>
       <DialogContent className="w-1/2 max-w-7xl">

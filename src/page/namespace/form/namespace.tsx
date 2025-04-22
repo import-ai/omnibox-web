@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { createNamespace } from '@/utils/namespace';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
   FormItem,
@@ -41,7 +41,10 @@ export default function GenerateForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-4 px-px"
+      >
         <FormField
           control={form.control}
           name="name"

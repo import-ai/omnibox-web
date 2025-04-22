@@ -11,7 +11,7 @@ export default function Space(props: IProps) {
   const { style, className, children } = props;
 
   return (
-    <div style={style} className={cn('flex gap-2', { className })}>
+    <div style={style} className={cn('flex gap-2', className)}>
       {children}
     </div>
   );

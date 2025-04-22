@@ -129,7 +129,7 @@ export default function MainSidebar() {
       });
       onData({ ...data });
     });
-  }, []);
+  }, [data]);
 
   useEffect(() => {
     Promise.all(

@@ -24,6 +24,7 @@ export default function Editor(props: IProps) {
       const name = title.trim();
       const content = vditor.current.getValue();
       if (!content || !name) {
+        app.fire('resource_children', true);
         return;
       }
       http
@@ -34,6 +35,7 @@ export default function Editor(props: IProps) {
         })
         .then((delta: Resource) => {
           app.fire('resource_update', delta);
+          app.fire('resource_children', true);
         });
     });
   }, [title]);
@@ -69,7 +71,6 @@ export default function Editor(props: IProps) {
           console.warn('Editor cleanup error:', e);
         }
       }
-      root.current = null;
     };
   }, [resource]);
 

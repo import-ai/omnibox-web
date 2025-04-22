@@ -7,8 +7,7 @@ export default function useNamespace() {
   const app = useApp();
   const [loading, onLoading] = useState(false);
   const [data, onData] = useState<Array<Namespace>>([]);
-
-  useEffect(() => {
+  const refetch = () => {
     onLoading(true);
     http
       .get('namespaces/user')
@@ -16,6 +15,12 @@ export default function useNamespace() {
       .finally(() => {
         onLoading(false);
       });
+  };
+
+  useEffect(refetch, []);
+
+  useEffect(() => {
+    return app.on('namespace_refetch', refetch);
   }, []);
 
   return { app, data, loading };

@@ -1,5 +1,5 @@
 import { getTime } from './utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useResource from '@/hooks/user-resource';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
@@ -115,6 +115,10 @@ export default function Actions() {
   const handleSave = () => {
     app.fire('save');
   };
+
+  useEffect(() => {
+    return app.on('to_edit', handleEdit);
+  }, []);
 
   return (
     <div className="flex items-center gap-2 text-sm">

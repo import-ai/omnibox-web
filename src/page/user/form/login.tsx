@@ -7,7 +7,7 @@ import { Mail, Lock } from 'lucide-react';
 import { Input } from '@/components/input';
 import { Button } from '@/components/button';
 import { toDefaultNamespace } from '@/utils/namespace';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -17,6 +17,7 @@ import {
   FormControl,
   FormDescription,
 } from '@/components/ui/form';
+import Space from '@/components/space';
 
 const formSchema = z.object({
   email: z
@@ -48,6 +49,8 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<'form'>) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname;
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,7 +66,11 @@ export function LoginForm({
       .then((response) => {
         localStorage.setItem('uid', response.id);
         localStorage.setItem('token', response.access_token);
-        toDefaultNamespace(navigate, { replace: true });
+        if (from) {
+          navigate(from, { replace: true });
+        } else {
+          toDefaultNamespace(navigate, { replace: true });
+        }
       })
       .finally(() => {
         setIsLoading(false);
@@ -93,6 +100,7 @@ export function LoginForm({
                   <Input
                     type="email"
                     startIcon={Mail}
+                    autoComplete="email"
                     disabled={isLoading}
                     placeholder="Please enter your email address"
                     {...field}
@@ -113,6 +121,7 @@ export function LoginForm({
                 <FormControl>
                   <Input
                     type="password"
+                    autoComplete="new-password"
                     startIcon={Lock}
                     disabled={isLoading}
                     placeholder="Password"
@@ -127,12 +136,15 @@ export function LoginForm({
             Login
           </Button>
         </div>
-        <div className="text-center text-sm">
-          Don&apos;t have an account?
+        <Space className="text-sm justify-center">
           <Link to="/user/register" className="text-sm text-blue-700 ml-1">
             Sign up
           </Link>
-        </div>
+          or
+          <Link to="/user/password" className="text-sm text-blue-700 ml-1">
+            Reset Password
+          </Link>
+        </Space>
       </form>
     </Form>
   );

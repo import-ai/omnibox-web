@@ -41,9 +41,24 @@ const profileFormSchema = z.object({
     ),
   password: z
     .string()
-    .min(8, '密码至少8个字符')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, '密码必须包含大小写字母和数字')
-    .optional(),
+    .optional()
+    .refine(
+      (password) => {
+        if (!password || password.length <= 0) {
+          return true;
+        }
+        if (
+          password.length < 8 ||
+          !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)
+        ) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message: '密码必须包含大小写字母和数字',
+      }
+    ),
   password_repeat: z.string().optional(),
 });
 
@@ -82,7 +97,10 @@ export default function ProfileForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-4 px-px"
+      >
         <FormField
           control={form.control}
           name="username"
@@ -92,7 +110,6 @@ export default function ProfileForm() {
               <FormControl>
                 <Input {...field} disabled={loading} />
               </FormControl>
-              <FormDescription>这是你的公开显示名称。</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -106,6 +123,7 @@ export default function ProfileForm() {
               <FormControl>
                 <Input
                   type="email"
+                  autoComplete="email"
                   placeholder="邮箱"
                   {...field}
                   disabled={loading}
@@ -123,10 +141,11 @@ export default function ProfileForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>密码</FormLabel>
               <FormControl>
                 <Input
                   type="password"
-                  placeholder="密码"
+                  autoComplete="new-password"
                   {...field}
                   disabled={loading}
                 />
@@ -140,10 +159,11 @@ export default function ProfileForm() {
           name="password_repeat"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>确认密码</FormLabel>
               <FormControl>
                 <Input
                   type="password"
-                  placeholder="确认密码"
+                  autoComplete="new-password"
                   {...field}
                   disabled={loading}
                 />

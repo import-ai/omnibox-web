@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import PeopleForm from '../form/people';
+import PeopleForm from '../people';
 import ProfileForm from '../form/profile';
 import SettingForm from '../form/setting';
 import { SidebarNav } from '@/page/user/form/sidebar';
@@ -36,7 +36,7 @@ export default function SettingWrapper() {
           }))}
         />
       </aside>
-      <div className="lg:flex-1 lg:max-w-2xl h-[420px] max-h-[90%] overflow-auto">
+      <div className="lg:flex-1 lg:max-w-2xl h-[440px] max-h-[98%] overflow-auto">
         {items.find((item) => item.value === activeKey)?.children}
       </div>
     </div>

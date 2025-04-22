@@ -1,5 +1,8 @@
 import * as z from 'zod';
-import { useState } from 'react';
+import { toast } from 'sonner';
+import useApp from '@/hooks/use-app';
+import { http } from '@/utils/request';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
@@ -7,10 +10,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
   FormItem,
+  FormLabel,
   FormField,
   FormMessage,
   FormControl,
-  FormDescription,
 } from '@/components/ui/form';
 
 const FormSchema = z.object({
@@ -20,7 +23,9 @@ const FormSchema = z.object({
 type FormValues = z.infer<typeof FormSchema>;
 
 export default function SettingForm() {
+  const app = useApp();
   const [loading, setLoading] = useState(false);
+  const namespaceId = localStorage.getItem('namespace');
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -29,23 +34,38 @@ export default function SettingForm() {
   });
   const handleSubmit = (data: FormValues) => {
     setLoading(true);
-    console.log(data);
+    http
+      .patch(`namespaces/${namespaceId}`, data)
+      .then(() => {
+        app.fire('namespace_refetch');
+        toast('已更新');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
+
+  useEffect(() => {
+    http.get(`namespaces/${namespaceId}`).then((data) => {
+      form.setValue('name', data.name);
+    });
+  }, []);
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-4 px-px"
+      >
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>名称</FormLabel>
               <FormControl>
-                <Input placeholder="名称" {...field} disabled={loading} />
+                <Input {...field} disabled={loading} />
               </FormControl>
-              <FormDescription>
-                你可以使用你的组织或公司名称，保持简洁。
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

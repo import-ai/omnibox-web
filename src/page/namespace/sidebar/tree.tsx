@@ -37,7 +37,7 @@ export default function Tree(props: IProps) {
         open={expand}
         className={cn('group/collapsible', {
           '[&[data-state=open]>div>div>svg:first-child]:rotate-90':
-            expand && expanding !== data.id && data.resourceType === 'folder',
+            expand && expanding !== data.id,
         })}
       >
         <CollapsibleTrigger asChild>

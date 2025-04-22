@@ -1,7 +1,7 @@
 import useApp from '@/hooks/use-app';
 import { MoreHorizontal } from 'lucide-react';
 import { SidebarMenuAction } from '@/components/ui/sidebar';
-import { IResourceData, SpaceType, ResourceType } from '@/interface';
+import { SpaceType, ResourceType } from '@/interface';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export interface IResourceProps {
-  data: IResourceData;
+  data: any;
   namespace: number;
   spaceType: string;
   activeKey: number;
@@ -28,7 +28,7 @@ export interface IResourceProps {
 }
 
 export default function MainDropdownMenu(props: IResourceProps) {
-  const { data, namespace, onCreate, onDelete } = props;
+  const { data, namespace, onActiveKey, onCreate, onDelete } = props;
   const app = useApp();
   const hasChildren = data.childCount > 0;
   const handleCreateFile = () => {
@@ -38,7 +38,10 @@ export default function MainDropdownMenu(props: IResourceProps) {
     onCreate(namespace, data.spaceType, data.id, 'folder');
   };
   const handleEdit = () => {
-    console.log(123);
+    onActiveKey(data.id);
+    setTimeout(() => {
+      app.fire('to_edit');
+    }, 100);
   };
   const handleAddToChat = () => {
     app.fire('resource_wrapper', true);

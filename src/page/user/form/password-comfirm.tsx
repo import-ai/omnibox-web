@@ -2,60 +2,52 @@ import * as z from 'zod';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { http } from '@/utils/request';
-import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Form,
   FormItem,
   FormField,
   FormMessage,
   FormControl,
-  FormDescription,
 } from '@/components/ui/form';
 
 const forgotPasswordSchema = z.object({
-  email: z
+  password: z
     .string()
-    .email('请输入有效的邮箱地址')
-    .refine(
-      (email) => {
-        const allowedDomains = [
-          'gmail.com',
-          'outlook.com',
-          '163.com',
-          'qq.com',
-        ];
-        const domain = email.split('@')[1];
-        return allowedDomains.includes(domain);
-      },
-      {
-        message: '邮箱必须是 Gmail、Outlook、163 或 QQ 的邮箱',
-      }
-    ),
+    .min(8, '密码至少8个字符')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, '密码必须包含大小写字母和数字'),
+  password_repeat: z.string(),
 });
 
 type TForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordForm() {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const token = params.get('token');
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<TForgotPasswordForm>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
-      email: '',
+      password: '',
+      password_repeat: '',
     },
   });
   const onSubmit = (data: TForgotPasswordForm) => {
     setIsLoading(true);
     http
-      .post('password', {
-        email: data.email,
-        url: `${location.origin}/user/password-comfirm`,
+      .post('password-confirm', {
+        token,
+        password: data.password,
+        password_repeat: data.password_repeat,
       })
       .then(() => {
-        toast('重置密码链接已发送到您的邮箱', { position: 'top-center' });
+        toast.success('密码重置成功');
+        navigate('/user/login', { replace: true });
       })
       .finally(() => {
         setIsLoading(false);
@@ -67,21 +59,36 @@ export function ForgotPasswordForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="email"
+          name="password"
           render={({ field }) => (
             <FormItem>
               <FormControl>
                 <Input
-                  type="email"
-                  placeholder="邮箱"
-                  autoComplete="email"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="密码"
                   {...field}
                   disabled={isLoading}
                 />
               </FormControl>
-              <FormDescription>
-                Limit gmail、outlook、163、qq、only
-              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password_repeat"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="确认密码"
+                  {...field}
+                  disabled={isLoading}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -92,17 +99,8 @@ export function ForgotPasswordForm() {
           disabled={isLoading}
           loading={isLoading}
         >
-          发送重置链接
+          重置密码
         </Button>
-        <div className="text-center text-sm">
-          记起密码了？
-          <Link
-            to="/user/login"
-            className="font-semibold text-primary hover:underline ml-1"
-          >
-            返回登录
-          </Link>
-        </div>
       </form>
     </Form>
   );

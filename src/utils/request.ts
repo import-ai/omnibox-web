@@ -59,7 +59,7 @@ request.interceptors.response.use(
             errorMessage = '请求参数错误';
             break;
           case 401:
-            errorMessage = '未授权，请重新登录';
+            errorMessage = '登陆已过期，请重新登陆';
             break;
           case 403:
             errorMessage = '拒绝访问';
@@ -74,15 +74,15 @@ request.interceptors.response.use(
             errorMessage = `请求失败：${error.status}`;
         }
       }
+      toast.error(errorMessage, { position: 'top-center' });
       if (error.status === 401) {
         localStorage.removeItem('uid');
         localStorage.removeItem('token');
         localStorage.removeItem('namespace');
         setTimeout(() => {
-          location.reload();
+          window.location.href = '/user/login';
         }, 1000);
       }
-      toast.error(errorMessage, { position: 'top-center' });
     }
     return Promise.reject(error);
   }
