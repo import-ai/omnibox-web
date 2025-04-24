@@ -1,32 +1,63 @@
-import { ThemeProvider } from "@/components/provider/theme-provider";
-import { HashRouter, Route, Routes } from "react-router";
-import LoginPage from "@/app/login-page";
-import { GlobalContextProvider } from "@/components/provider/global-context-provider";
-import { ResourcePage } from "@/app/resource-page";
-import { Render } from "@/components/resource/render";
-import { Editor } from "@/components/resource/editor";
-import { Chat } from "@/app/chat";
-import { NamespaceBase } from "@/components/namespace-base";
+import Layout from '@/layout';
+import Error from '@/layout/error';
+import CoreApp from '@/hooks/app.class';
+import { lazy, Suspense } from 'react';
+import AppContext from '@/hooks/app-context';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-function App() {
+const LoginPage = lazy(() => import('@/page/user/login'));
+const InvitePage = lazy(() => import('@/page/user/invite'));
+const NamespaceBase = lazy(() => import('@/page/namespace'));
+const RegisterPage = lazy(() => import('@/page/user/register'));
+const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
+const PasswordComFirmPage = lazy(() => import('@/page/user/password-comfirm'));
+const RegisterComFirmPage = lazy(() => import('@/page/user/register-comfirm'));
+
+const app = new CoreApp();
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    errorElement: <Error />,
+    children: [
+      {
+        path: 'user/login',
+        element: <LoginPage />,
+      },
+      {
+        path: 'user/sign-up',
+        element: <RegisterPage />,
+      },
+      {
+        path: 'user/sign-up/comfirm',
+        element: <RegisterComFirmPage />,
+      },
+      {
+        path: 'user/password',
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: 'user/password/comfirm',
+        element: <PasswordComFirmPage />,
+      },
+      {
+        path: 'user/invite/comfirm',
+        element: <InvitePage />,
+      },
+      {
+        path: ':namespace',
+        element: <NamespaceBase />,
+      },
+    ],
+  },
+]);
+
+export default function Main() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <GlobalContextProvider>
-        <HashRouter>
-          <Routes>
-            <Route path=":namespace" element={<NamespaceBase />}>
-              <Route index element={<Chat />} />
-              <Route path=":resourceId" element={<ResourcePage />}>
-                <Route index element={<Render />} />
-                <Route path="edit" element={<Editor />} />
-              </Route>
-            </Route>
-            <Route path="login" element={<LoginPage />} />
-          </Routes>
-        </HashRouter>
-      </GlobalContextProvider>
-    </ThemeProvider>
+    <AppContext.Provider value={app}>
+      <Suspense>
+        <RouterProvider router={router} />
+      </Suspense>
+    </AppContext.Provider>
   );
 }
-
-export default App;
