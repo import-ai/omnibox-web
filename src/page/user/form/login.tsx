@@ -1,14 +1,15 @@
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import { http } from '@/utils/request';
+import Space from '@/components/space';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Mail, Lock } from 'lucide-react';
 import { Input } from '@/components/input';
 import { Button } from '@/components/button';
 import { toDefaultNamespace } from '@/utils/namespace';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Form,
   FormItem,
@@ -17,7 +18,6 @@ import {
   FormControl,
   FormDescription,
 } from '@/components/ui/form';
-import Space from '@/components/space';
 
 const formSchema = z.object({
   email: z
@@ -49,8 +49,8 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<'form'>) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname;
+  const [params] = useSearchParams();
+  const redirect = params.get('redirect');
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,8 +66,8 @@ export function LoginForm({
       .then((response) => {
         localStorage.setItem('uid', response.id);
         localStorage.setItem('token', response.access_token);
-        if (from) {
-          navigate(from, { replace: true });
+        if (redirect) {
+          location.href = decodeURIComponent(redirect);
         } else {
           toDefaultNamespace(navigate, { replace: true });
         }

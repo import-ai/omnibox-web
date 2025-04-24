@@ -80,7 +80,9 @@ request.interceptors.response.use(
         localStorage.removeItem('token');
         localStorage.removeItem('namespace');
         setTimeout(() => {
-          window.location.href = '/user/login';
+          window.location.href = `/user/login?redirect=${encodeURIComponent(
+            location.href
+          )}`;
         }, 1000);
       }
     }

@@ -14,8 +14,7 @@ export default function Layout() {
     if (localStorage.getItem('uid')) {
       toDefaultNamespace(navigate);
     } else {
-      navigate('/user/login', {
-        state: { from: loc },
+      navigate(`/user/login?redirect=${encodeURIComponent(location.href)}`, {
         replace: true,
       });
     }
