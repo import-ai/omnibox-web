@@ -21,7 +21,7 @@ export function InviteForm() {
   const handleSubmit = () => {
     setIsLoading(true);
     http
-      .post('invite-confirm', { token })
+      .post('invite/confirm', { token })
       .then(() => {
         toDefaultNamespace(navigate, { replace: true });
       })

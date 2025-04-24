@@ -25,11 +25,11 @@ const router = createBrowserRouter([
         element: <LoginPage />,
       },
       {
-        path: 'user/register',
+        path: 'user/sign-up',
         element: <RegisterPage />,
       },
       {
-        path: 'user/register-comfirm',
+        path: 'user/sign-up/comfirm',
         element: <RegisterComFirmPage />,
       },
       {
@@ -37,11 +37,11 @@ const router = createBrowserRouter([
         element: <ForgotPasswordPage />,
       },
       {
-        path: 'user/password-comfirm',
+        path: 'user/password/comfirm',
         element: <PasswordComFirmPage />,
       },
       {
-        path: 'user/invite',
+        path: 'user/invite/comfirm',
         element: <InvitePage />,
       },
       {

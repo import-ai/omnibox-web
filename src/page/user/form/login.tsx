@@ -7,7 +7,7 @@ import { Mail, Lock } from 'lucide-react';
 import { Input } from '@/components/input';
 import { Button } from '@/components/button';
 import { toDefaultNamespace } from '@/utils/namespace';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -137,7 +137,7 @@ export function LoginForm({
           </Button>
         </div>
         <Space className="text-sm justify-center">
-          <Link to="/user/register" className="text-sm text-blue-700 ml-1">
+          <Link to="/user/sign-up" className="text-sm text-blue-700 ml-1">
             Sign up
           </Link>
           or

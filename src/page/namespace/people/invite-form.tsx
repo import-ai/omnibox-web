@@ -50,7 +50,12 @@ const FormSchema = z.object({
 
 type FormValues = z.infer<typeof FormSchema>;
 
-export default function InviteForm() {
+interface IProps {
+  onFinish: () => void;
+}
+
+export default function InviteForm(props: IProps) {
+  const { onFinish } = props;
   const [loading, setLoading] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -62,15 +67,19 @@ export default function InviteForm() {
   const handleSubmit = (data: FormValues) => {
     setLoading(true);
     const namespace = localStorage.getItem('namespace');
+    const namespaceId = namespace ? JSON.parse(namespace).id : '0';
     http
       .post('invite', {
         ...data,
-        namespace,
-        inviteUrl: `${location.origin}/user/invite`,
-        registerUrl: `${location.origin}/user/register-comfirm`,
+        namespace: namespaceId,
+        inviteUrl: `${location.origin}/user/invite/comfirm`,
+        registerUrl: `${location.origin}/user/sign-up/comfirm`,
       })
       .then(() => {
+        form.resetField('email');
+        form.resetField('role');
         toast('Invitation sent');
+        onFinish();
       })
       .finally(() => {
         setLoading(false);

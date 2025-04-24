@@ -28,7 +28,8 @@ type FormValues = z.infer<typeof FormSchema>;
 export default function SettingForm() {
   const app = useApp();
   const [loading, setLoading] = useState(false);
-  const namespaceId = localStorage.getItem('namespace');
+  const namespace = localStorage.getItem('namespace');
+  const namespaceId = namespace ? JSON.parse(namespace).id : '0';
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {

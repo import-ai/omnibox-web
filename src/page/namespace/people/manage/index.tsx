@@ -1,4 +1,4 @@
-import Invite from './invite';
+import Invite from '../invite';
 import useContext from './use-context';
 import Space from '@/components/space';
 import { Input } from '@/components/ui/input';
@@ -13,8 +13,8 @@ import {
   TableHeader,
 } from '@/components/ui/table';
 
-export default function PeopleForm() {
-  const { data, search, onSearch } = useContext();
+export default function ManagePeople() {
+  const { data, search, onSearch, onDisable, onRemove } = useContext();
 
   return (
     <div className="space-y-4 p-px">
@@ -38,14 +38,17 @@ export default function PeopleForm() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.list.map((item) => (
+            {data.map((item) => (
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.username}</TableCell>
                 <TableCell>{item.email}</TableCell>
                 {/* <TableCell>--</TableCell> */}
                 <TableCell className="text-right">
                   <Space className="inline-flex">
-                    <PopConfirm title="Are you sure to disable this user?">
+                    <PopConfirm
+                      title="Are you sure to disable this user?"
+                      onOk={() => onDisable(item.id)}
+                    >
                       <Button size="sm">Disable</Button>
                     </PopConfirm>
                     {/* <PopConfirm title="确定删除当前用户？">
@@ -53,7 +56,10 @@ export default function PeopleForm() {
                         删除
                       </Button>
                     </PopConfirm> */}
-                    <PopConfirm title="Are you sure to remove this user from the workspace?">
+                    <PopConfirm
+                      title="Are you sure to remove this user from the workspace?"
+                      onOk={() => onRemove(item.id)}
+                    >
                       <Button size="sm" variant="destructive">
                         Remove from Workspace
                       </Button>

@@ -53,7 +53,7 @@ export function RegisterComFirmForm() {
   const handleSubmit = (data: TRegisterForm) => {
     setIsLoading(true);
     http
-      .post('register-confirm', { ...data, token })
+      .post('sign-up/confirm', { ...data, token })
       .then((response) => {
         localStorage.setItem('uid', response.id);
         localStorage.setItem('token', response.access_token);

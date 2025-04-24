@@ -52,9 +52,10 @@ export function ForgotPasswordForm() {
     http
       .post('password', {
         email: data.email,
-        url: `${location.origin}/user/password-comfirm`,
+        url: `${location.origin}/user/password/comfirm`,
       })
       .then(() => {
+        form.resetField('email');
         toast('Password reset link has been sent to your email', {
           position: 'top-center',
         });

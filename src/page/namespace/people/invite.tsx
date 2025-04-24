@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import InviteForm from './invite-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,8 +10,13 @@ import {
 } from '@/components/ui/dialog';
 
 export default function Invite() {
+  const [open, onOpen] = useState(false);
+  const onCancel = () => {
+    onOpen(false);
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={onOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant="default">
           Add Member
@@ -20,7 +26,7 @@ export default function Invite() {
         <DialogHeader>
           <DialogTitle>Invite Member</DialogTitle>
         </DialogHeader>
-        <InviteForm />
+        <InviteForm onFinish={onCancel} />
       </DialogContent>
     </Dialog>
   );

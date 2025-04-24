@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import InviteForm from '../people/invite-form';
 import { Button } from '@/components/ui/button';
@@ -10,8 +11,13 @@ import {
 } from '@/components/ui/dialog';
 
 export default function Invite() {
+  const [open, onOpen] = useState(false);
+  const onCancel = () => {
+    onOpen(false);
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={onOpen}>
       <DialogTrigger asChild>
         <Button
           size="sm"
@@ -26,7 +32,7 @@ export default function Invite() {
         <DialogHeader>
           <DialogTitle>Invite Member</DialogTitle>
         </DialogHeader>
-        <InviteForm />
+        <InviteForm onFinish={onCancel} />
       </DialogContent>
     </Dialog>
   );

@@ -1,4 +1,4 @@
-import Table from './table';
+import Table from './manage';
 // import Invite from './invite-link';
 // import { Separator } from '@/components/ui/separator';
 

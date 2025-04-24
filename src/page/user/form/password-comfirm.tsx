@@ -43,7 +43,7 @@ export function ForgotPasswordForm() {
   const onSubmit = (data: TForgotPasswordForm) => {
     setIsLoading(true);
     http
-      .post('password-confirm', {
+      .post('password/confirm', {
         token,
         password: data.password,
         password_repeat: data.password_repeat,

@@ -50,11 +50,12 @@ export function RegisterForm() {
   const handleSubmit = (data: TRegisterForm) => {
     setIsLoading(true);
     http
-      .post('register', {
+      .post('sign-up', {
         email: data.email,
-        url: `${location.origin}/user/register-comfirm`,
+        url: `${location.origin}/user/sign-up/comfirm`,
       })
       .then(() => {
+        form.resetField('email');
         toast('Please check your email to complete registration', {
           position: 'top-center',
         });

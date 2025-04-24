@@ -5,14 +5,24 @@ export function toDefaultNamespace(
   navigate: NavigateFunction,
   opts?: NavigateOptions
 ) {
-  const namespace = localStorage.getItem('namespace');
+  const cache = localStorage.getItem('namespace');
+  const namespace = cache ? JSON.parse(cache) : null;
   (namespace
-    ? Promise.resolve(namespace)
-    : http.get('namespaces/user').then((data) => data[0].id)
-  ).then((data) => {
-    !namespace && localStorage.setItem('namespace', data);
-    navigate(`/${data}`, opts);
-  });
+    ? http.get(`namespaces/${namespace.id}`)
+    : http.get('namespaces/user').then((data) => data[0])
+  )
+    .then((data) => {
+      localStorage.setItem('namespace', JSON.stringify(data));
+      navigate(`/${data.id}`, opts);
+    })
+    .catch((err) => {
+      if (err.status === 404) {
+        localStorage.removeItem('uid');
+        localStorage.removeItem('token');
+        localStorage.removeItem('namespace');
+        navigate('/user/login', { replace: true });
+      }
+    });
 }
 
 export function createNamespace(name: string) {
@@ -31,7 +41,7 @@ export function createNamespace(name: string) {
         spaceType: 'teamspace',
       }),
     ]).then(() => {
-      localStorage.setItem('namespace', data.id);
+      localStorage.setItem('namespace', JSON.stringify(data));
       return Promise.resolve(data);
     });
   });

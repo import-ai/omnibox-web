@@ -191,7 +191,7 @@ export default function Chat() {
         onData([...data, { type, resource }]);
       }
     );
-  }, []);
+  }, [data]);
 
   return (
     <SidebarInset>
@@ -236,7 +236,7 @@ export default function Chat() {
           <div className="flex flex-wrap">
             {data.map(({ type, resource }) => (
               <div
-                key={resource.id}
+                key={`${type}_${resource.id}`}
                 className={`flex items-center text-black dark:text-white rounded-full px-2 mr-2 h-6 ${
                   type === 'parent'
                     ? 'bg-green-200 dark:bg-green-500'

@@ -84,7 +84,7 @@ export function Switcher(props: IProps) {
                   if (item.id === namespace) {
                     return;
                   }
-                  localStorage.setItem('namespace', `${item.id}`);
+                  localStorage.setItem('namespace', JSON.stringify(item));
                   navigate(`/${item.id}`);
                 }}
               >
