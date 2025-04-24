@@ -1,25 +1,31 @@
-import * as React from "react";
-import { useVditorTheme } from "@/hooks/use-vditor-theme";
-import Vditor from "vditor";
+import Vditor from 'vditor';
+import { useRef, useEffect } from 'react';
+import useTheme from '@/hooks/use-theme';
 
-export function Markdown({ content }: { content: string }) {
-  const element = React.useRef<HTMLDivElement>(null);
-  const theme = useVditorTheme();
+interface IProps {
+  content: string;
+}
 
-  React.useEffect(() => {
+export function Markdown(props: IProps) {
+  const { content } = props;
+  const { theme } = useTheme();
+  const element = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
     if (element.current) {
       Vditor.preview(element.current, content, {
         theme: {
-          current: theme.theme,
+          current: theme.skin,
         },
-        mode: theme.contentTheme,
+        mode: theme.content,
         hljs: {
-          defaultLang: "plain",
-          style: theme.codeTheme,
+          defaultLang: 'plain',
+          style: theme.code,
           lineNumber: true,
         },
-      }).then();
+      });
     }
   }, [content, theme]);
+
   return <div ref={element} />;
 }
