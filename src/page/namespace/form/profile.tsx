@@ -19,11 +19,11 @@ import {
 const profileFormSchema = z.object({
   username: z
     .string()
-    .min(2, '用户名至少2个字符')
-    .max(32, '用户名最多32个字符'),
+    .min(2, 'Username must be at least 2 characters')
+    .max(32, 'Username must be at most 32 characters'),
   email: z
     .string()
-    .email('请输入有效的邮箱地址')
+    .email('Please enter a valid email address')
     .refine(
       (email) => {
         const allowedDomains = [
@@ -36,7 +36,7 @@ const profileFormSchema = z.object({
         return allowedDomains.includes(domain);
       },
       {
-        message: '邮箱必须是 Gmail、Outlook、163 或 QQ 的邮箱',
+        message: 'Email must be from Gmail, Outlook, 163, or QQ',
       }
     ),
   password: z
@@ -56,7 +56,8 @@ const profileFormSchema = z.object({
         return true;
       },
       {
-        message: '密码必须包含大小写字母和数字',
+        message:
+          'Password must contain uppercase, lowercase letters, and numbers',
       }
     ),
   password_repeat: z.string().optional(),
@@ -78,12 +79,12 @@ export default function ProfileForm() {
   const handleSubmit = (data: ProfileFormValues) => {
     if (data.password || data.password_repeat) {
       if (data.password !== data.password_repeat) {
-        toast.error('两次输入的密码不一致', { position: 'top-center' });
+        toast.error('Passwords do not match', { position: 'top-center' });
         return;
       }
     }
     onChange(data, () => {
-      toast.success('个人资料已更新', { position: 'top-center' });
+      toast.success('Profile updated successfully', { position: 'top-center' });
     });
   };
 
@@ -106,7 +107,7 @@ export default function ProfileForm() {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>用户名</FormLabel>
+              <FormLabel>Username</FormLabel>
               <FormControl>
                 <Input {...field} disabled={loading} />
               </FormControl>
@@ -119,18 +120,18 @@ export default function ProfileForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>邮箱</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input
                   type="email"
                   autoComplete="email"
-                  placeholder="邮箱"
+                  placeholder="Email"
                   {...field}
                   disabled={loading}
                 />
               </FormControl>
               <FormDescription>
-                Limit gmail、outlook、163、qq、only
+                Only Gmail, Outlook, 163, and QQ emails are allowed
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -141,7 +142,7 @@ export default function ProfileForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>密码</FormLabel>
+              <FormLabel>Password</FormLabel>
               <FormControl>
                 <Input
                   type="password"
@@ -159,7 +160,7 @@ export default function ProfileForm() {
           name="password_repeat"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>确认密码</FormLabel>
+              <FormLabel>Confirm Password</FormLabel>
               <FormControl>
                 <Input
                   type="password"
@@ -173,7 +174,7 @@ export default function ProfileForm() {
           )}
         />
         <Button type="submit" disabled={loading} loading={loading}>
-          更新个人资料
+          Update Profile
         </Button>
       </form>
     </Form>

@@ -18,8 +18,11 @@ import {
 const forgotPasswordSchema = z.object({
   password: z
     .string()
-    .min(8, '密码至少8个字符')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, '密码必须包含大小写字母和数字'),
+    .min(8, 'Password must be at least 8 characters')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Password must contain uppercase, lowercase letters, and numbers'
+    ),
   password_repeat: z.string(),
 });
 
@@ -46,7 +49,7 @@ export function ForgotPasswordForm() {
         password_repeat: data.password_repeat,
       })
       .then(() => {
-        toast.success('密码重置成功');
+        toast.success('Password reset successfully');
         navigate('/user/login', { replace: true });
       })
       .finally(() => {
@@ -66,7 +69,7 @@ export function ForgotPasswordForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder="密码"
+                  placeholder="Password"
                   {...field}
                   disabled={isLoading}
                 />
@@ -84,7 +87,7 @@ export function ForgotPasswordForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder="确认密码"
+                  placeholder="Confirm Password"
                   {...field}
                   disabled={isLoading}
                 />
@@ -99,7 +102,7 @@ export function ForgotPasswordForm() {
           disabled={isLoading}
           loading={isLoading}
         >
-          重置密码
+          Reset Password
         </Button>
       </form>
     </Form>

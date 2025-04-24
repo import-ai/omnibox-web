@@ -113,6 +113,7 @@ export default function Actions() {
     app.fire('resource_children', true);
   };
   const handleSave = () => {
+    onEditing(false);
     app.fire('save');
   };
 

@@ -17,7 +17,10 @@ import {
 } from '@/components/ui/form';
 
 const FormSchema = z.object({
-  name: z.string().min(2, '至少32个字符').max(22, '最多32个字符'),
+  name: z
+    .string()
+    .min(2, 'At least 2 characters')
+    .max(22, 'At most 32 characters'),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -38,7 +41,7 @@ export default function SettingForm() {
       .patch(`namespaces/${namespaceId}`, data)
       .then(() => {
         app.fire('namespace_refetch');
-        toast('已更新');
+        toast('Updated');
       })
       .finally(() => {
         setLoading(false);
@@ -62,7 +65,7 @@ export default function SettingForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>名称</FormLabel>
+              <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input {...field} disabled={loading} />
               </FormControl>
@@ -71,7 +74,7 @@ export default function SettingForm() {
           )}
         />
         <Button type="submit" disabled={loading} loading={loading}>
-          保存
+          Save
         </Button>
       </form>
     </Form>

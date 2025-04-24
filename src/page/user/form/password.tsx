@@ -19,7 +19,7 @@ import {
 const forgotPasswordSchema = z.object({
   email: z
     .string()
-    .email('请输入有效的邮箱地址')
+    .email('Please enter a valid email address')
     .refine(
       (email) => {
         const allowedDomains = [
@@ -32,7 +32,7 @@ const forgotPasswordSchema = z.object({
         return allowedDomains.includes(domain);
       },
       {
-        message: '邮箱必须是 Gmail、Outlook、163 或 QQ 的邮箱',
+        message: 'Email must be from Gmail, Outlook, 163, or QQ',
       }
     ),
 });
@@ -55,7 +55,9 @@ export function ForgotPasswordForm() {
         url: `${location.origin}/user/password-comfirm`,
       })
       .then(() => {
-        toast('重置密码链接已发送到您的邮箱', { position: 'top-center' });
+        toast('Password reset link has been sent to your email', {
+          position: 'top-center',
+        });
       })
       .finally(() => {
         setIsLoading(false);
@@ -73,14 +75,14 @@ export function ForgotPasswordForm() {
               <FormControl>
                 <Input
                   type="email"
-                  placeholder="邮箱"
+                  placeholder="Email"
                   autoComplete="email"
                   {...field}
                   disabled={isLoading}
                 />
               </FormControl>
               <FormDescription>
-                Limit gmail、outlook、163、qq、only
+                Only Gmail, Outlook, 163, and QQ emails are allowed
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -92,15 +94,15 @@ export function ForgotPasswordForm() {
           disabled={isLoading}
           loading={isLoading}
         >
-          发送重置链接
+          Send Reset Link
         </Button>
         <div className="text-center text-sm">
-          记起密码了？
+          Remember your password?
           <Link
             to="/user/login"
             className="font-semibold text-primary hover:underline ml-1"
           >
-            返回登录
+            Return to Login
           </Link>
         </div>
       </form>

@@ -19,12 +19,12 @@ export default function Generate() {
           className="w-full justify-start text-muted-foreground"
         >
           <Plus className="size-4" />
-          添加空间
+          Add Namespace
         </Button>
       </DialogTrigger>
       <DialogContent className="w-1/2 max-w-7xl">
         <DialogHeader>
-          <DialogTitle>添加空间</DialogTitle>
+          <DialogTitle>Add Namespace</DialogTitle>
         </DialogHeader>
         <GenerateForm />
       </DialogContent>

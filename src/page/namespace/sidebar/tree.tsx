@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { IResourceData } from '@/interface';
 import DropdownMenu, { IResourceProps } from './dropdown';
 import {
   File,
@@ -81,7 +82,7 @@ export default function Tree(props: IProps) {
             {hasChildren &&
               Array.isArray(data.children) &&
               data.children.length > 0 &&
-              data.children.map((item) => (
+              data.children.map((item: IResourceData) => (
                 <Tree {...props} data={item} key={item.id} />
               ))}
           </SidebarMenuSub>

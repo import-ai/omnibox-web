@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 const registerSchema = z.object({
   email: z
     .string()
-    .email('请输入有效的邮箱地址')
+    .email('Please enter a valid email address')
     .refine(
       (email) => {
         const allowedDomains = [
@@ -32,7 +32,7 @@ const registerSchema = z.object({
         return allowedDomains.includes(domain);
       },
       {
-        message: '邮箱必须是 Gmail、Outlook、163 或 QQ 的邮箱',
+        message: 'Email must be from Gmail, Outlook, 163, or QQ',
       }
     ),
 });
@@ -55,7 +55,9 @@ export function RegisterForm() {
         url: `${location.origin}/user/register-comfirm`,
       })
       .then(() => {
-        toast('请前往邮箱查看邮件，完成注册', { position: 'top-center' });
+        toast('Please check your email to complete registration', {
+          position: 'top-center',
+        });
       })
       .finally(() => {
         setIsLoading(false);
@@ -73,29 +75,29 @@ export function RegisterForm() {
               <FormControl>
                 <Input
                   type="email"
-                  placeholder="邮箱"
+                  placeholder="Email"
                   autoComplete="email"
                   {...field}
                   disabled={isLoading}
                 />
               </FormControl>
               <FormDescription>
-                Limit gmail、outlook、163、qq、only
+                Only Gmail, Outlook, 163, and QQ emails are allowed
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
         <Button type="submit" className="w-full" loading={isLoading}>
-          注册
+          Register
         </Button>
         <div className="text-center text-sm">
-          已有账号？
+          Already have an account?
           <Link
             to="/user/login"
             className="font-semibold text-primary hover:underline ml-1"
           >
-            登录
+            Login
           </Link>
         </div>
       </form>

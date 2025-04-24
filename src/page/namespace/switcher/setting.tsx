@@ -19,12 +19,12 @@ export default function Setting() {
           className="text-muted-foreground h-7 gap-1 px-2"
         >
           <Settings />
-          设置
+          Settings
         </Button>
       </DialogTrigger>
       <DialogContent className="w-4/5 max-w-7xl">
         <DialogHeader>
-          <DialogTitle>偏好设置</DialogTitle>
+          <DialogTitle>Preferences</DialogTitle>
         </DialogHeader>
         <SettingWrapper />
       </DialogContent>

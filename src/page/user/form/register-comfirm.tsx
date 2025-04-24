@@ -19,16 +19,19 @@ const registerSchema = z
   .object({
     username: z
       .string()
-      .min(2, '用户名至少2个字符')
-      .max(32, '用户名最多32个字符'),
+      .min(2, 'Username must be at least 2 characters')
+      .max(32, 'Username must be at most 32 characters'),
     password: z
       .string()
-      .min(8, '密码至少8个字符')
-      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, '密码必须包含大小写字母和数字'),
+      .min(8, 'Password must be at least 8 characters')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        'Password must contain uppercase, lowercase letters, and numbers'
+      ),
     password_repeat: z.string(),
   })
   .refine((data) => data.password === data.password_repeat, {
-    message: '两次输入的密码不一致',
+    message: 'Passwords do not match',
     path: ['password_repeat'],
   });
 
@@ -66,7 +69,7 @@ export function RegisterComFirmForm() {
   if (!token) {
     return (
       <div className="text-center text-sm">
-        <p>请求参数不合法</p>
+        <p>Invalid request parameters</p>
       </div>
     );
   }
@@ -80,7 +83,7 @@ export function RegisterComFirmForm() {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input placeholder="用户名" {...field} disabled={isLoading} />
+                <Input placeholder="Username" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -95,7 +98,7 @@ export function RegisterComFirmForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder="密码"
+                  placeholder="Password"
                   {...field}
                   disabled={isLoading}
                 />
@@ -113,7 +116,7 @@ export function RegisterComFirmForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder="确认密码"
+                  placeholder="Confirm Password"
                   {...field}
                   disabled={isLoading}
                 />
@@ -123,7 +126,7 @@ export function RegisterComFirmForm() {
           )}
         />
         <Button type="submit" className="w-full" loading={isLoading}>
-          注册
+          Register
         </Button>
       </form>
     </Form>

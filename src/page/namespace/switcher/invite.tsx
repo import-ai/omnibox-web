@@ -19,12 +19,12 @@ export default function Invite() {
           className="text-muted-foreground h-7 gap-1 px-2"
         >
           <UserPlus />
-          邀请成员
+          Invite Member
         </Button>
       </DialogTrigger>
       <DialogContent className="w-1/2 max-w-7xl">
         <DialogHeader>
-          <DialogTitle>邀请成员</DialogTitle>
+          <DialogTitle>Invite Member</DialogTitle>
         </DialogHeader>
         <InviteForm />
       </DialogContent>

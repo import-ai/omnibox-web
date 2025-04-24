@@ -11,18 +11,18 @@ import {
 
 export interface IResourceProps {
   data: any;
-  namespace: number;
+  namespace: string;
   spaceType: string;
-  activeKey: number;
-  expanding: number;
-  expands: Array<number>;
-  onActiveKey: (id: number) => void;
-  onDelete: (id: number, spaceType: SpaceType) => void;
-  onExpand: (id: number, spaceType: SpaceType) => void;
+  activeKey: string;
+  expanding: string;
+  expands: Array<string>;
+  onActiveKey: (id: string) => void;
+  onDelete: (id: string, spaceType: SpaceType) => void;
+  onExpand: (id: string, spaceType: SpaceType) => void;
   onCreate: (
-    namespace: number,
+    namespace: string,
     spaceType: string,
-    parentId: number,
+    parentId: string,
     resourceType: ResourceType
   ) => void;
 }

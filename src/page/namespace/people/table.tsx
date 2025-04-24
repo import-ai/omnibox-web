@@ -20,7 +20,7 @@ export default function PeopleForm() {
     <div className="space-y-4 p-px">
       <div className="flex items-center justify-between">
         <Input
-          placeholder="输入用户名查询"
+          placeholder="Search by username"
           className="h-8 w-[150px] lg:w-[250px]"
           value={search}
           onChange={(e) => onSearch(e.target.value)}
@@ -31,10 +31,10 @@ export default function PeopleForm() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[20%]">用户名</TableHead>
-              <TableHead>邮箱</TableHead>
+              <TableHead className="w-[20%]">Username</TableHead>
+              <TableHead>Email</TableHead>
               {/* <TableHead>角色</TableHead> */}
-              <TableHead className="text-right">操作</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -45,17 +45,17 @@ export default function PeopleForm() {
                 {/* <TableCell>--</TableCell> */}
                 <TableCell className="text-right">
                   <Space className="inline-flex">
-                    <PopConfirm title="确定禁用当前用户？">
-                      <Button size="sm">禁用</Button>
+                    <PopConfirm title="Are you sure to disable this user?">
+                      <Button size="sm">Disable</Button>
                     </PopConfirm>
                     {/* <PopConfirm title="确定删除当前用户？">
                       <Button size="sm" variant="destructive">
                         删除
                       </Button>
                     </PopConfirm> */}
-                    <PopConfirm title="确定移除当前用户？">
+                    <PopConfirm title="Are you sure to remove this user from the workspace?">
                       <Button size="sm" variant="destructive">
-                        移除所属空间
+                        Remove from Workspace
                       </Button>
                     </PopConfirm>
                   </Space>

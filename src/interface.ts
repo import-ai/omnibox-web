@@ -15,7 +15,7 @@ export interface User {
 }
 
 export type Namespace = {
-  id: number;
+  id: string;
   name: string;
   collaborators?: string[];
 };
@@ -24,13 +24,13 @@ export type SpaceType = 'private' | 'teamspace';
 export type ResourceType = 'doc' | 'file' | 'link' | 'folder';
 
 export type Resource = {
-  id: number;
+  id: string;
 
-  namespace: { id: number };
+  namespace: { id: string };
   resourceType: ResourceType;
   spaceType: SpaceType;
 
-  parentId: number;
+  parentId: string;
   childCount: number;
 
   name?: string;

@@ -11,14 +11,14 @@ const data = [{ label: 'Chat', value: 'chat' }];
 interface IProps {
   app: App;
   active: boolean;
-  onActiveKey: (activeKey: number) => void;
+  onActiveKey: (activeKey: string) => void;
 }
 
 export function NavMain(props: IProps) {
   const { app, active, onActiveKey } = props;
   const handleClick = (val: string) => {
     if (val === 'chat') {
-      onActiveKey(0);
+      onActiveKey('chat');
       app.fire('resource_wrapper', true);
     }
   };

@@ -6,7 +6,8 @@ export default function useTheme() {
   const app = useApp();
   const [theme, onTheme] = useState<Theme>(app.getTheme());
   const onToggleTheme = () => {
-    onTheme(app.toggleTheme());
+    const state = app.toggleTheme();
+    onTheme({ ...state });
   };
 
   return { app, theme, onToggleTheme };

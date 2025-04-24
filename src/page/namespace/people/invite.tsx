@@ -13,12 +13,12 @@ export default function Invite() {
     <Dialog>
       <DialogTrigger asChild>
         <Button size="sm" variant="default">
-          添加成员
+          Add Member
         </Button>
       </DialogTrigger>
       <DialogContent className="w-1/2 max-w-7xl">
         <DialogHeader>
-          <DialogTitle>邀请成员</DialogTitle>
+          <DialogTitle>Invite Member</DialogTitle>
         </DialogHeader>
         <InviteForm />
       </DialogContent>

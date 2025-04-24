@@ -30,7 +30,7 @@ export default function Layout() {
   return (
     <>
       <Toaster />
-      {<Outlet />}
+      <Outlet />
     </>
   );
 }

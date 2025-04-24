@@ -5,14 +5,15 @@ export default function InvitePeople() {
   return (
     <div className="flex justify-between mb-8">
       <div className="flex flex-col">
-        <h2 className="font-medium mb-2">通过邀请链接添加成员</h2>
+        <h2 className="font-medium mb-2">Add members via invite link</h2>
         <p className="text-gray-600 text-sm">
-          只有拥有邀请成员权限的人员才能查看此内容。你也可以创建新链接
+          Only members with invite permissions can view this content. You can
+          also create a new link.
         </p>
       </div>
       <div className="flex items-center gap-2 justify-between">
         <Button size="sm" variant="secondary">
-          接收链接
+          Receive Link
         </Button>
         <Switch
           // checked={isLinkEnabled}

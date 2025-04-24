@@ -23,16 +23,16 @@ interface IData {
 }
 
 export default function MainSidebar() {
-  const params = useParams();
   const app = useApp();
-  const [activeKey, onActiveKey] = useState(0);
-  const [expanding, onExpanding] = useState(0);
-  const [expands, onExpands] = useState<Array<number>>([]);
-  const namespace = params.namespace ? parseInt(params.namespace, 10) : 1;
+  const params = useParams();
+  const namespace = params.namespace || '0';
+  const [activeKey, onActiveKey] = useState('');
+  const [expanding, onExpanding] = useState('');
+  const [expands, onExpands] = useState<Array<string>>([]);
   const [data, onData] = useState<{
     [index: string]: IResourceData;
   }>({});
-  const handleExpand = (id: number, spaceType: SpaceType) => {
+  const handleExpand = (id: string, spaceType: SpaceType) => {
     let match = false;
     each(data, (resource) => {
       if (Array.isArray(resource.children) && resource.children.length > 0) {
@@ -72,7 +72,7 @@ export default function MainSidebar() {
         onExpanding(0);
       });
   };
-  const handleDelete = (id: number, spaceType: SpaceType) => {
+  const handleDelete = (id: string, spaceType: SpaceType) => {
     http.delete(`/${baseUrl}/${id}`).then(() => {
       data[spaceType].children = data[spaceType].children.filter(
         (node) => ![node.id, node.parentId].includes(id)
@@ -81,9 +81,9 @@ export default function MainSidebar() {
     });
   };
   const handleCreate = (
-    namespace: number,
+    namespace: string,
     spaceType: string,
-    parentId: number,
+    parentId: string,
     resourceType: ResourceType
   ) => {
     http
@@ -146,7 +146,7 @@ export default function MainSidebar() {
   }, [namespace]);
 
   useEffect(() => {
-    if (activeKey <= 0) {
+    if (!activeKey) {
       return;
     }
     let node;
@@ -172,7 +172,11 @@ export default function MainSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Switcher namespace={namespace} />
-        <NavMain app={app} active={activeKey === 0} onActiveKey={onActiveKey} />
+        <NavMain
+          app={app}
+          onActiveKey={onActiveKey}
+          active={activeKey === 'chat'}
+        />
       </SidebarHeader>
       <SidebarContent>
         {spaceTypes.map((spaceType: string) => {

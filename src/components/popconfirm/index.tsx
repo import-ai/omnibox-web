@@ -28,8 +28,8 @@ export default function MainAlertDialog(props: IProps) {
     children,
     onCancel,
     onOk,
-    okText = '确定',
-    cancelText = '取消',
+    okText = 'Confirm',
+    cancelText = 'Cancel',
   } = props;
 
   return (

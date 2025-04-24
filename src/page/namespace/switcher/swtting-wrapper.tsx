@@ -8,17 +8,17 @@ export default function SettingWrapper() {
   const [activeKey, onActiveKey] = useState('profile');
   const items = [
     {
-      label: '个人资料',
+      label: 'Profile',
       value: 'profile',
       children: <ProfileForm />,
     },
     {
-      label: '空间设置',
+      label: 'Namespace Settings',
       value: 'namespace',
       children: <SettingForm />,
     },
     {
-      label: '成员',
+      label: 'Members',
       value: 'people',
       children: <PeopleForm />,
     },

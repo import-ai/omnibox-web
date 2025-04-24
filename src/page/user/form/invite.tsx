@@ -49,7 +49,7 @@ export function InviteForm() {
   if (!token || !namespaceId || !userId) {
     return (
       <div className="text-center text-sm">
-        <p>请求参数不合法</p>
+        <p>Invalid request parameters</p>
       </div>
     );
   }
@@ -57,7 +57,7 @@ export function InviteForm() {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        {data.username} 邀请你加入 {data.namespace}
+        {data.username} invites you to join {data.namespace}
       </div>
       <Button
         type="submit"
@@ -65,7 +65,7 @@ export function InviteForm() {
         loading={isLoading}
         onClick={handleSubmit}
       >
-        立即加入
+        Send Invitation
       </Button>
     </div>
   );

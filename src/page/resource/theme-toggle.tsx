@@ -4,18 +4,15 @@ import { Button } from '@/components/ui/button';
 
 export function ThemeToggle() {
   const { theme, onToggleTheme } = useTheme();
-  const handleToggle = () => {
-    onToggleTheme();
-  };
 
   return (
     <Button
       size="icon"
       variant="ghost"
       className="h-7 w-7"
-      onClick={handleToggle}
+      onClick={onToggleTheme}
     >
-      {theme.skin === 'light' ? <Sun /> : <Moon />}
+      {theme.skin === 'dark' ? <Sun /> : <Moon />}
     </Button>
   );
 }

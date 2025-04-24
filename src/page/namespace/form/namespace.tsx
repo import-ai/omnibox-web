@@ -15,7 +15,10 @@ import {
 } from '@/components/ui/form';
 
 const generateFormSchema = z.object({
-  name: z.string().min(2, '至少2个字符').max(32, '最多32个字符'),
+  name: z
+    .string()
+    .min(2, 'At least 2 characters')
+    .max(32, 'At most 32 characters'),
 });
 
 type GenerateFormValues = z.infer<typeof generateFormSchema>;
@@ -50,7 +53,7 @@ export default function GenerateForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>空间名称</FormLabel>
+              <FormLabel>Namespace Name</FormLabel>
               <FormControl>
                 <Input {...field} disabled={loading} />
               </FormControl>
@@ -59,7 +62,7 @@ export default function GenerateForm() {
           )}
         />
         <Button type="submit" disabled={loading} loading={loading}>
-          保存
+          Save
         </Button>
       </form>
     </Form>

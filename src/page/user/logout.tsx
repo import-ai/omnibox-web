@@ -17,7 +17,7 @@ export function Logout() {
       onClick={handleLogout}
       className="w-full justify-start text-muted-foreground"
     >
-      退出
+      Logout
     </Button>
   );
 }

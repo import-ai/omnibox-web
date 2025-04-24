@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface IProps {
-  namespace: number;
+  namespace: string;
 }
 
 export function Switcher(props: IProps) {

@@ -26,7 +26,7 @@ import {
 const FormSchema = z.object({
   email: z
     .string()
-    .email('请输入有效的邮箱地址')
+    .email('Please enter a valid email address')
     .refine(
       (email) => {
         const allowedDomains = [
@@ -39,10 +39,13 @@ const FormSchema = z.object({
         return allowedDomains.includes(domain);
       },
       {
-        message: '邮箱必须是 Gmail、Outlook、163 或 QQ 的邮箱',
+        message: 'Email must be from Gmail, Outlook, 163, or QQ',
       }
     ),
-  role: z.string().min(2, '至少2个字符').max(22, '最多22个字符'),
+  role: z
+    .string()
+    .min(2, 'At least 2 characters')
+    .max(22, 'At most 22 characters'),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -60,14 +63,14 @@ export default function InviteForm() {
     setLoading(true);
     const namespace = localStorage.getItem('namespace');
     http
-      .post(`namespaces/invite`, {
+      .post('invite', {
         ...data,
         namespace,
         inviteUrl: `${location.origin}/user/invite`,
         registerUrl: `${location.origin}/user/register-comfirm`,
       })
       .then(() => {
-        toast('已邀请');
+        toast('Invitation sent');
       })
       .finally(() => {
         setLoading(false);
@@ -85,7 +88,7 @@ export default function InviteForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>邮箱</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input
                   type="email"
@@ -95,7 +98,7 @@ export default function InviteForm() {
                 />
               </FormControl>
               <FormDescription>
-                Limit gmail、outlook、163、qq、only
+                Only Gmail, Outlook, 163, and QQ emails are allowed
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -106,7 +109,7 @@ export default function InviteForm() {
           name="role"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>角色</FormLabel>
+              <FormLabel>Role</FormLabel>
               <FormControl>
                 <Select
                   defaultValue={field.value}
@@ -118,8 +121,8 @@ export default function InviteForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="owner">工作空间所有者</SelectItem>
-                    <SelectItem value="member">成员</SelectItem>
+                    <SelectItem value="owner">Workspace Owner</SelectItem>
+                    <SelectItem value="member">Member</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -128,7 +131,7 @@ export default function InviteForm() {
           )}
         />
         <Button type="submit" disabled={loading} loading={loading}>
-          保存
+          Save
         </Button>
       </form>
     </Form>
