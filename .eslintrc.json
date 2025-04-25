@@ -24,10 +24,7 @@
     "amd": true,
     "node": true
   },
-  "extends": [
-    "eslint:recommended",
-    "prettier" // eslint-config-prettier的标准用法，必须放在最后一个，用于关闭和eslint冲突规则
-  ],
+  "extends": ["eslint:recommended", "prettier"],
   "plugins": ["simple-import-sort", "prettier", "@typescript-eslint"],
   "rules": {
     "prettier/prettier": ["error", {}, { "usePrettierrc": true }],

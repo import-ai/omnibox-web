@@ -1,4 +1,1 @@
-build
-node_modules
-.vscode
-.github
+.gitignore
