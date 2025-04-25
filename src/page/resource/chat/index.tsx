@@ -1,11 +1,11 @@
 import ChatActions from './actions';
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { File, Folder, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Markdown } from '@/components/markdown';
-import { useParams } from 'react-router-dom';
+// import { useParams } from 'react-router-dom';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
@@ -47,17 +47,19 @@ interface ChatCitationListResponse extends ChatBaseResponse {
 
 export default function Chat() {
   const app = useApp();
-  const { namespace } = useParams();
   const [input, setInput] = useState('');
   const [loading, onLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [data, onData] = useState<Array<{ type: string; resource: Resource }>>(
-    []
+    [],
   );
+
+  const namespaceJSONStr: string = localStorage.getItem('namespace') || '{}';
+  const namespaceObject: Record<string, any> = JSON.parse(namespaceJSONStr);
+  const namespaceId: string = namespaceObject['id'];
+  const token: string = localStorage.getItem('token') || '';
+
   const handleSend = async () => {
-    if (!namespace) {
-      return;
-    }
     const val = input.trim();
     if (val.length <= 0) {
       return;
@@ -85,7 +87,7 @@ export default function Chat() {
     const body = {
       session_id: 'fake_id',
       query: localMessages[localMessages.length - 1].content,
-      namespace: namespace,
+      namespace_id: namespaceId,
       parent_ids: condition.parentIds,
       resource_ids: condition.resourceIds,
     };
@@ -94,6 +96,7 @@ export default function Chat() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });
@@ -127,18 +130,19 @@ export default function Chat() {
       const chunks = buffer.split('\n\n');
 
       while (i < chunks.length - 1) {
-        const chunk = chunks[i];
+        let chunk = '';
+        for (const line of chunks[i].split('\n')) {
+          if (line.startsWith('data:')) {
+            chunk = line;
+            break;
+          }
+        }
         if (chunk.startsWith('data:')) {
           const output = chunk.slice(5).trim();
           let chatResponse:
             | ChatDeltaResponse
             | ChatCitationListResponse
-            | ChatDoneResponse = {} as any;
-          try {
-            chatResponse = JSON.parse(output);
-          } catch (e) {
-            break;
-          }
+            | ChatDoneResponse = JSON.parse(output);
           if (chatResponse.response_type === 'done') {
             loopFlag = false;
             break;
@@ -147,7 +151,7 @@ export default function Chat() {
             for (let i = 0; i < citationList.length; i++) {
               responseText = responseText.replace(
                 `<cite:${i + 1}>`,
-                `[[${i + 1}]](#/${namespace}/${citationList[i].link})`
+                `[[${i + 1}]](#/${namespaceId}/${citationList[i].link})`,
               );
             }
             localMessages = [
@@ -183,13 +187,13 @@ export default function Chat() {
       'context',
       (resource: Resource, type: 'resource' | 'parent') => {
         const target = data.find(
-          (item) => item.resource.id === resource.id && item.type === type
+          (item) => item.resource.id === resource.id && item.type === type,
         );
         if (target) {
           return;
         }
         onData([...data, { type, resource }]);
-      }
+      },
     );
   }, [data]);
 
@@ -264,7 +268,7 @@ export default function Chat() {
                   className="focus:outline-none"
                   onClick={() => {
                     onData(
-                      data.filter((item) => item.resource.id !== resource.id)
+                      data.filter((item) => item.resource.id !== resource.id),
                     );
                   }}
                 >
