@@ -1,7 +1,7 @@
-import { getTime } from '../resource/utils';
 import { useEffect, useState } from 'react';
-import useResource from '@/hooks/user-resource';
 import { Button } from '@/components/ui/button';
+import { getTime } from '@/page/resource/utils';
+import { IUseResource } from '@/hooks/user-resource';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
 import {
   Popover,
@@ -100,9 +100,8 @@ export const data = [
   ],
 ];
 
-export default function Actions() {
-  const { app, resource } = useResource();
-  const [open, onOpen] = useState(false);
+export default function Actions(props: IUseResource) {
+  const { app, resource } = props;
   const [editing, onEditing] = useState(false);
   const handleEdit = () => {
     onEditing(true);
@@ -158,7 +157,7 @@ export default function Actions() {
           </Button>
         </>
       )}
-      <Popover open={open} onOpenChange={onOpen}>
+      <Popover>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"

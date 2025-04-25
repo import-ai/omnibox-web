@@ -5,6 +5,7 @@ import useTheme from '@/hooks/use-theme';
 import { Input } from '@/components/ui/input';
 import { IUseResource } from '@/hooks/user-resource';
 import React, { useRef, useState, useEffect } from 'react';
+
 interface IProps extends Omit<IUseResource, 'resource'> {
   resource: Resource;
 }

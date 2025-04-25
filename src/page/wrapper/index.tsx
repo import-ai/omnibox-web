@@ -1,14 +1,11 @@
 import Chat from '@/page/chat';
 import Resource from '@/page/resource';
-import { useParams } from 'react-router-dom';
+import { IUseResource } from '@/hooks/user-resource';
 
-export default function App() {
-  const params = useParams();
-  const resourceId = params.resourceId || '';
-
-  if (resourceId === 'chat') {
+export default function App(props: IUseResource) {
+  if (props.resourceId === 'chat') {
     return <Chat />;
   }
 
-  return <Resource />;
+  return <Resource {...props} />;
 }

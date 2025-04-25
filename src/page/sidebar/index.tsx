@@ -137,6 +137,23 @@ export default function MainSidebar() {
   }, [data]);
 
   useEffect(() => {
+    if (resourceId) {
+      return;
+    }
+    let node: any = null;
+    each(data, (resource) => {
+      if (Array.isArray(resource.children) && resource.children.length > 0) {
+        node = resource.children[0];
+        return true;
+      }
+      return;
+    });
+    if (node && node.id) {
+      navigate(`/${node.id}`);
+    }
+  }, [resourceId, data]);
+
+  useEffect(() => {
     Promise.all(
       spaceTypes.map((spaceType) =>
         http.get(`/${baseUrl}/root`, { params: { namespace, spaceType } }),

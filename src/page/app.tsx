@@ -7,9 +7,7 @@ export default function CoreApp() {
   return (
     <SidebarProvider>
       <Sidebar />
-      <Layout>
-        <Wrapper />
-      </Layout>
+      <Layout>{(prop) => <Wrapper {...prop} />}</Layout>
     </SidebarProvider>
   );
 }

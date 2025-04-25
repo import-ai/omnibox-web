@@ -2,11 +2,12 @@ import useApp from './use-app';
 import App from '@/hooks/app.class';
 import { http } from '@/lib/request';
 import { Resource } from '@/interface';
-import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 export interface IUseResource {
   app: App;
+  resourceId: string;
   resource: Resource | null;
 }
 
@@ -23,5 +24,5 @@ export default function useResource() {
     http.get(`/resources/${resourceId}`).then(onResource);
   }, [resourceId]);
 
-  return { app, resource };
+  return { app, resource, resourceId };
 }

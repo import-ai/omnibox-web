@@ -1,5 +1,6 @@
 import Actions from './actions';
 import { Separator } from '@/components/ui/separator';
+import useResource, { IUseResource } from '@/hooks/user-resource';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import {
   Breadcrumb,
@@ -9,11 +10,12 @@ import {
 } from '@/components/ui/breadcrumb';
 
 interface IProps {
-  children: React.ReactNode;
+  children: (prop: IUseResource) => React.ReactNode;
 }
 
 export default function Layout(props: IProps) {
   const { children } = props;
+  const { app, resource, resourceId } = useResource();
 
   return (
     <SidebarInset>
@@ -25,18 +27,20 @@ export default function Layout(props: IProps) {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbPage className="line-clamp-1">
-                  {'Untitled'}
+                  {resource ? resource.name : 'Untitled'}
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
         <div className="ml-auto px-3">
-          <Actions />
+          <Actions app={app} resource={resource} resourceId={resourceId} />
         </div>
       </header>
       <div className="flex justify-center h-full p-4">
-        <div className="flex flex-col h-full max-w-3xl w-full">{children}</div>
+        <div className="flex flex-col h-full max-w-3xl w-full">
+          {children({ app, resource, resourceId })}
+        </div>
       </div>
     </SidebarInset>
   );

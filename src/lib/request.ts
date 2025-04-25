@@ -8,6 +8,7 @@ import type {
   AxiosResponse,
   AxiosRequestConfig,
 } from 'axios';
+
 interface RequestConfig extends AxiosRequestConfig {
   // 是否显示错误提示，默认为 true
   mute?: boolean;
