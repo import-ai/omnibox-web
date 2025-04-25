@@ -18,6 +18,7 @@ export type Namespace = {
   id: string;
   name: string;
   collaborators?: string[];
+  owner_id?: string[];
 };
 
 export type SpaceType = 'private' | 'teamspace';

@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { Toaster } from '@/components/ui/sonner';
-import { toDefaultNamespace } from '@/utils/namespace';
+import { initNamespace } from '@/lib/namespace';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { isBoolean } from 'lodash-es';
 
 export default function Layout() {
   const loc = useLocation();
@@ -12,7 +13,16 @@ export default function Layout() {
       return;
     }
     if (localStorage.getItem('uid')) {
-      toDefaultNamespace(navigate);
+      initNamespace().then((returnValue) => {
+        if (!isBoolean(returnValue)) {
+          return;
+        }
+        if (returnValue) {
+          navigate('/', { replace: true });
+        } else {
+          navigate('/user/login', { replace: true });
+        }
+      });
     } else {
       navigate(`/user/login?redirect=${encodeURIComponent(location.href)}`, {
         replace: true,

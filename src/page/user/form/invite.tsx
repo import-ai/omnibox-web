@@ -1,7 +1,7 @@
-import { http } from '@/utils/request';
+import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/button';
-import { toDefaultNamespace } from '@/utils/namespace';
+import { initNamespace } from '@/lib/namespace';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export function InviteForm() {
@@ -23,7 +23,13 @@ export function InviteForm() {
     http
       .post('invite/confirm', { token })
       .then(() => {
-        toDefaultNamespace(navigate, { replace: true });
+        initNamespace().then((returnValue) => {
+          if (returnValue) {
+            navigate('/', { replace: true });
+          } else {
+            navigate('/user/login', { replace: true });
+          }
+        });
       })
       .finally(() => {
         setIsLoading(false);
@@ -36,8 +42,8 @@ export function InviteForm() {
     }
     Promise.all(
       [`namespaces/${namespaceId}`, `user/${userId}`].map((uri) =>
-        http.get(uri)
-      )
+        http.get(uri),
+      ),
     ).then(([namespace, user]) => {
       onData({
         namespace: namespace.name,

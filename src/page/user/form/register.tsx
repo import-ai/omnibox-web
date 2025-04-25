@@ -1,6 +1,6 @@
 import * as z from 'zod';
 import { useState } from 'react';
-import { http } from '@/utils/request';
+import { http } from '@/lib/request';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
@@ -33,7 +33,7 @@ const registerSchema = z.object({
       },
       {
         message: 'Email must be from Gmail, Outlook, 163, or QQ',
-      }
+      },
     ),
 });
 

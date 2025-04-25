@@ -1,5 +1,5 @@
 import { User } from '@/interface';
-import { http } from '@/utils/request';
+import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
 
 export default function useUser() {

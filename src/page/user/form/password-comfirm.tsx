@@ -1,7 +1,7 @@
 import * as z from 'zod';
 import { toast } from 'sonner';
 import { useState } from 'react';
-import { http } from '@/utils/request';
+import { http } from '@/lib/request';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ const forgotPasswordSchema = z.object({
     .min(8, 'Password must be at least 8 characters')
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Password must contain uppercase, lowercase letters, and numbers'
+      'Password must contain uppercase, lowercase letters, and numbers',
     ),
   password_repeat: z.string(),
 });
