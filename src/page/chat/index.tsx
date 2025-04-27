@@ -1,10 +1,11 @@
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { getNamespace } from '@/lib/namespace';
 import { File, Folder, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Markdown } from '@/components/markdown';
-import { useNavigate, useParams } from 'react-router-dom';
 import { Textarea } from '@/components/ui/textarea';
 
 interface Message {
@@ -39,17 +40,18 @@ interface ChatCitationListResponse extends ChatBaseResponse {
 export default function Chat() {
   const app = useApp();
   const navigate = useNavigate();
-  const { namespace } = useParams();
   const [input, setInput] = useState('');
   const [loading, onLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [data, onData] = useState<Array<{ type: string; resource: Resource }>>(
     [],
   );
+
+  const namespace = getNamespace();
+  const namespaceId = namespace.id;
+  const token = localStorage.getItem('token') || '';
+
   const handleSend = async () => {
-    if (!namespace) {
-      return;
-    }
     const val = input.trim();
     if (val.length <= 0) {
       return;
@@ -77,7 +79,7 @@ export default function Chat() {
     const body = {
       session_id: 'fake_id',
       query: localMessages[localMessages.length - 1].content,
-      namespace: namespace,
+      namespace_id: namespaceId,
       parent_ids: condition.parentIds,
       resource_ids: condition.resourceIds,
     };
@@ -86,6 +88,7 @@ export default function Chat() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });
@@ -119,19 +122,19 @@ export default function Chat() {
       const chunks = buffer.split('\n\n');
 
       while (i < chunks.length - 1) {
-        const chunk = chunks[i];
+        let chunk = '';
+        for (const line of chunks[i].split('\n')) {
+          if (line.startsWith('data:')) {
+            chunk = line;
+            break;
+          }
+        }
         if (chunk.startsWith('data:')) {
           const output = chunk.slice(5).trim();
           let chatResponse:
             | ChatDeltaResponse
             | ChatCitationListResponse
-            | ChatDoneResponse = {} as any;
-          try {
-            chatResponse = JSON.parse(output);
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          } catch (e) {
-            break;
-          }
+            | ChatDoneResponse = JSON.parse(output);
           if (chatResponse.response_type === 'done') {
             loopFlag = false;
             break;
@@ -140,7 +143,7 @@ export default function Chat() {
             for (let i = 0; i < citationList.length; i++) {
               responseText = responseText.replace(
                 `<cite:${i + 1}>`,
-                `[[${i + 1}]](#/${namespace}/${citationList[i].link})`,
+                `[[${i + 1}]](#/${namespaceId}/${citationList[i].link})`,
               );
             }
             localMessages = [
@@ -228,7 +231,33 @@ export default function Chat() {
                 className="ml-1 cursor-pointer"
                 onClick={() => navigate(`/${resource.id}`)}
               >
-                {resource.name || 'Untitled'}
+                <div className="mr-2 flex items-center text-sm">
+                  {type === 'parent' ? (
+                    <Folder className="w-4 h-4" />
+                  ) : (
+                    <File className="w-4 h-4" />
+                  )}
+                  <div
+                    className="ml-1 cursor-pointer"
+                    onClick={() => {
+                      app.fire('resource', resource);
+                      app.fire('resource_wrapper', false);
+                      app.fire('resource_children', true);
+                    }}
+                  >
+                    {resource.name || 'Untitled'}
+                  </div>
+                </div>
+                <button
+                  className="focus:outline-none"
+                  onClick={() => {
+                    onData(
+                      data.filter((item) => item.resource.id !== resource.id),
+                    );
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             </div>
             <button
