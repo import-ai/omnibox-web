@@ -6,7 +6,7 @@ import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
 
 export default function ResourcePage(props: IUseResource) {
-  const { app, resource } = props;
+  const { app, resource, resourceId } = props;
   const [open, onOpen] = useState(true);
 
   useEffect(() => {
@@ -25,5 +25,5 @@ export default function ResourcePage(props: IUseResource) {
     );
   }
 
-  return <Editor app={app} resource={resource} />;
+  return <Editor app={app} resource={resource} resourceId={resourceId} />;
 }
