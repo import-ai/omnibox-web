@@ -20,7 +20,7 @@ export default function useNamespaces() {
   useEffect(refetch, []);
 
   useEffect(() => {
-    return app.on('namespace_refetch', refetch);
+    return app.on('namespaces_refetch', refetch);
   }, []);
 
   return { app, data, loading };

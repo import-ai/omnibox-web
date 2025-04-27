@@ -85,7 +85,7 @@ export function Switcher(props: IProps) {
                     return;
                   }
                   localStorage.setItem('namespace', JSON.stringify(item));
-                  navigate(`/${item.id}`);
+                  navigate('/chat');
                 }}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">

@@ -35,7 +35,7 @@ export default function GenerateForm() {
     setLoading(true);
     createNamespace(data.name)
       .then(() => {
-        window.location.reload();
+        location.href = '/chat';
       })
       .finally(() => {
         setLoading(false);

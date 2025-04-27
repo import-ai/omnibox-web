@@ -73,7 +73,7 @@ export default function Editor(props: IProps) {
         }
       }
     };
-  }, [resource]);
+  }, [resource, theme]);
 
   return (
     <div>

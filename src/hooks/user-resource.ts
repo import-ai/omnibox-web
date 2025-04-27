@@ -18,7 +18,23 @@ export default function useResource() {
   const [resource, onResource] = useState<Resource | null>(null);
 
   useEffect(() => {
-    if (!resourceId || resourceId === 'chat') {
+    return app.on('resource_update', onResource);
+  }, []);
+
+  useEffect(() => {
+    if (!resourceId) {
+      return;
+    }
+    if (resourceId === 'chat') {
+      onResource({
+        id: 'chat',
+        name: 'Chat',
+        parentId: '',
+        resourceType: 'doc',
+        spaceType: 'private',
+        childCount: 0,
+        namespace: { id: '--' },
+      });
       return;
     }
     http.get(`/resources/${resourceId}`).then(onResource);
