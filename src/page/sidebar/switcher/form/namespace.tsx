@@ -1,8 +1,10 @@
 import * as z from 'zod';
+import i18next from 'i18next';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 import { createNamespace } from '@/lib/namespace';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -17,13 +19,14 @@ import {
 const generateFormSchema = z.object({
   name: z
     .string()
-    .min(2, 'At least 2 characters')
-    .max(32, 'At most 32 characters'),
+    .min(2, i18next.t('namespace.min'))
+    .max(32, i18next.t('namespace.max')),
 });
 
 type GenerateFormValues = z.infer<typeof generateFormSchema>;
 
 export default function GenerateForm() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const form = useForm<GenerateFormValues>({
     resolver: zodResolver(generateFormSchema),
@@ -53,7 +56,7 @@ export default function GenerateForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Namespace Name</FormLabel>
+              <FormLabel>{t('namespace.name')}</FormLabel>
               <FormControl>
                 <Input {...field} disabled={loading} />
               </FormControl>
@@ -62,7 +65,7 @@ export default function GenerateForm() {
           )}
         />
         <Button type="submit" disabled={loading} loading={loading}>
-          Save
+          {t('namespace.submit')}
         </Button>
       </form>
     </Form>

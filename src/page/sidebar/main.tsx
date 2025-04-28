@@ -1,11 +1,10 @@
 import { Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-
-const data = [{ label: 'Chat', value: 'chat' }];
 
 interface IProps {
   active: boolean;
@@ -14,10 +13,11 @@ interface IProps {
 
 export function NavMain(props: IProps) {
   const { active, onActiveKey } = props;
+  const { t } = useTranslation('sidebar');
 
   return (
     <SidebarMenu>
-      {data.map(({ label, value }) => {
+      {[{ label: t('chat'), value: 'chat' }].map(({ label, value }) => {
         return (
           <SidebarMenuItem key={value}>
             <SidebarMenuButton asChild isActive={active}>

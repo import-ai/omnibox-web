@@ -1,6 +1,7 @@
 import { Settings } from 'lucide-react';
 import SettingWrapper from './swtting-wrapper';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,8 @@ import {
 } from '@/components/ui/dialog';
 
 export default function Setting() {
+  const { t } = useTranslation();
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -19,12 +22,12 @@ export default function Setting() {
           className="text-muted-foreground h-7 gap-1 px-2"
         >
           <Settings />
-          Settings
+          {t('setting.title')}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-4/5 max-w-7xl">
         <DialogHeader>
-          <DialogTitle>Preferences</DialogTitle>
+          <DialogTitle>{t('setting.preferences')}</DialogTitle>
         </DialogHeader>
         <SettingWrapper />
       </DialogContent>

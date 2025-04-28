@@ -1,3 +1,4 @@
+import i18next from 'i18next';
 import { Resource } from '@/interface';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -7,13 +8,13 @@ export function getTime(resource: Resource | null) {
   }
   if (resource.updatedAt) {
     return (
-      'Updated ' +
+      i18next.t('updated') +
       formatDistanceToNow(new Date(resource.updatedAt), { addSuffix: true })
     );
   }
   if (resource.createdAt) {
     return (
-      'Created ' +
+      i18next.t('created') +
       formatDistanceToNow(new Date(resource.createdAt), { addSuffix: true })
     );
   }

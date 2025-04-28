@@ -1,10 +1,13 @@
 import * as z from 'zod';
+import i18next from 'i18next';
+import { toast } from 'sonner';
 import { useState } from 'react';
 import { http } from '@/lib/request';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -14,12 +17,11 @@ import {
   FormMessage,
   FormDescription,
 } from '@/components/ui/form';
-import { toast } from 'sonner';
 
 const registerSchema = z.object({
   email: z
     .string()
-    .email('Please enter a valid email address')
+    .email(i18next.t('form.email_invalid'))
     .refine(
       (email) => {
         const allowedDomains = [
@@ -32,7 +34,7 @@ const registerSchema = z.object({
         return allowedDomains.includes(domain);
       },
       {
-        message: 'Email must be from Gmail, Outlook, 163, or QQ',
+        message: i18next.t('form.email_limit_rule'),
       },
     ),
 });
@@ -40,6 +42,7 @@ const registerSchema = z.object({
 type TRegisterForm = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<TRegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -56,7 +59,7 @@ export function RegisterForm() {
       })
       .then(() => {
         form.resetField('email');
-        toast('Please check your email to complete registration', {
+        toast(t('success'), {
           position: 'top-center',
         });
       })
@@ -76,29 +79,27 @@ export function RegisterForm() {
               <FormControl>
                 <Input
                   type="email"
-                  placeholder="Email"
+                  placeholder={t('form.email')}
                   autoComplete="email"
                   {...field}
                   disabled={isLoading}
                 />
               </FormControl>
-              <FormDescription>
-                Only Gmail, Outlook, 163, and QQ emails are allowed
-              </FormDescription>
+              <FormDescription>{t('form.email_limit')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
         <Button type="submit" className="w-full" loading={isLoading}>
-          Register
+          {t('register.submit')}
         </Button>
         <div className="text-center text-sm">
-          Already have an account?
+          {t('form.exist_account')}
           <Link
             to="/user/login"
             className="font-semibold text-primary hover:underline ml-1"
           >
-            Login
+            {t('login.submit')}
           </Link>
         </div>
       </form>

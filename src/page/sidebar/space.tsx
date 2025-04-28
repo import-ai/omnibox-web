@@ -2,6 +2,7 @@ import Tree from './tree';
 import { IResourceData } from '@/interface';
 import { IResourceProps } from './dropdown';
 import { MoreHorizontal } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   SidebarMenu,
   SidebarGroup,
@@ -20,6 +21,7 @@ interface IProps extends IResourceProps {}
 
 export default function Space(props: IProps) {
   const { data, spaceType, namespace, onCreate } = props;
+  const { t } = useTranslation();
   const hasChildren = data.childCount > 0;
 
   return (
@@ -41,7 +43,7 @@ export default function Space(props: IProps) {
                 onCreate(namespace, spaceType, data.id, 'file');
               }}
             >
-              Create File
+              {t('create_file')}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer"
@@ -49,7 +51,7 @@ export default function Space(props: IProps) {
                 onCreate(namespace, spaceType, data.id, 'folder');
               }}
             >
-              Create Folder
+              {t('create_folder')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

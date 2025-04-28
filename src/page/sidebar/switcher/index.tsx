@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import Generate from './generate';
 import Space from '@/components/space';
 import { Logout } from '@/page/user/logout';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Avatar } from '@/components/ui/avatar';
 import useNamespace from '@/hooks/use-namespaces';
@@ -29,6 +30,7 @@ interface IProps {
 
 export function Switcher(props: IProps) {
   const { namespace } = props;
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { data } = useNamespace();
   const current = data.find((item) => item.id === namespace) || { name: '--' };
@@ -71,7 +73,7 @@ export function Switcher(props: IProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="my-2" />
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Namespaces
+              {t('namespace.name')}
             </DropdownMenuLabel>
             {data.map((item, index) => (
               <DropdownMenuItem
