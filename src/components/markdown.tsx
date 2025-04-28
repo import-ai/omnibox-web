@@ -14,6 +14,7 @@ export function Markdown(props: IProps) {
   useEffect(() => {
     if (element.current) {
       Vditor.preview(element.current, content, {
+        cdn: 'https://cdn.jsdelivr.net/npm/vditor@3.10.8',
         theme: {
           current: theme.skin,
         },

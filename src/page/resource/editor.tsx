@@ -46,6 +46,7 @@ export default function Editor(props: IProps) {
       return;
     }
     vditor.current = new Vditor(root.current, {
+      cdn: 'https://cdn.jsdelivr.net/npm/vditor@3.10.8',
       cache: { id: `_${resource.id}` },
       preview: {
         hljs: {
