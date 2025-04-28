@@ -143,7 +143,7 @@ export default function Chat() {
             for (let i = 0; i < citationList.length; i++) {
               responseText = responseText.replace(
                 `<cite:${i + 1}>`,
-                `[[${i + 1}]](#/${namespaceId}/${citationList[i].link})`,
+                `[[${i + 1}]](/${citationList[i].link})`,
               );
             }
             localMessages = [

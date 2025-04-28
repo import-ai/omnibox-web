@@ -1,6 +1,7 @@
 import Vditor from 'vditor';
 import { useRef, useEffect } from 'react';
 import useTheme from '@/hooks/use-theme';
+import { useNavigate } from 'react-router-dom';
 
 interface IProps {
   content: string;
@@ -9,7 +10,33 @@ interface IProps {
 export function Markdown(props: IProps) {
   const { content } = props;
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const element = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!element.current) {
+      return;
+    }
+    const clickFN = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const link = target.closest('a');
+      if (!link) {
+        return;
+      }
+      const href = link.getAttribute('href');
+      if (!href || !href.startsWith('/')) {
+        return;
+      }
+      event.preventDefault();
+      navigate(href);
+    };
+    element.current.addEventListener('click', clickFN);
+    return () => {
+      if (element.current) {
+        element.current.removeEventListener('click', clickFN);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (element.current) {
