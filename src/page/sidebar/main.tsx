@@ -13,7 +13,7 @@ interface IProps {
 
 export function NavMain(props: IProps) {
   const { active, onActiveKey } = props;
-  const { t } = useTranslation('sidebar');
+  const { t } = useTranslation();
 
   return (
     <SidebarMenu>
