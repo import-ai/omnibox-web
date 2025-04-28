@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { IResourceData } from '@/interface';
+import { useTranslation } from 'react-i18next';
 import DropdownMenu, { IResourceProps } from './dropdown';
 import {
   File,
@@ -23,6 +24,7 @@ interface IProps extends IResourceProps {}
 
 export default function Tree(props: IProps) {
   const { data, activeKey, expands, expanding, onExpand, onActiveKey } = props;
+  const { t } = useTranslation();
   const hasChildren = data.childCount > 0;
   const expand = expands.includes(data.id);
   const handleExpand = () => {
@@ -71,7 +73,7 @@ export default function Tree(props: IProps) {
                 ) : (
                   <File />
                 )}
-                <span className="truncate">{data.name || 'Untitled'}</span>
+                <span className="truncate">{data.name || t('untitled')}</span>
               </div>
             </SidebarMenuButton>
             <DropdownMenu {...props} />

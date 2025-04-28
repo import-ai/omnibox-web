@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import i18next from 'i18next';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { http } from '@/lib/request';
@@ -6,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
 import { getNamespace } from '@/lib/namespace';
+import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Select,
@@ -27,7 +29,7 @@ import {
 const FormSchema = z.object({
   email: z
     .string()
-    .email('Please enter a valid email address')
+    .email(i18next.t('form.email_invalid'))
     .refine(
       (email) => {
         const allowedDomains = [
@@ -40,13 +42,13 @@ const FormSchema = z.object({
         return allowedDomains.includes(domain);
       },
       {
-        message: 'Email must be from Gmail, Outlook, 163, or QQ',
+        message: i18next.t('form.email_limit_rule'),
       },
     ),
   role: z
     .string()
-    .min(2, 'At least 2 characters')
-    .max(22, 'At most 22 characters'),
+    .min(2, i18next.t('invite.min'))
+    .max(22, i18next.t('invite.max')),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -57,6 +59,7 @@ interface IProps {
 
 export default function InviteForm(props: IProps) {
   const { onFinish } = props;
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -78,7 +81,7 @@ export default function InviteForm(props: IProps) {
       .then(() => {
         form.resetField('email');
         form.resetField('role');
-        toast('Invitation sent');
+        toast(t('invite.success'));
         onFinish();
       })
       .finally(() => {
@@ -97,7 +100,7 @@ export default function InviteForm(props: IProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('form.email')}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
@@ -106,9 +109,7 @@ export default function InviteForm(props: IProps) {
                   disabled={loading}
                 />
               </FormControl>
-              <FormDescription>
-                Only Gmail, Outlook, 163, and QQ emails are allowed
-              </FormDescription>
+              <FormDescription>{t('form.email_limit')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -130,8 +131,8 @@ export default function InviteForm(props: IProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="owner">Workspace Owner</SelectItem>
-                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="owner">{t('invite.owner')}</SelectItem>
+                    <SelectItem value="member">{t('invite.member')}</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -140,7 +141,7 @@ export default function InviteForm(props: IProps) {
           )}
         />
         <Button type="submit" disabled={loading} loading={loading}>
-          Save
+          {t('invite.submit')}
         </Button>
       </form>
     </Form>

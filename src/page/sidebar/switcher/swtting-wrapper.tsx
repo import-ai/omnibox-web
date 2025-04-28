@@ -2,23 +2,25 @@ import { useState } from 'react';
 import PeopleForm from './people';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
+import { useTranslation } from 'react-i18next';
 import { SidebarNav } from '@/page/user/form/sidebar';
 
 export default function SettingWrapper() {
+  const { t } = useTranslation();
   const [activeKey, onActiveKey] = useState('profile');
   const items = [
     {
-      label: 'Profile',
+      label: t('setting.profile'),
       value: 'profile',
       children: <ProfileForm />,
     },
     {
-      label: 'Namespace Settings',
+      label: t('setting.namespace'),
       value: 'namespace',
       children: <SettingForm />,
     },
     {
-      label: 'Members',
+      label: t('setting.members'),
       value: 'people',
       children: <PeopleForm />,
     },

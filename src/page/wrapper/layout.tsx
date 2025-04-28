@@ -1,4 +1,5 @@
 import Actions from './actions';
+import { useTranslation } from 'react-i18next';
 import { Separator } from '@/components/ui/separator';
 import useResource, { IUseResource } from '@/hooks/user-resource';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
@@ -15,6 +16,7 @@ interface IProps {
 
 export default function Layout(props: IProps) {
   const { children } = props;
+  const { t } = useTranslation();
   const { app, resource, resourceId } = useResource();
 
   return (
@@ -27,7 +29,7 @@ export default function Layout(props: IProps) {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbPage className="line-clamp-1">
-                  {resource ? resource.name : 'Untitled'}
+                  {resource ? resource.name : t('untitled')}
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>

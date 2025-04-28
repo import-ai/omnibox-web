@@ -1,10 +1,12 @@
 import * as z from 'zod';
+import i18next from 'i18next';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { http } from '@/lib/request';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -18,17 +20,15 @@ import {
 const forgotPasswordSchema = z.object({
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Password must contain uppercase, lowercase letters, and numbers',
-    ),
+    .min(8, i18next.t('form.password_min'))
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg')),
   password_repeat: z.string(),
 });
 
 type TForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordForm() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const token = params.get('token');
@@ -49,7 +49,7 @@ export function ForgotPasswordForm() {
         password_repeat: data.password_repeat,
       })
       .then(() => {
-        toast.success('Password reset successfully');
+        toast.success(t('password.success'));
         navigate('/user/login', { replace: true });
       })
       .finally(() => {
@@ -69,7 +69,7 @@ export function ForgotPasswordForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder="Password"
+                  placeholder={t('form.password')}
                   {...field}
                   disabled={isLoading}
                 />
@@ -87,7 +87,7 @@ export function ForgotPasswordForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder="Confirm Password"
+                  placeholder={t('form.confirm_password')}
                   {...field}
                   disabled={isLoading}
                 />
@@ -102,7 +102,7 @@ export function ForgotPasswordForm() {
           disabled={isLoading}
           loading={isLoading}
         >
-          Reset Password
+          {t('password.submit')}
         </Button>
       </form>
     </Form>

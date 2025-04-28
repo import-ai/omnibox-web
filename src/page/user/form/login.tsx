@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import i18next from 'i18next';
 import { cn } from '@/lib/utils';
 import { http } from '@/lib/request';
 import Space from '@/components/space';
@@ -7,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { Mail, Lock } from 'lucide-react';
 import { Input } from '@/components/input';
 import { Button } from '@/components/button';
+import { useTranslation } from 'react-i18next';
 import { initNamespace } from '@/lib/namespace';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -22,7 +24,7 @@ import {
 const formSchema = z.object({
   email: z
     .string()
-    .email('请输入有效的邮箱地址')
+    .email(i18next.t('form.email_invalid'))
     .refine(
       (email) => {
         const allowedDomains = [
@@ -35,19 +37,20 @@ const formSchema = z.object({
         return allowedDomains.includes(domain);
       },
       {
-        message: '邮箱必须是 Gmail、Outlook、163 或 QQ 的邮箱',
+        message: i18next.t('form.email_limit_rule'),
       },
     ),
   password: z
     .string()
-    .min(8, '密码至少8个字符')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, '密码必须包含大小写字母和数字'),
+    .min(8, i18next.t('form.password_min'))
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg')),
 });
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'form'>) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
@@ -91,9 +94,9 @@ export function LoginForm({
         {...props}
       >
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">Login to your account</h1>
+          <h1 className="text-2xl font-bold">{t('login.title')}</h1>
           <p className="text-balance text-sm text-muted-foreground">
-            Enter your email below to login to your account
+            {t('login.description')}
           </p>
         </div>
         <div className="grid gap-6">
@@ -108,13 +111,11 @@ export function LoginForm({
                     startIcon={Mail}
                     autoComplete="email"
                     disabled={isLoading}
-                    placeholder="Please enter your email address"
+                    placeholder={t('form.email')}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
-                  Limit gmail、outlook、163、qq、only
-                </FormDescription>
+                <FormDescription>{t('form.email_limit_rule')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -130,7 +131,7 @@ export function LoginForm({
                     autoComplete="new-password"
                     startIcon={Lock}
                     disabled={isLoading}
-                    placeholder="Password"
+                    placeholder={t('form.password')}
                     {...field}
                   />
                 </FormControl>
@@ -139,16 +140,16 @@ export function LoginForm({
             )}
           />
           <Button type="submit" className="w-full" loading={isLoading}>
-            Login
+            {t('login.submit')}
           </Button>
         </div>
         <Space className="text-sm justify-center">
           <Link to="/user/sign-up" className="text-sm text-blue-700 ml-1">
-            Sign up
+            {t('register.submit')}
           </Link>
-          or
+          {t('form.or')}
           <Link to="/user/password" className="text-sm text-blue-700 ml-1">
-            Reset Password
+            {t('password.submit')}
           </Link>
         </Space>
       </form>

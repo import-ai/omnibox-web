@@ -1,0 +1,127 @@
+{
+  "chat": "Chat",
+  "back_to_front": "Back to Front",
+  "untitled": "Untitled",
+  "edit": "Edit",
+  "create_file": "Create File",
+  "create_folder": "Create Folder",
+  "delete": "Delete",
+  "add_all_to_context": "Add all to Context",
+  "add_it_to_context": "Add it to Context",
+  "stop": "Stop",
+  "send": "Send",
+  "updated": "Updated",
+  "created": "Created",
+  "clear_all": "Clear All",
+  "not_support_readablestream": "ReadableStream not yet supported in this browser.",
+  "error": {
+    "title": "404 Not Found"
+  },
+  "request": {
+    "bad_request": "Bad Request",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "not_found": "Not Found",
+    "internal_server_error": "Method Not Allowed",
+    "unknown_error": "Not Acceptable",
+    "failed": "Request Failed, Please Try Again Later"
+  },
+  "actions": {
+    "customize_page": "Customize Page",
+    "turn_into_wiki": "Turn into wiki",
+    "copy_link": "Copy Link",
+    "duplicate": "Duplicate",
+    "move_to": "Move to",
+    "move_to_trash": "Move to Trash",
+    "undo": "Undo",
+    "move": "Move",
+    "view_analytics": "View analytics",
+    "version_history": "Version History",
+    "show_delete_pages": "Show delete pages",
+    "notifications": "Notifications",
+    "import": "Import",
+    "export": "Export"
+  },
+  "form": {
+    "or": "or",
+    "operator": "Action",
+    "exist_account": "Already have an account?",
+    "invalid_request": "Invalid request parameters",
+    "username": "Username",
+    "username_min": "Username must be at least 2 characters",
+    "username_max": "Username must be at most 32 characters",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "password_min": "Password must be at least 8 characters",
+    "password_reg": "Password must contain uppercase, lowercase letters, and numbers",
+    "password_not_match": "Password does not match",
+    "email": "Email",
+    "email_invalid": "Please enter a valid email address",
+    "email_limit": "Only Gmail, Outlook, 163, and QQ emails are allowed",
+    "email_limit_rule": "Email must be from Gmail, Outlook, 163, or QQ"
+  },
+  "invite": {
+    "title": "Add members via invite link",
+    "description": "Only members with invite permissions can view this content. You can also create a new link.",
+    "receive_link": "Receive Link",
+    "join": "{{user}} invites you to join {{namespace}}",
+    "add": "Invite Member",
+    "owner": "Workspace Owner",
+    "member": "Member",
+    "min": "At least 2 characters",
+    "max": "At most 32 characters",
+    "submit": "Save",
+    "button": "Send Invitation",
+    "success": "Invitation sent"
+  },
+  "namespace": {
+    "add": "Add Namespace",
+    "name": "Namespace Name",
+    "min": "At least 2 characters",
+    "max": "At most 32 characters",
+    "submit": "Save",
+    "success": "Updated"
+  },
+  "login": {
+    "logout": "Logout",
+    "submit": "Login",
+    "title": "Login to your account",
+    "description": "Enter your email below to login to your account"
+  },
+  "register": {
+    "title": "Create Account",
+    "description": "Enter your information to create an account",
+    "submit": "Sign Up",
+    "success": "Registration successful, please check your email to activate your account",
+    "conform_title": "Complete Account Creation",
+    "conform_description": "Enter your information to complete account creation"
+  },
+  "password": {
+    "title": "Reset Password",
+    "description": "Enter your email address and we'll send you a link to reset your password",
+    "reset": "Send Reset Link",
+    "submit": "Reset Password",
+    "return_to_login": "Return to Login",
+    "remember": "Remember your password?",
+    "done": "Password reset link has been sent to your email",
+    "success": "Password reset successfully",
+    "conform_title": "Reset Password",
+    "conform_description": "Enter your information to complete reset password"
+  },
+  "profile": {
+    "submit": "Update Profile",
+    "success": "Profile updated successfully"
+  },
+  "setting": {
+    "title": "Settings",
+    "profile": "Profile",
+    "members": "Members",
+    "preferences": "Preferences",
+    "namespace": "Namespace Settings"
+  },
+  "manage": {
+    "search": "Search by username",
+    "disable": "Disable",
+    "remove": "Remove from Workspace"
+  }
+}
