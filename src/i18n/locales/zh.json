@@ -1,0 +1,127 @@
+{
+  "chat": "聊天",
+  "back_to_front": "返回首页",
+  "untitled": "未命名",
+  "edit": "编辑",
+  "create_file": "创建文件",
+  "create_folder": "创建文件夹",
+  "delete": "删除",
+  "add_all_to_context": "全部添加到上下文",
+  "add_it_to_context": "添加到上下文",
+  "stop": "停止",
+  "send": "发送",
+  "updated": "已更新",
+  "created": "已创建",
+  "clear_all": "清空全部",
+  "not_support_readablestream": "此浏览器尚不支持 ReadableStream。",
+  "error": {
+    "title": "404 页面未找到"
+  },
+  "request": {
+    "bad_request": "请求错误",
+    "unauthorized": "未授权",
+    "forbidden": "禁止访问",
+    "not_found": "未找到",
+    "internal_server_error": "方法不允许",
+    "unknown_error": "不可接受",
+    "failed": "请求失败，请稍后重试"
+  },
+  "actions": {
+    "customize_page": "自定义页面",
+    "turn_into_wiki": "转为维基",
+    "copy_link": "复制链接",
+    "duplicate": "复制",
+    "move_to": "移动到",
+    "move_to_trash": "移动到回收站",
+    "undo": "撤销",
+    "move": "移动",
+    "view_analytics": "查看分析",
+    "version_history": "版本历史",
+    "show_delete_pages": "显示已删除页面",
+    "notifications": "通知",
+    "import": "导入",
+    "export": "导出"
+  },
+  "form": {
+    "or": "或",
+    "operator": "操作",
+    "exist_account": "已有账号？",
+    "invalid_request": "无效的请求参数",
+    "username": "用户名",
+    "username_min": "用户名至少2个字符",
+    "username_max": "用户名最多32个字符",
+    "password": "密码",
+    "confirm_password": "确认密码",
+    "password_min": "密码至少8个字符",
+    "password_reg": "密码必须包含大写字母、小写字母和数字",
+    "password_not_match": "密码不匹配",
+    "email": "邮箱",
+    "email_invalid": "请输入有效的邮箱地址",
+    "email_limit": "仅支持 Gmail、Outlook、163 和 QQ 邮箱",
+    "email_limit_rule": "邮箱必须是 Gmail、Outlook、163 或 QQ 邮箱"
+  },
+  "invite": {
+    "title": "通过邀请链接添加成员",
+    "description": "只有具有邀请权限的成员才能查看此内容。您也可以创建新链接。",
+    "receive_link": "接收链接",
+    "join": "{{user}} 邀请您加入 {{namespace}}",
+    "add": "邀请成员",
+    "owner": "工作空间所有者",
+    "member": "成员",
+    "min": "至少2个字符",
+    "max": "最多32个字符",
+    "submit": "保存",
+    "button": "发送邀请",
+    "success": "邀请已发送"
+  },
+  "namespace": {
+    "add": "添加命名空间",
+    "name": "命名空间名称",
+    "min": "至少2个字符",
+    "max": "最多32个字符",
+    "submit": "保存",
+    "success": "已更新"
+  },
+  "login": {
+    "logout": "退出登录",
+    "submit": "登录",
+    "title": "登录您的账户",
+    "description": "请输入您的邮箱以登录账户"
+  },
+  "register": {
+    "title": "创建账户",
+    "description": "输入您的信息以创建账户",
+    "submit": "注册",
+    "success": "注册成功，请检查邮箱以激活账户",
+    "conform_title": "完成账户创建",
+    "conform_description": "输入您的信息以完成账户创建"
+  },
+  "password": {
+    "title": "重置密码",
+    "description": "输入您的邮箱地址，我们将向您发送重置密码的链接",
+    "reset": "发送重置链接",
+    "submit": "重置密码",
+    "return_to_login": "返回登录",
+    "remember": "记住密码？",
+    "done": "重置密码链接已发送到您的邮箱",
+    "success": "密码重置成功",
+    "conform_title": "重置密码",
+    "conform_description": "输入您的信息以完成密码重置"
+  },
+  "profile": {
+    "submit": "更新资料",
+    "success": "资料更新成功"
+  },
+  "setting": {
+    "title": "设置",
+    "profile": "个人资料",
+    "members": "成员",
+    "preferences": "偏好设置",
+    "namespace": "命名空间设置"
+  },
+  "manage": {
+    "search": "按用户名搜索",
+    "disable": "禁用",
+    "remove": "从工作空间移除"
+  }
+}

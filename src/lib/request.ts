@@ -1,4 +1,5 @@
 import axios from 'axios';
+import i18next from 'i18next';
 import { toast } from 'sonner';
 import { isUndefined } from 'lodash-es';
 import { API_BASE_URL } from '@/constants';
@@ -45,7 +46,7 @@ request.interceptors.response.use(
   (error: AxiosError) => {
     const config = (error.config as RequestConfig) || {};
     if (isUndefined(config.mute) || !config.mute) {
-      let errorMessage = '请求失败，请稍后重试';
+      let errorMessage = i18next.t('request.failed');
       if (
         error.response &&
         error.response.data &&
@@ -57,22 +58,22 @@ request.interceptors.response.use(
       } else {
         switch (error.status) {
           case 400:
-            errorMessage = '请求参数错误';
+            errorMessage = i18next.t('request.bad_request');
             break;
           case 401:
-            errorMessage = '登陆已过期，请重新登陆';
+            errorMessage = i18next.t('request.unauthorized');
             break;
           case 403:
-            errorMessage = '拒绝访问';
+            errorMessage = i18next.t('request.forbidden');
             break;
           case 404:
-            errorMessage = '请求地址不存在';
+            errorMessage = i18next.t('request.not_found');
             break;
           case 500:
-            errorMessage = '服务器内部错误';
+            errorMessage = i18next.t('request.internal_server_error');
             break;
           default:
-            errorMessage = `请求失败：${error.status}`;
+            errorMessage = i18next.t('request.unknown_error');
         }
       }
       toast.error(errorMessage, { position: 'top-center' });

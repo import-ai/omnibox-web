@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import i18next from 'i18next';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { http } from '@/lib/request';
@@ -6,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -19,7 +21,7 @@ import {
 const forgotPasswordSchema = z.object({
   email: z
     .string()
-    .email('Please enter a valid email address')
+    .email(i18next.t('form.email.invalid'))
     .refine(
       (email) => {
         const allowedDomains = [
@@ -32,7 +34,7 @@ const forgotPasswordSchema = z.object({
         return allowedDomains.includes(domain);
       },
       {
-        message: 'Email must be from Gmail, Outlook, 163, or QQ',
+        message: i18next.t('form.email_limit_rule'),
       },
     ),
 });
@@ -40,6 +42,7 @@ const forgotPasswordSchema = z.object({
 type TForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordForm() {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<TForgotPasswordForm>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -56,7 +59,7 @@ export function ForgotPasswordForm() {
       })
       .then(() => {
         form.resetField('email');
-        toast('Password reset link has been sent to your email', {
+        toast(t('password.done'), {
           position: 'top-center',
         });
       })
@@ -76,15 +79,13 @@ export function ForgotPasswordForm() {
               <FormControl>
                 <Input
                   type="email"
-                  placeholder="Email"
+                  placeholder={t('form.email')}
                   autoComplete="email"
                   {...field}
                   disabled={isLoading}
                 />
               </FormControl>
-              <FormDescription>
-                Only Gmail, Outlook, 163, and QQ emails are allowed
-              </FormDescription>
+              <FormDescription>{t('form.email_limit')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -95,15 +96,15 @@ export function ForgotPasswordForm() {
           disabled={isLoading}
           loading={isLoading}
         >
-          Send Reset Link
+          {t('password.reset')}
         </Button>
         <div className="text-center text-sm">
-          Remember your password?
+          {t('password.remember')}
           <Link
             to="/user/login"
             className="font-semibold text-primary hover:underline ml-1"
           >
-            Return to Login
+            {t('password.return_to_login')}
           </Link>
         </div>
       </form>

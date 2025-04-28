@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import InviteForm from './invite-form';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 
 export default function Invite() {
+  const { t } = useTranslation();
   const [open, onOpen] = useState(false);
   const onCancel = () => {
     onOpen(false);
@@ -19,12 +21,12 @@ export default function Invite() {
     <Dialog open={open} onOpenChange={onOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant="default">
-          Add Member
+          {t('invite.add')}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-1/2 max-w-7xl">
         <DialogHeader>
-          <DialogTitle>Invite Member</DialogTitle>
+          <DialogTitle>{t('invite.add')}</DialogTitle>
         </DialogHeader>
         <InviteForm onFinish={onCancel} />
       </DialogContent>

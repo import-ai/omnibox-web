@@ -1,19 +1,19 @@
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 export default function InvitePeople() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex justify-between mb-8">
       <div className="flex flex-col">
-        <h2 className="font-medium mb-2">Add members via invite link</h2>
-        <p className="text-gray-600 text-sm">
-          Only members with invite permissions can view this content. You can
-          also create a new link.
-        </p>
+        <h2 className="font-medium mb-2">{t('invite.title')}</h2>
+        <p className="text-gray-600 text-sm">{t('invite.description')}</p>
       </div>
       <div className="flex items-center gap-2 justify-between">
         <Button size="sm" variant="secondary">
-          Receive Link
+          {t('invite.receive_link')}
         </Button>
         <Switch
           // checked={isLinkEnabled}

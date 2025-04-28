@@ -1,5 +1,6 @@
-import GenerateForm from './form/namespace';
 import { Plus } from 'lucide-react';
+import GenerateForm from './form/namespace';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,6 +11,8 @@ import {
 } from '@/components/ui/dialog';
 
 export default function Generate() {
+  const { t } = useTranslation();
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -19,12 +22,12 @@ export default function Generate() {
           className="w-full justify-start text-muted-foreground"
         >
           <Plus className="size-4" />
-          Add Namespace
+          {t('namespace.add')}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-1/2 max-w-7xl">
         <DialogHeader>
-          <DialogTitle>Add Namespace</DialogTitle>
+          <DialogTitle>{t('namespace.add')}</DialogTitle>
         </DialogHeader>
         <GenerateForm />
       </DialogContent>

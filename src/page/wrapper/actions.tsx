@@ -1,3 +1,4 @@
+import i18next from 'i18next';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
@@ -36,65 +37,66 @@ import {
   Trash,
   Trash2,
 } from 'lucide-react';
+import i18n from '@/i18n';
 
 export const data = [
   [
     {
-      label: 'Customize Page',
+      label: i18next.t('actions.customize_page'),
       icon: Settings2,
     },
     {
-      label: 'Turn into wiki',
+      label: i18next.t('actions.turn_into_wiki'),
       icon: FileText,
     },
   ],
   [
     {
-      label: 'Copy Link',
+      label: i18next.t('actions.copy_link'),
       icon: Link,
     },
     {
-      label: 'Duplicate',
+      label: i18next.t('actions.duplicate'),
       icon: Copy,
     },
     {
-      label: 'Move to',
+      label: i18next.t('actions.move_to'),
       icon: CornerUpRight,
     },
     {
-      label: 'Move to Trash',
+      label: i18next.t('actions.move_to_trash'),
       icon: Trash2,
     },
   ],
   [
     {
-      label: 'Undo',
+      label: i18next.t('actions.undo'),
       icon: CornerUpLeft,
     },
     {
-      label: 'View analytics',
+      label: i18next.t('actions.view_analytics'),
       icon: LineChart,
     },
     {
-      label: 'Version History',
+      label: i18next.t('actions.version_history'),
       icon: GalleryVerticalEnd,
     },
     {
-      label: 'Show delete pages',
+      label: i18next.t('actions.show_delete_pages'),
       icon: Trash,
     },
     {
-      label: 'Notifications',
+      label: i18n.t('actions.notifications'),
       icon: Bell,
     },
   ],
   [
     {
-      label: 'Import',
+      label: i18n.t('actions.import'),
       icon: ArrowUp,
     },
     {
-      label: 'Export',
+      label: i18n.t('actions.export'),
       icon: ArrowDown,
     },
   ],
