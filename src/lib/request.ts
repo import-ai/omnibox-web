@@ -8,6 +8,7 @@ import type {
   AxiosResponse,
   AxiosRequestConfig,
 } from 'axios';
+
 interface RequestConfig extends AxiosRequestConfig {
   // 是否显示错误提示，默认为 true
   mute?: boolean;
@@ -34,7 +35,7 @@ request.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 request.interceptors.response.use(
@@ -75,19 +76,19 @@ request.interceptors.response.use(
         }
       }
       toast.error(errorMessage, { position: 'top-center' });
-      if (error.status === 401) {
+      if (error.status === 401 && localStorage.getItem('uid')) {
         localStorage.removeItem('uid');
         localStorage.removeItem('token');
         localStorage.removeItem('namespace');
         setTimeout(() => {
           window.location.href = `/user/login?redirect=${encodeURIComponent(
-            location.href
+            location.href,
           )}`;
         }, 1000);
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // 封装请求方法
@@ -98,21 +99,21 @@ export const http = {
   post: <T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<any> => {
     return request.post<T>(url, data, config);
   },
   put: <T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<any> => {
     return request.put<T>(url, data, config);
   },
   patch: <T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<any> => {
     return request.patch<T>(url, data, config);
   },

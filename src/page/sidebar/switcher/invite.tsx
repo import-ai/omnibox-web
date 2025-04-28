@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
-import InviteForm from '../people/invite-form';
+import InviteForm from './people/invite-form';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

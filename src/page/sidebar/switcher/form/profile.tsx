@@ -37,7 +37,7 @@ const profileFormSchema = z.object({
       },
       {
         message: 'Email must be from Gmail, Outlook, 163, or QQ',
-      }
+      },
     ),
   password: z
     .string()
@@ -58,7 +58,7 @@ const profileFormSchema = z.object({
       {
         message:
           'Password must contain uppercase, lowercase letters, and numbers',
-      }
+      },
     ),
   password_repeat: z.string().optional(),
 });

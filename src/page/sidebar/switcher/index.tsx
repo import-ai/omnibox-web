@@ -6,7 +6,7 @@ import Space from '@/components/space';
 import { Logout } from '@/page/user/logout';
 import { useNavigate } from 'react-router-dom';
 import { Avatar } from '@/components/ui/avatar';
-import useNamespace from '@/hooks/use-namespace';
+import useNamespace from '@/hooks/use-namespaces';
 import { ChevronDown, Command } from 'lucide-react';
 import {
   SidebarMenu,
@@ -85,7 +85,7 @@ export function Switcher(props: IProps) {
                     return;
                   }
                   localStorage.setItem('namespace', JSON.stringify(item));
-                  navigate(`/${item.id}`);
+                  navigate('/chat');
                 }}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">

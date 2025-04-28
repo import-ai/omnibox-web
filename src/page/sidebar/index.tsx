@@ -1,12 +1,13 @@
 import Space from './space';
-import each from '@/utils/each';
+import each from '@/lib/each';
 import { NavMain } from './main';
-import group from '@/utils/group';
+import group from '@/lib/group';
 import useApp from '@/hooks/use-app';
-import { Switcher } from '../switcher';
-import { http } from '@/utils/request';
+import { Switcher } from './switcher';
+import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { getNamespace } from '@/lib/namespace';
+import { useParams, useNavigate } from 'react-router-dom';
 import { SpaceType, Resource, ResourceType, IResourceData } from '@/interface';
 import {
   Sidebar,
@@ -25,19 +26,23 @@ interface IData {
 export default function MainSidebar() {
   const app = useApp();
   const params = useParams();
-  const namespace = params.namespace || '0';
-  const [activeKey, onActiveKey] = useState('');
+  const navigate = useNavigate();
+  const namespace = getNamespace().id;
+  const resourceId = params.resourceId || '';
   const [expanding, onExpanding] = useState('');
   const [expands, onExpands] = useState<Array<string>>([]);
   const [data, onData] = useState<{
     [index: string]: IResourceData;
   }>({});
+  const handleActiveKey = (id: string) => {
+    navigate(`/${id}`);
+  };
   const handleExpand = (id: string, spaceType: SpaceType) => {
     let match = false;
     each(data, (resource) => {
       if (Array.isArray(resource.children) && resource.children.length > 0) {
         const target = resource.children.find(
-          (node: Resource) => node.parentId === id
+          (node: Resource) => node.parentId === id,
         );
         if (target) {
           match = true;
@@ -66,16 +71,16 @@ export default function MainSidebar() {
         onData({ ...data });
         expands.push(id);
         onExpands([...expands]);
-        onExpanding(0);
+        onExpanding('');
       })
       .catch(() => {
-        onExpanding(0);
+        onExpanding('');
       });
   };
   const handleDelete = (id: string, spaceType: SpaceType) => {
     http.delete(`/${baseUrl}/${id}`).then(() => {
       data[spaceType].children = data[spaceType].children.filter(
-        (node) => ![node.id, node.parentId].includes(id)
+        (node) => ![node.id, node.parentId].includes(id),
       );
       onData({ ...data });
     });
@@ -84,7 +89,7 @@ export default function MainSidebar() {
     namespace: string,
     spaceType: string,
     parentId: string,
-    resourceType: ResourceType
+    resourceType: ResourceType,
   ) => {
     http
       .post(`/${baseUrl}`, { namespace, spaceType, parentId, resourceType })
@@ -96,7 +101,7 @@ export default function MainSidebar() {
             data[spaceType].children = [];
           }
           const index = data[spaceType].children.findIndex(
-            (item) => item.id === parentId
+            (item) => item.id === parentId,
           );
           if (index >= 0) {
             data[spaceType].children[index].childCount += 1;
@@ -106,10 +111,10 @@ export default function MainSidebar() {
           data[spaceType].children.push({ ...response, children: [] });
         }
         onData({ ...data });
-        onActiveKey(response.id);
         if (!expands.includes(parentId)) {
           onExpands([...expands, parentId]);
         }
+        handleActiveKey(response.id);
       });
   };
 
@@ -118,7 +123,7 @@ export default function MainSidebar() {
       each(data, (resource, key) => {
         if (Array.isArray(resource.children) && resource.children.length > 0) {
           const index = resource.children.findIndex(
-            (node: Resource) => node.id === delta.id
+            (node: Resource) => node.id === delta.id,
           );
           if (index >= 0) {
             data[key].children[index].name = delta.name;
@@ -132,10 +137,27 @@ export default function MainSidebar() {
   }, [data]);
 
   useEffect(() => {
+    if (resourceId) {
+      return;
+    }
+    let node: any = null;
+    each(data, (resource) => {
+      if (Array.isArray(resource.children) && resource.children.length > 0) {
+        node = resource.children[0];
+        return true;
+      }
+      return;
+    });
+    if (node && node.id) {
+      navigate(`/${node.id}`);
+    }
+  }, [resourceId, data]);
+
+  useEffect(() => {
     Promise.all(
       spaceTypes.map((spaceType) =>
-        http.get(`/${baseUrl}/root`, { params: { namespace, spaceType } })
-      )
+        http.get(`/${baseUrl}/root`, { params: { namespace, spaceType } }),
+      ),
     ).then((response) => {
       const state: IData = {};
       response.forEach((item) => {
@@ -145,38 +167,11 @@ export default function MainSidebar() {
     });
   }, [namespace]);
 
-  useEffect(() => {
-    if (!activeKey) {
-      return;
-    }
-    let node;
-    each(data, (resource) => {
-      if (Array.isArray(resource.children) && resource.children.length > 0) {
-        const target = resource.children.find(
-          (node: Resource) => node.id === activeKey
-        );
-        if (target) {
-          node = target;
-          return true;
-        }
-      }
-    });
-    if (!node) {
-      return;
-    }
-    app.fire('resource_wrapper', false);
-    app.fire('resource', node);
-  }, [activeKey]);
-
   return (
     <Sidebar>
       <SidebarHeader>
         <Switcher namespace={namespace} />
-        <NavMain
-          app={app}
-          onActiveKey={onActiveKey}
-          active={activeKey === 'chat'}
-        />
+        <NavMain active={resourceId === 'chat'} onActiveKey={handleActiveKey} />
       </SidebarHeader>
       <SidebarContent>
         {spaceTypes.map((spaceType: string) => {
@@ -185,13 +180,13 @@ export default function MainSidebar() {
               key={spaceType}
               expands={expands}
               expanding={expanding}
-              activeKey={activeKey}
+              activeKey={resourceId}
               spaceType={spaceType}
               namespace={namespace}
               onExpand={handleExpand}
               onDelete={handleDelete}
               onCreate={handleCreate}
-              onActiveKey={onActiveKey}
+              onActiveKey={handleActiveKey}
               data={group(data[spaceType])}
             />
           );

@@ -5,9 +5,9 @@ import { lazy, Suspense } from 'react';
 import AppContext from '@/hooks/app-context';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
+const AppPage = lazy(() => import('@/page/app'));
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/invite'));
-const NamespaceBase = lazy(() => import('@/page/namespace'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
 const PasswordComFirmPage = lazy(() => import('@/page/user/password-comfirm'));
@@ -45,8 +45,8 @@ const router = createBrowserRouter([
         element: <InvitePage />,
       },
       {
-        path: ':namespace',
-        element: <NamespaceBase />,
+        path: ':resourceId?',
+        element: <AppPage />,
       },
     ],
   },

@@ -1,11 +1,9 @@
 import * as z from 'zod';
-import { toast } from 'sonner';
-import useApp from '@/hooks/use-app';
-import { http } from '@/utils/request';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
+import { createNamespace } from '@/lib/namespace';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -16,44 +14,33 @@ import {
   FormControl,
 } from '@/components/ui/form';
 
-const FormSchema = z.object({
+const generateFormSchema = z.object({
   name: z
     .string()
     .min(2, 'At least 2 characters')
-    .max(22, 'At most 32 characters'),
+    .max(32, 'At most 32 characters'),
 });
 
-type FormValues = z.infer<typeof FormSchema>;
+type GenerateFormValues = z.infer<typeof generateFormSchema>;
 
-export default function SettingForm() {
-  const app = useApp();
+export default function GenerateForm() {
   const [loading, setLoading] = useState(false);
-  const namespace = localStorage.getItem('namespace');
-  const namespaceId = namespace ? JSON.parse(namespace).id : '0';
-  const form = useForm<FormValues>({
-    resolver: zodResolver(FormSchema),
+  const form = useForm<GenerateFormValues>({
+    resolver: zodResolver(generateFormSchema),
     defaultValues: {
       name: '',
     },
   });
-  const handleSubmit = (data: FormValues) => {
+  const handleSubmit = (data: GenerateFormValues) => {
     setLoading(true);
-    http
-      .patch(`namespaces/${namespaceId}`, data)
+    createNamespace(data.name)
       .then(() => {
-        app.fire('namespace_refetch');
-        toast('Updated');
+        location.href = '/chat';
       })
       .finally(() => {
         setLoading(false);
       });
   };
-
-  useEffect(() => {
-    http.get(`namespaces/${namespaceId}`).then((data) => {
-      form.setValue('name', data.name);
-    });
-  }, []);
 
   return (
     <Form {...form}>
@@ -66,7 +53,7 @@ export default function SettingForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Namespace Name</FormLabel>
               <FormControl>
                 <Input {...field} disabled={loading} />
               </FormControl>

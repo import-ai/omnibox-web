@@ -1,4 +1,4 @@
-import GenerateForm from '../form/namespace';
+import GenerateForm from './form/namespace';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {

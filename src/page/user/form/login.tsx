@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
-import { http } from '@/utils/request';
+import { http } from '@/lib/request';
 import Space from '@/components/space';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Mail, Lock } from 'lucide-react';
 import { Input } from '@/components/input';
 import { Button } from '@/components/button';
-import { toDefaultNamespace } from '@/utils/namespace';
+import { initNamespace } from '@/lib/namespace';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -36,7 +36,7 @@ const formSchema = z.object({
       },
       {
         message: '邮箱必须是 Gmail、Outlook、163 或 QQ 的邮箱',
-      }
+      },
     ),
   password: z
     .string()
@@ -66,11 +66,17 @@ export function LoginForm({
       .then((response) => {
         localStorage.setItem('uid', response.id);
         localStorage.setItem('token', response.access_token);
-        if (redirect) {
-          location.href = decodeURIComponent(redirect);
-        } else {
-          toDefaultNamespace(navigate, { replace: true });
-        }
+        initNamespace().then((returnValue) => {
+          if (returnValue) {
+            if (redirect) {
+              location.href = decodeURIComponent(redirect);
+            } else {
+              navigate('/', { replace: true });
+            }
+          } else {
+            navigate('/user/login', { replace: true });
+          }
+        });
       })
       .finally(() => {
         setIsLoading(false);

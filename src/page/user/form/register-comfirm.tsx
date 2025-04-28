@@ -1,12 +1,12 @@
 import * as z from 'zod';
 import { useState } from 'react';
-import { http } from '@/utils/request';
+import { http } from '@/lib/request';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toDefaultNamespace, createNamespace } from '@/utils/namespace';
+import { initNamespace, createNamespace } from '@/lib/namespace';
 import {
   Form,
   FormItem,
@@ -26,7 +26,7 @@ const registerSchema = z
       .min(8, 'Password must be at least 8 characters')
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        'Password must contain uppercase, lowercase letters, and numbers'
+        'Password must contain uppercase, lowercase letters, and numbers',
       ),
     password_repeat: z.string(),
   })
@@ -58,7 +58,13 @@ export function RegisterComFirmForm() {
         localStorage.setItem('uid', response.id);
         localStorage.setItem('token', response.access_token);
         createNamespace(`${response.username}'s Namespace`).then(() => {
-          toDefaultNamespace(navigate, { replace: true });
+          initNamespace().then((returnValue) => {
+            if (returnValue) {
+              navigate('/', { replace: true });
+            } else {
+              navigate('/user/login', { replace: true });
+            }
+          });
         });
       })
       .finally(() => {

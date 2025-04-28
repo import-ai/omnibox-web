@@ -1,10 +1,11 @@
 import * as z from 'zod';
 import { toast } from 'sonner';
 import { useState } from 'react';
-import { http } from '@/utils/request';
+import { http } from '@/lib/request';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
+import { getNamespace } from '@/lib/namespace';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Select,
@@ -40,7 +41,7 @@ const FormSchema = z.object({
       },
       {
         message: 'Email must be from Gmail, Outlook, 163, or QQ',
-      }
+      },
     ),
   role: z
     .string()
@@ -66,8 +67,7 @@ export default function InviteForm(props: IProps) {
   });
   const handleSubmit = (data: FormValues) => {
     setLoading(true);
-    const namespace = localStorage.getItem('namespace');
-    const namespaceId = namespace ? JSON.parse(namespace).id : '0';
+    const namespaceId = getNamespace().id;
     http
       .post('invite', {
         ...data,

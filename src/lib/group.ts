@@ -38,7 +38,7 @@ export default function group(node: IResourceData) {
     currentNode.children = orderBy(
       currentNode.children,
       ['updatedAt'],
-      ['desc']
+      ['desc'],
     );
 
     stack.push(...currentNode.children);

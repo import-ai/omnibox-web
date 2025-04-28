@@ -1,15 +1,15 @@
 import { toast } from 'sonner';
 import { User } from '@/interface';
-import { http } from '@/utils/request';
+import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
+import { getNamespace } from '@/lib/namespace';
 
 export default function useContext() {
   const [search, onSearch] = useState('');
   const [loading, onLoading] = useState(true);
   const [data, onData] = useState<Array<User>>([]);
   const refetch = () => {
-    const cache = localStorage.getItem('namespace');
-    const namespace = cache ? JSON.parse(cache) : {};
+    const namespace = getNamespace();
     const collaborators = Array.isArray(namespace.collaborators)
       ? namespace.collaborators
       : [];
@@ -21,8 +21,7 @@ export default function useContext() {
       });
   };
   const onDisable = (id: string) => {
-    const cache = localStorage.getItem('namespace');
-    const namespace = cache ? JSON.parse(cache) : {};
+    const namespace = getNamespace();
     http
       .post('namespaces/disable-user', { id, namespace: namespace.id })
       .then(() => {
@@ -35,13 +34,12 @@ export default function useContext() {
       });
   };
   const onRemove = (id: string) => {
-    const cache = localStorage.getItem('namespace');
-    const namespace = cache ? JSON.parse(cache) : {};
+    const namespace = getNamespace();
     http
       .post('namespaces/remove-user', { id, namespace: namespace.id })
       .then(() => {
         namespace.collaborators = namespace.collaborators.filter(
-          (item: string) => item !== id
+          (item: string) => item !== id,
         );
         localStorage.setItem('namespace', JSON.stringify(namespace));
         refetch();

@@ -1,10 +1,11 @@
 import Vditor from 'vditor';
 import { Resource } from '@/interface';
-import { http } from '@/utils/request';
+import { http } from '@/lib/request';
 import useTheme from '@/hooks/use-theme';
 import { Input } from '@/components/ui/input';
 import { IUseResource } from '@/hooks/user-resource';
 import React, { useRef, useState, useEffect } from 'react';
+
 interface IProps extends Omit<IUseResource, 'resource'> {
   resource: Resource;
 }
@@ -58,7 +59,7 @@ export default function Editor(props: IProps) {
         vditor.current.setTheme(
           theme.skin === 'dark' ? 'dark' : 'classic',
           theme.content,
-          theme.code
+          theme.code,
         );
       },
     });
@@ -72,7 +73,7 @@ export default function Editor(props: IProps) {
         }
       }
     };
-  }, [resource]);
+  }, [resource, theme]);
 
   return (
     <div>

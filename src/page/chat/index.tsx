@@ -1,20 +1,12 @@
-import ChatActions from './actions';
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
 import { useEffect, useState } from 'react';
+import { getNamespace } from '@/lib/namespace';
 import { File, Folder, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Markdown } from '@/components/markdown';
-// import { useParams } from 'react-router-dom';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -47,6 +39,7 @@ interface ChatCitationListResponse extends ChatBaseResponse {
 
 export default function Chat() {
   const app = useApp();
+  const navigate = useNavigate();
   const [input, setInput] = useState('');
   const [loading, onLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -54,10 +47,9 @@ export default function Chat() {
     [],
   );
 
-  const namespaceJSONStr: string = localStorage.getItem('namespace') || '{}';
-  const namespaceObject: Record<string, any> = JSON.parse(namespaceJSONStr);
-  const namespaceId: string = namespaceObject['id'];
-  const token: string = localStorage.getItem('token') || '';
+  const namespace = getNamespace();
+  const namespaceId = namespace.id;
+  const token = localStorage.getItem('token') || '';
 
   const handleSend = async () => {
     const val = input.trim();
@@ -198,54 +190,46 @@ export default function Chat() {
   }, [data]);
 
   return (
-    <SidebarInset>
-      <header className="flex h-14 shrink-0 items-center gap-2">
-        <div className="flex flex-1 items-center gap-2 px-3">
-          <SidebarTrigger />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage className="line-clamp-1">Foo</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-        <div className="ml-auto px-3">
-          <ChatActions />
-        </div>
-      </header>
-      <div className="flex justify-center h-full p-4">
-        <div className="flex flex-col h-full max-w-3xl w-full">
-          <div className="flex-1 overflow-y-auto">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`mb-4 ${
-                  message.role === 'user' ? 'text-right' : 'text-left'
-                }`}
-              >
-                <div
-                  className={`inline-block p-2 rounded ${
-                    message.role === 'user'
-                      ? 'bg-blue-500 text-white dark:bg-blue-700'
-                      : 'bg-gray-200 text-black dark:bg-gray-700 dark:text-white'
-                  }`}
-                >
-                  <Markdown content={message.content} />
-                </div>
-              </div>
-            ))}
+    <>
+      <div className="flex-1 overflow-y-auto">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`mb-4 ${
+              message.role === 'user' ? 'text-right' : 'text-left'
+            }`}
+          >
+            <div
+              className={`inline-block p-2 rounded ${
+                message.role === 'user'
+                  ? 'bg-blue-500 text-white dark:bg-blue-700'
+                  : 'bg-gray-200 text-black dark:bg-gray-700 dark:text-white'
+              }`}
+            >
+              <Markdown content={message.content} />
+            </div>
           </div>
-          <div className="flex flex-wrap">
-            {data.map(({ type, resource }) => (
+        ))}
+      </div>
+      <div className="flex flex-wrap">
+        {data.map(({ type, resource }) => (
+          <div
+            key={`${type}_${resource.id}`}
+            className={`flex items-center text-black dark:text-white rounded-full px-2 mr-2 h-6 ${
+              type === 'parent'
+                ? 'bg-green-200 dark:bg-green-500'
+                : 'bg-blue-200 dark:bg-blue-500'
+            }`}
+          >
+            <div className="mr-2 flex items-center text-sm">
+              {type === 'parent' ? (
+                <Folder className="w-4 h-4" />
+              ) : (
+                <File className="w-4 h-4" />
+              )}
               <div
-                key={`${type}_${resource.id}`}
-                className={`flex items-center text-black dark:text-white rounded-full px-2 mr-2 h-6 ${
-                  type === 'parent'
-                    ? 'bg-green-200 dark:bg-green-500'
-                    : 'bg-blue-200 dark:bg-blue-500'
-                }`}
+                className="ml-1 cursor-pointer"
+                onClick={() => navigate(`/${resource.id}`)}
               >
                 <div className="mr-2 flex items-center text-sm">
                   {type === 'parent' ? (
@@ -275,55 +259,57 @@ export default function Chat() {
                   <X className="w-4 h-4" />
                 </button>
               </div>
-            ))}
-            {data.length > 1 && (
+            </div>
+            <button
+              className="focus:outline-none"
+              onClick={() => {
+                onData(data.filter((item) => item.resource.id !== resource.id));
+              }}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+        {data.length > 1 && (
+          <Button onClick={() => onData([])} className="rounded-full px-2 h-6">
+            Clear All
+          </Button>
+        )}
+      </div>
+      <div className="items-center mt-4 border-2 rounded-3xl border-gray-200 dark:border-gray-700">
+        <div className="relative flex flex-col">
+          <Textarea
+            value={input}
+            rows={1}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your message..."
+            className="w-full resize-none border-none rounded-t-3xl"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                if (e.metaKey || e.ctrlKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }
+            }}
+          />
+          <div className="flex justify-end mb-1 mr-1">
+            {loading ? (
+              <Button className="rounded-full" onClick={() => onLoading(false)}>
+                Stop
+              </Button>
+            ) : (
               <Button
-                onClick={() => onData([])}
-                className="rounded-full px-2 h-6"
+                onClick={handleSend}
+                className="rounded-full"
+                disabled={input.length === 0}
               >
-                Clear All
+                Send
               </Button>
             )}
           </div>
-          <div className="items-center mt-4 border-2 rounded-3xl border-gray-200 dark:border-gray-700">
-            <div className="relative flex flex-col">
-              <Textarea
-                value={input}
-                rows={1}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
-                className="w-full resize-none border-none rounded-t-3xl"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    if (e.metaKey || e.ctrlKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }
-                }}
-              />
-              <div className="flex justify-end mb-1 mr-1">
-                {loading ? (
-                  <Button
-                    className="rounded-full"
-                    onClick={() => onLoading(false)}
-                  >
-                    Stop
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleSend}
-                    className="rounded-full"
-                    disabled={input.length === 0}
-                  >
-                    Send
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
-    </SidebarInset>
+    </>
   );
 }

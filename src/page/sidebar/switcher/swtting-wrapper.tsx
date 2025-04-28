@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import PeopleForm from '../people';
-import ProfileForm from '../form/profile';
-import SettingForm from '../form/setting';
+import PeopleForm from './people';
+import ProfileForm from './form/profile';
+import SettingForm from './form/setting';
 import { SidebarNav } from '@/page/user/form/sidebar';
 
 export default function SettingWrapper() {

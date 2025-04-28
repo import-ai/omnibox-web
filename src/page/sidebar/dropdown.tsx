@@ -23,12 +23,12 @@ export interface IResourceProps {
     namespace: string,
     spaceType: string,
     parentId: string,
-    resourceType: ResourceType
+    resourceType: ResourceType,
   ) => void;
 }
 
 export default function MainDropdownMenu(props: IResourceProps) {
-  const { data, namespace, onActiveKey, onCreate, onDelete } = props;
+  const { data, namespace, activeKey, onActiveKey, onCreate, onDelete } = props;
   const app = useApp();
   const hasChildren = data.childCount > 0;
   const handleCreateFile = () => {
@@ -44,11 +44,15 @@ export default function MainDropdownMenu(props: IResourceProps) {
     }, 100);
   };
   const handleAddToChat = () => {
-    app.fire('resource_wrapper', true);
+    if (activeKey !== 'chat') {
+      onActiveKey('chat');
+    }
     app.fire('context', data, 'resource');
   };
   const handleAddAllToChat = () => {
-    app.fire('resource_wrapper', true);
+    if (activeKey !== 'chat') {
+      onActiveKey('chat');
+    }
     app.fire('context', data, 'parent');
   };
   const handleDelete = () => {
