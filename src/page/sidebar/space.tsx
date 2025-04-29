@@ -1,7 +1,8 @@
 import Tree from './tree';
 import { IResourceData } from '@/interface';
 import { IResourceProps } from './dropdown';
-import { MoreHorizontal } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { LoaderCircle, MoreHorizontal } from 'lucide-react';
 import {
   SidebarMenu,
   SidebarGroup,
@@ -19,7 +20,8 @@ import {
 interface IProps extends IResourceProps {}
 
 export default function Space(props: IProps) {
-  const { data, spaceType, namespace, onCreate } = props;
+  const { data, editingKey, spaceType, namespace, onCreate } = props;
+  const { t } = useTranslation();
   const hasChildren = data.childCount > 0;
 
   return (
@@ -30,8 +32,12 @@ export default function Space(props: IProps) {
           .toUpperCase()}${spaceType.slice(1)}`}</SidebarGroupLabel>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuAction className="my-1.5 right-2">
-              <MoreHorizontal />
+            <SidebarMenuAction className="my-1.5 right-2 focus-visible:outline-none focus-visible:ring-transparent">
+              {data.id === editingKey ? (
+                <LoaderCircle className="transition-transform animate-spin" />
+              ) : (
+                <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent" />
+              )}
             </SidebarMenuAction>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" sideOffset={10} align="start">
@@ -41,7 +47,7 @@ export default function Space(props: IProps) {
                 onCreate(namespace, spaceType, data.id, 'file');
               }}
             >
-              Create File
+              {t('create_file')}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer"
@@ -49,7 +55,7 @@ export default function Space(props: IProps) {
                 onCreate(namespace, spaceType, data.id, 'folder');
               }}
             >
-              Create Folder
+              {t('create_folder')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

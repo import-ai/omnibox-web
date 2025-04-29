@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import InviteForm from './people/invite-form';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 
 export default function Invite() {
+  const { t } = useTranslation();
   const [open, onOpen] = useState(false);
   const onCancel = () => {
     onOpen(false);
@@ -25,12 +27,12 @@ export default function Invite() {
           className="text-muted-foreground h-7 gap-1 px-2"
         >
           <UserPlus />
-          Invite Member
+          {t('invite.add')}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-1/2 max-w-7xl">
         <DialogHeader>
-          <DialogTitle>Invite Member</DialogTitle>
+          <DialogTitle>{t('invite.add')}</DialogTitle>
         </DialogHeader>
         <InviteForm onFinish={onCancel} />
       </DialogContent>

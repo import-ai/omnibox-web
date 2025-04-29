@@ -15,7 +15,7 @@ export default function useUser() {
       });
   };
   const onChange = (data: any, callback?: () => void) => {
-    http
+    return http
       .patch(`user/${uid}`, data)
       .then(() => {
         setUser({ ...user, ...data });

@@ -2,9 +2,11 @@ import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/button';
 import { initNamespace } from '@/lib/namespace';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export function InviteForm() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const token = params.get('token');
@@ -55,7 +57,7 @@ export function InviteForm() {
   if (!token || !namespaceId || !userId) {
     return (
       <div className="text-center text-sm">
-        <p>Invalid request parameters</p>
+        <p>{t('form.invalid_request')}</p>
       </div>
     );
   }
@@ -63,7 +65,7 @@ export function InviteForm() {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        {data.username} invites you to join {data.namespace}
+        {t('invite.join', { user: data.username, namespace: data.namespace })}
       </div>
       <Button
         type="submit"
@@ -71,7 +73,7 @@ export function InviteForm() {
         loading={isLoading}
         onClick={handleSubmit}
       >
-        Send Invitation
+        {t('invite.button')}
       </Button>
     </div>
   );

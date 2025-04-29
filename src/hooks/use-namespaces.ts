@@ -9,6 +9,10 @@ export default function useNamespaces() {
   const [data, onData] = useState<Array<Namespace>>([]);
   const refetch = () => {
     onLoading(true);
+    // 未登陆不请求数据
+    if (!localStorage.getItem('uid')) {
+      return;
+    }
     http
       .get('namespaces/user')
       .then(onData)

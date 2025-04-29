@@ -1,6 +1,7 @@
 import Invite from '../invite';
 import useContext from './use-context';
 import Space from '@/components/space';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import PopConfirm from '@/components/popconfirm';
@@ -14,16 +15,17 @@ import {
 } from '@/components/ui/table';
 
 export default function ManagePeople() {
+  const { t } = useTranslation();
   const { data, search, onSearch, onDisable, onRemove } = useContext();
 
   return (
     <div className="space-y-4 p-px">
       <div className="flex items-center justify-between">
         <Input
-          placeholder="Search by username"
-          className="h-8 w-[150px] lg:w-[250px]"
           value={search}
           onChange={(e) => onSearch(e.target.value)}
+          placeholder={t('manage.search')}
+          className="h-8 w-[150px] lg:w-[250px]"
         />
         <Invite />
       </div>
@@ -31,10 +33,10 @@ export default function ManagePeople() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[20%]">Username</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead className="w-[20%]">{t('form.username')}</TableHead>
+              <TableHead>{t('form.email')}</TableHead>
               {/* <TableHead>角色</TableHead> */}
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">{t('form.operator')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -49,7 +51,7 @@ export default function ManagePeople() {
                       title="Are you sure to disable this user?"
                       onOk={() => onDisable(item.id)}
                     >
-                      <Button size="sm">Disable</Button>
+                      <Button size="sm">{t('manage.disable')}</Button>
                     </PopConfirm>
                     {/* <PopConfirm title="确定删除当前用户？">
                       <Button size="sm" variant="destructive">
@@ -61,7 +63,7 @@ export default function ManagePeople() {
                       onOk={() => onRemove(item.id)}
                     >
                       <Button size="sm" variant="destructive">
-                        Remove from Workspace
+                        {t('manage.remove')}
                       </Button>
                     </PopConfirm>
                   </Space>

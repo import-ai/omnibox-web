@@ -1,10 +1,12 @@
 import * as z from 'zod';
+import i18next from 'i18next';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
 import useUser from '@/hooks/use-user';
 import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -19,11 +21,11 @@ import {
 const profileFormSchema = z.object({
   username: z
     .string()
-    .min(2, 'Username must be at least 2 characters')
-    .max(32, 'Username must be at most 32 characters'),
+    .min(2, i18next.t('form.username_min'))
+    .max(32, i18next.t('form.username_max')),
   email: z
     .string()
-    .email('Please enter a valid email address')
+    .email(i18next.t('form.email_invalid'))
     .refine(
       (email) => {
         const allowedDomains = [
@@ -36,7 +38,7 @@ const profileFormSchema = z.object({
         return allowedDomains.includes(domain);
       },
       {
-        message: 'Email must be from Gmail, Outlook, 163, or QQ',
+        message: i18next.t('form.email_limit_rule'),
       },
     ),
   password: z
@@ -56,8 +58,7 @@ const profileFormSchema = z.object({
         return true;
       },
       {
-        message:
-          'Password must contain uppercase, lowercase letters, and numbers',
+        message: i18next.t('form.password_reg'),
       },
     ),
   password_repeat: z.string().optional(),
@@ -66,7 +67,9 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfileForm() {
-  const { user, loading, onChange } = useUser();
+  const { t } = useTranslation();
+  const { user, onChange } = useUser();
+  const [loading, onLoading] = useState(false);
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -79,12 +82,15 @@ export default function ProfileForm() {
   const handleSubmit = (data: ProfileFormValues) => {
     if (data.password || data.password_repeat) {
       if (data.password !== data.password_repeat) {
-        toast.error('Passwords do not match', { position: 'top-center' });
+        toast.error(t('form.password_not_match'), { position: 'top-center' });
         return;
       }
     }
+    onLoading(true);
     onChange(data, () => {
-      toast.success('Profile updated successfully', { position: 'top-center' });
+      toast.success(t('profile.success'), { position: 'top-center' });
+    }).finally(() => {
+      onLoading(false);
     });
   };
 
@@ -107,7 +113,7 @@ export default function ProfileForm() {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>{t('form.username')}</FormLabel>
               <FormControl>
                 <Input {...field} disabled={loading} />
               </FormControl>
@@ -120,19 +126,16 @@ export default function ProfileForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('form.email')}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
                   autoComplete="email"
-                  placeholder="Email"
                   {...field}
                   disabled={loading}
                 />
               </FormControl>
-              <FormDescription>
-                Only Gmail, Outlook, 163, and QQ emails are allowed
-              </FormDescription>
+              <FormDescription>{t('form.email_limit')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -142,7 +145,7 @@ export default function ProfileForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t('form.password')}</FormLabel>
               <FormControl>
                 <Input
                   type="password"
@@ -160,7 +163,7 @@ export default function ProfileForm() {
           name="password_repeat"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel>{t('form.confirm_password')}</FormLabel>
               <FormControl>
                 <Input
                   type="password"
@@ -174,7 +177,7 @@ export default function ProfileForm() {
           )}
         />
         <Button type="submit" disabled={loading} loading={loading}>
-          Update Profile
+          {t('profile.submit')}
         </Button>
       </form>
     </Form>

@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 export function Logout() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const handleLogout = () => {
     localStorage.removeItem('uid');
@@ -17,7 +19,7 @@ export function Logout() {
       onClick={handleLogout}
       className="w-full justify-start text-muted-foreground"
     >
-      Logout
+      {t('login.logout')}
     </Button>
   );
 }

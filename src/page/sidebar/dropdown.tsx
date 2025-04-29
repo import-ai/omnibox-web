@@ -1,7 +1,8 @@
 import useApp from '@/hooks/use-app';
-import { MoreHorizontal } from 'lucide-react';
-import { SidebarMenuAction } from '@/components/ui/sidebar';
+import { useTranslation } from 'react-i18next';
 import { SpaceType, ResourceType } from '@/interface';
+import { MoreHorizontal, LoaderCircle } from 'lucide-react';
+import { SidebarMenuAction } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,7 @@ export interface IResourceProps {
   spaceType: string;
   activeKey: string;
   expanding: string;
+  editingKey: string;
   expands: Array<string>;
   onActiveKey: (id: string) => void;
   onDelete: (id: string, spaceType: SpaceType) => void;
@@ -28,8 +30,17 @@ export interface IResourceProps {
 }
 
 export default function MainDropdownMenu(props: IResourceProps) {
-  const { data, namespace, activeKey, onActiveKey, onCreate, onDelete } = props;
+  const {
+    data,
+    namespace,
+    activeKey,
+    editingKey,
+    onActiveKey,
+    onCreate,
+    onDelete,
+  } = props;
   const app = useApp();
+  const { t } = useTranslation();
   const hasChildren = data.childCount > 0;
   const handleCreateFile = () => {
     onCreate(namespace, data.spaceType, data.id, 'file');
@@ -62,36 +73,40 @@ export default function MainDropdownMenu(props: IResourceProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <SidebarMenuAction className="right-0">
-          <MoreHorizontal />
+        <SidebarMenuAction className="right-0 focus-visible:outline-none focus-visible:ring-transparent">
+          {data.id === editingKey ? (
+            <LoaderCircle className="transition-transform animate-spin" />
+          ) : (
+            <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent" />
+          )}
         </SidebarMenuAction>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" sideOffset={10}>
         <DropdownMenuItem className="cursor-pointer" onClick={handleCreateFile}>
-          Create File
+          {t('create_file')}
         </DropdownMenuItem>
         <DropdownMenuItem
           className="cursor-pointer"
           onClick={handleCreateFolder}
         >
-          Create Folder
+          {t('create_folder')}
         </DropdownMenuItem>
         <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
-          Edit
+          {t('edit')}
         </DropdownMenuItem>
         {hasChildren && (
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={handleAddAllToChat}
           >
-            Add all to Context
+            {t('add_all_to_context')}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem className="cursor-pointer" onClick={handleAddToChat}>
-          Add it to Context
+          {t('add_it_to_context')}
         </DropdownMenuItem>
         <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
-          Delete
+          {t('delete')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

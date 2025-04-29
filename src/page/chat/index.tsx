@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Markdown } from '@/components/markdown';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslation } from 'react-i18next';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -39,6 +40,7 @@ interface ChatCitationListResponse extends ChatBaseResponse {
 
 export default function Chat() {
   const app = useApp();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [input, setInput] = useState('');
   const [loading, onLoading] = useState(false);
@@ -98,7 +100,7 @@ export default function Chat() {
     }
 
     if (!response.body) {
-      throw new Error('ReadableStream not yet supported in this browser.');
+      throw new Error(t('not_support_readablestream'));
     }
 
     const reader = response.body.getReader();
@@ -143,7 +145,7 @@ export default function Chat() {
             for (let i = 0; i < citationList.length; i++) {
               responseText = responseText.replace(
                 `<cite:${i + 1}>`,
-                `[[${i + 1}]](#/${namespaceId}/${citationList[i].link})`,
+                `[[${i + 1}]](/${citationList[i].link})`,
               );
             }
             localMessages = [
@@ -272,7 +274,7 @@ export default function Chat() {
         ))}
         {data.length > 1 && (
           <Button onClick={() => onData([])} className="rounded-full px-2 h-6">
-            Clear All
+            {t('clear_all')}
           </Button>
         )}
       </div>
@@ -296,7 +298,7 @@ export default function Chat() {
           <div className="flex justify-end mb-1 mr-1">
             {loading ? (
               <Button className="rounded-full" onClick={() => onLoading(false)}>
-                Stop
+                {t('stop')}
               </Button>
             ) : (
               <Button
@@ -304,7 +306,7 @@ export default function Chat() {
                 className="rounded-full"
                 disabled={input.length === 0}
               >
-                Send
+                {t('send')}
               </Button>
             )}
           </div>

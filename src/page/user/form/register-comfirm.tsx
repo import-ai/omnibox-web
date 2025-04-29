@@ -1,9 +1,11 @@
 import * as z from 'zod';
+import i18next from 'i18next';
 import { useState } from 'react';
 import { http } from '@/lib/request';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { initNamespace, createNamespace } from '@/lib/namespace';
@@ -19,25 +21,23 @@ const registerSchema = z
   .object({
     username: z
       .string()
-      .min(2, 'Username must be at least 2 characters')
-      .max(32, 'Username must be at most 32 characters'),
+      .min(2, i18next.t('form.username_min'))
+      .max(32, i18next.t('form.username_max')),
     password: z
       .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        'Password must contain uppercase, lowercase letters, and numbers',
-      ),
+      .min(8, i18next.t('form.password_min'))
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg')),
     password_repeat: z.string(),
   })
   .refine((data) => data.password === data.password_repeat, {
-    message: 'Passwords do not match',
+    message: i18next.t('form.password_mismatch'),
     path: ['password_repeat'],
   });
 
 type TRegisterForm = z.infer<typeof registerSchema>;
 
 export function RegisterComFirmForm() {
+  const { t } = useTranslation();
   const [params] = useSearchParams();
   const token = params.get('token');
   const [isLoading, setIsLoading] = useState(false);
@@ -75,7 +75,7 @@ export function RegisterComFirmForm() {
   if (!token) {
     return (
       <div className="text-center text-sm">
-        <p>Invalid request parameters</p>
+        <p>{t('form.invalid_request')}</p>
       </div>
     );
   }
@@ -89,7 +89,11 @@ export function RegisterComFirmForm() {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input placeholder="Username" {...field} disabled={isLoading} />
+                <Input
+                  placeholder={t('username')}
+                  {...field}
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -104,7 +108,7 @@ export function RegisterComFirmForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder="Password"
+                  placeholder={t('password')}
                   {...field}
                   disabled={isLoading}
                 />
@@ -122,7 +126,7 @@ export function RegisterComFirmForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder="Confirm Password"
+                  placeholder={t('confirm_password')}
                   {...field}
                   disabled={isLoading}
                 />
@@ -132,7 +136,7 @@ export function RegisterComFirmForm() {
           )}
         />
         <Button type="submit" className="w-full" loading={isLoading}>
-          Register
+          {t('register.submit')}
         </Button>
       </form>
     </Form>

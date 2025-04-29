@@ -30,6 +30,7 @@ export default function MainSidebar() {
   const namespace = getNamespace().id;
   const resourceId = params.resourceId || '';
   const [expanding, onExpanding] = useState('');
+  const [editingKey, onEditingKey] = useState('');
   const [expands, onExpands] = useState<Array<string>>([]);
   const [data, onData] = useState<{
     [index: string]: IResourceData;
@@ -78,12 +79,18 @@ export default function MainSidebar() {
       });
   };
   const handleDelete = (id: string, spaceType: SpaceType) => {
-    http.delete(`/${baseUrl}/${id}`).then(() => {
-      data[spaceType].children = data[spaceType].children.filter(
-        (node) => ![node.id, node.parentId].includes(id),
-      );
-      onData({ ...data });
-    });
+    onEditingKey(id);
+    http
+      .delete(`/${baseUrl}/${id}`)
+      .then(() => {
+        data[spaceType].children = data[spaceType].children.filter(
+          (node) => ![node.id, node.parentId].includes(id),
+        );
+        onData({ ...data });
+      })
+      .finally(() => {
+        onEditingKey('');
+      });
   };
   const handleCreate = (
     namespace: string,
@@ -91,6 +98,7 @@ export default function MainSidebar() {
     parentId: string,
     resourceType: ResourceType,
   ) => {
+    onEditingKey(parentId);
     http
       .post(`/${baseUrl}`, { namespace, spaceType, parentId, resourceType })
       .then((response: Resource) => {
@@ -115,6 +123,9 @@ export default function MainSidebar() {
           onExpands([...expands, parentId]);
         }
         handleActiveKey(response.id);
+      })
+      .finally(() => {
+        onEditingKey('');
       });
   };
 
@@ -149,11 +160,16 @@ export default function MainSidebar() {
       return;
     });
     if (node && node.id) {
+      app.fire('resource_children', true);
       navigate(`/${node.id}`);
     }
   }, [resourceId, data]);
 
   useEffect(() => {
+    // 未登陆不请求数据
+    if (!localStorage.getItem('uid')) {
+      return;
+    }
     Promise.all(
       spaceTypes.map((spaceType) =>
         http.get(`/${baseUrl}/root`, { params: { namespace, spaceType } }),
@@ -182,6 +198,7 @@ export default function MainSidebar() {
               expanding={expanding}
               activeKey={resourceId}
               spaceType={spaceType}
+              editingKey={editingKey}
               namespace={namespace}
               onExpand={handleExpand}
               onDelete={handleDelete}
