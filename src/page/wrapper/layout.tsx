@@ -29,7 +29,11 @@ export default function Layout(props: IProps) {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbPage className="line-clamp-1">
-                  {resource ? resource.name : t('untitled')}
+                  {resource && resource.name
+                    ? resource.name === 'loading'
+                      ? ''
+                      : resource.name
+                    : t('untitled')}
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>

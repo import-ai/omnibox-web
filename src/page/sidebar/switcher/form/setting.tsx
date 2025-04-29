@@ -1,8 +1,8 @@
 import * as z from 'zod';
 import i18next from 'i18next';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +28,8 @@ type FormValues = z.infer<typeof FormSchema>;
 
 export default function SettingForm() {
   const { t } = useTranslation();
-  const { app, loading, data, onChange } = useNamespace();
+  const [loading, onLoading] = useState(false);
+  const { app, data, onChange } = useNamespace();
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -36,10 +37,15 @@ export default function SettingForm() {
     },
   });
   const handleSubmit = (data: FormValues) => {
-    onChange(data).then(() => {
-      app.fire('namespaces_refetch');
-      toast(t('namespace.success'));
-    });
+    onLoading(true);
+    onChange(data)
+      .then(() => {
+        app.fire('namespaces_refetch');
+        toast(t('namespace.success'));
+      })
+      .finally(() => {
+        onLoading(false);
+      });
   };
 
   useEffect(() => {

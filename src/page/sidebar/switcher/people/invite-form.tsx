@@ -75,7 +75,7 @@ export default function InviteForm(props: IProps) {
       .post('invite', {
         ...data,
         namespace: namespaceId,
-        inviteUrl: `${location.origin}/user/invite/comfirm`,
+        inviteUrl: `${location.origin}/invite/comfirm`,
         registerUrl: `${location.origin}/user/sign-up/comfirm`,
       })
       .then(() => {

@@ -9,12 +9,12 @@ export default function Layout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (loc.pathname.startsWith('/user/')) {
-      return;
-    }
     if (localStorage.getItem('uid')) {
       initNamespace().then((returnValue) => {
         if (!isBoolean(returnValue)) {
+          if (loc.pathname.startsWith('/user/')) {
+            navigate('/', { replace: true });
+          }
           return;
         }
         if (returnValue) {
@@ -24,6 +24,9 @@ export default function Layout() {
         }
       });
     } else {
+      if (loc.pathname.startsWith('/user/')) {
+        return;
+      }
       navigate(`/user/login?redirect=${encodeURIComponent(location.href)}`, {
         replace: true,
       });
