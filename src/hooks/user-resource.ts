@@ -30,8 +30,8 @@ export default function useResource() {
     if (resourceId === 'chat') {
       onResource({
         id: 'chat',
-        parentId: '',
         name: t('chat'),
+        parentId: '',
         resourceType: 'doc',
         spaceType: 'private',
         childCount: 0,
@@ -39,6 +39,16 @@ export default function useResource() {
       });
       return;
     }
+    // 加载中
+    onResource({
+      id: '--',
+      name: 'loading',
+      parentId: '',
+      resourceType: 'doc',
+      spaceType: 'private',
+      childCount: 0,
+      namespace: { id: '--' },
+    });
     http.get(`/resources/${resourceId}`).then(onResource);
   }, [resourceId]);
 

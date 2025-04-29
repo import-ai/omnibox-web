@@ -70,6 +70,7 @@ export function LoginForm({
         localStorage.setItem('uid', response.id);
         localStorage.setItem('token', response.access_token);
         initNamespace().then((returnValue) => {
+          setIsLoading(false);
           if (returnValue) {
             if (redirect) {
               location.href = decodeURIComponent(redirect);
@@ -81,7 +82,7 @@ export function LoginForm({
           }
         });
       })
-      .finally(() => {
+      .catch(() => {
         setIsLoading(false);
       });
   };

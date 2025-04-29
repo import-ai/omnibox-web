@@ -1,9 +1,9 @@
 import * as z from 'zod';
 import i18next from 'i18next';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
 import useUser from '@/hooks/use-user';
 import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
@@ -68,7 +68,8 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfileForm() {
   const { t } = useTranslation();
-  const { user, loading, onChange } = useUser();
+  const { user, onChange } = useUser();
+  const [loading, onLoading] = useState(false);
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -85,8 +86,11 @@ export default function ProfileForm() {
         return;
       }
     }
+    onLoading(true);
     onChange(data, () => {
       toast.success(t('profile.success'), { position: 'top-center' });
+    }).finally(() => {
+      onLoading(false);
     });
   };
 

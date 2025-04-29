@@ -16,19 +16,23 @@ export default class App extends Hook {
     if (cache) {
       this.theme = JSON.parse(cache);
     }
-    this.applyTheme();
+    this.applyTheme(this.theme.skin);
   }
 
-  applyTheme() {
-    const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    let className = this.theme.skin;
-    if (className === 'system') {
-      className = window.matchMedia('(prefers-color-scheme: dark)').matches
+  applyTheme(skin: 'light' | 'system' | 'dark') {
+    let state = skin;
+    if (skin === 'system') {
+      state = window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : 'light';
     }
-    root.classList.add(className);
+    this.theme.skin = state;
+    // @ts-ignore
+    this.theme.content = state;
+    this.theme.code = state === 'dark' ? 'github-dark' : 'github';
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(state);
+    return this.theme;
   }
 
   getTheme() {
@@ -36,17 +40,10 @@ export default class App extends Hook {
   }
 
   toggleTheme(): Theme {
-    let state: Theme['skin'] = this.theme.skin === 'dark' ? 'light' : 'dark';
-    if (this.theme.skin === 'system') {
-      state = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'light'
-        : 'dark';
-    }
-    this.theme.skin = state;
-    this.theme.content = state;
-    this.theme.code = state === 'dark' ? 'github-dark' : 'github';
+    const theme = this.applyTheme(
+      this.theme.skin === 'dark' ? 'light' : 'dark',
+    );
     localStorage.setItem('theme', JSON.stringify(this.theme));
-    this.applyTheme();
-    return this.theme;
+    return theme;
   }
 }

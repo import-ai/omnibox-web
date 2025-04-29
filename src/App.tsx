@@ -41,7 +41,7 @@ const router = createBrowserRouter([
         element: <PasswordComFirmPage />,
       },
       {
-        path: 'user/invite/comfirm',
+        path: 'invite/comfirm',
         element: <InvitePage />,
       },
       {
