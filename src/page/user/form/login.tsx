@@ -3,6 +3,7 @@ import i18next from 'i18next';
 import { cn } from '@/lib/utils';
 import { http } from '@/lib/request';
 import Space from '@/components/space';
+import extension from '@/lib/extension';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Mail, Lock } from 'lucide-react';
@@ -75,7 +76,11 @@ export function LoginForm({
             if (redirect) {
               location.href = decodeURIComponent(redirect);
             } else {
-              navigate('/', { replace: true });
+              extension().then((val) => {
+                if (val) {
+                  navigate('/', { replace: true });
+                }
+              });
             }
           } else {
             navigate('/user/login', { replace: true });

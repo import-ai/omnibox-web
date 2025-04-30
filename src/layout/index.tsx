@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { Toaster } from '@/components/ui/sonner';
+import extension from '@/lib/extension';
 import { initNamespace } from '@/lib/namespace';
+import { Toaster } from '@/components/ui/sonner';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { isBoolean } from 'lodash-es';
 
@@ -13,7 +14,11 @@ export default function Layout() {
       initNamespace().then((returnValue) => {
         if (!isBoolean(returnValue)) {
           if (loc.pathname.startsWith('/user/')) {
-            navigate('/', { replace: true });
+            extension().then((val) => {
+              if (val) {
+                navigate('/', { replace: true });
+              }
+            });
           }
           return;
         }
