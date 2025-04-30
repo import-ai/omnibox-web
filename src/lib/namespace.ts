@@ -41,22 +41,7 @@ export function initNamespace() {
 
 export function createNamespace(name: string) {
   return http.post('namespaces', { name }).then((data) => {
-    const rootParams = {
-      resourceType: 'folder',
-      namespace: data.id,
-    };
-    return Promise.all([
-      http.post('resources', {
-        ...rootParams,
-        spaceType: 'private',
-      }),
-      http.post('resources', {
-        ...rootParams,
-        spaceType: 'teamspace',
-      }),
-    ]).then(() => {
-      localStorage.setItem('namespace', JSON.stringify(data));
-      return Promise.resolve(data);
-    });
+    localStorage.setItem('namespace', JSON.stringify(data));
+    return Promise.resolve(data);
   });
 }
