@@ -44,7 +44,7 @@ export default function Space(props: IProps) {
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => {
-                onCreate(namespace, spaceType, data.id, 'file');
+                onCreate(namespace, spaceType, data.id, 'doc');
               }}
             >
               {t('create_file')}
