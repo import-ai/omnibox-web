@@ -5,15 +5,15 @@ import group from '@/lib/group';
 import useApp from '@/hooks/use-app';
 import { Switcher } from './switcher';
 import { http } from '@/lib/request';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getNamespace } from '@/lib/namespace';
-import { useParams, useNavigate } from 'react-router-dom';
-import { SpaceType, Resource, ResourceType, IResourceData } from '@/interface';
+import { useNavigate, useParams } from 'react-router-dom';
+import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
 import {
   Sidebar,
-  SidebarRail,
-  SidebarHeader,
   SidebarContent,
+  SidebarHeader,
+  SidebarRail,
 } from '@/components/ui/sidebar';
 
 const baseUrl = 'resources';
@@ -100,7 +100,12 @@ export default function MainSidebar() {
   ) => {
     onEditingKey(parentId);
     http
-      .post(`/${baseUrl}`, { namespace, spaceType, parentId, resourceType })
+      .post(`/${baseUrl}`, {
+        namespaceId: namespace,
+        spaceType,
+        parentId,
+        resourceType,
+      })
       .then((response: Resource) => {
         if (!data[spaceType]) {
           data[spaceType] = { ...response, children: [] };
@@ -172,7 +177,9 @@ export default function MainSidebar() {
     }
     Promise.all(
       spaceTypes.map((spaceType) =>
-        http.get(`/${baseUrl}/root`, { params: { namespace, spaceType } }),
+        http.get(`/${baseUrl}/root`, {
+          params: { namespace_id: namespace, space_type: spaceType },
+        }),
       ),
     ).then((response) => {
       const state: IData = {};

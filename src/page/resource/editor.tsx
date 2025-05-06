@@ -32,7 +32,7 @@ export default function Editor(props: IProps) {
         .patch(`/resources/${resource.id}`, {
           name,
           content,
-          namespace: resource.namespace.id,
+          namespaceId: resource.namespace.id,
         })
         .then((delta: Resource) => {
           app.fire('resource_update', delta);

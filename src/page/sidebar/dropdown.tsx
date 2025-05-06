@@ -43,7 +43,7 @@ export default function MainDropdownMenu(props: IResourceProps) {
   const { t } = useTranslation();
   const hasChildren = data.childCount > 0;
   const handleCreateFile = () => {
-    onCreate(namespace, data.spaceType, data.id, 'file');
+    onCreate(namespace, data.spaceType, data.id, 'doc');
   };
   const handleCreateFolder = () => {
     onCreate(namespace, data.spaceType, data.id, 'folder');
