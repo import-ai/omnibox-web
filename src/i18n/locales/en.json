@@ -22,7 +22,7 @@
     "unauthorized": "Unauthorized",
     "forbidden": "Forbidden",
     "not_found": "Not Found",
-    "internal_server_error": "Method Not Allowed",
+    "internal_server_error": "Internal server error",
     "unknown_error": "Not Acceptable",
     "failed": "Request Failed, Please Try Again Later"
   },

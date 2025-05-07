@@ -88,7 +88,7 @@ export function RegisterComFirmForm() {
             <FormItem>
               <FormControl>
                 <Input
-                  placeholder={t('username')}
+                  placeholder={t('form.username')}
                   {...field}
                   disabled={isLoading}
                 />
@@ -106,7 +106,7 @@ export function RegisterComFirmForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder={t('password')}
+                  placeholder={t('form.password')}
                   {...field}
                   disabled={isLoading}
                 />
@@ -124,7 +124,7 @@ export function RegisterComFirmForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder={t('confirm_password')}
+                  placeholder={t('form.confirm_password')}
                   {...field}
                   disabled={isLoading}
                 />

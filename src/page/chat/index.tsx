@@ -233,33 +233,7 @@ export default function Chat() {
                 className="ml-1 cursor-pointer"
                 onClick={() => navigate(`/${resource.id}`)}
               >
-                <div className="mr-2 flex items-center text-sm">
-                  {type === 'parent' ? (
-                    <Folder className="w-4 h-4" />
-                  ) : (
-                    <File className="w-4 h-4" />
-                  )}
-                  <div
-                    className="ml-1 cursor-pointer"
-                    onClick={() => {
-                      app.fire('resource', resource);
-                      app.fire('resource_wrapper', false);
-                      app.fire('resource_children', true);
-                    }}
-                  >
-                    {resource.name || 'Untitled'}
-                  </div>
-                </div>
-                <button
-                  className="focus:outline-none"
-                  onClick={() => {
-                    onData(
-                      data.filter((item) => item.resource.id !== resource.id),
-                    );
-                  }}
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                {resource.name || t('untitled')}
               </div>
             </div>
             <button

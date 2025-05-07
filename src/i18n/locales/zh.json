@@ -22,7 +22,7 @@
     "unauthorized": "未授权",
     "forbidden": "禁止访问",
     "not_found": "未找到",
-    "internal_server_error": "方法不允许",
+    "internal_server_error": "内部服务器错误",
     "unknown_error": "不可接受",
     "failed": "请求失败，请稍后重试"
   },
