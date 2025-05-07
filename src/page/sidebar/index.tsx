@@ -83,10 +83,34 @@ export default function MainSidebar() {
     http
       .delete(`/${baseUrl}/${id}`)
       .then(() => {
+        let activeKey = '';
+        const index = data[spaceType].children.findIndex(
+          (node: Resource) => node.id === id,
+        );
+        if (index > 0) {
+          activeKey = data[spaceType].children[index - 1].id;
+        } else {
+          const next = data[spaceType].children[index + 1];
+          if (next) {
+            activeKey = next.id;
+          } else {
+            const parent = data[spaceType].children.find(
+              (node: Resource) =>
+                node.id === data[spaceType].children[index].parentId,
+            );
+            if (parent) {
+              activeKey = parent.id;
+            }
+          }
+        }
         data[spaceType].children = data[spaceType].children.filter(
           (node) => ![node.id, node.parentId].includes(id),
         );
         onData({ ...data });
+        if (activeKey) {
+          app.fire('resource_children', true);
+          navigate(`/${activeKey}`);
+        }
       })
       .finally(() => {
         onEditingKey('');
