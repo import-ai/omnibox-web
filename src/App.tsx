@@ -45,7 +45,7 @@ const router = createBrowserRouter([
         element: <InvitePage />,
       },
       {
-        path: ':resourceId?',
+        path: ':resource_id?',
         element: <AppPage />,
       },
     ],

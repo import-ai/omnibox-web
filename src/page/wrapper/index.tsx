@@ -3,7 +3,7 @@ import Resource from '@/page/resource';
 import { IUseResource } from '@/hooks/user-resource';
 
 export default function App(props: IUseResource) {
-  if (props.resourceId === 'chat') {
+  if (props.resource_id === 'chat') {
     return <Chat />;
   }
 

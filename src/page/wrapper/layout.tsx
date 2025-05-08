@@ -17,7 +17,7 @@ interface IProps {
 export default function Layout(props: IProps) {
   const { children } = props;
   const { t } = useTranslation();
-  const { app, resource, resourceId } = useResource();
+  const { app, resource, resource_id } = useResource();
 
   return (
     <SidebarInset>
@@ -40,12 +40,12 @@ export default function Layout(props: IProps) {
           </Breadcrumb>
         </div>
         <div className="ml-auto px-3">
-          <Actions app={app} resource={resource} resourceId={resourceId} />
+          <Actions app={app} resource={resource} resource_id={resource_id} />
         </div>
       </header>
       <div className="flex justify-center h-full p-4">
         <div className="flex flex-col h-full max-w-3xl w-full">
-          {children({ app, resource, resourceId })}
+          {children({ app, resource, resource_id })}
         </div>
       </div>
     </SidebarInset>

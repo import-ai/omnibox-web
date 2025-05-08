@@ -13,19 +13,19 @@ import {
 export interface IResourceProps {
   data: any;
   namespace: string;
-  spaceType: string;
+  space_type: string;
   activeKey: string;
   expanding: string;
   editingKey: string;
   expands: Array<string>;
   onActiveKey: (id: string) => void;
-  onDelete: (id: string, spaceType: SpaceType) => void;
-  onExpand: (id: string, spaceType: SpaceType) => void;
+  onDelete: (id: string, space_type: SpaceType) => void;
+  onExpand: (id: string, space_type: SpaceType) => void;
   onCreate: (
     namespace: string,
-    spaceType: string,
-    parentId: string,
-    resourceType: ResourceType,
+    space_type: string,
+    parent_id: string,
+    resource_type: ResourceType,
   ) => void;
 }
 
@@ -41,12 +41,12 @@ export default function MainDropdownMenu(props: IResourceProps) {
   } = props;
   const app = useApp();
   const { t } = useTranslation();
-  const hasChildren = data.childCount > 0;
+  const hasChildren = data.child_count > 0;
   const handleCreateFile = () => {
-    onCreate(namespace, data.spaceType, data.id, 'doc');
+    onCreate(namespace, data.space_type, data.id, 'doc');
   };
   const handleCreateFolder = () => {
-    onCreate(namespace, data.spaceType, data.id, 'folder');
+    onCreate(namespace, data.space_type, data.id, 'folder');
   };
   const handleEdit = () => {
     onActiveKey(data.id);
@@ -67,7 +67,7 @@ export default function MainDropdownMenu(props: IResourceProps) {
     app.fire('context', data, 'parent');
   };
   const handleDelete = () => {
-    onDelete(data.id, data.spaceType);
+    onDelete(data.id, data.space_type);
   };
 
   return (

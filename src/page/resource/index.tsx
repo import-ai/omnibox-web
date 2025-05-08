@@ -8,7 +8,7 @@ import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
 
 export default function ResourcePage(props: IUseResource) {
-  const { app, resource, resourceId } = props;
+  const { app, resource, resource_id } = props;
   const { t } = useTranslation();
   const [open, onOpen] = useState(true);
 
@@ -38,5 +38,5 @@ export default function ResourcePage(props: IUseResource) {
     );
   }
 
-  return <Editor app={app} resource={resource} resourceId={resourceId} />;
+  return <Editor app={app} resource={resource} resource_id={resource_id} />;
 }
