@@ -8,7 +8,6 @@ export function Logout() {
   const handleLogout = () => {
     localStorage.removeItem('uid');
     localStorage.removeItem('token');
-    localStorage.removeItem('namespace');
     navigate('/user/login', { replace: true });
   };
 

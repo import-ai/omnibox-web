@@ -1,7 +1,6 @@
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/button';
-import { initNamespace } from '@/lib/namespace';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -25,13 +24,7 @@ export function InviteForm() {
     http
       .post('invite/confirm', { token })
       .then(() => {
-        initNamespace().then((returnValue) => {
-          if (returnValue) {
-            navigate('/', { replace: true });
-          } else {
-            navigate('/user/login', { replace: true });
-          }
-        });
+        navigate('/', { replace: true });
       })
       .finally(() => {
         setIsLoading(false);

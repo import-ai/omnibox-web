@@ -19,7 +19,7 @@ export interface IResourceProps {
   editingKey: string;
   expands: Array<string>;
   onActiveKey: (id: string) => void;
-  onDelete: (id: string, space_type: SpaceType) => void;
+  onDelete: (id: string, space_type: SpaceType, parent_id: string) => void;
   onExpand: (id: string, space_type: SpaceType) => void;
   onCreate: (
     namespace: string,
@@ -57,17 +57,25 @@ export default function MainDropdownMenu(props: IResourceProps) {
   const handleAddToChat = () => {
     if (activeKey !== 'chat') {
       onActiveKey('chat');
+      setTimeout(() => {
+        app.fire('context', data, 'resource');
+      }, 100);
+    } else {
+      app.fire('context', data, 'resource');
     }
-    app.fire('context', data, 'resource');
   };
   const handleAddAllToChat = () => {
     if (activeKey !== 'chat') {
       onActiveKey('chat');
+      setTimeout(() => {
+        app.fire('context', data, 'parent');
+      }, 100);
+    } else {
+      app.fire('context', data, 'parent');
     }
-    app.fire('context', data, 'parent');
   };
   const handleDelete = () => {
-    onDelete(data.id, data.space_type);
+    onDelete(data.id, data.space_type, data.parent_id);
   };
 
   return (

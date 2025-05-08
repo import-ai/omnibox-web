@@ -49,6 +49,7 @@ export default function SettingForm() {
   };
 
   useEffect(() => {
+    console.log(123);
     if (!data.id) {
       return;
     }

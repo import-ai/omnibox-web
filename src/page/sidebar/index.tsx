@@ -2,12 +2,12 @@ import Space from './space';
 import each from '@/lib/each';
 import { NavMain } from './main';
 import group from '@/lib/group';
+import { orderBy } from 'lodash-es';
 import useApp from '@/hooks/use-app';
 import { Switcher } from './switcher';
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
-import { getNamespace } from '@/lib/namespace';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
 import {
   Sidebar,
@@ -26,9 +26,11 @@ interface IData {
 export default function MainSidebar() {
   const app = useApp();
   const params = useParams();
+  const loc = useLocation();
   const navigate = useNavigate();
-  const namespace = getNamespace().id;
+  const chatPage = loc.pathname.endsWith('chat');
   const resource_id = params.resource_id || '';
+  const namespace_id = params.namespace_id || '';
   const [expanding, onExpanding] = useState('');
   const [editingKey, onEditingKey] = useState('');
   const [expands, onExpands] = useState<Array<string>>([]);
@@ -36,7 +38,7 @@ export default function MainSidebar() {
     [index: string]: IResourceData;
   }>({});
   const handleActiveKey = (id: string) => {
-    navigate(`/${id}`);
+    navigate(`/${namespace_id}/${id}`);
   };
   const handleExpand = (id: string, space_type: SpaceType) => {
     let match = false;
@@ -63,7 +65,11 @@ export default function MainSidebar() {
     onExpanding(id);
     http
       .get(`/${baseUrl}/query`, {
-        params: { namespace, space_type, parentId: id },
+        params: {
+          namespace: namespace_id,
+          spaceType: space_type,
+          parentId: id,
+        },
       })
       .then((response) => {
         each(response, (item) => {
@@ -78,28 +84,30 @@ export default function MainSidebar() {
         onExpanding('');
       });
   };
-  const handleDelete = (id: string, space_type: SpaceType) => {
+  const handleDelete = (
+    id: string,
+    space_type: SpaceType,
+    parent_id: string,
+  ) => {
     onEditingKey(id);
     http
       .delete(`/${baseUrl}/${id}`)
       .then(() => {
-        let activeKey = '';
-        const index = data[space_type].children.findIndex(
-          (node: Resource) => node.id === id,
+        let activeKey = 'chat';
+        const items = data[space_type].children.filter(
+          (node) => node.parent_id === parent_id,
         );
-        if (index > 0) {
-          activeKey = data[space_type].children[index - 1].id;
-        } else {
-          const next = data[space_type].children[index + 1];
-          if (next) {
-            activeKey = next.id;
+        if (items.length > 0) {
+          const itemsOrder = orderBy(items, ['updated_at'], ['desc']);
+          const index = itemsOrder.findIndex(
+            (node: Resource) => node.id === id,
+          );
+          if (index > 0) {
+            activeKey = itemsOrder[index - 1].id;
           } else {
-            const parent = data[space_type].children.find(
-              (node: Resource) =>
-                node.id === data[space_type].children[index].parent_id,
-            );
-            if (parent) {
-              activeKey = parent.id;
+            const next = itemsOrder[index + 1];
+            if (next) {
+              activeKey = next.id;
             }
           }
         }
@@ -109,7 +117,7 @@ export default function MainSidebar() {
         onData({ ...data });
         if (activeKey) {
           app.fire('resource_children', true);
-          navigate(`/${activeKey}`);
+          navigate(`/${namespace_id}/${activeKey}`);
         }
       })
       .finally(() => {
@@ -177,7 +185,7 @@ export default function MainSidebar() {
   }, [data]);
 
   useEffect(() => {
-    if (resource_id) {
+    if (resource_id || chatPage) {
       return;
     }
     let node: any = null;
@@ -190,9 +198,9 @@ export default function MainSidebar() {
     });
     if (node && node.id) {
       app.fire('resource_children', true);
-      navigate(`/${node.id}`);
+      navigate(`/${namespace_id}/${node.id}`);
     }
-  }, [resource_id, data]);
+  }, [chatPage, namespace_id, resource_id, data]);
 
   useEffect(() => {
     // 未登陆不请求数据
@@ -202,7 +210,7 @@ export default function MainSidebar() {
     Promise.all(
       spaceTypes.map((space_type) =>
         http.get(`/${baseUrl}/root`, {
-          params: { namespace_id: namespace, space_type: space_type },
+          params: { namespace_id: namespace_id, space_type: space_type },
         }),
       ),
     ).then((response) => {
@@ -212,16 +220,13 @@ export default function MainSidebar() {
       });
       onData(state);
     });
-  }, [namespace]);
+  }, [namespace_id]);
 
   return (
     <Sidebar>
       <SidebarHeader>
-        <Switcher namespace={namespace} />
-        <NavMain
-          active={resource_id === 'chat'}
-          onActiveKey={handleActiveKey}
-        />
+        <Switcher namespace={namespace_id} />
+        <NavMain active={chatPage} onActiveKey={handleActiveKey} />
       </SidebarHeader>
       <SidebarContent>
         {spaceTypes.map((space_type: string) => {
@@ -233,7 +238,7 @@ export default function MainSidebar() {
               activeKey={resource_id}
               space_type={space_type}
               editingKey={editingKey}
-              namespace={namespace}
+              namespace={namespace_id}
               onExpand={handleExpand}
               onDelete={handleDelete}
               onCreate={handleCreate}

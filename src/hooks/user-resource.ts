@@ -4,7 +4,6 @@ import { http } from '@/lib/request';
 import { Resource } from '@/interface';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 
 export interface IUseResource {
   app: App;
@@ -15,7 +14,6 @@ export interface IUseResource {
 export default function useResource() {
   const app = useApp();
   const params = useParams();
-  const { t } = useTranslation();
   const resource_id = params.resource_id || '';
   const [resource, onResource] = useState<Resource | null>(null);
 
@@ -25,18 +23,6 @@ export default function useResource() {
 
   useEffect(() => {
     if (!resource_id) {
-      return;
-    }
-    if (resource_id === 'chat') {
-      onResource({
-        id: 'chat',
-        name: t('chat'),
-        parent_id: '',
-        resource_type: 'doc',
-        space_type: 'private',
-        child_count: 0,
-        namespace: { id: '--' },
-      });
       return;
     }
     // 加载中

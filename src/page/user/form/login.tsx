@@ -10,7 +10,6 @@ import { Mail, Lock } from 'lucide-react';
 import { Input } from '@/components/input';
 import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
-import { initNamespace } from '@/lib/namespace';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -70,22 +69,15 @@ export function LoginForm({
       .then((response) => {
         localStorage.setItem('uid', response.id);
         localStorage.setItem('token', response.access_token);
-        initNamespace().then((returnValue) => {
-          setIsLoading(false);
-          if (returnValue) {
-            if (redirect) {
-              location.href = decodeURIComponent(redirect);
-            } else {
-              extension().then((val) => {
-                if (val) {
-                  navigate('/', { replace: true });
-                }
-              });
+        if (redirect) {
+          location.href = decodeURIComponent(redirect);
+        } else {
+          extension().then((val) => {
+            if (val) {
+              navigate('/', { replace: true });
             }
-          } else {
-            navigate('/user/login', { replace: true });
-          }
-        });
+          });
+        }
       })
       .catch(() => {
         setIsLoading(false);

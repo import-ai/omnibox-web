@@ -5,9 +5,11 @@ import { lazy, Suspense } from 'react';
 import AppContext from '@/hooks/app-context';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-const AppPage = lazy(() => import('@/page/app'));
+const ChatPage = lazy(() => import('@/page/chat'));
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/invite'));
+const ResourcePage = lazy(() => import('@/page/resource'));
+const NamespacePage = lazy(() => import('@/page/namespace'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
 const PasswordComFirmPage = lazy(() => import('@/page/user/password-comfirm'));
@@ -45,8 +47,18 @@ const router = createBrowserRouter([
         element: <InvitePage />,
       },
       {
-        path: ':resource_id?',
-        element: <AppPage />,
+        path: ':namespace_id',
+        element: <NamespacePage />,
+        children: [
+          {
+            path: 'chat',
+            element: <ChatPage />,
+          },
+          {
+            path: ':resource_id?',
+            element: <ResourcePage />,
+          },
+        ],
       },
     ],
   },
