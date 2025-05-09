@@ -48,3 +48,10 @@ export interface Resource extends IBase {
 export interface IResourceData extends Resource {
   children: Array<IResourceData>;
 }
+
+export type Role = 'owner' | 'member';
+
+export interface NamespaceMember {
+  email: string;
+  role: Role;
+}
