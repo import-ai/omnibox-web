@@ -1,5 +1,6 @@
 import Space from './space';
 import each from '@/lib/each';
+import { toast } from 'sonner';
 import { NavMain } from './main';
 import group from '@/lib/group';
 import { orderBy } from 'lodash-es';
@@ -165,6 +166,54 @@ export default function MainSidebar() {
         onEditingKey('');
       });
   };
+  const handleUpload = (
+    namespace_id: string,
+    space_type: string,
+    parent_id: string,
+    file: File,
+  ) => {
+    onEditingKey(parent_id);
+    const formData = new FormData();
+    formData.append('parent_id', parent_id);
+    formData.append('namespace_id', namespace_id);
+    formData.append('file', file);
+    return http
+      .post(`/namespaces/${namespace_id}/resources/files`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then((response) => {
+        if (!data[space_type]) {
+          data[space_type] = { ...response, children: [] };
+        } else {
+          if (!Array.isArray(data[space_type].children)) {
+            data[space_type].children = [];
+          }
+          const index = data[space_type].children.findIndex(
+            (item) => item.id === parent_id,
+          );
+          if (index >= 0) {
+            data[space_type].children[index].child_count += 1;
+          } else {
+            data[space_type].child_count += 1;
+          }
+          data[space_type].children.push({ ...response, children: [] });
+        }
+        onData({ ...data });
+        if (!expands.includes(parent_id)) {
+          onExpands([...expands, parent_id]);
+        }
+        handleActiveKey(response.id);
+        onEditingKey('');
+      })
+      .catch((err) => {
+        toast(err && err.message ? err.message : err, {
+          position: 'top-center',
+        });
+        onEditingKey('');
+      });
+  };
 
   useEffect(() => {
     return app.on('resource_update', (delta: Resource) => {
@@ -225,7 +274,7 @@ export default function MainSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <Switcher namespace={namespace_id} />
+        <Switcher namespace_id={namespace_id} />
         <NavMain active={chatPage} onActiveKey={handleActiveKey} />
       </SidebarHeader>
       <SidebarContent>
@@ -238,10 +287,11 @@ export default function MainSidebar() {
               activeKey={resource_id}
               space_type={space_type}
               editingKey={editingKey}
-              namespace={namespace_id}
+              namespace_id={namespace_id}
               onExpand={handleExpand}
               onDelete={handleDelete}
               onCreate={handleCreate}
+              onUpload={handleUpload}
               onActiveKey={handleActiveKey}
               data={group(data[space_type])}
             />

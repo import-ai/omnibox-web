@@ -25,15 +25,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface IProps {
-  namespace: string;
+  namespace_id: string;
 }
 
 export function Switcher(props: IProps) {
-  const { namespace } = props;
+  const { namespace_id } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { app, data } = useNamespace();
-  const current = data.find((item) => item.id === namespace) || { name: '--' };
+  const current = data.find((item) => item.id === namespace_id) || {
+    name: '--',
+  };
 
   return (
     <SidebarMenu>
@@ -78,12 +80,12 @@ export function Switcher(props: IProps) {
             {data.map((item, index) => (
               <DropdownMenuItem
                 key={item.id}
-                disabled={item.id === namespace}
+                disabled={item.id === namespace_id}
                 className={cn('gap-2 p-2', {
-                  'cursor-pointer': item.id !== namespace,
+                  'cursor-pointer': item.id !== namespace_id,
                 })}
                 onClick={() => {
-                  if (item.id === namespace) {
+                  if (item.id === namespace_id) {
                     return;
                   }
                   app.fire('context_clear');
