@@ -32,7 +32,7 @@ export function Switcher(props: IProps) {
   const { namespace } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data } = useNamespace();
+  const { app, data } = useNamespace();
   const current = data.find((item) => item.id === namespace) || { name: '--' };
 
   return (
@@ -86,8 +86,8 @@ export function Switcher(props: IProps) {
                   if (item.id === namespace) {
                     return;
                   }
-                  localStorage.setItem('namespace', JSON.stringify(item));
-                  navigate('/chat');
+                  app.fire('context_clear');
+                  navigate(`/${item.id}/chat`);
                 }}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">

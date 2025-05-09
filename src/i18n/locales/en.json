@@ -59,7 +59,8 @@
     "email": "Email",
     "email_invalid": "Please enter a valid email address",
     "email_limit": "Only Gmail, Outlook, 163, and QQ emails are allowed",
-    "email_limit_rule": "Email must be from Gmail, Outlook, 163, or QQ"
+    "email_limit_rule": "Email must be from Gmail, Outlook, 163, or QQ",
+    "role": "Role"
   },
   "invite": {
     "title": "Add members via invite link",

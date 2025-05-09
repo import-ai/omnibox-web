@@ -19,12 +19,12 @@ export default function group(node: IResourceData) {
   });
   node.children.forEach((item) => {
     const currentNode = nodeMap.get(item.id)!;
-    const parentId = item.parentId;
+    const parent_id = item.parent_id;
 
-    if (parentId === node.id) {
+    if (parent_id === node.id) {
       roots.children.push(currentNode);
     } else {
-      const parentNode = nodeMap.get(parentId)!;
+      const parentNode = nodeMap.get(parent_id)!;
       parentNode.children.push(currentNode);
     }
   });
@@ -37,7 +37,7 @@ export default function group(node: IResourceData) {
 
     currentNode.children = orderBy(
       currentNode.children,
-      ['updatedAt'],
+      ['updated_at'],
       ['desc'],
     );
 
@@ -47,6 +47,6 @@ export default function group(node: IResourceData) {
   // 最后排序根节点
   return {
     ...roots,
-    children: orderBy(roots.children, ['updatedAt'], ['desc']),
+    children: orderBy(roots.children, ['updated_at'], ['desc']),
   };
 }

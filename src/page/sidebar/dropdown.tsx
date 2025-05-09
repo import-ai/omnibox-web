@@ -17,19 +17,19 @@ import {
 export interface IResourceProps {
   data: any;
   namespace: string;
-  spaceType: string;
+  space_type: string;
   activeKey: string;
   expanding: string;
   editingKey: string;
   expands: Array<string>;
   onActiveKey: (id: string) => void;
-  onDelete: (id: string, spaceType: SpaceType) => void;
-  onExpand: (id: string, spaceType: SpaceType) => void;
+  onDelete: (id: string, space_type: SpaceType, parent_id: string) => void;
+  onExpand: (id: string, space_type: SpaceType) => void;
   onCreate: (
     namespace: string,
-    spaceType: string,
-    parentId: string,
-    resourceType: ResourceType,
+    space_type: string,
+    parent_id: string,
+    resource_type: ResourceType,
   ) => void;
 }
 
@@ -45,13 +45,13 @@ export default function MainDropdownMenu(props: IResourceProps) {
   } = props;
   const app = useApp();
   const { t } = useTranslation();
-  const hasChildren = data.childCount > 0;
+  const hasChildren = data.child_count > 0;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleCreateFile = () => {
-    onCreate(namespace, data.spaceType, data.id, 'doc');
+    onCreate(namespace, data.space_type, data.id, 'doc');
   };
   const handleCreateFolder = () => {
-    onCreate(namespace, data.spaceType, data.id, 'folder');
+    onCreate(namespace, data.space_type, data.id, 'folder');
   };
   const handleEdit = () => {
     onActiveKey(data.id);
@@ -62,17 +62,25 @@ export default function MainDropdownMenu(props: IResourceProps) {
   const handleAddToChat = () => {
     if (activeKey !== 'chat') {
       onActiveKey('chat');
+      setTimeout(() => {
+        app.fire('context', data, 'resource');
+      }, 100);
+    } else {
+      app.fire('context', data, 'resource');
     }
-    app.fire('context', data, 'resource');
   };
   const handleAddAllToChat = () => {
     if (activeKey !== 'chat') {
       onActiveKey('chat');
+      setTimeout(() => {
+        app.fire('context', data, 'parent');
+      }, 100);
+    } else {
+      app.fire('context', data, 'parent');
     }
-    app.fire('context', data, 'parent');
   };
   const handleDelete = () => {
-    onDelete(data.id, data.spaceType);
+    onDelete(data.id, data.space_type, data.parent_id);
   };
   const handleSelect = () => {
     fileInputRef.current?.click();

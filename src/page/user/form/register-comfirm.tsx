@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { initNamespace } from '@/lib/namespace';
 import {
   Form,
   FormItem,
@@ -57,13 +56,7 @@ export function RegisterComFirmForm() {
       .then((response) => {
         localStorage.setItem('uid', response.id);
         localStorage.setItem('token', response.access_token);
-        initNamespace().then((returnValue) => {
-          if (returnValue) {
-            navigate('/', { replace: true });
-          } else {
-            navigate('/user/login', { replace: true });
-          }
-        });
+        navigate('/', { replace: true });
       })
       .finally(() => {
         setIsLoading(false);
