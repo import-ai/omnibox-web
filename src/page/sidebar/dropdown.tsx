@@ -1,7 +1,5 @@
 import { useRef } from 'react';
-import { toast } from 'sonner';
 import useApp from '@/hooks/use-app';
-import { http } from '@/lib/request';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
 import { SpaceType, ResourceType } from '@/interface';
@@ -23,8 +21,14 @@ export interface IResourceProps {
   editingKey: string;
   expands: Array<string>;
   onActiveKey: (id: string) => void;
-  onDelete: (id: string, space_type: SpaceType, parent_id: string) => void;
+  onUpload: (
+    namespace: string,
+    space_type: string,
+    parent_id: string,
+    file: File,
+  ) => Promise<void>;
   onExpand: (id: string, space_type: SpaceType) => void;
+  onDelete: (id: string, space_type: SpaceType, parent_id: string) => void;
   onCreate: (
     namespace: string,
     space_type: string,
@@ -36,6 +40,7 @@ export interface IResourceProps {
 export default function MainDropdownMenu(props: IResourceProps) {
   const {
     data,
+    onUpload,
     onCreate,
     onDelete,
     namespace,
@@ -89,25 +94,11 @@ export default function MainDropdownMenu(props: IResourceProps) {
     if (!e.target.files) {
       return;
     }
-    const formData = new FormData();
-    formData.append('parent_id', data.id);
-    formData.append('namespace_id', namespace);
-    formData.append('file', e.target.files[0]);
-    http
-      .post('/resources/files', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((err) => {
-        toast(err && err.message ? err.message : err);
-      })
-      .finally(() => {
+    onUpload(namespace, data.space_type, data.id, e.target.files[0]).finally(
+      () => {
         fileInputRef.current!.value = '';
-      });
+      },
+    );
   };
 
   return (

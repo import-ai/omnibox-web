@@ -1,4 +1,6 @@
 import Tree from './tree';
+import { useRef } from 'react';
+import { Input } from '@/components/input';
 import { IResourceData } from '@/interface';
 import { IResourceProps } from './dropdown';
 import { useTranslation } from 'react-i18next';
@@ -20,9 +22,23 @@ import {
 interface IProps extends IResourceProps {}
 
 export default function Space(props: IProps) {
-  const { data, editingKey, space_type, namespace, onCreate } = props;
+  const { data, editingKey, space_type, namespace, onCreate, onUpload } = props;
   const { t } = useTranslation();
   const hasChildren = data.child_count > 0;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleSelect = () => {
+    fileInputRef.current?.click();
+  };
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) {
+      return;
+    }
+    onUpload(namespace, data.space_type, data.id, e.target.files[0]).finally(
+      () => {
+        fileInputRef.current!.value = '';
+      },
+    );
+  };
 
   return (
     <SidebarGroup>
@@ -57,8 +73,17 @@ export default function Space(props: IProps) {
             >
               {t('create_folder')}
             </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={handleSelect}>
+              {t('upload_file')}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <Input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          onChange={handleUpload}
+        />
       </div>
       <SidebarGroupContent>
         <SidebarMenu>
