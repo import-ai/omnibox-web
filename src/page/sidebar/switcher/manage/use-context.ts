@@ -1,5 +1,5 @@
 import { toast } from 'sonner';
-import { User } from '@/interface';
+import { NamespaceMember } from '@/interface';
 import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
@@ -9,19 +9,14 @@ export default function useContext() {
   const namespace_id = params.namespace_id || '';
   const [search, onSearch] = useState('');
   const [loading, onLoading] = useState(true);
-  const [data, onData] = useState<Array<User>>([]);
+  const [data, onData] = useState<Array<NamespaceMember>>([]);
   const refetch = () => {
-    http.get(`namespaces/${namespace_id}`).then((namespace) => {
-      const collaborators = Array.isArray(namespace.collaborators)
-        ? namespace.collaborators
-        : [];
-      http
-        .get(`user/users-by-ids?id=${collaborators.join(',')}`)
-        .then(onData)
-        .finally(() => {
-          onLoading(false);
-        });
-    });
+    http
+      .get(`namespaces/${namespace_id}/members`)
+      .then(onData)
+      .finally(() => {
+        onLoading(false);
+      });
   };
   const onDisable = (id: string) => {
     http
@@ -45,6 +40,6 @@ export default function useContext() {
     onSearch,
     onDisable,
     onRemove,
-    data: search ? data.filter((item) => item.username.includes(search)) : data,
+    data: search ? data.filter((item) => item.email.includes(search)) : data,
   };
 }
