@@ -178,7 +178,7 @@ export default function MainSidebar() {
     formData.append('namespace_id', namespace_id);
     formData.append('file', file);
     return http
-      .post('/resources/files', formData, {
+      .post(`/namespaces/${namespace_id}/resources/files`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
