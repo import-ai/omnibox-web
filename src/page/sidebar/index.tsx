@@ -167,7 +167,7 @@ export default function MainSidebar() {
       });
   };
   const handleUpload = (
-    namespace: string,
+    namespace_id: string,
     space_type: string,
     parent_id: string,
     file: File,
@@ -175,7 +175,7 @@ export default function MainSidebar() {
     onEditingKey(parent_id);
     const formData = new FormData();
     formData.append('parent_id', parent_id);
-    formData.append('namespace_id', namespace);
+    formData.append('namespace_id', namespace_id);
     formData.append('file', file);
     return http
       .post('/resources/files', formData, {
