@@ -15,6 +15,7 @@ export default function useResource() {
   const app = useApp();
   const params = useParams();
   const resource_id = params.resource_id || '';
+  const namespace_id = params.namespace_id || '';
   const [resource, onResource] = useState<Resource | null>(null);
 
   useEffect(() => {
@@ -35,7 +36,9 @@ export default function useResource() {
       child_count: 0,
       namespace: { id: '--' },
     });
-    http.get(`/resources/${resource_id}`).then(onResource);
+    http
+      .get(`/namespaces/${namespace_id}/resources/${resource_id}`)
+      .then(onResource);
   }, [resource_id]);
 
   return { app, resource, resource_id };

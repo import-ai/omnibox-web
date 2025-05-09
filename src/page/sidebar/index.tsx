@@ -64,7 +64,7 @@ export default function MainSidebar() {
     }
     onExpanding(id);
     http
-      .get(`/${baseUrl}/query`, {
+      .get(`/namespaces/${namespace_id}/${baseUrl}/query`, {
         params: {
           namespace: namespace_id,
           spaceType: space_type,
@@ -91,7 +91,7 @@ export default function MainSidebar() {
   ) => {
     onEditingKey(id);
     http
-      .delete(`/${baseUrl}/${id}`)
+      .delete(`/namespaces/${namespace_id}/${baseUrl}/${id}`)
       .then(() => {
         let activeKey = 'chat';
         const items = data[space_type].children.filter(
@@ -132,7 +132,7 @@ export default function MainSidebar() {
   ) => {
     onEditingKey(parent_id);
     http
-      .post(`/${baseUrl}`, {
+      .post(`/namespaces/${namespace}/${baseUrl}`, {
         parentId: parent_id,
         spaceType: space_type,
         namespaceId: namespace,
@@ -209,7 +209,7 @@ export default function MainSidebar() {
     }
     Promise.all(
       spaceTypes.map((space_type) =>
-        http.get(`/${baseUrl}/root`, {
+        http.get(`/namespaces/${namespace_id}/${baseUrl}/root`, {
           params: { namespace_id: namespace_id, space_type: space_type },
         }),
       ),
