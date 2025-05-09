@@ -125,17 +125,17 @@ export default function MainSidebar() {
       });
   };
   const handleCreate = (
-    namespace: string,
+    namespace_id: string,
     space_type: string,
     parent_id: string,
     resource_type: ResourceType,
   ) => {
     onEditingKey(parent_id);
     http
-      .post(`/namespaces/${namespace}/${baseUrl}`, {
+      .post(`/namespaces/${namespace_id}/${baseUrl}`, {
         parentId: parent_id,
         spaceType: space_type,
-        namespaceId: namespace,
+        namespaceId: namespace_id,
         resourceType: resource_type,
       })
       .then((response: Resource) => {
