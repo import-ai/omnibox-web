@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import { http } from '@/lib/request';
 import { Permissions } from '@/interface';
 import { useState, useEffect } from 'react';
@@ -21,7 +22,14 @@ export default function useResourcePermissions(props: IResourcePermissions) {
     if (!resource_id) {
       return;
     }
-    http.get(`/resources/${resource_id}/permissions`).then(onPermission);
+    http
+      .get(`/resources/${resource_id}/permissions`)
+      .then(onPermission)
+      .catch((err) => {
+        toast(err && err.message ? err.message : err, {
+          position: 'top-center',
+        });
+      });
   }, [resource_id]);
 
   return permission;

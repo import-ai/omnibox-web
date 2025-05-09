@@ -1,4 +1,5 @@
 import useApp from './use-app';
+import { toast } from 'sonner';
 import App from '@/hooks/app.class';
 import { http } from '@/lib/request';
 import { Resource } from '@/interface';
@@ -39,7 +40,12 @@ export default function useResource() {
     });
     http
       .get(`/namespaces/${namespace_id}/resources/${resource_id}`)
-      .then(onResource);
+      .then(onResource)
+      .catch((err) => {
+        toast(err && err.message ? err.message : err, {
+          position: 'top-center',
+        });
+      });
   }, [resource_id]);
 
   return { app, resource, namespace_id, resource_id };
