@@ -1,11 +1,11 @@
 import * as z from 'zod';
 import i18next from 'i18next';
 import { useState } from 'react';
+import { http } from '@/lib/request';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
-import { createNamespace } from '@/lib/namespace';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -36,9 +36,10 @@ export default function GenerateForm() {
   });
   const handleSubmit = (data: GenerateFormValues) => {
     setLoading(true);
-    createNamespace(data.name)
-      .then(() => {
-        location.href = '/chat';
+    http
+      .post('namespaces', { name: data.name })
+      .then((data) => {
+        location.href = `/${data.id}/chat`;
       })
       .finally(() => {
         setLoading(false);

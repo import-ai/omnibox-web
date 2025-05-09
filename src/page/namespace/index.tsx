@@ -1,9 +1,8 @@
 import Sidebar from '@/page/sidebar';
-import Wrapper from '@/page/wrapper';
-import Layout from '@/page/wrapper/layout';
+import { Outlet } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar.tsx';
 
-export default function CoreApp() {
+export default function NamespacePage() {
   // 未登陆不加载页面
   if (!localStorage.getItem('uid')) {
     return null;
@@ -12,7 +11,7 @@ export default function CoreApp() {
   return (
     <SidebarProvider>
       <Sidebar />
-      <Layout>{(prop) => <Wrapper {...prop} />}</Layout>
+      <Outlet />
     </SidebarProvider>
   );
 }

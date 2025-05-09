@@ -4,19 +4,17 @@ import { http } from '@/lib/request';
 import { Resource } from '@/interface';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 
 export interface IUseResource {
   app: App;
-  resourceId: string;
+  resource_id: string;
   resource: Resource | null;
 }
 
 export default function useResource() {
   const app = useApp();
   const params = useParams();
-  const { t } = useTranslation();
-  const resourceId = params.resourceId || '';
+  const resource_id = params.resource_id || '';
   const [resource, onResource] = useState<Resource | null>(null);
 
   useEffect(() => {
@@ -24,33 +22,21 @@ export default function useResource() {
   }, []);
 
   useEffect(() => {
-    if (!resourceId) {
-      return;
-    }
-    if (resourceId === 'chat') {
-      onResource({
-        id: 'chat',
-        name: t('chat'),
-        parentId: '',
-        resourceType: 'doc',
-        spaceType: 'private',
-        childCount: 0,
-        namespace: { id: '--' },
-      });
+    if (!resource_id) {
       return;
     }
     // 加载中
     onResource({
       id: '--',
       name: 'loading',
-      parentId: '',
-      resourceType: 'doc',
-      spaceType: 'private',
-      childCount: 0,
+      parent_id: '',
+      resource_type: 'doc',
+      space_type: 'private',
+      child_count: 0,
       namespace: { id: '--' },
     });
-    http.get(`/resources/${resourceId}`).then(onResource);
-  }, [resourceId]);
+    http.get(`/resources/${resource_id}`).then(onResource);
+  }, [resource_id]);
 
-  return { app, resource, resourceId };
+  return { app, resource, resource_id };
 }

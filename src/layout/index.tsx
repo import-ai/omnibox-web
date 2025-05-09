@@ -1,31 +1,22 @@
 import { useEffect } from 'react';
-import extension from '@/lib/extension';
-import { initNamespace } from '@/lib/namespace';
+import { http } from '@/lib/request';
 import { Toaster } from '@/components/ui/sonner';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { isBoolean } from 'lodash-es';
+import { Outlet, useNavigate, useLocation, useParams } from 'react-router-dom';
 
 export default function Layout() {
   const loc = useLocation();
+  const params = useParams();
   const navigate = useNavigate();
+  const namespace_id = params.namespace_id;
 
   useEffect(() => {
     if (localStorage.getItem('uid')) {
-      initNamespace().then((returnValue) => {
-        if (!isBoolean(returnValue)) {
-          if (loc.pathname.startsWith('/user/')) {
-            extension().then((val) => {
-              if (val) {
-                navigate('/', { replace: true });
-              }
-            });
-          }
-          return;
-        }
-        if (returnValue) {
-          navigate('/', { replace: true });
-        } else {
-          navigate('/user/login', { replace: true });
+      if (namespace_id) {
+        return;
+      }
+      http.get('namespaces/user').then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          navigate(`/${data[0].id}/chat`, { replace: true });
         }
       });
     } else {
@@ -36,7 +27,7 @@ export default function Layout() {
         replace: true,
       });
     }
-  }, [loc.pathname]);
+  }, [namespace_id, loc.pathname]);
 
   return (
     <>

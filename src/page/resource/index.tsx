@@ -1,42 +1,49 @@
-import Render from '@/page/resource/render';
-import Editor from '@/page/resource/editor';
+import Page from './page';
+import Actions from './actions';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
-import { LoaderCircle } from 'lucide-react';
-import { IUseResource } from 'src/hooks/user-resource';
-import 'vditor/dist/index.css';
-import '@/styles/vditor-patch.css';
+import { Separator } from '@/components/ui/separator';
+import useResource from '@/hooks/user-resource';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
 
-export default function ResourcePage(props: IUseResource) {
-  const { app, resource, resourceId } = props;
+export default function ResourcePage() {
   const { t } = useTranslation();
-  const [open, onOpen] = useState(true);
+  const { app, resource, resource_id } = useResource();
 
-  useEffect(() => {
-    return app.on('resource_children', (visible: boolean) => {
-      onOpen((val) => (val !== visible ? visible : val));
-    });
-  }, []);
-
-  if (!resource) {
-    return null;
-  }
-
-  if (resource.name === 'loading') {
-    return (
-      <div className="flex items-center justify-center w-full h-full">
-        <LoaderCircle className="transition-transform animate-spin" />
+  return (
+    <SidebarInset>
+      <header className="flex h-14 shrink-0 items-center gap-2">
+        <div className="flex flex-1 items-center gap-2 px-3">
+          <SidebarTrigger />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbPage className="line-clamp-1">
+                  {resource && resource.name
+                    ? resource.name === 'loading'
+                      ? ''
+                      : resource.name
+                    : t('untitled')}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+        <div className="ml-auto px-3">
+          <Actions app={app} resource={resource} resource_id={resource_id} />
+        </div>
+      </header>
+      <div className="flex justify-center h-full p-4">
+        <div className="flex flex-col h-full max-w-3xl w-full">
+          <Page app={app} resource={resource} resource_id={resource_id} />
+        </div>
       </div>
-    );
-  }
-
-  if (open) {
-    return (
-      <Render
-        content={`# ${resource.name || t('untitled')}\n${resource.content || ''}`}
-      />
-    );
-  }
-
-  return <Editor app={app} resource={resource} resourceId={resourceId} />;
+    </SidebarInset>
+  );
 }

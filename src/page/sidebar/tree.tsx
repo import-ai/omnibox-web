@@ -25,10 +25,10 @@ interface IProps extends IResourceProps {}
 export default function Tree(props: IProps) {
   const { data, activeKey, expands, expanding, onExpand, onActiveKey } = props;
   const { t } = useTranslation();
-  const hasChildren = data.childCount > 0;
+  const hasChildren = data.child_count > 0;
   const expand = expands.includes(data.id);
   const handleExpand = () => {
-    onExpand(data.id, data.spaceType);
+    onExpand(data.id, data.space_type);
   };
   const handleActiveKey = () => {
     onActiveKey(data.id);
@@ -64,7 +64,7 @@ export default function Tree(props: IProps) {
                       }}
                     />
                   ))}
-                {data.resourceType === 'folder' ? (
+                {data.resource_type === 'folder' ? (
                   expand ? (
                     <FolderOpen />
                   ) : (

@@ -20,16 +20,16 @@ import {
 interface IProps extends IResourceProps {}
 
 export default function Space(props: IProps) {
-  const { data, editingKey, spaceType, namespace, onCreate } = props;
+  const { data, editingKey, space_type, namespace, onCreate } = props;
   const { t } = useTranslation();
-  const hasChildren = data.childCount > 0;
+  const hasChildren = data.child_count > 0;
 
   return (
     <SidebarGroup>
       <div className="flex items-center justify-between">
-        <SidebarGroupLabel>{`${spaceType
+        <SidebarGroupLabel>{`${space_type
           .charAt(0)
-          .toUpperCase()}${spaceType.slice(1)}`}</SidebarGroupLabel>
+          .toUpperCase()}${space_type.slice(1)}`}</SidebarGroupLabel>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuAction className="my-1.5 right-2 focus-visible:outline-none focus-visible:ring-transparent">
@@ -44,7 +44,7 @@ export default function Space(props: IProps) {
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => {
-                onCreate(namespace, spaceType, data.id, 'doc');
+                onCreate(namespace, space_type, data.id, 'doc');
               }}
             >
               {t('create_file')}
@@ -52,7 +52,7 @@ export default function Space(props: IProps) {
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => {
-                onCreate(namespace, spaceType, data.id, 'folder');
+                onCreate(namespace, space_type, data.id, 'folder');
               }}
             >
               {t('create_folder')}
