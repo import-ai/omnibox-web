@@ -287,7 +287,7 @@ export default function MainSidebar() {
               activeKey={resource_id}
               space_type={space_type}
               editingKey={editingKey}
-              namespace={namespace_id}
+              namespace_id={namespace_id}
               onExpand={handleExpand}
               onDelete={handleDelete}
               onCreate={handleCreate}

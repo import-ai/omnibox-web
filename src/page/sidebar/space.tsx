@@ -22,7 +22,8 @@ import {
 interface IProps extends IResourceProps {}
 
 export default function Space(props: IProps) {
-  const { data, editingKey, space_type, namespace, onCreate, onUpload } = props;
+  const { data, editingKey, space_type, namespace_id, onCreate, onUpload } =
+    props;
   const { t } = useTranslation();
   const hasChildren = data.child_count > 0;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +34,7 @@ export default function Space(props: IProps) {
     if (!e.target.files) {
       return;
     }
-    onUpload(namespace, data.space_type, data.id, e.target.files[0]).finally(
+    onUpload(namespace_id, data.space_type, data.id, e.target.files[0]).finally(
       () => {
         fileInputRef.current!.value = '';
       },

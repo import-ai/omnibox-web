@@ -14,7 +14,7 @@ import {
 
 export interface IResourceProps {
   data: any;
-  namespace: string;
+  namespace_id: string;
   space_type: string;
   activeKey: string;
   expanding: string;
@@ -43,7 +43,7 @@ export default function MainDropdownMenu(props: IResourceProps) {
     onUpload,
     onCreate,
     onDelete,
-    namespace,
+    namespace_id,
     activeKey,
     editingKey,
     onActiveKey,
@@ -53,10 +53,10 @@ export default function MainDropdownMenu(props: IResourceProps) {
   const hasChildren = data.child_count > 0;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleCreateFile = () => {
-    onCreate(namespace, data.space_type, data.id, 'doc');
+    onCreate(namespace_id, data.space_type, data.id, 'doc');
   };
   const handleCreateFolder = () => {
-    onCreate(namespace, data.space_type, data.id, 'folder');
+    onCreate(namespace_id, data.space_type, data.id, 'folder');
   };
   const handleEdit = () => {
     onActiveKey(data.id);
@@ -94,7 +94,7 @@ export default function MainDropdownMenu(props: IResourceProps) {
     if (!e.target.files) {
       return;
     }
-    onUpload(namespace, data.space_type, data.id, e.target.files[0]).finally(
+    onUpload(namespace_id, data.space_type, data.id, e.target.files[0]).finally(
       () => {
         fileInputRef.current!.value = '';
       },
