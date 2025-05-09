@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { http } from '@/lib/request';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
+import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { getNamespace } from '@/lib/namespace';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -60,6 +60,8 @@ interface IProps {
 export default function InviteForm(props: IProps) {
   const { onFinish } = props;
   const { t } = useTranslation();
+  const params = useParams();
+  const namespace_id = params.namespace_id || '';
   const [loading, setLoading] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -70,11 +72,10 @@ export default function InviteForm(props: IProps) {
   });
   const handleSubmit = (data: FormValues) => {
     setLoading(true);
-    const namespaceId = getNamespace().id;
     http
       .post('invite', {
         ...data,
-        namespace: namespaceId,
+        namespace: namespace_id,
         inviteUrl: `${location.origin}/invite/comfirm`,
         registerUrl: `${location.origin}/user/sign-up/comfirm`,
       })

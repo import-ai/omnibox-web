@@ -6,18 +6,18 @@ export function getTime(resource: Resource | null) {
   if (!resource) {
     return '';
   }
-  if (resource.updatedAt) {
+  if (resource.updated_at) {
     return (
       i18next.t('updated') +
       ' ' +
-      formatDistanceToNow(new Date(resource.updatedAt), { addSuffix: true })
+      formatDistanceToNow(new Date(resource.updated_at), { addSuffix: true })
     );
   }
-  if (resource.createdAt) {
+  if (resource.created_at) {
     return (
       i18next.t('created') +
       ' ' +
-      formatDistanceToNow(new Date(resource.createdAt), { addSuffix: true })
+      formatDistanceToNow(new Date(resource.created_at), { addSuffix: true })
     );
   }
   return '';

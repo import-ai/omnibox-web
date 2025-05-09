@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { initNamespace } from '@/lib/namespace';
 import {
   Form,
   FormItem,
@@ -57,13 +56,7 @@ export function RegisterComFirmForm() {
       .then((response) => {
         localStorage.setItem('uid', response.id);
         localStorage.setItem('token', response.access_token);
-        initNamespace().then((returnValue) => {
-          if (returnValue) {
-            navigate('/', { replace: true });
-          } else {
-            navigate('/user/login', { replace: true });
-          }
-        });
+        navigate('/', { replace: true });
       })
       .finally(() => {
         setIsLoading(false);
@@ -88,7 +81,7 @@ export function RegisterComFirmForm() {
             <FormItem>
               <FormControl>
                 <Input
-                  placeholder={t('username')}
+                  placeholder={t('form.username')}
                   {...field}
                   disabled={isLoading}
                 />
@@ -106,7 +99,7 @@ export function RegisterComFirmForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder={t('password')}
+                  placeholder={t('form.password')}
                   {...field}
                   disabled={isLoading}
                 />
@@ -124,7 +117,7 @@ export function RegisterComFirmForm() {
                 <Input
                   type="password"
                   autoComplete="new-password"
-                  placeholder={t('confirm_password')}
+                  placeholder={t('form.confirm_password')}
                   {...field}
                   disabled={isLoading}
                 />

@@ -2,12 +2,12 @@ import Space from './space';
 import each from '@/lib/each';
 import { NavMain } from './main';
 import group from '@/lib/group';
+import { orderBy } from 'lodash-es';
 import useApp from '@/hooks/use-app';
 import { Switcher } from './switcher';
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
-import { getNamespace } from '@/lib/namespace';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
 import {
   Sidebar,
@@ -26,9 +26,11 @@ interface IData {
 export default function MainSidebar() {
   const app = useApp();
   const params = useParams();
+  const loc = useLocation();
   const navigate = useNavigate();
-  const namespace = getNamespace().id;
-  const resourceId = params.resourceId || '';
+  const chatPage = loc.pathname.endsWith('chat');
+  const resource_id = params.resource_id || '';
+  const namespace_id = params.namespace_id || '';
   const [expanding, onExpanding] = useState('');
   const [editingKey, onEditingKey] = useState('');
   const [expands, onExpands] = useState<Array<string>>([]);
@@ -36,14 +38,14 @@ export default function MainSidebar() {
     [index: string]: IResourceData;
   }>({});
   const handleActiveKey = (id: string) => {
-    navigate(`/${id}`);
+    navigate(`/${namespace_id}/${id}`);
   };
-  const handleExpand = (id: string, spaceType: SpaceType) => {
+  const handleExpand = (id: string, space_type: SpaceType) => {
     let match = false;
     each(data, (resource) => {
       if (Array.isArray(resource.children) && resource.children.length > 0) {
         const target = resource.children.find(
-          (node: Resource) => node.parentId === id,
+          (node: Resource) => node.parent_id === id,
         );
         if (target) {
           match = true;
@@ -63,11 +65,15 @@ export default function MainSidebar() {
     onExpanding(id);
     http
       .get(`/${baseUrl}/query`, {
-        params: { namespace, spaceType, parentId: id },
+        params: {
+          namespace: namespace_id,
+          spaceType: space_type,
+          parentId: id,
+        },
       })
       .then((response) => {
         each(response, (item) => {
-          data[spaceType].children.push(item);
+          data[space_type].children.push(item);
         });
         onData({ ...data });
         expands.push(id);
@@ -78,15 +84,41 @@ export default function MainSidebar() {
         onExpanding('');
       });
   };
-  const handleDelete = (id: string, spaceType: SpaceType) => {
+  const handleDelete = (
+    id: string,
+    space_type: SpaceType,
+    parent_id: string,
+  ) => {
     onEditingKey(id);
     http
       .delete(`/${baseUrl}/${id}`)
       .then(() => {
-        data[spaceType].children = data[spaceType].children.filter(
-          (node) => ![node.id, node.parentId].includes(id),
+        let activeKey = 'chat';
+        const items = data[space_type].children.filter(
+          (node) => node.parent_id === parent_id,
+        );
+        if (items.length > 0) {
+          const itemsOrder = orderBy(items, ['updated_at'], ['desc']);
+          const index = itemsOrder.findIndex(
+            (node: Resource) => node.id === id,
+          );
+          if (index > 0) {
+            activeKey = itemsOrder[index - 1].id;
+          } else {
+            const next = itemsOrder[index + 1];
+            if (next) {
+              activeKey = next.id;
+            }
+          }
+        }
+        data[space_type].children = data[space_type].children.filter(
+          (node) => ![node.id, node.parent_id].includes(id),
         );
         onData({ ...data });
+        if (activeKey) {
+          app.fire('resource_children', true);
+          navigate(`/${namespace_id}/${activeKey}`);
+        }
       })
       .finally(() => {
         onEditingKey('');
@@ -94,38 +126,38 @@ export default function MainSidebar() {
   };
   const handleCreate = (
     namespace: string,
-    spaceType: string,
-    parentId: string,
-    resourceType: ResourceType,
+    space_type: string,
+    parent_id: string,
+    resource_type: ResourceType,
   ) => {
-    onEditingKey(parentId);
+    onEditingKey(parent_id);
     http
       .post(`/${baseUrl}`, {
+        parentId: parent_id,
+        spaceType: space_type,
         namespaceId: namespace,
-        spaceType,
-        parentId,
-        resourceType,
+        resourceType: resource_type,
       })
       .then((response: Resource) => {
-        if (!data[spaceType]) {
-          data[spaceType] = { ...response, children: [] };
+        if (!data[space_type]) {
+          data[space_type] = { ...response, children: [] };
         } else {
-          if (!Array.isArray(data[spaceType].children)) {
-            data[spaceType].children = [];
+          if (!Array.isArray(data[space_type].children)) {
+            data[space_type].children = [];
           }
-          const index = data[spaceType].children.findIndex(
-            (item) => item.id === parentId,
+          const index = data[space_type].children.findIndex(
+            (item) => item.id === parent_id,
           );
           if (index >= 0) {
-            data[spaceType].children[index].childCount += 1;
+            data[space_type].children[index].child_count += 1;
           } else {
-            data[spaceType].childCount += 1;
+            data[space_type].child_count += 1;
           }
-          data[spaceType].children.push({ ...response, children: [] });
+          data[space_type].children.push({ ...response, children: [] });
         }
         onData({ ...data });
-        if (!expands.includes(parentId)) {
-          onExpands([...expands, parentId]);
+        if (!expands.includes(parent_id)) {
+          onExpands([...expands, parent_id]);
         }
         handleActiveKey(response.id);
       })
@@ -153,7 +185,7 @@ export default function MainSidebar() {
   }, [data]);
 
   useEffect(() => {
-    if (resourceId) {
+    if (resource_id || chatPage) {
       return;
     }
     let node: any = null;
@@ -166,9 +198,9 @@ export default function MainSidebar() {
     });
     if (node && node.id) {
       app.fire('resource_children', true);
-      navigate(`/${node.id}`);
+      navigate(`/${namespace_id}/${node.id}`);
     }
-  }, [resourceId, data]);
+  }, [chatPage, namespace_id, resource_id, data]);
 
   useEffect(() => {
     // 未登陆不请求数据
@@ -176,42 +208,42 @@ export default function MainSidebar() {
       return;
     }
     Promise.all(
-      spaceTypes.map((spaceType) =>
+      spaceTypes.map((space_type) =>
         http.get(`/${baseUrl}/root`, {
-          params: { namespace_id: namespace, space_type: spaceType },
+          params: { namespace_id: namespace_id, space_type: space_type },
         }),
       ),
     ).then((response) => {
       const state: IData = {};
       response.forEach((item) => {
-        state[item.spaceType] = item;
+        state[item.space_type] = item;
       });
       onData(state);
     });
-  }, [namespace]);
+  }, [namespace_id]);
 
   return (
     <Sidebar>
       <SidebarHeader>
-        <Switcher namespace={namespace} />
-        <NavMain active={resourceId === 'chat'} onActiveKey={handleActiveKey} />
+        <Switcher namespace={namespace_id} />
+        <NavMain active={chatPage} onActiveKey={handleActiveKey} />
       </SidebarHeader>
       <SidebarContent>
-        {spaceTypes.map((spaceType: string) => {
+        {spaceTypes.map((space_type: string) => {
           return (
             <Space
-              key={spaceType}
+              key={space_type}
               expands={expands}
               expanding={expanding}
-              activeKey={resourceId}
-              spaceType={spaceType}
+              activeKey={resource_id}
+              space_type={space_type}
               editingKey={editingKey}
-              namespace={namespace}
+              namespace={namespace_id}
               onExpand={handleExpand}
               onDelete={handleDelete}
               onCreate={handleCreate}
               onActiveKey={handleActiveKey}
-              data={group(data[spaceType])}
+              data={group(data[space_type])}
             />
           );
         })}

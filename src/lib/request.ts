@@ -80,7 +80,6 @@ request.interceptors.response.use(
       if (error.status === 401 && localStorage.getItem('uid')) {
         localStorage.removeItem('uid');
         localStorage.removeItem('token');
-        localStorage.removeItem('namespace');
         setTimeout(() => {
           window.location.href = `/user/login?redirect=${encodeURIComponent(
             location.href,

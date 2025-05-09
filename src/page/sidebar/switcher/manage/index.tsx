@@ -33,23 +33,22 @@ export default function ManagePeople() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[20%]">{t('form.username')}</TableHead>
-              <TableHead>{t('form.email')}</TableHead>
-              {/* <TableHead>角色</TableHead> */}
+              <TableHead className="w-[20%]">{t('form.email')}</TableHead>
+              <TableHead>{t('form.role')}</TableHead>
               <TableHead className="text-right">{t('form.operator')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.username}</TableCell>
-                <TableCell>{item.email}</TableCell>
+              <TableRow key={item.email}>
+                <TableCell className="font-medium">{item.email}</TableCell>
+                <TableCell>{item.role}</TableCell>
                 {/* <TableCell>--</TableCell> */}
                 <TableCell className="text-right">
                   <Space className="inline-flex">
                     <PopConfirm
                       title="Are you sure to disable this user?"
-                      onOk={() => onDisable(item.id)}
+                      onOk={() => onDisable(item.email)}
                     >
                       <Button size="sm">{t('manage.disable')}</Button>
                     </PopConfirm>
@@ -60,7 +59,7 @@ export default function ManagePeople() {
                     </PopConfirm> */}
                     <PopConfirm
                       title="Are you sure to remove this user from the workspace?"
-                      onOk={() => onRemove(item.id)}
+                      onOk={() => onRemove(item.email)}
                     >
                       <Button size="sm" variant="destructive">
                         {t('manage.remove')}
