@@ -143,7 +143,7 @@ export default function Page() {
             for (let i = 0; i < citationList.length; i++) {
               responseText = responseText.replace(
                 `<cite:${i + 1}>`,
-                `[[${i + 1}]](/${citationList[i].link})`,
+                `[[${i + 1}]](${citationList[i].link})`,
               );
             }
             localMessages = [
