@@ -10,6 +10,14 @@ export interface Theme {
   code: 'github' | 'github-dark';
 }
 
+export interface Permissions {
+  read: boolean;
+  write: boolean;
+  comment: boolean;
+  share: boolean;
+  noAccess: boolean;
+}
+
 export interface User extends IBase {
   id: string;
   email: string;

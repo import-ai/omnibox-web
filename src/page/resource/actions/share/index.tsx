@@ -1,6 +1,6 @@
 import Form from './form';
 import { Button } from '@/components/ui/button';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import {
   Popover,
   PopoverContent,
@@ -8,11 +8,13 @@ import {
 } from '@/components/ui/popover';
 
 export default function Share() {
+  const { t } = useTranslation();
+
   return (
     <Popover>
       <PopoverTrigger>
         <Button size="sm" variant="ghost" className="h-7 w-7">
-          分享
+          {t('share')}
         </Button>
       </PopoverTrigger>
       <PopoverContent

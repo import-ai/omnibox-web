@@ -1,5 +1,5 @@
-// import { http } from '@/lib/request';
 import UnauthorizedPage from './un-auth';
+import useResourcePermissions from '@/hooks/use-resource-permissions';
 
 interface IProps {
   resource_id: string;
@@ -8,9 +8,10 @@ interface IProps {
 }
 
 export default function AuthPage(props: IProps) {
-  const { namespace_id, resource_id, children } = props;
+  const { resource_id, children } = props;
+  const permission = useResourcePermissions({ resource_id });
 
-  if (!namespace_id || !resource_id) {
+  if (permission.noAccess || !permission.read) {
     return <UnauthorizedPage />;
   }
 

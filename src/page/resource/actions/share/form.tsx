@@ -1,10 +1,12 @@
 import Action from './action';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import InviteForm from './invite';
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export default function ShareInterface() {
+export default function ShareForm() {
+  const { t } = useTranslation();
+
   return (
     <Tabs defaultValue="share">
       <TabsList className="w-full justify-start h-11 bg-white border-b rounded-none px-5">
@@ -12,7 +14,7 @@ export default function ShareInterface() {
           value="share"
           className="flex-1 h-11 max-w-[50px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none"
         >
-          共享
+          {t('share')}
         </TabsTrigger>
         {/* <TabsTrigger
           value="publish"
@@ -22,17 +24,7 @@ export default function ShareInterface() {
         </TabsTrigger> */}
       </TabsList>
       <TabsContent value="share" className="p-4">
-        <div className="flex gap-2 mb-6">
-          <div className="flex-1 relative">
-            <Input
-              className="w-full border-2 border-blue-200 rounded-md py-4 px-3 focus:border-blue-300 focus:ring-0"
-              placeholder="邮件地址或群组，以逗号分隔"
-            />
-          </div>
-          <Button className="bg-blue-500 hover:bg-blue-600 text-white px-6">
-            邀请
-          </Button>
-        </div>
+        <InviteForm />
         <div className="space-y-4 text-sm">
           <div className="flex items-center p-2 -m-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100">
             <div className="flex items-center gap-3">
@@ -70,8 +62,8 @@ export default function ShareInterface() {
               <span>混合访问权限</span>
               <ChevronRight className="h-5 w-5 ml-1" />
             </div>
-          </div> */}
-          {/* <div className="flex items-center justify-between">
+          </div>
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-md bg-orange-100 flex items-center justify-center">
                 <div className="text-orange-500 text-lg">
@@ -100,8 +92,8 @@ export default function ShareInterface() {
               <span>全部权限</span>
               <ChevronRight className="h-5 w-5 ml-1" />
             </div>
-          </div> */}
-          {/* <div className="pt-2 border-t">
+          </div>
+          <div className="pt-2 border-t">
             <div className="text-gray-500 text-sm mb-3">通用访问权限</div>
           </div>
           <div className="flex items-center justify-between">
