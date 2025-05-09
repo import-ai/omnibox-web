@@ -29,11 +29,14 @@ export default function Editor(props: IProps) {
         return;
       }
       http
-        .patch(`/resources/${resource.id}`, {
-          name,
-          content,
-          namespaceId: resource.namespace.id,
-        })
+        .patch(
+          `/namespaces/${resource.namespace.id}/resources/${resource.id}`,
+          {
+            name,
+            content,
+            namespaceId: resource.namespace.id,
+          },
+        )
         .then((delta: Resource) => {
           app.fire('resource_update', delta);
           app.fire('resource_children', true);
