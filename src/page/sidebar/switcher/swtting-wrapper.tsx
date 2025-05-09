@@ -38,7 +38,7 @@ export default function SettingWrapper() {
           }))}
         />
       </aside>
-      <div className="lg:flex-1 lg:max-w-2xl h-[440px] max-h-[98%] overflow-auto">
+      <div className="lg:flex-1 h-[440px] max-h-[98%] overflow-auto">
         {items.find((item) => item.value === activeKey)?.children}
       </div>
     </div>

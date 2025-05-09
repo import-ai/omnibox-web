@@ -1,6 +1,6 @@
 import Page from './page';
 import Actions from './actions';
-import AuthPage from 'src/page/auth';
+import AuthPage from '@/page/auth';
 import { useTranslation } from 'react-i18next';
 import { Separator } from '@/components/ui/separator';
 import useResource from '@/hooks/user-resource';
@@ -14,7 +14,7 @@ import {
 
 export default function ResourcePage() {
   const { t } = useTranslation();
-  const { app, resource, resource_id } = useResource();
+  const { app, resource, resource_id, namespace_id } = useResource();
 
   return (
     <SidebarInset>
@@ -37,13 +37,23 @@ export default function ResourcePage() {
           </Breadcrumb>
         </div>
         <div className="ml-auto px-3">
-          <Actions app={app} resource={resource} resource_id={resource_id} />
+          <Actions
+            app={app}
+            resource={resource}
+            namespace_id={namespace_id}
+            resource_id={resource_id}
+          />
         </div>
       </header>
       <div className="flex justify-center h-full p-4">
         <div className="flex flex-col h-full max-w-3xl w-full">
-          <AuthPage access>
-            <Page app={app} resource={resource} resource_id={resource_id} />
+          <AuthPage namespace_id={namespace_id} resource_id={resource_id}>
+            <Page
+              app={app}
+              resource={resource}
+              resource_id={resource_id}
+              namespace_id={namespace_id}
+            />
           </AuthPage>
         </div>
       </div>

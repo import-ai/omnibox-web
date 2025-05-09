@@ -1,3 +1,4 @@
+import Share from './share';
 import i18next from 'i18next';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -127,6 +128,7 @@ export default function Actions(props: IUseResource) {
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
+      <Share />
       <ThemeToggle />
       {editing ? (
         <>

@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 export interface IUseResource {
   app: App;
   resource_id: string;
+  namespace_id: string;
   resource: Resource | null;
 }
 
@@ -41,5 +42,5 @@ export default function useResource() {
       .then(onResource);
   }, [resource_id]);
 
-  return { app, resource, resource_id };
+  return { app, resource, namespace_id, resource_id };
 }

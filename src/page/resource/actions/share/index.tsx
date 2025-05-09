@@ -1,0 +1,28 @@
+import Form from './form';
+import { Button } from '@/components/ui/button';
+// import { useTranslation } from 'react-i18next';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+
+export default function Share() {
+  return (
+    <Popover>
+      <PopoverTrigger>
+        <Button size="sm" variant="ghost" className="h-7 w-7">
+          分享
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="bottom"
+        align="end"
+        alignOffset={-106}
+        className="w-[456px] p-0 overflow-hidden"
+      >
+        <Form />
+      </PopoverContent>
+    </Popover>
+  );
+}

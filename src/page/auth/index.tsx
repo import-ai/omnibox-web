@@ -1,14 +1,16 @@
+// import { http } from '@/lib/request';
 import UnauthorizedPage from './un-auth';
 
 interface IProps {
-  access: boolean;
+  resource_id: string;
+  namespace_id: string;
   children: React.ReactNode;
 }
 
 export default function AuthPage(props: IProps) {
-  const { access, children } = props;
+  const { namespace_id, resource_id, children } = props;
 
-  if (!access) {
+  if (!namespace_id || !resource_id) {
     return <UnauthorizedPage />;
   }
 
