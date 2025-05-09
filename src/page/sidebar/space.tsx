@@ -61,7 +61,7 @@ export default function Space(props: IProps) {
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => {
-                onCreate(namespace, space_type, data.id, 'doc');
+                onCreate(namespace_id, space_type, data.id, 'doc');
               }}
             >
               {t('create_file')}
@@ -69,7 +69,7 @@ export default function Space(props: IProps) {
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => {
-                onCreate(namespace, space_type, data.id, 'folder');
+                onCreate(namespace_id, space_type, data.id, 'folder');
               }}
             >
               {t('create_folder')}

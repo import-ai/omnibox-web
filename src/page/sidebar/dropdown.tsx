@@ -22,7 +22,7 @@ export interface IResourceProps {
   expands: Array<string>;
   onActiveKey: (id: string) => void;
   onUpload: (
-    namespace: string,
+    namespace_id: string,
     space_type: string,
     parent_id: string,
     file: File,
@@ -30,7 +30,7 @@ export interface IResourceProps {
   onExpand: (id: string, space_type: SpaceType) => void;
   onDelete: (id: string, space_type: SpaceType, parent_id: string) => void;
   onCreate: (
-    namespace: string,
+    namespace_id: string,
     space_type: string,
     parent_id: string,
     resource_type: ResourceType,

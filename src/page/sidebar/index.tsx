@@ -274,7 +274,7 @@ export default function MainSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <Switcher namespace={namespace_id} />
+        <Switcher namespace_id={namespace_id} />
         <NavMain active={chatPage} onActiveKey={handleActiveKey} />
       </SidebarHeader>
       <SidebarContent>
