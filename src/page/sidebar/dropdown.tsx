@@ -1,4 +1,8 @@
+import { useRef } from 'react';
+import { toast } from 'sonner';
 import useApp from '@/hooks/use-app';
+import { http } from '@/lib/request';
+import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
 import { SpaceType, ResourceType } from '@/interface';
 import { MoreHorizontal, LoaderCircle } from 'lucide-react';
@@ -32,16 +36,17 @@ export interface IResourceProps {
 export default function MainDropdownMenu(props: IResourceProps) {
   const {
     data,
+    onCreate,
+    onDelete,
     namespace,
     activeKey,
     editingKey,
     onActiveKey,
-    onCreate,
-    onDelete,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
   const hasChildren = data.childCount > 0;
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const handleCreateFile = () => {
     onCreate(namespace, data.spaceType, data.id, 'doc');
   };
@@ -69,46 +74,90 @@ export default function MainDropdownMenu(props: IResourceProps) {
   const handleDelete = () => {
     onDelete(data.id, data.spaceType);
   };
+  const handleSelect = () => {
+    fileInputRef.current?.click();
+  };
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append('parent_id', data.id);
+    formData.append('namespace_id', namespace);
+    formData.append('file', e.target.files[0]);
+    http
+      .post('/resources/files', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        toast(err && err.message ? err.message : err);
+      })
+      .finally(() => {
+        fileInputRef.current!.value = '';
+      });
+  };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <SidebarMenuAction className="right-0 focus-visible:outline-none focus-visible:ring-transparent">
-          {data.id === editingKey ? (
-            <LoaderCircle className="transition-transform animate-spin" />
-          ) : (
-            <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent" />
-          )}
-        </SidebarMenuAction>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent side="right" align="start" sideOffset={10}>
-        <DropdownMenuItem className="cursor-pointer" onClick={handleCreateFile}>
-          {t('create_file')}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="cursor-pointer"
-          onClick={handleCreateFolder}
-        >
-          {t('create_folder')}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
-          {t('edit')}
-        </DropdownMenuItem>
-        {hasChildren && (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuAction className="right-0 focus-visible:outline-none focus-visible:ring-transparent">
+            {data.id === editingKey ? (
+              <LoaderCircle className="transition-transform animate-spin" />
+            ) : (
+              <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent" />
+            )}
+          </SidebarMenuAction>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="right" align="start" sideOffset={10}>
           <DropdownMenuItem
             className="cursor-pointer"
-            onClick={handleAddAllToChat}
+            onClick={handleCreateFile}
           >
-            {t('add_all_to_context')}
+            {t('create_file')}
           </DropdownMenuItem>
-        )}
-        <DropdownMenuItem className="cursor-pointer" onClick={handleAddToChat}>
-          {t('add_it_to_context')}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
-          {t('delete')}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={handleCreateFolder}
+          >
+            {t('create_folder')}
+          </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer" onClick={handleSelect}>
+            {t('upload_file')}
+          </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
+            {t('edit')}
+          </DropdownMenuItem>
+          {hasChildren && (
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={handleAddAllToChat}
+            >
+              {t('add_all_to_context')}
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={handleAddToChat}
+          >
+            {t('add_it_to_context')}
+          </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
+            {t('delete')}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        onChange={handleUpload}
+      />
+    </>
   );
 }
