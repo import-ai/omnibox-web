@@ -116,9 +116,21 @@ export default function MainSidebar() {
           (node) => ![node.id, node.parent_id].includes(id),
         );
         onData({ ...data });
-        if (activeKey) {
-          app.fire('resource_children', true);
-          navigate(`/${namespace_id}/${activeKey}`);
+        if (id !== resource_id) {
+          // 直接删除父级
+          const parentIndex = data[space_type].children.findIndex(
+            (node) => node.id === parent_id,
+          );
+          if (parentIndex < 0) {
+            app.fire('resource_children', true);
+            navigate(`/${namespace_id}/chat`);
+          }
+        } else {
+          // 删除当前选中
+          if (activeKey) {
+            app.fire('resource_children', true);
+            navigate(`/${namespace_id}/${activeKey}`);
+          }
         }
       })
       .finally(() => {
