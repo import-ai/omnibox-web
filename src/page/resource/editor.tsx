@@ -1,10 +1,11 @@
 import Vditor from 'vditor';
-import { Resource } from '@/interface';
 import { http } from '@/lib/request';
+import { Resource } from '@/interface';
 import useTheme from '@/hooks/use-theme';
 import { Input } from '@/components/ui/input';
 import { IUseResource } from '@/hooks/user-resource';
 import React, { useRef, useState, useEffect } from 'react';
+import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 
 interface IProps extends Omit<IUseResource, 'resource'> {
   resource: Resource;
@@ -65,6 +66,9 @@ export default function Editor(props: IProps) {
           theme.content,
           theme.code,
         );
+        if (vditor.current.vditor.ir && vditor.current.vditor.ir.element) {
+          addReferrerPolicyForElement(vditor.current.vditor.ir.element);
+        }
       },
     });
     return () => {
