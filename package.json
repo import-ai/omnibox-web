@@ -42,6 +42,7 @@
     "react-hook-form": "^7.55.0",
     "react-i18next": "^15.5.1",
     "react-router-dom": "^7.5.2",
+    "react-textarea-autosize": "^8.5.9",
     "sonner": "^2.0.3",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
