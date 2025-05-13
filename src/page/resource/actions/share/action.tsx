@@ -29,31 +29,31 @@ export default function Action(props: ActionProps) {
   const [grant, onGrant] = useState(false);
   const [remove, onRemove] = useState(false);
   const [permission, onPermission] = useState<Permission>('full_access');
-  const data = [
+  const data: Array<{
+    value: Permission;
+    label: string;
+    description?: string;
+  }> = [
     {
-      value: 'all',
+      value: 'full_access',
       label: '全部权限',
       description: '编辑、建议、评论以及与他人分享',
     },
     {
-      value: 'edit',
+      value: 'can_edit',
       label: '可以编辑',
     },
     {
-      value: 'comment',
+      value: 'can_comment',
       label: '可以评论',
       description: '建议和评论',
     },
     {
-      value: 'read',
+      value: 'can_view',
       label: '可以查看',
     },
-    {
-      value: 'share',
-      label: '可以分享',
-    },
   ];
-  const handleChange = (val: string) => {
+  const handleChange = (val: Permission) => {
     const oldIndex = data.findIndex((item) => item.value === value);
     const newIndex = data.findIndex((item) => item.value === val);
     if (oldIndex < newIndex) {
@@ -137,7 +137,7 @@ export default function Action(props: ActionProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <AlertDialog open={!!permission}>
+      <AlertDialog open={permission !== 'full_access'}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>确定要降级自己的访问权限吗？</AlertDialogTitle>

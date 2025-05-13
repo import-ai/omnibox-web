@@ -12,7 +12,7 @@ export default function Share() {
 
   return (
     <Popover>
-      <PopoverTrigger>
+      <PopoverTrigger asChild>
         <Button size="sm" variant="ghost" className="h-7 w-7">
           {t('share')}
         </Button>

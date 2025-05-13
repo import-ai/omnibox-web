@@ -1,0 +1,77 @@
+import Invite from '../invite';
+import useContext from './use-context';
+import Space from '@/components/space';
+import { useTranslation } from 'react-i18next';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import PopConfirm from '@/components/popconfirm';
+import {
+  Table,
+  TableRow,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+} from '@/components/ui/table';
+
+export default function Member() {
+  const { t } = useTranslation();
+  const { data, search, onSearch, onDisable, onRemove } = useContext();
+
+  return (
+    <div className="space-y-4 p-px">
+      <div className="flex items-center justify-between">
+        <Input
+          value={search}
+          onChange={(e) => onSearch(e.target.value)}
+          placeholder={t('manage.search')}
+          className="h-8 w-[150px] lg:w-[250px]"
+        />
+        <Invite />
+      </div>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[20%]">{t('form.email')}</TableHead>
+              <TableHead>{t('form.role')}</TableHead>
+              <TableHead className="text-right">{t('form.operator')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((item) => (
+              <TableRow key={item.email}>
+                <TableCell className="font-medium">{item.email}</TableCell>
+                <TableCell>{item.role}</TableCell>
+                {/* <TableCell>--</TableCell> */}
+                <TableCell className="text-right">
+                  <Space className="inline-flex">
+                    <PopConfirm
+                      title="Are you sure to disable this user?"
+                      onOk={() => onDisable(item.email)}
+                    >
+                      <Button size="sm">{t('manage.disable')}</Button>
+                    </PopConfirm>
+                    {/* <PopConfirm title="确定删除当前用户？">
+                      <Button size="sm" variant="destructive">
+                        删除
+                      </Button>
+                    </PopConfirm> */}
+                    <PopConfirm
+                      title="Are you sure to remove this user from the workspace?"
+                      onOk={() => onRemove(item.email)}
+                    >
+                      <Button size="sm" variant="destructive">
+                        {t('manage.remove')}
+                      </Button>
+                    </PopConfirm>
+                  </Space>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}

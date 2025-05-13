@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { http } from '@/lib/request';
 import useUser from '@/hooks/use-user';
 import { Permission } from '@/interface';
-import { LoaderCircle } from 'lucide-react';
+import Loading from '@/components/loading';
 import { useState, useEffect } from 'react';
 // import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -49,7 +49,9 @@ export default function UserForm(props: UserFormProps) {
       .get(
         `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user.id}`,
       )
-      .then(onPermission)
+      .then((res) => {
+        onPermission(res.level);
+      })
       .catch((err) => {
         toast(err && err.message ? err.message : err, {
           position: 'top-center',
@@ -61,11 +63,7 @@ export default function UserForm(props: UserFormProps) {
   }, [namespace_id, resource_id, user.id]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center w-full h-full">
-        <LoaderCircle className="transition-transform animate-spin" />
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
