@@ -270,7 +270,7 @@ export default function MainSidebar() {
     }
     Promise.all(
       spaceTypes.map((space_type) =>
-        http.get(`/namespaces/${namespace_id}/${baseUrl}/root`, {
+        http.get(`/namespaces/${namespace_id}/root`, {
           params: { namespace_id: namespace_id, space_type: space_type },
         }),
       ),
