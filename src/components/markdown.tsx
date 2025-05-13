@@ -2,6 +2,7 @@ import Vditor from 'vditor';
 import { useRef, useEffect } from 'react';
 import useTheme from '@/hooks/use-theme';
 import { useNavigate } from 'react-router-dom';
+import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
 
 interface IProps {
   content: string;
@@ -50,6 +51,9 @@ export function Markdown(props: IProps) {
           defaultLang: 'plain',
           style: theme.code,
           lineNumber: true,
+        },
+        transform(data) {
+          return addReferrerPolicyForString(data);
         },
       });
     }
