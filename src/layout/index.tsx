@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { http } from '@/lib/request';
+import extension from '@/lib/extension';
 import { Toaster } from '@/components/ui/sonner';
 import { Outlet, useNavigate, useLocation, useParams } from 'react-router-dom';
 
@@ -14,9 +15,13 @@ export default function Layout() {
       if (namespace_id) {
         return;
       }
-      http.get('namespaces/user').then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          navigate(`/${data[0].id}/chat`, { replace: true });
+      extension().then((val) => {
+        if (val) {
+          http.get('namespaces/user').then((data) => {
+            if (Array.isArray(data) && data.length > 0) {
+              navigate(`/${data[0].id}/chat`, { replace: true });
+            }
+          });
         }
       });
     } else {
