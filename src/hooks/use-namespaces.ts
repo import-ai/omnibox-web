@@ -15,7 +15,7 @@ export default function useNamespaces() {
       return;
     }
     http
-      .get('namespaces/user')
+      .get('namespaces')
       .then(onData)
       .catch((err) => {
         toast(err && err.message ? err.message : err, {
