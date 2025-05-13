@@ -17,7 +17,7 @@ export default function Layout() {
       }
       extension().then((val) => {
         if (val) {
-          http.get('namespaces/user').then((data) => {
+          http.get('namespaces').then((data) => {
             if (Array.isArray(data) && data.length > 0) {
               navigate(`/${data[0].id}/chat`, { replace: true });
             }

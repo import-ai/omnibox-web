@@ -14,7 +14,7 @@ export default function useNamespaces() {
       return;
     }
     http
-      .get('namespaces/user')
+      .get('namespaces')
       .then(onData)
       .finally(() => {
         onLoading(false);
