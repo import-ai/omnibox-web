@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Permission } from '@/interface';
 import { Check, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
@@ -18,15 +19,16 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface ActionProps {
+  value: Permission;
   className?: string;
+  onChange: (value: Permission) => void;
 }
 
 export default function Action(props: ActionProps) {
-  const { className } = props;
-  const [value, onChange] = useState('all');
+  const { className, value, onChange } = props;
   const [grant, onGrant] = useState(false);
   const [remove, onRemove] = useState(false);
-  const [permission, onPermission] = useState('');
+  const [permission, onPermission] = useState<Permission>('full_access');
   const data = [
     {
       value: 'all',
@@ -61,7 +63,7 @@ export default function Action(props: ActionProps) {
     onChange(val);
   };
   const handleCancel = () => {
-    onPermission('');
+    onPermission('full_access');
   };
   const handleOk = () => {
     onChange(permission);

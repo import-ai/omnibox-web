@@ -10,13 +10,12 @@ export interface Theme {
   code: 'github' | 'github-dark';
 }
 
-export interface Permissions {
-  read: boolean;
-  write: boolean;
-  comment: boolean;
-  share: boolean;
-  noAccess: boolean;
-}
+export type Permission =
+  | 'no_access'
+  | 'can_view'
+  | 'can_comment'
+  | 'can_edit'
+  | 'full_access';
 
 export interface User extends IBase {
   id: string;
@@ -51,6 +50,8 @@ export interface Resource extends IBase {
 
   tags?: string[];
   attrs?: Record<string, string>;
+
+  globalLevel: Permission;
 }
 
 export interface IResourceData extends Resource {

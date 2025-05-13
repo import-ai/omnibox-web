@@ -1,10 +1,14 @@
 import User from './user';
 import Invite from './invite';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ShareForm() {
   const { t } = useTranslation();
+  const params = useParams();
+  const resource_id = params.resource_id || '';
+  const namespace_id = params.namespace_id || '';
 
   return (
     <Tabs defaultValue="share">
@@ -23,8 +27,8 @@ export default function ShareForm() {
         </TabsTrigger> */}
       </TabsList>
       <TabsContent value="share" className="p-4">
-        <Invite />
-        <User />
+        <Invite resource_id={resource_id} namespace_id={namespace_id} />
+        <User resource_id={resource_id} namespace_id={namespace_id} />
       </TabsContent>
       {/* <TabsContent value="publish"></TabsContent> */}
     </Tabs>

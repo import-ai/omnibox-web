@@ -1,9 +1,8 @@
-import Page from './page';
 import Actions from './actions';
-import AuthPage from '@/page/auth';
+import Wrapper from './wrapper';
 import { useTranslation } from 'react-i18next';
-import { Separator } from '@/components/ui/separator';
 import useResource from '@/hooks/user-resource';
+import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import {
   Breadcrumb,
@@ -47,14 +46,12 @@ export default function ResourcePage() {
       </header>
       <div className="flex justify-center h-full p-4">
         <div className="flex flex-col h-full max-w-3xl w-full">
-          <AuthPage namespace_id={namespace_id} resource_id={resource_id}>
-            <Page
-              app={app}
-              resource={resource}
-              resource_id={resource_id}
-              namespace_id={namespace_id}
-            />
-          </AuthPage>
+          <Wrapper
+            app={app}
+            resource={resource}
+            resource_id={resource_id}
+            namespace_id={namespace_id}
+          />
         </div>
       </div>
     </SidebarInset>
