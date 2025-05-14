@@ -1,10 +1,10 @@
 import Invite from '../invite';
 import useContext from './use-context';
-import Space from '@/components/space';
-import { useTranslation } from 'react-i18next';
+import Action from '@/components/permission';
 import { Input } from '@/components/ui/input';
+import UserCard from '@/components/user-card';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import PopConfirm from '@/components/popconfirm';
 import {
   Table,
   TableRow,
@@ -16,7 +16,7 @@ import {
 
 export default function Member() {
   const { t } = useTranslation();
-  const { data, search, onSearch, onDisable, onRemove } = useContext();
+  const { data, search, onSearch, permission, onPermission } = useContext();
 
   return (
     <div className="space-y-4 p-px">
@@ -27,45 +27,28 @@ export default function Member() {
           placeholder={t('manage.search')}
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        <Invite />
+        <Invite>
+          <Button size="sm" variant="default">
+            添加成员
+          </Button>
+        </Invite>
       </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[20%]">{t('form.email')}</TableHead>
-              <TableHead>{t('form.role')}</TableHead>
-              <TableHead className="text-right">{t('form.operator')}</TableHead>
+              <TableHead className="w-[70%]">用户</TableHead>
+              <TableHead className="text-right">{t('form.role')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((item) => (
               <TableRow key={item.email}>
-                <TableCell className="font-medium">{item.email}</TableCell>
-                <TableCell>{item.role}</TableCell>
-                {/* <TableCell>--</TableCell> */}
+                <TableCell>
+                  <UserCard {...item} />
+                </TableCell>
                 <TableCell className="text-right">
-                  <Space className="inline-flex">
-                    <PopConfirm
-                      title="Are you sure to disable this user?"
-                      onOk={() => onDisable(item.email)}
-                    >
-                      <Button size="sm">{t('manage.disable')}</Button>
-                    </PopConfirm>
-                    {/* <PopConfirm title="确定删除当前用户？">
-                      <Button size="sm" variant="destructive">
-                        删除
-                      </Button>
-                    </PopConfirm> */}
-                    <PopConfirm
-                      title="Are you sure to remove this user from the workspace?"
-                      onOk={() => onRemove(item.email)}
-                    >
-                      <Button size="sm" variant="destructive">
-                        {t('manage.remove')}
-                      </Button>
-                    </PopConfirm>
-                  </Space>
+                  <Action value={permission} onChange={onPermission} />
                 </TableCell>
               </TableRow>
             ))}

@@ -1,12 +1,12 @@
-import Action from './action';
 import { toast } from 'sonner';
 import { http } from '@/lib/request';
 import useUser from '@/hooks/use-user';
 import { Permission } from '@/interface';
 import Loading from '@/components/loading';
 import { useState, useEffect } from 'react';
+import Action from '@/components/permission';
+import UserCard from '@/components/user-card';
 // import { useTranslation } from 'react-i18next';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface UserFormProps {
   resource_id: string;
@@ -32,11 +32,6 @@ export default function UserForm(props: UserFormProps) {
         toast('更新成功', {
           position: 'top-center',
         });
-      })
-      .catch((err) => {
-        toast(err && err.message ? err.message : err, {
-          position: 'top-center',
-        });
       });
   };
 
@@ -52,11 +47,6 @@ export default function UserForm(props: UserFormProps) {
       .then((res) => {
         onPermission(res.level);
       })
-      .catch((err) => {
-        toast(err && err.message ? err.message : err, {
-          position: 'top-center',
-        });
-      })
       .finally(() => {
         onLoading(false);
       });
@@ -69,23 +59,7 @@ export default function UserForm(props: UserFormProps) {
   return (
     <div className="space-y-4 text-sm">
       <div className="flex items-center p-2 -m-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 rounded-full">
-            <AvatarImage src="/placeholder.svg" />
-            <AvatarFallback className="bg-gray-200">
-              {user.username.substring(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="flex items-center">
-              <span className="font-medium">{user.username}</span>
-              {user.id === uid && (
-                <span className="text-gray-500 ml-2">(你)</span>
-              )}
-            </div>
-            <div className="text-gray-500 text-sm">{user.email}</div>
-          </div>
-        </div>
+        <UserCard {...user} you={user.id == uid} />
         {user.id && <Action value={permission} onChange={handlePermission} />}
       </div>
     </div>

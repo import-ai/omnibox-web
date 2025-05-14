@@ -24,7 +24,7 @@ interface ActionProps {
   onChange: (value: Permission) => void;
 }
 
-export default function Action(props: ActionProps) {
+export default function PermissionAction(props: ActionProps) {
   const { className, value, onChange } = props;
   const [grant, onGrant] = useState(false);
   const [remove, onRemove] = useState(false);

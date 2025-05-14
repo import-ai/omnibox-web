@@ -6,7 +6,7 @@ export default function InvitePeople() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex justify-between mb-8">
+    <div className="flex justify-between mb-4">
       <div className="flex flex-col">
         <h2 className="font-medium mb-2">{t('invite.title')}</h2>
         <p className="text-gray-600 text-sm">{t('invite.description')}</p>

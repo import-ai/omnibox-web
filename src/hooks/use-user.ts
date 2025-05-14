@@ -1,4 +1,3 @@
-import { toast } from 'sonner';
 import { User } from '@/interface';
 import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
@@ -27,9 +26,9 @@ export default function useUser() {
         callback && callback();
       })
       .catch((err) => {
-        toast(err && err.message ? err.message : err, {
-          position: 'top-center',
-        });
+        if (err && err.status && err.status === 403) {
+          //
+        }
       })
       .finally(() => {
         setLoading(false);

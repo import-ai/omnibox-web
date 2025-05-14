@@ -123,7 +123,7 @@
     "namespace": "命名空间设置"
   },
   "manage": {
-    "search": "按用户名搜索",
+    "search": "输入并搜索",
     "disable": "禁用",
     "remove": "从工作空间移除"
   }

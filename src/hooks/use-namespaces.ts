@@ -1,4 +1,3 @@
-import { toast } from 'sonner';
 import useApp from './use-app';
 import { http } from '@/lib/request';
 import { Namespace } from '@/interface';
@@ -17,11 +16,6 @@ export default function useNamespaces() {
     http
       .get('namespaces')
       .then(onData)
-      .catch((err) => {
-        toast(err && err.message ? err.message : err, {
-          position: 'top-center',
-        });
-      })
       .finally(() => {
         onLoading(false);
       });

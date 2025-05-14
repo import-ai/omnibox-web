@@ -1,15 +1,15 @@
-import { toast } from 'sonner';
-import { NamespaceMember } from '@/interface';
 import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { User, Permission } from '@/interface';
 
 export default function useContext() {
   const params = useParams();
   const namespace_id = params.namespace_id || '';
   const [search, onSearch] = useState('');
   const [loading, onLoading] = useState(true);
-  const [data, onData] = useState<Array<NamespaceMember>>([]);
+  const [data, onData] = useState<Array<User>>([]);
+  const [permission, onPermission] = useState<Permission>('full_access');
   const refetch = () => {
     http
       .get(`namespaces/${namespace_id}/members`)
@@ -18,19 +18,6 @@ export default function useContext() {
         onLoading(false);
       });
   };
-  const onDisable = (id: string) => {
-    http
-      .post('namespaces/disable-user', { id, namespace: namespace_id })
-      .then(() => {
-        toast('Disable user successfully', { position: 'top-center' });
-        refetch();
-      });
-  };
-  const onRemove = (id: string) => {
-    http
-      .post('namespaces/remove-user', { id, namespace: namespace_id })
-      .then(refetch);
-  };
 
   useEffect(refetch, []);
 
@@ -38,8 +25,8 @@ export default function useContext() {
     loading,
     search,
     onSearch,
-    onDisable,
-    onRemove,
+    permission,
+    onPermission,
     data: search ? data.filter((item) => item.email.includes(search)) : data,
   };
 }
