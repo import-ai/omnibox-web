@@ -1,9 +1,10 @@
 import Share from './share';
 import i18next from 'i18next';
+import App from '@/hooks/app.class';
+import { Resource } from '@/interface';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
-import { IUseResource } from '@/hooks/user-resource';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
 import {
   Popover,
@@ -39,6 +40,11 @@ import {
   Trash2,
 } from 'lucide-react';
 import i18n from '@/i18n';
+
+interface IProps {
+  app: App;
+  resource: Resource | null;
+}
 
 export const data = [
   [
@@ -103,7 +109,7 @@ export const data = [
   ],
 ];
 
-export default function Actions(props: IUseResource) {
+export default function Actions(props: IProps) {
   const { app, resource } = props;
   const [editing, onEditing] = useState(false);
   const handleEdit = () => {

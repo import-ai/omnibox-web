@@ -3,16 +3,17 @@ import Render from '@/page/resource/render';
 import Editor from '@/page/resource/editor';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IUseResource } from 'src/hooks/user-resource';
 import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
+import App from '@/hooks/app.class';
 
-interface IProps extends Omit<IUseResource, 'resource'> {
+interface IProps {
+  app: App;
   resource: Resource;
 }
 
 export default function Page(props: IProps) {
-  const { app, resource, resource_id, namespace_id } = props;
+  const { app, resource } = props;
   const { t } = useTranslation();
   const [open, onOpen] = useState(true);
 
@@ -30,12 +31,5 @@ export default function Page(props: IProps) {
     );
   }
 
-  return (
-    <Editor
-      app={app}
-      resource={resource}
-      resource_id={resource_id}
-      namespace_id={namespace_id}
-    />
-  );
+  return <Editor resource={resource} />;
 }

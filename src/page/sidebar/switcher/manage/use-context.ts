@@ -1,32 +1,47 @@
 import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { User, Permission } from '@/interface';
+import { NamespaceMember } from '@/interface';
 
 export default function useContext() {
   const params = useParams();
   const namespace_id = params.namespace_id || '';
   const [search, onSearch] = useState('');
-  const [loading, onLoading] = useState(true);
-  const [data, onData] = useState<Array<User>>([]);
-  const [permission, onPermission] = useState<Permission>('full_access');
+  const [tab, onTab] = useState('member');
+  const [data] = useState<{
+    member: Array<NamespaceMember>;
+    group: Array<NamespaceMember>;
+  }>({
+    group: [],
+    member: [],
+  });
+  // const [permission, onPermission] = useState<Permission>('full_access');
   const refetch = () => {
-    http
-      .get(`namespaces/${namespace_id}/members`)
-      .then(onData)
-      .finally(() => {
-        onLoading(false);
-      });
+    Promise.all(
+      [
+        `namespaces/${namespace_id}/groups`,
+        `namespaces/${namespace_id}/members`,
+      ].map((url) => http.get(url)),
+    ).then((res) => {
+      console.log('res', res);
+    });
   };
 
   useEffect(refetch, []);
 
+  useEffect(() => {
+    onSearch('');
+  }, [tab]);
+
   return {
-    loading,
+    tab,
+    onTab,
+    data,
     search,
+    refetch,
     onSearch,
-    permission,
-    onPermission,
-    data: search ? data.filter((item) => item.email.includes(search)) : data,
+    // permission,
+    // onPermission,
+    // : search ? data.filter((item) => item.email.includes(search)) : data,
   };
 }

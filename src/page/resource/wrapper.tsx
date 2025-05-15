@@ -1,22 +1,22 @@
 import Page from './page';
 import AuthPage from '@/page/auth';
+import Loading from '@/components/loading';
 import { IUseResource } from '@/hooks/user-resource';
 
 export default function Wrapper(props: IUseResource) {
-  const { app, resource, resource_id, namespace_id } = props;
+  const { app, loading, forbidden, resource } = props;
 
   if (!resource) {
     return null;
   }
 
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
-    <AuthPage namespace_id={namespace_id} resource={resource}>
-      <Page
-        app={app}
-        resource={resource}
-        resource_id={resource_id}
-        namespace_id={namespace_id}
-      />
+    <AuthPage forbidden={forbidden} resource={resource}>
+      <Page app={app} resource={resource} />
     </AuthPage>
   );
 }

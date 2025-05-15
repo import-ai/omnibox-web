@@ -25,11 +25,6 @@ export default function useUser() {
         setUser({ ...user, ...data });
         callback && callback();
       })
-      .catch((err) => {
-        if (err && err.status && err.status === 403) {
-          //
-        }
-      })
       .finally(() => {
         setLoading(false);
       });

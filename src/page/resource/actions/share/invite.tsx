@@ -4,7 +4,7 @@ import { http } from '@/lib/request';
 import { Permission } from '@/interface';
 // import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/button';
-import Actions from '@/components/permission';
+import Actions from '@/components/permission-action/action';
 import { AutosizeTextarea } from '@/components/autosize-textarea';
 
 interface InviteFormProps {
@@ -18,6 +18,10 @@ export default function InviteForm(props: InviteFormProps) {
   const visible = value.length > 0;
   const [loading, onLoading] = useState(false);
   const [permission, onPermission] = useState<Permission>('full_access');
+  const handlePermission = (val: Permission) => {
+    onPermission(val);
+    return Promise.resolve();
+  };
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
   };
@@ -53,7 +57,7 @@ export default function InviteForm(props: InviteFormProps) {
         {visible && (
           <Actions
             value={permission}
-            onChange={onPermission}
+            onChange={handlePermission}
             className="absolute top-[4px] right-[4px] p-1 rounded-sm bg-gray-200 text-sm"
           />
         )}

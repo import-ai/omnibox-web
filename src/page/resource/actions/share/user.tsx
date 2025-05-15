@@ -1,12 +1,8 @@
-import { toast } from 'sonner';
 import { http } from '@/lib/request';
-import useUser from '@/hooks/use-user';
-import { Permission } from '@/interface';
-import Loading from '@/components/loading';
 import { useState, useEffect } from 'react';
-import Action from '@/components/permission';
 import UserCard from '@/components/user-card';
-// import { useTranslation } from 'react-i18next';
+import Action from '@/components/permission-action';
+import { Permission, UserPermission, GroupPermission } from '@/interface';
 
 interface UserFormProps {
   resource_id: string;
@@ -15,53 +11,58 @@ interface UserFormProps {
 
 export default function UserForm(props: UserFormProps) {
   const { resource_id, namespace_id } = props;
-  // const { t } = useTranslation();
-  const { uid, user } = useUser();
-  const [loading, onLoading] = useState(false);
-  const [permission, onPermission] = useState<Permission>('full_access');
-  const handlePermission = (value: Permission) => {
-    http
-      .put(
-        `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user.id}`,
-        {
-          permission: value,
-        },
-      )
-      .then(() => {
-        onPermission(value);
-        toast('更新成功', {
-          position: 'top-center',
-        });
-      });
-  };
-
-  useEffect(() => {
-    if (!namespace_id || !resource_id || !user.id) {
+  const uid = localStorage.getItem('uid');
+  const [data, onData] = useState<{
+    global_level: Permission;
+    users: Array<UserPermission>;
+    groups: Array<GroupPermission>;
+  }>({
+    users: [],
+    groups: [],
+    global_level: 'full_access',
+  });
+  const refetch = () => {
+    if (!namespace_id || !resource_id) {
       return;
     }
-    onLoading(true);
     http
-      .get(
-        `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user.id}`,
-      )
-      .then((res) => {
-        onPermission(res.level);
-      })
-      .finally(() => {
-        onLoading(false);
-      });
-  }, [namespace_id, resource_id, user.id]);
+      .get(`namespaces/${namespace_id}/resources/${resource_id}/permissions`)
+      .then(onData);
+  };
 
-  if (loading) {
-    return <Loading />;
-  }
+  useEffect(refetch, [namespace_id, resource_id]);
 
   return (
     <div className="space-y-4 text-sm">
-      <div className="flex items-center p-2 -m-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100">
-        <UserCard {...user} you={user.id == uid} />
-        {user.id && <Action value={permission} onChange={handlePermission} />}
-      </div>
+      {data.users.map((item: UserPermission) => (
+        <div
+          key={item.id}
+          className="flex items-center p-2 -m-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100"
+        >
+          {item.user ? (
+            <>
+              <UserCard
+                email={item.user.email}
+                username={item.user.username}
+                you={item.user.id == uid}
+              />
+              <Action
+                value={item.level}
+                refetch={refetch}
+                user_id={item.user.id}
+                resource_id={resource_id}
+                namespace_id={namespace_id}
+                alertWhenDelete={
+                  data.users.findIndex((node) => node.level === 'full_access') <
+                  0
+                }
+              />
+            </>
+          ) : (
+            '--'
+          )}
+        </div>
+      ))}
     </div>
   );
 }

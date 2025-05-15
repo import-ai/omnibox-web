@@ -6,7 +6,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -18,16 +17,15 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-interface ActionProps {
+export interface ActionProps {
   value: Permission;
   className?: string;
-  onChange: (value: Permission) => void;
+  onChange: (value: Permission) => Promise<any>;
+  afterAddon?: React.ReactNode;
 }
 
-export default function PermissionAction(props: ActionProps) {
-  const { className, value, onChange } = props;
-  const [grant, onGrant] = useState(false);
-  const [remove, onRemove] = useState(false);
+export default function Action(props: ActionProps) {
+  const { className, afterAddon, value, onChange } = props;
   const [permission, onPermission] = useState<Permission>('full_access');
   const data: Array<{
     value: Permission;
@@ -66,24 +64,7 @@ export default function PermissionAction(props: ActionProps) {
     onPermission('full_access');
   };
   const handleOk = () => {
-    onChange(permission);
-    handleCancel();
-  };
-  const handleRemove = () => {
-    onRemove(true);
-  };
-  const handleRemoveCancel = () => {
-    onRemove(false);
-  };
-  const handleRemoveOk = () => {
-    handleGrant();
-    handleRemoveCancel();
-  };
-  const handleGrant = () => {
-    onGrant(true);
-  };
-  const handleGrantOk = () => {
-    onGrant(false);
+    onChange(permission).then(handleCancel);
   };
 
   return (
@@ -128,13 +109,7 @@ export default function PermissionAction(props: ActionProps) {
               )}
             </DropdownMenuItem>
           ))}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={handleRemove}
-            className="text-red-500 cursor-pointer justify-between hover:bg-gray-100"
-          >
-            移除
-          </DropdownMenuItem>
+          {afterAddon}
         </DropdownMenuContent>
       </DropdownMenu>
       <AlertDialog open={permission !== 'full_access'}>
@@ -145,33 +120,6 @@ export default function PermissionAction(props: ActionProps) {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancel}>取消</AlertDialogCancel>
             <AlertDialogAction onClick={handleOk}>确认</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog open={remove}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确定要删除自己的访问权限吗？</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleRemoveCancel}>
-              取消
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleRemoveOk}>确认</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog open={grant}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              在移除此权限之前，请向其他人授予“全部权限”。
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction className="w-full" onClick={handleGrantOk}>
-              确认
-            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

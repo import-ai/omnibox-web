@@ -51,16 +51,38 @@ export interface Resource extends IBase {
   tags?: string[];
   attrs?: Record<string, string>;
 
-  globalLevel: Permission;
+  globalLevel?: Permission;
 }
 
 export interface IResourceData extends Resource {
   children: Array<IResourceData>;
 }
 
-// export type Role = 'owner' | 'member';
+export type Role = 'owner' | 'member';
 
-// export interface NamespaceMember {
-//   email: string;
-//   role: Role;
-// }
+export interface NamespaceMember {
+  email: string;
+  role: Role;
+}
+
+export interface Group extends IBase {
+  id: string;
+  title: string;
+  namespace: Namespace;
+}
+
+export interface UserPermission extends IBase {
+  id: number;
+  level: Permission;
+  namespace?: Namespace;
+  resource?: Resource;
+  user?: User;
+}
+
+export interface GroupPermission extends IBase {
+  id: number;
+  level: Permission;
+  namespace?: Namespace;
+  resource?: Resource;
+  group?: Group;
+}

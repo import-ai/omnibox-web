@@ -12,15 +12,17 @@ import {
 } from '@/components/ui/dialog';
 
 interface IProps {
+  onFinish?: () => void;
   children?: React.ReactNode;
 }
 
 export default function Invite(props: IProps) {
-  const { children } = props;
+  const { onFinish, children } = props;
   const { t } = useTranslation();
   const [open, onOpen] = useState(false);
   const onCancel = () => {
     onOpen(false);
+    onFinish && onFinish();
   };
 
   return (

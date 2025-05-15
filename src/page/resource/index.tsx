@@ -13,7 +13,8 @@ import {
 
 export default function ResourcePage() {
   const { t } = useTranslation();
-  const { app, resource, resource_id, namespace_id } = useResource();
+  const { app, loading, forbidden, resource, resource_id, namespace_id } =
+    useResource();
 
   return (
     <SidebarInset>
@@ -25,30 +26,23 @@ export default function ResourcePage() {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbPage className="line-clamp-1">
-                  {resource && resource.name
-                    ? resource.name === 'loading'
-                      ? ''
-                      : resource.name
-                    : t('untitled')}
+                  {loading ? '' : resource ? resource.name : t('untitled')}
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
         <div className="ml-auto px-3">
-          <Actions
-            app={app}
-            resource={resource}
-            namespace_id={namespace_id}
-            resource_id={resource_id}
-          />
+          <Actions app={app} resource={resource} />
         </div>
       </header>
       <div className="flex justify-center h-full p-4">
         <div className="flex flex-col h-full max-w-3xl w-full">
           <Wrapper
             app={app}
+            loading={loading}
             resource={resource}
+            forbidden={forbidden}
             resource_id={resource_id}
             namespace_id={namespace_id}
           />

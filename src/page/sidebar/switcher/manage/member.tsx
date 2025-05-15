@@ -1,10 +1,10 @@
 import Invite from '../invite';
-import useContext from './use-context';
-import Action from '@/components/permission';
+import { NamespaceMember } from '@/interface';
 import { Input } from '@/components/ui/input';
 import UserCard from '@/components/user-card';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import Action from '@/components/permission-action';
 import {
   Table,
   TableRow,
@@ -14,9 +14,16 @@ import {
   TableHeader,
 } from '@/components/ui/table';
 
-export default function Member() {
+interface MemberProps {
+  search: string;
+  refetch: () => void;
+  data: Array<NamespaceMember>;
+  onSearch: (value: string) => void;
+}
+
+export default function Member(props: MemberProps) {
+  const { search, data, refetch, onSearch } = props;
   const { t } = useTranslation();
-  const { data, search, onSearch, permission, onPermission } = useContext();
 
   return (
     <div className="space-y-4 p-px">
@@ -27,7 +34,7 @@ export default function Member() {
           placeholder={t('manage.search')}
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        <Invite>
+        <Invite onFinish={refetch}>
           <Button size="sm" variant="default">
             添加成员
           </Button>
@@ -45,10 +52,10 @@ export default function Member() {
             {data.map((item) => (
               <TableRow key={item.email}>
                 <TableCell>
-                  <UserCard {...item} />
+                  <UserCard email={item.email} />
                 </TableCell>
                 <TableCell className="text-right">
-                  <Action value={permission} onChange={onPermission} />
+                  <Action value="can_comment" onChange={() => {}} />
                 </TableCell>
               </TableRow>
             ))}

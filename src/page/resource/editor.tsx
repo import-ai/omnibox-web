@@ -3,15 +3,14 @@ import { http } from '@/lib/request';
 import { Resource } from '@/interface';
 import useTheme from '@/hooks/use-theme';
 import { Input } from '@/components/ui/input';
-import { IUseResource } from '@/hooks/user-resource';
 import React, { useRef, useState, useEffect } from 'react';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 
-interface IProps extends Omit<IUseResource, 'resource'> {
+interface IEditorProps {
   resource: Resource;
 }
 
-export default function Editor(props: IProps) {
+export default function Editor(props: IEditorProps) {
   const { resource } = props;
   const { app, theme } = useTheme();
   const root = useRef<any>(null);
