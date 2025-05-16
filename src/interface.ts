@@ -36,7 +36,6 @@ export interface Resource extends IBase {
   space_type: SpaceType;
 
   parent_id: string;
-  child_count: number;
 
   name?: string;
   content?: string;

@@ -50,7 +50,6 @@ export default function MainDropdownMenu(props: IResourceProps) {
   } = props;
   const app = useApp();
   const { t } = useTranslation();
-  const hasChildren = data.child_count > 0;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleCreateFile = () => {
     onCreate(namespace_id, data.space_type, data.id, 'doc');
@@ -132,7 +131,7 @@ export default function MainDropdownMenu(props: IResourceProps) {
           <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
             {t('edit')}
           </DropdownMenuItem>
-          {hasChildren && (
+          {Array.isArray(data.children) && data.children.length > 0 && (
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={handleAddAllToChat}

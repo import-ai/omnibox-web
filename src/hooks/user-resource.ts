@@ -33,7 +33,6 @@ export default function useResource() {
       parent_id: '',
       resource_type: 'doc',
       space_type: 'private',
-      child_count: 0,
       namespace: { id: '--' },
     });
     http

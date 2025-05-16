@@ -73,9 +73,21 @@ export default function MainSidebar() {
         },
       })
       .then((response) => {
-        each(response, (item) => {
-          data[space_type].children.push(item);
-        });
+        if (response.length <= 0) {
+          data[space_type].children.push({
+            id: 'empty',
+            name: '',
+            parent_id: id,
+            children: [],
+            resource_type: 'file',
+            space_type: 'private',
+            namespace: { id: namespace_id },
+          });
+        } else {
+          each(response, (item) => {
+            data[space_type].children.push(item);
+          });
+        }
         onData({ ...data });
         expands.push(id);
         onExpands([...expands]);
@@ -158,14 +170,6 @@ export default function MainSidebar() {
           if (!Array.isArray(data[space_type].children)) {
             data[space_type].children = [];
           }
-          const index = data[space_type].children.findIndex(
-            (item) => item.id === parent_id,
-          );
-          if (index >= 0) {
-            data[space_type].children[index].child_count += 1;
-          } else {
-            data[space_type].child_count += 1;
-          }
           data[space_type].children.push({ ...response, children: [] });
         }
         onData({ ...data });
@@ -201,14 +205,6 @@ export default function MainSidebar() {
         } else {
           if (!Array.isArray(data[space_type].children)) {
             data[space_type].children = [];
-          }
-          const index = data[space_type].children.findIndex(
-            (item) => item.id === parent_id,
-          );
-          if (index >= 0) {
-            data[space_type].children[index].child_count += 1;
-          } else {
-            data[space_type].child_count += 1;
           }
           data[space_type].children.push({ ...response, children: [] });
         }
