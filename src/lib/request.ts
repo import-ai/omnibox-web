@@ -81,9 +81,7 @@ request.interceptors.response.use(
         localStorage.removeItem('uid');
         localStorage.removeItem('token');
         setTimeout(() => {
-          window.location.href = `/user/login?redirect=${encodeURIComponent(
-            location.href,
-          )}`;
+          window.location.href = '/user/login';
         }, 1000);
       }
     }

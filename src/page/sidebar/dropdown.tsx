@@ -2,9 +2,9 @@ import { useRef } from 'react';
 import useApp from '@/hooks/use-app';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
-import { SpaceType, ResourceType } from '@/interface';
 import { MoreHorizontal, LoaderCircle } from 'lucide-react';
 import { SidebarMenuAction } from '@/components/ui/sidebar';
+import { SpaceType, ResourceType, Resource } from '@/interface';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,8 +50,10 @@ export default function MainDropdownMenu(props: IResourceProps) {
   } = props;
   const app = useApp();
   const { t } = useTranslation();
-  const hasChildren = data.child_count > 0;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const children = Array.isArray(data.children)
+    ? data.children.filter((item: Resource) => item.id !== 'empty')
+    : [];
   const handleCreateFile = () => {
     onCreate(namespace_id, data.space_type, data.id, 'doc');
   };
@@ -132,7 +134,7 @@ export default function MainDropdownMenu(props: IResourceProps) {
           <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
             {t('edit')}
           </DropdownMenuItem>
-          {hasChildren && (
+          {children.length > 0 && (
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={handleAddAllToChat}
