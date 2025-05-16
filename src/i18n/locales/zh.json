@@ -15,6 +15,7 @@
   "updated": "已更新",
   "created": "已创建",
   "clear_all": "清空全部",
+  "no_pages_inside": "内无页面",
   "not_support_readablestream": "此浏览器尚不支持 ReadableStream。",
   "error": {
     "title": "404 页面未找到"

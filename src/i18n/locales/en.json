@@ -15,6 +15,7 @@
   "updated": "Updated",
   "created": "Created",
   "clear_all": "Clear All",
+  "no_pages_inside": "No pages inside",
   "not_support_readablestream": "ReadableStream not yet supported in this browser.",
   "error": {
     "title": "404 Not Found"
