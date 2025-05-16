@@ -168,9 +168,17 @@ export default function MainSidebar() {
           data[space_type] = { ...response, children: [] };
         } else {
           if (!Array.isArray(data[space_type].children)) {
-            data[space_type].children = [];
+            data[space_type].children = [{ ...response, children: [] }];
+          } else {
+            const index = data[space_type].children.findIndex(
+              (item) => item.parent_id === parent_id && item.id === 'empty',
+            );
+            if (index >= 0) {
+              data[space_type].children[index] = { ...response, children: [] };
+            } else {
+              data[space_type].children.push({ ...response, children: [] });
+            }
           }
-          data[space_type].children.push({ ...response, children: [] });
         }
         onData({ ...data });
         if (!expands.includes(parent_id)) {
