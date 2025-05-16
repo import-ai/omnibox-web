@@ -60,15 +60,31 @@ export interface IResourceData extends Resource {
 
 export type Role = 'owner' | 'member';
 
-export interface NamespaceMember {
+export interface Member {
+  id: string;
   email: string;
   role: Role;
+}
+
+export interface NamespaceMember extends IBase {
+  id: number;
+  role: Role;
+  namespace: Namespace;
+  user: User;
+  rootResource: Resource;
+}
+
+export interface NamespaceMember extends IBase {
+  id: number;
+  role: Role;
+  namespace: Namespace;
+  user: User;
+  rootResource: Resource;
 }
 
 export interface Group extends IBase {
   id: string;
   title: string;
-  namespace: Namespace;
 }
 
 export interface UserPermission extends IBase {

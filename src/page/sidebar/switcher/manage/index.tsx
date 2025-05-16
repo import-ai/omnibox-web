@@ -4,7 +4,8 @@ import useContext from './use-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ManagePeople() {
-  const { tab, onTab, data, refetch, search, onSearch } = useContext();
+  const { tab, onTab, data, refetch, search, onSearch, namespace_id } =
+    useContext();
 
   return (
     <Tabs value={tab} onValueChange={onTab}>
@@ -27,7 +28,11 @@ export default function ManagePeople() {
           search={search}
           onSearch={onSearch}
           refetch={refetch}
-          data={data.member}
+          data={
+            search
+              ? data.member.filter((item) => item.email.indexOf(search) >= 0)
+              : data.member
+          }
         />
       </TabsContent>
       <TabsContent value="group">
@@ -35,7 +40,13 @@ export default function ManagePeople() {
           search={search}
           onSearch={onSearch}
           refetch={refetch}
-          data={data.member}
+          data={
+            search
+              ? data.group.filter((item) => item.title.indexOf(search) >= 0)
+              : data.group
+          }
+          namespace_id={namespace_id}
+          member={data.member}
         />
       </TabsContent>
     </Tabs>

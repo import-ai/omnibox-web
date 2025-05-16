@@ -1,10 +1,10 @@
-import Invite from '../invite';
-import { NamespaceMember } from '@/interface';
+// import Action from './action';
+import Invite from '../../invite';
+import { Member } from '@/interface';
 import { Input } from '@/components/ui/input';
 import UserCard from '@/components/user-card';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import Action from '@/components/permission-action';
 import {
   Table,
   TableRow,
@@ -17,11 +17,11 @@ import {
 interface MemberProps {
   search: string;
   refetch: () => void;
-  data: Array<NamespaceMember>;
+  data: Array<Member>;
   onSearch: (value: string) => void;
 }
 
-export default function Member(props: MemberProps) {
+export default function MemberMain(props: MemberProps) {
   const { search, data, refetch, onSearch } = props;
   const { t } = useTranslation();
 
@@ -44,8 +44,8 @@ export default function Member(props: MemberProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[70%]">用户</TableHead>
-              <TableHead className="text-right">{t('form.role')}</TableHead>
+              <TableHead>用户</TableHead>
+              {/* <TableHead className="text-right">{t('form.role')}</TableHead> */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -54,9 +54,9 @@ export default function Member(props: MemberProps) {
                 <TableCell>
                   <UserCard email={item.email} />
                 </TableCell>
-                <TableCell className="text-right">
+                {/* <TableCell className="text-right">
                   <Action value="can_comment" onChange={() => {}} />
-                </TableCell>
+                </TableCell> */}
               </TableRow>
             ))}
           </TableBody>

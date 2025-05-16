@@ -1,24 +1,34 @@
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import AddMember from '../add-member';
-import { NamespaceMember } from '@/interface';
+import { http } from '@/lib/request';
+import DataGroupUser from './data-user';
 import { ChevronRight } from 'lucide-react';
+import { Group, Member } from '@/interface';
 import UserCard from '@/components/user-card';
 import { Button } from '@/components/ui/button';
 import PopConfirm from '@/components/popconfirm';
 import { Separator } from '@/components/ui/separator';
+import useGroupUser from './use-group-user';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-interface GroupProps extends NamespaceMember {}
+interface GroupProps extends Group {
+  member: Array<Member>;
+  onEdit: (id: string, title: string) => void;
+  refetch: () => void;
+  namespace_id: string;
+}
 
 export default function GroupData(props: GroupProps) {
+  const { id, title, onEdit, member, namespace_id, refetch } = props;
   const [fold, onFold] = useState(false);
-
-  console.log('GroupData', props);
+  const { groupUserData, onRemove, groupUserRefetch } = useGroupUser({
+    group_id: id,
+    namespace_id,
+  });
 
   return (
     <Collapsible
@@ -33,16 +43,24 @@ export default function GroupData(props: GroupProps) {
           <CollapsibleTrigger asChild>
             <ChevronRight className="transition-transform cursor-pointer" />
           </CollapsibleTrigger>
-          <UserCard username="Bar" />
+          <UserCard username={title} />
         </div>
         <div className="col-span-4 text-sm h-10 leading-10 px-2">
-          <span>2 名成员</span>
+          <span>{groupUserData.length} 名成员</span>
         </div>
         <div className="col-span-2 flex items-center justify-end gap-2 text-sm h-10 leading-10 px-2">
-          <PopConfirm title="Are you sure to disable this user?">
-            <Button size="sm">编辑</Button>
-          </PopConfirm>
-          <PopConfirm title="确定删除当前用户？">
+          <Button size="sm" onClick={() => onEdit(id, title)}>
+            编辑
+          </Button>
+          <PopConfirm
+            title="确定要删除此群组吗？"
+            message="此群组的所有私人页面都将转移给你。"
+            onOk={() => {
+              http
+                .delete(`/namespaces/${namespace_id}/groups/${id}`)
+                .then(refetch);
+            }}
+          >
             <Button size="sm" variant="destructive">
               删除
             </Button>
@@ -51,35 +69,14 @@ export default function GroupData(props: GroupProps) {
       </div>
       <CollapsibleContent>
         <Separator />
-        <div className="pl-8 pr-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <UserCard username="Bar" />
-              <span className="ml-2 text-xs bg-gray-100 px-2 py-0.5 rounded">
-                工作空间所有者
-              </span>
-            </div>
-            <PopConfirm title="确定要移除此成员？">
-              <Button size="sm" variant="ghost" className="hover:text-red-500">
-                移除
-              </Button>
-            </PopConfirm>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <UserCard username="Bar" />
-              <span className="ml-2 text-xs bg-gray-100 px-2 py-0.5 rounded">
-                工作空间所有者
-              </span>
-            </div>
-            <PopConfirm title="确定要移除此成员？">
-              <Button size="sm" variant="ghost" className="hover:text-red-500">
-                移除
-              </Button>
-            </PopConfirm>
-          </div>
-          <AddMember />
-        </div>
+        <DataGroupUser
+          group_id={id}
+          member={member}
+          onRemove={onRemove}
+          groupUserData={groupUserData}
+          groupUserRefetch={groupUserRefetch}
+          namespace_id={namespace_id}
+        />
       </CollapsibleContent>
     </Collapsible>
   );
