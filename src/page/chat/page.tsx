@@ -183,7 +183,6 @@ export default function Page() {
 
   const handleSendV2 = async () => {
     let parentMessageId: string | undefined = undefined;
-    console.log({ messages, length: messages.length });
     if (messages.length > 0) {
       parentMessageId = messages[messages.length - 1].id;
     }
@@ -288,7 +287,6 @@ export default function Page() {
         if (lastMessage.role === chatResponse.role) {
           lastMessage.id = chatResponse.messageId;
           setMessages(localMessages);
-          console.log({ localMessages });
         } else {
           console.error({
             message: 'Message role mismatch',
