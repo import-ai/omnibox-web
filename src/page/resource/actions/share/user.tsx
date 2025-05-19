@@ -36,7 +36,7 @@ export default function UserForm(props: UserFormProps) {
     <div className="space-y-4 text-sm">
       {data.users.map((item: UserPermission) => (
         <div
-          key={item.id}
+          key={item.user ? item.user.id : item.level}
           className="flex items-center p-2 -m-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100"
         >
           {item.user ? (
@@ -44,7 +44,7 @@ export default function UserForm(props: UserFormProps) {
               <UserCard
                 email={item.user.email}
                 username={item.user.username}
-                you={item.user.id == uid}
+                you={item.user.id === uid}
               />
               <Action
                 value={item.level}
@@ -52,10 +52,7 @@ export default function UserForm(props: UserFormProps) {
                 user_id={item.user.id}
                 resource_id={resource_id}
                 namespace_id={namespace_id}
-                alertWhenDelete={
-                  data.users.findIndex((node) => node.level === 'full_access') <
-                  0
-                }
+                users={data.users}
               />
             </>
           ) : (

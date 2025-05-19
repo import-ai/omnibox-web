@@ -1,10 +1,12 @@
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { http } from '@/lib/request';
+import isEmail from '@/lib/is-email';
 import { Permission } from '@/interface';
 // import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/button';
 import Actions from '@/components/permission-action/action';
+import { getData } from '@/components/permission-action/data';
 import { AutosizeTextarea } from '@/components/autosize-textarea';
 
 interface InviteFormProps {
@@ -15,6 +17,7 @@ interface InviteFormProps {
 export default function InviteForm(props: InviteFormProps) {
   const { resource_id, namespace_id } = props;
   const [value, onChange] = useState('');
+  const data = getData();
   const visible = value.length > 0;
   const [loading, onLoading] = useState(false);
   const [permission, onPermission] = useState<Permission>('full_access');
@@ -27,16 +30,25 @@ export default function InviteForm(props: InviteFormProps) {
   };
   const handleSubmit = () => {
     onLoading(true);
-    http
-      .post('invite/user', {
-        resource_id,
-        namespace_id,
-        accessUrl: `/${namespace_id}/${resource_id}`,
-        registerUrl: `${location.origin}/user/sign-up/comfirm`,
-      })
+    Promise.all(
+      value
+        .split(/，|,/)
+        .filter((item) => isEmail(item))
+        .map((item) =>
+          http.post('invite', {
+            role: 'member',
+            email: item,
+            resourceId: resource_id,
+            namespace: namespace_id,
+            permissionLevel: permission,
+            inviteUrl: `${location.origin}/invite/comfirm`,
+            registerUrl: `${location.origin}/user/sign-up/comfirm`,
+          }),
+        ),
+    )
       .then(() => {
         onChange('');
-        toast('已邀请');
+        toast.success('邀请成功', { position: 'top-center' });
       })
       .finally(() => {
         onLoading(false);
@@ -51,11 +63,12 @@ export default function InviteForm(props: InviteFormProps) {
           minHeight={36}
           maxHeight={200}
           onChange={handleChange}
-          placeholder="邮件地址或群组，一行一个"
+          placeholder="邮件地址或群组，以逗号分隔"
           className="resize-none !leading-[26px] py-1 pr-24"
         />
         {visible && (
           <Actions
+            data={data}
             value={permission}
             onChange={handlePermission}
             className="absolute top-[4px] right-[4px] p-1 rounded-sm bg-gray-200 text-sm"

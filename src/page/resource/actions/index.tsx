@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
+import Wrapper from '@/components/permission-action/wrapper';
 import {
   Popover,
   PopoverContent,
@@ -134,39 +135,57 @@ export default function Actions(props: IProps) {
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
-      <Share />
+      <Wrapper
+        level={0}
+        permission={
+          resource && resource.globalLevel
+            ? resource.globalLevel
+            : 'full_access'
+        }
+      >
+        <Share />
+      </Wrapper>
       <ThemeToggle />
-      {editing ? (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={handleSave}
-          >
-            <Save />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={handleExitEdit}
-          >
-            <PencilOff />
-          </Button>
-        </>
-      ) : (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={handleEdit}
-          >
-            <Pencil />
-          </Button>
-        </>
-      )}
+      <Wrapper
+        level={1}
+        permission={
+          resource && resource.globalLevel
+            ? resource.globalLevel
+            : 'full_access'
+        }
+      >
+        {editing ? (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={handleSave}
+            >
+              <Save />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={handleExitEdit}
+            >
+              <PencilOff />
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={handleEdit}
+            >
+              <Pencil />
+            </Button>
+          </>
+        )}
+      </Wrapper>
       <Popover>
         <PopoverTrigger asChild>
           <Button

@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { http } from '@/lib/request';
+import { Member } from '@/interface';
 import { Button } from '@/components/ui/button';
+import { Button as LoadingButton } from '@/components/button';
 import MultipleSelector, { Option } from '@/components/multiple-selector';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Member } from '@/interface';
 
 interface AddMemberProps {
   group_id: string;
@@ -20,15 +21,23 @@ interface AddMemberProps {
 export default function AddMember(props: AddMemberProps) {
   const { data, namespace_id, group_id, refetch } = props;
   const [open, onOpen] = useState(false);
+  const [loading, onLoading] = useState(false);
   const [value, onChange] = useState<Array<Option>>([]);
   const handleAddMember = () => {
-    http
-      .post(`/namespaces/${namespace_id}/groups/${group_id}/users`, {
-        userId: value.map((item) => item.value).join(','),
-      })
+    onLoading(true);
+    Promise.all(
+      value.map((item) =>
+        http.post(`/namespaces/${namespace_id}/groups/${group_id}/users`, {
+          userId: item.value,
+        }),
+      ),
+    )
       .then(() => {
         onOpen(false);
         refetch();
+      })
+      .finally(() => {
+        onLoading(false);
       });
   };
 
@@ -54,18 +63,14 @@ export default function AddMember(props: AddMemberProps) {
             value: item.id,
           }))}
           afterAddon={
-            <Button
+            <LoadingButton
               size="sm"
+              loading={loading}
               onClick={handleAddMember}
-              className="absolute right-0 top-0"
+              className="absolute right-0 top-0 h-7 w-9"
             >
               添加
-            </Button>
-          }
-          emptyIndicator={
-            <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-              no results found.
-            </p>
+            </LoadingButton>
           }
         />
       </PopoverContent>

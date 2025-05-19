@@ -1,16 +1,16 @@
-import { Resource } from '@/interface';
+import { Permission } from '@/interface';
 import UnauthorizedPage from '@/page/auth/un-auth';
 
 interface IProps {
   forbidden: boolean;
-  resource: Resource;
+  permission?: Permission;
   children: React.ReactNode;
 }
 
 export default function AuthPage(props: IProps) {
-  const { forbidden, resource, children } = props;
+  const { forbidden, permission, children } = props;
 
-  if (forbidden || resource.globalLevel === 'no_access') {
+  if (forbidden || permission === 'no_access') {
     return <UnauthorizedPage />;
   }
 

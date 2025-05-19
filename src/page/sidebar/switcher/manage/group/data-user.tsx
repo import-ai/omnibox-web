@@ -45,7 +45,7 @@ export default function GroupDataUser(props: GroupProps) {
         refetch={groupUserRefetch}
         namespace_id={namespace_id}
         data={member.filter(
-          (item) => groupUserData.findIndex((i) => i.id === item.id) < 0,
+          (item) => groupUserData.findIndex((i) => i.email === item.email) < 0,
         )}
       />
     </div>

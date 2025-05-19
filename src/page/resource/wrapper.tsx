@@ -15,7 +15,7 @@ export default function Wrapper(props: IUseResource) {
   }
 
   return (
-    <AuthPage forbidden={forbidden} resource={resource}>
+    <AuthPage forbidden={forbidden} permission={resource.globalLevel}>
       <Page app={app} resource={resource} />
     </AuthPage>
   );

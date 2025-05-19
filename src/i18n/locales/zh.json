@@ -67,7 +67,7 @@
   "invite": {
     "title": "通过邀请链接添加成员",
     "description": "只有具有邀请权限的成员才能查看此内容。您也可以创建新链接。",
-    "receive_link": "接收链接",
+    "receive_link": "拷贝链接",
     "join": "{{user}} 邀请您加入 {{namespace}}",
     "add": "邀请成员",
     "owner": "工作空间所有者",
@@ -76,7 +76,8 @@
     "max": "最多32个字符",
     "submit": "保存",
     "button": "发送邀请",
-    "success": "邀请已发送"
+    "success": "邀请已发送",
+    "add_namespace": "加入空间"
   },
   "namespace": {
     "add": "添加命名空间",

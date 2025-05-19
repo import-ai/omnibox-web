@@ -76,7 +76,8 @@
     "max": "At most 32 characters",
     "submit": "Save",
     "button": "Send Invitation",
-    "success": "Invitation sent"
+    "success": "Invitation sent",
+    "add_namespace": "Add namespace"
   },
   "namespace": {
     "add": "Add Namespace",

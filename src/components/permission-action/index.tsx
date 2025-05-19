@@ -1,6 +1,8 @@
+import { getData } from './data';
 import { useState } from 'react';
 import { http } from '@/lib/request';
-import { Permission } from '@/interface';
+import { LoaderCircle } from 'lucide-react';
+import { UserPermission, Permission } from '@/interface';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -16,12 +18,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-interface IProps extends Omit<ActionProps, 'afterAddon'> {
+interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   user_id: string;
   resource_id: string;
   namespace_id: string;
   refetch: () => void;
-  alertWhenDelete?: boolean;
+  users: Array<UserPermission>;
 }
 
 export default function PermissionAction(props: IProps) {
@@ -32,10 +34,19 @@ export default function PermissionAction(props: IProps) {
     resource_id,
     className,
     refetch,
-    alertWhenDelete,
+    users,
   } = props;
+  const data = getData();
+  const alertWhenDelete =
+    users
+      .filter((node) => node.user && node.user.id !== user_id)
+      .findIndex((node) => node.level === 'full_access') < 0;
   const [grant, onGrant] = useState(false);
   const [remove, onRemove] = useState(false);
+  const [granting] = useState(false);
+  const [removeing, onRemoveing] = useState(false);
+  const [permissioning, onPermissioning] = useState(false);
+  const [permission, onPermission] = useState<Permission>('full_access');
   const updatePermission = (level: Permission) => {
     return http
       .patch(
@@ -51,6 +62,26 @@ export default function PermissionAction(props: IProps) {
       )
       .then(refetch);
   };
+  const handleChange = (level: Permission) => {
+    const oldIndex = data.findIndex((item) => item.value === value);
+    const newIndex = data.findIndex((item) => item.value === level);
+    if (oldIndex < newIndex) {
+      onPermission(level);
+      return;
+    }
+    updatePermission(level);
+  };
+  const handleCancel = () => {
+    onPermission('full_access');
+  };
+  const handleOk = () => {
+    onPermissioning(true);
+    updatePermission(permission)
+      .then(handleCancel)
+      .finally(() => {
+        onPermissioning(false);
+      });
+  };
   const handleRemove = () => {
     onRemove(true);
   };
@@ -61,38 +92,71 @@ export default function PermissionAction(props: IProps) {
     onGrant(true);
   };
   const handleGrantOk = () => {
-    removePermission().then(() => {
-      onGrant(false);
-    });
+    onGrant(false);
+    // onGranting(true);
+    // removePermission()
+    //   .then(() => {
+    //     onGrant(false);
+    //   })
+    //   .finally(() => {
+    //     onGranting(false);
+    //   });
   };
   const handleRemoveOk = () => {
     if (alertWhenDelete) {
+      handleRemoveCancel();
       handleGrant();
       return;
     }
-    removePermission().then(() => {
-      handleRemoveCancel();
-    });
+    onRemoveing(true);
+    removePermission()
+      .then(() => {
+        handleRemoveCancel();
+      })
+      .finally(() => {
+        onRemoveing(false);
+      });
   };
 
   return (
     <>
       <Action
+        data={data}
         value={value}
         className={className}
-        onChange={updatePermission}
+        onChange={handleChange}
         afterAddon={
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleRemove}
+              disabled={removeing}
               className="text-red-500 cursor-pointer justify-between hover:bg-gray-100"
             >
+              {removeing && (
+                <LoaderCircle className="transition-transform animate-spin" />
+              )}
               移除
             </DropdownMenuItem>
           </>
         }
       />
+      <AlertDialog open={permission !== 'full_access'}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确定要降级自己的访问权限吗？</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancel}>取消</AlertDialogCancel>
+            <AlertDialogAction disabled={permissioning} onClick={handleOk}>
+              {permissioning && (
+                <LoaderCircle className="transition-transform animate-spin" />
+              )}
+              确认
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog open={remove}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -102,7 +166,12 @@ export default function PermissionAction(props: IProps) {
             <AlertDialogCancel onClick={handleRemoveCancel}>
               取消
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleRemoveOk}>确认</AlertDialogAction>
+            <AlertDialogAction disabled={removeing} onClick={handleRemoveOk}>
+              {removeing && (
+                <LoaderCircle className="transition-transform animate-spin" />
+              )}
+              确认
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -114,7 +183,14 @@ export default function PermissionAction(props: IProps) {
             </AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction className="w-full" onClick={handleGrantOk}>
+            <AlertDialogAction
+              className="w-full"
+              disabled={granting}
+              onClick={handleGrantOk}
+            >
+              {granting && (
+                <LoaderCircle className="transition-transform animate-spin" />
+              )}
               确认
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Permission } from '@/interface';
 import { Check, ChevronDown } from 'lucide-react';
 import {
@@ -7,122 +6,63 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 export interface ActionProps {
   value: Permission;
   className?: string;
-  onChange: (value: Permission) => Promise<any>;
   afterAddon?: React.ReactNode;
-}
-
-export default function Action(props: ActionProps) {
-  const { className, afterAddon, value, onChange } = props;
-  const [permission, onPermission] = useState<Permission>('full_access');
-  const data: Array<{
+  onChange: (value: Permission) => void;
+  data: Array<{
     value: Permission;
     label: string;
     description?: string;
-  }> = [
-    {
-      value: 'full_access',
-      label: '全部权限',
-      description: '编辑、建议、评论以及与他人分享',
-    },
-    {
-      value: 'can_edit',
-      label: '可以编辑',
-    },
-    {
-      value: 'can_comment',
-      label: '可以评论',
-      description: '建议和评论',
-    },
-    {
-      value: 'can_view',
-      label: '可以查看',
-    },
-  ];
-  const handleChange = (val: Permission) => {
-    const oldIndex = data.findIndex((item) => item.value === value);
-    const newIndex = data.findIndex((item) => item.value === val);
-    if (oldIndex < newIndex) {
-      onPermission(val);
-      return;
-    }
-    onChange(val);
-  };
-  const handleCancel = () => {
-    onPermission('full_access');
-  };
-  const handleOk = () => {
-    onChange(permission).then(handleCancel);
-  };
+  }>;
+}
+
+export default function Action(props: ActionProps) {
+  const { className, data, afterAddon, value, onChange } = props;
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger className={className}>
-          <div className="flex items-center text-gray-700">
-            <span>{data.find((item) => item.value === value)?.label}</span>
-            <ChevronDown className="h-5 w-5 ml-1" />
-          </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          side="bottom"
-          align="end"
-          alignOffset={-10}
-          className="w-[264px]"
-        >
-          {data.map((item) => (
-            <DropdownMenuItem
-              key={item.value}
-              onClick={() => handleChange(item.value)}
-              className="cursor-pointer justify-between hover:bg-gray-100"
-            >
-              <div>
-                {item.description ? (
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      {item.label}
+    <DropdownMenu>
+      <DropdownMenuTrigger className={className}>
+        <div className="flex items-center text-gray-700">
+          <span>{data.find((item) => item.value === value)?.label}</span>
+          <ChevronDown className="h-5 w-5 ml-1" />
+        </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="bottom"
+        align="end"
+        alignOffset={-10}
+        className="w-[264px]"
+      >
+        {data.map((item) => (
+          <DropdownMenuItem
+            key={item.value}
+            onClick={() => onChange(item.value)}
+            className="cursor-pointer justify-between hover:bg-gray-100"
+          >
+            <div>
+              {item.description ? (
+                <div>
+                  <div className="font-medium text-gray-900">{item.label}</div>
+                  {item.description && (
+                    <div className="text-gray-500 text-xs">
+                      {item.description}
                     </div>
-                    {item.description && (
-                      <div className="text-gray-500 text-xs">
-                        {item.description}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  item.label
-                )}
-              </div>
-              {item.value === value && (
-                <Check className="h-5 w-5 text-blue-600" />
+                  )}
+                </div>
+              ) : (
+                item.label
               )}
-            </DropdownMenuItem>
-          ))}
-          {afterAddon}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <AlertDialog open={permission !== 'full_access'}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确定要降级自己的访问权限吗？</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancel}>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleOk}>确认</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+            </div>
+            {item.value === value && (
+              <Check className="h-5 w-5 text-blue-600" />
+            )}
+          </DropdownMenuItem>
+        ))}
+        {afterAddon}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
