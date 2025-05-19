@@ -17,7 +17,7 @@ export default function ShareForm() {
           value="share"
           className="flex-1 h-11 max-w-[50px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none"
         >
-          {t('share')}
+          {t('share.title')}
         </TabsTrigger>
         {/* <TabsTrigger
           value="publish"

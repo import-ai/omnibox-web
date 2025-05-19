@@ -1,6 +1,7 @@
 import { Member } from '@/interface';
 import AddMember from '../add-member';
 import UserCard from '@/components/user-card';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import PopConfirm from '@/components/popconfirm';
 import { UseGroupUser } from './use-group-user';
@@ -22,6 +23,7 @@ export default function GroupDataUser(props: GroupProps) {
     onRemove,
     groupUserRefetch,
   } = props;
+  const { t } = useTranslation();
 
   return (
     <div className="pl-8 pr-3 py-2">
@@ -30,12 +32,15 @@ export default function GroupDataUser(props: GroupProps) {
           <div className="flex items-center">
             <UserCard username={item.username} />
             <span className="ml-2 text-xs bg-gray-100 px-2 py-0.5 rounded">
-              工作空间所有者
+              {t('manage.owner')}
             </span>
           </div>
-          <PopConfirm title="确定要移除此成员？" onOk={() => onRemove(item.id)}>
+          <PopConfirm
+            title={t('manage.remove_member')}
+            onOk={() => onRemove(item.id)}
+          >
             <Button size="sm" variant="ghost" className="hover:text-red-500">
-              移除
+              {t('manage.remove_from_group')}
             </Button>
           </PopConfirm>
         </div>

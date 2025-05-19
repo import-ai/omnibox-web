@@ -36,7 +36,7 @@ export default function MemberMain(props: MemberProps) {
         />
         <Invite onFinish={refetch}>
           <Button size="sm" variant="default">
-            添加成员
+            {t('manage.add_member')}
           </Button>
         </Invite>
       </div>
@@ -44,7 +44,7 @@ export default function MemberMain(props: MemberProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>用户</TableHead>
+              <TableHead>{t('manage.user')}</TableHead>
               {/* <TableHead className="text-right">{t('form.role')}</TableHead> */}
             </TableRow>
           </TableHeader>

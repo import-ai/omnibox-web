@@ -1,3 +1,4 @@
+import i18next from 'i18next';
 import { Permission } from '@/interface';
 
 export function getData(): Array<{
@@ -8,21 +9,21 @@ export function getData(): Array<{
   return [
     {
       value: 'full_access',
-      label: '全部权限',
-      description: '编辑、建议、评论以及与他人分享',
+      label: i18next.t('permission.full_access'),
+      description: i18next.t('permission.full_access_desc'),
     },
     {
       value: 'can_edit',
-      label: '可以编辑',
+      label: i18next.t('permission.can_edit'),
     },
     {
       value: 'can_comment',
-      label: '可以评论',
-      description: '建议和评论',
+      label: i18next.t('permission.can_comment'),
+      description: i18next.t('permission.can_comment_desc'),
     },
     {
       value: 'can_view',
-      label: '可以查看',
+      label: i18next.t('permission.can_view'),
     },
   ];
 }

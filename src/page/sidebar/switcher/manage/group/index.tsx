@@ -58,8 +58,12 @@ export default function GroupMain(props: GroupProps) {
       <div className="rounded-md border">
         <div className="border-gray-200">
           <div className="grid grid-cols-12 text-gray-500 border-b border-gray-200">
-            <div className="col-span-6 text-sm h-10 leading-10 px-2">群组</div>
-            <div className="col-span-4 text-sm h-10 leading-10 px-2">成员</div>
+            <div className="col-span-6 text-sm h-10 leading-10 px-2">
+              {t('manage.group')}
+            </div>
+            <div className="col-span-4 text-sm h-10 leading-10 px-2">
+              {t('manage.member')}
+            </div>
             <div className="col-span-2 text-sm h-10 leading-10 px-2"></div>
           </div>
           <div className="border-gray-200">

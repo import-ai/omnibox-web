@@ -1,4 +1,5 @@
 // import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 // import { Button } from '@/components/ui/button';
 import { AlertTriangle, ShieldAlert } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -12,6 +13,8 @@ import {
 } from '@/components/ui/card';
 
 export default function UnauthorizedPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center justify-center mt-20">
       <Card className="max-w-md w-full">
@@ -21,27 +24,25 @@ export default function UnauthorizedPage() {
               <ShieldAlert className="h-10 w-10 text-red-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">Access Denied</CardTitle>
+          <CardTitle className="text-2xl text-center">
+            {t('unauth_page.title')}
+          </CardTitle>
           <CardDescription className="text-center">
-            You do not have permission to access this page
+            {t('unauth_page.desc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Permission Denied</AlertTitle>
-            <AlertDescription>
-              Your current user permissions are insufficient to access this page
-              or resource. To gain access, please contact the administrator to
-              request the appropriate permissions.
-            </AlertDescription>
+            <AlertTitle>{t('unauth_page.alert_title')}</AlertTitle>
+            <AlertDescription> {t('unauth_page.alert_desc')}</AlertDescription>
           </Alert>
           <div className="text-sm text-muted-foreground">
-            <p>Possible reasons:</p>
+            <p>{t('unauth_page.reason')}</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
-              <li>Your account has not been granted access to this resource</li>
-              <li>Your session may have expired</li>
-              <li>You may need specific roles or permission levels</li>
+              <li>{t('unauth_page.reason1')}</li>
+              <li>{t('unauth_page.reason2')}</li>
+              <li>{t('unauth_page.reason3')}</li>
             </ul>
           </div>
         </CardContent>

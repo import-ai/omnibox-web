@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -33,8 +33,8 @@ interface IProps {
 
 export default function AddGroupForm(props: IProps) {
   const { data, onFinish } = props;
-  // const { t } = useTranslation();
   const params = useParams();
+  const { t } = useTranslation();
   const namespace_id = params.namespace_id || '';
   const [loading, setLoading] = useState(false);
   const form = useForm<FormValues>({
@@ -89,7 +89,7 @@ export default function AddGroupForm(props: IProps) {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>群组名称</FormLabel>
+              <FormLabel>{t('manage.group_name')}</FormLabel>
               <FormControl>
                 <Input {...field} disabled={loading} />
               </FormControl>
@@ -98,7 +98,7 @@ export default function AddGroupForm(props: IProps) {
           )}
         />
         <Button type="submit" disabled={loading} loading={loading}>
-          保存
+          {t('manage.submit')}
         </Button>
       </form>
     </Form>

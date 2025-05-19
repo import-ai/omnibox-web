@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { http } from '@/lib/request';
 import DataGroupUser from './data-user';
+import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 import { Group, Member } from '@/interface';
 import UserCard from '@/components/user-card';
@@ -24,6 +25,7 @@ interface GroupProps extends Group {
 
 export default function GroupData(props: GroupProps) {
   const { id, title, onEdit, member, namespace_id, refetch } = props;
+  const { t } = useTranslation();
   const [fold, onFold] = useState(false);
   const { groupUserData, onRemove, groupUserRefetch } = useGroupUser({
     group_id: id,
@@ -46,15 +48,17 @@ export default function GroupData(props: GroupProps) {
           <UserCard username={title} />
         </div>
         <div className="col-span-4 text-sm h-10 leading-10 px-2">
-          <span>{groupUserData.length} 名成员</span>
+          <span>
+            {t('manage.member_count', { size: groupUserData.length })}
+          </span>
         </div>
         <div className="col-span-2 flex items-center justify-end gap-2 text-sm h-10 leading-10 px-2">
           <Button size="sm" onClick={() => onEdit(id, title)}>
-            编辑
+            {t('manage.edit')}
           </Button>
           <PopConfirm
-            title="确定要删除此群组吗？"
-            message="此群组的所有私人页面都将转移给你。"
+            title={t('manage.remove_title')}
+            message={t('manage.remove_desc')}
             onOk={() => {
               http
                 .delete(`/namespaces/${namespace_id}/groups/${id}`)
@@ -62,7 +66,7 @@ export default function GroupData(props: GroupProps) {
             }}
           >
             <Button size="sm" variant="destructive">
-              删除
+              {t('manage.delete')}
             </Button>
           </PopConfirm>
         </div>

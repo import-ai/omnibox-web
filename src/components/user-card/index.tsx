@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 // import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface IProps {
@@ -9,6 +10,7 @@ interface IProps {
 
 export default function UserCard(props: IProps) {
   const { you, email, username } = props;
+  const { t } = useTranslation();
 
   if (!email && !username) {
     return null;
@@ -21,7 +23,9 @@ export default function UserCard(props: IProps) {
           <span className={cn({ 'font-medium': !!email, 'text-sm': !email })}>
             {username}
           </span>
-          {you && <span className="text-gray-500 ml-2">(你)</span>}
+          {you && (
+            <span className="text-gray-500 ml-2">({t('permission.you')})</span>
+          )}
         </div>
       )}
       {email && <div className="text-gray-500 text-sm">{email}</div>}
@@ -39,7 +43,7 @@ export default function UserCard(props: IProps) {
   //     <div>
   //       <div className="flex items-center">
   //         <span className="font-medium">{username}</span>
-  //         {you && <span className="text-gray-500 ml-2">(你)</span>}
+  //         {you && <span className="text-gray-500 ml-2">({t('permission.you')})</span>}
   //       </div>
   //       <div className="text-gray-500 text-sm">{email}</div>
   //     </div>

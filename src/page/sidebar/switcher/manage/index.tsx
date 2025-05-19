@@ -1,9 +1,11 @@
 import Group from './group';
 import Member from './member';
 import useContext from './use-context';
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ManagePeople() {
+  const { t } = useTranslation();
   const { tab, onTab, data, refetch, search, onSearch, namespace_id } =
     useContext();
 
@@ -14,13 +16,13 @@ export default function ManagePeople() {
           value="member"
           className="flex-1 h-11 max-w-[50px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none"
         >
-          成员 {data.member.length}
+          {t('manage.member')} {data.member.length}
         </TabsTrigger>
         <TabsTrigger
           value="group"
           className="flex-1 h-11 max-w-[50px] text-gray-400 data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none"
         >
-          群组 {data.group.length}
+          {t('manage.group')} {data.group.length}
         </TabsTrigger>
       </TabsList>
       <TabsContent value="member">

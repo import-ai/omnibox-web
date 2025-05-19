@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Role } from '@/interface';
 import { http } from '@/lib/request';
+import { useTranslation } from 'react-i18next';
 import { Check, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
@@ -29,6 +30,7 @@ export interface ActionProps {
 export default function Action(props: ActionProps) {
   const { className, value, namespace_id, refetch } = props;
   const [remove, onRemove] = useState(false);
+  const { t } = useTranslation();
   const data: Array<{
     value: Role;
     label: string;
@@ -36,13 +38,13 @@ export default function Action(props: ActionProps) {
   }> = [
     {
       value: 'owner',
-      label: '工作空间所有者',
-      description: '可以更改工作空间设置并邀请新成员加入工作空间。',
+      label: t('manage.owner'),
+      description: t('manage.owner_desc'),
     },
     {
       value: 'member',
-      label: '成员',
-      description: '无法更改工作空间设置或邀请新成员加入工作空间。',
+      label: t('manage.member'),
+      description: t('manage.member_desc'),
     },
   ];
   const handleChange = (val: Role) => {
@@ -110,20 +112,22 @@ export default function Action(props: ActionProps) {
             onClick={handleRemove}
             className="text-red-500 cursor-pointer justify-between hover:bg-gray-100"
           >
-            从工作空间移除
+            {t('manage.remove')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <AlertDialog open={remove}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确定要删除自己的访问权限吗？</AlertDialogTitle>
+            <AlertDialogTitle>{t('manage.remove_self')}</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleRemoveCancel}>
-              取消
+              {t('cancel')}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleRemoveOk}>确认</AlertDialogAction>
+            <AlertDialogAction onClick={handleRemoveOk}>
+              {t('ok')}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

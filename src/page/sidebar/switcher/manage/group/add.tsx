@@ -1,6 +1,6 @@
 import AddGroupForm from './add-form';
 import { Button } from '@/components/ui/button';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -21,8 +21,8 @@ interface IProps {
 
 export default function CreateGroup(props: IProps) {
   const { data, onFinish, onToggle } = props;
-  // const { t } = useTranslation();
-  const title = data.id ? '编辑群组' : '创建群组';
+  const { t } = useTranslation();
+  const title = data.id ? t('manage.edit_group') : t('manage.create_group');
 
   return (
     <Dialog open={data.open} onOpenChange={onToggle}>

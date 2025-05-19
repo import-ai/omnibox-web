@@ -25,6 +25,7 @@ interface GroupOption {
 
 interface MultipleSelectorProps {
   value?: Option[];
+  inputValue?: string;
   afterAddon?: React.ReactNode;
   defaultOptions?: Option[];
   /** manually controlled options */
@@ -182,6 +183,7 @@ const MultipleSelector = React.forwardRef<
       onChange,
       placeholder,
       afterAddon,
+      inputValue: inputPropsValue,
       defaultOptions: arrayDefaultOptions = [],
       options: arrayOptions,
       delay,
@@ -215,7 +217,7 @@ const MultipleSelector = React.forwardRef<
     const [options, setOptions] = React.useState<GroupOption>(
       transToGroupOption(arrayDefaultOptions, groupBy),
     );
-    const [inputValue, setInputValue] = React.useState('');
+    const [inputValue, setInputValue] = React.useState(inputPropsValue);
     const debouncedSearchTerm = useDebounce(inputValue, delay || 500);
 
     React.useImperativeHandle(
@@ -292,6 +294,13 @@ const MultipleSelector = React.forwardRef<
         setSelected(value);
       }
     }, [value]);
+
+    useEffect(() => {
+      if (inputPropsValue === inputValue) {
+        return;
+      }
+      setInputValue(inputPropsValue);
+    }, [inputValue, inputPropsValue]);
 
     useEffect(() => {
       if (!arrayOptions || onSearch) {
@@ -467,7 +476,7 @@ const MultipleSelector = React.forwardRef<
                 <Badge
                   key={option.value}
                   className={cn(
-                    'py-1.5 data-[disabled]:bg-muted-foreground data-[disabled]:text-muted data-[disabled]:hover:bg-muted-foreground',
+                    'py-1 data-[disabled]:bg-muted-foreground data-[disabled]:text-muted data-[disabled]:hover:bg-muted-foreground',
                     'data-[fixed]:bg-muted-foreground data-[fixed]:text-muted data-[fixed]:hover:bg-muted-foreground',
                     badgeClassName,
                   )}

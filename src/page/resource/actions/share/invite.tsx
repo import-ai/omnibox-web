@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { http } from '@/lib/request';
 import isEmail from '@/lib/is-email';
 import { Permission } from '@/interface';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/button';
 import Actions from '@/components/permission-action/action';
 import { getData } from '@/components/permission-action/data';
@@ -19,6 +19,7 @@ export default function InviteForm(props: InviteFormProps) {
   const [value, onChange] = useState('');
   const data = getData();
   const visible = value.length > 0;
+  const { t } = useTranslation();
   const [loading, onLoading] = useState(false);
   const [permission, onPermission] = useState<Permission>('full_access');
   const handlePermission = (val: Permission) => {
@@ -29,26 +30,26 @@ export default function InviteForm(props: InviteFormProps) {
     onChange(e.target.value);
   };
   const handleSubmit = () => {
+    const userEmails = value.split(/，|,/).filter((item) => isEmail(item));
+    if (userEmails.length <= 0) {
+      return;
+    }
     onLoading(true);
-    Promise.all(
-      value
-        .split(/，|,/)
-        .filter((item) => isEmail(item))
-        .map((item) =>
-          http.post('invite', {
-            role: 'member',
-            email: item,
-            resourceId: resource_id,
-            namespace: namespace_id,
-            permissionLevel: permission,
-            inviteUrl: `${location.origin}/invite/comfirm`,
-            registerUrl: `${location.origin}/user/sign-up/comfirm`,
-          }),
-        ),
-    )
+    http
+      .post('invite', {
+        role: 'member',
+        resourceId: resource_id,
+        namespace: namespace_id,
+        email: userEmails.join(','),
+        permissionLevel: permission,
+        inviteUrl: `${location.origin}/invite/comfirm`,
+        registerUrl: `${location.origin}/user/sign-up/comfirm`,
+      })
       .then(() => {
         onChange('');
-        toast.success('邀请成功', { position: 'top-center' });
+        toast.success(t('share.invite_success'), {
+          position: 'top-center',
+        });
       })
       .finally(() => {
         onLoading(false);
@@ -63,7 +64,7 @@ export default function InviteForm(props: InviteFormProps) {
           minHeight={36}
           maxHeight={200}
           onChange={handleChange}
-          placeholder="邮件地址或群组，以逗号分隔"
+          placeholder={t('share.invite_placeholder')}
           className="resize-none !leading-[26px] py-1 pr-24"
         />
         {visible && (
@@ -81,7 +82,7 @@ export default function InviteForm(props: InviteFormProps) {
         onClick={handleSubmit}
         className="bg-blue-500 hover:bg-blue-600 text-white px-6"
       >
-        邀请
+        {t('share.invite')}
       </Button>
     </div>
   );

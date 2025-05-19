@@ -2,6 +2,7 @@ import { getData } from './data';
 import { useState } from 'react';
 import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { UserPermission, Permission } from '@/interface';
 import {
   DropdownMenuItem,
@@ -37,6 +38,7 @@ export default function PermissionAction(props: IProps) {
     users,
   } = props;
   const data = getData();
+  const { t } = useTranslation();
   const alertWhenDelete =
     users
       .filter((node) => node.user && node.user.id !== user_id)
@@ -136,7 +138,7 @@ export default function PermissionAction(props: IProps) {
               {removeing && (
                 <LoaderCircle className="transition-transform animate-spin" />
               )}
-              移除
+              {t('permission.remove')}
             </DropdownMenuItem>
           </>
         }
@@ -144,15 +146,17 @@ export default function PermissionAction(props: IProps) {
       <AlertDialog open={permission !== 'full_access'}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确定要降级自己的访问权限吗？</AlertDialogTitle>
+            <AlertDialogTitle>{t('permission.demote')}</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancel}>取消</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleCancel}>
+              {t('permission.cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction disabled={permissioning} onClick={handleOk}>
               {permissioning && (
                 <LoaderCircle className="transition-transform animate-spin" />
               )}
-              确认
+              {t('permission.ok')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -160,17 +164,17 @@ export default function PermissionAction(props: IProps) {
       <AlertDialog open={remove}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确定要删除自己的访问权限吗？</AlertDialogTitle>
+            <AlertDialogTitle>{t('permission.remove_self')}</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleRemoveCancel}>
-              取消
+              {t('permission.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction disabled={removeing} onClick={handleRemoveOk}>
               {removeing && (
                 <LoaderCircle className="transition-transform animate-spin" />
               )}
-              确认
+              {t('permission.ok')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -179,7 +183,7 @@ export default function PermissionAction(props: IProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              在移除此权限之前，请向其他人授予“全部权限”。
+              {t('permission.grant_permission')}
             </AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -191,7 +195,7 @@ export default function PermissionAction(props: IProps) {
               {granting && (
                 <LoaderCircle className="transition-transform animate-spin" />
               )}
-              确认
+              {t('permission.ok')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
