@@ -22,24 +22,7 @@ import {
 } from '@/components/ui/form';
 
 const formSchema = z.object({
-  email: z
-    .string()
-    .email(i18next.t('form.email_invalid'))
-    .refine(
-      (email) => {
-        const allowedDomains = [
-          'gmail.com',
-          'outlook.com',
-          '163.com',
-          'qq.com',
-        ];
-        const domain = email.split('@')[1];
-        return allowedDomains.includes(domain);
-      },
-      {
-        message: i18next.t('form.email_limit_rule'),
-      },
-    ),
+  email: z.string().nonempty(i18next.t('form.email_or_username_invalid')),
   password: z
     .string()
     .min(8, i18next.t('form.password_min'))
@@ -105,11 +88,11 @@ export function LoginForm({
               <FormItem>
                 <FormControl>
                   <Input
-                    type="email"
+                    type="text"
                     startIcon={Mail}
                     autoComplete="email"
                     disabled={isLoading}
-                    placeholder={t('form.email')}
+                    placeholder={t('form.email_or_username')}
                     {...field}
                   />
                 </FormControl>
