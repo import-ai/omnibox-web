@@ -63,6 +63,8 @@
     "email_invalid": "请输入有效的邮箱地址",
     "email_limit": "仅支持 Gmail、Outlook、163 和 QQ 邮箱",
     "email_limit_rule": "邮箱必须是 Gmail、Outlook、163 或 QQ 邮箱",
+    "email_or_username": "邮箱或用户名",
+    "email_or_username_invalid": "请输入有效的邮箱地址或用户名",
     "role": "角色"
   },
   "invite": {
@@ -168,6 +170,7 @@
     "can_comment": "可以评论",
     "can_comment_desc": "建议和评论",
     "can_view": "可以查看",
+    "no_access": "无访问权限",
     "remove": "移除",
     "demote": "确定要降级自己的访问权限吗？",
     "cancel": "取消",

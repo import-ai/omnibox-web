@@ -61,6 +61,7 @@ export type Role = 'owner' | 'member';
 
 export interface Member {
   id: string;
+  username: string;
   email: string;
   role: Role;
 }

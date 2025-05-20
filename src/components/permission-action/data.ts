@@ -25,5 +25,9 @@ export function getData(): Array<{
       value: 'can_view',
       label: i18next.t('permission.can_view'),
     },
+    {
+      value: 'no_access',
+      label: i18next.t('permission.no_access'),
+    },
   ];
 }

@@ -24,6 +24,7 @@ interface MemberProps {
 export default function MemberMain(props: MemberProps) {
   const { search, data, refetch, onSearch } = props;
   const { t } = useTranslation();
+  const uid = localStorage.getItem('uid');
 
   return (
     <div className="space-y-4 p-px">
@@ -52,7 +53,11 @@ export default function MemberMain(props: MemberProps) {
             {data.map((item) => (
               <TableRow key={item.email}>
                 <TableCell>
-                  <UserCard email={item.email} />
+                  <UserCard
+                    username={item.username}
+                    email={item.email}
+                    you={uid === item.id}
+                  />
                 </TableCell>
                 {/* <TableCell className="text-right">
                   <Action value="can_comment" onChange={() => {}} />

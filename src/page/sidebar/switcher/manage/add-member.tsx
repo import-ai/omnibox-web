@@ -57,7 +57,7 @@ export default function AddMember(props: AddMemberProps) {
     if (memberUsers.length > 0) {
       actions.push(
         http.post(`/namespaces/${namespace_id}/groups/${group_id}/users`, {
-          userId: memberUsers.join(','),
+          userIds: memberUsers,
         }),
       );
     }
