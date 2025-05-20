@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import i18next from 'i18next';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { http } from '@/lib/request';
+import isEmail from '@/lib/is-email';
 import Space from '@/components/space';
 import extension from '@/lib/extension';
 import React, { useState } from 'react';
@@ -46,6 +48,14 @@ export function LoginForm({
     },
   });
   const onSubmit = (data: z.infer<typeof formSchema>) => {
+    if (isEmail(data.email)) {
+      const allowedDomains = ['gmail.com', 'outlook.com', '163.com', 'qq.com'];
+      const domain = data.email.split('@')[1];
+      if (!allowedDomains.includes(domain)) {
+        toast(t('form.email_limit_rule'), { position: 'top-center' });
+        return;
+      }
+    }
     setIsLoading(true);
     http
       .post('login', data)
