@@ -33,7 +33,7 @@ export default function UserForm(props: UserFormProps) {
   useEffect(refetch, [namespace_id, resource_id]);
 
   return (
-    <div className="space-y-4 text-sm">
+    <div className="space-y-2 text-sm">
       {data.users.map((item: UserPermission) => (
         <div
           key={item.user ? item.user.id : item.level}

@@ -26,7 +26,7 @@ export default function ShareForm() {
           发布
         </TabsTrigger> */}
       </TabsList>
-      <TabsContent value="share" className="p-4">
+      <TabsContent value="share" className="px-4 pt-4 pb-2">
         <Invite resource_id={resource_id} namespace_id={namespace_id} />
         <User resource_id={resource_id} namespace_id={namespace_id} />
       </TabsContent>

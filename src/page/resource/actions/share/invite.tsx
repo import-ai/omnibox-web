@@ -57,7 +57,7 @@ export default function InviteForm(props: InviteFormProps) {
   };
 
   return (
-    <div className="flex gap-2 mb-6">
+    <div className="flex gap-2 mb-4">
       <div className="flex-1 relative">
         <AutosizeTextarea
           value={value}
@@ -69,9 +69,9 @@ export default function InviteForm(props: InviteFormProps) {
         />
         {visible && (
           <Actions
-            data={data}
             value={permission}
             onChange={handlePermission}
+            data={data.filter((item) => item.value !== 'no_access')}
             className="absolute top-[4px] right-[4px] p-1 rounded-sm bg-gray-200 text-sm"
           />
         )}
