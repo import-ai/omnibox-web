@@ -129,7 +129,7 @@
     "namespace": "Namespace Settings"
   },
   "manage": {
-    "search": "Search by username",
+    "search": "Enter and search",
     "disable": "Disable",
     "remove": "Remove from Workspace",
     "add_member": "Add Member",

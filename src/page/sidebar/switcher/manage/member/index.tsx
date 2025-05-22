@@ -1,10 +1,13 @@
-// import Action from './action';
+import Action from './action';
 import Invite from '../../invite';
+import { http } from '@/lib/request';
 import { Member } from '@/interface';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import UserCard from '@/components/user-card';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import PermissionAction from '@/components/permission-action';
 import {
   Table,
   TableRow,
@@ -18,13 +21,28 @@ interface MemberProps {
   search: string;
   refetch: () => void;
   data: Array<Member>;
+  namespace_id: string;
   onSearch: (value: string) => void;
 }
 
 export default function MemberMain(props: MemberProps) {
-  const { search, data, refetch, onSearch } = props;
+  const { search, data, namespace_id, refetch, onSearch } = props;
   const { t } = useTranslation();
   const uid = localStorage.getItem('uid');
+  const [resourceId, onResourceId] = useState('');
+  const isOwner =
+    data.findIndex((item) => item.user_id === uid && item.role === 'owner') >=
+    0;
+
+  useEffect(() => {
+    http
+      .get(`/namespaces/${namespace_id}/root`, {
+        params: { namespace_id: namespace_id, space_type: 'teamspace' },
+      })
+      .then((res) => {
+        onResourceId(res.id);
+      });
+  }, [namespace_id]);
 
   return (
     <div className="space-y-4 p-px">
@@ -45,23 +63,41 @@ export default function MemberMain(props: MemberProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t('manage.user')}</TableHead>
-              {/* <TableHead className="text-right">{t('form.role')}</TableHead> */}
+              <TableHead className="w-[40%]">{t('manage.user')}</TableHead>
+              <TableHead className="w-[30%]">权限</TableHead>
+              <TableHead className="text-right">角色</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((item) => (
-              <TableRow key={item.email}>
+              <TableRow key={item.id}>
                 <TableCell>
                   <UserCard
-                    username={item.username}
                     email={item.email}
-                    you={uid === item.id}
+                    username={item.username}
+                    you={uid === item.user_id}
                   />
                 </TableCell>
-                {/* <TableCell className="text-right">
-                  <Action value="can_comment" onChange={() => {}} />
-                </TableCell> */}
+                <TableCell>
+                  <PermissionAction
+                    disabled={!isOwner}
+                    value={item.level}
+                    refetch={refetch}
+                    user_id={item.user_id}
+                    resource_id={resourceId}
+                    namespace_id={namespace_id}
+                    canRemove={false}
+                  />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Action
+                    disabled={!isOwner}
+                    id={item.id}
+                    value={item.role}
+                    refetch={refetch}
+                    namespace_id={namespace_id}
+                  />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

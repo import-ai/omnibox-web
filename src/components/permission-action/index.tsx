@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { UserPermission, Permission } from '@/interface';
+import { Permission } from '@/interface';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -21,28 +21,29 @@ import {
 
 interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   user_id: string;
+  canRemove?: boolean;
   resource_id: string;
   namespace_id: string;
   refetch: () => void;
-  users: Array<UserPermission>;
+  alertWhenDelete?: boolean;
 }
 
 export default function PermissionAction(props: IProps) {
   const {
     user_id,
     value,
+    disabled,
     namespace_id,
     resource_id,
     className,
     refetch,
-    users,
+    alertWhenDelete,
+    canRemove = true,
   } = props;
-  const data = getData();
+
+  const defaultNoAccess = value === 'no_access';
+  const data = getData(!defaultNoAccess);
   const { t } = useTranslation();
-  const alertWhenDelete =
-    users
-      .filter((node) => node.user && node.user.id !== user_id)
-      .findIndex((node) => node.level === 'full_access') < 0;
   const [grant, onGrant] = useState(false);
   const [remove, onRemove] = useState(false);
   const [granting] = useState(false);
@@ -125,22 +126,25 @@ export default function PermissionAction(props: IProps) {
       <Action
         data={data}
         value={value}
+        disabled={disabled}
         className={className}
         onChange={handleChange}
         afterAddon={
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleRemove}
-              disabled={removeing}
-              className="text-red-500 cursor-pointer justify-between hover:bg-gray-100"
-            >
-              {removeing && (
-                <LoaderCircle className="transition-transform animate-spin" />
-              )}
-              {t('permission.remove')}
-            </DropdownMenuItem>
-          </>
+          !canRemove || defaultNoAccess ? null : (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleRemove}
+                disabled={removeing}
+                className="text-red-500 cursor-pointer justify-between hover:bg-gray-100 dark:hover:bg-gray-400"
+              >
+                {removeing && (
+                  <LoaderCircle className="transition-transform animate-spin" />
+                )}
+                {t('permission.remove')}
+              </DropdownMenuItem>
+            </>
+          )
         }
       />
       <AlertDialog open={permission !== 'full_access'}>

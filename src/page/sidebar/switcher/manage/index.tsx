@@ -11,16 +11,16 @@ export default function ManagePeople() {
 
   return (
     <Tabs value={tab} onValueChange={onTab}>
-      <TabsList className="w-full justify-start h-11 bg-white border-b rounded-none">
+      <TabsList className="w-full justify-start h-11 border-b rounded-none">
         <TabsTrigger
           value="member"
-          className="flex-1 h-11 max-w-[50px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none"
+          className="flex-1 h-11 max-w-[120px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
         >
           {t('manage.member')} {data.member.length}
         </TabsTrigger>
         <TabsTrigger
           value="group"
-          className="flex-1 h-11 max-w-[50px] text-gray-400 data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none"
+          className="flex-1 h-11 max-w-[120px] text-gray-400 data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
         >
           {t('manage.group')} {data.group.length}
         </TabsTrigger>
@@ -28,8 +28,9 @@ export default function ManagePeople() {
       <TabsContent value="member">
         <Member
           search={search}
-          onSearch={onSearch}
           refetch={refetch}
+          onSearch={onSearch}
+          namespace_id={namespace_id}
           data={
             search
               ? data.member.filter((item) => item.email.indexOf(search) >= 0)
@@ -40,15 +41,15 @@ export default function ManagePeople() {
       <TabsContent value="group">
         <Group
           search={search}
-          onSearch={onSearch}
           refetch={refetch}
+          onSearch={onSearch}
+          member={data.member}
+          namespace_id={namespace_id}
           data={
             search
               ? data.group.filter((item) => item.title.indexOf(search) >= 0)
               : data.group
           }
-          namespace_id={namespace_id}
-          member={data.member}
         />
       </TabsContent>
     </Tabs>

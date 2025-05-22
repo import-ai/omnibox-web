@@ -61,9 +61,11 @@ export type Role = 'owner' | 'member';
 
 export interface Member {
   id: string;
+  user_id: string;
   username: string;
   email: string;
   role: Role;
+  level: Permission;
 }
 
 export interface NamespaceMember extends IBase {
@@ -96,9 +98,6 @@ export interface UserPermission extends IBase {
 }
 
 export interface GroupPermission extends IBase {
-  id: number;
   level: Permission;
-  namespace?: Namespace;
-  resource?: Resource;
-  group?: Group;
+  group: Group;
 }

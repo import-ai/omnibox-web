@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Role } from '@/interface';
 import { http } from '@/lib/request';
@@ -22,13 +23,15 @@ import {
 
 export interface ActionProps {
   value: Role;
+  id: string;
+  disabled?: boolean;
   namespace_id: string;
   refetch: () => void;
   className?: string;
 }
 
 export default function Action(props: ActionProps) {
-  const { className, value, namespace_id, refetch } = props;
+  const { id, className, disabled, value, namespace_id, refetch } = props;
   const [remove, onRemove] = useState(false);
   const { t } = useTranslation();
   const data: Array<{
@@ -49,7 +52,7 @@ export default function Action(props: ActionProps) {
   ];
   const handleChange = (val: Role) => {
     return http
-      .patch(`namespaces/${namespace_id}/members`, { role: val })
+      .patch(`namespaces/${namespace_id}/members/${id}`, { role: val })
       .then(refetch);
   };
   const handleRemove = () => {
@@ -59,7 +62,7 @@ export default function Action(props: ActionProps) {
     onRemove(false);
   };
   const handleRemoveOk = () => {
-    return http.delete(`namespaces/${namespace_id}/members`).then(() => {
+    return http.delete(`namespaces/${namespace_id}/members/${id}`).then(() => {
       handleRemoveCancel();
       refetch();
     });
@@ -68,10 +71,13 @@ export default function Action(props: ActionProps) {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger className={className}>
-          <div className="flex items-center text-gray-700">
+        <DropdownMenuTrigger
+          disabled={disabled}
+          className={cn(className, { 'opacity-40': disabled })}
+        >
+          <div className="flex items-center text-gray-600">
             <span>{data.find((item) => item.value === value)?.label}</span>
-            <ChevronDown className="h-5 w-5 ml-1" />
+            {!disabled && <ChevronDown className="h-5 w-5 ml-1" />}
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -89,9 +95,7 @@ export default function Action(props: ActionProps) {
               <div>
                 {item.description ? (
                   <div>
-                    <div className="font-medium text-gray-900">
-                      {item.label}
-                    </div>
+                    <div>{item.label}</div>
                     {item.description && (
                       <div className="text-gray-500 text-xs">
                         {item.description}

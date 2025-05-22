@@ -1,7 +1,9 @@
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { http } from '@/lib/request';
 import isEmail from '@/lib/is-email';
+import useApp from '@/hooks/use-app';
 import { Permission } from '@/interface';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/button';
@@ -16,8 +18,9 @@ interface InviteFormProps {
 
 export default function InviteForm(props: InviteFormProps) {
   const { resource_id, namespace_id } = props;
+  const app = useApp();
   const [value, onChange] = useState('');
-  const data = getData();
+  const data = getData(true);
   const visible = value.length > 0;
   const { t } = useTranslation();
   const [loading, onLoading] = useState(false);
@@ -30,17 +33,26 @@ export default function InviteForm(props: InviteFormProps) {
     onChange(e.target.value);
   };
   const handleSubmit = () => {
-    const userEmails = value.split(/，|,/).filter((item) => isEmail(item));
-    if (userEmails.length <= 0) {
+    const groupTitles: Array<string> = [];
+    const userEmails: Array<string> = [];
+    value.split(/，|,/).forEach((item) => {
+      if (isEmail(item)) {
+        userEmails.push(item.trim());
+      } else {
+        groupTitles.push(item.trim());
+      }
+    });
+    if (groupTitles.length <= 0 && userEmails.length <= 0) {
       return;
     }
     onLoading(true);
     http
       .post('invite', {
+        groupTitles,
         role: 'member',
+        emails: userEmails,
         resourceId: resource_id,
         namespace: namespace_id,
-        email: userEmails.join(','),
         permissionLevel: permission,
         inviteUrl: `${location.origin}/invite/comfirm`,
         registerUrl: `${location.origin}/user/sign-up/comfirm`,
@@ -50,6 +62,7 @@ export default function InviteForm(props: InviteFormProps) {
         toast.success(t('share.invite_success'), {
           position: 'top-center',
         });
+        groupTitles.length > 0 && app.fire('user_permission_refetch');
       })
       .finally(() => {
         onLoading(false);
@@ -61,17 +74,19 @@ export default function InviteForm(props: InviteFormProps) {
       <div className="flex-1 relative">
         <AutosizeTextarea
           value={value}
-          minHeight={36}
+          minHeight={34}
           maxHeight={200}
           onChange={handleChange}
           placeholder={t('share.invite_placeholder')}
-          className="resize-none !leading-[26px] py-1 pr-24"
+          className={cn('resize-none !leading-[26px] py-1 pr-1', {
+            'pr-24': visible,
+          })}
         />
         {visible && (
           <Actions
+            data={data}
             value={permission}
             onChange={handlePermission}
-            data={data.filter((item) => item.value !== 'no_access')}
             className="absolute top-[4px] right-[4px] p-1 rounded-sm bg-gray-200 text-sm"
           />
         )}

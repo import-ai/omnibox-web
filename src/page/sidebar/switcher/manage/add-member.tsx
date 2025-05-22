@@ -47,8 +47,8 @@ export default function AddMember(props: AddMemberProps) {
         http.post('invite', {
           role: 'member',
           groupId: group_id,
+          emails: inviteUsers,
           namespace: namespace_id,
-          email: inviteUsers.join(','),
           inviteUrl: `${location.origin}/invite/comfirm`,
           registerUrl: `${location.origin}/user/sign-up/comfirm`,
         }),
@@ -112,7 +112,7 @@ export default function AddMember(props: AddMemberProps) {
           inputValue={inputValue}
           options={data.map((item) => ({
             label: item.email,
-            value: item.id,
+            value: item.user_id,
           }))}
           inputProps={{
             onValueChange: setInputValue,
