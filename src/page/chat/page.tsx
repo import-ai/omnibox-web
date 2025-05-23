@@ -176,9 +176,37 @@ export default function Page() {
       .filter((rc) => rc.type === 'resource')
       .map((rc) => rc.resource);
     return {
-      parentIds: parents.length > 0 ? parents.map((r) => r.id) : null,
-      resourceIds: resources.length > 0 ? resources.map((r) => r.id) : null,
+      parentIds: parents.length > 0 ? parents.map((r) => r.id) : undefined,
+      resourceIds:
+        resources.length > 0 ? resources.map((r) => r.id) : undefined,
     };
+  };
+
+  function cleanCitePrefix(text: string) {
+    const citePrefix = '<cite:';
+    const citePrefixRegex = /<cite:\d+$/g;
+    for (let i = 0; i < citePrefix.length; i++) {
+      const suffix = citePrefix.slice(0, i + 1);
+      if (text.endsWith(suffix)) {
+        return text.replace(suffix, '');
+      }
+    }
+    if (citePrefixRegex.test(text)) {
+      return text.replace(citePrefixRegex, '');
+    }
+
+    return text;
+  }
+
+  const parseCitations = (content: string, citations: Citation[]) => {
+    content = cleanCitePrefix(content);
+    for (let i = 0; i < citations.length; i++) {
+      content = content.replace(
+        new RegExp(`<cite:${i + 1}>`, 'g'),
+        `[[${i + 1}]](${citations[i].link})`,
+      );
+    }
+    return content.trim();
   };
 
   const handleSendV2 = async () => {
@@ -222,18 +250,15 @@ export default function Page() {
     } = { create: true, think: '', response: '', citations: [] };
 
     const updateMessages = () => {
-      for (let i = 0; i < context.citations.length; i++) {
-        context.response = context.response.replace(
-          `<cite:${i + 1}>`,
-          `[[${i + 1}]](${context.citations[i].link})`,
-        );
-      }
+      const think = parseCitations(context.think, context.citations);
+      const response = parseCitations(context.response, context.citations);
+
       let content: string = '';
-      for (const line of context.think.split('\n')) {
+      for (const line of think.split('\n')) {
         content += '> ' + line + '\n';
       }
       content += '\n';
-      content += context.response;
+      content += response;
 
       localMessages = [
         ...(context.create ? localMessages : localMessages.slice(0, -1)),
