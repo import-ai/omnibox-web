@@ -1,9 +1,12 @@
+import Share from './share';
 import i18next from 'i18next';
+import App from '@/hooks/app.class';
+import { Resource } from '@/interface';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
-import { IUseResource } from '@/hooks/user-resource';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
+import PermissionWrapper from '@/components/permission-action/wrapper';
 import {
   Popover,
   PopoverContent,
@@ -38,6 +41,12 @@ import {
   Trash2,
 } from 'lucide-react';
 import i18n from '@/i18n';
+
+interface IProps {
+  app: App;
+  forbidden: boolean;
+  resource: Resource | null;
+}
 
 export const data = [
   [
@@ -102,8 +111,8 @@ export const data = [
   ],
 ];
 
-export default function Actions(props: IUseResource) {
-  const { app, resource } = props;
+export default function Actions(props: IProps) {
+  const { app, forbidden, resource } = props;
   const [editing, onEditing] = useState(false);
   const handleEdit = () => {
     onEditing(true);
@@ -114,51 +123,80 @@ export default function Actions(props: IUseResource) {
     app.fire('resource_children', true);
   };
   const handleSave = () => {
-    onEditing(false);
-    app.fire('save');
+    app.fire('save', () => {
+      onEditing(false);
+    });
   };
 
   useEffect(() => {
     return app.on('to_edit', handleEdit);
   }, []);
 
+  useEffect(() => {
+    if (!resource) {
+      return;
+    }
+    onEditing(false);
+  }, [resource]);
+
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
+      <PermissionWrapper
+        level={0}
+        forbidden={forbidden}
+        permission={
+          resource && resource.current_level
+            ? resource.current_level
+            : 'full_access'
+        }
+      >
+        <Share />
+      </PermissionWrapper>
       <ThemeToggle />
-      {editing ? (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={handleSave}
-          >
-            <Save />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={handleExitEdit}
-          >
-            <PencilOff />
-          </Button>
-        </>
-      ) : (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={handleEdit}
-          >
-            <Pencil />
-          </Button>
-        </>
-      )}
+      <PermissionWrapper
+        level={1}
+        forbidden={forbidden}
+        permission={
+          resource && resource.current_level
+            ? resource.current_level
+            : 'full_access'
+        }
+      >
+        {editing ? (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={handleSave}
+            >
+              <Save />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={handleExitEdit}
+            >
+              <PencilOff />
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={handleEdit}
+            >
+              <Pencil />
+            </Button>
+          </>
+        )}
+      </PermissionWrapper>
       <Popover>
         <PopoverTrigger asChild>
           <Button

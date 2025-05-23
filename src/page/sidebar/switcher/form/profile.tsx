@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import useUser from '@/hooks/use-user';
 import { useForm } from 'react-hook-form';
 import { useState, useEffect } from 'react';
+import Loading from '@/components/loading';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
@@ -68,8 +69,8 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfileForm() {
   const { t } = useTranslation();
-  const { user, onChange } = useUser();
-  const [loading, onLoading] = useState(false);
+  const { user, onChange, loading } = useUser();
+  const [submiting, onSubmiting] = useState(false);
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -86,11 +87,11 @@ export default function ProfileForm() {
         return;
       }
     }
-    onLoading(true);
+    onSubmiting(true);
     onChange(data, () => {
       toast.success(t('profile.success'), { position: 'top-center' });
     }).finally(() => {
-      onLoading(false);
+      onSubmiting(false);
     });
   };
 
@@ -101,6 +102,10 @@ export default function ProfileForm() {
     form.setValue('email', user.email);
     form.setValue('username', user.username);
   }, [user]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <Form {...form}>
@@ -115,7 +120,7 @@ export default function ProfileForm() {
             <FormItem>
               <FormLabel>{t('form.username')}</FormLabel>
               <FormControl>
-                <Input {...field} disabled={loading} />
+                <Input {...field} disabled={submiting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -132,7 +137,7 @@ export default function ProfileForm() {
                   type="email"
                   autoComplete="email"
                   {...field}
-                  disabled={loading}
+                  disabled={submiting}
                 />
               </FormControl>
               <FormDescription>{t('form.email_limit')}</FormDescription>
@@ -151,7 +156,7 @@ export default function ProfileForm() {
                   type="password"
                   autoComplete="new-password"
                   {...field}
-                  disabled={loading}
+                  disabled={submiting}
                 />
               </FormControl>
               <FormMessage />
@@ -169,14 +174,14 @@ export default function ProfileForm() {
                   type="password"
                   autoComplete="new-password"
                   {...field}
-                  disabled={loading}
+                  disabled={submiting}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading} loading={loading}>
+        <Button type="submit" disabled={submiting} loading={submiting}>
           {t('profile.submit')}
         </Button>
       </form>

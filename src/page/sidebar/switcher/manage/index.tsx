@@ -1,77 +1,57 @@
-import Invite from '../invite';
+import Group from './group';
+import Member from './member';
 import useContext from './use-context';
-import Space from '@/components/space';
 import { useTranslation } from 'react-i18next';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import PopConfirm from '@/components/popconfirm';
-import {
-  Table,
-  TableRow,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ManagePeople() {
   const { t } = useTranslation();
-  const { data, search, onSearch, onDisable, onRemove } = useContext();
+  const { tab, onTab, data, refetch, search, onSearch, namespace_id } =
+    useContext();
 
   return (
-    <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between">
-        <Input
-          value={search}
-          onChange={(e) => onSearch(e.target.value)}
-          placeholder={t('manage.search')}
-          className="h-8 w-[150px] lg:w-[250px]"
+    <Tabs value={tab} onValueChange={onTab}>
+      <TabsList className="w-full justify-start h-11 border-b rounded-none">
+        <TabsTrigger
+          value="member"
+          className="flex-1 h-11 max-w-[120px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
+        >
+          {t('manage.member')} {data.member.length}
+        </TabsTrigger>
+        <TabsTrigger
+          value="group"
+          className="flex-1 h-11 max-w-[120px] text-gray-400 data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
+        >
+          {t('manage.group')} {data.group.length}
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="member">
+        <Member
+          search={search}
+          refetch={refetch}
+          onSearch={onSearch}
+          namespace_id={namespace_id}
+          data={
+            search
+              ? data.member.filter((item) => item.email.indexOf(search) >= 0)
+              : data.member
+          }
         />
-        <Invite />
-      </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[20%]">{t('form.email')}</TableHead>
-              <TableHead>{t('form.role')}</TableHead>
-              <TableHead className="text-right">{t('form.operator')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((item) => (
-              <TableRow key={item.email}>
-                <TableCell className="font-medium">{item.email}</TableCell>
-                <TableCell>{item.role}</TableCell>
-                {/* <TableCell>--</TableCell> */}
-                <TableCell className="text-right">
-                  <Space className="inline-flex">
-                    <PopConfirm
-                      title="Are you sure to disable this user?"
-                      onOk={() => onDisable(item.email)}
-                    >
-                      <Button size="sm">{t('manage.disable')}</Button>
-                    </PopConfirm>
-                    {/* <PopConfirm title="确定删除当前用户？">
-                      <Button size="sm" variant="destructive">
-                        删除
-                      </Button>
-                    </PopConfirm> */}
-                    <PopConfirm
-                      title="Are you sure to remove this user from the workspace?"
-                      onOk={() => onRemove(item.email)}
-                    >
-                      <Button size="sm" variant="destructive">
-                        {t('manage.remove')}
-                      </Button>
-                    </PopConfirm>
-                  </Space>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+      </TabsContent>
+      <TabsContent value="group">
+        <Group
+          search={search}
+          refetch={refetch}
+          onSearch={onSearch}
+          member={data.member}
+          namespace_id={namespace_id}
+          data={
+            search
+              ? data.group.filter((item) => item.title.indexOf(search) >= 0)
+              : data.group
+          }
+        />
+      </TabsContent>
+    </Tabs>
   );
 }

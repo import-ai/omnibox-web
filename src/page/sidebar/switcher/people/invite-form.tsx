@@ -74,7 +74,8 @@ export default function InviteForm(props: IProps) {
     setLoading(true);
     http
       .post('invite', {
-        ...data,
+        role: data.role,
+        emails: [data.email],
         namespace: namespace_id,
         inviteUrl: `${location.origin}/invite/comfirm`,
         registerUrl: `${location.origin}/user/sign-up/comfirm`,
@@ -82,7 +83,7 @@ export default function InviteForm(props: IProps) {
       .then(() => {
         form.resetField('email');
         form.resetField('role');
-        toast(t('invite.success'));
+        toast(t('invite.success'), { position: 'top-center' });
         onFinish();
       })
       .finally(() => {

@@ -15,15 +15,17 @@ export default function Layout() {
       if (namespace_id) {
         return;
       }
-      extension().then((val) => {
-        if (val) {
-          http.get('namespaces').then((data) => {
-            if (Array.isArray(data) && data.length > 0) {
-              navigate(`/${data[0].id}/chat`, { replace: true });
-            }
-          });
-        }
-      });
+      if (!loc.pathname.startsWith('/invite/comfirm')) {
+        extension().then((val) => {
+          if (val) {
+            http.get('namespaces').then((data) => {
+              if (Array.isArray(data) && data.length > 0) {
+                navigate(`/${data[0].id}/chat`, { replace: true });
+              }
+            });
+          }
+        });
+      }
     } else {
       if (loc.pathname.startsWith('/user/')) {
         return;

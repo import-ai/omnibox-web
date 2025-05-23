@@ -11,6 +11,8 @@
   "add_it_to_context": "添加到上下文",
   "stop": "停止",
   "send": "发送",
+  "cancel": "取消",
+  "ok": "确定",
   "updated": "已更新",
   "created": "已创建",
   "clear_all": "清空全部",
@@ -68,7 +70,7 @@
   "invite": {
     "title": "通过邀请链接添加成员",
     "description": "只有具有邀请权限的成员才能查看此内容。您也可以创建新链接。",
-    "receive_link": "接收链接",
+    "receive_link": "拷贝链接",
     "join": "{{user}} 邀请您加入 {{namespace}}",
     "add": "邀请成员",
     "owner": "工作空间所有者",
@@ -77,7 +79,8 @@
     "max": "最多32个字符",
     "submit": "保存",
     "button": "发送邀请",
-    "success": "邀请已发送"
+    "success": "邀请已发送",
+    "add_namespace": "加入空间"
   },
   "namespace": {
     "add": "添加命名空间",
@@ -85,7 +88,8 @@
     "min": "至少2个字符",
     "max": "最多32个字符",
     "submit": "保存",
-    "success": "已更新"
+    "success": "已更新",
+    "member_count": "{{ size}} 名成员"
   },
   "login": {
     "logout": "退出登录",
@@ -125,8 +129,60 @@
     "namespace": "命名空间设置"
   },
   "manage": {
-    "search": "按用户名搜索",
+    "search": "输入并搜索",
     "disable": "禁用",
-    "remove": "从工作空间移除"
+    "remove": "从工作空间移除",
+    "add_member": "添加成员",
+    "user": "用户",
+    "owner": "工作空间所有者",
+    "owner_desc": "可以更改工作空间设置并邀请新成员加入工作空间。",
+    "member": "成员",
+    "member_desc": "无法更改工作空间设置或邀请新成员加入工作空间。",
+    "sure_to_remove": "确定要删除该成员吗？",
+    "group": "群组",
+    "add": "添加",
+    "group_name": "群组名称",
+    "submit": "保存",
+    "member_count": "{{ size}} 名成员",
+    "remove_title": "确定要删除此群组吗？",
+    "remove_desc": "此群组的所有私人页面都将转移给你。",
+    "edit": "编辑",
+    "delete": "删除",
+    "remove_member": "确定要移除此成员？",
+    "remove_from_group": "移除",
+    "edit_group": "编辑群组",
+    "create_group": "创建群组"
+  },
+  "unauth_page": {
+    "title": "访问被拒绝",
+    "desc": "您没有权限访问此页面",
+    "alert_title": "权限被拒绝",
+    "alert_desc": "您当前的用户权限不足，无法访问此页面或资源。如需访问，请联系管理员申请相应权限。",
+    "reason_title": "可能的原因：",
+    "reason1": "您的账户尚未获得此资源的访问权限",
+    "reason2": "您的会话可能已过期",
+    "reason3": "您可能需要特定的角色或权限级别"
+  },
+  "permission": {
+    "full_access": "全部权限",
+    "full_access_desc": "编辑、建议、评论以及与他人分享",
+    "can_edit": "可以编辑",
+    "can_comment": "可以评论",
+    "can_comment_desc": "建议和评论",
+    "can_view": "可以查看",
+    "no_access": "无访问权限",
+    "remove": "移除",
+    "demote": "确定要降级自己的访问权限吗？",
+    "cancel": "取消",
+    "ok": "确认",
+    "remove_self": "确定要删除自己的访问权限吗？",
+    "grant_permission": "在移除此权限之前，请向其他人授予“全部权限”。",
+    "you": "你"
+  },
+  "share": {
+    "title": "分享",
+    "invite": "邀请",
+    "invite_success": "邀请成功",
+    "invite_placeholder": "邮件地址或群组，以逗号分隔"
   }
 }

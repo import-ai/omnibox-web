@@ -44,7 +44,7 @@ export default function MainAlertDialog(props: IProps) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onCancel}>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction className="bg-red-500" onClick={onOk}>
+          <AlertDialogAction className="bg-red-500 text-white" onClick={onOk}>
             {okText}
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -66,7 +66,7 @@ export function InviteForm() {
         loading={isLoading}
         onClick={handleSubmit}
       >
-        {t('invite.button')}
+        {t('invite.add_namespace')}
       </Button>
     </div>
   );
