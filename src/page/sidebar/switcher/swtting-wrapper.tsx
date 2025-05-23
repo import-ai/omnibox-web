@@ -41,9 +41,7 @@ export default function SettingWrapper() {
 
   useEffect(() => {
     http
-      .get(
-        `/namespaces/${namespaceId}/members/user/${localStorage.getItem('uid')}`,
-      )
+      .get(`/namespaces/${namespaceId}/members/${localStorage.getItem('uid')}`)
       .then((res) => {
         setUserIsOwner(res.role === 'owner');
       });
