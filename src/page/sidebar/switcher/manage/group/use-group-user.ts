@@ -1,3 +1,4 @@
+import { Role } from '@/interface';
 import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
 
@@ -10,6 +11,7 @@ export default function useGroupUser(props: UseGroupUser) {
   const { group_id, namespace_id } = props;
   const [groupUserData, onData] = useState<
     Array<{
+      role: Role;
       id: string;
       email: string;
       username: string;

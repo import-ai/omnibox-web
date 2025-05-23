@@ -28,11 +28,14 @@ export interface ActionProps {
   namespace_id: string;
   refetch: () => void;
   className?: string;
+  hasOwner?: boolean;
 }
 
 export default function Action(props: ActionProps) {
-  const { id, className, disabled, value, namespace_id, refetch } = props;
+  const { id, className, hasOwner, disabled, value, namespace_id, refetch } =
+    props;
   const [remove, onRemove] = useState(false);
+  const [ownerOnly, setOwnerOnly] = useState(false);
   const { t } = useTranslation();
   const data: Array<{
     value: Role;
@@ -56,10 +59,17 @@ export default function Action(props: ActionProps) {
       .then(refetch);
   };
   const handleRemove = () => {
-    onRemove(true);
+    if (hasOwner) {
+      onRemove(true);
+    } else {
+      setOwnerOnly(true);
+    }
   };
   const handleRemoveCancel = () => {
     onRemove(false);
+  };
+  const handleOwnerOnly = () => {
+    setOwnerOnly(false);
   };
   const handleRemoveOk = () => {
     return http.delete(`namespaces/${namespace_id}/members/${id}`).then(() => {
@@ -120,6 +130,18 @@ export default function Action(props: ActionProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <AlertDialog open={ownerOnly}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>至少保留一个管理员</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={handleOwnerOnly}>
+              {t('ok')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog open={remove}>
         <AlertDialogContent>
           <AlertDialogHeader>

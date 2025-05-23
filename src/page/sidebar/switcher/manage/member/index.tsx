@@ -93,6 +93,11 @@ export default function MemberMain(props: MemberProps) {
                     value={item.role}
                     refetch={refetch}
                     namespace_id={namespace_id}
+                    hasOwner={
+                      data
+                        .filter((i) => i.user_id !== item.user_id)
+                        .findIndex((i) => i.role === 'owner') >= 0
+                    }
                   />
                 </TableCell>
               </TableRow>
