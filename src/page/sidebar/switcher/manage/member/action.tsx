@@ -133,7 +133,7 @@ export default function Action(props: ActionProps) {
       <AlertDialog open={ownerOnly}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>至少保留一个管理员</AlertDialogTitle>
+            <AlertDialogTitle>{t('manage.keep_one_admin')}</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={handleOwnerOnly}>
