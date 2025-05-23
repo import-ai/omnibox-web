@@ -34,7 +34,9 @@ export default function useResource() {
     onLoading(true);
     onForbidden(false);
     http
-      .get(`/namespaces/${namespace_id}/resources/${resource_id}`)
+      .get(`/namespaces/${namespace_id}/resources/${resource_id}`, {
+        mute: true,
+      })
       .then(onResource)
       .catch((err) => {
         if (err && err.status && err.status === 403) {

@@ -21,7 +21,7 @@ export default function Editor(props: IEditorProps) {
   };
 
   useEffect(() => {
-    return app.on('save', () => {
+    return app.on('save', (onSuccess?: () => void) => {
       const name = title.trim();
       const content = vditor.current.getValue();
       if (!content || !name) {
@@ -40,6 +40,7 @@ export default function Editor(props: IEditorProps) {
         .then((delta: Resource) => {
           app.fire('resource_update', delta);
           app.fire('resource_children', true);
+          onSuccess && onSuccess();
         });
     });
   }, [title]);

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
-import Wrapper from '@/components/permission-action/wrapper';
+import PermissionWrapper from '@/components/permission-action/wrapper';
 import {
   Popover,
   PopoverContent,
@@ -44,6 +44,7 @@ import i18n from '@/i18n';
 
 interface IProps {
   app: App;
+  forbidden: boolean;
   resource: Resource | null;
 }
 
@@ -111,7 +112,7 @@ export const data = [
 ];
 
 export default function Actions(props: IProps) {
-  const { app, resource } = props;
+  const { app, forbidden, resource } = props;
   const [editing, onEditing] = useState(false);
   const handleEdit = () => {
     onEditing(true);
@@ -122,35 +123,45 @@ export default function Actions(props: IProps) {
     app.fire('resource_children', true);
   };
   const handleSave = () => {
-    onEditing(false);
-    app.fire('save');
+    app.fire('save', () => {
+      onEditing(false);
+    });
   };
 
   useEffect(() => {
     return app.on('to_edit', handleEdit);
   }, []);
 
+  useEffect(() => {
+    if (!resource) {
+      return;
+    }
+    onEditing(false);
+  }, [resource]);
+
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
-      <Wrapper
+      <PermissionWrapper
         level={0}
+        forbidden={forbidden}
         permission={
-          resource && resource.globalLevel
-            ? resource.globalLevel
+          resource && resource.current_level
+            ? resource.current_level
             : 'full_access'
         }
       >
         <Share />
-      </Wrapper>
+      </PermissionWrapper>
       <ThemeToggle />
-      <Wrapper
+      <PermissionWrapper
         level={1}
+        forbidden={forbidden}
         permission={
-          resource && resource.globalLevel
-            ? resource.globalLevel
+          resource && resource.current_level
+            ? resource.current_level
             : 'full_access'
         }
       >
@@ -185,7 +196,7 @@ export default function Actions(props: IProps) {
             </Button>
           </>
         )}
-      </Wrapper>
+      </PermissionWrapper>
       <Popover>
         <PopoverTrigger asChild>
           <Button

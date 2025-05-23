@@ -33,7 +33,7 @@ export default function ResourcePage() {
           </Breadcrumb>
         </div>
         <div className="ml-auto px-3">
-          <Actions app={app} resource={resource} />
+          <Actions app={app} forbidden={forbidden} resource={resource} />
         </div>
       </header>
       <div className="flex justify-center h-full p-4">

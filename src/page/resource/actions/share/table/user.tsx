@@ -33,6 +33,7 @@ export default function User(props: IProps) {
                 user_id={item.user.id}
                 resource_id={resource_id}
                 namespace_id={namespace_id}
+                canNoAccess={item.level === 'no_access'}
                 alertWhenDelete={
                   data
                     .filter(

@@ -87,12 +87,13 @@ export default function MemberMain(props: MemberProps) {
                     resource_id={resourceId}
                     namespace_id={namespace_id}
                     canRemove={false}
+                    canNoAccess={true}
                   />
                 </TableCell>
                 <TableCell className="text-right">
                   <Action
                     disabled={!isOwner}
-                    id={item.id}
+                    id={item.user_id}
                     value={item.role}
                     refetch={refetch}
                     namespace_id={namespace_id}

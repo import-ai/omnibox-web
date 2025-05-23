@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { http } from '@/lib/request';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import PeopleForm from './people';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
@@ -7,24 +9,45 @@ import { SidebarNav } from '@/page/user/form/sidebar';
 
 export default function SettingWrapper() {
   const { t } = useTranslation();
+  const params = useParams();
+  const namespaceId = params.namespace_id || '';
+  const [userIsOwner, setUserIsOwner] = useState(false);
   const [activeKey, onActiveKey] = useState('profile');
-  const items = [
-    {
-      label: t('setting.profile'),
-      value: 'profile',
-      children: <ProfileForm />,
-    },
-    {
-      label: t('setting.namespace'),
-      value: 'namespace',
-      children: <SettingForm />,
-    },
-    {
-      label: t('setting.members'),
-      value: 'people',
-      children: <PeopleForm />,
-    },
-  ];
+  const items = userIsOwner
+    ? [
+        {
+          label: t('setting.profile'),
+          value: 'profile',
+          children: <ProfileForm />,
+        },
+        {
+          label: t('setting.namespace'),
+          value: 'namespace',
+          children: <SettingForm />,
+        },
+        {
+          label: t('setting.members'),
+          value: 'people',
+          children: <PeopleForm />,
+        },
+      ]
+    : [
+        {
+          label: t('setting.profile'),
+          value: 'profile',
+          children: <ProfileForm />,
+        },
+      ];
+
+  useEffect(() => {
+    http
+      .get(
+        `/namespaces/${namespaceId}/members/user/${localStorage.getItem('uid')}`,
+      )
+      .then((res) => {
+        setUserIsOwner(res.role === 'owner');
+      });
+  }, []);
 
   return (
     <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-8 lg:space-y-0">

@@ -25,6 +25,7 @@ interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   resource_id: string;
   namespace_id: string;
   refetch: () => void;
+  canNoAccess?: boolean;
   alertWhenDelete?: boolean;
 }
 
@@ -38,12 +39,13 @@ export default function PermissionAction(props: IProps) {
     className,
     refetch,
     alertWhenDelete,
+    canNoAccess = true,
     canRemove = true,
   } = props;
-
-  const defaultNoAccess = value === 'no_access';
-  const data = getData(!defaultNoAccess);
+  const data = getData(!canNoAccess);
   const { t } = useTranslation();
+  const uid = localStorage.getItem('uid');
+  const me = uid === user_id;
   const [grant, onGrant] = useState(false);
   const [remove, onRemove] = useState(false);
   const [granting] = useState(false);
@@ -66,11 +68,13 @@ export default function PermissionAction(props: IProps) {
       .then(refetch);
   };
   const handleChange = (level: Permission) => {
-    const oldIndex = data.findIndex((item) => item.value === value);
-    const newIndex = data.findIndex((item) => item.value === level);
-    if (oldIndex < newIndex) {
-      onPermission(level);
-      return;
+    if (me) {
+      const oldIndex = data.findIndex((item) => item.value === value);
+      const newIndex = data.findIndex((item) => item.value === level);
+      if (oldIndex < newIndex) {
+        onPermission(level);
+        return;
+      }
     }
     updatePermission(level);
   };
@@ -130,7 +134,7 @@ export default function PermissionAction(props: IProps) {
         className={className}
         onChange={handleChange}
         afterAddon={
-          !canRemove || defaultNoAccess ? null : (
+          !canRemove || canNoAccess ? null : (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
