@@ -151,14 +151,15 @@
     "remove_member": "Are you sure you want to remove this member?",
     "remove_from_group": "Remove",
     "edit_group": "Edit Group",
-    "create_group": "Create Group"
+    "create_group": "Create Group",
+    "keep_one_admin": "Please keep at least one admin"
   },
   "unauth_page": {
     "title": "Access Denied",
     "desc": "You do not have permission to access this page",
     "alert_title": "Permission Denied",
     "alert_desc": "Your current user permissions are insufficient to access this page or resource. To gain access, please contact the administrator to request the necessary permissions.",
-    "reason_title": "Possible reasons:",
+    "reason": "Possible reasons:",
     "reason1": "Your account does not have access to this resource",
     "reason2": "Your session may have expired",
     "reason3": "You may need a specific role or permission level"

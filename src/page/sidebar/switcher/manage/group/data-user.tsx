@@ -1,4 +1,4 @@
-import { Member } from '@/interface';
+import { Role, Member } from '@/interface';
 import AddMember from '../add-member';
 import UserCard from '@/components/user-card';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,12 @@ interface GroupProps extends UseGroupUser {
   namespace_id: string;
   onRemove: (id: string) => void;
   groupUserRefetch: () => void;
-  groupUserData: Array<{ id: string; email: string; username: string }>;
+  groupUserData: Array<{
+    id: string;
+    role: Role;
+    email: string;
+    username: string;
+  }>;
 }
 
 export default function GroupDataUser(props: GroupProps) {
@@ -32,7 +37,7 @@ export default function GroupDataUser(props: GroupProps) {
           <div className="flex items-center">
             <UserCard username={item.username} />
             <span className="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">
-              {t('manage.owner')}
+              {t(`manage.${item.role}`)}
             </span>
           </div>
           <PopConfirm
