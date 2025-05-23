@@ -138,7 +138,7 @@
     "owner_desc": "Can change workspace settings and invite new members to the workspace.",
     "member": "Member",
     "member_desc": "Cannot change workspace settings or invite new members to the workspace.",
-    "remove_self": "Are you sure you want to remove your own access?",
+    "sure_to_remove": "Are you sure you want to delete the member?",
     "group": "Group",
     "add": "Add",
     "group_name": "Group Name",

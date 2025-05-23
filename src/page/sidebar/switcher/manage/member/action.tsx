@@ -123,7 +123,7 @@ export default function Action(props: ActionProps) {
       <AlertDialog open={remove}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('manage.remove_self')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('manage.sure_to_remove')}</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleRemoveCancel}>
