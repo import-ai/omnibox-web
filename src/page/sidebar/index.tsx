@@ -185,6 +185,9 @@ export default function MainSidebar() {
           onExpands([...expands, parent_id]);
         }
         handleActiveKey(response.id);
+        setTimeout(() => {
+          app.fire('to_edit');
+        }, 1000);
       })
       .finally(() => {
         onEditingKey('');
