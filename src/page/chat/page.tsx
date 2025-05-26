@@ -1,26 +1,60 @@
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { File, Folder, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Markdown } from '@/components/markdown';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from 'react-i18next';
+import { http } from '@/lib/request';
 
 interface Message {
-  role: 'user' | 'assistant';
+  id?: string;
+  role: 'user' | 'assistant' | 'tool';
   content: string;
 }
 
 interface ChatBaseResponse {
-  response_type: 'delta' | 'citation' | 'citation_list' | 'done';
+  response_type:
+    | 'delta'
+    | 'think_delta'
+    | 'citations'
+    | 'done'
+    | 'tool_call'
+    | 'end_of_message'
+    | 'error';
+}
+
+interface ErrorResponse extends ChatBaseResponse {
+  response_type: 'error';
+  message: string;
 }
 
 interface ChatDeltaResponse extends ChatBaseResponse {
   response_type: 'delta';
   delta: string;
+}
+
+interface ChatThinkDeltaResponse extends ChatBaseResponse {
+  response_type: 'think_delta';
+  delta: string;
+}
+
+interface Function {
+  name: string;
+  arguments: Record<string, any>;
+}
+
+interface ToolCall {
+  id: string;
+  type: 'function';
+  function: Function;
+}
+
+interface TollCallResponse extends ChatBaseResponse {
+  response_type: 'tool_call';
+  tool_call: ToolCall;
 }
 
 interface ChatDoneResponse extends ChatBaseResponse {
@@ -33,9 +67,15 @@ interface Citation {
   link: string;
 }
 
-interface ChatCitationListResponse extends ChatBaseResponse {
-  response_type: 'citation_list';
-  citation_list: Citation[];
+interface ChatCitationsResponse extends ChatBaseResponse {
+  response_type: 'citations';
+  citations: Citation[];
+}
+
+interface EndOfMessage extends ChatBaseResponse {
+  response_type: 'end_of_message';
+  role: 'user' | 'assistant' | 'tool_call';
+  messageId: string;
 }
 
 export default function Page() {
@@ -46,15 +86,75 @@ export default function Page() {
   const [input, setInput] = useState('');
   const [loading, onLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [conversationId, setConversationId] = useState<string>('');
   const namespace_id = params.namespace_id || '';
   const token = localStorage.getItem('token') || '';
   const [data, onData] = useState<Array<{ type: string; resource: Resource }>>(
     [],
   );
-  const handleSend = async () => {
+
+  const stream = async (
+    url: string,
+    body: Record<string, any>,
+    callback: (data: string) => Promise<void>,
+  ): Promise<void> => {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch from wizard');
+    }
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('Response body is not readable');
+    }
+    const decoder = new TextDecoder();
+    let buffer: string = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        while (true) {
+          const lineEnd = buffer.indexOf('\n');
+          if (lineEnd == -1) break;
+
+          const line = buffer.slice(0, lineEnd).trim();
+          buffer = buffer.slice(lineEnd + 1);
+
+          if (line.startsWith('data:')) {
+            const data = line.slice(5).trim();
+            await callback(data);
+          }
+        }
+      }
+    } finally {
+      await reader.cancel();
+    }
+  };
+
+  const getConversationId = async () => {
+    if (!conversationId) {
+      const url = `/namespaces/${namespace_id}/conversations`;
+      const response: { id: string } = await http.post(url);
+      setConversationId(response.id);
+      return response.id;
+    }
+    return conversationId;
+  };
+
+  const getLocalMessages = () => {
     const val = input.trim();
     if (val.length <= 0) {
-      return;
+      return [];
     }
     onLoading(true);
 
@@ -65,112 +165,165 @@ export default function Page() {
 
     setMessages(localMessages);
     setInput('');
+    return localMessages;
+  };
 
+  const getCondition = () => {
     const parents = data
       .filter((rc) => rc.type === 'parent')
       .map((rc) => rc.resource);
     const resources = data
       .filter((rc) => rc.type === 'resource')
       .map((rc) => rc.resource);
-    const condition = {
-      parentIds: parents.length > 0 ? parents.map((r) => r.id) : null,
-      resourceIds: resources.length > 0 ? resources.map((r) => r.id) : null,
+    return {
+      parentIds: parents.length > 0 ? parents.map((r) => r.id) : undefined,
+      resourceIds:
+        resources.length > 0 ? resources.map((r) => r.id) : undefined,
     };
-    const body = {
-      session_id: 'fake_id',
-      query: localMessages[localMessages.length - 1].content,
-      namespace_id: namespace_id,
-      parent_ids: condition.parentIds,
-      resource_ids: condition.resourceIds,
-    };
+  };
 
-    const response = await fetch('/api/v1/wizard/chat/stream', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    if (!response.body) {
-      throw new Error(t('not_support_readablestream'));
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let firstToken = true;
-    let responseText = '';
-    let citationList: Citation[] = [];
-
-    let loopFlag = true;
-
-    let buffer: string = '';
-    let i: number = 0;
-
-    while (loopFlag) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      let sseResponse = decoder.decode(value);
-      buffer += sseResponse;
-
-      const chunks = buffer.split('\n\n');
-
-      while (i < chunks.length - 1) {
-        let chunk = '';
-        for (const line of chunks[i].split('\n')) {
-          if (line.startsWith('data:')) {
-            chunk = line;
-            break;
-          }
-        }
-        if (chunk.startsWith('data:')) {
-          const output = chunk.slice(5).trim();
-          let chatResponse:
-            | ChatDeltaResponse
-            | ChatCitationListResponse
-            | ChatDoneResponse = JSON.parse(output);
-          if (chatResponse.response_type === 'done') {
-            loopFlag = false;
-            break;
-          } else if (chatResponse.response_type === 'delta') {
-            responseText += chatResponse.delta;
-            for (let i = 0; i < citationList.length; i++) {
-              responseText = responseText.replace(
-                `<cite:${i + 1}>`,
-                `[[${i + 1}]](${citationList[i].link})`,
-              );
-            }
-            localMessages = [
-              ...(firstToken ? localMessages : localMessages.slice(0, -1)),
-              {
-                role: 'assistant',
-                content: responseText,
-              },
-            ];
-            setMessages(localMessages);
-            if (firstToken) {
-              firstToken = false;
-            }
-            /*
-              if (!isStreaming) {
-                break;
-              }
-               */
-          } else if (chatResponse.response_type === 'citation_list') {
-            citationList = chatResponse.citation_list;
-          } else {
-            console.error('Unknown response type', chatResponse);
-          }
-        }
-        i++;
+  function cleanCitePrefix(text: string) {
+    const citePrefix = '<cite:';
+    const citePrefixRegex = /<cite:\d+$/g;
+    for (let i = 0; i < citePrefix.length; i++) {
+      const suffix = citePrefix.slice(0, i + 1);
+      if (text.endsWith(suffix)) {
+        return text.replace(suffix, '');
       }
     }
+    if (citePrefixRegex.test(text)) {
+      return text.replace(citePrefixRegex, '');
+    }
+
+    return text;
+  }
+
+  const parseCitations = (content: string, citations: Citation[]) => {
+    content = cleanCitePrefix(content);
+    for (let i = 0; i < citations.length; i++) {
+      content = content.replace(
+        new RegExp(`<cite:${i + 1}>`, 'g'),
+        `[[${i + 1}]](${citations[i].link})`,
+      );
+    }
+    return content.trim();
+  };
+
+  const handleSendV2 = async () => {
+    let parentMessageId: string | undefined = undefined;
+    if (messages.length > 0) {
+      parentMessageId = messages[messages.length - 1].id;
+    }
+
+    let localMessages = getLocalMessages();
+    if (!localMessages) {
+      return;
+    }
+
+    const { parentIds, resourceIds } = getCondition();
+
+    const conversation_id: string = await getConversationId();
+
+    const body = {
+      conversation_id,
+      query: localMessages[localMessages.length - 1].content,
+      tools: [
+        {
+          name: 'knowledge_search',
+          namespace_id,
+          parent_ids: parentIds,
+          resource_ids: resourceIds,
+        },
+        {
+          name: 'web_search',
+        },
+      ],
+      parent_message_id: parentMessageId,
+      enable_thinking: true,
+    };
+
+    let context: {
+      create: boolean;
+      think: string;
+      response: string;
+      citations: Citation[];
+    } = { create: true, think: '', response: '', citations: [] };
+
+    const updateMessages = () => {
+      const think = parseCitations(context.think, context.citations);
+      const response = parseCitations(context.response, context.citations);
+
+      let content: string = '';
+      for (const line of think.split('\n')) {
+        content += '> ' + line + '\n';
+      }
+      content += '\n';
+      content += response;
+
+      localMessages = [
+        ...(context.create ? localMessages : localMessages.slice(0, -1)),
+        {
+          role: 'assistant',
+          content,
+        },
+      ];
+      setMessages(localMessages);
+
+      if (context.create) {
+        context.create = false;
+      }
+    };
+
+    await stream('/api/v1/wizard/ask', body, async (data) => {
+      let chatResponse:
+        | ChatDeltaResponse
+        | ChatCitationsResponse
+        | ChatDoneResponse
+        | TollCallResponse
+        | ChatThinkDeltaResponse
+        | EndOfMessage
+        | ErrorResponse = JSON.parse(data);
+
+      if (chatResponse.response_type === 'delta') {
+        context.response += chatResponse.delta;
+        updateMessages();
+      } else if (chatResponse.response_type === 'think_delta') {
+        context.think += chatResponse.delta;
+        updateMessages();
+      } else if (chatResponse.response_type === 'tool_call') {
+        localMessages = [
+          ...localMessages,
+          {
+            role: 'tool',
+            content: `Call [\`${chatResponse.tool_call.function.name}\`] with arguments:\n\`${JSON.stringify(chatResponse.tool_call.function.arguments)}\``,
+          },
+        ];
+        setMessages(localMessages);
+        context.create = true;
+        context.think = '';
+        context.response = '';
+      } else if (chatResponse.response_type === 'citations') {
+        context.citations.push(...chatResponse.citations);
+      } else if (chatResponse.response_type === 'error') {
+        console.error({ message: chatResponse.message });
+      } else if (chatResponse.response_type === 'done') {
+      } else if (chatResponse.response_type === 'end_of_message') {
+        const lastMessage = localMessages[localMessages.length - 1];
+        if (lastMessage.role === chatResponse.role) {
+          lastMessage.id = chatResponse.messageId;
+          setMessages(localMessages);
+        } else {
+          console.error({
+            message: 'Message role mismatch',
+            lastMessageRole: lastMessage.role,
+            targetMessageRole: chatResponse.role,
+          });
+        }
+      } else {
+        console.error({ message: 'Unknown response type', chatResponse });
+      }
+    });
+
     onLoading(false);
   };
 
@@ -212,7 +365,11 @@ export default function Page() {
                   : 'bg-gray-200 text-black dark:bg-gray-700 dark:text-white'
               }`}
             >
-              <Markdown content={message.content} />
+              {message.role !== 'user' ? (
+                <Markdown content={message.content} />
+              ) : (
+                <a>{message.content}</a>
+              )}
             </div>
           </div>
         ))}
@@ -268,7 +425,7 @@ export default function Page() {
               if (e.key === 'Enter') {
                 if (e.metaKey || e.ctrlKey) {
                   e.preventDefault();
-                  handleSend();
+                  handleSendV2().then();
                 }
               }
             }}
@@ -280,7 +437,7 @@ export default function Page() {
               </Button>
             ) : (
               <Button
-                onClick={handleSend}
+                onClick={handleSendV2}
                 className="rounded-full"
                 disabled={input.length === 0}
               >

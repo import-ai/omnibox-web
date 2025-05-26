@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import i18next from 'i18next';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { http } from '@/lib/request';
+import isEmail from '@/lib/is-email';
 import Space from '@/components/space';
 import extension from '@/lib/extension';
 import React, { useState } from 'react';
@@ -22,24 +24,7 @@ import {
 } from '@/components/ui/form';
 
 const formSchema = z.object({
-  email: z
-    .string()
-    .email(i18next.t('form.email_invalid'))
-    .refine(
-      (email) => {
-        const allowedDomains = [
-          'gmail.com',
-          'outlook.com',
-          '163.com',
-          'qq.com',
-        ];
-        const domain = email.split('@')[1];
-        return allowedDomains.includes(domain);
-      },
-      {
-        message: i18next.t('form.email_limit_rule'),
-      },
-    ),
+  email: z.string().nonempty(i18next.t('form.email_or_username_invalid')),
   password: z
     .string()
     .min(8, i18next.t('form.password_min'))
@@ -63,6 +48,14 @@ export function LoginForm({
     },
   });
   const onSubmit = (data: z.infer<typeof formSchema>) => {
+    if (isEmail(data.email)) {
+      const allowedDomains = ['gmail.com', 'outlook.com', '163.com', 'qq.com'];
+      const domain = data.email.split('@')[1];
+      if (!allowedDomains.includes(domain)) {
+        toast(t('form.email_limit_rule'), { position: 'top-center' });
+        return;
+      }
+    }
     setIsLoading(true);
     http
       .post('login', data)
@@ -105,11 +98,11 @@ export function LoginForm({
               <FormItem>
                 <FormControl>
                   <Input
-                    type="email"
+                    type="text"
                     startIcon={Mail}
                     autoComplete="email"
                     disabled={isLoading}
-                    placeholder={t('form.email')}
+                    placeholder={t('form.email_or_username')}
                     {...field}
                   />
                 </FormControl>

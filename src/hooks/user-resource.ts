@@ -7,7 +7,10 @@ import { useState, useEffect } from 'react';
 
 export interface IUseResource {
   app: App;
+  loading: boolean;
+  forbidden: boolean;
   resource_id: string;
+  namespace_id: string;
   resource: Resource | null;
 }
 
@@ -16,6 +19,8 @@ export default function useResource() {
   const params = useParams();
   const resource_id = params.resource_id || '';
   const namespace_id = params.namespace_id || '';
+  const [loading, onLoading] = useState(false);
+  const [forbidden, onForbidden] = useState(false);
   const [resource, onResource] = useState<Resource | null>(null);
 
   useEffect(() => {
@@ -26,20 +31,22 @@ export default function useResource() {
     if (!resource_id) {
       return;
     }
-    // 加载中
-    onResource({
-      id: '--',
-      name: 'loading',
-      parent_id: '',
-      resource_type: 'doc',
-      space_type: 'private',
-      child_count: 0,
-      namespace: { id: '--' },
-    });
+    onLoading(true);
+    onForbidden(false);
     http
-      .get(`/namespaces/${namespace_id}/resources/${resource_id}`)
-      .then(onResource);
+      .get(`/namespaces/${namespace_id}/resources/${resource_id}`, {
+        mute: true,
+      })
+      .then(onResource)
+      .catch((err) => {
+        if (err && err.status && err.status === 403) {
+          onForbidden(true);
+        }
+      })
+      .finally(() => {
+        onLoading(false);
+      });
   }, [resource_id]);
 
-  return { app, resource, resource_id };
+  return { app, loading, forbidden, resource, namespace_id, resource_id };
 }

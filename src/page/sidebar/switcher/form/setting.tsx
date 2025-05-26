@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import i18next from 'i18next';
 import { toast } from 'sonner';
+import Loading from '@/components/loading';
 import { useForm } from 'react-hook-form';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/button';
@@ -28,8 +29,8 @@ type FormValues = z.infer<typeof FormSchema>;
 
 export default function SettingForm() {
   const { t } = useTranslation();
-  const [loading, onLoading] = useState(false);
-  const { app, data, onChange } = useNamespace();
+  const [submiting, onSubmiting] = useState(false);
+  const { app, data, onChange, loading } = useNamespace();
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -37,14 +38,14 @@ export default function SettingForm() {
     },
   });
   const handleSubmit = (data: FormValues) => {
-    onLoading(true);
+    onSubmiting(true);
     onChange(data)
       .then(() => {
         app.fire('namespaces_refetch');
         toast(t('namespace.success'));
       })
       .finally(() => {
-        onLoading(false);
+        onSubmiting(false);
       });
   };
 
@@ -54,6 +55,10 @@ export default function SettingForm() {
     }
     form.setValue('name', data.name);
   }, [data]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <Form {...form}>
@@ -68,13 +73,13 @@ export default function SettingForm() {
             <FormItem>
               <FormLabel>{t('namespace.name')}</FormLabel>
               <FormControl>
-                <Input {...field} disabled={loading} />
+                <Input {...field} disabled={submiting} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading} loading={loading}>
+        <Button type="submit" disabled={submiting} loading={submiting}>
           {t('namespace.submit')}
         </Button>
       </form>

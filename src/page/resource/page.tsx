@@ -1,14 +1,19 @@
+import { Resource } from '@/interface';
 import Render from '@/page/resource/render';
 import Editor from '@/page/resource/editor';
-import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
-import { LoaderCircle } from 'lucide-react';
-import { IUseResource } from 'src/hooks/user-resource';
+import { useTranslation } from 'react-i18next';
 import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
+import App from '@/hooks/app.class';
 
-export default function Page(props: IUseResource) {
-  const { app, resource, resource_id } = props;
+interface IProps {
+  app: App;
+  resource: Resource;
+}
+
+export default function Page(props: IProps) {
+  const { app, resource } = props;
   const { t } = useTranslation();
   const [open, onOpen] = useState(true);
 
@@ -18,18 +23,6 @@ export default function Page(props: IUseResource) {
     });
   }, []);
 
-  if (!resource) {
-    return null;
-  }
-
-  if (resource.name === 'loading') {
-    return (
-      <div className="flex items-center justify-center w-full h-full">
-        <LoaderCircle className="transition-transform animate-spin" />
-      </div>
-    );
-  }
-
   if (open) {
     return (
       <Render
@@ -38,5 +31,5 @@ export default function Page(props: IUseResource) {
     );
   }
 
-  return <Editor app={app} resource={resource} resource_id={resource_id} />;
+  return <Editor resource={resource} />;
 }

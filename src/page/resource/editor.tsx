@@ -3,15 +3,14 @@ import { http } from '@/lib/request';
 import { Resource } from '@/interface';
 import useTheme from '@/hooks/use-theme';
 import { Input } from '@/components/ui/input';
-import { IUseResource } from '@/hooks/user-resource';
 import React, { useRef, useState, useEffect } from 'react';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 
-interface IProps extends Omit<IUseResource, 'resource'> {
+interface IEditorProps {
   resource: Resource;
 }
 
-export default function Editor(props: IProps) {
+export default function Editor(props: IEditorProps) {
   const { resource } = props;
   const { app, theme } = useTheme();
   const root = useRef<any>(null);
@@ -22,7 +21,7 @@ export default function Editor(props: IProps) {
   };
 
   useEffect(() => {
-    return app.on('save', () => {
+    return app.on('save', (onSuccess?: () => void) => {
       const name = title.trim();
       const content = vditor.current.getValue();
       if (!content || !name) {
@@ -41,6 +40,7 @@ export default function Editor(props: IProps) {
         .then((delta: Resource) => {
           app.fire('resource_update', delta);
           app.fire('resource_children', true);
+          onSuccess && onSuccess();
         });
     });
   }, [title]);

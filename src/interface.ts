@@ -10,6 +10,13 @@ export interface Theme {
   code: 'github' | 'github-dark';
 }
 
+export type Permission =
+  | 'no_access'
+  | 'can_view'
+  | 'can_comment'
+  | 'can_edit'
+  | 'full_access';
+
 export interface User extends IBase {
   id: string;
   email: string;
@@ -30,19 +37,21 @@ export type ResourceType = 'doc' | 'file' | 'link' | 'folder';
 
 export interface Resource extends IBase {
   id: string;
+  current_level?: Permission;
 
   namespace: { id: string };
   resource_type: ResourceType;
   space_type: SpaceType;
 
   parent_id: string;
-  child_count: number;
 
   name?: string;
   content?: string;
 
   tags?: string[];
   attrs?: Record<string, string>;
+
+  globalLevel?: Permission;
 }
 
 export interface IResourceData extends Resource {
@@ -51,7 +60,45 @@ export interface IResourceData extends Resource {
 
 export type Role = 'owner' | 'member';
 
-export interface NamespaceMember {
+export interface Member {
+  id: string;
+  user_id: string;
+  username: string;
   email: string;
   role: Role;
+  level: Permission;
+}
+
+export interface NamespaceMember extends IBase {
+  id: number;
+  role: Role;
+  namespace: Namespace;
+  user: User;
+  rootResource: Resource;
+}
+
+export interface NamespaceMember extends IBase {
+  id: number;
+  role: Role;
+  namespace: Namespace;
+  user: User;
+  rootResource: Resource;
+}
+
+export interface Group extends IBase {
+  id: string;
+  title: string;
+}
+
+export interface UserPermission extends IBase {
+  id: number;
+  level: Permission;
+  namespace?: Namespace;
+  resource?: Resource;
+  user?: User;
+}
+
+export interface GroupPermission extends IBase {
+  level: Permission;
+  group: Group;
 }

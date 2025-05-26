@@ -25,7 +25,6 @@ export default function Space(props: IProps) {
   const { data, editingKey, space_type, namespace_id, onCreate, onUpload } =
     props;
   const { t } = useTranslation();
-  const hasChildren = data.child_count > 0;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleSelect = () => {
     fileInputRef.current?.click();
@@ -88,8 +87,7 @@ export default function Space(props: IProps) {
       </div>
       <SidebarGroupContent>
         <SidebarMenu>
-          {hasChildren &&
-            Array.isArray(data.children) &&
+          {Array.isArray(data.children) &&
             data.children.length > 0 &&
             data.children.map((item: IResourceData) => (
               <Tree {...props} data={item} key={item.id} />

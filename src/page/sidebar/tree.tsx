@@ -25,7 +25,6 @@ interface IProps extends IResourceProps {}
 export default function Tree(props: IProps) {
   const { data, activeKey, expands, expanding, onExpand, onActiveKey } = props;
   const { t } = useTranslation();
-  const hasChildren = data.child_count > 0;
   const expand = expands.includes(data.id);
   const handleExpand = () => {
     onExpand(data.id, data.space_type);
@@ -33,6 +32,14 @@ export default function Tree(props: IProps) {
   const handleActiveKey = () => {
     onActiveKey(data.id);
   };
+
+  if (data.id === 'empty') {
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton disabled>{t('no_pages_inside')}</SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  }
 
   return (
     <SidebarMenuItem>
@@ -51,19 +58,18 @@ export default function Tree(props: IProps) {
               isActive={data.id == activeKey}
             >
               <div className="flex cursor-pointer">
-                {hasChildren &&
-                  (expanding === data.id ? (
-                    <LoaderCircle className="transition-transform animate-spin" />
-                  ) : (
-                    <ChevronRight
-                      className="transition-transform"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        handleExpand();
-                      }}
-                    />
-                  ))}
+                {expanding === data.id ? (
+                  <LoaderCircle className="transition-transform animate-spin" />
+                ) : (
+                  <ChevronRight
+                    className="transition-transform"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      handleExpand();
+                    }}
+                  />
+                )}
                 {data.resource_type === 'folder' ? (
                   expand ? (
                     <FolderOpen />
@@ -81,8 +87,7 @@ export default function Tree(props: IProps) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub className="pr-0 mr-0">
-            {hasChildren &&
-              Array.isArray(data.children) &&
+            {Array.isArray(data.children) &&
               data.children.length > 0 &&
               data.children.map((item: IResourceData) => (
                 <Tree {...props} data={item} key={item.id} />

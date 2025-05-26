@@ -5,7 +5,11 @@ import { useState, useEffect } from 'react';
 export default function useUser() {
   const uid = localStorage.getItem('uid');
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User>({
+    id: '',
+    email: '',
+    username: '--',
+  });
   const refetch = () => {
     http
       .get(`user/${uid}`)
@@ -28,5 +32,5 @@ export default function useUser() {
 
   useEffect(refetch, []);
 
-  return { user, loading, onChange };
+  return { uid, user, loading, onChange };
 }
