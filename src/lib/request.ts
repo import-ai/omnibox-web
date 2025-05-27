@@ -17,7 +17,6 @@ interface RequestConfig extends AxiosRequestConfig {
 
 const request: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
