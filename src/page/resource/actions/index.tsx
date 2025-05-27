@@ -8,6 +8,7 @@ import copy from 'copy-to-clipboard';
 import { Resource } from '@/interface';
 import { Input } from '@/components/input';
 import { useEffect, useState } from 'react';
+import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
@@ -133,6 +134,7 @@ export default function Actions(props: IProps) {
   const { app, forbidden, resource } = props;
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [loading, onLoading] = useState('');
   const [editing, onEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleEdit = () => {
@@ -162,6 +164,7 @@ export default function Actions(props: IProps) {
       return;
     }
     if (id === 'duplicate') {
+      onLoading(id);
       http
         .post(
           `/namespaces/${resource.namespace.id}/resources/duplicate/${resource.id}`,
@@ -174,10 +177,14 @@ export default function Actions(props: IProps) {
             resource.id,
             response,
           );
+        })
+        .finally(() => {
+          onLoading('');
         });
       return;
     }
     if (id === 'move_to_trash') {
+      onLoading(id);
       http
         .delete(`/namespaces/${resource.namespace.id}/resources/${resource.id}`)
         .then(() => {
@@ -188,6 +195,9 @@ export default function Actions(props: IProps) {
             resource.space_type,
             resource.parent_id,
           );
+        })
+        .finally(() => {
+          onLoading('');
         });
       return;
     }
@@ -200,6 +210,7 @@ export default function Actions(props: IProps) {
     if (!resource || !e.target.files) {
       return;
     }
+    onLoading('import');
     const formData = new FormData();
     formData.append('parent_id', resource.parent_id);
     formData.append('namespace_id', resource.namespace.id);
@@ -225,6 +236,7 @@ export default function Actions(props: IProps) {
       })
       .finally(() => {
         fileInputRef.current!.value = '';
+        onLoading('');
         setOpen(false);
       });
   };
@@ -323,7 +335,11 @@ export default function Actions(props: IProps) {
                           <SidebarMenuButton
                             onClick={() => handleAction(item.id)}
                           >
-                            <item.icon />
+                            {loading === item.id ? (
+                              <LoaderCircle className="transition-transform animate-spin" />
+                            ) : (
+                              <item.icon />
+                            )}
                             <span>{item.label}</span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
