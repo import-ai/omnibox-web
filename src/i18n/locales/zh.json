@@ -185,5 +185,9 @@
     "invite": "邀请",
     "invite_success": "邀请成功",
     "invite_placeholder": "邮件地址或群组，以逗号分隔"
+  },
+  "copy": {
+    "success": "已复制到剪贴板",
+    "fail": "复制失败，请手动复制"
   }
 }

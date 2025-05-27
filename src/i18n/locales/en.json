@@ -185,5 +185,9 @@
     "invite": "Invite",
     "invite_success": "Invitation successful",
     "invite_placeholder": "Email address or group, separated by commas"
+  },
+  "copy": {
+    "success": "Copied successfully",
+    "fail": "Copy failed, please copy manually"
   }
 }

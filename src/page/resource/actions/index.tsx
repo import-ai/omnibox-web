@@ -1,8 +1,12 @@
 import Share from './share';
 import i18next from 'i18next';
+import { toast } from 'sonner';
 import App from '@/hooks/app.class';
+import { http } from '@/lib/request';
+import copy from 'copy-to-clipboard';
 import { Resource } from '@/interface';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
@@ -40,7 +44,6 @@ import {
   Trash,
   Trash2,
 } from 'lucide-react';
-import i18n from '@/i18n';
 
 interface IProps {
   app: App;
@@ -51,61 +54,74 @@ interface IProps {
 export const data = [
   [
     {
+      id: 'customize_page',
       label: i18next.t('actions.customize_page'),
       icon: Settings2,
     },
     {
+      id: 'turn_into_wiki',
       label: i18next.t('actions.turn_into_wiki'),
       icon: FileText,
     },
   ],
   [
     {
+      id: 'copy_link',
       label: i18next.t('actions.copy_link'),
       icon: Link,
     },
     {
+      id: 'duplicate',
       label: i18next.t('actions.duplicate'),
       icon: Copy,
     },
     {
+      id: 'move_to',
       label: i18next.t('actions.move_to'),
       icon: CornerUpRight,
     },
     {
+      id: 'move_to_trash',
       label: i18next.t('actions.move_to_trash'),
       icon: Trash2,
     },
   ],
   [
     {
+      id: 'undo',
       label: i18next.t('actions.undo'),
       icon: CornerUpLeft,
     },
     {
+      id: 'view_analytics',
       label: i18next.t('actions.view_analytics'),
       icon: LineChart,
     },
     {
+      id: 'version_history',
       label: i18next.t('actions.version_history'),
       icon: GalleryVerticalEnd,
     },
     {
+      id: 'show_delete_pages',
       label: i18next.t('actions.show_delete_pages'),
       icon: Trash,
     },
     {
-      label: i18n.t('actions.notifications'),
+      id: 'notifications',
+      label: i18next.t('actions.notifications'),
       icon: Bell,
     },
   ],
   [
     {
-      label: i18n.t('actions.import'),
+      id: 'import',
+      label: i18next.t('actions.import'),
       icon: ArrowUp,
     },
     {
-      label: i18n.t('actions.export'),
+      id: 'export',
+      label: i18next.t('actions.export'),
       icon: ArrowDown,
     },
   ],
@@ -113,6 +129,7 @@ export const data = [
 
 export default function Actions(props: IProps) {
   const { app, forbidden, resource } = props;
+  const { t } = useTranslation();
   const [editing, onEditing] = useState(false);
   const handleEdit = () => {
     onEditing(true);
@@ -126,6 +143,50 @@ export default function Actions(props: IProps) {
     app.fire('save', () => {
       onEditing(false);
     });
+  };
+  const handleAction = (id: string) => {
+    if (id === 'copy_link') {
+      const returnValue = copy(location.href);
+      toast(t(returnValue ? 'copy.success' : 'copy.fail'), {
+        position: 'top-center',
+      });
+      return;
+    }
+    if (!resource) {
+      return;
+    }
+    if (id === 'duplicate') {
+      http
+        .post(
+          `/namespaces/${resource.namespace.id}/resources/duplicate/${resource.id}`,
+        )
+        .then((response: Resource) => {
+          app.fire(
+            'generate_resource',
+            resource.space_type,
+            resource.id,
+            response,
+          );
+        });
+      return;
+    }
+    if (id === 'move_to_trash') {
+      http
+        .delete(`/namespaces/${resource.namespace.id}/resources/${resource.id}`)
+        .then(() => {
+          app.fire(
+            'delete_resource',
+            resource.id,
+            resource.space_type,
+            resource.parent_id,
+          );
+        });
+      return;
+    }
+    if (id === 'import') {
+      //
+      return;
+    }
   };
 
   useEffect(() => {
@@ -208,8 +269,8 @@ export default function Actions(props: IProps) {
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-56 overflow-hidden rounded-lg p-0"
           align="end"
+          className="w-56 overflow-hidden rounded-lg p-0"
         >
           <Sidebar collapsible="none" className="bg-transparent">
             <SidebarContent>
@@ -219,7 +280,9 @@ export default function Actions(props: IProps) {
                     <SidebarMenu>
                       {group.map((item, index) => (
                         <SidebarMenuItem key={index}>
-                          <SidebarMenuButton>
+                          <SidebarMenuButton
+                            onClick={() => handleAction(item.id)}
+                          >
                             <item.icon />
                             <span>{item.label}</span>
                           </SidebarMenuButton>

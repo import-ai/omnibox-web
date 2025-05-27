@@ -97,6 +97,38 @@ export default function MainSidebar() {
         onExpanding('');
       });
   };
+  const getRouteToActive = (
+    id: string,
+    space_type: SpaceType,
+    parent_id: string,
+  ) => {
+    let activeKey = 'chat';
+    const items = data[space_type].children.filter(
+      (node) => node.parent_id === parent_id,
+    );
+    if (items.length > 0) {
+      const itemsOrder = orderBy(items, ['updated_at'], ['desc']);
+      const index = itemsOrder.findIndex((node: Resource) => node.id === id);
+      if (index > 0) {
+        activeKey = itemsOrder[index - 1].id;
+      } else {
+        const next = itemsOrder[index + 1];
+        if (next) {
+          activeKey = next.id;
+        }
+      }
+    }
+    if (id !== resource_id) {
+      // 直接删除父级
+      const parentIndex = data[space_type].children.findIndex(
+        (node) => node.id === parent_id,
+      );
+      if (parentIndex >= 0) {
+        activeKey = '';
+      }
+    }
+    return activeKey;
+  };
   const handleDelete = (
     id: string,
     space_type: SpaceType,
@@ -106,48 +138,46 @@ export default function MainSidebar() {
     http
       .delete(`/namespaces/${namespace_id}/${baseUrl}/${id}`)
       .then(() => {
-        let activeKey = 'chat';
-        const items = data[space_type].children.filter(
-          (node) => node.parent_id === parent_id,
-        );
-        if (items.length > 0) {
-          const itemsOrder = orderBy(items, ['updated_at'], ['desc']);
-          const index = itemsOrder.findIndex(
-            (node: Resource) => node.id === id,
-          );
-          if (index > 0) {
-            activeKey = itemsOrder[index - 1].id;
-          } else {
-            const next = itemsOrder[index + 1];
-            if (next) {
-              activeKey = next.id;
-            }
-          }
-        }
+        const routeToActive = getRouteToActive(id, space_type, parent_id);
         data[space_type].children = data[space_type].children.filter(
           (node) => ![node.id, node.parent_id].includes(id),
         );
         onData({ ...data });
-        if (id !== resource_id) {
-          // 直接删除父级
-          const parentIndex = data[space_type].children.findIndex(
-            (node) => node.id === parent_id,
-          );
-          if (parentIndex < 0) {
-            app.fire('resource_children', true);
-            navigate(`/${namespace_id}/chat`);
-          }
-        } else {
-          // 删除当前选中
-          if (activeKey) {
-            app.fire('resource_children', true);
-            navigate(`/${namespace_id}/${activeKey}`);
-          }
+        if (routeToActive) {
+          app.fire('resource_children', true);
+          navigate(`/${namespace_id}/${routeToActive}`);
         }
       })
       .finally(() => {
         onEditingKey('');
       });
+  };
+  const activeRoute = (
+    space_type: string,
+    parent_id: string,
+    resource: Resource,
+  ) => {
+    if (!data[space_type]) {
+      data[space_type] = { ...resource, children: [] };
+    } else {
+      if (!Array.isArray(data[space_type].children)) {
+        data[space_type].children = [{ ...resource, children: [] }];
+      } else {
+        const index = data[space_type].children.findIndex(
+          (item) => item.parent_id === parent_id && item.id === 'empty',
+        );
+        if (index >= 0) {
+          data[space_type].children[index] = { ...resource, children: [] };
+        } else {
+          data[space_type].children.push({ ...resource, children: [] });
+        }
+      }
+    }
+    onData({ ...data });
+    if (!expands.includes(parent_id)) {
+      onExpands([...expands, parent_id]);
+    }
+    handleActiveKey(resource.id);
   };
   const handleCreate = (
     namespace_id: string,
@@ -164,30 +194,11 @@ export default function MainSidebar() {
         resourceType: resource_type,
       })
       .then((response: Resource) => {
-        if (!data[space_type]) {
-          data[space_type] = { ...response, children: [] };
-        } else {
-          if (!Array.isArray(data[space_type].children)) {
-            data[space_type].children = [{ ...response, children: [] }];
-          } else {
-            const index = data[space_type].children.findIndex(
-              (item) => item.parent_id === parent_id && item.id === 'empty',
-            );
-            if (index >= 0) {
-              data[space_type].children[index] = { ...response, children: [] };
-            } else {
-              data[space_type].children.push({ ...response, children: [] });
-            }
-          }
-        }
-        onData({ ...data });
-        if (!expands.includes(parent_id)) {
-          onExpands([...expands, parent_id]);
-        }
-        handleActiveKey(response.id);
-        setTimeout(() => {
-          app.fire('to_edit');
-        }, 1000);
+        activeRoute(space_type, parent_id, response);
+        resource_type !== 'folder' &&
+          setTimeout(() => {
+            app.fire('to_edit');
+          }, 1000);
       })
       .finally(() => {
         onEditingKey('');
@@ -211,45 +222,69 @@ export default function MainSidebar() {
         },
       })
       .then((response) => {
-        if (!data[space_type]) {
-          data[space_type] = { ...response, children: [] };
-        } else {
-          if (!Array.isArray(data[space_type].children)) {
-            data[space_type].children = [];
-          }
-          data[space_type].children.push({ ...response, children: [] });
-        }
-        onData({ ...data });
-        if (!expands.includes(parent_id)) {
-          onExpands([...expands, parent_id]);
-        }
-        handleActiveKey(response.id);
-        onEditingKey('');
+        activeRoute(space_type, parent_id, response);
       })
       .catch((err) => {
         toast(err && err.message ? err.message : err, {
           position: 'top-center',
         });
+      })
+      .finally(() => {
         onEditingKey('');
       });
   };
 
   useEffect(() => {
-    return app.on('resource_update', (delta: Resource) => {
-      each(data, (resource, key) => {
-        if (Array.isArray(resource.children) && resource.children.length > 0) {
-          const index = resource.children.findIndex(
-            (node: Resource) => node.id === delta.id,
-          );
-          if (index >= 0) {
-            data[key].children[index].name = delta.name;
-            data[key].children[index].content = delta.content;
-            return true;
+    const hooks: Array<() => void> = [];
+    hooks.push(
+      app.on('resource_update', (delta: Resource) => {
+        each(data, (resource, key) => {
+          if (
+            Array.isArray(resource.children) &&
+            resource.children.length > 0
+          ) {
+            const index = resource.children.findIndex(
+              (node: Resource) => node.id === delta.id,
+            );
+            if (index >= 0) {
+              data[key].children[index].name = delta.name;
+              data[key].children[index].content = delta.content;
+              return true;
+            }
           }
-        }
+        });
+        onData({ ...data });
+      }),
+    );
+    hooks.push(
+      app.on(
+        'delete_resource',
+        (id: string, space_type: SpaceType, parent_id: string) => {
+          const routeToActive = getRouteToActive(id, space_type, parent_id);
+          data[space_type].children = data[space_type].children.filter(
+            (node) => ![node.id, node.parent_id].includes(id),
+          );
+          onData({ ...data });
+          if (routeToActive) {
+            app.fire('resource_children', true);
+            navigate(`/${namespace_id}/${routeToActive}`);
+          }
+        },
+      ),
+    );
+    hooks.push(
+      app.on(
+        'generate_resource',
+        (space_type: string, parent_id: string, resource: Resource) => {
+          activeRoute(space_type, parent_id, resource);
+        },
+      ),
+    );
+    return () => {
+      each(hooks, (destory) => {
+        destory();
       });
-      onData({ ...data });
-    });
+    };
   }, [data]);
 
   useEffect(() => {
