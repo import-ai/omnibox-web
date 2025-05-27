@@ -1,10 +1,12 @@
 import Share from './share';
 import i18next from 'i18next';
 import { toast } from 'sonner';
+import { useRef } from 'react';
 import App from '@/hooks/app.class';
 import { http } from '@/lib/request';
 import copy from 'copy-to-clipboard';
 import { Resource } from '@/interface';
+import { Input } from '@/components/input';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -130,7 +132,9 @@ export const data = [
 export default function Actions(props: IProps) {
   const { app, forbidden, resource } = props;
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
   const [editing, onEditing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const handleEdit = () => {
     onEditing(true);
     app.fire('resource_children', false);
@@ -150,9 +154,11 @@ export default function Actions(props: IProps) {
       toast(t(returnValue ? 'copy.success' : 'copy.fail'), {
         position: 'top-center',
       });
+      setOpen(false);
       return;
     }
     if (!resource) {
+      setOpen(false);
       return;
     }
     if (id === 'duplicate') {
@@ -161,6 +167,7 @@ export default function Actions(props: IProps) {
           `/namespaces/${resource.namespace.id}/resources/duplicate/${resource.id}`,
         )
         .then((response: Resource) => {
+          setOpen(false);
           app.fire(
             'generate_resource',
             resource.space_type,
@@ -174,6 +181,7 @@ export default function Actions(props: IProps) {
       http
         .delete(`/namespaces/${resource.namespace.id}/resources/${resource.id}`)
         .then(() => {
+          setOpen(false);
           app.fire(
             'delete_resource',
             resource.id,
@@ -184,9 +192,41 @@ export default function Actions(props: IProps) {
       return;
     }
     if (id === 'import') {
-      //
+      fileInputRef.current?.click();
       return;
     }
+  };
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!resource || !e.target.files) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append('parent_id', resource.parent_id);
+    formData.append('namespace_id', resource.namespace.id);
+    formData.append('file', e.target.files[0]);
+    http
+      .post(`/namespaces/${resource.namespace.id}/resources/files`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then((response) => {
+        app.fire(
+          'generate_resource',
+          resource.space_type,
+          resource.parent_id,
+          response,
+        );
+      })
+      .catch((err) => {
+        toast(err && err.message ? err.message : err, {
+          position: 'top-center',
+        });
+      })
+      .finally(() => {
+        fileInputRef.current!.value = '';
+        setOpen(false);
+      });
   };
 
   useEffect(() => {
@@ -258,7 +298,7 @@ export default function Actions(props: IProps) {
           </>
         )}
       </PermissionWrapper>
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
@@ -292,6 +332,12 @@ export default function Actions(props: IProps) {
                   </SidebarGroupContent>
                 </SidebarGroup>
               ))}
+              <Input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleUpload}
+              />
             </SidebarContent>
           </Sidebar>
         </PopoverContent>
