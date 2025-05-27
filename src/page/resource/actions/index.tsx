@@ -29,22 +29,13 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import {
-  ArrowDown,
   ArrowUp,
-  Bell,
   Copy,
-  CornerUpLeft,
-  CornerUpRight,
-  FileText,
-  GalleryVerticalEnd,
-  LineChart,
   Link,
   MoreHorizontal,
   Pencil,
   PencilOff,
   Save,
-  Settings2,
-  Trash,
   Trash2,
 } from 'lucide-react';
 
@@ -57,18 +48,6 @@ interface IProps {
 export const data = [
   [
     {
-      id: 'customize_page',
-      label: i18next.t('actions.customize_page'),
-      icon: Settings2,
-    },
-    {
-      id: 'turn_into_wiki',
-      label: i18next.t('actions.turn_into_wiki'),
-      icon: FileText,
-    },
-  ],
-  [
-    {
       id: 'copy_link',
       label: i18next.t('actions.copy_link'),
       icon: Link,
@@ -79,11 +58,6 @@ export const data = [
       icon: Copy,
     },
     {
-      id: 'move_to',
-      label: i18next.t('actions.move_to'),
-      icon: CornerUpRight,
-    },
-    {
       id: 'move_to_trash',
       label: i18next.t('actions.move_to_trash'),
       icon: Trash2,
@@ -91,41 +65,9 @@ export const data = [
   ],
   [
     {
-      id: 'undo',
-      label: i18next.t('actions.undo'),
-      icon: CornerUpLeft,
-    },
-    {
-      id: 'view_analytics',
-      label: i18next.t('actions.view_analytics'),
-      icon: LineChart,
-    },
-    {
-      id: 'version_history',
-      label: i18next.t('actions.version_history'),
-      icon: GalleryVerticalEnd,
-    },
-    {
-      id: 'show_delete_pages',
-      label: i18next.t('actions.show_delete_pages'),
-      icon: Trash,
-    },
-    {
-      id: 'notifications',
-      label: i18next.t('actions.notifications'),
-      icon: Bell,
-    },
-  ],
-  [
-    {
       id: 'import',
       label: i18next.t('actions.import'),
       icon: ArrowUp,
-    },
-    {
-      id: 'export',
-      label: i18next.t('actions.export'),
-      icon: ArrowDown,
     },
   ],
 ];
@@ -325,10 +267,10 @@ export default function Actions(props: IProps) {
           className="w-56 overflow-hidden rounded-lg p-0"
         >
           <Sidebar collapsible="none" className="bg-transparent">
-            <SidebarContent>
+            <SidebarContent className="gap-0">
               {data.map((group, index) => (
-                <SidebarGroup key={index} className="border-b last:border-none">
-                  <SidebarGroupContent className="gap-0">
+                <SidebarGroup key={index} className="border-b">
+                  <SidebarGroupContent>
                     <SidebarMenu>
                       {group.map((item, index) => (
                         <SidebarMenuItem key={index}>

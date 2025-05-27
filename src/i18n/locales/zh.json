@@ -31,20 +31,10 @@
     "failed": "请求失败，请稍后重试"
   },
   "actions": {
-    "customize_page": "自定义页面",
-    "turn_into_wiki": "转为维基",
     "copy_link": "复制链接",
     "duplicate": "复制",
-    "move_to": "移动到",
     "move_to_trash": "移动到回收站",
-    "undo": "撤销",
-    "move": "移动",
-    "view_analytics": "查看分析",
-    "version_history": "版本历史",
-    "show_delete_pages": "显示已删除页面",
-    "notifications": "通知",
-    "import": "导入",
-    "export": "导出"
+    "import": "导入"
   },
   "form": {
     "or": "或",
