@@ -3,6 +3,7 @@ import { useRef, useEffect } from 'react';
 import useTheme from '@/hooks/use-theme';
 import { useNavigate } from 'react-router-dom';
 import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
+import './index.css';
 
 interface IProps {
   content: string;

@@ -15,35 +15,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import {
-  ArrowDown,
-  ArrowUp,
-  Bell,
-  Copy,
-  CornerUpLeft,
-  CornerUpRight,
-  FileText,
-  GalleryVerticalEnd,
-  LineChart,
-  Link,
-  MoreHorizontal,
-  Settings2,
-  Trash,
-  Trash2,
-} from 'lucide-react';
-import i18n from '@/i18n';
+import { ArrowUp, Copy, Link, MoreHorizontal, Trash2 } from 'lucide-react';
 
 export const data = [
-  [
-    {
-      label: i18next.t('actions.customize_page'),
-      icon: Settings2,
-    },
-    {
-      label: i18next.t('actions.turn_into_wiki'),
-      icon: FileText,
-    },
-  ],
   [
     {
       label: i18next.t('actions.copy_link'),
@@ -54,44 +28,14 @@ export const data = [
       icon: Copy,
     },
     {
-      label: i18next.t('actions.move_to'),
-      icon: CornerUpRight,
-    },
-    {
       label: i18next.t('actions.move_to_trash'),
       icon: Trash2,
     },
   ],
   [
     {
-      label: i18next.t('actions.undo'),
-      icon: CornerUpLeft,
-    },
-    {
-      label: i18next.t('actions.view_analytics'),
-      icon: LineChart,
-    },
-    {
-      label: i18next.t('actions.version_history'),
-      icon: GalleryVerticalEnd,
-    },
-    {
-      label: i18next.t('actions.show_delete_pages'),
-      icon: Trash,
-    },
-    {
-      label: i18n.t('actions.notifications'),
-      icon: Bell,
-    },
-  ],
-  [
-    {
-      label: i18n.t('actions.import'),
+      label: i18next.t('actions.import'),
       icon: ArrowUp,
-    },
-    {
-      label: i18n.t('actions.export'),
-      icon: ArrowDown,
     },
   ],
 ];
@@ -116,9 +60,9 @@ export default function Actions() {
           align="end"
         >
           <Sidebar collapsible="none" className="bg-transparent">
-            <SidebarContent>
+            <SidebarContent className="gap-0">
               {data.map((group, index) => (
-                <SidebarGroup key={index} className="border-b last:border-none">
+                <SidebarGroup key={index} className="border-b">
                   <SidebarGroupContent className="gap-0">
                     <SidebarMenu>
                       {group.map((item, index) => (

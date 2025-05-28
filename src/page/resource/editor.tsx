@@ -24,7 +24,7 @@ export default function Editor(props: IEditorProps) {
     return app.on('save', (onSuccess?: () => void) => {
       const name = title.trim();
       const content = vditor.current.getValue();
-      if (!content || !name) {
+      if (!content && !name) {
         app.fire('resource_children', true);
         return;
       }

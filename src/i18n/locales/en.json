@@ -31,20 +31,10 @@
     "failed": "Request Failed, Please Try Again Later"
   },
   "actions": {
-    "customize_page": "Customize Page",
-    "turn_into_wiki": "Turn into wiki",
     "copy_link": "Copy Link",
     "duplicate": "Duplicate",
-    "move_to": "Move to",
     "move_to_trash": "Move to Trash",
-    "undo": "Undo",
-    "move": "Move",
-    "view_analytics": "View analytics",
-    "version_history": "Version History",
-    "show_delete_pages": "Show delete pages",
-    "notifications": "Notifications",
-    "import": "Import",
-    "export": "Export"
+    "import": "Import"
   },
   "form": {
     "or": "or",
@@ -185,5 +175,9 @@
     "invite": "Invite",
     "invite_success": "Invitation successful",
     "invite_placeholder": "Email address or group, separated by commas"
+  },
+  "copy": {
+    "success": "Copied successfully",
+    "fail": "Copy failed, please copy manually"
   }
 }
