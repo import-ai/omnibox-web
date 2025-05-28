@@ -29,7 +29,7 @@ export default function MainSidebar() {
   const params = useParams();
   const loc = useLocation();
   const navigate = useNavigate();
-  const chatPage = loc.pathname.endsWith('chat');
+  const chatPage = loc.pathname.includes('/chat');
   const resource_id = params.resource_id || '';
   const namespace_id = params.namespace_id || '';
   const [expanding, onExpanding] = useState('');
