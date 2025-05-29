@@ -1,5 +1,4 @@
 {
-  "chat": "聊天",
   "back_to_front": "返回首页",
   "untitled": "未命名",
   "edit": "编辑",
@@ -7,6 +6,7 @@
   "create_folder": "创建文件夹",
   "upload_file": "上传文件",
   "delete": "删除",
+  "rename": "重命名",
   "add_all_to_context": "全部添加到上下文",
   "add_it_to_context": "添加到上下文",
   "stop": "停止",
@@ -179,5 +179,20 @@
   "copy": {
     "success": "已复制到剪贴板",
     "fail": "复制失败，请手动复制"
+  },
+  "chat": {
+    "title": "聊天",
+    "no_conversation": "暂无对话",
+    "new_conversation": "新对话",
+    "history_conversation": "历史对话",
+    "edit_conversation_name": "编辑对话名称",
+    "delete_conversation": "确定删除对话？",
+    "delete_conversation_confirm": "删除后，聊天记录将不可恢复。"
+  },
+  "date": {
+    "today": "今天",
+    "yesterday": "昨天",
+    "last_week": "过去7天",
+    "month_year": "{{year}} 年 {{month}} 月"
   }
 }

@@ -14,5 +14,5 @@ export interface Conversation extends IBase {
   title: string;
   namespace: Namespace;
   user: User;
-  messages: Message[];
+  messages?: Message[];
 }

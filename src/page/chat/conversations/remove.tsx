@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,7 @@ interface IProps {
 
 export default function RemoveHistory(props: IProps) {
   const { data, namespaceId, onFinish, onOpenChange } = props;
+  const { t } = useTranslation();
   const [loading, onLoading] = useState(false);
   const handleCancel = () => {
     onOpenChange(false);
@@ -42,13 +44,15 @@ export default function RemoveHistory(props: IProps) {
     <AlertDialog open={data.open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>确定删除对话？</AlertDialogTitle>
+          <AlertDialogTitle>{t('chat.delete_conversation')}</AlertDialogTitle>
           <AlertDialogDescription>
-            删除后，聊天记录将不可恢复。
+            {t('chat.delete_conversation_confirm')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleCancel}>取消</AlertDialogCancel>
+          <AlertDialogCancel onClick={handleCancel}>
+            {t('cancel')}
+          </AlertDialogCancel>
           <AlertDialogAction
             disabled={loading}
             onClick={handleRemove}
@@ -57,7 +61,7 @@ export default function RemoveHistory(props: IProps) {
             {loading && (
               <LoaderCircle className="transition-transform animate-spin" />
             )}
-            删除
+            {t('delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -43,10 +43,6 @@ export default function useContext() {
 
   useEffect(refetch, [namespaceId]);
 
-  // useEffect(() => {
-  //   http.post(`/namespaces/${namespaceId}/conversations`);
-  // }, [namespaceId]);
-
   return {
     data,
     edit,

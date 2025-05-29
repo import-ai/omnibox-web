@@ -1,3 +1,4 @@
+import i18next from 'i18next';
 import { Conversation } from './interface';
 
 interface GroupedItems {
@@ -27,28 +28,31 @@ export function groupItemsByTimestamp(
 
     // 检查是否是今天
     if (itemDate >= today) {
-      if (!grouped['今天']) {
-        grouped['今天'] = [];
+      if (!grouped[i18next.t('date.today')]) {
+        grouped[i18next.t('date.today')] = [];
       }
-      grouped['今天'].push(item);
+      grouped[i18next.t('date.today')].push(item);
     }
     // 检查是否是昨天
     else if (itemDate >= yesterday && itemDate < today) {
-      if (!grouped['昨天']) {
-        grouped['昨天'] = [];
+      if (!grouped[i18next.t('date.yesterday')]) {
+        grouped[i18next.t('date.yesterday')] = [];
       }
-      grouped['昨天'].push(item);
+      grouped[i18next.t('date.yesterday')].push(item);
     }
     // 检查是否是过去7天内（不包括今天和昨天）
     else if (itemDate >= sevenDaysAgo && itemDate < yesterday) {
-      if (!grouped['过去7天']) {
-        grouped['过去7天'] = [];
+      if (!grouped[i18next.t('date.last_week')]) {
+        grouped[i18next.t('date.last_week')] = [];
       }
-      grouped['过去7天'].push(item);
+      grouped[i18next.t('date.last_week')].push(item);
     }
     // 按月份分组
     else {
-      const monthKey = `${itemYear}年${itemMonth}月`;
+      const monthKey = i18next.t('date.month_year', {
+        year: itemYear,
+        month: itemMonth,
+      });
       if (!grouped[monthKey]) {
         grouped[monthKey] = [];
         monthGroups.push({
@@ -67,14 +71,23 @@ export function groupItemsByTimestamp(
   const orderedGroups: [string, Array<Conversation>][] = [];
 
   // 添加固定分组（今天、昨天、过去7天）
-  if (grouped['今天']) {
-    orderedGroups.push(['今天', grouped['今天']]);
+  if (grouped[i18next.t('date.today')]) {
+    orderedGroups.push([
+      i18next.t('date.today'),
+      grouped[i18next.t('date.today')],
+    ]);
   }
-  if (grouped['昨天']) {
-    orderedGroups.push(['昨天', grouped['昨天']]);
+  if (grouped[i18next.t('date.yesterday')]) {
+    orderedGroups.push([
+      i18next.t('date.yesterday'),
+      grouped[i18next.t('date.yesterday')],
+    ]);
   }
-  if (grouped['过去7天']) {
-    orderedGroups.push(['过去7天', grouped['过去7天']]);
+  if (grouped[i18next.t('date.last_week')]) {
+    orderedGroups.push([
+      i18next.t('date.last_week'),
+      grouped[i18next.t('date.last_week')],
+    ]);
   }
 
   // 添加按时间倒序排列的月份分组

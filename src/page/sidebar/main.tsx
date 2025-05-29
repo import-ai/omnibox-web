@@ -31,7 +31,7 @@ export function NavMain(props: IProps) {
               onClick={onChat}
             >
               <Sparkles className="w-4 h-4" />
-              <span>{t('chat')}</span>
+              <span>{t('chat.title')}</span>
             </div>
             <History
               className="cursor-pointer w-4 h-4"

@@ -4,7 +4,7 @@ import { http } from '@/lib/request';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/button';
 import { Input } from '@/components/ui/input';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -32,6 +32,7 @@ interface IProps {
 
 export default function EditForm(props: IProps) {
   const { data, namespaceId, onFinish } = props;
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -77,7 +78,7 @@ export default function EditForm(props: IProps) {
           )}
         />
         <Button type="submit" disabled={loading} loading={loading}>
-          确定
+          {t('ok')}
         </Button>
       </form>
     </Form>

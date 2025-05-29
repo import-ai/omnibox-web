@@ -1,6 +1,7 @@
 import EditHistory from './edit';
 import RemoveHistory from './remove';
 import useContext from './useContext';
+import { useTranslation } from 'react-i18next';
 import { MoreHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import {
 
 export default function ChatConversationsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const {
     data,
     edit,
@@ -43,7 +45,9 @@ export default function ChatConversationsPage() {
         onOpenChange={onRemoveChange}
       />
       <div className="mb-6">
-        <h1 className="text-2xl font-medium text-gray-900 mb-4">历史对话</h1>
+        <h1 className="text-2xl font-medium text-gray-900 mb-4">
+          {t('chat.history_conversation')}
+        </h1>
       </div>
       <ScrollArea className="h-[calc(100vh-150px)]">
         <div className="space-y-6">
@@ -63,7 +67,7 @@ export default function ChatConversationsPage() {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-medium text-gray-900 group-hover:text-blue-600">
-                        {item.title}
+                        {item.title || '--'}
                       </h3>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -78,7 +82,9 @@ export default function ChatConversationsPage() {
                         <DropdownMenuContent side="bottom" align="end">
                           <DropdownMenuItem
                             className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
-                            onClick={() => {
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              event.preventDefault();
                               onEdit({
                                 id: item.id,
                                 title: item.title,
@@ -86,27 +92,29 @@ export default function ChatConversationsPage() {
                               });
                             }}
                           >
-                            重命名
+                            {t('rename')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="cursor-pointer text-red-500 hover:bg-gray-100 dark:hover:bg-gray-400"
-                            onClick={() => {
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              event.preventDefault();
                               onRemove({
                                 id: item.id,
                                 open: true,
                               });
                             }}
                           >
-                            删除
+                            {t('delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
                     <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
-                      {/* {item.messages.length > 0
+                      {Array.isArray(item.messages) && item.messages.length > 0
                         ? item.messages[item.messages.length - 1].message
                             .content
-                        : '暂无消息'} */}
+                        : '--'}
                     </p>
                   </div>
                 ))}
@@ -114,7 +122,7 @@ export default function ChatConversationsPage() {
             ))
           ) : (
             <div className="text-gray-500">
-              <p>暂无历史对话</p>
+              <p>{t('chat.no_conversation')}</p>
             </div>
           )}
         </div>
