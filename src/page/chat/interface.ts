@@ -1,18 +1,30 @@
-import { IBase, User, Namespace } from '@/interface';
+import { IBase } from '@/interface';
 
-interface Message extends IBase {
+export enum MessageStatus {
+  PENDING = 'pending',
+  SUCCESS = 'success',
+  STOPPED = 'stopped',
+  FAIL = 'fail',
+}
+
+interface MessageDetail extends IBase {
   id: string;
-  conversation: Conversation;
-  user: User;
-  parentId?: string;
   message: Record<string, any>;
+  status: MessageStatus;
+  parent?: string;
+  children: string[];
   attrs?: Record<string, any>;
 }
 
-export interface Conversation extends IBase {
+export interface ConversationDetail extends IBase {
   id: string;
   title: string;
-  namespace: Namespace;
-  user: User;
-  messages?: Message[];
+  mapping: Record<string, MessageDetail>;
+  current_node: string;
+}
+
+export interface ConversationSummary extends IBase {
+  id: string;
+  title: string;
+  snippet?: string;
 }

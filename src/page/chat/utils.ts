@@ -1,13 +1,13 @@
 import i18next from 'i18next';
-import { Conversation } from './interface';
+import { ConversationSummary } from './interface';
 
 interface GroupedItems {
-  [key: string]: Array<Conversation>;
+  [key: string]: Array<ConversationSummary>;
 }
 
 export function groupItemsByTimestamp(
-  items: Array<Conversation>,
-): [string, Array<Conversation>][] {
+  items: Array<ConversationSummary>,
+): [string, Array<ConversationSummary>][] {
   const now = new Date();
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
@@ -26,29 +26,22 @@ export function groupItemsByTimestamp(
     const itemYear = itemDate.getFullYear();
     const itemMonth = itemDate.getMonth() + 1;
 
-    // 检查是否是今天
     if (itemDate >= today) {
       if (!grouped[i18next.t('date.today')]) {
         grouped[i18next.t('date.today')] = [];
       }
       grouped[i18next.t('date.today')].push(item);
-    }
-    // 检查是否是昨天
-    else if (itemDate >= yesterday && itemDate < today) {
+    } else if (itemDate >= yesterday && itemDate < today) {
       if (!grouped[i18next.t('date.yesterday')]) {
         grouped[i18next.t('date.yesterday')] = [];
       }
       grouped[i18next.t('date.yesterday')].push(item);
-    }
-    // 检查是否是过去7天内（不包括今天和昨天）
-    else if (itemDate >= sevenDaysAgo && itemDate < yesterday) {
+    } else if (itemDate >= sevenDaysAgo && itemDate < yesterday) {
       if (!grouped[i18next.t('date.last_week')]) {
         grouped[i18next.t('date.last_week')] = [];
       }
       grouped[i18next.t('date.last_week')].push(item);
-    }
-    // 按月份分组
-    else {
+    } else {
       const monthKey = i18next.t('date.month_year', {
         year: itemYear,
         month: itemMonth,
@@ -64,13 +57,10 @@ export function groupItemsByTimestamp(
     }
   });
 
-  // 对月份分组进行排序（最近的月份在前）
   monthGroups.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-  // 创建最终的有序分组数组
-  const orderedGroups: [string, Array<Conversation>][] = [];
+  const orderedGroups: [string, Array<ConversationSummary>][] = [];
 
-  // 添加固定分组（今天、昨天、过去7天）
   if (grouped[i18next.t('date.today')]) {
     orderedGroups.push([
       i18next.t('date.today'),
@@ -90,7 +80,6 @@ export function groupItemsByTimestamp(
     ]);
   }
 
-  // 添加按时间倒序排列的月份分组
   monthGroups.forEach((month) => {
     orderedGroups.push([month.key, grouped[month.key]]);
   });
