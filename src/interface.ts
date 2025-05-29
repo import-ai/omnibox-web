@@ -1,4 +1,4 @@
-interface IBase {
+export interface IBase {
   created_at?: string;
   updated_at?: string;
   deleted_at?: string;

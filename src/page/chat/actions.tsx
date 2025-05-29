@@ -1,6 +1,15 @@
 import i18next from 'i18next';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Copy,
+  Link,
+  Trash2,
+  ArrowUp,
+  History,
+  MoreHorizontal,
+} from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -15,7 +24,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { ArrowUp, Copy, Link, MoreHorizontal, Trash2 } from 'lucide-react';
 
 export const data = [
   [
@@ -41,10 +49,29 @@ export const data = [
 ];
 
 export default function Actions() {
+  const loc = useLocation();
+  const params = useParams();
+  const navigate = useNavigate();
+  const namespaceId = params.namespace_id || '';
+  const conversationsPage = loc.pathname.includes('/chat/conversations');
+  const onChatHistory = () => {
+    navigate(`/${namespaceId}/chat/conversations`);
+  };
+
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className="hidden font-medium text-muted-foreground md:inline-block"></div>
       <ThemeToggle />
+      {!conversationsPage && (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-7 w-7"
+          onClick={onChatHistory}
+        >
+          <History />
+        </Button>
+      )}
       <Popover>
         <PopoverTrigger asChild>
           <Button
