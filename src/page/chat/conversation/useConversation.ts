@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ConversationDetail } from '@/page/chat/interface.ts';
 
-export default function useContext() {
+export default function useConversation() {
   const params = useParams();
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
