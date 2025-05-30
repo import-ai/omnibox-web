@@ -3,8 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Globe, Lightbulb, Sparkles } from 'lucide-react';
 import { ToolType } from '@/page/chat/chat-input/types';
 
-console.log({ ToolType, type: typeof ToolType });
-
 const datasource = [
   {
     label: 'Web Search',

@@ -20,9 +20,7 @@ export default function useContext() {
   const state: IProps = loc.state;
   const namespaceId = state?.namespaceId || params.namespace_id || '';
   const conversationId = state?.conversationId || params.conversation_id || '';
-
-  const [value, onChange] = useState<string>(state?.value || '');
-  // const [messages, setMessages] = useState<Message[]>([]);
+  const routeQuery: string | undefined = state?.value;
   const [tools, onToolsChange] = useState<Array<ToolType>>(state?.tools || []);
   const { context, onContextChange } = useGlobalContext({
     data: state?.context || [],
@@ -43,11 +41,11 @@ export default function useContext() {
   useEffect(refetch, [namespaceId, conversationId]);
 
   return {
+    routeQuery,
     conversation,
+    setConversation,
     namespaceId,
     conversationId,
-    value,
-    onChange,
     tools,
     onToolsChange,
     context,

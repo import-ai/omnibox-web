@@ -4,7 +4,8 @@ export enum MessageStatus {
   PENDING = 'pending',
   SUCCESS = 'success',
   STOPPED = 'stopped',
-  FAIL = 'fail',
+  INTERRUPTED = 'interrupted',
+  FAILED = 'failed',
 }
 
 export enum OpenAIMessageRole {
@@ -14,7 +15,7 @@ export enum OpenAIMessageRole {
   TOOL = 'tool',
 }
 
-interface OpenAIMessage {
+export interface OpenAIMessage {
   role: OpenAIMessageRole;
   content?: string;
   tool_calls?: Record<string, any>[];
