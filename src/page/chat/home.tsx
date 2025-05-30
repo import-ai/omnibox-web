@@ -225,6 +225,7 @@ export default function ChatHomePage() {
     const conversation_id: string = await getConversationId();
 
     const body = {
+      namespace_id,
       conversation_id,
       query: localMessages[localMessages.length - 1].content,
       tools: [
