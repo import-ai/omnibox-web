@@ -9,9 +9,9 @@ import { groupItemsByTimestamp } from '../utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
 
 export default function ChatConversationsPage() {
@@ -57,7 +57,7 @@ export default function ChatConversationsPage() {
                 <div className="pb-4">
                   <p className="text-sm text-gray-500">{key}</p>
                 </div>
-                {items.map((item) => (
+                {items.map((item, index) => (
                   <div
                     className="cursor-pointer group"
                     key={item.id}
@@ -67,7 +67,7 @@ export default function ChatConversationsPage() {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-medium text-gray-900 group-hover:text-blue-600">
-                        {item.title || '--'}
+                        {item.title || item.user_content}
                       </h3>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -111,11 +111,12 @@ export default function ChatConversationsPage() {
                       </DropdownMenu>
                     </div>
                     <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
-                      {Array.isArray(item.messages) && item.messages.length > 0
-                        ? item.messages[item.messages.length - 1].message
-                            .content
-                        : '--'}
+                      {item.assistant_content?.replace(/<cite:\d+>/, '') ||
+                        '...'}
                     </p>
+                    {index < items.length - 1 && (
+                      <hr className="my-4 border-gray-300" />
+                    )}
                   </div>
                 ))}
               </div>
