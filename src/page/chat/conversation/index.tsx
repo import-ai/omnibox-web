@@ -20,11 +20,11 @@ import {
 export default function ChatConversationPage() {
   const loc = useLocation();
   const state = loc.state;
-  const { data } = useConversation();
   const namespaceId = state.namespaceId;
   const conversationId = state.conversationId;
   const [value, onChange] = useState(state.value);
   const [messages, setMessages] = useState<Message[]>([]);
+  const { data } = useConversation({ namespaceId, conversationId });
   const [tools, onToolsChange] = useState<Array<string>>(state.tools);
   const { context, onContextChange } = useContext({ data: state.context });
   const getLocalMessages = () => {
