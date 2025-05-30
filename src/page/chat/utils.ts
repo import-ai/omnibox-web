@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import { ConversationSummary } from './interface';
+import { Citation, ConversationSummary } from './interface';
 
 interface GroupedItems {
   [key: string]: Array<ConversationSummary>;
@@ -86,3 +86,80 @@ export function groupItemsByTimestamp(
 
   return orderedGroups;
 }
+
+function cleanCitePrefix(text: string) {
+  const citePrefix = '<cite:';
+  const citePrefixRegex = /<cite:\d+$/g;
+  for (let i = 0; i < citePrefix.length; i++) {
+    const suffix = citePrefix.slice(0, i + 1);
+    if (text.endsWith(suffix)) {
+      return text.replace(suffix, '');
+    }
+  }
+  if (citePrefixRegex.test(text)) {
+    return text.replace(citePrefixRegex, '');
+  }
+
+  return text;
+}
+
+export const parseCitations = (content: string, citations: Citation[]) => {
+  content = cleanCitePrefix(content);
+  for (let i = 0; i < citations.length; i++) {
+    content = content.replace(
+      new RegExp(`<cite:${i + 1}>`, 'g'),
+      `[[${i + 1}]](${citations[i].link})`,
+    );
+  }
+  return content.trim();
+};
+
+export const stream = async (
+  url: string,
+  body: Record<string, any>,
+  callback: (data: string) => Promise<void>,
+): Promise<void> => {
+  const token = localStorage.getItem('token') || '';
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch from wizard');
+  }
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error('Response body is not readable');
+  }
+  const decoder = new TextDecoder();
+  let buffer: string = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      while (true) {
+        const lineEnd = buffer.indexOf('\n');
+        if (lineEnd == -1) break;
+
+        const line = buffer.slice(0, lineEnd).trim();
+        buffer = buffer.slice(lineEnd + 1);
+
+        if (line.startsWith('data:')) {
+          const data = line.slice(5).trim();
+          await callback(data);
+        }
+      }
+    }
+  } finally {
+    await reader.cancel();
+  }
+};
