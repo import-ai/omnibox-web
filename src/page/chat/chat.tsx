@@ -1,29 +1,30 @@
 import { useState } from 'react';
 import useContext from './useContext';
-import { stream, parseCitations } from './utils';
+import { parseCitations, stream } from './utils';
 import ChatInput from '@/page/chat/chat-input';
 import { useLocation } from 'react-router-dom';
 import { Markdown } from '@/components/markdown';
 import {
-  Message,
+  ChatCitationsResponse,
+  ChatDeltaResponse,
+  ChatDoneResponse,
+  ChatThinkDeltaResponse,
   Citation,
   EndOfMessage,
   ErrorResponse,
-  ChatDoneResponse,
+  Message,
   TollCallResponse,
-  ChatDeltaResponse,
-  ChatCitationsResponse,
-  ChatThinkDeltaResponse,
 } from './interface';
+import { ToolType } from '@/page/chat/chat-input/types';
 
 export default function ChatConversationPage() {
   const loc = useLocation();
   const state = loc.state;
   const namespaceId = state.namespaceId;
   const conversationId = state.conversationId;
-  const [value, onChange] = useState(state.value);
+  const [value, onChange] = useState<string>(state.value);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [tools, onToolsChange] = useState<Array<string>>(state.tools);
+  const [tools, onToolsChange] = useState<Array<ToolType>>(state.tools);
   const { context, onContextChange } = useContext({ data: state.context });
   const getLocalMessages = () => {
     const val = value.trim();
@@ -161,7 +162,6 @@ export default function ChatConversationPage() {
         console.error({ message: 'Unknown response type', chatResponse });
       }
     });
-    onLoading(false);
   };
 
   return (

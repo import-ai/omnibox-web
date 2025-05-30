@@ -1,4 +1,5 @@
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import React from 'react';
 
 interface IProps {
   value: string;
@@ -8,10 +9,10 @@ interface IProps {
 
 export default function ChatInput(props: IProps) {
   const { value, onChange, onAction } = props;
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
   };
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
       if (e.metaKey || e.ctrlKey) {
         e.preventDefault();
@@ -22,12 +23,12 @@ export default function ChatInput(props: IProps) {
 
   return (
     <div className="mt-1 mb-5">
-      <Input
+      <Textarea
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder="Type your message..."
-        className="p-0 border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:shadow-none hover:border-transparent hover:shadow-none"
+        className="resize-none p-0 border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:shadow-none hover:border-transparent hover:shadow-none"
       />
     </div>
   );

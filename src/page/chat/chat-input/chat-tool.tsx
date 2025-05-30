@@ -1,28 +1,31 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Globe, Sparkles, Lightbulb } from 'lucide-react';
+import { Globe, Lightbulb, Sparkles } from 'lucide-react';
+import { ToolType } from '@/page/chat/chat-input/types';
+
+console.log({ ToolType, type: typeof ToolType });
 
 const datasource = [
   {
     label: 'Web Search',
-    value: 'search',
+    value: ToolType.WEB_SEARCH,
     icon: <Globe />,
   },
   {
     label: 'Reason',
-    value: 'reason',
+    value: ToolType.REASONING,
     icon: <Lightbulb />,
   },
   {
     label: 'Knowledge',
-    value: 'knowledge',
+    value: ToolType.KNOWLEDGE_SEARCH,
     icon: <Sparkles />,
   },
 ];
 
 interface IProps {
-  tools: Array<string>;
-  onToolsChange: (tool: Array<string>) => void;
+  tools: Array<ToolType>;
+  onToolsChange: (tool: Array<ToolType>) => void;
 }
 
 export default function ChatTool(props: IProps) {

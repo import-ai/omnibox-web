@@ -1,8 +1,38 @@
-import useContext from '@/page/chat/conversation/useContext.ts';
+import useContext from '@/page/chat/conversation/context';
 import { MessageDetail, OpenAIMessageRole } from '@/page/chat/interface.ts';
+import ChatArea from '@/page/chat/chat-input';
+import { useEffect } from 'react';
+import { prepareBody } from '@/page/chat/conversation/tools.tsx';
 
 export default function ChatConversationPage() {
-  const { data } = useContext();
+  const {
+    conversation,
+    namespaceId,
+    conversationId,
+    value,
+    onChange,
+    tools,
+    onToolsChange,
+    context,
+    onContextChange,
+  } = useContext();
+
+  console.log({ conversation });
+
+  useEffect(() => {
+    console.log({ context, tools, conversation });
+    if (value) {
+      const body = prepareBody(
+        namespaceId,
+        conversationId,
+        value,
+        tools,
+        context,
+        conversation.messages,
+      );
+      console.log({ body });
+    }
+  }, []);
 
   function renderMessage(message: MessageDetail) {
     const openAIMessage = message.message;
@@ -50,20 +80,25 @@ export default function ChatConversationPage() {
 
   return (
     <>
-      <p>
-        {data?.title ||
-          data?.getMessage(OpenAIMessageRole.USER)?.message?.content}
-      </p>
       <div className="flex-1 overflow-y-auto">
-        {data?.messages.map((m, index) => (
+        {conversation?.messages.map((m, index) => (
           <div key={m.id}>
             {renderMessage(m)}
-            {index < data?.messages.length - 1 && (
+            {index < conversation?.messages.length - 1 && (
               <hr className="my-4 border-gray-300" />
             )}
           </div>
         ))}
       </div>
+      <ChatArea
+        tools={tools}
+        value={value}
+        context={context}
+        onChange={onChange}
+        onAction={() => {}}
+        onToolsChange={onToolsChange}
+        onContextChange={onContextChange}
+      />
     </>
   );
 }

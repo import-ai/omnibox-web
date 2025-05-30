@@ -34,14 +34,14 @@ export interface IConversationDetail extends IBase {
   id: string;
   title?: string;
   mapping: Record<string, MessageDetail>;
-  current_node: string;
+  current_node?: string;
 }
 
 export class ConversationDetail implements IConversationDetail {
   id: string;
   title?: string;
   mapping: Record<string, MessageDetail>;
-  current_node: string;
+  current_node?: string;
   created_at?: string | undefined;
   updated_at?: string | undefined;
   deleted_at?: string | undefined;

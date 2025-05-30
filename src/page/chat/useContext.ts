@@ -1,16 +1,19 @@
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+export interface IResTypeContext {
+  type: string;
+  resource: Resource;
+}
 
 interface IProps {
-  data: Array<{ type: string; resource: Resource }>;
+  data: IResTypeContext[];
 }
 
 export default function useContext(props: IProps) {
   const app = useApp();
-  const [context, onContextChange] = useState<
-    Array<{ type: string; resource: Resource }>
-  >(props.data);
+  const [context, onContextChange] = useState<IResTypeContext[]>(props.data);
 
   useEffect(() => {
     return app.on('context_clear', () => {
