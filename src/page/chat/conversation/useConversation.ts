@@ -1,12 +1,14 @@
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { ConversationDetail } from '@/page/chat/interface.ts';
 
-export default function useContext() {
-  const params = useParams();
-  const namespaceId = params.namespace_id || '';
-  const conversationId = params.conversation_id || '';
+interface IProps {
+  namespaceId: string;
+  conversationId: string;
+}
+
+export default function useConversation(props: IProps) {
+  const { namespaceId, conversationId } = props;
   const [data, onData] = useState<ConversationDetail>();
   const refetch = () => {
     http
