@@ -1,12 +1,12 @@
 import { http } from '@/lib/request';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Conversation } from '@/page/chat/interface';
+import { ConversationSummary } from '@/page/chat/interface';
 
 export default function useContext() {
   const params = useParams();
   const namespaceId = params.namespace_id || '';
-  const [data, onData] = useState<Array<Conversation>>([]);
+  const [data, onData] = useState<Array<ConversationSummary>>([]);
   const [edit, onEdit] = useState<{
     id: string;
     title: string;
