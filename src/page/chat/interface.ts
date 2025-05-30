@@ -1,13 +1,4 @@
-import { IBase, User, Namespace } from '@/interface';
-
-interface IMessage extends IBase {
-  id: string;
-  conversation: ConversationSummary;
-  user: User;
-  parentId?: string;
-  message: Record<string, any>;
-  attrs?: Record<string, any>;
-}
+import { IBase } from '@/interface';
 
 export enum MessageStatus {
   PENDING = 'pending',
@@ -107,9 +98,6 @@ export interface ConversationSummary extends IBase {
   title: string;
   user_content?: string;
   assistant_content?: string;
-  namespace: Namespace;
-  user: User;
-  messages?: IMessage[];
 }
 
 export interface Message {
