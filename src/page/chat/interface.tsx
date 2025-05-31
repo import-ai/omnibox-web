@@ -1,32 +1,15 @@
 import { IBase } from '@/interface';
-
-export enum MessageStatus {
-  PENDING = 'pending',
-  SUCCESS = 'success',
-  STOPPED = 'stopped',
-  INTERRUPTED = 'interrupted',
-  FAILED = 'failed',
-}
-
-export enum OpenAIMessageRole {
-  SYSTEM = 'system',
-  USER = 'user',
-  ASSISTANT = 'assistant',
-  TOOL = 'tool',
-}
-
-export interface OpenAIMessage {
-  role: OpenAIMessageRole;
-  content?: string;
-  tool_calls?: Record<string, any>[];
-  reasoning_content?: string;
-}
+import {
+  MessageStatus,
+  OpenAIMessage,
+  OpenAIMessageRole,
+} from '@/page/chat/types/chat-response.tsx';
 
 export interface MessageDetail extends IBase {
   id: string;
   message: OpenAIMessage;
   status: MessageStatus;
-  parent?: string;
+  parentId?: string;
   children: string[];
   attrs?: { citations?: Record<string, any>[] };
 }
@@ -63,7 +46,7 @@ export class ConversationDetail implements IConversationDetail {
     while (currentNode) {
       const message: MessageDetail = this.mapping[currentNode];
       messages.unshift(message);
-      currentNode = message.parent;
+      currentNode = message.parentId;
     }
     return messages;
   }

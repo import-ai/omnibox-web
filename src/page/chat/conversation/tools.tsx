@@ -4,7 +4,7 @@ import {
   ChatRequestBody,
   KnowledgeSearch,
 } from '@/page/chat/conversation/types.tsx';
-import { MessageDetail } from '@/page/chat/interface.ts';
+import { MessageDetail } from '@/page/chat/interface.tsx';
 
 export function getCondition(context: IResTypeContext[]) {
   const parents = context

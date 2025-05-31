@@ -1,7 +1,7 @@
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ConversationSummary } from '@/page/chat/interface';
+import { ConversationSummary } from '@/page/chat/interface.tsx';
 
 export default function useContext() {
   const params = useParams();

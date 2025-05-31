@@ -14,7 +14,7 @@ import {
   ErrorResponse,
   Message,
   TollCallResponse,
-} from './interface';
+} from './interface.tsx';
 import { ToolType } from '@/page/chat/chat-input/types';
 
 export default function ChatConversationPage() {

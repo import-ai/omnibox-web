@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import { Citation, ConversationSummary } from './interface';
+import { Citation, ConversationSummary } from './interface.tsx';
 
 interface GroupedItems {
   [key: string]: Array<ConversationSummary>;
