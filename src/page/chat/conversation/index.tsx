@@ -1,24 +1,19 @@
 import useContext from '@/page/chat/conversation/context';
 import ChatArea from '@/page/chat/chat-input';
-import { useEffect, useRef, useState } from 'react';
-import { prepareBody } from '@/page/chat/conversation/tools';
+import { useEffect, useState } from 'react';
+import { ask } from '@/page/chat/conversation/tools';
 import { http } from '@/lib/request';
-import { stream } from '@/page/chat/utils';
 import {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/types/conversation';
-import {
-  ChatResponse,
-  OpenAIMessageRole,
-} from '@/page/chat/types/chat-response';
+import { OpenAIMessageRole } from '@/page/chat/types/chat-response';
 
 export default function ChatConversationPage() {
   const [value, onChange] = useState<string>('');
   const {
     routeQuery,
     setConversation,
-    conversation,
     messages,
     addMessage,
     updateMessage,
@@ -31,14 +26,6 @@ export default function ChatConversationPage() {
     onContextChange,
   } = useContext();
 
-  const conversationRef = useRef<ConversationDetail>(conversation);
-  const messagesRef = useRef<MessageDetail[]>(messages);
-
-  useEffect(() => {
-    conversationRef.current = conversation;
-    messagesRef.current = messages;
-  }, [conversation, messages]);
-
   const refetch = async () => {
     const res: ConversationDetail = await http.get(
       `/namespaces/${namespaceId}/conversations/${conversationId}`,
@@ -50,36 +37,17 @@ export default function ChatConversationPage() {
   useEffect(() => {
     if (routeQuery) {
       refetch().then(async () => {
-        const body = prepareBody(
+        await ask(
           namespaceId,
           conversationId,
           routeQuery,
           tools,
           context,
           messages,
+          addMessage,
+          updateMessage,
+          messageDone,
         );
-        let messageId: string = '';
-
-        await stream('/api/v1/wizard/ask', body, async (data) => {
-          let chatResponse: ChatResponse = JSON.parse(data);
-
-          if (chatResponse.response_type === 'bos') {
-            if (messageId) {
-              throw new Error('Message ID already exists');
-            }
-            messageId = addMessage(chatResponse);
-          } else if (chatResponse.response_type === 'delta') {
-            updateMessage(messageId, chatResponse);
-          } else if (chatResponse.response_type === 'eos') {
-            messageDone(messageId);
-            messageId = '';
-          } else if (chatResponse.response_type === 'done') {
-          } else if (chatResponse.response_type === 'error') {
-            console.error(chatResponse);
-          } else {
-            console.error({ message: 'Unknown response type', chatResponse });
-          }
-        });
       });
     }
   }, []);

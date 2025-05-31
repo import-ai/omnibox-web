@@ -5,6 +5,12 @@ import {
   KnowledgeSearch,
 } from '@/page/chat/conversation/types.tsx';
 import { MessageDetail } from '@/page/chat/interface.tsx';
+import { stream } from '@/page/chat/utils.ts';
+import {
+  ChatBOSResponse,
+  ChatDeltaResponse,
+  ChatResponse,
+} from '@/page/chat/types/chat-response.tsx';
 
 export function getCondition(context: IResTypeContext[]) {
   const parents = context
@@ -56,4 +62,41 @@ export function prepareBody(
     body.parent_message_id = messages[messages.length - 1].id;
   }
   return body;
+}
+
+export async function ask(
+  namespaceId: string,
+  conversationId: string,
+  query: string,
+  tools: ToolType[],
+  context: IResTypeContext[],
+  messages: MessageDetail[],
+  addMessage: (message: ChatBOSResponse) => string,
+  updateMessage: (message: ChatDeltaResponse, id?: string) => void,
+  messageDone: (id?: string) => void,
+): Promise<void> {
+  const body = prepareBody(
+    namespaceId,
+    conversationId,
+    query,
+    tools,
+    context,
+    messages,
+  );
+  await stream('/api/v1/wizard/ask', body, async (data) => {
+    let chatResponse: ChatResponse = JSON.parse(data);
+
+    if (chatResponse.response_type === 'bos') {
+      addMessage(chatResponse);
+    } else if (chatResponse.response_type === 'delta') {
+      updateMessage(chatResponse);
+    } else if (chatResponse.response_type === 'eos') {
+      messageDone();
+    } else if (chatResponse.response_type === 'done') {
+    } else if (chatResponse.response_type === 'error') {
+      console.error(chatResponse);
+    } else {
+      console.error({ message: 'Unknown response type', chatResponse });
+    }
+  });
 }

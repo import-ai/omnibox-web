@@ -59,8 +59,11 @@ export default function useContext() {
     return delta ? (source || '') + delta : source;
   };
 
-  const updateMessage = (id: string, delta: ChatDeltaResponse) => {
+  const updateMessage = (delta: ChatDeltaResponse, id?: string) => {
     setConversation((prev) => {
+      if (!id) {
+        id = prev.current_node!;
+      }
       const message = prev.mapping[id];
 
       message.message.content = add(
@@ -97,7 +100,7 @@ export default function useContext() {
     });
   };
 
-  const addMessage = (chatResponse: ChatBOSResponse) => {
+  const addMessage = (chatResponse: ChatBOSResponse): string => {
     const message: MessageDetail = {
       id: chatResponse.id,
       message: {
@@ -115,7 +118,7 @@ export default function useContext() {
         currentNode = message.id;
       }
       if (message.parentId) {
-        const parentMessage = conversation.mapping[message.parentId];
+        const parentMessage = prev.mapping[message.parentId];
         if (parentMessage) {
           if (!parentMessage.children.includes(message.id)) {
             parentMessage.children.push(message.id);
@@ -135,8 +138,11 @@ export default function useContext() {
     return chatResponse.id;
   };
 
-  const messageDone = (id: string) => {
+  const messageDone = (id?: string) => {
     setConversation((prev) => {
+      if (!id) {
+        id = prev.current_node!;
+      }
       const message = prev.mapping[id];
       if (message) {
         message.status = MessageStatus.SUCCESS;
