@@ -36,7 +36,7 @@ export function CitationsSheet(props: IProps) {
           <SheetTitle>Search Results</SheetTitle>
           <SheetDescription></SheetDescription>
         </SheetHeader>
-        <ScrollArea className="h-svh">
+        <ScrollArea className="h-full bottom-4">
           {citations.map((citation, index) => {
             return (
               <>

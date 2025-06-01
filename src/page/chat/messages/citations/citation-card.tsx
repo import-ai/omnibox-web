@@ -6,28 +6,27 @@ export function CitationCard(props: CitationIconProps) {
 
   return (
     <>
-      <a
-        href={
-          citation.link.startsWith('http')
-            ? citation.link
-            : '../' + citation.link
-        }
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <div className="my-2 w-full max-w-sm hover:bg-secondary">
-          <h3 className="text-sm font-semibold">{citation.title}</h3>
-          <p className="text-muted-foreground text-xs line-clamp-4">
-            {citation.snippet}
-          </p>
-          <Badge
-            variant="secondary"
-            className="rounded-full px-1 hover:text-primary-foreground hover:bg-primary"
+      <div className="my-2 w-full max-w-sm">
+        <h3 className="text-sm font-semibold hover:text-blue-500">
+          <a
+            href={
+              citation.link.startsWith('http')
+                ? citation.link
+                : '../' + citation.link
+            }
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            {index + 1}
-          </Badge>
-        </div>
-      </a>
+            {citation.title}
+          </a>
+        </h3>
+        <p className="text-muted-foreground text-xs line-clamp-4">
+          {citation.snippet}
+        </p>
+        <Badge variant="secondary" className="rounded-full px-1">
+          {index + 1}
+        </Badge>
+      </div>
     </>
   );
 }
