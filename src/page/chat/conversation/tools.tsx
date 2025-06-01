@@ -35,6 +35,9 @@ export function prepareBody(
     conversation_id: conversationId,
     query,
   };
+  if (context.length > 0 && !tools.includes(ToolType.KNOWLEDGE_SEARCH)) {
+    tools = [ToolType.KNOWLEDGE_SEARCH, ...tools];
+  }
   for (const tool of tools) {
     if (tool === ToolType.REASONING) {
       body.enable_thinking = true;

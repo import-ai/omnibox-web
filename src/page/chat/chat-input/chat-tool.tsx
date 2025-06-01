@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Globe, Lightbulb, Sparkles } from 'lucide-react';
 import { ToolType } from '@/page/chat/chat-input/types';
+import { IResTypeContext } from '@/page/chat/useContext.ts';
 
 const datasource = [
   {
@@ -24,10 +25,11 @@ const datasource = [
 interface IProps {
   tools: Array<ToolType>;
   onToolsChange: (tool: Array<ToolType>) => void;
+  context: IResTypeContext[];
 }
 
 export default function ChatTool(props: IProps) {
-  const { tools, onToolsChange } = props;
+  const { tools, onToolsChange, context } = props;
 
   return (
     <div className="flex items-center gap-3">
@@ -46,7 +48,10 @@ export default function ChatTool(props: IProps) {
           className={cn(
             'font-normal rounded-full bg-[#F0F2F5] border-transparent [&_svg]:size-3 hover:text-blue-600 transition-colors',
             {
-              'text-blue-600': tools.includes(item.value),
+              'text-blue-600':
+                tools.includes(item.value) ||
+                (item.value === ToolType.KNOWLEDGE_SEARCH &&
+                  context.length > 0),
             },
           )}
         >

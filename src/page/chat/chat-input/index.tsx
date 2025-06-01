@@ -38,7 +38,11 @@ export default function ChatArea(props: IProps) {
       <ChatContext value={context} onChange={onContextChange} />
       <ChatInput value={value} onChange={onChange} onAction={onAction} />
       <div className="flex items-center justify-between">
-        <ChatTool tools={tools} onToolsChange={onToolsChange} />
+        <ChatTool
+          context={context}
+          tools={tools}
+          onToolsChange={onToolsChange}
+        />
         <ChatAction onAction={onAction} disabled={disabled} loading={loading} />
       </div>
     </div>
