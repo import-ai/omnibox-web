@@ -14,6 +14,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { cleanIncompletedCitation } from '@/page/chat/utils';
 import { Badge } from '@/components/ui/badge';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 interface IProps {
   messages: MessageDetail[];
@@ -72,40 +78,43 @@ export function Messages(props: IProps) {
               {seg.value}
             </ReactMarkdown>
           ) : (
-            <HoverCard key={i}>
-              <HoverCardTrigger asChild>
-                <Button
-                  variant="link"
-                  className="px-1 py-0 h-auto align-baseline"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const url = '../' + citations[seg.index!]?.link;
-                    if (url) window.open(url, '_blank', 'noopener,noreferrer');
-                  }}
-                >
-                  <Badge
-                    variant="secondary"
-                    className="rounded-full px-1 hover:text-primary-foreground hover:bg-primary"
+            seg.index! < citations.length && (
+              <HoverCard key={i}>
+                <HoverCardTrigger asChild>
+                  <Button
+                    variant="link"
+                    className="px-1 py-0 h-auto align-baseline hover:no-underline"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const url = '../' + citations[seg.index!]?.link;
+                      if (url)
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                    }}
                   >
-                    {seg.index! + 1}
-                  </Badge>
-                </Button>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-80">
-                <div>
-                  <h3 className="text-sm font-semibold">
-                    {citations[seg.index!]?.title}
-                  </h3>
-                  <div className="text-sm">
-                    {citations[seg.index!]?.snippet}
+                    <Badge
+                      variant="secondary"
+                      className="rounded-full px-1 hover:text-primary-foreground hover:bg-primary"
+                    >
+                      {seg.index! + 1}
+                    </Badge>
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-80">
+                  <div>
+                    <h3 className="text-sm font-semibold">
+                      {citations[seg.index!]?.title}
+                    </h3>
+                    <div className="text-sm">
+                      {citations[seg.index!]?.snippet}
+                    </div>
+                    <div className="text-muted-foreground text-xs">
+                      @{citations[seg.index!]?.link}
+                    </div>
                   </div>
-                  <div className="text-muted-foreground text-xs">
-                    @{citations[seg.index!]?.link}
-                  </div>
-                </div>
-              </HoverCardContent>
-            </HoverCard>
+                </HoverCardContent>
+              </HoverCard>
+            )
           ),
         )}
       </span>
@@ -127,21 +136,32 @@ export function Messages(props: IProps) {
         </div>
       );
     } else if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
-      if (openAIMessage.tool_calls) {
-        const functionName: string = openAIMessage.tool_calls[0].function.name!;
-        const functionArgs: Record<string, any> = JSON.parse(
-          openAIMessage.tool_calls[0].function.arguments!,
+      const domList: React.ReactNode[] = [];
+      if (openAIMessage.reasoning_content?.trim()) {
+        domList.push(
+          <Accordion type="single" collapsible key="reasoning">
+            <AccordionItem value="item-1">
+              <AccordionTrigger>Reasoning</AccordionTrigger>
+              <AccordionContent>
+                {openAIMessage.reasoning_content?.trim()}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>,
         );
-        return (
-          <>
-            <p>Function: {functionName}</p>
-            <p>Arguments:</p>
-            <pre>{JSON.stringify(functionArgs, null, 2)}</pre>
-          </>
-        );
-      } else {
-        return renderAssistantContent(openAIMessage.content!, citations);
       }
+      if (openAIMessage.content?.trim()) {
+        domList.push(
+          <React.Fragment key="content">
+            {renderAssistantContent(openAIMessage.content?.trim(), citations)}
+          </React.Fragment>,
+        );
+      }
+      if (openAIMessage.tool_calls) {
+        domList.push(
+          <React.Fragment key="tool-calls">Searching...</React.Fragment>,
+        );
+      }
+      return domList.length === 1 ? domList[0] : domList;
     } else if (openAIMessage.role === OpenAIMessageRole.TOOL) {
       return (
         <>
