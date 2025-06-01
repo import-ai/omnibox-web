@@ -1,6 +1,6 @@
 import { http } from '@/lib/request';
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useParams, useNavigationType } from 'react-router-dom';
+import { useLocation, useNavigationType, useParams } from 'react-router-dom';
 import {
   ConversationDetail,
   MessageDetail,
@@ -31,6 +31,7 @@ export default function useContext() {
   const routeQuery: string | undefined = state?.value;
   const allowAsk: boolean = navigationType === 'PUSH';
   const [tools, onToolsChange] = useState<Array<ToolType>>(state?.tools || []);
+  const [loading, setLoading] = useState<boolean>(false);
   const { context, onContextChange } = useGlobalContext({
     data: state?.context || [],
   });
@@ -75,5 +76,7 @@ export default function useContext() {
     onToolsChange,
     context,
     onContextChange,
+    loading,
+    setLoading,
   };
 }

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ChevronDown, ArrowUp, Check, createLucideIcon } from 'lucide-react';
@@ -40,16 +39,19 @@ const PauseIcon = createLucideIcon('pauseIcon', [
 interface IActionProps {
   disabled: boolean;
   onAction: (action?: 'stop' | 'disabled') => void;
+  loading: boolean;
 }
 
 export default function ChatAction(props: IActionProps) {
-  const { disabled, onAction } = props;
-  const [loading, onLoading] = useState(false);
+  const { disabled, onAction, loading } = props;
   const onStop = () => {
     onAction('stop');
   };
   const onSubmit = () => {
-    onLoading(true);
+    console.log({ disabled, loading });
+    if (disabled || loading) {
+      return;
+    }
     onAction();
   };
 
