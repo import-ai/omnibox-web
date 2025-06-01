@@ -10,10 +10,12 @@ import { ToolMessage } from '@/page/chat/messages/role/tool-message';
 
 interface IProps {
   messages: MessageDetail[];
+  toolCalling: boolean;
+  setToolCalling: (value: boolean) => void;
 }
 
 export function Messages(props: IProps) {
-  const { messages } = props;
+  const { messages, toolCalling, setToolCalling } = props;
   const citations = React.useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
@@ -30,8 +32,16 @@ export function Messages(props: IProps) {
     if (openAIMessage.role === OpenAIMessageRole.USER) {
       return <UserMessage message={message} />;
     } else if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
-      return <AssistantMessage message={message} citations={citations} />;
+      return (
+        <AssistantMessage
+          message={message}
+          citations={citations}
+          toolCalling={toolCalling}
+          setToolCalling={setToolCalling}
+        />
+      );
     } else if (openAIMessage.role === OpenAIMessageRole.TOOL) {
+      setToolCalling(false);
       return <ToolMessage message={message} />;
     }
   }

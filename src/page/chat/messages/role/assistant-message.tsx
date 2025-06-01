@@ -13,11 +13,6 @@ import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover
 import { Loader2Icon } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 
-interface IProps {
-  message: MessageDetail;
-  citations: Citation[];
-}
-
 function splitContentWithCitations(content: string) {
   const regex = /<cite:(\d+)>/g;
   const result: Array<{
@@ -71,8 +66,15 @@ function renderAssistantContent(content: string, citations: Citation[]) {
   );
 }
 
+interface IProps {
+  message: MessageDetail;
+  citations: Citation[];
+  toolCalling: boolean;
+  setToolCalling: (value: boolean) => void;
+}
+
 export function AssistantMessage(props: IProps) {
-  const { message, citations } = props;
+  const { message, citations, toolCalling, setToolCalling } = props;
   const openAIMessage = message.message;
 
   const domList: React.ReactNode[] = [];
@@ -101,8 +103,9 @@ export function AssistantMessage(props: IProps) {
     );
   }
   if (openAIMessage.tool_calls) {
+    setToolCalling(true);
     domList.push(
-      <div key="tool-calls">
+      <div key="tool-calls" hidden={!toolCalling}>
         <Button disabled size="sm" variant="secondary">
           <Loader2Icon className="animate-spin" />
           Searching...
