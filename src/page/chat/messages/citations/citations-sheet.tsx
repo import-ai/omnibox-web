@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/sheet';
 import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CitationCard } from '@/page/chat/messages/citations/citation-card.tsx';
+import { CitationCard } from '@/page/chat/messages/citations/citation-card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface IProps {
@@ -25,7 +25,7 @@ export function CitationsSheet(props: IProps) {
 
   return (
     <Sheet>
-      <SheetTrigger>
+      <SheetTrigger asChild>
         <Button variant="secondary" size="sm">
           {citations.length} Citations <ChevronRight />
         </Button>
@@ -33,16 +33,15 @@ export function CitationsSheet(props: IProps) {
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Search Results</SheetTitle>
-          <SheetDescription>
-            <ScrollArea className="h-svh">
-              {citations.map((citation, index) => {
-                return (
-                  <CitationCard key={index} index={index} citation={citation} />
-                );
-              })}
-            </ScrollArea>
-          </SheetDescription>
+          <SheetDescription></SheetDescription>
         </SheetHeader>
+        <ScrollArea className="h-svh">
+          {citations.map((citation, index) => {
+            return (
+              <CitationCard key={index} index={index} citation={citation} />
+            );
+          })}
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

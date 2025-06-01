@@ -11,7 +11,7 @@ import {
 export function CitationHoverIcon(props: CitationIconProps) {
   const { citation, index } = props;
   return (
-    <HoverCard key={index}>
+    <HoverCard>
       <HoverCardTrigger asChild>
         <CitationIcon citation={citation} index={index} />
       </HoverCardTrigger>

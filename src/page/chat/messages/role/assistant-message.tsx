@@ -56,6 +56,7 @@ function renderAssistantContent(content: string, citations: Citation[]) {
         ) : (
           seg.index! < citations.length && (
             <CitationHoverIcon
+              key={i}
               citation={citations[seg.index!]}
               index={seg.index!}
             />

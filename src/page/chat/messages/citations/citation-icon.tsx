@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { type Citation } from '@/page/chat/types/chat-response.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -7,9 +8,11 @@ export interface CitationIconProps {
   citation: Citation;
 }
 
-export function CitationIcon(props: CitationIconProps) {
+export const CitationIcon = React.forwardRef<
+  HTMLButtonElement,
+  CitationIconProps
+>((props, ref) => {
   const { index, citation } = props;
-
   return (
     <Button
       variant="link"
@@ -20,6 +23,7 @@ export function CitationIcon(props: CitationIconProps) {
         const url = '../' + citation.link;
         if (url) window.open(url, '_blank', 'noopener,noreferrer');
       }}
+      ref={ref}
     >
       <Badge
         variant="secondary"
@@ -29,4 +33,4 @@ export function CitationIcon(props: CitationIconProps) {
       </Badge>
     </Button>
   );
-}
+});
