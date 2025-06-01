@@ -12,8 +12,14 @@ export function CitationCard(props: CitationIconProps) {
   const { citation, index } = props;
 
   return (
-    <a href={'../' + citation.link} target="_blank" rel="noopener noreferrer">
-      <Card className="w-full max-w-sm hover:bg-primary-foreground">
+    <a
+      href={
+        citation.link.startsWith('http') ? citation.link : '../' + citation.link
+      }
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <Card className="w-full max-w-sm hover:bg-primary-foreground my-2">
         <CardHeader className="pb-1">
           <CardTitle>{citation.title}</CardTitle>
           <CardDescription>{citation.snippet}</CardDescription>

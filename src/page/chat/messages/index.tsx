@@ -10,12 +10,10 @@ import { ToolMessage } from '@/page/chat/messages/role/tool-message';
 
 interface IProps {
   messages: MessageDetail[];
-  toolCalling: boolean;
-  setToolCalling: (value: boolean) => void;
 }
 
 export function Messages(props: IProps) {
-  const { messages, toolCalling, setToolCalling } = props;
+  const { messages } = props;
   const citations = React.useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
@@ -30,30 +28,25 @@ export function Messages(props: IProps) {
     const openAIMessage = message.message;
 
     if (openAIMessage.role === OpenAIMessageRole.USER) {
-      return <UserMessage message={message} />;
+      return <UserMessage key={message.id} message={message} />;
     } else if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
       return (
         <AssistantMessage
+          key={message.id}
           message={message}
+          messages={messages}
           citations={citations}
-          toolCalling={toolCalling}
-          setToolCalling={setToolCalling}
         />
       );
     } else if (openAIMessage.role === OpenAIMessageRole.TOOL) {
-      setToolCalling(false);
-      return <ToolMessage message={message} />;
+      return <ToolMessage key={message.id} message={message} />;
     }
   }
 
   return (
     <>
-      <div className="space-y-4">
-        {messages.map((message) => (
-          <React.Fragment key={message.id!}>
-            {renderMessage(message)}
-          </React.Fragment>
-        ))}
+      <div className="space-y-4 mb-4">
+        {messages.map((message) => renderMessage(message))}
       </div>
     </>
   );

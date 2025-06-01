@@ -68,13 +68,12 @@ function renderAssistantContent(content: string, citations: Citation[]) {
 
 interface IProps {
   message: MessageDetail;
+  messages: MessageDetail[];
   citations: Citation[];
-  toolCalling: boolean;
-  setToolCalling: (value: boolean) => void;
 }
 
 export function AssistantMessage(props: IProps) {
-  const { message, citations, toolCalling, setToolCalling } = props;
+  const { message, citations, messages } = props;
   const openAIMessage = message.message;
 
   const domList: React.ReactNode[] = [];
@@ -103,9 +102,11 @@ export function AssistantMessage(props: IProps) {
     );
   }
   if (openAIMessage.tool_calls) {
-    setToolCalling(true);
     domList.push(
-      <div key="tool-calls" hidden={!toolCalling}>
+      <div
+        key="tool-calls"
+        hidden={messages[messages.length - 1].id !== message.id}
+      >
         <Button disabled size="sm" variant="secondary">
           <Loader2Icon className="animate-spin" />
           Searching...

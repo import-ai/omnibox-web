@@ -37,7 +37,6 @@ export default function useContext() {
   const { context, onContextChange } = useGlobalContext({
     data: state?.context || [],
   });
-  const [toolCalling, setToolCalling] = useState<boolean>(false);
 
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
@@ -81,7 +80,5 @@ export default function useContext() {
     onContextChange,
     loading,
     setLoading,
-    toolCalling,
-    setToolCalling,
   };
 }

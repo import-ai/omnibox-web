@@ -22,8 +22,6 @@ export default function ChatConversationPage() {
     onContextChange,
     loading,
     setLoading,
-    toolCalling,
-    setToolCalling,
   } = useContext();
 
   const refetch = async () => {
@@ -75,11 +73,7 @@ export default function ChatConversationPage() {
 
   return (
     <>
-      <Messages
-        messages={messages}
-        toolCalling={toolCalling}
-        setToolCalling={setToolCalling}
-      />
+      <Messages messages={messages} />
       <ChatArea
         tools={tools}
         value={value}
