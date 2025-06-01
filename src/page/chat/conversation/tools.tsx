@@ -1,16 +1,13 @@
-import { IResTypeContext } from '@/page/chat/useContext.ts';
+import { IResTypeContext } from '@/page/chat/useContext';
 import { ToolType } from '@/page/chat/chat-input/types';
 import {
   ChatRequestBody,
   KnowledgeSearch,
-} from '@/page/chat/conversation/types.tsx';
-import { MessageDetail } from '@/page/chat/interface.tsx';
-import { stream } from '@/page/chat/utils.ts';
-import {
-  ChatBOSResponse,
-  ChatDeltaResponse,
-  ChatResponse,
-} from '@/page/chat/types/chat-response.tsx';
+} from '@/page/chat/conversation/types';
+import { MessageDetail } from '@/page/chat/types/conversation';
+import { stream } from '@/page/chat/utils';
+import { ChatResponse } from '@/page/chat/types/chat-response';
+import { MessageOperator } from '@/page/chat/conversation/message-operator';
 
 export function getCondition(context: IResTypeContext[]) {
   const parents = context
@@ -71,9 +68,7 @@ export async function ask(
   tools: ToolType[],
   context: IResTypeContext[],
   messages: MessageDetail[],
-  addMessage: (message: ChatBOSResponse) => string,
-  updateMessage: (message: ChatDeltaResponse, id?: string) => void,
-  messageDone: (id?: string) => void,
+  messageOperator: MessageOperator,
 ): Promise<void> {
   const body = prepareBody(
     namespaceId,
@@ -87,11 +82,11 @@ export async function ask(
     let chatResponse: ChatResponse = JSON.parse(data);
 
     if (chatResponse.response_type === 'bos') {
-      addMessage(chatResponse);
+      messageOperator.add(chatResponse);
     } else if (chatResponse.response_type === 'delta') {
-      updateMessage(chatResponse);
+      messageOperator.update(chatResponse);
     } else if (chatResponse.response_type === 'eos') {
-      messageDone();
+      messageOperator.done();
     } else if (chatResponse.response_type === 'done') {
     } else if (chatResponse.response_type === 'error') {
       console.error(chatResponse);

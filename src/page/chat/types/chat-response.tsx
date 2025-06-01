@@ -14,11 +14,22 @@ export enum OpenAIMessageRole {
   TOOL = 'tool',
 }
 
+export interface OpenAIFunction {
+  name: string;
+  arguments: string;
+}
+
+export interface OpenAIToolCall {
+  id: string;
+  type: 'function';
+  function: OpenAIFunction;
+}
+
 export interface OpenAIMessage {
   role: OpenAIMessageRole;
   content?: string;
   reasoning_content?: string;
-  tool_calls?: Record<string, any>[];
+  tool_calls?: OpenAIToolCall[];
   tool_call_id?: string;
 }
 

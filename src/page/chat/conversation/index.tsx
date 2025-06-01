@@ -15,9 +15,7 @@ export default function ChatConversationPage() {
     routeQuery,
     setConversation,
     messages,
-    addMessage,
-    updateMessage,
-    messageDone,
+    messageOperator,
     namespaceId,
     conversationId,
     tools,
@@ -44,9 +42,7 @@ export default function ChatConversationPage() {
           tools,
           context,
           messages,
-          addMessage,
-          updateMessage,
-          messageDone,
+          messageOperator,
         );
       });
     }
@@ -90,7 +86,7 @@ export default function ChatConversationPage() {
         <>
           <p>Role: {openAIMessage.role}</p>
           <p>Citations:</p>
-          <pre>{JSON.stringify(message.attrs?.citations, null, 2)}</pre>
+          <pre>{JSON.stringify(message.attrs?.citations || [], null, 2)}</pre>
         </>
       );
     }
