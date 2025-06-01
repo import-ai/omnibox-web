@@ -72,18 +72,20 @@ export default function ChatConversationPage() {
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full max-h-screen">
       <Messages messages={messages} />
-      <ChatArea
-        tools={tools}
-        value={value}
-        context={context}
-        onChange={onChange}
-        onAction={onAction}
-        onToolsChange={onToolsChange}
-        onContextChange={onContextChange}
-        loading={loading}
-      />
-    </>
+      <div className="sticky bottom-4 pt-4">
+        <ChatArea
+          tools={tools}
+          value={value}
+          context={context}
+          onChange={onChange}
+          onAction={onAction}
+          onToolsChange={onToolsChange}
+          onContextChange={onContextChange}
+          loading={loading}
+        />
+      </div>
+    </div>
   );
 }
