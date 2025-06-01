@@ -14,6 +14,12 @@ export enum OpenAIMessageRole {
   TOOL = 'tool',
 }
 
+export interface Citation {
+  title: string;
+  snippet: string;
+  link: string;
+}
+
 export interface OpenAIFunction {
   name: string;
   arguments: string;
@@ -34,7 +40,7 @@ export interface OpenAIMessage {
 }
 
 export interface MessageAttrs {
-  citations?: Record<string, any>[];
+  citations?: Citation[];
 }
 
 export type ChatResponseType = 'bos' | 'delta' | 'eos' | 'done' | 'error';

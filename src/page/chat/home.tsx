@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { http } from '@/lib/request';
 import { useParams, useNavigate } from 'react-router-dom';
-import ChatArea, { ToolType } from './chat-input';
+import ChatArea from './chat-input';
 import useContext from './useContext';
+import { ToolType } from '@/page/chat/chat-input/types';
 
 export default function ChatHomePage() {
   const params = useParams();
@@ -40,6 +41,7 @@ export default function ChatHomePage() {
         onAction={handleAction}
         onToolsChange={onToolsChange}
         onContextChange={onContextChange}
+        loading={false}
       />
     </div>
   );
