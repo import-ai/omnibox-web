@@ -1,12 +1,12 @@
-import { Resource } from '@/interface';
 import Badge from '@/components/badge';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { X, FileText, Folder } from 'lucide-react';
+import { IResTypeContext } from '@/page/chat/useContext.ts';
 
 interface IProps {
-  value: Array<{ type: string; resource: Resource }>;
-  onChange: (value: Array<{ type: string; resource: Resource }>) => void;
+  value: IResTypeContext[];
+  onChange: (value: IResTypeContext[]) => void;
 }
 
 export default function ChatContext(props: IProps) {

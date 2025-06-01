@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { http } from '@/lib/request';
 import { useParams, useNavigate } from 'react-router-dom';
-import ChatInput from './chat-input';
+import ChatArea from './chat-input';
 import useContext from './useContext';
+import { ToolType } from '@/page/chat/chat-input/types';
 
 export default function ChatHomePage() {
   const params = useParams();
   const navigate = useNavigate();
   const [value, onChange] = useState('');
   const namespaceId = params.namespace_id || '';
-  const [tools, onToolsChange] = useState<Array<string>>([]);
+  const [tools, onToolsChange] = useState<Array<ToolType>>([]);
   const { context, onContextChange } = useContext({ data: [] });
   const handleAction = () => {
     http
@@ -29,10 +30,10 @@ export default function ChatHomePage() {
 
   return (
     <div className="flex flex-col justify-center h-full mb-20">
-      <h1 className="text-3xl text-center mb-10 font-medium text-[#111111]">
+      <h1 className="text-3xl text-center mb-10 font-medium">
         Good evening, Xie
       </h1>
-      <ChatInput
+      <ChatArea
         tools={tools}
         value={value}
         context={context}
@@ -40,6 +41,7 @@ export default function ChatHomePage() {
         onAction={handleAction}
         onToolsChange={onToolsChange}
         onContextChange={onContextChange}
+        loading={false}
       />
     </div>
   );
