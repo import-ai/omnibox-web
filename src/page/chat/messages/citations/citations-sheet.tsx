@@ -11,6 +11,7 @@ import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CitationCard } from '@/page/chat/messages/citations/citation-card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 interface IProps {
   citations: Citation[];
@@ -38,7 +39,10 @@ export function CitationsSheet(props: IProps) {
         <ScrollArea className="h-svh">
           {citations.map((citation, index) => {
             return (
-              <CitationCard key={index} index={index} citation={citation} />
+              <>
+                <CitationCard key={index} index={index} citation={citation} />
+                {index < citations.length - 1 && <Separator />}
+              </>
             );
           })}
         </ScrollArea>
