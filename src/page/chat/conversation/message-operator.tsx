@@ -72,25 +72,25 @@ export function createMessageOperator(
           role: chatResponse.role,
         },
         status: MessageStatus.PENDING,
-        parentId: chatResponse.parentId,
+        parent_id: chatResponse.parentId,
         children: [],
       };
 
       setConversation((prev) => {
         const newMapping = { ...prev.mapping, [message.id]: message };
         let currentNode = prev.current_node;
-        if (message.parentId === currentNode) {
+        if (message.parent_id === currentNode) {
           currentNode = message.id;
         }
-        if (message.parentId) {
-          const parentMessage = prev.mapping[message.parentId];
+        if (message.parent_id) {
+          const parentMessage = prev.mapping[message.parent_id];
           if (parentMessage) {
             if (!parentMessage.children.includes(message.id)) {
               parentMessage.children.push(message.id);
             }
           } else {
             console.error(
-              `Parent message with ID ${message.parentId} not found for message ${message.id}`,
+              `Parent message with ID ${message.parent_id} not found for message ${message.id}`,
             );
           }
         }

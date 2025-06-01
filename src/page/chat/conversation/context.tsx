@@ -1,6 +1,6 @@
 import { http } from '@/lib/request';
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigationType } from 'react-router-dom';
 import {
   ConversationDetail,
   MessageDetail,
@@ -12,22 +12,24 @@ import {
   MessageOperator,
 } from '@/page/chat/conversation/message-operator';
 
-interface IProps {
-  value: string;
-  context: IResTypeContext[];
-  tools: ToolType[];
-  namespaceId: string;
-  conversationId: string;
+interface StateProps {
+  value?: string;
+  context?: IResTypeContext[];
+  tools?: ToolType[];
+  namespaceId?: string;
+  conversationId?: string;
 }
 
 export default function useContext() {
   const params = useParams();
 
   const loc = useLocation();
-  const state: IProps = loc.state;
+  const navigationType = useNavigationType();
+  const state: StateProps = loc.state;
   const namespaceId = state?.namespaceId || params.namespace_id || '';
   const conversationId = state?.conversationId || params.conversation_id || '';
   const routeQuery: string | undefined = state?.value;
+  const allowAsk: boolean = navigationType === 'PUSH';
   const [tools, onToolsChange] = useState<Array<ToolType>>(state?.tools || []);
   const { context, onContextChange } = useGlobalContext({
     data: state?.context || [],
@@ -49,7 +51,7 @@ export default function useContext() {
     while (currentNode) {
       const message: MessageDetail = conversation.mapping[currentNode];
       result.unshift(message);
-      currentNode = message.parentId;
+      currentNode = message.parent_id;
     }
     return result;
   }, [conversation]);
@@ -62,6 +64,7 @@ export default function useContext() {
 
   return {
     routeQuery,
+    allowAsk,
     conversation,
     setConversation,
     messageOperator,

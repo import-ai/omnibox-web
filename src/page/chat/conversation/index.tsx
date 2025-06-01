@@ -13,6 +13,7 @@ export default function ChatConversationPage() {
   const [value, onChange] = useState<string>('');
   const {
     routeQuery,
+    allowAsk,
     setConversation,
     messages,
     messageOperator,
@@ -33,7 +34,7 @@ export default function ChatConversationPage() {
   };
 
   useEffect(() => {
-    if (routeQuery) {
+    if (routeQuery && allowAsk) {
       refetch().then(async () => {
         await ask(
           namespaceId,
@@ -46,7 +47,24 @@ export default function ChatConversationPage() {
         );
       });
     }
-  }, []);
+  }, [allowAsk]);
+
+  const onAction = async () => {
+    const v = value.trim();
+    if (!v) {
+      return;
+    }
+    onChange('');
+    await ask(
+      namespaceId,
+      conversationId,
+      value,
+      tools,
+      context,
+      messages,
+      messageOperator,
+    );
+  };
 
   function renderMessage(message: MessageDetail) {
     const openAIMessage = message.message;
@@ -109,7 +127,7 @@ export default function ChatConversationPage() {
         value={value}
         context={context}
         onChange={onChange}
-        onAction={() => {}}
+        onAction={onAction}
         onToolsChange={onToolsChange}
         onContextChange={onContextChange}
       />

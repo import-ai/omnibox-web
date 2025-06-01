@@ -8,7 +8,7 @@ export interface MessageDetail extends IBase {
   id: string;
   message: OpenAIMessage;
   status: MessageStatus;
-  parentId?: string;
+  parent_id?: string;
   children: string[];
   attrs?: { citations?: Record<string, any>[] };
 }
