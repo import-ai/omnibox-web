@@ -31,7 +31,9 @@ export default function useContext() {
   const routeQuery: string | undefined = state?.value;
   const allowAsk: boolean = navigationType === 'PUSH';
   const [tools, onToolsChange] = useState<Array<ToolType>>(state?.tools || []);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(
+    allowAsk && routeQuery !== undefined && routeQuery.trim().length > 0,
+  );
   const { context, onContextChange } = useGlobalContext({
     data: state?.context || [],
   });
