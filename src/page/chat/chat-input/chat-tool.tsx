@@ -3,20 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Globe, Lightbulb, Sparkles } from 'lucide-react';
 import { ToolType } from '@/page/chat/chat-input/types';
 import { IResTypeContext } from '@/page/chat/useContext.ts';
+import { useTranslation } from 'react-i18next';
 
 const datasource = [
   {
-    label: 'Web Search',
+    label: 'web_search',
     value: ToolType.WEB_SEARCH,
     icon: <Globe />,
   },
   {
-    label: 'Reason',
+    label: 'reasoning',
     value: ToolType.REASONING,
     icon: <Lightbulb />,
   },
   {
-    label: 'OmniBox',
+    label: 'knowledge_search',
     value: ToolType.KNOWLEDGE_SEARCH,
     icon: <Sparkles />,
   },
@@ -29,6 +30,7 @@ interface IProps {
 }
 
 export default function ChatTool(props: IProps) {
+  const { t } = useTranslation();
   const { tools, onToolsChange, context } = props;
 
   return (
@@ -56,7 +58,7 @@ export default function ChatTool(props: IProps) {
           )}
         >
           {item.icon}
-          {item.label}
+          {t('chat.tools.' + item.label)}
         </Button>
       ))}
     </div>

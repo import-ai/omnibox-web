@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ArrowUp, Check, ChevronDown, createLucideIcon } from 'lucide-react';
+import { ArrowUp, ChevronDown, createLucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -43,6 +44,7 @@ interface IActionProps {
 }
 
 export default function ChatAction(props: IActionProps) {
+  const { t } = useTranslation();
   const { disabled, onAction, loading } = props;
   const onStop = () => {
     onAction('stop');
@@ -59,17 +61,22 @@ export default function ChatAction(props: IActionProps) {
     <div className="flex items-center">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="ghost" className="font-normal">
-            Ask
+          <Button
+            size="sm"
+            variant="ghost"
+            className="font-normal pl-2 pr-1 mr-1"
+          >
+            {t('chat.action.mode.ask')}
             <ChevronDown />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="bottom" align="end">
-          <DropdownMenuItem className="justify-between cursor-pointer">
-            <span>Ask</span>
-            <Check className="h-5 w-5" />
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled>Write</DropdownMenuItem>
+          <DropdownMenuCheckboxItem checked={true}>
+            {t('chat.action.mode.ask')}
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem disabled>
+            {t('chat.action.mode.write')}
+          </DropdownMenuCheckboxItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <Separator orientation="vertical" className="h-4 ml-0 mr-3" />

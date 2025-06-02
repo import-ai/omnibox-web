@@ -18,9 +18,11 @@ export default function useContext() {
   });
   const [remove, onRemove] = useState<{
     id: string;
+    title: string;
     open: boolean;
   }>({
     id: '',
+    title: '',
     open: false,
   });
   const refetch = () => {
@@ -31,7 +33,7 @@ export default function useContext() {
     refetch();
   };
   const onRemoveDone = () => {
-    onRemove({ id: '', open: false });
+    onRemove({ id: '', title: '', open: false });
     refetch();
   };
   const onEditChange = (open: boolean) => {

@@ -1,14 +1,15 @@
 import i18next from 'i18next';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
-  Copy,
-  Link,
-  Trash2,
   ArrowUp,
+  Copy,
   History,
+  Link,
   MoreHorizontal,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import {
   Popover,
@@ -24,6 +25,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { LanguageToggle } from '@/i18n/language-toggle.tsx';
 
 export const data = [
   [
@@ -57,12 +59,24 @@ export default function Actions() {
   const onChatHistory = () => {
     navigate(`/${namespaceId}/chat/conversations`);
   };
+  const onChatCreate = () => {
+    navigate(`/${namespaceId}/chat`);
+  };
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <div className="hidden font-medium text-muted-foreground md:inline-block"></div>
+      <LanguageToggle />
       <ThemeToggle />
-      {!conversationsPage && (
+      {conversationsPage ? (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-7 w-7"
+          onClick={onChatCreate}
+        >
+          <Plus />
+        </Button>
+      ) : (
         <Button
           size="icon"
           variant="ghost"

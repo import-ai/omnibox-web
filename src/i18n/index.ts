@@ -8,14 +8,15 @@ i18n
   .use(initReactI18next)
   // 所有配置选项: https://www.i18next.com/overview/configuration-options
   .init({
-    fallbackLng: 'en',
+    fallbackLng: 'en-US',
     resources: locales,
-    lng: navigator.language,
+    lng: localStorage.getItem('preferred_language') || navigator.language,
     debug: false,
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     },
-  });
+  })
+  .then();
 
 export default i18n;
 

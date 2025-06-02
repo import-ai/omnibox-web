@@ -47,7 +47,7 @@ export default function ChatConversationsPage() {
       />
       <div className="mb-6">
         <h1 className="text-2xl font-medium mb-4">
-          {t('chat.history_conversation')}
+          {t('chat.conversations.history')}
         </h1>
       </div>
       <ScrollArea className="h-[calc(100vh-150px)]">
@@ -60,67 +60,77 @@ export default function ChatConversationsPage() {
                     {key}
                   </p>
                 </div>
-                {items.map((item, index) => (
-                  <div
-                    className="cursor-pointer group"
-                    key={item.id}
-                    onClick={() => {
-                      navigate(`/${namespaceId}/chat/${item.id}`);
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-medium group-hover:text-blue-500">
-                        {item.title || item.user_content}
-                      </h3>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="icon" variant="ghost">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent side="bottom" align="end">
-                          <DropdownMenuItem
-                            className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              event.preventDefault();
-                              onEdit({
-                                id: item.id,
-                                title: item.title,
-                                open: true,
-                              });
-                            }}
-                          >
-                            {t('rename')}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="cursor-pointer text-red-500 hover:bg-gray-100 dark:hover:bg-gray-400"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              event.preventDefault();
-                              onRemove({
-                                id: item.id,
-                                open: true,
-                              });
-                            }}
-                          >
-                            {t('delete')}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+
+                {items.map((item, index) => {
+                  const conversationTitle: string =
+                    item.title ||
+                    item.user_content ||
+                    t('chat.conversations.new');
+                  return (
+                    <div
+                      className="cursor-pointer group"
+                      key={item.id}
+                      onClick={() => {
+                        navigate(`/${namespaceId}/chat/${item.id}`);
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-medium group-hover:text-blue-500">
+                          {conversationTitle}
+                        </h3>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent side="bottom" align="end">
+                            <DropdownMenuItem
+                              className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                event.preventDefault();
+                                onEdit({
+                                  id: item.id,
+                                  title: conversationTitle,
+                                  open: true,
+                                });
+                              }}
+                            >
+                              {t('rename')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="cursor-pointer text-red-500 hover:bg-gray-100 dark:hover:bg-gray-400"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                event.preventDefault();
+                                onRemove({
+                                  id: item.id,
+                                  title: conversationTitle,
+                                  open: true,
+                                });
+                              }}
+                            >
+                              {t('delete')}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <p className="text-muted-foreground text-sm line-clamp-4 leading-relaxed">
+                        {item.assistant_content?.replace(/<cite:\d+>/, '') ||
+                          '...'}
+                      </p>
+                      {index < items.length - 1 && (
+                        <Separator className="my-4" />
+                      )}
                     </div>
-                    <p className="text-muted-foreground text-sm line-clamp-4 leading-relaxed">
-                      {item.assistant_content?.replace(/<cite:\d+>/, '') ||
-                        '...'}
-                    </p>
-                    {index < items.length - 1 && <Separator className="my-4" />}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ))
           ) : (
             <div className="text-gray-500">
-              <p>{t('chat.no_conversation')}</p>
+              <p>{t('chat.conversations.empty')}</p>
             </div>
           )}
         </div>
