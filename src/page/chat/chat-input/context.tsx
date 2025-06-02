@@ -2,7 +2,7 @@ import Badge from '@/components/badge';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { X, FileText, Folder } from 'lucide-react';
-import { IResTypeContext } from '@/page/chat/useContext.ts';
+import { IResTypeContext } from '@/page/chat/useContext';
 
 interface IProps {
   value: IResTypeContext[];

@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Separator } from '@/components/ui/separator.tsx';
+import { Separator } from '@/components/ui/separator';
 
 export default function ChatConversationsPage() {
   const navigate = useNavigate();

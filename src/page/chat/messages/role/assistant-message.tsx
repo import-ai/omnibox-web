@@ -1,71 +1,17 @@
-import { MessageDetail } from '@/page/chat/types/conversation.tsx';
-import type { Citation } from '@/page/chat/types/chat-response.tsx';
-import { cleanIncompletedCitation } from '@/page/chat/utils.ts';
-import ReactMarkdown from 'react-markdown';
+import { MessageDetail } from '@/page/chat/types/conversation';
+import type { Citation } from '@/page/chat/types/chat-response';
 import React from 'react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion.tsx';
-import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
+} from '@/components/ui/accordion';
 import { Loader2Icon } from 'lucide-react';
-import { Button } from '@/components/ui/button.tsx';
+import { Button } from '@/components/ui/button';
+import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown';
 
-function splitContentWithCitations(content: string) {
-  const regex = /<cite:(\d+)>/g;
-  const result: Array<{
-    type: 'text' | 'cite';
-    value: string;
-    index?: number;
-  }> = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(content)) !== null) {
-    if (match.index > lastIndex) {
-      result.push({
-        type: 'text',
-        value: content.slice(lastIndex, match.index),
-      });
-    }
-    result.push({
-      type: 'cite',
-      value: match[0],
-      index: Number(match[1]) - 1,
-    });
-    lastIndex = regex.lastIndex;
-  }
-  if (lastIndex < content.length) {
-    result.push({ type: 'text', value: content.slice(lastIndex) });
-  }
-  return result;
-}
-
-function renderAssistantContent(content: string, citations: Citation[]) {
-  const cleanedContent = cleanIncompletedCitation(content);
-  const segments = splitContentWithCitations(cleanedContent);
-  return (
-    <span className="inline-flex flex-wrap items-center gap-1">
-      {segments.map((seg, i) =>
-        seg.type === 'text' ? (
-          <ReactMarkdown key={i} components={{ p: 'span' }}>
-            {seg.value}
-          </ReactMarkdown>
-        ) : (
-          seg.index! < citations.length && (
-            <CitationHoverIcon
-              key={i}
-              citation={citations[seg.index!]}
-              index={seg.index!}
-            />
-          )
-        ),
-      )}
-    </span>
-  );
-}
+const citeRegex = /<cite:(\d+)>/g;
 
 interface IProps {
   message: MessageDetail;
@@ -97,9 +43,12 @@ export function AssistantMessage(props: IProps) {
   }
   if (openAIMessage.content?.trim()) {
     domList.push(
-      <div key="content">
-        {renderAssistantContent(openAIMessage.content?.trim(), citations)}
-      </div>,
+      <CitationMarkdown
+        key="content"
+        content={openAIMessage.content?.trim()}
+        citations={citations}
+        citePattern={citeRegex}
+      />,
     );
   }
   if (openAIMessage.tool_calls) {

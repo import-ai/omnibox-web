@@ -25,7 +25,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { LanguageToggle } from '@/i18n/language-toggle.tsx';
+import { LanguageToggle } from '@/i18n/language-toggle';
 
 export const data = [
   [

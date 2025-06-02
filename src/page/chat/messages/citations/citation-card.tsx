@@ -1,4 +1,4 @@
-import { CitationIconProps } from '@/page/chat/messages/citations/citation-icon';
+import { type CitationIconProps } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Badge } from '@/components/ui/badge';
 
 export function CitationCard(props: CitationIconProps) {

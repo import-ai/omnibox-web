@@ -2,7 +2,7 @@ import ChatTool from './chat-tool';
 import ChatContext from './context';
 import ChatInput from './input';
 import ChatAction from './action';
-import { IResTypeContext } from '@/page/chat/useContext.ts';
+import { IResTypeContext } from '@/page/chat/useContext';
 import { ToolType } from '@/page/chat/chat-input/types';
 import { useMemo } from 'react';
 

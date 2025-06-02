@@ -49,7 +49,10 @@ export function Messages(props: IProps) {
           return (
             <div key={message.id}>
               {renderMessage(message)}
-              {index < messages.length - 1 && <div className="py-4" />}
+              {index < messages.length - 1 &&
+                message.message.role !== OpenAIMessageRole.TOOL && (
+                  <div className="py-4" />
+                )}
             </div>
           );
         })}
