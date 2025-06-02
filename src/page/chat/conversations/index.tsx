@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Separator } from '@/components/ui/separator.tsx';
 
 export default function ChatConversationsPage() {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ export default function ChatConversationsPage() {
         onOpenChange={onRemoveChange}
       />
       <div className="mb-6">
-        <h1 className="text-2xl font-medium text-gray-900 mb-4">
+        <h1 className="text-2xl font-medium mb-4">
           {t('chat.history_conversation')}
         </h1>
       </div>
@@ -55,7 +56,9 @@ export default function ChatConversationsPage() {
             groupItemsByTimestamp(data).map(([key, items]) => (
               <div key={key}>
                 <div className="pb-4">
-                  <p className="text-sm text-gray-500">{key}</p>
+                  <p className="text-sm text-muted-foreground font-light ml-0.5">
+                    {key}
+                  </p>
                 </div>
                 {items.map((item, index) => (
                   <div
@@ -66,16 +69,12 @@ export default function ChatConversationsPage() {
                     }}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-medium text-gray-900 group-hover:text-blue-600">
+                      <h3 className="text-lg font-medium group-hover:text-blue-500">
                         {item.title || item.user_content}
                       </h3>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="text-gray-400 hover:bg-gray-100"
-                          >
+                          <Button size="icon" variant="ghost">
                             <MoreHorizontal className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -110,13 +109,11 @@ export default function ChatConversationsPage() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                    <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
+                    <p className="text-muted-foreground text-sm line-clamp-4 leading-relaxed">
                       {item.assistant_content?.replace(/<cite:\d+>/, '') ||
                         '...'}
                     </p>
-                    {index < items.length - 1 && (
-                      <hr className="my-4 border-gray-300" />
-                    )}
+                    {index < items.length - 1 && <Separator className="my-4" />}
                   </div>
                 ))}
               </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { http } from '@/lib/request';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import ChatArea from './chat-input';
 import useContext from './useContext';
 import { ToolType } from '@/page/chat/chat-input/types';
@@ -12,7 +12,9 @@ export default function ChatHomePage() {
   const navigate = useNavigate();
   const [value, onChange] = useState('');
   const namespaceId = params.namespace_id || '';
-  const [tools, onToolsChange] = useState<Array<ToolType>>([]);
+  const [tools, onToolsChange] = useState<Array<ToolType>>([
+    ToolType.KNOWLEDGE_SEARCH,
+  ]);
   const { context, onContextChange } = useContext({ data: [] });
   const { user } = useUser();
   const handleAction = () => {

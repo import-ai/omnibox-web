@@ -16,7 +16,7 @@ const datasource = [
     icon: <Lightbulb />,
   },
   {
-    label: 'Knowledge',
+    label: 'OmniBox',
     value: ToolType.KNOWLEDGE_SEARCH,
     icon: <Sparkles />,
   },
@@ -46,7 +46,7 @@ export default function ChatTool(props: IProps) {
             }
           }}
           className={cn(
-            'font-normal rounded-full bg-[#F0F2F5] border-transparent [&_svg]:size-3 hover:text-blue-600 transition-colors',
+            'font-normal rounded-full bg-gray-50 dark:bg-gray-600 border-transparent [&_svg]:size-4 hover:text-blue-600 transition-colors',
             {
               'text-blue-600':
                 tools.includes(item.value) ||
