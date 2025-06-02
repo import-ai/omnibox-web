@@ -19,7 +19,7 @@ export function LanguageToggle() {
     const newLanguage = currentLang === 'en-US' ? 'zh-CN' : 'en-US';
     i18n.changeLanguage(newLanguage).then(() => {
       localStorage.setItem('preferred_language', newLanguage);
-      toast.success(t('toggle.title'), {
+      toast(t('toggle.title'), {
         position: 'top-center',
         description: t('toggle.lang.name'),
       });

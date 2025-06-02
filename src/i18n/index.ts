@@ -10,12 +10,13 @@ i18n
   .init({
     fallbackLng: 'en-US',
     resources: locales,
-    lng: navigator.language,
+    lng: localStorage.getItem('preferred_language') || navigator.language,
     debug: false,
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     },
-  });
+  })
+  .then();
 
 export default i18n;
 
