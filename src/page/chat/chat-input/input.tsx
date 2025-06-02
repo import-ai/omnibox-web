@@ -1,5 +1,6 @@
 import { Textarea } from '@/components/ui/textarea';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface IProps {
   value: string;
@@ -8,6 +9,7 @@ interface IProps {
 }
 
 export default function ChatInput(props: IProps) {
+  const { t } = useTranslation();
   const { value, onChange, onAction } = props;
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
@@ -27,7 +29,7 @@ export default function ChatInput(props: IProps) {
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        placeholder="Type your message..."
+        placeholder={t('chat.textarea.placeholder')}
         className="resize-none p-0 border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:shadow-none hover:border-transparent hover:shadow-none"
       />
     </div>

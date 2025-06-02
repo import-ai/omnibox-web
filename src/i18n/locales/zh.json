@@ -63,7 +63,7 @@
     "receive_link": "拷贝链接",
     "join": "{{user}} 邀请您加入 {{namespace}}",
     "add": "邀请成员",
-    "owner": "工作空间所有者",
+    "owner": "空间所有者",
     "member": "成员",
     "min": "至少2个字符",
     "max": "最多32个字符",
@@ -73,10 +73,10 @@
     "add_namespace": "加入空间"
   },
   "namespace": {
-    "add": "添加命名空间",
-    "name": "命名空间名称",
-    "min": "至少2个字符",
-    "max": "最多32个字符",
+    "add": "创建空间",
+    "name": "空间名称",
+    "min": "至少 2 个字符",
+    "max": "最多 32 个字符",
     "submit": "保存",
     "success": "已更新",
     "member_count": "{{ size}} 名成员"
@@ -116,18 +116,18 @@
     "profile": "个人资料",
     "members": "成员",
     "preferences": "偏好设置",
-    "namespace": "命名空间设置"
+    "namespace": "空间设置"
   },
   "manage": {
     "search": "输入并搜索",
     "disable": "禁用",
-    "remove": "从工作空间移除",
+    "remove": "从空间移除",
     "add_member": "添加成员",
     "user": "用户",
-    "owner": "工作空间所有者",
-    "owner_desc": "可以更改工作空间设置并邀请新成员加入工作空间。",
+    "owner": "空间所有者",
+    "owner_desc": "可以更改空间设置并邀请新成员加入空间。",
     "member": "成员",
-    "member_desc": "无法更改工作空间设置或邀请新成员加入工作空间。",
+    "member_desc": "无法更改空间设置或邀请新成员加入空间。",
     "sure_to_remove": "确定要删除该成员吗？",
     "group": "群组",
     "add": "添加",
@@ -182,12 +182,46 @@
   },
   "chat": {
     "title": "聊天",
-    "no_conversation": "暂无对话",
-    "new_conversation": "新对话",
-    "history_conversation": "历史对话",
-    "edit_conversation_name": "编辑对话名称",
-    "delete_conversation": "确定删除对话？",
-    "delete_conversation_confirm": "删除后，聊天记录将不可恢复。"
+    "conversations": {
+      "new": "新对话",
+      "empty": "暂无对话",
+      "history": "历史对话",
+      "delete": {
+        "option": "删除对话",
+        "dialog": {
+          "title": "确定删除对话？",
+          "description": "正在删除 <strong>{{title}}</strong>，删除后，聊天记录将不可恢复。"
+        }
+      },
+      "rename": {
+        "option": "重命名",
+        "dialog": {
+          "title": "编辑对话名称"
+        }
+      }
+    },
+    "home": {
+      "greeting": {
+        "morning": "早上好，{{name}}",
+        "afternoon": "下午好，{{name}}",
+        "evening": "晚上好，{{name}}",
+        "night": "夜深了，{{name}}"
+      }
+    },
+    "tools": {
+      "web_search": "联网搜索",
+      "knowledge_search": "本地搜索",
+      "reasoning": "深度思考"
+    },
+    "textarea": {
+      "placeholder": "随便问点什么吧"
+    },
+    "action": {
+      "mode": {
+        "ask": "问答",
+        "write": "写作"
+      }
+    }
   },
   "date": {
     "today": "今天",

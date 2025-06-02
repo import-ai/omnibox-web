@@ -1,21 +1,22 @@
 import { useState } from 'react';
 import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogDescription,
 } from '@/components/ui/alert-dialog';
 
 interface IProps {
   data: {
     id: string;
+    title: string;
     open: boolean;
   };
   namespaceId: string;
@@ -44,9 +45,17 @@ export default function RemoveHistory(props: IProps) {
     <AlertDialog open={data.open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t('chat.delete_conversation')}</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t('chat.conversations.delete.dialog.title')}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            {t('chat.delete_conversation_confirm')}
+            <Trans
+              i18nKey="chat.conversations.delete.dialog.description"
+              values={{ title: data.title }}
+              components={{
+                strong: <strong className="font-bold" />,
+              }}
+            />
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

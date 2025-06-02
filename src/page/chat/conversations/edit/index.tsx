@@ -26,7 +26,9 @@ export default function editHistory(props: IProps) {
     <Dialog open={data.open} onOpenChange={onOpenChange}>
       <DialogContent className="w-1/2 max-w-7xl">
         <DialogHeader>
-          <DialogTitle>{t('chat.edit_conversation_name')}</DialogTitle>
+          <DialogTitle>
+            {t('chat.conversations.rename.dialog.title')}
+          </DialogTitle>
         </DialogHeader>
         <EditForm data={data} namespaceId={namespaceId} onFinish={onFinish} />
       </DialogContent>
