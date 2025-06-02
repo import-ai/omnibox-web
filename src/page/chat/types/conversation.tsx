@@ -1,8 +1,9 @@
-import { IBase } from '@/interface.ts';
-import {
+import { IBase } from '@/interface';
+import type {
+  Citation,
   MessageStatus,
   OpenAIMessage,
-} from '@/page/chat/types/chat-response.tsx';
+} from '@/page/chat/types/chat-response';
 
 export interface ConversationSummary extends IBase {
   id: string;
@@ -17,7 +18,7 @@ export interface MessageDetail extends IBase {
   status: MessageStatus;
   parent_id?: string;
   children: string[];
-  attrs?: { citations?: Record<string, any>[] };
+  attrs?: { citations?: Citation[] };
 }
 
 export interface ConversationDetail extends IBase {

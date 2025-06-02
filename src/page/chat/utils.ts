@@ -88,13 +88,13 @@ export function groupItemsByTimestamp(
   return orderedGroups;
 }
 
-function cleanCitePrefix(text: string) {
+export function cleanIncompletedCitation(text: string) {
   const citePrefix = '<cite:';
   const citePrefixRegex = /<cite:\d+$/g;
   for (let i = 0; i < citePrefix.length; i++) {
     const suffix = citePrefix.slice(0, i + 1);
     if (text.endsWith(suffix)) {
-      return text.replace(suffix, '');
+      return text.slice(0, -suffix.length);
     }
   }
   if (citePrefixRegex.test(text)) {
@@ -105,7 +105,7 @@ function cleanCitePrefix(text: string) {
 }
 
 export const parseCitations = (content: string, citations: Citation[]) => {
-  content = cleanCitePrefix(content);
+  content = cleanIncompletedCitation(content);
   for (let i = 0; i < citations.length; i++) {
     content = content.replace(
       new RegExp(`<cite:${i + 1}>`, 'g'),
