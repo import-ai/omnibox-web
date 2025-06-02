@@ -1,7 +1,7 @@
 import useContext from '@/page/chat/conversation/context';
 import ChatArea from '@/page/chat/chat-input';
 import { useEffect, useState } from 'react';
-import { ask } from '@/page/chat/conversation/tools';
+import { ask } from '@/page/chat/conversation/utils';
 import { http } from '@/lib/request';
 import { ConversationDetail } from '@/page/chat/types/conversation';
 import { Messages } from '@/page/chat/messages';

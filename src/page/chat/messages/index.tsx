@@ -28,25 +28,31 @@ export function Messages(props: IProps) {
     const openAIMessage = message.message;
 
     if (openAIMessage.role === OpenAIMessageRole.USER) {
-      return <UserMessage key={message.id} message={message} />;
+      return <UserMessage message={message} />;
     } else if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
       return (
         <AssistantMessage
-          key={message.id}
           message={message}
           messages={messages}
           citations={citations}
         />
       );
     } else if (openAIMessage.role === OpenAIMessageRole.TOOL) {
-      return <ToolMessage key={message.id} message={message} />;
+      return <ToolMessage message={message} />;
     }
   }
 
   return (
     <>
       <div className="space-y-4 mb-4">
-        {messages.map((message) => renderMessage(message))}
+        {messages.map((message, index) => {
+          return (
+            <div key={message.id}>
+              {renderMessage(message)}
+              {index < messages.length - 1 && <div className="py-4" />}
+            </div>
+          );
+        })}
       </div>
     </>
   );

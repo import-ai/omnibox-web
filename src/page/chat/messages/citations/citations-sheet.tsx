@@ -1,4 +1,5 @@
 import { type Citation } from '@/page/chat/types/chat-response';
+import React from 'react';
 import {
   Sheet,
   SheetContent,
@@ -39,10 +40,10 @@ export function CitationsSheet(props: IProps) {
         <ScrollArea className="h-full bottom-4">
           {citations.map((citation, index) => {
             return (
-              <>
-                <CitationCard key={index} index={index} citation={citation} />
+              <React.Fragment key={index}>
+                <CitationCard index={index} citation={citation} />
                 {index < citations.length - 1 && <Separator />}
-              </>
+              </React.Fragment>
             );
           })}
         </ScrollArea>

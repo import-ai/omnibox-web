@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ChevronDown, ArrowUp, Check, createLucideIcon } from 'lucide-react';
+import { ArrowUp, Check, ChevronDown, createLucideIcon } from 'lucide-react';
 import {
   DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
 
 const PauseIcon = createLucideIcon('pauseIcon', [
@@ -67,7 +67,7 @@ export default function ChatAction(props: IActionProps) {
         <DropdownMenuContent side="bottom" align="end">
           <DropdownMenuItem className="justify-between cursor-pointer">
             <span>Ask</span>
-            <Check className="h-5 w-5 text-black" />
+            <Check className="h-5 w-5" />
           </DropdownMenuItem>
           <DropdownMenuItem disabled>Write</DropdownMenuItem>
         </DropdownMenuContent>
@@ -87,7 +87,7 @@ export default function ChatAction(props: IActionProps) {
           size="icon"
           onClick={onSubmit}
           disabled={disabled}
-          className="bg-black hover:bg-gray-800 text-white rounded-lg size-8"
+          className="rounded-lg size-8"
         >
           <ArrowUp />
         </Button>
