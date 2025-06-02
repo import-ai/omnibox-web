@@ -1,14 +1,23 @@
 import Share from './share';
 import i18next from 'i18next';
 import { toast } from 'sonner';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import App from '@/hooks/app.class';
 import { http } from '@/lib/request';
 import copy from 'copy-to-clipboard';
 import { Resource } from '@/interface';
 import { Input } from '@/components/input';
-import { useEffect, useState } from 'react';
-import { LoaderCircle } from 'lucide-react';
+import {
+  ArrowUp,
+  Copy,
+  Link,
+  LoaderCircle,
+  MoreHorizontal,
+  Pencil,
+  PencilOff,
+  Save,
+  Trash2,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
@@ -28,16 +37,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import {
-  ArrowUp,
-  Copy,
-  Link,
-  MoreHorizontal,
-  Pencil,
-  PencilOff,
-  Save,
-  Trash2,
-} from 'lucide-react';
+import { LanguageToggle } from '@/i18n/language-toggle.tsx';
 
 interface IProps {
   app: App;
@@ -210,6 +210,7 @@ export default function Actions(props: IProps) {
       >
         <Share />
       </PermissionWrapper>
+      <LanguageToggle />
       <ThemeToggle />
       <PermissionWrapper
         level={1}

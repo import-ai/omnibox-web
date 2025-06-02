@@ -6,7 +6,6 @@ import {
   ArrowUp,
   Copy,
   History,
-  Languages,
   Link,
   MoreHorizontal,
   Plus,
@@ -26,6 +25,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { LanguageToggle } from '@/i18n/language-toggle.tsx';
 
 export const data = [
   [
@@ -65,18 +65,7 @@ export default function Actions() {
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <Button
-        size="icon"
-        variant="ghost"
-        className="h-7 w-7"
-        onClick={() => {
-          const nextLang = i18next.language === 'en' ? 'zh' : 'en';
-          i18next.changeLanguage(nextLang).then();
-        }}
-        aria-label="Switch Language"
-      >
-        <Languages />
-      </Button>
+      <LanguageToggle />
       <ThemeToggle />
       {conversationsPage ? (
         <Button

@@ -8,7 +8,7 @@ i18n
   .use(initReactI18next)
   // 所有配置选项: https://www.i18next.com/overview/configuration-options
   .init({
-    fallbackLng: 'en',
+    fallbackLng: 'en-US',
     resources: locales,
     lng: navigator.language,
     debug: false,

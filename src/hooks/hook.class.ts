@@ -22,11 +22,11 @@ export default class Hook {
     id: string,
     callback: string | any,
     once?: boolean,
-    priority: number = 10
+    priority: number = 10,
   ) {
     !Array.isArray(this._hooks[id]) && (this._hooks[id] = []);
     const insertIndex = this._hooks[id].findIndex(
-      (item: Queue) => item.priority <= priority
+      (item: Queue) => item.priority <= priority,
     );
     const factory = isString(callback)
       ? (...args: any) => this.fire.apply(this, [callback as string, ...args])
@@ -52,7 +52,7 @@ export default class Hook {
     if (this.hasHook(id)) {
       if (isFunction(callback)) {
         const removeIndex = this._hooks[id].findIndex(
-          (item: any) => item.factory === callback
+          (item: any) => item.factory === callback,
         );
         removeIndex >= 0 && this._hooks[id].splice(removeIndex, 1);
       } else {
@@ -82,15 +82,15 @@ export default class Hook {
     id: string | string[],
     callback: string | any,
     once?: boolean,
-    priority?: number
+    priority?: number,
   ) {
     if (Array.isArray(id)) {
-      const destorys: Array<() => void> = [];
+      const destroys: Array<() => void> = [];
       id.forEach((item) => {
-        destorys.push(this.__addFilter(item, callback, once, priority));
+        destroys.push(this.__addFilter(item, callback, once, priority));
       });
       return () => {
-        destorys.forEach((destory) => {
+        destroys.forEach((destory) => {
           destory();
         });
       };

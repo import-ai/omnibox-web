@@ -228,5 +228,16 @@
     "yesterday": "Yesterday",
     "last_week": "Last 7 days",
     "month_year": "{{year}} Year {{month}} Month"
+  },
+  "toggle": {
+    "title": "Switched to",
+    "theme": {
+      "system": "System",
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "lang": {
+      "name": "English"
+    }
   }
 }
