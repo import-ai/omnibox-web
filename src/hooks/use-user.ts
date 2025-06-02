@@ -8,7 +8,7 @@ export default function useUser() {
   const [user, setUser] = useState<User>({
     id: '',
     email: '',
-    username: '--',
+    username: '',
   });
   const refetch = () => {
     http
