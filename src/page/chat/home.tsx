@@ -50,7 +50,9 @@ export default function ChatHomePage() {
   return (
     <div className="flex flex-col justify-center h-full mb-20">
       <h1 className="text-3xl text-center mb-10 font-medium">
-        <Typewriter text={greeting} typeSpeed={32} key={greeting} />
+        {user.username && (
+          <Typewriter text={greeting} typeSpeed={32} key={greeting} />
+        )}
       </h1>
       <ChatArea
         tools={tools}
