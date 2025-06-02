@@ -2,12 +2,12 @@ import { Dispatch, SetStateAction } from 'react';
 import {
   ConversationDetail,
   MessageDetail,
-} from '@/page/chat/types/conversation.tsx';
+} from '@/page/chat/types/conversation';
 import {
   ChatBOSResponse,
   ChatDeltaResponse,
   MessageStatus,
-} from '@/page/chat/types/chat-response.tsx';
+} from '@/page/chat/types/chat-response';
 
 function add(source?: string, delta?: string): string | undefined {
   return delta ? (source || '') + delta : source;

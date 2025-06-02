@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils.ts';
-import { MessageDetail } from '@/page/chat/types/conversation.tsx';
+import { cn } from '@/lib/utils';
+import { MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {
   message: MessageDetail;
