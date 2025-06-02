@@ -11,7 +11,7 @@ import { Loader2Icon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown';
 
-const citeRegex = /<cite:(\d+)>/g;
+const citeRegex = /\[\[(\d+)]]/g;
 
 interface IProps {
   message: MessageDetail;
@@ -31,6 +31,7 @@ export function AssistantMessage(props: IProps) {
         collapsible
         key="reasoning"
         defaultValue={message.id}
+        className="mb-3"
       >
         <AccordionItem value={message.id}>
           <AccordionTrigger>Reasoning</AccordionTrigger>

@@ -7,7 +7,7 @@ export function CitationCard(props: CitationIconProps) {
   return (
     <>
       <div className="my-2 w-full max-w-sm">
-        <h3 className="text-sm font-semibold hover:text-blue-500">
+        <p className="text-sm font-semibold hover:text-blue-500">
           <a
             href={
               citation.link.startsWith('http')
@@ -19,7 +19,7 @@ export function CitationCard(props: CitationIconProps) {
           >
             {citation.title}
           </a>
-        </h3>
+        </p>
         <p className="text-muted-foreground text-xs line-clamp-4">
           {citation.snippet}
         </p>

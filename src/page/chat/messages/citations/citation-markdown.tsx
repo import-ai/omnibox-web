@@ -25,9 +25,7 @@ export function CitationMarkdown(props: IProps) {
   const components = {
     a({ href, children, ...props }: AnchorProps) {
       const citeMatch = href?.match(citeLinkRegex);
-      console.log({ href, props, citeMatch });
       if (citeMatch) {
-        console.log(citeMatch);
         const id = Number(citeMatch[1]) - 1;
         if (id < citations.length) {
           return <CitationHoverIcon citation={citations[id]} index={id} />;
