@@ -117,7 +117,7 @@ export default function ChatConversationsPage() {
                         </DropdownMenu>
                       </div>
                       <p className="text-muted-foreground text-sm line-clamp-4 leading-relaxed">
-                        {item.assistant_content?.replace(/<cite:\d+>/, '') ||
+                        {item.assistant_content?.replace(/\[\[\d+]]/g, '') ||
                           '...'}
                       </p>
                       {index < items.length - 1 && (

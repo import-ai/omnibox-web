@@ -6,6 +6,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Citation } from '@/page/chat/types/chat-response';
+import { formatCitation } from '@/page/chat/messages/citations/utils.tsx';
 
 export interface CitationIconProps {
   index: number;
@@ -14,6 +15,7 @@ export interface CitationIconProps {
 
 export function CitationHoverIcon(props: CitationIconProps) {
   const { citation, index } = props;
+  const { name, link } = formatCitation(citation);
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
@@ -23,8 +25,7 @@ export function CitationHoverIcon(props: CitationIconProps) {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            const url = '../' + citation.link;
-            if (url) window.open(url, '_blank', 'noopener,noreferrer');
+            if (link) window.open(link, '_blank', 'noopener,noreferrer');
           }}
         >
           <Badge
@@ -37,9 +38,9 @@ export function CitationHoverIcon(props: CitationIconProps) {
       </HoverCardTrigger>
       <HoverCardContent className="w-80">
         <div>
-          <h3 className="text-sm font-semibold">{citation.title}</h3>
-          <div className="text-sm">{citation.snippet}</div>
-          <div className="text-muted-foreground text-xs">@{citation.link}</div>
+          <p className="font-semibold line-clamp-2">{citation.title}</p>
+          <div className="text-sm line-clamp-4">{citation.snippet}</div>
+          <div className="text-muted-foreground text-xs mt-1">{name}</div>
         </div>
       </HoverCardContent>
     </HoverCard>
