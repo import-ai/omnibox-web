@@ -8,6 +8,7 @@ interface IProps {
 export function UserMessage(props: IProps) {
   const { message } = props;
   const openAIMessage = message.message;
+  const lines = openAIMessage.content?.split('\n') || [];
   return (
     <div
       className={cn(
@@ -15,7 +16,12 @@ export function UserMessage(props: IProps) {
         'ml-auto bg-secondary text-secondary-foreground',
       )}
     >
-      {openAIMessage.content}
+      {lines.map((line, idx) => (
+        <span key={idx}>
+          {line}
+          {idx !== lines.length - 1 && <br />}
+        </span>
+      ))}
     </div>
   );
 }
