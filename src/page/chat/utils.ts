@@ -1,5 +1,4 @@
 import i18next from 'i18next';
-import { Citation } from '@/page/chat/types/chat-response';
 import { ConversationSummary } from '@/page/chat/types/conversation';
 
 interface GroupedItems {
@@ -87,33 +86,6 @@ export function groupItemsByTimestamp(
 
   return orderedGroups;
 }
-
-export function cleanIncompletedCitation(text: string) {
-  const citePrefix = '<cite:';
-  const citePrefixRegex = /<cite:\d+$/g;
-  for (let i = 0; i < citePrefix.length; i++) {
-    const suffix = citePrefix.slice(0, i + 1);
-    if (text.endsWith(suffix)) {
-      return text.slice(0, -suffix.length);
-    }
-  }
-  if (citePrefixRegex.test(text)) {
-    return text.replace(citePrefixRegex, '');
-  }
-
-  return text;
-}
-
-export const parseCitations = (content: string, citations: Citation[]) => {
-  content = cleanIncompletedCitation(content);
-  for (let i = 0; i < citations.length; i++) {
-    content = content.replace(
-      new RegExp(`<cite:${i + 1}>`, 'g'),
-      `[[${i + 1}]](${citations[i].link})`,
-    );
-  }
-  return content.trim();
-};
 
 export const stream = async (
   url: string,
