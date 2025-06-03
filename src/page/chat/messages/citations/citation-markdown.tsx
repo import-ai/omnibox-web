@@ -71,14 +71,14 @@ export function CitationMarkdown(props: IProps) {
       const match = /language-(\w+)/.exec(className || '');
       return match ? (
         <SyntaxHighlighter
-          {...props}
           PreTag="div"
-          children={String(children).replace(/\n$/, '')}
           language={match[1]}
           style={theme.content === 'dark' ? a11yDark : a11yLight}
           showLineNumbers={true}
           customStyle={{ background: 'transparent' }}
-        />
+        >
+          {String(children).replace(/\n$/, '')}
+        </SyntaxHighlighter>
       ) : (
         <code {...props} className={className}>
           {children}
