@@ -72,7 +72,7 @@ export async function ask(
   context: IResTypeContext[],
   messages: MessageDetail[],
   messageOperator: MessageOperator,
-): Promise<void> {
+): Promise<() => void> {
   const body = prepareBody(
     namespaceId,
     conversationId,
@@ -81,7 +81,7 @@ export async function ask(
     context,
     messages,
   );
-  await stream('/api/v1/wizard/ask', body, async (data) => {
+  return await stream('/api/v1/wizard/ask', body, async (data) => {
     let chatResponse: ChatResponse = JSON.parse(data);
 
     if (chatResponse.response_type === 'bos') {

@@ -50,7 +50,6 @@ export default function ChatAction(props: IActionProps) {
     onAction('stop');
   };
   const onSubmit = () => {
-    console.log({ disabled, loading });
     if (disabled || loading) {
       return;
     }

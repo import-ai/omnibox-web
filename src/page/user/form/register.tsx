@@ -55,7 +55,7 @@ export function RegisterForm() {
     http
       .post('sign-up', {
         email: data.email,
-        url: `${location.origin}/user/sign-up/comfirm`,
+        url: `${location.origin}/user/sign-up/confirm`,
       })
       .then(() => {
         form.resetField('email');

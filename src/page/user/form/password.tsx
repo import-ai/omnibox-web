@@ -55,7 +55,7 @@ export function ForgotPasswordForm() {
     http
       .post('password', {
         email: data.email,
-        url: `${location.origin}/user/password/comfirm`,
+        url: `${location.origin}/user/password/confirm`,
       })
       .then(() => {
         form.resetField('email');

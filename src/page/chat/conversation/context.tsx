@@ -1,12 +1,14 @@
 import { http } from '@/lib/request';
-import { useEffect, useMemo, useState } from 'react';
+import { isFunction } from 'lodash-es';
+import { ask } from '@/page/chat/conversation/utils';
+import { ToolType } from '@/page/chat/chat-input/types';
+import { useRef, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigationType, useParams } from 'react-router-dom';
 import {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/types/conversation';
 import useGlobalContext, { IResTypeContext } from '@/page/chat/useContext';
-import { ToolType } from '@/page/chat/chat-input/types';
 import {
   createMessageOperator,
   MessageOperator,
@@ -22,10 +24,11 @@ interface StateProps {
 
 export default function useContext() {
   const params = useParams();
-
   const loc = useLocation();
   const navigationType = useNavigationType();
   const state: StateProps = loc.state;
+  const [value, onChange] = useState<string>('');
+  const askAbortRef = useRef<() => void>(null);
   const namespaceId = state?.namespaceId || params.namespace_id || '';
   const conversationId = state?.conversationId || params.conversation_id || '';
   const routeQuery: string | undefined = state?.value;
@@ -37,17 +40,15 @@ export default function useContext() {
   const { context, onContextChange } = useGlobalContext({
     data: state?.context || [],
   });
-
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
     mapping: {},
   });
-  const refetch = () => {
+  const conversationDetailRefetch = () => {
     http
       .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
       .then(setConversation);
   };
-
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
     let currentNode: string | undefined = conversation.current_node;
@@ -58,27 +59,67 @@ export default function useContext() {
     }
     return result;
   }, [conversation]);
-
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(setConversation);
   }, [setConversation]);
+  const onAction = async (action?: 'stop' | 'disabled') => {
+    if (action === 'stop') {
+      isFunction(askAbortRef.current) && askAbortRef.current();
+      askAbortRef.current = null;
+      setLoading(false);
+      return;
+    }
+    const v = value.trim();
+    if (!v) {
+      return;
+    }
+    onChange('');
+    await submit(v);
+  };
+  const refetch = async () => {
+    const res: ConversationDetail = await http.get(
+      `/namespaces/${namespaceId}/conversations/${conversationId}`,
+    );
+    setConversation(res);
+    return res;
+  };
+  const submit = async (query?: string) => {
+    if (!query || query.trim().length === 0) {
+      return;
+    }
+    setLoading(true);
+    try {
+      askAbortRef.current = await ask(
+        namespaceId,
+        conversationId,
+        query,
+        tools,
+        context,
+        messages,
+        messageOperator,
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(refetch, [namespaceId, conversationId]);
+  useEffect(() => {
+    if (allowAsk) {
+      refetch().then(async () => submit(routeQuery));
+    }
+  }, [allowAsk]);
+
+  useEffect(conversationDetailRefetch, [namespaceId, conversationId]);
 
   return {
-    routeQuery,
-    allowAsk,
-    conversation,
-    setConversation,
-    messageOperator,
-    messages,
-    namespaceId,
-    conversationId,
+    value,
     tools,
-    onToolsChange,
-    context,
-    onContextChange,
     loading,
-    setLoading,
+    onChange,
+    onAction,
+    messages,
+    context,
+    onToolsChange,
+    onContextChange,
   };
 }

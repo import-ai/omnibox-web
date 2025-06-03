@@ -35,7 +35,7 @@ const registerSchema = z
 
 type TRegisterForm = z.infer<typeof registerSchema>;
 
-export function RegisterComFirmForm() {
+export function RegisterConFirmForm() {
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const token = params.get('token');
