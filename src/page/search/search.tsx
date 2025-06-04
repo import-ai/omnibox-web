@@ -77,10 +77,10 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
         })),
     [items],
   );
-  const chatHistories = useMemo(
+  const messages = useMemo(
     () =>
       items
-        .filter((item) => item.type === 'chat_history')
+        .filter((item) => item.type === 'message')
         .map((item) => ({
           ...item,
           content: item.content || '',
@@ -129,21 +129,21 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
             ))}
           </CommandGroup>
         )}
-        {chatHistories.length > 0 && (
+        {messages.length > 0 && (
           <CommandGroup heading="Chats">
-            {chatHistories.map((chatHistory) => (
+            {messages.map((message) => (
               <CommandItem
-                key={chatHistory.id}
+                key={message.id}
                 onSelect={() => {
                   navigate(
-                    `/${params.namespace_id}/chat/${chatHistory.conversation_id}`,
+                    `/${params.namespace_id}/chat/${message.conversation_id}`,
                   );
                   onOpenChange(false);
                 }}
               >
                 <div className="flex items-center gap-2">
                   <MessageCircle className="w-4 h-4 text-muted-foreground" />
-                  <span>{chatHistory.content}</span>
+                  <span>{message.content}</span>
                 </div>
               </CommandItem>
             ))}
