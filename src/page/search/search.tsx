@@ -9,9 +9,13 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { http } from '@/lib/request';
 import { useParams } from 'react-router-dom';
 
-export function SearchMenu() {
+export interface IProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function SearchMenu({ open, onOpenChange }: IProps) {
   const params = useParams();
-  const [open, setOpen] = useState(false);
   const [keywords, setKeywords] = useState('');
   const [items, setItems] = useState<any[]>([]);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -20,12 +24,13 @@ export function SearchMenu() {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen((open) => !open);
+        const newOpen = !open;
+        onOpenChange(newOpen);
       }
     };
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, []);
+  }, [open, onOpenChange]);
 
   // Fetch search results
   useEffect(() => {
@@ -80,7 +85,12 @@ export function SearchMenu() {
   );
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
+    <CommandDialog
+      open={open}
+      onOpenChange={(val) => {
+        onOpenChange(val);
+      }}
+    >
       <CommandInput
         placeholder="Search resources or chats..."
         value={keywords}
@@ -100,7 +110,7 @@ export function SearchMenu() {
           </CommandGroup>
         )}
         {chatHistories.length > 0 && (
-          <CommandGroup heading="Resources">
+          <CommandGroup heading="Chats">
             {chatHistories.map((chatHistory) => (
               <CommandItem key={chatHistory.id}>
                 <span>{chatHistory.content}</span>

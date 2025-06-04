@@ -2,6 +2,7 @@ import Sidebar from '@/page/sidebar';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { SearchMenu } from '@/page/search/search';
+import { useState } from 'react';
 
 export default function NamespacePage() {
   // 未登陆不加载页面
@@ -9,10 +10,16 @@ export default function NamespacePage() {
     return null;
   }
 
+  const [openSearchMenu, setOpenSearchMenu] = useState(false);
+
+  const onSearch = () => {
+    setOpenSearchMenu(true);
+  };
+
   return (
     <SidebarProvider>
-      <Sidebar />
-      <SearchMenu />
+      <Sidebar onSearch={onSearch} />
+      <SearchMenu open={openSearchMenu} onOpenChange={setOpenSearchMenu} />
       <Outlet />
     </SidebarProvider>
   );
