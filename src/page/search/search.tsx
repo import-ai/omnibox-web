@@ -65,6 +65,11 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
         .filter((item) => item.type === 'resource')
         .map((item) => ({
           ...item,
+          name: item.name || 'Untitled',
+          content: item.content || '',
+        }))
+        .map((item) => ({
+          ...item,
           content:
             item.content.length > 100
               ? item.content.slice(0, 100) + '...'
@@ -76,6 +81,10 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
     () =>
       items
         .filter((item) => item.type === 'chat_history')
+        .map((item) => ({
+          ...item,
+          content: item.content || '',
+        }))
         .map((item) => ({
           ...item,
           content:
