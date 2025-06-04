@@ -65,7 +65,6 @@ export default function useContext() {
   const onAction = async (action?: 'stop' | 'disabled') => {
     if (action === 'stop') {
       isFunction(askAbortRef.current) && askAbortRef.current();
-      askAbortRef.current = null;
       setLoading(false);
       return;
     }
@@ -89,7 +88,7 @@ export default function useContext() {
     }
     setLoading(true);
     try {
-      askAbortRef.current = await ask(
+      const askFN = ask(
         namespaceId,
         conversationId,
         query,
@@ -98,6 +97,8 @@ export default function useContext() {
         messages,
         messageOperator,
       );
+      askAbortRef.current = askFN.destory;
+      await askFN.start();
     } finally {
       setLoading(false);
     }

@@ -93,7 +93,7 @@ export default function ChatAction(props: IActionProps) {
           size="icon"
           onClick={onSubmit}
           disabled={disabled}
-          className="rounded-lg size-8"
+          className="rounded-lg size-8 dark:bg-white"
         >
           <ArrowUp />
         </Button>

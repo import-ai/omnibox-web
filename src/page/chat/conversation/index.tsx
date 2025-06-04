@@ -16,8 +16,8 @@ export default function ChatConversationPage() {
   } = useContext();
 
   return (
-    <div className="flex flex-col h-full max-h-screen">
-      <div className="flex-1 overflow-auto">
+    <>
+      <div className="flex-1">
         <Messages messages={messages} />
       </div>
       <div className="sticky bottom-4 pt-4">
@@ -32,6 +32,6 @@ export default function ChatConversationPage() {
           onContextChange={onContextChange}
         />
       </div>
-    </div>
+    </>
   );
 }

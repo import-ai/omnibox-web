@@ -87,56 +87,68 @@ export function groupItemsByTimestamp(
   return orderedGroups;
 }
 
-export const stream = async (
+export const stream = (
   url: string,
   body: Record<string, any>,
   callback: (data: string) => Promise<void>,
-): Promise<() => void> => {
-  const token = localStorage.getItem('token') || '';
-  const controller = new AbortController();
-  const response = await fetch(url, {
-    method: 'POST',
-    signal: controller.signal,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    throw new Error('Failed to fetch from wizard');
-  }
-  const reader = response.body?.getReader();
-  if (!reader) {
-    throw new Error('Response body is not readable');
-  }
-  const decoder = new TextDecoder();
-  let buffer: string = '';
+) => {
+  let isAborted = false;
 
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-
-      while (true) {
-        const lineEnd = buffer.indexOf('\n');
-        if (lineEnd == -1) break;
-
-        const line = buffer.slice(0, lineEnd).trim();
-        buffer = buffer.slice(lineEnd + 1);
-
-        if (line.startsWith('data:')) {
-          const data = line.slice(5).trim();
-          await callback(data);
-        }
+  return {
+    start: async () => {
+      const token = localStorage.getItem('token') || '';
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch from wizard');
       }
-    }
-  } finally {
-    await reader.cancel();
-  }
-  return () => {
-    controller.abort();
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Response body is not readable');
+      }
+      const decoder = new TextDecoder();
+      let buffer: string = '';
+
+      try {
+        while (!isAborted) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          while (!isAborted) {
+            const lineEnd = buffer.indexOf('\n');
+            if (lineEnd == -1) break;
+
+            const line = buffer.slice(0, lineEnd).trim();
+            buffer = buffer.slice(lineEnd + 1);
+
+            if (line.startsWith('data:')) {
+              const data = line.slice(5).trim();
+              await callback(data);
+            }
+          }
+        }
+      } finally {
+        await reader.cancel();
+      }
+    },
+    destory: () => {
+      isAborted = true;
+    },
   };
 };
+
+export function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 5) return 'night';
+  if (hour < 12) return 'morning';
+  if (hour < 18) return 'afternoon';
+  return 'evening';
+}

@@ -6,6 +6,7 @@ import { ConversationSummary } from '@/page/chat/types/conversation';
 export default function useContext() {
   const params = useParams();
   const namespaceId = params.namespace_id || '';
+  const [loading, onLoading] = useState(false);
   const [data, onData] = useState<Array<ConversationSummary>>([]);
   const [edit, onEdit] = useState<{
     id: string;
@@ -25,8 +26,14 @@ export default function useContext() {
     title: '',
     open: false,
   });
-  const refetch = () => {
-    http.get(`/namespaces/${namespaceId}/conversations`).then(onData);
+  const refetch = (showLoading?: boolean) => {
+    showLoading && onLoading(true);
+    http
+      .get(`/namespaces/${namespaceId}/conversations`)
+      .then(onData)
+      .finally(() => {
+        showLoading && onLoading(false);
+      });
   };
   const onEditDone = () => {
     onEdit({ id: '', title: '', open: false });
@@ -43,11 +50,14 @@ export default function useContext() {
     onRemove({ ...remove, open });
   };
 
-  useEffect(refetch, [namespaceId]);
+  useEffect(() => {
+    refetch(true);
+  }, [namespaceId]);
 
   return {
     data,
     edit,
+    loading,
     onEdit,
     remove,
     refetch,

@@ -1,12 +1,12 @@
 import EditHistory from './edit';
 import RemoveHistory from './remove';
 import useContext from './useContext';
+import Loading from '@/components/loading';
 import { useTranslation } from 'react-i18next';
 import { MoreHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { groupItemsByTimestamp } from '../utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +23,7 @@ export default function ChatConversationsPage() {
     edit,
     onEdit,
     remove,
+    loading,
     onRemove,
     onEditDone,
     namespaceId,
@@ -50,7 +51,9 @@ export default function ChatConversationsPage() {
           {t('chat.conversations.history')}
         </h1>
       </div>
-      <ScrollArea className="h-[calc(100vh-150px)]">
+      {loading ? (
+        <Loading />
+      ) : (
         <div className="space-y-6">
           {data.length > 0 ? (
             groupItemsByTimestamp(data).map(([key, items]) => (
@@ -60,7 +63,6 @@ export default function ChatConversationsPage() {
                     {key}
                   </p>
                 </div>
-
                 {items.map((item, index) => {
                   const conversationTitle: string =
                     item.title ||
@@ -75,7 +77,7 @@ export default function ChatConversationsPage() {
                       }}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-medium group-hover:text-blue-500">
+                        <h3 className="text-lg font-medium line-clamp-2  group-hover:text-blue-500">
                           {conversationTitle}
                         </h3>
                         <DropdownMenu>
@@ -116,7 +118,7 @@ export default function ChatConversationsPage() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                      <p className="text-muted-foreground text-sm line-clamp-4 leading-relaxed">
+                      <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
                         {item.assistant_content?.replace(/\[\[\d+]]/g, '') ||
                           '...'}
                       </p>
@@ -134,7 +136,7 @@ export default function ChatConversationsPage() {
             </div>
           )}
         </div>
-      </ScrollArea>
+      )}
     </div>
   );
 }
