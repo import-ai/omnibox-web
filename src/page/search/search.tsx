@@ -48,7 +48,7 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
     debounceTimeout.current = setTimeout(() => {
       http
         .get(
-          `/namespaces/${params.namespace_id}/search?q=${encodeURIComponent(keywords)}`,
+          `/namespaces/${params.namespace_id}/search?query=${encodeURIComponent(keywords)}`,
         )
         .then((data) => {
           setItems(data || []);
