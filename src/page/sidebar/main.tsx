@@ -1,4 +1,4 @@
-import { Sparkles, History } from 'lucide-react';
+import { Sparkles, History, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   SidebarMenu,
@@ -9,10 +9,11 @@ import {
 interface IProps {
   active: boolean;
   onActiveKey: (activeKey: string) => void;
+  onSearch: () => void;
 }
 
 export function NavMain(props: IProps) {
-  const { active, onActiveKey } = props;
+  const { active, onActiveKey, onSearch } = props;
   const { t } = useTranslation();
   const onChat = () => {
     onActiveKey('chat');
@@ -37,6 +38,17 @@ export function NavMain(props: IProps) {
               className="cursor-pointer w-4 h-4"
               onClick={onChatHistory}
             />
+          </div>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={onSearch}
+          >
+            <Search className="w-4 h-4" />
+            <span>{t('search.title', 'Search')}</span>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>
