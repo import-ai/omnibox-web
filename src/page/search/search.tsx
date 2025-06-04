@@ -8,6 +8,7 @@ import {
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { http } from '@/lib/request';
 import { useParams } from 'react-router-dom';
+import { File, MessageCircle } from 'lucide-react';
 
 export interface IProps {
   open: boolean;
@@ -101,8 +102,11 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
           <CommandGroup heading="Resources">
             {resources.map((resource) => (
               <CommandItem key={resource.id}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontWeight: 'bold' }}>{resource.name}</span>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <File className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-bold">{resource.name}</span>
+                  </div>
                   <span>{resource.content}</span>
                 </div>
               </CommandItem>
@@ -113,7 +117,10 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
           <CommandGroup heading="Chats">
             {chatHistories.map((chatHistory) => (
               <CommandItem key={chatHistory.id}>
-                <span>{chatHistory.content}</span>
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                  <span>{chatHistory.content}</span>
+                </div>
               </CommandItem>
             ))}
           </CommandGroup>
