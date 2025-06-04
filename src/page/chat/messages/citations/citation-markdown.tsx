@@ -1,3 +1,4 @@
+import Copy from './actions/copy';
 import React, { useEffect } from 'react';
 import Markdown, { ExtraProps } from 'react-markdown';
 import { cleanIncompletedCitation } from '@/page/chat/messages/citations/utils';
@@ -96,6 +97,9 @@ export function CitationMarkdown(props: IProps) {
       >
         {replacedContent}
       </Markdown>
+      <div className="flex mt-[-10px]">
+        <Copy content={content} />
+      </div>
     </div>
   );
 }
