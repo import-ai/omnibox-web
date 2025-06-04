@@ -1,21 +1,21 @@
 import WrapperPage from './wrapper';
 import { useTranslation } from 'react-i18next';
-import { ForgotPasswordForm } from '@/page/user/form/password-comfirm';
+import { RegisterConFirmForm } from '@/page/user/form/register-confirm';
 
-export default function ForgotPasswordPage() {
+export default function RegisterConFirmPage() {
   const { t } = useTranslation();
 
   return (
     <WrapperPage>
-      <div className="flex flex-col space-y-2 text-center">
+      <div className="flex flex-col space-y-2 text-center mb-5">
         <h1 className="text-2xl font-semibold tracking-tight">
-          {t('password.conform_title')}
+          {t('register.conform_title')}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {t('password.conform_description')}
+          {t('register.conform_description')}
         </p>
       </div>
-      <ForgotPasswordForm />
+      <RegisterConFirmForm />
     </WrapperPage>
   );
 }

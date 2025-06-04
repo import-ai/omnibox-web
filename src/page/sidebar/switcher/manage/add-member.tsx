@@ -49,8 +49,8 @@ export default function AddMember(props: AddMemberProps) {
           groupId: group_id,
           emails: inviteUsers,
           namespace: namespace_id,
-          inviteUrl: `${location.origin}/invite/comfirm`,
-          registerUrl: `${location.origin}/user/sign-up/comfirm`,
+          inviteUrl: `${location.origin}/invite/confirm`,
+          registerUrl: `${location.origin}/user/sign-up/confirm`,
         }),
       );
     }

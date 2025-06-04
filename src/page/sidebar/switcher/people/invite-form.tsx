@@ -77,8 +77,8 @@ export default function InviteForm(props: IProps) {
         role: data.role,
         emails: [data.email],
         namespace: namespace_id,
-        inviteUrl: `${location.origin}/invite/comfirm`,
-        registerUrl: `${location.origin}/user/sign-up/comfirm`,
+        inviteUrl: `${location.origin}/invite/confirm`,
+        registerUrl: `${location.origin}/user/sign-up/confirm`,
       })
       .then(() => {
         form.resetField('email');

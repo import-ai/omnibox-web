@@ -91,11 +91,12 @@ export const stream = async (
   url: string,
   body: Record<string, any>,
   callback: (data: string) => Promise<void>,
-): Promise<void> => {
+): Promise<() => void> => {
   const token = localStorage.getItem('token') || '';
-
+  const controller = new AbortController();
   const response = await fetch(url, {
     method: 'POST',
+    signal: controller.signal,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
@@ -135,4 +136,7 @@ export const stream = async (
   } finally {
     await reader.cancel();
   }
+  return () => {
+    controller.abort();
+  };
 };

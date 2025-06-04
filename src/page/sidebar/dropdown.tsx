@@ -28,6 +28,7 @@ export interface IResourceProps {
     file: File,
   ) => Promise<void>;
   onExpand: (id: string, space_type: SpaceType) => void;
+  onMenuMore: (id: string, space_type: SpaceType) => void;
   onDelete: (id: string, space_type: SpaceType, parent_id: string) => void;
   onCreate: (
     namespace_id: string,
@@ -43,10 +44,11 @@ export default function MainDropdownMenu(props: IResourceProps) {
     onUpload,
     onCreate,
     onDelete,
-    namespace_id,
+    onMenuMore,
     activeKey,
     editingKey,
     onActiveKey,
+    namespace_id,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
@@ -102,10 +104,16 @@ export default function MainDropdownMenu(props: IResourceProps) {
       },
     );
   };
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      return;
+    }
+    onMenuMore(data.id, data.space_type);
+  };
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <SidebarMenuAction className="right-0 focus-visible:outline-none focus-visible:ring-transparent">
             {data.id === editingKey ? (

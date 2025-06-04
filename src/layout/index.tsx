@@ -15,7 +15,7 @@ export default function Layout() {
       if (namespace_id) {
         return;
       }
-      if (!loc.pathname.startsWith('/invite/comfirm')) {
+      if (!loc.pathname.startsWith('/invite/confirm')) {
         extension().then((val) => {
           if (val) {
             http.get('namespaces').then((data) => {

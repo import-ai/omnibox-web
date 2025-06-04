@@ -97,6 +97,49 @@ export default function MainSidebar() {
         onExpanding('');
       });
   };
+  const handleMenuMore = (id: string, space_type: SpaceType) => {
+    let match = false;
+    each(data, (resource) => {
+      if (Array.isArray(resource.children) && resource.children.length > 0) {
+        const target = resource.children.find(
+          (node: Resource) => node.parent_id === id,
+        );
+        if (target) {
+          match = true;
+          return match;
+        }
+      }
+    });
+    if (match) {
+      return;
+    }
+    http
+      .get(`/namespaces/${namespace_id}/${baseUrl}/query`, {
+        params: {
+          namespace: namespace_id,
+          spaceType: space_type,
+          parentId: id,
+        },
+      })
+      .then((response) => {
+        if (response.length <= 0) {
+          data[space_type].children.push({
+            id: 'empty',
+            name: '',
+            parent_id: id,
+            children: [],
+            resource_type: 'file',
+            space_type: 'private',
+            namespace: { id: namespace_id },
+          });
+        } else {
+          each(response, (item) => {
+            data[space_type].children.push(item);
+          });
+        }
+        onData({ ...data });
+      });
+  };
   const getRouteToActive = (
     id: string,
     space_type: SpaceType,
@@ -341,11 +384,12 @@ export default function MainSidebar() {
               activeKey={resource_id}
               space_type={space_type}
               editingKey={editingKey}
-              namespace_id={namespace_id}
               onExpand={handleExpand}
               onDelete={handleDelete}
               onCreate={handleCreate}
               onUpload={handleUpload}
+              onMenuMore={handleMenuMore}
+              namespace_id={namespace_id}
               onActiveKey={handleActiveKey}
               data={group(data[space_type])}
             />
