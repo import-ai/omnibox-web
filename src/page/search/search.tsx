@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/command';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { http } from '@/lib/request';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { File, MessageCircle } from 'lucide-react';
 
 export interface IProps {
@@ -17,6 +17,7 @@ export interface IProps {
 
 export function SearchMenu({ open, onOpenChange }: IProps) {
   const params = useParams();
+  const navigate = useNavigate();
   const [keywords, setKeywords] = useState('');
   const [items, setItems] = useState<any[]>([]);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -101,7 +102,13 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
         {resources.length > 0 && (
           <CommandGroup heading="Resources">
             {resources.map((resource) => (
-              <CommandItem key={resource.id}>
+              <CommandItem
+                key={resource.id}
+                onSelect={() => {
+                  navigate(`/${params.namespace_id}/${resource.id}`);
+                  onOpenChange(false);
+                }}
+              >
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <File className="w-4 h-4 text-muted-foreground" />
@@ -116,7 +123,15 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
         {chatHistories.length > 0 && (
           <CommandGroup heading="Chats">
             {chatHistories.map((chatHistory) => (
-              <CommandItem key={chatHistory.id}>
+              <CommandItem
+                key={chatHistory.id}
+                onSelect={() => {
+                  navigate(
+                    `/${params.namespace_id}/chat/${chatHistory.conversation_id}`,
+                  );
+                  onOpenChange(false);
+                }}
+              >
                 <div className="flex items-center gap-2">
                   <MessageCircle className="w-4 h-4 text-muted-foreground" />
                   <span>{chatHistory.content}</span>
