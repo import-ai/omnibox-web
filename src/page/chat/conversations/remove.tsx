@@ -42,7 +42,7 @@ export default function RemoveHistory(props: IProps) {
   };
 
   return (
-    <AlertDialog open={data.open} onOpenChange={onOpenChange}>
+    <AlertDialog open={data.open}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>

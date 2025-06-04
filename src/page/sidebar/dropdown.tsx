@@ -45,7 +45,6 @@ export default function MainDropdownMenu(props: IResourceProps) {
     onCreate,
     onDelete,
     onMenuMore,
-    activeKey,
     editingKey,
     onActiveKey,
     namespace_id,
@@ -69,7 +68,7 @@ export default function MainDropdownMenu(props: IResourceProps) {
     }, 100);
   };
   const handleAddToChat = () => {
-    if (activeKey !== 'chat') {
+    if (!location.pathname.includes('/chat')) {
       onActiveKey('chat');
       setTimeout(() => {
         app.fire('context', data, 'resource');
@@ -79,7 +78,7 @@ export default function MainDropdownMenu(props: IResourceProps) {
     }
   };
   const handleAddAllToChat = () => {
-    if (activeKey !== 'chat') {
+    if (!location.pathname.includes('/chat')) {
       onActiveKey('chat');
       setTimeout(() => {
         app.fire('context', data, 'parent');

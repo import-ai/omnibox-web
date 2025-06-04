@@ -48,9 +48,9 @@ export default function ChatTool(props: IProps) {
             }
           }}
           className={cn(
-            'font-normal rounded-full bg-gray-50 dark:bg-gray-600 border-transparent [&_svg]:size-4 hover:text-blue-600 transition-colors',
+            'font-normal rounded-full bg-gray-50 dark:bg-[#404040] border-transparent [&_svg]:size-4 hover:text-blue-600 transition-colors',
             {
-              'text-blue-600':
+              'text-blue-600 dark:text-[#60A5FA]':
                 tools.includes(item.value) ||
                 (item.value === ToolType.KNOWLEDGE_SEARCH &&
                   context.length > 0),

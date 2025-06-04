@@ -241,7 +241,7 @@ export default function MainSidebar() {
         resource_type !== 'folder' &&
           setTimeout(() => {
             app.fire('to_edit');
-          }, 1000);
+          }, 2000);
       })
       .finally(() => {
         onEditingKey('');

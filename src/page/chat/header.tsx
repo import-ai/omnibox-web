@@ -14,7 +14,7 @@ export default function ChatHeader() {
   const conversationsPage = loc.pathname.endsWith('/chat/conversations');
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2">
+    <header className="sticky top-0 bg-white flex h-14 shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-2 px-3">
         <SidebarTrigger />
         {!conversationsPage && (
