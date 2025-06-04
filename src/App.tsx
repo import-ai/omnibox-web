@@ -15,8 +15,8 @@ const ResourcePage = lazy(() => import('@/page/resource'));
 const NamespacePage = lazy(() => import('@/page/namespace'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
-const PasswordConFirmPage = lazy(() => import('@/page/user/password-confirm'));
-const RegisterConFirmPage = lazy(() => import('@/page/user/register-confirm'));
+const PasswordConfirmPage = lazy(() => import('@/page/user/password-confirm'));
+const RegisterConfirmPage = lazy(() => import('@/page/user/register-confirm'));
 
 const app = new CoreApp();
 const router = createBrowserRouter([
@@ -35,7 +35,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'user/sign-up/confirm',
-        element: <RegisterConFirmPage />,
+        element: <RegisterConfirmPage />,
       },
       {
         path: 'user/password',
@@ -43,7 +43,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'user/password/confirm',
-        element: <PasswordConFirmPage />,
+        element: <PasswordConfirmPage />,
       },
       {
         path: 'invite/confirm',
