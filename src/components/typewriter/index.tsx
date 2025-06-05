@@ -43,6 +43,7 @@ export const Typewriter = ({
         } else {
           if (intervalRef.current) {
             clearInterval(intervalRef.current);
+            intervalRef.current = null;
           }
           onCompleteRef.current?.();
         }
@@ -61,6 +62,13 @@ export const Typewriter = ({
       }
     };
   }, [text, typeSpeed]);
+
+  useEffect(() => {
+    if (intervalRef.current) {
+      return;
+    }
+    setDisplayedText(text);
+  }, [text]);
 
   if (renderMarkdown) {
     return (

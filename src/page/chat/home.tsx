@@ -18,6 +18,7 @@ export default function ChatHomePage() {
   const navigate = useNavigate();
   const [value, onChange] = useState('');
   const namespaceId = params.namespace_id || '';
+  const i18n = `chat.home.greeting.${getGreeting()}`;
   const { context, onContextChange } = useContext({ data: [] });
   const [tools, onToolsChange] = useState<Array<ToolType>>([
     ToolType.KNOWLEDGE_SEARCH,
@@ -47,7 +48,7 @@ export default function ChatHomePage() {
       <h1 className="text-3xl text-center mb-10 font-medium">
         {user.username && (
           <Typewriter
-            text={t('chat.home.greeting.' + getGreeting(), {
+            text={t(i18n, {
               name: user.username,
             })}
             typeSpeed={32}

@@ -59,9 +59,9 @@ export default function ChatConversationsPage() {
         <Loading />
       ) : (
         <div className="space-y-6">
-          {data.length > 0 ? (
+          {data.data.length > 0 ? (
             <>
-              {groupItemsByTimestamp(data).map(([key, items]) => (
+              {groupItemsByTimestamp(data.data).map(([key, items]) => (
                 <div key={key}>
                   <div className="pb-4">
                     <p className="text-sm text-muted-foreground font-light ml-0.5">
@@ -136,7 +136,7 @@ export default function ChatConversationsPage() {
                 </div>
               ))}
               <Pagination
-                total={100}
+                total={data.total}
                 current={current}
                 pageSize={pageSize}
                 onChange={onPagerChange}

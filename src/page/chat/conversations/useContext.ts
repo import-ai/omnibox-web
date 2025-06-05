@@ -9,7 +9,13 @@ export default function useContext() {
   const [loading, onLoading] = useState(false);
   const [current, onCurrent] = useState(1);
   const [pageSize] = useState(20);
-  const [data, onData] = useState<Array<ConversationSummary>>([]);
+  const [data, onData] = useState<{
+    total: number;
+    data: ConversationSummary[];
+  }>({
+    total: 0,
+    data: [],
+  });
   const [edit, onEdit] = useState<{
     id: string;
     title: string;

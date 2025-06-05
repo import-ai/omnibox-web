@@ -1,9 +1,19 @@
-import { getActions } from './utils';
+import { useState } from 'react';
+import useApp from '@/hooks/use-app';
+import { http } from '@/lib/request';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LanguageToggle } from '@/i18n/language-toggle';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
-import { History, MoreHorizontal, Plus } from 'lucide-react';
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  History,
+  LoaderCircle,
+  MoreHorizontal,
+} from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -18,23 +28,58 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+} from '@/components/ui/alert-dialog';
 
 interface IProps {
-  homePage: boolean;
-  conversationPage: boolean;
+  conversationId: string;
   conversationsPage: boolean;
   namespaceId: string;
 }
 
 export default function Actions(props: IProps) {
-  const { homePage, conversationsPage, namespaceId } = props;
+  const { conversationId, conversationsPage, namespaceId } = props;
+  const app = useApp();
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const actionsData = homePage || conversationsPage ? [] : getActions();
+  const [remove, onRemove] = useState(false);
+  const [removeLoading, onRemoveLoading] = useState(false);
+  const onDeleteCancel = () => {
+    onRemove(false);
+  };
+  const onDeleteOk = () => {
+    onRemoveLoading(true);
+    http
+      .delete(`/namespaces/${namespaceId}/conversations/${conversationId}`)
+      .then(() => {
+        onRemoveLoading(false);
+        onRemove(false);
+        navigate(`/${namespaceId}/chat/conversations`);
+      });
+  };
   const onChatHistory = () => {
     navigate(`/${namespaceId}/chat/conversations`);
   };
   const onChatCreate = () => {
     navigate(`/${namespaceId}/chat`);
+  };
+  const handleAction = (id: string) => {
+    if (id === 'rename') {
+      app.fire('chat:title:edit');
+      return;
+    }
+    if (id === 'delete') {
+      onRemove(true);
+      return;
+    }
   };
 
   return (
@@ -60,7 +105,7 @@ export default function Actions(props: IProps) {
           <History />
         </Button>
       )}
-      {actionsData.length > 0 && (
+      {conversationId && (
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -77,27 +122,58 @@ export default function Actions(props: IProps) {
           >
             <Sidebar collapsible="none" className="bg-transparent">
               <SidebarContent className="gap-0">
-                {actionsData.map((group, index) => (
-                  <SidebarGroup key={index} className="border-b">
-                    <SidebarGroupContent className="gap-0">
-                      <SidebarMenu>
-                        {group.map((item, index) => (
-                          <SidebarMenuItem key={index}>
-                            <SidebarMenuButton>
-                              <item.icon />
-                              <span>{item.label}</span>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </SidebarGroup>
-                ))}
+                <SidebarGroup className="border-b">
+                  <SidebarGroupContent className="gap-0">
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          onClick={() => handleAction('rename')}
+                        >
+                          <Edit2 />
+                          <span>{t('rename')}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          onClick={() => handleAction('delete')}
+                        >
+                          <Trash2 />
+                          <span>{t('delete')}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
               </SidebarContent>
             </Sidebar>
           </PopoverContent>
         </Popover>
       )}
+      <AlertDialog open={remove}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确定删除对话？</AlertDialogTitle>
+            <AlertDialogDescription>
+              删除后，聊天记录将不可恢复。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={onDeleteCancel}>
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 text-white"
+              disabled={removeLoading}
+              onClick={onDeleteOk}
+            >
+              {removeLoading && (
+                <LoaderCircle className="transition-transform animate-spin" />
+              )}
+              {t('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

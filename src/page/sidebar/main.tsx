@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { Sparkles, History, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -26,20 +27,19 @@ export function NavMain(props: IProps) {
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton asChild isActive={active}>
-          <div className="flex items-center justify-between">
-            <div
-              className="flex flex-grow gap-2 items-center cursor-pointer"
-              onClick={onChat}
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>{t('chat.title')}</span>
-            </div>
-            <History
-              className="cursor-pointer w-4 h-4"
-              onClick={onChatHistory}
-            />
+          <div className="flex cursor-pointer" onClick={onChat}>
+            <Sparkles className="w-4 h-4" />
+            <span>{t('chat.title')}</span>
           </div>
         </SidebarMenuButton>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onChatHistory}
+          className="p-0 w-5 h-5 [&_svg]:size-4 absolute top-[6px] z-10 right-0 focus-visible:outline-none focus-visible:ring-transparent"
+        >
+          <History className="focus-visible:outline-none focus-visible:ring-transparent" />
+        </Button>
       </SidebarMenuItem>
       <SidebarMenuItem>
         <SidebarMenuButton asChild>

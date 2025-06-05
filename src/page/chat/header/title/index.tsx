@@ -1,10 +1,11 @@
+import Title, { ITitleProps } from './title';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BreadcrumbPage } from '@/components/ui/breadcrumb';
 
-export default function ChatHeaderTitle() {
+export default function ChatHeaderTitle(props: ITitleProps) {
   const app = useApp();
   const { t } = useTranslation();
   const i18nTitle = t('chat.conversations.new');
@@ -29,5 +30,9 @@ export default function ChatHeaderTitle() {
     });
   }, [data]);
 
-  return <BreadcrumbPage className="line-clamp-1">{data}</BreadcrumbPage>;
+  return (
+    <BreadcrumbPage className="line-clamp-1">
+      <Title {...props} data={data} editable />
+    </BreadcrumbPage>
+  );
 }
