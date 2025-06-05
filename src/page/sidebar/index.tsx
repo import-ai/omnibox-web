@@ -24,7 +24,11 @@ interface IData {
   [index: string]: IResourceData;
 }
 
-export default function MainSidebar() {
+interface IProps {
+  onSearch: () => void;
+}
+
+export default function MainSidebar({ onSearch }: IProps) {
   const app = useApp();
   const params = useParams();
   const loc = useLocation();
@@ -372,7 +376,11 @@ export default function MainSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Switcher namespace_id={namespace_id} />
-        <NavMain active={chatPage} onActiveKey={handleActiveKey} />
+        <NavMain
+          active={chatPage}
+          onActiveKey={handleActiveKey}
+          onSearch={onSearch}
+        />
       </SidebarHeader>
       <SidebarContent>
         {spaceTypes.map((space_type: string) => {
