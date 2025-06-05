@@ -38,7 +38,7 @@ export default function useContext() {
     showLoading && onLoading(true);
     http
       .get(
-        `/namespaces/${namespaceId}/conversations?offset=${current - 1}&limit=${pageSize}&order=desc`,
+        `/namespaces/${namespaceId}/conversations?offset=${(current - 1) * pageSize}&limit=${pageSize}&order=desc`,
       )
       .then(onData)
       .finally(() => {
@@ -65,7 +65,7 @@ export default function useContext() {
 
   useEffect(() => {
     refetch(true);
-  }, [namespaceId]);
+  }, [namespaceId, current, pageSize]);
 
   return {
     data,
