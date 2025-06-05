@@ -166,7 +166,6 @@ export default function MainSidebar({ onSearch }: IProps) {
       }
     }
     if (id !== resource_id) {
-      // 直接删除父级
       const parentIndex = data[space_type].children.findIndex(
         (node) => node.id === parent_id,
       );
@@ -353,7 +352,6 @@ export default function MainSidebar({ onSearch }: IProps) {
   }, [chatPage, namespace_id, resource_id, data]);
 
   useEffect(() => {
-    // 未登陆不请求数据
     if (!localStorage.getItem('uid')) {
       return;
     }

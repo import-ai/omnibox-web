@@ -11,7 +11,7 @@ import type {
 } from 'axios';
 
 interface RequestConfig extends AxiosRequestConfig {
-  // 是否显示错误提示，默认为 true
+  // Whether to show error messages, default is true
   mute?: boolean;
 }
 
@@ -88,7 +88,7 @@ request.interceptors.response.use(
   },
 );
 
-// 封装请求方法
+// Encapsulated request methods
 export const http = {
   get: <T = any>(url: string, config?: RequestConfig): Promise<any> => {
     return request.get<T>(url, config);

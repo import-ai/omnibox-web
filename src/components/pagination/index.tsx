@@ -28,10 +28,8 @@ export default function PaginationMain({
     setCurrentPage(page);
     onChange && onChange(page, pageSize);
   };
-
-  // 计算要显示的页码
   const getPageNumbers = () => {
-    const delta = 2; // 当前页左右各显示多少个页码
+    const delta = 2;
     const range = [];
     const rangeWithDots = [];
     let l;

@@ -5,7 +5,6 @@ import { SearchMenu } from '@/page/search/search';
 import { useState } from 'react';
 
 export default function NamespacePage() {
-  // 未登陆不加载页面
   if (!localStorage.getItem('uid')) {
     return null;
   }

@@ -73,7 +73,6 @@ export default function Editor(props: IEditorProps) {
     });
     return () => {
       if (vditor.current?.vditor) {
-        // 检查核心对象是否存在
         try {
           vditor.current.destroy();
         } catch (e) {
