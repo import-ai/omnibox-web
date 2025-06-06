@@ -43,9 +43,7 @@ export default function Space(props: IProps) {
   return (
     <SidebarGroup>
       <div className="flex items-center justify-between">
-        <SidebarGroupLabel>{`${space_type
-          .charAt(0)
-          .toUpperCase()}${space_type.slice(1)}`}</SidebarGroupLabel>
+        <SidebarGroupLabel>{t(space_type)}</SidebarGroupLabel>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuAction className="my-1.5 right-2 focus-visible:outline-none focus-visible:ring-transparent">
@@ -63,7 +61,7 @@ export default function Space(props: IProps) {
                 onCreate(namespace_id, space_type, data.id, 'doc');
               }}
             >
-              {t('create_file')}
+              {t('actions.create_file')}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer"
@@ -71,10 +69,10 @@ export default function Space(props: IProps) {
                 onCreate(namespace_id, space_type, data.id, 'folder');
               }}
             >
-              {t('create_folder')}
+              {t('actions.create_folder')}
             </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer" onClick={handleSelect}>
-              {t('upload_file')}
+              {t('actions.upload_file')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

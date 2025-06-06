@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LanguageToggle } from '@/i18n/language-toggle';
@@ -40,13 +40,14 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface IProps {
+  data: string;
   conversationId: string;
   conversationsPage: boolean;
   namespaceId: string;
 }
 
 export default function Actions(props: IProps) {
-  const { conversationId, conversationsPage, namespaceId } = props;
+  const { data, conversationId, conversationsPage, namespaceId } = props;
   const app = useApp();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ export default function Actions(props: IProps) {
                           onClick={() => handleAction('rename')}
                         >
                           <Edit2 />
-                          <span>{t('rename')}</span>
+                          <span>{t('chat.conversations.rename.option')}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                       <SidebarMenuItem>
@@ -138,7 +139,7 @@ export default function Actions(props: IProps) {
                           onClick={() => handleAction('delete')}
                         >
                           <Trash2 />
-                          <span>{t('delete')}</span>
+                          <span>{t('chat.conversations.delete.option')}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     </SidebarMenu>
@@ -152,9 +153,17 @@ export default function Actions(props: IProps) {
       <AlertDialog open={remove}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确定删除对话？</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('chat.conversations.delete.dialog.title')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              删除后，聊天记录将不可恢复。
+              <Trans
+                i18nKey="chat.conversations.delete.dialog.description"
+                values={{ title: data }}
+                components={{
+                  strong: <strong className="font-bold" />,
+                }}
+              />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

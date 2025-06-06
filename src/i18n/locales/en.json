@@ -2,22 +2,15 @@
   "back_to_front": "Back to Front",
   "untitled": "Untitled",
   "edit": "Edit",
-  "create_file": "Create File",
-  "create_folder": "Create Folder",
-  "upload_file": "Upload File",
   "delete": "Delete",
   "rename": "Rename",
-  "add_all_to_context": "Add all to Context",
-  "add_it_to_context": "Add it to Context",
-  "stop": "Stop",
-  "send": "Send",
   "cancel": "Cancel",
   "ok": "OK",
   "updated": "Updated",
   "created": "Created",
-  "clear_all": "Clear All",
   "no_pages_inside": "No pages inside",
-  "not_support_readablestream": "ReadableStream not yet supported in this browser.",
+  "private": "Private",
+  "teamspace": "Teamspace",
   "error": {
     "title": "404 Not Found"
   },
@@ -34,7 +27,12 @@
     "copy_link": "Copy Link",
     "duplicate": "Duplicate",
     "move_to_trash": "Move to Trash",
-    "import": "Import"
+    "import": "Import",
+    "create_file": "Create File",
+    "create_folder": "Create Folder",
+    "upload_file": "Upload File",
+    "add_all_to_context": "Add all to Context",
+    "add_it_to_context": "Add it to Context"
   },
   "form": {
     "or": "or",
@@ -177,11 +175,14 @@
     "invite_placeholder": "Email address or group, separated by commas"
   },
   "copy": {
+    "title": "Copy",
     "success": "Copied successfully",
     "fail": "Copy failed, please copy manually"
   },
   "chat": {
     "title": "Chat",
+    "citations": "Citations",
+    "citations_results": "Search Results",
     "conversations": {
       "new": "New conversation",
       "empty": "No conversation yet",
@@ -239,5 +240,16 @@
     "lang": {
       "name": "English"
     }
+  },
+  "pagination": {
+    "prev": "Previous",
+    "next": "Next",
+    "more_pages": "More Pages"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search resources or chats...",
+    "resources": "Resources",
+    "chats": "Chats"
   }
 }

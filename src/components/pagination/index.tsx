@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Pagination,
   PaginationItem,
@@ -22,6 +23,7 @@ export default function PaginationMain({
   pageSize = 10,
   onChange,
 }: PaginationProps) {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(current);
   const totalPages = Math.ceil(total / pageSize);
   const handlePageChange = (page: number) => {
@@ -64,6 +66,7 @@ export default function PaginationMain({
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
+            previousText={t('pagination.prev')}
             onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
             className={
               currentPage <= 1
@@ -76,7 +79,7 @@ export default function PaginationMain({
         {getPageNumbers().map((pageNumber, index) => (
           <PaginationItem key={index}>
             {pageNumber === '...' ? (
-              <PaginationEllipsis />
+              <PaginationEllipsis more_pages={t('pagination.more_pages')} />
             ) : (
               <PaginationLink
                 href="#"
@@ -93,6 +96,7 @@ export default function PaginationMain({
         ))}
         <PaginationItem>
           <PaginationNext
+            nextText={t('pagination.next')}
             onClick={() =>
               currentPage < totalPages && handlePageChange(currentPage + 1)
             }

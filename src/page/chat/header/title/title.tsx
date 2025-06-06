@@ -6,13 +6,13 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 export interface ITitleProps {
+  data: string;
   namespaceId: string;
   conversationId: string;
 }
 
 interface IProps extends ITitleProps {
   editable: boolean;
-  data: string;
 }
 
 export default function HeaderTitle(props: IProps) {

@@ -2,22 +2,15 @@
   "back_to_front": "返回首页",
   "untitled": "未命名",
   "edit": "编辑",
-  "create_file": "创建文件",
-  "create_folder": "创建文件夹",
-  "upload_file": "上传文件",
   "delete": "删除",
   "rename": "重命名",
-  "add_all_to_context": "全部添加到上下文",
-  "add_it_to_context": "添加到上下文",
-  "stop": "停止",
-  "send": "发送",
   "cancel": "取消",
   "ok": "确定",
   "updated": "已更新",
   "created": "已创建",
-  "clear_all": "清空全部",
   "no_pages_inside": "内无页面",
-  "not_support_readablestream": "此浏览器尚不支持 ReadableStream。",
+  "private": "私人",
+  "teamspace": "团队",
   "error": {
     "title": "404 页面未找到"
   },
@@ -34,7 +27,12 @@
     "copy_link": "复制链接",
     "duplicate": "复制",
     "move_to_trash": "移动到回收站",
-    "import": "导入"
+    "import": "导入",
+    "create_file": "创建文件",
+    "create_folder": "创建文件夹",
+    "upload_file": "上传文件",
+    "add_all_to_context": "全部添加到上下文",
+    "add_it_to_context": "添加到上下文"
   },
   "form": {
     "or": "或",
@@ -177,11 +175,14 @@
     "invite_placeholder": "邮件地址或群组，以逗号分隔"
   },
   "copy": {
+    "title": "复制",
     "success": "已复制到剪贴板",
     "fail": "复制失败，请手动复制"
   },
   "chat": {
     "title": "聊天",
+    "citations": "资料",
+    "citations_results": "搜索结果",
     "conversations": {
       "new": "新对话",
       "empty": "暂无对话",
@@ -239,5 +240,16 @@
     "lang": {
       "name": "简体中文"
     }
+  },
+  "pagination": {
+    "prev": "前页",
+    "next": "下页",
+    "more_pages": "更多"
+  },
+  "search": {
+    "title": "搜索",
+    "placeholder": "搜索页面、文件、对话等",
+    "resources": "资源",
+    "chats": "对话"
   }
 }

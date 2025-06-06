@@ -48,7 +48,7 @@ export function NavMain(props: IProps) {
             onClick={onSearch}
           >
             <Search className="w-4 h-4" />
-            <span>{t('search.title', 'Search')}</span>
+            <span>{t('search.title')}</span>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>

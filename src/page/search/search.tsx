@@ -5,6 +5,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { http } from '@/lib/request';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -18,6 +19,7 @@ export interface IProps {
 export function SearchMenu({ open, onOpenChange }: IProps) {
   const params = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [keywords, setKeywords] = useState('');
   const [items, setItems] = useState<any[]>([]);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -103,13 +105,13 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
       }}
     >
       <CommandInput
-        placeholder="Search resources or chats..."
+        placeholder={t('search.placeholder')}
         value={keywords}
         onValueChange={setKeywords}
       />
       <CommandList>
         {resources.length > 0 && (
-          <CommandGroup heading="Resources">
+          <CommandGroup heading={t('search.resources')}>
             {resources.map((resource) => (
               <CommandItem
                 key={resource.id}
@@ -130,7 +132,7 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
           </CommandGroup>
         )}
         {messages.length > 0 && (
-          <CommandGroup heading="Chats">
+          <CommandGroup heading={t('search.chats')}>
             {messages.map((message) => (
               <CommandItem
                 key={message.id}
