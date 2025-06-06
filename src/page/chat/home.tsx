@@ -23,6 +23,7 @@ export default function ChatHomePage() {
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [tools, onToolsChange] = useState<Array<ToolType>>([
     ToolType.KNOWLEDGE_SEARCH,
+    ToolType.REASONING,
   ]);
   const handleAction = () => {
     http
