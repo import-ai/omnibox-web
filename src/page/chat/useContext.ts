@@ -1,11 +1,7 @@
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
 import { useEffect, useState } from 'react';
-
-export interface IResTypeContext {
-  type: string;
-  resource: Resource;
-}
+import { IResTypeContext } from '@/page/chat/chat-input/types';
 
 interface IProps {
   data: IResTypeContext[];

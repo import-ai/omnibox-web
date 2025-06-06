@@ -4,10 +4,10 @@ import { getGreeting } from './utils';
 import ChatArea from './chat-input';
 import useContext from './useContext';
 import useUser from '@/hooks/use-user';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Typewriter } from '@/components/typewriter';
-import { ToolType } from '@/page/chat/chat-input/types';
+import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function ChatHomePage() {
@@ -20,6 +20,7 @@ export default function ChatHomePage() {
   const namespaceId = params.namespace_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
   const { context, onContextChange } = useContext({ data: [] });
+  const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [tools, onToolsChange] = useState<Array<ToolType>>([
     ToolType.KNOWLEDGE_SEARCH,
   ]);
@@ -34,6 +35,7 @@ export default function ChatHomePage() {
             tools,
             namespaceId,
             conversationId: conversation.id,
+            mode,
           },
         });
       });
@@ -64,6 +66,8 @@ export default function ChatHomePage() {
         onToolsChange={onToolsChange}
         onContextChange={onContextChange}
         loading={false}
+        mode={mode}
+        setMode={setMode}
       />
     </div>
   );
