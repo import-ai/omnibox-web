@@ -6,9 +6,9 @@ import { useTranslation } from 'react-i18next';
 
 const datasource = [
   {
-    label: 'web_search',
-    value: ToolType.WEB_SEARCH,
-    icon: <Globe />,
+    label: 'knowledge_search',
+    value: ToolType.KNOWLEDGE_SEARCH,
+    icon: <Sparkles />,
   },
   {
     label: 'reasoning',
@@ -16,9 +16,9 @@ const datasource = [
     icon: <Lightbulb />,
   },
   {
-    label: 'knowledge_search',
-    value: ToolType.KNOWLEDGE_SEARCH,
-    icon: <Sparkles />,
+    label: 'web_search',
+    value: ToolType.WEB_SEARCH,
+    icon: <Globe />,
   },
 ];
 
