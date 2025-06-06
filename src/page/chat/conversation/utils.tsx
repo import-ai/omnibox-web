@@ -1,5 +1,8 @@
-import { IResTypeContext } from '@/page/chat/useContext';
-import { ToolType } from '@/page/chat/chat-input/types';
+import {
+  ChatMode,
+  type IResTypeContext,
+  ToolType,
+} from '@/page/chat/chat-input/types';
 import {
   ChatRequestBody,
   KnowledgeSearch,
@@ -72,6 +75,7 @@ export function ask(
   context: IResTypeContext[],
   messages: MessageDetail[],
   messageOperator: MessageOperator,
+  mode: ChatMode = ChatMode.ASK,
 ) {
   const body = prepareBody(
     namespaceId,
@@ -81,7 +85,7 @@ export function ask(
     context,
     messages,
   );
-  return stream('/api/v1/wizard/ask', body, async (data) => {
+  return stream(`/api/v1/wizard/${mode}`, body, async (data) => {
     const chatResponse: ChatResponse = JSON.parse(data);
     if (chatResponse.response_type === 'bos') {
       messageOperator.add(chatResponse);

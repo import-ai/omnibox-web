@@ -2,19 +2,25 @@ import ChatTool from './chat-tool';
 import ChatContext from './context';
 import ChatInput from './input';
 import ChatAction from './action';
-import { IResTypeContext } from '@/page/chat/useContext';
-import { ToolType } from '@/page/chat/chat-input/types';
+import {
+  type ChatActionType,
+  ChatMode,
+  IResTypeContext,
+  ToolType,
+} from '@/page/chat/chat-input/types';
 import { useMemo } from 'react';
 
 interface IProps {
   value: string;
   onChange: (value: string) => void;
-  onAction: (action?: 'stop' | 'disabled') => void;
+  onAction: (action?: ChatActionType) => void;
   tools: Array<ToolType>;
   loading: boolean;
   onToolsChange: (tool: Array<ToolType>) => void;
   context: IResTypeContext[];
   onContextChange: (context: IResTypeContext[]) => void;
+  mode: ChatMode;
+  setMode: (mode: ChatMode) => void;
 }
 
 export default function ChatArea(props: IProps) {
@@ -27,6 +33,8 @@ export default function ChatArea(props: IProps) {
     loading,
     onToolsChange,
     onContextChange,
+    mode,
+    setMode,
   } = props;
 
   const disabled = useMemo(() => {
@@ -43,7 +51,13 @@ export default function ChatArea(props: IProps) {
           tools={tools}
           onToolsChange={onToolsChange}
         />
-        <ChatAction onAction={onAction} disabled={disabled} loading={loading} />
+        <ChatAction
+          onAction={onAction}
+          disabled={disabled}
+          loading={loading}
+          mode={mode}
+          setMode={setMode}
+        />
       </div>
     </div>
   );
