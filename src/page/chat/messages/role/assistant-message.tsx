@@ -8,6 +8,10 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Loader2Icon } from 'lucide-react';
+import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/types/chat-response';
 import { Button } from '@/components/ui/button';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown';
 
@@ -46,6 +50,7 @@ export function AssistantMessage(props: IProps) {
     domList.push(
       <CitationMarkdown
         key="content"
+        status={message.status}
         content={openAIMessage.content?.trim()}
         citations={citations}
         citePattern={citeRegex}
@@ -53,10 +58,17 @@ export function AssistantMessage(props: IProps) {
     );
   }
   if (openAIMessage.tool_calls) {
+    const lastMessage = messages[messages.length - 1];
     domList.push(
       <div
         key="tool-calls"
-        hidden={messages[messages.length - 1].id !== message.id}
+        hidden={
+          lastMessage.id !== message.id &&
+          !(
+            lastMessage.message.role === OpenAIMessageRole.TOOL &&
+            lastMessage.status === MessageStatus.PENDING
+          )
+        }
       >
         <Button disabled size="sm" variant="secondary">
           <Loader2Icon className="animate-spin" />

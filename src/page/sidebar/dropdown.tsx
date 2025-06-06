@@ -127,16 +127,16 @@ export default function MainDropdownMenu(props: IResourceProps) {
             className="cursor-pointer"
             onClick={handleCreateFile}
           >
-            {t('create_file')}
+            {t('actions.create_file')}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={handleCreateFolder}
           >
-            {t('create_folder')}
+            {t('actions.create_folder')}
           </DropdownMenuItem>
           <DropdownMenuItem className="cursor-pointer" onClick={handleSelect}>
-            {t('upload_file')}
+            {t('actions.upload_file')}
           </DropdownMenuItem>
           <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
             {t('edit')}
@@ -146,14 +146,14 @@ export default function MainDropdownMenu(props: IResourceProps) {
               className="cursor-pointer"
               onClick={handleAddAllToChat}
             >
-              {t('add_all_to_context')}
+              {t('actions.add_all_to_context')}
             </DropdownMenuItem>
           )}
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={handleAddToChat}
           >
-            {t('add_it_to_context')}
+            {t('actions.add_it_to_context')}
           </DropdownMenuItem>
           <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
             {t('delete')}

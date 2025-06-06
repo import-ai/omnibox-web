@@ -29,15 +29,13 @@ export const Typewriter = ({
   }, [onComplete]);
 
   useEffect(() => {
-    /***
-     * Each time htmlString changes,
-     * only add new characters from the end of the currently displayed text.
-     */
     const startTyping = () => {
-      let currentIndex = displayedText.length;
+      let currentIndex = 0;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
       intervalRef.current = setInterval(() => {
         if (currentIndex < text.length) {
-          // Only add new characters, do not reset old text
           setDisplayedText(text.slice(0, currentIndex + 1));
           currentIndex++;
         } else {
@@ -48,19 +46,13 @@ export const Typewriter = ({
         }
       }, typeSpeed);
     };
-
-    // If there is new text, start typing animation
-    if (text.length > displayedText.length) {
-      // Start typing immediately, no need to wait for delay
-      startTyping();
-    }
-    // If targetText decreases or resets, consider handling it自行處理
+    startTyping();
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [text, typeSpeed]);
+  }, [text]);
 
   if (renderMarkdown) {
     return (

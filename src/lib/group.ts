@@ -29,7 +29,7 @@ export default function group(node: IResourceData) {
     }
   });
 
-  // 非递归排序实现
+  // Non-recursive sorting implementation
   const stack: IResourceData[] = [...roots.children];
 
   while (stack.length > 0) {
@@ -44,7 +44,7 @@ export default function group(node: IResourceData) {
     stack.push(...currentNode.children);
   }
 
-  // 最后排序根节点
+  // Finally, sort the root nodes
   return {
     ...roots,
     children: orderBy(roots.children, ['updated_at'], ['desc']),

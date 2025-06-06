@@ -7,7 +7,15 @@ export default function useContext() {
   const params = useParams();
   const namespaceId = params.namespace_id || '';
   const [loading, onLoading] = useState(false);
-  const [data, onData] = useState<Array<ConversationSummary>>([]);
+  const [current, onCurrent] = useState(1);
+  const [pageSize] = useState(20);
+  const [data, onData] = useState<{
+    total: number;
+    data: ConversationSummary[];
+  }>({
+    total: 0,
+    data: [],
+  });
   const [edit, onEdit] = useState<{
     id: string;
     title: string;
@@ -29,11 +37,16 @@ export default function useContext() {
   const refetch = (showLoading?: boolean) => {
     showLoading && onLoading(true);
     http
-      .get(`/namespaces/${namespaceId}/conversations`)
+      .get(
+        `/namespaces/${namespaceId}/conversations?offset=${(current - 1) * pageSize}&limit=${pageSize}&order=desc`,
+      )
       .then(onData)
       .finally(() => {
         showLoading && onLoading(false);
       });
+  };
+  const onPagerChange = (page: number) => {
+    onCurrent(page);
   };
   const onEditDone = () => {
     onEdit({ id: '', title: '', open: false });
@@ -52,12 +65,14 @@ export default function useContext() {
 
   useEffect(() => {
     refetch(true);
-  }, [namespaceId]);
+  }, [namespaceId, current, pageSize]);
 
   return {
     data,
     edit,
+    current,
     loading,
+    pageSize,
     onEdit,
     remove,
     refetch,
@@ -67,5 +82,6 @@ export default function useContext() {
     onRemoveDone,
     namespaceId,
     onRemoveChange,
+    onPagerChange,
   };
 }

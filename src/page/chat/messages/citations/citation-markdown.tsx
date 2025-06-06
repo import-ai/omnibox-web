@@ -1,3 +1,4 @@
+import Copy from './actions/copy';
 import React, { useEffect } from 'react';
 import Markdown, { ExtraProps } from 'react-markdown';
 import { cleanIncompletedCitation } from '@/page/chat/messages/citations/utils';
@@ -8,6 +9,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
+import { MessageStatus } from '@/page/chat/types/chat-response';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
@@ -24,11 +26,13 @@ interface IProps {
   content: string;
   citations: Citation[];
   citePattern: RegExp;
+  status: MessageStatus;
   removeGeneratedCite?: boolean;
 }
 
 export function CitationMarkdown(props: IProps) {
-  const { content, citations, citePattern, removeGeneratedCite } = props;
+  const { content, status, citations, citePattern, removeGeneratedCite } =
+    props;
   const cleanedContent = cleanIncompletedCitation(content);
   const replacedContent = replaceCiteTag(cleanedContent, citePattern);
   const { theme } = useTheme();
@@ -96,6 +100,11 @@ export function CitationMarkdown(props: IProps) {
       >
         {replacedContent}
       </Markdown>
+      {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
+        <div className="flex mt-[-10px]">
+          <Copy content={content} />
+        </div>
+      )}
     </div>
   );
 }

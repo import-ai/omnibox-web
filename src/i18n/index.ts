@@ -6,7 +6,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
-  // 所有配置选项: https://www.i18next.com/overview/configuration-options
+  // options: https://www.i18next.com/overview/configuration-options
   .init({
     fallbackLng: 'en-US',
     resources: locales,
