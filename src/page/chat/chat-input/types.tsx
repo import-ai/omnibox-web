@@ -2,14 +2,16 @@ import { Resource } from '@/interface.ts';
 
 export enum ToolType {
   WEB_SEARCH = 'web_search',
-  KNOWLEDGE_SEARCH = 'knowledge_search',
+  PRIVATE_SEARCH = 'private_search',
   REASONING = 'reasoning',
 }
 
 export type ChatActionType = 'stop' | 'disabled';
 
+export type PrivateSearchResourceType = 'resource' | 'folder';
+
 export interface IResTypeContext {
-  type: string;
+  type: PrivateSearchResourceType;
   resource: Resource;
 }
 

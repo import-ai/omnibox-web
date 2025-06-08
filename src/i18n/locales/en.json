@@ -211,7 +211,7 @@
     },
     "tools": {
       "web_search": "Web Search",
-      "knowledge_search": "OmniBox",
+      "private_search": "OmniBox",
       "reasoning": "Reason"
     },
     "textarea": {

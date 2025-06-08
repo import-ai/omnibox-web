@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 
 const datasource = [
   {
-    label: 'knowledge_search',
-    value: ToolType.KNOWLEDGE_SEARCH,
+    label: 'private_search',
+    value: ToolType.PRIVATE_SEARCH,
     icon: <Sparkles />,
   },
   {
@@ -51,8 +51,7 @@ export default function ChatTool(props: IProps) {
             {
               'text-blue-600 dark:text-blue-400':
                 tools.includes(item.value) ||
-                (item.value === ToolType.KNOWLEDGE_SEARCH &&
-                  context.length > 0),
+                (item.value === ToolType.PRIVATE_SEARCH && context.length > 0),
             },
           )}
         >

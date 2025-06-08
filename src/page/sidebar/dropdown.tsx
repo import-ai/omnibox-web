@@ -81,10 +81,10 @@ export default function MainDropdownMenu(props: IResourceProps) {
     if (!location.pathname.includes('/chat')) {
       onActiveKey('chat');
       setTimeout(() => {
-        app.fire('context', data, 'parent');
+        app.fire('context', data, 'folder');
       }, 100);
     } else {
-      app.fire('context', data, 'parent');
+      app.fire('context', data, 'folder');
     }
   };
   const handleDelete = () => {

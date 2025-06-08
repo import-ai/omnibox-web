@@ -67,7 +67,7 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
         .filter((item) => item.type === 'resource')
         .map((item) => ({
           ...item,
-          name: item.name || 'Untitled',
+          name: item.name || t('untitled'),
           content: item.content || '',
         }))
         .map((item) => ({
