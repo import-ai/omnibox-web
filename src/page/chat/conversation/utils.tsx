@@ -1,25 +1,28 @@
-import { IResTypeContext } from '@/page/chat/useContext';
-import { ToolType } from '@/page/chat/chat-input/types';
 import {
+  ChatMode,
+  type IResTypeContext,
+  ToolType,
+} from '@/page/chat/chat-input/types';
+import type {
   ChatRequestBody,
-  KnowledgeSearch,
+  PrivateSearch,
+  PrivateSearchResource,
 } from '@/page/chat/conversation/types';
 import { MessageDetail } from '@/page/chat/types/conversation';
 import { stream } from '@/page/chat/utils';
 import { ChatResponse } from '@/page/chat/types/chat-response';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 
-export function getCondition(context: IResTypeContext[]) {
-  const parents = context
-    .filter((rc) => rc.type === 'parent')
-    .map((rc) => rc.resource);
-  const resources = context
-    .filter((rc) => rc.type === 'resource')
-    .map((rc) => rc.resource);
-  return {
-    parentIds: parents.length > 0 ? parents.map((r) => r.id) : undefined,
-    resourceIds: resources.length > 0 ? resources.map((r) => r.id) : undefined,
-  };
+function getPrivateSearchResources(
+  context: IResTypeContext[],
+): PrivateSearchResource[] {
+  return context.map((item) => {
+    return {
+      name: item.resource.name || '',
+      id: item.resource.id,
+      type: item.type,
+    } as PrivateSearchResource;
+  });
 }
 
 export function prepareBody(
@@ -35,21 +38,20 @@ export function prepareBody(
     conversation_id: conversationId,
     query,
   };
-  if (context.length > 0 && !tools.includes(ToolType.KNOWLEDGE_SEARCH)) {
-    tools = [ToolType.KNOWLEDGE_SEARCH, ...tools];
+  if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
+    tools = [ToolType.PRIVATE_SEARCH, ...tools];
   }
   for (const tool of tools) {
     if (tool === ToolType.REASONING) {
       body.enable_thinking = true;
-    } else if (tool === ToolType.KNOWLEDGE_SEARCH) {
+    } else if (tool === ToolType.PRIVATE_SEARCH) {
       body.tools = body?.tools || [];
-      const { parentIds, resourceIds } = getCondition(context);
-      body.tools.push({
-        name: tool,
+      const tool: PrivateSearch = {
+        name: ToolType.PRIVATE_SEARCH,
         namespace_id: namespaceId,
-        parent_ids: parentIds,
-        resource_ids: resourceIds,
-      } as KnowledgeSearch);
+        resources: getPrivateSearchResources(context),
+      };
+      body.tools.push(tool);
     } else if (tool === ToolType.WEB_SEARCH) {
       body.tools = body?.tools || [];
       body.tools.push({ name: tool });
@@ -72,6 +74,7 @@ export function ask(
   context: IResTypeContext[],
   messages: MessageDetail[],
   messageOperator: MessageOperator,
+  mode: ChatMode = ChatMode.ASK,
 ) {
   const body = prepareBody(
     namespaceId,
@@ -81,7 +84,7 @@ export function ask(
     context,
     messages,
   );
-  return stream('/api/v1/wizard/ask', body, async (data) => {
+  return stream(`/api/v1/wizard/${mode}`, body, async (data) => {
     const chatResponse: ChatResponse = JSON.parse(data);
     if (chatResponse.response_type === 'bos') {
       messageOperator.add(chatResponse);

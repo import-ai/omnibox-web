@@ -2,8 +2,8 @@ import Badge from '@/components/badge';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { X, FileText, Folder } from 'lucide-react';
-import { IResTypeContext } from '@/page/chat/useContext';
+import { FileText, Folder, X } from 'lucide-react';
+import { IResTypeContext } from '@/page/chat/chat-input/types';
 
 interface IProps {
   value: IResTypeContext[];
@@ -23,7 +23,7 @@ export default function ChatContext(props: IProps) {
     <div className="flex items-center gap-1 pt-2 mt-[-8px] max-w-3xl overflow-x-auto no-scrollbar">
       {value.map((item) => (
         <Badge
-          key={item.resource.id}
+          key={`${item.resource.id}_${item.type}`}
           slot={
             <Button
               size="icon"
@@ -31,7 +31,11 @@ export default function ChatContext(props: IProps) {
               onClick={() => {
                 onChange(
                   value.filter(
-                    (target) => target.resource.id !== item.resource.id,
+                    (target) =>
+                      !(
+                        target.resource.id === item.resource.id &&
+                        target.type === item.type
+                      ),
                   ),
                 );
               }}

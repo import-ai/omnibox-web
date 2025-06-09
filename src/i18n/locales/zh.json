@@ -221,7 +221,7 @@
     },
     "tools": {
       "web_search": "联网搜索",
-      "knowledge_search": "本地搜索",
+      "private_search": "本地搜索",
       "reasoning": "深度思考"
     },
     "textarea": {

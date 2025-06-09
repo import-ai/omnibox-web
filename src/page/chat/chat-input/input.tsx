@@ -1,11 +1,12 @@
 import { Textarea } from '@/components/ui/textarea';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import type { ChatActionType } from '@/page/chat/chat-input/types';
 
 interface IProps {
   value: string;
   onChange: (value: string) => void;
-  onAction: (action?: 'stop' | 'disabled') => void;
+  onAction: (action?: ChatActionType) => void;
 }
 
 export default function ChatInput(props: IProps) {

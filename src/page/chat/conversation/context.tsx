@@ -2,14 +2,19 @@ import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { isFunction } from 'lodash-es';
 import { ask } from '@/page/chat/conversation/utils';
-import { ToolType } from '@/page/chat/chat-input/types';
-import { useRef, useEffect, useMemo, useState } from 'react';
+import {
+  type ChatActionType,
+  ChatMode,
+  type IResTypeContext,
+  ToolType,
+} from '@/page/chat/chat-input/types';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigationType, useParams } from 'react-router-dom';
 import {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/types/conversation';
-import useGlobalContext, { IResTypeContext } from '@/page/chat/useContext';
+import useGlobalContext from '@/page/chat/useContext';
 import {
   createMessageOperator,
   MessageOperator,
@@ -21,6 +26,7 @@ interface StateProps {
   tools?: ToolType[];
   namespaceId?: string;
   conversationId?: string;
+  mode?: ChatMode;
 }
 
 export default function useContext() {
@@ -39,6 +45,7 @@ export default function useContext() {
   const [loading, setLoading] = useState<boolean>(
     allowAsk && routeQuery !== undefined && routeQuery.trim().length > 0,
   );
+  const [mode, setMode] = useState<ChatMode>(state?.mode || ChatMode.ASK);
   const { context, onContextChange } = useGlobalContext({
     data: state?.context || [],
   });
@@ -69,18 +76,18 @@ export default function useContext() {
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(setConversation);
   }, [setConversation]);
-  const onAction = async (action?: 'stop' | 'disabled') => {
+  const onAction = async (action?: ChatActionType) => {
     if (action === 'stop') {
       isFunction(askAbortRef.current) && askAbortRef.current();
       setLoading(false);
       return;
+    } else {
+      const v = value.trim();
+      if (v) {
+        onChange('');
+        await submit(v);
+      }
     }
-    const v = value.trim();
-    if (!v) {
-      return;
-    }
-    onChange('');
-    await submit(v);
   };
   const submit = async (query?: string) => {
     if (!query || query.trim().length === 0) {
@@ -96,6 +103,7 @@ export default function useContext() {
         context,
         messages,
         messageOperator,
+        mode,
       );
       askAbortRef.current = askFN.destory;
       await askFN.start();
@@ -120,5 +128,7 @@ export default function useContext() {
     context,
     onToolsChange,
     onContextChange,
+    mode,
+    setMode,
   };
 }

@@ -8,16 +8,19 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
   disabled: boolean;
-  onAction: (action?: 'stop' | 'disabled') => void;
+  onAction: (action?: ChatActionType) => void;
   loading: boolean;
+  mode: ChatMode;
+  setMode: (mode: ChatMode) => void;
 }
 
 export default function ChatAction(props: IActionProps) {
   const { t } = useTranslation();
-  const { disabled, onAction, loading } = props;
+  const { disabled, onAction, loading, mode, setMode } = props;
   const onStop = () => {
     onAction('stop');
   };
@@ -37,15 +40,21 @@ export default function ChatAction(props: IActionProps) {
             variant="ghost"
             className="font-normal pl-2 pr-1 mr-1"
           >
-            {t('chat.action.mode.ask')}
+            {t('chat.action.mode.' + mode)}
             <ChevronDown />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="bottom" align="end">
-          <DropdownMenuCheckboxItem checked={true}>
+          <DropdownMenuCheckboxItem
+            checked={mode === ChatMode.ASK}
+            onCheckedChange={() => setMode(ChatMode.ASK)}
+          >
             {t('chat.action.mode.ask')}
           </DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem disabled>
+          <DropdownMenuCheckboxItem
+            checked={mode === ChatMode.WRITE}
+            onCheckedChange={() => setMode(ChatMode.WRITE)}
+          >
             {t('chat.action.mode.write')}
           </DropdownMenuCheckboxItem>
         </DropdownMenuContent>

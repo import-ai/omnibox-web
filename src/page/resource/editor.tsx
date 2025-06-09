@@ -1,9 +1,10 @@
 import Vditor from 'vditor';
 import { http } from '@/lib/request';
+import { VDITOR_CDN } from '@/const';
 import { Resource } from '@/interface';
 import useTheme from '@/hooks/use-theme';
 import { Input } from '@/components/ui/input';
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 
 interface IEditorProps {
@@ -50,7 +51,7 @@ export default function Editor(props: IEditorProps) {
       return;
     }
     vditor.current = new Vditor(root.current, {
-      cdn: 'https://cdn.jsdelivr.net/npm/vditor@3.10.8',
+      ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
       cache: { id: `_${resource.id}` },
       preview: {
         hljs: {

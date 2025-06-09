@@ -1,15 +1,14 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Globe, Lightbulb, Sparkles } from 'lucide-react';
-import { ToolType } from '@/page/chat/chat-input/types';
-import { IResTypeContext } from '@/page/chat/useContext';
+import { type IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 import { useTranslation } from 'react-i18next';
 
 const datasource = [
   {
-    label: 'web_search',
-    value: ToolType.WEB_SEARCH,
-    icon: <Globe />,
+    label: 'private_search',
+    value: ToolType.PRIVATE_SEARCH,
+    icon: <Sparkles />,
   },
   {
     label: 'reasoning',
@@ -17,9 +16,9 @@ const datasource = [
     icon: <Lightbulb />,
   },
   {
-    label: 'knowledge_search',
-    value: ToolType.KNOWLEDGE_SEARCH,
-    icon: <Sparkles />,
+    label: 'web_search',
+    value: ToolType.WEB_SEARCH,
+    icon: <Globe />,
   },
 ];
 
@@ -52,8 +51,7 @@ export default function ChatTool(props: IProps) {
             {
               'text-blue-600 dark:text-blue-400':
                 tools.includes(item.value) ||
-                (item.value === ToolType.KNOWLEDGE_SEARCH &&
-                  context.length > 0),
+                (item.value === ToolType.PRIVATE_SEARCH && context.length > 0),
             },
           )}
         >

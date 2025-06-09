@@ -1,9 +1,10 @@
 import Vditor from 'vditor';
-import { useRef, useEffect } from 'react';
+import { VDITOR_CDN } from '@/const';
+import { useEffect, useRef } from 'react';
 import useTheme from '@/hooks/use-theme';
 import { useNavigate } from 'react-router-dom';
 import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
-import './index.css';
+import '@/components/markdown/index.css';
 
 interface IProps {
   content: string;
@@ -43,7 +44,7 @@ export function Markdown(props: IProps) {
   useEffect(() => {
     if (element.current) {
       Vditor.preview(element.current, content, {
-        cdn: 'https://cdn.jsdelivr.net/npm/vditor@3.10.8',
+        ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
         theme: {
           current: theme.skin,
         },

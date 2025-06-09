@@ -13,6 +13,8 @@ export default function ChatConversationPage() {
     context,
     onToolsChange,
     onContextChange,
+    mode,
+    setMode,
   } = useContext();
 
   return (
@@ -30,6 +32,8 @@ export default function ChatConversationPage() {
           onAction={onAction}
           onToolsChange={onToolsChange}
           onContextChange={onContextChange}
+          mode={mode}
+          setMode={setMode}
         />
       </div>
     </>
