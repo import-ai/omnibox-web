@@ -190,6 +190,7 @@
     "title": "聊天",
     "citations": "资料",
     "citations_results": "搜索结果",
+    "searching": "搜索中...",
     "conversations": {
       "new": "新对话",
       "new_chat": "新建聊天",

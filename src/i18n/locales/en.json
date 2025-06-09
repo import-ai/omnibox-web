@@ -190,6 +190,7 @@
     "title": "Chat",
     "citations": "Citations",
     "citations_results": "Search Results",
+    "searching": "Searching...",
     "conversations": {
       "new": "New conversation",
       "new_chat": "New Chat",

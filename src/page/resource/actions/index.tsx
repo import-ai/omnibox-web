@@ -219,17 +219,19 @@ export default function Actions(props: IProps) {
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
-      <PermissionWrapper
-        level={0}
-        forbidden={forbidden}
-        permission={
-          resource && resource.current_level
-            ? resource.current_level
-            : 'full_access'
-        }
-      >
-        <Share />
-      </PermissionWrapper>
+      {resource && resource.space_type !== 'private' && (
+        <PermissionWrapper
+          level={0}
+          forbidden={forbidden}
+          permission={
+            resource && resource.current_level
+              ? resource.current_level
+              : 'full_access'
+          }
+        >
+          <Share />
+        </PermissionWrapper>
+      )}
       <LanguageToggle />
       <ThemeToggle />
       <PermissionWrapper
@@ -316,7 +318,7 @@ export default function Actions(props: IProps) {
                 ref={fileInputRef}
                 className="hidden"
                 onChange={handleUpload}
-                accept=".md,.doc,.ppt,.docx,.pptx,.txt,.pdf"
+                accept=".md,.doc,.ppt,.docx,.pptx,.txt,.pdf,.wav,.mp3,.pcm,.opus,.webm"
               />
             </SidebarContent>
           </Sidebar>

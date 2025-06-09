@@ -1,6 +1,7 @@
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { MessageDetail } from '@/page/chat/types/conversation';
 import type { Citation } from '@/page/chat/types/chat-response';
-import React from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -25,6 +26,7 @@ interface IProps {
 
 export function AssistantMessage(props: IProps) {
   const { message, citations, messages } = props;
+  const { t } = useTranslation();
   const openAIMessage = message.message;
 
   const domList: React.ReactNode[] = [];
@@ -38,7 +40,7 @@ export function AssistantMessage(props: IProps) {
         className="mb-3"
       >
         <AccordionItem value={message.id}>
-          <AccordionTrigger>Reasoning</AccordionTrigger>
+          <AccordionTrigger>{t('chat.tools.reasoning')}</AccordionTrigger>
           <AccordionContent className="text-gray-500 dark:text-gray-400">
             {openAIMessage.reasoning_content?.trim()}
           </AccordionContent>
@@ -72,7 +74,7 @@ export function AssistantMessage(props: IProps) {
       >
         <Button disabled size="sm" variant="secondary">
           <Loader2Icon className="animate-spin" />
-          Searching...
+          {t('chat.searching')}
         </Button>
       </div>,
     );

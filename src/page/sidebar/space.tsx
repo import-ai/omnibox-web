@@ -81,7 +81,7 @@ export default function Space(props: IProps) {
           ref={fileInputRef}
           className="hidden"
           onChange={handleUpload}
-          accept=".md,.doc,.ppt,.docx,.pptx,.txt,.pdf"
+          accept=".md,.doc,.ppt,.docx,.pptx,.txt,.pdf,.wav,.mp3,.pcm,.opus,.webm"
         />
       </div>
       <SidebarGroupContent>
