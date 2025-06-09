@@ -125,8 +125,6 @@
     "search": "Enter and search",
     "disable": "Disable",
     "remove": "Remove from Workspace",
-    "removed": "Removed",
-    "removed_description": "This member has been removed from the workspace",
     "add_member": "Add Member",
     "user": "User",
     "owner": "Workspace Owner",

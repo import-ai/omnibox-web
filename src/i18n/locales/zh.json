@@ -125,8 +125,6 @@
     "search": "输入并搜索",
     "disable": "禁用",
     "remove": "从空间移除",
-    "removed": "已从空间移除",
-    "removed_description": "此成员已从空间中移除",
     "add_member": "添加成员",
     "user": "用户",
     "owner": "空间所有者",
