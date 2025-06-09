@@ -1,6 +1,7 @@
 import Share from './share';
 import i18next from 'i18next';
 import { toast } from 'sonner';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useEffect, useRef, useState } from 'react';
 import App from '@/hooks/app.class';
 import { http } from '@/lib/request';
@@ -318,7 +319,7 @@ export default function Actions(props: IProps) {
                 ref={fileInputRef}
                 className="hidden"
                 onChange={handleUpload}
-                accept=".md,.doc,.ppt,.docx,.pptx,.txt,.pdf,.wav,.mp3,.pcm,.opus,.webm"
+                accept={ALLOW_FILE_EXTENSIONS}
               />
             </SidebarContent>
           </Sidebar>

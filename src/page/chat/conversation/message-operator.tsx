@@ -64,7 +64,6 @@ export function createMessageOperator(
           mapping: newMapping,
         };
       });
-      // 节流：最短1s滚动一次，滚动元素为 document.documentElement
       if (Date.now() - timer > 800) {
         timer = Date.now();
         const el = document.documentElement;

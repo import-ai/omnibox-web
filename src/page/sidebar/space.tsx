@@ -4,6 +4,7 @@ import { Input } from '@/components/input';
 import { IResourceData } from '@/interface';
 import { IResourceProps } from './dropdown';
 import { useTranslation } from 'react-i18next';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { LoaderCircle, MoreHorizontal } from 'lucide-react';
 import {
   SidebarMenu,
@@ -81,7 +82,7 @@ export default function Space(props: IProps) {
           ref={fileInputRef}
           className="hidden"
           onChange={handleUpload}
-          accept=".md,.doc,.ppt,.docx,.pptx,.txt,.pdf,.wav,.mp3,.pcm,.opus,.webm"
+          accept={ALLOW_FILE_EXTENSIONS}
         />
       </div>
       <SidebarGroupContent>
