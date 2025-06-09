@@ -8,7 +8,7 @@ export default function useContext() {
   const namespaceId = params.namespace_id || '';
   const [loading, onLoading] = useState(false);
   const [current, onCurrent] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize] = useState(10);
   const [data, onData] = useState<{
     total: number;
     data: ConversationSummary[];

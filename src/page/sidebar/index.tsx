@@ -8,6 +8,7 @@ import useApp from '@/hooks/use-app';
 import { Switcher } from './switcher';
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
 import {
@@ -17,7 +18,6 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 
-const baseUrl = 'resources';
 const spaceTypes = ['private', 'teamspace'];
 
 interface IData {
@@ -33,6 +33,7 @@ export default function MainSidebar({ onSearch }: IProps) {
   const params = useParams();
   const loc = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const chatPage = loc.pathname.includes('/chat');
   const resource_id = params.resource_id || '';
   const namespace_id = params.namespace_id || '';
@@ -69,7 +70,7 @@ export default function MainSidebar({ onSearch }: IProps) {
     }
     onExpanding(id);
     http
-      .get(`/namespaces/${namespace_id}/${baseUrl}/query`, {
+      .get(`/namespaces/${namespace_id}/resources/query`, {
         params: {
           namespace: namespace_id,
           spaceType: space_type,
@@ -118,7 +119,7 @@ export default function MainSidebar({ onSearch }: IProps) {
       return;
     }
     http
-      .get(`/namespaces/${namespace_id}/${baseUrl}/query`, {
+      .get(`/namespaces/${namespace_id}/resources/query`, {
         params: {
           namespace: namespace_id,
           spaceType: space_type,
@@ -182,7 +183,7 @@ export default function MainSidebar({ onSearch }: IProps) {
   ) => {
     onEditingKey(id);
     http
-      .delete(`/namespaces/${namespace_id}/${baseUrl}/${id}`)
+      .delete(`/namespaces/${namespace_id}/resources/${id}`)
       .then(() => {
         const routeToActive = getRouteToActive(id, space_type, parent_id);
         data[space_type].children = data[space_type].children.filter(
@@ -192,6 +193,19 @@ export default function MainSidebar({ onSearch }: IProps) {
         if (routeToActive) {
           app.fire('resource_children', true);
           navigate(`/${namespace_id}/${routeToActive}`);
+          toast(t('resource.deleted'), {
+            description: t('resource.deleted_description'),
+            action: {
+              label: t('undo'),
+              onClick: () => {
+                http
+                  .post(`/namespaces/${namespace_id}/resources/${id}/recovery`)
+                  .then((response) => {
+                    activeRoute(space_type, parent_id, response);
+                  });
+              },
+            },
+          });
         }
       })
       .finally(() => {
@@ -233,7 +247,7 @@ export default function MainSidebar({ onSearch }: IProps) {
   ) => {
     onEditingKey(parent_id);
     http
-      .post(`/namespaces/${namespace_id}/${baseUrl}`, {
+      .post(`/namespaces/${namespace_id}/resources`, {
         parentId: parent_id,
         spaceType: space_type,
         namespaceId: namespace_id,

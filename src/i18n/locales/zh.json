@@ -6,11 +6,16 @@
   "rename": "重命名",
   "cancel": "取消",
   "ok": "确定",
+  "undo": "撤销",
   "updated": "已更新",
   "created": "已创建",
   "no_pages_inside": "内无页面",
   "private": "私人",
   "teamspace": "团队",
+  "resource": {
+    "deleted": "已删除",
+    "deleted_description": "此资源已被删除"
+  },
   "error": {
     "title": "404 页面未找到"
   },
@@ -120,6 +125,8 @@
     "search": "输入并搜索",
     "disable": "禁用",
     "remove": "从空间移除",
+    "removed": "已从空间移除",
+    "removed_description": "此成员已从空间中移除",
     "add_member": "添加成员",
     "user": "用户",
     "owner": "空间所有者",
@@ -185,8 +192,11 @@
     "citations_results": "搜索结果",
     "conversations": {
       "new": "新对话",
+      "new_chat": "新建聊天",
       "empty": "暂无对话",
       "history": "历史对话",
+      "deleted": "已删除对话",
+      "deleted_description": "此对话已被删除",
       "delete": {
         "option": "删除对话",
         "dialog": {

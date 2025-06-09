@@ -137,6 +137,26 @@ export default function Actions(props: IProps) {
             resource.space_type,
             resource.parent_id,
           );
+          toast(t('resource.deleted'), {
+            description: t('resource.deleted_description'),
+            action: {
+              label: t('undo'),
+              onClick: () => {
+                http
+                  .post(
+                    `/namespaces/${resource.namespace.id}/resources/${resource.id}/recovery`,
+                  )
+                  .then((response) => {
+                    app.fire(
+                      'generate_resource',
+                      response.space_type,
+                      response.parent_id,
+                      response,
+                    );
+                  });
+              },
+            },
+          });
         })
         .finally(() => {
           onLoading('');
@@ -296,6 +316,7 @@ export default function Actions(props: IProps) {
                 ref={fileInputRef}
                 className="hidden"
                 onChange={handleUpload}
+                accept=".md,.doc,.ppt,.docx,.pptx,.txt,.pdf"
               />
             </SidebarContent>
           </Sidebar>

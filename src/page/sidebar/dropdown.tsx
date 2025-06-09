@@ -165,6 +165,7 @@ export default function MainDropdownMenu(props: IResourceProps) {
         ref={fileInputRef}
         className="hidden"
         onChange={handleUpload}
+        accept=".md,.doc,.ppt,.docx,.pptx,.txt,.pdf"
       />
     </>
   );

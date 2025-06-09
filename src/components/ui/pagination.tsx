@@ -64,33 +64,40 @@ PaginationLink.displayName = 'PaginationLink';
 const PaginationPrevious = ({
   className,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="Go to previous page"
-    size="default"
-    className={cn('gap-1 pl-2.5', className)}
-    {...props}
-  >
-    <ChevronLeft className="h-4 w-4" />
-    <span>{props.previousText}</span>
-  </PaginationLink>
-);
+}: React.ComponentProps<typeof PaginationLink>) => {
+  const { previousText = 'Previous', ...resetProps } = props;
+  return (
+    <PaginationLink
+      aria-label="Go to previous page"
+      size="default"
+      className={cn('gap-1 pl-2.5', className)}
+      {...resetProps}
+    >
+      <ChevronLeft className="h-4 w-4" />
+      <span>{previousText}</span>
+    </PaginationLink>
+  );
+};
 PaginationPrevious.displayName = 'PaginationPrevious';
 
 const PaginationNext = ({
   className,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="Go to next page"
-    size="default"
-    className={cn('gap-1 pr-2.5', className)}
-    {...props}
-  >
-    <span>{props.nextText}</span>
-    <ChevronRight className="h-4 w-4" />
-  </PaginationLink>
-);
+}: React.ComponentProps<typeof PaginationLink>) => {
+  const { nextText = 'Next', ...resetProps } = props;
+
+  return (
+    <PaginationLink
+      aria-label="Go to next page"
+      size="default"
+      className={cn('gap-1 pr-2.5', className)}
+      {...resetProps}
+    >
+      <span>{nextText}</span>
+      <ChevronRight className="h-4 w-4" />
+    </PaginationLink>
+  );
+};
 PaginationNext.displayName = 'PaginationNext';
 
 type PaginationEllipsisProps = {

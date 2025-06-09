@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import { useState } from 'react';
 import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
@@ -35,7 +36,22 @@ export default function RemoveHistory(props: IProps) {
     onLoading(true);
     http
       .delete(`namespaces/${namespaceId}/conversations/${data.id}`)
-      .then(onFinish)
+      .then(() => {
+        onFinish();
+        toast(t('chat.conversations.deleted'), {
+          description: t('chat.conversations.deleted_description'),
+          action: {
+            label: t('undo'),
+            onClick: () => {
+              http
+                .post(
+                  `/namespaces/${namespaceId}/conversations/${data.id}/recovery`,
+                )
+                .then(onFinish);
+            },
+          },
+        });
+      })
       .finally(() => {
         onLoading(false);
       });

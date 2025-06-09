@@ -23,6 +23,7 @@ export interface MessageOperator {
 export function createMessageOperator(
   setConversation: Dispatch<SetStateAction<ConversationDetail>>,
 ): MessageOperator {
+  let timer = 0;
   return {
     update: (delta: ChatDeltaResponse, id?: string) => {
       setConversation((prev) => {
@@ -63,6 +64,15 @@ export function createMessageOperator(
           mapping: newMapping,
         };
       });
+      // 节流：最短1s滚动一次，滚动元素为 document.documentElement
+      if (Date.now() - timer > 800) {
+        timer = Date.now();
+        const el = document.documentElement;
+        const { scrollTop, scrollHeight, clientHeight } = el;
+        if (scrollHeight - scrollTop - clientHeight < 200) {
+          el.scrollTop = scrollHeight;
+        }
+      }
     },
 
     add: (chatResponse: ChatBOSResponse): string => {
