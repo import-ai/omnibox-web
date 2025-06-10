@@ -37,6 +37,7 @@ export function prepareBody(
     namespace_id: namespaceId,
     conversation_id: conversationId,
     query,
+    enable_thinking: false,
   };
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
