@@ -1,9 +1,9 @@
 import { Citation } from '@/page/chat/types/chat-response.tsx';
 
-export function cleanIncompletedCitation(text: string) {
+export function trimIncompletedCitation(text: string) {
   const citePrefix = '[[';
   const citePrefixRegexList = [/\[\[\d+$/g, /\[\[\d+]$/g];
-  for (let i = 0; i < citePrefix.length; i++) {
+  for (let i = citePrefix.length - 1; i >= 0; i--) {
     const suffix = citePrefix.slice(0, i + 1);
     if (text.endsWith(suffix)) {
       return text.slice(0, -suffix.length);
