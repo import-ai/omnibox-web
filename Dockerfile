@@ -4,6 +4,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN corepack enable
 RUN pnpm install
 COPY . .
+ENV VITE_REMOVE_GENERATED_CITE=TRUE
 RUN pnpm build
 
 FROM nginx:alpine
