@@ -1,7 +1,7 @@
 import Copy from './actions/copy';
 import React, { useEffect } from 'react';
 import Markdown, { ExtraProps } from 'react-markdown';
-import { cleanIncompletedCitation } from '@/page/chat/messages/citations/utils';
+import { trimIncompletedCitation } from '@/page/chat/messages/citations/utils';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Citation } from '@/page/chat/types/chat-response';
 import useTheme from '@/hooks/use-theme.ts';
@@ -33,7 +33,7 @@ export function CitationMarkdown(props: IProps) {
   const { content, status, citations, citePattern } = props;
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE === 'TRUE';
-  const cleanedContent = cleanIncompletedCitation(content);
+  const cleanedContent = trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(cleanedContent, citePattern);
   const { theme } = useTheme();
 
