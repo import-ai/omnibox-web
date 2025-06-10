@@ -42,7 +42,7 @@ export default function GroupMain(props: GroupProps) {
 
   return (
     <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap">
         <Input
           value={search}
           onChange={(e) => onSearch(e.target.value)}

@@ -9,6 +9,7 @@ import { Switcher } from './switcher';
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSidebar } from '@/components/ui/sidebar';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
 import {
@@ -34,6 +35,7 @@ export default function MainSidebar({ onSearch }: IProps) {
   const loc = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isMobile, setOpenMobile } = useSidebar();
   const chatPage = loc.pathname.includes('/chat');
   const resource_id = params.resource_id || '';
   const namespace_id = params.namespace_id || '';
@@ -45,6 +47,7 @@ export default function MainSidebar({ onSearch }: IProps) {
   }>({});
   const handleActiveKey = (id: string) => {
     navigate(`/${namespace_id}/${id}`);
+    isMobile && setOpenMobile(false);
   };
   const handleExpand = (id: string, space_type: SpaceType) => {
     let match = false;

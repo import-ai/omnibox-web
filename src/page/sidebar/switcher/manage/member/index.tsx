@@ -46,7 +46,7 @@ export default function MemberMain(props: MemberProps) {
 
   return (
     <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap">
         <Input
           value={search}
           onChange={(e) => onSearch(e.target.value)}
@@ -59,7 +59,7 @@ export default function MemberMain(props: MemberProps) {
           </Button>
         </Invite>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border w-full">
         <Table>
           <TableHeader>
             <TableRow>

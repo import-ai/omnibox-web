@@ -14,17 +14,17 @@ export function SidebarNav(props: SidebarNavProps) {
   const { value, onChange, items } = props;
 
   return (
-    <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
+    <nav className="flex lg:flex-col">
       {items.map((item) => (
         <Button
           key={item.value}
           variant="ghost"
           onClick={() => onChange(item.value)}
           className={cn(
+            'justify-start',
             item.value === value
               ? 'bg-muted hover:bg-muted dark:bg-[#666666] dark:hover:bg-[#666666]'
               : 'hover:bg-transparent hover:underline',
-            'justify-start',
           )}
         >
           {item.label}

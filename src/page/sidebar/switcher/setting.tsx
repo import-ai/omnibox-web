@@ -25,7 +25,7 @@ export default function Setting() {
           {t('setting.title')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-4/5 max-w-7xl">
+      <DialogContent className="w-[90%] sm:w-4/5 max-w-7xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{t('setting.preferences')}</DialogTitle>
         </DialogHeader>

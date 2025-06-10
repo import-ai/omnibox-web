@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { type DialogProps } from '@radix-ui/react-dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { DialogTitle, type DialogProps } from '@radix-ui/react-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
 import { Search } from 'lucide-react';
 
@@ -30,6 +31,9 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (
     <Dialog {...restProps}>
       <DialogContent className="overflow-hidden p-0">
+        <VisuallyHidden>
+          <DialogTitle></DialogTitle>
+        </VisuallyHidden>
         <Command
           shouldFilter={false}
           className={cn(
