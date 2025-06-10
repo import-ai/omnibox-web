@@ -23,7 +23,6 @@ export interface MessageOperator {
 export function createMessageOperator(
   setConversation: Dispatch<SetStateAction<ConversationDetail>>,
 ): MessageOperator {
-  let timer = 0;
   return {
     update: (delta: ChatDeltaResponse, id?: string) => {
       setConversation((prev) => {
@@ -64,13 +63,10 @@ export function createMessageOperator(
           mapping: newMapping,
         };
       });
-      if (Date.now() - timer > 800) {
-        timer = Date.now();
-        const el = document.documentElement;
-        const { scrollTop, scrollHeight, clientHeight } = el;
-        if (scrollHeight - scrollTop - clientHeight < 200) {
-          el.scrollTop = scrollHeight;
-        }
+      const el = document.documentElement;
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      if (scrollHeight - scrollTop - clientHeight < 200) {
+        el.scrollTop = scrollHeight;
       }
     },
 

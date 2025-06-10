@@ -145,7 +145,7 @@ export default function Actions(props: IProps) {
               onClick: () => {
                 http
                   .post(
-                    `/namespaces/${resource.namespace.id}/resources/${resource.id}/recovery`,
+                    `/namespaces/${resource.namespace.id}/resources/${resource.id}/restore`,
                   )
                   .then((response) => {
                     app.fire(

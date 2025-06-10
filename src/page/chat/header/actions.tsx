@@ -72,7 +72,7 @@ export default function Actions(props: IProps) {
             onClick: () => {
               http
                 .post(
-                  `/namespaces/${namespaceId}/conversations/${conversationId}/recovery`,
+                  `/namespaces/${namespaceId}/conversations/${conversationId}/restore`,
                 )
                 .then((response) => {
                   navigate(`/${namespaceId}/chat/${response.id}`);

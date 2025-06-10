@@ -199,7 +199,7 @@ export default function MainSidebar({ onSearch }: IProps) {
               label: t('undo'),
               onClick: () => {
                 http
-                  .post(`/namespaces/${namespace_id}/resources/${id}/recovery`)
+                  .post(`/namespaces/${namespace_id}/resources/${id}/restore`)
                   .then((response) => {
                     activeRoute(space_type, parent_id, response);
                   });
