@@ -33,7 +33,7 @@ export default function Action(props: ActionProps) {
         disabled={disabled}
         className={cn(className, { 'opacity-40': disabled })}
       >
-        <div className="flex items-center text-gray-600">
+        <div className="flex items-center text-gray-600 dark:text-white">
           <span>
             {target && target.label ? target.label : t(`permission.${value}`)}
           </span>

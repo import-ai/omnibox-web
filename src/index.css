@@ -44,7 +44,7 @@
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 0 0% 19%;
     --popover-foreground: 0 0% 98%;
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
@@ -56,9 +56,9 @@
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
+    --border: 0 0% 30%;
     --input: 240 3.7% 15.9%;
-    --ring: 234 100% 66%;
+    --ring: 213 96% 52%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -98,4 +98,12 @@
 
 .group.toast .group-\[\.toast\]\:text-muted-foreground {
   color: hsl(var(--muted-foreground)) !important;
+}
+
+a {
+  color: #107bfa;
+}
+
+.dark a {
+  color: #60a5fa;
 }

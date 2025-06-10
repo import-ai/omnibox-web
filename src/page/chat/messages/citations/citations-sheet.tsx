@@ -27,7 +27,11 @@ export function CitationsSheet(props: IProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="secondary" size="sm">
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-[#eaecf3] dark:border-[#4d4e4f] dark:bg-transparent hover:border-[#f7f8fa] dark:hover:border-[#626264] dark:hover:bg-[#404040]"
+        >
           {citations.length} {t('chat.citations')} <ChevronRight />
         </Button>
       </SheetTrigger>

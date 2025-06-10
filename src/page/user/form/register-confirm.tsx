@@ -126,7 +126,11 @@ export function RegisterConFirmForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" loading={isLoading}>
+        <Button
+          type="submit"
+          className="w-full disabled:opacity-60"
+          loading={isLoading}
+        >
           {t('register.submit')}
         </Button>
       </form>

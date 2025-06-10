@@ -14,13 +14,13 @@ export default function ManagePeople() {
       <TabsList className="w-full justify-start h-11 border-b rounded-none">
         <TabsTrigger
           value="member"
-          className="flex-1 h-11 max-w-[120px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
+          className="flex-1 h-11 max-w-[120px] data-[state=active]:border-b-2 data-[state=active]:border-black dark:data-[state=active]:border-[#666666] data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
         >
           {t('manage.member')} {data.member.length}
         </TabsTrigger>
         <TabsTrigger
           value="group"
-          className="flex-1 h-11 max-w-[120px] text-gray-400 data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
+          className="flex-1 h-11 max-w-[120px] text-gray-400 data-[state=active]:border-b-2 data-[state=active]:border-black dark:data-[state=active]:border-[#666666] data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
         >
           {t('manage.group')} {data.group.length}
         </TabsTrigger>

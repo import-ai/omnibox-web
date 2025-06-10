@@ -85,7 +85,7 @@ export default function Action(props: ActionProps) {
           disabled={disabled}
           className={cn(className, { 'opacity-40': disabled })}
         >
-          <div className="flex items-center text-gray-600">
+          <div className="flex items-center text-gray-600 dark:text-white">
             <span>{data.find((item) => item.value === value)?.label}</span>
             {!disabled && <ChevronDown className="h-5 w-5 ml-1" />}
           </div>

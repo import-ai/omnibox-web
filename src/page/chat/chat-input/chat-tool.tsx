@@ -47,9 +47,9 @@ export default function ChatTool(props: IProps) {
             }
           }}
           className={cn(
-            'font-normal rounded-full bg-gray-50 dark:bg-neutral-700 border-transparent [&_svg]:size-4 hover:text-blue-600 dark:hover:text-blue-300 transition-colors',
+            'font-normal rounded-full bg-[#f3f5f7] dark:text-white dark:bg-[#404040] border-transparent [&_svg]:size-4 hover:bg-[#e7e9ea] dark:hover:bg-[#666666] transition-colors',
             {
-              'text-blue-600 dark:text-blue-400':
+              'text-[#117bfa] bg-[#cfe5fe] hover:text-[#117bfa] hover:bg-[#cfe5fe] dark:text-[#60a5fb] dark:bg-[#323f51] dark:hover:text-[#60a5fb] dark:hover:bg-[#323f51]':
                 tools.includes(item.value) ||
                 (item.value === ToolType.PRIVATE_SEARCH && context.length > 0),
             },

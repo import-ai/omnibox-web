@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -68,21 +69,23 @@ export default function PaginationMain({
           <PaginationPrevious
             previousText={t('pagination.prev')}
             onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-            className={
-              currentPage <= 1
-                ? 'pointer-events-none opacity-50'
-                : 'cursor-pointer'
-            }
+            className={cn('text-black dark:text-white', {
+              'pointer-events-none opacity-50': currentPage <= 1,
+              'cursor-pointer': currentPage > 1,
+            })}
           />
         </PaginationItem>
-
         {getPageNumbers().map((pageNumber, index) => (
           <PaginationItem key={index}>
             {pageNumber === '...' ? (
-              <PaginationEllipsis more_pages={t('pagination.more_pages')} />
+              <PaginationEllipsis
+                className="text-black dark:text-white"
+                more_pages={t('pagination.more_pages')}
+              />
             ) : (
               <PaginationLink
                 href="#"
+                className="text-black dark:text-white"
                 onClick={(e) => {
                   e.preventDefault();
                   handlePageChange(pageNumber as number);
@@ -100,11 +103,10 @@ export default function PaginationMain({
             onClick={() =>
               currentPage < totalPages && handlePageChange(currentPage + 1)
             }
-            className={
-              currentPage >= totalPages
-                ? 'pointer-events-none opacity-50'
-                : 'cursor-pointer'
-            }
+            className={cn('text-black dark:text-white', {
+              'pointer-events-none opacity-50': currentPage >= totalPages,
+              'cursor-pointer': currentPage < totalPages,
+            })}
           />
         </PaginationItem>
       </PaginationContent>
