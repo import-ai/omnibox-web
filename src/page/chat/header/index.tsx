@@ -25,6 +25,10 @@ export default function ChatHeader() {
   const conversationsPage = loc.pathname.endsWith('/chat/conversations');
 
   useEffect(() => {
+    return app.on('chat:title:update', onData);
+  }, []);
+
+  useEffect(() => {
     return app.on('chat:title', (text?: string) => {
       if (!text) {
         onData(i18nTitle);

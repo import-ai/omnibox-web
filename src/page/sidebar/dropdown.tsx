@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import useApp from '@/hooks/use-app';
 import { Input } from '@/components/ui/input';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useTranslation } from 'react-i18next';
 import { MoreHorizontal, LoaderCircle } from 'lucide-react';
 import { SidebarMenuAction } from '@/components/ui/sidebar';
@@ -165,6 +166,7 @@ export default function MainDropdownMenu(props: IResourceProps) {
         ref={fileInputRef}
         className="hidden"
         onChange={handleUpload}
+        accept={ALLOW_FILE_EXTENSIONS}
       />
     </>
   );

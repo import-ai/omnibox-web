@@ -45,7 +45,7 @@ export default function ChatArea(props: IProps) {
     <div className="rounded-[12px] p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-none">
       <ChatContext value={context} onChange={onContextChange} />
       <ChatInput value={value} onChange={onChange} onAction={onAction} />
-      <div className="flex flex-col items-center justify-between sm:flex-row">
+      <div className="flex items-center justify-between">
         <ChatTool
           context={context}
           tools={tools}

@@ -1,3 +1,4 @@
+import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { isFunction } from 'lodash-es';
 import { ask } from '@/page/chat/conversation/utils';
@@ -29,6 +30,7 @@ interface StateProps {
 }
 
 export default function useContext() {
+  const app = useApp();
   const params = useParams();
   const loc = useLocation();
   const navigationType = useNavigationType();
@@ -51,10 +53,15 @@ export default function useContext() {
     id: conversationId,
     mapping: {},
   });
-  const conversationDetailRefetch = () => {
-    http
+  const refetch = () => {
+    return http
       .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
-      .then(setConversation);
+      .then((response) => {
+        if (response.title) {
+          app.fire('chat:title:update', response.title);
+        }
+        setConversation(response);
+      });
   };
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
@@ -82,13 +89,6 @@ export default function useContext() {
       }
     }
   };
-  const refetch = async () => {
-    const res: ConversationDetail = await http.get(
-      `/namespaces/${namespaceId}/conversations/${conversationId}`,
-    );
-    setConversation(res);
-    return res;
-  };
   const submit = async (query?: string) => {
     if (!query || query.trim().length === 0) {
       return;
@@ -113,12 +113,10 @@ export default function useContext() {
   };
 
   useEffect(() => {
-    if (allowAsk) {
-      refetch().then(async () => submit(routeQuery));
-    }
-  }, [allowAsk]);
-
-  useEffect(conversationDetailRefetch, [namespaceId, conversationId]);
+    refetch().then(() => {
+      allowAsk && submit(routeQuery);
+    });
+  }, [allowAsk, namespaceId, conversationId]);
 
   return {
     value,

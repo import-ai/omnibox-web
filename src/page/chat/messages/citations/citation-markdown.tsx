@@ -27,12 +27,12 @@ interface IProps {
   citations: Citation[];
   citePattern: RegExp;
   status: MessageStatus;
-  removeGeneratedCite?: boolean;
 }
 
 export function CitationMarkdown(props: IProps) {
-  const { content, status, citations, citePattern, removeGeneratedCite } =
-    props;
+  const { content, status, citations, citePattern } = props;
+  const removeGeneratedCite =
+    import.meta.env.VITE_REMOVE_GENERATED_CITE === 'TRUE';
   const cleanedContent = cleanIncompletedCitation(content);
   const replacedContent = replaceCiteTag(cleanedContent, citePattern);
   const { theme } = useTheme();
@@ -58,7 +58,7 @@ export function CitationMarkdown(props: IProps) {
         if (id < citations.length) {
           return <CitationHoverIcon citation={citations[id]} index={id} />;
         } else if (removeGeneratedCite) {
-          return <></>;
+          return null;
         }
       }
       return (

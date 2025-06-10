@@ -1,7 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ArrowUp, ChevronDown, createLucideIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { ArrowUp, ChevronDown, CircleStop } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -9,34 +9,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
-
-const PauseIcon = createLucideIcon('pauseIcon', [
-  [
-    'rect',
-    {
-      key: 'rect1',
-      x: '0.7',
-      y: '0.7',
-      width: '22.6',
-      height: '22.6',
-      rx: '11.3',
-      stroke: 'black',
-      strokeWidth: '1.4',
-    },
-  ],
-  [
-    'rect',
-    {
-      key: 'rect2',
-      x: '7',
-      y: '7',
-      width: '10',
-      height: '10',
-      rx: '2',
-      fill: '#111111',
-    },
-  ],
-]);
 
 interface IActionProps {
   disabled: boolean;
@@ -95,7 +67,7 @@ export default function ChatAction(props: IActionProps) {
           onClick={onStop}
           className="rounded-full size-8 [&_svg]:size-6"
         >
-          <PauseIcon />
+          <CircleStop />
         </Button>
       ) : (
         <Button

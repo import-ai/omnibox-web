@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import { useState } from 'react';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
@@ -64,6 +65,21 @@ export default function Actions(props: IProps) {
         onRemoveLoading(false);
         onRemove(false);
         navigate(`/${namespaceId}/chat/conversations`);
+        toast(t('chat.conversations.deleted'), {
+          description: t('chat.conversations.deleted_description'),
+          action: {
+            label: t('undo'),
+            onClick: () => {
+              http
+                .post(
+                  `/namespaces/${namespaceId}/conversations/${conversationId}/restore`,
+                )
+                .then((response) => {
+                  navigate(`/${namespaceId}/chat/${response.id}`);
+                });
+            },
+          },
+        });
       });
   };
   const onChatHistory = () => {
@@ -87,7 +103,7 @@ export default function Actions(props: IProps) {
     <div className="flex items-center gap-2 text-sm">
       <LanguageToggle />
       <ThemeToggle />
-      {conversationsPage ? (
+      {conversationsPage || conversationId ? (
         <Button
           size="icon"
           variant="ghost"
@@ -126,6 +142,18 @@ export default function Actions(props: IProps) {
                 <SidebarGroup className="border-b">
                   <SidebarGroupContent className="gap-0">
                     <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton onClick={onChatCreate}>
+                          <Plus />
+                          <span>{t('chat.conversations.new_chat')}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton onClick={onChatHistory}>
+                          <History />
+                          <span>{t('chat.conversations.history')}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                       <SidebarMenuItem>
                         <SidebarMenuButton
                           onClick={() => handleAction('rename')}

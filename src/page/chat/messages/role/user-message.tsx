@@ -15,15 +15,15 @@ export function UserMessage(props: IProps) {
   const lines = openAIMessage.content?.split('\n') || [];
 
   useEffect(() => {
-    if (message.parent_id || !message.message.content) {
+    if (message.parent_id || !openAIMessage.content) {
       return;
     }
-    if (ref.current === message.message.content) {
+    if (ref.current === openAIMessage.content) {
       return;
     }
-    ref.current = message.message.content;
-    app.fire('chat:title', message.message.content);
-  }, [message]);
+    ref.current = openAIMessage.content;
+    app.fire('chat:title', openAIMessage.content);
+  }, [openAIMessage.content]);
 
   return (
     <div

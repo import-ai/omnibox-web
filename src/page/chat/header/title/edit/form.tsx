@@ -27,7 +27,7 @@ interface IProps {
     open: boolean;
   };
   namespaceId: string;
-  onFinish: () => void;
+  onFinish: (val: string) => void;
 }
 
 export default function EditForm(props: IProps) {
@@ -46,7 +46,9 @@ export default function EditForm(props: IProps) {
       .patch(`namespaces/${namespaceId}/conversations/${data.id}`, {
         title: val.title,
       })
-      .then(onFinish)
+      .then(() => {
+        onFinish(val.title);
+      })
       .finally(() => {
         setLoading(false);
       });

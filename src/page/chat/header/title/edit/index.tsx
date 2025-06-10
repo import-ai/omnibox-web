@@ -13,7 +13,7 @@ interface IProps {
     title: string;
     open: boolean;
   };
-  onFinish: () => void;
+  onFinish: (val: string) => void;
   namespaceId: string;
   onOpenChange: (open: boolean) => void;
 }

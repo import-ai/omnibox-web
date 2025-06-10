@@ -1,6 +1,7 @@
 import Share from './share';
 import i18next from 'i18next';
 import { toast } from 'sonner';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useEffect, useRef, useState } from 'react';
 import App from '@/hooks/app.class';
 import { http } from '@/lib/request';
@@ -137,6 +138,26 @@ export default function Actions(props: IProps) {
             resource.space_type,
             resource.parent_id,
           );
+          toast(t('resource.deleted'), {
+            description: t('resource.deleted_description'),
+            action: {
+              label: t('undo'),
+              onClick: () => {
+                http
+                  .post(
+                    `/namespaces/${resource.namespace.id}/resources/${resource.id}/restore`,
+                  )
+                  .then((response) => {
+                    app.fire(
+                      'generate_resource',
+                      response.space_type,
+                      response.parent_id,
+                      response,
+                    );
+                  });
+              },
+            },
+          });
         })
         .finally(() => {
           onLoading('');
@@ -199,17 +220,19 @@ export default function Actions(props: IProps) {
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
-      <PermissionWrapper
-        level={0}
-        forbidden={forbidden}
-        permission={
-          resource && resource.current_level
-            ? resource.current_level
-            : 'full_access'
-        }
-      >
-        <Share />
-      </PermissionWrapper>
+      {resource && resource.space_type !== 'private' && (
+        <PermissionWrapper
+          level={0}
+          forbidden={forbidden}
+          permission={
+            resource && resource.current_level
+              ? resource.current_level
+              : 'full_access'
+          }
+        >
+          <Share />
+        </PermissionWrapper>
+      )}
       <LanguageToggle />
       <ThemeToggle />
       <PermissionWrapper
@@ -296,6 +319,7 @@ export default function Actions(props: IProps) {
                 ref={fileInputRef}
                 className="hidden"
                 onChange={handleUpload}
+                accept={ALLOW_FILE_EXTENSIONS}
               />
             </SidebarContent>
           </Sidebar>

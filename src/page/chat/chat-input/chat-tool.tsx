@@ -56,7 +56,9 @@ export default function ChatTool(props: IProps) {
           )}
         >
           {item.icon}
-          {t('chat.tools.' + item.label)}
+          <span className="hidden md:block">
+            {t('chat.tools.' + item.label)}
+          </span>
         </Button>
       ))}
     </div>

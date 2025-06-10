@@ -6,11 +6,16 @@
   "rename": "Rename",
   "cancel": "Cancel",
   "ok": "OK",
+  "undo": "Undo",
   "updated": "Updated",
   "created": "Created",
   "no_pages_inside": "No pages inside",
   "private": "Private",
   "teamspace": "Teamspace",
+  "resource": {
+    "deleted": "Deleted",
+    "deleted_description": "This resource has been deleted"
+  },
   "error": {
     "title": "404 Not Found"
   },
@@ -183,10 +188,14 @@
     "title": "Chat",
     "citations": "Citations",
     "citations_results": "Search Results",
+    "searching": "Searching...",
     "conversations": {
       "new": "New conversation",
+      "new_chat": "New Chat",
       "empty": "No conversation yet",
       "history": "Conversation History",
+      "deleted": "Deleted Conversations",
+      "deleted_description": "This conversation has been deleted",
       "delete": {
         "option": "Delete",
         "dialog": {
