@@ -24,7 +24,7 @@ export default function Editor(props: IEditorProps) {
   useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
       const name = title.trim();
-      const content = vditor.current.getValue();
+      const content: string | undefined = vditor.current?.getValue();
       if (!content && !name) {
         app.fire('resource_children', true);
         return;
@@ -47,7 +47,7 @@ export default function Editor(props: IEditorProps) {
   }, [title]);
 
   useEffect(() => {
-    if (!resource || !root.current) {
+    if (!resource || !root.current || resource.resource_type === 'folder') {
       return;
     }
     vditor.current = new Vditor(root.current, {
@@ -92,7 +92,9 @@ export default function Editor(props: IEditorProps) {
         placeholder="Enter title"
         className="mb-4 p-2 border rounded"
       />
-      <div ref={root} className="vditor vditor-reset" />
+      {resource.resource_type !== 'folder' && (
+        <div ref={root} className="vditor vditor-reset" />
+      )}
     </div>
   );
 }
