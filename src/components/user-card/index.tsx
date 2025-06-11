@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+
 // import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface IProps {
@@ -24,11 +25,13 @@ export default function UserCard(props: IProps) {
             {username}
           </span>
           {you && (
-            <span className="text-gray-500 ml-2">({t('permission.you')})</span>
+            <span className="text-muted-foreground ml-2">
+              ({t('permission.you')})
+            </span>
           )}
         </div>
       )}
-      {email && <div className="text-gray-500 text-sm">{email}</div>}
+      {email && <div className="text-muted-foreground text-sm">{email}</div>}
     </div>
   );
 
