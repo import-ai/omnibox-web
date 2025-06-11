@@ -11,7 +11,7 @@ export default function ManagePeople() {
 
   return (
     <Tabs value={tab} onValueChange={onTab}>
-      <TabsList className="w-full justify-start h-11 border-b rounded-none">
+      <TabsList className="w-full justify-start h-11 border-b rounded-none bg-transparent">
         <TabsTrigger
           value="member"
           className="flex-1 h-11 max-w-[120px] data-[state=active]:border-b-2 data-[state=active]:border-black dark:data-[state=active]:border-[#666666] data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
