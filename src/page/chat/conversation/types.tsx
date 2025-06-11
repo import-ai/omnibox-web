@@ -35,5 +35,5 @@ export interface ChatRequestBody {
   query: string;
   tools?: ChatTool[];
   parent_message_id?: string;
-  enable_thinking?: boolean;
+  enable_thinking: boolean;
 }

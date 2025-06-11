@@ -57,7 +57,7 @@ export default function GroupMain(props: GroupProps) {
       </div>
       <div className="rounded-md border">
         <div>
-          <div className="grid grid-cols-12 text-gray-500 border-b">
+          <div className="grid grid-cols-12 text-muted-foreground border-b font-bold">
             <div className="col-span-6 text-sm h-10 leading-10 px-2">
               {t('manage.group')}
             </div>
