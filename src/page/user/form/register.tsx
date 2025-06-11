@@ -90,7 +90,11 @@ export function RegisterForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" loading={isLoading}>
+        <Button
+          type="submit"
+          className="w-full disabled:opacity-60"
+          loading={isLoading}
+        >
           {t('register.submit')}
         </Button>
         <div className="text-center text-sm">

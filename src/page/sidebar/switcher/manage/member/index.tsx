@@ -2,7 +2,7 @@ import Action from './action';
 import Invite from '../../invite';
 import { http } from '@/lib/request';
 import { Member } from '@/interface';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import UserCard from '@/components/user-card';
 import { useTranslation } from 'react-i18next';
@@ -10,11 +10,11 @@ import { Button } from '@/components/ui/button';
 import PermissionAction from '@/components/permission-action';
 import {
   Table,
-  TableRow,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
+  TableRow,
 } from '@/components/ui/table';
 
 interface MemberProps {
@@ -64,8 +64,10 @@ export default function MemberMain(props: MemberProps) {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40%]">{t('manage.user')}</TableHead>
-              <TableHead className="w-[30%]">权限</TableHead>
-              <TableHead className="text-right">角色</TableHead>
+              <TableHead className="w-[30%]">
+                {t('manage.permission')}
+              </TableHead>
+              <TableHead className="text-right">{t('manage.role')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

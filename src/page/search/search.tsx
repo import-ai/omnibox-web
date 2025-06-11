@@ -100,6 +100,7 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
   return (
     <CommandDialog
       open={open}
+      className="bg-white dark:bg-[#303030]"
       onOpenChange={(val) => {
         onOpenChange(val);
       }}
@@ -121,7 +122,7 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
                 }}
               >
                 <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
+                  <div className="flex gap-2 items-start">
                     <File className="w-4 h-4 text-muted-foreground" />
                     <span className="font-bold">{resource.name}</span>
                   </div>
@@ -143,7 +144,7 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
                   onOpenChange(false);
                 }}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2 items-start">
                   <MessageCircle className="w-4 h-4 text-muted-foreground" />
                   <span>{message.content}</span>
                 </div>

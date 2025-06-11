@@ -127,6 +127,8 @@
     "remove": "从空间移除",
     "add_member": "添加成员",
     "user": "用户",
+    "permission": "权限",
+    "role": "角色",
     "owner": "空间所有者",
     "owner_desc": "可以更改空间设置并邀请新成员加入空间。",
     "member": "成员",

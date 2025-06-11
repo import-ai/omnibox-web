@@ -29,7 +29,7 @@ export function UserMessage(props: IProps) {
     <div
       className={cn(
         'flex w-max max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
-        'ml-auto bg-secondary text-secondary-foreground',
+        'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]',
       )}
     >
       {lines.map((line, idx) => (

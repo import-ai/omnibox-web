@@ -22,9 +22,9 @@ export function SidebarNav(props: SidebarNavProps) {
           onClick={() => onChange(item.value)}
           className={cn(
             item.value === value
-              ? 'bg-muted hover:bg-muted'
+              ? 'bg-muted hover:bg-muted dark:bg-[#666666] dark:hover:bg-[#666666]'
               : 'hover:bg-transparent hover:underline',
-            'justify-start'
+            'justify-start',
           )}
         >
           {item.label}

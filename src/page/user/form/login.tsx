@@ -130,16 +130,21 @@ export function LoginForm({
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" loading={isLoading}>
+          <Button
+            type="submit"
+            variant="default"
+            className="w-full disabled:opacity-60"
+            loading={isLoading}
+          >
             {t('login.submit')}
           </Button>
         </div>
         <Space className="text-sm justify-center">
-          <Link to="/user/sign-up" className="text-sm text-blue-700 ml-1">
+          <Link to="/user/sign-up" className="text-sm ml-1">
             {t('register.submit')}
           </Link>
           {t('form.or')}
-          <Link to="/user/password" className="text-sm text-blue-700 ml-1">
+          <Link to="/user/password" className="text-sm ml-1">
             {t('password.submit')}
           </Link>
         </Space>

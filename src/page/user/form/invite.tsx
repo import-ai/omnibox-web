@@ -62,7 +62,7 @@ export function InviteForm() {
       </div>
       <Button
         type="submit"
-        className="w-full"
+        className="w-full disabled:opacity-60"
         loading={isLoading}
         onClick={handleSubmit}
       >

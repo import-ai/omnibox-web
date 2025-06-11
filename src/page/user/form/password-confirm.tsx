@@ -98,7 +98,7 @@ export function ForgotPasswordForm() {
         />
         <Button
           type="submit"
-          className="w-full"
+          className="w-full disabled:opacity-60"
           disabled={isLoading}
           loading={isLoading}
         >

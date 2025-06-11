@@ -65,16 +65,19 @@ export default function ChatAction(props: IActionProps) {
           size="icon"
           variant="ghost"
           onClick={onStop}
-          className="rounded-full size-8 [&_svg]:size-6"
+          className="rounded-full size-8 [&_svg]:size-6 text-black dark:text-white"
         >
           <CircleStop />
+        </Button>
+      ) : disabled ? (
+        <Button size="icon" className="rounded-lg size-8 bg-[#edeff2]">
+          <ArrowUp className="text-[#999999]" />
         </Button>
       ) : (
         <Button
           size="icon"
           onClick={onSubmit}
-          disabled={disabled}
-          className="rounded-lg size-8 dark:bg-white"
+          className="rounded-lg size-8 bg-black dark:bg-white"
         >
           <ArrowUp />
         </Button>
