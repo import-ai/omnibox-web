@@ -56,15 +56,15 @@ export default function GroupMain(props: GroupProps) {
         />
       </div>
       <div className="rounded-md border">
-        <div>
-          <div className="grid grid-cols-12 text-muted-foreground border-b font-bold">
+        <div className="overflow-auto max-w-[83vw] sm:w-full">
+          <div className="w-full grid grid-cols-12 text-muted-foreground border-b font-bold">
             <div className="col-span-6 text-sm h-10 leading-10 px-2">
               {t('manage.group')}
             </div>
             <div className="col-span-4 text-sm h-10 leading-10 px-2">
               {t('manage.member')}
             </div>
-            <div className="col-span-2 text-sm h-10 leading-10 px-2"></div>
+            <div className="col-span-2 min-w-[100px] text-sm h-10 leading-10 px-2"></div>
           </div>
           <div>
             {data.map((item) => (

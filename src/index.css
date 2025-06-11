@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    font-size: 12px;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -57,7 +73,7 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 30%;
-    --input: 240 3.7% 15.9%;
+    --input: 0 0% 48%;
     --ring: 213 96% 52%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;

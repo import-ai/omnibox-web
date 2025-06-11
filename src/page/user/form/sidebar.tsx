@@ -21,7 +21,7 @@ export function SidebarNav(props: SidebarNavProps) {
           variant="ghost"
           onClick={() => onChange(item.value)}
           className={cn(
-            'justify-start',
+            'justify-start px-3 sm:px-4',
             item.value === value
               ? 'bg-muted hover:bg-muted dark:bg-[#666666] dark:hover:bg-[#666666]'
               : 'hover:bg-transparent hover:underline',

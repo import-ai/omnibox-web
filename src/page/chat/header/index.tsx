@@ -2,8 +2,8 @@ import Title from './title';
 import Actions from './actions';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRef, useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -17,6 +17,7 @@ export default function ChatHeader() {
   const app = useApp();
   const loc = useLocation();
   const params = useParams();
+  const modified = useRef(false);
   const { t } = useTranslation();
   const i18nTitle = t('chat.conversations.new');
   const [data, onData] = useState(i18nTitle);
@@ -25,12 +26,20 @@ export default function ChatHeader() {
   const conversationsPage = loc.pathname.endsWith('/chat/conversations');
 
   useEffect(() => {
-    return app.on('chat:title:update', onData);
+    return app.on('chat:title:update', (val: string) => {
+      if (!modified.current) {
+        modified.current = true;
+      }
+      onData(val);
+    });
   }, []);
 
   useEffect(() => {
     return app.on('chat:title', (text?: string) => {
       if (!text) {
+        if (modified.current) {
+          modified.current = false;
+        }
         onData(i18nTitle);
         return;
       }
@@ -45,14 +54,24 @@ export default function ChatHeader() {
           },
         )
         .then((res) => {
+          if (!modified.current) {
+            modified.current = true;
+          }
           onData(res.title);
         });
     });
   }, [data, conversationId, namespaceId]);
 
+  useEffect(() => {
+    if (modified.current) {
+      return;
+    }
+    onData(i18nTitle);
+  }, [i18nTitle]);
+
   return (
     <header className="sticky top-0 bg-white flex h-14 shrink-0 items-center gap-2 dark:bg-background">
-      <div className="flex flex-1 items-center gap-2 px-3">
+      <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
         <SidebarTrigger />
         {!conversationsPage && (
           <>
@@ -71,7 +90,7 @@ export default function ChatHeader() {
           </>
         )}
       </div>
-      <div className="ml-auto px-3">
+      <div className="ml-auto pr-3">
         <Actions
           data={data}
           namespaceId={namespaceId}

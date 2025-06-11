@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
   Pagination,
   PaginationItem,
@@ -24,6 +25,7 @@ export default function PaginationMain({
   pageSize = 10,
   onChange,
 }: PaginationProps) {
+  const { isMobile } = useSidebar();
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(current);
   const totalPages = Math.ceil(total / pageSize);
@@ -32,7 +34,7 @@ export default function PaginationMain({
     onChange && onChange(page, pageSize);
   };
   const getPageNumbers = () => {
-    const delta = 2;
+    const delta = isMobile ? 0 : 2;
     const range = [];
     const rangeWithDots = [];
     let l;

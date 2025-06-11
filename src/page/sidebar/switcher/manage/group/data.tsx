@@ -52,7 +52,7 @@ export default function GroupData(props: GroupProps) {
             {t('manage.member_count', { size: groupUserData.length })}
           </span>
         </div>
-        <div className="col-span-2 flex items-center justify-end gap-2 text-sm h-10 leading-10 px-2">
+        <div className="col-span-2 min-w-[100px] flex items-center justify-end gap-2 text-sm h-10 leading-10 px-2">
           <Button size="sm" onClick={() => onEdit(id, title)}>
             {t('manage.edit')}
           </Button>

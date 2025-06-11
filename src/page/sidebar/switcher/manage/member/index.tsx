@@ -59,8 +59,8 @@ export default function MemberMain(props: MemberProps) {
           </Button>
         </Invite>
       </div>
-      <div className="rounded-md border w-full">
-        <Table>
+      <div className="rounded-md border">
+        <Table rootClassName="max-w-[83vw] sm:w-full">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40%]">{t('manage.user')}</TableHead>

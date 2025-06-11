@@ -1,6 +1,7 @@
 import Form from './form';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
   Popover,
   PopoverContent,
@@ -9,6 +10,7 @@ import {
 
 export default function Share() {
   const { t } = useTranslation();
+  const { isMobile } = useSidebar();
 
   return (
     <Popover>
@@ -19,9 +21,9 @@ export default function Share() {
       </PopoverTrigger>
       <PopoverContent
         side="bottom"
-        align="end"
-        alignOffset={-106}
-        className="w-[456px] p-0 overflow-hidden"
+        align={isMobile ? 'center' : 'end'}
+        alignOffset={isMobile ? 0 : -106}
+        className="w-full sm:w-[456px] p-0 overflow-hidden"
       >
         <Form />
       </PopoverContent>

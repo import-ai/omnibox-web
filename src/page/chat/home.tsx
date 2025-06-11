@@ -47,7 +47,7 @@ export default function ChatHomePage() {
   }, []);
 
   return (
-    <div className="flex flex-col justify-center h-full mb-20">
+    <div className="flex flex-col justify-center h-full mb-40">
       <h1 className="text-3xl text-center mb-10 font-medium">
         {user.username && (
           <Typewriter
