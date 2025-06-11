@@ -127,6 +127,8 @@
     "remove": "Remove from Workspace",
     "add_member": "Add Member",
     "user": "User",
+    "permission": "Permission",
+    "role": "Role",
     "owner": "Workspace Owner",
     "owner_desc": "Can change workspace settings and invite new members to the workspace.",
     "member": "Member",
