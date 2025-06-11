@@ -1,7 +1,7 @@
 import { Resource } from '@/interface';
 import Render from '@/page/resource/render';
 import Editor from '@/page/resource/editor';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
