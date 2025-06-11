@@ -57,7 +57,7 @@
     "sonner": "^2.0.3",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
-    "vditor": "^3.10.8",
+    "vditor": "^3.11.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {
