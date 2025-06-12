@@ -3,12 +3,14 @@ import { UserPlus } from 'lucide-react';
 import InviteForm from './people/invite-form';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 
 interface IProps {
@@ -42,6 +44,9 @@ export default function Invite(props: IProps) {
       <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl">
         <DialogHeader>
           <DialogTitle>{t('invite.add')}</DialogTitle>
+          <VisuallyHidden>
+            <DialogDescription></DialogDescription>
+          </VisuallyHidden>
         </DialogHeader>
         <InviteForm onFinish={onCancel} />
       </DialogContent>

@@ -1,5 +1,7 @@
+import { cn } from '@/lib/utils';
 import Actions from './actions';
 import Wrapper from './wrapper';
+import useWide from '@/hooks/use-wide';
 import { useTranslation } from 'react-i18next';
 import useResource from '@/hooks/user-resource';
 import { Separator } from '@/components/ui/separator';
@@ -13,6 +15,7 @@ import {
 
 export default function ResourcePage() {
   const { t } = useTranslation();
+  const { wide, onWide } = useWide();
   const { app, loading, forbidden, resource, resource_id, namespace_id } =
     useResource();
 
@@ -33,11 +36,22 @@ export default function ResourcePage() {
           </Breadcrumb>
         </div>
         <div className="ml-auto pr-3">
-          <Actions app={app} forbidden={forbidden} resource={resource} />
+          <Actions
+            app={app}
+            wide={wide}
+            onWide={onWide}
+            forbidden={forbidden}
+            resource={resource}
+          />
         </div>
       </header>
       <div className="flex justify-center h-full p-4">
-        <div className="flex flex-col h-full max-w-3xl w-full">
+        <div
+          className={cn('flex flex-col h-full  w-full', {
+            'max-w-3xl': !wide,
+            'w-full': wide,
+          })}
+        >
           <Wrapper
             app={app}
             loading={loading}

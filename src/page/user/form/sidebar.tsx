@@ -14,7 +14,7 @@ export function SidebarNav(props: SidebarNavProps) {
   const { value, onChange, items } = props;
 
   return (
-    <nav className="flex lg:flex-col">
+    <nav className="flex flex-wrap gap-1 lg:flex-col">
       {items.map((item) => (
         <Button
           key={item.value}

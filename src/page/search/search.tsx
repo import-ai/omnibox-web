@@ -1,3 +1,8 @@
+import { http } from '@/lib/request';
+import { useTranslation } from 'react-i18next';
+import { File, MessageCircle } from 'lucide-react';
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   CommandDialog,
   CommandGroup,
@@ -5,11 +10,6 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { useTranslation } from 'react-i18next';
-import { useEffect, useState, useRef, useMemo } from 'react';
-import { http } from '@/lib/request';
-import { useParams, useNavigate } from 'react-router-dom';
-import { File, MessageCircle } from 'lucide-react';
 
 export interface IProps {
   open: boolean;
@@ -110,24 +110,21 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
         value={keywords}
         onValueChange={setKeywords}
       />
-      <CommandList>
+      <CommandList className="min-h-[300px]">
         {resources.length > 0 && (
           <CommandGroup heading={t('search.resources')}>
             {resources.map((resource) => (
               <CommandItem
                 key={resource.id}
+                value={resource.id}
+                className="cursor-pointer"
                 onSelect={() => {
                   navigate(`/${params.namespace_id}/${resource.resource_id}`);
                   onOpenChange(false);
                 }}
               >
-                <div className="flex flex-col">
-                  <div className="flex gap-2 items-start">
-                    <File className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-bold">{resource.title}</span>
-                  </div>
-                  <span>{resource.content}</span>
-                </div>
+                <File className="size-4 text-muted-foreground" />
+                {resource.title}
               </CommandItem>
             ))}
           </CommandGroup>
@@ -137,6 +134,8 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
             {messages.map((message) => (
               <CommandItem
                 key={message.id}
+                value={message.id}
+                className="cursor-pointer"
                 onSelect={() => {
                   navigate(
                     `/${params.namespace_id}/chat/${message.conversation_id}`,
@@ -144,10 +143,8 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
                   onOpenChange(false);
                 }}
               >
-                <div className="flex gap-2 items-start">
-                  <MessageCircle className="w-4 h-4 text-muted-foreground" />
-                  <span>{message.content}</span>
-                </div>
+                <MessageCircle className="size-4 text-muted-foreground" />
+                {message.content}
               </CommandItem>
             ))}
           </CommandGroup>
