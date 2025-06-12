@@ -67,7 +67,7 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
         .filter((item) => item.type === 'resource')
         .map((item) => ({
           ...item,
-          name: item.name || t('untitled'),
+          title: item.title || t('untitled'),
           content: item.content || '',
         }))
         .map((item) => ({
@@ -119,15 +119,14 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
                 value={resource.id}
                 className="cursor-pointer"
                 onSelect={() => {
-                  navigate(`/${params.namespace_id}/${resource.id}`);
+                  navigate(`/${params.namespace_id}/${resource.resource_id}`);
                   onOpenChange(false);
                 }}
               >
-                <div className="flex gap-2 items-start">
-                  <File className="size-4 text-muted-foreground" />
-                  <div className="flex flex-col gap-y-1">
-                    <div className="font-bold">{resource.name}</div>
-                    <div>{resource.content}</div>
+                <div className="flex flex-col">
+                  <div className="flex gap-2 items-start">
+                    <File className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-bold">{resource.title}</span>
                   </div>
                 </div>
               </CommandItem>
