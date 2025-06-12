@@ -76,6 +76,14 @@ export default function ChatHeader() {
     onData(i18nTitle);
   }, [i18nTitle]);
 
+  useEffect(() => {
+    if (conversationsPage) {
+      document.title = t('chat.conversations.history');
+      return;
+    }
+    document.title = data;
+  }, [data, conversationsPage]);
+
   return (
     <header className="sticky top-0 bg-white flex h-14 shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
