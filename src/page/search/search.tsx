@@ -123,7 +123,7 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
                   onOpenChange(false);
                 }}
               >
-                <File className="w-4 h-4 text-muted-foreground" />
+                <File className="size-4 text-muted-foreground" />
                 {resource.title}
               </CommandItem>
             ))}
