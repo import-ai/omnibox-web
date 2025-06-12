@@ -46,7 +46,7 @@ export default function MemberMain(props: MemberProps) {
 
   return (
     <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap">
         <Input
           value={search}
           onChange={(e) => onSearch(e.target.value)}
@@ -60,7 +60,7 @@ export default function MemberMain(props: MemberProps) {
         </Invite>
       </div>
       <div className="rounded-md border">
-        <Table>
+        <Table rootClassName="max-w-[83vw] sm:w-full">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40%]">{t('manage.user')}</TableHead>

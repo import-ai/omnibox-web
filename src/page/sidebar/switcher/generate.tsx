@@ -25,7 +25,7 @@ export default function Generate() {
           {t('namespace.add')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-1/2 max-w-7xl">
+      <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{t('namespace.add')}</DialogTitle>
         </DialogHeader>

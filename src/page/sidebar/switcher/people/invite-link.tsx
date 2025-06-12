@@ -11,7 +11,7 @@ export default function InvitePeople() {
   };
 
   return (
-    <div className="flex justify-between mb-4">
+    <div className="flex justify-between mb-4 flex-wrap">
       <div className="flex flex-col">
         <h2 className="font-medium mb-2">{t('invite.title')}</h2>
         <p className="text-muted-foreground text-sm">
