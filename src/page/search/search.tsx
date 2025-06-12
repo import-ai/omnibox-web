@@ -123,12 +123,8 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
                   onOpenChange(false);
                 }}
               >
-                <div className="flex flex-col">
-                  <div className="flex gap-2 items-start">
-                    <File className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-bold">{resource.title}</span>
-                  </div>
-                </div>
+                <File className="w-4 h-4 text-muted-foreground" />
+                {resource.title}
               </CommandItem>
             ))}
           </CommandGroup>
@@ -147,10 +143,8 @@ export function SearchMenu({ open, onOpenChange }: IProps) {
                   onOpenChange(false);
                 }}
               >
-                <div className="flex gap-2 items-start">
-                  <MessageCircle className="size-4 text-muted-foreground" />
-                  <span>{message.content}</span>
-                </div>
+                <MessageCircle className="size-4 text-muted-foreground" />
+                {message.content}
               </CommandItem>
             ))}
           </CommandGroup>
