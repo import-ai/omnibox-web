@@ -1,27 +1,17 @@
 import Share from './share';
-import i18next from 'i18next';
 import { toast } from 'sonner';
-import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import { useEffect, useRef, useState } from 'react';
 import App from '@/hooks/app.class';
 import { http } from '@/lib/request';
 import copy from 'copy-to-clipboard';
 import { Resource } from '@/interface';
 import { Input } from '@/components/input';
-import {
-  ArrowUp,
-  Copy,
-  Link,
-  LoaderCircle,
-  MoreHorizontal,
-  Pencil,
-  PencilOff,
-  Save,
-  Trash2,
-} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import { useEffect, useRef, useState } from 'react';
+import { LanguageToggle } from '@/i18n/language-toggle';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
 import PermissionWrapper from '@/components/permission-action/wrapper';
 import {
@@ -37,45 +27,33 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
-import { LanguageToggle } from '@/i18n/language-toggle';
+import {
+  Save,
+  Copy,
+  Link,
+  Trash2,
+  Pencil,
+  ArrowUp,
+  PencilOff,
+  MoveHorizontal,
+  LoaderCircle,
+  MoreHorizontal,
+} from 'lucide-react';
 
 interface IProps {
   app: App;
+  wide: boolean;
+  onWide: (wide: boolean) => void;
   forbidden: boolean;
   resource: Resource | null;
 }
 
-export const data = [
-  [
-    {
-      id: 'copy_link',
-      label: i18next.t('actions.copy_link'),
-      icon: Link,
-    },
-    {
-      id: 'duplicate',
-      label: i18next.t('actions.duplicate'),
-      icon: Copy,
-    },
-    {
-      id: 'move_to_trash',
-      label: i18next.t('actions.move_to_trash'),
-      icon: Trash2,
-    },
-  ],
-  [
-    {
-      id: 'import',
-      label: i18next.t('actions.import'),
-      icon: ArrowUp,
-    },
-  ],
-];
-
 export default function Actions(props: IProps) {
-  const { app, forbidden, resource } = props;
+  const { app, wide, onWide, forbidden, resource } = props;
   const { t } = useTranslation();
+  const { isMobile } = useSidebar();
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [editing, onEditing] = useState(false);
@@ -94,6 +72,10 @@ export default function Actions(props: IProps) {
     });
   };
   const handleAction = (id: string) => {
+    if (id === 'wide') {
+      onWide(!wide);
+      return;
+    }
     if (id === 'copy_link') {
       const returnValue = copy(location.href);
       toast(t(returnValue ? 'copy.success' : 'copy.fail'), {
@@ -292,28 +274,88 @@ export default function Actions(props: IProps) {
         >
           <Sidebar collapsible="none" className="bg-transparent">
             <SidebarContent className="gap-0">
-              {data.map((group, index) => (
-                <SidebarGroup key={index} className="border-b">
+              <SidebarGroup className="border-b">
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        onClick={() => handleAction('copy_link')}
+                      >
+                        {loading === 'copy_link' ? (
+                          <LoaderCircle className="transition-transform animate-spin" />
+                        ) : (
+                          <Link />
+                        )}
+                        <span>{t('actions.copy_link')}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        onClick={() => handleAction('duplicate')}
+                      >
+                        {loading === 'duplicate' ? (
+                          <LoaderCircle className="transition-transform animate-spin" />
+                        ) : (
+                          <Copy />
+                        )}
+                        <span>{t('actions.duplicate')}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        onClick={() => handleAction('move_to_trash')}
+                      >
+                        {loading === 'move_to_trash' ? (
+                          <LoaderCircle className="transition-transform animate-spin" />
+                        ) : (
+                          <Trash2 />
+                        )}
+                        <span>{t('actions.move_to_trash')}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+              {!isMobile && (
+                <SidebarGroup className="border-b">
                   <SidebarGroupContent>
                     <SidebarMenu>
-                      {group.map((item, index) => (
-                        <SidebarMenuItem key={index}>
-                          <SidebarMenuButton
-                            onClick={() => handleAction(item.id)}
-                          >
-                            {loading === item.id ? (
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          onClick={() => handleAction('wide')}
+                          className="flex items-center justify-between"
+                        >
+                          <div className="flex gap-2 items-center">
+                            {loading === 'wide' ? (
                               <LoaderCircle className="transition-transform animate-spin" />
                             ) : (
-                              <item.icon />
+                              <MoveHorizontal />
                             )}
-                            <span>{item.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
+                            <span>{t('actions.wide')}</span>
+                          </div>
+                          <Switch checked={wide} />
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </SidebarGroup>
-              ))}
+              )}
+              <SidebarGroup className="border-b">
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton onClick={() => handleAction('import')}>
+                        {loading === 'import' ? (
+                          <LoaderCircle className="transition-transform animate-spin" />
+                        ) : (
+                          <ArrowUp />
+                        )}
+                        <span>{t('actions.import')}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
               <Input
                 type="file"
                 ref={fileInputRef}

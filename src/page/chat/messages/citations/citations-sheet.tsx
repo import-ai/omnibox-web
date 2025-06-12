@@ -2,6 +2,7 @@ import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { type Citation } from '@/page/chat/types/chat-response';
 import { CitationCard } from '@/page/chat/messages/citations/citation-card';
 import {
@@ -10,6 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetDescription,
 } from '@/components/ui/sheet';
 
 interface IProps {
@@ -38,6 +40,9 @@ export function CitationsSheet(props: IProps) {
       <SheetContent className="p-0">
         <SheetHeader className="px-4 py-3">
           <SheetTitle>{t('chat.citations_results')}</SheetTitle>
+          <VisuallyHidden>
+            <SheetDescription></SheetDescription>
+          </VisuallyHidden>
         </SheetHeader>
         <Separator className="dark:bg-gray-700" />
         <div className="overflow-y-auto h-[calc(100vh-53px)]">

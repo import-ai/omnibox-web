@@ -28,7 +28,7 @@ export function UserMessage(props: IProps) {
   return (
     <div
       className={cn(
-        'flex sm:w-max sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
+        'flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
         'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]',
       )}
     >

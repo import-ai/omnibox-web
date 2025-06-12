@@ -2,12 +2,14 @@ import { Settings } from 'lucide-react';
 import SettingWrapper from './swtting-wrapper';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 
 export default function Setting() {
@@ -28,6 +30,9 @@ export default function Setting() {
       <DialogContent className="w-[90%] sm:w-4/5 max-w-7xl p-3 sm:p-6">
         <DialogHeader>
           <DialogTitle>{t('setting.preferences')}</DialogTitle>
+          <VisuallyHidden>
+            <DialogDescription></DialogDescription>
+          </VisuallyHidden>
         </DialogHeader>
         <SettingWrapper />
       </DialogContent>

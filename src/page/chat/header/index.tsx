@@ -35,6 +35,13 @@ export default function ChatHeader() {
   }, []);
 
   useEffect(() => {
+    if (conversationId) {
+      return;
+    }
+    onData(i18nTitle);
+  }, [conversationId]);
+
+  useEffect(() => {
     return app.on('chat:title', (text?: string) => {
       if (!text) {
         if (modified.current) {

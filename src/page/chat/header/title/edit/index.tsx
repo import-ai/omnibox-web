@@ -1,8 +1,10 @@
 import EditForm from './form';
 import { useTranslation } from 'react-i18next';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -29,6 +31,9 @@ export default function editHistory(props: IProps) {
           <DialogTitle>
             {t('chat.conversations.rename.dialog.title')}
           </DialogTitle>
+          <VisuallyHidden>
+            <DialogDescription></DialogDescription>
+          </VisuallyHidden>
         </DialogHeader>
         <EditForm data={data} namespaceId={namespaceId} onFinish={onFinish} />
       </DialogContent>

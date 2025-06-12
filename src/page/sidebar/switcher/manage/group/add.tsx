@@ -1,12 +1,14 @@
 import AddGroupForm from './add-form';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 
 interface IProps {
@@ -34,6 +36,9 @@ export default function CreateGroup(props: IProps) {
       <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <VisuallyHidden>
+            <DialogDescription></DialogDescription>
+          </VisuallyHidden>
         </DialogHeader>
         <AddGroupForm data={data} onFinish={onFinish} />
       </DialogContent>
