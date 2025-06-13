@@ -329,7 +329,7 @@ export default function Actions(props: IProps) {
                             {loading === 'wide' ? (
                               <LoaderCircle className="transition-transform animate-spin" />
                             ) : (
-                              <MoveHorizontal />
+                              <MoveHorizontal className="size-4" />
                             )}
                             <span>{t('actions.wide')}</span>
                           </div>
