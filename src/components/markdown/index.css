@@ -2,3 +2,15 @@
 .vditor-ir__link {
   color: #4285f4;
 }
+
+.vditor-reset ol {
+  list-style: decimal;
+}
+
+.vditor-reset ul {
+  list-style: disc;
+}
+
+.vditor-reset menu {
+  list-style: disc;
+}
