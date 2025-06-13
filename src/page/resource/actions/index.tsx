@@ -217,47 +217,45 @@ export default function Actions(props: IProps) {
       )}
       <LanguageToggle />
       <ThemeToggle />
-      <PermissionWrapper
-        level={1}
-        forbidden={forbidden}
-        permission={
-          resource && resource.current_level
-            ? resource.current_level
-            : 'full_access'
-        }
-      >
-        {editing ? (
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={handleSave}
-            >
-              <Save />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={handleExitEdit}
-            >
-              <PencilOff />
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={handleEdit}
-            >
-              <Pencil />
-            </Button>
-          </>
-        )}
-      </PermissionWrapper>
+      {resource && (
+        <PermissionWrapper
+          level={1}
+          permission={resource.current_level || 'full_access'}
+          forbidden={forbidden || resource.resource_type === 'folder'}
+        >
+          {editing ? (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleSave}
+              >
+                <Save />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleExitEdit}
+              >
+                <PencilOff />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleEdit}
+              >
+                <Pencil />
+              </Button>
+            </>
+          )}
+        </PermissionWrapper>
+      )}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button

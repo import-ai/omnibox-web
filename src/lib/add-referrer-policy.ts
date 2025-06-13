@@ -1,6 +1,6 @@
 import each from '@/lib/each';
 
-export function addReferrerPolicyForElement(target: HTMLDivElement) {
+export function addReferrerPolicyForElement(target: HTMLElement) {
   const node = target.querySelectorAll('img');
   if (node.length <= 0) {
     return target;
