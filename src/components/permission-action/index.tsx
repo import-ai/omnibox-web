@@ -90,7 +90,11 @@ export default function PermissionAction(props: IProps) {
       });
   };
   const handleRemove = () => {
-    onRemove(true);
+    if (me) {
+      onRemove(true);
+      return;
+    }
+    handleRemoveOk();
   };
   const handleRemoveCancel = () => {
     onRemove(false);

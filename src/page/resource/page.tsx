@@ -3,8 +3,6 @@ import Render from '@/page/resource/render';
 import Editor from '@/page/resource/editor';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import 'vditor/dist/index.css';
-import '@/styles/vditor-patch.css';
 import App from '@/hooks/app.class';
 
 interface IProps {
@@ -23,7 +21,7 @@ export default function Page(props: IProps) {
     });
   }, []);
 
-  if (open) {
+  if (open || resource.resource_type === 'folder') {
     return (
       <Render
         content={`# ${resource.name || t('untitled')}\n${resource.content || ''}`}

@@ -1,4 +1,6 @@
 import Vditor from 'vditor';
+import 'vditor/dist/index.css';
+import '@/styles/vditor-patch.css';
 import { http } from '@/lib/request';
 import { VDITOR_CDN } from '@/const';
 import { Resource } from '@/interface';
@@ -15,7 +17,7 @@ export default function Editor(props: IEditorProps) {
   const { resource } = props;
   const { app, theme } = useTheme();
   const root = useRef<any>(null);
-  const vditor = useRef<any>(null);
+  const [vd, setVd] = useState<Vditor>();
   const [title, onTitle] = useState('');
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTitle(e.target.value);
@@ -24,7 +26,7 @@ export default function Editor(props: IEditorProps) {
   useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
       const name = title.trim();
-      const content: string | undefined = vditor.current?.getValue();
+      const content: string | undefined = vd?.getValue();
       if (!content && !name) {
         app.fire('resource_children', true);
         return;
@@ -50,7 +52,7 @@ export default function Editor(props: IEditorProps) {
     if (!resource || !root.current || resource.resource_type === 'folder') {
       return;
     }
-    vditor.current = new Vditor(root.current, {
+    const vditor = new Vditor(root.current, {
       ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
       cache: { id: `_${resource.id}` },
       preview: {
@@ -61,25 +63,21 @@ export default function Editor(props: IEditorProps) {
       },
       after: () => {
         onTitle(resource.name || '');
-        vditor.current.setValue(resource.content || '');
-        vditor.current.setTheme(
+        vditor.setValue(resource.content || '');
+        vditor.setTheme(
           theme.skin === 'dark' ? 'dark' : 'classic',
           theme.content,
           theme.code,
         );
-        if (vditor.current.vditor.ir && vditor.current.vditor.ir.element) {
-          addReferrerPolicyForElement(vditor.current.vditor.ir.element);
+        if (vditor.vditor.ir && vditor.vditor.ir.element) {
+          addReferrerPolicyForElement(vditor.vditor.ir.element);
         }
+        setVd(vditor);
       },
     });
     return () => {
-      if (vditor.current?.vditor) {
-        try {
-          vditor.current.destroy();
-        } catch (e) {
-          console.warn('Editor cleanup error:', e);
-        }
-      }
+      vd?.destroy();
+      setVd(undefined);
     };
   }, [resource, theme]);
 
@@ -92,9 +90,7 @@ export default function Editor(props: IEditorProps) {
         placeholder="Enter title"
         className="mb-4 p-2 border rounded"
       />
-      {resource.resource_type !== 'folder' && (
-        <div ref={root} className="vditor vditor-reset" />
-      )}
+      <div ref={root} className="vditor" />
     </div>
   );
 }
