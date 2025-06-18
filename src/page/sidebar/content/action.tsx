@@ -15,31 +15,24 @@ import {
 
 export interface IResourceProps {
   data: any;
-  namespace_id: string;
-  space_type: string;
+  spaceType: string;
   activeKey: string;
   expanding: string;
   editingKey: string;
   expands: Array<string>;
   onActiveKey: (id: string) => void;
-  onUpload: (
-    namespace_id: string,
-    space_type: string,
-    parent_id: string,
-    file: File,
-  ) => Promise<void>;
-  onExpand: (id: string, space_type: SpaceType) => void;
-  onMenuMore: (id: string, space_type: SpaceType) => void;
-  onDelete: (id: string, space_type: SpaceType, parent_id: string) => void;
+  onUpload: (spaceType: string, parentId: string, file: File) => Promise<void>;
+  onExpand: (id: string, spaceType: SpaceType) => void;
+  onMenuMore: (id: string, spaceType: SpaceType) => void;
+  onDelete: (id: string, spaceType: SpaceType, parentId: string) => void;
   onCreate: (
-    namespace_id: string,
-    space_type: string,
-    parent_id: string,
-    resource_type: ResourceType,
+    spaceType: string,
+    parentId: string,
+    resourceType: ResourceType,
   ) => void;
 }
 
-export default function MainDropdownMenu(props: IResourceProps) {
+export default function Action(props: IResourceProps) {
   const {
     data,
     onUpload,
@@ -48,7 +41,6 @@ export default function MainDropdownMenu(props: IResourceProps) {
     onMenuMore,
     editingKey,
     onActiveKey,
-    namespace_id,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
@@ -57,10 +49,10 @@ export default function MainDropdownMenu(props: IResourceProps) {
     ? data.children.filter((item: Resource) => item.id !== 'empty')
     : [];
   const handleCreateFile = () => {
-    onCreate(namespace_id, data.space_type, data.id, 'doc');
+    onCreate(data.space_type, data.id, 'doc');
   };
   const handleCreateFolder = () => {
-    onCreate(namespace_id, data.space_type, data.id, 'folder');
+    onCreate(data.space_type, data.id, 'folder');
   };
   const handleEdit = () => {
     onActiveKey(data.id);
@@ -98,11 +90,9 @@ export default function MainDropdownMenu(props: IResourceProps) {
     if (!e.target.files) {
       return;
     }
-    onUpload(namespace_id, data.space_type, data.id, e.target.files[0]).finally(
-      () => {
-        fileInputRef.current!.value = '';
-      },
-    );
+    onUpload(data.space_type, data.id, e.target.files[0]).finally(() => {
+      fileInputRef.current!.value = '';
+    });
   };
   const handleOpenChange = (open: boolean) => {
     if (!open) {

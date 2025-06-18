@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { IResourceData } from '@/interface';
 import { useTranslation } from 'react-i18next';
-import DropdownMenu, { IResourceProps } from './dropdown';
+import Action, { IResourceProps } from './action';
 import {
   File,
   Folder,
@@ -82,7 +82,7 @@ export default function Tree(props: IProps) {
                 <span className="truncate">{data.name || t('untitled')}</span>
               </div>
             </SidebarMenuButton>
-            <DropdownMenu {...props} />
+            <Action {...props} />
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
