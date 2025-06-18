@@ -21,7 +21,7 @@ export default function Page(props: IProps) {
     });
   }, []);
 
-  if (open || resource.resource_type === 'folder') {
+  if (open) {
     return (
       <Render
         content={`# ${resource.name || t('untitled')}\n${resource.content || ''}`}

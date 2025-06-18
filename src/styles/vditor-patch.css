@@ -1,14 +1,14 @@
 /* Important: Style duplication to avoid editor input exceptions */
 
-.vditor-ir pre.vditor-reset ol {
+.vditor-reset ol {
   list-style: decimal;
 }
 
-.vditor-ir pre.vditor-reset ul {
+.vditor-reset ul {
   list-style: disc;
 }
 
-.vditor-ir pre.vditor-reset menu {
+.vditor-reset menu {
   list-style: disc;
 }
 

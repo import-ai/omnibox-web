@@ -18,7 +18,7 @@ export default function User(props: IProps) {
       {data.map((item: UserPermission) => (
         <div
           key={item.user ? item.user.id : item.level}
-          className="flex items-center p-2 -m-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
+          className="flex items-center p-2 -m-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900"
         >
           {item.user ? (
             <>
