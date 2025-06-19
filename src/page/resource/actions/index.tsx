@@ -33,6 +33,7 @@ import {
   Save,
   Copy,
   Link,
+  Files,
   Trash2,
   Pencil,
   ArrowUp,
@@ -85,6 +86,16 @@ export default function Actions(props: IProps) {
       return;
     }
     if (!resource) {
+      setOpen(false);
+      return;
+    }
+    if (id === 'copy_content' && resource.content) {
+      const returnValue = copy(resource.content, {
+        format: 'text/plain',
+      });
+      toast(t(returnValue ? 'copy.success' : 'copy.fail'), {
+        position: 'top-center',
+      });
       setOpen(false);
       return;
     }
@@ -220,8 +231,8 @@ export default function Actions(props: IProps) {
       {resource && (
         <PermissionWrapper
           level={1}
+          forbidden={forbidden}
           permission={resource.current_level || 'full_access'}
-          forbidden={forbidden || resource.resource_type === 'folder'}
         >
           {editing ? (
             <>
@@ -279,12 +290,16 @@ export default function Actions(props: IProps) {
                       <SidebarMenuButton
                         onClick={() => handleAction('copy_link')}
                       >
-                        {loading === 'copy_link' ? (
-                          <LoaderCircle className="transition-transform animate-spin" />
-                        ) : (
-                          <Link />
-                        )}
+                        <Link />
                         <span>{t('actions.copy_link')}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        onClick={() => handleAction('copy_content')}
+                      >
+                        <Files />
+                        <span>{t('actions.copy_content')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>

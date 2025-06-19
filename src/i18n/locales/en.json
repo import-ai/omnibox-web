@@ -30,6 +30,7 @@
   },
   "actions": {
     "copy_link": "Copy Link",
+    "copy_content": "Copy content",
     "duplicate": "Duplicate",
     "move_to_trash": "Move to Trash",
     "import": "Import",

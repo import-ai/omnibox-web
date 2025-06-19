@@ -30,6 +30,7 @@
   },
   "actions": {
     "copy_link": "复制链接",
+    "copy_content": "复制正文",
     "duplicate": "复制",
     "move_to_trash": "移动到回收站",
     "import": "导入",
