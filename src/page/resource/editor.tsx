@@ -54,7 +54,7 @@ export default function Editor(props: IEditorProps) {
     }
     const vditor = new Vditor(root.current, {
       ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
-      tab: '\t\t',
+      tab: '\t',
       cache: { id: `_${resource.id}` },
       preview: {
         hljs: {
