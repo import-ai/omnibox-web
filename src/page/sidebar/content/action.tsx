@@ -1,11 +1,12 @@
 import { useRef } from 'react';
 import useApp from '@/hooks/use-app';
+import { Resource } from '@/interface';
 import { Input } from '@/components/ui/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useTranslation } from 'react-i18next';
+import { ISidebarProps } from '@/page/sidebar/interface';
 import { MoreHorizontal, LoaderCircle } from 'lucide-react';
 import { SidebarMenuAction } from '@/components/ui/sidebar';
-import { SpaceType, ResourceType, Resource } from '@/interface';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,26 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export interface IResourceProps {
-  data: any;
-  spaceType: string;
-  activeKey: string;
-  expanding: string;
-  editingKey: string;
-  expands: Array<string>;
-  onActiveKey: (id: string) => void;
-  onUpload: (spaceType: string, parentId: string, file: File) => Promise<void>;
-  onExpand: (id: string, spaceType: SpaceType) => void;
-  onMenuMore: (id: string, spaceType: SpaceType) => void;
-  onDelete: (id: string, spaceType: SpaceType, parentId: string) => void;
-  onCreate: (
-    spaceType: string,
-    parentId: string,
-    resourceType: ResourceType,
-  ) => void;
-}
-
-export default function Action(props: IResourceProps) {
+export default function Action(props: ISidebarProps) {
   const {
     data,
     onUpload,

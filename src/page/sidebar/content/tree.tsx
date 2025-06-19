@@ -1,7 +1,10 @@
+import Action from './action';
 import { cn } from '@/lib/utils';
+import { useRef, useEffect } from 'react';
 import { IResourceData } from '@/interface';
+import { useDrag, useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
-import Action, { IResourceProps } from './action';
+import { ISidebarProps } from '@/page/sidebar/interface';
 import {
   File,
   Folder,
@@ -20,18 +23,42 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-interface IProps extends IResourceProps {}
-
-export default function Tree(props: IProps) {
+export default function Tree(props: ISidebarProps) {
   const { data, activeKey, expands, expanding, onExpand, onActiveKey } = props;
+  const ref = useRef(null);
   const { t } = useTranslation();
   const expand = expands.includes(data.id);
+  const [, drag] = useDrag({
+    type: 'card',
+    item: data,
+    // collect(monitor) {
+    //   return {
+    //     dragging: monitor.isDragging(),
+    //   };
+    // },
+  });
+  const [{ isOver }, drop] = useDrop({
+    accept: 'card',
+    collect(monitor) {
+      return {
+        isOver: monitor.isOver(),
+      };
+    },
+    drop(item) {
+      console.log('--->', item);
+    },
+  });
   const handleExpand = () => {
     onExpand(data.id, data.space_type);
   };
   const handleActiveKey = () => {
     onActiveKey(data.id);
   };
+
+  useEffect(() => {
+    drag(ref);
+    drop(ref);
+  }, []);
 
   if (data.id === 'empty') {
     return (
@@ -57,7 +84,12 @@ export default function Tree(props: IProps) {
               onClick={handleActiveKey}
               isActive={data.id == activeKey}
             >
-              <div className="flex cursor-pointer">
+              <div
+                ref={ref}
+                className={cn('flex cursor-pointer', {
+                  'bg-sidebar-accent text-sidebar-accent-foreground': isOver,
+                })}
+              >
                 {expanding === data.id ? (
                   <LoaderCircle className="transition-transform animate-spin" />
                 ) : (

@@ -2,9 +2,9 @@ import Tree from './tree';
 import { useRef } from 'react';
 import { Input } from '@/components/input';
 import { IResourceData } from '@/interface';
-import { IResourceProps } from './action';
 import { useTranslation } from 'react-i18next';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import { ISidebarProps } from '@/page/sidebar/interface';
 import { LoaderCircle, MoreHorizontal } from 'lucide-react';
 import {
   SidebarMenu,
@@ -20,9 +20,7 @@ import {
   DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
 
-interface IProps extends IResourceProps {}
-
-export default function Space(props: IProps) {
+export default function Space(props: ISidebarProps) {
   const { data, editingKey, spaceType, onCreate, onUpload } = props;
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,7 +39,7 @@ export default function Space(props: IProps) {
   return (
     <SidebarGroup>
       <div className="flex items-center justify-between">
-        <SidebarGroupLabel>{t(spaceType)}</SidebarGroupLabel>
+        <SidebarGroupLabel>{spaceType ? t(spaceType) : ''}</SidebarGroupLabel>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuAction className="my-1.5 right-2 focus-visible:outline-none focus-visible:ring-transparent">

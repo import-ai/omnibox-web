@@ -1,66 +1,28 @@
 import Space from './space';
 import group from '@/lib/group';
-import { SpaceType, ResourceType } from '@/interface';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { ISidebarProps } from '@/page/sidebar/interface';
 import { SidebarContent } from '@/components/ui/sidebar';
 
-interface IProps {
-  data: any;
-  resourceId: string;
-  expanding: string;
-  editingKey: string;
-  expands: Array<string>;
-  handleActiveKey: (id: string) => void;
-  handleUpload: (
-    spaceType: string,
-    parentId: string,
-    file: File,
-  ) => Promise<void>;
-  handleExpand: (id: string, spaceType: SpaceType) => void;
-  handleMenuMore: (id: string, spaceType: SpaceType) => void;
-  handleDelete: (id: string, spaceType: SpaceType, parentId: string) => void;
-  handleCreate: (
-    spaceType: string,
-    parentId: string,
-    resourceType: ResourceType,
-  ) => void;
-}
-
-export default function Content(props: IProps) {
-  const {
-    data,
-    expands,
-    expanding,
-    editingKey,
-    resourceId,
-    handleExpand,
-    handleDelete,
-    handleCreate,
-    handleUpload,
-    handleMenuMore,
-    handleActiveKey,
-  } = props;
+export default function Content(props: ISidebarProps) {
+  const { data, resourceId } = props;
 
   return (
-    <SidebarContent>
-      {Object.keys(data)
-        .sort()
-        .map((space_type: string) => (
-          <Space
-            key={space_type}
-            expands={expands}
-            expanding={expanding}
-            activeKey={resourceId}
-            spaceType={space_type}
-            editingKey={editingKey}
-            onExpand={handleExpand}
-            onDelete={handleDelete}
-            onCreate={handleCreate}
-            onUpload={handleUpload}
-            onMenuMore={handleMenuMore}
-            onActiveKey={handleActiveKey}
-            data={group(data[space_type])}
-          />
-        ))}
-    </SidebarContent>
+    <DndProvider backend={HTML5Backend}>
+      <SidebarContent>
+        {Object.keys(data)
+          .sort()
+          .map((spaceType: string) => (
+            <Space
+              {...props}
+              key={spaceType}
+              activeKey={resourceId}
+              spaceType={spaceType}
+              data={group(data[spaceType])}
+            />
+          ))}
+      </SidebarContent>
+    </DndProvider>
   );
 }

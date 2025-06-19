@@ -33,12 +33,12 @@ export default function MainSidebar() {
         expanding={expanding}
         editingKey={editingKey}
         resourceId={resourceId}
-        handleExpand={handleExpand}
-        handleDelete={handleDelete}
-        handleCreate={handleCreate}
-        handleUpload={handleUpload}
-        handleMenuMore={handleMenuMore}
-        handleActiveKey={handleActiveKey}
+        onExpand={handleExpand}
+        onDelete={handleDelete}
+        onCreate={handleCreate}
+        onUpload={handleUpload}
+        onMenuMore={handleMenuMore}
+        onActiveKey={handleActiveKey}
       />
       <SidebarRail />
     </Sidebar>

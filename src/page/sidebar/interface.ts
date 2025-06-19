@@ -1,9 +1,10 @@
 import { SpaceType, ResourceType } from '@/interface';
 
-export interface IActionProps {
+export interface ISidebarProps {
   data: any;
-  spaceType: string;
-  activeKey: string;
+  spaceType?: string;
+  activeKey?: string;
+  resourceId: string;
   expanding: string;
   editingKey: string;
   expands: Array<string>;
