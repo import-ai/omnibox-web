@@ -1,9 +1,7 @@
 import Action from './action';
 import { cn } from '@/lib/utils';
-import { useRef, useEffect } from 'react';
 import { IResourceData } from '@/interface';
 import { useTranslation } from 'react-i18next';
-import { useDrag, useDrop, XYCoord } from 'react-dnd';
 import { ISidebarProps } from '@/page/sidebar/interface';
 import {
   File,
@@ -23,85 +21,16 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-export interface ITreeProps extends ISidebarProps {
-  onDrop: (
-    target: IResourceData,
-    highlight: { pos: string; target: IResourceData | null },
-  ) => void;
-  highlight: { pos: string; target: IResourceData | null };
-  onHighlight: (highlight: {
-    pos: string;
-    target: IResourceData | null;
-  }) => void;
-}
-
-export default function Tree(props: ITreeProps) {
-  const {
-    data,
-    onDrop,
-    activeKey,
-    expands,
-    expanding,
-    onExpand,
-    onActiveKey,
-    highlight,
-    onHighlight,
-  } = props;
-  const ref = useRef(null);
+export default function Tree(props: ISidebarProps) {
+  const { data, activeKey, expands, expanding, onExpand, onActiveKey } = props;
   const { t } = useTranslation();
   const expand = expands.includes(data.id);
-  const [, drag] = useDrag({
-    type: 'card',
-    item: data,
-  });
-  const [, drop] = useDrop({
-    accept: 'card',
-    hover: (item, monitor) => {
-      if (!ref.current) {
-        onHighlight({ target: null, pos: '' });
-        return;
-      }
-      const didHover = monitor.isOver();
-      if (!didHover) {
-        onHighlight({ target: null, pos: '' });
-        return;
-      }
-      const dragId = (item as IResourceData).id;
-      if (dragId === data.id) {
-        onHighlight({ target: null, pos: '' });
-        return;
-      }
-      const rect = (ref.current as HTMLDivElement).getBoundingClientRect();
-      const thirdsHeight = rect.height / 3;
-      const rectTop = rect.top;
-      const rectBottom = rect.bottom;
-      const topCenter = rectTop + thirdsHeight;
-      const bottomCenter = rectBottom - thirdsHeight;
-      const clientOffset = monitor.getClientOffset() as XYCoord;
-      const hoverY = clientOffset.y;
-      if (hoverY > rectTop && hoverY < topCenter) {
-        onHighlight({ target: data, pos: 'top' });
-      } else if (hoverY > topCenter && hoverY < bottomCenter) {
-        onHighlight({ target: data, pos: 'center' });
-      } else if (hoverY > bottomCenter && hoverY < rectBottom) {
-        onHighlight({ target: data, pos: 'bottom' });
-      }
-    },
-    drop(item) {
-      onDrop(item as IResourceData, highlight);
-    },
-  });
   const handleExpand = () => {
     onExpand(data.id, data.space_type);
   };
   const handleActiveKey = () => {
     onActiveKey(data.id);
   };
-
-  useEffect(() => {
-    drag(ref);
-    drop(ref);
-  }, []);
 
   if (data.id === 'empty') {
     return (
@@ -127,26 +56,7 @@ export default function Tree(props: ITreeProps) {
               onClick={handleActiveKey}
               isActive={data.id == activeKey}
             >
-              <div
-                ref={ref}
-                className={cn(
-                  'flex cursor-pointer relative before:absolute before:content-[""] before:hidden before:left-[13px] before:right-[4px] before:h-[2px] before:bg-blue-500',
-                  {
-                    'bg-sidebar-accent text-sidebar-accent-foreground':
-                      highlight.target &&
-                      highlight.target.id === data.id &&
-                      highlight.pos === 'center',
-                    'before:top-0 before:block':
-                      highlight.target &&
-                      highlight.target.id === data.id &&
-                      highlight.pos === 'top',
-                    'before:bottom-0 before:block':
-                      highlight.target &&
-                      highlight.target.id === data.id &&
-                      highlight.pos === 'bottom',
-                  },
-                )}
-              >
+              <div className="flex cursor-pointer">
                 {expanding === data.id ? (
                   <LoaderCircle className="transition-transform animate-spin" />
                 ) : (

@@ -31,7 +31,7 @@
   "actions": {
     "copy_link": "Copy Link",
     "copy_content": "Copy content",
-    "duplicate": "Duplicate",
+    "duplicate": "Create a copy",
     "move_to_trash": "Move to Trash",
     "import": "Import",
     "create_file": "Create File",
