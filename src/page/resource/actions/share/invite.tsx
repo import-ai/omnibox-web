@@ -87,7 +87,7 @@ export default function InviteForm(props: InviteFormProps) {
             data={data}
             value={permission}
             onChange={handlePermission}
-            className="absolute top-[4px] right-[4px] p-1 rounded-sm bg-gray-200 text-sm"
+            className="absolute top-[4px] right-[4px] p-1 rounded-sm bg-gray-200 text-sm dark:bg-gray-900"
           />
         )}
       </div>

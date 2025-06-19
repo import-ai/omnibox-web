@@ -18,7 +18,11 @@ export default function CopyMain(props: IProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const handleCopy = () => {
-    if (copy(content)) {
+    if (
+      copy(content, {
+        format: 'text/plain',
+      })
+    ) {
       setCopied(true);
       setTimeout(() => {
         setCopied(false);
