@@ -391,6 +391,7 @@ export default function Actions(props: IProps) {
                 </SidebarGroupContent>
               </SidebarGroup>
               <Input
+                multiple
                 type="file"
                 ref={fileInputRef}
                 className="hidden"

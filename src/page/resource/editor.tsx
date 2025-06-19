@@ -15,8 +15,9 @@ interface IEditorProps {
 
 export default function Editor(props: IEditorProps) {
   const { resource } = props;
-  const { app, theme } = useTheme();
+  const busy = useRef(false);
   const root = useRef<any>(null);
+  const { app, theme } = useTheme();
   const [vd, setVd] = useState<Vditor>();
   const [title, onTitle] = useState('');
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,6 +82,37 @@ export default function Editor(props: IEditorProps) {
       setVd(undefined);
     };
   }, [resource, theme]);
+
+  useEffect(() => {
+    const keydownFN = (e: KeyboardEvent) => {
+      if (!vd) {
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        const content = vd.getValue();
+        if (busy.current) {
+          return;
+        }
+        busy.current = true;
+        http
+          .patch(
+            `/namespaces/${resource.namespace.id}/resources/${resource.id}`,
+            {
+              content,
+              namespaceId: resource.namespace.id,
+            },
+          )
+          .then(() => {
+            busy.current = false;
+          });
+      }
+    };
+    document.addEventListener('keydown', keydownFN);
+    return () => {
+      document.removeEventListener('keydown', keydownFN);
+    };
+  }, [vd, resource]);
 
   return (
     <div>

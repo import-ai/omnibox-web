@@ -147,6 +147,7 @@ export default function Action(props: ISidebarProps) {
         namespaceId={data.namespace.id}
       />
       <Input
+        multiple
         type="file"
         ref={fileInputRef}
         className="hidden"
