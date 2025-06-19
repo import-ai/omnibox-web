@@ -13,6 +13,7 @@ export default function MainSidebar() {
     editingKey,
     resourceId,
     namespaceId,
+    handleDrop,
     handleExpand,
     handleDelete,
     handleCreate,
@@ -30,6 +31,7 @@ export default function MainSidebar() {
       <Content
         data={data}
         expands={expands}
+        onDrop={handleDrop}
         expanding={expanding}
         editingKey={editingKey}
         resourceId={resourceId}

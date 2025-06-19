@@ -1,10 +1,9 @@
-import Tree from './tree';
 import { useRef } from 'react';
+import Tree, { ITreeProps } from './tree';
 import { Input } from '@/components/input';
 import { IResourceData } from '@/interface';
 import { useTranslation } from 'react-i18next';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import { ISidebarProps } from '@/page/sidebar/interface';
 import { LoaderCircle, MoreHorizontal } from 'lucide-react';
 import {
   SidebarMenu,
@@ -20,7 +19,7 @@ import {
   DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
 
-export default function Space(props: ISidebarProps) {
+export default function Space(props: ITreeProps) {
   const { data, editingKey, spaceType, onCreate, onUpload } = props;
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);

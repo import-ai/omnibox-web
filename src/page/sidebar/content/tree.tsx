@@ -2,8 +2,8 @@ import Action from './action';
 import { cn } from '@/lib/utils';
 import { useRef, useEffect } from 'react';
 import { IResourceData } from '@/interface';
-import { useDrag, useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
+import { useDrag, useDrop, XYCoord } from 'react-dnd';
 import { ISidebarProps } from '@/page/sidebar/interface';
 import {
   File,
@@ -23,29 +23,72 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-export default function Tree(props: ISidebarProps) {
-  const { data, activeKey, expands, expanding, onExpand, onActiveKey } = props;
+export interface ITreeProps extends ISidebarProps {
+  onDrop: (
+    target: IResourceData,
+    highlight: { pos: string; target: IResourceData | null },
+  ) => void;
+  highlight: { pos: string; target: IResourceData | null };
+  onHighlight: (highlight: {
+    pos: string;
+    target: IResourceData | null;
+  }) => void;
+}
+
+export default function Tree(props: ITreeProps) {
+  const {
+    data,
+    onDrop,
+    activeKey,
+    expands,
+    expanding,
+    onExpand,
+    onActiveKey,
+    highlight,
+    onHighlight,
+  } = props;
   const ref = useRef(null);
   const { t } = useTranslation();
   const expand = expands.includes(data.id);
   const [, drag] = useDrag({
     type: 'card',
     item: data,
-    // collect(monitor) {
-    //   return {
-    //     dragging: monitor.isDragging(),
-    //   };
-    // },
   });
-  const [{ isOver }, drop] = useDrop({
+  const [, drop] = useDrop({
     accept: 'card',
-    collect(monitor) {
-      return {
-        isOver: monitor.isOver(),
-      };
+    hover: (item, monitor) => {
+      if (!ref.current) {
+        onHighlight({ target: null, pos: '' });
+        return;
+      }
+      const didHover = monitor.isOver();
+      if (!didHover) {
+        onHighlight({ target: null, pos: '' });
+        return;
+      }
+      const dragId = (item as IResourceData).id;
+      if (dragId === data.id) {
+        onHighlight({ target: null, pos: '' });
+        return;
+      }
+      const rect = (ref.current as HTMLDivElement).getBoundingClientRect();
+      const thirdsHeight = rect.height / 3;
+      const rectTop = rect.top;
+      const rectBottom = rect.bottom;
+      const topCenter = rectTop + thirdsHeight;
+      const bottomCenter = rectBottom - thirdsHeight;
+      const clientOffset = monitor.getClientOffset() as XYCoord;
+      const hoverY = clientOffset.y;
+      if (hoverY > rectTop && hoverY < topCenter) {
+        onHighlight({ target: data, pos: 'top' });
+      } else if (hoverY > topCenter && hoverY < bottomCenter) {
+        onHighlight({ target: data, pos: 'center' });
+      } else if (hoverY > bottomCenter && hoverY < rectBottom) {
+        onHighlight({ target: data, pos: 'bottom' });
+      }
     },
     drop(item) {
-      console.log('--->', item);
+      onDrop(item as IResourceData, highlight);
     },
   });
   const handleExpand = () => {
@@ -86,9 +129,23 @@ export default function Tree(props: ISidebarProps) {
             >
               <div
                 ref={ref}
-                className={cn('flex cursor-pointer', {
-                  'bg-sidebar-accent text-sidebar-accent-foreground': isOver,
-                })}
+                className={cn(
+                  'flex cursor-pointer relative before:absolute before:content-[""] before:hidden before:left-[13px] before:right-[4px] before:h-[2px] before:bg-blue-500',
+                  {
+                    'bg-sidebar-accent text-sidebar-accent-foreground':
+                      highlight.target &&
+                      highlight.target.id === data.id &&
+                      highlight.pos === 'center',
+                    'before:top-0 before:block':
+                      highlight.target &&
+                      highlight.target.id === data.id &&
+                      highlight.pos === 'top',
+                    'before:bottom-0 before:block':
+                      highlight.target &&
+                      highlight.target.id === data.id &&
+                      highlight.pos === 'bottom',
+                  },
+                )}
               >
                 {expanding === data.id ? (
                   <LoaderCircle className="transition-transform animate-spin" />
