@@ -1,50 +1,24 @@
-import { cn } from '@/lib/utils';
-import Actions from './actions';
+import Header from './header';
 import Wrapper from './wrapper';
+import { cn } from '@/lib/utils';
 import useWide from '@/hooks/use-wide';
-import { useTranslation } from 'react-i18next';
 import useResource from '@/hooks/user-resource';
-import { Separator } from '@/components/ui/separator';
-import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
+import { SidebarInset } from '@/components/ui/sidebar';
 
 export default function ResourcePage() {
-  const { t } = useTranslation();
   const { wide, onWide } = useWide();
-  const { app, loading, forbidden, resource, resource_id, namespace_id } =
+  const { app, loading, forbidden, resource, resourceId, namespaceId } =
     useResource();
 
   return (
     <SidebarInset>
-      <header className="sticky z-[5000] top-0 bg-white flex h-14 shrink-0 items-center gap-2 dark:bg-background">
-        <div className="flex flex-1 items-center gap-1 sm:gap-2 px-3">
-          <SidebarTrigger />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage className="line-clamp-1">
-                  {loading ? '' : resource ? resource.name : t('untitled')}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-        <div className="ml-auto pr-3">
-          <Actions
-            app={app}
-            wide={wide}
-            onWide={onWide}
-            forbidden={forbidden}
-            resource={resource}
-          />
-        </div>
-      </header>
+      <Header
+        app={app}
+        wide={wide}
+        onWide={onWide}
+        resource={resource}
+        forbidden={forbidden}
+      />
       <div className="flex justify-center h-full p-4">
         <div
           className={cn('flex flex-col h-full  w-full', {
@@ -57,8 +31,8 @@ export default function ResourcePage() {
             loading={loading}
             resource={resource}
             forbidden={forbidden}
-            resource_id={resource_id}
-            namespace_id={namespace_id}
+            resourceId={resourceId}
+            namespaceId={namespaceId}
           />
         </div>
       </div>

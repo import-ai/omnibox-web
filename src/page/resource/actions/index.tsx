@@ -1,4 +1,5 @@
 import Share from './share';
+import MoveTo from './move';
 import { toast } from 'sonner';
 import App from '@/hooks/app.class';
 import { http } from '@/lib/request';
@@ -37,6 +38,7 @@ import {
   Trash2,
   Pencil,
   ArrowUp,
+  CornerUpRight,
   PencilOff,
   MoveHorizontal,
   LoaderCircle,
@@ -57,6 +59,7 @@ export default function Actions(props: IProps) {
   const { isMobile } = useSidebar();
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
+  const [moveTo, setMoveTo] = useState(false);
   const [editing, onEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleEdit = () => {
@@ -117,6 +120,10 @@ export default function Actions(props: IProps) {
         .finally(() => {
           onLoading('');
         });
+      return;
+    }
+    if (id === 'move_to') {
+      setMoveTo(true);
       return;
     }
     if (id === 'move_to_trash') {
@@ -316,6 +323,18 @@ export default function Actions(props: IProps) {
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton
+                        onClick={() => handleAction('move_to')}
+                      >
+                        {loading === 'move_to' ? (
+                          <LoaderCircle className="transition-transform animate-spin" />
+                        ) : (
+                          <CornerUpRight />
+                        )}
+                        <span>{t('actions.move_to')}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
                         onClick={() => handleAction('move_to_trash')}
                       >
                         {loading === 'move_to_trash' ? (
@@ -335,18 +354,20 @@ export default function Actions(props: IProps) {
                     <SidebarMenu>
                       <SidebarMenuItem>
                         <SidebarMenuButton
+                          asChild
                           onClick={() => handleAction('wide')}
-                          className="flex items-center justify-between"
                         >
-                          <div className="flex gap-2 items-center">
-                            {loading === 'wide' ? (
-                              <LoaderCircle className="transition-transform animate-spin" />
-                            ) : (
-                              <MoveHorizontal className="size-4" />
-                            )}
-                            <span>{t('actions.wide')}</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex gap-2 items-center">
+                              {loading === 'wide' ? (
+                                <LoaderCircle className="transition-transform animate-spin" />
+                              ) : (
+                                <MoveHorizontal className="size-4" />
+                              )}
+                              <span>{t('actions.wide')}</span>
+                            </div>
+                            <Switch checked={wide} />
                           </div>
-                          <Switch checked={wide} />
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     </SidebarMenu>
@@ -376,6 +397,13 @@ export default function Actions(props: IProps) {
                 onChange={handleUpload}
                 accept={ALLOW_FILE_EXTENSIONS}
               />
+              {resource && (
+                <MoveTo
+                  open={moveTo}
+                  onOpenChange={setMoveTo}
+                  namespaceId={resource.namespace.id}
+                />
+              )}
             </SidebarContent>
           </Sidebar>
         </PopoverContent>

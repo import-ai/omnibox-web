@@ -272,42 +272,6 @@ export default function useContext() {
         onEditingKey('');
       });
   };
-  const handleDrop = (
-    drag: IResourceData,
-    args: { pos: string; target: IResourceData | null },
-  ) => {
-    const drop = args.target;
-    if (!drop || !args.pos) {
-      return;
-    }
-    if (drag.space_type !== drop.space_type) {
-      toast('不允许跨组拖拽', { position: 'top-center' });
-      return;
-    }
-    if (
-      !Array.isArray(data[drag.space_type].children) ||
-      data[drag.space_type].children.length <= 0
-    ) {
-      return;
-    }
-    const dragNode = data[drag.space_type].children.find(
-      (item: IResourceData) => item.id === drag.id,
-    );
-    const dropNode = data[drag.space_type].children.find(
-      (item: IResourceData) => item.id === drop.id,
-    );
-    if (!dragNode || !dropNode) {
-      return;
-    }
-    if (args.pos === 'top') {
-      //
-    } else if (args.pos === 'center') {
-      dragNode.parent_id = dropNode.id;
-      onData({ ...data });
-    } else if (args.pos === 'bottom') {
-      //
-    }
-  };
 
   useEffect(() => {
     const hooks: Array<() => void> = [];
@@ -407,7 +371,6 @@ export default function useContext() {
     editingKey,
     resourceId,
     namespaceId,
-    handleDrop,
     handleExpand,
     handleDelete,
     handleCreate,

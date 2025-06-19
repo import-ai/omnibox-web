@@ -11,8 +11,8 @@ export interface IUseResource {
   app: App;
   loading: boolean;
   forbidden: boolean;
-  resource_id: string;
-  namespace_id: string;
+  resourceId: string;
+  namespaceId: string;
   resource: Resource | null;
 }
 
@@ -20,8 +20,8 @@ export default function useResource() {
   const app = useApp();
   const params = useParams();
   const { t } = useTranslation();
-  const resource_id = params.resource_id || '';
-  const namespace_id = params.namespace_id || '';
+  const resourceId = params.resource_id || '';
+  const namespaceId = params.namespace_id || '';
   const [loading, onLoading] = useState(false);
   const [forbidden, onForbidden] = useState(false);
   const [resource, onResource] = useState<Resource | null>(null);
@@ -31,13 +31,13 @@ export default function useResource() {
   }, []);
 
   useEffect(() => {
-    if (!resource_id) {
+    if (!resourceId) {
       return;
     }
     onLoading(true);
     onForbidden(false);
     http
-      .get(`/namespaces/${namespace_id}/resources/${resource_id}`, {
+      .get(`/namespaces/${namespaceId}/resources/${resourceId}`, {
         mute: true,
       })
       .then(onResource)
@@ -49,7 +49,7 @@ export default function useResource() {
       .finally(() => {
         onLoading(false);
       });
-  }, [resource_id]);
+  }, [resourceId]);
 
   useEffect(() => {
     if (!resource) {
@@ -59,5 +59,5 @@ export default function useResource() {
     document.title = resource.name ? resource.name : t('untitled');
   }, [resource]);
 
-  return { app, loading, forbidden, resource, namespace_id, resource_id };
+  return { app, loading, forbidden, resource, namespaceId, resourceId };
 }

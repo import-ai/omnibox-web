@@ -1,9 +1,10 @@
-import { useRef } from 'react';
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
+import { useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useTranslation } from 'react-i18next';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 import { MoreHorizontal, LoaderCircle } from 'lucide-react';
 import { SidebarMenuAction } from '@/components/ui/sidebar';
@@ -26,6 +27,7 @@ export default function Action(props: ISidebarProps) {
   } = props;
   const app = useApp();
   const { t } = useTranslation();
+  const [moveTo, setMoveTo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const children = Array.isArray(data.children)
     ? data.children.filter((item: Resource) => item.id !== 'empty')
@@ -61,6 +63,9 @@ export default function Action(props: ISidebarProps) {
     } else {
       app.fire('context', data, 'folder');
     }
+  };
+  const handleMoveTo = () => {
+    setMoveTo(true);
   };
   const handleDelete = () => {
     onDelete(data.id, data.space_type, data.parent_id);
@@ -128,11 +133,19 @@ export default function Action(props: ISidebarProps) {
           >
             {t('actions.add_it_to_context')}
           </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer" onClick={handleMoveTo}>
+            {t('actions.move_to')}
+          </DropdownMenuItem>
           <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
             {t('delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <MoveTo
+        open={moveTo}
+        onOpenChange={setMoveTo}
+        namespaceId={data.namespace.id}
+      />
       <Input
         type="file"
         ref={fileInputRef}
