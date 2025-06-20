@@ -81,6 +81,10 @@ export default function Action(props: ISidebarProps) {
       fileInputRef.current!.value = '';
     });
   };
+  const handleMoveFinished = (resourceId: string, targetId: string) => {
+    setMoveTo(false);
+    app.fire('move_resource', resourceId, targetId);
+  };
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       return;
@@ -143,7 +147,9 @@ export default function Action(props: ISidebarProps) {
       </DropdownMenu>
       <MoveTo
         open={moveTo}
+        resourceId={data.id}
         onOpenChange={setMoveTo}
+        onFinished={handleMoveFinished}
         namespaceId={data.namespace.id}
       />
       <Input

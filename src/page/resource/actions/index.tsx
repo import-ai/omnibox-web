@@ -169,6 +169,11 @@ export default function Actions(props: IProps) {
       return;
     }
   };
+  const handleMoveFinished = (resourceId: string, targetId: string) => {
+    setMoveTo(false);
+    setOpen(false);
+    app.fire('move_resource', resourceId, targetId);
+  };
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!resource || !e.target.files) {
       return;
@@ -402,6 +407,8 @@ export default function Actions(props: IProps) {
                 <MoveTo
                   open={moveTo}
                   onOpenChange={setMoveTo}
+                  resourceId={resource.id}
+                  onFinished={handleMoveFinished}
                   namespaceId={resource.namespace.id}
                 />
               )}

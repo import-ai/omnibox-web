@@ -1,4 +1,4 @@
-import Form from './form';
+import Form, { IFormProps } from './form';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Dialog,
@@ -8,14 +8,13 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 
-interface IProps {
+interface IProps extends IFormProps {
   open: boolean;
-  namespaceId: string;
   onOpenChange: (open: boolean) => void;
 }
 
 export default function MoveTo(props: IProps) {
-  const { open, namespaceId, onOpenChange } = props;
+  const { open, resourceId, namespaceId, onOpenChange, onFinished } = props;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -26,7 +25,11 @@ export default function MoveTo(props: IProps) {
             <DialogDescription></DialogDescription>
           </VisuallyHidden>
         </DialogHeader>
-        <Form namespaceId={namespaceId} />
+        <Form
+          resourceId={resourceId}
+          namespaceId={namespaceId}
+          onFinished={onFinished}
+        />
       </DialogContent>
     </Dialog>
   );

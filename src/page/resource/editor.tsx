@@ -42,7 +42,7 @@ export default function Editor(props: IEditorProps) {
           },
         )
         .then((delta: Resource) => {
-          app.fire('resource_update', delta);
+          app.fire('update_resource', delta);
           app.fire('resource_children', true);
           onSuccess && onSuccess();
         });

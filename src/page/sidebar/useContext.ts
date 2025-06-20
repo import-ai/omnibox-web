@@ -276,7 +276,7 @@ export default function useContext() {
   useEffect(() => {
     const hooks: Array<() => void> = [];
     hooks.push(
-      app.on('resource_update', (delta: Resource) => {
+      app.on('update_resource', (delta: Resource) => {
         each(data, (resource, key) => {
           if (
             Array.isArray(resource.children) &&
@@ -310,6 +310,75 @@ export default function useContext() {
           }
         },
       ),
+    );
+    hooks.push(
+      app.on('move_resource', (resourceId: string, targetId: string) => {
+        let targetKey: SpaceType = 'private';
+        let targetIndex = -1;
+        let resourceKey: SpaceType = 'private';
+        let resourceIndex = -1;
+        each(data, (items, key) => {
+          if (Array.isArray(items.children) && items.children.length > 0) {
+            const maybeResourceIndex = items.children.findIndex(
+              (node: Resource) => node.id === resourceId,
+            );
+            if (maybeResourceIndex >= 0) {
+              resourceKey = key;
+              resourceIndex = maybeResourceIndex;
+            }
+            const maybeTargetIndex = items.children.findIndex(
+              (node: Resource) => node.id === targetId,
+            );
+            if (maybeTargetIndex >= 0) {
+              targetKey = key;
+              targetIndex = maybeTargetIndex;
+            }
+          }
+        });
+        if (targetIndex < 0 || resourceIndex < 0) {
+          return;
+        }
+        const target = data[targetKey].children[targetIndex];
+        const resource = data[resourceKey].children[resourceIndex];
+        const emptyTargetIndex = data[targetKey].children.findIndex(
+          (item) => item.parent_id === target.id && item.id === 'empty',
+        );
+        if (emptyTargetIndex >= 0) {
+          data[targetKey].children.splice(emptyTargetIndex, 1);
+        }
+        const resourceChildrenIdToRemove: Array<string> = [];
+        each(data[resourceKey].children, (item) => {
+          if (
+            item.parent_id === resource.id ||
+            resourceChildrenIdToRemove.includes(item.parent_id)
+          ) {
+            resourceChildrenIdToRemove.push(item.id);
+          }
+        });
+        if (resourceChildrenIdToRemove.length > 0) {
+          data[resourceKey].children = data[resourceKey].children.filter(
+            (item) => !resourceChildrenIdToRemove.includes(item.id),
+          );
+        }
+        if (targetKey === resourceKey) {
+          data[resourceKey].children[resourceIndex].parent_id = target.id;
+        } else {
+          const resources = data[resourceKey].children.splice(resourceIndex, 1);
+          resources[0].space_type = targetKey;
+          resources[0].parent_id = target.id;
+          const emptyResourceIndex = data[resourceKey].children.findIndex(
+            (item) => item.parent_id === resources[0].id && item.id === 'empty',
+          );
+          if (emptyResourceIndex >= 0) {
+            data[resourceKey].children.splice(emptyResourceIndex, 1);
+          }
+          data[targetKey].children.push(resources[0]);
+        }
+        onData({ ...data });
+        onExpands((expands) =>
+          expands.filter((expand) => expand !== resource.id),
+        );
+      }),
     );
     hooks.push(
       app.on(

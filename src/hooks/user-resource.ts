@@ -27,7 +27,7 @@ export default function useResource() {
   const [resource, onResource] = useState<Resource | null>(null);
 
   useEffect(() => {
-    return app.on('resource_update', onResource);
+    return app.on('update_resource', onResource);
   }, []);
 
   useEffect(() => {
