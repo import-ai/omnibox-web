@@ -4,7 +4,7 @@ import Loading from '@/components/loading';
 import { IUseResource } from '@/hooks/user-resource';
 
 export default function Wrapper(props: IUseResource) {
-  const { app, loading, forbidden, resource } = props;
+  const { loading, forbidden, resource, editPage, onResource } = props;
 
   if (loading) {
     return <Loading />;
@@ -12,7 +12,9 @@ export default function Wrapper(props: IUseResource) {
 
   return (
     <AuthPage forbidden={forbidden} resource={resource}>
-      {resource && <Page app={app} resource={resource} />}
+      {resource && (
+        <Page editPage={editPage} resource={resource} onResource={onResource} />
+      )}
     </AuthPage>
   );
 }

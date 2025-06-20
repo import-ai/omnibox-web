@@ -1,16 +1,18 @@
 import Share from './share';
+import MoveTo from './move';
 import { toast } from 'sonner';
-import App from '@/hooks/app.class';
 import { http } from '@/lib/request';
 import copy from 'copy-to-clipboard';
 import { Resource } from '@/interface';
+import { useRef, useState } from 'react';
 import { Input } from '@/components/input';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import { useEffect, useRef, useState } from 'react';
+import { IUseResource } from '@/hooks/user-resource';
 import { LanguageToggle } from '@/i18n/language-toggle';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
 import PermissionWrapper from '@/components/permission-action/wrapper';
@@ -37,39 +39,45 @@ import {
   Trash2,
   Pencil,
   ArrowUp,
+  CornerUpRight,
   PencilOff,
   MoveHorizontal,
   LoaderCircle,
   MoreHorizontal,
 } from 'lucide-react';
 
-interface IProps {
-  app: App;
+export interface IActionProps extends IUseResource {
   wide: boolean;
   onWide: (wide: boolean) => void;
-  forbidden: boolean;
-  resource: Resource | null;
 }
 
-export default function Actions(props: IProps) {
-  const { app, wide, onWide, forbidden, resource } = props;
+export default function Actions(props: IActionProps) {
+  const { app, wide, onWide, forbidden, resource, editPage } = props;
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { isMobile } = useSidebar();
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
-  const [editing, onEditing] = useState(false);
+  const [moveTo, setMoveTo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleEdit = () => {
-    onEditing(true);
-    app.fire('resource_children', false);
+    if (!resource) {
+      return;
+    }
+    navigate(`/${resource.namespace.id}/${resource.id}/edit`);
   };
   const handleExitEdit = () => {
-    onEditing(false);
-    app.fire('resource_children', true);
+    if (!resource) {
+      return;
+    }
+    navigate(`/${resource.namespace.id}/${resource.id}`);
   };
   const handleSave = () => {
     app.fire('save', () => {
-      onEditing(false);
+      if (!resource) {
+        return;
+      }
+      navigate(`/${resource.namespace.id}/${resource.id}`);
     });
   };
   const handleAction = (id: string) => {
@@ -119,6 +127,10 @@ export default function Actions(props: IProps) {
         });
       return;
     }
+    if (id === 'move_to') {
+      setMoveTo(true);
+      return;
+    }
     if (id === 'move_to_trash') {
       onLoading(id);
       http
@@ -162,6 +174,11 @@ export default function Actions(props: IProps) {
       return;
     }
   };
+  const handleMoveFinished = (resourceId: string, targetId: string) => {
+    setMoveTo(false);
+    setOpen(false);
+    app.fire('move_resource', resourceId, targetId);
+  };
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!resource || !e.target.files) {
       return;
@@ -197,17 +214,6 @@ export default function Actions(props: IProps) {
       });
   };
 
-  useEffect(() => {
-    return app.on('to_edit', handleEdit);
-  }, []);
-
-  useEffect(() => {
-    if (!resource) {
-      return;
-    }
-    onEditing(false);
-  }, [resource]);
-
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className="hidden font-medium text-muted-foreground md:inline-block">
@@ -234,7 +240,7 @@ export default function Actions(props: IProps) {
           forbidden={forbidden}
           permission={resource.current_level || 'full_access'}
         >
-          {editing ? (
+          {editPage ? (
             <>
               <Button
                 variant="ghost"
@@ -316,6 +322,18 @@ export default function Actions(props: IProps) {
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton
+                        onClick={() => handleAction('move_to')}
+                      >
+                        {loading === 'move_to' ? (
+                          <LoaderCircle className="transition-transform animate-spin" />
+                        ) : (
+                          <CornerUpRight />
+                        )}
+                        <span>{t('actions.move_to')}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
                         onClick={() => handleAction('move_to_trash')}
                       >
                         {loading === 'move_to_trash' ? (
@@ -335,18 +353,20 @@ export default function Actions(props: IProps) {
                     <SidebarMenu>
                       <SidebarMenuItem>
                         <SidebarMenuButton
+                          asChild
                           onClick={() => handleAction('wide')}
-                          className="flex items-center justify-between"
                         >
-                          <div className="flex gap-2 items-center">
-                            {loading === 'wide' ? (
-                              <LoaderCircle className="transition-transform animate-spin" />
-                            ) : (
-                              <MoveHorizontal className="size-4" />
-                            )}
-                            <span>{t('actions.wide')}</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex gap-2 items-center">
+                              {loading === 'wide' ? (
+                                <LoaderCircle className="transition-transform animate-spin" />
+                              ) : (
+                                <MoveHorizontal className="size-4" />
+                              )}
+                              <span>{t('actions.wide')}</span>
+                            </div>
+                            <Switch checked={wide} />
                           </div>
-                          <Switch checked={wide} />
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     </SidebarMenu>
@@ -376,6 +396,15 @@ export default function Actions(props: IProps) {
                 onChange={handleUpload}
                 accept={ALLOW_FILE_EXTENSIONS}
               />
+              {resource && (
+                <MoveTo
+                  open={moveTo}
+                  onOpenChange={setMoveTo}
+                  resourceId={resource.id}
+                  onFinished={handleMoveFinished}
+                  namespaceId={resource.namespace.id}
+                />
+              )}
             </SidebarContent>
           </Sidebar>
         </PopoverContent>

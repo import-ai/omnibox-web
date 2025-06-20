@@ -1,7 +1,8 @@
+import Action from './action';
 import { cn } from '@/lib/utils';
 import { IResourceData } from '@/interface';
 import { useTranslation } from 'react-i18next';
-import DropdownMenu, { IResourceProps } from './dropdown';
+import { ISidebarProps } from '@/page/sidebar/interface';
 import {
   File,
   Folder,
@@ -20,9 +21,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-interface IProps extends IResourceProps {}
-
-export default function Tree(props: IProps) {
+export default function Tree(props: ISidebarProps) {
   const { data, activeKey, expands, expanding, onExpand, onActiveKey } = props;
   const { t } = useTranslation();
   const expand = expands.includes(data.id);
@@ -82,7 +81,7 @@ export default function Tree(props: IProps) {
                 <span className="truncate">{data.name || t('untitled')}</span>
               </div>
             </SidebarMenuButton>
-            <DropdownMenu {...props} />
+            <Action {...props} />
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>

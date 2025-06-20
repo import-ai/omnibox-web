@@ -29,3 +29,11 @@ export function formatCitation(citation: Citation): {
     : `../${citation.link}`;
   return { name, link };
 }
+
+export function extractDomain(text: string) {
+  if (!text.startsWith('http')) {
+    return '';
+  }
+  const loc = new URL(text);
+  return loc.hostname;
+}

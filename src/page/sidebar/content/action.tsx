@@ -1,11 +1,13 @@
-import { useRef } from 'react';
 import useApp from '@/hooks/use-app';
+import { Resource } from '@/interface';
+import { useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useTranslation } from 'react-i18next';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import MoveTo from '@/page/resource/actions/move';
+import { ISidebarProps } from '@/page/sidebar/interface';
 import { MoreHorizontal, LoaderCircle } from 'lucide-react';
 import { SidebarMenuAction } from '@/components/ui/sidebar';
-import { SpaceType, ResourceType, Resource } from '@/interface';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,33 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export interface IResourceProps {
-  data: any;
-  namespace_id: string;
-  space_type: string;
-  activeKey: string;
-  expanding: string;
-  editingKey: string;
-  expands: Array<string>;
-  onActiveKey: (id: string) => void;
-  onUpload: (
-    namespace_id: string,
-    space_type: string,
-    parent_id: string,
-    file: File,
-  ) => Promise<void>;
-  onExpand: (id: string, space_type: SpaceType) => void;
-  onMenuMore: (id: string, space_type: SpaceType) => void;
-  onDelete: (id: string, space_type: SpaceType, parent_id: string) => void;
-  onCreate: (
-    namespace_id: string,
-    space_type: string,
-    parent_id: string,
-    resource_type: ResourceType,
-  ) => void;
-}
-
-export default function MainDropdownMenu(props: IResourceProps) {
+export default function Action(props: ISidebarProps) {
   const {
     data,
     onUpload,
@@ -48,25 +24,22 @@ export default function MainDropdownMenu(props: IResourceProps) {
     onMenuMore,
     editingKey,
     onActiveKey,
-    namespace_id,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
+  const [moveTo, setMoveTo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const children = Array.isArray(data.children)
     ? data.children.filter((item: Resource) => item.id !== 'empty')
     : [];
   const handleCreateFile = () => {
-    onCreate(namespace_id, data.space_type, data.id, 'doc');
+    onCreate(data.space_type, data.id, 'doc');
   };
   const handleCreateFolder = () => {
-    onCreate(namespace_id, data.space_type, data.id, 'folder');
+    onCreate(data.space_type, data.id, 'folder');
   };
   const handleEdit = () => {
-    onActiveKey(data.id);
-    setTimeout(() => {
-      app.fire('to_edit');
-    }, 100);
+    onActiveKey(data.id, true);
   };
   const handleAddToChat = () => {
     if (!location.pathname.includes('/chat')) {
@@ -88,6 +61,9 @@ export default function MainDropdownMenu(props: IResourceProps) {
       app.fire('context', data, 'folder');
     }
   };
+  const handleMoveTo = () => {
+    setMoveTo(true);
+  };
   const handleDelete = () => {
     onDelete(data.id, data.space_type, data.parent_id);
   };
@@ -98,11 +74,13 @@ export default function MainDropdownMenu(props: IResourceProps) {
     if (!e.target.files) {
       return;
     }
-    onUpload(namespace_id, data.space_type, data.id, e.target.files[0]).finally(
-      () => {
-        fileInputRef.current!.value = '';
-      },
-    );
+    onUpload(data.space_type, data.id, e.target.files[0]).finally(() => {
+      fileInputRef.current!.value = '';
+    });
+  };
+  const handleMoveFinished = (resourceId: string, targetId: string) => {
+    setMoveTo(false);
+    app.fire('move_resource', resourceId, targetId);
   };
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -156,11 +134,21 @@ export default function MainDropdownMenu(props: IResourceProps) {
           >
             {t('actions.add_it_to_context')}
           </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer" onClick={handleMoveTo}>
+            {t('actions.move_to')}
+          </DropdownMenuItem>
           <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
             {t('delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <MoveTo
+        open={moveTo}
+        resourceId={data.id}
+        onOpenChange={setMoveTo}
+        onFinished={handleMoveFinished}
+        namespaceId={data.namespace.id}
+      />
       <Input
         type="file"
         ref={fileInputRef}

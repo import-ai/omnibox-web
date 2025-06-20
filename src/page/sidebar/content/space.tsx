@@ -2,9 +2,9 @@ import Tree from './tree';
 import { useRef } from 'react';
 import { Input } from '@/components/input';
 import { IResourceData } from '@/interface';
-import { IResourceProps } from './dropdown';
 import { useTranslation } from 'react-i18next';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import { ISidebarProps } from '@/page/sidebar/interface';
 import { LoaderCircle, MoreHorizontal } from 'lucide-react';
 import {
   SidebarMenu,
@@ -20,11 +20,8 @@ import {
   DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
 
-interface IProps extends IResourceProps {}
-
-export default function Space(props: IProps) {
-  const { data, editingKey, space_type, namespace_id, onCreate, onUpload } =
-    props;
+export default function Space(props: ISidebarProps) {
+  const { data, editingKey, spaceType, onCreate, onUpload } = props;
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleSelect = () => {
@@ -34,17 +31,15 @@ export default function Space(props: IProps) {
     if (!e.target.files) {
       return;
     }
-    onUpload(namespace_id, data.space_type, data.id, e.target.files[0]).finally(
-      () => {
-        fileInputRef.current!.value = '';
-      },
-    );
+    onUpload(data.space_type, data.id, e.target.files[0]).finally(() => {
+      fileInputRef.current!.value = '';
+    });
   };
 
   return (
     <SidebarGroup>
       <div className="flex items-center justify-between">
-        <SidebarGroupLabel>{t(space_type)}</SidebarGroupLabel>
+        <SidebarGroupLabel>{spaceType ? t(spaceType) : ''}</SidebarGroupLabel>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuAction className="my-1.5 right-2 focus-visible:outline-none focus-visible:ring-transparent">
@@ -59,7 +54,7 @@ export default function Space(props: IProps) {
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => {
-                onCreate(namespace_id, space_type, data.id, 'doc');
+                onCreate(spaceType, data.id, 'doc');
               }}
             >
               {t('actions.create_file')}
@@ -67,7 +62,7 @@ export default function Space(props: IProps) {
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={() => {
-                onCreate(namespace_id, space_type, data.id, 'folder');
+                onCreate(spaceType, data.id, 'folder');
               }}
             >
               {t('actions.create_folder')}

@@ -1,33 +1,25 @@
 import { Resource } from '@/interface';
 import Render from '@/page/resource/render';
 import Editor from '@/page/resource/editor';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import App from '@/hooks/app.class';
 
 interface IProps {
-  app: App;
+  editPage: boolean;
   resource: Resource;
+  onResource: (resource: Resource) => void;
 }
 
 export default function Page(props: IProps) {
-  const { app, resource } = props;
+  const { editPage, resource, onResource } = props;
   const { t } = useTranslation();
-  const [open, onOpen] = useState(true);
 
-  useEffect(() => {
-    return app.on('resource_children', (visible: boolean) => {
-      onOpen((val) => (val !== visible ? visible : val));
-    });
-  }, []);
-
-  if (open) {
-    return (
-      <Render
-        content={`# ${resource.name || t('untitled')}\n${resource.content || ''}`}
-      />
-    );
+  if (editPage) {
+    return <Editor resource={resource} onResource={onResource} />;
   }
 
-  return <Editor resource={resource} />;
+  return (
+    <Render
+      content={`# ${resource.name || t('untitled')}\n${resource.content || ''}`}
+    />
+  );
 }

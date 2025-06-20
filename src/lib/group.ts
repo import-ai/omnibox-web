@@ -20,7 +20,6 @@ export default function group(node: IResourceData) {
   node.children.forEach((item) => {
     const currentNode = nodeMap.get(item.id)!;
     const parent_id = item.parent_id;
-
     if (parent_id === node.id) {
       roots.children.push(currentNode);
     } else {
