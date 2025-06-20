@@ -17,6 +17,7 @@ const RegisterPage = lazy(() => import('@/page/user/register'));
 const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
 const PasswordConfirmPage = lazy(() => import('@/page/user/password-confirm'));
 const RegisterConfirmPage = lazy(() => import('@/page/user/register-confirm'));
+const InviteRedirectPage = lazy(() => import('@/page/invite-redirect'));
 
 const app = new CoreApp();
 const router = createBrowserRouter([
@@ -48,6 +49,10 @@ const router = createBrowserRouter([
       {
         path: 'invite/confirm',
         element: <InvitePage />,
+      },
+      {
+        path: 'invite/:namespace_id/:invitation_id',
+        element: <InviteRedirectPage />,
       },
       {
         path: ':namespace_id',

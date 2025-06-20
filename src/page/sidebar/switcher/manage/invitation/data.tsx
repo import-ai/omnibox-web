@@ -21,7 +21,7 @@ export function InvitationData(props: InvitationProps) {
   };
   const handleReceiveLink = () => {
     navigator.clipboard.writeText(
-      `${location.origin}/${namespaceId}/invite/${invitation.id}`,
+      `${location.origin}/invite/${namespaceId}/${invitation.id}`,
     );
   };
   return (

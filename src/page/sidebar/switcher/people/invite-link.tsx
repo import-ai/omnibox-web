@@ -26,7 +26,7 @@ export default function InvitePeople(props: IProps) {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(
-      `${location.origin}/${namespaceId}/invite/${invitationId}`,
+      `${location.origin}/invite/${namespaceId}/${invitationId}`,
     );
   };
 
