@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { http } from '@/lib/request';
+import { sortMenuItems } from './utils';
 import { SlashIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -44,7 +45,7 @@ export default function BreadcrumbMain(props: IProps) {
       })}
     >
       <BreadcrumbList className="gap-1 sm:gap-2">
-        {data.reverse().map((item, index) => (
+        {sortMenuItems(data).map((item, index) => (
           <React.Fragment key={item.id}>
             {index > 0 && (
               <BreadcrumbSeparator className="[&>svg]:size-3 opacity-30">

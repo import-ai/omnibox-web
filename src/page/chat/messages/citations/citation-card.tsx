@@ -1,5 +1,6 @@
-import { type CitationIconProps } from '@/page/chat/messages/citations/citation-hover-icon';
+import { extractDomain } from './utils';
 import { Badge } from '@/components/ui/badge';
+import { type CitationIconProps } from '@/page/chat/messages/citations/citation-hover-icon';
 
 export function CitationCard(props: CitationIconProps) {
   const { citation, index } = props;
@@ -16,10 +17,16 @@ export function CitationCard(props: CitationIconProps) {
             : '../' + citation.link
         }
       >
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="font-semibold text-foreground leading-tight">
-            {citation.title}
-          </h2>
+        <h2 className="font-semibold text-foreground leading-tight">
+          {citation.title}
+        </h2>
+        <p className="text-sm text-muted-foreground my-1 line-clamp-2">
+          {citation.snippet}
+        </p>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">
+            {extractDomain(citation.link)}
+          </span>
           <Badge
             variant="secondary"
             className="rounded-full p-0 min-w-[20px] text-gray-400 justify-center items-center dark:bg-gray-600 dark:text-gray-100"
@@ -27,9 +34,6 @@ export function CitationCard(props: CitationIconProps) {
             {index + 1}
           </Badge>
         </div>
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-          {citation.snippet}
-        </p>
       </a>
     </div>
   );

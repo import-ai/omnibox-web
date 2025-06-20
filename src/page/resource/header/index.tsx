@@ -1,20 +1,10 @@
-import Actions from '../actions';
-import App from '@/hooks/app.class';
 import Breadcrumb from './breadcrumb';
-import { Resource } from '@/interface';
+import Actions, { IActionProps } from '../actions';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
-interface IProps {
-  app: App;
-  wide: boolean;
-  onWide: (wide: boolean) => void;
-  forbidden: boolean;
-  resource: Resource | null;
-}
-
-export default function Header(props: IProps) {
-  const { app, wide, onWide, forbidden, resource } = props;
+export default function Header(props: IActionProps) {
+  const { resource } = props;
 
   return (
     <header className="sticky z-[30] top-0 bg-white flex h-14 shrink-0 items-center gap-2 dark:bg-background">
@@ -24,13 +14,7 @@ export default function Header(props: IProps) {
         <Breadcrumb resource={resource} />
       </div>
       <div className="ml-auto pr-3">
-        <Actions
-          app={app}
-          wide={wide}
-          onWide={onWide}
-          resource={resource}
-          forbidden={forbidden}
-        />
+        <Actions {...props} />
       </div>
     </header>
   );

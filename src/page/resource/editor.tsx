@@ -6,17 +6,20 @@ import { VDITOR_CDN } from '@/const';
 import { Resource } from '@/interface';
 import useTheme from '@/hooks/use-theme';
 import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useRef, useState } from 'react';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 
 interface IEditorProps {
   resource: Resource;
+  onResource: (resource: Resource) => void;
 }
 
 export default function Editor(props: IEditorProps) {
-  const { resource } = props;
+  const { resource, onResource } = props;
   const busy = useRef(false);
   const root = useRef<any>(null);
+  const navigate = useNavigate();
   const { app, theme } = useTheme();
   const [vd, setVd] = useState<Vditor>();
   const [title, onTitle] = useState('');
@@ -29,7 +32,7 @@ export default function Editor(props: IEditorProps) {
       const name = title.trim();
       const content: string | undefined = vd?.getValue();
       if (!content && !name) {
-        app.fire('resource_children', true);
+        navigate(`/${resource.namespace.id}/${resource.id}`);
         return;
       }
       http
@@ -43,7 +46,8 @@ export default function Editor(props: IEditorProps) {
         )
         .then((delta: Resource) => {
           app.fire('update_resource', delta);
-          app.fire('resource_children', true);
+          onResource(delta);
+          navigate(`/${resource.namespace.id}/${resource.id}`);
           onSuccess && onSuccess();
         });
     });

@@ -39,10 +39,7 @@ export default function Action(props: ISidebarProps) {
     onCreate(data.space_type, data.id, 'folder');
   };
   const handleEdit = () => {
-    onActiveKey(data.id);
-    setTimeout(() => {
-      app.fire('to_edit');
-    }, 100);
+    onActiveKey(data.id, true);
   };
   const handleAddToChat = () => {
     if (!location.pathname.includes('/chat')) {
@@ -153,7 +150,6 @@ export default function Action(props: ISidebarProps) {
         namespaceId={data.namespace.id}
       />
       <Input
-        multiple
         type="file"
         ref={fileInputRef}
         className="hidden"

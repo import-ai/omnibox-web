@@ -31,8 +31,12 @@ export default function useContext() {
   const [data, onData] = useState<{
     [index: string]: IResourceData;
   }>({});
-  const handleActiveKey = (id: string) => {
-    navigate(`/${namespaceId}/${id}`);
+  const handleActiveKey = (id: string, edit?: boolean) => {
+    if (edit) {
+      navigate(`/${namespaceId}/${id}/edit`);
+    } else {
+      navigate(`/${namespaceId}/${id}`);
+    }
     isMobile && setOpenMobile(false);
   };
   const handleExpand = (id: string, spaceType: SpaceType) => {
@@ -176,7 +180,6 @@ export default function useContext() {
         );
         onData({ ...data });
         if (routeToActive) {
-          app.fire('resource_children', true);
           navigate(`/${namespaceId}/${routeToActive}`);
           toast(t('resource.deleted'), {
             description: t('resource.deleted_description'),
@@ -238,11 +241,10 @@ export default function useContext() {
         resourceType: resourceType,
       })
       .then((response: Resource) => {
+        if (resourceType !== 'folder') {
+          localStorage.setItem('to_edit', 'true');
+        }
         activeRoute(spaceType, parentId, response);
-        resourceType !== 'folder' &&
-          setTimeout(() => {
-            app.fire('to_edit');
-          }, 2000);
       })
       .finally(() => {
         onEditingKey('');
@@ -305,7 +307,6 @@ export default function useContext() {
           );
           onData({ ...data });
           if (routeToActive) {
-            app.fire('resource_children', true);
             navigate(`/${namespaceId}/${routeToActive}`);
           }
         },
@@ -408,7 +409,6 @@ export default function useContext() {
       return;
     });
     if (node && node.id) {
-      app.fire('resource_children', true);
       navigate(`/${namespaceId}/${node.id}`);
     }
   }, [chatPage, namespaceId, resourceId, data]);

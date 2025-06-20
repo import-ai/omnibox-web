@@ -73,7 +73,6 @@ export default function Space(props: ISidebarProps) {
           </DropdownMenuContent>
         </DropdownMenu>
         <Input
-          multiple
           type="file"
           ref={fileInputRef}
           className="hidden"

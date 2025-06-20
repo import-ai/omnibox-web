@@ -7,18 +7,11 @@ import { SidebarInset } from '@/components/ui/sidebar';
 
 export default function ResourcePage() {
   const { wide, onWide } = useWide();
-  const { app, loading, forbidden, resource, resourceId, namespaceId } =
-    useResource();
+  const props = useResource();
 
   return (
     <SidebarInset>
-      <Header
-        app={app}
-        wide={wide}
-        onWide={onWide}
-        resource={resource}
-        forbidden={forbidden}
-      />
+      <Header {...props} wide={wide} onWide={onWide} />
       <div className="flex justify-center h-full p-4">
         <div
           className={cn('flex flex-col h-full  w-full', {
@@ -26,14 +19,7 @@ export default function ResourcePage() {
             'w-full': wide,
           })}
         >
-          <Wrapper
-            app={app}
-            loading={loading}
-            resource={resource}
-            forbidden={forbidden}
-            resourceId={resourceId}
-            namespaceId={namespaceId}
-          />
+          <Wrapper {...props} />
         </div>
       </div>
     </SidebarInset>

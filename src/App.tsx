@@ -58,6 +58,10 @@ const router = createBrowserRouter([
             element: <ResourcePage />,
           },
           {
+            path: ':resource_id/edit',
+            element: <ResourcePage />,
+          },
+          {
             path: 'chat',
             element: <ChatPage />,
             children: [
