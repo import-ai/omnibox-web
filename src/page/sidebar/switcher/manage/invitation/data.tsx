@@ -19,7 +19,11 @@ export function InvitationData(props: InvitationProps) {
       .delete(`/namespaces/${namespaceId}/invitations/${invitation.id}`)
       .then(refetch);
   };
-  const handleReceiveLink = () => {};
+  const handleReceiveLink = () => {
+    navigator.clipboard.writeText(
+      `${location.origin}/${namespaceId}/invite/${invitation.id}`,
+    );
+  };
   return (
     <TableRow key={invitation.id}>
       <TableCell>{groupTitle}</TableCell>

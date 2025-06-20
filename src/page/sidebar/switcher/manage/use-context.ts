@@ -22,7 +22,7 @@ export default function useContext() {
       [
         `namespaces/${namespace_id}/groups`,
         `namespaces/${namespace_id}/members`,
-        `namespaces/${namespace_id}/invitations`,
+        `namespaces/${namespace_id}/invitations?type=group`,
       ].map((url) => http.get(url)),
     ).then(([group, member, invitation]) => {
       onData({
