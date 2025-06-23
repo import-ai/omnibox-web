@@ -127,7 +127,7 @@ export default function Editor(props: IEditorProps) {
         placeholder="Enter title"
         className="mb-4 p-2 border rounded"
       />
-      <div ref={root} className="vditor" />
+      <div ref={root} className="vditor reset-list" />
     </div>
   );
 }

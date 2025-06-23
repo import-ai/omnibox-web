@@ -9,7 +9,11 @@ export interface ISidebarProps {
   editingKey: string;
   expands: Array<string>;
   onActiveKey: (id: string, edit?: boolean) => void;
-  onUpload: (spaceType: string, parentId: string, file: File) => Promise<void>;
+  onUpload: (
+    spaceType: string,
+    parentId: string,
+    file: FileList,
+  ) => Promise<void>;
   onExpand: (id: string, spaceType: SpaceType) => void;
   onMenuMore: (id: string, spaceType: SpaceType) => void;
   onDelete: (id: string, spaceType: SpaceType, parentId: string) => void;

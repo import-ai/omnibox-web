@@ -61,5 +61,5 @@ export function Markdown(props: IProps) {
     }
   }, [content, theme]);
 
-  return <div ref={element} />;
+  return <div className="reset-list" ref={element} />;
 }

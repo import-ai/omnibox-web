@@ -31,7 +31,7 @@ export default function Space(props: ISidebarProps) {
     if (!e.target.files) {
       return;
     }
-    onUpload(data.space_type, data.id, e.target.files[0]).finally(() => {
+    onUpload(data.space_type, data.id, e.target.files).finally(() => {
       fileInputRef.current!.value = '';
     });
   };
@@ -73,6 +73,7 @@ export default function Space(props: ISidebarProps) {
           </DropdownMenuContent>
         </DropdownMenu>
         <Input
+          multiple
           type="file"
           ref={fileInputRef}
           className="hidden"
