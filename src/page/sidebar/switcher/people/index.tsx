@@ -26,14 +26,12 @@ export default function PeopleManage() {
 
   return (
     <div>
-      {
-        <Invite
-          namespaceId={namespaceId}
-          invitationId={invitationId}
-          refetch={refetch}
-        />
-      }
-      {<Separator className="mb-4" />}
+      <Invite
+        namespaceId={namespaceId}
+        invitationId={invitationId}
+        refetch={refetch}
+      />
+      <Separator className="mb-4" />
       <Table />
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import copy from 'copy-to-clipboard';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
@@ -23,24 +24,18 @@ export default function InvitePeople(props: IProps) {
   const { namespaceId, invitationId, refetch } = props;
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-
   const handleCopy = () => {
-    navigator.clipboard.writeText(
-      `${location.origin}/invite/${namespaceId}/${invitationId}`,
-    );
+    copy(`${location.origin}/invite/${namespaceId}/${invitationId}`, {
+      format: 'text/plain',
+    });
   };
-
   const handleDisable = () => {
     if (invitationId) {
       http
         .delete(`/namespaces/${namespaceId}/invitations/${invitationId}`)
-        .then(() => {
-          refetch();
-        });
+        .then(refetch);
     }
   };
-
-  const checked = Boolean(invitationId);
   const handleCheckedChange = (value: boolean) => {
     if (value) {
       setOpen(true);
@@ -48,7 +43,6 @@ export default function InvitePeople(props: IProps) {
       handleDisable();
     }
   };
-
   const handleFinish = () => {
     setOpen(false);
     refetch();
@@ -78,13 +72,13 @@ export default function InvitePeople(props: IProps) {
           </p>
         </div>
         <div className="flex items-center gap-2 justify-between">
-          {checked && (
+          {!!invitationId && (
             <Button size="sm" variant="secondary" onClick={handleCopy}>
               {t('invite.receive_link')}
             </Button>
           )}
           <Switch
-            checked={checked}
+            checked={!!invitationId}
             onCheckedChange={handleCheckedChange}
             className="data-[state=checked]:bg-blue-500"
           />
