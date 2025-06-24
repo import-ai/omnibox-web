@@ -152,7 +152,8 @@
     "edit_group": "Edit Group",
     "create_group": "Create Group",
     "keep_one_admin": "Please keep at least one admin",
-    "invitation": "Invitation"
+    "invitation": "Invitation",
+    "invite_link": "Invite Link"
   },
   "unauth_page": {
     "title": "Access Denied",

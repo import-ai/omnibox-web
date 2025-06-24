@@ -73,8 +73,8 @@ export default function InvitePeople(props: IProps) {
         </div>
         <div className="flex items-center gap-2 justify-between">
           {!!invitationId && (
-            <Button size="sm" variant="secondary" onClick={handleCopy}>
-              {t('invite.receive_link')}
+            <Button size="sm" variant="copyLink" onClick={handleCopy}>
+              {t('actions.copy_link')}
             </Button>
           )}
           <Switch
