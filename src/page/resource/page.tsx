@@ -19,7 +19,9 @@ export default function Page(props: IProps) {
 
   return (
     <>
-      <h1 className="text-4xl font-bold">{resource.name || t('untitled')}</h1>
+      <h1 className="text-4xl font-bold mb-3">
+        {resource.name || t('untitled')}
+      </h1>
       <Render content={resource.content || ''} />
     </>
   );
