@@ -16,7 +16,7 @@ export interface IProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function SearchMenu({ open, onOpenChange }: IProps) {
+export default function SearchMenu({ open, onOpenChange }: IProps) {
   const params = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();

@@ -31,7 +31,9 @@
   "actions": {
     "copy_link": "Copy Link",
     "copy_content": "Copy content",
-    "duplicate": "Duplicate",
+    "duplicate": "Create a copy",
+    "move_to": "Move to",
+    "move_page_to": "Move page to...",
     "move_to_trash": "Move to Trash",
     "import": "Import",
     "create_file": "Create File",
@@ -149,7 +151,9 @@
     "remove_from_group": "Remove",
     "edit_group": "Edit Group",
     "create_group": "Create Group",
-    "keep_one_admin": "Please keep at least one admin"
+    "keep_one_admin": "Please keep at least one admin",
+    "invitation": "Invitation",
+    "invite_link": "Invite Link"
   },
   "unauth_page": {
     "title": "Access Denied",
