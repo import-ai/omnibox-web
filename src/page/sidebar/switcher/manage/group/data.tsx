@@ -43,7 +43,7 @@ export default function GroupData(props: GroupProps) {
       <div className="grid grid-cols-12 items-center">
         <div className="col-span-6 flex items-center text-sm h-10 leading-10 px-2">
           <CollapsibleTrigger asChild>
-            <ChevronRight className="transition-transform cursor-pointer" />
+            <ChevronRight className="transition-transform cursor-pointer size-4" />
           </CollapsibleTrigger>
           <UserCard username={title} />
         </div>
