@@ -3,7 +3,6 @@ import Member from './member';
 import useContext from './use-context';
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { InvitationMain } from './invitation';
 
 export default function ManagePeople() {
   const { t } = useTranslation();
@@ -24,12 +23,6 @@ export default function ManagePeople() {
           className="flex-1 h-11 max-w-[120px] text-gray-400 data-[state=active]:border-b-2 data-[state=active]:border-black dark:data-[state=active]:border-[#666666] data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
         >
           {t('manage.group')} {data.group.length}
-        </TabsTrigger>
-        <TabsTrigger
-          value="invitation"
-          className="flex-1 h-11 max-w-[120px] text-gray-400 data-[state=active]:border-b-2 data-[state=active]:border-black dark:data-[state=active]:border-[#666666] data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
-        >
-          {t('manage.invitation')} {data.invitation.length}
         </TabsTrigger>
       </TabsList>
       <TabsContent value="member">
@@ -57,23 +50,6 @@ export default function ManagePeople() {
               ? data.group.filter((item) => item.title.indexOf(search) >= 0)
               : data.group
           }
-        />
-      </TabsContent>
-      <TabsContent value="invitation">
-        <InvitationMain
-          namespaceId={namespace_id}
-          invitations={
-            search
-              ? data.invitation.filter(
-                  (item) =>
-                    item.group?.title && item.group.title.indexOf(search) >= 0,
-                )
-              : data.invitation
-          }
-          groups={data.group}
-          search={search}
-          onSearch={onSearch}
-          refetch={refetch}
         />
       </TabsContent>
     </Tabs>
