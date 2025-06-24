@@ -88,6 +88,7 @@ export interface NamespaceMember extends IBase {
 export interface Group extends IBase {
   id: string;
   title: string;
+  invitation_id?: string;
 }
 
 export interface UserPermission extends IBase {

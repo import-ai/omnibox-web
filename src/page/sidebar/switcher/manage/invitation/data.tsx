@@ -28,7 +28,7 @@ export function InvitationData(props: InvitationProps) {
     <TableRow key={invitation.id}>
       <TableCell>{groupTitle}</TableCell>
       <Button size="sm" onClick={handleReceiveLink}>
-        {t('invite.receive_link')}
+        {t('actions.copy_link')}
       </Button>
       <Button size="sm" variant="destructive" onClick={handleDelete}>
         {t('manage.delete')}

@@ -152,7 +152,8 @@
     "edit_group": "编辑群组",
     "create_group": "创建群组",
     "keep_one_admin": "请至少保留一个管理员",
-    "invitation": "邀请"
+    "invitation": "邀请",
+    "invite_link": "邀请链接"
   },
   "unauth_page": {
     "title": "访问被拒绝",
