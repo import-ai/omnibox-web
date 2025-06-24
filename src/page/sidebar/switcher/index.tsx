@@ -26,15 +26,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface IProps {
-  namespace_id: string;
+  namespaceId: string;
 }
 
 export function Switcher(props: IProps) {
-  const { namespace_id } = props;
+  const { namespaceId } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { app, data } = useNamespace();
-  const current = data.find((item) => item.id === namespace_id) || {
+  const current = data.find((item) => item.id === namespaceId) || {
     name: '--',
   };
 
@@ -64,7 +64,7 @@ export function Switcher(props: IProps) {
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{current.name}</span>
-                  <NamespaceMember namespaceId={namespace_id} />
+                  <NamespaceMember namespaceId={namespaceId} />
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -81,12 +81,12 @@ export function Switcher(props: IProps) {
             {data.map((item, index) => (
               <DropdownMenuItem
                 key={item.id}
-                disabled={item.id === namespace_id}
+                disabled={item.id === namespaceId}
                 className={cn('gap-2 p-2', {
-                  'cursor-pointer': item.id !== namespace_id,
+                  'cursor-pointer': item.id !== namespaceId,
                 })}
                 onClick={() => {
-                  if (item.id === namespace_id) {
+                  if (item.id === namespaceId) {
                     return;
                   }
                   app.fire('context_clear');

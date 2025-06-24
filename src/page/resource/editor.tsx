@@ -6,17 +6,21 @@ import { VDITOR_CDN } from '@/const';
 import { Resource } from '@/interface';
 import useTheme from '@/hooks/use-theme';
 import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useRef, useState } from 'react';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 
 interface IEditorProps {
   resource: Resource;
+  onResource: (resource: Resource) => void;
 }
 
 export default function Editor(props: IEditorProps) {
-  const { resource } = props;
-  const { app, theme } = useTheme();
+  const { resource, onResource } = props;
+  const busy = useRef(false);
   const root = useRef<any>(null);
+  const navigate = useNavigate();
+  const { app, theme } = useTheme();
   const [vd, setVd] = useState<Vditor>();
   const [title, onTitle] = useState('');
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,7 +32,7 @@ export default function Editor(props: IEditorProps) {
       const name = title.trim();
       const content: string | undefined = vd?.getValue();
       if (!content && !name) {
-        app.fire('resource_children', true);
+        navigate(`/${resource.namespace.id}/${resource.id}`);
         return;
       }
       http
@@ -41,8 +45,9 @@ export default function Editor(props: IEditorProps) {
           },
         )
         .then((delta: Resource) => {
-          app.fire('resource_update', delta);
-          app.fire('resource_children', true);
+          app.fire('update_resource', delta);
+          onResource(delta);
+          navigate(`/${resource.namespace.id}/${resource.id}`);
           onSuccess && onSuccess();
         });
     });
@@ -81,6 +86,37 @@ export default function Editor(props: IEditorProps) {
       setVd(undefined);
     };
   }, [resource, theme]);
+
+  useEffect(() => {
+    const keydownFN = (e: KeyboardEvent) => {
+      if (!vd) {
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        const content = vd.getValue();
+        if (busy.current) {
+          return;
+        }
+        busy.current = true;
+        http
+          .patch(
+            `/namespaces/${resource.namespace.id}/resources/${resource.id}`,
+            {
+              content,
+              namespaceId: resource.namespace.id,
+            },
+          )
+          .then(() => {
+            busy.current = false;
+          });
+      }
+    };
+    document.addEventListener('keydown', keydownFN);
+    return () => {
+      document.removeEventListener('keydown', keydownFN);
+    };
+  }, [vd, resource]);
 
   return (
     <div>

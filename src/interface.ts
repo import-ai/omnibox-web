@@ -88,6 +88,7 @@ export interface NamespaceMember extends IBase {
 export interface Group extends IBase {
   id: string;
   title: string;
+  invitation_id?: string;
 }
 
 export interface UserPermission extends IBase {
@@ -101,4 +102,11 @@ export interface UserPermission extends IBase {
 export interface GroupPermission extends IBase {
   level: Permission;
   group: Group;
+}
+
+export interface Invitation {
+  id: string;
+  namespace_role: Role;
+  root_permission_level: Permission;
+  group?: Group;
 }

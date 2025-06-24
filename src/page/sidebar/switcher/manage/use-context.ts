@@ -1,7 +1,7 @@
 import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Group, Member } from '@/interface';
+import { Group, Invitation, Member } from '@/interface';
 
 export default function useContext() {
   const params = useParams();
@@ -11,25 +11,30 @@ export default function useContext() {
   const [data, onData] = useState<{
     member: Array<Member>;
     group: Array<Group>;
+    invitation: Array<Invitation>;
   }>({
     group: [],
     member: [],
+    invitation: [],
   });
-  const refetch = () => {
-    Promise.all(
+  const refetch = async () => {
+    const [group, member, invitation] = await Promise.all(
       [
         `namespaces/${namespace_id}/groups`,
         `namespaces/${namespace_id}/members`,
+        `namespaces/${namespace_id}/invitations?type=group`,
       ].map((url) => http.get(url)),
-    ).then(([group, member]) => {
-      onData({
-        group,
-        member,
-      });
+    );
+    onData({
+      group,
+      member,
+      invitation,
     });
   };
 
-  useEffect(refetch, []);
+  useEffect(() => {
+    refetch();
+  }, []);
 
   useEffect(() => {
     onSearch('');
