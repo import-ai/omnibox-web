@@ -63,11 +63,15 @@ export default function MemberMain(props: MemberProps) {
         <Table rootClassName="max-w-[83vw] sm:w-full">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[40%]">{t('manage.user')}</TableHead>
-              <TableHead className="w-[30%]">
+              <TableHead className="w-[40%] min-w-[200px]">
+                {t('manage.user')}
+              </TableHead>
+              <TableHead className="w-[30%] min-w-[150px]">
                 {t('manage.permission')}
               </TableHead>
-              <TableHead className="text-right">{t('manage.role')}</TableHead>
+              <TableHead className="text-right min-w-[150px]">
+                {t('manage.role')}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
