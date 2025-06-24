@@ -4,6 +4,7 @@ import { orderBy } from 'lodash-es';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
+import { uploadFiles } from '@/lib/upload-files';
 import { useTranslation } from 'react-i18next';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
@@ -203,29 +204,32 @@ export default function useContext() {
   const activeRoute = (
     spaceType: string,
     parentId: string,
-    resource: Resource,
+    resource: Resource | Array<Resource>,
   ) => {
-    if (!data[spaceType]) {
-      data[spaceType] = { ...resource, children: [] };
-    } else {
-      if (!Array.isArray(data[spaceType].children)) {
-        data[spaceType].children = [{ ...resource, children: [] }];
+    const resources = Array.isArray(resource) ? resource : [resource];
+    resources.forEach((item) => {
+      if (!data[spaceType]) {
+        data[spaceType] = { ...item, children: [] };
       } else {
-        const index = data[spaceType].children.findIndex(
-          (item) => item.parent_id === parentId && item.id === 'empty',
-        );
-        if (index >= 0) {
-          data[spaceType].children[index] = { ...resource, children: [] };
+        if (!Array.isArray(data[spaceType].children)) {
+          data[spaceType].children = [{ ...item, children: [] }];
         } else {
-          data[spaceType].children.push({ ...resource, children: [] });
+          const index = data[spaceType].children.findIndex(
+            (item) => item.parent_id === parentId && item.id === 'empty',
+          );
+          if (index >= 0) {
+            data[spaceType].children[index] = { ...item, children: [] };
+          } else {
+            data[spaceType].children.push({ ...item, children: [] });
+          }
         }
       }
-    }
+    });
     onData({ ...data });
     if (!expands.includes(parentId)) {
       onExpands([...expands, parentId]);
     }
-    handleActiveKey(resource.id);
+    handleActiveKey(resources[resources.length - 1].id);
   };
   const handleCreate = (
     spaceType: string,
@@ -250,18 +254,16 @@ export default function useContext() {
         onEditingKey('');
       });
   };
-  const handleUpload = (spaceType: string, parentId: string, file: File) => {
+  const handleUpload = (
+    spaceType: string,
+    parentId: string,
+    file: FileList,
+  ) => {
     onEditingKey(parentId);
-    const formData = new FormData();
-    formData.append('parent_id', parentId);
-    formData.append('namespace_id', namespaceId);
-    formData.append('file', file);
-    return http
-      .post(`/namespaces/${namespaceId}/resources/files`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
+    return uploadFiles(file, {
+      parentId: parentId,
+      namespaceId: namespaceId,
+    })
       .then((response) => {
         activeRoute(spaceType, parentId, response);
       })
@@ -384,7 +386,11 @@ export default function useContext() {
     hooks.push(
       app.on(
         'generate_resource',
-        (spaceType: string, parentId: string, resource: Resource) => {
+        (
+          spaceType: string,
+          parentId: string,
+          resource: Resource | Array<Resource>,
+        ) => {
           activeRoute(spaceType, parentId, resource);
         },
       ),

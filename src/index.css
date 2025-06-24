@@ -96,6 +96,18 @@
   }
 }
 
+.reset-list ol {
+  list-style: decimal;
+}
+
+.reset-list ul {
+  list-style: disc;
+}
+
+.reset-list menu {
+  list-style: disc;
+}
+
 .group.toast .group-\[\.toast\]\:text-muted-foreground {
   color: hsl(var(--muted-foreground)) !important;
 }
