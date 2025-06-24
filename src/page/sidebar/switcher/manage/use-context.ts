@@ -17,23 +17,24 @@ export default function useContext() {
     member: [],
     invitation: [],
   });
-  const refetch = () => {
-    Promise.all(
+  const refetch = async () => {
+    const [group, member, invitation] = await Promise.all(
       [
         `namespaces/${namespace_id}/groups`,
         `namespaces/${namespace_id}/members`,
         `namespaces/${namespace_id}/invitations?type=group`,
       ].map((url) => http.get(url)),
-    ).then(([group, member, invitation]) => {
-      onData({
-        group,
-        member,
-        invitation,
-      });
+    );
+    onData({
+      group,
+      member,
+      invitation,
     });
   };
 
-  useEffect(refetch, []);
+  useEffect(() => {
+    refetch();
+  }, []);
 
   useEffect(() => {
     onSearch('');
