@@ -14,7 +14,16 @@
   "teamspace": "团队",
   "resource": {
     "deleted": "已删除",
-    "deleted_description": "此资源已被删除"
+    "deleted_description": "此资源已被删除",
+    "attrs": {
+      "tag": "标签",
+      "add_tag": "点击添加标签",
+      "create_tag": "创建",
+      "url": "地址",
+      "author": "作者",
+      "created": "创建时间",
+      "filename": "文件名"
+    }
   },
   "error": {
     "title": "404 页面未找到"

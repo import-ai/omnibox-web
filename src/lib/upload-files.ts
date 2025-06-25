@@ -3,12 +3,18 @@ import { http } from '@/lib/request';
 import { IResourceData } from '@/interface';
 
 export function getFileHash(file: File): Promise<string> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      resolve(SparkMD5.hash(reader.result as string));
+      try {
+        const hash = SparkMD5.ArrayBuffer.hash(reader.result as ArrayBuffer);
+        resolve(hash);
+      } catch (e) {
+        reject(e);
+      }
     };
-    reader.readAsText(file);
+    reader.onerror = (e) => reject(e);
+    reader.readAsArrayBuffer(file);
   });
 }
 
@@ -50,56 +56,68 @@ export function uploadFile(
       chunk: file.slice(start, end),
     });
   }
-  return getFileHash(file).then((fileHash: string) => {
-    return Promise.all(
-      chunks.map((item) => {
-        const formData = new FormData();
-        formData.append('chunk', item.chunk);
-        formData.append('file_hash', fileHash);
-        formData.append('namespace_id', args.namespaceId);
-        formData.append('chunk_number', `${item.chunkNumber}`);
-        return http.post(
-          `/namespaces/${args.namespaceId}/resources/files/chunk`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
+  return getFileHash(file).then(async (fileHash: string) => {
+    const maxRetries = 3;
+    const uploadedChunks: number[] = [];
+    for (const item of chunks) {
+      let attempt = 0;
+      let success = false;
+      while (attempt < maxRetries && !success) {
+        try {
+          const formData = new FormData();
+          formData.append('chunk', item.chunk);
+          formData.append('file_hash', fileHash);
+          formData.append('namespace_id', args.namespaceId);
+          formData.append('chunk_number', `${item.chunkNumber}`);
+          await http.post(
+            `/namespaces/${args.namespaceId}/resources/files/chunk`,
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
             },
-          },
-        );
-      }),
-    )
-      .then(() => {
-        return http.post(
-          `/namespaces/${args.namespaceId}/resources/files/merge`,
-          {
-            file_hash: fileHash,
-            total_chunks: totalChunks,
-            file_name: file.name,
-            mimetype: file.type,
-            parent_id: args.parentId,
-            namespace_id: args.namespaceId,
-          },
-        );
-      })
-      .catch((err) => {
-        return http
-          .post(`/namespaces/${args.namespaceId}/resources/files/chunk/clean`, {
-            file_hash: fileHash,
-            namespace_id: args.namespaceId,
-            chunks_number: chunks.map((chunk) => chunk.chunkNumber).join(','),
-          })
-          .finally(() => Promise.reject(err));
-      });
+          );
+          uploadedChunks.push(item.chunkNumber);
+          success = true;
+        } catch (err) {
+          attempt++;
+          if (attempt >= maxRetries) {
+            await http.post(
+              `/namespaces/${args.namespaceId}/resources/files/chunk/clean`,
+              {
+                file_hash: fileHash,
+                namespace_id: args.namespaceId,
+                chunks_number: uploadedChunks.join(','),
+              },
+            );
+            throw err;
+          }
+        }
+      }
+    }
+    return http.post(`/namespaces/${args.namespaceId}/resources/files/merge`, {
+      file_hash: fileHash,
+      total_chunks: totalChunks,
+      file_name: file.name,
+      mimetype: file.type,
+      parent_id: args.parentId,
+      namespace_id: args.namespaceId,
+    });
   });
 }
 
-export function uploadFiles(
+export async function uploadFiles(
   files: FileList,
   args: {
     namespaceId: string;
     parentId: string;
   },
 ): Promise<Array<IResourceData>> {
-  return Promise.all(Array.from(files).map((file) => uploadFile(file, args)));
+  const results: IResourceData[] = [];
+  for (const file of Array.from(files)) {
+    const res = await uploadFile(file, args);
+    results.push(res);
+  }
+  return results;
 }

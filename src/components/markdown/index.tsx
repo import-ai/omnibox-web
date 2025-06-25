@@ -48,6 +48,7 @@ export function Markdown(props: IProps) {
         theme: {
           current: theme.skin,
         },
+        anchor: 1,
         mode: theme.content,
         hljs: {
           defaultLang: 'plain',

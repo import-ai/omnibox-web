@@ -14,7 +14,16 @@
   "teamspace": "Teamspace",
   "resource": {
     "deleted": "Deleted",
-    "deleted_description": "This resource has been deleted"
+    "deleted_description": "This resource has been deleted",
+    "attrs": {
+      "tag": "Tag",
+      "add_tag": "Add tag",
+      "create_tag": "Create",
+      "url": "URL",
+      "author": "Author",
+      "created": "Created",
+      "filename": "Filename"
+    }
   },
   "error": {
     "title": "404 Not Found"

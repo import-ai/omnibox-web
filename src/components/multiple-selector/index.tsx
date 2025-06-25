@@ -28,6 +28,7 @@ interface MultipleSelectorProps {
   inputValue?: string;
   afterAddon?: React.ReactNode;
   defaultOptions?: Option[];
+  createText?: string;
   /** manually controlled options */
   options?: Option[];
   placeholder?: string;
@@ -181,6 +182,7 @@ const MultipleSelector = React.forwardRef<
     {
       value,
       onChange,
+      createText,
       placeholder,
       afterAddon,
       inputValue: inputPropsValue,
@@ -386,7 +388,7 @@ const MultipleSelector = React.forwardRef<
             onChange?.(newOptions);
           }}
         >
-          {`Create "${inputValue}"`}
+          {createText || 'Create'} "{inputValue}"
         </CommandItem>
       );
 
