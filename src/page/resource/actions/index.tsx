@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { IUseResource } from '@/hooks/user-resource';
-import { LanguageToggle } from '@/i18n/language-toggle';
+import { LanguageToggle } from '@/page/resource/language-toggle';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
 import PermissionWrapper from '@/components/permission-action/wrapper';
 import {

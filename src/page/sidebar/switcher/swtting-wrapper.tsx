@@ -1,6 +1,7 @@
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import CommonForm from './basic';
 import PeopleForm from './people';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
@@ -12,9 +13,14 @@ export default function SettingWrapper() {
   const params = useParams();
   const namespaceId = params.namespace_id || '';
   const [userIsOwner, setUserIsOwner] = useState(false);
-  const [activeKey, onActiveKey] = useState('profile');
+  const [activeKey, onActiveKey] = useState('basic');
   const items = userIsOwner
     ? [
+        {
+          label: t('setting.basic'),
+          value: 'basic',
+          children: <CommonForm />,
+        },
         {
           label: t('setting.profile'),
           value: 'profile',
@@ -32,6 +38,11 @@ export default function SettingWrapper() {
         },
       ]
     : [
+        {
+          label: t('setting.basic'),
+          value: 'basic',
+          children: <CommonForm />,
+        },
         {
           label: t('setting.profile'),
           value: 'profile',

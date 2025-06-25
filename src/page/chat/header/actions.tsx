@@ -5,7 +5,7 @@ import { http } from '@/lib/request';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LanguageToggle } from '@/i18n/language-toggle';
+import { LanguageToggle } from '@/page/resource/language-toggle';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
 import {
   Plus,

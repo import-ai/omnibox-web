@@ -5,9 +5,10 @@ import useApp from '@/hooks/use-app';
 export default function useTheme() {
   const app = useApp();
   const [theme, onTheme] = useState<Theme>(app.getTheme());
-  const onToggleTheme = () => {
-    const state = app.toggleTheme();
+  const onToggleTheme = (skin?: 'light' | 'system' | 'dark') => {
+    const state = app.toggleTheme(skin);
     app.fire('theme-toggle', { ...state });
+    return state.skin;
   };
 
   useEffect(() => {

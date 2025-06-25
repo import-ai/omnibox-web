@@ -1,8 +1,9 @@
+import { toast } from 'sonner';
+import { useEffect } from 'react';
+import { http } from '@/lib/request';
 import { Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-import { useEffect } from 'react';
-import { toast } from 'sonner';
 
 export function LanguageToggle() {
   const { i18n, t } = useTranslation();
@@ -10,7 +11,6 @@ export function LanguageToggle() {
     const currentLang = i18n.language || navigator.language;
     const newLanguage = currentLang === 'en-US' ? 'zh-CN' : 'en-US';
     i18n.changeLanguage(newLanguage).then(() => {
-      localStorage.setItem('preferred_language', newLanguage);
       toast(t('toggle.title'), {
         position: 'top-center',
         description: t('toggle.lang.name'),
@@ -19,10 +19,28 @@ export function LanguageToggle() {
   };
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('preferred_language');
-    if (savedLang && savedLang !== i18n.language) {
-      i18n.changeLanguage(savedLang).then();
-    }
+    http.get('/user/option/language').then((response) => {
+      if (!response || !response.value) {
+        return;
+      }
+      if (response.value !== i18n.language) {
+        i18n.changeLanguage(response.value);
+      }
+    });
+    const languageChangedFN = (lang: string) => {
+      http.post(
+        '/user/option',
+        {
+          name: 'language',
+          value: lang,
+        },
+        { mute: true },
+      );
+    };
+    i18n.on('languageChanged', languageChangedFN);
+    return () => {
+      i18n.off('languageChanged', languageChangedFN);
+    };
   }, [i18n]);
 
   return (

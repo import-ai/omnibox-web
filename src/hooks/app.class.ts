@@ -26,7 +26,7 @@ export default class App extends Hook {
         ? 'dark'
         : 'light';
     }
-    this.theme.skin = state;
+    this.theme.skin = skin;
     // @ts-ignore
     this.theme.content = state;
     this.theme.code = state === 'dark' ? 'github-dark' : 'github';
@@ -39,11 +39,21 @@ export default class App extends Hook {
     return this.theme;
   }
 
-  toggleTheme(): Theme {
-    const theme = this.applyTheme(
-      this.theme.skin === 'dark' ? 'light' : 'dark',
-    );
-    localStorage.setItem('theme', JSON.stringify(this.theme));
+  toggleTheme(skin?: 'light' | 'system' | 'dark'): Theme {
+    let skinArgs: 'light' | 'system' | 'dark' = 'light';
+    if (skin) {
+      skinArgs = skin;
+    } else {
+      const themeOptions = ['system', 'light', 'dark'];
+      const index = themeOptions.indexOf(this.theme.skin);
+      skinArgs = themeOptions[(index + 1) % themeOptions.length] as
+        | 'light'
+        | 'system'
+        | 'dark';
+    }
+    const theme = this.applyTheme(skinArgs);
+    localStorage.setItem('theme', JSON.stringify(theme));
+    this.fire('themeChanged', theme.skin);
     return theme;
   }
 }
