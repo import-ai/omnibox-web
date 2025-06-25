@@ -6,6 +6,7 @@ import copy from 'copy-to-clipboard';
 import { Resource } from '@/interface';
 import { useRef, useState } from 'react';
 import { Input } from '@/components/input';
+import { uploadFiles } from '@/lib/upload-files';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Switch } from '@/components/ui/switch';
@@ -184,22 +185,16 @@ export default function Actions(props: IActionProps) {
       return;
     }
     onLoading('import');
-    const formData = new FormData();
-    formData.append('parent_id', resource.parent_id);
-    formData.append('namespace_id', resource.namespace.id);
-    formData.append('file', e.target.files[0]);
-    http
-      .post(`/namespaces/${resource.namespace.id}/resources/files`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-      .then((response) => {
+    uploadFiles(e.target.files, {
+      namespaceId: resource.namespace.id,
+      parentId: resource.parent_id,
+    })
+      .then((responses) => {
         app.fire(
           'generate_resource',
           resource.space_type,
           resource.parent_id,
-          response,
+          responses,
         );
       })
       .catch((err) => {
@@ -390,6 +385,7 @@ export default function Actions(props: IActionProps) {
                 </SidebarGroupContent>
               </SidebarGroup>
               <Input
+                multiple
                 type="file"
                 ref={fileInputRef}
                 className="hidden"

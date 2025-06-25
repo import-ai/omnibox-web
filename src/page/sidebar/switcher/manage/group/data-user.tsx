@@ -31,7 +31,7 @@ export default function GroupDataUser(props: GroupProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="pl-8 pr-3 py-2">
+    <div className="pl-6 pr-3 py-2">
       {groupUserData.map((item) => (
         <div key={item.id} className="flex items-center justify-between">
           <div className="flex items-center">

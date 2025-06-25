@@ -55,32 +55,30 @@ export default function GroupMain(props: GroupProps) {
           onToggle={handleToggle}
         />
       </div>
-      <div className="rounded-md border">
-        <div className="overflow-auto max-w-[83vw] sm:w-full">
-          <div className="w-full grid grid-cols-12 text-muted-foreground border-b font-bold">
-            <div className="col-span-4 text-sm h-10 leading-10 px-2">
-              {t('manage.group')}
-            </div>
-            <div className="col-span-2 text-sm h-10 leading-10 px-2">
-              {t('manage.member')}
-            </div>
-            <div className="col-span-2 text-sm h-10 leading-10 px-2">
-              {t('manage.invite_link')}
-            </div>
-            <div className="col-span-4 min-w-[100px] text-sm h-10 leading-10 px-2"></div>
+      <div className="rounded-md border overflow-auto max-w-[83vw] sm:w-full">
+        <div className="w-full flex justify-between text-muted-foreground border-b font-bold">
+          <div className="text-sm h-10 leading-10 px-2 min-w-[90px]">
+            {t('manage.group')}
           </div>
-          <div>
-            {data.map((item) => (
-              <GroupData
-                key={item.id}
-                {...item}
-                member={member}
-                refetch={refetch}
-                onEdit={handleEdit}
-                namespace_id={namespace_id}
-              />
-            ))}
+          <div className="text-sm h-10 leading-10 px-2 min-w-[90px]">
+            {t('manage.member')}
           </div>
+          <div className="text-sm h-10 leading-10 px-2 min-w-[90px]">
+            {t('manage.invite_link')}
+          </div>
+          <div className="text-sm h-10 leading-10 px-2 min-w-[200px] relative top-[1px] border-b"></div>
+        </div>
+        <div className="min-w-[450px]">
+          {data.map((item) => (
+            <GroupData
+              key={item.id}
+              {...item}
+              member={member}
+              refetch={refetch}
+              onEdit={handleEdit}
+              namespace_id={namespace_id}
+            />
+          ))}
         </div>
       </div>
     </div>

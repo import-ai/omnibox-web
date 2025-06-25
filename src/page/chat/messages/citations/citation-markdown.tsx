@@ -92,7 +92,10 @@ export function CitationMarkdown(props: IProps) {
   };
 
   return (
-    <div className="markdown-body" style={{ background: 'transparent' }}>
+    <div
+      className="markdown-body reset-list"
+      style={{ background: 'transparent' }}
+    >
       <Markdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}

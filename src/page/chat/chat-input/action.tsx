@@ -2,13 +2,13 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ArrowUp, ChevronDown, CircleStop } from 'lucide-react';
+import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
   disabled: boolean;
