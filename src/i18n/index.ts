@@ -8,7 +8,7 @@ i18n
   .use(initReactI18next)
   // options: https://www.i18next.com/overview/configuration-options
   .init({
-    fallbackLng: 'en-US',
+    fallbackLng: 'en',
     resources: locales,
     debug: false,
     interpolation: {

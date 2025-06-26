@@ -1,6 +1,6 @@
-import Tag from './tags';
 import { format } from 'date-fns';
 import { useState } from 'react';
+import Tag from '@/components/tags';
 import { http } from '@/lib/request';
 import { Resource } from '@/interface';
 import { Button } from '@/components/button';

@@ -1,0 +1,107 @@
+import { Tag } from '@/interface';
+import { http } from '@/lib/request';
+import Space from '@/components/space';
+import { TagsIcon } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
+import { useRef, useState, useEffect } from 'react';
+import MultipleSelector, { Option } from '@/components/multiple-selector';
+
+interface IProps {
+  loading: boolean;
+  data: Array<Option>;
+  namespaceId: string;
+  resourceId: string;
+}
+
+export default function Tags(props: IProps) {
+  const { data, loading, resourceId, namespaceId } = props;
+  const inputRef = useRef<any>(null);
+  const { t } = useTranslation();
+  const [value, onChange] = useState('');
+  const [editing, onEditing] = useState(false);
+  const [tags, setTags] = useState<Array<Option>>([]);
+  const handleSearch = (val: string): Promise<Option[]> => {
+    return http
+      .get(`/namespaces/${namespaceId}/tag?name=${val}`)
+      .then((res) => {
+        return Promise.resolve(
+          res.map((item: Tag) => ({ label: item.name, value: item.id })),
+        );
+      });
+  };
+  const enterEdit = () => {
+    onEditing(true);
+    setTimeout(() => {
+      inputRef.current && inputRef.current.focus();
+    }, 100);
+  };
+  const leaveEdit = () => {
+    onEditing(false);
+    http.patch(`/namespaces/${namespaceId}/resources/${resourceId}`, {
+      tags: tags.map((tag) => tag.value),
+    });
+  };
+  const handleChange = (val: Array<Option>) => {
+    setTags(val);
+    onChange('');
+  };
+  const handleCreate = (val: Option) => {
+    return http
+      .post(`/namespaces/${namespaceId}/tag`, { name: val.value })
+      .then((res) => Promise.resolve({ label: res.name, value: res.id }));
+  };
+
+  useEffect(() => {
+    setTags(data);
+  }, [data]);
+
+  return (
+    <div className="flex items-center gap-3">
+      <TagsIcon className="size-4 text-muted-foreground" />
+      <span className="text-muted-foreground font-medium min-w-[80px]">
+        {t('resource.attrs.tag')}
+      </span>
+      {loading ? (
+        <span className="flex items-center text-foreground h-7">
+          <LoaderCircle className="transition-transform animate-spin" />
+        </span>
+      ) : (
+        <span className="flex items-center text-foreground h-7">
+          {editing ? (
+            <MultipleSelector
+              creatable
+              ref={inputRef}
+              value={tags}
+              options={tags}
+              inputValue={value}
+              hideClearAllButton
+              className="min-h-6"
+              onSearch={handleSearch}
+              onCreate={handleCreate}
+              onChange={handleChange}
+              createText={t('resource.attrs.create_tag')}
+              inputProps={{
+                className: 'py-0',
+                onBlur: leaveEdit,
+                onValueChange: onChange,
+              }}
+            />
+          ) : (
+            <Space
+              onClick={enterEdit}
+              className="min-h-6 min-w-96 cursor-pointer"
+            >
+              {tags.length > 0 ? (
+                tags.map((tag) => <Badge key={tag.value}>{tag.label}</Badge>)
+              ) : (
+                <Badge variant="secondary">{t('resource.attrs.add_tag')}</Badge>
+              )}
+            </Space>
+          )}
+        </span>
+      )}
+    </div>
+  );
+}

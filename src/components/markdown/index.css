@@ -2,3 +2,7 @@
 .vditor-ir__link {
   color: #4285f4;
 }
+
+.vditor-reset.vditor-reset--anchor {
+  margin-left: -20px;
+}

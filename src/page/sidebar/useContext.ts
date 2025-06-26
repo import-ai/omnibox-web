@@ -205,6 +205,7 @@ export default function useContext() {
     spaceType: string,
     parentId: string,
     resource: Resource | Array<Resource>,
+    edit?: boolean,
   ) => {
     const resources = Array.isArray(resource) ? resource : [resource];
     resources.forEach((item) => {
@@ -229,7 +230,7 @@ export default function useContext() {
     if (!expands.includes(parentId)) {
       onExpands([...expands, parentId]);
     }
-    handleActiveKey(resources[resources.length - 1].id);
+    handleActiveKey(resources[resources.length - 1].id, edit);
   };
   const handleCreate = (
     spaceType: string,
@@ -245,10 +246,7 @@ export default function useContext() {
         resourceType: resourceType,
       })
       .then((response: Resource) => {
-        if (resourceType !== 'folder') {
-          localStorage.setItem('to_edit', 'true');
-        }
-        activeRoute(spaceType, parentId, response);
+        activeRoute(spaceType, parentId, response, resourceType !== 'folder');
       })
       .finally(() => {
         onEditingKey('');

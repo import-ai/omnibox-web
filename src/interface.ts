@@ -32,6 +32,11 @@ export interface Namespace extends IBase {
   owner_id?: string[];
 }
 
+export interface Tag extends IBase {
+  id: string;
+  name: string;
+}
+
 export type SpaceType = 'private' | 'teamspace';
 export type ResourceType = 'doc' | 'file' | 'link' | 'folder';
 

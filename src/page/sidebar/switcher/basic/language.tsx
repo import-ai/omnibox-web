@@ -11,12 +11,12 @@ import {
 export default function Language() {
   const { i18n, t } = useTranslation();
   const data = [
-    { label: 'English', value: 'en-US' },
-    { label: '简体中文', value: 'zh-CN' },
+    { label: 'English', value: 'en' },
+    { label: '简体中文', value: 'zh' },
   ];
 
   return (
-    <div className="flex items-center gap-10">
+    <div className="flex items-center gap-24">
       <div className="flex items-center gap-2">
         <Globe className="size-5" />
         <span className="font-medium">{t('manage.language_setting')}</span>

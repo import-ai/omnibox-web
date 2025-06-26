@@ -72,6 +72,7 @@ interface MultipleSelectorProps {
   selectFirstItem?: boolean;
   /** Allow user to create option when there is no option matched. */
   creatable?: boolean;
+  onCreate?: (option: Option) => Promise<Option>;
   /** Props of `Command` */
   commandProps?: React.ComponentPropsWithoutRef<typeof Command>;
   /** Props of `CommandInput` */
@@ -130,7 +131,7 @@ function removePickedOption(groupOption: GroupOption, picked: Option[]) {
 
   for (const [key, value] of Object.entries(cloneOption)) {
     cloneOption[key] = value.filter(
-      (val) => !picked.find((p) => p.value === val.value),
+      (val) => !picked.find((p) => p.label === val.label),
     );
   }
   return cloneOption;
@@ -139,7 +140,7 @@ function removePickedOption(groupOption: GroupOption, picked: Option[]) {
 function isOptionsExist(groupOption: GroupOption, targetOption: Option[]) {
   for (const [, value] of Object.entries(groupOption)) {
     if (
-      value.some((option) => targetOption.find((p) => p.value === option.value))
+      value.some((option) => targetOption.find((p) => p.label === option.label))
     ) {
       return true;
     }
@@ -201,6 +202,7 @@ const MultipleSelector = React.forwardRef<
       className,
       badgeClassName,
       selectFirstItem = true,
+      onCreate,
       creatable = false,
       triggerSearchOnFocus = false,
       commandProps,
@@ -364,7 +366,7 @@ const MultipleSelector = React.forwardRef<
       if (!creatable) return undefined;
       if (
         isOptionsExist(options, [{ value: inputValue, label: inputValue }]) ||
-        selected.find((s) => s.value === inputValue)
+        selected.find((s) => s.label === inputValue)
       ) {
         return undefined;
       }
@@ -377,13 +379,19 @@ const MultipleSelector = React.forwardRef<
             e.preventDefault();
             e.stopPropagation();
           }}
-          onSelect={(value: string) => {
+          onSelect={async (value: string) => {
             if (selected.length >= maxSelected) {
               onMaxSelected?.(selected.length);
               return;
             }
             setInputValue('');
-            const newOptions = [...selected, { value, label: value }];
+            const newOptions = [...selected];
+            if (onCreate) {
+              const newOption = await onCreate({ value, label: value });
+              newOptions.push(newOption);
+            } else {
+              newOptions.push({ value, label: value });
+            }
             setSelected(newOptions);
             onChange?.(newOptions);
           }}
