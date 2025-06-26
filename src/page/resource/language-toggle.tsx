@@ -9,7 +9,7 @@ export function LanguageToggle() {
   const { i18n, t } = useTranslation();
   const toggleLanguage = () => {
     const currentLang = i18n.language || navigator.language;
-    const newLanguage = currentLang === 'en-US' ? 'zh-CN' : 'en-US';
+    const newLanguage = currentLang === 'en' ? 'zh' : 'en';
     i18n.changeLanguage(newLanguage).then(() => {
       toast(t('toggle.title'), {
         position: 'top-center',

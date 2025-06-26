@@ -13,7 +13,7 @@ export function getTime(resource: Resource | null) {
       ' ' +
       formatDistanceToNow(new Date(resource.updated_at), {
         addSuffix: true,
-        locale: i18next.language === 'zh-CN' ? zhCN : enUS,
+        locale: i18next.language === 'zh' ? zhCN : enUS,
       })
     );
   }
@@ -23,7 +23,7 @@ export function getTime(resource: Resource | null) {
       ' ' +
       formatDistanceToNow(new Date(resource.created_at), {
         addSuffix: true,
-        locale: i18next.language === 'zh-CN' ? zhCN : enUS,
+        locale: i18next.language === 'zh' ? zhCN : enUS,
       })
     );
   }
