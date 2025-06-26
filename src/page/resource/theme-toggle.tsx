@@ -17,7 +17,7 @@ export function ThemeToggle() {
       }
       const cuttentTheme = app.getTheme();
       if (response.value !== cuttentTheme.skin) {
-        onToggleTheme();
+        onToggleTheme(response.value);
       }
     });
     return app.on('themeChanged', (theme: string) => {
