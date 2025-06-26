@@ -28,10 +28,10 @@ export default function Theme() {
             key={item.value}
             onClick={() => onToggleTheme(item.value)}
             className={cn(
-              'border px-4 py-6 flex flex-col items-center cursor-pointer bg-[#F9F9F9]',
+              'border px-4 py-6 flex flex-col items-center cursor-pointer text-foreground',
               {
                 'border-blue-500': theme.skin === item.value,
-                'border-gray-200': theme.skin !== item.value,
+                'text-muted-foreground': theme.skin !== item.value,
               },
             )}
           >
