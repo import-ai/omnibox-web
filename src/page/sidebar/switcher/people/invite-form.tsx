@@ -49,6 +49,7 @@ const FormSchema = z.object({
     .string()
     .min(2, i18next.t('invite.min'))
     .max(22, i18next.t('invite.max')),
+  permissionLevel: z.string(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -76,6 +77,7 @@ export default function InviteForm(props: IProps) {
       .post('invite', {
         role: data.role,
         emails: [data.email],
+        permissionLevel: data.permissionLevel,
         namespace: namespace_id,
         inviteUrl: `${location.origin}/invite/confirm`,
         registerUrl: `${location.origin}/user/sign-up/confirm`,
@@ -135,6 +137,45 @@ export default function InviteForm(props: IProps) {
                   <SelectContent>
                     <SelectItem value="owner">{t('invite.owner')}</SelectItem>
                     <SelectItem value="member">{t('invite.member')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="permissionLevel"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('manage.permission')}</FormLabel>
+              <FormControl>
+                <Select
+                  defaultValue={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="full_access">
+                      {t('permission.full_access')}
+                    </SelectItem>
+                    <SelectItem value="can_edit">
+                      {t('permission.can_edit')}
+                    </SelectItem>
+                    <SelectItem value="can_comment">
+                      {t('permission.can_comment')}
+                    </SelectItem>
+                    <SelectItem value="can_view">
+                      {t('permission.can_view')}
+                    </SelectItem>
+                    <SelectItem value="no_access">
+                      {t('permission.no_access')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
