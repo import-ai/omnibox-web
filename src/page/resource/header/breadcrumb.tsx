@@ -48,14 +48,14 @@ export default function BreadcrumbMain(props: IProps) {
               </BreadcrumbSeparator>
             )}
             {index >= size - 1 ? (
-              <BreadcrumbItem className="font-normal text-foreground line-clamp-1 pl-2">
+              <BreadcrumbItem className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]">
                 {item.name || t('untitled')}
               </BreadcrumbItem>
             ) : (
               <BreadcrumbItem>
                 <Button
                   variant="ghost"
-                  className="h-6 px-2 py-0 font-normal text-foreground"
+                  className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
                   onClick={() => {
                     navigate(`/${namespaceId}/${item.id}`);
                   }}
