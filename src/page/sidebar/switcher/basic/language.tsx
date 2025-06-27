@@ -11,19 +11,22 @@ import {
 export default function Language() {
   const { i18n, t } = useTranslation();
   const data = [
-    { label: 'English', value: 'en' },
     { label: '简体中文', value: 'zh' },
+    { label: 'English', value: 'en' },
   ];
 
   return (
-    <div className="flex items-center gap-24">
+    <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Globe className="size-5" />
-        <span className="font-medium">{t('manage.language_setting')}</span>
+        <span>{t('manage.language_setting')}</span>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline">
+          <Button
+            variant="outline"
+            className="font-normal w-36 justify-between"
+          >
             {data.find((item) => item.value === i18n.language)?.label}
             <ChevronDown className="size-4 ml-2" />
           </Button>

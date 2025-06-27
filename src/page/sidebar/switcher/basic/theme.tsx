@@ -1,8 +1,13 @@
-import { cn } from '@/lib/utils';
 import useTheme from '@/hooks/use-theme';
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/card';
-import { MonitorSmartphone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Check, MonitorSmartphone, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function Theme() {
   const { t } = useTranslation();
@@ -17,31 +22,34 @@ export default function Theme() {
   ];
 
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-4">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
         <MonitorSmartphone className="size-5" />
-        <span className="font-medium">{t('manage.theme_setting')}</span>
+        <span>{t('manage.theme_setting')}</span>
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        {data.map((item) => (
-          <Card
-            key={item.value}
-            onClick={() => onToggleTheme(item.value)}
-            className={cn(
-              'border px-4 py-6 flex flex-col items-center cursor-pointer text-foreground',
-              {
-                'border-blue-500': theme.skin === item.value,
-                'text-muted-foreground': theme.skin !== item.value,
-              },
-            )}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="font-normal w-36 justify-between"
           >
-            <div className="w-full mb-1">
-              <img alt={item.value} src={`/assets/${item.value}.png`} />
-            </div>
-            <span className="text-sm">{item.label}</span>
-          </Card>
-        ))}
-      </div>
+            {data.find((item) => item.value === theme.skin)?.label}
+            <ChevronDown className="size-4 ml-2" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {data.map((item) => (
+            <DropdownMenuItem
+              key={item.value}
+              className="flex justify-between"
+              onClick={() => onToggleTheme(item.value)}
+            >
+              {item.label}
+              {item.value === theme.skin && <Check className="size-4" />}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

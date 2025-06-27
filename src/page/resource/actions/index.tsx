@@ -53,7 +53,8 @@ export interface IActionProps extends IUseResource {
 }
 
 export default function Actions(props: IActionProps) {
-  const { app, wide, onWide, forbidden, resource, editPage } = props;
+  const { app, wide, onWide, forbidden, resource, editPage, namespaceId } =
+    props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isMobile } = useSidebar();
@@ -65,20 +66,20 @@ export default function Actions(props: IActionProps) {
     if (!resource) {
       return;
     }
-    navigate(`/${resource.namespace.id}/${resource.id}/edit`);
+    navigate(`/${namespaceId}/${resource.id}/edit`);
   };
   const handleExitEdit = () => {
     if (!resource) {
       return;
     }
-    navigate(`/${resource.namespace.id}/${resource.id}`);
+    navigate(`/${namespaceId}/${resource.id}`);
   };
   const handleSave = () => {
     app.fire('save', () => {
       if (!resource) {
         return;
       }
-      navigate(`/${resource.namespace.id}/${resource.id}`);
+      navigate(`/${namespaceId}/${resource.id}`);
     });
   };
   const handleAction = (id: string) => {
@@ -111,9 +112,7 @@ export default function Actions(props: IActionProps) {
     if (id === 'duplicate') {
       onLoading(id);
       http
-        .post(
-          `/namespaces/${resource.namespace.id}/resources/duplicate/${resource.id}`,
-        )
+        .post(`/namespaces/${namespaceId}/resources/duplicate/${resource.id}`)
         .then((response: Resource) => {
           setOpen(false);
           app.fire(
@@ -135,7 +134,7 @@ export default function Actions(props: IActionProps) {
     if (id === 'move_to_trash') {
       onLoading(id);
       http
-        .delete(`/namespaces/${resource.namespace.id}/resources/${resource.id}`)
+        .delete(`/namespaces/${namespaceId}/resources/${resource.id}`)
         .then(() => {
           setOpen(false);
           app.fire(
@@ -151,7 +150,7 @@ export default function Actions(props: IActionProps) {
               onClick: () => {
                 http
                   .post(
-                    `/namespaces/${resource.namespace.id}/resources/${resource.id}/restore`,
+                    `/namespaces/${namespaceId}/resources/${resource.id}/restore`,
                   )
                   .then((response) => {
                     app.fire(
@@ -186,7 +185,7 @@ export default function Actions(props: IActionProps) {
     }
     onLoading('import');
     uploadFiles(e.target.files, {
-      namespaceId: resource.namespace.id,
+      namespaceId: namespaceId,
       parentId: resource.parent_id,
     })
       .then((responses) => {
@@ -395,10 +394,10 @@ export default function Actions(props: IActionProps) {
               {resource && (
                 <MoveTo
                   open={moveTo}
+                  namespaceId={namespaceId}
                   onOpenChange={setMoveTo}
                   resourceId={resource.id}
                   onFinished={handleMoveFinished}
-                  namespaceId={resource.namespace.id}
                 />
               )}
             </SidebarContent>

@@ -1,8 +1,8 @@
 import Badge from '@/components/badge';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { FileText, Folder, X } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { IResTypeContext } from '@/page/chat/chat-input/types';
 
 interface IProps {
@@ -12,8 +12,10 @@ interface IProps {
 
 export default function ChatContext(props: IProps) {
   const { value, onChange } = props;
+  const params = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const namespaceId = params.namespace_id || '';
 
   if (value.length <= 0) {
     return null;
@@ -49,7 +51,7 @@ export default function ChatContext(props: IProps) {
             variant="outline"
             className="dark:bg-transparent dark:border-[#6e7276]"
             onClick={() => {
-              navigate(`/${item.resource.namespace.id}/${item.resource.id}`);
+              navigate(`/${namespaceId}/${item.resource.id}`);
             }}
           >
             {item.type === 'folder' ? (

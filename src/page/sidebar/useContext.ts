@@ -80,7 +80,6 @@ export default function useContext() {
             children: [],
             resource_type: 'file',
             space_type: 'private',
-            namespace: { id: namespaceId },
           });
         } else {
           each(response, (item) => {
@@ -129,7 +128,6 @@ export default function useContext() {
             children: [],
             resource_type: 'file',
             space_type: 'private',
-            namespace: { id: namespaceId },
           });
         } else {
           each(response, (item) => {

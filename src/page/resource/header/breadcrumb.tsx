@@ -1,7 +1,5 @@
-import { cn } from '@/lib/utils';
 import { http } from '@/lib/request';
 import { sortMenuItems } from './utils';
-import { SlashIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -15,11 +13,12 @@ import {
 } from '@/components/ui/breadcrumb';
 
 interface IProps {
+  namespaceId: string;
   resource: Resource | null;
 }
 
 export default function BreadcrumbMain(props: IProps) {
-  const { resource } = props;
+  const { resource, namespaceId } = props;
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [data, onData] = useState<Array<IResourceData>>([]);
@@ -30,7 +29,7 @@ export default function BreadcrumbMain(props: IProps) {
       return;
     }
     http
-      .get(`/namespaces/${resource.namespace.id}/resources/${resource.id}/path`)
+      .get(`/namespaces/${namespaceId}/resources/${resource.id}/path`)
       .then(onData);
   }, [resource]);
 
@@ -39,21 +38,17 @@ export default function BreadcrumbMain(props: IProps) {
   }
 
   return (
-    <Breadcrumb
-      className={cn({
-        'ml-[-10px]': size > 1,
-      })}
-    >
-      <BreadcrumbList className="gap-1 sm:gap-2">
+    <Breadcrumb className="ml-[-10px]">
+      <BreadcrumbList className="gap-0 sm:gap-0">
         {sortMenuItems(data).map((item, index) => (
           <React.Fragment key={item.id}>
             {index > 0 && (
               <BreadcrumbSeparator className="[&>svg]:size-3 opacity-30">
-                <SlashIcon />
+                /
               </BreadcrumbSeparator>
             )}
             {index >= size - 1 ? (
-              <BreadcrumbItem className="font-normal text-foreground line-clamp-1">
+              <BreadcrumbItem className="font-normal text-foreground line-clamp-1 pl-2">
                 {item.name || t('untitled')}
               </BreadcrumbItem>
             ) : (
@@ -62,7 +57,7 @@ export default function BreadcrumbMain(props: IProps) {
                   variant="ghost"
                   className="h-6 px-2 py-0 font-normal text-foreground"
                   onClick={() => {
-                    navigate(`/${item.namespace.id}/${item.id}`);
+                    navigate(`/${namespaceId}/${item.id}`);
                   }}
                 >
                   {item.name || t('untitled')}

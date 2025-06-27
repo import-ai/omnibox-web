@@ -13,14 +13,9 @@ export default function SettingWrapper() {
   const params = useParams();
   const namespaceId = params.namespace_id || '';
   const [userIsOwner, setUserIsOwner] = useState(false);
-  const [activeKey, onActiveKey] = useState('basic');
+  const [activeKey, onActiveKey] = useState('profile');
   const items = userIsOwner
     ? [
-        {
-          label: t('setting.basic'),
-          value: 'basic',
-          children: <CommonForm />,
-        },
         {
           label: t('setting.profile'),
           value: 'profile',
@@ -36,17 +31,22 @@ export default function SettingWrapper() {
           value: 'people',
           children: <PeopleForm />,
         },
-      ]
-    : [
         {
           label: t('setting.basic'),
           value: 'basic',
           children: <CommonForm />,
         },
+      ]
+    : [
         {
           label: t('setting.profile'),
           value: 'profile',
           children: <ProfileForm />,
+        },
+        {
+          label: t('setting.basic'),
+          value: 'basic',
+          children: <CommonForm />,
         },
       ];
 

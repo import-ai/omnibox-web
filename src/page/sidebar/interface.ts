@@ -7,6 +7,7 @@ export interface ISidebarProps {
   resourceId: string;
   expanding: string;
   editingKey: string;
+  namespaceId: string;
   expands: Array<string>;
   onActiveKey: (id: string, edit?: boolean) => void;
   onUpload: (

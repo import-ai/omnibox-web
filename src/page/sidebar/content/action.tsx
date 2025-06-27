@@ -24,6 +24,7 @@ export default function Action(props: ISidebarProps) {
     onMenuMore,
     editingKey,
     onActiveKey,
+    namespaceId,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
@@ -146,8 +147,8 @@ export default function Action(props: ISidebarProps) {
         open={moveTo}
         resourceId={data.id}
         onOpenChange={setMoveTo}
+        namespaceId={namespaceId}
         onFinished={handleMoveFinished}
-        namespaceId={data.namespace.id}
       />
       <Input
         multiple

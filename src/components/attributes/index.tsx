@@ -9,10 +9,11 @@ import { Clock, User2, Link, File } from 'lucide-react';
 
 interface IProps {
   resource: Resource;
+  namespaceId: string;
 }
 
 export default function Attributes(props: IProps) {
-  const { resource } = props;
+  const { resource, namespaceId } = props;
   const { t } = useTranslation();
   const [download, onDownload] = useState(false);
 
@@ -26,7 +27,7 @@ export default function Attributes(props: IProps) {
         <Tag
           data={resource.tags}
           resourceId={resource.id}
-          namespaceId={resource.namespace.id}
+          namespaceId={namespaceId}
         />
         <div className="flex items-center gap-3">
           <Link className="size-4 text-muted-foreground" />
@@ -73,7 +74,7 @@ export default function Attributes(props: IProps) {
         <Tag
           data={resource.tags}
           resourceId={resource.id}
-          namespaceId={resource.namespace.id}
+          namespaceId={namespaceId}
         />
         <div className="flex items-center gap-3">
           <File className="size-4 text-muted-foreground" />
@@ -88,7 +89,7 @@ export default function Attributes(props: IProps) {
               onDownload(true);
               http
                 .get(
-                  `/namespaces/${resource.namespace.id}/resources/files/${resource.id}`,
+                  `/namespaces/${namespaceId}/resources/files/${resource.id}`,
                   {
                     responseType: 'blob',
                   },
@@ -124,7 +125,7 @@ export default function Attributes(props: IProps) {
       <Tag
         data={resource.tags}
         resourceId={resource.id}
-        namespaceId={resource.namespace.id}
+        namespaceId={namespaceId}
       />
       {resource.user && (
         <div className="flex items-center gap-3">

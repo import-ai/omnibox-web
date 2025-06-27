@@ -164,11 +164,11 @@
     "keep_one_admin": "请至少保留一个管理员",
     "invitation": "邀请",
     "invite_link": "邀请链接",
-    "language_setting": "语言设置",
-    "theme_setting": "界面设置",
+    "language_setting": "语言",
+    "theme_setting": "外观",
     "theme_light": "浅色",
     "theme_dark": "深色",
-    "theme_system": "跟随系统"
+    "theme_system": "系统"
   },
   "unauth_page": {
     "title": "访问被拒绝",

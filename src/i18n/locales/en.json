@@ -164,11 +164,11 @@
     "keep_one_admin": "Please keep at least one admin",
     "invitation": "Invitation",
     "invite_link": "Invite Link",
-    "language_setting": "Language Setting",
-    "theme_setting": "Theme Setting",
+    "language_setting": "Language",
+    "theme_setting": "Appearance",
     "theme_light": "Light",
     "theme_dark": "Dark",
-    "theme_system": "Follow System"
+    "theme_system": "System"
   },
   "unauth_page": {
     "title": "Access Denied",
