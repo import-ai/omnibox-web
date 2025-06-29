@@ -73,7 +73,7 @@ export function CitationMarkdown(props: IProps) {
       return (
         <div
           className="overflow-x-auto"
-          style={{ width: 'calc(100vw - 2rem)' }}
+          style={isMobile ? { width: 'calc(100vw - 2rem)' } : { width: '100%' }}
         >
           <table {...props} style={{ maxWidth: 'max-content' }}>
             {children}
