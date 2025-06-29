@@ -5,6 +5,7 @@ import { trimIncompletedCitation } from '@/page/chat/messages/citations/utils';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Citation } from '@/page/chat/types/chat-response';
 import useTheme from '@/hooks/use-theme.ts';
+import { useIsMobile } from '@/hooks/use-mobile';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
@@ -36,6 +37,7 @@ export function CitationMarkdown(props: IProps) {
   const cleanedContent = trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(cleanedContent, citePattern);
   const { theme } = useTheme();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const id = 'github-markdown-css';
@@ -67,6 +69,18 @@ export function CitationMarkdown(props: IProps) {
         </a>
       );
     },
+    table({ children, ...props }: React.ComponentProps<'table'> & ExtraProps) {
+      return (
+        <div
+          className="overflow-x-auto"
+          style={{ width: 'calc(100vw - 2rem)' }}
+        >
+          <table {...props} style={{ maxWidth: 'max-content' }}>
+            {children}
+          </table>
+        </div>
+      );
+    },
     code({
       children,
       className,
@@ -74,15 +88,22 @@ export function CitationMarkdown(props: IProps) {
     }: React.ComponentProps<'code'> & ExtraProps) {
       const match = /language-(\w+)/.exec(className || '');
       return match ? (
-        <SyntaxHighlighter
-          PreTag="div"
-          language={match[1]}
-          style={theme.content === 'dark' ? a11yDark : a11yLight}
-          showLineNumbers={true}
-          customStyle={{ background: 'transparent' }}
-        >
-          {String(children).replace(/\n$/, '')}
-        </SyntaxHighlighter>
+        <div className="overflow-x-auto max-w-full md:text-sm text-xs">
+          <SyntaxHighlighter
+            PreTag="div"
+            language={match[1]}
+            style={theme.content === 'dark' ? a11yDark : a11yLight}
+            showLineNumbers={!isMobile}
+            customStyle={{
+              background: 'transparent',
+              whiteSpace: isMobile ? 'pre-wrap' : 'pre',
+              wordBreak: isMobile ? 'break-all' : 'normal',
+            }}
+            wrapLongLines={isMobile}
+          >
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
+        </div>
       ) : (
         <code {...props} className={className}>
           {children}
