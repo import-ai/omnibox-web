@@ -79,7 +79,7 @@ export default function MoveToForm(props: IFormProps) {
                 });
             }}
           >
-            <div className="truncate flex-1 text-left">
+            <div className="truncate flex-1 text-left max-w-[410px]">
               {item.name || t('untitled')}
             </div>
             {item.id === editId && (
