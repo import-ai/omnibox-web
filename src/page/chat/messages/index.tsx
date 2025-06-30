@@ -18,7 +18,9 @@ export function Messages(props: IProps) {
     const result: Citation[] = [];
     for (const message of messages) {
       if (message.attrs?.citations && message.attrs.citations.length > 0) {
-        result.push(...message.attrs.citations);
+        message.attrs.citations.forEach((citation) => {
+          result.push({ ...citation, id: message.id });
+        });
       }
     }
     return result;
@@ -38,7 +40,7 @@ export function Messages(props: IProps) {
         />
       );
     } else if (openAIMessage.role === OpenAIMessageRole.TOOL) {
-      return <ToolMessage message={message} />;
+      return <ToolMessage citations={citations} message={message} />;
     }
   }
 

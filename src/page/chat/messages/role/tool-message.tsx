@@ -3,12 +3,17 @@ import { type Citation } from '@/page/chat/types/chat-response';
 import { CitationsSheet } from '@/page/chat/messages/citations/citations-sheet';
 
 interface IProps {
+  citations: Citation[];
   message: MessageDetail;
 }
 
 export function ToolMessage(props: IProps) {
-  const { message } = props;
-  const citations: Citation[] = message.attrs?.citations || [];
+  const { citations, message } = props;
+  const data: Citation[] = message.attrs?.citations || [];
+  if (data.length <= 0) {
+    return null;
+  }
+  const index = citations.findIndex((citation) => citation.id === message.id);
 
-  return <CitationsSheet citations={citations} />;
+  return <CitationsSheet citations={data} index={index} />;
 }

@@ -93,7 +93,7 @@ export default function ChatHeader() {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="truncate max-w-[240px]">
+                <BreadcrumbItem>
                   <Title
                     data={data}
                     namespaceId={namespaceId}

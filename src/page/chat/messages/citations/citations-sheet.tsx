@@ -15,11 +15,12 @@ import {
 } from '@/components/ui/sheet';
 
 interface IProps {
+  index: number;
   citations: Citation[];
 }
 
 export function CitationsSheet(props: IProps) {
-  const { citations } = props;
+  const { index, citations } = props;
   const { t } = useTranslation();
 
   if (citations.length === 0) {
@@ -46,8 +47,12 @@ export function CitationsSheet(props: IProps) {
         </SheetHeader>
         <Separator className="dark:bg-gray-700" />
         <div className="overflow-y-auto h-[calc(100vh-53px)]">
-          {citations.map((citation, index) => (
-            <CitationCard index={index} key={index} citation={citation} />
+          {citations.map((citation, i) => (
+            <CitationCard
+              key={index + i}
+              index={index + i}
+              citation={citation}
+            />
           ))}
         </div>
       </SheetContent>
