@@ -43,20 +43,18 @@ export function Messages(props: IProps) {
   }
 
   return (
-    <>
-      <div className="space-y-4 mb-4">
-        {messages.map((message, index) => {
-          return (
-            <div key={message.id}>
-              {renderMessage(message)}
-              {index < messages.length - 1 &&
-                message.message.role !== OpenAIMessageRole.TOOL && (
-                  <div className="py-4" />
-                )}
-            </div>
-          );
-        })}
-      </div>
-    </>
+    <div className="space-y-4 pb-24">
+      {messages.map((message, index) => {
+        return (
+          <div key={message.id}>
+            {renderMessage(message)}
+            {index < messages.length - 1 &&
+              message.message.role !== OpenAIMessageRole.TOOL && (
+                <div className="py-4" />
+              )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
