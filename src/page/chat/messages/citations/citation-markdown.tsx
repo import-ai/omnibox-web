@@ -1,16 +1,14 @@
 import Copy from './actions/copy';
 import React, { useEffect } from 'react';
 import Markdown, { ExtraProps } from 'react-markdown';
-import { trimIncompletedCitation } from '@/page/chat/messages/citations/utils';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
-import { Citation } from '@/page/chat/types/chat-response';
+import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
 import useTheme from '@/hooks/use-theme.ts';
 import { useIsMobile } from '@/hooks/use-mobile';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
-import { MessageStatus } from '@/page/chat/types/chat-response';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
@@ -18,24 +16,41 @@ import {
 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
+const citePattern = /\[\[(\d+)]]/g;
 
-export function replaceCiteTag(input: string, citePattern: RegExp): string {
+export function trimIncompletedCitation(text: string) {
+  const citePrefix = '[[';
+  const citePrefixRegexList = [/\[\[\d+$/g, /\[\[\d+]$/g];
+  for (let i = citePrefix.length - 1; i >= 0; i--) {
+    const suffix = citePrefix.slice(0, i + 1);
+    if (text.endsWith(suffix)) {
+      return text.slice(0, -suffix.length);
+    }
+  }
+  for (const regex of citePrefixRegexList) {
+    if (regex.test(text)) {
+      return text.replace(regex, '');
+    }
+  }
+  return text;
+}
+
+export function replaceCiteTag(input: string): string {
   return input.replace(citePattern, (_, i) => `[[${i}]](#cite-${i})`);
 }
 
 interface IProps {
   content: string;
   citations: Citation[];
-  citePattern: RegExp;
   status: MessageStatus;
 }
 
 export function CitationMarkdown(props: IProps) {
-  const { content, status, citations, citePattern } = props;
+  const { content, status, citations } = props;
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE === 'TRUE';
   const cleanedContent = trimIncompletedCitation(content);
-  const replacedContent = replaceCiteTag(cleanedContent, citePattern);
+  const replacedContent = replaceCiteTag(cleanedContent);
   const { theme } = useTheme();
   const isMobile = useIsMobile();
 
