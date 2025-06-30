@@ -69,7 +69,7 @@ export default function Editor(props: IEditorProps) {
       after: () => {
         vditor.setValue(resource.content || '');
         vditor.setTheme(
-          theme.skin === 'dark' ? 'dark' : 'classic',
+          theme.content === 'dark' ? 'dark' : 'classic',
           theme.content,
           theme.code,
         );
