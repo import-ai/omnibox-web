@@ -40,7 +40,7 @@ export default function useContext() {
     }
     isMobile && setOpenMobile(false);
   };
-  const handleExpand = (id: string, spaceType: SpaceType) => {
+  const handleExpand = (id: string) => {
     let match = false;
     each(data, (resource) => {
       if (Array.isArray(resource.children) && resource.children.length > 0) {
@@ -67,24 +67,22 @@ export default function useContext() {
       .get(`/namespaces/${namespaceId}/resources/query`, {
         params: {
           namespace: namespaceId,
-          spaceType: spaceType,
           parentId: id,
         },
       })
       .then((response) => {
         if (response.length <= 0) {
-          data[spaceType].children.push({
+          data[id].children.push({
             id: 'empty',
             name: '',
             parent_id: id,
             children: [],
             resource_type: 'file',
-            space_type: 'private',
             namespace: { id: namespaceId },
           });
         } else {
           each(response, (item) => {
-            data[spaceType].children.push(item);
+            data[id].children.push(item);
           });
         }
         onData({ ...data });
@@ -96,7 +94,7 @@ export default function useContext() {
         onExpanding('');
       });
   };
-  const handleMenuMore = (id: string, spaceType: SpaceType) => {
+  const handleMenuMore = (id: string) => {
     let match = false;
     each(data, (resource) => {
       if (Array.isArray(resource.children) && resource.children.length > 0) {
@@ -116,36 +114,30 @@ export default function useContext() {
       .get(`/namespaces/${namespaceId}/resources/query`, {
         params: {
           namespace: namespaceId,
-          spaceType: spaceType,
           parentId: id,
         },
       })
       .then((response) => {
         if (response.length <= 0) {
-          data[spaceType].children.push({
+          data[id].children.push({
             id: 'empty',
             name: '',
             parent_id: id,
             children: [],
             resource_type: 'file',
-            space_type: 'private',
             namespace: { id: namespaceId },
           });
         } else {
           each(response, (item) => {
-            data[spaceType].children.push(item);
+            data[id].children.push(item);
           });
         }
         onData({ ...data });
       });
   };
-  const getRouteToActive = (
-    id: string,
-    spaceType: SpaceType,
-    parentId: string,
-  ) => {
+  const getRouteToActive = (id: string, parentId: string) => {
     let activeKey = 'chat';
-    const items = data[spaceType].children.filter(
+    const items = data[id].children.filter(
       (node) => node.parent_id === parentId,
     );
     if (items.length > 0) {
@@ -161,7 +153,7 @@ export default function useContext() {
       }
     }
     if (id !== resourceId) {
-      const parentIndex = data[spaceType].children.findIndex(
+      const parentIndex = data[id].children.findIndex(
         (node) => node.id === parentId,
       );
       if (parentIndex >= 0) {
@@ -170,13 +162,13 @@ export default function useContext() {
     }
     return activeKey;
   };
-  const handleDelete = (id: string, spaceType: SpaceType, parentId: string) => {
+  const handleDelete = (id: string, parentId: string) => {
     onEditingKey(id);
     http
       .delete(`/namespaces/${namespaceId}/resources/${id}`)
       .then(() => {
-        const routeToActive = getRouteToActive(id, spaceType, parentId);
-        data[spaceType].children = data[spaceType].children.filter(
+        const routeToActive = getRouteToActive(id, parentId);
+        data[parentId].children = data[parentId].children.filter(
           (node) => ![node.id, node.parent_id].includes(id),
         );
         onData({ ...data });
@@ -202,25 +194,24 @@ export default function useContext() {
       });
   };
   const activeRoute = (
-    spaceType: string,
     parentId: string,
     resource: Resource | Array<Resource>,
   ) => {
     const resources = Array.isArray(resource) ? resource : [resource];
     resources.forEach((item) => {
-      if (!data[spaceType]) {
-        data[spaceType] = { ...item, children: [] };
+      if (!data[parentId]) {
+        data[parentId] = { ...item, children: [] };
       } else {
-        if (!Array.isArray(data[spaceType].children)) {
-          data[spaceType].children = [{ ...item, children: [] }];
+        if (!Array.isArray(data[parentId].children)) {
+          data[parentId].children = [{ ...item, children: [] }];
         } else {
-          const index = data[spaceType].children.findIndex(
+          const index = data[parentId].children.findIndex(
             (item) => item.parent_id === parentId && item.id === 'empty',
           );
           if (index >= 0) {
-            data[spaceType].children[index] = { ...item, children: [] };
+            data[parentId].children[index] = { ...item, children: [] };
           } else {
-            data[spaceType].children.push({ ...item, children: [] });
+            data[parentId].children.push({ ...item, children: [] });
           }
         }
       }
@@ -367,7 +358,6 @@ export default function useContext() {
           data[resourceKey].children[resourceIndex].parent_id = target.id;
         } else {
           const resources = data[resourceKey].children.splice(resourceIndex, 1);
-          resources[0].space_type = targetKey;
           resources[0].parent_id = target.id;
           const emptyResourceIndex = data[resourceKey].children.findIndex(
             (item) => item.parent_id === resources[0].id && item.id === 'empty',

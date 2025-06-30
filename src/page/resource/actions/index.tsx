@@ -116,12 +116,7 @@ export default function Actions(props: IActionProps) {
         )
         .then((response: Resource) => {
           setOpen(false);
-          app.fire(
-            'generate_resource',
-            resource.space_type,
-            resource.id,
-            response,
-          );
+          app.fire('generate_resource', resource.id, response);
         })
         .finally(() => {
           onLoading('');
@@ -138,12 +133,7 @@ export default function Actions(props: IActionProps) {
         .delete(`/namespaces/${resource.namespace.id}/resources/${resource.id}`)
         .then(() => {
           setOpen(false);
-          app.fire(
-            'delete_resource',
-            resource.id,
-            resource.space_type,
-            resource.parent_id,
-          );
+          app.fire('delete_resource', resource.id, resource.parent_id);
           toast(t('resource.deleted'), {
             description: t('resource.deleted_description'),
             action: {
@@ -190,12 +180,7 @@ export default function Actions(props: IActionProps) {
       parentId: resource.parent_id,
     })
       .then((responses) => {
-        app.fire(
-          'generate_resource',
-          resource.space_type,
-          resource.parent_id,
-          responses,
-        );
+        app.fire('generate_resource', resource.parent_id, responses);
       })
       .catch((err) => {
         toast(err && err.message ? err.message : err, {
@@ -214,7 +199,8 @@ export default function Actions(props: IActionProps) {
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
-      {resource && resource.space_type !== 'private' && (
+      {resource && (
+        // TODO(YC): Add permission check for share action
         <PermissionWrapper
           level={0}
           forbidden={forbidden}
