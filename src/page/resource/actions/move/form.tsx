@@ -65,7 +65,7 @@ export default function MoveToForm(props: IFormProps) {
             key={item.id}
             variant="ghost"
             disabled={item.id === editId}
-            className="w-full justify-start font-normal"
+            className="w-full justify-start items-start font-normal"
             onClick={() => {
               onEditId(item.id);
               http
@@ -79,7 +79,9 @@ export default function MoveToForm(props: IFormProps) {
                 });
             }}
           >
-            {item.name || t('untitled')}
+            <div className="truncate flex-1 text-left">
+              {item.name || t('untitled')}
+            </div>
             {item.id === editId && (
               <LoaderCircle className="transition-transform animate-spin" />
             )}

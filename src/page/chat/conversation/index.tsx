@@ -26,7 +26,7 @@ export default function ChatConversationPage() {
         <Messages messages={messages} />
       </Scrollbar>
       <div className="flex justify-center">
-        <div className="flex-1 max-w-3xl">
+        <div className="flex-1 max-w-3xl w-full">
           <ChatArea
             tools={tools}
             value={value}
