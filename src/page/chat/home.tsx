@@ -48,7 +48,7 @@ export default function ChatHomePage() {
 
   return (
     <div className="flex flex-col justify-center h-full mb-40">
-      <h1 className="text-3xl text-center mb-10 font-medium">
+      <h1 className="text-3xl text-center mb-10 font-medium min-h-[3.5rem]">
         {user.username && (
           <Typewriter
             text={t(i18n, {

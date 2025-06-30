@@ -2,3 +2,9 @@
 .vditor-ir__link {
   color: #4285f4;
 }
+
+@media (max-width: 768px) {
+  .vditor-reset pre {
+    width: calc(100vw - 2rem);
+  }
+}
