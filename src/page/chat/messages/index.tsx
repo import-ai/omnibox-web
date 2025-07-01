@@ -18,7 +18,9 @@ export function Messages(props: IProps) {
     const result: Citation[] = [];
     for (const message of messages) {
       if (message.attrs?.citations && message.attrs.citations.length > 0) {
-        result.push(...message.attrs.citations);
+        message.attrs.citations.forEach((citation) => {
+          result.push({ ...citation, id: message.id });
+        });
       }
     }
     return result;
@@ -38,25 +40,23 @@ export function Messages(props: IProps) {
         />
       );
     } else if (openAIMessage.role === OpenAIMessageRole.TOOL) {
-      return <ToolMessage message={message} />;
+      return <ToolMessage citations={citations} message={message} />;
     }
   }
 
   return (
-    <>
-      <div className="space-y-4 mb-4">
-        {messages.map((message, index) => {
-          return (
-            <div key={message.id}>
-              {renderMessage(message)}
-              {index < messages.length - 1 &&
-                message.message.role !== OpenAIMessageRole.TOOL && (
-                  <div className="py-4" />
-                )}
-            </div>
-          );
-        })}
-      </div>
-    </>
+    <div className="space-y-4 pb-24">
+      {messages.map((message, index) => {
+        return (
+          <div key={message.id}>
+            {renderMessage(message)}
+            {index < messages.length - 1 &&
+              message.message.role !== OpenAIMessageRole.TOOL && (
+                <div className="py-4" />
+              )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
