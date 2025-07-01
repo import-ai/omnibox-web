@@ -41,6 +41,7 @@ export interface Resource extends IBase {
 
   namespace: { id: string };
   resource_type: ResourceType;
+  space_type: SpaceType;
 
   parent_id: string;
 
