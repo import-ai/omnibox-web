@@ -64,12 +64,7 @@ export default function useContext() {
     }
     onExpanding(id);
     http
-      .get(`/namespaces/${namespaceId}/resources/query`, {
-        params: {
-          namespace: namespaceId,
-          parentId: id,
-        },
-      })
+      .get(`/namespaces/${namespaceId}/resources/${id}/children`)
       .then((response) => {
         if (response.length <= 0) {
           data[spaceType].children.push({
@@ -84,6 +79,7 @@ export default function useContext() {
         } else {
           each(response, (item) => {
             item.space_type = spaceType;
+            item.namespace = { id: namespaceId };
             data[spaceType].children.push(item);
           });
         }
@@ -113,12 +109,7 @@ export default function useContext() {
       return;
     }
     http
-      .get(`/namespaces/${namespaceId}/resources/query`, {
-        params: {
-          namespace: namespaceId,
-          parentId: id,
-        },
-      })
+      .get(`/namespaces/${namespaceId}/resources/${id}/children`)
       .then((response) => {
         if (response.length <= 0) {
           data[spaceType].children.push({
@@ -133,6 +124,7 @@ export default function useContext() {
         } else {
           each(response, (item) => {
             item.space_type = spaceType;
+            item.namespace = { id: namespaceId };
             data[spaceType].children.push(item);
           });
         }
