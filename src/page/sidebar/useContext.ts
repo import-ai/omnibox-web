@@ -67,7 +67,6 @@ export default function useContext() {
       .get(`/namespaces/${namespaceId}/resources/query`, {
         params: {
           namespace: namespaceId,
-          spaceType: spaceType,
           parentId: id,
         },
       })
@@ -84,6 +83,7 @@ export default function useContext() {
           });
         } else {
           each(response, (item) => {
+            item.space_type = spaceType;
             data[spaceType].children.push(item);
           });
         }
@@ -116,7 +116,6 @@ export default function useContext() {
       .get(`/namespaces/${namespaceId}/resources/query`, {
         params: {
           namespace: namespaceId,
-          spaceType: spaceType,
           parentId: id,
         },
       })
@@ -133,6 +132,7 @@ export default function useContext() {
           });
         } else {
           each(response, (item) => {
+            item.space_type = spaceType;
             data[spaceType].children.push(item);
           });
         }
@@ -240,11 +240,11 @@ export default function useContext() {
     http
       .post(`/namespaces/${namespaceId}/resources`, {
         parentId: parentId,
-        spaceType: spaceType,
         namespaceId: namespaceId,
         resourceType: resourceType,
       })
       .then((response: Resource) => {
+        response.space_type = spaceType as SpaceType;
         if (resourceType !== 'folder') {
           localStorage.setItem('to_edit', 'true');
         }
@@ -265,6 +265,9 @@ export default function useContext() {
       namespaceId: namespaceId,
     })
       .then((response) => {
+        for (const item of response) {
+          item.space_type = spaceType as SpaceType;
+        }
         activeRoute(spaceType, parentId, response);
       })
       .catch((err) => {
