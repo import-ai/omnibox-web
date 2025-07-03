@@ -65,20 +65,20 @@ export default function Actions(props: IActionProps) {
     if (!resource) {
       return;
     }
-    navigate(`/${resource.namespace.id}/${resource.id}/edit`);
+    navigate(`/${resource.namespace_id}/${resource.id}/edit`);
   };
   const handleExitEdit = () => {
     if (!resource) {
       return;
     }
-    navigate(`/${resource.namespace.id}/${resource.id}`);
+    navigate(`/${resource.namespace_id}/${resource.id}`);
   };
   const handleSave = () => {
     app.fire('save', () => {
       if (!resource) {
         return;
       }
-      navigate(`/${resource.namespace.id}/${resource.id}`);
+      navigate(`/${resource.namespace_id}/${resource.id}`);
     });
   };
   const handleAction = (id: string) => {
@@ -112,7 +112,7 @@ export default function Actions(props: IActionProps) {
       onLoading(id);
       http
         .post(
-          `/namespaces/${resource.namespace.id}/resources/duplicate/${resource.id}`,
+          `/namespaces/${resource.namespace_id}/resources/duplicate/${resource.id}`,
         )
         .then((response: Resource) => {
           setOpen(false);
@@ -135,7 +135,7 @@ export default function Actions(props: IActionProps) {
     if (id === 'move_to_trash') {
       onLoading(id);
       http
-        .delete(`/namespaces/${resource.namespace.id}/resources/${resource.id}`)
+        .delete(`/namespaces/${resource.namespace_id}/resources/${resource.id}`)
         .then(() => {
           setOpen(false);
           app.fire(
@@ -151,7 +151,7 @@ export default function Actions(props: IActionProps) {
               onClick: () => {
                 http
                   .post(
-                    `/namespaces/${resource.namespace.id}/resources/${resource.id}/restore`,
+                    `/namespaces/${resource.namespace_id}/resources/${resource.id}/restore`,
                   )
                   .then((response) => {
                     app.fire(
@@ -186,7 +186,7 @@ export default function Actions(props: IActionProps) {
     }
     onLoading('import');
     uploadFiles(e.target.files, {
-      namespaceId: resource.namespace.id,
+      namespaceId: resource.namespace_id,
       parentId: resource.parent_id,
     })
       .then((responses) => {
@@ -398,7 +398,7 @@ export default function Actions(props: IActionProps) {
                   onOpenChange={setMoveTo}
                   resourceId={resource.id}
                   onFinished={handleMoveFinished}
-                  namespaceId={resource.namespace.id}
+                  namespaceId={resource.namespace_id}
                 />
               )}
             </SidebarContent>

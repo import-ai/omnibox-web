@@ -40,6 +40,7 @@ export default function MemberMain(props: MemberProps) {
         params: { namespace_id: namespace_id, space_type: 'teamspace' },
       })
       .then((res) => {
+        res.space_type = 'teamspace';
         onResourceId(res.id);
       });
   }, [namespace_id]);
