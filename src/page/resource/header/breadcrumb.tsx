@@ -1,10 +1,8 @@
-import { http } from '@/lib/request';
-import { sortMenuItems } from './utils';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import React, { useState, useEffect } from 'react';
-import { IResourceData, Resource } from '@/interface';
+import React from 'react';
+import { Resource } from '@/interface';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,26 +19,17 @@ export default function BreadcrumbMain(props: IProps) {
   const { resource, namespaceId } = props;
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [data, onData] = useState<Array<IResourceData>>([]);
-  const size = data.length;
 
-  useEffect(() => {
-    if (!resource) {
-      return;
-    }
-    http
-      .get(`/namespaces/${namespaceId}/resources/${resource.id}/path`)
-      .then(onData);
-  }, [resource]);
-
-  if (size <= 0) {
+  if (!resource || !resource.path) {
     return null;
   }
+  const data = resource.path;
+  const size = data.length;
 
   return (
     <Breadcrumb className="ml-[-10px]">
       <BreadcrumbList className="gap-0 sm:gap-0">
-        {sortMenuItems(data).map((item, index) => (
+        {data.map((item, index) => (
           <React.Fragment key={item.id}>
             {index > 0 && (
               <BreadcrumbSeparator className="[&>svg]:size-3 opacity-30">

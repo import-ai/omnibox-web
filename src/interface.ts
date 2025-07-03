@@ -40,15 +40,17 @@ export interface Tag extends IBase {
 export type SpaceType = 'private' | 'teamspace';
 export type ResourceType = 'doc' | 'file' | 'link' | 'folder';
 
+export interface PathItem {
+  id: string;
+  name: string;
+}
+
 export interface Resource extends IBase {
   id: string;
   current_level?: Permission;
 
-  user?: User;
-  namespace?: Namespace;
-
+  namespace_id: string;
   resource_type: ResourceType;
-  space_type: SpaceType;
 
   parent_id: string;
 
@@ -59,6 +61,8 @@ export interface Resource extends IBase {
   attrs?: Record<string, string>;
 
   globalLevel?: Permission;
+
+  path?: PathItem[];
 }
 
 export interface IResourceData extends Resource {

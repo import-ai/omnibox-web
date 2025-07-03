@@ -64,13 +64,7 @@ export default function useContext() {
     }
     onExpanding(id);
     http
-      .get(`/namespaces/${namespaceId}/resources/query`, {
-        params: {
-          namespace: namespaceId,
-          spaceType: spaceType,
-          parentId: id,
-        },
-      })
+      .get(`/namespaces/${namespaceId}/resources/${id}/children`)
       .then((response) => {
         if (response.length <= 0) {
           data[spaceType].children.push({
@@ -83,6 +77,8 @@ export default function useContext() {
           });
         } else {
           each(response, (item) => {
+            item.space_type = spaceType;
+            item.namespace = { id: namespaceId };
             data[spaceType].children.push(item);
           });
         }
@@ -112,13 +108,7 @@ export default function useContext() {
       return;
     }
     http
-      .get(`/namespaces/${namespaceId}/resources/query`, {
-        params: {
-          namespace: namespaceId,
-          spaceType: spaceType,
-          parentId: id,
-        },
-      })
+      .get(`/namespaces/${namespaceId}/resources/${id}/children`)
       .then((response) => {
         if (response.length <= 0) {
           data[spaceType].children.push({
@@ -131,6 +121,8 @@ export default function useContext() {
           });
         } else {
           each(response, (item) => {
+            item.space_type = spaceType;
+            item.namespace = { id: namespaceId };
             data[spaceType].children.push(item);
           });
         }
@@ -239,7 +231,6 @@ export default function useContext() {
     http
       .post(`/namespaces/${namespaceId}/resources`, {
         parentId: parentId,
-        spaceType: spaceType,
         namespaceId: namespaceId,
         resourceType: resourceType,
       })
@@ -261,6 +252,9 @@ export default function useContext() {
       namespaceId: namespaceId,
     })
       .then((response) => {
+        for (const item of response) {
+          item.space_type = spaceType as SpaceType;
+        }
         activeRoute(spaceType, parentId, response);
       })
       .catch((err) => {
@@ -421,9 +415,17 @@ export default function useContext() {
     }
     Promise.all(
       spaceTypes.map((spaceType) =>
-        http.get(`/namespaces/${namespaceId}/root`, {
-          params: { namespace_id: namespaceId, space_type: spaceType },
-        }),
+        http
+          .get(`/namespaces/${namespaceId}/root`, {
+            params: { namespace_id: namespaceId, space_type: spaceType },
+          })
+          .then((resp: IResourceData) => {
+            for (const child of resp.children) {
+              child.space_type = spaceType as SpaceType;
+            }
+            resp.space_type = spaceType as SpaceType;
+            return resp;
+          }),
       ),
     ).then((response) => {
       const state: IData = {};
