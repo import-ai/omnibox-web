@@ -63,11 +63,6 @@ export function createMessageOperator(
           mapping: newMapping,
         };
       });
-      const el = document.documentElement;
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      if (scrollHeight - scrollTop - clientHeight < 200) {
-        el.scrollTop = scrollHeight;
-      }
     },
 
     add: (chatResponse: ChatBOSResponse): string => {

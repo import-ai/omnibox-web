@@ -15,6 +15,7 @@ export enum OpenAIMessageRole {
 }
 
 export interface Citation {
+  id: string;
   title: string;
   snippet: string;
   link: string;

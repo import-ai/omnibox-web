@@ -47,29 +47,33 @@ export default function ChatHomePage() {
   }, []);
 
   return (
-    <div className="flex flex-col justify-center h-full mb-40">
-      <h1 className="text-3xl text-center mb-10 font-medium min-h-[3.5rem]">
-        {user.username && (
-          <Typewriter
-            text={t(i18n, {
-              name: user.username,
-            })}
-            typeSpeed={32}
+    <div className="flex justify-center h-full p-4">
+      <div className="flex flex-col h-full max-w-3xl w-full">
+        <div className="flex flex-col justify-center h-full mb-40">
+          <h1 className="text-3xl text-center mb-10 font-medium min-h-[3.5rem]">
+            {user.username && (
+              <Typewriter
+                text={t(i18n, {
+                  name: user.username,
+                })}
+                typeSpeed={32}
+              />
+            )}
+          </h1>
+          <ChatArea
+            tools={tools}
+            value={value}
+            context={context}
+            onChange={onChange}
+            onAction={handleAction}
+            onToolsChange={onToolsChange}
+            onContextChange={onContextChange}
+            loading={false}
+            mode={mode}
+            setMode={setMode}
           />
-        )}
-      </h1>
-      <ChatArea
-        tools={tools}
-        value={value}
-        context={context}
-        onChange={onChange}
-        onAction={handleAction}
-        onToolsChange={onToolsChange}
-        onContextChange={onContextChange}
-        loading={false}
-        mode={mode}
-        setMode={setMode}
-      />
+        </div>
+      </div>
     </div>
   );
 }
