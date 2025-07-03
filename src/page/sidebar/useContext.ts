@@ -420,9 +420,17 @@ export default function useContext() {
     }
     Promise.all(
       spaceTypes.map((spaceType) =>
-        http.get(`/namespaces/${namespaceId}/root`, {
-          params: { namespace_id: namespaceId, space_type: spaceType },
-        }),
+        http
+          .get(`/namespaces/${namespaceId}/root`, {
+            params: { namespace_id: namespaceId, space_type: spaceType },
+          })
+          .then((resp: IResourceData) => {
+            for (const child of resp.children) {
+              child.space_type = spaceType as SpaceType;
+            }
+            resp.space_type = spaceType as SpaceType;
+            return resp;
+          }),
       ),
     ).then((response) => {
       const state: IData = {};
