@@ -53,7 +53,6 @@ export default class App extends Hook {
     }
     const theme = this.applyTheme(skinArgs);
     localStorage.setItem('theme', JSON.stringify(theme));
-    this.fire('themeChanged', theme.skin);
     return theme;
   }
 }

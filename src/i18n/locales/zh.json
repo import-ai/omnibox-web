@@ -263,17 +263,6 @@
     "last_week": "过去7天",
     "month_year": "{{year}} 年 {{month}} 月"
   },
-  "toggle": {
-    "title": "已切换为",
-    "theme": {
-      "system": "系统",
-      "dark": "深色",
-      "light": "浅色"
-    },
-    "lang": {
-      "name": "简体中文"
-    }
-  },
   "pagination": {
     "prev": "前页",
     "next": "下页",

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Check, ChevronDown, Globe } from 'lucide-react';
+import { Check, ChevronDown, Earth } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,14 +18,14 @@ export default function Language() {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <Globe className="size-5" />
+        <Earth className="size-4" />
         <span>{t('manage.language_setting')}</span>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="font-normal w-36 justify-between"
+            className="font-normal w-40 justify-between"
           >
             {data.find((item) => item.value === i18n.language)?.label}
             <ChevronDown className="size-4 ml-2" />

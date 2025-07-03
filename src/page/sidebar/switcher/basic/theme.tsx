@@ -1,7 +1,7 @@
 import useTheme from '@/hooks/use-theme';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Check, MonitorSmartphone, ChevronDown } from 'lucide-react';
+import { Check, PanelTop, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,14 +24,14 @@ export default function Theme() {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <MonitorSmartphone className="size-5" />
+        <PanelTop className="size-4" />
         <span>{t('manage.theme_setting')}</span>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="font-normal w-36 justify-between"
+            className="font-normal w-40 justify-between"
           >
             {data.find((item) => item.value === theme.skin)?.label}
             <ChevronDown className="size-4 ml-2" />

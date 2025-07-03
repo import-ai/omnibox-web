@@ -7,7 +7,10 @@ import { Moon, Sun, SunMoon } from 'lucide-react';
 export function ThemeToggle() {
   const { app, theme, onToggleTheme } = useTheme();
   const handleToggleTheme = () => {
-    onToggleTheme();
+    http.post('/user/option', {
+      name: 'theme',
+      value: onToggleTheme(),
+    });
   };
 
   useEffect(() => {
@@ -19,16 +22,6 @@ export function ThemeToggle() {
       if (response.value !== cuttentTheme.skin) {
         onToggleTheme(response.value);
       }
-    });
-    return app.on('themeChanged', (theme: string) => {
-      http.post(
-        '/user/option',
-        {
-          name: 'theme',
-          value: theme,
-        },
-        { mute: true },
-      );
     });
   }, []);
 
