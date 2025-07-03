@@ -96,7 +96,9 @@ export default function Tags(props: IProps) {
               {tags.length > 0 ? (
                 tags.map((tag) => <Badge key={tag.value}>{tag.label}</Badge>)
               ) : (
-                <Badge variant="secondary">{t('resource.attrs.add_tag')}</Badge>
+                <Badge variant="secondary" className="dark:bg-[#666666]">
+                  {t('resource.attrs.add_tag')}
+                </Badge>
               )}
             </Space>
           )}

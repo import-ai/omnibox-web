@@ -116,6 +116,17 @@ export default function Attributes(props: IProps) {
             {resource.attrs.original_name}
           </Button>
         </div>
+        {resource.created_at && (
+          <div className="flex items-center gap-3">
+            <Clock className="size-4 text-muted-foreground" />
+            <span className="text-muted-foreground font-medium min-w-[80px]">
+              {t('resource.attrs.created')}
+            </span>
+            <span className="text-foreground">
+              {format(resource.created_at, 'yyyy-MM-dd hh:mm:ss')}
+            </span>
+          </div>
+        )}
       </div>
     );
   }

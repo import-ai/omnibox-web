@@ -37,7 +37,10 @@ export default function BreadcrumbMain(props: IProps) {
               </BreadcrumbSeparator>
             )}
             {index >= size - 1 ? (
-              <BreadcrumbItem className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]">
+              <BreadcrumbItem
+                title={item.name || t('untitled')}
+                className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+              >
                 {item.name || t('untitled')}
               </BreadcrumbItem>
             ) : (
