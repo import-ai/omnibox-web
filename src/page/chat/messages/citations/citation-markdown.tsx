@@ -47,12 +47,12 @@ interface IProps {
 
 export function CitationMarkdown(props: IProps) {
   const { content, status, citations } = props;
+  const { theme } = useTheme();
+  const isMobile = useIsMobile();
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE === 'TRUE';
   const cleanedContent = trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(cleanedContent);
-  const { theme } = useTheme();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     const id = 'github-markdown-css';
@@ -140,7 +140,7 @@ export function CitationMarkdown(props: IProps) {
         {replacedContent}
       </Markdown>
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
-        <div className="flex mt-[-10px]">
+        <div className="flex ml-[-6px] mt-[-10px]">
           <Copy content={content} />
         </div>
       )}

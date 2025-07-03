@@ -87,7 +87,9 @@ export default function PaginationMain({
             ) : (
               <PaginationLink
                 href="#"
-                className="text-black dark:text-white"
+                className={cn('text-black dark:text-white', {
+                  'bg-accent': currentPage === pageNumber,
+                })}
                 onClick={(e) => {
                   e.preventDefault();
                   handlePageChange(pageNumber as number);

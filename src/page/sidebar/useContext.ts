@@ -266,6 +266,42 @@ export default function useContext() {
         onEditingKey('');
       });
   };
+  const handleDrop = (
+    drag: IResourceData,
+    args: { pos: string; target: IResourceData | null },
+  ) => {
+    const drop = args.target;
+    if (!drop || !args.pos) {
+      return;
+    }
+    if (drag.space_type !== drop.space_type) {
+      toast('不允许跨组拖拽', { position: 'top-center' });
+      return;
+    }
+    if (
+      !Array.isArray(data[drag.space_type].children) ||
+      data[drag.space_type].children.length <= 0
+    ) {
+      return;
+    }
+    const dragNode = data[drag.space_type].children.find(
+      (item: IResourceData) => item.id === drag.id,
+    );
+    const dropNode = data[drag.space_type].children.find(
+      (item: IResourceData) => item.id === drop.id,
+    );
+    if (!dragNode || !dropNode) {
+      return;
+    }
+    if (args.pos === 'top') {
+      //
+    } else if (args.pos === 'center') {
+      dragNode.parent_id = dropNode.id;
+      onData({ ...data });
+    } else if (args.pos === 'bottom') {
+      //
+    }
+  };
 
   useEffect(() => {
     const hooks: Array<() => void> = [];
@@ -304,10 +340,9 @@ export default function useContext() {
     );
     hooks.push(
       app.on('move_resource', (resourceId: string, targetId: string) => {
-        let targetKey: SpaceType = 'private';
-        let targetIndex = -1;
-        let resourceKey: SpaceType = 'private';
         let resourceIndex = -1;
+        let targetKey: SpaceType | '' = '';
+        let resourceKey: SpaceType | '' = '';
         each(data, (items, key) => {
           if (Array.isArray(items.children) && items.children.length > 0) {
             const maybeResourceIndex = items.children.findIndex(
@@ -322,17 +357,17 @@ export default function useContext() {
             );
             if (maybeTargetIndex >= 0) {
               targetKey = key;
-              targetIndex = maybeTargetIndex;
             }
           }
+          if (!targetKey && items.id === targetId) {
+            targetKey = key;
+          }
         });
-        if (targetIndex < 0 || resourceIndex < 0) {
+        if (!targetKey || !resourceKey || resourceIndex < 0) {
           return;
         }
-        const target = data[targetKey].children[targetIndex];
-        const resource = data[resourceKey].children[resourceIndex];
         const emptyTargetIndex = data[targetKey].children.findIndex(
-          (item) => item.parent_id === target.id && item.id === 'empty',
+          (item) => item.parent_id === targetId && item.id === 'empty',
         );
         if (emptyTargetIndex >= 0) {
           data[targetKey].children.splice(emptyTargetIndex, 1);
@@ -340,7 +375,7 @@ export default function useContext() {
         const resourceChildrenIdToRemove: Array<string> = [];
         each(data[resourceKey].children, (item) => {
           if (
-            item.parent_id === resource.id ||
+            item.parent_id === resourceId ||
             resourceChildrenIdToRemove.includes(item.parent_id)
           ) {
             resourceChildrenIdToRemove.push(item.id);
@@ -352,10 +387,10 @@ export default function useContext() {
           );
         }
         if (targetKey === resourceKey) {
-          data[resourceKey].children[resourceIndex].parent_id = target.id;
+          data[resourceKey].children[resourceIndex].parent_id = targetId;
         } else {
           const resources = data[resourceKey].children.splice(resourceIndex, 1);
-          resources[0].parent_id = target.id;
+          resources[0].parent_id = targetId;
           const emptyResourceIndex = data[resourceKey].children.findIndex(
             (item) => item.parent_id === resources[0].id && item.id === 'empty',
           );
@@ -366,7 +401,7 @@ export default function useContext() {
         }
         onData({ ...data });
         onExpands((expands) =>
-          expands.filter((expand) => expand !== resource.id),
+          expands.filter((expand) => expand !== resourceId),
         );
       }),
     );
@@ -422,6 +457,7 @@ export default function useContext() {
     expanding,
     editingKey,
     resourceId,
+    handleDrop,
     namespaceId,
     handleExpand,
     handleDelete,
