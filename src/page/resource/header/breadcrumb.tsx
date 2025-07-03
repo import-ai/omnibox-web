@@ -30,7 +30,7 @@ export default function BreadcrumbMain(props: IProps) {
       return;
     }
     http
-      .get(`/namespaces/${resource.namespace.id}/resources/${resource.id}/path`)
+      .get(`/namespaces/${resource.namespace_id}/resources/${resource.id}/path`)
       .then(onData);
   }, [resource]);
 
@@ -62,7 +62,7 @@ export default function BreadcrumbMain(props: IProps) {
                   variant="ghost"
                   className="h-6 px-2 py-0 font-normal text-foreground"
                   onClick={() => {
-                    navigate(`/${item.namespace.id}/${item.id}`);
+                    navigate(`/${item.namespace_id}/${item.id}`);
                   }}
                 >
                   {item.name || t('untitled')}

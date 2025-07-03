@@ -49,7 +49,7 @@ export default function ChatContext(props: IProps) {
             variant="outline"
             className="dark:bg-transparent dark:border-[#6e7276]"
             onClick={() => {
-              navigate(`/${item.resource.namespace.id}/${item.resource.id}`);
+              navigate(`/${item.resource.namespace_id}/${item.resource.id}`);
             }}
           >
             {item.type === 'folder' ? (

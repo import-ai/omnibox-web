@@ -147,7 +147,7 @@ export default function Action(props: ISidebarProps) {
         resourceId={data.id}
         onOpenChange={setMoveTo}
         onFinished={handleMoveFinished}
-        namespaceId={data.namespace.id}
+        namespaceId={data.namespace_id}
       />
       <Input
         multiple

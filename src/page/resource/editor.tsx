@@ -32,22 +32,22 @@ export default function Editor(props: IEditorProps) {
       const name = title.trim();
       const content: string | undefined = vd?.getValue();
       if (!content && !name) {
-        navigate(`/${resource.namespace.id}/${resource.id}`);
+        navigate(`/${resource.namespace_id}/${resource.id}`);
         return;
       }
       http
         .patch(
-          `/namespaces/${resource.namespace.id}/resources/${resource.id}`,
+          `/namespaces/${resource.namespace_id}/resources/${resource.id}`,
           {
             name,
             content,
-            namespaceId: resource.namespace.id,
+            namespaceId: resource.namespace_id,
           },
         )
         .then((delta: Resource) => {
           app.fire('update_resource', delta);
           onResource(delta);
-          navigate(`/${resource.namespace.id}/${resource.id}`);
+          navigate(`/${resource.namespace_id}/${resource.id}`);
           onSuccess && onSuccess();
         });
     });
@@ -101,10 +101,10 @@ export default function Editor(props: IEditorProps) {
         busy.current = true;
         http
           .patch(
-            `/namespaces/${resource.namespace.id}/resources/${resource.id}`,
+            `/namespaces/${resource.namespace_id}/resources/${resource.id}`,
             {
               content,
-              namespaceId: resource.namespace.id,
+              namespaceId: resource.namespace_id,
             },
           )
           .then(() => {
