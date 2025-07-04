@@ -37,6 +37,7 @@ export default function MainSidebar() {
         onDelete={handleDelete}
         onCreate={handleCreate}
         onUpload={handleUpload}
+        namespaceId={namespaceId}
         onMenuMore={handleMenuMore}
         onActiveKey={handleActiveKey}
       />

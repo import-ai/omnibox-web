@@ -2,23 +2,24 @@ import { SpaceType, ResourceType } from '@/interface';
 
 export interface ISidebarProps {
   data: any;
-  spaceType?: string;
+  spaceType: SpaceType;
   activeKey?: string;
   resourceId: string;
   expanding: string;
   editingKey: string;
+  namespaceId: string;
   expands: Array<string>;
   onActiveKey: (id: string, edit?: boolean) => void;
   onUpload: (
-    spaceType: string,
+    spaceType: SpaceType,
     parentId: string,
     file: FileList,
   ) => Promise<void>;
-  onExpand: (id: string, spaceType: SpaceType) => void;
-  onMenuMore: (id: string, spaceType: SpaceType) => void;
-  onDelete: (id: string, spaceType: SpaceType, parentId: string) => void;
+  onExpand: (spaceType: SpaceType, id: string) => void;
+  onMenuMore: (spaceType: SpaceType, id: string) => void;
+  onDelete: (spaceType: SpaceType, id: string, parentId: string) => void;
   onCreate: (
-    spaceType: string,
+    spaceType: SpaceType,
     parentId: string,
     resourceType: ResourceType,
   ) => void;

@@ -11,12 +11,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 
 interface IEditorProps {
+  namespaceId: string;
   resource: Resource;
   onResource: (resource: Resource) => void;
 }
 
 export default function Editor(props: IEditorProps) {
-  const { resource, onResource } = props;
+  const { resource, onResource, namespaceId } = props;
   const busy = useRef(false);
   const root = useRef<any>(null);
   const navigate = useNavigate();
@@ -32,28 +33,26 @@ export default function Editor(props: IEditorProps) {
       const name = title.trim();
       const content: string | undefined = vd?.getValue();
       if (!content && !name) {
-        navigate(`/${resource.namespace_id}/${resource.id}`);
+        navigate(`/${namespaceId}/${resource.id}`);
         return;
       }
       http
-        .patch(
-          `/namespaces/${resource.namespace_id}/resources/${resource.id}`,
-          {
-            name,
-            content,
-            namespaceId: resource.namespace_id,
-          },
-        )
+        .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
+          name,
+          content,
+          namespaceId: namespaceId,
+        })
         .then((delta: Resource) => {
           app.fire('update_resource', delta);
           onResource(delta);
-          navigate(`/${resource.namespace_id}/${resource.id}`);
+          navigate(`/${namespaceId}/${resource.id}`);
           onSuccess && onSuccess();
         });
     });
   }, [title]);
 
   useEffect(() => {
+    onTitle(resource.name || '');
     if (!resource || !root.current || resource.resource_type === 'folder') {
       return;
     }
@@ -68,10 +67,9 @@ export default function Editor(props: IEditorProps) {
         },
       },
       after: () => {
-        onTitle(resource.name || '');
         vditor.setValue(resource.content || '');
         vditor.setTheme(
-          theme.skin === 'dark' ? 'dark' : 'classic',
+          theme.content === 'dark' ? 'dark' : 'classic',
           theme.content,
           theme.code,
         );
@@ -100,13 +98,10 @@ export default function Editor(props: IEditorProps) {
         }
         busy.current = true;
         http
-          .patch(
-            `/namespaces/${resource.namespace_id}/resources/${resource.id}`,
-            {
-              content,
-              namespaceId: resource.namespace_id,
-            },
-          )
+          .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
+            content,
+            namespaceId: namespaceId,
+          })
           .then(() => {
             busy.current = false;
           });

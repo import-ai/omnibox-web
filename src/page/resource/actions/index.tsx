@@ -3,7 +3,7 @@ import MoveTo from './move';
 import { toast } from 'sonner';
 import { http } from '@/lib/request';
 import copy from 'copy-to-clipboard';
-import { Resource } from '@/interface';
+// import { Resource } from '@/interface';
 import { useRef, useState } from 'react';
 import { Input } from '@/components/input';
 import { uploadFiles } from '@/lib/upload-files';
@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { IUseResource } from '@/hooks/user-resource';
-import { LanguageToggle } from '@/i18n/language-toggle';
+import { LanguageToggle } from '@/page/resource/language-toggle';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
 import PermissionWrapper from '@/components/permission-action/wrapper';
 import {
@@ -53,7 +53,8 @@ export interface IActionProps extends IUseResource {
 }
 
 export default function Actions(props: IActionProps) {
-  const { app, wide, onWide, forbidden, resource, editPage } = props;
+  const { app, wide, onWide, forbidden, resource, editPage, namespaceId } =
+    props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isMobile } = useSidebar();
@@ -65,20 +66,20 @@ export default function Actions(props: IActionProps) {
     if (!resource) {
       return;
     }
-    navigate(`/${resource.namespace_id}/${resource.id}/edit`);
+    navigate(`/${namespaceId}/${resource.id}/edit`);
   };
   const handleExitEdit = () => {
     if (!resource) {
       return;
     }
-    navigate(`/${resource.namespace_id}/${resource.id}`);
+    navigate(`/${namespaceId}/${resource.id}`);
   };
   const handleSave = () => {
     app.fire('save', () => {
       if (!resource) {
         return;
       }
-      navigate(`/${resource.namespace_id}/${resource.id}`);
+      navigate(`/${namespaceId}/${resource.id}`);
     });
   };
   const handleAction = (id: string) => {
@@ -111,17 +112,16 @@ export default function Actions(props: IActionProps) {
     if (id === 'duplicate') {
       onLoading(id);
       http
-        .post(
-          `/namespaces/${resource.namespace_id}/resources/duplicate/${resource.id}`,
-        )
-        .then((response: Resource) => {
+        .post(`/namespaces/${namespaceId}/resources/duplicate/${resource.id}`)
+        .then(() => {
           setOpen(false);
-          app.fire(
-            'generate_resource',
-            resource.space_type,
-            resource.id,
-            response,
-          );
+          // fix next PR
+          // app.fire(
+          //   'generate_resource',
+          //   resource.space_type,
+          //   resource.id,
+          //   response,
+          // );
         })
         .finally(() => {
           onLoading('');
@@ -135,15 +135,10 @@ export default function Actions(props: IActionProps) {
     if (id === 'move_to_trash') {
       onLoading(id);
       http
-        .delete(`/namespaces/${resource.namespace_id}/resources/${resource.id}`)
+        .delete(`/namespaces/${namespaceId}/resources/${resource.id}`)
         .then(() => {
           setOpen(false);
-          app.fire(
-            'delete_resource',
-            resource.id,
-            resource.space_type,
-            resource.parent_id,
-          );
+          app.fire('delete_resource', resource.id, resource.parent_id);
           toast(t('resource.deleted'), {
             description: t('resource.deleted_description'),
             action: {
@@ -151,7 +146,7 @@ export default function Actions(props: IActionProps) {
               onClick: () => {
                 http
                   .post(
-                    `/namespaces/${resource.namespace_id}/resources/${resource.id}/restore`,
+                    `/namespaces/${namespaceId}/resources/${resource.id}/restore`,
                   )
                   .then((response) => {
                     app.fire(
@@ -186,16 +181,17 @@ export default function Actions(props: IActionProps) {
     }
     onLoading('import');
     uploadFiles(e.target.files, {
-      namespaceId: resource.namespace_id,
+      namespaceId: namespaceId,
       parentId: resource.parent_id,
     })
-      .then((responses) => {
-        app.fire(
-          'generate_resource',
-          resource.space_type,
-          resource.parent_id,
-          responses,
-        );
+      .then(() => {
+        // fix next PR
+        // app.fire(
+        //   'generate_resource',
+        //   resource.space_type,
+        //   resource.parent_id,
+        //   responses,
+        // );
       })
       .catch((err) => {
         toast(err && err.message ? err.message : err, {
@@ -214,19 +210,17 @@ export default function Actions(props: IActionProps) {
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
-      {resource && resource.space_type !== 'private' && (
-        <PermissionWrapper
-          level={0}
-          forbidden={forbidden}
-          permission={
-            resource && resource.current_level
-              ? resource.current_level
-              : 'full_access'
-          }
-        >
-          <Share />
-        </PermissionWrapper>
-      )}
+      <PermissionWrapper
+        level={0}
+        forbidden={forbidden}
+        permission={
+          resource && resource.current_level
+            ? resource.current_level
+            : 'full_access'
+        }
+      >
+        <Share />
+      </PermissionWrapper>
       <LanguageToggle />
       <ThemeToggle />
       {resource && (
@@ -395,10 +389,10 @@ export default function Actions(props: IActionProps) {
               {resource && (
                 <MoveTo
                   open={moveTo}
+                  namespaceId={namespaceId}
                   onOpenChange={setMoveTo}
                   resourceId={resource.id}
                   onFinished={handleMoveFinished}
-                  namespaceId={resource.namespace_id}
                 />
               )}
             </SidebarContent>

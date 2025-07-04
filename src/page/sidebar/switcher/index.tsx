@@ -43,7 +43,7 @@ export function Switcher(props: IProps) {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="w-fit px-1.5">
+            <SidebarMenuButton className="w-full px-1.5">
               <div className="flex aspect-square size-5 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
                 <Command className="size-3" />
               </div>
@@ -96,7 +96,7 @@ export function Switcher(props: IProps) {
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <Command className="size-4 shrink-0" />
                 </div>
-                {item.name}
+                <span className="truncate">{item.name}</span>
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}

@@ -3,6 +3,10 @@
   color: #4285f4;
 }
 
+.vditor-reset.vditor-reset--anchor {
+  margin-left: -20px;
+}
+
 @media (max-width: 768px) {
   .vditor-reset pre {
     width: calc(100vw - 2rem);

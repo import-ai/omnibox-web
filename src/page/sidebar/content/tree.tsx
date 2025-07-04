@@ -22,11 +22,19 @@ import {
 } from '@/components/ui/collapsible';
 
 export default function Tree(props: ISidebarProps) {
-  const { data, activeKey, expands, expanding, onExpand, onActiveKey } = props;
+  const {
+    data,
+    spaceType,
+    activeKey,
+    expands,
+    expanding,
+    onExpand,
+    onActiveKey,
+  } = props;
   const { t } = useTranslation();
   const expand = expands.includes(data.id);
   const handleExpand = () => {
-    onExpand(data.id, data.space_type);
+    onExpand(spaceType, data.id);
   };
   const handleActiveKey = () => {
     onActiveKey(data.id);

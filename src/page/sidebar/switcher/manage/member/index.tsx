@@ -36,12 +36,9 @@ export default function MemberMain(props: MemberProps) {
 
   useEffect(() => {
     http
-      .get(`/namespaces/${namespace_id}/root`, {
-        params: { namespace_id: namespace_id, space_type: 'teamspace' },
-      })
+      .get(`/namespaces/${namespace_id}/root?namespace_id=${namespace_id}`)
       .then((res) => {
-        res.space_type = 'teamspace';
-        onResourceId(res.id);
+        onResourceId(res.teamspace.id);
       });
   }, [namespace_id]);
 

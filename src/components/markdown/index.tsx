@@ -46,8 +46,9 @@ export function Markdown(props: IProps) {
       Vditor.preview(element.current, content, {
         ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
         theme: {
-          current: theme.skin,
+          current: theme.content,
         },
+        anchor: 1,
         mode: theme.content,
         hljs: {
           defaultLang: 'plain',

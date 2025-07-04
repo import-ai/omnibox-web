@@ -14,7 +14,16 @@
   "teamspace": "团队",
   "resource": {
     "deleted": "已删除",
-    "deleted_description": "此资源已被删除"
+    "deleted_description": "此资源已被删除",
+    "attrs": {
+      "tag": "标签",
+      "add_tag": "点击添加标签",
+      "create_tag": "创建",
+      "url": "地址",
+      "author": "作者",
+      "created": "创建时间",
+      "filename": "文件名"
+    }
   },
   "error": {
     "title": "404 页面未找到"
@@ -120,6 +129,7 @@
   },
   "setting": {
     "title": "设置",
+    "basic": "通用",
     "profile": "个人资料",
     "members": "成员",
     "preferences": "偏好设置",
@@ -153,7 +163,12 @@
     "create_group": "创建群组",
     "keep_one_admin": "请至少保留一个管理员",
     "invitation": "邀请",
-    "invite_link": "邀请链接"
+    "invite_link": "邀请链接",
+    "language_setting": "语言",
+    "theme_setting": "外观",
+    "theme_light": "浅色",
+    "theme_dark": "深色",
+    "theme_system": "系统"
   },
   "unauth_page": {
     "title": "访问被拒绝",
@@ -247,17 +262,6 @@
     "yesterday": "昨天",
     "last_week": "过去7天",
     "month_year": "{{year}} 年 {{month}} 月"
-  },
-  "toggle": {
-    "title": "已切换为",
-    "theme": {
-      "system": "系统",
-      "dark": "深色",
-      "light": "浅色"
-    },
-    "lang": {
-      "name": "简体中文"
-    }
   },
   "pagination": {
     "prev": "前页",

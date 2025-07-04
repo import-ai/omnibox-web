@@ -14,7 +14,16 @@
   "teamspace": "Teamspace",
   "resource": {
     "deleted": "Deleted",
-    "deleted_description": "This resource has been deleted"
+    "deleted_description": "This resource has been deleted",
+    "attrs": {
+      "tag": "Tag",
+      "add_tag": "Add tag",
+      "create_tag": "Create",
+      "url": "URL",
+      "author": "Author",
+      "created": "Created",
+      "filename": "Filename"
+    }
   },
   "error": {
     "title": "404 Not Found"
@@ -119,6 +128,7 @@
     "success": "Profile updated successfully"
   },
   "setting": {
+    "basic": "General",
     "title": "Settings",
     "profile": "Profile",
     "members": "Members",
@@ -153,7 +163,12 @@
     "create_group": "Create Group",
     "keep_one_admin": "Please keep at least one admin",
     "invitation": "Invitation",
-    "invite_link": "Invite Link"
+    "invite_link": "Invite Link",
+    "language_setting": "Language",
+    "theme_setting": "Appearance",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "theme_system": "System"
   },
   "unauth_page": {
     "title": "Access Denied",
@@ -247,17 +262,6 @@
     "yesterday": "Yesterday",
     "last_week": "Last 7 days",
     "month_year": "{{year}} Year {{month}} Month"
-  },
-  "toggle": {
-    "title": "Switched to",
-    "theme": {
-      "system": "System",
-      "dark": "Dark",
-      "light": "Light"
-    },
-    "lang": {
-      "name": "English"
-    }
   },
   "pagination": {
     "prev": "Previous",

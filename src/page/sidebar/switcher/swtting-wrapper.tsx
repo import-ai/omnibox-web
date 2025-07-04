@@ -1,6 +1,7 @@
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import CommonForm from './basic';
 import PeopleForm from './people';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
@@ -30,12 +31,22 @@ export default function SettingWrapper() {
           value: 'people',
           children: <PeopleForm />,
         },
+        {
+          label: t('setting.basic'),
+          value: 'basic',
+          children: <CommonForm />,
+        },
       ]
     : [
         {
           label: t('setting.profile'),
           value: 'profile',
           children: <ProfileForm />,
+        },
+        {
+          label: t('setting.basic'),
+          value: 'basic',
+          children: <CommonForm />,
         },
       ];
 

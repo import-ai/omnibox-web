@@ -1,10 +1,12 @@
+import each from '@/lib/each';
 import { http } from '@/lib/request';
-import { Resource } from '@/interface';
-import { Input } from '@/components/ui/input';
+import FormResource from './resource';
+import { useState, useEffect } from 'react';
+import type { Resource } from '@/interface';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { useRef, useState, useEffect } from 'react';
 import { Search, LoaderCircle } from 'lucide-react';
+import { LazyInput } from '@/components/input/lazy';
 
 export interface IFormProps {
   resourceId: string;
@@ -18,30 +20,72 @@ export default function MoveToForm(props: IFormProps) {
   const [editId, onEditId] = useState('');
   const [search, onSearch] = useState('');
   const [loading, onLoading] = useState(false);
-  const timer = useRef<NodeJS.Timeout | null>(null);
-  const [data, onData] = useState<Array<Resource>>([]);
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onSearch(e.target.value);
-  };
+  const [data, onData] = useState<{
+    root: Array<Resource>;
+    resources: Array<Resource>;
+  }>({
+    root: [],
+    resources: [],
+  });
 
   useEffect(() => {
-    if (timer.current) {
-      clearTimeout(timer.current);
-    }
-    timer.current = setTimeout(() => {
-      onLoading(true);
+    onLoading(true);
+    if (!search) {
       http
-        .get(
-          `/namespaces/${namespaceId}/resources/${resourceId}/search?name=${encodeURIComponent(search)}`,
-        )
-        .then(onData)
-        .catch((err) => {
-          console.log(err);
+        .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
+        .then((response) => {
+          const root: Array<Resource> = [];
+          const resources: Array<Resource> = [];
+          Object.keys(response).forEach((spaceType) => {
+            const item = response[spaceType];
+            if (!item.id) {
+              return;
+            }
+            root.push({ ...item, spaceType });
+            if (Array.isArray(item.children) && item.children.length > 0) {
+              const resourceChildrenIdToRemove: Array<string> = [];
+              each(item.children, (children) => {
+                if (
+                  children.parent_id === resourceId ||
+                  resourceChildrenIdToRemove.includes(children.parent_id)
+                ) {
+                  resourceChildrenIdToRemove.push(children.id);
+                }
+              });
+              if (resourceChildrenIdToRemove.length > 0) {
+                item.children = item.children.filter(
+                  (children: Resource) =>
+                    !resourceChildrenIdToRemove.includes(children.id) &&
+                    children.id !== resourceId,
+                );
+              } else {
+                item.children = item.children.filter(
+                  (children: Resource) => children.id !== resourceId,
+                );
+              }
+              resources.push(...item.children);
+            }
+          });
+          onData({ root, resources });
         })
         .finally(() => {
           onLoading(false);
         });
-    }, 300);
+      return;
+    }
+    http
+      .get(
+        `/namespaces/${namespaceId}/resources/search?resourceId=${resourceId}&name=${encodeURIComponent(search)}`,
+      )
+      .then((response) => {
+        onData({
+          root: [],
+          resources: response,
+        });
+      })
+      .finally(() => {
+        onLoading(false);
+      });
   }, [search]);
 
   return (
@@ -52,41 +96,60 @@ export default function MoveToForm(props: IFormProps) {
         ) : (
           <Search className="absolute left-3 top-[10px] size-4 opacity-50" />
         )}
-        <Input
+        <LazyInput
           value={search}
-          onChange={handleChange}
+          onChange={onSearch}
           className="pl-10 rounded-lg"
           placeholder={t('actions.move_page_to')}
         />
       </div>
-      <div className="space-y-1 min-h-[380px]">
-        {data.map((item) => (
-          <Button
-            key={item.id}
-            variant="ghost"
-            disabled={item.id === editId}
-            className="w-full justify-start items-start font-normal"
-            onClick={() => {
-              onEditId(item.id);
-              http
-                .post(
-                  `/namespaces/${namespaceId}/resources/${resourceId}/move/${item.id}`,
-                )
-                .then(() => {
-                  onEditId('');
-                  onSearch('');
-                  onFinished && onFinished(resourceId, item.id);
-                });
-            }}
-          >
-            <div className="truncate flex-1 text-left max-w-[410px]">
-              {item.name || t('untitled')}
-            </div>
-            {item.id === editId && (
-              <LoaderCircle className="transition-transform animate-spin" />
-            )}
-          </Button>
-        ))}
+      <div className="pb-2 min-h-60 max-h-80 overflow-y-auto">
+        {data.root.length > 0 && (
+          <>
+            <Button
+              disabled
+              variant="ghost"
+              className="w-full whitespace-normal justify-start items-start rounded-none pb-0 h-7"
+            >
+              Root
+            </Button>
+            {data.root.map((item) => (
+              <FormResource
+                data={item}
+                key={item.id}
+                editId={editId}
+                onEditId={onEditId}
+                onSearch={onSearch}
+                onFinished={onFinished}
+                resourceId={resourceId}
+                namespaceId={namespaceId}
+              />
+            ))}
+          </>
+        )}
+        {data.resources.length > 0 && (
+          <>
+            <Button
+              disabled
+              variant="ghost"
+              className="w-full whitespace-normal justify-start items-start rounded-none pb-0 h-7"
+            >
+              Resource
+            </Button>
+            {data.resources.map((item) => (
+              <FormResource
+                data={item}
+                key={item.id}
+                editId={editId}
+                onEditId={onEditId}
+                onSearch={onSearch}
+                onFinished={onFinished}
+                resourceId={resourceId}
+                namespaceId={namespaceId}
+              />
+            ))}
+          </>
+        )}
       </div>
     </div>
   );

@@ -21,9 +21,11 @@ export default function Action(props: ISidebarProps) {
     onUpload,
     onCreate,
     onDelete,
+    spaceType,
     onMenuMore,
     editingKey,
     onActiveKey,
+    namespaceId,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
@@ -33,10 +35,10 @@ export default function Action(props: ISidebarProps) {
     ? data.children.filter((item: Resource) => item.id !== 'empty')
     : [];
   const handleCreateFile = () => {
-    onCreate(data.space_type, data.id, 'doc');
+    onCreate(spaceType, data.id, 'doc');
   };
   const handleCreateFolder = () => {
-    onCreate(data.space_type, data.id, 'folder');
+    onCreate(spaceType, data.id, 'folder');
   };
   const handleEdit = () => {
     onActiveKey(data.id, true);
@@ -65,7 +67,7 @@ export default function Action(props: ISidebarProps) {
     setMoveTo(true);
   };
   const handleDelete = () => {
-    onDelete(data.id, data.space_type, data.parent_id);
+    onDelete(spaceType, data.id, data.parent_id);
   };
   const handleSelect = () => {
     fileInputRef.current?.click();
@@ -74,7 +76,7 @@ export default function Action(props: ISidebarProps) {
     if (!e.target.files) {
       return;
     }
-    onUpload(data.space_type, data.id, e.target.files).finally(() => {
+    onUpload(spaceType, data.id, e.target.files).finally(() => {
       fileInputRef.current!.value = '';
     });
   };
@@ -86,7 +88,7 @@ export default function Action(props: ISidebarProps) {
     if (!open) {
       return;
     }
-    onMenuMore(data.id, data.space_type);
+    onMenuMore(spaceType, data.id);
   };
 
   return (
@@ -146,8 +148,8 @@ export default function Action(props: ISidebarProps) {
         open={moveTo}
         resourceId={data.id}
         onOpenChange={setMoveTo}
+        namespaceId={namespaceId}
         onFinished={handleMoveFinished}
-        namespaceId={data.namespace_id}
       />
       <Input
         multiple
