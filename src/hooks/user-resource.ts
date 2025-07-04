@@ -20,8 +20,8 @@ export interface IUseResource {
 
 export default function useResource() {
   const app = useApp();
-  const params = useParams();
   const loc = useLocation();
+  const params = useParams();
   const { t } = useTranslation();
   const editPage = loc.pathname.endsWith('/edit');
   const resourceId = params.resource_id || '';

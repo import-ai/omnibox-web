@@ -1,11 +1,15 @@
 import { http } from '@/lib/request';
-import type { Resource } from '@/interface';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import type { Resource, SpaceType } from '@/interface';
 import { LoaderCircle, File, Folder } from 'lucide-react';
 
+interface IResource extends Resource {
+  spaceType?: SpaceType;
+}
+
 interface IProps {
-  data: Resource;
+  data: IResource;
   resourceId: string;
   namespaceId: string;
   editId: string;
@@ -26,10 +30,10 @@ export default function Resource(props: IProps) {
   } = props;
   const { t } = useTranslation();
   const resourceName = data.name || t('untitled');
-  const name =
-    data.parent_id && data.parent_id !== '0'
-      ? resourceName
-      : t(data.space_type);
+  let name = resourceName;
+  if ((!data.parent_id || data.parent_id === '0') && data.spaceType) {
+    name = t(data.spaceType);
+  }
 
   return (
     <Button

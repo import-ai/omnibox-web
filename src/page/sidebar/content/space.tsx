@@ -31,7 +31,7 @@ export default function Space(props: ISidebarProps) {
     if (!e.target.files) {
       return;
     }
-    onUpload(data.space_type, data.id, e.target.files).finally(() => {
+    onUpload(spaceType, data.id, e.target.files).finally(() => {
       fileInputRef.current!.value = '';
     });
   };

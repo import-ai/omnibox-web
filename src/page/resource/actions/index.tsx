@@ -3,7 +3,7 @@ import MoveTo from './move';
 import { toast } from 'sonner';
 import { http } from '@/lib/request';
 import copy from 'copy-to-clipboard';
-import { Resource } from '@/interface';
+// import { Resource } from '@/interface';
 import { useRef, useState } from 'react';
 import { Input } from '@/components/input';
 import { uploadFiles } from '@/lib/upload-files';
@@ -113,14 +113,15 @@ export default function Actions(props: IActionProps) {
       onLoading(id);
       http
         .post(`/namespaces/${namespaceId}/resources/duplicate/${resource.id}`)
-        .then((response: Resource) => {
+        .then(() => {
           setOpen(false);
-          app.fire(
-            'generate_resource',
-            resource.space_type,
-            resource.id,
-            response,
-          );
+          // fix next PR
+          // app.fire(
+          //   'generate_resource',
+          //   resource.space_type,
+          //   resource.id,
+          //   response,
+          // );
         })
         .finally(() => {
           onLoading('');
@@ -137,12 +138,7 @@ export default function Actions(props: IActionProps) {
         .delete(`/namespaces/${namespaceId}/resources/${resource.id}`)
         .then(() => {
           setOpen(false);
-          app.fire(
-            'delete_resource',
-            resource.id,
-            resource.space_type,
-            resource.parent_id,
-          );
+          app.fire('delete_resource', resource.id, resource.parent_id);
           toast(t('resource.deleted'), {
             description: t('resource.deleted_description'),
             action: {
@@ -188,13 +184,14 @@ export default function Actions(props: IActionProps) {
       namespaceId: namespaceId,
       parentId: resource.parent_id,
     })
-      .then((responses) => {
-        app.fire(
-          'generate_resource',
-          resource.space_type,
-          resource.parent_id,
-          responses,
-        );
+      .then(() => {
+        // fix next PR
+        // app.fire(
+        //   'generate_resource',
+        //   resource.space_type,
+        //   resource.parent_id,
+        //   responses,
+        // );
       })
       .catch((err) => {
         toast(err && err.message ? err.message : err, {
@@ -213,19 +210,17 @@ export default function Actions(props: IActionProps) {
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
-      {resource && resource.space_type !== 'private' && (
-        <PermissionWrapper
-          level={0}
-          forbidden={forbidden}
-          permission={
-            resource && resource.current_level
-              ? resource.current_level
-              : 'full_access'
-          }
-        >
-          <Share />
-        </PermissionWrapper>
-      )}
+      <PermissionWrapper
+        level={0}
+        forbidden={forbidden}
+        permission={
+          resource && resource.current_level
+            ? resource.current_level
+            : 'full_access'
+        }
+      >
+        <Share />
+      </PermissionWrapper>
       <LanguageToggle />
       <ThemeToggle />
       {resource && (

@@ -1,3 +1,4 @@
+import each from '@/lib/each';
 import { http } from '@/lib/request';
 import FormResource from './resource';
 import { useState, useEffect } from 'react';
@@ -30,22 +31,38 @@ export default function MoveToForm(props: IFormProps) {
   useEffect(() => {
     onLoading(true);
     if (!search) {
-      Promise.all(
-        ['private', 'teamspace'].map((spaceType) =>
-          http.get(
-            `/namespaces/${namespaceId}/root?namespace_id=${namespaceId}&space_type=${spaceType}`,
-          ),
-        ),
-      )
+      http
+        .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
         .then((response) => {
           const root: Array<Resource> = [];
           const resources: Array<Resource> = [];
-          response.forEach((item) => {
+          Object.keys(response).forEach((spaceType) => {
+            const item = response[spaceType];
             if (!item.id) {
               return;
             }
-            root.push(item);
+            root.push({ ...item, spaceType });
             if (Array.isArray(item.children) && item.children.length > 0) {
+              const resourceChildrenIdToRemove: Array<string> = [];
+              each(item.children, (children) => {
+                if (
+                  children.parent_id === resourceId ||
+                  resourceChildrenIdToRemove.includes(children.parent_id)
+                ) {
+                  resourceChildrenIdToRemove.push(children.id);
+                }
+              });
+              if (resourceChildrenIdToRemove.length > 0) {
+                item.children = item.children.filter(
+                  (children: Resource) =>
+                    !resourceChildrenIdToRemove.includes(children.id) &&
+                    children.id !== resourceId,
+                );
+              } else {
+                item.children = item.children.filter(
+                  (children: Resource) => children.id !== resourceId,
+                );
+              }
               resources.push(...item.children);
             }
           });

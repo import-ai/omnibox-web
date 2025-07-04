@@ -49,7 +49,6 @@ export interface Resource extends IBase {
   id: string;
   current_level?: Permission;
 
-  namespace_id: string;
   resource_type: ResourceType;
 
   parent_id: string;
@@ -78,14 +77,6 @@ export interface Member {
   email: string;
   role: Role;
   level: Permission;
-}
-
-export interface NamespaceMember extends IBase {
-  id: number;
-  role: Role;
-  namespace: Namespace;
-  user: User;
-  rootResource: Resource;
 }
 
 export interface NamespaceMember extends IBase {

@@ -10,12 +10,6 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
 
-const spaceTypes = ['private', 'teamspace'];
-
-interface IData {
-  [index: string]: IResourceData;
-}
-
 export default function useContext() {
   const app = useApp();
   const params = useParams();
@@ -32,6 +26,21 @@ export default function useContext() {
   const [data, onData] = useState<{
     [index: string]: IResourceData;
   }>({});
+  const getSpaceType = (id: string): SpaceType => {
+    let spaceType: SpaceType = 'private';
+    each(data, (resource, key) => {
+      if (Array.isArray(resource.children) && resource.children.length > 0) {
+        const index = resource.children.findIndex(
+          (node: Resource) => node.id === id,
+        );
+        if (index >= 0) {
+          spaceType = key;
+          return true;
+        }
+      }
+    });
+    return spaceType;
+  };
   const handleActiveKey = (id: string, edit?: boolean) => {
     if (edit) {
       navigate(`/${namespaceId}/${id}/edit`);
@@ -40,7 +49,7 @@ export default function useContext() {
     }
     isMobile && setOpenMobile(false);
   };
-  const handleExpand = (id: string, spaceType: SpaceType) => {
+  const handleExpand = (spaceType: SpaceType, id: string) => {
     let match = false;
     each(data, (resource) => {
       if (Array.isArray(resource.children) && resource.children.length > 0) {
@@ -73,12 +82,9 @@ export default function useContext() {
             parent_id: id,
             children: [],
             resource_type: 'file',
-            space_type: 'private',
           });
         } else {
           each(response, (item) => {
-            item.space_type = spaceType;
-            item.namespace = { id: namespaceId };
             data[spaceType].children.push(item);
           });
         }
@@ -91,7 +97,7 @@ export default function useContext() {
         onExpanding('');
       });
   };
-  const handleMenuMore = (id: string, spaceType: SpaceType) => {
+  const handleMenuMore = (spaceType: SpaceType, id: string) => {
     let match = false;
     each(data, (resource) => {
       if (Array.isArray(resource.children) && resource.children.length > 0) {
@@ -117,12 +123,9 @@ export default function useContext() {
             parent_id: id,
             children: [],
             resource_type: 'file',
-            space_type: 'private',
           });
         } else {
           each(response, (item) => {
-            item.space_type = spaceType;
-            item.namespace = { id: namespaceId };
             data[spaceType].children.push(item);
           });
         }
@@ -130,8 +133,8 @@ export default function useContext() {
       });
   };
   const getRouteToActive = (
-    id: string,
     spaceType: SpaceType,
+    id: string,
     parentId: string,
   ) => {
     let activeKey = 'chat';
@@ -160,12 +163,12 @@ export default function useContext() {
     }
     return activeKey;
   };
-  const handleDelete = (id: string, spaceType: SpaceType, parentId: string) => {
+  const handleDelete = (spaceType: SpaceType, id: string, parentId: string) => {
     onEditingKey(id);
     http
       .delete(`/namespaces/${namespaceId}/resources/${id}`)
       .then(() => {
-        const routeToActive = getRouteToActive(id, spaceType, parentId);
+        const routeToActive = getRouteToActive(spaceType, id, parentId);
         data[spaceType].children = data[spaceType].children.filter(
           (node) => ![node.id, node.parent_id].includes(id),
         );
@@ -192,7 +195,7 @@ export default function useContext() {
       });
   };
   const activeRoute = (
-    spaceType: string,
+    spaceType: SpaceType,
     parentId: string,
     resource: Resource | Array<Resource>,
     edit?: boolean,
@@ -223,7 +226,7 @@ export default function useContext() {
     handleActiveKey(resources[resources.length - 1].id, edit);
   };
   const handleCreate = (
-    spaceType: string,
+    spaceType: SpaceType,
     parentId: string,
     resourceType: ResourceType,
   ) => {
@@ -242,7 +245,7 @@ export default function useContext() {
       });
   };
   const handleUpload = (
-    spaceType: string,
+    spaceType: SpaceType,
     parentId: string,
     file: FileList,
   ) => {
@@ -252,9 +255,6 @@ export default function useContext() {
       namespaceId: namespaceId,
     })
       .then((response) => {
-        for (const item of response) {
-          item.space_type = spaceType as SpaceType;
-        }
         activeRoute(spaceType, parentId, response);
       })
       .catch((err) => {
@@ -290,19 +290,17 @@ export default function useContext() {
       }),
     );
     hooks.push(
-      app.on(
-        'delete_resource',
-        (id: string, spaceType: SpaceType, parentId: string) => {
-          const routeToActive = getRouteToActive(id, spaceType, parentId);
-          data[spaceType].children = data[spaceType].children.filter(
-            (node) => ![node.id, node.parent_id].includes(id),
-          );
-          onData({ ...data });
-          if (routeToActive) {
-            navigate(`/${namespaceId}/${routeToActive}`);
-          }
-        },
-      ),
+      app.on('delete_resource', (id: string, parentId: string) => {
+        const spaceType = getSpaceType(id);
+        const routeToActive = getRouteToActive(spaceType, id, parentId);
+        data[spaceType].children = data[spaceType].children.filter(
+          (node) => ![node.id, node.parent_id].includes(id),
+        );
+        onData({ ...data });
+        if (routeToActive) {
+          navigate(`/${namespaceId}/${routeToActive}`);
+        }
+      }),
     );
     hooks.push(
       app.on('move_resource', (resourceId: string, targetId: string) => {
@@ -357,7 +355,6 @@ export default function useContext() {
           data[resourceKey].children[resourceIndex].parent_id = target.id;
         } else {
           const resources = data[resourceKey].children.splice(resourceIndex, 1);
-          resources[0].space_type = targetKey;
           resources[0].parent_id = target.id;
           const emptyResourceIndex = data[resourceKey].children.findIndex(
             (item) => item.parent_id === resources[0].id && item.id === 'empty',
@@ -377,7 +374,7 @@ export default function useContext() {
       app.on(
         'generate_resource',
         (
-          spaceType: string,
+          spaceType: SpaceType,
           parentId: string,
           resource: Resource | Array<Resource>,
         ) => {
@@ -413,27 +410,9 @@ export default function useContext() {
     if (!localStorage.getItem('uid')) {
       return;
     }
-    Promise.all(
-      spaceTypes.map((spaceType) =>
-        http
-          .get(`/namespaces/${namespaceId}/root`, {
-            params: { namespace_id: namespaceId, space_type: spaceType },
-          })
-          .then((resp: IResourceData) => {
-            for (const child of resp.children) {
-              child.space_type = spaceType as SpaceType;
-            }
-            resp.space_type = spaceType as SpaceType;
-            return resp;
-          }),
-      ),
-    ).then((response) => {
-      const state: IData = {};
-      response.forEach((item) => {
-        state[item.space_type] = item;
-      });
-      onData(state);
-    });
+    http
+      .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
+      .then(onData);
   }, [namespaceId]);
 
   return {
