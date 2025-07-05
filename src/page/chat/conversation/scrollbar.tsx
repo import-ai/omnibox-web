@@ -32,7 +32,7 @@ export default function Scrollbar(props: IProps) {
   return (
     <div
       ref={rootRef}
-      className="flex justify-center p-4 w-full overflow-y-auto h-[calc(100vh-234px)] [scrollbar-gutter:stable_both-edges]"
+      className="flex justify-center p-4 w-full overflow-y-auto h-[calc(100dvh-234px)] [scrollbar-gutter:stable_both-edges]"
     >
       <div ref={containerRef} className="max-w-3xl w-full h-fit">
         {props.children}
