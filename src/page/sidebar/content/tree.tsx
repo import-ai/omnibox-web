@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { useRef, useEffect } from 'react';
 import { IResourceData } from '@/interface';
 import { useTranslation } from 'react-i18next';
-import { useDrag, useDrop, XYCoord } from 'react-dnd';
+import { useDrag, useDrop } from 'react-dnd';
 import { ISidebarProps } from '@/page/sidebar/interface';
 import {
   File,
@@ -24,28 +24,23 @@ import {
 } from '@/components/ui/collapsible';
 
 export interface ITreeProps extends ISidebarProps {
-  onDrop: (
-    target: IResourceData,
-    highlight: { pos: string; target: IResourceData | null },
-  ) => void;
-  highlight: { pos: string; target: IResourceData | null };
-  onHighlight: (highlight: {
-    pos: string;
-    target: IResourceData | null;
-  }) => void;
+  onDrop: (item: IResourceData, target: IResourceData | null) => void;
+  target: IResourceData | null;
+  onTarget: (target: IResourceData | null) => void;
 }
 
 export default function Tree(props: ITreeProps) {
   const {
     data,
     onDrop,
+    target,
+    onTarget,
+    spaceType,
     activeKey,
     expands,
     expanding,
     onExpand,
     onActiveKey,
-    highlight,
-    onHighlight,
   } = props;
   const ref = useRef(null);
   const { t } = useTranslation();
@@ -58,37 +53,23 @@ export default function Tree(props: ITreeProps) {
     accept: 'card',
     hover: (item, monitor) => {
       if (!ref.current) {
-        onHighlight({ target: null, pos: '' });
+        onTarget(null);
         return;
       }
       const didHover = monitor.isOver();
       if (!didHover) {
-        onHighlight({ target: null, pos: '' });
+        onTarget(null);
         return;
       }
       const dragId = (item as IResourceData).id;
       if (dragId === data.id) {
-        onHighlight({ target: null, pos: '' });
+        onTarget(null);
         return;
       }
-      const rect = (ref.current as HTMLDivElement).getBoundingClientRect();
-      const thirdsHeight = rect.height / 3;
-      const rectTop = rect.top;
-      const rectBottom = rect.bottom;
-      const topCenter = rectTop + thirdsHeight;
-      const bottomCenter = rectBottom - thirdsHeight;
-      const clientOffset = monitor.getClientOffset() as XYCoord;
-      const hoverY = clientOffset.y;
-      if (hoverY > rectTop && hoverY < topCenter) {
-        onHighlight({ target: data, pos: 'top' });
-      } else if (hoverY > topCenter && hoverY < bottomCenter) {
-        onHighlight({ target: data, pos: 'center' });
-      } else if (hoverY > bottomCenter && hoverY < rectBottom) {
-        onHighlight({ target: data, pos: 'bottom' });
-      }
+      onTarget(data);
     },
     drop(item) {
-      onDrop(item as IResourceData, highlight);
+      onDrop(item as IResourceData, target);
     },
   });
   const handleExpand = () => {
@@ -133,17 +114,7 @@ export default function Tree(props: ITreeProps) {
                   'flex cursor-pointer relative before:absolute before:content-[""] before:hidden before:left-[13px] before:right-[4px] before:h-[2px] before:bg-blue-500',
                   {
                     'bg-sidebar-accent text-sidebar-accent-foreground':
-                      highlight.target &&
-                      highlight.target.id === data.id &&
-                      highlight.pos === 'center',
-                    'before:top-0 before:block':
-                      highlight.target &&
-                      highlight.target.id === data.id &&
-                      highlight.pos === 'top',
-                    'before:bottom-0 before:block':
-                      highlight.target &&
-                      highlight.target.id === data.id &&
-                      highlight.pos === 'bottom',
+                      target && target.id === data.id,
                   },
                 )}
               >

@@ -1,10 +1,10 @@
-import { Tag } from '@/interface';
 import { http } from '@/lib/request';
 import Space from '@/components/space';
 import { TagsIcon } from 'lucide-react';
 import { LoaderCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
+import type { Tag } from '@/interface';
 import { useRef, useState, useEffect } from 'react';
 import MultipleSelector, { Option } from '@/components/multiple-selector';
 
@@ -40,6 +40,7 @@ export default function Tags(props: IProps) {
   const leaveEdit = () => {
     onEditing(false);
     http.patch(`/namespaces/${namespaceId}/resources/${resourceId}`, {
+      namespaceId,
       tags: tags.map((tag) => tag.value),
     });
   };

@@ -2,33 +2,21 @@ import Space from './space';
 import { useState } from 'react';
 import group from '@/lib/group';
 import { DndProvider } from 'react-dnd';
-import { IResourceData } from '@/interface';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ISidebarProps } from '@/page/sidebar/interface';
 import { SidebarContent } from '@/components/ui/sidebar';
+import type { IResourceData, SpaceType } from '@/interface';
 
-export interface IProps extends ISidebarProps {
-  onDrop: (
-    resource: IResourceData,
-    args: { pos: string; target: IResourceData | null },
-  ) => void;
+export interface IProps extends Omit<ISidebarProps, 'spaceType'> {
+  onDrop: (item: IResourceData, target: IResourceData | null) => void;
 }
 
 export default function Content(props: IProps) {
   const { data, resourceId, onDrop } = props;
-  const [highlight, onHighlight] = useState<{
-    pos: string;
-    target: IResourceData | null;
-  }>({
-    pos: '',
-    target: null,
-  });
-  const handleDrop = (
-    resource: IResourceData,
-    args: { pos: string; target: IResourceData | null },
-  ) => {
-    onDrop(resource, args);
-    onHighlight({ pos: '', target: null });
+  const [target, onTarget] = useState<IResourceData | null>(null);
+  const handleDrop = (resource: IResourceData, item: IResourceData | null) => {
+    onDrop(resource, item);
+    onTarget(null);
   };
 
   return (
@@ -40,12 +28,12 @@ export default function Content(props: IProps) {
             <Space
               {...props}
               key={spaceType}
+              target={target}
+              onTarget={onTarget}
               onDrop={handleDrop}
               activeKey={resourceId}
-              spaceType={spaceType}
               data={group(data[spaceType])}
-              highlight={highlight}
-              onHighlight={onHighlight}
+              spaceType={spaceType as SpaceType}
             />
           ))}
       </SidebarContent>

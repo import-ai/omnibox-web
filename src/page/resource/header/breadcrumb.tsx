@@ -20,16 +20,16 @@ export default function BreadcrumbMain(props: IProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  if (!resource || !resource.path) {
+  if (!resource || !Array.isArray(resource.path) || resource.path.length <= 1) {
     return null;
   }
   const data = resource.path;
-  const size = data.length;
+  const size = data.length - 1;
 
   return (
     <Breadcrumb className="ml-[-10px]">
       <BreadcrumbList className="gap-0 sm:gap-0">
-        {data.map((item, index) => (
+        {data.slice(1).map((item, index) => (
           <React.Fragment key={item.id}>
             {index > 0 && (
               <BreadcrumbSeparator className="[&>svg]:size-3 opacity-30">

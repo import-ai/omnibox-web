@@ -113,15 +113,9 @@ export default function Actions(props: IActionProps) {
       onLoading(id);
       http
         .post(`/namespaces/${namespaceId}/resources/duplicate/${resource.id}`)
-        .then(() => {
+        .then((response) => {
           setOpen(false);
-          // fix next PR
-          // app.fire(
-          //   'generate_resource',
-          //   resource.space_type,
-          //   resource.id,
-          //   response,
-          // );
+          app.fire('generate_resource', resource.id, response);
         })
         .finally(() => {
           onLoading('');
@@ -149,12 +143,7 @@ export default function Actions(props: IActionProps) {
                     `/namespaces/${namespaceId}/resources/${resource.id}/restore`,
                   )
                   .then((response) => {
-                    app.fire(
-                      'generate_resource',
-                      response.space_type,
-                      response.parent_id,
-                      response,
-                    );
+                    app.fire('generate_resource', response.parent_id, response);
                   });
               },
             },
@@ -184,14 +173,8 @@ export default function Actions(props: IActionProps) {
       namespaceId: namespaceId,
       parentId: resource.parent_id,
     })
-      .then(() => {
-        // fix next PR
-        // app.fire(
-        //   'generate_resource',
-        //   resource.space_type,
-        //   resource.parent_id,
-        //   responses,
-        // );
+      .then((responses) => {
+        app.fire('generate_resource', resource.parent_id, responses);
       })
       .catch((err) => {
         toast(err && err.message ? err.message : err, {
