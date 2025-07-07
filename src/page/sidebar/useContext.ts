@@ -75,7 +75,6 @@ export default function useContext() {
   };
   const handleExpand = (spaceType: SpaceType, id: string) => {
     const target = getResourceByField(id, 'parent_id');
-    console.log(target, spaceType, id, data);
     if (target) {
       if (expands.includes(id)) {
         onExpands(expands.filter((item) => item !== id));
@@ -521,8 +520,6 @@ export default function useContext() {
       .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
       .then(onData);
   }, [namespaceId]);
-
-  console.log('expands', expands);
 
   return {
     data,
