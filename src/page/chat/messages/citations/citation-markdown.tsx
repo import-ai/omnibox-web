@@ -1,5 +1,5 @@
+import React from 'react';
 import Copy from './actions/copy';
-import React, { useEffect } from 'react';
 import Markdown, { ExtraProps } from 'react-markdown';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
+import '@/styles/github-markdown.css';
 import 'katex/dist/katex.min.css';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
@@ -53,19 +54,6 @@ export function CitationMarkdown(props: IProps) {
     import.meta.env.VITE_REMOVE_GENERATED_CITE === 'TRUE';
   const cleanedContent = trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(cleanedContent);
-
-  useEffect(() => {
-    const id = 'github-markdown-css';
-    let link = document.getElementById(id) as HTMLLinkElement | null;
-    if (!link) {
-      link = document.createElement('link');
-      link.id = id;
-      link.rel = 'stylesheet';
-      document.head.appendChild(link);
-    }
-    link.href = `//esm.sh/github-markdown-css@5/github-markdown-${theme.content}.css`;
-    return () => link?.remove();
-  }, [theme]);
 
   const components = {
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
