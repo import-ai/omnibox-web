@@ -67,7 +67,10 @@ export default function useContext() {
     const result: MessageDetail[] = [];
     let currentNode: string | undefined = conversation.current_node;
     while (currentNode) {
-      const message: MessageDetail = conversation.mapping[currentNode];
+      const message = conversation.mapping[currentNode];
+      if (!message) {
+        break;
+      }
       result.unshift(message);
       currentNode = message.parent_id;
     }

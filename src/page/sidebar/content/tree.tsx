@@ -108,6 +108,7 @@ export default function Tree(props: ITreeProps) {
           <div>
             <SidebarMenuButton
               asChild
+              className="gap-1"
               onClick={handleActiveKey}
               isActive={data.id == activeKey}
             >
