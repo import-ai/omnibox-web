@@ -1,7 +1,9 @@
 import Action from './action';
 import { cn } from '@/lib/utils';
+import { useRef, useEffect } from 'react';
 import { IResourceData } from '@/interface';
 import { useTranslation } from 'react-i18next';
+import { useDrag, useDrop } from 'react-dnd';
 import { ISidebarProps } from '@/page/sidebar/interface';
 import {
   File,
@@ -21,9 +23,18 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-export default function Tree(props: ISidebarProps) {
+export interface ITreeProps extends ISidebarProps {
+  onDrop: (item: IResourceData, target: IResourceData | null) => void;
+  target: IResourceData | null;
+  onTarget: (target: IResourceData | null) => void;
+}
+
+export default function Tree(props: ITreeProps) {
   const {
     data,
+    onDrop,
+    target,
+    onTarget,
     spaceType,
     activeKey,
     expands,
@@ -31,14 +42,47 @@ export default function Tree(props: ISidebarProps) {
     onExpand,
     onActiveKey,
   } = props;
+  const ref = useRef(null);
   const { t } = useTranslation();
   const expand = expands.includes(data.id);
+  const [, drag] = useDrag({
+    type: 'card',
+    item: data,
+  });
+  const [, drop] = useDrop({
+    accept: 'card',
+    hover: (item, monitor) => {
+      if (!ref.current) {
+        onTarget(null);
+        return;
+      }
+      const didHover = monitor.isOver();
+      if (!didHover) {
+        onTarget(null);
+        return;
+      }
+      const dragId = (item as IResourceData).id;
+      if (dragId === data.id) {
+        onTarget(null);
+        return;
+      }
+      onTarget(data);
+    },
+    drop(item) {
+      onDrop(item as IResourceData, target);
+    },
+  });
   const handleExpand = () => {
     onExpand(spaceType, data.id);
   };
   const handleActiveKey = () => {
     onActiveKey(data.id);
   };
+
+  useEffect(() => {
+    drag(ref);
+    drop(ref);
+  }, []);
 
   if (data.id === 'empty') {
     return (
@@ -64,7 +108,16 @@ export default function Tree(props: ISidebarProps) {
               onClick={handleActiveKey}
               isActive={data.id == activeKey}
             >
-              <div className="flex cursor-pointer">
+              <div
+                ref={ref}
+                className={cn(
+                  'flex cursor-pointer relative before:absolute before:content-[""] before:hidden before:left-[13px] before:right-[4px] before:h-[2px] before:bg-blue-500',
+                  {
+                    'bg-sidebar-accent text-sidebar-accent-foreground':
+                      target && target.id === data.id,
+                  },
+                )}
+              >
                 {expanding === data.id ? (
                   <LoaderCircle className="transition-transform animate-spin" />
                 ) : (

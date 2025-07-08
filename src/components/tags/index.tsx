@@ -1,7 +1,7 @@
 import Tags from './tags';
-import { Tag } from '@/interface';
 import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
+import type { Tag } from '@/interface';
 import { Option } from '@/components/multiple-selector';
 
 interface IProps {
@@ -21,7 +21,7 @@ export default function TagsWrapper(props: IProps) {
     }
     onLoading(true);
     http
-      .get(`/namespaces/${namespaceId}/tag/tags-by-ids?id=${data.join(',')}`)
+      .get(`/namespaces/${namespaceId}/tag?id=${data.join(',')}`)
       .then((res) => {
         if (res.length <= 0) {
           return;
@@ -37,8 +37,8 @@ export default function TagsWrapper(props: IProps) {
     <Tags
       data={tags}
       loading={loading}
-      namespaceId={namespaceId}
       resourceId={resourceId}
+      namespaceId={namespaceId}
     />
   );
 }

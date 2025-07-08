@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { orderBy } from 'lodash-es';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import { useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { uploadFiles } from '@/lib/upload-files';
 import { useTranslation } from 'react-i18next';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -12,10 +12,11 @@ import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
 
 export default function useContext() {
   const app = useApp();
-  const params = useParams();
   const loc = useLocation();
+  const params = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const lazyExpanded = useRef(false);
   const { isMobile, setOpenMobile } = useSidebar();
   const chatPage = loc.pathname.includes('/chat');
   const resourceId = params.resource_id || '';
@@ -29,6 +30,10 @@ export default function useContext() {
   const getSpaceType = (id: string): SpaceType => {
     let spaceType: SpaceType = 'private';
     each(data, (resource, key) => {
+      if (resource.id === id) {
+        spaceType = key;
+        return true;
+      }
       if (Array.isArray(resource.children) && resource.children.length > 0) {
         const index = resource.children.findIndex(
           (node: Resource) => node.id === id,
@@ -41,6 +46,25 @@ export default function useContext() {
     });
     return spaceType;
   };
+  const getResourceByField = (id: string, field: string = 'id') => {
+    let current: Resource | null = null;
+    each(data, (item) => {
+      if (item[field] === id) {
+        current = item;
+        return true;
+      }
+      if (Array.isArray(item.children) && item.children.length > 0) {
+        const target = item.children.find(
+          (node: Resource) => (node as any)[field] === id,
+        );
+        if (target) {
+          current = target;
+          return true;
+        }
+      }
+    });
+    return current;
+  };
   const handleActiveKey = (id: string, edit?: boolean) => {
     if (edit) {
       navigate(`/${namespaceId}/${id}/edit`);
@@ -50,19 +74,8 @@ export default function useContext() {
     isMobile && setOpenMobile(false);
   };
   const handleExpand = (spaceType: SpaceType, id: string) => {
-    let match = false;
-    each(data, (resource) => {
-      if (Array.isArray(resource.children) && resource.children.length > 0) {
-        const target = resource.children.find(
-          (node: Resource) => node.parent_id === id,
-        );
-        if (target) {
-          match = true;
-          return match;
-        }
-      }
-    });
-    if (match) {
+    const target = getResourceByField(id, 'parent_id');
+    if (target) {
       if (expands.includes(id)) {
         onExpands(expands.filter((item) => item !== id));
       } else {
@@ -98,19 +111,8 @@ export default function useContext() {
       });
   };
   const handleMenuMore = (spaceType: SpaceType, id: string) => {
-    let match = false;
-    each(data, (resource) => {
-      if (Array.isArray(resource.children) && resource.children.length > 0) {
-        const target = resource.children.find(
-          (node: Resource) => node.parent_id === id,
-        );
-        if (target) {
-          match = true;
-          return match;
-        }
-      }
-    });
-    if (match) {
+    const target = getResourceByField(id, 'parent_id');
+    if (target) {
       return;
     }
     http
@@ -266,9 +268,50 @@ export default function useContext() {
         onEditingKey('');
       });
   };
+  const handleDrop = (drag: IResourceData, drop: IResourceData | null) => {
+    if (!drag || !drop) {
+      return;
+    }
+    app.fire('move_resource', drag.id, drop.id);
+    http
+      .post(`/namespaces/${namespaceId}/resources/${drag.id}/move/${drop.id}`)
+      .catch(() => {
+        app.fire('move_resource', drop.id, drag.id);
+      });
+  };
 
   useEffect(() => {
     const hooks: Array<() => void> = [];
+    hooks.push(
+      app.on(
+        'generate_resource',
+        (parentId: string, resource: Resource | Array<Resource>) => {
+          const resources = Array.isArray(resource) ? resource : [resource];
+          if (
+            resources.length <= 0 ||
+            !Array.isArray(resources[0].path) ||
+            resources[0].path.length <= 0
+          ) {
+            return;
+          }
+          const spaceType = getSpaceType(resources[0].path[0].id);
+          activeRoute(spaceType, parentId, resource);
+        },
+      ),
+    );
+    hooks.push(
+      app.on('delete_resource', (id: string, parentId: string) => {
+        const spaceType = getSpaceType(id);
+        const routeToActive = getRouteToActive(spaceType, id, parentId);
+        data[spaceType].children = data[spaceType].children.filter(
+          (node) => ![node.id, node.parent_id].includes(id),
+        );
+        onData({ ...data });
+        if (routeToActive) {
+          navigate(`/${namespaceId}/${routeToActive}`);
+        }
+      }),
+    );
     hooks.push(
       app.on('update_resource', (delta: Resource) => {
         each(data, (resource, key) => {
@@ -290,24 +333,10 @@ export default function useContext() {
       }),
     );
     hooks.push(
-      app.on('delete_resource', (id: string, parentId: string) => {
-        const spaceType = getSpaceType(id);
-        const routeToActive = getRouteToActive(spaceType, id, parentId);
-        data[spaceType].children = data[spaceType].children.filter(
-          (node) => ![node.id, node.parent_id].includes(id),
-        );
-        onData({ ...data });
-        if (routeToActive) {
-          navigate(`/${namespaceId}/${routeToActive}`);
-        }
-      }),
-    );
-    hooks.push(
       app.on('move_resource', (resourceId: string, targetId: string) => {
-        let targetKey: SpaceType = 'private';
-        let targetIndex = -1;
-        let resourceKey: SpaceType = 'private';
         let resourceIndex = -1;
+        let targetKey: SpaceType | '' = '';
+        let resourceKey: SpaceType | '' = '';
         each(data, (items, key) => {
           if (Array.isArray(items.children) && items.children.length > 0) {
             const maybeResourceIndex = items.children.findIndex(
@@ -322,17 +351,20 @@ export default function useContext() {
             );
             if (maybeTargetIndex >= 0) {
               targetKey = key;
-              targetIndex = maybeTargetIndex;
             }
           }
+          if (!targetKey && items.id === targetId) {
+            targetKey = key;
+          }
         });
-        if (targetIndex < 0 || resourceIndex < 0) {
+        if (!targetKey || !resourceKey || resourceIndex < 0) {
           return;
         }
-        const target = data[targetKey].children[targetIndex];
-        const resource = data[resourceKey].children[resourceIndex];
+        if (!expands.includes(targetId)) {
+          handleExpand(targetKey, targetId);
+        }
         const emptyTargetIndex = data[targetKey].children.findIndex(
-          (item) => item.parent_id === target.id && item.id === 'empty',
+          (item) => item.parent_id === targetId && item.id === 'empty',
         );
         if (emptyTargetIndex >= 0) {
           data[targetKey].children.splice(emptyTargetIndex, 1);
@@ -340,7 +372,7 @@ export default function useContext() {
         const resourceChildrenIdToRemove: Array<string> = [];
         each(data[resourceKey].children, (item) => {
           if (
-            item.parent_id === resource.id ||
+            item.parent_id === resourceId ||
             resourceChildrenIdToRemove.includes(item.parent_id)
           ) {
             resourceChildrenIdToRemove.push(item.id);
@@ -352,10 +384,10 @@ export default function useContext() {
           );
         }
         if (targetKey === resourceKey) {
-          data[resourceKey].children[resourceIndex].parent_id = target.id;
+          data[resourceKey].children[resourceIndex].parent_id = targetId;
         } else {
           const resources = data[resourceKey].children.splice(resourceIndex, 1);
-          resources[0].parent_id = target.id;
+          resources[0].parent_id = targetId;
           const emptyResourceIndex = data[resourceKey].children.findIndex(
             (item) => item.parent_id === resources[0].id && item.id === 'empty',
           );
@@ -366,21 +398,9 @@ export default function useContext() {
         }
         onData({ ...data });
         onExpands((expands) =>
-          expands.filter((expand) => expand !== resource.id),
+          expands.filter((expand) => expand !== resourceId),
         );
       }),
-    );
-    hooks.push(
-      app.on(
-        'generate_resource',
-        (
-          spaceType: SpaceType,
-          parentId: string,
-          resource: Resource | Array<Resource>,
-        ) => {
-          activeRoute(spaceType, parentId, resource);
-        },
-      ),
     );
     return () => {
       each(hooks, (destory) => {
@@ -407,6 +427,92 @@ export default function useContext() {
   }, [chatPage, namespaceId, resourceId, data]);
 
   useEffect(() => {
+    if (
+      !namespaceId ||
+      !resourceId ||
+      Object.keys(data).length <= 0 ||
+      lazyExpanded.current
+    ) {
+      return;
+    }
+    lazyExpanded.current = true;
+    const target = getResourceByField(resourceId);
+    if (target) {
+      return;
+    }
+    http
+      .get(`/namespaces/${namespaceId}/resources/${resourceId}`)
+      .then((resource) => {
+        const path = resource.path;
+        if (!Array.isArray(path) || path.length <= 0) {
+          return;
+        }
+        const resourceIdsToLoad: Array<string> = [];
+        each(path, (item) => {
+          if (getResourceByField(item.id)) {
+            return;
+          }
+          resourceIdsToLoad.push(item.id);
+        });
+        if (resourceIdsToLoad.length <= 0) {
+          return;
+        }
+        const spaceType = getSpaceType(path[0].id);
+        http
+          .get(
+            `/namespaces/${namespaceId}/resources?id=${resourceIdsToLoad.join(',')}`,
+          )
+          .then((response) => {
+            each(response, (item) => {
+              data[spaceType].children.push(item);
+            });
+            onData({ ...data });
+            const size = path.length - 1;
+            each(path, (item, index) => {
+              if (index >= size) {
+                return;
+              }
+              if (!expands.includes(item.id)) {
+                expands.push(item.id);
+              }
+            });
+            onExpands([...expands]);
+            const treeToExpand: Array<string> = [];
+            const index = path.findIndex(
+              (item) => item.id === resourceIdsToLoad[0],
+            );
+            treeToExpand.push(path[index - 1].id);
+            const resourceIdsToLoadSize = resourceIdsToLoad.length - 1;
+            each(resourceIdsToLoad, (resourceIdToLoad, index) => {
+              if (index >= resourceIdsToLoadSize) {
+                return;
+              }
+              treeToExpand.push(resourceIdToLoad);
+            });
+            Promise.all(
+              treeToExpand.map((itemToExpand) =>
+                http.get(
+                  `/namespaces/${namespaceId}/resources/${itemToExpand}/children`,
+                ),
+              ),
+            ).then((response) => {
+              each(response, (items) => {
+                each(items, (item) => {
+                  const exist = data[spaceType].children.find(
+                    (children) => children.id === item.id,
+                  );
+                  if (!exist) {
+                    data[spaceType].children.push(item);
+                  }
+                });
+              });
+              onData({ ...data });
+            });
+          });
+      });
+  }, [namespaceId, resourceId, chatPage, data]);
+
+  useEffect(() => {
     if (!localStorage.getItem('uid')) {
       return;
     }
@@ -422,6 +528,7 @@ export default function useContext() {
     expanding,
     editingKey,
     resourceId,
+    handleDrop,
     namespaceId,
     handleExpand,
     handleDelete,
