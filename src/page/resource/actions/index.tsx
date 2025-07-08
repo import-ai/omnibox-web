@@ -6,13 +6,14 @@ import copy from 'copy-to-clipboard';
 // import { Resource } from '@/interface';
 import { useRef, useState } from 'react';
 import { Input } from '@/components/input';
-import { uploadFiles } from '@/lib/upload-files';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { getTime } from '@/page/resource/utils';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { uploadFiles } from '@/lib/upload-files';
 import { IUseResource } from '@/hooks/user-resource';
 import { LanguageToggle } from '@/page/resource/language-toggle';
 import { ThemeToggle } from '@/page/resource/theme-toggle';
@@ -30,7 +31,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   Save,
@@ -57,7 +57,7 @@ export default function Actions(props: IActionProps) {
     props;
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { isMobile } = useSidebar();
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Pagination,
   PaginationItem,
@@ -25,7 +25,7 @@ export default function PaginationMain({
   pageSize = 10,
   onChange,
 }: PaginationProps) {
-  const { isMobile } = useSidebar();
+  const isMobile = useIsMobile();
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(current);
   const totalPages = Math.ceil(total / pageSize);

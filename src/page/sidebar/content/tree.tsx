@@ -45,9 +45,12 @@ export default function Tree(props: ITreeProps) {
   const ref = useRef(null);
   const { t } = useTranslation();
   const expand = expands.includes(data.id);
-  const [, drag] = useDrag({
+  const [dragStyle, drag] = useDrag({
     type: 'card',
     item: data,
+    collect: (monitor) => ({
+      opacity: monitor.isDragging() ? 0.5 : 1,
+    }),
   });
   const [, drop] = useDrop({
     accept: 'card',
@@ -110,6 +113,7 @@ export default function Tree(props: ITreeProps) {
             >
               <div
                 ref={ref}
+                style={dragStyle}
                 className={cn(
                   'flex cursor-pointer relative before:absolute before:content-[""] before:hidden before:left-[13px] before:right-[4px] before:h-[2px] before:bg-blue-500',
                   {
