@@ -45,7 +45,7 @@ export function Messages(props: IProps) {
   }
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-4">
       {messages.map((message, index) => {
         return (
           <div key={message.id}>
