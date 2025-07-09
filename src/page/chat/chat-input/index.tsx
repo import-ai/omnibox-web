@@ -1,40 +1,44 @@
-import ChatTool from './chat-tool';
-import ChatContext from './context';
+import { useMemo } from 'react';
 import ChatInput from './input';
 import ChatAction from './action';
+import ChatTool from './chat-tool';
+import ChatContext from './context';
 import {
-  type ChatActionType,
   ChatMode,
-  IResTypeContext,
   ToolType,
+  IResTypeContext,
+  type ChatActionType,
 } from '@/page/chat/chat-input/types';
-import { useMemo } from 'react';
 
 interface IProps {
   value: string;
-  onChange: (value: string) => void;
-  onAction: (action?: ChatActionType) => void;
-  tools: Array<ToolType>;
-  loading: boolean;
-  onToolsChange: (tool: Array<ToolType>) => void;
-  context: IResTypeContext[];
-  onContextChange: (context: IResTypeContext[]) => void;
   mode: ChatMode;
+  loading: boolean;
+  tools: Array<ToolType>;
+  thinking: boolean | '';
+  context: IResTypeContext[];
   setMode: (mode: ChatMode) => void;
+  onChange: (value: string) => void;
+  onThink: (thinking: boolean | '') => void;
+  onAction: (action?: ChatActionType) => void;
+  onToolsChange: (tool: Array<ToolType>) => void;
+  onContextChange: (context: IResTypeContext[]) => void;
 }
 
 export default function ChatArea(props: IProps) {
   const {
+    mode,
     value,
     tools,
+    setMode,
     context,
+    loading,
     onAction,
     onChange,
-    loading,
+    thinking,
+    onThink,
     onToolsChange,
     onContextChange,
-    mode,
-    setMode,
   } = props;
 
   const disabled = useMemo(() => {
@@ -47,8 +51,10 @@ export default function ChatArea(props: IProps) {
       <ChatInput value={value} onChange={onChange} onAction={onAction} />
       <div className="flex items-center justify-between">
         <ChatTool
-          context={context}
           tools={tools}
+          onThink={onThink}
+          context={context}
+          thinking={thinking}
           onToolsChange={onToolsChange}
         />
         <ChatAction

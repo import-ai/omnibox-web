@@ -19,26 +19,28 @@ export default function ChatHomePage() {
   const [value, onChange] = useState('');
   const namespaceId = params.namespace_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
+  const [thinking, onThinking] = useState<boolean | ''>(false);
   const { context, onContextChange } = useContext({ data: [] });
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [tools, onToolsChange] = useState<Array<ToolType>>([
     ToolType.PRIVATE_SEARCH,
-    ToolType.REASONING,
   ]);
   const handleAction = () => {
     http
       .post(`/namespaces/${namespaceId}/conversations`)
       .then((conversation) => {
-        navigate(`/${namespaceId}/chat/${conversation.id}`, {
-          state: {
-            value,
-            context,
-            tools,
-            namespaceId,
-            conversationId: conversation.id,
+        sessionStorage.setItem(
+          'state',
+          JSON.stringify({
             mode,
-          },
-        });
+            value,
+            tools,
+            context,
+            thinking,
+            conversation,
+          }),
+        );
+        navigate(`/${namespaceId}/chat/${conversation.id}`);
       });
   };
 
@@ -61,16 +63,18 @@ export default function ChatHomePage() {
             )}
           </h1>
           <ChatArea
+            mode={mode}
             tools={tools}
             value={value}
+            loading={false}
             context={context}
+            setMode={setMode}
             onChange={onChange}
+            thinking={thinking}
+            onThink={onThinking}
             onAction={handleAction}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}
-            loading={false}
-            mode={mode}
-            setMode={setMode}
           />
         </div>
       </div>

@@ -1,49 +1,40 @@
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { isFunction } from 'lodash-es';
+import { useParams } from 'react-router-dom';
 import { ask } from '@/page/chat/conversation/utils';
-import {
-  type ChatActionType,
-  ChatMode,
-  type IResTypeContext,
-  ToolType,
-} from '@/page/chat/chat-input/types';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigationType, useParams } from 'react-router-dom';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/types/conversation';
 import useGlobalContext from '@/page/chat/useContext';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  createMessageOperator,
+  ChatMode,
+  ToolType,
+  type ChatActionType,
+} from '@/page/chat/chat-input/types';
+import {
+  MessageDetail,
+  ConversationDetail,
+} from '@/page/chat/types/conversation';
+import {
   MessageOperator,
+  createMessageOperator,
 } from '@/page/chat/conversation/message-operator';
-
-interface StateProps {
-  value?: string;
-  context?: IResTypeContext[];
-  tools?: ToolType[];
-  namespaceId?: string;
-  conversationId?: string;
-  mode?: ChatMode;
-}
 
 export default function useContext() {
   const app = useApp();
   const params = useParams();
-  const loc = useLocation();
-  const navigationType = useNavigationType();
-  const state: StateProps = loc.state;
   const [value, onChange] = useState<string>('');
   const askAbortRef = useRef<() => void>(null);
-  const namespaceId = state?.namespaceId || params.namespace_id || '';
-  const conversationId = state?.conversationId || params.conversation_id || '';
+  const namespaceId = params.namespace_id || '';
+  const conversationId = params.conversation_id || '';
+  const sessionState = sessionStorage.getItem('state');
+  const state = sessionState ? JSON.parse(sessionState) : {};
   const routeQuery: string | undefined = state?.value;
-  const allowAsk: boolean = navigationType === 'PUSH';
   const [tools, onToolsChange] = useState<Array<ToolType>>(state?.tools || []);
   const [loading, setLoading] = useState<boolean>(
-    allowAsk && routeQuery !== undefined && routeQuery.trim().length > 0,
+    routeQuery !== undefined && routeQuery.trim().length > 0,
+  );
+  const [thinking, onThinking] = useState<boolean | ''>(
+    state.thinking || false,
   );
   const [mode, setMode] = useState<ChatMode>(state?.mode || ChatMode.ASK);
   const { context, onContextChange } = useGlobalContext({
@@ -103,6 +94,7 @@ export default function useContext() {
         conversationId,
         query,
         tools,
+        thinking,
         context,
         messages,
         messageOperator,
@@ -116,22 +108,31 @@ export default function useContext() {
   };
 
   useEffect(() => {
-    refetch().then(() => {
-      allowAsk && submit(routeQuery);
-    });
-  }, [allowAsk, namespaceId, conversationId]);
+    if (!state.conversation) {
+      refetch();
+      return;
+    }
+    if (state.conversation.title) {
+      app.fire('chat:title:update', state.conversation.title);
+    }
+    setConversation(state.conversation);
+    sessionStorage.removeItem('state');
+    submit(routeQuery);
+  }, []);
 
   return {
+    mode,
     value,
     tools,
+    setMode,
     loading,
+    context,
     onChange,
     onAction,
     messages,
-    context,
+    thinking,
+    onThinking,
     onToolsChange,
     onContextChange,
-    mode,
-    setMode,
   };
 }

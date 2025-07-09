@@ -1,40 +1,36 @@
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Globe, Lightbulb, Sparkles } from 'lucide-react';
-import { type IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
+import ThinkTool from './think-tool';
 import { useTranslation } from 'react-i18next';
-
-const datasource = [
-  {
-    label: 'private_search',
-    value: ToolType.PRIVATE_SEARCH,
-    icon: <Sparkles />,
-  },
-  {
-    label: 'reasoning',
-    value: ToolType.REASONING,
-    icon: <Lightbulb />,
-  },
-  {
-    label: 'web_search',
-    value: ToolType.WEB_SEARCH,
-    icon: <Globe />,
-  },
-];
+import { Button } from '@/components/ui/button';
+import { Globe, Sparkles } from 'lucide-react';
+import { type IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 
 interface IProps {
   tools: Array<ToolType>;
-  onToolsChange: (tool: Array<ToolType>) => void;
+  thinking: boolean | '';
   context: IResTypeContext[];
+  onThink: (thinking: boolean | '') => void;
+  onToolsChange: (tool: Array<ToolType>) => void;
 }
 
 export default function ChatTool(props: IProps) {
+  const { tools, context, thinking, onThink, onToolsChange } = props;
   const { t } = useTranslation();
-  const { tools, onToolsChange, context } = props;
 
   return (
     <div className="flex items-center gap-3">
-      {datasource.map((item) => (
+      {[
+        {
+          label: 'private_search',
+          value: ToolType.PRIVATE_SEARCH,
+          icon: <Sparkles />,
+        },
+        {
+          label: 'web_search',
+          value: ToolType.WEB_SEARCH,
+          icon: <Globe />,
+        },
+      ].map((item) => (
         <Button
           size="sm"
           key={item.value}
@@ -61,6 +57,7 @@ export default function ChatTool(props: IProps) {
           </span>
         </Button>
       ))}
+      <ThinkTool thinking={thinking} onThink={onThink} />
     </div>
   );
 }
