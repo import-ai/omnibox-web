@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils';
 import { isBoolean } from 'lodash-es';
-import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Check, Lightbulb } from 'lucide-react';
@@ -19,16 +18,7 @@ interface IProps {
 export default function ThinkTool(props: IProps) {
   const { thinking, onThink } = props;
   const { t } = useTranslation();
-  const [status, onStatus] = useState('');
   const thinkIsBoolean = isBoolean(thinking);
-
-  useEffect(() => {
-    if (thinkIsBoolean) {
-      onStatus(thinking ? '开' : '');
-    } else {
-      onStatus('自动');
-    }
-  }, [thinking, thinkIsBoolean]);
 
   return (
     <DropdownMenu>
@@ -47,7 +37,8 @@ export default function ThinkTool(props: IProps) {
           <Lightbulb />
           <span className="hidden md:block">
             {t('chat.tools.reasoning')}
-            {status ? `：${status}` : ''}
+            {thinkIsBoolean && thinking && <>：{t('chat.tools.on')}</>}
+            {!thinkIsBoolean && <>：{t('chat.tools.auto')}</>}
           </span>
         </Button>
       </DropdownMenuTrigger>
@@ -57,9 +48,9 @@ export default function ThinkTool(props: IProps) {
           className="flex justify-between items-start cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
         >
           <div>
-            <div>自动</div>
+            <div>{t('chat.tools.auto')}</div>
             <div className="text-muted-foreground text-xs">
-              根据上下文智能切换
+              {t('chat.tools.smart_switch')}
             </div>
           </div>
           {!thinkIsBoolean && (
@@ -71,9 +62,9 @@ export default function ThinkTool(props: IProps) {
           className="flex justify-between items-start cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
         >
           <div>
-            <div>开</div>
+            <div>{t('chat.tools.on')}</div>
             <div className="text-muted-foreground text-xs">
-              输出带推理过程的答案
+              {t('chat.tools.output_answer')}
             </div>
           </div>
           {thinkIsBoolean && thinking && (
@@ -85,8 +76,10 @@ export default function ThinkTool(props: IProps) {
           className="flex justify-between items-start cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
         >
           <div>
-            <div>关闭</div>
-            <div className="text-muted-foreground text-xs">快速直接回答</div>
+            <div>{t('chat.tools.off')}</div>
+            <div className="text-muted-foreground text-xs">
+              {t('chat.tools.direct_answer')}
+            </div>
           </div>
           {thinkIsBoolean && !thinking && (
             <Check className="h-5 w-5 mt-1 text-blue-600 dark:text-white" />

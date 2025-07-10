@@ -245,7 +245,13 @@
     "tools": {
       "web_search": "联网搜索",
       "private_search": "本地搜索",
-      "reasoning": "深度思考"
+      "reasoning": "深度思考",
+      "on": "开",
+      "output_answer": "输出带推理过程的答案",
+      "auto": "自动",
+      "smart_switch": "根据上下文智能切换",
+      "off": "关闭",
+      "direct_answer": "快速直接回答"
     },
     "textarea": {
       "placeholder": "随便问点什么吧"
