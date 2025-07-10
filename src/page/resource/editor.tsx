@@ -49,7 +49,7 @@ export default function Editor(props: IEditorProps) {
           onSuccess && onSuccess();
         });
     });
-  }, [title]);
+  }, [title, vd]);
 
   useEffect(() => {
     onTitle(resource.name || '');
