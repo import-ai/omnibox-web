@@ -1,7 +1,7 @@
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import { isFunction } from 'lodash-es';
 import { useParams } from 'react-router-dom';
+import { isFunction, isUndefined } from 'lodash-es';
 import { ask } from '@/page/chat/conversation/utils';
 import useGlobalContext from '@/page/chat/useContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -34,7 +34,7 @@ export default function useContext() {
     routeQuery !== undefined && routeQuery.trim().length > 0,
   );
   const [thinking, onThinking] = useState<boolean | ''>(
-    state.thinking || false,
+    isUndefined(state.thinking) ? false : state.thinking,
   );
   const [mode, setMode] = useState<ChatMode>(state?.mode || ChatMode.ASK);
   const { context, onContextChange } = useGlobalContext({
