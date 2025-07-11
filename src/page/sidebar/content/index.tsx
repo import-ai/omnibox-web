@@ -24,7 +24,7 @@ export default function Content(props: IProps) {
 
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
-      <SidebarContent>
+      <SidebarContent className="gap-0">
         {Object.keys(data)
           .sort()
           .map((spaceType: string) => (

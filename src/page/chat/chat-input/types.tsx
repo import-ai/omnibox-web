@@ -3,7 +3,6 @@ import { Resource } from '@/interface.ts';
 export enum ToolType {
   WEB_SEARCH = 'web_search',
   PRIVATE_SEARCH = 'private_search',
-  REASONING = 'reasoning',
 }
 
 export type ChatActionType = 'stop' | 'disabled';

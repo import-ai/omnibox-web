@@ -1,3 +1,4 @@
+import Icon from './icon';
 import Action from './action';
 import { cn } from '@/lib/utils';
 import { useRef, useEffect } from 'react';
@@ -5,13 +6,7 @@ import { IResourceData } from '@/interface';
 import { useTranslation } from 'react-i18next';
 import { useDrag, useDrop } from 'react-dnd';
 import { ISidebarProps } from '@/page/sidebar/interface';
-import {
-  File,
-  Folder,
-  FolderOpen,
-  LoaderCircle,
-  ChevronRight,
-} from 'lucide-react';
+import { LoaderCircle, ChevronRight } from 'lucide-react';
 import {
   SidebarMenuSub,
   SidebarMenuItem,
@@ -135,15 +130,7 @@ export default function Tree(props: ITreeProps) {
                     }}
                   />
                 )}
-                {data.resource_type === 'folder' ? (
-                  expand ? (
-                    <FolderOpen />
-                  ) : (
-                    <Folder />
-                  )
-                ) : (
-                  <File />
-                )}
+                <Icon expand={expand} resource={data} />
                 <span className="truncate">{data.name || t('untitled')}</span>
               </div>
             </SidebarMenuButton>
