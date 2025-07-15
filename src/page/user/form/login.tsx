@@ -31,10 +31,11 @@ const formSchema = z.object({
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg')),
 });
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<'form'>) {
+interface IProps extends React.ComponentPropsWithoutRef<'form'> {
+  extra?: React.ReactNode;
+}
+
+export function LoginForm({ extra, className, ...props }: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -91,6 +92,7 @@ export function LoginForm({
           </p>
         </div>
         <div className="grid gap-6">
+          {extra}
           <FormField
             control={form.control}
             name="email"

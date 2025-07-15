@@ -10,14 +10,15 @@ import {
 } from '@/components/ui/card';
 
 interface WrapperPageProps {
+  extra?: React.ReactNode;
   children: React.ReactNode;
 }
 
 export default function WrapperPage(props: WrapperPageProps) {
-  const { children } = props;
+  const { extra, children } = props;
 
   return (
-    <div className="grid min-h-svh">
+    <div className="grid min-h-svh dark:bg-[#262626]">
       <div className="flex flex-col gap-4 p-6">
         <div className="flex justify-center gap-2">
           <a
@@ -31,8 +32,8 @@ export default function WrapperPage(props: WrapperPageProps) {
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-sm">
-            <Card>
+          <div className="w-full max-w-sm flex flex-col gap-6">
+            <Card className="dark:border-[#303030] dark:bg-[#171717]">
               <CardHeader>
                 <VisuallyHidden>
                   <CardTitle></CardTitle>
@@ -41,6 +42,7 @@ export default function WrapperPage(props: WrapperPageProps) {
               </CardHeader>
               <CardContent>{children}</CardContent>
             </Card>
+            {extra}
           </div>
         </div>
       </div>

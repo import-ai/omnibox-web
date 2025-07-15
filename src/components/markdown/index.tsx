@@ -1,4 +1,6 @@
 import Vditor from 'vditor';
+import 'vditor/dist/index.css';
+import '@/styles/vditor-patch.css';
 import { VDITOR_CDN } from '@/const';
 import { useEffect, useRef } from 'react';
 import useTheme from '@/hooks/use-theme';
