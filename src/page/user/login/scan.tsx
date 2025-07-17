@@ -1,61 +1,49 @@
+import { useEffect } from 'react';
 import { http } from '@/lib/request';
-import extension from '@/lib/extension';
-import { useRef, useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export function ScanForm() {
-  const navigate = useNavigate();
-  const [params] = useSearchParams();
-  const redirect = params.get('redirect');
-  const [qrcode, onQrcode] = useState('');
-  const timer = useRef<NodeJS.Timeout>(null);
-  const refetch = () => {
-    http.get('/wechat/qrcode').then((response) => {
-      onQrcode(response.qrcode);
-      timer.current && clearInterval(timer.current);
-      timer.current = setInterval(() => {
-        http.get(`/wechat/check/${response.state}`).then((stateResponse) => {
-          switch (stateResponse.status) {
-            case 'success':
-              timer.current && clearInterval(timer.current);
-              localStorage.setItem('uid', stateResponse.user.id);
-              localStorage.setItem('token', stateResponse.user.access_token);
-              if (redirect) {
-                location.href = decodeURIComponent(redirect);
-              } else {
-                extension().then((val) => {
-                  if (val) {
-                    navigate('/', { replace: true });
-                  }
-                });
-              }
-              break;
-            case 'expired':
-              timer.current && clearInterval(timer.current);
-              refetch();
-              break;
-          }
-        });
-      }, 2000);
-    });
-  };
-
   useEffect(() => {
-    const beforeUnload = () => {
-      if (timer.current) {
-        clearInterval(timer.current);
+    http.get('/wechat/qrcode').then((response) => {
+      let colorScheme = 'light';
+      const themeStorage = localStorage.getItem('theme');
+      if (themeStorage) {
+        const theme = JSON.parse(themeStorage);
+        colorScheme = theme.content || 'light';
       }
-    };
-    window.addEventListener('beforeunload', beforeUnload);
-    refetch();
-    return () => {
-      window.removeEventListener('beforeunload', beforeUnload);
-    };
+      // @ts-ignore
+      new WxLogin({
+        stylelite: 1,
+        scope: response.scope,
+        self_redirect: false,
+        state: response.state,
+        id: 'wx-login-container',
+        appid: response.app_id,
+        color_scheme: colorScheme,
+        redirect_uri: response.redirect_uri,
+        onReady: function (isReady: boolean) {
+          if (!isReady) {
+            return;
+          }
+          const iframe = document.querySelector(
+            '#wx-login-container iframe',
+          ) as HTMLIFrameElement;
+          if (iframe) {
+            iframe.width = '200px';
+            iframe.height = '160px';
+            iframe.setAttribute(
+              'sandbox',
+              'allow-scripts allow-top-navigation allow-same-origin',
+            );
+          }
+        },
+      });
+    });
   }, []);
 
   return (
-    <div className="size-[200px] overflow-hidden bg-gray-400 rounded-sm">
-      {qrcode ? <img src={qrcode} className="size-[200px]" /> : null}
-    </div>
+    <div
+      id="wx-login-container"
+      className="w-[200px] h-[160px] overflow-hidden rounded-sm"
+    />
   );
 }

@@ -1,26 +1,23 @@
 import MetaPage from './meta';
 import { useState } from 'react';
+import isMobile from 'ismobilejs';
 import WrapperPage from '../wrapper';
 import { http } from '@/lib/request';
 import { MoveLeft } from 'lucide-react';
 import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { ScanForm } from '@/page/user/login/scan';
 import { LoginForm } from '@/page/user/login/form';
 
 export default function LoginPage() {
-  const isMobile = useIsMobile();
   const { t } = useTranslation();
   const [scan, onScan] = useState(false);
   const handleBack = () => {
     onScan(false);
   };
   const loginWithWeChat = () => {
-    if (
-      isMobile ||
-      navigator.userAgent.toLowerCase().includes('micromessenger')
-    ) {
+    const userAgent = navigator.userAgent.toLowerCase();
+    if (isMobile(userAgent).phone || userAgent.includes('micromessenger')) {
       http.get('/wechat/auth-url').then((authUrl) => {
         location.href = authUrl;
       });

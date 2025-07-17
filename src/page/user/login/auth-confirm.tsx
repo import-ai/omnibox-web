@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import WrapperPage from '../wrapper';
 import { http } from '@/lib/request';
+import extension from '@/lib/extension';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -19,7 +20,11 @@ export default function AuthConfirmPage() {
     http.get(`/wechat/callback?code=${code}&state=${state}`).then((res) => {
       localStorage.setItem('uid', res.id);
       localStorage.setItem('token', res.access_token);
-      navigate('/', { replace: true });
+      extension().then((val) => {
+        if (val) {
+          navigate('/', { replace: true });
+        }
+      });
     });
   }, [code, state]);
 
