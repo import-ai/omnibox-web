@@ -31,11 +31,10 @@ const formSchema = z.object({
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg')),
 });
 
-interface IProps extends React.ComponentPropsWithoutRef<'form'> {
-  extra?: React.ReactNode;
-}
-
-export function LoginForm({ extra, className, ...props }: IProps) {
+export function LoginForm({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<'form'>) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -82,65 +81,56 @@ export function LoginForm({ extra, className, ...props }: IProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('flex flex-col gap-6', className)}
+        className={cn('flex flex-col gap-4', className)}
         {...props}
       >
-        <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">{t('login.title')}</h1>
-          <p className="text-balance text-sm text-muted-foreground">
-            {t('login.description')}
-          </p>
-        </div>
-        <div className="grid gap-6">
-          {extra}
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    type="text"
-                    startIcon={Mail}
-                    autoComplete="email"
-                    disabled={isLoading}
-                    placeholder={t('form.email_or_username')}
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>{t('form.email_limit_rule')}</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    type="password"
-                    autoComplete="new-password"
-                    startIcon={Lock}
-                    disabled={isLoading}
-                    placeholder={t('form.password')}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            type="submit"
-            variant="default"
-            className="w-full disabled:opacity-60"
-            loading={isLoading}
-          >
-            {t('login.submit')}
-          </Button>
-        </div>
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input
+                  type="text"
+                  startIcon={Mail}
+                  autoComplete="email"
+                  disabled={isLoading}
+                  placeholder={t('form.email_or_username')}
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>{t('form.email_limit_rule')}</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  startIcon={Lock}
+                  disabled={isLoading}
+                  placeholder={t('form.password')}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button
+          type="submit"
+          variant="default"
+          className="w-full disabled:opacity-60"
+          loading={isLoading}
+        >
+          {t('login.submit')}
+        </Button>
         <Space className="text-sm justify-center">
           <Link to="/user/sign-up" className="text-sm ml-1">
             {t('register.submit')}

@@ -10,12 +10,13 @@ import {
 } from '@/components/ui/card';
 
 interface WrapperPageProps {
+  useCard?: boolean;
   extra?: React.ReactNode;
   children: React.ReactNode;
 }
 
 export default function WrapperPage(props: WrapperPageProps) {
-  const { extra, children } = props;
+  const { useCard = true, extra, children } = props;
 
   return (
     <div className="grid min-h-svh dark:bg-[#262626]">
@@ -32,18 +33,25 @@ export default function WrapperPage(props: WrapperPageProps) {
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-sm flex flex-col gap-6">
-            <Card className="dark:border-[#303030] dark:bg-[#171717]">
-              <CardHeader>
-                <VisuallyHidden>
-                  <CardTitle></CardTitle>
-                  <CardDescription></CardDescription>
-                </VisuallyHidden>
-              </CardHeader>
-              <CardContent>{children}</CardContent>
-            </Card>
-            {extra}
-          </div>
+          {useCard ? (
+            <div className="w-full max-w-sm flex flex-col gap-6">
+              <Card className="dark:border-[#303030] dark:bg-[#171717]">
+                <CardHeader>
+                  <VisuallyHidden>
+                    <CardTitle></CardTitle>
+                    <CardDescription></CardDescription>
+                  </VisuallyHidden>
+                </CardHeader>
+                <CardContent>{children}</CardContent>
+              </Card>
+              {extra}
+            </div>
+          ) : (
+            <div className="w-full max-w-sm flex flex-col gap-6">
+              {children}
+              {extra}
+            </div>
+          )}
         </div>
       </div>
     </div>

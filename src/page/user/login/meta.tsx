@@ -1,20 +1,23 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function MetaPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="text-muted-foreground text-center text-xs text-balance">
-      By clicking continue, you agree to our{' '}
+      {t('login.agree_our_rule')}{' '}
       <Link
         to="/user/terms-of-service"
         className="underline underline-offset-4"
       >
-        Terms of Service
+        {t('login.service')}
       </Link>{' '}
-      and{' '}
+      {t('login.and')}{' '}
       <Link to="/user/privacy-policy" className="underline underline-offset-4">
-        Privacy Policy
+        {t('login.privacy')}
       </Link>
-      .
+      {t('login.dot')}
     </div>
   );
 }

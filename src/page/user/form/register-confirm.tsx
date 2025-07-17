@@ -29,7 +29,7 @@ const registerSchema = z
     password_repeat: z.string(),
   })
   .refine((data) => data.password === data.password_repeat, {
-    message: i18next.t('form.password_mismatch'),
+    message: i18next.t('form.password_not_match'),
     path: ['password_repeat'],
   });
 
