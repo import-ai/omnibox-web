@@ -16,11 +16,6 @@ export default function LoginPage() {
           </p>
         </div>
         <div className="grid gap-6">
-          <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-            <span className="bg-white dark:bg-[#171717] text-muted-foreground relative z-10 px-2">
-              {t('login.or_continue')}
-            </span>
-          </div>
           <LoginForm />
         </div>
       </div>
