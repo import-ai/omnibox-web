@@ -104,7 +104,6 @@
     "description": "请输入您的邮箱以登录账户",
     "scan_description": "使用微信扫码以登录账户",
     "authorizing": "授权中，请稍候...",
-    "scan_use_wechat": "使用微信扫一扫",
     "back": "返回",
     "login_use_wechat": "使用微信登录",
     "or_continue": "或",

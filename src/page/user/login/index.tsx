@@ -38,9 +38,6 @@ export default function LoginPage() {
         {scan ? (
           <div className="flex flex-col items-center gap-4">
             <ScanForm />
-            <div className="text-balance text-sm text-foreground">
-              {t('login.scan_use_wechat')}
-            </div>
             <Button
               variant="outline"
               onClick={handleBack}
