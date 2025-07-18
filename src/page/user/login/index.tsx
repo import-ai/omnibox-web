@@ -17,7 +17,11 @@ export default function LoginPage() {
   };
   const loginWithWeChat = () => {
     const userAgent = navigator.userAgent.toLowerCase();
-    if (isMobile(userAgent).phone || userAgent.includes('micromessenger')) {
+    if (isMobile(userAgent).phone) {
+      http.get('/wechat/qrcode').then((response) => {
+        location.href = `weixin://dl/businesswebview/link/?appid=${response.app_id}&url=${encodeURIComponent(location.href)}`;
+      });
+    } else if (userAgent.includes('micromessenger')) {
       http.get('/wechat/auth-url').then((authUrl) => {
         location.href = authUrl;
       });
