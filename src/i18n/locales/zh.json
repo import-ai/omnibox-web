@@ -106,13 +106,13 @@
     "authorizing": "授权中，请稍候...",
     "back": "返回",
     "login_use_wechat": "使用微信登录",
+    "wechat_disabled": "当前环境不支持微信登录",
     "or_continue": "或",
     "agree_our_rule": "继续之前，请先阅读并同意我们的",
     "service": "用户协议",
     "and": "和",
     "privacy": "隐私政策",
-    "dot": "。",
-    "wechat_disabled": "当前环境不支持微信登录"
+    "dot": "。"
   },
   "register": {
     "title": "创建账户",

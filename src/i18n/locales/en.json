@@ -106,13 +106,13 @@
     "authorizing": "Authorizing, please wait...",
     "back": "Back",
     "login_use_wechat": "Login with WeChat",
+    "wechat_disabled": "WeChat login is not supported in the current environment",
     "or_continue": "Or continue with",
     "agree_our_rule": "By clicking continue, you agree to our",
     "service": "Terms of Service",
     "and": "and",
     "privacy": "Privacy Policy",
-    "dot": ".",
-    "wechat_disabled": "WeChat login is not supported in the current environment"
+    "dot": "."
   },
   "register": {
     "title": "Create Account",
