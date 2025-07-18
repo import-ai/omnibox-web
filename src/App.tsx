@@ -17,6 +17,7 @@ const NamespacePage = lazy(() => import('@/page/namespace'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
 const InviteRedirectPage = lazy(() => import('@/page/invite-redirect'));
+const AuthConfirmPage = lazy(() => import('@/page/user/login/auth-confirm'));
 const PasswordConfirmPage = lazy(() => import('@/page/user/password-confirm'));
 const RegisterConfirmPage = lazy(() => import('@/page/user/register-confirm'));
 
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
       {
         path: 'user/login',
         element: <LoginPage />,
+      },
+      {
+        path: 'user/auth/confirm',
+        element: <AuthConfirmPage />,
       },
       {
         path: 'single/privacy-policy',
