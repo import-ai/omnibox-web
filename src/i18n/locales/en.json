@@ -111,7 +111,8 @@
     "service": "Terms of Service",
     "and": "and",
     "privacy": "Privacy Policy",
-    "dot": "."
+    "dot": ".",
+    "wechat_disabled": "WeChat login is not supported in the current environment"
   },
   "register": {
     "title": "Create Account",

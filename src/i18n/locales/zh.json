@@ -111,7 +111,8 @@
     "service": "用户协议",
     "and": "和",
     "privacy": "隐私政策",
-    "dot": "。"
+    "dot": "。",
+    "wechat_disabled": "当前环境不支持微信登录"
   },
   "register": {
     "title": "创建账户",
