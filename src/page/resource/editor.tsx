@@ -16,6 +16,33 @@ interface IEditorProps {
   onResource: (resource: Resource) => void;
 }
 
+interface UploadedFile {
+  name: string;
+  link: string;
+}
+
+interface UploadResponse {
+  uploaded: UploadedFile[];
+  failed: string[];
+}
+
+function format(_files: File[], responseText: string): string {
+  const response: UploadResponse = JSON.parse(responseText);
+  const succMap: Record<string, string> = {};
+  response.uploaded.forEach((file) => {
+    succMap[file.name] = file.link;
+  });
+  const processedResponse = {
+    msg: 'success',
+    code: 0,
+    data: {
+      errFiles: response.failed,
+      succMap,
+    },
+  };
+  return JSON.stringify(processedResponse);
+}
+
 export default function Editor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
   const busy = useRef(false);
@@ -52,6 +79,7 @@ export default function Editor(props: IEditorProps) {
   }, [title, vd]);
 
   useEffect(() => {
+    const token = localStorage.getItem('token') || '';
     onTitle(resource.name || '');
     if (!resource || !root.current || resource.resource_type === 'folder') {
       return;
@@ -65,6 +93,15 @@ export default function Editor(props: IEditorProps) {
           defaultLang: 'plain',
           lineNumber: true,
         },
+      },
+      upload: {
+        url: `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
+        accept: 'image/*',
+        max: 1024 * 1024 * 5, // 5MB
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        format,
       },
       after: () => {
         vditor.setValue(resource.content || '');
