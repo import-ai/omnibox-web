@@ -5,28 +5,26 @@ interface IProps {
   resource: Resource;
 }
 
-function snakeToCamelCase(text: string): string {
-  const result: string = text.replace(/([-_][a-z])/g, (group) =>
-    group.toUpperCase().replace('-', '').replace('_', ''),
-  );
-  console.log({ text, result });
-  return result;
+interface Image {
+  name?: string;
+  link: string;
+  data: string;
+  mimetype: string;
 }
 
 function embedImage(resource: Resource): string {
   let content: string = resource.content || '';
   if (resource.attrs?.images) {
-    const images: Record<string, string> = resource.attrs?.images || {};
-    for (const [key, value] of Object.entries(images)) {
+    const images: Image[] = resource.attrs?.images || [];
+    for (const image of images) {
       content = content.replaceAll(
-        `](${snakeToCamelCase(key)})`,
-        `](data:image/jpeg;base64,${value})`,
+        `](${image.link})`,
+        `](data:${image.mimetype};base64,${image.data})`,
       );
       content = content.replaceAll(
-        ` src="${snakeToCamelCase(key)}"`,
-        ` src="data:image/jpeg;base64,${value}"`,
+        ` src="${image.link}"`,
+        ` src="data:${image.mimetype};base64,${image.data}"`,
       );
-      console.log({ content });
     }
   }
   return content;
