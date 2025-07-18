@@ -40,11 +40,11 @@ const router = createBrowserRouter([
         element: <AuthConfirmPage />,
       },
       {
-        path: 'user/privacy-policy',
+        path: 'single/privacy-policy',
         element: <PrivacyPolicy />,
       },
       {
-        path: 'user/terms-of-service',
+        path: 'single/terms-of-service',
         element: <TermsOfService />,
       },
       {
