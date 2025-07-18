@@ -17,6 +17,9 @@ function embedImage(resource: Resource): string {
   if (resource.attrs?.images) {
     const images: Image[] = resource.attrs?.images || [];
     for (const image of images) {
+      if (!image.data || !image.link || !image.mimetype) {
+        continue;
+      }
       content = content.replaceAll(
         `](${image.link})`,
         `](data:${image.mimetype};base64,${image.data})`,
