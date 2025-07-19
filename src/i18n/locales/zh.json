@@ -101,7 +101,13 @@
     "logout": "退出登录",
     "submit": "登录",
     "title": "登录您的账户",
-    "description": "请输入您的邮箱以登录账户"
+    "description": "请输入您的邮箱以登录账户",
+    "or_continue": "或",
+    "agree_our_rule": "继续之前，请先阅读并同意我们的",
+    "service": "用户协议",
+    "and": "和",
+    "privacy": "隐私政策",
+    "dot": "。"
   },
   "register": {
     "title": "创建账户",

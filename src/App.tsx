@@ -9,15 +9,19 @@ const ChatPage = lazy(() => import('@/page/chat'));
 const ChatHomePage = lazy(() => import('@/page/chat/home'));
 const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
 const ChatConversationsPage = lazy(() => import('@/page/chat/conversations'));
+
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/invite'));
 const ResourcePage = lazy(() => import('@/page/resource'));
 const NamespacePage = lazy(() => import('@/page/namespace'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
+const InviteRedirectPage = lazy(() => import('@/page/invite-redirect'));
 const PasswordConfirmPage = lazy(() => import('@/page/user/password-confirm'));
 const RegisterConfirmPage = lazy(() => import('@/page/user/register-confirm'));
-const InviteRedirectPage = lazy(() => import('@/page/invite-redirect'));
+
+const PrivacyPolicy = lazy(() => import('@/page/single/privacy-policy'));
+const TermsOfService = lazy(() => import('@/page/single/terms-of-service'));
 
 const app = new CoreApp();
 const router = createBrowserRouter([
@@ -29,6 +33,14 @@ const router = createBrowserRouter([
       {
         path: 'user/login',
         element: <LoginPage />,
+      },
+      {
+        path: 'single/privacy-policy',
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: 'single/terms-of-service',
+        element: <TermsOfService />,
       },
       {
         path: 'user/sign-up',

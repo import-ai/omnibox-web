@@ -101,7 +101,13 @@
     "logout": "Logout",
     "submit": "Login",
     "title": "Login to your account",
-    "description": "Enter your email below to login to your account"
+    "description": "Enter your email below to login your account",
+    "or_continue": "Or continue with",
+    "agree_our_rule": "By clicking continue, you agree to our",
+    "service": "Terms of Service",
+    "and": "and",
+    "privacy": "Privacy Policy",
+    "dot": "."
   },
   "register": {
     "title": "Create Account",

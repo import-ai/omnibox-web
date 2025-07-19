@@ -15,7 +15,10 @@ export default function Layout() {
       if (namespace_id) {
         return;
       }
-      if (!loc.pathname.startsWith('/invite/confirm')) {
+      if (
+        !loc.pathname.startsWith('/invite/confirm') &&
+        !loc.pathname.startsWith('/single')
+      ) {
         extension().then((val) => {
           if (val) {
             http.get('namespaces').then((data) => {
@@ -27,7 +30,10 @@ export default function Layout() {
         });
       }
     } else {
-      if (loc.pathname.startsWith('/user/')) {
+      if (
+        loc.pathname.startsWith('/user/') ||
+        loc.pathname.startsWith('/single')
+      ) {
         return;
       }
       navigate(`/user/login?redirect=${encodeURIComponent(location.href)}`, {
