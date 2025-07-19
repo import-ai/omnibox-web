@@ -28,16 +28,16 @@ interface UploadResponse {
 
 function format(_files: File[], responseText: string): string {
   const response: UploadResponse = JSON.parse(responseText);
-  const succMap: Record<string, string> = {};
+  const uploadedMap: Record<string, string> = {};
   response.uploaded.forEach((file) => {
-    succMap[file.name] = file.link;
+    uploadedMap[file.name] = `/api/v1/images/${file.link}`;
   });
   const processedResponse = {
     msg: 'success',
     code: 0,
     data: {
       errFiles: response.failed,
-      succMap,
+      succMap: uploadedMap,
     },
   };
   return JSON.stringify(processedResponse);

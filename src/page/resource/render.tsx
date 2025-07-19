@@ -21,12 +21,8 @@ function embedImage(resource: Resource): string {
         continue;
       }
       content = content.replaceAll(
-        `](${image.link})`,
-        `](data:${image.mimetype};base64,${image.data})`,
-      );
-      content = content.replaceAll(
-        ` src="${image.link}"`,
-        ` src="data:${image.mimetype};base64,${image.data}"`,
+        image.link,
+        `data:${image.mimetype};base64,${image.data}`,
       );
     }
   }
