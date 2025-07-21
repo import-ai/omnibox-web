@@ -75,7 +75,7 @@ request.interceptors.response.use(
             errorMessage = i18next.t('request.unknown_error');
         }
       }
-      toast.error(errorMessage, { position: 'top-center' });
+      toast.error(errorMessage, { position: 'bottom-right' });
       if (error.status === 401 && localStorage.getItem('uid')) {
         localStorage.removeItem('uid');
         localStorage.removeItem('token');

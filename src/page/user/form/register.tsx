@@ -60,7 +60,7 @@ export function RegisterForm() {
       .then(() => {
         form.resetField('email');
         toast(t('register.success'), {
-          position: 'top-center',
+          position: 'bottom-right',
         });
       })
       .finally(() => {

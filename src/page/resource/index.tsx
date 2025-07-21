@@ -14,9 +14,8 @@ export default function ResourcePage() {
       <Header {...props} wide={wide} onWide={onWide} />
       <div className="flex justify-center h-full p-4">
         <div
-          className={cn('flex flex-col h-full', {
+          className={cn('flex flex-col w-full h-full', {
             'max-w-3xl': !wide,
-            'w-full': wide,
           })}
         >
           <Wrapper {...props} />

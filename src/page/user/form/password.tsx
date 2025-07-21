@@ -60,7 +60,7 @@ export function ForgotPasswordForm() {
       .then(() => {
         form.resetField('email');
         toast(t('password.done'), {
-          position: 'top-center',
+          position: 'bottom-right',
         });
       })
       .finally(() => {

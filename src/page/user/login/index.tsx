@@ -20,7 +20,7 @@ export default function LoginPage() {
     onScan(false);
   };
   const alertDisableWeChatLogin = () => {
-    toast(t('login.wechat_disabled'), { position: 'top-center' });
+    toast(t('login.wechat_disabled'), { position: 'bottom-right' });
   };
   const loginWithWeChat = () => {
     if (isWeChat) {

@@ -138,6 +138,13 @@
     "submit": "Update Profile",
     "success": "Profile updated successfully"
   },
+  "email": {
+    "validate": "Email Verification",
+    "description": "Please enter the verification code sent to your email",
+    "send_success": "Verification code sent successfully, please check your email",
+    "code": "Verification Code",
+    "code_limit": "6-digit verification code"
+  },
   "setting": {
     "basic": "General",
     "title": "Settings",

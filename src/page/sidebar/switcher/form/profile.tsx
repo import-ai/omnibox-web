@@ -1,14 +1,18 @@
 import * as z from 'zod';
 import i18next from 'i18next';
 import { toast } from 'sonner';
+import { http } from '@/lib/request';
+import isEmail from '@/lib/is-email';
 import useUser from '@/hooks/use-user';
 import { useForm } from 'react-hook-form';
-import { useState, useEffect } from 'react';
 import Loading from '@/components/loading';
 import { Button } from '@/components/button';
+import EmailValidate from './email-validate';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
+import { useRef, useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Form,
   FormItem,
@@ -18,6 +22,13 @@ import {
   FormControl,
   FormDescription,
 } from '@/components/ui/form';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 const profileFormSchema = z.object({
   username: z
@@ -26,9 +37,14 @@ const profileFormSchema = z.object({
     .max(32, i18next.t('form.username_max')),
   email: z
     .string()
-    .email(i18next.t('form.email_invalid'))
     .refine(
       (email) => {
+        if (!email) {
+          return true;
+        }
+        if (!isEmail(email)) {
+          return false;
+        }
         const allowedDomains = [
           'gmail.com',
           'outlook.com',
@@ -41,7 +57,8 @@ const profileFormSchema = z.object({
       {
         message: i18next.t('form.email_limit_rule'),
       },
-    ),
+    )
+    .optional(),
   password: z
     .string()
     .optional()
@@ -69,8 +86,10 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfileForm() {
   const { t } = useTranslation();
+  const [open, onOpen] = useState(false);
   const { user, onChange, loading } = useUser();
   const [submiting, onSubmiting] = useState(false);
+  const submitData = useRef<ProfileFormValues | null>(null);
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -83,14 +102,39 @@ export default function ProfileForm() {
   const handleSubmit = (data: ProfileFormValues) => {
     if (data.password || data.password_repeat) {
       if (data.password !== data.password_repeat) {
-        toast.error(t('form.password_not_match'), { position: 'top-center' });
+        toast.error(t('form.password_not_match'), { position: 'bottom-right' });
         return;
       }
     }
+    if (data.email && user.email !== data.email) {
+      http
+        .post('/user/email/validate', {
+          email: data.email,
+        })
+        .then(() => {
+          submitData.current = data;
+          onOpen(true);
+          toast(t('email.send_success'), { position: 'bottom-right' });
+        });
+      return;
+    }
     onSubmiting(true);
     onChange(data, () => {
-      toast.success(t('profile.success'), { position: 'top-center' });
+      toast.success(t('profile.success'), { position: 'bottom-right' });
     }).finally(() => {
+      onSubmiting(false);
+    });
+  };
+  const handleEmailValidateFinish = (code: string) => {
+    const query = submitData.current;
+    if (!query) {
+      return;
+    }
+    onSubmiting(true);
+    onChange({ ...query, code }, () => {
+      toast.success(t('profile.success'), { position: 'bottom-right' });
+    }).finally(() => {
+      onOpen(false);
       onSubmiting(false);
     });
   };
@@ -99,8 +143,8 @@ export default function ProfileForm() {
     if (!user) {
       return;
     }
-    form.setValue('email', user.email);
-    form.setValue('username', user.username);
+    form.setValue('email', user.email || '');
+    form.setValue('username', user.username || '');
   }, [user]);
 
   if (loading) {
@@ -108,83 +152,96 @@ export default function ProfileForm() {
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(handleSubmit)}
-        className="space-y-4 px-px"
-      >
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.username')}</FormLabel>
-              <FormControl>
-                <Input {...field} disabled={submiting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.email')}</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  autoComplete="email"
-                  {...field}
-                  disabled={submiting}
-                />
-              </FormControl>
-              <FormDescription>{t('form.email_limit')}</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.password')}</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  autoComplete="new-password"
-                  {...field}
-                  disabled={submiting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password_repeat"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.confirm_password')}</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  autoComplete="new-password"
-                  {...field}
-                  disabled={submiting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={submiting} loading={submiting}>
-          {t('profile.submit')}
-        </Button>
-      </form>
-    </Form>
+    <div>
+      <Dialog open={open} onOpenChange={onOpen}>
+        <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl">
+          <DialogHeader>
+            <DialogTitle>{t('email.validate')}</DialogTitle>
+            <VisuallyHidden>
+              <DialogDescription>{t('email.description')}</DialogDescription>
+            </VisuallyHidden>
+          </DialogHeader>
+          <EmailValidate onFinish={handleEmailValidateFinish} />
+        </DialogContent>
+      </Dialog>
+      <Form {...form}>
+        <form
+          className="space-y-4 px-px"
+          onSubmit={form.handleSubmit(handleSubmit)}
+        >
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('form.username')}</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={submiting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('form.email')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    {...field}
+                    disabled={submiting}
+                  />
+                </FormControl>
+                <FormDescription>{t('form.email_limit')}</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('form.password')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    {...field}
+                    disabled={submiting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password_repeat"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('form.confirm_password')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    {...field}
+                    disabled={submiting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={submiting} loading={submiting}>
+            {t('profile.submit')}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }
