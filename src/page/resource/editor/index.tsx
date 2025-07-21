@@ -11,6 +11,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 import { markdownPreviewConfig } from '@/components/markdown';
 import { toolbar } from '@/page/resource/editor/const';
+import { useTranslation } from 'react-i18next';
 
 interface IEditorProps {
   namespaceId: string;
@@ -29,6 +30,7 @@ export default function Editor(props: IEditorProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTitle(e.target.value);
   };
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
@@ -68,6 +70,7 @@ export default function Editor(props: IEditorProps) {
         pin: true,
       },
       mode: 'wysiwyg',
+      lang: i18n.language == 'en' ? 'en_US' : 'zh_CN',
       after: () => {
         vditor.setValue(resource.content || '');
         vditor.setTheme(
