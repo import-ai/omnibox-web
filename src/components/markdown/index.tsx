@@ -6,10 +6,27 @@ import { useEffect, useRef } from 'react';
 import useTheme from '@/hooks/use-theme';
 import { useNavigate } from 'react-router-dom';
 import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
+import { Theme } from '@/interface';
 import '@/components/markdown/index.css';
 
 interface IProps {
   content: string;
+}
+
+export function markdownPreviewConfig(theme: Theme) {
+  return {
+    hljs: {
+      defaultLang: 'plain',
+      style: theme.code,
+      lineNumber: true,
+    },
+    markdown: {
+      toc: true,
+    },
+    math: {
+      inlineDigit: true,
+    },
+  };
 }
 
 export function Markdown(props: IProps) {
@@ -47,19 +64,13 @@ export function Markdown(props: IProps) {
     if (element.current) {
       Vditor.preview(element.current, content, {
         ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
+        ...markdownPreviewConfig(theme),
         theme: {
           current: theme.content,
         },
         anchor: 1,
         mode: theme.content,
-        hljs: {
-          defaultLang: 'plain',
-          style: theme.code,
-          lineNumber: true,
-        },
-        transform(data) {
-          return addReferrerPolicyForString(data);
-        },
+        transform: addReferrerPolicyForString,
       });
     }
   }, [content, theme]);

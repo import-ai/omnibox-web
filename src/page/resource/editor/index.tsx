@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useRef, useState } from 'react';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
+import { markdownPreviewConfig } from '@/components/markdown';
+import { toolbar } from '@/page/resource/editor/const';
 
 interface IEditorProps {
   namespaceId: string;
@@ -60,12 +62,12 @@ export default function Editor(props: IEditorProps) {
       ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
       tab: '\t',
       cache: { id: `_${resource.id}` },
-      preview: {
-        hljs: {
-          defaultLang: 'plain',
-          lineNumber: true,
-        },
+      preview: markdownPreviewConfig(theme),
+      toolbar,
+      toolbarConfig: {
+        pin: true,
       },
+      mode: 'wysiwyg',
       after: () => {
         vditor.setValue(resource.content || '');
         vditor.setTheme(
