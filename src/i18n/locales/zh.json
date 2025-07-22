@@ -10,7 +10,7 @@
   "updated": "已更新",
   "created": "已创建",
   "no_pages_inside": "内无页面",
-  "private": "私人",
+  "private": "私有",
   "teamspace": "团队",
   "resource": {
     "deleted": "已删除",
@@ -102,6 +102,11 @@
     "submit": "登录",
     "title": "登录您的账户",
     "description": "请输入您的邮箱以登录账户",
+    "scan_description": "使用微信扫码以登录账户",
+    "authorizing": "授权中，请稍候...",
+    "back": "返回",
+    "login_use_wechat": "使用微信登录",
+    "wechat_disabled": "当前环境不支持微信登录",
     "or_continue": "或",
     "agree_our_rule": "继续之前，请先阅读并同意我们的",
     "service": "用户协议",
@@ -133,6 +138,13 @@
     "submit": "更新资料",
     "success": "资料更新成功"
   },
+  "email": {
+    "validate": "邮箱验证",
+    "description": "请输入发送到您邮箱的验证码",
+    "send_success": "发送验证码成功，请检查邮件",
+    "code": "验证码",
+    "code_limit": "6位数字验证码"
+  },
   "setting": {
     "title": "设置",
     "basic": "通用",
@@ -160,7 +172,7 @@
     "submit": "保存",
     "member_count": "{{ size}} 名成员",
     "remove_title": "确定要删除此群组吗？",
-    "remove_desc": "此群组的所有私人页面都将转移给你。",
+    "remove_desc": "此群组的所有私有页面都将转移给你。",
     "edit": "编辑",
     "delete": "删除",
     "remove_member": "确定要移除此成员？",

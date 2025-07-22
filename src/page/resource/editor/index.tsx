@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useRef, useState } from 'react';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
+import { markdownPreviewConfig } from '@/components/markdown';
+import { toolbar } from '@/page/resource/editor/const';
+import { useTranslation } from 'react-i18next';
 
 interface IEditorProps {
   namespaceId: string;
@@ -54,6 +57,7 @@ export default function Editor(props: IEditorProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTitle(e.target.value);
   };
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
@@ -88,12 +92,13 @@ export default function Editor(props: IEditorProps) {
       ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
       tab: '\t',
       cache: { id: `_${resource.id}` },
-      preview: {
-        hljs: {
-          defaultLang: 'plain',
-          lineNumber: true,
-        },
+      preview: markdownPreviewConfig(theme),
+      toolbar,
+      toolbarConfig: {
+        pin: true,
       },
+      mode: 'wysiwyg',
+      lang: i18n.language == 'en' ? 'en_US' : 'zh_CN',
       upload: {
         url: `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
         accept: 'image/*',

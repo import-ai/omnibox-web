@@ -13,7 +13,7 @@ import {
 
 export interface IProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function SearchMenu({ open, onOpenChange }: IProps) {
@@ -23,44 +23,6 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const [keywords, setKeywords] = useState('');
   const [items, setItems] = useState<any[]>([]);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        const newOpen = !open;
-        onOpenChange(newOpen);
-      }
-    };
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
-  }, [open, onOpenChange]);
-
-  // Fetch search results
-  useEffect(() => {
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
-    }
-
-    if (!keywords) {
-      setItems([]);
-      return;
-    }
-
-    debounceTimeout.current = setTimeout(() => {
-      http
-        .get(
-          `/namespaces/${params.namespace_id}/search?query=${encodeURIComponent(keywords)}`,
-        )
-        .then((data) => {
-          setItems(data || []);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }, 300);
-  }, [keywords]);
-
   const resources = useMemo(
     () =>
       items
@@ -97,13 +59,54 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     [items],
   );
 
+  // Fetch search results
+  useEffect(() => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    if (!keywords) {
+      setItems([]);
+      return;
+    }
+
+    debounceTimeout.current = setTimeout(() => {
+      http
+        .get(
+          `/namespaces/${params.namespace_id}/search?query=${encodeURIComponent(keywords)}`,
+        )
+        .then((data) => {
+          setItems(data || []);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }, 300);
+  }, [keywords]);
+
+  useEffect(() => {
+    const handleKeyDownFN = (e: KeyboardEvent) => {
+      if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        onOpenChange((val) => !val);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDownFN);
+    return () => document.removeEventListener('keydown', handleKeyDownFN);
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      return;
+    }
+    setKeywords('');
+  }, [open]);
+
   return (
     <CommandDialog
       open={open}
+      onOpenChange={onOpenChange}
       className="bg-white dark:bg-[#303030]"
-      onOpenChange={(val) => {
-        onOpenChange(val);
-      }}
     >
       <CommandInput
         placeholder={t('search.placeholder')}
