@@ -261,7 +261,7 @@ export default function useContext() {
       })
       .catch((err) => {
         toast(err && err.message ? err.message : err, {
-          position: 'top-center',
+          position: 'bottom-right',
         });
       })
       .finally(() => {

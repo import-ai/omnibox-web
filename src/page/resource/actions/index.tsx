@@ -90,7 +90,7 @@ export default function Actions(props: IActionProps) {
     if (id === 'copy_link') {
       const returnValue = copy(location.href);
       toast(t(returnValue ? 'copy.success' : 'copy.fail'), {
-        position: 'top-center',
+        position: 'bottom-right',
       });
       setOpen(false);
       return;
@@ -104,7 +104,7 @@ export default function Actions(props: IActionProps) {
         format: 'text/plain',
       });
       toast(t(returnValue ? 'copy.success' : 'copy.fail'), {
-        position: 'top-center',
+        position: 'bottom-right',
       });
       setOpen(false);
       return;
@@ -178,7 +178,7 @@ export default function Actions(props: IActionProps) {
       })
       .catch((err) => {
         toast(err && err.message ? err.message : err, {
-          position: 'top-center',
+          position: 'bottom-right',
         });
       })
       .finally(() => {

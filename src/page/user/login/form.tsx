@@ -52,7 +52,7 @@ export function LoginForm({
       const allowedDomains = ['gmail.com', 'outlook.com', '163.com', 'qq.com'];
       const domain = data.email.split('@')[1];
       if (!allowedDomains.includes(domain)) {
-        toast(t('form.email_limit_rule'), { position: 'top-center' });
+        toast(t('form.email_limit_rule'), { position: 'bottom-right' });
         return;
       }
     }

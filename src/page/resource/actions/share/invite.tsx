@@ -60,7 +60,7 @@ export default function InviteForm(props: InviteFormProps) {
       .then(() => {
         onChange('');
         toast.success(t('share.invite_success'), {
-          position: 'top-center',
+          position: 'bottom-right',
         });
         groupTitles.length > 0 && app.fire('user_permission_refetch');
       })
