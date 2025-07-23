@@ -8,10 +8,10 @@ import useTheme from '@/hooks/use-theme';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useRef, useState } from 'react';
-import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 import { markdownPreviewConfig } from '@/components/markdown';
 import { toolbar } from '@/page/resource/editor/const';
 import { useTranslation } from 'react-i18next';
+import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 
 interface IEditorProps {
   namespaceId: string;
@@ -33,7 +33,7 @@ function format(_files: File[], responseText: string): string {
   const response: UploadResponse = JSON.parse(responseText);
   const uploadedMap: Record<string, string> = {};
   response.uploaded.forEach((file) => {
-    uploadedMap[file.name] = `/api/v1/images/${file.link}`;
+    uploadedMap[file.name] = `/api/v1/attachments/images/${file.link}`;
   });
   const processedResponse = {
     msg: 'success',
@@ -100,7 +100,7 @@ export default function Editor(props: IEditorProps) {
       mode: 'wysiwyg',
       lang: i18n.language == 'en' ? 'en_US' : 'zh_CN',
       upload: {
-        url: `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
+        url: `/api/v1/attachments?namespaceId=${namespaceId}&resourceId=${resource.id}`,
         accept: 'image/*',
         max: 1024 * 1024 * 5, // 5MB
         headers: {
@@ -117,6 +117,9 @@ export default function Editor(props: IEditorProps) {
         );
         if (vditor.vditor.ir && vditor.vditor.ir.element) {
           addReferrerPolicyForElement(vditor.vditor.ir.element);
+        }
+        if (vditor.vditor.wysiwyg && vditor.vditor.wysiwyg.element) {
+          addReferrerPolicyForElement(vditor.vditor.wysiwyg.element);
         }
         setVd(vditor);
       },
