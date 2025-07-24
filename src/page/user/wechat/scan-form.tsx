@@ -27,6 +27,7 @@ export function ScanForm() {
           appid: response.app_id,
           color_scheme: colorScheme,
           redirect_uri: response.redirect_uri,
+          href: 'data:text/css;base64,LndlYl9xcmNvZGVfcGFuZWxfYXJlYSAud2ViX3FyY29kZV9wYW5lbF9ub3JtYWxfbG9naW57DQogIHBhZGRpbmctdG9wOiAxMHB4Ow0KfQ0KDQoud2ViX3FyY29kZV9wYW5lbF9hcmVhIC53ZWJfcXJjb2RlX3BhbmVsX3F1aWNrX2xvZ2luew0KICBwYWRkaW5nLXRvcDogMTAwcHg7DQp9',
           onReady: function (isReady: boolean) {
             if (!isReady) {
               return;
