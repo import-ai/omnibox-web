@@ -102,7 +102,6 @@
     "submit": "登录",
     "title": "登录您的账户",
     "description": "请输入您的邮箱以登录账户",
-    "scan_description": "使用微信扫码以登录账户",
     "authorizing": "授权中，请稍候...",
     "back": "返回",
     "login_use_wechat": "使用微信登录",
@@ -284,8 +283,7 @@
   "date": {
     "today": "今天",
     "yesterday": "昨天",
-    "last_week": "过去7天",
-    "month_year": "{{year}} 年 {{month}} 月"
+    "last_week": "过去7天"
   },
   "pagination": {
     "prev": "前页",

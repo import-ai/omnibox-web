@@ -31,10 +31,11 @@ const formSchema = z.object({
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg')),
 });
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<'form'>) {
+interface IProps extends React.ComponentPropsWithoutRef<'form'> {
+  children: React.ReactNode;
+}
+
+export function LoginForm({ className, children, ...props }: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -78,69 +79,78 @@ export function LoginForm({
   };
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('flex flex-col gap-4', className)}
-        {...props}
-      >
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input
-                  type="text"
-                  startIcon={Mail}
-                  autoComplete="email"
-                  disabled={isLoading}
-                  placeholder={t('form.email_or_username')}
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>{t('form.email_limit_rule')}</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input
-                  type="password"
-                  autoComplete="new-password"
-                  startIcon={Lock}
-                  disabled={isLoading}
-                  placeholder={t('form.password')}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button
-          type="submit"
-          variant="default"
-          className="w-full disabled:opacity-60"
-          loading={isLoading}
+    <div className="flex flex-col gap-6 pt-14">
+      <div className="flex flex-col items-center gap-2 text-center">
+        <h1 className="text-2xl font-bold">{t('login.title')}</h1>
+        <p className="text-balance text-sm text-muted-foreground">
+          {t('login.description')}
+        </p>
+      </div>
+      {children}
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={cn('flex flex-col gap-4', className)}
+          {...props}
         >
-          {t('login.submit')}
-        </Button>
-        <Space className="text-sm justify-center">
-          <Link to="/user/sign-up" className="text-sm ml-1">
-            {t('register.submit')}
-          </Link>
-          {t('form.or')}
-          <Link to="/user/password" className="text-sm ml-1">
-            {t('password.submit')}
-          </Link>
-        </Space>
-      </form>
-    </Form>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    type="text"
+                    startIcon={Mail}
+                    autoComplete="email"
+                    disabled={isLoading}
+                    placeholder={t('form.email_or_username')}
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>{t('form.email_limit_rule')}</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    startIcon={Lock}
+                    disabled={isLoading}
+                    placeholder={t('form.password')}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button
+            type="submit"
+            variant="default"
+            className="w-full disabled:opacity-60"
+            loading={isLoading}
+          >
+            {t('login.submit')}
+          </Button>
+          <Space className="text-sm justify-center">
+            <Link to="/user/sign-up" className="text-sm ml-1">
+              {t('register.submit')}
+            </Link>
+            {t('form.or')}
+            <Link to="/user/password" className="text-sm ml-1">
+              {t('password.submit')}
+            </Link>
+          </Space>
+        </form>
+      </Form>
+    </div>
   );
 }

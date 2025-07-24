@@ -17,7 +17,7 @@ const NamespacePage = lazy(() => import('@/page/namespace'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
 const InviteRedirectPage = lazy(() => import('@/page/invite-redirect'));
-const AuthConfirmPage = lazy(() => import('@/page/user/login/auth-confirm'));
+const AuthConfirmPage = lazy(() => import('@/page/user/auth-confirm'));
 const PasswordConfirmPage = lazy(() => import('@/page/user/password-confirm'));
 const RegisterConfirmPage = lazy(() => import('@/page/user/register-confirm'));
 

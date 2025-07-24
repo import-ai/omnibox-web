@@ -2,10 +2,10 @@ import WeChat from '../wechat';
 import MetaPage from '../meta';
 import { useState } from 'react';
 import Scan from '../wechat/scan';
-import { LoginForm } from './form';
 import WrapperPage from '../wrapper';
+import { RegisterForm } from './form';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [scan, onScan] = useState(false);
 
   return (
@@ -13,9 +13,9 @@ export default function LoginPage() {
       {scan ? (
         <Scan onScan={onScan} />
       ) : (
-        <LoginForm>
+        <RegisterForm>
           <WeChat onScan={onScan} />
-        </LoginForm>
+        </RegisterForm>
       )}
     </WrapperPage>
   );

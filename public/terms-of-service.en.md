@@ -238,7 +238,7 @@ Changyuan controls and provides Omnibox services from within China. We do not gu
 
 **8. Protection of Personal Information**
 
-Changyuan attaches great importance to user privacy and will collect, store, use, disclose, and protect your personal information in accordance with the applicable **[Omnibox Privacy Policy](/user/privacy-policy)**.
+Changyuan attaches great importance to user privacy and will collect, store, use, disclose, and protect your personal information in accordance with the applicable **[Omnibox Privacy Policy](/single/privacy-policy)**.
 
 **9. Terms for Minors**
 

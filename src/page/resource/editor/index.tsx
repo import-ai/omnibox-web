@@ -21,6 +21,7 @@ interface IEditorProps {
 
 export default function Editor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
+  const { i18n } = useTranslation();
   const busy = useRef(false);
   const root = useRef<any>(null);
   const navigate = useNavigate();
@@ -30,7 +31,6 @@ export default function Editor(props: IEditorProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTitle(e.target.value);
   };
-  const { i18n } = useTranslation();
 
   useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
@@ -54,6 +54,34 @@ export default function Editor(props: IEditorProps) {
         });
     });
   }, [title, vd]);
+
+  useEffect(() => {
+    const keydownFN = (e: KeyboardEvent) => {
+      if (!vd) {
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        const content = vd.getValue();
+        if (busy.current) {
+          return;
+        }
+        busy.current = true;
+        http
+          .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
+            content,
+            namespaceId: namespaceId,
+          })
+          .then(() => {
+            busy.current = false;
+          });
+      }
+    };
+    document.addEventListener('keydown', keydownFN);
+    return () => {
+      document.removeEventListener('keydown', keydownFN);
+    };
+  }, [vd, resource]);
 
   useEffect(() => {
     onTitle(resource.name || '');
@@ -88,35 +116,18 @@ export default function Editor(props: IEditorProps) {
       vd?.destroy();
       setVd(undefined);
     };
-  }, [resource, theme]);
+  }, [resource]);
 
   useEffect(() => {
-    const keydownFN = (e: KeyboardEvent) => {
-      if (!vd) {
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        const content = vd.getValue();
-        if (busy.current) {
-          return;
-        }
-        busy.current = true;
-        http
-          .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
-            content,
-            namespaceId: namespaceId,
-          })
-          .then(() => {
-            busy.current = false;
-          });
-      }
-    };
-    document.addEventListener('keydown', keydownFN);
-    return () => {
-      document.removeEventListener('keydown', keydownFN);
-    };
-  }, [vd, resource]);
+    if (!vd) {
+      return;
+    }
+    vd.setTheme(
+      theme.content === 'dark' ? 'dark' : 'classic',
+      theme.content,
+      theme.code,
+    );
+  }, [vd, theme]);
 
   return (
     <div>

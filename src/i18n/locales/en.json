@@ -102,7 +102,6 @@
     "submit": "Login",
     "title": "Login to your account",
     "description": "Enter your email below to login your account",
-    "scan_description": "Use WeChat to scan the code to login your account",
     "authorizing": "Authorizing, please wait...",
     "back": "Back",
     "login_use_wechat": "Login with WeChat",
@@ -284,8 +283,7 @@
   "date": {
     "today": "Today",
     "yesterday": "Yesterday",
-    "last_week": "Last 7 days",
-    "month_year": "{{year}} Year {{month}} Month"
+    "last_week": "Last 7 days"
   },
   "pagination": {
     "prev": "Previous",
