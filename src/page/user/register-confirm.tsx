@@ -7,7 +7,7 @@ export default function RegisterConFirmPage() {
 
   return (
     <WrapperPage>
-      <div className="flex flex-col space-y-2 text-center mb-5">
+      <div className="flex flex-col space-y-2 text-center mb-5 pt-10">
         <h1 className="text-2xl font-semibold tracking-tight">
           {t('register.conform_title')}
         </h1>

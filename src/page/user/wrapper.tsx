@@ -1,6 +1,5 @@
 import React from 'react';
 import { GalleryVerticalEnd } from 'lucide-react';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Card,
   CardContent,
@@ -36,11 +35,9 @@ export default function WrapperPage(props: WrapperPageProps) {
           {useCard ? (
             <div className="w-full max-w-sm flex flex-col gap-6">
               <Card className="dark:border-[#303030] dark:bg-[#171717]">
-                <CardHeader>
-                  <VisuallyHidden>
-                    <CardTitle></CardTitle>
-                    <CardDescription></CardDescription>
-                  </VisuallyHidden>
+                <CardHeader className="hidden">
+                  <CardTitle></CardTitle>
+                  <CardDescription></CardDescription>
                 </CardHeader>
                 <CardContent>{children}</CardContent>
               </Card>

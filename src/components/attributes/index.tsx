@@ -60,7 +60,7 @@ export default function Attributes(props: IProps) {
               {t('resource.attrs.created')}
             </span>
             <span className="text-foreground">
-              {format(resource.created_at, 'yyyy-MM-dd hh:mm:ss')}
+              {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
             </span>
           </div>
         )}
@@ -123,7 +123,7 @@ export default function Attributes(props: IProps) {
               {t('resource.attrs.created')}
             </span>
             <span className="text-foreground">
-              {format(resource.created_at, 'yyyy-MM-dd hh:mm:ss')}
+              {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
             </span>
           </div>
         )}
@@ -156,7 +156,7 @@ export default function Attributes(props: IProps) {
             {t('resource.attrs.created')}
           </span>
           <span className="text-foreground">
-            {format(resource.created_at, 'yyyy-MM-dd hh:mm:ss')}
+            {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
           </span>
         </div>
       )}
