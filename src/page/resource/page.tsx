@@ -31,7 +31,7 @@ export default function Page(props: IProps) {
         {resource.name || t('untitled')}
       </h1>
       <Attributes namespaceId={namespaceId} resource={resource} />
-      <Render content={resource.content || ''} />
+      <Render resource={resource} />
     </>
   );
 }

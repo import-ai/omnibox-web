@@ -79,7 +79,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           setItems(data || []);
         })
         .catch((err) => {
-          console.log(err);
+          console.error(err);
         });
     }, 300);
   }, [keywords]);

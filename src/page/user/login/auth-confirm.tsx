@@ -4,7 +4,8 @@ import { http } from '@/lib/request';
 import extension from '@/lib/extension';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { setGlobalCredential } from '@/page/user/util';
 
 export default function AuthConfirmPage() {
   const { t } = useTranslation();
@@ -18,8 +19,7 @@ export default function AuthConfirmPage() {
       return;
     }
     http.get(`/wechat/callback?code=${code}&state=${state}`).then((res) => {
-      localStorage.setItem('uid', res.id);
-      localStorage.setItem('token', res.access_token);
+      setGlobalCredential(res.id, res.access_token);
       extension().then((val) => {
         if (val) {
           navigate('/', { replace: true });

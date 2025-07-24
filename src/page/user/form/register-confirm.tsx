@@ -15,6 +15,7 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
+import { setGlobalCredential } from '@/page/user/util';
 
 const registerSchema = z
   .object({
@@ -54,8 +55,7 @@ export function RegisterConFirmForm() {
     http
       .post('sign-up/confirm', { ...data, token })
       .then((response) => {
-        localStorage.setItem('uid', response.id);
-        localStorage.setItem('token', response.access_token);
+        setGlobalCredential(response.id, response.access_token);
         navigate('/', { replace: true });
       })
       .finally(() => {

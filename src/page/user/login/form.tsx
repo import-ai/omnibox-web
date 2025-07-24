@@ -22,6 +22,7 @@ import {
   FormControl,
   FormDescription,
 } from '@/components/ui/form';
+import { setGlobalCredential } from '@/page/user/util';
 
 const formSchema = z.object({
   email: z.string().nonempty(i18next.t('form.email_or_username_invalid')),
@@ -60,8 +61,7 @@ export function LoginForm({
     http
       .post('login', data)
       .then((response) => {
-        localStorage.setItem('uid', response.id);
-        localStorage.setItem('token', response.access_token);
+        setGlobalCredential(response.id, response.access_token);
         if (redirect) {
           location.href = decodeURIComponent(redirect);
         } else {

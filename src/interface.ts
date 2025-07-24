@@ -57,7 +57,7 @@ export interface Resource extends IBase {
   content?: string;
 
   tags?: string[];
-  attrs?: Record<string, string>;
+  attrs?: Record<string, any>;
 
   globalLevel?: Permission;
 
