@@ -5,6 +5,17 @@ interface GroupedItems {
   [key: string]: Array<ConversationSummary>;
 }
 
+function convert(year: number, month: number): string {
+  if (i18next.language === 'zh') {
+    return `${year} 年 ${month} 月`;
+  }
+  const date = new Date(year, month - 1);
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+  }).format(date);
+}
+
 export function groupItemsByTimestamp(
   items: Array<ConversationSummary>,
 ): [string, Array<ConversationSummary>][] {
@@ -42,10 +53,7 @@ export function groupItemsByTimestamp(
       }
       grouped[i18next.t('date.last_week')].push(item);
     } else {
-      const monthKey = i18next.t('date.month_year', {
-        year: itemYear,
-        month: itemMonth,
-      });
+      const monthKey = convert(itemYear, itemMonth);
       if (!grouped[monthKey]) {
         grouped[monthKey] = [];
         monthGroups.push({

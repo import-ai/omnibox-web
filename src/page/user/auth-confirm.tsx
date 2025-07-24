@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import WrapperPage from '../wrapper';
+import WrapperPage from './wrapper';
 import { http } from '@/lib/request';
 import extension from '@/lib/extension';
 import { LoaderCircle } from 'lucide-react';
