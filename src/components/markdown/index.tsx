@@ -1,7 +1,7 @@
 import Vditor from 'vditor';
 import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
-import { VDITOR_CDN } from '@/const';
+import { LAZY_LOAD_IMAGE, VDITOR_CDN } from '@/const';
 import { useEffect, useRef } from 'react';
 import useTheme from '@/hooks/use-theme';
 import { useNavigate } from 'react-router-dom';
@@ -71,6 +71,7 @@ export function Markdown(props: IProps) {
         anchor: 1,
         mode: theme.content,
         transform: addReferrerPolicyForString,
+        lazyLoadImage: LAZY_LOAD_IMAGE,
       });
     }
   }, [content, theme]);
