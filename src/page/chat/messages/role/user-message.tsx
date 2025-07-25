@@ -33,7 +33,7 @@ export function UserMessage(props: IProps) {
       )}
     >
       {lines.map((line, idx) => (
-        <span key={idx}>
+        <span key={idx} className="break-words">
           {line}
           {idx !== lines.length - 1 && <br />}
         </span>

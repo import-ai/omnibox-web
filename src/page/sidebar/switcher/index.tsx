@@ -90,6 +90,7 @@ export function Switcher(props: IProps) {
                     return;
                   }
                   app.fire('context_clear');
+                  app.fire('clean_resource');
                   navigate(`/${item.id}/chat`);
                 }}
               >

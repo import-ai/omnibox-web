@@ -56,7 +56,7 @@ export function InviteForm() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pt-10">
       <div className="text-center">
         {t('invite.join', { user: data.username, namespace: data.namespace })}
       </div>
