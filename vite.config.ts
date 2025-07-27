@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      host: true, // 允许网络访问
       proxy: {
         '/api/v1': {
           target:
