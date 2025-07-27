@@ -64,6 +64,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
       .then((response) => {
         setGlobalCredential(response.id, response.access_token);
         if (redirect) {
+          // Redirect to the original page after successful login
           location.href = decodeURIComponent(redirect);
         } else {
           extension().then((val) => {
