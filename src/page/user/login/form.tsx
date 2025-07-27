@@ -64,7 +64,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
       .then((response) => {
         setGlobalCredential(response.id, response.access_token);
         if (redirect) {
-          location.href = decodeURIComponent(redirect);
+          navigate(decodeURIComponent(redirect), { replace: true });
         } else {
           extension().then((val) => {
             if (val) {
@@ -105,6 +105,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
                     autoComplete="email"
                     disabled={isLoading}
                     placeholder={t('form.email_or_username')}
+                    className="text-base md:text-sm"
                     {...field}
                   />
                 </FormControl>
@@ -125,6 +126,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
                     startIcon={Lock}
                     disabled={isLoading}
                     placeholder={t('form.password')}
+                    className="text-base md:text-sm"
                     {...field}
                   />
                 </FormControl>
