@@ -122,7 +122,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
                 <FormControl>
                   <Input
                     type="password"
-                    autoComplete="new-password"
+                    autoComplete="current-password"
                     startIcon={Lock}
                     disabled={isLoading}
                     placeholder={t('form.password')}

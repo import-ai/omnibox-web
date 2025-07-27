@@ -8,6 +8,7 @@ export function Logout() {
   const navigate = useNavigate();
   const handleLogout = () => {
     removeGlobalCredential();
+    document.body.style.pointerEvents = '';
     navigate('/user/login', { replace: true });
   };
 
