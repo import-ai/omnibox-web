@@ -530,7 +530,10 @@ export default function useContext() {
     }
     http
       .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
-      .then(onData);
+      .then(onData)
+      .finally(() => {
+        onExpands([]);
+      });
   }, [namespaceId]);
 
   return {

@@ -7,7 +7,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <WrapperPage>
-      <div className="flex flex-col space-y-2 text-center pt-12 pb-6">
+      <div className="flex flex-col space-y-2 text-center pt-10 pb-6">
         <h1 className="text-2xl font-semibold tracking-tight">
           {t('password.conform_title')}
         </h1>

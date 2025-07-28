@@ -68,6 +68,18 @@ export default function Layout() {
         onToggleTheme(response.value);
       }
     });
+    const storageChangeFN = (event: StorageEvent) => {
+      if (event.key === 'theme') {
+        const themeInStorage = JSON.parse(event.newValue || '{}');
+        onToggleTheme(themeInStorage.skin);
+      } else if (event.key === 'i18nextLng') {
+        event.newValue && i18n.changeLanguage(event.newValue);
+      }
+    };
+    window.addEventListener('storage', storageChangeFN);
+    return () => {
+      window.removeEventListener('storage', storageChangeFN);
+    };
   }, []);
 
   return (

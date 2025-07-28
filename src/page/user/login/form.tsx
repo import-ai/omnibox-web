@@ -79,7 +79,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
   };
 
   return (
-    <div className="flex flex-col gap-6 pt-14">
+    <div className="flex flex-col gap-6 pt-10">
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">{t('login.title')}</h1>
         <p className="text-balance text-sm text-muted-foreground">
