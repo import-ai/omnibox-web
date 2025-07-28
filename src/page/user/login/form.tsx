@@ -105,6 +105,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
                     autoComplete="email"
                     disabled={isLoading}
                     placeholder={t('form.email_or_username')}
+                    className="text-base md:text-sm"
                     {...field}
                   />
                 </FormControl>
@@ -121,10 +122,11 @@ export function LoginForm({ className, children, ...props }: IProps) {
                 <FormControl>
                   <Input
                     type="password"
-                    autoComplete="new-password"
+                    autoComplete="current-password"
                     startIcon={Lock}
                     disabled={isLoading}
                     placeholder={t('form.password')}
+                    className="text-base md:text-sm"
                     {...field}
                   />
                 </FormControl>
