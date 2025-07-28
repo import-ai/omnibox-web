@@ -5,8 +5,6 @@ import { http } from '@/lib/request';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LanguageToggle } from '@/page/resource/language-toggle';
-import { ThemeToggle } from '@/page/resource/theme-toggle';
 import {
   Plus,
   Edit2,
@@ -101,8 +99,6 @@ export default function Actions(props: IProps) {
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <LanguageToggle />
-      <ThemeToggle />
       {conversationsPage || conversationId ? (
         <Button
           size="icon"
