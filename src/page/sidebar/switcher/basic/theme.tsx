@@ -1,3 +1,4 @@
+import { http } from '@/lib/request';
 import useTheme from '@/hooks/use-theme';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,12 @@ export default function Theme() {
     { label: t('manage.theme_dark'), value: 'dark' },
     { label: t('manage.theme_system'), value: 'system' },
   ];
+  const handleToggleTheme = (skin: 'light' | 'system' | 'dark') => {
+    http.post('/user/option', {
+      name: 'theme',
+      value: onToggleTheme(skin),
+    });
+  };
 
   return (
     <div className="flex items-center justify-between">
@@ -42,7 +49,7 @@ export default function Theme() {
             <DropdownMenuItem
               key={item.value}
               className="flex justify-between"
-              onClick={() => onToggleTheme(item.value)}
+              onClick={() => handleToggleTheme(item.value)}
             >
               {item.label}
               {item.value === theme.skin && <Check className="size-4" />}

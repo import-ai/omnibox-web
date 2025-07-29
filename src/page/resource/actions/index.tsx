@@ -15,8 +15,6 @@ import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { uploadFiles } from '@/lib/upload-files';
 import { IUseResource } from '@/hooks/user-resource';
-import { LanguageToggle } from '@/page/resource/language-toggle';
-import { ThemeToggle } from '@/page/resource/theme-toggle';
 import PermissionWrapper from '@/components/permission-action/wrapper';
 import {
   Popover,
@@ -204,8 +202,6 @@ export default function Actions(props: IActionProps) {
       >
         <Share />
       </PermissionWrapper>
-      <LanguageToggle />
-      <ThemeToggle />
       {resource && (
         <PermissionWrapper
           level={1}

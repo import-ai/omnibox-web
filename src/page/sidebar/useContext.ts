@@ -16,6 +16,7 @@ export default function useContext() {
   const params = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const expandedRef = useRef(false);
   const lazyExpanded = useRef(false);
   const { isMobile, setOpenMobile } = useSidebar();
   const chatPage = loc.pathname.includes('/chat');
@@ -74,6 +75,9 @@ export default function useContext() {
     isMobile && setOpenMobile(false);
   };
   const handleExpand = (spaceType: SpaceType, id: string) => {
+    if (expandedRef.current || expanding) {
+      return;
+    }
     const target = getResourceByField(id, 'parent_id');
     if (target) {
       if (expands.includes(id)) {
@@ -104,9 +108,8 @@ export default function useContext() {
         onData({ ...data });
         expands.push(id);
         onExpands([...expands]);
-        onExpanding('');
       })
-      .catch(() => {
+      .finally(() => {
         onExpanding('');
       });
   };
@@ -119,18 +122,11 @@ export default function useContext() {
       .get(`/namespaces/${namespaceId}/resources/${id}/children`)
       .then((response) => {
         if (response.length <= 0) {
-          data[spaceType].children.push({
-            id: 'empty',
-            name: '',
-            parent_id: id,
-            children: [],
-            resource_type: 'file',
-          });
-        } else {
-          each(response, (item) => {
-            data[spaceType].children.push(item);
-          });
+          return;
         }
+        each(response, (item) => {
+          data[spaceType].children.push(item);
+        });
         onData({ ...data });
       });
   };
@@ -360,9 +356,6 @@ export default function useContext() {
         if (!targetKey || !resourceKey || resourceIndex < 0) {
           return;
         }
-        if (!expands.includes(targetId)) {
-          handleExpand(targetKey, targetId);
-        }
         const emptyTargetIndex = data[targetKey].children.findIndex(
           (item) => item.parent_id === targetId && item.id === 'empty',
         );
@@ -400,6 +393,19 @@ export default function useContext() {
         onExpands((expands) =>
           expands.filter((expand) => expand !== resourceId),
         );
+        expandedRef.current = false;
+        if (!expands.includes(targetId)) {
+          onExpanding('');
+          handleExpand(targetKey as SpaceType, targetId);
+        }
+      }),
+    );
+    hooks.push(
+      app.on('clean_resource', () => {
+        each(data, (_resource, key) => {
+          data[key].children = [];
+        });
+        onData({ ...data });
       }),
     );
     return () => {
@@ -408,6 +414,12 @@ export default function useContext() {
       });
     };
   }, [data]);
+
+  useEffect(() => {
+    return app.on('move_resource_start', () => {
+      expandedRef.current = true;
+    });
+  }, []);
 
   useEffect(() => {
     if (resourceId || chatPage) {
@@ -518,7 +530,10 @@ export default function useContext() {
     }
     http
       .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
-      .then(onData);
+      .then(onData)
+      .finally(() => {
+        onExpands([]);
+      });
   }, [namespaceId]);
 
   return {

@@ -1,4 +1,5 @@
 import { http } from '@/lib/request';
+import useApp from '@/hooks/use-app';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import type { Resource, SpaceType } from '@/interface';
@@ -28,6 +29,7 @@ export default function Resource(props: IProps) {
     onSearch,
     onFinished,
   } = props;
+  const app = useApp();
   const { t } = useTranslation();
   const resourceName = data.name || t('untitled');
   let name = resourceName;
@@ -42,6 +44,7 @@ export default function Resource(props: IProps) {
       className="w-full flex h-auto whitespace-normal justify-start items-start font-normal rounded-none"
       onClick={() => {
         onEditId(data.id);
+        app.fire('move_resource_start');
         http
           .post(
             `/namespaces/${namespaceId}/resources/${resourceId}/move/${data.id}`,

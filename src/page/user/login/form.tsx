@@ -84,7 +84,7 @@ export function LoginForm({ checked, className, children, ...props }: IProps) {
   };
 
   return (
-    <div className="flex flex-col gap-6 pt-14">
+    <div className="flex flex-col gap-6 pt-10">
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">{t('login.title')}</h1>
         <p className="text-balance text-sm text-muted-foreground">
@@ -110,6 +110,7 @@ export function LoginForm({ checked, className, children, ...props }: IProps) {
                     autoComplete="email"
                     disabled={isLoading}
                     placeholder={t('form.email_or_username')}
+                    className="text-base md:text-sm"
                     {...field}
                   />
                 </FormControl>
@@ -126,10 +127,11 @@ export function LoginForm({ checked, className, children, ...props }: IProps) {
                 <FormControl>
                   <Input
                     type="password"
-                    autoComplete="new-password"
+                    autoComplete="current-password"
                     startIcon={Lock}
                     disabled={isLoading}
                     placeholder={t('form.password')}
+                    className="text-base md:text-sm"
                     {...field}
                   />
                 </FormControl>

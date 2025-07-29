@@ -21,7 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
+  // DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -78,7 +78,7 @@ export function Switcher(props: IProps) {
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               {t('namespace.name')}
             </DropdownMenuLabel>
-            {data.map((item, index) => (
+            {data.map((item) => (
               <DropdownMenuItem
                 key={item.id}
                 disabled={item.id === namespaceId}
@@ -90,6 +90,7 @@ export function Switcher(props: IProps) {
                     return;
                   }
                   app.fire('context_clear');
+                  app.fire('clean_resource');
                   navigate(`/${item.id}/chat`);
                 }}
               >
@@ -97,7 +98,7 @@ export function Switcher(props: IProps) {
                   <Command className="size-4 shrink-0" />
                 </div>
                 <span className="truncate">{item.name}</span>
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                {/* <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut> */}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
