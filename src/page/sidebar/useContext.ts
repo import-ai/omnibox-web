@@ -17,7 +17,6 @@ export default function useContext() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const expandedRef = useRef(false);
-  const lazyExpanded = useRef(false);
   const { isMobile, setOpenMobile } = useSidebar();
   const chatPage = loc.pathname.includes('/chat');
   const resourceId = params.resource_id || '';
@@ -439,15 +438,9 @@ export default function useContext() {
   }, [chatPage, namespaceId, resourceId, data]);
 
   useEffect(() => {
-    if (
-      !namespaceId ||
-      !resourceId ||
-      Object.keys(data).length <= 0 ||
-      lazyExpanded.current
-    ) {
+    if (!namespaceId || !resourceId || Object.keys(data).length <= 0) {
       return;
     }
-    lazyExpanded.current = true;
     const target = getResourceByField(resourceId);
     if (target) {
       return;
