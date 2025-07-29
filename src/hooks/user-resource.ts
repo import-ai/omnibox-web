@@ -1,10 +1,11 @@
+import axios from 'axios';
 import useApp from './use-app';
 import App from '@/hooks/app.class';
 import { http } from '@/lib/request';
 import { SITE_NAME } from '@/const';
 import { Resource } from '@/interface';
-import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 
 export interface IUseResource {
@@ -36,9 +37,11 @@ export default function useResource() {
     }
     onLoading(true);
     onForbidden(false);
+    const source = axios.CancelToken.source();
     http
       .get(`/namespaces/${namespaceId}/resources/${resourceId}`, {
         mute: true,
+        cancelToken: source.token,
       })
       .then(onResource)
       .catch((err) => {
@@ -49,6 +52,9 @@ export default function useResource() {
       .finally(() => {
         onLoading(false);
       });
+    return () => {
+      source.cancel();
+    };
   }, [resourceId]);
 
   useEffect(() => {

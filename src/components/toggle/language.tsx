@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { http } from '@/lib/request';
 import { Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,24 +9,15 @@ export function LanguageToggle() {
     const currentLang = i18n.language || navigator.language;
     const newLanguage = currentLang === 'en' ? 'zh' : 'en';
     i18n.changeLanguage(newLanguage).then(() => {
+      if (!localStorage.getItem('uid')) {
+        return;
+      }
       http.post('/user/option', {
         name: 'language',
         value: newLanguage === 'en' ? 'en-US' : 'zh-CN',
       });
     });
   };
-
-  useEffect(() => {
-    http.get('/user/option/language').then((response) => {
-      if (!response || !response.value) {
-        return;
-      }
-      const lng = response.value === 'en-US' ? 'en' : 'zh';
-      if (lng !== i18n.language) {
-        i18n.changeLanguage(lng);
-      }
-    });
-  }, [i18n]);
 
   return (
     <Button

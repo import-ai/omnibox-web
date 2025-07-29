@@ -1,3 +1,4 @@
+import { http } from '@/lib/request';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronDown, Earth } from 'lucide-react';
@@ -14,6 +15,14 @@ export default function Language() {
     { label: '简体中文', value: 'zh' },
     { label: 'English', value: 'en' },
   ];
+  const toggleLanguage = (lang: string) => {
+    i18n.changeLanguage(lang).then(() => {
+      http.post('/user/option', {
+        name: 'language',
+        value: lang === 'en' ? 'en-US' : 'zh-CN',
+      });
+    });
+  };
 
   return (
     <div className="flex items-center justify-between">
@@ -36,7 +45,7 @@ export default function Language() {
             <DropdownMenuItem
               key={item.value}
               className="flex justify-between"
-              onClick={() => i18n.changeLanguage(item.value)}
+              onClick={() => toggleLanguage(item.value)}
             >
               {item.label}
               {item.value === i18n.language && <Check className="size-4" />}

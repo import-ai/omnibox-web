@@ -43,19 +43,21 @@ request.interceptors.response.use(
     return response.data;
   },
   (error: AxiosError) => {
+    const isCancel = axios.isCancel(error);
     const config = (error.config as RequestConfig) || {};
-    if (isUndefined(config.mute) || !config.mute) {
+    if ((isUndefined(config.mute) || !config.mute) && !isCancel) {
       let errorMessage = i18next.t('request.failed');
+      const err = error as AxiosError;
       if (
-        error.response &&
-        error.response.data &&
+        err.response &&
+        err.response.data &&
         // @ts-ignore
-        error.response.data.message
+        err.response.data.message
       ) {
         // @ts-ignore
-        errorMessage = error.response.data.message;
+        errorMessage = err.response.data.message;
       } else {
-        switch (error.status) {
+        switch (err.status) {
           case 400:
             errorMessage = i18next.t('request.bad_request');
             break;
@@ -76,7 +78,7 @@ request.interceptors.response.use(
         }
       }
       toast.error(errorMessage, { position: 'bottom-right' });
-      if (error.status === 401 && localStorage.getItem('uid')) {
+      if (err.status === 401 && localStorage.getItem('uid')) {
         localStorage.removeItem('uid');
         localStorage.removeItem('token');
         setTimeout(() => {

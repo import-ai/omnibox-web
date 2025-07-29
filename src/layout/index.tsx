@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { http } from '@/lib/request';
 import extension from '@/lib/extension';
+import useTheme from '@/hooks/use-theme';
+import { useTranslation } from 'react-i18next';
 import { Toaster } from '@/components/ui/sonner';
 import { Outlet, useNavigate, useLocation, useParams } from 'react-router-dom';
 
@@ -8,6 +10,8 @@ export default function Layout() {
   const loc = useLocation();
   const params = useParams();
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
+  const { app, onToggleTheme } = useTheme();
   const namespace_id = params.namespace_id;
 
   useEffect(() => {
@@ -41,6 +45,42 @@ export default function Layout() {
       });
     }
   }, [namespace_id, loc.pathname]);
+
+  useEffect(() => {
+    if (!localStorage.getItem('uid')) {
+      return;
+    }
+    http.get('/user/option/language').then((response) => {
+      if (!response || !response.value) {
+        return;
+      }
+      const lng = response.value === 'en-US' ? 'en' : 'zh';
+      if (lng !== i18n.language) {
+        i18n.changeLanguage(lng);
+      }
+    });
+    http.get('/user/option/theme').then((response) => {
+      if (!response || !response.value) {
+        return;
+      }
+      const cuttentTheme = app.getTheme();
+      if (response.value !== cuttentTheme.skin) {
+        onToggleTheme(response.value);
+      }
+    });
+    const storageChangeFN = (event: StorageEvent) => {
+      if (event.key === 'theme') {
+        const themeInStorage = JSON.parse(event.newValue || '{}');
+        onToggleTheme(themeInStorage.skin);
+      } else if (event.key === 'i18nextLng') {
+        event.newValue && i18n.changeLanguage(event.newValue);
+      }
+    };
+    window.addEventListener('storage', storageChangeFN);
+    return () => {
+      window.removeEventListener('storage', storageChangeFN);
+    };
+  }, []);
 
   return (
     <>
