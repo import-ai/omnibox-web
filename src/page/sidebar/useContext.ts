@@ -447,8 +447,11 @@ export default function useContext() {
     if (target) {
       return;
     }
+    const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/resources/${resourceId}`)
+      .get(`/namespaces/${namespaceId}/resources/${resourceId}`, {
+        cancelToken: source.token,
+      })
       .then((resource) => {
         const path = resource.path;
         if (!Array.isArray(path) || path.length <= 0) {
@@ -468,6 +471,9 @@ export default function useContext() {
         http
           .get(
             `/namespaces/${namespaceId}/resources?id=${resourceIdsToLoad.join(',')}`,
+            {
+              cancelToken: source.token,
+            },
           )
           .then((response) => {
             each(response, (item) => {
@@ -517,6 +523,9 @@ export default function useContext() {
             });
           });
       });
+    return () => {
+      source.cancel();
+    };
   }, [namespaceId, resourceId, chatPage, data]);
 
   useEffect(() => {
