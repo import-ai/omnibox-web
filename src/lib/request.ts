@@ -43,11 +43,14 @@ request.interceptors.response.use(
     return response.data;
   },
   (error: AxiosError) => {
-    const isCancel = axios.isCancel(error);
-    const config = (error.config as RequestConfig) || {};
-    if ((isUndefined(config.mute) || !config.mute) && !isCancel) {
+    if (axios.isCancel(error)) {
+      // If the request is cancelled, do not show error message
+      return Promise.resolve();
+    }
+    const err = error as AxiosError;
+    const config = (err.config as RequestConfig) || {};
+    if (isUndefined(config.mute) || !config.mute) {
       let errorMessage = i18next.t('request.failed');
-      const err = error as AxiosError;
       if (
         err.response &&
         err.response.data &&
