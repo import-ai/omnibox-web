@@ -120,9 +120,7 @@ export function CitationMarkdown(props: IProps) {
       className="markdown-body reset-list"
       style={{ background: 'transparent' }}
     >
-      <p className="opacity-60 text-sm">
-        &gt; 该内容由大模型生成，请核查重要信息。
-      </p>
+      <p className="opacity-60 text-sm">&gt; 此内容由AI生成。</p>
       <Markdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
