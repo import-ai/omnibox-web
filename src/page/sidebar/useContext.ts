@@ -386,7 +386,8 @@ export default function useContext() {
           if (emptyResourceIndex >= 0) {
             data[resourceKey].children.splice(emptyResourceIndex, 1);
           }
-          data[targetKey].children.push(resources[0]);
+          // Do not update manually, as there may be other child elements
+          // data[targetKey].children.push(resources[0]);
         }
         onData({ ...data });
         onExpands((expands) =>
