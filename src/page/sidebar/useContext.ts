@@ -1,3 +1,4 @@
+import axios from 'axios';
 import each from '@/lib/each';
 import { toast } from 'sonner';
 import { orderBy } from 'lodash-es';
@@ -522,12 +523,18 @@ export default function useContext() {
     if (!localStorage.getItem('uid')) {
       return;
     }
+    const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
+      .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`, {
+        cancelToken: source.token,
+      })
       .then(onData)
       .finally(() => {
         onExpands([]);
       });
+    return () => {
+      source.cancel();
+    };
   }, [namespaceId]);
 
   return {

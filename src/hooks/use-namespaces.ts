@@ -1,3 +1,4 @@
+import axios from 'axios';
 import useApp from './use-app';
 import { http } from '@/lib/request';
 import { Namespace } from '@/interface';
@@ -12,12 +13,16 @@ export default function useNamespaces() {
     if (!localStorage.getItem('uid')) {
       return;
     }
+    const source = axios.CancelToken.source();
     http
-      .get('namespaces')
+      .get('namespaces', { cancelToken: source.token })
       .then(onData)
       .finally(() => {
         onLoading(false);
       });
+    return () => {
+      source.cancel();
+    };
   };
 
   useEffect(refetch, []);

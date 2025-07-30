@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { format } from 'date-fns';
 import { http } from '@/lib/request';
 import { Resource } from '@/interface';
@@ -22,12 +23,18 @@ export default function Folder(props: IProps) {
 
   useEffect(() => {
     onLoading(true);
+    const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/resources/${resource.id}/children`)
+      .get(`/namespaces/${namespaceId}/resources/${resource.id}/children`, {
+        cancelToken: source.token,
+      })
       .then(onData)
       .finally(() => {
         onLoading(false);
       });
+    return () => {
+      source.cancel();
+    };
   }, [namespaceId, resource.id]);
 
   if (loading) {

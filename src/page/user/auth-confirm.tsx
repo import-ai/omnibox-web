@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useEffect } from 'react';
 import WrapperPage from './wrapper';
 import { http } from '@/lib/request';
@@ -18,14 +19,22 @@ export default function AuthConfirmPage() {
     if (!code || !state) {
       return;
     }
-    http.get(`/wechat/callback?code=${code}&state=${state}`).then((res) => {
-      setGlobalCredential(res.id, res.access_token);
-      extension().then((val) => {
-        if (val) {
-          navigate('/', { replace: true });
-        }
+    const source = axios.CancelToken.source();
+    http
+      .get(`/wechat/callback?code=${code}&state=${state}`, {
+        cancelToken: source.token,
+      })
+      .then((res) => {
+        setGlobalCredential(res.id, res.access_token);
+        extension().then((val) => {
+          if (val) {
+            navigate('/', { replace: true });
+          }
+        });
       });
-    });
+    return () => {
+      source.cancel();
+    };
   }, [code, state]);
 
   return (
