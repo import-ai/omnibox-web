@@ -24,6 +24,13 @@ export default defineConfig(({ mode }) => {
             'http://127.0.0.1:8000',
           changeOrigin: true,
         },
+        '/assets/vditor': {
+          target:
+            process.env.VITE_API_PATH ??
+            env.VITE_API_PATH ??
+            'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
       },
     },
   };
