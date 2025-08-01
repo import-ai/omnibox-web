@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { User } from '@/interface';
 import { http } from '@/lib/request';
 import { useState, useEffect } from 'react';
@@ -11,12 +12,16 @@ export default function useUser() {
     username: '',
   });
   const refetch = () => {
+    const source = axios.CancelToken.source();
     http
-      .get(`user/${uid}`)
+      .get(`user/${uid}`, { cancelToken: source.token })
       .then(setUser)
       .finally(() => {
         setLoading(false);
       });
+    return () => {
+      source.cancel();
+    };
   };
   const onChange = (data: any, callback?: () => void) => {
     return http

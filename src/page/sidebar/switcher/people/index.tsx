@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { http } from '@/lib/request';
 import Table from '../manage';
@@ -11,8 +12,11 @@ export default function PeopleManage() {
 
   const [invitationId, setInvitationId] = useState('');
   const refetch = () => {
+    const source = axios.CancelToken.source();
     http
-      .get(`namespaces/${namespaceId}/invitations?type=namespace`)
+      .get(`namespaces/${namespaceId}/invitations?type=namespace`, {
+        cancelToken: source.token,
+      })
       .then((data) => {
         if (data.length > 0) {
           setInvitationId(data[0].id);
@@ -20,6 +24,9 @@ export default function PeopleManage() {
           setInvitationId('');
         }
       });
+    return () => {
+      source.cancel();
+    };
   };
 
   useEffect(refetch, []);
