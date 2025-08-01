@@ -1,3 +1,4 @@
+import axios from 'axios';
 import useApp from './use-app';
 import { http } from '@/lib/request';
 import { Namespace } from '@/interface';
@@ -18,12 +19,16 @@ export default function useNamespace() {
       return;
     }
     onLoading(true);
+    const source = axios.CancelToken.source();
     http
-      .get(`namespaces/${namespace_id}`)
+      .get(`namespaces/${namespace_id}`, { cancelToken: source.token })
       .then(onData)
       .finally(() => {
         onLoading(false);
       });
+    return () => {
+      source.cancel();
+    };
   };
   const onChange = (val: { name: string }) => {
     if (!namespace_id) {

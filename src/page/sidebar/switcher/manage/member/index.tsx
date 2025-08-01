@@ -1,3 +1,4 @@
+import axios from 'axios';
 import Action from './action';
 import Invite from '../../invite';
 import { http } from '@/lib/request';
@@ -35,11 +36,17 @@ export default function MemberMain(props: MemberProps) {
     0;
 
   useEffect(() => {
+    const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespace_id}/root?namespace_id=${namespace_id}`)
+      .get(`/namespaces/${namespace_id}/root?namespace_id=${namespace_id}`, {
+        cancelToken: source.token,
+      })
       .then((res) => {
         onResourceId(res.teamspace.id);
       });
+    return () => {
+      source.cancel();
+    };
   }, [namespace_id]);
 
   return (

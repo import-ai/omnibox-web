@@ -1,4 +1,5 @@
 import { Resource } from '@/interface';
+import Folder from '@/page/resource/folder';
 import Render from '@/page/resource/render';
 import Editor from '@/page/resource/editor';
 import { useTranslation } from 'react-i18next';
@@ -31,7 +32,11 @@ export default function Page(props: IProps) {
         {resource.name || t('untitled')}
       </h1>
       <Attributes namespaceId={namespaceId} resource={resource} />
-      <Render resource={resource} />
+      {resource.resource_type === 'folder' ? (
+        <Folder resource={resource} namespaceId={namespaceId} />
+      ) : (
+        <Render resource={resource} />
+      )}
     </>
   );
 }
