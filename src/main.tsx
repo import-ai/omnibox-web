@@ -5,4 +5,6 @@ import './index.css';
 
 createRoot(document.getElementById('root')!).render(<App />);
 
-console.log('当前 OmniBox 版本：', import.meta.env.VITE_APP_VERSION);
+if (import.meta.env.MODE === 'development') {
+  console.log('OmniBox 当前版本：', import.meta.env.VITE_APP_VERSION);
+}
