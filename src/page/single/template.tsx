@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -23,8 +24,9 @@ export default function Template(props: IProps) {
 
   useEffect(() => {
     setLoading(true);
+    const source = axios.CancelToken.source();
     http
-      .get(`/${id}.${language}.md`, { baseURL: '' })
+      .get(`/${id}.${language}.md`, { baseURL: '', cancelToken: source.token })
       .then((response) => {
         const [title, content] = response.split('--');
         onData({
@@ -35,6 +37,9 @@ export default function Template(props: IProps) {
       .finally(() => {
         setLoading(false);
       });
+    return () => {
+      source.cancel();
+    };
   }, [id, language]);
 
   return (

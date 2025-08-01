@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/button';
@@ -35,9 +36,10 @@ export function InviteForm() {
     if (!namespaceId || !userId) {
       return;
     }
+    const source = axios.CancelToken.source();
     Promise.all(
       [`namespaces/${namespaceId}`, `user/${userId}`].map((uri) =>
-        http.get(uri),
+        http.get(uri, { cancelToken: source.token }),
       ),
     ).then(([namespace, user]) => {
       onData({
@@ -45,6 +47,9 @@ export function InviteForm() {
         username: user.username,
       });
     });
+    return () => {
+      source.cancel();
+    };
   }, []);
 
   if (!token || !namespaceId || !userId) {

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { cn } from '@/lib/utils';
 import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
@@ -11,8 +12,9 @@ export function ScanForm() {
 
   useEffect(() => {
     setLoading(true);
+    const source = axios.CancelToken.source();
     http
-      .get('/wechat/qrcode')
+      .get('/wechat/qrcode', { cancelToken: source.token })
       .then((response) => {
         let colorScheme = 'light';
         const themeStorage = localStorage.getItem('theme');
@@ -53,6 +55,9 @@ export function ScanForm() {
       .catch(() => {
         setLoading(false);
       });
+    return () => {
+      source.cancel();
+    };
   }, []);
 
   return (

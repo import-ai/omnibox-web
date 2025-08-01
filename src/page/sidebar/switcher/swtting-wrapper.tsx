@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -51,11 +52,20 @@ export default function SettingWrapper() {
       ];
 
   useEffect(() => {
+    const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/members/${localStorage.getItem('uid')}`)
+      .get(
+        `/namespaces/${namespaceId}/members/${localStorage.getItem('uid')}`,
+        {
+          cancelToken: source.token,
+        },
+      )
       .then((res) => {
         setUserIsOwner(res.role === 'owner');
       });
+    return () => {
+      source.cancel();
+    };
   }, []);
 
   return (

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import each from '@/lib/each';
 import { toast } from 'sonner';
 import { orderBy } from 'lodash-es';
@@ -17,7 +18,6 @@ export default function useContext() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const expandedRef = useRef(false);
-  const lazyExpanded = useRef(false);
   const { isMobile, setOpenMobile } = useSidebar();
   const chatPage = loc.pathname.includes('/chat');
   const resourceId = params.resource_id || '';
@@ -387,7 +387,8 @@ export default function useContext() {
           if (emptyResourceIndex >= 0) {
             data[resourceKey].children.splice(emptyResourceIndex, 1);
           }
-          data[targetKey].children.push(resources[0]);
+          // Do not update manually, as there may be other child elements
+          // data[targetKey].children.push(resources[0]);
         }
         onData({ ...data });
         onExpands((expands) =>
@@ -439,21 +440,18 @@ export default function useContext() {
   }, [chatPage, namespaceId, resourceId, data]);
 
   useEffect(() => {
-    if (
-      !namespaceId ||
-      !resourceId ||
-      Object.keys(data).length <= 0 ||
-      lazyExpanded.current
-    ) {
+    if (!namespaceId || !resourceId || Object.keys(data).length <= 0) {
       return;
     }
-    lazyExpanded.current = true;
     const target = getResourceByField(resourceId);
     if (target) {
       return;
     }
+    const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/resources/${resourceId}`)
+      .get(`/namespaces/${namespaceId}/resources/${resourceId}`, {
+        cancelToken: source.token,
+      })
       .then((resource) => {
         const path = resource.path;
         if (!Array.isArray(path) || path.length <= 0) {
@@ -473,6 +471,9 @@ export default function useContext() {
         http
           .get(
             `/namespaces/${namespaceId}/resources?id=${resourceIdsToLoad.join(',')}`,
+            {
+              cancelToken: source.token,
+            },
           )
           .then((response) => {
             each(response, (item) => {
@@ -522,18 +523,27 @@ export default function useContext() {
             });
           });
       });
+    return () => {
+      source.cancel();
+    };
   }, [namespaceId, resourceId, chatPage, data]);
 
   useEffect(() => {
     if (!localStorage.getItem('uid')) {
       return;
     }
+    const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
+      .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`, {
+        cancelToken: source.token,
+      })
       .then(onData)
       .finally(() => {
         onExpands([]);
       });
+    return () => {
+      source.cancel();
+    };
   }, [namespaceId]);
 
   return {
