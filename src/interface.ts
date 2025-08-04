@@ -170,8 +170,18 @@ export type ShareType = 'doc_only' | 'chat_only' | 'all';
 export interface ShareInfo {
   id: string;
   enabled: boolean;
+  all_resources: boolean;
   require_login: boolean;
   password_enabled: boolean;
   share_type: ShareType;
   expires_at: Date | null;
+}
+
+export interface UpdateShareInfoReq {
+  enabled?: boolean;
+  all_resources?: boolean;
+  require_login?: boolean;
+  password?: string | null;
+  share_type?: ShareType;
+  expires_at?: Date | null;
 }

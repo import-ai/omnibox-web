@@ -1,0 +1,199 @@
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/select';
+import { SelectValue } from '@radix-ui/react-select';
+import { useEffect, useState } from 'react';
+
+interface ExpireProps {
+  expiresAt: Date | null;
+  onNeverSelected: () => void;
+  onDateSelected: (date: Date) => void;
+  onCountdownSelected: (seconds: number) => void;
+}
+
+type ExpiresType = 'never' | 'countdown' | 'date';
+type CountDownUnit = 'seconds' | 'minutes' | 'hours' | 'days';
+
+const ExpiresTypes: ExpiresType[] = ['never', 'countdown', 'date'];
+const CountDownUnits: CountDownUnit[] = ['seconds', 'minutes', 'hours', 'days'];
+
+function expiresTypeToString(type: ExpiresType): string {
+  switch (type) {
+    case 'never':
+      return 'Never';
+    case 'countdown':
+      return 'Countdown';
+    case 'date':
+      return 'Date';
+    default:
+      return '';
+  }
+}
+
+function unitToString(unit: CountDownUnit): string {
+  switch (unit) {
+    case 'seconds':
+      return 'Seconds';
+    case 'minutes':
+      return 'Minutes';
+    case 'hours':
+      return 'Hours';
+    case 'days':
+      return 'Days';
+    default:
+      return '';
+  }
+}
+
+export function Expire(props: ExpireProps) {
+  const { expiresAt, onNeverSelected, onDateSelected, onCountdownSelected } =
+    props;
+  const [selectedType, setSelectedType] = useState<ExpiresType>('never');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedUnit, setSelectedUnit] = useState<CountDownUnit>('seconds');
+  const [countdown, setCountdown] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (expiresAt) {
+      setSelectedType('date');
+      setSelectedDate(expiresAt);
+    } else {
+      setSelectedType('never');
+      setSelectedDate(undefined);
+    }
+  }, [expiresAt]);
+
+  const handleSelectType = (type: string) => {
+    const selectedType = type as ExpiresType;
+    setSelectedType(selectedType);
+    if (selectedType === 'never') {
+      onNeverSelected();
+    }
+  };
+
+  const handleSaveSelectedDate = () => {
+    if (selectedDate) {
+      onDateSelected(selectedDate);
+    }
+  };
+
+  const handleSaveCountdown = () => {
+    if (!countdown || countdown <= 0) {
+      return;
+    }
+
+    let seconds = 0;
+    if (selectedUnit === 'seconds') {
+      seconds = countdown;
+    } else if (selectedUnit === 'minutes') {
+      seconds = countdown * 60;
+    } else if (selectedUnit === 'hours') {
+      seconds = countdown * 60 * 60;
+    } else if (selectedUnit === 'days') {
+      seconds = countdown * 60 * 60 * 24;
+    } else {
+      return;
+    }
+    onCountdownSelected(seconds);
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger>
+        <Button variant="outline" className="h-6">
+          {expiresAt ? expiresAt.toLocaleDateString() : 'Never'}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="w-[360px] gap-4">
+        <DialogTitle>Select Expiration</DialogTitle>
+        <div className="flex items-center gap-4">
+          <span className="text-sm">Type:</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Button role="combobox" className="w-32 h-8">
+                {expiresTypeToString(selectedType)}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuRadioGroup
+                value={selectedType}
+                onValueChange={handleSelectType}
+              >
+                {ExpiresTypes.map((expiresType) => (
+                  <DropdownMenuRadioItem value={expiresType}>
+                    {expiresTypeToString(expiresType)}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {selectedType === 'date' && (
+          <>
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              className="rounded-md border shadow-sm w-full"
+            />
+            <Button className="w-full" onClick={handleSaveSelectedDate}>
+              Save
+            </Button>
+          </>
+        )}
+
+        {selectedType === 'countdown' && (
+          <>
+            <div className="flex gap-2">
+              <Input
+                className="w-full"
+                type="number"
+                value={countdown}
+                onChange={(e) => setCountdown(Number(e.target.value))}
+                placeholder="Enter value"
+              />
+              <Select
+                value={selectedUnit}
+                onValueChange={(value) =>
+                  setSelectedUnit(value as CountDownUnit)
+                }
+              >
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CountDownUnits.map((unit) => (
+                    <SelectItem value={unit}>{unitToString(unit)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button className="w-full" onClick={handleSaveCountdown}>
+              Save
+            </Button>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
