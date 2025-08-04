@@ -292,5 +292,9 @@
     "placeholder": "Search resources or chats...",
     "resources": "Resources",
     "chats": "Chats"
+  },
+  "publish": {
+    "title": "Publish",
+    "url_placeholder": "Published URL"
   }
 }

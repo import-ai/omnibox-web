@@ -292,5 +292,9 @@
     "placeholder": "搜索页面、文件、对话等",
     "resources": "资源",
     "chats": "对话"
+  },
+  "publish": {
+    "title": "发布",
+    "url_placeholder": "发布的URL"
   }
 }
