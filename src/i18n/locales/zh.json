@@ -379,5 +379,9 @@
   },
   "loading": "加载中...",
   "creating": "创建中...",
-  "create": "创建"
+  "create": "创建",
+  "publish": {
+    "title": "发布",
+    "url_placeholder": "发布的URL"
+  }
 }

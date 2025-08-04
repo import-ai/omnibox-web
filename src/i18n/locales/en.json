@@ -379,5 +379,9 @@
   },
   "loading": "Loading...",
   "creating": "Creating...",
-  "create": "Create"
+  "create": "Create",
+  "publish": {
+    "title": "Publish",
+    "url_placeholder": "Published URL"
+  }
 }
