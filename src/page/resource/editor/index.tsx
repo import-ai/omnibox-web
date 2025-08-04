@@ -33,7 +33,7 @@ function format(_files: File[], responseText: string): string {
   const response: UploadResponse = JSON.parse(responseText);
   const uploadedMap: Record<string, string> = {};
   response.uploaded.forEach((file) => {
-    uploadedMap[file.name] = `/api/v1/attachments/${file.link}/display`;
+    uploadedMap[file.name] = `/api/v1/attachments/${file.link}`;
   });
   const processedResponse = {
     msg: 'success',
