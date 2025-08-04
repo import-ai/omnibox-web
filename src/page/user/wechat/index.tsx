@@ -20,42 +20,40 @@ export default function WeChat(props: IProps) {
   };
   const loginWithWeChat = () => {
     if (isWeChat) {
-      http.get('/wechat/auth-url').then((authUrl) => {
-        location.href = authUrl;
-      });
+      http
+        .get('/wechat/auth-url')
+        .then((authUrl) => {
+          location.href = authUrl;
+        })
+        .catch((error) => {
+          toast.error(error.message, { position: 'bottom-right' });
+        });
     } else {
       onScan(true);
     }
   };
 
+  if (isPhone && !isWeChat) {
+    return (
+      <Button
+        variant="outline"
+        onClick={alertDisableWeChatLogin}
+        className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white opacity-50"
+      >
+        <WeChatIcon />
+        {t('login.login_use_wechat')}
+      </Button>
+    );
+  }
+
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-col gap-4">
-        {isPhone && !isWeChat ? (
-          <Button
-            variant="outline"
-            onClick={alertDisableWeChatLogin}
-            className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white opacity-50"
-          >
-            <WeChatIcon />
-            {t('login.login_use_wechat')}
-          </Button>
-        ) : (
-          <Button
-            variant="outline"
-            onClick={loginWithWeChat}
-            className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white"
-          >
-            <WeChatIcon />
-            {t('login.login_use_wechat')}
-          </Button>
-        )}
-      </div>
-      <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-        <span className="bg-white dark:bg-[#171717] text-muted-foreground relative z-10 px-2">
-          {t('login.or_continue')}
-        </span>
-      </div>
-    </div>
+    <Button
+      variant="outline"
+      onClick={loginWithWeChat}
+      className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white"
+    >
+      <WeChatIcon />
+      {t('login.login_use_wechat')}
+    </Button>
   );
 }

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { toast } from 'sonner';
 import { useEffect } from 'react';
-import WrapperPage from './wrapper';
+import WrapperPage from '../wrapper';
 import { http } from '@/lib/request';
 import extension from '@/lib/extension';
 import { LoaderCircle } from 'lucide-react';
@@ -21,7 +22,7 @@ export default function AuthConfirmPage() {
     }
     const source = axios.CancelToken.source();
     http
-      .get(`/wechat/callback?code=${code}&state=${state}`, {
+      .get(`/google/callback?code=${code}&state=${state}`, {
         cancelToken: source.token,
       })
       .then((res) => {
@@ -31,6 +32,9 @@ export default function AuthConfirmPage() {
             navigate('/', { replace: true });
           }
         });
+      })
+      .catch((error) => {
+        toast.error(error.message, { position: 'bottom-right' });
       });
     return () => {
       source.cancel();

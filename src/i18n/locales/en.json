@@ -105,6 +105,7 @@
     "authorizing": "Authorizing, please wait...",
     "back": "Back",
     "login_use_wechat": "Login with WeChat",
+    "login_use_google": "Login with Google",
     "wechat_disabled": "WeChat login is not supported in the current environment",
     "or_continue": "Or continue with",
     "agree_our_rule": "By clicking continue, you agree to our",
