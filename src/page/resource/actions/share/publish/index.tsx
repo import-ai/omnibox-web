@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { ShareInfo, UpdateShareInfoReq } from '@/interface';
+import { parseShareInfo, ShareInfo, UpdateShareInfoReq } from '@/interface';
 import { http } from '@/lib/request';
 import { t } from 'i18next';
 import { Copy } from 'lucide-react';
@@ -23,14 +23,16 @@ export function Publish(props: PublishProps) {
     }
     http
       .get(`namespaces/${namespace_id}/resources/${resource_id}/share`)
-      .then(setShareInfo);
+      .then((data) => {
+        setShareInfo(parseShareInfo(data));
+      });
   }, [namespace_id, resource_id]);
 
   const updateShareInfo = (data: UpdateShareInfoReq) => {
     http
       .patch(`namespaces/${namespace_id}/resources/${resource_id}/share`, data)
       .then((data) => {
-        setShareInfo(data);
+        setShareInfo(parseShareInfo(data));
       });
   };
 
@@ -54,6 +56,14 @@ export function Publish(props: PublishProps) {
     if (shareUrl) {
       await navigator.clipboard.writeText(shareUrl);
     }
+  };
+
+  const handleExpireDateChange = (expiresAt: Date | null) => {
+    updateShareInfo({ expires_at: expiresAt });
+  };
+
+  const handleExpireCountdownChange = (seconds: number) => {
+    updateShareInfo({ expires_seconds: seconds });
   };
 
   return (
@@ -93,7 +103,12 @@ export function Publish(props: PublishProps) {
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
         <span className="text-sm">Expire</span>
-        <Expire expiresAt={shareInfo ? shareInfo.expires_at : null} />
+        <Expire
+          expiresAt={shareInfo ? shareInfo.expires_at : null}
+          onNeverSelected={() => handleExpireDateChange(null)}
+          onDateSelected={handleExpireDateChange}
+          onCountdownSelected={handleExpireCountdownChange}
+        />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
         <span className="text-sm">Share type</span>
