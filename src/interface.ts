@@ -165,6 +165,13 @@ export interface ShareInfo {
   expires_at: Date | null;
 }
 
+export function parseShareInfo(data: any): ShareInfo {
+  return {
+    ...data,
+    expires_at: data.expires_at ? new Date(data.expires_at) : null,
+  };
+}
+
 export interface UpdateShareInfoReq {
   enabled?: boolean;
   all_resources?: boolean;
@@ -172,4 +179,5 @@ export interface UpdateShareInfoReq {
   password?: string | null;
   share_type?: ShareType;
   expires_at?: Date | null;
+  expires_seconds?: number;
 }
