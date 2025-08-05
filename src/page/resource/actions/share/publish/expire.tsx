@@ -23,7 +23,8 @@ import {
 import { SelectValue } from '@radix-ui/react-select';
 import { useState } from 'react';
 
-interface ExpireProps {
+export interface ExpireProps {
+  disabled?: boolean;
   expiresAt: Date | null;
   onNeverSelected: () => void;
   onDateSelected: (date: Date) => void;
@@ -65,8 +66,13 @@ function unitToString(unit: CountDownUnit): string {
 }
 
 export function Expire(props: ExpireProps) {
-  const { expiresAt, onNeverSelected, onDateSelected, onCountdownSelected } =
-    props;
+  const {
+    disabled,
+    expiresAt,
+    onNeverSelected,
+    onDateSelected,
+    onCountdownSelected,
+  } = props;
   const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ExpiresType>('never');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -111,8 +117,8 @@ export function Expire(props: ExpireProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button variant="outline" className="h-6">
+      <DialogTrigger disabled={disabled}>
+        <Button variant="outline" className="h-6" disabled={disabled}>
           {expiresAt ? expiresAt.toLocaleString() : 'Never'}
         </Button>
       </DialogTrigger>
