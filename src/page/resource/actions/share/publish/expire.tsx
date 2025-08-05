@@ -21,7 +21,7 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 import { SelectValue } from '@radix-ui/react-select';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface ExpireProps {
   expiresAt: Date | null;
@@ -67,20 +67,11 @@ function unitToString(unit: CountDownUnit): string {
 export function Expire(props: ExpireProps) {
   const { expiresAt, onNeverSelected, onDateSelected, onCountdownSelected } =
     props;
+  const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ExpiresType>('never');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedUnit, setSelectedUnit] = useState<CountDownUnit>('seconds');
-  const [countdown, setCountdown] = useState<number | undefined>(undefined);
-
-  useEffect(() => {
-    if (expiresAt) {
-      setSelectedType('date');
-      setSelectedDate(expiresAt);
-    } else {
-      setSelectedType('never');
-      setSelectedDate(undefined);
-    }
-  }, [expiresAt]);
+  const [countdown, setCountdown] = useState<number>(0);
 
   const handleSelectType = (type: string) => {
     const selectedType = type as ExpiresType;
@@ -90,9 +81,10 @@ export function Expire(props: ExpireProps) {
     }
   };
 
-  const handleSaveSelectedDate = () => {
+  const handleSaveDate = () => {
     if (selectedDate) {
       onDateSelected(selectedDate);
+      setOpen(false);
     }
   };
 
@@ -114,13 +106,14 @@ export function Expire(props: ExpireProps) {
       return;
     }
     onCountdownSelected(seconds);
+    setOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger>
         <Button variant="outline" className="h-6">
-          {expiresAt ? expiresAt.toLocaleDateString() : 'Never'}
+          {expiresAt ? expiresAt.toLocaleString() : 'Never'}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-[360px] gap-4">
@@ -156,7 +149,7 @@ export function Expire(props: ExpireProps) {
               onSelect={setSelectedDate}
               className="rounded-md border shadow-sm w-full"
             />
-            <Button className="w-full" onClick={handleSaveSelectedDate}>
+            <Button className="w-full" onClick={handleSaveDate}>
               Save
             </Button>
           </>
