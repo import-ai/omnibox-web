@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ShareType, ShareTypes, shareTypeToString } from '@/interface';
+import { t } from 'i18next';
 
 export interface ShareTypeProps {
   disabled?: boolean;
@@ -19,7 +20,7 @@ export function ShareTypeSelector(props: ShareTypeProps) {
   return (
     <Select disabled={disabled} value={shareType} onValueChange={onChange}>
       <SelectTrigger className="w-36 h-6">
-        <SelectValue placeholder="Select type" />
+        <SelectValue placeholder={t('publish.ai_chat')} />
       </SelectTrigger>
       <SelectContent>
         {ShareTypes.map((type) => (

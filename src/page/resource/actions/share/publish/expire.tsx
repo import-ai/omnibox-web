@@ -14,6 +14,7 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 import { SelectValue } from '@radix-ui/react-select';
+import { t } from 'i18next';
 import { useState } from 'react';
 
 export interface ExpireProps {
@@ -33,11 +34,11 @@ const CountDownUnits: CountDownUnit[] = ['seconds', 'minutes', 'hours', 'days'];
 function expiresTypeToString(type: ExpiresType): string {
   switch (type) {
     case 'never':
-      return 'Never';
+      return t('publish.expire.never');
     case 'countdown':
-      return 'Countdown';
+      return t('publish.expire.countdown');
     case 'date':
-      return 'Date';
+      return t('publish.expire.date');
     default:
       return '';
   }
@@ -46,13 +47,13 @@ function expiresTypeToString(type: ExpiresType): string {
 function unitToString(unit: CountDownUnit): string {
   switch (unit) {
     case 'seconds':
-      return 'Seconds';
+      return t('publish.countdown.seconds');
     case 'minutes':
-      return 'Minutes';
+      return t('publish.countdown.minutes');
     case 'hours':
-      return 'Hours';
+      return t('publish.countdown.hours');
     case 'days':
-      return 'Days';
+      return t('publish.countdown.days');
     default:
       return '';
   }
@@ -116,17 +117,17 @@ export function Expire(props: ExpireProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger disabled={disabled}>
         <Button variant="outline" className="h-6" disabled={disabled}>
-          {expiresAt ? expiresAt.toLocaleString() : 'Never'}
+          {expiresAt ? expiresAt.toLocaleString() : t('publish.expire.never')}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-[360px] gap-4">
-        <DialogTitle>Select Expiration</DialogTitle>
+        <DialogTitle>{t('publish.expire.title')}</DialogTitle>
 
         <div className="flex items-center gap-4">
-          <span className="text-sm">Type:</span>
+          <span className="text-sm">{t('publish.expire.type')}:</span>
           <Select value={selectedType} onValueChange={handleSelectType}>
             <SelectTrigger className="w-36">
-              <SelectValue placeholder="Select type" />
+              <SelectValue placeholder={t('publish.expire.title')} />
             </SelectTrigger>
             <SelectContent>
               {ExpiresTypes.map((type) => (
@@ -147,7 +148,7 @@ export function Expire(props: ExpireProps) {
               className="rounded-md border shadow-sm w-full"
             />
             <Button className="w-full" onClick={handleSaveDate}>
-              Save
+              {t('publish.save')}
             </Button>
           </>
         )}
@@ -160,7 +161,6 @@ export function Expire(props: ExpireProps) {
                 type="number"
                 value={countdown}
                 onChange={(e) => setCountdown(Number(e.target.value))}
-                placeholder="Enter value"
               />
               <Select
                 value={selectedUnit}
@@ -169,7 +169,7 @@ export function Expire(props: ExpireProps) {
                 }
               >
                 <SelectTrigger className="w-36">
-                  <SelectValue placeholder="Select unit" />
+                  <SelectValue placeholder={t('publish.countdown.unit')} />
                 </SelectTrigger>
                 <SelectContent>
                   {CountDownUnits.map((unit) => (
@@ -179,14 +179,14 @@ export function Expire(props: ExpireProps) {
               </Select>
             </div>
             <Button className="w-full" onClick={handleSaveCountdown}>
-              Save
+              {t('publish.save')}
             </Button>
           </>
         )}
 
         {selectedType === 'never' && (
           <Button className="w-full" onClick={handleSaveNever}>
-            Save
+            {t('publish.save')}
           </Button>
         )}
       </DialogContent>
