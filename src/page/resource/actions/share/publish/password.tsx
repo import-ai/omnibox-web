@@ -111,7 +111,7 @@ export function Password(props: PasswordProps) {
                 )}
               />
               <Button type="submit" className="w-full disabled:opacity-60">
-                Save
+                {t('publish.save')}
               </Button>
             </form>
           </Form>

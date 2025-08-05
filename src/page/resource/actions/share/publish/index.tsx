@@ -101,7 +101,7 @@ export function Publish(props: PublishProps) {
         <Switch checked={shareInfo?.enabled} onCheckedChange={handleEnable} />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">Share all resources</span>
+        <span className="text-sm">{t('publish.all_resources')}</span>
         <Switch
           checked={shareInfo?.all_resources}
           disabled={!shareInfo?.enabled}
@@ -109,7 +109,7 @@ export function Publish(props: PublishProps) {
         />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">Require login</span>
+        <span className="text-sm">{t('publish.require_login')}</span>
         <Switch
           checked={shareInfo?.require_login}
           disabled={!shareInfo?.enabled}
@@ -117,7 +117,7 @@ export function Publish(props: PublishProps) {
         />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">Expire</span>
+        <span className="text-sm">{t('publish.expire.title')}</span>
         <Expire
           disabled={!shareInfo?.enabled}
           expiresAt={shareInfo ? shareInfo.expires_at : null}
@@ -127,7 +127,7 @@ export function Publish(props: PublishProps) {
         />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">Share type</span>
+        <span className="text-sm">{t('publish.ai_chat')}</span>
         <ShareTypeSelector
           disabled={!shareInfo?.enabled}
           shareType={shareInfo?.share_type || 'all'}
@@ -135,7 +135,7 @@ export function Publish(props: PublishProps) {
         />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">Password</span>
+        <span className="text-sm">{t('publish.password')}</span>
         <Password
           disabled={!shareInfo?.enabled}
           passwordEnabled={!!shareInfo?.password_enabled}
