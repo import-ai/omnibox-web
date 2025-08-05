@@ -382,6 +382,30 @@
   "create": "创建",
   "publish": {
     "title": "发布",
-    "url_placeholder": "发布的URL"
+    "url_placeholder": "发布的URL",
+    "save": "保存",
+    "all_resources": "所有资源",
+    "require_login": "需要登录",
+    "ai_chat": "AI问答",
+    "password": "密码保护",
+    "expire": {
+      "title": "过期时间",
+      "type": "过期类型",
+      "never": "永不过期",
+      "countdown": "倒计时",
+      "date": "指定日期"
+    },
+    "countdown": {
+      "unit": "单位",
+      "seconds": "秒",
+      "minutes": "分钟",
+      "hours": "小时",
+      "days": "天"
+    },
+    "share_type": {
+      "doc_only": "仅文档",
+      "chat_only": "仅对话",
+      "all": "全部"
+    }
   }
 }

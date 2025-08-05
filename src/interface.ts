@@ -1,3 +1,5 @@
+import { t } from 'i18next';
+
 export interface IBase {
   created_at?: string;
   updated_at?: string;
@@ -172,11 +174,11 @@ export const ShareTypes: ShareType[] = ['doc_only', 'chat_only', 'all'];
 export function shareTypeToString(type: ShareType): string {
   switch (type) {
     case 'doc_only':
-      return 'Document Only';
+      return t('publish.share_type.doc_only');
     case 'chat_only':
-      return 'Chat Only';
+      return t('publish.share_type.chat_only');
     case 'all':
-      return 'All';
+      return t('publish.share_type.all');
     default:
       return '';
   }
