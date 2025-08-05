@@ -1,12 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { parseShareInfo, ShareInfo, UpdateShareInfoReq } from '@/interface';
+import {
+  parseShareInfo,
+  ShareInfo,
+  ShareType,
+  UpdateShareInfoReq,
+} from '@/interface';
 import { http } from '@/lib/request';
 import { t } from 'i18next';
 import { Copy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Expire } from './expire';
+import { ShareTypeSelector } from './share-type';
+import { Password } from './password';
 
 interface PublishProps {
   resource_id: string;
@@ -66,6 +73,14 @@ export function Publish(props: PublishProps) {
     updateShareInfo({ expires_seconds: seconds });
   };
 
+  const handleShareTypeChange = (shareType: ShareType) => {
+    updateShareInfo({ share_type: shareType });
+  };
+
+  const handlePasswordChange = (password: string | null) => {
+    updateShareInfo({ password });
+  };
+
   return (
     <div className="pb-2">
       <div className="flex gap-2 items-center">
@@ -104,6 +119,7 @@ export function Publish(props: PublishProps) {
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
         <span className="text-sm">Expire</span>
         <Expire
+          disabled={!shareInfo?.enabled}
           expiresAt={shareInfo ? shareInfo.expires_at : null}
           onNeverSelected={() => handleExpireDateChange(null)}
           onDateSelected={handleExpireDateChange}
@@ -112,11 +128,19 @@ export function Publish(props: PublishProps) {
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
         <span className="text-sm">Share type</span>
-        <Switch />
+        <ShareTypeSelector
+          disabled={!shareInfo?.enabled}
+          shareType={shareInfo?.share_type || 'all'}
+          onChange={handleShareTypeChange}
+        />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
         <span className="text-sm">Password</span>
-        <Switch />
+        <Password
+          disabled={!shareInfo?.enabled}
+          passwordEnabled={!!shareInfo?.password_enabled}
+          onSave={handlePasswordChange}
+        />
       </div>
     </div>
   );
