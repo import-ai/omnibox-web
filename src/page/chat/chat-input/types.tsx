@@ -17,4 +17,5 @@ export interface IResTypeContext {
 export enum ChatMode {
   ASK = 'ask',
   WRITE = 'write',
+  COMPOSE = 'compose',
 }

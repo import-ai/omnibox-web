@@ -57,6 +57,12 @@ export default function ChatAction(props: IActionProps) {
           >
             {t('chat.action.mode.write')}
           </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={mode === ChatMode.COMPOSE}
+            onCheckedChange={() => setMode(ChatMode.COMPOSE)}
+          >
+            {t('chat.action.mode.compose')}
+          </DropdownMenuCheckboxItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <Separator orientation="vertical" className="h-4 ml-0 mr-3" />

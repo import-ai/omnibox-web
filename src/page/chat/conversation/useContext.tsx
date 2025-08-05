@@ -33,7 +33,7 @@ export default function useContext() {
   const [loading, setLoading] = useState<boolean>(
     routeQuery !== undefined && routeQuery.trim().length > 0,
   );
-  const [thinking, onThinking] = useState<boolean | ''>(
+  const [thinking, onThinking] = useState<boolean>(
     isUndefined(state.thinking) ? false : state.thinking,
   );
   const [mode, setMode] = useState<ChatMode>(state?.mode || ChatMode.ASK);

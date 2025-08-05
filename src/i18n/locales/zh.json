@@ -276,7 +276,8 @@
     "action": {
       "mode": {
         "ask": "问答",
-        "write": "写作"
+        "write": "速写",
+        "compose": "写作"
       }
     }
   },

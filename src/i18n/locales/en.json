@@ -276,7 +276,8 @@
     "action": {
       "mode": {
         "ask": "Ask",
-        "write": "Write"
+        "write": "Write",
+        "compose": "Compose"
       }
     }
   },

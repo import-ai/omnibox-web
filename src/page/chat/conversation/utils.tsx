@@ -5,12 +5,12 @@ import { ChatResponse } from '@/page/chat/types/chat-response';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import {
   ChatMode,
-  ToolType,
   type IResTypeContext,
+  ToolType,
 } from '@/page/chat/chat-input/types';
 import type {
-  PrivateSearch,
   ChatRequestBody,
+  PrivateSearch,
   PrivateSearchResource,
 } from '@/page/chat/conversation/types';
 
@@ -98,6 +98,7 @@ export function ask(
     } else if (chatResponse.response_type === 'eos') {
       messageOperator.done();
     } else if (chatResponse.response_type === 'done') {
+    } else if (chatResponse.response_type === 'ping') {
     } else if (chatResponse.response_type === 'error') {
       console.error(chatResponse);
     } else {
