@@ -25,7 +25,7 @@ export interface ActionProps {
 export default function Action(props: ActionProps) {
   const { className, data, disabled, afterAddon, value, onChange } = props;
   const { t } = useTranslation();
-  const target = data.find((item) => item.value === value);
+  const target = data.find(item => item.value === value);
 
   return (
     <DropdownMenu>
@@ -46,7 +46,7 @@ export default function Action(props: ActionProps) {
         alignOffset={-10}
         className="w-[264px]"
       >
-        {data.map((item) => (
+        {data.map(item => (
           <DropdownMenuItem
             key={item.value}
             onClick={() => onChange(item.value)}

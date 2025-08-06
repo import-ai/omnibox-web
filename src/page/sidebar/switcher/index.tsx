@@ -34,7 +34,7 @@ export function Switcher(props: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { app, data } = useNamespace();
-  const current = data.find((item) => item.id === namespaceId) || {
+  const current = data.find(item => item.id === namespaceId) || {
     name: '--',
   };
 
@@ -78,7 +78,7 @@ export function Switcher(props: IProps) {
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               {t('namespace.name')}
             </DropdownMenuLabel>
-            {data.map((item) => (
+            {data.map(item => (
               <DropdownMenuItem
                 key={item.id}
                 disabled={item.id === namespaceId}

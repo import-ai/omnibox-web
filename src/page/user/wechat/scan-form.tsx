@@ -15,7 +15,7 @@ export function ScanForm() {
     const source = axios.CancelToken.source();
     http
       .get('/wechat/qrcode', { cancelToken: source.token })
-      .then((response) => {
+      .then(response => {
         let colorScheme = 'light';
         const themeStorage = localStorage.getItem('theme');
         if (themeStorage) {
@@ -39,13 +39,13 @@ export function ScanForm() {
             }
             setLoading(false);
             const iframe = document.querySelector(
-              '#wx-login-container iframe',
+              '#wx-login-container iframe'
             ) as HTMLIFrameElement;
             if (iframe) {
               iframe.width = '100%';
               iframe.setAttribute(
                 'sandbox',
-                'allow-scripts allow-top-navigation allow-same-origin',
+                'allow-scripts allow-top-navigation allow-same-origin'
               );
             }
             setOpacity(false);

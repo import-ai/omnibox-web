@@ -22,7 +22,7 @@ export default function TagsWrapper(props: IProps) {
     onLoading(true);
     http
       .get(`/namespaces/${namespaceId}/tag?id=${data.join(',')}`)
-      .then((res) => {
+      .then(res => {
         if (res.length <= 0) {
           return;
         }

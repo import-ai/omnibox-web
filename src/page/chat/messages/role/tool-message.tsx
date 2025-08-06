@@ -13,7 +13,7 @@ export function ToolMessage(props: IProps) {
   if (data.length <= 0) {
     return null;
   }
-  const index = citations.findIndex((citation) => citation.id === message.id);
+  const index = citations.findIndex(citation => citation.id === message.id);
 
   return <CitationsSheet citations={data} index={index} />;
 }

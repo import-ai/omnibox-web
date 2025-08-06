@@ -46,7 +46,7 @@ function convert(year: number, month: number): string {
 }
 
 export function groupItemsByTimestamp(
-  items: Array<Resource>,
+  items: Array<Resource>
 ): [string, Array<Resource>][] {
   const now = new Date();
   const today = new Date(now);
@@ -61,7 +61,7 @@ export function groupItemsByTimestamp(
   const grouped: GroupedItems = {};
   const monthGroups: { key: string; date: Date }[] = [];
 
-  items.forEach((item) => {
+  items.forEach(item => {
     const itemDate = new Date(item.updated_at || 0);
     const itemYear = itemDate.getFullYear();
     const itemMonth = itemDate.getMonth() + 1;
@@ -117,7 +117,7 @@ export function groupItemsByTimestamp(
     ]);
   }
 
-  monthGroups.forEach((month) => {
+  monthGroups.forEach(month => {
     orderedGroups.push([month.key, grouped[month.key]]);
   });
 

@@ -33,10 +33,10 @@ export default function MoveToForm(props: IFormProps) {
     if (!search) {
       http
         .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
-        .then((response) => {
+        .then(response => {
           const root: Array<Resource> = [];
           const resources: Array<Resource> = [];
-          Object.keys(response).forEach((spaceType) => {
+          Object.keys(response).forEach(spaceType => {
             const item = response[spaceType];
             if (!item.id) {
               return;
@@ -44,7 +44,7 @@ export default function MoveToForm(props: IFormProps) {
             root.push({ ...item, spaceType });
             if (Array.isArray(item.children) && item.children.length > 0) {
               const resourceChildrenIdToRemove: Array<string> = [];
-              each(item.children, (children) => {
+              each(item.children, children => {
                 if (
                   children.parent_id === resourceId ||
                   resourceChildrenIdToRemove.includes(children.parent_id)
@@ -56,11 +56,11 @@ export default function MoveToForm(props: IFormProps) {
                 item.children = item.children.filter(
                   (children: Resource) =>
                     !resourceChildrenIdToRemove.includes(children.id) &&
-                    children.id !== resourceId,
+                    children.id !== resourceId
                 );
               } else {
                 item.children = item.children.filter(
-                  (children: Resource) => children.id !== resourceId,
+                  (children: Resource) => children.id !== resourceId
                 );
               }
               resources.push(...item.children);
@@ -75,9 +75,9 @@ export default function MoveToForm(props: IFormProps) {
     }
     http
       .get(
-        `/namespaces/${namespaceId}/resources/search?resourceId=${resourceId}&name=${encodeURIComponent(search)}`,
+        `/namespaces/${namespaceId}/resources/search?resourceId=${resourceId}&name=${encodeURIComponent(search)}`
       )
-      .then((response) => {
+      .then(response => {
         onData({
           root: [],
           resources: response,
@@ -113,7 +113,7 @@ export default function MoveToForm(props: IFormProps) {
             >
               Root
             </Button>
-            {data.root.map((item) => (
+            {data.root.map(item => (
               <FormResource
                 data={item}
                 key={item.id}
@@ -136,7 +136,7 @@ export default function MoveToForm(props: IFormProps) {
             >
               Resource
             </Button>
-            {data.resources.map((item) => (
+            {data.resources.map(item => (
               <FormResource
                 data={item}
                 key={item.id}

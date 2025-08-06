@@ -32,8 +32,7 @@ export default function MemberMain(props: MemberProps) {
   const uid = localStorage.getItem('uid');
   const [resourceId, onResourceId] = useState('');
   const isOwner =
-    data.findIndex((item) => item.user_id === uid && item.role === 'owner') >=
-    0;
+    data.findIndex(item => item.user_id === uid && item.role === 'owner') >= 0;
 
   useEffect(() => {
     const source = axios.CancelToken.source();
@@ -41,7 +40,7 @@ export default function MemberMain(props: MemberProps) {
       .get(`/namespaces/${namespace_id}/root?namespace_id=${namespace_id}`, {
         cancelToken: source.token,
       })
-      .then((res) => {
+      .then(res => {
         onResourceId(res.teamspace.id);
       });
     return () => {
@@ -54,7 +53,7 @@ export default function MemberMain(props: MemberProps) {
       <div className="flex items-center justify-between flex-wrap">
         <Input
           value={search}
-          onChange={(e) => onSearch(e.target.value)}
+          onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
           className="h-8 w-[150px] lg:w-[250px]"
         />
@@ -80,7 +79,7 @@ export default function MemberMain(props: MemberProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item) => (
+            {data.map(item => (
               <TableRow key={item.id}>
                 <TableCell>
                   <UserCard email={item.email} username={item.username} />
@@ -106,8 +105,8 @@ export default function MemberMain(props: MemberProps) {
                     namespace_id={namespace_id}
                     hasOwner={
                       data
-                        .filter((i) => i.user_id !== item.user_id)
-                        .findIndex((i) => i.role === 'owner') >= 0
+                        .filter(i => i.user_id !== item.user_id)
+                        .findIndex(i => i.role === 'owner') >= 0
                     }
                   />
                 </TableCell>

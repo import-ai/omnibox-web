@@ -23,7 +23,7 @@ const request: AxiosInstance = axios.create({
 });
 
 request.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -33,9 +33,9 @@ request.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
+  error => {
     return Promise.reject(error);
-  },
+  }
 );
 
 request.interceptors.response.use(
@@ -90,7 +90,7 @@ request.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  },
+  }
 );
 
 // Encapsulated request methods
@@ -101,21 +101,21 @@ export const http = {
   post: <T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig,
+    config?: RequestConfig
   ): Promise<any> => {
     return request.post<T>(url, data, config);
   },
   put: <T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig,
+    config?: RequestConfig
   ): Promise<any> => {
     return request.put<T>(url, data, config);
   },
   patch: <T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig,
+    config?: RequestConfig
   ): Promise<any> => {
     return request.patch<T>(url, data, config);
   },

@@ -32,7 +32,7 @@ interface UploadResponse {
 function format(_files: File[], responseText: string): string {
   const response: UploadResponse = JSON.parse(responseText);
   const uploadedMap: Record<string, string> = {};
-  response.uploaded.forEach((file) => {
+  response.uploaded.forEach(file => {
     uploadedMap[file.name] = `/api/v1/attachments/media/${file.link}`;
   });
   const processedResponse = {
@@ -141,7 +141,7 @@ export default function Editor(props: IEditorProps) {
         vditor.setTheme(
           theme.content === 'dark' ? 'dark' : 'classic',
           theme.content,
-          theme.code,
+          theme.code
         );
         if (vditor.vditor.ir && vditor.vditor.ir.element) {
           addReferrerPolicyForElement(vditor.vditor.ir.element);
@@ -165,7 +165,7 @@ export default function Editor(props: IEditorProps) {
     vd.setTheme(
       theme.content === 'dark' ? 'dark' : 'classic',
       theme.content,
-      theme.code,
+      theme.code
     );
   }, [vd, theme]);
 

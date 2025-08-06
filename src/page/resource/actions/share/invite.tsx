@@ -35,7 +35,7 @@ export default function InviteForm(props: InviteFormProps) {
   const handleSubmit = () => {
     const groupTitles: Array<string> = [];
     const userEmails: Array<string> = [];
-    value.split(/，|,/).forEach((item) => {
+    value.split(/，|,/).forEach(item => {
       if (isEmail(item)) {
         userEmails.push(item.trim());
       } else {

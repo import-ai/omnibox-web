@@ -32,7 +32,7 @@ export default function GroupDataUser(props: GroupProps) {
 
   return (
     <div className="pl-6 pr-3 py-2">
-      {groupUserData.map((item) => (
+      {groupUserData.map(item => (
         <div key={item.id} className="flex items-center justify-between">
           <div className="flex items-center">
             <UserCard username={item.username} />
@@ -55,7 +55,7 @@ export default function GroupDataUser(props: GroupProps) {
         refetch={groupUserRefetch}
         namespace_id={namespace_id}
         data={member.filter(
-          (item) => groupUserData.findIndex((i) => i.email === item.email) < 0,
+          item => groupUserData.findIndex(i => i.email === item.email) < 0
         )}
       />
     </div>

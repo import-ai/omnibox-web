@@ -90,7 +90,7 @@ export default function PaginationMain({
                 className={cn('text-black dark:text-white', {
                   'bg-accent': currentPage === pageNumber,
                 })}
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault();
                   handlePageChange(pageNumber as number);
                 }}

@@ -38,9 +38,9 @@ export function InviteForm() {
     }
     const source = axios.CancelToken.source();
     Promise.all(
-      [`namespaces/${namespaceId}`, `user/${userId}`].map((uri) =>
-        http.get(uri, { cancelToken: source.token }),
-      ),
+      [`namespaces/${namespaceId}`, `user/${userId}`].map(uri =>
+        http.get(uri, { cancelToken: source.token })
+      )
     ).then(([namespace, user]) => {
       onData({
         namespace: namespace.name,
