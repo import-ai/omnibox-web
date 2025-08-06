@@ -1,20 +1,14 @@
-import React from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Copy from './actions/copy';
-import Markdown, { ExtraProps } from 'react-markdown';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
 import useTheme from '@/hooks/use-theme.ts';
 import { useIsMobile } from '@/hooks/use-mobile';
-import remarkGfm from 'remark-gfm';
-import rehypeKatex from 'rehype-katex';
-import remarkMath from 'remark-math';
 import '@/styles/github-markdown.css';
 import 'katex/dist/katex.min.css';
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import {
-  a11yDark,
-  a11yLight,
-} from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import Vditor from 'vditor';
+import 'vditor/dist/index.css';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const citePattern = /\[\[(\d+)]]/g;
@@ -50,83 +44,133 @@ export function CitationMarkdown(props: IProps) {
   const { content, status, citations } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [citationElements, setCitationElements] = useState<HTMLElement[]>([]);
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE === 'TRUE';
   const cleanedContent = trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(cleanedContent);
 
-  const components = {
-    a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
-      const citeMatch = href?.match(citeLinkRegex);
-      if (citeMatch) {
-        const id = Number(citeMatch[1]) - 1;
-        if (id > 0 && id < citations.length) {
-          return <CitationHoverIcon citation={citations[id]} index={id} />;
-        } else if (removeGeneratedCite) {
-          return null;
-        }
+  useEffect(() => {
+    const renderMarkdown = async () => {
+      if (!previewRef.current) return;
+
+      const vditorOptions = {
+        mode: theme.content === 'dark' ? 'dark' : 'light',
+        hljs: {
+          style: theme.content === 'dark' ? 'atom-one-dark' : 'atom-one-light',
+          lineNumber: !isMobile,
+        },
+        math: {
+          inlineDigit: false,
+          macros: {},
+        },
+        anchor: 0,
+        cdn: 'https://cdn.jsdelivr.net/npm/vditor@3.11.1',
+        after: () => {
+          if (!previewRef.current) return;
+
+          // Handle table responsiveness
+          const tables = previewRef.current.querySelectorAll('table');
+          tables.forEach(table => {
+            if (!table.parentElement?.classList.contains('overflow-x-auto')) {
+              const wrapper = document.createElement('div');
+              wrapper.className = 'overflow-x-auto';
+              wrapper.style.width = isMobile ? 'calc(100vw - 2rem)' : '100%';
+              table.parentNode?.insertBefore(wrapper, table);
+              wrapper.appendChild(table);
+              table.style.maxWidth = 'max-content';
+            }
+          });
+
+          // Handle code block styling for mobile
+          if (isMobile) {
+            const codeBlocks =
+              previewRef.current.querySelectorAll('pre > code');
+            codeBlocks.forEach(code => {
+              const pre = code.parentElement;
+              if (pre) {
+                pre.style.whiteSpace = 'pre-wrap';
+                pre.style.wordBreak = 'break-all';
+              }
+            });
+          }
+
+          // Process citations by creating placeholder elements for React portals
+          const citationLinks =
+            previewRef.current.querySelectorAll('a[href^="#cite-"]');
+          const elements: HTMLElement[] = [];
+
+          citationLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            const citeMatch = href?.match(citeLinkRegex);
+            if (citeMatch) {
+              const id = Number(citeMatch[1]) - 1;
+              if (id >= 0 && id < citations.length) {
+                // Create a span element to replace the link
+                const citationElement = document.createElement('span');
+                citationElement.setAttribute('data-citation-id', id.toString());
+                citationElement.className = 'citation-portal';
+                link.parentNode?.replaceChild(citationElement, link);
+                elements.push(citationElement);
+              } else if (removeGeneratedCite) {
+                link.remove();
+              }
+            }
+          });
+
+          setCitationElements(elements);
+        },
+      };
+
+      try {
+        await Vditor.preview(
+          previewRef.current,
+          replacedContent,
+          vditorOptions
+        );
+      } catch (error) {
+        console.error('Vditor preview error:', error);
+        previewRef.current.innerHTML = `<pre>${replacedContent}</pre>`;
+        setCitationElements([]);
       }
-      return (
-        <a href={href} {...props}>
-          {children}
-        </a>
-      );
-    },
-    table({ children, ...props }: React.ComponentProps<'table'> & ExtraProps) {
-      return (
-        <div
-          className="overflow-x-auto"
-          style={isMobile ? { width: 'calc(100vw - 2rem)' } : { width: '100%' }}
-        >
-          <table {...props} style={{ maxWidth: 'max-content' }}>
-            {children}
-          </table>
-        </div>
-      );
-    },
-    code({
-      children,
-      className,
-      ...props
-    }: React.ComponentProps<'code'> & ExtraProps) {
-      const match = /language-(\w+)/.exec(className || '');
-      return match ? (
-        <div className="overflow-x-auto max-w-full md:text-sm text-xs">
-          <SyntaxHighlighter
-            PreTag="div"
-            language={match[1]}
-            style={theme.content === 'dark' ? a11yDark : a11yLight}
-            showLineNumbers={!isMobile}
-            customStyle={{
-              background: 'transparent',
-              whiteSpace: isMobile ? 'pre-wrap' : 'pre',
-              wordBreak: isMobile ? 'break-all' : 'normal',
-            }}
-            wrapLongLines={isMobile}
-          >
-            {String(children).replace(/\n$/, '')}
-          </SyntaxHighlighter>
-        </div>
-      ) : (
-        <code {...props} className={className}>
-          {children}
-        </code>
-      );
-    },
-  };
+    };
+
+    renderMarkdown();
+  }, [
+    replacedContent,
+    theme.content,
+    isMobile,
+    citations,
+    removeGeneratedCite,
+  ]);
 
   return (
     <div
-      className="markdown-body reset-list"
+      className="markdown-body reset-list vditor-reset"
       style={{ background: 'transparent' }}
     >
-      <Markdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-        components={components}
-      >
-        {replacedContent}
-      </Markdown>
+      <div ref={previewRef} />
+
+      {/* Render CitationHoverIcon components using React portals */}
+      {citationElements.map((element, index) => {
+        const citationId = parseInt(
+          element.getAttribute('data-citation-id') || '0',
+          10
+        );
+        if (citationId >= 0 && citationId < citations.length) {
+          return createPortal(
+            <CitationHoverIcon
+              citation={citations[citationId]}
+              index={citationId}
+            />,
+            element,
+            `citation-${citationId}-${index}`
+          );
+        }
+        return null;
+      })}
+
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
         <div className="flex ml-[-6px] mt-[-10px]">
           <Copy content={content} />
