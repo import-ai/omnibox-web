@@ -51,15 +51,69 @@ export function CitationMarkdown(props: IProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const [citationElements, setCitationElements] = useState<HTMLElement[]>([]);
   const removeGeneratedCite =
-    import.meta.env.VITE_REMOVE_GENERATED_CITE === 'TRUE';
+    import.meta.env.VITE_REMOVE_GENERATED_CITE !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(cleanedContent);
 
-  useEffect(() => {
-    const renderMarkdown = async () => {
-      if (!previewRef.current) return;
+  function after(): void {
+    if (!previewRef.current) return;
 
-      const vditorOptions = {
+    // Handle table responsiveness
+    const tables = previewRef.current.querySelectorAll('table');
+    tables.forEach(table => {
+      if (!table.parentElement?.classList.contains('overflow-x-auto')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'overflow-x-auto';
+        wrapper.style.width = isMobile ? 'calc(100vw - 2rem)' : '100%';
+        table.parentNode?.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+        table.style.maxWidth = 'max-content';
+      }
+    });
+
+    // Handle code block styling for mobile
+    if (isMobile) {
+      const codeBlocks = previewRef.current.querySelectorAll('pre > code');
+      codeBlocks.forEach(code => {
+        const pre = code.parentElement;
+        if (pre) {
+          pre.style.whiteSpace = 'pre-wrap';
+          pre.style.wordBreak = 'break-all';
+        }
+      });
+    }
+
+    // Process citations by creating placeholder elements for React portals
+    const citationLinks =
+      previewRef.current.querySelectorAll('a[href^="#cite-"]');
+    const elements: HTMLElement[] = [];
+
+    citationLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      const citeMatch = href?.match(citeLinkRegex);
+      if (citeMatch) {
+        const id = Number(citeMatch[1]) - 1;
+        if (id >= 0 && id < citations.length) {
+          // Create a span element to replace the link
+          const citationElement = document.createElement('span');
+          citationElement.setAttribute('data-citation-id', id.toString());
+          citationElement.className = 'citation-portal';
+          link.parentNode?.replaceChild(citationElement, link);
+          elements.push(citationElement);
+        } else if (removeGeneratedCite) {
+          link.remove();
+        }
+      }
+    });
+
+    setCitationElements(elements);
+  }
+
+  async function renderMarkdown() {
+    if (!previewRef.current) return;
+
+    try {
+      await Vditor.preview(previewRef.current, replacedContent, {
         ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
         ...markdownPreviewConfig(theme),
         theme: {
@@ -73,76 +127,15 @@ export function CitationMarkdown(props: IProps) {
           ...markdownPreviewConfig(theme).hljs,
           lineNumber: !isMobile, // Override line numbers based on mobile
         },
-        after: () => {
-          if (!previewRef.current) return;
+        after,
+      });
+    } catch (error) {
+      console.error({ message: 'Vditor preview error', error });
+    }
+  }
 
-          // Handle table responsiveness
-          const tables = previewRef.current.querySelectorAll('table');
-          tables.forEach(table => {
-            if (!table.parentElement?.classList.contains('overflow-x-auto')) {
-              const wrapper = document.createElement('div');
-              wrapper.className = 'overflow-x-auto';
-              wrapper.style.width = isMobile ? 'calc(100vw - 2rem)' : '100%';
-              table.parentNode?.insertBefore(wrapper, table);
-              wrapper.appendChild(table);
-              table.style.maxWidth = 'max-content';
-            }
-          });
-
-          // Handle code block styling for mobile
-          if (isMobile) {
-            const codeBlocks =
-              previewRef.current.querySelectorAll('pre > code');
-            codeBlocks.forEach(code => {
-              const pre = code.parentElement;
-              if (pre) {
-                pre.style.whiteSpace = 'pre-wrap';
-                pre.style.wordBreak = 'break-all';
-              }
-            });
-          }
-
-          // Process citations by creating placeholder elements for React portals
-          const citationLinks =
-            previewRef.current.querySelectorAll('a[href^="#cite-"]');
-          const elements: HTMLElement[] = [];
-
-          citationLinks.forEach(link => {
-            const href = link.getAttribute('href');
-            const citeMatch = href?.match(citeLinkRegex);
-            if (citeMatch) {
-              const id = Number(citeMatch[1]) - 1;
-              if (id >= 0 && id < citations.length) {
-                // Create a span element to replace the link
-                const citationElement = document.createElement('span');
-                citationElement.setAttribute('data-citation-id', id.toString());
-                citationElement.className = 'citation-portal';
-                link.parentNode?.replaceChild(citationElement, link);
-                elements.push(citationElement);
-              } else if (removeGeneratedCite) {
-                link.remove();
-              }
-            }
-          });
-
-          setCitationElements(elements);
-        },
-      };
-
-      try {
-        await Vditor.preview(
-          previewRef.current,
-          replacedContent,
-          vditorOptions
-        );
-      } catch (error) {
-        console.error('Vditor preview error:', error);
-        previewRef.current.innerHTML = `<pre>${replacedContent}</pre>`;
-        setCitationElements([]);
-      }
-    };
-
-    renderMarkdown();
+  useEffect(() => {
+    void renderMarkdown();
   }, [
     replacedContent,
     theme.content,
@@ -155,7 +148,6 @@ export function CitationMarkdown(props: IProps) {
     <div className="reset-list" style={{ background: 'transparent' }}>
       <div ref={previewRef} />
 
-      {/* Render CitationHoverIcon components using React portals */}
       {citationElements.map((element, index) => {
         const citationId = parseInt(
           element.getAttribute('data-citation-id') || '0',
