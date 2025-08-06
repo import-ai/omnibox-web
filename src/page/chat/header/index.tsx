@@ -58,9 +58,9 @@ export default function ChatHeader() {
           `/namespaces/${namespaceId}/conversations/${conversationId}/title`,
           {
             text,
-          },
+          }
         )
-        .then((res) => {
+        .then(res => {
           if (!modified.current) {
             modified.current = true;
           }

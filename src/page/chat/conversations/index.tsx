@@ -95,7 +95,7 @@ export default function ChatConversationsPage() {
                               <DropdownMenuContent side="bottom" align="end">
                                 <DropdownMenuItem
                                   className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
-                                  onClick={(event) => {
+                                  onClick={event => {
                                     event.stopPropagation();
                                     event.preventDefault();
                                     onEdit({
@@ -109,7 +109,7 @@ export default function ChatConversationsPage() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   className="cursor-pointer text-red-500 hover:bg-gray-100 dark:hover:bg-gray-400"
-                                  onClick={(event) => {
+                                  onClick={event => {
                                     event.stopPropagation();
                                     event.preventDefault();
                                     onRemove({
@@ -127,7 +127,7 @@ export default function ChatConversationsPage() {
                           <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
                             {item.assistant_content?.replace(
                               /\[\[\d+]]/g,
-                              '',
+                              ''
                             ) || '...'}
                           </p>
                           {index < items.length - 1 && (

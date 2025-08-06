@@ -11,13 +11,13 @@ export default function group(node: IResourceData) {
     children: [],
   };
   const nodeMap = new Map<string | number, IResourceData>();
-  node.children.forEach((item) => {
+  node.children.forEach(item => {
     nodeMap.set(item.id, {
       ...item,
       children: [],
     });
   });
-  node.children.forEach((item) => {
+  node.children.forEach(item => {
     const currentNode = nodeMap.get(item.id)!;
     const parent_id = item.parent_id;
     if (parent_id === node.id) {
@@ -37,7 +37,7 @@ export default function group(node: IResourceData) {
     currentNode.children = orderBy(
       currentNode.children,
       ['updated_at'],
-      ['desc'],
+      ['desc']
     );
 
     stack.push(...currentNode.children);

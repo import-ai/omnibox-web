@@ -37,7 +37,7 @@ export default function useContext() {
       }
       if (Array.isArray(resource.children) && resource.children.length > 0) {
         const index = resource.children.findIndex(
-          (node: Resource) => node.id === id,
+          (node: Resource) => node.id === id
         );
         if (index >= 0) {
           spaceType = key;
@@ -49,14 +49,14 @@ export default function useContext() {
   };
   const getResourceByField = (id: string, field: string = 'id') => {
     let current: Resource | null = null;
-    each(data, (item) => {
+    each(data, item => {
       if (item[field] === id) {
         current = item;
         return true;
       }
       if (Array.isArray(item.children) && item.children.length > 0) {
         const target = item.children.find(
-          (node: Resource) => (node as any)[field] === id,
+          (node: Resource) => (node as any)[field] === id
         );
         if (target) {
           current = target;
@@ -81,7 +81,7 @@ export default function useContext() {
     const target = getResourceByField(id, 'parent_id');
     if (target) {
       if (expands.includes(id)) {
-        onExpands(expands.filter((item) => item !== id));
+        onExpands(expands.filter(item => item !== id));
       } else {
         expands.push(id);
         onExpands([...expands]);
@@ -91,7 +91,7 @@ export default function useContext() {
     onExpanding(id);
     http
       .get(`/namespaces/${namespaceId}/resources/${id}/children`)
-      .then((response) => {
+      .then(response => {
         if (response.length <= 0) {
           data[spaceType].children.push({
             id: 'empty',
@@ -101,7 +101,7 @@ export default function useContext() {
             resource_type: 'file',
           });
         } else {
-          each(response, (item) => {
+          each(response, item => {
             data[spaceType].children.push(item);
           });
         }
@@ -120,11 +120,11 @@ export default function useContext() {
     }
     http
       .get(`/namespaces/${namespaceId}/resources/${id}/children`)
-      .then((response) => {
+      .then(response => {
         if (response.length <= 0) {
           return;
         }
-        each(response, (item) => {
+        each(response, item => {
           data[spaceType].children.push(item);
         });
         onData({ ...data });
@@ -133,11 +133,11 @@ export default function useContext() {
   const getRouteToActive = (
     spaceType: SpaceType,
     id: string,
-    parentId: string,
+    parentId: string
   ) => {
     let activeKey = 'chat';
     const items = data[spaceType].children.filter(
-      (node) => node.parent_id === parentId,
+      node => node.parent_id === parentId
     );
     if (items.length > 0) {
       const itemsOrder = orderBy(items, ['updated_at'], ['desc']);
@@ -153,7 +153,7 @@ export default function useContext() {
     }
     if (id !== resourceId) {
       const parentIndex = data[spaceType].children.findIndex(
-        (node) => node.id === parentId,
+        node => node.id === parentId
       );
       if (parentIndex >= 0) {
         activeKey = '';
@@ -168,7 +168,7 @@ export default function useContext() {
       .then(() => {
         const routeToActive = getRouteToActive(spaceType, id, parentId);
         data[spaceType].children = data[spaceType].children.filter(
-          (node) => ![node.id, node.parent_id].includes(id),
+          node => ![node.id, node.parent_id].includes(id)
         );
         onData({ ...data });
         if (routeToActive) {
@@ -180,7 +180,7 @@ export default function useContext() {
               onClick: () => {
                 http
                   .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
-                  .then((response) => {
+                  .then(response => {
                     activeRoute(spaceType, parentId, response);
                   });
               },
@@ -196,10 +196,10 @@ export default function useContext() {
     spaceType: SpaceType,
     parentId: string,
     resource: Resource | Array<Resource>,
-    edit?: boolean,
+    edit?: boolean
   ) => {
     const resources = Array.isArray(resource) ? resource : [resource];
-    resources.forEach((item) => {
+    resources.forEach(item => {
       if (!data[spaceType]) {
         data[spaceType] = { ...item, children: [] };
       } else {
@@ -207,7 +207,7 @@ export default function useContext() {
           data[spaceType].children = [{ ...item, children: [] }];
         } else {
           const index = data[spaceType].children.findIndex(
-            (item) => item.parent_id === parentId && item.id === 'empty',
+            item => item.parent_id === parentId && item.id === 'empty'
           );
           if (index >= 0) {
             data[spaceType].children[index] = { ...item, children: [] };
@@ -226,7 +226,7 @@ export default function useContext() {
   const handleCreate = (
     spaceType: SpaceType,
     parentId: string,
-    resourceType: ResourceType,
+    resourceType: ResourceType
   ) => {
     onEditingKey(parentId);
     http
@@ -245,17 +245,17 @@ export default function useContext() {
   const handleUpload = (
     spaceType: SpaceType,
     parentId: string,
-    file: FileList,
+    file: FileList
   ) => {
     onEditingKey(parentId);
     return uploadFiles(file, {
       parentId: parentId,
       namespaceId: namespaceId,
     })
-      .then((response) => {
+      .then(response => {
         activeRoute(spaceType, parentId, response);
       })
-      .catch((err) => {
+      .catch(err => {
         toast(err && err.message ? err.message : err, {
           position: 'bottom-right',
         });
@@ -292,21 +292,21 @@ export default function useContext() {
           }
           const spaceType = getSpaceType(resources[0].path[0].id);
           activeRoute(spaceType, parentId, resource);
-        },
-      ),
+        }
+      )
     );
     hooks.push(
       app.on('delete_resource', (id: string, parentId: string) => {
         const spaceType = getSpaceType(id);
         const routeToActive = getRouteToActive(spaceType, id, parentId);
         data[spaceType].children = data[spaceType].children.filter(
-          (node) => ![node.id, node.parent_id].includes(id),
+          node => ![node.id, node.parent_id].includes(id)
         );
         onData({ ...data });
         if (routeToActive) {
           navigate(`/${namespaceId}/${routeToActive}`);
         }
-      }),
+      })
     );
     hooks.push(
       app.on('update_resource', (delta: Resource) => {
@@ -316,7 +316,7 @@ export default function useContext() {
             resource.children.length > 0
           ) {
             const index = resource.children.findIndex(
-              (node: Resource) => node.id === delta.id,
+              (node: Resource) => node.id === delta.id
             );
             if (index >= 0) {
               data[key].children[index].name = delta.name;
@@ -326,7 +326,7 @@ export default function useContext() {
           }
         });
         onData({ ...data });
-      }),
+      })
     );
     hooks.push(
       app.on('move_resource', (resourceId: string, targetId: string) => {
@@ -336,14 +336,14 @@ export default function useContext() {
         each(data, (items, key) => {
           if (Array.isArray(items.children) && items.children.length > 0) {
             const maybeResourceIndex = items.children.findIndex(
-              (node: Resource) => node.id === resourceId,
+              (node: Resource) => node.id === resourceId
             );
             if (maybeResourceIndex >= 0) {
               resourceKey = key;
               resourceIndex = maybeResourceIndex;
             }
             const maybeTargetIndex = items.children.findIndex(
-              (node: Resource) => node.id === targetId,
+              (node: Resource) => node.id === targetId
             );
             if (maybeTargetIndex >= 0) {
               targetKey = key;
@@ -357,13 +357,13 @@ export default function useContext() {
           return;
         }
         const emptyTargetIndex = data[targetKey].children.findIndex(
-          (item) => item.parent_id === targetId && item.id === 'empty',
+          item => item.parent_id === targetId && item.id === 'empty'
         );
         if (emptyTargetIndex >= 0) {
           data[targetKey].children.splice(emptyTargetIndex, 1);
         }
         const resourceChildrenIdToRemove: Array<string> = [];
-        each(data[resourceKey].children, (item) => {
+        each(data[resourceKey].children, item => {
           if (
             item.parent_id === resourceId ||
             resourceChildrenIdToRemove.includes(item.parent_id)
@@ -373,7 +373,7 @@ export default function useContext() {
         });
         if (resourceChildrenIdToRemove.length > 0) {
           data[resourceKey].children = data[resourceKey].children.filter(
-            (item) => !resourceChildrenIdToRemove.includes(item.id),
+            item => !resourceChildrenIdToRemove.includes(item.id)
           );
         }
         if (targetKey === resourceKey) {
@@ -382,7 +382,7 @@ export default function useContext() {
           const resources = data[resourceKey].children.splice(resourceIndex, 1);
           resources[0].parent_id = targetId;
           const emptyResourceIndex = data[resourceKey].children.findIndex(
-            (item) => item.parent_id === resources[0].id && item.id === 'empty',
+            item => item.parent_id === resources[0].id && item.id === 'empty'
           );
           if (emptyResourceIndex >= 0) {
             data[resourceKey].children.splice(emptyResourceIndex, 1);
@@ -391,15 +391,13 @@ export default function useContext() {
           // data[targetKey].children.push(resources[0]);
         }
         onData({ ...data });
-        onExpands((expands) =>
-          expands.filter((expand) => expand !== resourceId),
-        );
+        onExpands(expands => expands.filter(expand => expand !== resourceId));
         expandedRef.current = false;
         if (!expands.includes(targetId)) {
           onExpanding('');
           handleExpand(targetKey as SpaceType, targetId);
         }
-      }),
+      })
     );
     hooks.push(
       app.on('clean_resource', () => {
@@ -407,10 +405,10 @@ export default function useContext() {
           data[key].children = [];
         });
         onData({ ...data });
-      }),
+      })
     );
     return () => {
-      each(hooks, (destory) => {
+      each(hooks, destory => {
         destory();
       });
     };
@@ -427,7 +425,7 @@ export default function useContext() {
       return;
     }
     let node: any = null;
-    each(data, (resource) => {
+    each(data, resource => {
       if (Array.isArray(resource.children) && resource.children.length > 0) {
         node = resource.children[0];
         return true;
@@ -452,13 +450,13 @@ export default function useContext() {
       .get(`/namespaces/${namespaceId}/resources/${resourceId}`, {
         cancelToken: source.token,
       })
-      .then((resource) => {
+      .then(resource => {
         const path = resource.path;
         if (!Array.isArray(path) || path.length <= 0) {
           return;
         }
         const resourceIdsToLoad: Array<string> = [];
-        each(path, (item) => {
+        each(path, item => {
           if (getResourceByField(item.id)) {
             return;
           }
@@ -473,10 +471,10 @@ export default function useContext() {
             `/namespaces/${namespaceId}/resources?id=${resourceIdsToLoad.join(',')}`,
             {
               cancelToken: source.token,
-            },
+            }
           )
-          .then((response) => {
-            each(response, (item) => {
+          .then(response => {
+            each(response, item => {
               data[spaceType].children.push(item);
             });
             onData({ ...data });
@@ -492,7 +490,7 @@ export default function useContext() {
             onExpands([...expands]);
             const treeToExpand: Array<string> = [];
             const index = path.findIndex(
-              (item) => item.id === resourceIdsToLoad[0],
+              item => item.id === resourceIdsToLoad[0]
             );
             treeToExpand.push(path[index - 1].id);
             const resourceIdsToLoadSize = resourceIdsToLoad.length - 1;
@@ -503,16 +501,16 @@ export default function useContext() {
               treeToExpand.push(resourceIdToLoad);
             });
             Promise.all(
-              treeToExpand.map((itemToExpand) =>
+              treeToExpand.map(itemToExpand =>
                 http.get(
-                  `/namespaces/${namespaceId}/resources/${itemToExpand}/children`,
-                ),
-              ),
-            ).then((response) => {
-              each(response, (items) => {
-                each(items, (item) => {
+                  `/namespaces/${namespaceId}/resources/${itemToExpand}/children`
+                )
+              )
+            ).then(response => {
+              each(response, items => {
+                each(items, item => {
                   const exist = data[spaceType].children.find(
-                    (children) => children.id === item.id,
+                    children => children.id === item.id
                   );
                   if (!exist) {
                     data[spaceType].children.push(item);

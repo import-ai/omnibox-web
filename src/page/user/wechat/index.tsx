@@ -20,7 +20,7 @@ export default function WeChat(props: IProps) {
   };
   const loginWithWeChat = () => {
     if (isWeChat) {
-      http.get('/wechat/auth-url').then((authUrl) => {
+      http.get('/wechat/auth-url').then(authUrl => {
         location.href = authUrl;
       });
     } else {

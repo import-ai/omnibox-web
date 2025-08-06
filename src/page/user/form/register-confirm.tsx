@@ -29,7 +29,7 @@ const registerSchema = z
       .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg')),
     password_repeat: z.string(),
   })
-  .refine((data) => data.password === data.password_repeat, {
+  .refine(data => data.password === data.password_repeat, {
     message: i18next.t('form.password_not_match'),
     path: ['password_repeat'],
   });
@@ -54,7 +54,7 @@ export function RegisterConFirmForm() {
     setIsLoading(true);
     http
       .post('sign-up/confirm', { ...data, token })
-      .then((response) => {
+      .then(response => {
         setGlobalCredential(response.id, response.access_token);
         navigate('/', { replace: true });
       })

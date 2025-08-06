@@ -28,7 +28,7 @@ describe('cleanIncompletedCitation', () => {
 
   it('returns unchanged text if no incomplete citation', () => {
     expect(trimIncompletedCitation('no citation here')).toBe(
-      'no citation here',
+      'no citation here'
     );
   });
 });

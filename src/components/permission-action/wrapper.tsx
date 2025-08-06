@@ -15,7 +15,7 @@ export default function PermissionWrapper(props: IProps) {
   }
 
   const data = getData();
-  const index = data.findIndex((item) => item.value === permission);
+  const index = data.findIndex(item => item.value === permission);
   if (level < index) {
     return null;
   }

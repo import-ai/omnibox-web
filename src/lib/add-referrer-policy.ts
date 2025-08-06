@@ -5,7 +5,7 @@ export function addReferrerPolicyForElement(target: HTMLElement) {
   if (node.length <= 0) {
     return target;
   }
-  each(node, (item) => {
+  each(node, item => {
     if (!item.hasAttribute('referrerpolicy')) {
       item.setAttribute('referrerpolicy', 'same-origin');
     }

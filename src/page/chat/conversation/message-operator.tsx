@@ -21,11 +21,11 @@ export interface MessageOperator {
 }
 
 export function createMessageOperator(
-  setConversation: Dispatch<SetStateAction<ConversationDetail>>,
+  setConversation: Dispatch<SetStateAction<ConversationDetail>>
 ): MessageOperator {
   return {
     update: (delta: ChatDeltaResponse, id?: string) => {
-      setConversation((prev) => {
+      setConversation(prev => {
         if (!id) {
           id = prev.current_node!;
         }
@@ -33,12 +33,12 @@ export function createMessageOperator(
 
         message.message.content = add(
           message.message.content,
-          delta.message.content,
+          delta.message.content
         );
 
         message.message.reasoning_content = add(
           message.message.reasoning_content,
-          delta.message.reasoning_content,
+          delta.message.reasoning_content
         );
 
         if (delta.message.tool_calls && delta.message.tool_calls.length > 0) {
@@ -76,7 +76,7 @@ export function createMessageOperator(
         children: [],
       };
 
-      setConversation((prev) => {
+      setConversation(prev => {
         const newMapping = { ...prev.mapping, [message.id]: message };
         let currentNode = prev.current_node;
         if (message.parent_id === currentNode) {
@@ -90,7 +90,7 @@ export function createMessageOperator(
             }
           } else {
             console.error(
-              `Parent message with ID ${message.parent_id} not found for message ${message.id}`,
+              `Parent message with ID ${message.parent_id} not found for message ${message.id}`
             );
           }
         }
@@ -104,7 +104,7 @@ export function createMessageOperator(
     },
 
     done: (id?: string) => {
-      setConversation((prev) => {
+      setConversation(prev => {
         if (!id) {
           id = prev.current_node!;
         }
@@ -126,7 +126,7 @@ export function createMessageOperator(
      * @param id
      */
     activate: (id: string) => {
-      setConversation((prev) => {
+      setConversation(prev => {
         let currentNode = id;
         let children: string[] = prev.mapping[currentNode].children;
         while (children.length > 0) {

@@ -86,7 +86,7 @@ export default function Action(props: ActionProps) {
           className={cn(className, { 'opacity-40': disabled })}
         >
           <div className="flex items-center text-gray-600 dark:text-white">
-            <span>{data.find((item) => item.value === value)?.label}</span>
+            <span>{data.find(item => item.value === value)?.label}</span>
             {!disabled && <ChevronDown className="h-5 w-5 ml-1" />}
           </div>
         </DropdownMenuTrigger>
@@ -96,7 +96,7 @@ export default function Action(props: ActionProps) {
           alignOffset={-10}
           className="w-[264px]"
         >
-          {data.map((item) => (
+          {data.map(item => (
             <DropdownMenuItem
               key={item.value}
               onClick={() => handleChange(item.value)}

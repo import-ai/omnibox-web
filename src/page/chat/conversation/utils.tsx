@@ -15,9 +15,9 @@ import type {
 } from '@/page/chat/conversation/types';
 
 function getPrivateSearchResources(
-  context: IResTypeContext[],
+  context: IResTypeContext[]
 ): PrivateSearchResource[] {
-  return context.map((item) => {
+  return context.map(item => {
     return {
       name: item.resource.name || '',
       id: item.resource.id,
@@ -33,7 +33,7 @@ export function prepareBody(
   tools: ToolType[],
   thinking: boolean | '',
   context: IResTypeContext[],
-  messages: MessageDetail[],
+  messages: MessageDetail[]
 ): ChatRequestBody {
   const body: ChatRequestBody = {
     namespace_id: namespaceId,
@@ -78,7 +78,7 @@ export function ask(
   context: IResTypeContext[],
   messages: MessageDetail[],
   messageOperator: MessageOperator,
-  mode: ChatMode = ChatMode.ASK,
+  mode: ChatMode = ChatMode.ASK
 ) {
   const body = prepareBody(
     namespaceId,
@@ -87,9 +87,9 @@ export function ask(
     tools,
     thinking,
     context,
-    messages,
+    messages
   );
-  return stream(`/api/v1/wizard/${mode}`, body, async (data) => {
+  return stream(`/api/v1/wizard/${mode}`, body, async data => {
     const chatResponse: ChatResponse = JSON.parse(data);
     if (chatResponse.response_type === 'bos') {
       messageOperator.add(chatResponse);

@@ -25,13 +25,13 @@ export default function useContext(props: IProps) {
       'context',
       (resource: Resource, type: PrivateSearchResourceType) => {
         const target = context.find(
-          (item) => item.resource.id === resource.id && item.type === type,
+          item => item.resource.id === resource.id && item.type === type
         );
         if (target) {
           return;
         }
         onContextChange([...context, { type, resource }]);
-      },
+      }
     );
   }, [context]);
 

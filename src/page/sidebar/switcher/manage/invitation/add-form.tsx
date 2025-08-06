@@ -79,7 +79,7 @@ export function AddGroupInvitationForm(props: IProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {groups.map((group) => (
+                    {groups.map(group => (
                       <SelectItem key={group.id} value={group.id}>
                         {group.title}
                       </SelectItem>

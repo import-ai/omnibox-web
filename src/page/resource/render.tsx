@@ -22,7 +22,7 @@ function embedImage(resource: Resource): string {
       }
       content = content.replaceAll(
         image.link,
-        `data:${image.mimetype};base64,${image.data}`,
+        `data:${image.mimetype};base64,${image.data}`
       );
     }
   }

@@ -31,10 +31,10 @@ export default function useContext() {
   const routeQuery: string | undefined = state?.value;
   const [tools, onToolsChange] = useState<Array<ToolType>>(state?.tools || []);
   const [loading, setLoading] = useState<boolean>(
-    routeQuery !== undefined && routeQuery.trim().length > 0,
+    routeQuery !== undefined && routeQuery.trim().length > 0
   );
   const [thinking, onThinking] = useState<boolean | ''>(
-    isUndefined(state.thinking) ? false : state.thinking,
+    isUndefined(state.thinking) ? false : state.thinking
   );
   const [mode, setMode] = useState<ChatMode>(state?.mode || ChatMode.ASK);
   const { context, onContextChange } = useGlobalContext({
@@ -47,7 +47,7 @@ export default function useContext() {
   const refetch = () => {
     return http
       .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
-      .then((response) => {
+      .then(response => {
         if (response.title) {
           app.fire('chat:title:update', response.title);
         }
@@ -98,7 +98,7 @@ export default function useContext() {
         context,
         messages,
         messageOperator,
-        mode,
+        mode
       );
       askAbortRef.current = askFN.destory;
       await askFN.start();

@@ -47,7 +47,7 @@ export default function Resource(props: IProps) {
         app.fire('move_resource_start');
         http
           .post(
-            `/namespaces/${namespaceId}/resources/${resourceId}/move/${data.id}`,
+            `/namespaces/${namespaceId}/resources/${resourceId}/move/${data.id}`
           )
           .then(() => {
             onEditId('');

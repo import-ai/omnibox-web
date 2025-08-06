@@ -23,7 +23,7 @@ export default function ChatContext(props: IProps) {
 
   return (
     <div className="flex items-center gap-1 pt-2 mt-[-8px] max-w-3xl overflow-x-auto no-scrollbar">
-      {value.map((item) => (
+      {value.map(item => (
         <Badge
           key={`${item.resource.id}_${item.type}`}
           slot={
@@ -33,12 +33,12 @@ export default function ChatContext(props: IProps) {
               onClick={() => {
                 onChange(
                   value.filter(
-                    (target) =>
+                    target =>
                       !(
                         target.resource.id === item.resource.id &&
                         target.type === item.type
-                      ),
-                  ),
+                      )
+                  )
                 );
               }}
             >

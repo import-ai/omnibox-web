@@ -23,7 +23,7 @@ const registerSchema = z.object({
     .string()
     .email(i18next.t('form.email_invalid'))
     .refine(
-      (email) => {
+      email => {
         const allowedDomains = [
           'gmail.com',
           'outlook.com',
@@ -35,7 +35,7 @@ const registerSchema = z.object({
       },
       {
         message: i18next.t('form.email_limit_rule'),
-      },
+      }
     ),
 });
 

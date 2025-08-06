@@ -15,7 +15,7 @@ export function SidebarNav(props: SidebarNavProps) {
 
   return (
     <nav className="flex flex-wrap gap-1 lg:flex-col">
-      {items.map((item) => (
+      {items.map(item => (
         <Button
           key={item.value}
           variant="ghost"
@@ -24,7 +24,7 @@ export function SidebarNav(props: SidebarNavProps) {
             'justify-start px-3 sm:px-4',
             item.value === value
               ? 'bg-muted hover:bg-muted dark:bg-[#666666] dark:hover:bg-[#666666]'
-              : 'hover:bg-transparent hover:underline',
+              : 'hover:bg-transparent hover:underline'
           )}
         >
           {item.label}

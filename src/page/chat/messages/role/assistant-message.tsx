@@ -43,7 +43,7 @@ export function AssistantMessage(props: IProps) {
             {openAIMessage.reasoning_content?.trim()}
           </AccordionContent>
         </AccordionItem>
-      </Accordion>,
+      </Accordion>
     );
   }
   if (openAIMessage.content?.trim()) {
@@ -53,7 +53,7 @@ export function AssistantMessage(props: IProps) {
         status={message.status}
         content={openAIMessage.content?.trim()}
         citations={citations}
-      />,
+      />
     );
   }
   if (openAIMessage.tool_calls) {
@@ -73,7 +73,7 @@ export function AssistantMessage(props: IProps) {
           <Loader2Icon className="animate-spin" />
           {t('chat.searching')}
         </Button>
-      </div>,
+      </div>
     );
   }
   return domList.length === 1 ? domList[0] : domList;
