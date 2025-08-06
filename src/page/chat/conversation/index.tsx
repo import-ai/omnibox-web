@@ -16,8 +16,6 @@ export default function ChatConversationPage() {
     onChange,
     onAction,
     messages,
-    thinking,
-    onThinking,
     onToolsChange,
     onContextChange,
   } = useContext();
@@ -38,8 +36,6 @@ export default function ChatConversationPage() {
             context={context}
             onChange={onChange}
             onAction={onAction}
-            thinking={thinking}
-            onThink={onThinking}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}
           />
