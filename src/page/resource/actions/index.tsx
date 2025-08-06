@@ -6,6 +6,7 @@ import copy from 'copy-to-clipboard';
 // import { Resource } from '@/interface';
 import { useRef, useState } from 'react';
 import { Input } from '@/components/input';
+import { ShareWrapper } from './share/wrapper';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Switch } from '@/components/ui/switch';
@@ -200,7 +201,9 @@ export default function Actions(props: IActionProps) {
             : 'full_access'
         }
       >
-        <Share />
+        <ShareWrapper resource={resource} namespaceId={namespaceId}>
+          <Share />
+        </ShareWrapper>
       </PermissionWrapper>
       {resource && (
         <PermissionWrapper
