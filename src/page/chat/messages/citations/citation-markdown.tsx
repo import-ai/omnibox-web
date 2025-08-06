@@ -9,6 +9,10 @@ import '@/styles/github-markdown.css';
 import 'katex/dist/katex.min.css';
 import Vditor from 'vditor';
 import 'vditor/dist/index.css';
+import '@/styles/vditor-patch.css';
+import { LAZY_LOAD_IMAGE, VDITOR_CDN } from '@/const';
+import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
+import { markdownPreviewConfig } from '@/components/markdown';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const citePattern = /\[\[(\d+)]]/g;
@@ -56,17 +60,19 @@ export function CitationMarkdown(props: IProps) {
       if (!previewRef.current) return;
 
       const vditorOptions = {
-        mode: theme.content === 'dark' ? 'dark' : 'light',
+        ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
+        ...markdownPreviewConfig(theme),
+        theme: {
+          current: theme.content,
+        },
+        anchor: 0, // Disable heading anchors for citations
+        mode: theme.content,
+        transform: addReferrerPolicyForString,
+        lazyLoadImage: LAZY_LOAD_IMAGE,
         hljs: {
-          style: theme.content === 'dark' ? 'atom-one-dark' : 'atom-one-light',
-          lineNumber: !isMobile,
+          ...markdownPreviewConfig(theme).hljs,
+          lineNumber: !isMobile, // Override line numbers based on mobile
         },
-        math: {
-          inlineDigit: false,
-          macros: {},
-        },
-        anchor: 0,
-        cdn: 'https://cdn.jsdelivr.net/npm/vditor@3.11.1',
         after: () => {
           if (!previewRef.current) return;
 
@@ -146,10 +152,7 @@ export function CitationMarkdown(props: IProps) {
   ]);
 
   return (
-    <div
-      className="markdown-body reset-list vditor-reset"
-      style={{ background: 'transparent' }}
-    >
+    <div className="reset-list" style={{ background: 'transparent' }}>
       <div ref={previewRef} />
 
       {/* Render CitationHoverIcon components using React portals */}
