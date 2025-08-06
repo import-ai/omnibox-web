@@ -51,7 +51,7 @@ export function CitationMarkdown(props: IProps) {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const removeGeneratedCite =
-    import.meta.env.VITE_REMOVE_GENERATED_CITE === 'TRUE';
+    import.meta.env.VITE_REMOVE_GENERATED_CITE !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(cleanedContent);
 
@@ -60,7 +60,7 @@ export function CitationMarkdown(props: IProps) {
       const citeMatch = href?.match(citeLinkRegex);
       if (citeMatch) {
         const id = Number(citeMatch[1]) - 1;
-        if (id > 0 && id < citations.length) {
+        if (id >= 0 && id < citations.length) {
           return <CitationHoverIcon citation={citations[id]} index={id} />;
         } else if (removeGeneratedCite) {
           return null;
