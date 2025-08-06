@@ -70,9 +70,9 @@ export default function Actions(props: IProps) {
             onClick: () => {
               http
                 .post(
-                  `/namespaces/${namespaceId}/conversations/${conversationId}/restore`,
+                  `/namespaces/${namespaceId}/conversations/${conversationId}/restore`
                 )
-                .then((response) => {
+                .then(response => {
                   navigate(`/${namespaceId}/chat/${response.id}`);
                 });
             },

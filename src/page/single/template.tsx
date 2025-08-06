@@ -27,7 +27,7 @@ export default function Template(props: IProps) {
     const source = axios.CancelToken.source();
     http
       .get(`/${id}.${language}.md`, { baseURL: '', cancelToken: source.token })
-      .then((response) => {
+      .then(response => {
         const [title, content] = response.split('--');
         onData({
           title: title.trim(),

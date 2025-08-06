@@ -38,7 +38,7 @@ export default function GenerateForm() {
     setLoading(true);
     http
       .post('namespaces', { name: data.name })
-      .then((data) => {
+      .then(data => {
         location.href = `/${data.id}/chat`;
       })
       .finally(() => {

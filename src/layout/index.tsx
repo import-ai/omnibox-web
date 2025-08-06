@@ -24,9 +24,9 @@ export default function Layout() {
         !loc.pathname.startsWith('/invite/confirm') &&
         !loc.pathname.startsWith('/single')
       ) {
-        extension().then((val) => {
+        extension().then(val => {
           if (val) {
-            http.get('namespaces').then((data) => {
+            http.get('namespaces').then(data => {
               if (Array.isArray(data) && data.length > 0) {
                 navigate(`/${data[0].id}/chat`, { replace: true });
               }
@@ -54,7 +54,7 @@ export default function Layout() {
     const source = axios.CancelToken.source();
     http
       .get('/user/option/language', { cancelToken: source.token })
-      .then((response) => {
+      .then(response => {
         if (!response || !response.value) {
           return;
         }
@@ -65,7 +65,7 @@ export default function Layout() {
       });
     http
       .get('/user/option/theme', { cancelToken: source.token })
-      .then((response) => {
+      .then(response => {
         if (!response || !response.value) {
           return;
         }

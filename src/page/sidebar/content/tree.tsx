@@ -44,7 +44,7 @@ export default function Tree(props: ITreeProps) {
   const [dragStyle, drag] = useDrag({
     type: 'card',
     item: data,
-    collect: (monitor) => ({
+    collect: monitor => ({
       opacity: monitor.isDragging() ? 0.5 : 1,
     }),
   });
@@ -117,7 +117,7 @@ export default function Tree(props: ITreeProps) {
                     {
                       'bg-sidebar-accent text-sidebar-accent-foreground':
                         target && target.id === data.id,
-                    },
+                    }
                   )}
                 >
                   {expanding === data.id ? (
@@ -125,7 +125,7 @@ export default function Tree(props: ITreeProps) {
                   ) : (
                     <ChevronRight
                       className="transition-transform"
-                      onClick={(event) => {
+                      onClick={event => {
                         event.preventDefault();
                         event.stopPropagation();
                         handleExpand();

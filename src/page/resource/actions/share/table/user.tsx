@@ -37,10 +37,10 @@ export default function User(props: IProps) {
                 alertWhenDelete={
                   data
                     .filter(
-                      (node) =>
-                        node.user && item.user && node.user.id !== item.user.id,
+                      node =>
+                        node.user && item.user && node.user.id !== item.user.id
                     )
-                    .findIndex((node) => node.level === 'full_access') < 0
+                    .findIndex(node => node.level === 'full_access') < 0
                 }
               />
             </>

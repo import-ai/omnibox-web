@@ -23,13 +23,11 @@ export default function Tags(props: IProps) {
   const [editing, onEditing] = useState(false);
   const [tags, setTags] = useState<Array<Option>>([]);
   const handleSearch = (val: string): Promise<Option[]> => {
-    return http
-      .get(`/namespaces/${namespaceId}/tag?name=${val}`)
-      .then((res) => {
-        return Promise.resolve(
-          res.map((item: Tag) => ({ label: item.name, value: item.id })),
-        );
-      });
+    return http.get(`/namespaces/${namespaceId}/tag?name=${val}`).then(res => {
+      return Promise.resolve(
+        res.map((item: Tag) => ({ label: item.name, value: item.id }))
+      );
+    });
   };
   const enterEdit = () => {
     onEditing(true);
@@ -41,7 +39,7 @@ export default function Tags(props: IProps) {
     onEditing(false);
     http.patch(`/namespaces/${namespaceId}/resources/${resourceId}`, {
       namespaceId,
-      tags: tags.map((tag) => tag.value),
+      tags: tags.map(tag => tag.value),
     });
   };
   const handleChange = (val: Array<Option>) => {
@@ -51,7 +49,7 @@ export default function Tags(props: IProps) {
   const handleCreate = (val: Option) => {
     return http
       .post(`/namespaces/${namespaceId}/tag`, { name: val.value })
-      .then((res) => Promise.resolve({ label: res.name, value: res.id }));
+      .then(res => Promise.resolve({ label: res.name, value: res.id }));
   };
 
   useEffect(() => {
@@ -95,7 +93,7 @@ export default function Tags(props: IProps) {
               className="min-h-6 min-w-96 cursor-pointer"
             >
               {tags.length > 0 ? (
-                tags.map((tag) => <Badge key={tag.value}>{tag.label}</Badge>)
+                tags.map(tag => <Badge key={tag.value}>{tag.label}</Badge>)
               ) : (
                 <Badge variant="secondary" className="dark:bg-[#666666]">
                   {t('resource.attrs.add_tag')}

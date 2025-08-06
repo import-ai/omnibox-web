@@ -25,7 +25,7 @@ export default function useContext() {
         `namespaces/${namespace_id}/groups`,
         `namespaces/${namespace_id}/members`,
         `namespaces/${namespace_id}/invitations?type=group`,
-      ].map((url) => http.get(url, { cancelToken: source.token })),
+      ].map(url => http.get(url, { cancelToken: source.token }))
     );
     onData({
       group,

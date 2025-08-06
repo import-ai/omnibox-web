@@ -30,14 +30,14 @@ export default function ChatTool(props: IProps) {
           value: ToolType.WEB_SEARCH,
           icon: <Globe />,
         },
-      ].map((item) => (
+      ].map(item => (
         <Button
           size="sm"
           key={item.value}
           variant="outline"
           onClick={() => {
             if (tools.includes(item.value)) {
-              onToolsChange(tools.filter((target) => target !== item.value));
+              onToolsChange(tools.filter(target => target !== item.value));
             } else {
               onToolsChange([...tools, item.value]);
             }
@@ -48,7 +48,7 @@ export default function ChatTool(props: IProps) {
               'text-[#117bfa] bg-[#cfe5fe] hover:text-[#117bfa] hover:bg-[#cfe5fe] dark:text-[#60a5fb] dark:bg-[#323f51] dark:hover:text-[#60a5fb] dark:hover:bg-[#323f51]':
                 tools.includes(item.value) ||
                 (item.value === ToolType.PRIVATE_SEARCH && context.length > 0),
-            },
+            }
           )}
         >
           {item.icon}

@@ -31,7 +31,7 @@ const FormSchema = z.object({
     .string()
     .email(i18next.t('form.email_invalid'))
     .refine(
-      (email) => {
+      email => {
         const allowedDomains = [
           'gmail.com',
           'outlook.com',
@@ -43,7 +43,7 @@ const FormSchema = z.object({
       },
       {
         message: i18next.t('form.email_limit_rule'),
-      },
+      }
     ),
   role: z
     .string()

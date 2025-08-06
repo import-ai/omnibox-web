@@ -45,7 +45,7 @@ export default function GroupMain(props: GroupProps) {
       <div className="flex items-center justify-between flex-wrap">
         <Input
           value={search}
-          onChange={(e) => onSearch(e.target.value)}
+          onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
           className="h-8 w-[150px] lg:w-[250px]"
         />
@@ -69,7 +69,7 @@ export default function GroupMain(props: GroupProps) {
           <div className="text-sm h-10 leading-10 px-2 min-w-[200px] relative top-[1px] border-b"></div>
         </div>
         <div className="min-w-[450px]">
-          {data.map((item) => (
+          {data.map(item => (
             <GroupData
               key={item.id}
               {...item}

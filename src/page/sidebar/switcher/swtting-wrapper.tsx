@@ -58,9 +58,9 @@ export default function SettingWrapper() {
         `/namespaces/${namespaceId}/members/${localStorage.getItem('uid')}`,
         {
           cancelToken: source.token,
-        },
+        }
       )
-      .then((res) => {
+      .then(res => {
         setUserIsOwner(res.role === 'owner');
       });
     return () => {
@@ -74,14 +74,14 @@ export default function SettingWrapper() {
         <SidebarNav
           value={activeKey}
           onChange={onActiveKey}
-          items={items.map((item) => ({
+          items={items.map(item => ({
             label: item.label,
             value: item.value,
           }))}
         />
       </aside>
       <div className="lg:flex-1 h-[66vh] sm:h-[440px] max-h-[98%] overflow-auto">
-        {items.find((item) => item.value === activeKey)?.children}
+        {items.find(item => item.value === activeKey)?.children}
       </div>
     </div>
   );

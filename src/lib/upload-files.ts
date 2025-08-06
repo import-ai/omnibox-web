@@ -13,7 +13,7 @@ export function getFileHash(file: File): Promise<string> {
         reject(e);
       }
     };
-    reader.onerror = (e) => reject(e);
+    reader.onerror = e => reject(e);
     reader.readAsArrayBuffer(file);
   });
 }
@@ -23,7 +23,7 @@ export function uploadFile(
   args: {
     namespaceId: string;
     parentId: string;
-  },
+  }
 ): Promise<IResourceData> {
   // If the size is less than 5M, minio will report an error.
   const chunkSize = 5 * 1024 * 1024;
@@ -40,7 +40,7 @@ export function uploadFile(
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-      },
+      }
     );
   }
 
@@ -76,7 +76,7 @@ export function uploadFile(
               headers: {
                 'Content-Type': 'multipart/form-data',
               },
-            },
+            }
           );
           uploadedChunks.push(item.chunkNumber);
           success = true;
@@ -89,7 +89,7 @@ export function uploadFile(
                 file_hash: fileHash,
                 namespace_id: args.namespaceId,
                 chunks_number: uploadedChunks.join(','),
-              },
+              }
             );
             throw err;
           }
@@ -112,7 +112,7 @@ export async function uploadFiles(
   args: {
     namespaceId: string;
     parentId: string;
-  },
+  }
 ): Promise<Array<IResourceData>> {
   const results: IResourceData[] = [];
   for (const file of Array.from(files)) {

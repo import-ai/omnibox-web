@@ -31,7 +31,7 @@ export default function ThinkTool(props: IProps) {
             {
               'text-[#117bfa] bg-[#cfe5fe] hover:text-[#117bfa] hover:bg-[#cfe5fe] dark:text-[#60a5fb] dark:bg-[#323f51] dark:hover:text-[#60a5fb] dark:hover:bg-[#323f51]':
                 thinking || !thinkIsBoolean,
-            },
+            }
           )}
         >
           <Lightbulb />

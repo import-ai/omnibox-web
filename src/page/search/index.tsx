@@ -26,37 +26,37 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const resources = useMemo(
     () =>
       items
-        .filter((item) => item.type === 'resource')
-        .map((item) => ({
+        .filter(item => item.type === 'resource')
+        .map(item => ({
           ...item,
           title: item.title || t('untitled'),
           content: item.content || '',
         }))
-        .map((item) => ({
+        .map(item => ({
           ...item,
           content:
             item.content.length > 100
               ? item.content.slice(0, 100) + '...'
               : item.content,
         })),
-    [items],
+    [items]
   );
   const messages = useMemo(
     () =>
       items
-        .filter((item) => item.type === 'message')
-        .map((item) => ({
+        .filter(item => item.type === 'message')
+        .map(item => ({
           ...item,
           content: item.content || '',
         }))
-        .map((item) => ({
+        .map(item => ({
           ...item,
           content:
             item.content.length > 100
               ? item.content.slice(0, 100) + '...'
               : item.content,
         })),
-    [items],
+    [items]
   );
 
   // Fetch search results
@@ -73,12 +73,12 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     debounceTimeout.current = setTimeout(() => {
       http
         .get(
-          `/namespaces/${params.namespace_id}/search?query=${encodeURIComponent(keywords)}`,
+          `/namespaces/${params.namespace_id}/search?query=${encodeURIComponent(keywords)}`
         )
-        .then((data) => {
+        .then(data => {
           setItems(data || []);
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
         });
     }, 300);
@@ -88,7 +88,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     const handleKeyDownFN = (e: KeyboardEvent) => {
       if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        onOpenChange((val) => !val);
+        onOpenChange(val => !val);
       }
     };
     document.addEventListener('keydown', handleKeyDownFN);
@@ -116,7 +116,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
       <CommandList className="min-h-[300px]">
         {resources.length > 0 && (
           <CommandGroup heading={t('search.resources')}>
-            {resources.map((resource) => (
+            {resources.map(resource => (
               <CommandItem
                 key={resource.id}
                 value={resource.id}
@@ -134,14 +134,14 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
         )}
         {messages.length > 0 && (
           <CommandGroup heading={t('search.chats')}>
-            {messages.map((message) => (
+            {messages.map(message => (
               <CommandItem
                 key={message.id}
                 value={message.id}
                 className="cursor-pointer"
                 onSelect={() => {
                   navigate(
-                    `/${params.namespace_id}/chat/${message.conversation_id}`,
+                    `/${params.namespace_id}/chat/${message.conversation_id}`
                   );
                   onOpenChange(false);
                 }}

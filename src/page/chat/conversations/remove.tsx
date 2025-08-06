@@ -45,7 +45,7 @@ export default function RemoveHistory(props: IProps) {
             onClick: () => {
               http
                 .post(
-                  `/namespaces/${namespaceId}/conversations/${data.id}/restore`,
+                  `/namespaces/${namespaceId}/conversations/${data.id}/restore`
                 )
                 .then(onFinish);
             },

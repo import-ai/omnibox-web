@@ -39,7 +39,7 @@ export function InvitationMain(props: InvitationProps) {
       <div className="flex items-center justify-between flex-wrap">
         <Input
           value={search}
-          onChange={(e) => onSearch(e.target.value)}
+          onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
           className="h-8 w-[150px] lg:w-[250px]"
         />
@@ -60,7 +60,7 @@ export function InvitationMain(props: InvitationProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {invitations.map((item) => (
+            {invitations.map(item => (
               <InvitationData
                 namespaceId={namespaceId}
                 invitation={item}

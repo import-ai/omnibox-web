@@ -25,15 +25,15 @@ export default function AuthConfirmPage() {
       .get(`/wechat/callback?code=${code}&state=${state}`, {
         cancelToken: source.token,
       })
-      .then((res) => {
+      .then(res => {
         setGlobalCredential(res.id, res.access_token);
-        extension().then((val) => {
+        extension().then(val => {
           if (val) {
             navigate('/', { replace: true });
           }
         });
       })
-      .catch((error) => {
+      .catch(error => {
         toast.error(error.message, { position: 'bottom-right' });
       });
     return () => {

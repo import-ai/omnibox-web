@@ -56,21 +56,21 @@ export default function PermissionAction(props: IProps) {
     return http
       .patch(
         `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`,
-        { level },
+        { level }
       )
       .then(refetch);
   };
   const removePermission = () => {
     return http
       .delete(
-        `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`,
+        `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`
       )
       .then(refetch);
   };
   const handleChange = (level: Permission) => {
     if (me) {
-      const oldIndex = data.findIndex((item) => item.value === value);
-      const newIndex = data.findIndex((item) => item.value === level);
+      const oldIndex = data.findIndex(item => item.value === value);
+      const newIndex = data.findIndex(item => item.value === level);
       if (oldIndex < newIndex) {
         onPermission(level);
         return;

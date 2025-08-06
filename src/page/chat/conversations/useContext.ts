@@ -41,7 +41,7 @@ export default function useContext() {
     http
       .get(
         `/namespaces/${namespaceId}/conversations?offset=${(current - 1) * pageSize}&limit=${pageSize}&order=desc`,
-        { cancelToken: source.token },
+        { cancelToken: source.token }
       )
       .then(onData)
       .finally(() => {

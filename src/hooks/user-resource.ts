@@ -44,7 +44,7 @@ export default function useResource() {
         cancelToken: source.token,
       })
       .then(onResource)
-      .catch((err) => {
+      .catch(err => {
         if (err && err.status && err.status === 403) {
           onForbidden(true);
         }

@@ -31,7 +31,7 @@ export default function AddMember(props: AddMemberProps) {
   const handleAddMember = () => {
     const inviteUsers: Array<string> = [];
     const memberUsers: Array<string> = [];
-    value.forEach((item) => {
+    value.forEach(item => {
       if (isEmail(item.value)) {
         inviteUsers.push(item.value);
       } else {
@@ -51,14 +51,14 @@ export default function AddMember(props: AddMemberProps) {
           namespace: namespace_id,
           inviteUrl: `${location.origin}/invite/confirm`,
           registerUrl: `${location.origin}/user/sign-up/confirm`,
-        }),
+        })
       );
     }
     if (memberUsers.length > 0) {
       actions.push(
         http.post(`/namespaces/${namespace_id}/groups/${group_id}/users`, {
           userIds: memberUsers,
-        }),
+        })
       );
     }
     onLoading(true);
@@ -84,7 +84,7 @@ export default function AddMember(props: AddMemberProps) {
     if (!isEmail(val)) {
       return;
     }
-    const isExist = value.find((item) => item.email === val);
+    const isExist = value.find(item => item.email === val);
     if (isExist) {
       return;
     }
@@ -110,7 +110,7 @@ export default function AddMember(props: AddMemberProps) {
           hideClearAllButton
           onChange={onChange}
           inputValue={inputValue}
-          options={data.map((item) => ({
+          options={data.map(item => ({
             label: item.email,
             value: item.user_id,
           }))}

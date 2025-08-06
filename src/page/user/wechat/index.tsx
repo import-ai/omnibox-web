@@ -22,10 +22,10 @@ export default function WeChat(props: IProps) {
     if (isWeChat) {
       http
         .get('/wechat/auth-url')
-        .then((authUrl) => {
+        .then(authUrl => {
           location.href = authUrl;
         })
-        .catch((error) => {
+        .catch(error => {
           toast.error(error.message, { position: 'bottom-right' });
         });
     } else {

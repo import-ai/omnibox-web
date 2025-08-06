@@ -26,22 +26,20 @@ export default function ChatHomePage() {
     ToolType.PRIVATE_SEARCH,
   ]);
   const handleAction = () => {
-    http
-      .post(`/namespaces/${namespaceId}/conversations`)
-      .then((conversation) => {
-        sessionStorage.setItem(
-          'state',
-          JSON.stringify({
-            mode,
-            value,
-            tools,
-            context,
-            thinking,
-            conversation,
-          }),
-        );
-        navigate(`/${namespaceId}/chat/${conversation.id}`);
-      });
+    http.post(`/namespaces/${namespaceId}/conversations`).then(conversation => {
+      sessionStorage.setItem(
+        'state',
+        JSON.stringify({
+          mode,
+          value,
+          tools,
+          context,
+          thinking,
+          conversation,
+        })
+      );
+      navigate(`/${namespaceId}/chat/${conversation.id}`);
+    });
   };
 
   useEffect(() => {

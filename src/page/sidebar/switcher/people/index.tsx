@@ -17,7 +17,7 @@ export default function PeopleManage() {
       .get(`namespaces/${namespaceId}/invitations?type=namespace`, {
         cancelToken: source.token,
       })
-      .then((data) => {
+      .then(data => {
         if (data.length > 0) {
           setInvitationId(data[0].id);
         } else {

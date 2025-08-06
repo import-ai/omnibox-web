@@ -92,9 +92,9 @@ export default function Attributes(props: IProps) {
                   `/namespaces/${namespaceId}/resources/files/${resource.id}`,
                   {
                     responseType: 'blob',
-                  },
+                  }
                 )
-                .then((blob) => {
+                .then(blob => {
                   const link = document.createElement('a');
                   const url = window.URL.createObjectURL(blob);
                   link.href = url;
