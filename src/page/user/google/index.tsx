@@ -1,23 +1,58 @@
 import { toast } from 'sonner';
 import GoogleIcon from './icon';
+import { useEffect } from 'react';
 import { http } from '@/lib/request';
+import extension from '@/lib/extension';
 import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { setGlobalCredential } from '@/page/user/util';
 
 export default function Google() {
   const { t } = useTranslation();
-
+  const navigate = useNavigate();
   const loginWithGoogle = () => {
     http
       .get('/google/auth-url')
       .then((authUrl) => {
-        // 重定向到 Google OAuth 授权页面
-        window.location.href = authUrl;
+        window.open(authUrl, 'googleLogin', 'width=500,height=600');
       })
       .catch((error) => {
         toast.error(error.message, { position: 'bottom-right' });
       });
   };
+
+  useEffect(() => {
+    const messageFN = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+      const { code, state } = event.data;
+      if (code && state) {
+        http
+          .post(`/google/callback`, {
+            code,
+            state,
+          })
+          .then((res) => {
+            setGlobalCredential(res.id, res.access_token);
+            extension().then((val) => {
+              if (val) {
+                navigate('/', { replace: true });
+              }
+            });
+          })
+          .catch((error) => {
+            toast.error(error.message, { position: 'bottom-right' });
+          });
+      }
+    };
+    // 等待回调页面传回结果
+    window.addEventListener('message', messageFN);
+    return () => {
+      window.removeEventListener('message', messageFN);
+    };
+  }, []);
 
   return (
     <Button

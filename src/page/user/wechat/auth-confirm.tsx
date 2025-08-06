@@ -6,8 +6,8 @@ import { http } from '@/lib/request';
 import extension from '@/lib/extension';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import { setGlobalCredential } from '@/page/user/util';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export default function AuthConfirmPage() {
   const { t } = useTranslation();
