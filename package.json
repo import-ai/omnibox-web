@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": " biome lint --fix",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix && prettier --write .",
+    "format": "prettier --write .",
     "preview": "vite preview",
     "prepare": "husky install"
   },
@@ -70,7 +71,6 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@types/jest": "^29.5.14",

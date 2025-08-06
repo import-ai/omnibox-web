@@ -1,4 +1,11 @@
 build
+dist
 node_modules
 .vscode
 .github
+.husky
+pnpm-lock.yaml
+package-lock.json
+*.min.js
+*.min.css
+coverage/
