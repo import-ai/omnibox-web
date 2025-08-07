@@ -15,7 +15,7 @@ import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
 import { markdownPreviewConfig } from '@/components/markdown';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
-const citePattern = /\[\[(\d+)]]/g;
+const citePattern = / *\[\[(\d+)]]/g;
 
 export function trimIncompletedCitation(text: string) {
   const citePrefix = '[[';
@@ -36,6 +36,28 @@ export function trimIncompletedCitation(text: string) {
 
 export function replaceCiteTag(input: string): string {
   return input.replace(citePattern, (_, i) => `[[${i}]](#cite-${i})`);
+}
+
+function copyPreprocess(content: string, citations: Citation[]): string {
+  let citationsFooter: string = '';
+  for (let i = 0; i < citations.length; i++) {
+    const citation = citations[i];
+    console.log({ citation });
+    const title = citation.title.replace('"', '\\"');
+    citationsFooter += `[${i + 1}]: ${citation.link} "${title}"\n`;
+  }
+
+  if (citationsFooter) {
+    content = content + '\n\n' + citationsFooter;
+  }
+
+  return content.replace(citePattern, (_, index) => {
+    const citationIndex = Number(index) - 1;
+    if (citationIndex >= 0 && citationIndex < citations.length) {
+      return `[^${index}][${index}]`;
+    }
+    return '';
+  });
 }
 
 interface IProps {
@@ -167,9 +189,7 @@ export function CitationMarkdown(props: IProps) {
       })}
 
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
-        <div className="flex ml-[-6px] mt-[-10px]">
-          <Copy content={content} />
-        </div>
+        <Copy content={copyPreprocess(content, citations)} />
       )}
     </div>
   );
