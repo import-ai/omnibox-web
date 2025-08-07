@@ -23,7 +23,11 @@ export interface PrivateSearch extends IChatTool {
   resources?: PrivateSearchResource[];
 }
 
-type ChatTool = WebSearch | PrivateSearch;
+export interface Reasoning extends IChatTool {
+  name: ToolType.REASONING;
+}
+
+type ChatTool = WebSearch | PrivateSearch | Reasoning;
 
 export interface ChatRequestBody {
   namespace_id: string;
@@ -31,5 +35,5 @@ export interface ChatRequestBody {
   query: string;
   tools?: ChatTool[];
   parent_message_id?: string;
-  enable_thinking?: boolean;
+  enable_thinking: boolean;
 }

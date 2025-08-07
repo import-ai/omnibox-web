@@ -19,7 +19,6 @@ export default function ChatHomePage() {
   const [value, onChange] = useState('');
   const namespaceId = params.namespace_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
-  const [thinking, onThinking] = useState<boolean | ''>(false);
   const { context, onContextChange } = useContext({ data: [] });
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [tools, onToolsChange] = useState<Array<ToolType>>([
@@ -34,7 +33,6 @@ export default function ChatHomePage() {
           value,
           tools,
           context,
-          thinking,
           conversation,
         })
       );
@@ -68,8 +66,6 @@ export default function ChatHomePage() {
             context={context}
             setMode={setMode}
             onChange={onChange}
-            thinking={thinking}
-            onThink={onThinking}
             onAction={handleAction}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}

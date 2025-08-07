@@ -263,13 +263,7 @@
     "tools": {
       "web_search": "Web Search",
       "private_search": "OmniBox",
-      "reasoning": "Reasoning",
-      "on": "On",
-      "output_answer": "Output answer with reasoning process",
-      "auto": "Auto",
-      "smart_switch": "Smart switch based on context",
-      "off": "Off",
-      "direct_answer": "Quick direct answer"
+      "reasoning": "Reasoning"
     },
     "textarea": {
       "placeholder": "Ask anything"

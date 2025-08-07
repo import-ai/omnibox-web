@@ -3,7 +3,12 @@ import { execSync } from 'child_process';
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
 
-const gitHash = execSync('git rev-parse --short HEAD').toString().trim();
+let gitHash = 'unknown';
+try {
+  gitHash = execSync('git rev-parse --short HEAD').toString().trim();
+} catch (error) {
+  console.error('Failed to get git hash:', error);
+}
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {

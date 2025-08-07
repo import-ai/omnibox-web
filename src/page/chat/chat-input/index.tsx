@@ -15,11 +15,9 @@ interface IProps {
   mode: ChatMode;
   loading: boolean;
   tools: Array<ToolType>;
-  thinking: boolean | '';
   context: IResTypeContext[];
   setMode: (mode: ChatMode) => void;
   onChange: (value: string) => void;
-  onThink: (thinking: boolean | '') => void;
   onAction: (action?: ChatActionType) => void;
   onToolsChange: (tool: Array<ToolType>) => void;
   onContextChange: (context: IResTypeContext[]) => void;
@@ -35,8 +33,6 @@ export default function ChatArea(props: IProps) {
     loading,
     onAction,
     onChange,
-    thinking,
-    onThink,
     onToolsChange,
     onContextChange,
   } = props;
@@ -52,9 +48,7 @@ export default function ChatArea(props: IProps) {
       <div className="flex items-center justify-between">
         <ChatTool
           tools={tools}
-          onThink={onThink}
           context={context}
-          thinking={thinking}
           onToolsChange={onToolsChange}
         />
         <ChatAction

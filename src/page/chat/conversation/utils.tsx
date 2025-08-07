@@ -1,4 +1,3 @@
-import { isBoolean } from 'lodash-es';
 import { stream } from '@/page/chat/utils';
 import { MessageDetail } from '@/page/chat/types/conversation';
 import { ChatResponse } from '@/page/chat/types/chat-response';
@@ -31,7 +30,6 @@ export function prepareBody(
   conversationId: string,
   query: string,
   tools: ToolType[],
-  thinking: boolean | '',
   context: IResTypeContext[],
   messages: MessageDetail[]
 ): ChatRequestBody {
@@ -39,15 +37,15 @@ export function prepareBody(
     namespace_id: namespaceId,
     conversation_id: conversationId,
     query,
+    enable_thinking: false,
   };
-  if (isBoolean(thinking)) {
-    body.enable_thinking = thinking;
-  }
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
   }
   for (const tool of tools) {
-    if (tool === ToolType.PRIVATE_SEARCH) {
+    if (tool === ToolType.REASONING) {
+      body.enable_thinking = true;
+    } else if (tool === ToolType.PRIVATE_SEARCH) {
       body.tools = body?.tools || [];
       const tool: PrivateSearch = {
         name: ToolType.PRIVATE_SEARCH,
@@ -74,7 +72,6 @@ export function ask(
   conversationId: string,
   query: string,
   tools: ToolType[],
-  thinking: boolean | '',
   context: IResTypeContext[],
   messages: MessageDetail[],
   messageOperator: MessageOperator,
@@ -85,7 +82,6 @@ export function ask(
     conversationId,
     query,
     tools,
-    thinking,
     context,
     messages
   );
