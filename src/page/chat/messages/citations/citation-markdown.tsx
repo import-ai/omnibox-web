@@ -42,7 +42,6 @@ function copyPreprocess(content: string, citations: Citation[]): string {
   let citationsFooter: string = '';
   for (let i = 0; i < citations.length; i++) {
     const citation = citations[i];
-    console.log({ citation });
     const title = citation.title.replace('"', '\\"');
     citationsFooter += `[${i + 1}]: ${citation.link} "${title}"\n`;
   }
