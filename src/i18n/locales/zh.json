@@ -13,6 +13,9 @@
   "private": "私有",
   "teamspace": "团队",
   "resource": {
+    "folder": {
+      "children_count": "{{count}} 个文件"
+    },
     "deleted": "已删除",
     "deleted_description": "此资源已被删除",
     "attrs": {

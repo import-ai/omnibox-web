@@ -2,11 +2,12 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import { http } from '@/lib/request';
 import { Resource } from '@/interface';
+import { FolderContent } from './content';
 import { useEffect, useState } from 'react';
 import Loading from '@/components/loading';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { groupItemsByTimestamp } from './utils';
+import { groupItemsByTimestamp } from '../utils';
 import { Separator } from '@/components/ui/separator';
 
 interface IProps {
@@ -66,11 +67,18 @@ export default function Folder(props: IProps) {
                         {item.name || t('untitled')}
                       </h3>
                     </div>
-                    <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
-                      {item.updated_at
-                        ? format(item.updated_at, 'yyyy-MM-dd HH:mm:ss')
-                        : ''}
-                    </p>
+                    {item.resource_type === 'folder' ? (
+                      <FolderContent
+                        resource={item}
+                        namespaceId={namespaceId}
+                      />
+                    ) : (
+                      <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+                        {item.updated_at
+                          ? format(item.updated_at, 'yyyy-MM-dd HH:mm:ss')
+                          : ''}
+                      </p>
+                    )}
                     {index < items.length - 1 && <Separator className="my-4" />}
                   </div>
                 );
