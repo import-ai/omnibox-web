@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import Copy from './actions/copy';
+import Copy from '@/page/chat/messages/citations/actions/copy';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
 import useTheme from '@/hooks/use-theme.ts';
