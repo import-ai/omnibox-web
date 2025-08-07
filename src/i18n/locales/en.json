@@ -13,6 +13,9 @@
   "private": "Private",
   "teamspace": "Teamspace",
   "resource": {
+    "folder": {
+      "children_count": "{{count}} files"
+    },
     "deleted": "Deleted",
     "deleted_description": "This resource has been deleted",
     "attrs": {
