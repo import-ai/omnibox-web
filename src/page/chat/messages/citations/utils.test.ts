@@ -1,4 +1,4 @@
-import { trimIncompletedCitation } from './utils';
+import { trimIncompletedCitation } from './citation-markdown';
 
 describe('cleanIncompletedCitation', () => {
   it('removes incomplete [ at the end', () => {
