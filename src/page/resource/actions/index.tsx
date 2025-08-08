@@ -195,11 +195,7 @@ export default function Actions(props: IActionProps) {
         <PermissionWrapper
           level={0}
           forbidden={forbidden}
-          permission={
-            resource && resource.current_level
-              ? resource.current_level
-              : 'full_access'
-          }
+          permission={resource.current_level || 'full_access'}
         >
           <Share />
         </PermissionWrapper>
