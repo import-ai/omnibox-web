@@ -6,6 +6,7 @@ import CommonForm from './basic';
 import PeopleForm from './people';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
+import { ThirdPartyForm } from './third-party';
 import { useTranslation } from 'react-i18next';
 import { SidebarNav } from '@/page/user/form/sidebar';
 
@@ -21,6 +22,11 @@ export default function SettingWrapper() {
           label: t('setting.profile'),
           value: 'profile',
           children: <ProfileForm />,
+        },
+        {
+          label: '三方账号管理',
+          value: 'third-party',
+          children: <ThirdPartyForm />,
         },
         {
           label: t('setting.namespace'),
@@ -43,6 +49,11 @@ export default function SettingWrapper() {
           label: t('setting.profile'),
           value: 'profile',
           children: <ProfileForm />,
+        },
+        {
+          label: '三方账号管理',
+          value: 'third-party',
+          children: <ThirdPartyForm />,
         },
         {
           label: t('setting.basic'),

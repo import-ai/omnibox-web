@@ -1,16 +1,17 @@
 import { toast } from 'sonner';
-import { GoogleIcon } from './icon';
 import { useEffect } from 'react';
 import { http } from '@/lib/request';
-import extension from '@/lib/extension';
+import { Link } from 'lucide-react';
 import { Button } from '@/components/button';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { setGlobalCredential } from '@/page/user/util';
+// import { useTranslation } from 'react-i18next';
 
-export default function Google() {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
+interface IProps {
+  onSuccess: () => void;
+}
+
+export function GoogleLogin(props: IProps) {
+  const { onSuccess } = props;
+  // const { t } = useTranslation();
   const loginWithGoogle = () => {
     http
       .get('/google/auth-url')
@@ -34,14 +35,7 @@ export default function Google() {
             code,
             state,
           })
-          .then(res => {
-            setGlobalCredential(res.id, res.access_token);
-            extension().then(val => {
-              if (val) {
-                navigate('/', { replace: true });
-              }
-            });
-          })
+          .then(onSuccess)
           .catch(error => {
             toast.error(error.message, { position: 'bottom-right' });
           });
@@ -55,13 +49,9 @@ export default function Google() {
   }, []);
 
   return (
-    <Button
-      variant="outline"
-      onClick={loginWithGoogle}
-      className="w-full [&_svg]:size-4 dark:[&_svg]:fill-white"
-    >
-      <GoogleIcon />
-      {t('login.login_use_google')}
+    <Button size="sm" variant="outline" onClick={loginWithGoogle}>
+      <Link className="size-4 mr-2" />
+      绑定
     </Button>
   );
 }

@@ -1,7 +1,7 @@
 import { toast } from 'sonner';
-import { WeChatIcon } from './icon';
 import isMobile from 'ismobilejs';
 import { http } from '@/lib/request';
+import { Link } from 'lucide-react';
 import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
 
@@ -9,7 +9,7 @@ interface IProps {
   onScan: (value: boolean) => void;
 }
 
-export default function WeChat(props: IProps) {
+export function WechatLogin(props: IProps) {
   const { onScan } = props;
   const { t } = useTranslation();
   const userAgent = navigator.userAgent.toLowerCase();
@@ -35,25 +35,17 @@ export default function WeChat(props: IProps) {
 
   if (isPhone && !isWeChat) {
     return (
-      <Button
-        variant="outline"
-        onClick={alertDisableWeChatLogin}
-        className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white opacity-50"
-      >
-        <WeChatIcon />
-        {t('login.login_use_wechat')}
+      <Button size="sm" variant="outline" onClick={alertDisableWeChatLogin}>
+        <Link className="size-4 mr-2" />
+        绑定
       </Button>
     );
   }
 
   return (
-    <Button
-      variant="outline"
-      onClick={loginWithWeChat}
-      className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white"
-    >
-      <WeChatIcon />
-      {t('login.login_use_wechat')}
+    <Button size="sm" variant="outline" onClick={loginWithWeChat}>
+      <Link className="size-4 mr-2" />
+      绑定
     </Button>
   );
 }
