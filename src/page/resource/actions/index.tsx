@@ -192,7 +192,7 @@ export default function Actions(props: IActionProps) {
         {getTime(resource)}
       </div>
       <PermissionWrapper
-        level={0}
+        requiredPermission={0}
         forbidden={forbidden}
         permission={
           resource && resource.current_permission
@@ -204,7 +204,7 @@ export default function Actions(props: IActionProps) {
       </PermissionWrapper>
       {resource && (
         <PermissionWrapper
-          level={1}
+          requiredPermission={1}
           forbidden={forbidden}
           permission={resource.current_permission || 'full_access'}
         >

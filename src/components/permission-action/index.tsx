@@ -52,11 +52,11 @@ export default function PermissionAction(props: IProps) {
   const [removeing, onRemoveing] = useState(false);
   const [permissioning, onPermissioning] = useState(false);
   const [permission, onPermission] = useState<Permission>('full_access');
-  const updatePermission = (level: Permission) => {
+  const updatePermission = (permission: Permission) => {
     return http
       .patch(
         `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`,
-        { level }
+        { permission }
       )
       .then(refetch);
   };
@@ -67,16 +67,16 @@ export default function PermissionAction(props: IProps) {
       )
       .then(refetch);
   };
-  const handleChange = (level: Permission) => {
+  const handleChange = (permission: Permission) => {
     if (me) {
       const oldIndex = data.findIndex(item => item.value === value);
-      const newIndex = data.findIndex(item => item.value === level);
+      const newIndex = data.findIndex(item => item.value === permission);
       if (oldIndex < newIndex) {
-        onPermission(level);
+        onPermission(permission);
         return;
       }
     }
-    updatePermission(level);
+    updatePermission(permission);
   };
   const handleCancel = () => {
     onPermission('full_access');
