@@ -28,7 +28,7 @@ interface IProps {
 
 const FormSchema = z.object({
   namespaceRole: z.string(),
-  rootPermissionLevel: z.string(),
+  rootPermission: z.string(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -47,7 +47,7 @@ export function AddNamespaceInvitationForm(props: IProps) {
     http
       .post(`/namespaces/${namespaceId}/invitations`, {
         namespaceRole: val.namespaceRole,
-        rootPermissionLevel: val.rootPermissionLevel,
+        rootPermission: val.rootPermission,
       })
       .then(() => {
         onFinish();
@@ -90,7 +90,7 @@ export function AddNamespaceInvitationForm(props: IProps) {
         />
         <FormField
           control={form.control}
-          name="rootPermissionLevel"
+          name="rootPermission"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t('manage.permission')}</FormLabel>

@@ -109,6 +109,6 @@ export interface GroupPermission extends IBase {
 export interface Invitation {
   id: string;
   namespace_role: Role;
-  root_permission_level: Permission;
+  root_permission: Permission;
   group?: Group;
 }
