@@ -76,7 +76,7 @@ export interface Member {
   username: string;
   email: string;
   role: Role;
-  level: Permission;
+  permission: Permission;
 }
 
 export interface NamespaceMember extends IBase {
@@ -95,14 +95,14 @@ export interface Group extends IBase {
 
 export interface UserPermission extends IBase {
   id: number;
-  level: Permission;
+  permission: Permission;
   namespace?: Namespace;
   resource?: Resource;
   user?: User;
 }
 
 export interface GroupPermission extends IBase {
-  level: Permission;
+  permission: Permission;
   group: Group;
 }
 

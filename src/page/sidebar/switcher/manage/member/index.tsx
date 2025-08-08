@@ -87,7 +87,7 @@ export default function MemberMain(props: MemberProps) {
                 <TableCell>
                   <PermissionAction
                     disabled={!isOwner}
-                    value={item.level}
+                    value={item.permission}
                     refetch={refetch}
                     user_id={item.user_id}
                     resource_id={resourceId}
