@@ -59,6 +59,13 @@ export interface PathItem {
   name: string;
 }
 
+export interface SharedResource {
+  id: string;
+  name: string;
+  content: string;
+  attrs?: Record<string, any>;
+}
+
 export interface Resource extends IBase {
   id: string;
   current_permission?: Permission;
