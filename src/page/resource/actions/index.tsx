@@ -199,6 +199,7 @@ export default function Actions(props: IActionProps) {
             ? resource.current_permission
             : 'full_access'
         }
+        spaceType={resource?.space_type}
       >
         <Share />
       </PermissionWrapper>
