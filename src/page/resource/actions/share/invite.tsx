@@ -53,7 +53,7 @@ export default function InviteForm(props: InviteFormProps) {
         emails: userEmails,
         resourceId: resource_id,
         namespace: namespace_id,
-        permissionLevel: permission,
+        permission: permission,
         inviteUrl: `${location.origin}/invite/confirm`,
         registerUrl: `${location.origin}/user/sign-up/confirm`,
       })

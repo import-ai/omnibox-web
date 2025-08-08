@@ -18,7 +18,7 @@ export default function AuthPage(props: IProps) {
     return null;
   }
 
-  if (resource.current_level === 'no_access') {
+  if (resource.current_permission === 'no_access') {
     return <UnauthorizedPage />;
   }
 

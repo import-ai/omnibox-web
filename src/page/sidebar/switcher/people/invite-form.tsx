@@ -49,7 +49,7 @@ const FormSchema = z.object({
     .string()
     .min(2, i18next.t('invite.min'))
     .max(22, i18next.t('invite.max')),
-  permissionLevel: z.string(),
+  permission: z.string(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -77,7 +77,7 @@ export default function InviteForm(props: IProps) {
       .post('invite', {
         role: data.role,
         emails: [data.email],
-        permissionLevel: data.permissionLevel,
+        permission: data.permission,
         namespace: namespace_id,
         inviteUrl: `${location.origin}/invite/confirm`,
         registerUrl: `${location.origin}/user/sign-up/confirm`,
@@ -146,7 +146,7 @@ export default function InviteForm(props: IProps) {
         />
         <FormField
           control={form.control}
-          name="permissionLevel"
+          name="permission"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t('manage.permission')}</FormLabel>
