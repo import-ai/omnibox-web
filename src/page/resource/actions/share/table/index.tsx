@@ -14,13 +14,13 @@ export default function Wrapper(props: UserFormProps) {
   const { resource_id, namespace_id } = props;
   const app = useApp();
   const [data, onData] = useState<{
-    global_level: Permission;
+    global_permission: Permission;
     users: Array<UserPermission>;
     groups: Array<GroupPermission>;
   }>({
     users: [],
     groups: [],
-    global_level: 'full_access',
+    global_permission: 'full_access',
   });
   const refetch = () => {
     if (!namespace_id || !resource_id) {

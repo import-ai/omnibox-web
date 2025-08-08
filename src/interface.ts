@@ -47,7 +47,7 @@ export interface PathItem {
 
 export interface Resource extends IBase {
   id: string;
-  current_level?: Permission;
+  current_permission?: Permission;
 
   resource_type: ResourceType;
 
@@ -59,7 +59,7 @@ export interface Resource extends IBase {
   tags?: string[];
   attrs?: Record<string, any>;
 
-  globalLevel?: Permission;
+  global_permission?: Permission;
 
   path?: PathItem[];
 }
