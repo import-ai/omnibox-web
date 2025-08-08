@@ -51,7 +51,7 @@ export function AssistantMessage(props: IProps) {
       <CitationMarkdown
         key="content"
         status={message.status}
-        content={openAIMessage.content?.trim()}
+        content={openAIMessage.content?.trim() + '\n\n > 此内容由AI生成\n'}
         citations={citations}
       />
     );

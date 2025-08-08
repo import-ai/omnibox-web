@@ -33,10 +33,11 @@ const formSchema = z.object({
 });
 
 interface IProps extends React.ComponentPropsWithoutRef<'form'> {
+  checked?: boolean;
   children: React.ReactNode;
 }
 
-export function LoginForm({ className, children, ...props }: IProps) {
+export function LoginForm({ checked, className, children, ...props }: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -50,6 +51,10 @@ export function LoginForm({ className, children, ...props }: IProps) {
     },
   });
   const onSubmit = (data: z.infer<typeof formSchema>) => {
+    if (!checked) {
+      toast(t('login.wechat_not_agree'), { position: 'bottom-right' });
+      return;
+    }
     if (isEmail(data.email)) {
       const allowedDomains = ['gmail.com', 'outlook.com', '163.com', 'qq.com'];
       const domain = data.email.split('@')[1];

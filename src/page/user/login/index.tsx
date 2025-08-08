@@ -7,14 +7,15 @@ import WrapperPage from '../wrapper';
 
 export default function LoginPage() {
   const [scan, onScan] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   return (
-    <WrapperPage extra={<MetaPage />}>
+    <WrapperPage extra={<MetaPage checked={checked} setChecked={setChecked} />}>
       {scan ? (
         <Scan onScan={onScan} />
       ) : (
-        <LoginForm>
-          <WeChat onScan={onScan} />
+        <LoginForm checked={checked}>
+          <WeChat checked={checked} onScan={onScan} />
         </LoginForm>
       )}
     </WrapperPage>
