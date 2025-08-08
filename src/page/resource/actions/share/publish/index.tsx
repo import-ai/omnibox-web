@@ -30,7 +30,7 @@ export function Publish(props: PublishProps) {
     }
     http
       .get(`namespaces/${namespace_id}/resources/${resource_id}/share`)
-      .then((data) => {
+      .then(data => {
         setShareInfo(parseShareInfo(data));
       });
   }, [namespace_id, resource_id]);
@@ -38,13 +38,13 @@ export function Publish(props: PublishProps) {
   const updateShareInfo = (data: UpdateShareInfoReq) => {
     http
       .patch(`namespaces/${namespace_id}/resources/${resource_id}/share`, data)
-      .then((data) => {
+      .then(data => {
         setShareInfo(parseShareInfo(data));
       });
   };
 
   const shareUrl = shareInfo?.enabled
-    ? `${location.origin}/s/${shareInfo.id}`
+    ? `${location.origin}/s/${shareInfo.id}/${resource_id}`
     : '';
 
   const handleEnable = (enabled: boolean) => {
