@@ -63,11 +63,11 @@ export function ThirdPartyForm() {
         <Card key={item.login_type}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <div className="p-2 bg-white rounded-lg [&_svg]:size-4">
                   {item.icon}
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                   <h4 className="font-semibold">
                     {t(`setting.third_party_account.${item.login_type}`)}
                   </h4>

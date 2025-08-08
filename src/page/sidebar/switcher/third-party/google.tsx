@@ -49,7 +49,7 @@ export function GoogleLogin(props: IProps) {
 
   return (
     <Button size="sm" onClick={loginWithGoogle}>
-      {t('setting.third_party_account.bind_google')}
+      {t('setting.third_party_account.bind')}
     </Button>
   );
 }
