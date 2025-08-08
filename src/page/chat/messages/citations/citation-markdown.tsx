@@ -134,7 +134,7 @@ export function CitationMarkdown(props: IProps) {
     if (!previewRef.current) return;
 
     try {
-      await Vditor.preview(previewRef.current, '> 此内容由AI生成。\n\n' + replacedContent, {
+      await Vditor.preview(previewRef.current, replacedContent, {
         ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
         ...markdownPreviewConfig(theme),
         theme: {
