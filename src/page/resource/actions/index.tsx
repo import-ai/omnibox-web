@@ -6,7 +6,6 @@ import copy from 'copy-to-clipboard';
 // import { Resource } from '@/interface';
 import { useRef, useState } from 'react';
 import { Input } from '@/components/input';
-import { ShareWrapper } from './share/wrapper';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Switch } from '@/components/ui/switch';
@@ -192,19 +191,19 @@ export default function Actions(props: IActionProps) {
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
-      <PermissionWrapper
-        level={0}
-        forbidden={forbidden}
-        permission={
-          resource && resource.current_level
-            ? resource.current_level
-            : 'full_access'
-        }
-      >
-        <ShareWrapper resource={resource} namespaceId={namespaceId}>
+      {resource && resource.space_type === 'teamspace' && (
+        <PermissionWrapper
+          level={0}
+          forbidden={forbidden}
+          permission={
+            resource && resource.current_level
+              ? resource.current_level
+              : 'full_access'
+          }
+        >
           <Share />
-        </ShareWrapper>
-      </PermissionWrapper>
+        </PermissionWrapper>
+      )}
       {resource && (
         <PermissionWrapper
           level={1}

@@ -62,6 +62,8 @@ export interface Resource extends IBase {
   globalLevel?: Permission;
 
   path?: PathItem[];
+
+  space_type: SpaceType;
 }
 
 export interface IResourceData extends Resource {
