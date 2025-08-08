@@ -25,6 +25,13 @@ export interface User extends IBase {
   password_repeat?: string;
 }
 
+export interface UserBinding extends IBase {
+  id: number;
+  user_id: string;
+  login_type: string;
+  login_id: string;
+}
+
 export interface Namespace extends IBase {
   id: string;
   name: string;

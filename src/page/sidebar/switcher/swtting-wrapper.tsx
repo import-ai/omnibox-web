@@ -6,6 +6,7 @@ import CommonForm from './basic';
 import PeopleForm from './people';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
+import { ThirdPartyForm } from './third-party';
 import { useTranslation } from 'react-i18next';
 import { SidebarNav } from '@/page/user/form/sidebar';
 
@@ -37,6 +38,11 @@ export default function SettingWrapper() {
           value: 'basic',
           children: <CommonForm />,
         },
+        {
+          label: t('setting.third_party_account.manage'),
+          value: 'third-party',
+          children: <ThirdPartyForm />,
+        },
       ]
     : [
         {
@@ -48,6 +54,11 @@ export default function SettingWrapper() {
           label: t('setting.basic'),
           value: 'basic',
           children: <CommonForm />,
+        },
+        {
+          label: t('setting.third_party_account.manage'),
+          value: 'third-party',
+          children: <ThirdPartyForm />,
         },
       ];
 

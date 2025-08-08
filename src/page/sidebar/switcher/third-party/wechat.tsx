@@ -1,5 +1,4 @@
 import { toast } from 'sonner';
-import { WeChatIcon } from './icon';
 import isMobile from 'ismobilejs';
 import { http } from '@/lib/request';
 import { Button } from '@/components/button';
@@ -9,7 +8,7 @@ interface IProps {
   onScan: (value: boolean) => void;
 }
 
-export default function WeChat(props: IProps) {
+export function WechatLogin(props: IProps) {
   const { onScan } = props;
   const { t } = useTranslation();
   const userAgent = navigator.userAgent.toLowerCase();
@@ -35,25 +34,15 @@ export default function WeChat(props: IProps) {
 
   if (isPhone && !isWeChat) {
     return (
-      <Button
-        variant="outline"
-        onClick={alertDisableWeChatLogin}
-        className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white opacity-50"
-      >
-        <WeChatIcon />
-        {t('login.login_use_wechat')}
+      <Button size="sm" onClick={alertDisableWeChatLogin}>
+        {t('setting.third_party_account.bind')}
       </Button>
     );
   }
 
   return (
-    <Button
-      variant="outline"
-      onClick={loginWithWeChat}
-      className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white"
-    >
-      <WeChatIcon />
-      {t('login.login_use_wechat')}
+    <Button size="sm" onClick={loginWithWeChat}>
+      {t('setting.third_party_account.bind')}
     </Button>
   );
 }
