@@ -15,8 +15,12 @@ export default function Layout() {
   const { i18n } = useTranslation();
   const { app, onToggleTheme } = useTheme();
   const namespace_id = params.namespace_id;
+  const share_id = params.share_id;
 
   useEffect(() => {
+    if (share_id) {
+      return;
+    }
     if (localStorage.getItem('uid')) {
       if (namespace_id) {
         return;
