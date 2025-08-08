@@ -24,11 +24,6 @@ export default function SettingWrapper() {
           children: <ProfileForm />,
         },
         {
-          label: '三方账号管理',
-          value: 'third-party',
-          children: <ThirdPartyForm />,
-        },
-        {
           label: t('setting.namespace'),
           value: 'namespace',
           children: <SettingForm />,
@@ -43,6 +38,11 @@ export default function SettingWrapper() {
           value: 'basic',
           children: <CommonForm />,
         },
+        {
+          label: t('setting.third_party_account.manage'),
+          value: 'third-party',
+          children: <ThirdPartyForm />,
+        },
       ]
     : [
         {
@@ -51,14 +51,14 @@ export default function SettingWrapper() {
           children: <ProfileForm />,
         },
         {
-          label: '三方账号管理',
-          value: 'third-party',
-          children: <ThirdPartyForm />,
-        },
-        {
           label: t('setting.basic'),
           value: 'basic',
           children: <CommonForm />,
+        },
+        {
+          label: t('setting.third_party_account.manage'),
+          value: 'third-party',
+          children: <ThirdPartyForm />,
         },
       ];
 

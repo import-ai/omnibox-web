@@ -1,7 +1,6 @@
 import { toast } from 'sonner';
 import isMobile from 'ismobilejs';
 import { http } from '@/lib/request';
-import { Link } from 'lucide-react';
 import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
 
@@ -35,17 +34,15 @@ export function WechatLogin(props: IProps) {
 
   if (isPhone && !isWeChat) {
     return (
-      <Button size="sm" variant="outline" onClick={alertDisableWeChatLogin}>
-        <Link className="size-4 mr-2" />
-        绑定
+      <Button size="sm" onClick={alertDisableWeChatLogin}>
+        {t('setting.third_party_account.bind')}
       </Button>
     );
   }
 
   return (
-    <Button size="sm" variant="outline" onClick={loginWithWeChat}>
-      <Link className="size-4 mr-2" />
-      绑定
+    <Button size="sm" onClick={loginWithWeChat}>
+      {t('setting.third_party_account.bind')}
     </Button>
   );
 }

@@ -154,7 +154,22 @@
     "profile": "Profile",
     "members": "Members",
     "preferences": "Preferences",
-    "namespace": "Namespace"
+    "namespace": "Namespace",
+    "third_party_account": {
+      "manage": "Third-party",
+      "title": "Third-party Account Management",
+      "description": "Manage your third-party account bindings for quick login",
+      "google": "Google",
+      "wechat": "WeChat",
+      "binded": "Connected",
+      "unbinding": "To be Connected",
+      "unbind": "Unconnect",
+      "unbind_confirm": "Are you sure you want to unbind this account?",
+      "confirm_unbind_description": "Are you sure you want to unbind your {{login_type}} account? After unbinding, you will not be able to log in with this account.",
+      "unbind_success": "Successfully unbound",
+      "confirm_unbind": "Confirm Unbind",
+      "bind": "Connect"
+    }
   },
   "manage": {
     "search": "Enter and search",

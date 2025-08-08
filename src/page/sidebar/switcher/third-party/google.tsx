@@ -1,9 +1,8 @@
 import { toast } from 'sonner';
 import { useEffect } from 'react';
 import { http } from '@/lib/request';
-import { Link } from 'lucide-react';
 import { Button } from '@/components/button';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 interface IProps {
   onSuccess: () => void;
@@ -11,7 +10,7 @@ interface IProps {
 
 export function GoogleLogin(props: IProps) {
   const { onSuccess } = props;
-  // const { t } = useTranslation();
+  const { t } = useTranslation();
   const loginWithGoogle = () => {
     http
       .get('/google/auth-url')
@@ -49,9 +48,8 @@ export function GoogleLogin(props: IProps) {
   }, []);
 
   return (
-    <Button size="sm" variant="outline" onClick={loginWithGoogle}>
-      <Link className="size-4 mr-2" />
-      绑定
+    <Button size="sm" onClick={loginWithGoogle}>
+      {t('setting.third_party_account.bind_google')}
     </Button>
   );
 }
