@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { cn } from '@/lib/utils';
 import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
@@ -11,9 +12,10 @@ export function ScanForm() {
 
   useEffect(() => {
     setLoading(true);
+    const source = axios.CancelToken.source();
     http
-      .get('/wechat/qrcode')
-      .then((response) => {
+      .get('/wechat/qrcode', { cancelToken: source.token })
+      .then(response => {
         let colorScheme = 'light';
         const themeStorage = localStorage.getItem('theme');
         if (themeStorage) {
@@ -37,13 +39,13 @@ export function ScanForm() {
             }
             setLoading(false);
             const iframe = document.querySelector(
-              '#wx-login-container iframe',
+              '#wx-login-container iframe'
             ) as HTMLIFrameElement;
             if (iframe) {
               iframe.width = '100%';
               iframe.setAttribute(
                 'sandbox',
-                'allow-scripts allow-top-navigation allow-same-origin',
+                'allow-scripts allow-top-navigation allow-same-origin'
               );
             }
             setOpacity(false);
@@ -53,6 +55,9 @@ export function ScanForm() {
       .catch(() => {
         setLoading(false);
       });
+    return () => {
+      source.cancel();
+    };
   }, []);
 
   return (

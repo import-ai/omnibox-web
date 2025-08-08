@@ -25,7 +25,7 @@ export default function WeChat(props: IProps) {
       return;
     }
     if (isWeChat) {
-      http.get('/wechat/auth-url').then((authUrl) => {
+      http.get('/wechat/auth-url').then(authUrl => {
         location.href = authUrl;
       });
     } else {

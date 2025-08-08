@@ -31,14 +31,14 @@ export default function GroupAction(props: IProps) {
     return http
       .patch(
         `namespaces/${namespace_id}/resources/${resource_id}/permissions/groups/${group_id}`,
-        { level },
+        { level }
       )
       .then(refetch);
   };
   const removePermission = () => {
     return http
       .delete(
-        `namespaces/${namespace_id}/resources/${resource_id}/permissions/groups/${group_id}`,
+        `namespaces/${namespace_id}/resources/${resource_id}/permissions/groups/${group_id}`
       )
       .then(refetch);
   };

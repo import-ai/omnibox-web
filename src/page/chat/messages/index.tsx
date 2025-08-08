@@ -18,7 +18,7 @@ export function Messages(props: IProps) {
     const result: Citation[] = [];
     for (const message of messages) {
       if (message.attrs?.citations && message.attrs.citations.length > 0) {
-        message.attrs.citations.forEach((citation) => {
+        message.attrs.citations.forEach(citation => {
           result.push({ ...citation, id: message.id });
         });
       }

@@ -36,12 +36,12 @@ export default function Language() {
             variant="outline"
             className="font-normal w-40 justify-between"
           >
-            {data.find((item) => item.value === i18n.language)?.label}
+            {data.find(item => item.value === i18n.language)?.label}
             <ChevronDown className="size-4 ml-2" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {data.map((item) => (
+          {data.map(item => (
             <DropdownMenuItem
               key={item.value}
               className="flex justify-between"

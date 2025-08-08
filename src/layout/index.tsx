@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useEffect } from 'react';
 import { http } from '@/lib/request';
 import extension from '@/lib/extension';
@@ -23,9 +24,9 @@ export default function Layout() {
         !loc.pathname.startsWith('/invite/confirm') &&
         !loc.pathname.startsWith('/single')
       ) {
-        extension().then((val) => {
+        extension().then(val => {
           if (val) {
-            http.get('namespaces').then((data) => {
+            http.get('namespaces').then(data => {
               if (Array.isArray(data) && data.length > 0) {
                 navigate(`/${data[0].id}/chat`, { replace: true });
               }
@@ -50,24 +51,29 @@ export default function Layout() {
     if (!localStorage.getItem('uid')) {
       return;
     }
-    http.get('/user/option/language').then((response) => {
-      if (!response || !response.value) {
-        return;
-      }
-      const lng = response.value === 'en-US' ? 'en' : 'zh';
-      if (lng !== i18n.language) {
-        i18n.changeLanguage(lng);
-      }
-    });
-    http.get('/user/option/theme').then((response) => {
-      if (!response || !response.value) {
-        return;
-      }
-      const cuttentTheme = app.getTheme();
-      if (response.value !== cuttentTheme.skin) {
-        onToggleTheme(response.value);
-      }
-    });
+    const source = axios.CancelToken.source();
+    http
+      .get('/user/option/language', { cancelToken: source.token })
+      .then(response => {
+        if (!response || !response.value) {
+          return;
+        }
+        const lng = response.value === 'en-US' ? 'en' : 'zh';
+        if (lng !== i18n.language) {
+          i18n.changeLanguage(lng);
+        }
+      });
+    http
+      .get('/user/option/theme', { cancelToken: source.token })
+      .then(response => {
+        if (!response || !response.value) {
+          return;
+        }
+        const cuttentTheme = app.getTheme();
+        if (response.value !== cuttentTheme.skin) {
+          onToggleTheme(response.value);
+        }
+      });
     const storageChangeFN = (event: StorageEvent) => {
       if (event.key === 'theme') {
         const themeInStorage = JSON.parse(event.newValue || '{}');
@@ -79,6 +85,7 @@ export default function Layout() {
     window.addEventListener('storage', storageChangeFN);
     return () => {
       window.removeEventListener('storage', storageChangeFN);
+      source.cancel();
     };
   }, []);
 

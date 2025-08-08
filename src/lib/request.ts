@@ -23,7 +23,7 @@ const request: AxiosInstance = axios.create({
 });
 
 request.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -33,9 +33,9 @@ request.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
+  error => {
     return Promise.reject(error);
-  },
+  }
 );
 
 request.interceptors.response.use(
@@ -43,11 +43,14 @@ request.interceptors.response.use(
     return response.data;
   },
   (error: AxiosError) => {
-    const isCancel = axios.isCancel(error);
-    const config = (error.config as RequestConfig) || {};
-    if ((isUndefined(config.mute) || !config.mute) && !isCancel) {
+    if (axios.isCancel(error)) {
+      // If the request is cancelled, do not show error message
+      return Promise.resolve();
+    }
+    const err = error as AxiosError;
+    const config = (err.config as RequestConfig) || {};
+    if (isUndefined(config.mute) || !config.mute) {
       let errorMessage = i18next.t('request.failed');
-      const err = error as AxiosError;
       if (
         err.response &&
         err.response.data &&
@@ -87,7 +90,7 @@ request.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  },
+  }
 );
 
 // Encapsulated request methods
@@ -98,21 +101,21 @@ export const http = {
   post: <T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig,
+    config?: RequestConfig
   ): Promise<any> => {
     return request.post<T>(url, data, config);
   },
   put: <T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig,
+    config?: RequestConfig
   ): Promise<any> => {
     return request.put<T>(url, data, config);
   },
   patch: <T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig,
+    config?: RequestConfig
   ): Promise<any> => {
     return request.patch<T>(url, data, config);
   },

@@ -22,7 +22,7 @@ export function CitationHoverIcon(props: CitationIconProps) {
         <Button
           variant="link"
           className="px-0 py-0 h-auto align-baseline hover:no-underline"
-          onClick={(e) => {
+          onClick={e => {
             e.preventDefault();
             e.stopPropagation();
             if (link) window.open(link, '_blank', 'noopener,noreferrer');

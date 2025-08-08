@@ -1,14 +1,11 @@
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
-import Markdown, { Components } from 'react-markdown';
 
 type TypewriterProps = {
   text?: string;
   typeSpeed?: number;
   className?: string;
   onComplete?: () => void;
-  renderMarkdown?: boolean;
-  markdownComponents?: Components;
 };
 
 export const Typewriter = ({
@@ -16,8 +13,6 @@ export const Typewriter = ({
   typeSpeed = 33,
   onComplete,
   className,
-  renderMarkdown,
-  markdownComponents,
 }: TypewriterProps) => {
   const [displayedText, setDisplayedText] = useState('');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -53,14 +48,6 @@ export const Typewriter = ({
       }
     };
   }, [text]);
-
-  if (renderMarkdown) {
-    return (
-      <div className={className}>
-        <Markdown components={markdownComponents}>{displayedText}</Markdown>
-      </div>
-    );
-  }
 
   return (
     <span

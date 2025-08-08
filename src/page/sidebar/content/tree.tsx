@@ -1,6 +1,7 @@
 import Icon from './icon';
 import Action from './action';
 import { cn } from '@/lib/utils';
+import ContextMenuMain from './contextMenu';
 import { useRef, useEffect } from 'react';
 import { IResourceData } from '@/interface';
 import { useTranslation } from 'react-i18next';
@@ -43,7 +44,7 @@ export default function Tree(props: ITreeProps) {
   const [dragStyle, drag] = useDrag({
     type: 'card',
     item: data,
-    collect: (monitor) => ({
+    collect: monitor => ({
       opacity: monitor.isDragging() ? 0.5 : 1,
     }),
   });
@@ -95,47 +96,49 @@ export default function Tree(props: ITreeProps) {
       <Collapsible
         open={expand}
         className={cn('group/collapsible', {
-          '[&[data-state=open]>div>div>svg:first-child]:rotate-90':
+          '[&[data-state=open]>span>div>div>svg:first-child]:rotate-90':
             expand && expanding !== data.id,
         })}
       >
         <CollapsibleTrigger asChild>
-          <div>
-            <SidebarMenuButton
-              asChild
-              className="gap-1"
-              onClick={handleActiveKey}
-              isActive={data.id == activeKey}
-            >
-              <div
-                ref={ref}
-                style={dragStyle}
-                className={cn(
-                  'flex cursor-pointer relative before:absolute before:content-[""] before:hidden before:left-[13px] before:right-[4px] before:h-[2px] before:bg-blue-500',
-                  {
-                    'bg-sidebar-accent text-sidebar-accent-foreground':
-                      target && target.id === data.id,
-                  },
-                )}
+          <ContextMenuMain {...props}>
+            <div>
+              <SidebarMenuButton
+                asChild
+                className="gap-1"
+                onClick={handleActiveKey}
+                isActive={data.id == activeKey}
               >
-                {expanding === data.id ? (
-                  <LoaderCircle className="transition-transform animate-spin" />
-                ) : (
-                  <ChevronRight
-                    className="transition-transform"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      handleExpand();
-                    }}
-                  />
-                )}
-                <Icon expand={expand} resource={data} />
-                <span className="truncate">{data.name || t('untitled')}</span>
-              </div>
-            </SidebarMenuButton>
-            <Action {...props} />
-          </div>
+                <div
+                  ref={ref}
+                  style={dragStyle}
+                  className={cn(
+                    'flex cursor-pointer relative before:absolute before:content-[""] before:hidden before:left-[13px] before:right-[4px] before:h-[2px] before:bg-blue-500',
+                    {
+                      'bg-sidebar-accent text-sidebar-accent-foreground':
+                        target && target.id === data.id,
+                    }
+                  )}
+                >
+                  {expanding === data.id ? (
+                    <LoaderCircle className="transition-transform animate-spin" />
+                  ) : (
+                    <ChevronRight
+                      className="transition-transform"
+                      onClick={event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        handleExpand();
+                      }}
+                    />
+                  )}
+                  <Icon expand={expand} resource={data} />
+                  <span className="truncate">{data.name || t('untitled')}</span>
+                </div>
+              </SidebarMenuButton>
+              <Action {...props} />
+            </div>
+          </ContextMenuMain>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub className="pr-0 mr-0">

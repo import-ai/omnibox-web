@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -36,14 +37,19 @@ export default function useContext() {
   });
   const refetch = (showLoading?: boolean) => {
     showLoading && onLoading(true);
+    const source = axios.CancelToken.source();
     http
       .get(
         `/namespaces/${namespaceId}/conversations?offset=${(current - 1) * pageSize}&limit=${pageSize}&order=desc`,
+        { cancelToken: source.token }
       )
       .then(onData)
       .finally(() => {
         showLoading && onLoading(false);
       });
+    return () => {
+      source.cancel();
+    };
   };
   const onPagerChange = (page: number) => {
     onCurrent(page);

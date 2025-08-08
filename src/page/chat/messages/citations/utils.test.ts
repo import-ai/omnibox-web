@@ -1,4 +1,4 @@
-import { trimIncompletedCitation } from './utils';
+import { trimIncompletedCitation } from './citation-markdown';
 
 describe('cleanIncompletedCitation', () => {
   it('removes incomplete [ at the end', () => {
@@ -28,7 +28,7 @@ describe('cleanIncompletedCitation', () => {
 
   it('returns unchanged text if no incomplete citation', () => {
     expect(trimIncompletedCitation('no citation here')).toBe(
-      'no citation here',
+      'no citation here'
     );
   });
 });

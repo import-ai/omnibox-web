@@ -33,7 +33,7 @@ export default function ManagePeople() {
           namespace_id={namespace_id}
           data={
             search
-              ? data.member.filter((item) => item.email.indexOf(search) >= 0)
+              ? data.member.filter(item => item.email.indexOf(search) >= 0)
               : data.member
           }
         />
@@ -47,7 +47,7 @@ export default function ManagePeople() {
           namespace_id={namespace_id}
           data={
             search
-              ? data.group.filter((item) => item.title.indexOf(search) >= 0)
+              ? data.group.filter(item => item.title.indexOf(search) >= 0)
               : data.group
           }
         />

@@ -13,6 +13,9 @@
   "private": "Private",
   "teamspace": "Teamspace",
   "resource": {
+    "folder": {
+      "children_count": "{{count}} files"
+    },
     "deleted": "Deleted",
     "deleted_description": "This resource has been deleted",
     "attrs": {
@@ -263,13 +266,7 @@
     "tools": {
       "web_search": "Web Search",
       "private_search": "OmniBox",
-      "reasoning": "Reasoning",
-      "on": "On",
-      "output_answer": "Output answer with reasoning process",
-      "auto": "Auto",
-      "smart_switch": "Smart switch based on context",
-      "off": "Off",
-      "direct_answer": "Quick direct answer"
+      "reasoning": "Reasoning"
     },
     "textarea": {
       "placeholder": "Ask anything"

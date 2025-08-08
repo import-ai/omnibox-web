@@ -32,7 +32,7 @@ export default function Badge(props: IProps) {
           {
             'opacity-0': !open,
             'opacity-100': open,
-          },
+          }
         )}
       >
         {slot}

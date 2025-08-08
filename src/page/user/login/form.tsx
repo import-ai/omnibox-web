@@ -66,12 +66,12 @@ export function LoginForm({ checked, className, children, ...props }: IProps) {
     setIsLoading(true);
     http
       .post('login', data)
-      .then((response) => {
+      .then(response => {
         setGlobalCredential(response.id, response.access_token);
         if (redirect) {
           location.href = decodeURIComponent(redirect);
         } else {
-          extension().then((val) => {
+          extension().then(val => {
             if (val) {
               navigate('/', { replace: true });
             }

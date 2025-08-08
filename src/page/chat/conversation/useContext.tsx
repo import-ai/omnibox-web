@@ -1,7 +1,7 @@
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { useParams } from 'react-router-dom';
-import { isFunction, isUndefined } from 'lodash-es';
+import { isFunction } from 'lodash-es';
 import { ask } from '@/page/chat/conversation/utils';
 import useGlobalContext from '@/page/chat/useContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -31,10 +31,7 @@ export default function useContext() {
   const routeQuery: string | undefined = state?.value;
   const [tools, onToolsChange] = useState<Array<ToolType>>(state?.tools || []);
   const [loading, setLoading] = useState<boolean>(
-    routeQuery !== undefined && routeQuery.trim().length > 0,
-  );
-  const [thinking, onThinking] = useState<boolean | ''>(
-    isUndefined(state.thinking) ? false : state.thinking,
+    routeQuery !== undefined && routeQuery.trim().length > 0
   );
   const [mode, setMode] = useState<ChatMode>(state?.mode || ChatMode.ASK);
   const { context, onContextChange } = useGlobalContext({
@@ -47,7 +44,7 @@ export default function useContext() {
   const refetch = () => {
     return http
       .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
-      .then((response) => {
+      .then(response => {
         if (response.title) {
           app.fire('chat:title:update', response.title);
         }
@@ -94,11 +91,10 @@ export default function useContext() {
         conversationId,
         query,
         tools,
-        thinking,
         context,
         messages,
         messageOperator,
-        mode,
+        mode
       );
       askAbortRef.current = askFN.destory;
       await askFN.start();
@@ -130,8 +126,6 @@ export default function useContext() {
     onChange,
     onAction,
     messages,
-    thinking,
-    onThinking,
     onToolsChange,
     onContextChange,
   };

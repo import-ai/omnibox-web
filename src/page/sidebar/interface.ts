@@ -13,7 +13,7 @@ export interface ISidebarProps {
   onUpload: (
     spaceType: SpaceType,
     parentId: string,
-    file: FileList,
+    file: FileList
   ) => Promise<void>;
   onExpand: (spaceType: SpaceType, id: string) => void;
   onMenuMore: (spaceType: SpaceType, id: string) => void;
@@ -21,6 +21,6 @@ export interface ISidebarProps {
   onCreate: (
     spaceType: SpaceType,
     parentId: string,
-    resourceType: ResourceType,
+    resourceType: ResourceType
   ) => void;
 }

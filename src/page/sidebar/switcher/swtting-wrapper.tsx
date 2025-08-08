@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -51,11 +52,20 @@ export default function SettingWrapper() {
       ];
 
   useEffect(() => {
+    const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/members/${localStorage.getItem('uid')}`)
-      .then((res) => {
+      .get(
+        `/namespaces/${namespaceId}/members/${localStorage.getItem('uid')}`,
+        {
+          cancelToken: source.token,
+        }
+      )
+      .then(res => {
         setUserIsOwner(res.role === 'owner');
       });
+    return () => {
+      source.cancel();
+    };
   }, []);
 
   return (
@@ -64,14 +74,14 @@ export default function SettingWrapper() {
         <SidebarNav
           value={activeKey}
           onChange={onActiveKey}
-          items={items.map((item) => ({
+          items={items.map(item => ({
             label: item.label,
             value: item.value,
           }))}
         />
       </aside>
       <div className="lg:flex-1 h-[66vh] sm:h-[440px] max-h-[98%] overflow-auto">
-        {items.find((item) => item.value === activeKey)?.children}
+        {items.find(item => item.value === activeKey)?.children}
       </div>
     </div>
   );

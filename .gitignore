@@ -18,6 +18,9 @@ dist-ssr
 !.vscode/settings.json
 
 .idea
+.vscode
+.claude
+
 .DS_Store
 *.suo
 *.ntvs*
@@ -26,4 +29,4 @@ dist-ssr
 *.sw?
 
 .env
-.vscode
+

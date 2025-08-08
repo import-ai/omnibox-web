@@ -17,7 +17,7 @@ function convert(year: number, month: number): string {
 }
 
 export function groupItemsByTimestamp(
-  items: Array<ConversationSummary>,
+  items: Array<ConversationSummary>
 ): [string, Array<ConversationSummary>][] {
   const now = new Date();
   const today = new Date(now);
@@ -32,7 +32,7 @@ export function groupItemsByTimestamp(
   const grouped: GroupedItems = {};
   const monthGroups: { key: string; date: Date }[] = [];
 
-  items.forEach((item) => {
+  items.forEach(item => {
     const itemDate = new Date(item.created_at || 0);
     const itemYear = itemDate.getFullYear();
     const itemMonth = itemDate.getMonth() + 1;
@@ -88,7 +88,7 @@ export function groupItemsByTimestamp(
     ]);
   }
 
-  monthGroups.forEach((month) => {
+  monthGroups.forEach(month => {
     orderedGroups.push([month.key, grouped[month.key]]);
   });
 
@@ -98,7 +98,7 @@ export function groupItemsByTimestamp(
 export const stream = (
   url: string,
   body: Record<string, any>,
-  callback: (data: string) => Promise<void>,
+  callback: (data: string) => Promise<void>
 ) => {
   let isAborted = false;
 

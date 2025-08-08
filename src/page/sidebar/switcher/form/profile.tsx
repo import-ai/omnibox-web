@@ -38,7 +38,7 @@ const profileFormSchema = z.object({
   email: z
     .string()
     .refine(
-      (email) => {
+      email => {
         if (!email) {
           return true;
         }
@@ -56,14 +56,14 @@ const profileFormSchema = z.object({
       },
       {
         message: i18next.t('form.email_limit_rule'),
-      },
+      }
     )
     .optional(),
   password: z
     .string()
     .optional()
     .refine(
-      (password) => {
+      password => {
         if (!password || password.length <= 0) {
           return true;
         }
@@ -77,7 +77,7 @@ const profileFormSchema = z.object({
       },
       {
         message: i18next.t('form.password_reg'),
-      },
+      }
     ),
   password_repeat: z.string().optional(),
 });

@@ -19,29 +19,25 @@ export default function ChatHomePage() {
   const [value, onChange] = useState('');
   const namespaceId = params.namespace_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
-  const [thinking, onThinking] = useState<boolean | ''>(false);
   const { context, onContextChange } = useContext({ data: [] });
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [tools, onToolsChange] = useState<Array<ToolType>>([
     ToolType.PRIVATE_SEARCH,
   ]);
   const handleAction = () => {
-    http
-      .post(`/namespaces/${namespaceId}/conversations`)
-      .then((conversation) => {
-        sessionStorage.setItem(
-          'state',
-          JSON.stringify({
-            mode,
-            value,
-            tools,
-            context,
-            thinking,
-            conversation,
-          }),
-        );
-        navigate(`/${namespaceId}/chat/${conversation.id}`);
-      });
+    http.post(`/namespaces/${namespaceId}/conversations`).then(conversation => {
+      sessionStorage.setItem(
+        'state',
+        JSON.stringify({
+          mode,
+          value,
+          tools,
+          context,
+          conversation,
+        })
+      );
+      navigate(`/${namespaceId}/chat/${conversation.id}`);
+    });
   };
 
   useEffect(() => {
@@ -70,8 +66,6 @@ export default function ChatHomePage() {
             context={context}
             setMode={setMode}
             onChange={onChange}
-            thinking={thinking}
-            onThink={onThinking}
             onAction={handleAction}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}

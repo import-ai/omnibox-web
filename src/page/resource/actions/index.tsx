@@ -111,7 +111,7 @@ export default function Actions(props: IActionProps) {
       onLoading(id);
       http
         .post(`/namespaces/${namespaceId}/resources/duplicate/${resource.id}`)
-        .then((response) => {
+        .then(response => {
           setOpen(false);
           app.fire('generate_resource', resource.id, response);
         })
@@ -138,9 +138,9 @@ export default function Actions(props: IActionProps) {
               onClick: () => {
                 http
                   .post(
-                    `/namespaces/${namespaceId}/resources/${resource.id}/restore`,
+                    `/namespaces/${namespaceId}/resources/${resource.id}/restore`
                   )
-                  .then((response) => {
+                  .then(response => {
                     app.fire('generate_resource', response.parent_id, response);
                   });
               },
@@ -171,10 +171,10 @@ export default function Actions(props: IActionProps) {
       namespaceId: namespaceId,
       parentId: resource.parent_id,
     })
-      .then((responses) => {
+      .then(responses => {
         app.fire('generate_resource', resource.parent_id, responses);
       })
-      .catch((err) => {
+      .catch(err => {
         toast(err && err.message ? err.message : err, {
           position: 'bottom-right',
         });
