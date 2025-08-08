@@ -110,7 +110,7 @@ export default function Actions(props: IActionProps) {
     if (id === 'duplicate') {
       onLoading(id);
       http
-        .post(`/namespaces/${namespaceId}/resources/duplicate/${resource.id}`)
+        .post(`/namespaces/${namespaceId}/resources/${resource.id}/duplicate`)
         .then(response => {
           setOpen(false);
           app.fire('generate_resource', resource.id, response);
@@ -192,21 +192,22 @@ export default function Actions(props: IActionProps) {
         {getTime(resource)}
       </div>
       <PermissionWrapper
-        level={0}
+        requiredPermission={0}
         forbidden={forbidden}
         permission={
-          resource && resource.current_level
-            ? resource.current_level
+          resource && resource.current_permission
+            ? resource.current_permission
             : 'full_access'
         }
+        spaceType={resource?.space_type}
       >
         <Share />
       </PermissionWrapper>
       {resource && (
         <PermissionWrapper
-          level={1}
+          requiredPermission={1}
           forbidden={forbidden}
-          permission={resource.current_level || 'full_access'}
+          permission={resource.current_permission || 'full_access'}
         >
           {editPage ? (
             <>

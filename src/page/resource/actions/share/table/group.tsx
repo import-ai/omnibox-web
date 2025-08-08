@@ -23,7 +23,7 @@ export default function Group(props: IProps) {
         >
           <UserCard email={t('manage.group')} username={item.group.title} />
           <GroupAction
-            value={item.level}
+            value={item.permission}
             refetch={refetch}
             group_id={item.group.id}
             resource_id={resource_id}

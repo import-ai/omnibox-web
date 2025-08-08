@@ -27,11 +27,11 @@ export default function GroupAction(props: IProps) {
   } = props;
   const data = getData(true);
   const { t } = useTranslation();
-  const updatePermission = (level: Permission) => {
+  const updatePermission = (permission: Permission) => {
     return http
       .patch(
         `namespaces/${namespace_id}/resources/${resource_id}/permissions/groups/${group_id}`,
-        { level }
+        { permission }
       )
       .then(refetch);
   };
@@ -42,8 +42,8 @@ export default function GroupAction(props: IProps) {
       )
       .then(refetch);
   };
-  const handleChange = (level: Permission) => {
-    updatePermission(level);
+  const handleChange = (permission: Permission) => {
+    updatePermission(permission);
   };
   const handleRemove = () => {
     removePermission();
