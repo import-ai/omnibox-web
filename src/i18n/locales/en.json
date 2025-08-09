@@ -153,7 +153,8 @@
     "profile": "Profile",
     "members": "Members",
     "preferences": "Preferences",
-    "namespace": "Namespace"
+    "namespace": "Namespace",
+    "api_key": "API Keys"
   },
   "manage": {
     "search": "Enter and search",
@@ -292,5 +293,33 @@
     "placeholder": "Search resources or chats...",
     "resources": "Resources",
     "chats": "Chats"
-  }
+  },
+  "api_key": {
+    "description": "API keys allow you to programmatically access your resources.",
+    "empty": "No API keys found. Create your first API key to get started.",
+    "create": {
+      "title": "Create API Key",
+      "description": "Create a new API key to access your resources programmatically.",
+      "success": "API key created successfully",
+      "error": "Failed to create API key",
+      "validation_error": "Please fill in all required fields"
+    },
+    "delete": {
+      "success": "API key deleted successfully",
+      "error": "Failed to delete API key",
+      "confirm": {
+        "title": "Delete API Key",
+        "description": "This action cannot be undone. This will permanently delete the API key and revoke access."
+      }
+    },
+    "copy": {
+      "success": "API key copied to clipboard"
+    },
+    "root_resource_id": "Root Resource ID",
+    "root_resource_id_placeholder": "Enter the root resource ID",
+    "permissions": "Permissions"
+  },
+  "loading": "Loading...",
+  "creating": "Creating...",
+  "create": "Create"
 }
