@@ -1,26 +1,9 @@
+import { Copy, Eye, EyeOff, HelpCircle, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { Copy, Eye, EyeOff, HelpCircle, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,7 +15,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   Tooltip,
   TooltipContent,
@@ -40,7 +41,6 @@ import {
 } from '@/components/ui/tooltip';
 import useAPIKeys from '@/hooks/use-api-keys';
 import useUser from '@/hooks/use-user';
-import ResourceSearch from './components/resource-search';
 import {
   type APIKey,
   type APIKeyAttrs,
@@ -48,6 +48,8 @@ import {
   APIKeyPermissionType,
   type CreateAPIKeyDto,
 } from '@/interface';
+
+import ResourceSearch from './components/resource-search';
 
 export function APIKeyForm() {
   const { t } = useTranslation();

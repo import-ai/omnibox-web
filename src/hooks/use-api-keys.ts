@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { useState, useEffect } from 'react';
-import { http } from '@/lib/request';
+import { useEffect, useState } from 'react';
+
 import type { APIKey, CreateAPIKeyDto, UpdateAPIKeyDto } from '@/interface';
+import { http } from '@/lib/request';
 
 export default function useAPIKeys(userId?: string, namespaceId?: string) {
   const [loading, setLoading] = useState(true);

@@ -7,9 +7,9 @@ import { http } from '@/lib/request';
 import { SidebarNav } from '@/page/user/form/sidebar';
 
 import CommonForm from './basic';
+import { APIKeyForm } from './form/api-key';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
-import { APIKeyForm } from './form/api-key';
 import PeopleForm from './people';
 
 export default function SettingWrapper() {
