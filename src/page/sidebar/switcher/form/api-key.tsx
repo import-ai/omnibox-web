@@ -111,8 +111,9 @@ export function APIKeyForm() {
   };
 
   const copyToClipboard = (value: string) => {
-    navigator.clipboard.writeText(value);
-    toast.success(t('api_key.copy.success'));
+    navigator.clipboard
+      .writeText(value)
+      .then(() => toast.success(t('api_key.copy.success')));
   };
 
   const toggleKeyVisibility = (keyId: string) => {
@@ -126,7 +127,7 @@ export function APIKeyForm() {
   };
 
   const maskKey = (key: string) => {
-    return key.substring(0, 8) + '••••••••' + key.substring(key.length - 4);
+    return key.substring(0, 7) + '********' + key.substring(key.length - 4);
   };
 
   const handlePermissionChange = (
@@ -163,7 +164,7 @@ export function APIKeyForm() {
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4" />
               {t('api_key.create.title')}
             </Button>
           </DialogTrigger>
