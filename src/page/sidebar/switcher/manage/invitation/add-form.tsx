@@ -1,19 +1,18 @@
-import * as z from 'zod';
-import { useState } from 'react';
-import { http } from '@/lib/request';
-import { useForm } from 'react-hook-form';
-import { Button } from '@/components/button';
-import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import * as z from 'zod';
+
+import { Button } from '@/components/button';
 import {
   Form,
+  FormControl,
+  FormField,
   FormItem,
   FormLabel,
-  FormField,
   FormMessage,
-  FormControl,
 } from '@/components/ui/form';
-import { Group } from '@/interface';
 import {
   Select,
   SelectContent,
@@ -21,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Group } from '@/interface';
+import { http } from '@/lib/request';
 
 const FormSchema = z.object({
   groupId: z.string(),

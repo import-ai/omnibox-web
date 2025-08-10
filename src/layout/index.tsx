@@ -1,11 +1,12 @@
 import axios from 'axios';
 import { useEffect } from 'react';
-import { http } from '@/lib/request';
-import extension from '@/lib/extension';
-import useTheme from '@/hooks/use-theme';
 import { useTranslation } from 'react-i18next';
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+
 import { Toaster } from '@/components/ui/sonner';
-import { Outlet, useNavigate, useLocation, useParams } from 'react-router-dom';
+import useTheme from '@/hooks/use-theme';
+import extension from '@/lib/extension';
+import { http } from '@/lib/request';
 
 export default function Layout() {
   const loc = useLocation();

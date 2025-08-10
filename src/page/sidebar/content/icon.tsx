@@ -1,7 +1,8 @@
-import { themeIcons } from 'seti-icons';
-import { IResourceData } from '@/interface';
 import parse, { domToReact } from 'html-react-parser';
 import { File, Folder, FolderOpen } from 'lucide-react';
+import { themeIcons } from 'seti-icons';
+
+import { IResourceData } from '@/interface';
 
 export interface IProps {
   expand: boolean;

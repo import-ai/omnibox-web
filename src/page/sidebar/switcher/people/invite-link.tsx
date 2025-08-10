@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import copy from 'copy-to-clipboard';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,8 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import { http } from '@/lib/request';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+
 import { AddNamespaceInvitationForm } from './add-form';
 
 interface IProps {

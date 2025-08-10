@@ -1,6 +1,8 @@
-import WrapperPage from './wrapper';
 import { useTranslation } from 'react-i18next';
+
 import { ForgotPasswordForm } from '@/page/user/form/password-confirm';
+
+import WrapperPage from './wrapper';
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();

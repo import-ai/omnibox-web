@@ -1,18 +1,19 @@
-import { toast } from 'sonner';
-import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { http } from '@/lib/request';
-import { Member } from '@/interface';
-import isEmail from '@/lib/is-email';
 import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+
 import MultipleSelector, { Option } from '@/components/multiple-selector';
+import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Member } from '@/interface';
+import isEmail from '@/lib/is-email';
+import { http } from '@/lib/request';
 
 interface AddMemberProps {
   group_id: string;

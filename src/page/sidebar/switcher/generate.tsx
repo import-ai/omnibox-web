@@ -1,16 +1,18 @@
-import { Plus } from 'lucide-react';
-import GenerateForm from './form/namespace';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogTrigger,
 } from '@/components/ui/dialog';
+
+import GenerateForm from './form/namespace';
 
 export default function Generate() {
   const { t } = useTranslation();

@@ -1,5 +1,6 @@
-import { getData } from './data';
 import { Permission, SpaceType } from '@/interface';
+
+import { getData } from './data';
 
 interface IProps {
   requiredPermission: number;

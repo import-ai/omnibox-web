@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+
 import useNamespaceMember from '@/hooks/use-namespace-member';
 
 interface IProps {

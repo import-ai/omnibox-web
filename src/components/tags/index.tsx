@@ -1,8 +1,10 @@
-import Tags from './tags';
-import { http } from '@/lib/request';
-import { useState, useEffect } from 'react';
-import type { Tag } from '@/interface';
+import { useEffect, useState } from 'react';
+
 import { Option } from '@/components/multiple-selector';
+import type { Tag } from '@/interface';
+import { http } from '@/lib/request';
+
+import Tags from './tags';
 
 interface IProps {
   data?: Array<string>;

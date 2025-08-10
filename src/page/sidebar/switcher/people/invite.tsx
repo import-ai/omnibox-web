@@ -1,16 +1,18 @@
-import { useState } from 'react';
-import InviteForm from './invite-form';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogDescription,
 } from '@/components/ui/dialog';
+
+import InviteForm from './invite-form';
 
 export default function Invite() {
   const { t } = useTranslation();

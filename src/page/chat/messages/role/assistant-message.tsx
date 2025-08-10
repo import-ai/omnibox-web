@@ -1,20 +1,21 @@
+import { Loader2Icon } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { MessageDetail } from '@/page/chat/types/conversation';
-import type { Citation } from '@/page/chat/types/chat-response';
-import {
-  MessageStatus,
-  OpenAIMessageRole,
-} from '@/page/chat/types/chat-response';
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Loader2Icon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown';
+import type { Citation } from '@/page/chat/types/chat-response';
+import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/types/chat-response';
+import { MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {
   message: MessageDetail;

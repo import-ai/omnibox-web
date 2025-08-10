@@ -1,7 +1,8 @@
-import i18next from 'i18next';
-import { Resource } from '@/interface';
-import { enUS, zhCN } from 'date-fns/locale';
 import { formatDistanceToNow } from 'date-fns';
+import { enUS, zhCN } from 'date-fns/locale';
+import i18next from 'i18next';
+
+import { Resource } from '@/interface';
 
 export function getTime(resource: Resource | null) {
   if (!resource) {

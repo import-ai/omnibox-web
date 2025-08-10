@@ -1,8 +1,9 @@
 import axios from 'axios';
-import { http } from '@/lib/request';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+
 import { Group, Invitation, Member } from '@/interface';
+import { http } from '@/lib/request';
 
 export default function useContext() {
   const params = useParams();

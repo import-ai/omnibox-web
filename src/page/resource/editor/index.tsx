@@ -1,17 +1,19 @@
-import Vditor from 'vditor';
 import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
-import { http } from '@/lib/request';
-import { VDITOR_CDN } from '@/const';
-import { Resource } from '@/interface';
-import useTheme from '@/hooks/use-theme';
-import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
+
 import React, { useEffect, useRef, useState } from 'react';
-import { markdownPreviewConfig } from '@/components/markdown';
-import { toolbar } from '@/page/resource/editor/const';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import Vditor from 'vditor';
+
+import { markdownPreviewConfig } from '@/components/markdown';
+import { Input } from '@/components/ui/input';
+import { VDITOR_CDN } from '@/const';
+import useTheme from '@/hooks/use-theme';
+import { Resource } from '@/interface';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
+import { http } from '@/lib/request';
+import { toolbar } from '@/page/resource/editor/const';
 
 interface IEditorProps {
   namespaceId: string;

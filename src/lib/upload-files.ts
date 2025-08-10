@@ -1,6 +1,7 @@
 import SparkMD5 from 'spark-md5';
-import { http } from '@/lib/request';
+
 import { IResourceData } from '@/interface';
+import { http } from '@/lib/request';
 
 export function getFileHash(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

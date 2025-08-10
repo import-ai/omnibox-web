@@ -1,8 +1,10 @@
-import Table from './table';
-import Invite from './invite';
-import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+import Invite from './invite';
+import Table from './table';
 
 export default function ShareForm() {
   const { t } = useTranslation();

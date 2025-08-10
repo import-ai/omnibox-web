@@ -1,13 +1,14 @@
-import { cn } from '@/lib/utils';
-import { Permission } from '@/interface';
-import { useTranslation } from 'react-i18next';
 import { Check, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
 import {
   DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
+import { Permission } from '@/interface';
+import { cn } from '@/lib/utils';
 
 export interface ActionProps {
   value: Permission;

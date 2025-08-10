@@ -1,20 +1,9 @@
-import Invite from './invite';
-import Profile from './setting';
-import { cn } from '@/lib/utils';
-import Generate from './generate';
-import NamespaceMember from './member';
-import Space from '@/components/space';
-import { Logout } from '@/page/user/logout';
+import { ChevronDown, Command } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+
+import Space from '@/components/space';
 import { Avatar } from '@/components/ui/avatar';
-import useNamespace from '@/hooks/use-namespaces';
-import { ChevronDown, Command } from 'lucide-react';
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +13,19 @@ import {
   // DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import useNamespace from '@/hooks/use-namespaces';
+import { cn } from '@/lib/utils';
+import { Logout } from '@/page/user/logout';
+
+import Generate from './generate';
+import Invite from './invite';
+import NamespaceMember from './member';
+import Profile from './setting';
 
 interface IProps {
   namespaceId: string;

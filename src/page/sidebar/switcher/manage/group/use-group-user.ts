@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { useEffect, useState } from 'react';
+
 import { Role } from '@/interface';
 import { http } from '@/lib/request';
-import { useState, useEffect } from 'react';
 
 export interface UseGroupUser {
   namespace_id: string;

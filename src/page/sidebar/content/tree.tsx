@@ -1,23 +1,25 @@
-import Icon from './icon';
-import Action from './action';
-import { cn } from '@/lib/utils';
-import ContextMenuMain from './contextMenu';
-import { useRef, useEffect } from 'react';
-import { IResourceData } from '@/interface';
-import { useTranslation } from 'react-i18next';
+import { ChevronRight, LoaderCircle } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { ISidebarProps } from '@/page/sidebar/interface';
-import { LoaderCircle, ChevronRight } from 'lucide-react';
-import {
-  SidebarMenuSub,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from '@/components/ui/sidebar';
+import { useTranslation } from 'react-i18next';
+
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+} from '@/components/ui/sidebar';
+import { IResourceData } from '@/interface';
+import { cn } from '@/lib/utils';
+import { ISidebarProps } from '@/page/sidebar/interface';
+
+import Action from './action';
+import ContextMenuMain from './contextMenu';
+import Icon from './icon';
 
 export interface ITreeProps extends ISidebarProps {
   onDrop: (item: IResourceData, target: IResourceData | null) => void;

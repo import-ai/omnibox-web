@@ -1,9 +1,11 @@
-import GroupData from './data';
-import CreateGroup from './add';
 import { useState } from 'react';
-import { Group, Member } from '@/interface';
-import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
+
+import { Input } from '@/components/ui/input';
+import { Group, Member } from '@/interface';
+
+import CreateGroup from './add';
+import GroupData from './data';
 
 interface GroupProps {
   search: string;

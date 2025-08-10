@@ -1,21 +1,22 @@
-import * as z from 'zod';
-import i18next from 'i18next';
-import { toast } from 'sonner';
-import { useState } from 'react';
-import { http } from '@/lib/request';
-import { useForm } from 'react-hook-form';
-import { Button } from '@/components/button';
-import { Input } from '@/components/ui/input';
-import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
+import i18next from 'i18next';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import * as z from 'zod';
+
+import { Button } from '@/components/button';
 import {
   Form,
-  FormItem,
-  FormField,
-  FormMessage,
   FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { http } from '@/lib/request';
 
 const forgotPasswordSchema = z.object({
   password: z

@@ -1,20 +1,21 @@
-import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import i18next from 'i18next';
 import { useState } from 'react';
-import { http } from '@/lib/request';
 import { useForm } from 'react-hook-form';
-import { Button } from '@/components/button';
-import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
-import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+import { Button } from '@/components/button';
 import {
   Form,
+  FormControl,
+  FormField,
   FormItem,
   FormLabel,
-  FormField,
   FormMessage,
-  FormControl,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { http } from '@/lib/request';
 
 const generateFormSchema = z.object({
   name: z

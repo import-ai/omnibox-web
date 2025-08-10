@@ -1,12 +1,14 @@
 import axios from 'axios';
-import useApp from './use-app';
-import App from '@/hooks/app.class';
-import { http } from '@/lib/request';
-import { SITE_NAME } from '@/const';
-import { Resource } from '@/interface';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
+
+import { SITE_NAME } from '@/const';
+import App from '@/hooks/app.class';
+import { Resource } from '@/interface';
+import { http } from '@/lib/request';
+
+import useApp from './use-app';
 
 export interface IUseResource {
   app: App;

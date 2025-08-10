@@ -1,4 +1,5 @@
 import i18next from 'i18next';
+
 import { Permission } from '@/interface';
 
 export function getData(removeNoAccess?: boolean): Array<{
