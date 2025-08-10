@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { Copy, Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
+import { Copy, Eye, EyeOff, HelpCircle, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -33,6 +33,11 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import useAPIKeys from '@/hooks/use-api-keys';
 import useUser from '@/hooks/use-user';
 import ResourceSearch from './components/resource-search';
@@ -178,9 +183,26 @@ export function APIKeyForm() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="root_resource_id">
-                  {t('api_key.root_resource_id')}
-                </Label>
+                <div className="flex items-center gap-1">
+                  <Label htmlFor="root_resource_id">
+                    {t('api_key.permission_scope')}
+                  </Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 w-5 p-0 hover:bg-transparent"
+                        type="button"
+                      >
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t('api_key.permission_scope_tooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <ResourceSearch
                   namespaceId={namespaceId}
                   value={formData.root_resource_id}
@@ -310,7 +332,7 @@ export function APIKeyForm() {
                 <div className="space-y-2">
                   <div>
                     <Label className="text-xs text-muted-foreground">
-                      {t('api_key.root_resource_id')}
+                      {t('api_key.permission_scope')}
                     </Label>
                     <p className="text-sm font-mono">
                       {key.attrs.root_resource_id}

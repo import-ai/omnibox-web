@@ -316,8 +316,9 @@
     "copy": {
       "success": "API key copied to clipboard"
     },
-    "root_resource_id": "Root Resource ID",
-    "root_resource_id_placeholder": "Enter the root resource ID",
+    "permission_scope": "Permission Scope",
+    "permission_scope_tooltip": "The root resource for this API key, which will limit this key to access only that resource and its sub-resources.",
+    "root_resource_id_placeholder": "Enter resource name to search",
     "permissions": "Permissions"
   },
   "loading": "Loading...",

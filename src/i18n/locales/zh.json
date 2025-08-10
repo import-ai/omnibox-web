@@ -316,8 +316,9 @@
     "copy": {
       "success": "API密钥已复制到剪贴板"
     },
-    "root_resource_id": "根资源ID",
-    "root_resource_id_placeholder": "输入根资源ID",
+    "permission_scope": "权限范围",
+    "permission_scope_tooltip": "此API密钥的根文档，将限制此密钥只能访问该文档及其子文档。",
+    "root_resource_id_placeholder": "输入文档名以搜索",
     "permissions": "权限"
   },
   "loading": "加载中...",
