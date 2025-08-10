@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom';
 import { Copy, Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Dialog,
@@ -36,6 +35,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import useAPIKeys from '@/hooks/use-api-keys';
 import useUser from '@/hooks/use-user';
+import ResourceSearch from './components/resource-search';
 import {
   type APIKey,
   type APIKeyAttrs,
@@ -181,13 +181,13 @@ export function APIKeyForm() {
                 <Label htmlFor="root_resource_id">
                   {t('api_key.root_resource_id')}
                 </Label>
-                <Input
-                  id="root_resource_id"
+                <ResourceSearch
+                  namespaceId={namespaceId}
                   value={formData.root_resource_id}
-                  onChange={e =>
+                  onValueChange={resourceId =>
                     setFormData(prev => ({
                       ...prev,
-                      root_resource_id: e.target.value,
+                      root_resource_id: resourceId,
                     }))
                   }
                   placeholder={t('api_key.root_resource_id_placeholder')}

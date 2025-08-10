@@ -292,7 +292,8 @@
     "title": "Search",
     "placeholder": "Search resources or chats...",
     "resources": "Resources",
-    "chats": "Chats"
+    "chats": "Chats",
+    "no_results": "No resources found"
   },
   "api_key": {
     "description": "API keys allow you to programmatically access your resources.",

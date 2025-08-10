@@ -292,7 +292,8 @@
     "title": "搜索",
     "placeholder": "搜索页面、文件、对话等",
     "resources": "资源",
-    "chats": "对话"
+    "chats": "对话",
+    "no_results": "未找到资源"
   },
   "api_key": {
     "description": "API 密钥允许您通过编程方式访问您的资源。",
