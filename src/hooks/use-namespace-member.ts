@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { http } from '@/lib/request';
+import { useEffect, useState } from 'react';
+
 import { Member } from '@/interface';
-import { useState, useEffect } from 'react';
+import { http } from '@/lib/request';
 
 interface IProps {
   namespaceId: string;

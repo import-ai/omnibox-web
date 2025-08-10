@@ -1,14 +1,15 @@
-import axios from 'axios';
-import i18next from 'i18next';
-import { toast } from 'sonner';
-import { isUndefined } from 'lodash-es';
-import { API_BASE_URL } from '@/constants';
 import type {
   AxiosError,
   AxiosInstance,
-  AxiosResponse,
   AxiosRequestConfig,
+  AxiosResponse,
 } from 'axios';
+import axios from 'axios';
+import i18next from 'i18next';
+import { isUndefined } from 'lodash-es';
+import { toast } from 'sonner';
+
+import { API_BASE_URL } from '@/constants';
 
 interface RequestConfig extends AxiosRequestConfig {
   // Whether to show error messages, default is true

@@ -1,19 +1,20 @@
-import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import i18next from 'i18next';
 import { useForm } from 'react-hook-form';
-import { Button } from '@/components/button';
-import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
-import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+import { Button } from '@/components/button';
 import {
   Form,
-  FormItem,
-  FormLabel,
-  FormField,
-  FormMessage,
   FormControl,
   FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
 const FormSchema = z.object({
   code: z.string().length(6, i18next.t('email.code_limit')),

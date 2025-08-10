@@ -1,18 +1,19 @@
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { type Citation } from '@/page/chat/types/chat-response';
-import { CitationCard } from '@/page/chat/messages/citations/citation-card';
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetDescription,
 } from '@/components/ui/sheet';
+import { CitationCard } from '@/page/chat/messages/citations/citation-card';
+import { type Citation } from '@/page/chat/types/chat-response';
 
 interface IProps {
   index: number;

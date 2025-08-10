@@ -1,18 +1,20 @@
+import '@/styles/github-markdown.css';
+import 'katex/dist/katex.min.css';
+import 'vditor/dist/index.css';
+import '@/styles/vditor-patch.css';
+
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Vditor from 'vditor';
+
+import { markdownPreviewConfig } from '@/components/markdown';
+import { LAZY_LOAD_IMAGE, VDITOR_CDN } from '@/const';
+import { useIsMobile } from '@/hooks/use-mobile';
+import useTheme from '@/hooks/use-theme.ts';
+import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
 import Copy from '@/page/chat/messages/citations/actions/copy';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
-import useTheme from '@/hooks/use-theme.ts';
-import { useIsMobile } from '@/hooks/use-mobile';
-import '@/styles/github-markdown.css';
-import 'katex/dist/katex.min.css';
-import Vditor from 'vditor';
-import 'vditor/dist/index.css';
-import '@/styles/vditor-patch.css';
-import { LAZY_LOAD_IMAGE, VDITOR_CDN } from '@/const';
-import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
-import { markdownPreviewConfig } from '@/components/markdown';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const citePattern = / *\[\[(\d+)]]/g;

@@ -1,13 +1,15 @@
-import Vditor from 'vditor';
 import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
-import { LAZY_LOAD_IMAGE, VDITOR_CDN } from '@/const';
-import { useEffect, useRef } from 'react';
-import useTheme from '@/hooks/use-theme';
-import { useNavigate } from 'react-router-dom';
-import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
-import { Theme } from '@/interface';
 import '@/components/markdown/index.css';
+
+import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Vditor from 'vditor';
+
+import { LAZY_LOAD_IMAGE, VDITOR_CDN } from '@/const';
+import useTheme from '@/hooks/use-theme';
+import { Theme } from '@/interface';
+import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
 
 interface IProps {
   content: string;

@@ -1,17 +1,18 @@
-import useApp from '@/hooks/use-app';
-import { Resource } from '@/interface';
 import { useRef, useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
-import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import MoveTo from '@/page/resource/actions/move';
-import { ISidebarProps } from '@/page/sidebar/interface';
+
 import {
   ContextMenu,
-  ContextMenuItem,
   ContextMenuContent,
+  ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import { Input } from '@/components/ui/input';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import useApp from '@/hooks/use-app';
+import { Resource } from '@/interface';
+import MoveTo from '@/page/resource/actions/move';
+import { ISidebarProps } from '@/page/sidebar/interface';
 
 export interface IProps extends ISidebarProps {
   children: React.ReactNode;

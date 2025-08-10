@@ -1,22 +1,24 @@
-import { cn } from '@/lib/utils';
-import { useState } from 'react';
 import copy from 'copy-to-clipboard';
-import { http } from '@/lib/request';
-import DataGroupUser from './data-user';
-import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
-import { Group, Member } from '@/interface';
-import { Switch } from '@/components/ui/switch';
-import UserCard from '@/components/user-card';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import PopConfirm from '@/components/popconfirm';
-import { Separator } from '@/components/ui/separator';
-import useGroupUser from './use-group-user';
+import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import UserCard from '@/components/user-card';
+import { Group, Member } from '@/interface';
+import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
+
+import DataGroupUser from './data-user';
+import useGroupUser from './use-group-user';
 
 interface GroupProps extends Group {
   member: Array<Member>;

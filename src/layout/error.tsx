@@ -1,5 +1,5 @@
-import { useRouteError } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useRouteError } from 'react-router-dom';
 
 export default function ErrorPage() {
   const { t } = useTranslation();

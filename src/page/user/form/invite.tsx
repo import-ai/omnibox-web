@@ -1,9 +1,10 @@
 import axios from 'axios';
-import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
+import { Button } from '@/components/button';
+import { http } from '@/lib/request';
 
 export function InviteForm() {
   const { t } = useTranslation();

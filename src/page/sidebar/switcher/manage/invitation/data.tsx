@@ -1,8 +1,9 @@
+import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Invitation } from '@/interface';
 import { http } from '@/lib/request';
-import { useTranslation } from 'react-i18next';
 
 interface InvitationProps {
   namespaceId: string;

@@ -1,12 +1,14 @@
-import { getData } from './data';
-import { http } from '@/lib/request';
-import { Permission } from '@/interface';
 import { useTranslation } from 'react-i18next';
+
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { Permission } from '@/interface';
+import { http } from '@/lib/request';
+
 import Action, { ActionProps } from './action';
+import { getData } from './data';
 
 interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   group_id?: string;

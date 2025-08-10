@@ -1,14 +1,7 @@
-import { getData } from './data';
-import { useState } from 'react';
-import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Permission } from '@/interface';
-import {
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import Action, { ActionProps } from './action';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +11,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Permission } from '@/interface';
+import { http } from '@/lib/request';
+
+import Action, { ActionProps } from './action';
+import { getData } from './data';
 
 interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   user_id: string;

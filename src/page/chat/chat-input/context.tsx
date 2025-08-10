@@ -1,8 +1,9 @@
-import Badge from '@/components/badge';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
 import { FileText, Folder, X } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+
+import Badge from '@/components/badge';
+import { Button } from '@/components/ui/button';
 import { IResTypeContext } from '@/page/chat/chat-input/types';
 
 interface IProps {

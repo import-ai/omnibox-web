@@ -1,7 +1,8 @@
-import { cn } from '@/lib/utils';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
 import { Globe, Lightbulb, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { type IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 
 const datasource = [

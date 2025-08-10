@@ -1,8 +1,9 @@
+import { Sidebar, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
+
 import Content from './content';
 import { Header } from './header';
 import { Switcher } from './switcher';
 import useContext from './useContext';
-import { Sidebar, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
 
 export default function MainSidebar() {
   const {

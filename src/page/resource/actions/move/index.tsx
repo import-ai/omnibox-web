@@ -1,12 +1,14 @@
-import Form, { IFormProps } from './form';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
+
+import Form, { IFormProps } from './form';
 
 interface IProps extends IFormProps {
   open: boolean;

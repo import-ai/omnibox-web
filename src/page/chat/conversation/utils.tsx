@@ -1,17 +1,17 @@
-import { stream } from '@/page/chat/utils';
-import { MessageDetail } from '@/page/chat/types/conversation';
-import { ChatResponse } from '@/page/chat/types/chat-response';
-import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import {
   ChatMode,
-  ToolType,
   type IResTypeContext,
+  ToolType,
 } from '@/page/chat/chat-input/types';
+import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import type {
-  PrivateSearch,
   ChatRequestBody,
+  PrivateSearch,
   PrivateSearchResource,
 } from '@/page/chat/conversation/types';
+import { ChatResponse } from '@/page/chat/types/chat-response';
+import { MessageDetail } from '@/page/chat/types/conversation';
+import { stream } from '@/page/chat/utils';
 
 function getPrivateSearchResources(
   context: IResTypeContext[]

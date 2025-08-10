@@ -1,9 +1,10 @@
 import axios from 'axios';
-import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import { Markdown } from '@/components/markdown';
+import { http } from '@/lib/request';
 
 interface IProps {
   id: string;

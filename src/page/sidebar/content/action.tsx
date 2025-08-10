@@ -1,19 +1,20 @@
-import useApp from '@/hooks/use-app';
-import { Resource } from '@/interface';
+import { LoaderCircle, MoreHorizontal } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
-import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import MoveTo from '@/page/resource/actions/move';
-import { ISidebarProps } from '@/page/sidebar/interface';
-import { MoreHorizontal, LoaderCircle } from 'lucide-react';
-import { SidebarMenuAction } from '@/components/ui/sidebar';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { SidebarMenuAction } from '@/components/ui/sidebar';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import useApp from '@/hooks/use-app';
+import { Resource } from '@/interface';
+import MoveTo from '@/page/resource/actions/move';
+import { ISidebarProps } from '@/page/sidebar/interface';
 
 export default function Action(props: ISidebarProps) {
   const {

@@ -1,8 +1,8 @@
-import { http } from '@/lib/request';
-import { useTranslation } from 'react-i18next';
 import { File, MessageCircle } from 'lucide-react';
-import { useEffect, useState, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import {
   CommandDialog,
   CommandGroup,
@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { http } from '@/lib/request';
 
 export interface IProps {
   open: boolean;

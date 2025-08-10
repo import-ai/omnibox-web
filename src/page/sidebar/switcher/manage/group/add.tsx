@@ -1,15 +1,17 @@
-import AddGroupForm from './add-form';
-import { Button } from '@/components/ui/button';
-import { useTranslation } from 'react-i18next';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useTranslation } from 'react-i18next';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogDescription,
 } from '@/components/ui/dialog';
+
+import AddGroupForm from './add-form';
 
 interface IProps {
   data: {

@@ -1,13 +1,15 @@
-import Space from './space';
-import group from '@/lib/group';
 import { useState } from 'react';
 import { DndProvider } from 'react-dnd';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
-import { ISidebarProps } from '@/page/sidebar/interface';
+
 import { SidebarContent } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { IResourceData, SpaceType } from '@/interface';
+import group from '@/lib/group';
+import { ISidebarProps } from '@/page/sidebar/interface';
+
+import Space from './space';
 
 export interface IProps extends Omit<ISidebarProps, 'spaceType'> {
   onDrop: (item: IResourceData, target: IResourceData | null) => void;

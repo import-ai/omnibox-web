@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { http } from '@/lib/request';
 import { useEffect } from 'react';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
+
+import { http } from '@/lib/request';
 
 export default function InviteRedirectPage() {
   const navigate = useNavigate();

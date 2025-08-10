@@ -1,13 +1,15 @@
 import axios from 'axios';
-import { http } from '@/lib/request';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
+
+import { http } from '@/lib/request';
+import { SidebarNav } from '@/page/user/form/sidebar';
+
 import CommonForm from './basic';
-import PeopleForm from './people';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
-import { useTranslation } from 'react-i18next';
-import { SidebarNav } from '@/page/user/form/sidebar';
+import PeopleForm from './people';
 
 export default function SettingWrapper() {
   const { t } = useTranslation();

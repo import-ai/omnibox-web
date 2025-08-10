@@ -1,9 +1,10 @@
+import { lazy, Suspense } from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
+import CoreApp from '@/hooks/app.class';
+import AppContext from '@/hooks/app-context';
 import Layout from '@/layout';
 import Error from '@/layout/error';
-import CoreApp from '@/hooks/app.class';
-import { lazy, Suspense } from 'react';
-import AppContext from '@/hooks/app-context';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 const ChatPage = lazy(() => import('@/page/chat'));
 const ChatHomePage = lazy(() => import('@/page/chat/home'));

@@ -1,8 +1,9 @@
 import axios from 'axios';
-import { http } from '@/lib/request';
-import { Resource } from '@/interface';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { Resource } from '@/interface';
+import { http } from '@/lib/request';
 
 interface IProps {
   resource: Resource;

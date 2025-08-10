@@ -1,16 +1,17 @@
-import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useIsMobile } from '@/hooks/use-mobile';
+
 import {
   Pagination,
+  PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationContent,
   PaginationPrevious,
-  PaginationEllipsis,
 } from '@/components/ui/pagination';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface PaginationProps {
   total?: number;

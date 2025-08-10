@@ -1,12 +1,14 @@
 import axios from 'axios';
-import { useEffect } from 'react';
-import WrapperPage from './wrapper';
-import { http } from '@/lib/request';
-import extension from '@/lib/extension';
 import { LoaderCircle } from 'lucide-react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
+import extension from '@/lib/extension';
+import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
+
+import WrapperPage from './wrapper';
 
 export default function AuthConfirmPage() {
   const { t } = useTranslation();

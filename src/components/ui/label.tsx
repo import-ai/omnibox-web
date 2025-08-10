@@ -1,6 +1,6 @@
-import React from 'react';
 import * as LabelPrimitive from '@radix-ui/react-label';
 import { cva, type VariantProps } from 'class-variance-authority';
+import React from 'react';
 
 import { cn } from '@/lib/utils';
 

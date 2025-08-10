@@ -1,21 +1,27 @@
-import Share from './share';
-import MoveTo from './move';
-import { toast } from 'sonner';
-import { http } from '@/lib/request';
 import copy from 'copy-to-clipboard';
+import {
+  ArrowUp,
+  Copy,
+  CornerUpRight,
+  Files,
+  Link,
+  LoaderCircle,
+  MoreHorizontal,
+  MoveHorizontal,
+  Pencil,
+  PencilOff,
+  Save,
+  Trash2,
+} from 'lucide-react';
 // import { Resource } from '@/interface';
 import { useRef, useState } from 'react';
-import { Input } from '@/components/input';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { getTime } from '@/page/resource/utils';
-import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { uploadFiles } from '@/lib/upload-files';
-import { IUseResource } from '@/hooks/user-resource';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+
+import { Input } from '@/components/input';
 import PermissionWrapper from '@/components/permission-action/wrapper';
+import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
@@ -30,20 +36,16 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import {
-  Save,
-  Copy,
-  Link,
-  Files,
-  Trash2,
-  Pencil,
-  ArrowUp,
-  CornerUpRight,
-  PencilOff,
-  MoveHorizontal,
-  LoaderCircle,
-  MoreHorizontal,
-} from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { IUseResource } from '@/hooks/user-resource';
+import { http } from '@/lib/request';
+import { uploadFiles } from '@/lib/upload-files';
+import { getTime } from '@/page/resource/utils';
+
+import MoveTo from './move';
+import Share from './share';
 
 export interface IActionProps extends IUseResource {
   wide: boolean;

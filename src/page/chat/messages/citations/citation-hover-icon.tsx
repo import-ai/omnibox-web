@@ -1,12 +1,12 @@
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import type { Citation } from '@/page/chat/types/chat-response';
 import { formatCitation } from '@/page/chat/messages/citations/utils.tsx';
+import type { Citation } from '@/page/chat/types/chat-response';
 
 export interface CitationIconProps {
   index: number;

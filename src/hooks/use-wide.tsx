@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import useApp from '@/hooks/use-app';
 
 export default function useWide() {
