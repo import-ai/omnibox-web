@@ -37,7 +37,7 @@ function ResourceItem({
       ) : (
         <File className="w-4 h-4 shrink-0" />
       )}
-      <div className="text-left truncate">{name}</div>
+      <div className="text-left">{name}</div>
     </Button>
   );
 }
