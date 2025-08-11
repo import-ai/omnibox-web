@@ -69,7 +69,16 @@ export default function SharedResourcePage() {
     );
   }
   if (shareInfo?.password_enabled && !loading) {
-    return <Password onPassword={handlePassword} />;
+    return (
+      <div className="flex justify-center p-10">
+        <div className="flex flex-col gap-4 w-[400px]">
+          <span className="text-sm">
+            {t('shared_resources.password_required')}
+          </span>
+          <Password onPassword={handlePassword} />
+        </div>
+      </div>
+    );
   }
   return <Loading />;
 }

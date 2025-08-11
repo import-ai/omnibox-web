@@ -411,6 +411,7 @@
     }
   },
   "shared_resources": {
+    "password_required": "Password is required to view this resource.",
     "incorrect_password": "Incorrect password",
     "submit": "Submit"
   }
