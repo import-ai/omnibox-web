@@ -193,18 +193,20 @@ export default function Actions(props: IActionProps) {
       <div className="hidden font-medium text-muted-foreground md:inline-block">
         {getTime(resource)}
       </div>
-      <PermissionWrapper
-        requiredPermission={0}
-        forbidden={forbidden}
-        permission={
-          resource && resource.current_permission
-            ? resource.current_permission
-            : 'full_access'
-        }
-        spaceType={resource?.space_type}
-      >
-        <Share />
-      </PermissionWrapper>
+      {resource && (
+        <PermissionWrapper
+          requiredPermission={0}
+          forbidden={forbidden}
+          permission={
+            resource.current_permission
+              ? resource.current_permission
+              : 'full_access'
+          }
+          spaceType={resource.space_type}
+        >
+          <Share />
+        </PermissionWrapper>
+      )}
       {resource && (
         <PermissionWrapper
           requiredPermission={1}
