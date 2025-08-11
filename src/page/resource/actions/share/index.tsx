@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/popover';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-import Form from './form';
+import ShareTabs from './tabs';
 
 export default function Share() {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ export default function Share() {
     <Popover>
       <PopoverTrigger asChild>
         <Button size="sm" variant="ghost" className="h-7 min-w-7">
-          {t('share.title')}
+          {t('share.share.title')}
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -27,7 +27,7 @@ export default function Share() {
         alignOffset={isMobile ? 0 : -106}
         className="w-full sm:w-[456px] p-0 overflow-hidden"
       >
-        <Form />
+        <ShareTabs />
       </PopoverContent>
     </Popover>
   );
