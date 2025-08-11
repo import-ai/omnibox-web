@@ -1,13 +1,15 @@
-import EditForm from './form';
-import { useTranslation } from 'react-i18next';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useTranslation } from 'react-i18next';
+
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
+
+import EditForm from './form';
 
 interface IProps {
   data: {

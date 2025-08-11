@@ -1,8 +1,10 @@
 import axios from 'axios';
-import useApp from './use-app';
-import { http } from '@/lib/request';
+import { useEffect, useState } from 'react';
+
 import { Namespace } from '@/interface';
-import { useState, useEffect } from 'react';
+import { http } from '@/lib/request';
+
+import useApp from './use-app';
 
 export default function useNamespaces() {
   const app = useApp();

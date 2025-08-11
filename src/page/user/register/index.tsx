@@ -1,6 +1,7 @@
-import WeChat from '../wechat';
-import MetaPage from '../meta';
 import { useState } from 'react';
+
+import MetaPage from '../meta';
+import WeChat from '../wechat';
 import Scan from '../wechat/scan';
 import WrapperPage from '../wrapper';
 import { RegisterForm } from './form';

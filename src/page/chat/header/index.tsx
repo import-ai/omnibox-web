@@ -1,17 +1,19 @@
-import Title from './title';
-import Actions from './actions';
-import useApp from '@/hooks/use-app';
-import { http } from '@/lib/request';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRef, useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
-import { Separator } from '@/components/ui/separator';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useLocation, useParams } from 'react-router-dom';
+
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
 } from '@/components/ui/breadcrumb';
+import { Separator } from '@/components/ui/separator';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import useApp from '@/hooks/use-app';
+import { http } from '@/lib/request';
+
+import Actions from './actions';
+import Title from './title';
 
 export default function ChatHeader() {
   const app = useApp();

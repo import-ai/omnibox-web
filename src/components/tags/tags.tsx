@@ -1,12 +1,13 @@
-import { http } from '@/lib/request';
-import Space from '@/components/space';
 import { TagsIcon } from 'lucide-react';
 import { LoaderCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Tag } from '@/interface';
-import { useRef, useState, useEffect } from 'react';
+
 import MultipleSelector, { Option } from '@/components/multiple-selector';
+import Space from '@/components/space';
+import { Badge } from '@/components/ui/badge';
+import type { Tag } from '@/interface';
+import { http } from '@/lib/request';
 
 interface IProps {
   loading: boolean;

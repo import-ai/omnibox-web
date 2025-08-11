@@ -1,3 +1,9 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
+
 import { Button } from '@/components/button';
 import {
   Form,
@@ -15,11 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { http } from '@/lib/request';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { z } from 'zod';
 
 interface IProps {
   namespaceId: string;
@@ -28,7 +29,7 @@ interface IProps {
 
 const FormSchema = z.object({
   namespaceRole: z.string(),
-  rootPermissionLevel: z.string(),
+  rootPermission: z.string(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -47,7 +48,7 @@ export function AddNamespaceInvitationForm(props: IProps) {
     http
       .post(`/namespaces/${namespaceId}/invitations`, {
         namespaceRole: val.namespaceRole,
-        rootPermissionLevel: val.rootPermissionLevel,
+        rootPermission: val.rootPermission,
       })
       .then(() => {
         onFinish();
@@ -90,7 +91,7 @@ export function AddNamespaceInvitationForm(props: IProps) {
         />
         <FormField
           control={form.control}
-          name="rootPermissionLevel"
+          name="rootPermission"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t('manage.permission')}</FormLabel>

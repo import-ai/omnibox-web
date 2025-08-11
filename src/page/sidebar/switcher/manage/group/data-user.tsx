@@ -1,9 +1,11 @@
-import { Role, Member } from '@/interface';
-import AddMember from '../add-member';
-import UserCard from '@/components/user-card';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
+
 import PopConfirm from '@/components/popconfirm';
+import { Button } from '@/components/ui/button';
+import UserCard from '@/components/user-card';
+import { Member, Role } from '@/interface';
+
+import AddMember from '../add-member';
 import { UseGroupUser } from './use-group-user';
 
 interface GroupProps extends UseGroupUser {

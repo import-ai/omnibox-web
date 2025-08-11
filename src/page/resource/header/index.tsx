@@ -1,7 +1,8 @@
-import Breadcrumb from './breadcrumb';
-import Actions, { IActionProps } from '../actions';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+
+import Actions, { IActionProps } from '../actions';
+import Breadcrumb from './breadcrumb';
 
 export default function Header(props: IActionProps) {
   const { resource, namespaceId } = props;

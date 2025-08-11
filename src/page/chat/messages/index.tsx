@@ -1,12 +1,13 @@
 import React from 'react';
-import type { MessageDetail } from '@/page/chat/types/conversation';
+
+import { AssistantMessage } from '@/page/chat/messages/role/assistant-message';
+import { ToolMessage } from '@/page/chat/messages/role/tool-message';
+import { UserMessage } from '@/page/chat/messages/role/user-message';
 import {
   type Citation,
   OpenAIMessageRole,
 } from '@/page/chat/types/chat-response';
-import { AssistantMessage } from '@/page/chat/messages/role/assistant-message';
-import { UserMessage } from '@/page/chat/messages/role/user-message';
-import { ToolMessage } from '@/page/chat/messages/role/tool-message';
+import type { MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {
   messages: MessageDetail[];

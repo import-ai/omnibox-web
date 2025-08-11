@@ -1,12 +1,14 @@
-import { getData } from './data';
-import { http } from '@/lib/request';
-import { Permission } from '@/interface';
 import { useTranslation } from 'react-i18next';
+
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { Permission } from '@/interface';
+import { http } from '@/lib/request';
+
 import Action, { ActionProps } from './action';
+import { getData } from './data';
 
 interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   group_id?: string;
@@ -27,11 +29,11 @@ export default function GroupAction(props: IProps) {
   } = props;
   const data = getData(true);
   const { t } = useTranslation();
-  const updatePermission = (level: Permission) => {
+  const updatePermission = (permission: Permission) => {
     return http
       .patch(
         `namespaces/${namespace_id}/resources/${resource_id}/permissions/groups/${group_id}`,
-        { level }
+        { permission }
       )
       .then(refetch);
   };
@@ -42,8 +44,8 @@ export default function GroupAction(props: IProps) {
       )
       .then(refetch);
   };
-  const handleChange = (level: Permission) => {
-    updatePermission(level);
+  const handleChange = (permission: Permission) => {
+    updatePermission(permission);
   };
   const handleRemove = () => {
     removePermission();

@@ -1,5 +1,5 @@
-import { Theme } from '@/interface';
 import Hook from '@/hooks/hook.class';
+import { Theme } from '@/interface';
 
 const defaultTheme: Theme = {
   skin: 'system',

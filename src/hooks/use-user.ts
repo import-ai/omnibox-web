@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { useEffect, useState } from 'react';
+
 import { User } from '@/interface';
 import { http } from '@/lib/request';
-import { useState, useEffect } from 'react';
 
 export default function useUser() {
   const uid = localStorage.getItem('uid');

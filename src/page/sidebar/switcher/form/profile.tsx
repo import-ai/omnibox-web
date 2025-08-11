@@ -1,34 +1,36 @@
-import * as z from 'zod';
-import i18next from 'i18next';
-import { toast } from 'sonner';
-import { http } from '@/lib/request';
-import isEmail from '@/lib/is-email';
-import useUser from '@/hooks/use-user';
-import { useForm } from 'react-hook-form';
-import Loading from '@/components/loading';
-import { Button } from '@/components/button';
-import EmailValidate from './email-validate';
-import { Input } from '@/components/ui/input';
-import { useTranslation } from 'react-i18next';
-import { useRef, useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import {
-  Form,
-  FormItem,
-  FormLabel,
-  FormField,
-  FormMessage,
-  FormControl,
-  FormDescription,
-} from '@/components/ui/form';
+import i18next from 'i18next';
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import * as z from 'zod';
+
+import { Button } from '@/components/button';
+import Loading from '@/components/loading';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import useUser from '@/hooks/use-user';
+import isEmail from '@/lib/is-email';
+import { http } from '@/lib/request';
+
+import EmailValidate from './email-validate';
 
 const profileFormSchema = z.object({
   username: z

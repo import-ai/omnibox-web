@@ -1,6 +1,7 @@
 import path from 'node:path';
-import { execSync } from 'child_process';
+
 import react from '@vitejs/plugin-react';
+import { execSync } from 'child_process';
 import { defineConfig, loadEnv } from 'vite';
 
 let gitHash = 'unknown';

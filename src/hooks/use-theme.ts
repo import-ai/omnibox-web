@@ -1,6 +1,7 @@
-import { Theme } from '@/interface';
+import { useCallback, useEffect, useState } from 'react';
+
 import useApp from '@/hooks/use-app';
-import { useEffect, useState, useCallback } from 'react';
+import { Theme } from '@/interface';
 
 export default function useTheme() {
   const app = useApp();

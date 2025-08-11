@@ -1,15 +1,16 @@
 import axios from 'axios';
-import each from '@/lib/each';
-import { toast } from 'sonner';
 import { orderBy } from 'lodash-es';
-import useApp from '@/hooks/use-app';
-import { http } from '@/lib/request';
-import { useRef, useEffect, useState } from 'react';
-import { uploadFiles } from '@/lib/upload-files';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
+
 import { useSidebar } from '@/components/ui/sidebar';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import useApp from '@/hooks/use-app';
 import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
+import each from '@/lib/each';
+import { http } from '@/lib/request';
+import { uploadFiles } from '@/lib/upload-files';
 
 export default function useContext() {
   const app = useApp();
@@ -99,6 +100,7 @@ export default function useContext() {
             parent_id: id,
             children: [],
             resource_type: 'file',
+            space_type: spaceType,
           });
         } else {
           each(response, item => {

@@ -1,23 +1,24 @@
+import { isFunction } from 'lodash-es';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import { useParams } from 'react-router-dom';
-import { isFunction } from 'lodash-es';
-import { ask } from '@/page/chat/conversation/utils';
-import useGlobalContext from '@/page/chat/useContext';
-import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  type ChatActionType,
   ChatMode,
   ToolType,
-  type ChatActionType,
 } from '@/page/chat/chat-input/types';
 import {
-  MessageDetail,
-  ConversationDetail,
-} from '@/page/chat/types/conversation';
-import {
-  MessageOperator,
   createMessageOperator,
+  MessageOperator,
 } from '@/page/chat/conversation/message-operator';
+import { ask } from '@/page/chat/conversation/utils';
+import {
+  ConversationDetail,
+  MessageDetail,
+} from '@/page/chat/types/conversation';
+import useGlobalContext from '@/page/chat/useContext';
 
 export default function useContext() {
   const app = useApp();

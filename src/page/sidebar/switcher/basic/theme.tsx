@@ -1,14 +1,15 @@
-import { http } from '@/lib/request';
-import useTheme from '@/hooks/use-theme';
+import { Check, ChevronDown, PanelTop } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
-import { Check, PanelTop, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import useTheme from '@/hooks/use-theme';
+import { http } from '@/lib/request';
 
 export default function Theme() {
   const { t } = useTranslation();

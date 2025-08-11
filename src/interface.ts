@@ -47,9 +47,10 @@ export interface PathItem {
 
 export interface Resource extends IBase {
   id: string;
-  current_level?: Permission;
+  current_permission?: Permission;
 
   resource_type: ResourceType;
+  space_type: SpaceType;
 
   parent_id: string;
 
@@ -59,7 +60,7 @@ export interface Resource extends IBase {
   tags?: string[];
   attrs?: Record<string, any>;
 
-  globalLevel?: Permission;
+  global_permission?: Permission;
 
   path?: PathItem[];
 }
@@ -76,7 +77,7 @@ export interface Member {
   username: string;
   email: string;
   role: Role;
-  level: Permission;
+  permission: Permission;
 }
 
 export interface NamespaceMember extends IBase {
@@ -95,20 +96,59 @@ export interface Group extends IBase {
 
 export interface UserPermission extends IBase {
   id: number;
-  level: Permission;
+  permission: Permission;
   namespace?: Namespace;
   resource?: Resource;
   user?: User;
 }
 
 export interface GroupPermission extends IBase {
-  level: Permission;
+  permission: Permission;
   group: Group;
 }
 
 export interface Invitation {
   id: string;
   namespace_role: Role;
-  root_permission_level: Permission;
+  root_permission: Permission;
   group?: Group;
+}
+
+export enum APIKeyPermissionType {
+  CREATE = 'create',
+  READ = 'read',
+  UPDATE = 'update',
+  DELETE = 'delete',
+}
+
+export enum APIKeyPermissionTarget {
+  RESOURCES = 'resources',
+}
+
+export interface APIKeyPermission {
+  target: APIKeyPermissionTarget;
+  permissions: APIKeyPermissionType[];
+}
+
+export interface APIKeyAttrs {
+  root_resource_id: string;
+  permissions: APIKeyPermission[];
+}
+
+export interface APIKey extends IBase {
+  id: string;
+  value: string;
+  user_id: string;
+  namespace_id: string;
+  attrs: APIKeyAttrs;
+}
+
+export interface CreateAPIKeyDto {
+  user_id: string;
+  namespace_id: string;
+  attrs?: APIKeyAttrs;
+}
+
+export interface UpdateAPIKeyDto {
+  attrs?: APIKeyAttrs;
 }

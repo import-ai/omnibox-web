@@ -1,23 +1,25 @@
-import { useRef } from 'react';
-import Tree, { ITreeProps } from './tree';
-import { Input } from '@/components/input';
-import { IResourceData } from '@/interface';
-import { useTranslation } from 'react-i18next';
-import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { LoaderCircle, MoreHorizontal } from 'lucide-react';
-import {
-  SidebarMenu,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenuAction,
-  SidebarGroupContent,
-} from '@/components/ui/sidebar';
+import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { Input } from '@/components/input';
 import {
   DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuAction,
+} from '@/components/ui/sidebar';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import { IResourceData } from '@/interface';
+
+import Tree, { ITreeProps } from './tree';
 
 export default function Space(props: ITreeProps) {
   const { data, editingKey, spaceType, onCreate, onUpload } = props;

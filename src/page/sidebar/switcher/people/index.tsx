@@ -1,10 +1,12 @@
 import axios from 'axios';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+
+import { Separator } from '@/components/ui/separator';
 import { http } from '@/lib/request';
+
 import Table from '../manage';
 import Invite from './invite-link';
-import { Separator } from '@/components/ui/separator';
-import { useEffect, useState } from 'react';
 
 export default function PeopleManage() {
   const params = useParams();

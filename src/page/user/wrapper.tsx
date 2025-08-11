@@ -1,13 +1,14 @@
-import React from 'react';
 import { GalleryVerticalEnd } from 'lucide-react';
-import { ThemeToggle } from '@/components/toggle/theme';
+import React from 'react';
+
 import { LanguageToggle } from '@/components/toggle/language';
+import { ThemeToggle } from '@/components/toggle/theme';
 import {
   Card,
-  CardTitle,
-  CardHeader,
   CardContent,
   CardDescription,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
 
 interface WrapperPageProps {

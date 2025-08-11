@@ -1,13 +1,14 @@
 import { Dispatch, SetStateAction } from 'react';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/types/conversation';
+
 import {
   ChatBOSResponse,
   ChatDeltaResponse,
   MessageStatus,
 } from '@/page/chat/types/chat-response';
+import {
+  ConversationDetail,
+  MessageDetail,
+} from '@/page/chat/types/conversation';
 
 function add(source?: string, delta?: string): string | undefined {
   return delta ? (source || '') + delta : source;

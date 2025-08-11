@@ -1,14 +1,15 @@
 import React from 'react';
+
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-  AlertDialogDescription,
 } from '@/components/ui/alert-dialog';
 
 interface IProps {

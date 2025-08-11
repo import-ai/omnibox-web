@@ -1,7 +1,8 @@
-import { http } from '@/lib/request';
 import { Languages } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+
+import { Button } from '@/components/ui/button';
+import { http } from '@/lib/request';
 
 export function LanguageToggle() {
   const { i18n } = useTranslation();

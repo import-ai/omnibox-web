@@ -1,6 +1,8 @@
-import WrapperPage from './wrapper';
 import { useTranslation } from 'react-i18next';
+
 import { RegisterConFirmForm } from '@/page/user/form/register-confirm';
+
+import WrapperPage from './wrapper';
 
 export default function RegisterConFirmPage() {
   const { t } = useTranslation();

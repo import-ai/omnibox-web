@@ -1,13 +1,14 @@
+import { History, Search, Sparkles } from 'lucide-react';
 import { useState } from 'react';
-import SearchMenu from '@/page/search';
 import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
-import { Sparkles, History, Search } from 'lucide-react';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import SearchMenu from '@/page/search';
 
 interface IProps {
   active: boolean;

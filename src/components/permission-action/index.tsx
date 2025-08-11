@@ -1,14 +1,7 @@
-import { getData } from './data';
-import { useState } from 'react';
-import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Permission } from '@/interface';
-import {
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import Action, { ActionProps } from './action';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +11,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Permission } from '@/interface';
+import { http } from '@/lib/request';
+
+import Action, { ActionProps } from './action';
+import { getData } from './data';
 
 interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   user_id: string;
@@ -52,11 +54,11 @@ export default function PermissionAction(props: IProps) {
   const [removeing, onRemoveing] = useState(false);
   const [permissioning, onPermissioning] = useState(false);
   const [permission, onPermission] = useState<Permission>('full_access');
-  const updatePermission = (level: Permission) => {
+  const updatePermission = (permission: Permission) => {
     return http
       .patch(
         `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`,
-        { level }
+        { permission }
       )
       .then(refetch);
   };
@@ -67,16 +69,16 @@ export default function PermissionAction(props: IProps) {
       )
       .then(refetch);
   };
-  const handleChange = (level: Permission) => {
+  const handleChange = (permission: Permission) => {
     if (me) {
       const oldIndex = data.findIndex(item => item.value === value);
-      const newIndex = data.findIndex(item => item.value === level);
+      const newIndex = data.findIndex(item => item.value === permission);
       if (oldIndex < newIndex) {
-        onPermission(level);
+        onPermission(permission);
         return;
       }
     }
-    updatePermission(level);
+    updatePermission(permission);
   };
   const handleCancel = () => {
     onPermission('full_access');

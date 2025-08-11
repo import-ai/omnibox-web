@@ -1,14 +1,16 @@
-import useApp from '@/hooks/use-app';
-import { http } from '@/lib/request';
-import { getGreeting } from './utils';
-import ChatArea from './chat-input';
-import useContext from './useContext';
-import useUser from '@/hooks/use-user';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Typewriter } from '@/components/typewriter';
-import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
 import { useNavigate, useParams } from 'react-router-dom';
+
+import { Typewriter } from '@/components/typewriter';
+import useApp from '@/hooks/use-app';
+import useUser from '@/hooks/use-user';
+import { http } from '@/lib/request';
+import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
+
+import ChatArea from './chat-input';
+import useContext from './useContext';
+import { getGreeting } from './utils';
 
 export default function ChatHomePage() {
   const app = useApp();

@@ -1,11 +1,12 @@
 import { format } from 'date-fns';
+import { Clock, File, Link } from 'lucide-react';
 import { useState } from 'react';
-import Tag from '@/components/tags';
-import { http } from '@/lib/request';
-import { Resource } from '@/interface';
-import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
-import { Clock, Link, File } from 'lucide-react';
+
+import { Button } from '@/components/button';
+import Tag from '@/components/tags';
+import { Resource } from '@/interface';
+import { http } from '@/lib/request';
 
 interface IProps {
   resource: Resource;

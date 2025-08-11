@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { GroupPermission } from '@/interface';
-import UserCard from '@/components/user-card';
+
 import GroupAction from '@/components/permission-action/group';
+import UserCard from '@/components/user-card';
+import { GroupPermission } from '@/interface';
 
 interface IProps {
   resource_id: string;
@@ -23,7 +24,7 @@ export default function Group(props: IProps) {
         >
           <UserCard email={t('manage.group')} username={item.group.title} />
           <GroupAction
-            value={item.level}
+            value={item.permission}
             refetch={refetch}
             group_id={item.group.id}
             resource_id={resource_id}

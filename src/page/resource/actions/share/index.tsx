@@ -1,12 +1,14 @@
-import Form from './form';
-import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-import { useIsMobile } from '@/hooks/use-mobile';
+
+import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+import Form from './form';
 
 export default function Share() {
   const { t } = useTranslation();

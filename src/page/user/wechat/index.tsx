@@ -1,9 +1,11 @@
-import { toast } from 'sonner';
-import WeChatIcon from './icon';
 import isMobile from 'ismobilejs';
-import { http } from '@/lib/request';
-import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/button';
+import { http } from '@/lib/request';
+
+import WeChatIcon from './icon';
 
 interface IProps {
   checked?: boolean;

@@ -1,8 +1,10 @@
-import Scrollbar from './scrollbar';
 import { useTranslation } from 'react-i18next';
+
 import ChatArea from '@/page/chat/chat-input';
-import { Messages } from '@/page/chat/messages';
 import useContext from '@/page/chat/conversation/useContext';
+import { Messages } from '@/page/chat/messages';
+
+import Scrollbar from './scrollbar';
 
 export default function ChatConversationPage() {
   const { t } = useTranslation();

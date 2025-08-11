@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import Group from './group';
 import Member from './member';
 import useContext from './use-context';
-import { useTranslation } from 'react-i18next';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ManagePeople() {
   const { t } = useTranslation();

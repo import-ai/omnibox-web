@@ -1,9 +1,11 @@
-import User from './user';
-import Group from './group';
-import { http } from '@/lib/request';
+import { useEffect, useState } from 'react';
+
 import useApp from '@/hooks/use-app';
-import { useState, useEffect } from 'react';
-import { Permission, UserPermission, GroupPermission } from '@/interface';
+import { GroupPermission, Permission, UserPermission } from '@/interface';
+import { http } from '@/lib/request';
+
+import Group from './group';
+import User from './user';
 
 interface UserFormProps {
   resource_id: string;
@@ -14,13 +16,13 @@ export default function Wrapper(props: UserFormProps) {
   const { resource_id, namespace_id } = props;
   const app = useApp();
   const [data, onData] = useState<{
-    global_level: Permission;
+    global_permission: Permission;
     users: Array<UserPermission>;
     groups: Array<GroupPermission>;
   }>({
     users: [],
     groups: [],
-    global_level: 'full_access',
+    global_permission: 'full_access',
   });
   const refetch = () => {
     if (!namespace_id || !resource_id) {

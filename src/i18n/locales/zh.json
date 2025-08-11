@@ -154,7 +154,8 @@
     "profile": "个人资料",
     "members": "成员",
     "preferences": "偏好设置",
-    "namespace": "空间设置"
+    "namespace": "空间设置",
+    "api_key": "API 密钥"
   },
   "manage": {
     "search": "输入并搜索",
@@ -292,6 +293,36 @@
     "title": "搜索",
     "placeholder": "搜索页面、文件、对话等",
     "resources": "资源",
-    "chats": "对话"
-  }
+    "chats": "对话",
+    "no_results": "未找到资源"
+  },
+  "api_key": {
+    "description": "API 密钥允许您通过编程方式访问您的资源。",
+    "empty": "未找到API密钥。创建您的第一个API密钥以开始使用。",
+    "create": {
+      "title": "创建 API 密钥",
+      "description": "创建一个新的API密钥以编程方式访问您的资源。",
+      "success": "API密钥创建成功",
+      "error": "创建API密钥失败",
+      "validation_error": "请填写所有必填字段"
+    },
+    "delete": {
+      "success": "API密钥删除成功",
+      "error": "删除API密钥失败",
+      "confirm": {
+        "title": "删除 API 密钥",
+        "description": "此操作无法撤消。这将永久删除API密钥并撤销访问权限。"
+      }
+    },
+    "copy": {
+      "success": "API密钥已复制到剪贴板"
+    },
+    "permission_scope": "权限范围",
+    "permission_scope_tooltip": "此API密钥的根文档，将限制此密钥只能访问该文档及其子文档。",
+    "root_resource_id_placeholder": "输入文档名以搜索",
+    "permissions": "权限"
+  },
+  "loading": "加载中...",
+  "creating": "创建中...",
+  "create": "创建"
 }
