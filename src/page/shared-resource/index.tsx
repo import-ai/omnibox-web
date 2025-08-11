@@ -55,7 +55,7 @@ export default function SharedResourcePage() {
     setPassword(password);
   };
 
-  if (resource) {
+  if (resource && !loading) {
     return (
       <div className="flex justify-center h-full p-4">
         <div
@@ -63,6 +63,9 @@ export default function SharedResourcePage() {
             'max-w-3xl': !wide,
           })}
         >
+          <h1 className="text-4xl font-bold mb-4">
+            {resource.name || t('untitled')}
+          </h1>
           <Render resource={resource} />
         </div>
       </div>
