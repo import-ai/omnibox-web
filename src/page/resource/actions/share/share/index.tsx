@@ -102,48 +102,52 @@ export function ShareTabContent(props: ShareTabContentProps) {
         </Button>
         <Switch checked={shareInfo?.enabled} onCheckedChange={handleEnable} />
       </div>
-      <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">{t('share.share.all_resources')}</span>
-        <Switch
-          checked={shareInfo?.all_resources}
-          disabled={!shareInfo?.enabled}
-          onCheckedChange={handleShareAll}
-        />
-      </div>
-      <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">{t('share.share.require_login')}</span>
-        <Switch
-          checked={shareInfo?.require_login}
-          disabled={!shareInfo?.enabled}
-          onCheckedChange={handleRequireLogin}
-        />
-      </div>
-      <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">{t('share.share.expire.title')}</span>
-        <Expire
-          disabled={!shareInfo?.enabled}
-          expiresAt={shareInfo ? shareInfo.expires_at : null}
-          onNeverSelected={() => handleExpireDateChange(null)}
-          onDateSelected={handleExpireDateChange}
-          onCountdownSelected={handleExpireCountdownChange}
-        />
-      </div>
-      <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">{t('share.share.ai_chat')}</span>
-        <ShareTypeSelector
-          disabled={!shareInfo?.enabled}
-          shareType={shareInfo?.share_type || 'all'}
-          onChange={handleShareTypeChange}
-        />
-      </div>
-      <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">{t('share.share.password')}</span>
-        <Password
-          disabled={!shareInfo?.enabled}
-          passwordEnabled={!!shareInfo?.password_enabled}
-          onSave={handlePasswordChange}
-        />
-      </div>
+      {shareInfo?.enabled && (
+        <>
+          <div className="flex items-center gap-2 justify-between mt-4 h-6">
+            <span className="text-sm">{t('share.share.all_resources')}</span>
+            <Switch
+              checked={shareInfo?.all_resources}
+              disabled={!shareInfo?.enabled}
+              onCheckedChange={handleShareAll}
+            />
+          </div>
+          <div className="flex items-center gap-2 justify-between mt-4 h-6">
+            <span className="text-sm">{t('share.share.require_login')}</span>
+            <Switch
+              checked={shareInfo?.require_login}
+              disabled={!shareInfo?.enabled}
+              onCheckedChange={handleRequireLogin}
+            />
+          </div>
+          <div className="flex items-center gap-2 justify-between mt-4 h-6">
+            <span className="text-sm">{t('share.share.expire.title')}</span>
+            <Expire
+              disabled={!shareInfo?.enabled}
+              expiresAt={shareInfo ? shareInfo.expires_at : null}
+              onNeverSelected={() => handleExpireDateChange(null)}
+              onDateSelected={handleExpireDateChange}
+              onCountdownSelected={handleExpireCountdownChange}
+            />
+          </div>
+          <div className="flex items-center gap-2 justify-between mt-4 h-6">
+            <span className="text-sm">{t('share.share.ai_chat')}</span>
+            <ShareTypeSelector
+              disabled={!shareInfo?.enabled}
+              shareType={shareInfo?.share_type || 'all'}
+              onChange={handleShareTypeChange}
+            />
+          </div>
+          <div className="flex items-center gap-2 justify-between mt-4 h-6">
+            <span className="text-sm">{t('share.share.password')}</span>
+            <Password
+              disabled={!shareInfo?.enabled}
+              passwordEnabled={!!shareInfo?.password_enabled}
+              onSave={handlePasswordChange}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
