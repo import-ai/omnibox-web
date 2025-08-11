@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios, { CancelTokenSource } from 'axios';
 import { t } from 'i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useOutletContext, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -19,23 +19,25 @@ export default function SharedResourcePage() {
   const params = useParams();
   const resourceId = params.resource_id;
 
+  const cancelTokenSource = useRef<CancelTokenSource>(null);
+
   const [loading, setLoading] = useState<boolean>(false);
   const [resource, setResource] = useState<SharedResource | null>(null);
-  const [password, setPassword] = useState<string>('');
 
-  useEffect(() => {
+  const refetchResource = (password?: string) => {
     if (!shareInfo) {
+      setResource(null);
       return;
     }
-    if (shareInfo.password_enabled && !password) {
-      return;
+    if (cancelTokenSource.current) {
+      cancelTokenSource.current.cancel('Canceled due to new request.');
     }
+    cancelTokenSource.current = axios.CancelToken.source();
     setLoading(true);
-    const source = axios.CancelToken.source();
     http
       .get(`/shares/${shareInfo.id}/resources/${resourceId}`, {
-        cancelToken: source.token,
-        headers: { 'X-OmniBox-Share-Password': password },
+        cancelToken: cancelTokenSource.current.token,
+        headers: password ? { 'X-OmniBox-Share-Password': password } : {},
       })
       .then(data => {
         setResource(data);
@@ -48,11 +50,16 @@ export default function SharedResourcePage() {
       .finally(() => {
         setLoading(false);
       });
-    return () => source.cancel();
-  }, [shareInfo, password, resourceId]);
+  };
+
+  useEffect(() => {
+    if (!shareInfo?.password_enabled) {
+      return refetchResource();
+    }
+  }, [shareInfo, resourceId]);
 
   const handlePassword = (password: string) => {
-    setPassword(password);
+    refetchResource(password);
   };
 
   if (resource && !loading) {
