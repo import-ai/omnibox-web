@@ -1,3 +1,9 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { t } from 'i18next';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import z from 'zod';
+
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
@@ -9,11 +15,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { t } from 'i18next';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import z from 'zod';
 
 export interface PasswordProps {
   disabled?: boolean;
@@ -29,7 +30,7 @@ const passwordSchema = z
       .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, t('form.password_reg')),
     password_repeat: z.string(),
   })
-  .refine((data) => data.password === data.password_repeat, {
+  .refine(data => data.password === data.password_repeat, {
     message: t('form.password_not_match'),
     path: ['password_repeat'],
   });
@@ -111,7 +112,7 @@ export function Password(props: PasswordProps) {
                 )}
               />
               <Button type="submit" className="w-full disabled:opacity-60">
-                {t('publish.save')}
+                {t('share.share.save')}
               </Button>
             </form>
           </Form>

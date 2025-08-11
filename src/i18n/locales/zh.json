@@ -237,12 +237,6 @@
     "grant_permission": "在移除此权限之前，请向其他人授予“全部权限”。",
     "you": "你"
   },
-  "share": {
-    "title": "分享",
-    "invite": "邀请",
-    "invite_success": "邀请成功",
-    "invite_placeholder": "邮件地址或群组，以逗号分隔"
-  },
   "copy": {
     "title": "复制",
     "success": "已复制到剪贴板",
@@ -380,32 +374,40 @@
   "loading": "加载中...",
   "creating": "创建中...",
   "create": "创建",
-  "publish": {
-    "title": "发布",
-    "url_placeholder": "发布的URL",
-    "save": "保存",
-    "all_resources": "所有资源",
-    "require_login": "需要登录",
-    "ai_chat": "AI问答",
-    "password": "密码保护",
-    "expire": {
-      "title": "过期时间",
-      "type": "过期类型",
-      "never": "永不过期",
-      "countdown": "倒计时",
-      "date": "指定日期"
+  "share": {
+    "permissions": {
+      "title": "权限",
+      "invite": "邀请",
+      "invite_success": "邀请成功",
+      "invite_placeholder": "邮件地址或群组，以逗号分隔"
     },
-    "countdown": {
-      "unit": "单位",
-      "seconds": "秒",
-      "minutes": "分钟",
-      "hours": "小时",
-      "days": "天"
-    },
-    "share_type": {
-      "doc_only": "仅文档",
-      "chat_only": "仅对话",
-      "all": "全部"
+    "share": {
+      "title": "分享",
+      "url_placeholder": "发布的URL",
+      "save": "保存",
+      "all_resources": "所有资源",
+      "require_login": "需要登录",
+      "ai_chat": "AI问答",
+      "password": "密码保护",
+      "expire": {
+        "title": "过期时间",
+        "type": "过期类型",
+        "never": "永不过期",
+        "countdown": "倒计时",
+        "date": "指定日期"
+      },
+      "countdown": {
+        "unit": "单位",
+        "seconds": "秒",
+        "minutes": "分钟",
+        "hours": "小时",
+        "days": "天"
+      },
+      "share_type": {
+        "doc_only": "仅文档",
+        "chat_only": "仅对话",
+        "all": "全部"
+      }
     }
   }
 }

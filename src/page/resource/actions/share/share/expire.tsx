@@ -1,3 +1,7 @@
+import { SelectValue } from '@radix-ui/react-select';
+import { t } from 'i18next';
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -13,9 +17,6 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import { SelectValue } from '@radix-ui/react-select';
-import { t } from 'i18next';
-import { useState } from 'react';
 
 export interface ExpireProps {
   disabled?: boolean;
@@ -34,11 +35,11 @@ const CountDownUnits: CountDownUnit[] = ['seconds', 'minutes', 'hours', 'days'];
 function expiresTypeToString(type: ExpiresType): string {
   switch (type) {
     case 'never':
-      return t('publish.expire.never');
+      return t('share.share.expire.never');
     case 'countdown':
-      return t('publish.expire.countdown');
+      return t('share.share.expire.countdown');
     case 'date':
-      return t('publish.expire.date');
+      return t('share.share.expire.date');
     default:
       return '';
   }
@@ -47,13 +48,13 @@ function expiresTypeToString(type: ExpiresType): string {
 function unitToString(unit: CountDownUnit): string {
   switch (unit) {
     case 'seconds':
-      return t('publish.countdown.seconds');
+      return t('share.share.countdown.seconds');
     case 'minutes':
-      return t('publish.countdown.minutes');
+      return t('share.share.countdown.minutes');
     case 'hours':
-      return t('publish.countdown.hours');
+      return t('share.share.countdown.hours');
     case 'days':
-      return t('publish.countdown.days');
+      return t('share.share.countdown.days');
     default:
       return '';
   }
@@ -69,7 +70,7 @@ export function Expire(props: ExpireProps) {
   } = props;
   const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ExpiresType | undefined>(
-    undefined,
+    undefined
   );
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedUnit, setSelectedUnit] = useState<CountDownUnit>('seconds');
@@ -117,20 +118,22 @@ export function Expire(props: ExpireProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger disabled={disabled}>
         <Button variant="outline" className="h-6" disabled={disabled}>
-          {expiresAt ? expiresAt.toLocaleString() : t('publish.expire.never')}
+          {expiresAt
+            ? expiresAt.toLocaleString()
+            : t('share.share.expire.never')}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-[360px] gap-4">
-        <DialogTitle>{t('publish.expire.title')}</DialogTitle>
+        <DialogTitle>{t('share.share.expire.title')}</DialogTitle>
 
         <div className="flex items-center gap-4">
-          <span className="text-sm">{t('publish.expire.type')}:</span>
+          <span className="text-sm">{t('share.share.expire.type')}:</span>
           <Select value={selectedType} onValueChange={handleSelectType}>
             <SelectTrigger className="w-36">
-              <SelectValue placeholder={t('publish.expire.title')} />
+              <SelectValue placeholder={t('share.share.expire.title')} />
             </SelectTrigger>
             <SelectContent>
-              {ExpiresTypes.map((type) => (
+              {ExpiresTypes.map(type => (
                 <SelectItem value={type}>
                   {expiresTypeToString(type)}
                 </SelectItem>
@@ -148,7 +151,7 @@ export function Expire(props: ExpireProps) {
               className="rounded-md border shadow-sm w-full"
             />
             <Button className="w-full" onClick={handleSaveDate}>
-              {t('publish.save')}
+              {t('share.share.save')}
             </Button>
           </>
         )}
@@ -160,33 +163,31 @@ export function Expire(props: ExpireProps) {
                 className="w-full"
                 type="number"
                 value={countdown}
-                onChange={(e) => setCountdown(Number(e.target.value))}
+                onChange={e => setCountdown(Number(e.target.value))}
               />
               <Select
                 value={selectedUnit}
-                onValueChange={(value) =>
-                  setSelectedUnit(value as CountDownUnit)
-                }
+                onValueChange={value => setSelectedUnit(value as CountDownUnit)}
               >
                 <SelectTrigger className="w-36">
-                  <SelectValue placeholder={t('publish.countdown.unit')} />
+                  <SelectValue placeholder={t('share.share.countdown.unit')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {CountDownUnits.map((unit) => (
+                  {CountDownUnits.map(unit => (
                     <SelectItem value={unit}>{unitToString(unit)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <Button className="w-full" onClick={handleSaveCountdown}>
-              {t('publish.save')}
+              {t('share.share.save')}
             </Button>
           </>
         )}
 
         {selectedType === 'never' && (
           <Button className="w-full" onClick={handleSaveNever}>
-            {t('publish.save')}
+            {t('share.share.save')}
           </Button>
         )}
       </DialogContent>

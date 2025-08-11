@@ -181,11 +181,11 @@ export const ShareTypes: ShareType[] = ['doc_only', 'chat_only', 'all'];
 export function shareTypeToString(type: ShareType): string {
   switch (type) {
     case 'doc_only':
-      return t('publish.share_type.doc_only');
+      return t('share.share.share_type.doc_only');
     case 'chat_only':
-      return t('publish.share_type.chat_only');
+      return t('share.share.share_type.chat_only');
     case 'all':
-      return t('publish.share_type.all');
+      return t('share.share.share_type.all');
     default:
       return '';
   }

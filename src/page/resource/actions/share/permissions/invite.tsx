@@ -60,7 +60,7 @@ export default function InviteForm(props: InviteFormProps) {
       })
       .then(() => {
         onChange('');
-        toast.success(t('share.invite_success'), {
+        toast.success(t('share.permissions.invite_success'), {
           position: 'bottom-right',
         });
         groupTitles.length > 0 && app.fire('user_permission_refetch');
@@ -78,7 +78,7 @@ export default function InviteForm(props: InviteFormProps) {
           minHeight={34}
           maxHeight={200}
           onChange={handleChange}
-          placeholder={t('share.invite_placeholder')}
+          placeholder={t('share.permissions.invite_placeholder')}
           className={cn('resize-none !leading-[26px] py-1 pr-1', {
             'pr-24': visible,
           })}
@@ -98,7 +98,7 @@ export default function InviteForm(props: InviteFormProps) {
         onClick={handleSubmit}
         className="bg-blue-500 hover:bg-blue-600 text-white px-6"
       >
-        {t('share.invite')}
+        {t('share.permissions.invite')}
       </Button>
     </div>
   );

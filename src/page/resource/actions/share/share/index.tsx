@@ -1,3 +1,7 @@
+import { t } from 'i18next';
+import { Copy } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -8,19 +12,17 @@ import {
   UpdateShareInfoReq,
 } from '@/interface';
 import { http } from '@/lib/request';
-import { t } from 'i18next';
-import { Copy } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Expire } from './expire';
-import { ShareTypeSelector } from './share-type';
-import { Password } from './password';
 
-interface PublishProps {
+import { Expire } from './expire';
+import { Password } from './password';
+import { ShareTypeSelector } from './share-type';
+
+interface ShareTabContentProps {
   resource_id: string;
   namespace_id: string;
 }
 
-export function Publish(props: PublishProps) {
+export function ShareTabContent(props: ShareTabContentProps) {
   const { resource_id, namespace_id } = props;
   const [shareInfo, setShareInfo] = useState<ShareInfo | null>(null);
 
@@ -87,7 +89,7 @@ export function Publish(props: PublishProps) {
         <Input
           readOnly
           value={shareUrl}
-          placeholder={t('publish.url_placeholder')}
+          placeholder={t('share.share.url_placeholder')}
           disabled={!shareUrl}
         />
         <Button
@@ -101,7 +103,7 @@ export function Publish(props: PublishProps) {
         <Switch checked={shareInfo?.enabled} onCheckedChange={handleEnable} />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">{t('publish.all_resources')}</span>
+        <span className="text-sm">{t('share.share.all_resources')}</span>
         <Switch
           checked={shareInfo?.all_resources}
           disabled={!shareInfo?.enabled}
@@ -109,7 +111,7 @@ export function Publish(props: PublishProps) {
         />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">{t('publish.require_login')}</span>
+        <span className="text-sm">{t('share.share.require_login')}</span>
         <Switch
           checked={shareInfo?.require_login}
           disabled={!shareInfo?.enabled}
@@ -117,7 +119,7 @@ export function Publish(props: PublishProps) {
         />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">{t('publish.expire.title')}</span>
+        <span className="text-sm">{t('share.share.expire.title')}</span>
         <Expire
           disabled={!shareInfo?.enabled}
           expiresAt={shareInfo ? shareInfo.expires_at : null}
@@ -127,7 +129,7 @@ export function Publish(props: PublishProps) {
         />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">{t('publish.ai_chat')}</span>
+        <span className="text-sm">{t('share.share.ai_chat')}</span>
         <ShareTypeSelector
           disabled={!shareInfo?.enabled}
           shareType={shareInfo?.share_type || 'all'}
@@ -135,7 +137,7 @@ export function Publish(props: PublishProps) {
         />
       </div>
       <div className="flex items-center gap-2 justify-between mt-4 h-6">
-        <span className="text-sm">{t('publish.password')}</span>
+        <span className="text-sm">{t('share.share.password')}</span>
         <Password
           disabled={!shareInfo?.enabled}
           passwordEnabled={!!shareInfo?.password_enabled}
