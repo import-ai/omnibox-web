@@ -100,6 +100,7 @@ export default function useContext() {
             parent_id: id,
             children: [],
             resource_type: 'file',
+            space_type: spaceType,
           });
         } else {
           each(response, item => {

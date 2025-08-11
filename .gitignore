@@ -29,4 +29,4 @@ dist-ssr
 *.sw?
 
 .env
-
+CLAUDE.md
