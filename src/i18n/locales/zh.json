@@ -409,5 +409,9 @@
         "all": "全部"
       }
     }
+  },
+  "shared_resources": {
+    "incorrect_password": "密码错误",
+    "submit": "提交"
   }
 }

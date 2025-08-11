@@ -1,44 +1,75 @@
-import Loading from '@/components/loading';
-import { SharedResource } from '@/interface';
-import { http } from '@/lib/request';
 import axios from 'axios';
+import { t } from 'i18next';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import Render from '../resource/render';
-import { cn } from '@/lib/utils';
+import { useOutletContext, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
+
+import Loading from '@/components/loading';
 import useWide from '@/hooks/use-wide';
+import { SharedResource, ShareInfo } from '@/interface';
+import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
+
+import Render from '../resource/render';
+import { Password } from './password';
 
 export default function SharedResourcePage() {
   const { wide } = useWide();
+  const shareInfo = useOutletContext<ShareInfo | null>();
   const params = useParams();
-  const shareId = params.share_id;
   const resourceId = params.resource_id;
 
+  const [loading, setLoading] = useState<boolean>(false);
   const [resource, setResource] = useState<SharedResource | null>(null);
+  const [password, setPassword] = useState<string>('');
 
   useEffect(() => {
-    setResource(null);
+    if (!shareInfo) {
+      return;
+    }
+    if (shareInfo.password_enabled && !password) {
+      return;
+    }
+    setLoading(true);
     const source = axios.CancelToken.source();
     http
-      .get(`/shares/${shareId}/resources/${resourceId}`, {
+      .get(`/shares/${shareInfo.id}/resources/${resourceId}`, {
         cancelToken: source.token,
+        headers: { 'X-OmniBox-Share-Password': password },
       })
-      .then(setResource);
+      .then(data => {
+        setResource(data);
+      })
+      .catch(err => {
+        if (err && err.status && err.status === 403) {
+          toast.error(t('shared_resources.incorrect_password'));
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
     return () => source.cancel();
-  }, [shareId, resourceId]);
+  }, [shareInfo, password, resourceId]);
 
-  if (!resource) {
-    return <Loading />;
-  }
-  return (
-    <div className="flex justify-center h-full p-4">
-      <div
-        className={cn('flex flex-col w-full h-full', {
-          'max-w-3xl': !wide,
-        })}
-      >
-        <Render resource={resource} />
+  const handlePassword = (password: string) => {
+    setPassword(password);
+  };
+
+  if (resource) {
+    return (
+      <div className="flex justify-center h-full p-4">
+        <div
+          className={cn('flex flex-col w-full h-full', {
+            'max-w-3xl': !wide,
+          })}
+        >
+          <Render resource={resource} />
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+  if (shareInfo?.password_enabled && !loading) {
+    return <Password onPassword={handlePassword} />;
+  }
+  return <Loading />;
 }

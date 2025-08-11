@@ -409,5 +409,9 @@
         "all": "All"
       }
     }
+  },
+  "shared_resources": {
+    "incorrect_password": "Incorrect password",
+    "submit": "Submit"
   }
 }
