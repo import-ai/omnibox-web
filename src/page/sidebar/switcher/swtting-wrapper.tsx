@@ -7,6 +7,7 @@ import { http } from '@/lib/request';
 import { SidebarNav } from '@/page/user/form/sidebar';
 
 import CommonForm from './basic';
+import { APIKeyForm } from './form/api-key';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
 import PeopleForm from './people';
@@ -17,41 +18,35 @@ export default function SettingWrapper() {
   const namespaceId = params.namespace_id || '';
   const [userIsOwner, setUserIsOwner] = useState(false);
   const [activeKey, onActiveKey] = useState('profile');
-  const items = userIsOwner
-    ? [
-        {
-          label: t('setting.profile'),
-          value: 'profile',
-          children: <ProfileForm />,
-        },
-        {
-          label: t('setting.namespace'),
-          value: 'namespace',
-          children: <SettingForm />,
-        },
-        {
-          label: t('setting.members'),
-          value: 'people',
-          children: <PeopleForm />,
-        },
-        {
-          label: t('setting.basic'),
-          value: 'basic',
-          children: <CommonForm />,
-        },
-      ]
-    : [
-        {
-          label: t('setting.profile'),
-          value: 'profile',
-          children: <ProfileForm />,
-        },
-        {
-          label: t('setting.basic'),
-          value: 'basic',
-          children: <CommonForm />,
-        },
-      ];
+  const items = [
+    {
+      label: t('setting.profile'),
+      value: 'profile',
+      children: <ProfileForm />,
+    },
+    {
+      label: t('setting.namespace'),
+      value: 'namespace',
+      children: <SettingForm />,
+      requireOwner: true,
+    },
+    {
+      label: t('setting.members'),
+      value: 'people',
+      children: <PeopleForm />,
+      requireOwner: true,
+    },
+    {
+      label: t('setting.api_key'),
+      value: 'apikey',
+      children: <APIKeyForm />,
+    },
+    {
+      label: t('setting.basic'),
+      value: 'basic',
+      children: <CommonForm />,
+    },
+  ];
 
   useEffect(() => {
     const source = axios.CancelToken.source();
@@ -76,14 +71,20 @@ export default function SettingWrapper() {
         <SidebarNav
           value={activeKey}
           onChange={onActiveKey}
-          items={items.map(item => ({
-            label: item.label,
-            value: item.value,
-          }))}
+          items={items
+            .filter(item => !item.requireOwner || userIsOwner)
+            .map(item => ({
+              label: item.label,
+              value: item.value,
+            }))}
         />
       </aside>
       <div className="lg:flex-1 h-[66vh] sm:h-[440px] max-h-[98%] overflow-auto">
-        {items.find(item => item.value === activeKey)?.children}
+        {
+          items
+            .filter(item => !item.requireOwner || userIsOwner)
+            .find(item => item.value === activeKey)?.children
+        }
       </div>
     </div>
   );
