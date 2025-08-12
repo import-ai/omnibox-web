@@ -1,8 +1,8 @@
 import { Markdown } from '@/components/markdown';
-import { Resource } from '@/interface';
+import { Resource, SharedResource } from '@/interface';
 
 interface IProps {
-  resource: Resource;
+  resource: Resource | SharedResource;
 }
 
 interface Image {
@@ -12,7 +12,7 @@ interface Image {
   mimetype: string;
 }
 
-function embedImage(resource: Resource): string {
+function embedImage(resource: Resource | SharedResource): string {
   let content: string = resource.content || '';
   if (resource.attrs?.images) {
     const images: Image[] = resource.attrs?.images || [];
