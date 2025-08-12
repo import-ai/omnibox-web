@@ -46,7 +46,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
   };
 
   const shareUrl = shareInfo?.enabled
-    ? `${location.origin}/s/${shareInfo.id}/${resource_id}`
+    ? `${location.origin}/s/${shareInfo.id}`
     : '';
 
   const handleEnable = (enabled: boolean) => {

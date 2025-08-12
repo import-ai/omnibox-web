@@ -1,9 +1,11 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { Outlet, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { ShareInfo } from '@/interface';
 import { http } from '@/lib/request';
+
+import SharedResourcePage from '../shared-resource';
 
 export default function SharePage() {
   const params = useParams();
@@ -23,5 +25,5 @@ export default function SharePage() {
     return () => source.cancel();
   }, [shareId]);
 
-  return <Outlet context={shareInfo} />;
+  return <SharedResourcePage shareInfo={shareInfo} />;
 }

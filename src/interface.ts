@@ -194,6 +194,7 @@ export function shareTypeToString(type: ShareType): string {
 export interface ShareInfo {
   id: string;
   enabled: boolean;
+  resource_id: string;
   all_resources: boolean;
   require_login: boolean;
   password_enabled: boolean;
