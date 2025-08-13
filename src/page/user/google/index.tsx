@@ -1,12 +1,14 @@
-import { toast } from 'sonner';
-import { GoogleIcon } from './icon';
 import { useEffect } from 'react';
-import { http } from '@/lib/request';
-import extension from '@/lib/extension';
-import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/button';
+import extension from '@/lib/extension';
+import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
+
+import { GoogleIcon } from './icon';
 
 export default function Google() {
   const { t } = useTranslation();
@@ -47,7 +49,6 @@ export default function Google() {
           });
       }
     };
-    // 等待回调页面传回结果
     window.addEventListener('message', messageFN);
     return () => {
       window.removeEventListener('message', messageFN);

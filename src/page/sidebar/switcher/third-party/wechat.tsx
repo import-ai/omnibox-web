@@ -1,8 +1,9 @@
-import { toast } from 'sonner';
 import isMobile from 'ismobilejs';
-import { http } from '@/lib/request';
-import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/button';
+import { http } from '@/lib/request';
 
 interface IProps {
   onScan: (value: boolean) => void;

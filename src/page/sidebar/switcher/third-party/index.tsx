@@ -1,27 +1,29 @@
-import { toast } from 'sonner';
-import { Wrapper } from './wrapper';
-import { http } from '@/lib/request';
-import { UserBinding } from '@/interface';
+import { Link, LoaderCircle, Unlink } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { GoogleIcon } from '@/page/user/google/icon';
-import { WeChatIcon } from '@/page/user/wechat/icon';
-import { Separator } from '@/components/ui/separator';
-import { Card, CardContent } from '@/components/ui/card';
+import { toast } from 'sonner';
+
 import {
   AlertDialog,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Link, Unlink, LoaderCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { UserBinding } from '@/interface';
+import { http } from '@/lib/request';
+import { GoogleIcon } from '@/page/user/google/icon';
+import { WeChatIcon } from '@/page/user/wechat/icon';
+
+import { Wrapper } from './wrapper';
 
 interface IData extends UserBinding {
   icon: React.ReactNode;

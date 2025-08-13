@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { WechatLogin } from './wechat';
-import { GoogleLogin } from './google';
-import Scan from '@/page/user/wechat/scan';
+
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
+import Scan from '@/page/user/wechat/scan';
+
+import { GoogleLogin } from './google';
+import { WechatLogin } from './wechat';
 
 interface IProps {
   type: string;

@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
-import WrapperPage from '../wrapper';
 import { LoaderCircle } from 'lucide-react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
+
+import WrapperPage from '../wrapper';
 
 export default function AuthConfirmPage() {
   const { t } = useTranslation();
