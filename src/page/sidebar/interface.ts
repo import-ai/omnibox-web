@@ -1,4 +1,4 @@
-import { SpaceType, ResourceType } from '@/interface';
+import { ResourceType, SpaceType } from '@/interface';
 
 export interface ISidebarProps {
   data: any;

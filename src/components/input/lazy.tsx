@@ -1,5 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
+
 import { Input } from '../ui/input';
-import { useRef, useState, useEffect } from 'react';
 
 interface IProps extends Omit<React.ComponentProps<'input'>, 'onChange'> {
   value: string;

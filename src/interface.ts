@@ -120,3 +120,42 @@ export interface Invitation {
   root_permission: Permission;
   group?: Group;
 }
+
+export enum APIKeyPermissionType {
+  CREATE = 'create',
+  READ = 'read',
+  UPDATE = 'update',
+  DELETE = 'delete',
+}
+
+export enum APIKeyPermissionTarget {
+  RESOURCES = 'resources',
+}
+
+export interface APIKeyPermission {
+  target: APIKeyPermissionTarget;
+  permissions: APIKeyPermissionType[];
+}
+
+export interface APIKeyAttrs {
+  root_resource_id: string;
+  permissions: APIKeyPermission[];
+}
+
+export interface APIKey extends IBase {
+  id: string;
+  value: string;
+  user_id: string;
+  namespace_id: string;
+  attrs: APIKeyAttrs;
+}
+
+export interface CreateAPIKeyDto {
+  user_id: string;
+  namespace_id: string;
+  attrs?: APIKeyAttrs;
+}
+
+export interface UpdateAPIKeyDto {
+  attrs?: APIKeyAttrs;
+}

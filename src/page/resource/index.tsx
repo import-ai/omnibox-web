@@ -1,9 +1,10 @@
-import Header from './header';
-import Wrapper from './wrapper';
-import { cn } from '@/lib/utils';
+import { SidebarInset } from '@/components/ui/sidebar';
 import useWide from '@/hooks/use-wide';
 import useResource from '@/hooks/user-resource';
-import { SidebarInset } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
+
+import Header from './header';
+import Wrapper from './wrapper';
 
 export default function ResourcePage() {
   const { wide, onWide } = useWide();

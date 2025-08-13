@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { GroupPermission } from '@/interface';
-import UserCard from '@/components/user-card';
+
 import GroupAction from '@/components/permission-action/group';
+import UserCard from '@/components/user-card';
+import { GroupPermission } from '@/interface';
 
 interface IProps {
   resource_id: string;

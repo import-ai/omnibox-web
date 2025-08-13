@@ -1,14 +1,15 @@
-import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import React, { forwardRef, useEffect } from 'react';
 import { Command as CommandPrimitive, useCommandState } from 'cmdk';
+import { X } from 'lucide-react';
+import React, { forwardRef, useEffect } from 'react';
+
+import { Badge } from '@/components/ui/badge';
 import {
   Command,
   CommandGroup,
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 export interface Option {
   value: string;

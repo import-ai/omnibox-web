@@ -1,6 +1,7 @@
-import { extractDomain } from './utils';
 import { Badge } from '@/components/ui/badge';
 import { type CitationIconProps } from '@/page/chat/messages/citations/citation-hover-icon';
+
+import { extractDomain } from './utils';
 
 export function CitationCard(props: CitationIconProps) {
   const { citation, index } = props;

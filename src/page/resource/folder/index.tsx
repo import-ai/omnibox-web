@@ -1,14 +1,16 @@
 import axios from 'axios';
 import { format } from 'date-fns';
-import { http } from '@/lib/request';
-import { Resource } from '@/interface';
-import { FolderContent } from './content';
 import { useEffect, useState } from 'react';
-import Loading from '@/components/loading';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { groupItemsByTimestamp } from '../utils';
+
+import Loading from '@/components/loading';
 import { Separator } from '@/components/ui/separator';
+import { Resource } from '@/interface';
+import { http } from '@/lib/request';
+
+import { groupItemsByTimestamp } from '../utils';
+import { FolderContent } from './content';
 
 interface IProps {
   resource: Resource;

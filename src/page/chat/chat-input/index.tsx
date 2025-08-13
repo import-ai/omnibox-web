@@ -1,14 +1,16 @@
 import { useMemo } from 'react';
-import ChatInput from './input';
+
+import {
+  type ChatActionType,
+  ChatMode,
+  IResTypeContext,
+  ToolType,
+} from '@/page/chat/chat-input/types';
+
 import ChatAction from './action';
 import ChatTool from './chat-tool';
 import ChatContext from './context';
-import {
-  ChatMode,
-  ToolType,
-  IResTypeContext,
-  type ChatActionType,
-} from '@/page/chat/chat-input/types';
+import ChatInput from './input';
 
 interface IProps {
   value: string;

@@ -1,7 +1,7 @@
-import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
-import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import tsParser from '@typescript-eslint/parser';
 import prettier from 'eslint-plugin-prettier';
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
 
 export default [
   {
@@ -31,8 +31,8 @@ export default [
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error'],
       '@typescript-eslint/explicit-function-return-type': 'off',
-      'simple-import-sort/imports': 'off',
-      'simple-import-sort/exports': 'off',
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
     },
   },
 ];

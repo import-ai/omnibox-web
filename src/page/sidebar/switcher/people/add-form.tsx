@@ -1,3 +1,9 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
+
 import { Button } from '@/components/button';
 import {
   Form,
@@ -15,11 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { http } from '@/lib/request';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { z } from 'zod';
 
 interface IProps {
   namespaceId: string;

@@ -1,30 +1,31 @@
-import * as z from 'zod';
-import i18next from 'i18next';
-import { toast } from 'sonner';
-import { useState } from 'react';
-import { http } from '@/lib/request';
-import { useForm } from 'react-hook-form';
-import { Button } from '@/components/button';
-import { useParams } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Select,
-  SelectItem,
-  SelectValue,
-  SelectTrigger,
-  SelectContent,
-} from '@/components/ui/select';
+import i18next from 'i18next';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import * as z from 'zod';
+
+import { Button } from '@/components/button';
 import {
   Form,
-  FormItem,
-  FormLabel,
-  FormField,
-  FormMessage,
   FormControl,
   FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { http } from '@/lib/request';
 
 const FormSchema = z.object({
   email: z

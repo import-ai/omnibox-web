@@ -1,16 +1,7 @@
-import { cn } from '@/lib/utils';
-import { useState } from 'react';
-import { Role } from '@/interface';
-import { http } from '@/lib/request';
-import { useTranslation } from 'react-i18next';
 import { Check, ChevronDown } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuContent,
-} from '@/components/ui/dropdown-menu';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +11,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Role } from '@/interface';
+import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 export interface ActionProps {
   value: Role;

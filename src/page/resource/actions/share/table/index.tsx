@@ -1,9 +1,11 @@
-import User from './user';
-import Group from './group';
-import { http } from '@/lib/request';
+import { useEffect, useState } from 'react';
+
 import useApp from '@/hooks/use-app';
-import { useState, useEffect } from 'react';
-import { Permission, UserPermission, GroupPermission } from '@/interface';
+import { GroupPermission, Permission, UserPermission } from '@/interface';
+import { http } from '@/lib/request';
+
+import Group from './group';
+import User from './user';
 
 interface UserFormProps {
   resource_id: string;

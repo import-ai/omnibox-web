@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import { UserPlus } from 'lucide-react';
-import InviteForm from './people/invite-form';
-import { Button } from '@/components/ui/button';
-import { useTranslation } from 'react-i18next';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { UserPlus } from 'lucide-react';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogDescription,
 } from '@/components/ui/dialog';
+
+import InviteForm from './people/invite-form';
 
 interface IProps {
   onFinish?: () => void;

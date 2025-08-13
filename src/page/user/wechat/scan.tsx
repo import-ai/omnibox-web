@@ -1,7 +1,9 @@
-import { ScanForm } from './scan-form';
 import { MoveLeft } from 'lucide-react';
-import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
+
+import { Button } from '@/components/button';
+
+import { ScanForm } from './scan-form';
 
 interface IProps {
   onScan: (value: boolean) => void;

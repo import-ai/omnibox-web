@@ -1,9 +1,11 @@
-import EditForm from './edit';
-import useApp from '@/hooks/use-app';
 import { Edit } from 'lucide-react';
-import Space from '@/components/space';
 import { useEffect, useState } from 'react';
+
+import Space from '@/components/space';
 import { Button } from '@/components/ui/button';
+import useApp from '@/hooks/use-app';
+
+import EditForm from './edit';
 
 export interface ITitleProps {
   data: string;

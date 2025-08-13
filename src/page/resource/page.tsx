@@ -1,9 +1,10 @@
+import { useTranslation } from 'react-i18next';
+
+import Attributes from '@/components/attributes';
 import { Resource } from '@/interface';
+import Editor from '@/page/resource/editor';
 import Folder from '@/page/resource/folder';
 import Render from '@/page/resource/render';
-import Editor from '@/page/resource/editor';
-import { useTranslation } from 'react-i18next';
-import Attributes from '@/components/attributes';
 
 interface IProps {
   editPage: boolean;
@@ -28,7 +29,7 @@ export default function Page(props: IProps) {
 
   return (
     <>
-      <h1 className="text-4xl font-bold mb-4">
+      <h1 className="text-4xl font-bold mb-4 break-words">
         {resource.name || t('untitled')}
       </h1>
       <Attributes namespaceId={namespaceId} resource={resource} />

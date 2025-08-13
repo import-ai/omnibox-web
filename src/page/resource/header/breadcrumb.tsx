@@ -1,14 +1,15 @@
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
 import React from 'react';
-import { Resource } from '@/interface';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
+import { Resource } from '@/interface';
 
 interface IProps {
   namespaceId: string;

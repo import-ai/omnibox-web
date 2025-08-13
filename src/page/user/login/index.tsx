@@ -1,11 +1,12 @@
-import WeChat from '../wechat';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import Google from '../google';
 import MetaPage from '../meta';
-import { useState } from 'react';
+import WeChat from '../wechat';
 import Scan from '../wechat/scan';
-import { LoginForm } from './form';
 import WrapperPage from '../wrapper';
-import { useTranslation } from 'react-i18next';
+import { LoginForm } from './form';
 
 export default function LoginPage() {
   const [scan, onScan] = useState(false);

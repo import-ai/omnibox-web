@@ -1,8 +1,11 @@
-import Scrollbar from './scrollbar';
 import { useTranslation } from 'react-i18next';
+
 import ChatArea from '@/page/chat/chat-input';
-import { Messages } from '@/page/chat/messages';
 import useContext from '@/page/chat/conversation/useContext';
+import { Messages } from '@/page/chat/messages';
+import { normalizeChatData } from '@/page/chat/normalize-chat';
+
+import Scrollbar from './scrollbar';
 
 export default function ChatConversationPage() {
   const { t } = useTranslation();
@@ -23,7 +26,7 @@ export default function ChatConversationPage() {
   return (
     <div className="flex flex-col h-full">
       <Scrollbar>
-        <Messages messages={messages} />
+        <Messages messages={normalizeChatData(messages)} />
       </Scrollbar>
       <div className="flex justify-center px-4">
         <div className="flex-1 max-w-3xl w-full">

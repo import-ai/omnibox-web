@@ -1,27 +1,28 @@
-import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import i18next from 'i18next';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import { http } from '@/lib/request';
-import isEmail from '@/lib/is-email';
-import Space from '@/components/space';
-import extension from '@/lib/extension';
+import { Lock, Mail } from 'lucide-react';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Mail, Lock } from 'lucide-react';
-import { Input } from '@/components/input';
-import { Button } from '@/components/button';
 import { useTranslation } from 'react-i18next';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import { z } from 'zod';
+
+import { Button } from '@/components/button';
+import { Input } from '@/components/input';
+import Space from '@/components/space';
 import {
   Form,
-  FormItem,
-  FormField,
-  FormMessage,
   FormControl,
   FormDescription,
+  FormField,
+  FormItem,
+  FormMessage,
 } from '@/components/ui/form';
+import extension from '@/lib/extension';
+import isEmail from '@/lib/is-email';
+import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 import { setGlobalCredential } from '@/page/user/util';
 
 const formSchema = z.object({

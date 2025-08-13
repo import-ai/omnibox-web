@@ -1,6 +1,7 @@
-import { cn } from '@/lib/utils';
+import { useEffect, useRef } from 'react';
+
 import useApp from '@/hooks/use-app';
-import { useRef, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 import { MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {

@@ -1,9 +1,10 @@
-import { http } from '@/lib/request';
-import useApp from '@/hooks/use-app';
+import { File, Folder, LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
+import useApp from '@/hooks/use-app';
 import type { Resource, SpaceType } from '@/interface';
-import { LoaderCircle, File, Folder } from 'lucide-react';
+import { http } from '@/lib/request';
 
 interface IResource extends Resource {
   spaceType?: SpaceType;

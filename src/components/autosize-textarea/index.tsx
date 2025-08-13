@@ -1,6 +1,7 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
 import { useImperativeHandle } from 'react';
+
+import { cn } from '@/lib/utils';
 
 interface UseAutosizeTextAreaProps {
   textAreaRef: React.MutableRefObject<HTMLTextAreaElement | null>;

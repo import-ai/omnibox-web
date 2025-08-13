@@ -1,12 +1,14 @@
+import { LoaderCircle, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { LazyInput } from '@/components/input/lazy';
+import { Button } from '@/components/ui/button';
+import type { Resource } from '@/interface';
 import each from '@/lib/each';
 import { http } from '@/lib/request';
+
 import FormResource from './resource';
-import { useState, useEffect } from 'react';
-import type { Resource } from '@/interface';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { Search, LoaderCircle } from 'lucide-react';
-import { LazyInput } from '@/components/input/lazy';
 
 export interface IFormProps {
   resourceId: string;
@@ -75,7 +77,7 @@ export default function MoveToForm(props: IFormProps) {
     }
     http
       .get(
-        `/namespaces/${namespaceId}/resources/search?resourceId=${resourceId}&name=${encodeURIComponent(search)}`
+        `/namespaces/${namespaceId}/resources/search?exclude_resource_id=${resourceId}&name=${encodeURIComponent(search)}`
       )
       .then(response => {
         onData({

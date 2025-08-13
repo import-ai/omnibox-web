@@ -1,7 +1,8 @@
-import { useState } from 'react';
 import copy from 'copy-to-clipboard';
-import { Copy, Check } from 'lucide-react';
+import { Check, Copy } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,

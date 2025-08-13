@@ -1,6 +1,6 @@
-import { UserPermission } from '@/interface';
-import UserCard from '@/components/user-card';
 import Action from '@/components/permission-action';
+import UserCard from '@/components/user-card';
+import { UserPermission } from '@/interface';
 
 interface IProps {
   resource_id: string;

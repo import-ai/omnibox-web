@@ -1,4 +1,5 @@
 import { orderBy } from 'lodash-es';
+
 import { IResourceData } from '@/interface';
 
 export default function group(node: IResourceData) {

@@ -1,8 +1,8 @@
-import { toast } from 'sonner';
-import { useState } from 'react';
-import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
+import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { http } from '@/lib/request';
 
 interface IProps {
   data: {

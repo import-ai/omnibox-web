@@ -1,15 +1,16 @@
-import { toast } from 'sonner';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { http } from '@/lib/request';
-import isEmail from '@/lib/is-email';
-import useApp from '@/hooks/use-app';
-import { Permission } from '@/interface';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+
+import { AutosizeTextarea } from '@/components/autosize-textarea';
 import { Button } from '@/components/button';
 import Actions from '@/components/permission-action/action';
 import { getData } from '@/components/permission-action/data';
-import { AutosizeTextarea } from '@/components/autosize-textarea';
+import useApp from '@/hooks/use-app';
+import { Permission } from '@/interface';
+import isEmail from '@/lib/is-email';
+import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 interface InviteFormProps {
   resource_id: string;

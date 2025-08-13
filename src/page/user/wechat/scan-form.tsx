@@ -1,9 +1,9 @@
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import { http } from '@/lib/request';
 import { LoaderCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 export function ScanForm() {
   const { i18n } = useTranslation();
