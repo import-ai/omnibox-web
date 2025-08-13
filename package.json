@@ -9,7 +9,8 @@
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix && prettier --write .",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -67,6 +68,7 @@
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "@playwright/test": "^1.54.2",
     "@types/jest": "^29.5.14",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^22.16.5",
