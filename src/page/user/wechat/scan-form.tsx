@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,52 +12,70 @@ export function ScanForm() {
 
   useEffect(() => {
     setLoading(true);
-    const source = axios.CancelToken.source();
-    http
-      .get('/wechat/qrcode', { cancelToken: source.token })
-      .then(response => {
-        let colorScheme = 'light';
-        const themeStorage = localStorage.getItem('theme');
-        if (themeStorage) {
-          const theme = JSON.parse(themeStorage);
-          colorScheme = theme.content || 'light';
-        }
-        // @ts-ignore
-        new WxLogin({
-          scope: response.scope,
-          self_redirect: false,
-          state: response.state,
-          id: 'wx-login-container',
-          appid: response.app_id,
-          color_scheme: colorScheme,
-          redirect_uri: response.redirect_uri,
-          lang: i18n.language == 'en' ? 'en' : 'cn',
-          href: 'data:text/css;base64,LndlYl9xcmNvZGVfcGFuZWxfYXJlYSAud2ViX3FyY29kZV9wYW5lbF9ub3JtYWxfbG9naW57DQogIHBhZGRpbmctdG9wOiAxMHB4Ow0KfQ0KDQoud2ViX3FyY29kZV9wYW5lbF9hcmVhIC53ZWJfcXJjb2RlX3BhbmVsX3F1aWNrX2xvZ2luew0KICBwYWRkaW5nLXRvcDogMTAwcHg7DQp9',
-          onReady: function (isReady: boolean) {
-            if (!isReady) {
-              return;
-            }
-            setLoading(false);
-            const iframe = document.querySelector(
-              '#wx-login-container iframe'
-            ) as HTMLIFrameElement;
-            if (iframe) {
-              iframe.width = '100%';
-              iframe.setAttribute(
-                'sandbox',
-                'allow-scripts allow-top-navigation allow-same-origin'
-              );
-            }
-            setOpacity(false);
-          },
+    // @ts-ignore
+    const handler = window.WxLogin;
+    (handler
+      ? Promise.resolve(handler)
+      : new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src =
+            '//res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js';
+          script.onload = () => {
+            // @ts-ignore
+            resolve(window.WxLogin);
+            script.remove();
+          };
+          script.onerror = reject;
+          document.body.appendChild(script);
+        })
+    )
+      .then(WxLogin => {
+        return http.get('/wechat/qrcode').then(response => {
+          let colorScheme = 'light';
+          const themeStorage = localStorage.getItem('theme');
+          if (themeStorage) {
+            const theme = JSON.parse(themeStorage);
+            colorScheme = theme.content || 'light';
+          }
+          // @ts-ignore
+          new WxLogin({
+            scope: response.scope,
+            self_redirect: false,
+            state: response.state,
+            id: 'wx-login-container',
+            appid: response.app_id,
+            color_scheme: colorScheme,
+            redirect_uri: response.redirect_uri,
+            lang: i18n.language == 'en' ? 'en' : 'cn',
+            href: 'data:text/css;base64,LndlYl9xcmNvZGVfcGFuZWxfYXJlYSAud2ViX3FyY29kZV9wYW5lbF9ub3JtYWxfbG9naW57DQogIHBhZGRpbmctdG9wOiAxMHB4Ow0KfQ0KDQoud2ViX3FyY29kZV9wYW5lbF9hcmVhIC53ZWJfcXJjb2RlX3BhbmVsX3F1aWNrX2xvZ2luew0KICBwYWRkaW5nLXRvcDogMTAwcHg7DQp9',
+            onReady: function (isReady: boolean) {
+              if (!isReady) {
+                return;
+              }
+              setLoading(false);
+              const iframe = document.querySelector(
+                '#wx-login-container iframe'
+              ) as HTMLIFrameElement;
+              if (iframe) {
+                iframe.width = '100%';
+                iframe.setAttribute(
+                  'sandbox',
+                  'allow-scripts allow-top-navigation allow-same-origin'
+                );
+              }
+              setOpacity(false);
+            },
+          });
         });
       })
-      .catch(() => {
+      .catch(error => {
+        toast.error(error && error.message ? error.message : error, {
+          position: 'bottom-right',
+        });
+      })
+      .finally(() => {
         setLoading(false);
       });
-    return () => {
-      source.cancel();
-    };
   }, []);
 
   return (

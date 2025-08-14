@@ -108,6 +108,7 @@
     "authorizing": "授权中，请稍候...",
     "back": "返回",
     "login_use_wechat": "使用微信登录",
+    "login_use_google": "使用 Google 登录",
     "wechat_disabled": "当前环境不支持微信登录",
     "or_continue": "或",
     "agree_our_rule": "继续之前，请先阅读并同意我们的",
@@ -154,7 +155,22 @@
     "members": "成员",
     "preferences": "偏好设置",
     "namespace": "空间设置",
-    "api_key": "API 密钥"
+    "api_key": "API 密钥",
+    "third_party_account": {
+      "manage": "三方账号管理",
+      "title": "第三方账号管理",
+      "description": "管理你的第三方账号绑定，用于快速登录",
+      "google": "谷歌",
+      "wechat": "微信",
+      "binded": "已绑定",
+      "unbinding": "待绑定",
+      "unbind": "解绑",
+      "unbind_confirm": "确定要解除绑定此账号吗？",
+      "confirm_unbind_description": "你确定要解绑{{type}}账号吗？解绑后将无法使用该账号登录。",
+      "unbind_success": "已成功解绑",
+      "confirm_unbind": "确认解绑",
+      "bind": "绑定"
+    }
   },
   "manage": {
     "search": "输入并搜索",
