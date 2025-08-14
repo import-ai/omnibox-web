@@ -59,7 +59,7 @@ export default function Google() {
     <Button
       variant="outline"
       onClick={loginWithGoogle}
-      className="w-full [&_svg]:size-4 dark:[&_svg]:fill-white"
+      className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
     >
       <GoogleIcon />
       {t('login.login_use_google')}

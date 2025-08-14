@@ -65,11 +65,9 @@ export function ThirdPartyForm() {
         <Card key={item.login_type}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-white rounded-lg [&_svg]:size-4">
-                  {item.icon}
-                </div>
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <div className="[&_svg]:size-5">{item.icon}</div>
+                <div className="flex items-center gap-4">
                   <h4 className="font-semibold">
                     {t(`setting.third_party_account.${item.login_type}`)}
                   </h4>
@@ -101,7 +99,11 @@ export function ThirdPartyForm() {
                       <AlertDialogDescription>
                         {t(
                           'setting.third_party_account.confirm_unbind_description',
-                          { login_type: item.login_type }
+                          {
+                            type: t(
+                              `setting.third_party_account.${item.login_type}`
+                            ),
+                          }
                         )}
                       </AlertDialogDescription>
                     </AlertDialogHeader>

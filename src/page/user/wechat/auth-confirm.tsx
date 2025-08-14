@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,11 +21,8 @@ export default function AuthConfirmPage() {
     if (!code || !state) {
       return;
     }
-    const source = axios.CancelToken.source();
     http
-      .get(`/wechat/callback?code=${code}&state=${state}`, {
-        cancelToken: source.token,
-      })
+      .get(`/wechat/callback?code=${code}&state=${state}`)
       .then(res => {
         setGlobalCredential(res.id, res.access_token);
         extension().then(val => {
@@ -38,9 +34,6 @@ export default function AuthConfirmPage() {
       .catch(error => {
         toast.error(error.message, { position: 'bottom-right' });
       });
-    return () => {
-      source.cancel();
-    };
   }, [code, state]);
 
   return (

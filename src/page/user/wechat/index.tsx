@@ -40,7 +40,7 @@ export default function WeChat(props: IProps) {
       <Button
         variant="outline"
         onClick={alertDisableWeChatLogin}
-        className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white opacity-50"
+        className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white opacity-50"
       >
         <WeChatIcon />
         {t('login.login_use_wechat')}
@@ -52,7 +52,7 @@ export default function WeChat(props: IProps) {
     <Button
       variant="outline"
       onClick={loginWithWeChat}
-      className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white"
+      className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
     >
       <WeChatIcon />
       {t('login.login_use_wechat')}
