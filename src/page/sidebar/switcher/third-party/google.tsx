@@ -41,7 +41,6 @@ export function GoogleLogin(props: IProps) {
           });
       }
     };
-    // 等待回调页面传回结果
     window.addEventListener('message', messageFN);
     return () => {
       window.removeEventListener('message', messageFN);
