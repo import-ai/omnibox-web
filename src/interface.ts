@@ -44,6 +44,11 @@ export interface Tag extends IBase {
   name: string;
 }
 
+export interface TagDto {
+  id: string;
+  name: string;
+}
+
 export type SpaceType = 'private' | 'teamspace';
 export type ResourceType = 'doc' | 'file' | 'link' | 'folder';
 
@@ -64,7 +69,7 @@ export interface Resource extends IBase {
   name?: string;
   content?: string;
 
-  tags?: string[];
+  tags?: TagDto[];
   attrs?: Record<string, any>;
 
   global_permission?: Permission;
