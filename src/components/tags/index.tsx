@@ -1,44 +1,33 @@
 import { useEffect, useState } from 'react';
 
 import { Option } from '@/components/multiple-selector';
-import type { Tag } from '@/interface';
-import { http } from '@/lib/request';
+import type { TagDto } from '@/interface';
 
 import Tags from './tags';
 
 interface IProps {
-  data?: Array<string>;
+  data?: Array<TagDto>;
   namespaceId: string;
   resourceId: string;
 }
 
 export default function TagsWrapper(props: IProps) {
   const { data, resourceId, namespaceId } = props;
-  const [loading, onLoading] = useState(false);
   const [tags, onTags] = useState<Array<Option>>([]);
 
   useEffect(() => {
     if (!Array.isArray(data) || data.length <= 0) {
+      onTags([]);
       return;
     }
-    onLoading(true);
-    http
-      .get(`/namespaces/${namespaceId}/tag?id=${data.join(',')}`)
-      .then(res => {
-        if (res.length <= 0) {
-          return;
-        }
-        onTags(res.map((item: Tag) => ({ label: item.name, value: item.id })));
-      })
-      .finally(() => {
-        onLoading(false);
-      });
+    // Convert TagDto[] directly to Option[] since we already have the tag data
+    onTags(data.map((item: TagDto) => ({ label: item.name, value: item.id })));
   }, [data]);
 
   return (
     <Tags
       data={tags}
-      loading={loading}
+      loading={false}
       resourceId={resourceId}
       namespaceId={namespaceId}
     />
