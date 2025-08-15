@@ -35,12 +35,9 @@ interface UploadResponse {
 
 function format(_files: File[], responseText: string): string {
   const response: UploadResponse = JSON.parse(responseText);
-  const namespaceId = response.namespace_id;
-  const resourceId = response.resource_id;
   const uploadedMap: Record<string, string> = {};
   response.uploaded.forEach(file => {
-    uploadedMap[file.name] =
-      `/api/v1/namespaces/${namespaceId}/resources/${resourceId}/attachments/${file.link}`;
+    uploadedMap[file.name] = `attachments/${file.link}`;
   });
   const processedResponse = {
     msg: 'success',
