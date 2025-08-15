@@ -3,6 +3,7 @@ import { Resource } from '@/interface';
 
 interface IProps {
   resource: Resource;
+  linkBase?: string;
 }
 
 interface Image {
@@ -30,7 +31,7 @@ function embedImage(resource: Resource): string {
 }
 
 export default function Render(props: IProps) {
-  const { resource } = props;
+  const { resource, linkBase } = props;
 
-  return <Markdown content={embedImage(resource)} />;
+  return <Markdown content={embedImage(resource)} linkBase={linkBase} />;
 }

@@ -43,6 +43,24 @@ export default defineConfig(({ mode }) => {
             'http://127.0.0.1:8000',
           changeOrigin: true,
         },
+        // Proxy attachment routes to API
+        '^/[^/]+/[^/]+/attachments/[^/]+$': {
+          target:
+            process.env.VITE_API_PATH ??
+            env.VITE_API_PATH ??
+            'http://127.0.0.1:8000',
+          changeOrigin: true,
+          rewrite: path => {
+            const segments = path.split('/').filter(Boolean);
+            if (segments.length === 4 && segments[2] === 'attachments') {
+              const namespaceId = segments[0];
+              const resourceId = segments[1];
+              const attachmentId = segments[3];
+              return `/api/v1/namespaces/${namespaceId}/resources/${resourceId}/attachments/${attachmentId}`;
+            }
+            return path;
+          },
+        },
       },
     },
   };
