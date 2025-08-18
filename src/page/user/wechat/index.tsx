@@ -8,11 +8,12 @@ import { http } from '@/lib/request';
 import { WeChatIcon } from './icon';
 
 interface IProps {
+  checked?: boolean;
   onScan: (value: boolean) => void;
 }
 
 export default function WeChat(props: IProps) {
-  const { onScan } = props;
+  const { checked, onScan } = props;
   const { t } = useTranslation();
   const userAgent = navigator.userAgent.toLowerCase();
   const isPhone = isMobile(userAgent).phone;
@@ -21,6 +22,10 @@ export default function WeChat(props: IProps) {
     toast(t('login.wechat_disabled'), { position: 'bottom-right' });
   };
   const loginWithWeChat = () => {
+    if (!checked) {
+      toast(t('login.wechat_not_agree'), { position: 'bottom-right' });
+      return;
+    }
     if (isWeChat) {
       http
         .get('/wechat/auth-url')

@@ -10,10 +10,19 @@ import { setGlobalCredential } from '@/page/user/util';
 
 import { GoogleIcon } from './icon';
 
-export default function Google() {
+interface IProps {
+  checked?: boolean;
+}
+
+export default function Google(props: IProps) {
+  const { checked } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const loginWithGoogle = () => {
+    if (!checked) {
+      toast(t('login.wechat_not_agree'), { position: 'bottom-right' });
+      return;
+    }
     http
       .get('/google/auth-url')
       .then(authUrl => {
