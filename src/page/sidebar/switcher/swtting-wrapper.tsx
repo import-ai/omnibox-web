@@ -11,6 +11,7 @@ import { APIKeyForm } from './form/api-key';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
 import PeopleForm from './people';
+import { ThirdPartyForm } from './third-party';
 
 export default function SettingWrapper() {
   const { t } = useTranslation();
@@ -45,6 +46,11 @@ export default function SettingWrapper() {
       label: t('setting.basic'),
       value: 'basic',
       children: <CommonForm />,
+    },
+    {
+      label: t('setting.third_party_account.manage'),
+      value: 'third-party',
+      children: <ThirdPartyForm />,
     },
   ];
 

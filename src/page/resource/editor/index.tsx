@@ -27,6 +27,8 @@ interface UploadedFile {
 }
 
 interface UploadResponse {
+  namespace_id: string;
+  resource_id: string;
   uploaded: UploadedFile[];
   failed: string[];
 }
@@ -35,7 +37,7 @@ function format(_files: File[], responseText: string): string {
   const response: UploadResponse = JSON.parse(responseText);
   const uploadedMap: Record<string, string> = {};
   response.uploaded.forEach(file => {
-    uploadedMap[file.name] = `/api/v1/attachments/media/${file.link}`;
+    uploadedMap[file.name] = `attachments/${file.link}`;
   });
   const processedResponse = {
     msg: 'success',
@@ -130,7 +132,7 @@ export default function Editor(props: IEditorProps) {
       mode: 'wysiwyg',
       lang: i18n.language == 'en' ? 'en_US' : 'zh_CN',
       upload: {
-        url: `/api/v1/attachments?namespaceId=${namespaceId}&resourceId=${resource.id}`,
+        url: `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
         accept: 'image/*,.wav',
         max: 1024 * 1024 * 5, // 5MB
         headers: {

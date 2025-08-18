@@ -40,7 +40,7 @@ export default function Tags(props: IProps) {
     onEditing(false);
     http.patch(`/namespaces/${namespaceId}/resources/${resourceId}`, {
       namespaceId,
-      tags: tags.map(tag => tag.value),
+      tag_ids: tags.map(tag => tag.value),
     });
   };
   const handleChange = (val: Array<Option>) => {

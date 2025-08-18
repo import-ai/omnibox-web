@@ -13,6 +13,7 @@ import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
 
 interface IProps {
   content: string;
+  linkBase?: string;
 }
 
 export function markdownPreviewConfig(theme: Theme) {
@@ -32,7 +33,7 @@ export function markdownPreviewConfig(theme: Theme) {
 }
 
 export function Markdown(props: IProps) {
-  const { content } = props;
+  const { content, linkBase } = props;
   const { theme } = useTheme();
   const navigate = useNavigate();
   const element = useRef<HTMLDivElement>(null);
@@ -74,6 +75,9 @@ export function Markdown(props: IProps) {
         mode: theme.content,
         transform: addReferrerPolicyForString,
         lazyLoadImage: LAZY_LOAD_IMAGE,
+        markdown: {
+          linkBase,
+        },
       });
     }
   }, [content, theme]);

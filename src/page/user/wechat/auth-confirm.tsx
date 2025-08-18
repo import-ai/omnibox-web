@@ -1,14 +1,14 @@
-import axios from 'axios';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import extension from '@/lib/extension';
 import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
 
-import WrapperPage from './wrapper';
+import WrapperPage from '../wrapper';
 
 export default function AuthConfirmPage() {
   const { t } = useTranslation();
@@ -21,11 +21,8 @@ export default function AuthConfirmPage() {
     if (!code || !state) {
       return;
     }
-    const source = axios.CancelToken.source();
     http
-      .get(`/wechat/callback?code=${code}&state=${state}`, {
-        cancelToken: source.token,
-      })
+      .get(`/wechat/callback?code=${code}&state=${state}`)
       .then(res => {
         setGlobalCredential(res.id, res.access_token);
         extension().then(val => {
@@ -33,10 +30,10 @@ export default function AuthConfirmPage() {
             navigate('/', { replace: true });
           }
         });
+      })
+      .catch(error => {
+        toast.error(error.message, { position: 'bottom-right' });
       });
-    return () => {
-      source.cancel();
-    };
   }, [code, state]);
 
   return (

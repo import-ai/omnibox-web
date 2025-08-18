@@ -29,14 +29,14 @@ export default function Page(props: IProps) {
 
   return (
     <>
-      <h1 className="text-4xl font-bold mb-4">
+      <h1 className="text-4xl font-bold mb-4 break-words">
         {resource.name || t('untitled')}
       </h1>
       <Attributes namespaceId={namespaceId} resource={resource} />
       {resource.resource_type === 'folder' ? (
         <Folder resource={resource} namespaceId={namespaceId} />
       ) : (
-        <Render resource={resource} />
+        <Render resource={resource} linkBase={resource.id} />
       )}
     </>
   );

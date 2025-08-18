@@ -25,6 +25,13 @@ export interface User extends IBase {
   password_repeat?: string;
 }
 
+export interface UserBinding extends IBase {
+  id: number;
+  user_id: string;
+  login_type: string;
+  login_id: string;
+}
+
 export interface Namespace extends IBase {
   id: string;
   name: string;
@@ -33,6 +40,11 @@ export interface Namespace extends IBase {
 }
 
 export interface Tag extends IBase {
+  id: string;
+  name: string;
+}
+
+export interface TagDto {
   id: string;
   name: string;
 }
@@ -57,7 +69,7 @@ export interface Resource extends IBase {
   name?: string;
   content?: string;
 
-  tags?: string[];
+  tags?: TagDto[];
   attrs?: Record<string, any>;
 
   global_permission?: Permission;

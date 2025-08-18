@@ -108,6 +108,7 @@
     "authorizing": "Authorizing, please wait...",
     "back": "Back",
     "login_use_wechat": "Login with WeChat",
+    "login_use_google": "Login with Google",
     "wechat_disabled": "WeChat login is not supported in the current environment",
     "wechat_not_agree": "Please agree to the terms before logging in",
     "or_continue": "Or continue with",
@@ -155,7 +156,22 @@
     "members": "Members",
     "preferences": "Preferences",
     "namespace": "Namespace",
-    "api_key": "API Keys"
+    "api_key": "API Keys",
+    "third_party_account": {
+      "manage": "Third-party",
+      "title": "Third-party Account Management",
+      "description": "Manage your third-party account bindings for quick login",
+      "google": "Google",
+      "wechat": "WeChat",
+      "binded": "Connected",
+      "unbinding": "To be Connected",
+      "unbind": "Unconnect",
+      "unbind_confirm": "Are you sure you want to unbind this account?",
+      "confirm_unbind_description": "Are you sure you want to unbind your {{type}} account? After unbinding, you will not be able to log in with this account.",
+      "unbind_success": "Successfully unbound",
+      "confirm_unbind": "Confirm Unbind",
+      "bind": "Connect"
+    }
   },
   "manage": {
     "search": "Enter and search",
