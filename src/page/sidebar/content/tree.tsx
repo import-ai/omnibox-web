@@ -82,6 +82,8 @@ export default function Tree(props: ITreeProps) {
         // Handle file drag over - only set if directly over this element
         if (isOverShallow) {
           onFileDragTarget(data.id);
+        } else {
+          onFileDragTarget(null); // Reset when not over this element
         }
         onTarget(null); // Don't set target for file drops
       } else {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
@@ -20,26 +20,46 @@ export default function Content(props: IProps) {
   const isMobile = useIsMobile();
   const [target, onTarget] = useState<IResourceData | null>(null);
   const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
   const handleDrop = (resource: IResourceData, item: IResourceData | null) => {
     onDrop(resource, item);
     onTarget(null);
   };
 
-  // Clean up file drag state when drag ends
+  // Clean up file drag state when drag ends or leaves the sidebar
   useEffect(() => {
+    const sidebarElement = sidebarRef.current;
+
     const handleDragEnd = () => {
       setFileDragTarget(null);
     };
 
+    const handleDragLeave = (e: DragEvent) => {
+      // Only clear if we're leaving the sidebar entirely (not moving between child elements)
+      if (
+        !e.relatedTarget ||
+        !sidebarElement?.contains(e.relatedTarget as Node)
+      ) {
+        setFileDragTarget(null);
+      }
+    };
+
     document.addEventListener('dragend', handleDragEnd);
+    if (sidebarElement) {
+      sidebarElement.addEventListener('dragleave', handleDragLeave);
+    }
+
     return () => {
       document.removeEventListener('dragend', handleDragEnd);
+      if (sidebarElement) {
+        sidebarElement.removeEventListener('dragleave', handleDragLeave);
+      }
     };
   }, []);
 
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
-      <SidebarContent className="gap-0 no-scrollbar">
+      <SidebarContent ref={sidebarRef} className="gap-0 no-scrollbar">
         {Object.keys(data)
           .sort()
           .map((spaceType: string) => (

@@ -83,6 +83,8 @@ export default function Space(props: ITreeProps) {
       const isOverShallow = monitor.isOver({ shallow: true });
       if (isOverShallow) {
         onFileDragTarget(data.id);
+      } else {
+        onFileDragTarget(null); // Reset when not over this element
       }
     },
   });
