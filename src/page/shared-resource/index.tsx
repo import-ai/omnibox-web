@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import Loading from '@/components/loading';
 import useWide from '@/hooks/use-wide';
 import { SharedResource, ShareInfo } from '@/interface';
-import { setCookie } from '@/lib/cookie';
+import { getCookie, setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +41,7 @@ export default function SharedResourcePage(props: SharedResourcePageProps) {
 
     // If password is provided, store it in session cookie
     if (password) {
+      setCookie(SHARE_PASSWORD_COOKIE, password, `/s/${shareInfo.id}`);
       setCookie(
         SHARE_PASSWORD_COOKIE,
         password,
@@ -68,6 +69,12 @@ export default function SharedResourcePage(props: SharedResourcePageProps) {
   useEffect(() => {
     if (!shareInfo?.password_enabled) {
       return refetchResource();
+    }
+
+    // Check if we have a stored password for this share
+    const storedPassword = getCookie(SHARE_PASSWORD_COOKIE);
+    if (storedPassword) {
+      refetchResource(storedPassword);
     }
   }, [shareInfo]);
 
