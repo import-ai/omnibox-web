@@ -156,7 +156,7 @@
     "basic": "通用",
     "profile": "个人资料",
     "members": "成员",
-    "tasks": "任务管理",
+    "tasks": "后台任务管理",
     "preferences": "偏好设置",
     "namespace": "空间设置",
     "api_key": "API 密钥",
@@ -342,7 +342,7 @@
     "permissions": "权限"
   },
   "tasks": {
-    "title": "任务管理",
+    "title": "后台任务管理",
     "function": "功能",
     "status": "状态",
     "created_at": "创建时间",
