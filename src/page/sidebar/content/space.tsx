@@ -1,5 +1,7 @@
 import { LoaderCircle, MoreHorizontal } from 'lucide-react';
 import { useRef } from 'react';
+import { useDrop } from 'react-dnd';
+import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
 
 import { Input } from '@/components/input';
@@ -18,13 +20,32 @@ import {
 } from '@/components/ui/sidebar';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { IResourceData } from '@/interface';
+import { cn } from '@/lib/utils';
 
 import Tree, { ITreeProps } from './tree';
 
+// Helper function to validate file extensions
+const isValidFileType = (fileName: string): boolean => {
+  const allowedExtensions = ALLOW_FILE_EXTENSIONS.split(',').map(ext =>
+    ext.trim()
+  );
+  const fileExtension = '.' + fileName.split('.').pop()?.toLowerCase();
+  return allowedExtensions.includes(fileExtension);
+};
+
 export default function Space(props: ITreeProps) {
-  const { data, editingKey, spaceType, onCreate, onUpload } = props;
+  const {
+    data,
+    editingKey,
+    spaceType,
+    onCreate,
+    onUpload,
+    fileDragTarget,
+    onFileDragTarget,
+  } = props;
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isDragOver = fileDragTarget === data.id;
   const handleSelect = () => {
     fileInputRef.current?.click();
   };
@@ -37,8 +58,43 @@ export default function Space(props: ITreeProps) {
     });
   };
 
+  // File drop handling
+  const [{ canDrop, isOver }, drop] = useDrop({
+    accept: [NativeTypes.FILE],
+    drop: (item: { files: File[] }, monitor) => {
+      // Prevent multiple uploads - only handle if no other drop has occurred
+      if (monitor.didDrop()) {
+        return;
+      }
+
+      const validFiles = item.files.filter(file => isValidFileType(file.name));
+      if (validFiles.length > 0) {
+        const fileList = new DataTransfer();
+        validFiles.forEach(file => fileList.items.add(file));
+        onUpload(spaceType, data.id, fileList.files);
+      }
+      onFileDragTarget(null);
+    },
+    collect: monitor => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+    hover: (item, monitor) => {
+      const isOverShallow = monitor.isOver({ shallow: true });
+      if (isOverShallow) {
+        onFileDragTarget(data.id);
+      }
+    },
+  });
+
   return (
-    <SidebarGroup>
+    <SidebarGroup
+      ref={drop}
+      className={cn({
+        'bg-sidebar-accent/50 border-2 border-dashed border-blue-500':
+          isDragOver || (canDrop && isOver),
+      })}
+    >
       <div className="flex items-center justify-between">
         <SidebarGroupLabel>{spaceType ? t(spaceType) : ''}</SidebarGroupLabel>
         <DropdownMenu>

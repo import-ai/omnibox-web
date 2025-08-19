@@ -1,6 +1,7 @@
 import { ChevronRight, LoaderCircle } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
+import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -13,6 +14,7 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { IResourceData } from '@/interface';
 import { cn } from '@/lib/utils';
 import { ISidebarProps } from '@/page/sidebar/interface';
@@ -21,10 +23,21 @@ import Action from './action';
 import ContextMenuMain from './contextMenu';
 import Icon from './icon';
 
+// Helper function to validate file extensions
+const isValidFileType = (fileName: string): boolean => {
+  const allowedExtensions = ALLOW_FILE_EXTENSIONS.split(',').map(ext =>
+    ext.trim()
+  );
+  const fileExtension = '.' + fileName.split('.').pop()?.toLowerCase();
+  return allowedExtensions.includes(fileExtension);
+};
+
 export interface ITreeProps extends ISidebarProps {
   onDrop: (item: IResourceData, target: IResourceData | null) => void;
   target: IResourceData | null;
   onTarget: (target: IResourceData | null) => void;
+  fileDragTarget: string | null;
+  onFileDragTarget: (target: string | null) => void;
 }
 
 export default function Tree(props: ITreeProps) {
@@ -39,10 +52,14 @@ export default function Tree(props: ITreeProps) {
     expanding,
     onExpand,
     onActiveKey,
+    onUpload,
+    fileDragTarget,
+    onFileDragTarget,
   } = props;
   const ref = useRef(null);
   const { t } = useTranslation();
   const expand = expands.includes(data.id);
+  const isFileDragOver = fileDragTarget === data.id;
   const [dragStyle, drag] = useDrag({
     type: 'card',
     item: data,
@@ -51,26 +68,60 @@ export default function Tree(props: ITreeProps) {
     }),
   });
   const [, drop] = useDrop({
-    accept: 'card',
+    accept: ['card', NativeTypes.FILE],
     hover: (item, monitor) => {
       if (!ref.current) {
         onTarget(null);
         return;
       }
-      const didHover = monitor.isOver();
-      if (!didHover) {
-        onTarget(null);
-        return;
+
+      const itemType = monitor.getItemType();
+      const isOverShallow = monitor.isOver({ shallow: true });
+
+      if (itemType === NativeTypes.FILE) {
+        // Handle file drag over - only set if directly over this element
+        if (isOverShallow) {
+          onFileDragTarget(data.id);
+        }
+        onTarget(null); // Don't set target for file drops
+      } else {
+        // Handle resource drag over
+        onFileDragTarget(null);
+        if (!isOverShallow) {
+          onTarget(null);
+          return;
+        }
+        const dragId = (item as IResourceData).id;
+        if (dragId === data.id) {
+          onTarget(null);
+          return;
+        }
+        onTarget(data);
       }
-      const dragId = (item as IResourceData).id;
-      if (dragId === data.id) {
-        onTarget(null);
-        return;
-      }
-      onTarget(data);
     },
-    drop(item) {
-      onDrop(item as IResourceData, target);
+    drop(item, monitor) {
+      const itemType = monitor.getItemType();
+      if (itemType === NativeTypes.FILE) {
+        // Prevent multiple uploads - only handle if no other drop has occurred
+        if (monitor.didDrop()) {
+          return;
+        }
+
+        // Handle file drop
+        const fileItem = item as { files: File[] };
+        const validFiles = fileItem.files.filter(file =>
+          isValidFileType(file.name)
+        );
+        if (validFiles.length > 0) {
+          const fileList = new DataTransfer();
+          validFiles.forEach(file => fileList.items.add(file));
+          onUpload(spaceType, data.id, fileList.files);
+        }
+        onFileDragTarget(null);
+      } else {
+        // Handle resource drop
+        onDrop(item as IResourceData, target);
+      }
     },
   });
   const handleExpand = () => {
@@ -119,6 +170,8 @@ export default function Tree(props: ITreeProps) {
                     {
                       'bg-sidebar-accent text-sidebar-accent-foreground':
                         target && target.id === data.id,
+                      'bg-blue-50 border-2 border-dashed border-blue-500':
+                        isFileDragOver,
                     }
                   )}
                 >

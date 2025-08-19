@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
@@ -19,10 +19,23 @@ export default function Content(props: IProps) {
   const { data, resourceId, onDrop } = props;
   const isMobile = useIsMobile();
   const [target, onTarget] = useState<IResourceData | null>(null);
+  const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
   const handleDrop = (resource: IResourceData, item: IResourceData | null) => {
     onDrop(resource, item);
     onTarget(null);
   };
+
+  // Clean up file drag state when drag ends
+  useEffect(() => {
+    const handleDragEnd = () => {
+      setFileDragTarget(null);
+    };
+
+    document.addEventListener('dragend', handleDragEnd);
+    return () => {
+      document.removeEventListener('dragend', handleDragEnd);
+    };
+  }, []);
 
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
@@ -39,6 +52,8 @@ export default function Content(props: IProps) {
               activeKey={resourceId}
               data={group(data[spaceType])}
               spaceType={spaceType as SpaceType}
+              fileDragTarget={fileDragTarget}
+              onFileDragTarget={setFileDragTarget}
             />
           ))}
       </SidebarContent>
