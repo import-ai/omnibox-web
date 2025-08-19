@@ -356,20 +356,20 @@
     "rerun_error": "任务重新运行失败",
     "fetch_error": "获取任务失败",
     "no_tasks": "暂无任务",
-    "status_pending": "等待中",
-    "status_running": "运行中",
-    "status_finished": "已完成",
-    "status_canceled": "已取消",
+    "status_pending": "等待",
+    "status_running": "运行",
+    "status_finished": "完成",
+    "status_canceled": "取消",
     "status_error": "错误",
     "functions": {
-      "collect": "网页收集",
-      "upsert_index": "创建/更新索引",
+      "collect": "剪藏",
+      "upsert_index": "索引",
       "delete_index": "删除索引",
-      "file_reader": "文件处理",
-      "upsert_message_index": "创建/更新消息索引",
+      "file_reader": "文件解析",
+      "upsert_message_index": "消息索引",
       "delete_conversation": "删除对话",
-      "extract_tags": "标签提取",
-      "generate_title": "标题生成"
+      "extract_tags": "生成标签",
+      "generate_title": "生成标题"
     }
   },
   "common": {

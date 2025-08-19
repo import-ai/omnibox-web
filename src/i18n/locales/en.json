@@ -358,18 +358,18 @@
     "no_tasks": "No tasks found",
     "status_pending": "Pending",
     "status_running": "Running",
-    "status_finished": "Finished",
+    "status_finished": "Done",
     "status_canceled": "Canceled",
     "status_error": "Error",
     "functions": {
-      "collect": "Web Page Collection",
-      "upsert_index": "Create/Update Index",
+      "collect": "Collect",
+      "upsert_index": "Index",
       "delete_index": "Delete Index",
-      "file_reader": "File Processing",
-      "upsert_message_index": "Create/Update Message Index",
-      "delete_conversation": "Delete Conversation",
-      "extract_tags": "Tag Extraction",
-      "generate_title": "Title Generation"
+      "file_reader": "File Parsing",
+      "upsert_message_index": "Message Index",
+      "delete_conversation": "Delete Chat",
+      "extract_tags": "Gen Tags",
+      "generate_title": "Gen Title"
     }
   },
   "common": {
