@@ -26,31 +26,41 @@ export default function Content(props: IProps) {
     onTarget(null);
   };
 
-  // Clean up file drag state when drag ends or leaves the sidebar
+  // Fallback cleanup: Ensure fileDragTarget is cleared when drag ends, focus is lost, page is hidden, or when leaving the sidebar
   useEffect(() => {
     const sidebarElement = sidebarRef.current;
 
-    const handleDragEnd = () => {
-      setFileDragTarget(null);
-    };
+    const clear = () => setFileDragTarget(null);
 
+    const handleDragEnd = () => clear();
+    const handleDrop = () => clear(); // In some environments, dragend may not trigger
+    const handleWindowBlur = () => clear();
+    const handleVisibilityChange = () => {
+      if (document.hidden) clear();
+    };
     const handleDragLeave = (e: DragEvent) => {
-      // Only clear if we're leaving the sidebar entirely (not moving between child elements)
+      // Only clear when completely leaving the sidebar (not just switching between child elements)
       if (
         !e.relatedTarget ||
         !sidebarElement?.contains(e.relatedTarget as Node)
       ) {
-        setFileDragTarget(null);
+        clear();
       }
     };
 
     document.addEventListener('dragend', handleDragEnd);
+    document.addEventListener('drop', handleDrop);
+    window.addEventListener('blur', handleWindowBlur);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     if (sidebarElement) {
       sidebarElement.addEventListener('dragleave', handleDragLeave);
     }
 
     return () => {
       document.removeEventListener('dragend', handleDragEnd);
+      document.removeEventListener('drop', handleDrop);
+      window.removeEventListener('blur', handleWindowBlur);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (sidebarElement) {
         sidebarElement.removeEventListener('dragleave', handleDragLeave);
       }

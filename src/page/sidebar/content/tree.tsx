@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import {
   Collapsible,
@@ -67,8 +68,11 @@ export default function Tree(props: ITreeProps) {
       opacity: monitor.isDragging() ? 0.5 : 1,
     }),
   });
-  const [, drop] = useDrop({
+  const [{ isOver: isOverHere }, drop] = useDrop({
     accept: ['card', NativeTypes.FILE],
+    collect: monitor => ({
+      isOver: monitor.isOver({ shallow: true }),
+    }),
     hover: (item, monitor) => {
       if (!ref.current) {
         onTarget(null);
@@ -79,15 +83,14 @@ export default function Tree(props: ITreeProps) {
       const isOverShallow = monitor.isOver({ shallow: true });
 
       if (itemType === NativeTypes.FILE) {
-        // Handle file drag over - only set if directly over this element
+        // Only highlight on shallow hover
         if (isOverShallow) {
           onFileDragTarget(data.id);
-        } else {
-          onFileDragTarget(null); // Reset when not over this element
         }
-        onTarget(null); // Don't set target for file drops
+        // Do not handle resource target
+        onTarget(null);
       } else {
-        // Handle resource drag over
+        // Handle resource drag
         onFileDragTarget(null);
         if (!isOverShallow) {
           onTarget(null);
@@ -104,7 +107,7 @@ export default function Tree(props: ITreeProps) {
     drop(item, monitor) {
       const itemType = monitor.getItemType();
       if (itemType === NativeTypes.FILE) {
-        // Prevent multiple uploads - only handle if no other drop has occurred
+        // Debounce: Prevent multiple drop triggers
         if (monitor.didDrop()) {
           return;
         }
@@ -118,6 +121,8 @@ export default function Tree(props: ITreeProps) {
           const fileList = new DataTransfer();
           validFiles.forEach(file => fileList.items.add(file));
           onUpload(spaceType, data.id, fileList.files);
+        } else {
+          toast(t('upload.invalid_ext'), { position: 'bottom-right' });
         }
         onFileDragTarget(null);
       } else {
@@ -126,6 +131,14 @@ export default function Tree(props: ITreeProps) {
       }
     },
   });
+
+  // Cleanup: When drag leaves this node (including its children), make sure to clear file highlight
+  useEffect(() => {
+    if (!isOverHere && isFileDragOver) {
+      onFileDragTarget(null);
+    }
+  }, [isOverHere, isFileDragOver, onFileDragTarget, data.id]);
+
   const handleExpand = () => {
     onExpand(spaceType, data.id);
   };
@@ -160,7 +173,7 @@ export default function Tree(props: ITreeProps) {
             <div>
               <SidebarMenuButton
                 asChild
-                className="gap-1"
+                className="gap-1 py-2 h-auto"
                 onClick={handleActiveKey}
                 isActive={data.id == activeKey}
               >
@@ -171,9 +184,7 @@ export default function Tree(props: ITreeProps) {
                     'flex cursor-pointer relative before:absolute before:content-[""] before:hidden before:left-[13px] before:right-[4px] before:h-[2px] before:bg-blue-500',
                     {
                       'bg-sidebar-accent text-sidebar-accent-foreground':
-                        target && target.id === data.id,
-                      'bg-sidebar-accent/80 border-2 border-dashed border-sidebar-primary':
-                        isFileDragOver,
+                        (target && target.id === data.id) || isFileDragOver,
                     }
                   )}
                 >

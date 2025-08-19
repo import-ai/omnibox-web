@@ -1,8 +1,9 @@
 import { LoaderCircle, MoreHorizontal } from 'lucide-react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { Input } from '@/components/input';
 import {
@@ -45,6 +46,7 @@ export default function Space(props: ITreeProps) {
   } = props;
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const groupRef = useRef<HTMLDivElement>(null);
   const isDragOver = fileDragTarget === data.id;
   const handleSelect = () => {
     fileInputRef.current?.click();
@@ -62,7 +64,7 @@ export default function Space(props: ITreeProps) {
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: [NativeTypes.FILE],
     drop: (item: { files: File[] }, monitor) => {
-      // Prevent multiple uploads - only handle if no other drop has occurred
+      // Debounce: prevent multiple drop triggers
       if (monitor.didDrop()) {
         return;
       }
@@ -72,28 +74,43 @@ export default function Space(props: ITreeProps) {
         const fileList = new DataTransfer();
         validFiles.forEach(file => fileList.items.add(file));
         onUpload(spaceType, data.id, fileList.files);
+      } else {
+        toast(t('upload.invalid_ext'), { position: 'bottom-right' });
       }
       onFileDragTarget(null);
     },
     collect: monitor => ({
-      isOver: monitor.isOver(),
+      isOver: monitor.isOver({ shallow: true }),
       canDrop: monitor.canDrop(),
     }),
-    hover: (item, monitor) => {
+    hover: (_item, monitor) => {
       const isOverShallow = monitor.isOver({ shallow: true });
       if (isOverShallow) {
         onFileDragTarget(data.id);
-      } else {
-        onFileDragTarget(null); // Reset when not over this element
       }
+      // Do not clear here, let the isOver effect handle unified cleanup to avoid nested flicker
     },
   });
 
+  // Bind drop to the actual DOM of the group container
+  useEffect(() => {
+    if (groupRef.current) {
+      drop(groupRef);
+    }
+  }, [drop]);
+
+  // Cleanup: when drag leaves this group (including its child nodes), ensure to clear highlight target
+  useEffect(() => {
+    if (!isOver && fileDragTarget === data.id) {
+      onFileDragTarget(null);
+    }
+  }, [isOver, fileDragTarget, data.id, onFileDragTarget]);
+
   return (
     <SidebarGroup
-      ref={drop}
+      ref={groupRef}
       className={cn({
-        'bg-sidebar-accent/80 border-2 border-dashed border-sidebar-primary':
+        'bg-sidebar-border text-sidebar-accent-foreground':
           isDragOver || (canDrop && isOver),
       })}
     >
@@ -141,7 +158,7 @@ export default function Space(props: ITreeProps) {
         />
       </div>
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu className="gap-0">
           {Array.isArray(data.children) &&
             data.children.length > 0 &&
             data.children.map((item: IResourceData) => (
