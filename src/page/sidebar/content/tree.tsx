@@ -172,7 +172,7 @@ export default function Tree(props: ITreeProps) {
                     {
                       'bg-sidebar-accent text-sidebar-accent-foreground':
                         target && target.id === data.id,
-                      'bg-blue-50 border-2 border-dashed border-blue-500':
+                      'bg-sidebar-accent/80 border-2 border-dashed border-sidebar-primary':
                         isFileDragOver,
                     }
                   )}

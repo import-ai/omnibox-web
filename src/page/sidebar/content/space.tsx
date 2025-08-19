@@ -93,7 +93,7 @@ export default function Space(props: ITreeProps) {
     <SidebarGroup
       ref={drop}
       className={cn({
-        'bg-sidebar-accent/50 border-2 border-dashed border-blue-500':
+        'bg-sidebar-accent/80 border-2 border-dashed border-sidebar-primary':
           isDragOver || (canDrop && isOver),
       })}
     >
