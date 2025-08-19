@@ -9,7 +9,7 @@ import i18next from 'i18next';
 import { isUndefined } from 'lodash-es';
 import { toast } from 'sonner';
 
-import { API_BASE_URL } from '@/constants';
+import { API_BASE_URL } from '@/const';
 
 interface RequestConfig extends AxiosRequestConfig {
   // Whether to show error messages, default is true
