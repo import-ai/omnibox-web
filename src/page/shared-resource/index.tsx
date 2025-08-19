@@ -6,8 +6,11 @@ import { toast } from 'sonner';
 import Loading from '@/components/loading';
 import useWide from '@/hooks/use-wide';
 import { SharedResource, ShareInfo } from '@/interface';
+import { setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
+
+const SHARE_PASSWORD_COOKIE = 'share-password';
 
 import Render from '../resource/render';
 import { Password } from './password';
@@ -35,10 +38,19 @@ export default function SharedResourcePage(props: SharedResourcePageProps) {
     }
     cancelTokenSource.current = axios.CancelToken.source();
     setLoading(true);
+
+    // If password is provided, store it in session cookie
+    if (password) {
+      setCookie(
+        SHARE_PASSWORD_COOKIE,
+        password,
+        `/api/v1/shares/${shareInfo.id}`
+      );
+    }
+
     http
       .get(`/shares/${shareInfo.id}/resources/${shareInfo.resource_id}`, {
         cancelToken: cancelTokenSource.current.token,
-        headers: password ? { 'X-OmniBox-Share-Password': password } : {},
       })
       .then(data => {
         setResource(data);
