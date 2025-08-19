@@ -63,7 +63,7 @@ export default function SharedResourcePage(props: SharedResourcePageProps) {
     refetchResource(password);
   };
 
-  if (resource && !loading) {
+  if (shareInfo && resource && !loading) {
     return (
       <div className="flex justify-center h-full p-4">
         <div
@@ -74,7 +74,10 @@ export default function SharedResourcePage(props: SharedResourcePageProps) {
           <h1 className="text-4xl font-bold mb-4">
             {resource.name || t('untitled')}
           </h1>
-          <Render resource={resource} />
+          <Render
+            resource={resource}
+            linkBase={`${shareInfo.id}/${resource.id}`}
+          />
         </div>
       </div>
     );
