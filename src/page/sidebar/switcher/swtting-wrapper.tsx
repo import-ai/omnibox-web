@@ -10,6 +10,7 @@ import CommonForm from './basic';
 import { APIKeyForm } from './form/api-key';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
+import TasksManagement from './manage/tasks';
 import PeopleForm from './people';
 import { ThirdPartyForm } from './third-party';
 
@@ -35,6 +36,12 @@ export default function SettingWrapper() {
       label: t('setting.members'),
       value: 'people',
       children: <PeopleForm />,
+      requireOwner: true,
+    },
+    {
+      label: t('setting.tasks'),
+      value: 'tasks',
+      children: <TasksManagement />,
       requireOwner: true,
     },
     {
