@@ -1,6 +1,6 @@
 export default function extension() {
-  if (!document.body.hasAttribute('data-from-extension')) {
-    return Promise.resolve(true);
+  if (location.search !== '?from=extension') {
+    return Promise.resolve(false);
   }
   const token = localStorage.getItem('token');
   if (token) {
