@@ -1,11 +1,27 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { Outlet, useNavigate, useParams } from 'react-router-dom';
 
+import Loading from '@/components/loading';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { ShareInfo } from '@/interface';
 import { http } from '@/lib/request';
 
-import SharedResourcePage from '../shared-resource';
+import ShareSidebar from './sidebar';
+
+interface ShareContextValue {
+  shareInfo: ShareInfo | null;
+}
+
+const ShareContext = createContext<ShareContextValue | null>(null);
+
+export const useShareContext = () => {
+  const context = useContext(ShareContext);
+  if (!context) {
+    throw new Error('useShareContext must be used within SharePage');
+  }
+  return context;
+};
 
 export default function SharePage() {
   const params = useParams();
@@ -22,7 +38,9 @@ export default function SharePage() {
       .get(`/shares/${shareId}`, {
         cancelToken: source.token,
       })
-      .then(setShareInfo)
+      .then(data => {
+        setShareInfo(data);
+      })
       .catch(err => {
         if (err && err.status && err.status === 401) {
           // Share requires login, redirect to login page with current URL as redirect
@@ -31,7 +49,27 @@ export default function SharePage() {
         }
       });
     return () => source.cancel();
-  }, [shareId, navigate]);
+  }, [shareId]);
 
-  return <SharedResourcePage shareInfo={shareInfo} />;
+  if (!shareInfo) {
+    return <Loading />;
+  }
+
+  return (
+    <ShareContext.Provider value={{ shareInfo }}>
+      {!shareInfo.all_resources && <Outlet />}
+      {shareInfo.all_resources && (
+        <SidebarProvider>
+          <ShareSidebar
+            shareId={shareInfo.id}
+            rootResourceId={shareInfo.resource_id}
+            rootResourceName="Shared Resources"
+          />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+        </SidebarProvider>
+      )}
+    </ShareContext.Provider>
+  );
 }

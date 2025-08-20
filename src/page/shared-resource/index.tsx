@@ -1,35 +1,33 @@
 import axios, { CancelTokenSource } from 'axios';
 import { t } from 'i18next';
 import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import Loading from '@/components/loading';
 import useWide from '@/hooks/use-wide';
-import { SharedResource, ShareInfo } from '@/interface';
+import { SharedResource } from '@/interface';
 import { getCookie, setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 
-const SHARE_PASSWORD_COOKIE = 'share-password';
-
 import Render from '../resource/render';
+import { useShareContext } from '../share';
 import { Password } from './password';
 
-interface SharedResourcePageProps {
-  shareInfo: ShareInfo | null;
-}
+const SHARE_PASSWORD_COOKIE = 'share-password';
 
-export default function SharedResourcePage(props: SharedResourcePageProps) {
-  const { shareInfo } = props;
+export default function SharedResourcePage() {
+  const { shareInfo } = useShareContext();
+  const params = useParams();
   const { wide } = useWide();
-
-  const cancelTokenSource = useRef<CancelTokenSource>(null);
-
   const [loading, setLoading] = useState<boolean>(false);
   const [resource, setResource] = useState<SharedResource | null>(null);
+  const resourceId = params.resource_id || shareInfo?.resource_id;
+  const cancelTokenSource = useRef<CancelTokenSource>(null);
 
   const refetchResource = (password?: string) => {
-    if (!shareInfo) {
+    if (!shareInfo || !resourceId) {
       setResource(null);
       return;
     }
@@ -50,7 +48,7 @@ export default function SharedResourcePage(props: SharedResourcePageProps) {
     }
 
     http
-      .get(`/shares/${shareInfo.id}/resources/${shareInfo.resource_id}`, {
+      .get(`/shares/${shareInfo.id}/resources/${resourceId}`, {
         cancelToken: cancelTokenSource.current.token,
       })
       .then(data => {
@@ -76,7 +74,7 @@ export default function SharedResourcePage(props: SharedResourcePageProps) {
     if (storedPassword) {
       refetchResource(storedPassword);
     }
-  }, [shareInfo]);
+  }, [shareInfo, resourceId]);
 
   const handlePassword = (password: string) => {
     refetchResource(password);
@@ -95,7 +93,7 @@ export default function SharedResourcePage(props: SharedResourcePageProps) {
           </h1>
           <Render
             resource={resource}
-            linkBase={`${shareInfo.id}/${resource.id}`}
+            linkBase={`/s/${shareInfo.id}/${resource.id}`}
           />
         </div>
       </div>
