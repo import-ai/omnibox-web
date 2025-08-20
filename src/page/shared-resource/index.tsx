@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 
 import Render from '../resource/render';
 import { useShareContext } from '../share';
+import FolderChildren from './folder-children';
 
 export default function SharedResourcePage() {
   const { shareInfo, resource } = useShareContext();
@@ -22,10 +23,14 @@ export default function SharedResourcePage() {
           <h1 className="text-4xl font-bold mb-4">
             {resource.name || t('untitled')}
           </h1>
-          <Render
-            resource={resource}
-            linkBase={`/s/${shareInfo.id}/${resource.id}`}
-          />
+          {resource.resource_type === 'folder' ? (
+            <FolderChildren shareId={shareInfo.id} resourceId={resource.id} />
+          ) : (
+            <Render
+              resource={resource}
+              linkBase={`/s/${shareInfo.id}/${resource.id}`}
+            />
+          )}
         </div>
       </div>
     );

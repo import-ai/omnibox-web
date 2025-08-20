@@ -63,6 +63,7 @@ export interface SharedResource {
   id: string;
   name: string;
   content: string;
+  resource_type: ResourceType;
   attrs?: Record<string, any>;
 }
 
@@ -219,7 +220,7 @@ export interface UpdateShareInfoReq {
   expires_seconds?: number;
 }
 
-export interface ShareResourceMeta {
+export interface SharedResourceMeta {
   id: string;
   name: string;
   resource_type: ResourceType;
@@ -228,5 +229,5 @@ export interface ShareResourceMeta {
 export interface PublicShareInfo {
   id: string;
   all_resources: boolean;
-  resource: ShareResourceMeta;
+  resource: SharedResourceMeta;
 }

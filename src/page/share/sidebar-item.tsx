@@ -13,14 +13,14 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
-import { ShareResourceMeta } from '@/interface';
+import { SharedResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 
 interface SidebarItemProps {
   shareId: string;
   level: number;
-  resource: ShareResourceMeta;
+  resource: SharedResourceMeta;
   currentResourceId: string;
 }
 
@@ -29,7 +29,7 @@ export default function SidebarItem(props: SidebarItemProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [children, setChildren] = useState<ShareResourceMeta[]>([]);
+  const [children, setChildren] = useState<SharedResourceMeta[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasChildren, setHasChildren] = useState(true);
   const isActive = currentResourceId === resource.id;
