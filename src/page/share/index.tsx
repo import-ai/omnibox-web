@@ -130,8 +130,8 @@ export default function SharePage() {
           <SidebarProvider>
             <ShareSidebar
               shareId={shareInfo.id}
-              rootResourceId={shareInfo.resource?.id}
-              rootResourceName="Shared Resources"
+              currentResourceId={resourceId!}
+              rootResource={shareInfo.resource}
             />
             <main className="flex-1">
               <Outlet />

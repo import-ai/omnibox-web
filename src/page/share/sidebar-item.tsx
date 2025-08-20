@@ -19,26 +19,20 @@ import { cn } from '@/lib/utils';
 
 interface SidebarItemProps {
   shareId: string;
-  resourceId: string;
-  name: string;
   level: number;
-  currentResourceId?: string;
+  resource: ShareResourceMeta;
+  currentResourceId: string;
 }
 
-export default function SidebarItem({
-  shareId,
-  resourceId,
-  name,
-  level,
-  currentResourceId,
-}: SidebarItemProps) {
+export default function SidebarItem(props: SidebarItemProps) {
+  const { shareId, level, resource, currentResourceId } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [children, setChildren] = useState<ShareResourceMeta[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasChildren, setHasChildren] = useState(true);
-  const isActive = currentResourceId === resourceId;
+  const isActive = currentResourceId === resource.id;
 
   const fetchChildren = async () => {
     if (loading) return;
@@ -46,7 +40,7 @@ export default function SidebarItem({
     setLoading(true);
     try {
       const data = await http.get(
-        `/shares/${shareId}/resources/${resourceId}/children`
+        `/shares/${shareId}/resources/${resource.id}/children`
       );
       setChildren(data || []);
       setHasChildren(data && data.length > 0);
@@ -66,7 +60,7 @@ export default function SidebarItem({
   };
 
   const handleClick = () => {
-    navigate(`/s/${shareId}/${resourceId}`);
+    navigate(`/s/${shareId}/${resource.id}`);
   };
 
   return (
@@ -82,7 +76,7 @@ export default function SidebarItem({
               <div
                 className="flex cursor-pointer items-center"
                 onClick={handleClick}
-                style={{ paddingLeft: `${level * 12}px` }}
+                style={{ paddingLeft: `${level * 8}px` }}
               >
                 {hasChildren && (
                   <div
@@ -106,7 +100,9 @@ export default function SidebarItem({
                   </div>
                 )}
                 {!hasChildren && <div className="w-4 h-4" />}
-                <span className="truncate ml-1">{name || t('untitled')}</span>
+                <span className="truncate ml-1">
+                  {resource.name || t('untitled')}
+                </span>
               </div>
             </SidebarMenuButton>
           </div>
@@ -117,9 +113,8 @@ export default function SidebarItem({
               <SidebarItem
                 key={child.id}
                 shareId={shareId}
-                resourceId={child.id}
-                name={child.name}
                 level={level + 1}
+                resource={child}
                 currentResourceId={currentResourceId}
               />
             ))}

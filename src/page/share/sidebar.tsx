@@ -1,5 +1,3 @@
-import { useParams } from 'react-router-dom';
-
 import {
   Sidebar,
   SidebarContent,
@@ -7,22 +5,18 @@ import {
   SidebarGroupContent,
   SidebarMenu,
 } from '@/components/ui/sidebar';
+import { ShareResourceMeta } from '@/interface';
 
 import SidebarItem from './sidebar-item';
 
 interface SharedSidebarProps {
   shareId: string;
-  rootResourceId: string;
-  rootResourceName: string;
+  currentResourceId: string;
+  rootResource: ShareResourceMeta;
 }
 
-export default function ShareSidebar({
-  shareId,
-  rootResourceId,
-  rootResourceName,
-}: SharedSidebarProps) {
-  const params = useParams();
-  const currentResourceId = params.resource_id;
+export default function ShareSidebar(props: SharedSidebarProps) {
+  const { shareId, currentResourceId, rootResource } = props;
 
   return (
     <Sidebar>
@@ -32,9 +26,8 @@ export default function ShareSidebar({
             <SidebarMenu>
               <SidebarItem
                 shareId={shareId}
-                resourceId={rootResourceId}
-                name={rootResourceName}
                 level={0}
+                resource={rootResource}
                 currentResourceId={currentResourceId}
               />
             </SidebarMenu>
