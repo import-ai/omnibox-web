@@ -1,16 +1,23 @@
-import axios from 'axios';
-import { createContext, useContext, useEffect, useState } from 'react';
+import axios, { CancelTokenSource } from 'axios';
+import { t } from 'i18next';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import Loading from '@/components/loading';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { ShareInfo } from '@/interface';
+import { SharedResource, ShareInfo } from '@/interface';
+import { setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
 
+import { Password } from './password';
 import ShareSidebar from './sidebar';
+
+const SHARE_PASSWORD_COOKIE = 'share-password';
 
 interface ShareContextValue {
   shareInfo: ShareInfo | null;
+  resource: SharedResource | null;
 }
 
 const ShareContext = createContext<ShareContextValue | null>(null);
@@ -26,9 +33,38 @@ export const useShareContext = () => {
 export default function SharePage() {
   const params = useParams();
   const navigate = useNavigate();
-  const shareId = params.share_id;
-
+  const cancelTokenSource = useRef<CancelTokenSource>(null);
   const [shareInfo, setShareInfo] = useState<ShareInfo | null>(null);
+  const [resource, setResource] = useState<SharedResource | null>(null);
+  const [requirePassword, setRequirePassword] = useState<boolean>(false);
+  const shareId = params.share_id;
+  const resourceId = params.resource_id || shareInfo?.resource_id;
+
+  const handlePassword = (password: string) => {
+    if (!shareId || !resourceId) {
+      return;
+    }
+    setResource(null);
+    setCookie(SHARE_PASSWORD_COOKIE, password, `/s/${shareId}`);
+    setCookie(SHARE_PASSWORD_COOKIE, password, `/api/v1/shares/${shareId}`);
+    if (cancelTokenSource.current) {
+      cancelTokenSource.current.cancel('Canceled due to new request.');
+    }
+    cancelTokenSource.current = axios.CancelToken.source();
+    http
+      .get(`/shares/${shareId}/resources/${resourceId}`, {
+        cancelToken: cancelTokenSource.current.token,
+      })
+      .then(data => {
+        setRequirePassword(false);
+        setResource(data);
+      })
+      .catch(err => {
+        if (err && err.status && err.status === 403) {
+          toast.error(t('shared_resources.incorrect_password'));
+        }
+      });
+  };
 
   // Get share info
   useEffect(() => {
@@ -43,7 +79,7 @@ export default function SharePage() {
       })
       .catch(err => {
         if (err && err.status && err.status === 401) {
-          // Share requires login, redirect to login page with current URL as redirect
+          // Redirect to login page
           const currentUrl = encodeURIComponent(window.location.pathname);
           navigate(`/user/login?redirect=${currentUrl}`);
         }
@@ -51,25 +87,59 @@ export default function SharePage() {
     return () => source.cancel();
   }, [shareId]);
 
-  if (!shareInfo) {
-    return <Loading />;
-  }
+  // Get resource info
+  useEffect(() => {
+    setResource(null);
+    if (!resourceId) {
+      return;
+    }
+    const source = axios.CancelToken.source();
+    http
+      .get(`/shares/${shareId}/resources/${resourceId}`, {
+        cancelToken: source.token,
+      })
+      .then(data => {
+        setResource(data);
+      })
+      .catch(err => {
+        if (err && err.status && err.status === 403) {
+          setRequirePassword(true);
+        }
+      });
+    return () => source.cancel();
+  }, [resourceId]);
 
-  return (
-    <ShareContext.Provider value={{ shareInfo }}>
-      {!shareInfo.all_resources && <Outlet />}
-      {shareInfo.all_resources && (
-        <SidebarProvider>
-          <ShareSidebar
-            shareId={shareInfo.id}
-            rootResourceId={shareInfo.resource_id}
-            rootResourceName="Shared Resources"
-          />
-          <main className="flex-1">
-            <Outlet />
-          </main>
-        </SidebarProvider>
-      )}
-    </ShareContext.Provider>
-  );
+  if (requirePassword) {
+    return (
+      <div className="flex justify-center p-10">
+        <div className="flex flex-col gap-4 w-[400px]">
+          <span className="text-sm">
+            {t('shared_resources.password_required')}
+          </span>
+          <Password onPassword={handlePassword} />
+        </div>
+      </div>
+    );
+  }
+  if (shareInfo) {
+    const showSidebar = shareInfo.all_resources;
+    return (
+      <ShareContext.Provider value={{ shareInfo, resource }}>
+        {!showSidebar && <Outlet />}
+        {showSidebar && (
+          <SidebarProvider>
+            <ShareSidebar
+              shareId={shareInfo.id}
+              rootResourceId={shareInfo.resource_id}
+              rootResourceName="Shared Resources"
+            />
+            <main className="flex-1">
+              <Outlet />
+            </main>
+          </SidebarProvider>
+        )}
+      </ShareContext.Provider>
+    );
+  }
+  return <Loading />;
 }
