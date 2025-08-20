@@ -218,3 +218,15 @@ export interface UpdateShareInfoReq {
   expires_at?: Date | null;
   expires_seconds?: number;
 }
+
+export interface ShareResourceMeta {
+  id: string;
+  name: string;
+  resource_type: ResourceType;
+}
+
+export interface PublicShareInfo {
+  id: string;
+  all_resources: boolean;
+  resource: ShareResourceMeta;
+}

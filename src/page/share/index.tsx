@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 import Loading from '@/components/loading';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { SharedResource, ShareInfo } from '@/interface';
+import { PublicShareInfo, SharedResource } from '@/interface';
 import { setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
 
@@ -16,7 +16,7 @@ import ShareSidebar from './sidebar';
 const SHARE_PASSWORD_COOKIE = 'share-password';
 
 interface ShareContextValue {
-  shareInfo: ShareInfo | null;
+  shareInfo: PublicShareInfo | null;
   resource: SharedResource | null;
 }
 
@@ -34,11 +34,11 @@ export default function SharePage() {
   const params = useParams();
   const navigate = useNavigate();
   const cancelTokenSource = useRef<CancelTokenSource>(null);
-  const [shareInfo, setShareInfo] = useState<ShareInfo | null>(null);
+  const [shareInfo, setShareInfo] = useState<PublicShareInfo | null>(null);
   const [resource, setResource] = useState<SharedResource | null>(null);
   const [requirePassword, setRequirePassword] = useState<boolean>(false);
   const shareId = params.share_id;
-  const resourceId = params.resource_id || shareInfo?.resource_id;
+  const resourceId = params.resource_id || shareInfo?.resource?.id;
 
   const handlePassword = (password: string) => {
     if (!shareId || !resourceId) {
@@ -130,7 +130,7 @@ export default function SharePage() {
           <SidebarProvider>
             <ShareSidebar
               shareId={shareInfo.id}
-              rootResourceId={shareInfo.resource_id}
+              rootResourceId={shareInfo.resource?.id}
               rootResourceName="Shared Resources"
             />
             <main className="flex-1">
