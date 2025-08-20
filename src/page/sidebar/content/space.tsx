@@ -1,6 +1,9 @@
 import { LoaderCircle, MoreHorizontal } from 'lucide-react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { useDrop } from 'react-dnd';
+import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { Input } from '@/components/input';
 import {
@@ -18,13 +21,33 @@ import {
 } from '@/components/ui/sidebar';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { IResourceData } from '@/interface';
+import { cn } from '@/lib/utils';
 
 import Tree, { ITreeProps } from './tree';
 
+// Helper function to validate file extensions
+const isValidFileType = (fileName: string): boolean => {
+  const allowedExtensions = ALLOW_FILE_EXTENSIONS.split(',').map(ext =>
+    ext.trim()
+  );
+  const fileExtension = '.' + fileName.split('.').pop()?.toLowerCase();
+  return allowedExtensions.includes(fileExtension);
+};
+
 export default function Space(props: ITreeProps) {
-  const { data, editingKey, spaceType, onCreate, onUpload } = props;
+  const {
+    data,
+    editingKey,
+    spaceType,
+    onCreate,
+    onUpload,
+    fileDragTarget,
+    onFileDragTarget,
+  } = props;
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const groupRef = useRef<HTMLDivElement>(null);
+  const isDragOver = fileDragTarget === data.id;
   const handleSelect = () => {
     fileInputRef.current?.click();
   };
@@ -37,8 +60,60 @@ export default function Space(props: ITreeProps) {
     });
   };
 
+  // File drop handling
+  const [{ canDrop, isOver }, drop] = useDrop({
+    accept: [NativeTypes.FILE],
+    drop: (item: { files: File[] }, monitor) => {
+      // Debounce: prevent multiple drop triggers
+      if (monitor.didDrop()) {
+        return;
+      }
+
+      const validFiles = item.files.filter(file => isValidFileType(file.name));
+      if (validFiles.length > 0) {
+        const fileList = new DataTransfer();
+        validFiles.forEach(file => fileList.items.add(file));
+        onUpload(spaceType, data.id, fileList.files);
+      } else {
+        toast(t('upload.invalid_ext'), { position: 'bottom-right' });
+      }
+      onFileDragTarget(null);
+    },
+    collect: monitor => ({
+      isOver: monitor.isOver({ shallow: true }),
+      canDrop: monitor.canDrop(),
+    }),
+    hover: (_item, monitor) => {
+      const isOverShallow = monitor.isOver({ shallow: true });
+      if (isOverShallow) {
+        onFileDragTarget(data.id);
+      }
+      // Do not clear here, let the isOver effect handle unified cleanup to avoid nested flicker
+    },
+  });
+
+  // Bind drop to the actual DOM of the group container
+  useEffect(() => {
+    if (groupRef.current) {
+      drop(groupRef);
+    }
+  }, [drop]);
+
+  // Cleanup: when drag leaves this group (including its child nodes), ensure to clear highlight target
+  useEffect(() => {
+    if (!isOver && fileDragTarget === data.id) {
+      onFileDragTarget(null);
+    }
+  }, [isOver, fileDragTarget, data.id, onFileDragTarget]);
+
   return (
-    <SidebarGroup>
+    <SidebarGroup
+      ref={groupRef}
+      className={cn({
+        'bg-sidebar-border text-sidebar-accent-foreground':
+          isDragOver || (canDrop && isOver),
+      })}
+    >
       <div className="flex items-center justify-between">
         <SidebarGroupLabel>{spaceType ? t(spaceType) : ''}</SidebarGroupLabel>
         <DropdownMenu>
@@ -83,7 +158,7 @@ export default function Space(props: ITreeProps) {
         />
       </div>
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu className="gap-0">
           {Array.isArray(data.children) &&
             data.children.length > 0 &&
             data.children.map((item: IResourceData) => (

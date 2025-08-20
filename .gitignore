@@ -30,3 +30,4 @@ dist-ssr
 
 .env
 CLAUDE.md
+.playwright*

@@ -12,6 +12,9 @@
   "no_pages_inside": "内无页面",
   "private": "私有",
   "teamspace": "团队",
+  "upload": {
+    "invalid_ext": "当前文件格式不支持"
+  },
   "resource": {
     "folder": {
       "children_count": "{{count}} 个文件"

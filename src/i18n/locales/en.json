@@ -12,6 +12,9 @@
   "no_pages_inside": "No pages inside",
   "private": "Private",
   "teamspace": "Teamspace",
+  "upload": {
+    "invalid_ext": "Invalid file type"
+  },
   "resource": {
     "folder": {
       "children_count": "{{count}} files"
