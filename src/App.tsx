@@ -26,6 +26,7 @@ const WechatAuthConfirmPage = lazy(
 const GoogleAuthConfirmPage = lazy(
   () => import('@/page/user/google/auth-confirm')
 );
+const OAuthConfirmPage = lazy(() => import('@/page/user/oauth-confirm'));
 
 const PrivacyPolicy = lazy(() => import('@/page/single/privacy-policy'));
 const TermsOfService = lazy(() => import('@/page/single/terms-of-service'));
@@ -48,6 +49,10 @@ const router = createBrowserRouter([
       {
         path: 'user/auth/confirm/google',
         element: <GoogleAuthConfirmPage />,
+      },
+      {
+        path: 'single/oauth/confirm',
+        element: <OAuthConfirmPage />,
       },
       {
         path: 'single/privacy-policy',

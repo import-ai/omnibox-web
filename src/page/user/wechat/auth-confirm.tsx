@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import extension from '@/lib/extension';
 import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
 
@@ -25,11 +24,7 @@ export default function AuthConfirmPage() {
       .get(`/wechat/callback?code=${code}&state=${state}`)
       .then(res => {
         setGlobalCredential(res.id, res.access_token);
-        extension().then(val => {
-          if (val) {
-            navigate('/', { replace: true });
-          }
-        });
+        navigate('/', { replace: true });
       })
       .catch(error => {
         toast.error(error.message, { position: 'bottom-right' });
