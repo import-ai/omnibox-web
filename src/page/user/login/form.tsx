@@ -68,9 +68,13 @@ export function LoginForm({ className, children, ...props }: IProps) {
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
         if (clientId && redirectUri) {
-          http.get(
-            `/oauth2/authorize?response_type=${responseType}&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`
-          );
+          http
+            .get(
+              `/oauth2/authorize?response_type=${responseType}&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`
+            )
+            .then(response => {
+              location.href = response.redirectUrl;
+            });
           return;
         }
         if (redirect) {

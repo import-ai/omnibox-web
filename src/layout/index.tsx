@@ -29,9 +29,13 @@ export default function Layout() {
   useEffect(() => {
     if (localStorage.getItem('uid')) {
       if (clientId && redirectUri) {
-        http.get(
-          `/oauth2/authorize?response_type=${responseType}&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`
-        );
+        http
+          .get(
+            `/oauth2/authorize?response_type=${responseType}&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`
+          )
+          .then(response => {
+            location.href = response.redirectUrl;
+          });
         return;
       }
       if (namespace_id) {
