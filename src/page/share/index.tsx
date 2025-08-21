@@ -41,10 +41,6 @@ export default function SharePage() {
   const resourceId = params.resource_id || shareInfo?.resource?.id;
 
   const handlePassword = (password: string) => {
-    if (!shareId || !resourceId) {
-      return;
-    }
-    setResource(null);
     setCookie(SHARE_PASSWORD_COOKIE, password, `/s/${shareId}`);
     setCookie(SHARE_PASSWORD_COOKIE, password, `/api/v1/shares/${shareId}`);
     if (cancelTokenSource.current) {
@@ -52,12 +48,12 @@ export default function SharePage() {
     }
     cancelTokenSource.current = axios.CancelToken.source();
     http
-      .get(`/shares/${shareId}/resources/${resourceId}`, {
+      .get(`/shares/${shareId}`, {
         cancelToken: cancelTokenSource.current.token,
       })
       .then(data => {
         setRequirePassword(false);
-        setResource(data);
+        setShareInfo(data);
       })
       .catch(err => {
         if (err && err.status && err.status === 403) {
@@ -83,6 +79,9 @@ export default function SharePage() {
           const currentUrl = encodeURIComponent(window.location.pathname);
           navigate(`/user/login?redirect=${currentUrl}`);
         }
+        if (err && err.status && err.status === 403) {
+          setRequirePassword(true);
+        }
       });
     return () => source.cancel();
   }, [shareId]);
@@ -90,7 +89,7 @@ export default function SharePage() {
   // Get resource info
   useEffect(() => {
     setResource(null);
-    if (!resourceId) {
+    if (!shareInfo) {
       return;
     }
     const source = axios.CancelToken.source();
@@ -102,12 +101,17 @@ export default function SharePage() {
         setResource(data);
       })
       .catch(err => {
+        if (err && err.status && err.status === 401) {
+          // Redirect to login page
+          const currentUrl = encodeURIComponent(window.location.pathname);
+          navigate(`/user/login?redirect=${currentUrl}`);
+        }
         if (err && err.status && err.status === 403) {
           setRequirePassword(true);
         }
       });
     return () => source.cancel();
-  }, [resourceId]);
+  }, [shareInfo, resourceId]);
 
   if (requirePassword) {
     return (
