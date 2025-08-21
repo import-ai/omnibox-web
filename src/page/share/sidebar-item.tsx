@@ -65,19 +65,19 @@ export default function SidebarItem(props: SidebarItemProps) {
 
   return (
     <SidebarMenuItem>
-      <Collapsible open={isExpanded}>
-        <CollapsibleTrigger asChild>
-          <div>
-            <SidebarMenuButton
-              asChild
-              className="gap-1 py-2 h-auto"
-              isActive={isActive}
-            >
-              <div
-                className="flex cursor-pointer items-center"
-                onClick={handleClick}
+      {hasChildren ? (
+        <Collapsible open={isExpanded}>
+          <CollapsibleTrigger asChild>
+            <div>
+              <SidebarMenuButton
+                asChild
+                className="gap-1 py-2 h-auto"
+                isActive={isActive}
               >
-                {hasChildren && (
+                <div
+                  className="flex cursor-pointer items-center"
+                  onClick={handleClick}
+                >
                   <div
                     onClick={e => {
                       e.preventDefault();
@@ -97,28 +97,43 @@ export default function SidebarItem(props: SidebarItemProps) {
                       />
                     )}
                   </div>
-                )}
-                {!hasChildren && <div className="w-4 h-4" />}
-                <span className="truncate ml-1">
-                  {resource.name || t('untitled')}
-                </span>
-              </div>
-            </SidebarMenuButton>
+                  <span className="truncate ml-1">
+                    {resource.name || t('untitled')}
+                  </span>
+                </div>
+              </SidebarMenuButton>
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SidebarMenuSub className="pr-0 mr-0 pl-2">
+              {children.map(child => (
+                <SidebarItem
+                  key={child.id}
+                  shareId={shareId}
+                  resource={child}
+                  currentResourceId={currentResourceId}
+                />
+              ))}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        </Collapsible>
+      ) : (
+        <SidebarMenuButton
+          asChild
+          className="gap-1 py-2 h-auto"
+          isActive={isActive}
+        >
+          <div
+            className="flex cursor-pointer items-center"
+            onClick={handleClick}
+          >
+            <div className="w-4 h-4" />
+            <span className="truncate ml-1">
+              {resource.name || t('untitled')}
+            </span>
           </div>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <SidebarMenuSub className="pr-0 mr-0 pl-2">
-            {children.map(child => (
-              <SidebarItem
-                key={child.id}
-                shareId={shareId}
-                resource={child}
-                currentResourceId={currentResourceId}
-              />
-            ))}
-          </SidebarMenuSub>
-        </CollapsibleContent>
-      </Collapsible>
+        </SidebarMenuButton>
+      )}
     </SidebarMenuItem>
   );
 }
