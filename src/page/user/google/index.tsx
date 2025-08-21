@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/button';
-import extension from '@/lib/extension';
 import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
 
@@ -38,11 +37,7 @@ export default function Google() {
           })
           .then(res => {
             setGlobalCredential(res.id, res.access_token);
-            extension().then(val => {
-              if (val) {
-                navigate('/', { replace: true });
-              }
-            });
+            navigate('/', { replace: true });
           })
           .catch(error => {
             toast.error(error.message, { position: 'bottom-right' });

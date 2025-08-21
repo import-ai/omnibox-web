@@ -19,7 +19,6 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import extension from '@/lib/extension';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
@@ -42,6 +41,10 @@ export function LoginForm({ className, children, ...props }: IProps) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
+  const clientId = params.get('client_id');
+  const redirectUri = params.get('redirect_uri');
+  const state = params.get('state');
+  const responseType = params.get('response_type');
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,14 +67,16 @@ export function LoginForm({ className, children, ...props }: IProps) {
       .post('login', data)
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
+        if (clientId && redirectUri) {
+          http.get(
+            `/oauth2/authorize?response_type=${responseType}&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`
+          );
+          return;
+        }
         if (redirect) {
           location.href = decodeURIComponent(redirect);
         } else {
-          extension().then(val => {
-            if (val) {
-              navigate('/', { replace: true });
-            }
-          });
+          navigate('/', { replace: true });
         }
       })
       .catch(() => {
