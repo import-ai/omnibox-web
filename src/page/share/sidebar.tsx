@@ -26,7 +26,6 @@ export default function ShareSidebar(props: SharedSidebarProps) {
             <SidebarMenu>
               <SidebarItem
                 shareId={shareId}
-                level={0}
                 resource={rootResource}
                 currentResourceId={currentResourceId}
               />

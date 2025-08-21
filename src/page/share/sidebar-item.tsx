@@ -19,13 +19,12 @@ import { cn } from '@/lib/utils';
 
 interface SidebarItemProps {
   shareId: string;
-  level: number;
   resource: SharedResourceMeta;
   currentResourceId: string;
 }
 
 export default function SidebarItem(props: SidebarItemProps) {
-  const { shareId, level, resource, currentResourceId } = props;
+  const { shareId, resource, currentResourceId } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -35,8 +34,9 @@ export default function SidebarItem(props: SidebarItemProps) {
   const isActive = currentResourceId === resource.id;
 
   const fetchChildren = async () => {
-    if (loading) return;
-
+    if (loading) {
+      return;
+    }
     setLoading(true);
     try {
       const data = await http.get(
@@ -76,7 +76,6 @@ export default function SidebarItem(props: SidebarItemProps) {
               <div
                 className="flex cursor-pointer items-center"
                 onClick={handleClick}
-                style={{ paddingLeft: `${level * 8}px` }}
               >
                 {hasChildren && (
                   <div
@@ -108,12 +107,11 @@ export default function SidebarItem(props: SidebarItemProps) {
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarMenuSub className="pr-0 mr-0">
+          <SidebarMenuSub className="pr-0 mr-0 pl-2">
             {children.map(child => (
               <SidebarItem
                 key={child.id}
                 shareId={shareId}
-                level={level + 1}
                 resource={child}
                 currentResourceId={currentResourceId}
               />
