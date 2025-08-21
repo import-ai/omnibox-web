@@ -73,7 +73,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
               `/oauth2/authorize?response_type=${responseType}&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`
             )
             .then(response => {
-              location.href = response.redirectUrl;
+              location.href = response.redirect_url;
             });
           return;
         }
