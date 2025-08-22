@@ -69,7 +69,7 @@ export default function AddMember(props: AddMemberProps) {
         refetch();
         onChange([]);
         inviteUsers.length > 0 &&
-          toast.success(t('share.invite_success'), {
+          toast.success(t('share.permissions.invite_success'), {
             position: 'bottom-right',
           });
       })

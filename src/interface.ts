@@ -1,3 +1,5 @@
+import { t } from 'i18next';
+
 export interface IBase {
   created_at?: string;
   updated_at?: string;
@@ -55,6 +57,14 @@ export type ResourceType = 'doc' | 'file' | 'link' | 'folder';
 export interface PathItem {
   id: string;
   name: string;
+}
+
+export interface SharedResource {
+  id: string;
+  name: string;
+  content: string;
+  resource_type: ResourceType;
+  attrs?: Record<string, any>;
 }
 
 export interface Resource extends IBase {
@@ -163,4 +173,61 @@ export interface CreateAPIKeyDto {
 
 export interface UpdateAPIKeyDto {
   attrs?: APIKeyAttrs;
+}
+
+export type ShareType = 'doc_only' | 'chat_only' | 'all';
+
+export const ShareTypes: ShareType[] = ['doc_only', 'chat_only', 'all'];
+
+export function shareTypeToString(type: ShareType): string {
+  switch (type) {
+    case 'doc_only':
+      return t('share.share.share_type.doc_only');
+    case 'chat_only':
+      return t('share.share.share_type.chat_only');
+    case 'all':
+      return t('share.share.share_type.all');
+    default:
+      return '';
+  }
+}
+
+export interface ShareInfo {
+  id: string;
+  enabled: boolean;
+  resource_id: string;
+  all_resources: boolean;
+  require_login: boolean;
+  password_enabled: boolean;
+  share_type: ShareType;
+  expires_at: Date | null;
+}
+
+export function parseShareInfo(data: any): ShareInfo {
+  return {
+    ...data,
+    expires_at: data.expires_at ? new Date(data.expires_at) : null,
+  };
+}
+
+export interface UpdateShareInfoReq {
+  enabled?: boolean;
+  all_resources?: boolean;
+  require_login?: boolean;
+  password?: string | null;
+  share_type?: ShareType;
+  expires_at?: Date | null;
+  expires_seconds?: number;
+}
+
+export interface SharedResourceMeta {
+  id: string;
+  name: string;
+  resource_type: ResourceType;
+}
+
+export interface PublicShareInfo {
+  id: string;
+  all_resources: boolean;
+  resource: SharedResourceMeta;
 }

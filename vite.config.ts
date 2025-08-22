@@ -61,6 +61,23 @@ export default defineConfig(({ mode }) => {
             return path;
           },
         },
+        '^/s/[^/]+/[^/]+/attachments/[^/]+$': {
+          target:
+            process.env.VITE_API_PATH ??
+            env.VITE_API_PATH ??
+            'http://127.0.0.1:8000',
+          changeOrigin: true,
+          rewrite: path => {
+            const segments = path.split('/').filter(Boolean);
+            if (segments.length === 5 && segments[3] === 'attachments') {
+              const shareId = segments[1];
+              const resourceId = segments[2];
+              const attachmentId = segments[4];
+              return `/api/v1/shares/${shareId}/resources/${resourceId}/attachments/${attachmentId}`;
+            }
+            return path;
+          },
+        },
       },
     },
   };

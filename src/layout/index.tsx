@@ -25,8 +25,12 @@ export default function Layout() {
   const redirectUri = searchParams.get('redirect_uri');
   const state = searchParams.get('state');
   const responseType = searchParams.get('response_type');
+  const share_id = params.share_id;
 
   useEffect(() => {
+    if (share_id) {
+      return;
+    }
     if (localStorage.getItem('uid')) {
       if (clientId && redirectUri) {
         http

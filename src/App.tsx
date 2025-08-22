@@ -28,6 +28,9 @@ const GoogleAuthConfirmPage = lazy(
 );
 const OAuthConfirmPage = lazy(() => import('@/page/user/oauth-confirm'));
 
+const SharePage = lazy(() => import('@/page/share'));
+const SharedResourcePage = lazy(() => import('@/page/shared-resource'));
+
 const PrivacyPolicy = lazy(() => import('@/page/single/privacy-policy'));
 const TermsOfService = lazy(() => import('@/page/single/terms-of-service'));
 
@@ -115,6 +118,20 @@ const router = createBrowserRouter([
                 element: <ChatConversationPage />,
               },
             ],
+          },
+        ],
+      },
+      {
+        path: 's/:share_id',
+        element: <SharePage />,
+        children: [
+          {
+            index: true,
+            element: <SharedResourcePage />,
+          },
+          {
+            path: ':resource_id',
+            element: <SharedResourcePage />,
           },
         ],
       },

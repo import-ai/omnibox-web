@@ -237,12 +237,6 @@
     "grant_permission": "Before removing this permission, please grant 'Full Access' to someone else.",
     "you": "You"
   },
-  "share": {
-    "title": "Share",
-    "invite": "Invite",
-    "invite_success": "Invitation successful",
-    "invite_placeholder": "Email address or group, separated by commas"
-  },
   "copy": {
     "title": "Copy",
     "success": "Copied successfully",
@@ -379,5 +373,46 @@
   },
   "loading": "Loading...",
   "creating": "Creating...",
-  "create": "Create"
+  "create": "Create",
+  "share": {
+    "permissions": {
+      "title": "Permissions",
+      "invite": "Invite",
+      "invite_success": "Invitation successful",
+      "invite_placeholder": "Email address or group, separated by commas"
+    },
+    "share": {
+      "title": "Share",
+      "url_placeholder": "Published URL",
+      "save": "Save",
+      "all_resources": "All Resources",
+      "require_login": "Require login to view",
+      "ai_chat": "AI Chat",
+      "password": "Password",
+      "expire": {
+        "title": "Expiration",
+        "type": "Expiration Type",
+        "never": "Never",
+        "countdown": "Countdown",
+        "date": "Date"
+      },
+      "countdown": {
+        "unit": "Unit",
+        "seconds": "Seconds",
+        "minutes": "Minutes",
+        "hours": "Hours",
+        "days": "Days"
+      },
+      "share_type": {
+        "doc_only": "Document Only",
+        "chat_only": "Chat Only",
+        "all": "All"
+      }
+    }
+  },
+  "shared_resources": {
+    "password_required": "Password is required to view this resource.",
+    "incorrect_password": "Incorrect password",
+    "submit": "Submit"
+  }
 }
