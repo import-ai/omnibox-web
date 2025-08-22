@@ -18,8 +18,11 @@ export default function ChatInput(props: IProps) {
   };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
-      if (e.metaKey || e.ctrlKey) {
-        e.preventDefault();
+      e.preventDefault();
+      if (e.shiftKey || e.metaKey || e.ctrlKey) {
+        // @ts-ignore
+        e.target.value = e.target.value + '\n';
+      } else {
         onAction();
       }
     }
