@@ -11,6 +11,7 @@ export interface Task {
   status: string;
   function: string;
   created_at: string;
+  attrs: Record<string, any> | null;
   started_at: string | null;
   ended_at: string | null;
   canceled_at: string | null;
