@@ -9,14 +9,12 @@ export function getTime(resource: Resource | null) {
     return '';
   }
   if (resource.updated_at) {
-    return (
-      i18next.t('updated') +
-      ' ' +
-      formatDistanceToNow(new Date(resource.updated_at), {
+    return i18next.t('updated', {
+      related_updated_at: formatDistanceToNow(new Date(resource.updated_at), {
         addSuffix: true,
         locale: i18next.language === 'zh' ? zhCN : enUS,
-      })
-    );
+      }),
+    });
   }
   if (resource.created_at) {
     return (

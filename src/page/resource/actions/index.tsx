@@ -215,32 +215,20 @@ export default function Actions(props: IActionProps) {
         >
           {editPage ? (
             <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={handleSave}
-              >
+              <Button variant="ghost" size="sm" onClick={handleSave}>
                 <Save />
+                {t('header.actions.save')}
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={handleExitEdit}
-              >
+              <Button variant="ghost" size="sm" onClick={handleExitEdit}>
                 <PencilOff />
+                {t('header.actions.discard')}
               </Button>
             </>
           ) : (
             <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={handleEdit}
-              >
+              <Button variant="ghost" size="sm" onClick={handleEdit}>
                 <Pencil />
+                {t('header.actions.edit')}
               </Button>
             </>
           )}

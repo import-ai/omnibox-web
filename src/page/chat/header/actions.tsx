@@ -101,22 +101,14 @@ export default function Actions(props: IProps) {
   return (
     <div className="flex items-center gap-2 text-sm">
       {conversationsPage || conversationId ? (
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-7 w-7"
-          onClick={onChatCreate}
-        >
+        <Button variant="ghost" size="sm" onClick={onChatCreate}>
           <Plus />
+          {t('chat.conversations.new_chat')}
         </Button>
       ) : (
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-7 w-7"
-          onClick={onChatHistory}
-        >
+        <Button variant="ghost" size="sm" onClick={onChatHistory}>
           <History />
+          {t('chat.conversations.history')}
         </Button>
       )}
       {conversationId && (

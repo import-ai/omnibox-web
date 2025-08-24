@@ -1,3 +1,4 @@
+import { Share as ShareIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,8 @@ export default function Share() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-7 min-w-7">
+        <Button size="sm" variant="ghost">
+          <ShareIcon />
           {t('share.share.title')}
         </Button>
       </PopoverTrigger>
