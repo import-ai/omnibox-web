@@ -169,6 +169,11 @@ export default function ResourceTasks({
     return null;
   }
 
+  // If all tasks finished, display nothing
+  if (!hasActiveContentModifyingTasks(relevantTasks)) {
+    return null;
+  }
+
   return (
     <div className="flex items-center gap-3">
       <ListChecks className="size-4 text-muted-foreground" />
