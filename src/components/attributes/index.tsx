@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
+import ResourceTasks from '@/components/resource-tasks';
 import Tag from '@/components/tags';
 import { Resource } from '@/interface';
 import { http } from '@/lib/request';
@@ -11,10 +12,11 @@ import { http } from '@/lib/request';
 interface IProps {
   resource: Resource;
   namespaceId: string;
+  onResource?: (resource: Resource) => void;
 }
 
 export default function Attributes(props: IProps) {
-  const { resource, namespaceId } = props;
+  const { resource, namespaceId, onResource } = props;
   const { t } = useTranslation();
   const [download, onDownload] = useState(false);
 
@@ -30,6 +32,13 @@ export default function Attributes(props: IProps) {
           resourceId={resource.id}
           namespaceId={namespaceId}
         />
+        {onResource && (
+          <ResourceTasks
+            resource={resource}
+            namespaceId={namespaceId}
+            onResource={onResource}
+          />
+        )}
         <div className="flex items-center gap-3">
           <Link className="size-4 text-muted-foreground" />
           <span className="text-muted-foreground font-medium min-w-[80px]">
@@ -77,6 +86,13 @@ export default function Attributes(props: IProps) {
           resourceId={resource.id}
           namespaceId={namespaceId}
         />
+        {onResource && (
+          <ResourceTasks
+            resource={resource}
+            namespaceId={namespaceId}
+            onResource={onResource}
+          />
+        )}
         <div className="flex items-center gap-3">
           <File className="size-4 text-muted-foreground" />
           <span className="text-muted-foreground font-medium min-w-[80px]">
@@ -139,6 +155,13 @@ export default function Attributes(props: IProps) {
         resourceId={resource.id}
         namespaceId={namespaceId}
       />
+      {onResource && (
+        <ResourceTasks
+          resource={resource}
+          namespaceId={namespaceId}
+          onResource={onResource}
+        />
+      )}
       {/* {resource.user && (
         <div className="flex items-center gap-3">
           <User2 className="size-4 text-muted-foreground" />

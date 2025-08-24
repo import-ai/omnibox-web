@@ -32,7 +32,11 @@ export default function Page(props: IProps) {
       <h1 className="text-4xl font-bold mb-4 break-words">
         {resource.name || t('untitled')}
       </h1>
-      <Attributes namespaceId={namespaceId} resource={resource} />
+      <Attributes
+        namespaceId={namespaceId}
+        resource={resource}
+        onResource={onResource}
+      />
       {resource.resource_type === 'folder' ? (
         <Folder resource={resource} namespaceId={namespaceId} />
       ) : (

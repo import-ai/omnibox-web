@@ -337,6 +337,8 @@
   },
   "tasks": {
     "title": "Task Management",
+    "related_tasks": "Related Tasks",
+    "loading": "Loading tasks...",
     "function": "Task",
     "status": "Status",
     "created_at": "Created",

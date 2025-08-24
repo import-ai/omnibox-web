@@ -337,6 +337,8 @@
   },
   "tasks": {
     "title": "后台任务管理",
+    "related_tasks": "相关任务",
+    "loading": "加载任务中...",
     "function": "任务",
     "status": "状态",
     "created_at": "创建时间",
