@@ -337,7 +337,7 @@
   },
   "tasks": {
     "title": "后台任务管理",
-    "function": "功能",
+    "function": "任务",
     "status": "状态",
     "created_at": "创建时间",
     "started_at": "开始时间",
@@ -350,6 +350,7 @@
     "rerun_error": "任务重新运行失败",
     "fetch_error": "获取任务失败",
     "no_tasks": "暂无任务",
+    "view_resource": "查看文档",
     "status_pending": "等待",
     "status_running": "运行",
     "status_finished": "完成",

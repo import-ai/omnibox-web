@@ -337,7 +337,7 @@
   },
   "tasks": {
     "title": "Task Management",
-    "function": "Function",
+    "function": "Task",
     "status": "Status",
     "created_at": "Created",
     "started_at": "Started",
@@ -350,6 +350,7 @@
     "rerun_error": "Failed to re-run task",
     "fetch_error": "Failed to fetch tasks",
     "no_tasks": "No tasks found",
+    "view_resource": "View Resource",
     "status_pending": "Pending",
     "status_running": "Running",
     "status_finished": "Done",

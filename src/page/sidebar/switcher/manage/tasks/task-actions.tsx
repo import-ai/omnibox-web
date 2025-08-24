@@ -1,17 +1,24 @@
-import { RefreshCw, X } from 'lucide-react';
+import { ExternalLink, RefreshCw, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { http } from '@/lib/request';
+
+export interface TaskAttrs {
+  resource_id?: string;
+  message_id?: string;
+  conversation_id?: string;
+}
 
 export interface Task {
   id: string;
   status: string;
   function: string;
   created_at: string;
-  attrs: Record<string, any> | null;
+  attrs: TaskAttrs | null;
   started_at: string | null;
   ended_at: string | null;
   canceled_at: string | null;
@@ -64,6 +71,14 @@ export function TaskActions({
 
   return (
     <div className="flex gap-2">
+      {task.attrs?.resource_id && (
+        <Button size="sm" variant="outline" asChild>
+          <Link to={`/${namespaceId}/${task.attrs.resource_id}`}>
+            <ExternalLink className="h-4 w-4" />
+            {t('tasks.view_resource')}
+          </Link>
+        </Button>
+      )}
       {canCancel && (
         <Button
           size="sm"
