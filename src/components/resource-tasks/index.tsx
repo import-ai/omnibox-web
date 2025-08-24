@@ -1,13 +1,9 @@
-import { format, isValid } from 'date-fns';
-import { RefreshCw, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Resource } from '@/interface';
 import { http } from '@/lib/request';
-import { TaskStatusBadge } from '@/page/sidebar/switcher/manage/tasks/task-status-badge';
 
 interface TaskAttrs {
   resource_id?: string;
@@ -39,6 +35,13 @@ const CONTENT_MODIFYING_FUNCTIONS = [
   'generate_title',
 ];
 
+const DISPLAY_FUNCTIONS = [
+  'collect',
+  'file_reader',
+  'extract_tags',
+  'generate_title',
+];
+
 export default function ResourceTasks({
   resource,
   namespaceId,
@@ -49,17 +52,45 @@ export default function ResourceTasks({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const formatDate = (dateValue: string | null | undefined): string => {
-    if (!dateValue) return '-';
-    const date = new Date(dateValue);
-    if (!isValid(date)) return '-';
-    return format(date, 'yyyy-MM-dd HH:mm:ss');
-  };
-
   const formatFunction = (functionName: string): string => {
     const translationKey = `tasks.functions.${functionName}`;
     const translated = t(translationKey);
     return translated !== translationKey ? translated : functionName;
+  };
+
+  const getTaskBadgeConfig = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return {
+          variant: 'secondary' as const,
+          className: 'bg-gray-100 text-gray-800',
+        };
+      case 'running':
+        return {
+          variant: 'default' as const,
+          className: 'bg-blue-100 text-blue-800',
+        };
+      case 'finished':
+        return {
+          variant: 'default' as const,
+          className: 'bg-green-100 text-green-800',
+        };
+      case 'canceled':
+        return {
+          variant: 'outline' as const,
+          className: 'bg-yellow-100 text-yellow-800',
+        };
+      case 'error':
+        return {
+          variant: 'destructive' as const,
+          className: 'bg-red-100 text-red-800',
+        };
+      default:
+        return {
+          variant: 'secondary' as const,
+          className: 'bg-gray-100 text-gray-800',
+        };
+    }
   };
 
   const fetchTasks = async () => {
@@ -83,28 +114,6 @@ export default function ResourceTasks({
         CONTENT_MODIFYING_FUNCTIONS.includes(task.function) &&
         (task.status === 'running' || task.status === 'pending')
     );
-  };
-
-  const handleCancel = async (taskId: string) => {
-    try {
-      await http.patch(`/namespaces/${namespaceId}/tasks/${taskId}/cancel`);
-      toast.success(t('tasks.cancel_success'));
-      await fetchTasks();
-    } catch (error) {
-      toast.error(t('tasks.cancel_error'));
-      console.error('Cancel task error:', error);
-    }
-  };
-
-  const handleRerun = async (taskId: string) => {
-    try {
-      await http.post(`/namespaces/${namespaceId}/tasks/${taskId}/rerun`);
-      toast.success(t('tasks.rerun_success'));
-      await fetchTasks();
-    } catch (error) {
-      toast.error(t('tasks.rerun_error'));
-      console.error('Rerun task error:', error);
-    }
   };
 
   // Initial fetch
@@ -185,12 +194,13 @@ export default function ResourceTasks({
     return null;
   }
 
-  // Show only recent tasks (last 24 hours) or currently active tasks
+  // Show only tasks with specified functions that are recent or active
   const relevantTasks = tasks.filter(task => {
+    const isDisplayFunction = DISPLAY_FUNCTIONS.includes(task.function);
     const isActive = task.status === 'running' || task.status === 'pending';
     const isRecent =
       new Date(task.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000);
-    return isActive || isRecent;
+    return isDisplayFunction && (isActive || isRecent);
   });
 
   if (relevantTasks.length === 0) {
@@ -208,53 +218,19 @@ export default function ResourceTasks({
         )}
       </div>
 
-      <div className="space-y-1">
-        {relevantTasks.map(task => (
-          <div
-            key={task.id}
-            className="flex items-center gap-3 text-sm p-2 bg-muted/30 rounded"
-          >
-            <div className="flex-1 flex items-center gap-2">
-              <span className="font-medium min-w-[100px]">
-                {formatFunction(task.function)}
-              </span>
-              <TaskStatusBadge status={task.status as any} />
-              <span className="text-xs text-muted-foreground">
-                {task.started_at
-                  ? formatDate(task.started_at)
-                  : formatDate(task.created_at)}
-              </span>
-              {task.ended_at && (
-                <span className="text-xs text-muted-foreground">
-                  → {formatDate(task.ended_at)}
-                </span>
-              )}
-            </div>
-
-            <div className="flex gap-1">
-              {(task.status === 'running' || task.status === 'pending') && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleCancel(task.id)}
-                  className="h-6 w-6 p-0"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
-              {task.status === 'canceled' && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleRerun(task.id)}
-                  className="h-6 w-6 p-0"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
+      <div className="flex flex-wrap gap-2">
+        {relevantTasks.map(task => {
+          const config = getTaskBadgeConfig(task.status);
+          return (
+            <Badge
+              key={task.id}
+              variant={config.variant}
+              className={config.className}
+            >
+              {formatFunction(task.function)}
+            </Badge>
+          );
+        })}
       </div>
     </div>
   );
