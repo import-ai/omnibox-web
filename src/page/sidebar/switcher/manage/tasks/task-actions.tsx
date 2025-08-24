@@ -5,24 +5,8 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { Task } from '@/interface.ts';
 import { http } from '@/lib/request';
-
-export interface TaskAttrs {
-  resource_id?: string;
-  message_id?: string;
-  conversation_id?: string;
-}
-
-export interface Task {
-  id: string;
-  status: string;
-  function: string;
-  created_at: string;
-  attrs: TaskAttrs | null;
-  started_at: string | null;
-  ended_at: string | null;
-  canceled_at: string | null;
-}
 
 export interface TaskActionsProps {
   task: Task;

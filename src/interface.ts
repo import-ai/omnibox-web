@@ -231,3 +231,27 @@ export interface PublicShareInfo {
   all_resources: boolean;
   resource: SharedResourceMeta;
 }
+
+export type TaskStatus =
+  | 'pending'
+  | 'running'
+  | 'finished'
+  | 'canceled'
+  | 'error';
+
+export interface TaskAttrs {
+  resource_id?: string;
+  message_id?: string;
+  conversation_id?: string;
+}
+
+export interface Task {
+  id: string;
+  status: TaskStatus;
+  function: string;
+  created_at: string;
+  attrs: TaskAttrs | null;
+  started_at: string | null;
+  ended_at: string | null;
+  canceled_at: string | null;
+}

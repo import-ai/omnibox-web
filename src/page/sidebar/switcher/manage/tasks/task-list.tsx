@@ -11,9 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Task } from '@/interface';
 import { http } from '@/lib/request';
 
-import { Task, TaskActions } from './task-actions';
+import { TaskActions } from './task-actions';
 import { TaskStatusBadge } from './task-status-badge';
 
 export interface TaskListProps {

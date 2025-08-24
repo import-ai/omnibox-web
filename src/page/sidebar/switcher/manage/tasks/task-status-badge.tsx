@@ -1,12 +1,15 @@
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/components/ui/badge';
+import { TaskStatus } from '@/interface.ts';
 
-export interface TaskStatusBadgeProps {
-  status: 'pending' | 'running' | 'finished' | 'canceled' | 'error';
-}
-
-const statusConfig = {
+export const statusConfig: Record<
+  TaskStatus,
+  {
+    variant: 'default' | 'secondary' | 'destructive' | 'outline';
+    className: string;
+  }
+> = {
   pending: {
     variant: 'secondary' as const,
     className: 'bg-gray-100 text-gray-800',
@@ -29,7 +32,7 @@ const statusConfig = {
   },
 };
 
-export function TaskStatusBadge({ status }: TaskStatusBadgeProps) {
+export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   const { t } = useTranslation();
   const config = statusConfig[status];
 

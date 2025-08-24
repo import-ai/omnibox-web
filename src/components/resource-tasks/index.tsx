@@ -1,26 +1,11 @@
+import { ListChecks, LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/components/ui/badge';
-import { Resource } from '@/interface';
+import { Resource, Task, TaskStatus } from '@/interface';
 import { http } from '@/lib/request';
-
-interface TaskAttrs {
-  resource_id?: string;
-  message_id?: string;
-  conversation_id?: string;
-}
-
-interface Task {
-  id: string;
-  status: string;
-  function: string;
-  created_at: string;
-  attrs: TaskAttrs | null;
-  started_at: string | null;
-  ended_at: string | null;
-  canceled_at: string | null;
-}
+import { statusConfig } from '@/page/sidebar/switcher/manage/tasks/task-status-badge';
 
 interface ResourceTasksProps {
   resource: Resource;
@@ -35,12 +20,7 @@ const CONTENT_MODIFYING_FUNCTIONS = [
   'generate_title',
 ];
 
-const DISPLAY_FUNCTIONS = [
-  'collect',
-  'file_reader',
-  'extract_tags',
-  'generate_title',
-];
+const DISPLAY_FUNCTIONS = CONTENT_MODIFYING_FUNCTIONS;
 
 export default function ResourceTasks({
   resource,
@@ -58,39 +38,8 @@ export default function ResourceTasks({
     return translated !== translationKey ? translated : functionName;
   };
 
-  const getTaskBadgeConfig = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return {
-          variant: 'secondary' as const,
-          className: 'bg-gray-100 text-gray-800',
-        };
-      case 'running':
-        return {
-          variant: 'default' as const,
-          className: 'bg-blue-100 text-blue-800',
-        };
-      case 'finished':
-        return {
-          variant: 'default' as const,
-          className: 'bg-green-100 text-green-800',
-        };
-      case 'canceled':
-        return {
-          variant: 'outline' as const,
-          className: 'bg-yellow-100 text-yellow-800',
-        };
-      case 'error':
-        return {
-          variant: 'destructive' as const,
-          className: 'bg-red-100 text-red-800',
-        };
-      default:
-        return {
-          variant: 'secondary' as const,
-          className: 'bg-gray-100 text-gray-800',
-        };
-    }
+  const getTaskBadgeConfig = (status: TaskStatus) => {
+    return statusConfig[status];
   };
 
   const fetchTasks = async () => {
@@ -179,15 +128,28 @@ export default function ResourceTasks({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-        <div className="animate-spin h-3 w-3 border border-muted-foreground border-t-transparent rounded-full" />
-        {t('tasks.loading')}
+      <div className="flex items-center gap-3">
+        <ListChecks className="size-4 text-muted-foreground" />
+        <span className="text-muted-foreground font-medium min-w-[80px]">
+          {t('tasks.related_tasks')}
+        </span>
+        <span className="flex items-center text-foreground h-7">
+          <LoaderCircle className="transition-transform animate-spin" />
+        </span>
       </div>
     );
   }
 
   if (error) {
-    return <div className="text-sm text-red-600 mb-2">{error}</div>;
+    return (
+      <div className="flex items-center gap-3">
+        <ListChecks className="size-4 text-muted-foreground" />
+        <span className="text-muted-foreground font-medium min-w-[80px]">
+          {t('tasks.related_tasks')}
+        </span>
+        <span className="text-sm text-red-600">{error}</span>
+      </div>
+    );
   }
 
   if (tasks.length === 0) {
@@ -208,30 +170,30 @@ export default function ResourceTasks({
   }
 
   return (
-    <div className="space-y-2 mb-4">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-muted-foreground">
-          {t('tasks.related_tasks')}
+    <div className="flex items-center gap-3">
+      <ListChecks className="size-4 text-muted-foreground" />
+      <span className="text-muted-foreground font-medium min-w-[80px]">
+        {t('tasks.related_tasks')}
+      </span>
+      <span className="flex items-center text-foreground h-7">
+        <span className="flex gap-2">
+          {relevantTasks.map(task => {
+            const config = getTaskBadgeConfig(task.status);
+            return (
+              <Badge
+                key={task.id}
+                variant={config.variant}
+                className={config.className}
+              >
+                {formatFunction(task.function)}
+              </Badge>
+            );
+          })}
         </span>
         {hasActiveContentModifyingTasks(relevantTasks) && (
-          <div className="animate-spin h-3 w-3 border border-muted-foreground border-t-transparent rounded-full" />
+          <LoaderCircle className="ml-2 transition-transform animate-spin" />
         )}
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {relevantTasks.map(task => {
-          const config = getTaskBadgeConfig(task.status);
-          return (
-            <Badge
-              key={task.id}
-              variant={config.variant}
-              className={config.className}
-            >
-              {formatFunction(task.function)}
-            </Badge>
-          );
-        })}
-      </div>
+      </span>
     </div>
   );
 }
