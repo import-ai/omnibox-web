@@ -7,7 +7,7 @@
   "cancel": "Cancel",
   "ok": "OK",
   "undo": "Undo",
-  "updated": "Updated",
+  "updated": "Updated {{ related_updated_at }}",
   "created": "Created",
   "no_pages_inside": "No pages inside",
   "private": "Private",
@@ -17,7 +17,7 @@
   },
   "resource": {
     "folder": {
-      "children_count": "{{count}} files"
+      "children_count": "{{ count }} files"
     },
     "deleted": "Deleted",
     "deleted_description": "This resource has been deleted",
@@ -83,7 +83,7 @@
     "title": "Add members via invite link",
     "description": "Only members with invite permissions can view this content. You can also create a new link.",
     "receive_link": "Receive Link",
-    "join": "{{user}} invites you to join {{namespace}}",
+    "join": "{{ user }} invites you to join {{ namespace }}",
     "add": "Invite Member",
     "owner": "Workspace Owner",
     "member": "Member",
@@ -101,7 +101,7 @@
     "max": "At most 32 characters",
     "submit": "Save",
     "success": "Updated",
-    "member_count": "{{ size}} 名成员"
+    "member_count": "{{ size }} 名成员"
   },
   "login": {
     "logout": "Logout",
@@ -170,7 +170,7 @@
       "unbinding": "To be Connected",
       "unbind": "Unconnect",
       "unbind_confirm": "Are you sure you want to unbind this account?",
-      "confirm_unbind_description": "Are you sure you want to unbind your {{type}} account? After unbinding, you will not be able to log in with this account.",
+      "confirm_unbind_description": "Are you sure you want to unbind your {{ type }} account? After unbinding, you will not be able to log in with this account.",
       "unbind_success": "Successfully unbound",
       "confirm_unbind": "Confirm Unbind",
       "bind": "Connect"
@@ -193,7 +193,7 @@
     "add": "Add",
     "group_name": "Group Name",
     "submit": "Save",
-    "member_count": "{{ size}} members",
+    "member_count": "{{ size }} members",
     "remove_title": "Are you sure you want to delete this group?",
     "remove_desc": "All private pages in this group will be transferred to you.",
     "edit": "Edit",
@@ -259,7 +259,7 @@
         "option": "Delete",
         "dialog": {
           "title": "Delete conversation?",
-          "description": "All your <strong>{{title}}</strong> history will be deleted, This cannot be undo."
+          "description": "All your <strong>{{ title }}</strong> history will be deleted, This cannot be undo."
         }
       },
       "rename": {
@@ -271,10 +271,10 @@
     },
     "home": {
       "greeting": {
-        "morning": "Good morning, {{name}}",
-        "afternoon": "Good afternoon, {{name}}",
-        "evening": "Good evening, {{name}}",
-        "night": "Good night, {{name}}"
+        "morning": "Good morning, {{ name }}",
+        "afternoon": "Good afternoon, {{ name }}",
+        "evening": "Good evening, {{ name }}",
+        "night": "Good night, {{ name }}"
       }
     },
     "tools": {
@@ -337,7 +337,9 @@
   },
   "tasks": {
     "title": "Task Management",
-    "function": "Function",
+    "related_tasks": "Related Tasks",
+    "loading": "Loading tasks...",
+    "function": "Task",
     "status": "Status",
     "created_at": "Created",
     "started_at": "Started",
@@ -350,6 +352,7 @@
     "rerun_error": "Failed to re-run task",
     "fetch_error": "Failed to fetch tasks",
     "no_tasks": "No tasks found",
+    "view_resource": "View Resource",
     "status_pending": "Pending",
     "status_running": "Running",
     "status_finished": "Done",
@@ -414,5 +417,12 @@
     "password_required": "Password is required to view this resource.",
     "incorrect_password": "Incorrect password",
     "submit": "Submit"
+  },
+  "header": {
+    "actions": {
+      "edit": "Edit",
+      "save": "Save",
+      "discard": "Discard"
+    }
   }
 }

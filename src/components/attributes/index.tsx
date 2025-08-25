@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
+import ResourceTasks from '@/components/resource-tasks';
 import Tag from '@/components/tags';
 import { Resource } from '@/interface';
 import { http } from '@/lib/request';
@@ -11,10 +12,11 @@ import { http } from '@/lib/request';
 interface IProps {
   resource: Resource;
   namespaceId: string;
+  onResource?: (resource: Resource) => void;
 }
 
 export default function Attributes(props: IProps) {
-  const { resource, namespaceId } = props;
+  const { resource, namespaceId, onResource } = props;
   const { t } = useTranslation();
   const [download, onDownload] = useState(false);
 
@@ -64,6 +66,13 @@ export default function Attributes(props: IProps) {
               {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
             </span>
           </div>
+        )}
+        {onResource && (
+          <ResourceTasks
+            resource={resource}
+            namespaceId={namespaceId}
+            onResource={onResource}
+          />
         )}
       </div>
     );
@@ -128,6 +137,13 @@ export default function Attributes(props: IProps) {
             </span>
           </div>
         )}
+        {onResource && (
+          <ResourceTasks
+            resource={resource}
+            namespaceId={namespaceId}
+            onResource={onResource}
+          />
+        )}
       </div>
     );
   }
@@ -160,6 +176,13 @@ export default function Attributes(props: IProps) {
             {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
           </span>
         </div>
+      )}
+      {onResource && (
+        <ResourceTasks
+          resource={resource}
+          namespaceId={namespaceId}
+          onResource={onResource}
+        />
       )}
     </div>
   );
