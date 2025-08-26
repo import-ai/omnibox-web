@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Available } from '../available';
 import Google from '../google';
 import MetaPage from '../meta';
 import WeChat from '../wechat';
 import Scan from '../wechat/scan';
 import WrapperPage from '../wrapper';
-import { Available } from './available';
 import { LoginForm } from './form';
 
 export default function LoginPage() {
