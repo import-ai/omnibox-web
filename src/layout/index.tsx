@@ -1,13 +1,7 @@
 import axios from 'axios';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Outlet,
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Toaster } from '@/components/ui/sonner';
 import useTheme from '@/hooks/use-theme';
@@ -16,15 +10,10 @@ import { http } from '@/lib/request';
 export default function Layout() {
   const loc = useLocation();
   const params = useParams();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { i18n } = useTranslation();
   const { app, onToggleTheme } = useTheme();
   const namespace_id = params.namespace_id;
-  const clientId = searchParams.get('client_id');
-  const redirectUri = searchParams.get('redirect_uri');
-  const state = searchParams.get('state');
-  const responseType = searchParams.get('response_type');
   const share_id = params.share_id;
 
   useEffect(() => {
@@ -32,14 +21,10 @@ export default function Layout() {
       return;
     }
     if (localStorage.getItem('uid')) {
-      if (clientId && redirectUri) {
-        http
-          .get(
-            `/oauth2/authorize?response_type=${responseType}&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`
-          )
-          .then(response => {
-            location.href = response.redirect_url;
-          });
+      // Compatible with extension login
+      if (location.search === '?from=extension') {
+        localStorage.removeItem('uid');
+        localStorage.removeItem('token');
         return;
       }
       if (namespace_id) {
@@ -66,7 +51,7 @@ export default function Layout() {
         replace: true,
       });
     }
-  }, [clientId, redirectUri, namespace_id, loc.pathname]);
+  }, [namespace_id, loc.pathname]);
 
   useEffect(() => {
     if (!localStorage.getItem('uid')) {

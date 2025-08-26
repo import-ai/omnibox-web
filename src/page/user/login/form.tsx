@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import i18next from 'i18next';
 import { Lock, Mail } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -41,10 +41,6 @@ export function LoginForm({ className, children, ...props }: IProps) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
-  const clientId = params.get('client_id');
-  const redirectUri = params.get('redirect_uri');
-  const state = params.get('state');
-  const responseType = params.get('response_type');
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,16 +63,6 @@ export function LoginForm({ className, children, ...props }: IProps) {
       .post('login', data)
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
-        if (clientId && redirectUri) {
-          http
-            .get(
-              `/oauth2/authorize?response_type=${responseType}&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`
-            )
-            .then(response => {
-              location.href = response.redirect_url;
-            });
-          return;
-        }
         if (redirect) {
           location.href = decodeURIComponent(redirect);
         } else {
@@ -87,6 +73,13 @@ export function LoginForm({ className, children, ...props }: IProps) {
         setIsLoading(false);
       });
   };
+
+  useEffect(() => {
+    // Extension login flag, to support Google and WeChat login
+    if (location.search === '?from=extension') {
+      localStorage.setItem('extension_login', 'true');
+    }
+  }, []);
 
   return (
     <div className="flex flex-col gap-6 pt-10">
