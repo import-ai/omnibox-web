@@ -10,7 +10,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
-import { Resource } from '@/interface';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
@@ -34,9 +33,6 @@ export default function ContextMenuMain(props: IProps) {
   const { t } = useTranslation();
   const [moveTo, setMoveTo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const childrenItems = Array.isArray(data.children)
-    ? data.children.filter((item: Resource) => item.id !== 'empty')
-    : [];
   const handleCreateFile = () => {
     onCreate(spaceType, data.id, 'doc');
   };
@@ -117,7 +113,7 @@ export default function ContextMenuMain(props: IProps) {
           <ContextMenuItem className="cursor-pointer" onClick={handleEdit}>
             {t('edit')}
           </ContextMenuItem>
-          {childrenItems.length > 0 && (
+          {data.has_children && (
             <ContextMenuItem
               className="cursor-pointer"
               onClick={handleAddAllToChat}
