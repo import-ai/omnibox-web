@@ -80,21 +80,21 @@ export default function useContext() {
       return;
     }
 
-    // 如果正在收起，直接更新展开状态
+    // If collapsing, update expand state directly
     if (expands.includes(id)) {
       onExpands(expands.filter(item => item !== id));
       return;
     }
 
-    // 总是从后端获取最新数据，确保拖入后的资源能正确显示
+    // Always fetch latest data from backend to ensure resources dragged in are displayed correctly
     onExpanding(id);
 
-    // 保存当前的子数据（可能包含刚拖入的资源）
+    // Save current child data (may contain newly dragged-in resources)
     const existingChildren = data[spaceType].children.filter(
       item => item.parent_id === id
     );
 
-    // 清除该节点的现有子数据
+    // Remove existing child data for this node
     data[spaceType].children = data[spaceType].children.filter(
       item => item.parent_id !== id
     );
@@ -102,12 +102,12 @@ export default function useContext() {
     http
       .get(`/namespaces/${namespaceId}/resources/${id}/children`)
       .then(response => {
-        // 合并后端数据和前端已有数据，去重
+        // Merge backend data and existing frontend data, remove duplicates
         const allChildren = [...response];
         existingChildren.forEach(existingChild => {
           const exists = response.find(item => item.id === existingChild.id);
           if (!exists) {
-            // 如果后端没有返回这个资源，但前端有（可能是刚拖入的），保留前端数据
+            // If backend doesn't return this resource but frontend has it (maybe just dragged in), keep frontend data
             allChildren.push(existingChild);
           }
         });
@@ -181,7 +181,7 @@ export default function useContext() {
           node => ![node.id, node.parent_id].includes(id)
         );
 
-        // 更新父级的 has_children 字段
+        // Update parent's has_children field
         const parentIndex = data[spaceType].children.findIndex(
           item => item.id === parentId
         );
@@ -339,7 +339,7 @@ export default function useContext() {
           node => ![node.id, node.parent_id].includes(id)
         );
 
-        // 更新父级的 has_children 字段
+        // Update parent's has_children field
         const parentIndex = data[spaceType].children.findIndex(
           item => item.id === parentId
         );
@@ -422,30 +422,30 @@ export default function useContext() {
           );
         }
         if (targetKey === resourceKey) {
-          // 同一个space内移动
+          // Move within the same space
           data[resourceKey].children[resourceIndex].parent_id = targetId;
         } else {
-          // 跨space移动
+          // Move across spaces
           const resources = data[resourceKey].children.splice(resourceIndex, 1);
           resources[0].parent_id = targetId;
 
-          // 确保资源在目标space中显示
+          // Ensure resource is displayed in target space
           if (!data[targetKey].children) {
             data[targetKey].children = [];
           }
           data[targetKey].children.push(resources[0]);
         }
 
-        // 更新原父级的 has_children 字段
+        // Update original parent's has_children field
         if (oldParentId) {
           if (oldParentId === data[resourceKey].id) {
-            // 从根目录拖走，更新根目录的 has_children
+            // Dragged from root, update root's has_children
             const remainingChildren = data[resourceKey].children.filter(
               item => item.parent_id === oldParentId && item.id !== resourceId
             );
             data[resourceKey].has_children = remainingChildren.length > 0;
           } else {
-            // 从子文件夹拖走，更新子文件夹的 has_children
+            // Dragged from subfolder, update subfolder's has_children
             const oldParentIndex = data[resourceKey].children.findIndex(
               item => item.id === oldParentId
             );
@@ -459,12 +459,12 @@ export default function useContext() {
           }
         }
 
-        // 更新目标父级的 has_children 字段
+        // Update target parent's has_children field
         if (targetId === data[targetKey].id) {
-          // 拖拽到根目录，更新根目录的 has_children
+          // Dragged to root, update root's has_children
           data[targetKey].has_children = true;
         } else {
-          // 拖拽到子文件夹，更新子文件夹的 has_children
+          // Dragged to subfolder, update subfolder's has_children
           const targetParentIndex = data[targetKey].children.findIndex(
             item => item.id === targetId
           );
@@ -476,23 +476,23 @@ export default function useContext() {
         onExpands(expands => expands.filter(expand => expand !== resourceId));
         expandedRef.current = false;
 
-        // 自动展开目标文件夹
+        // Automatically expand target folder
         if (!expands.includes(targetId)) {
-          // 清空当前的expanding状态，确保handleExpand能正常执行
+          // Clear current expanding state to ensure handleExpand works
           onExpanding('');
-          // 使用setTimeout确保状态更新完成后再展开，并给后端一些时间处理
+          // Use setTimeout to ensure state updates before expanding, and give backend time to process
           setTimeout(() => {
-            // 如果拖动到根目录，不需要展开（根目录总是显示的）
+            // If dragged to root, no need to expand (root is always shown)
             if (targetId !== data[targetKey].id) {
               handleExpand(targetKey as SpaceType, targetId);
             } else {
-              // 拖动到根目录，直接标记为展开状态以显示资源
+              // Dragged to root, directly mark as expanded to show resource
               if (!expands.includes(targetId)) {
                 expands.push(targetId);
                 onExpands([...expands]);
               }
             }
-          }, 100); // 增加延迟，给后端时间处理移动操作
+          }, 100); // Add delay to give backend time to process move
         }
       })
     );
@@ -505,8 +505,8 @@ export default function useContext() {
       })
     );
     return () => {
-      each(hooks, destory => {
-        destory();
+      each(hooks, destroy => {
+        destroy();
       });
     };
   }, [data]);
