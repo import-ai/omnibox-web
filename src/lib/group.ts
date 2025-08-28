@@ -25,7 +25,12 @@ export default function group(node: IResourceData): IResourceData {
       roots.children.push(currentNode);
     } else {
       const parentNode = nodeMap.get(parent_id)!;
-      parentNode.children.push(currentNode);
+      if (parentNode) {
+        if (!Array.isArray(parentNode.children)) {
+          parentNode.children = [];
+        }
+        parentNode.children.push(currentNode);
+      }
     }
   });
 
