@@ -175,6 +175,8 @@ export default function Tree(props: ITreeProps) {
                   className={cn(
                     'flex cursor-pointer relative before:absolute before:content-[""] before:hidden before:left-[13px] before:right-[4px] before:h-[2px] before:bg-blue-500',
                     {
+                      'pl-1': data.has_children,
+                      'ml-4': !data.has_children,
                       'bg-sidebar-accent text-sidebar-accent-foreground':
                         (target && target.id === data.id) || isFileDragOver,
                     }
