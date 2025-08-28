@@ -79,34 +79,42 @@ export default function useContext() {
     if (expandedRef.current || expanding) {
       return;
     }
-    const target = getResourceByField(id, 'parent_id');
-    if (target) {
-      if (expands.includes(id)) {
-        onExpands(expands.filter(item => item !== id));
-      } else {
-        expands.push(id);
-        onExpands([...expands]);
-      }
+
+    // 如果正在收起，直接更新展开状态
+    if (expands.includes(id)) {
+      onExpands(expands.filter(item => item !== id));
       return;
     }
+
+    // 总是从后端获取最新数据，确保拖入后的资源能正确显示
     onExpanding(id);
+
+    // 保存当前的子数据（可能包含刚拖入的资源）
+    const existingChildren = data[spaceType].children.filter(
+      item => item.parent_id === id
+    );
+
+    // 清除该节点的现有子数据
+    data[spaceType].children = data[spaceType].children.filter(
+      item => item.parent_id !== id
+    );
+
     http
       .get(`/namespaces/${namespaceId}/resources/${id}/children`)
       .then(response => {
-        if (response.length <= 0) {
-          data[spaceType].children.push({
-            id: 'empty',
-            name: '',
-            parent_id: id,
-            children: [],
-            resource_type: 'file',
-            space_type: spaceType,
-          });
-        } else {
-          each(response, item => {
-            data[spaceType].children.push(item);
-          });
-        }
+        // 合并后端数据和前端已有数据，去重
+        const allChildren = [...response];
+        existingChildren.forEach(existingChild => {
+          const exists = response.find(item => item.id === existingChild.id);
+          if (!exists) {
+            // 如果后端没有返回这个资源，但前端有（可能是刚拖入的），保留前端数据
+            allChildren.push(existingChild);
+          }
+        });
+
+        each(allChildren, item => {
+          data[spaceType].children.push(item);
+        });
         onData({ ...data });
         expands.push(id);
         onExpands([...expands]);
@@ -172,6 +180,19 @@ export default function useContext() {
         data[spaceType].children = data[spaceType].children.filter(
           node => ![node.id, node.parent_id].includes(id)
         );
+
+        // 更新父级的 has_children 字段
+        const parentIndex = data[spaceType].children.findIndex(
+          item => item.id === parentId
+        );
+        if (parentIndex >= 0) {
+          const remainingChildren = data[spaceType].children.filter(
+            item => item.parent_id === parentId
+          );
+          data[spaceType].children[parentIndex].has_children =
+            remainingChildren.length > 0;
+        }
+
         onData({ ...data });
         if (routeToActive) {
           navigate(`/${namespaceId}/${routeToActive}`);
@@ -203,19 +224,32 @@ export default function useContext() {
     const resources = Array.isArray(resource) ? resource : [resource];
     resources.forEach(item => {
       if (!data[spaceType]) {
-        data[spaceType] = { ...item, children: [] };
+        data[spaceType] = {
+          ...item,
+          children: [],
+          has_children: false,
+        };
       } else {
         if (!Array.isArray(data[spaceType].children)) {
-          data[spaceType].children = [{ ...item, children: [] }];
+          data[spaceType].children = [
+            {
+              ...item,
+              children: [],
+              has_children: false,
+            },
+          ];
         } else {
           const index = data[spaceType].children.findIndex(
-            item => item.parent_id === parentId && item.id === 'empty'
+            item => item.id === parentId
           );
           if (index >= 0) {
-            data[spaceType].children[index] = { ...item, children: [] };
-          } else {
-            data[spaceType].children.push({ ...item, children: [] });
+            data[spaceType].children[index].has_children = true;
           }
+          data[spaceType].children.push({
+            ...item,
+            children: [],
+            has_children: false,
+          });
         }
       }
     });
@@ -304,6 +338,19 @@ export default function useContext() {
         data[spaceType].children = data[spaceType].children.filter(
           node => ![node.id, node.parent_id].includes(id)
         );
+
+        // 更新父级的 has_children 字段
+        const parentIndex = data[spaceType].children.findIndex(
+          item => item.id === parentId
+        );
+        if (parentIndex >= 0) {
+          const remainingChildren = data[spaceType].children.filter(
+            item => item.parent_id === parentId
+          );
+          data[spaceType].children[parentIndex].has_children =
+            remainingChildren.length > 0;
+        }
+
         onData({ ...data });
         if (routeToActive) {
           navigate(`/${namespaceId}/${routeToActive}`);
@@ -335,6 +382,7 @@ export default function useContext() {
         let resourceIndex = -1;
         let targetKey: SpaceType | '' = '';
         let resourceKey: SpaceType | '' = '';
+        let oldParentId = '';
         each(data, (items, key) => {
           if (Array.isArray(items.children) && items.children.length > 0) {
             const maybeResourceIndex = items.children.findIndex(
@@ -343,6 +391,7 @@ export default function useContext() {
             if (maybeResourceIndex >= 0) {
               resourceKey = key;
               resourceIndex = maybeResourceIndex;
+              oldParentId = items.children[maybeResourceIndex].parent_id;
             }
             const maybeTargetIndex = items.children.findIndex(
               (node: Resource) => node.id === targetId
@@ -357,12 +406,6 @@ export default function useContext() {
         });
         if (!targetKey || !resourceKey || resourceIndex < 0) {
           return;
-        }
-        const emptyTargetIndex = data[targetKey].children.findIndex(
-          item => item.parent_id === targetId && item.id === 'empty'
-        );
-        if (emptyTargetIndex >= 0) {
-          data[targetKey].children.splice(emptyTargetIndex, 1);
         }
         const resourceChildrenIdToRemove: Array<string> = [];
         each(data[resourceKey].children, item => {
@@ -379,25 +422,77 @@ export default function useContext() {
           );
         }
         if (targetKey === resourceKey) {
+          // 同一个space内移动
           data[resourceKey].children[resourceIndex].parent_id = targetId;
         } else {
+          // 跨space移动
           const resources = data[resourceKey].children.splice(resourceIndex, 1);
           resources[0].parent_id = targetId;
-          const emptyResourceIndex = data[resourceKey].children.findIndex(
-            item => item.parent_id === resources[0].id && item.id === 'empty'
-          );
-          if (emptyResourceIndex >= 0) {
-            data[resourceKey].children.splice(emptyResourceIndex, 1);
+
+          // 确保资源在目标space中显示
+          if (!data[targetKey].children) {
+            data[targetKey].children = [];
           }
-          // Do not update manually, as there may be other child elements
-          // data[targetKey].children.push(resources[0]);
+          data[targetKey].children.push(resources[0]);
+        }
+
+        // 更新原父级的 has_children 字段
+        if (oldParentId) {
+          if (oldParentId === data[resourceKey].id) {
+            // 从根目录拖走，更新根目录的 has_children
+            const remainingChildren = data[resourceKey].children.filter(
+              item => item.parent_id === oldParentId && item.id !== resourceId
+            );
+            data[resourceKey].has_children = remainingChildren.length > 0;
+          } else {
+            // 从子文件夹拖走，更新子文件夹的 has_children
+            const oldParentIndex = data[resourceKey].children.findIndex(
+              item => item.id === oldParentId
+            );
+            if (oldParentIndex >= 0) {
+              const remainingChildren = data[resourceKey].children.filter(
+                item => item.parent_id === oldParentId && item.id !== resourceId
+              );
+              data[resourceKey].children[oldParentIndex].has_children =
+                remainingChildren.length > 0;
+            }
+          }
+        }
+
+        // 更新目标父级的 has_children 字段
+        if (targetId === data[targetKey].id) {
+          // 拖拽到根目录，更新根目录的 has_children
+          data[targetKey].has_children = true;
+        } else {
+          // 拖拽到子文件夹，更新子文件夹的 has_children
+          const targetParentIndex = data[targetKey].children.findIndex(
+            item => item.id === targetId
+          );
+          if (targetParentIndex >= 0) {
+            data[targetKey].children[targetParentIndex].has_children = true;
+          }
         }
         onData({ ...data });
         onExpands(expands => expands.filter(expand => expand !== resourceId));
         expandedRef.current = false;
+
+        // 自动展开目标文件夹
         if (!expands.includes(targetId)) {
+          // 清空当前的expanding状态，确保handleExpand能正常执行
           onExpanding('');
-          handleExpand(targetKey as SpaceType, targetId);
+          // 使用setTimeout确保状态更新完成后再展开，并给后端一些时间处理
+          setTimeout(() => {
+            // 如果拖动到根目录，不需要展开（根目录总是显示的）
+            if (targetId !== data[targetKey].id) {
+              handleExpand(targetKey as SpaceType, targetId);
+            } else {
+              // 拖动到根目录，直接标记为展开状态以显示资源
+              if (!expands.includes(targetId)) {
+                expands.push(targetId);
+                onExpands([...expands]);
+              }
+            }
+          }, 100); // 增加延迟，给后端时间处理移动操作
         }
       })
     );
@@ -453,6 +548,9 @@ export default function useContext() {
         cancelToken: source.token,
       })
       .then(resource => {
+        if (!resource) {
+          return;
+        }
         const path = resource.path;
         if (!Array.isArray(path) || path.length <= 0) {
           return;
@@ -537,7 +635,18 @@ export default function useContext() {
       .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`, {
         cancelToken: source.token,
       })
-      .then(onData)
+      .then(items => {
+        const state: {
+          [index: string]: IResourceData;
+        } = {};
+        Object.keys(items).forEach(key => {
+          state[key] = {
+            has_children: true,
+            ...items[key],
+          };
+        });
+        onData(state);
+      })
       .finally(() => {
         onExpands([]);
       });

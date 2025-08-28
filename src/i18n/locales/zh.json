@@ -9,7 +9,6 @@
   "undo": "撤销",
   "updated": "{{ related_updated_at }}更新",
   "created": "已创建",
-  "no_pages_inside": "内无页面",
   "private": "私有",
   "teamspace": "团队",
   "upload": {

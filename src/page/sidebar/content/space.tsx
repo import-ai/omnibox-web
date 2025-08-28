@@ -41,6 +41,9 @@ export default function Space(props: ITreeProps) {
     spaceType,
     onCreate,
     onUpload,
+    onDrop,
+    target,
+    onTarget,
     fileDragTarget,
     onFileDragTarget,
   } = props;
@@ -48,6 +51,7 @@ export default function Space(props: ITreeProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
   const isDragOver = fileDragTarget === data.id;
+  const isResourceDragOver = target && target.id === data.id;
   const handleSelect = () => {
     fileInputRef.current?.click();
   };
@@ -60,35 +64,65 @@ export default function Space(props: ITreeProps) {
     });
   };
 
-  // File drop handling
+  // File and resource drop handling
   const [{ canDrop, isOver }, drop] = useDrop({
-    accept: [NativeTypes.FILE],
-    drop: (item: { files: File[] }, monitor) => {
+    accept: [NativeTypes.FILE, 'card'],
+    drop: (item, monitor) => {
       // Debounce: prevent multiple drop triggers
       if (monitor.didDrop()) {
         return;
       }
 
-      const validFiles = item.files.filter(file => isValidFileType(file.name));
-      if (validFiles.length > 0) {
-        const fileList = new DataTransfer();
-        validFiles.forEach(file => fileList.items.add(file));
-        onUpload(spaceType, data.id, fileList.files);
-      } else {
-        toast(t('upload.invalid_ext'), { position: 'bottom-right' });
+      const itemType = monitor.getItemType();
+      if (itemType === NativeTypes.FILE) {
+        // Handle file drop
+        const fileItem = item as { files: File[] };
+        const validFiles = fileItem.files.filter(file =>
+          isValidFileType(file.name)
+        );
+        if (validFiles.length > 0) {
+          const fileList = new DataTransfer();
+          validFiles.forEach(file => fileList.items.add(file));
+          onUpload(spaceType, data.id, fileList.files);
+        } else {
+          toast(t('upload.invalid_ext'), { position: 'bottom-right' });
+        }
+        onFileDragTarget(null);
+      } else if (itemType === 'card') {
+        // Handle resource drop to root directory
+        onDrop(item as IResourceData, data);
+        onTarget(null);
       }
-      onFileDragTarget(null);
     },
     collect: monitor => ({
       isOver: monitor.isOver({ shallow: true }),
       canDrop: monitor.canDrop(),
     }),
-    hover: (_item, monitor) => {
+    hover: (item, monitor) => {
       const isOverShallow = monitor.isOver({ shallow: true });
-      if (isOverShallow) {
-        onFileDragTarget(data.id);
+      const itemType = monitor.getItemType();
+
+      if (itemType === NativeTypes.FILE) {
+        if (isOverShallow) {
+          onFileDragTarget(data.id);
+        }
+        // Do not handle resource target for files
+        onTarget(null);
+      } else if (itemType === 'card') {
+        // Handle resource drag to root directory
+        onFileDragTarget(null);
+        if (!isOverShallow) {
+          onTarget(null);
+          return;
+        }
+        const dragId = (item as IResourceData).id;
+        // Prevent dropping on self (though root directory shouldn't have same id as dragged item)
+        if (dragId === data.id) {
+          onTarget(null);
+          return;
+        }
+        onTarget(data);
       }
-      // Do not clear here, let the isOver effect handle unified cleanup to avoid nested flicker
     },
   });
 
@@ -101,17 +135,22 @@ export default function Space(props: ITreeProps) {
 
   // Cleanup: when drag leaves this group (including its child nodes), ensure to clear highlight target
   useEffect(() => {
-    if (!isOver && fileDragTarget === data.id) {
-      onFileDragTarget(null);
+    if (!isOver) {
+      if (fileDragTarget === data.id) {
+        onFileDragTarget(null);
+      }
+      if (target && target.id === data.id) {
+        onTarget(null);
+      }
     }
-  }, [isOver, fileDragTarget, data.id, onFileDragTarget]);
+  }, [isOver, fileDragTarget, target, data.id, onFileDragTarget, onTarget]);
 
   return (
     <SidebarGroup
       ref={groupRef}
       className={cn({
         'bg-sidebar-border text-sidebar-accent-foreground':
-          isDragOver || (canDrop && isOver),
+          isDragOver || isResourceDragOver || (canDrop && isOver),
       })}
     >
       <div className="flex items-center justify-between">
@@ -159,7 +198,8 @@ export default function Space(props: ITreeProps) {
       </div>
       <SidebarGroupContent>
         <SidebarMenu className="gap-0">
-          {Array.isArray(data.children) &&
+          {data.has_children &&
+            Array.isArray(data.children) &&
             data.children.length > 0 &&
             data.children.map((item: IResourceData) => (
               <Tree {...props} data={item} key={item.id} />

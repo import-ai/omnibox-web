@@ -11,7 +11,10 @@ import { ISidebarProps } from '@/page/sidebar/interface';
 
 import Space from './space';
 
-export interface IProps extends Omit<ISidebarProps, 'spaceType'> {
+export interface IProps extends Omit<ISidebarProps, 'spaceType' | 'data'> {
+  data: {
+    [index: string]: IResourceData;
+  };
   onDrop: (item: IResourceData, target: IResourceData | null) => void;
 }
 

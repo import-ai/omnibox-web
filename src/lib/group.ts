@@ -2,9 +2,9 @@ import { orderBy } from 'lodash-es';
 
 import { IResourceData } from '@/interface';
 
-export default function group(node: IResourceData) {
+export default function group(node: IResourceData): IResourceData {
   if (!node) {
-    return {};
+    return {} as IResourceData;
   }
 
   const roots: IResourceData = {
