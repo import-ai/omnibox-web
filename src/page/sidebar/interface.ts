@@ -1,7 +1,7 @@
-import { ResourceType, SpaceType } from '@/interface';
+import { IResourceData, ResourceType, SpaceType } from '@/interface';
 
 export interface ISidebarProps {
-  data: any;
+  data: IResourceData;
   spaceType: SpaceType;
   activeKey?: string;
   resourceId: string;
