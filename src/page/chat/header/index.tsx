@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
+import { getWizardLang } from '@/lib/wizard-lang.ts';
 
 import Actions from './actions';
 import Title from './title';
@@ -60,6 +61,7 @@ export default function ChatHeader() {
           `/namespaces/${namespaceId}/conversations/${conversationId}/title`,
           {
             text,
+            lang: getWizardLang(),
           }
         )
         .then(res => {
