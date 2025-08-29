@@ -29,6 +29,7 @@ request.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers['From'] = 'web';
     if (!config.headers['Content-Type']) {
       config.headers['Content-Type'] = 'application/json';
     }
