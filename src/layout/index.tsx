@@ -22,7 +22,7 @@ export default function Layout() {
     if (!referrer || referrer.includes(location.hostname)) {
       return;
     }
-    track('visit_from', {
+    track('visit_web_from', {
       referrer,
     });
   }, []);

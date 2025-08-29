@@ -40,7 +40,11 @@ const eventStorage = new EventStorage();
 
 interface Attributes {
   once?: boolean;
-  [key: string]: any;
+  url?: string;
+  referrer?: string;
+  finger?: string;
+  section?: string;
+  language?: string;
 }
 
 export function track(event: string, payload: Attributes = {}) {
