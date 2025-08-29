@@ -29,13 +29,7 @@ request.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    const rawLanguage =
-      localStorage.getItem('i18nextLng') || navigator.language;
-    const language = rawLanguage.toLowerCase().startsWith('zh') ? 'zh' : 'en';
-    if (language) {
-      config.headers['X-Language'] = language;
-    }
-    config.headers['X-From'] = 'web';
+    config.headers['From'] = 'web';
     if (!config.headers['Content-Type']) {
       config.headers['Content-Type'] = 'application/json';
     }
