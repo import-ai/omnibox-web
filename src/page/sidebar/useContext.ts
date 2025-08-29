@@ -79,34 +79,42 @@ export default function useContext() {
     if (expandedRef.current || expanding) {
       return;
     }
-    const target = getResourceByField(id, 'parent_id');
-    if (target) {
-      if (expands.includes(id)) {
-        onExpands(expands.filter(item => item !== id));
-      } else {
-        expands.push(id);
-        onExpands([...expands]);
-      }
+
+    // If collapsing, update expand state directly
+    if (expands.includes(id)) {
+      onExpands(expands.filter(item => item !== id));
       return;
     }
+
+    // Always fetch latest data from backend to ensure resources dragged in are displayed correctly
     onExpanding(id);
+
+    // Save current child data (may contain newly dragged-in resources)
+    const existingChildren = data[spaceType].children.filter(
+      item => item.parent_id === id
+    );
+
+    // Remove existing child data for this node
+    data[spaceType].children = data[spaceType].children.filter(
+      item => item.parent_id !== id
+    );
+
     http
       .get(`/namespaces/${namespaceId}/resources/${id}/children`)
       .then(response => {
-        if (response.length <= 0) {
-          data[spaceType].children.push({
-            id: 'empty',
-            name: '',
-            parent_id: id,
-            children: [],
-            resource_type: 'file',
-            space_type: spaceType,
-          });
-        } else {
-          each(response, item => {
-            data[spaceType].children.push(item);
-          });
-        }
+        // Merge backend data and existing frontend data, remove duplicates
+        const allChildren = [...response];
+        existingChildren.forEach(existingChild => {
+          const exists = response.find(item => item.id === existingChild.id);
+          if (!exists) {
+            // If backend doesn't return this resource but frontend has it (maybe just dragged in), keep frontend data
+            allChildren.push(existingChild);
+          }
+        });
+
+        each(allChildren, item => {
+          data[spaceType].children.push(item);
+        });
         onData({ ...data });
         expands.push(id);
         onExpands([...expands]);
@@ -172,6 +180,19 @@ export default function useContext() {
         data[spaceType].children = data[spaceType].children.filter(
           node => ![node.id, node.parent_id].includes(id)
         );
+
+        // Update parent's has_children field
+        const parentIndex = data[spaceType].children.findIndex(
+          item => item.id === parentId
+        );
+        if (parentIndex >= 0) {
+          const remainingChildren = data[spaceType].children.filter(
+            item => item.parent_id === parentId
+          );
+          data[spaceType].children[parentIndex].has_children =
+            remainingChildren.length > 0;
+        }
+
         onData({ ...data });
         if (routeToActive) {
           navigate(`/${namespaceId}/${routeToActive}`);
@@ -203,19 +224,32 @@ export default function useContext() {
     const resources = Array.isArray(resource) ? resource : [resource];
     resources.forEach(item => {
       if (!data[spaceType]) {
-        data[spaceType] = { ...item, children: [] };
+        data[spaceType] = {
+          ...item,
+          children: [],
+          has_children: false,
+        };
       } else {
         if (!Array.isArray(data[spaceType].children)) {
-          data[spaceType].children = [{ ...item, children: [] }];
+          data[spaceType].children = [
+            {
+              ...item,
+              children: [],
+              has_children: false,
+            },
+          ];
         } else {
           const index = data[spaceType].children.findIndex(
-            item => item.parent_id === parentId && item.id === 'empty'
+            item => item.id === parentId
           );
           if (index >= 0) {
-            data[spaceType].children[index] = { ...item, children: [] };
-          } else {
-            data[spaceType].children.push({ ...item, children: [] });
+            data[spaceType].children[index].has_children = true;
           }
+          data[spaceType].children.push({
+            ...item,
+            children: [],
+            has_children: false,
+          });
         }
       }
     });
@@ -304,6 +338,19 @@ export default function useContext() {
         data[spaceType].children = data[spaceType].children.filter(
           node => ![node.id, node.parent_id].includes(id)
         );
+
+        // Update parent's has_children field
+        const parentIndex = data[spaceType].children.findIndex(
+          item => item.id === parentId
+        );
+        if (parentIndex >= 0) {
+          const remainingChildren = data[spaceType].children.filter(
+            item => item.parent_id === parentId
+          );
+          data[spaceType].children[parentIndex].has_children =
+            remainingChildren.length > 0;
+        }
+
         onData({ ...data });
         if (routeToActive) {
           navigate(`/${namespaceId}/${routeToActive}`);
@@ -335,6 +382,7 @@ export default function useContext() {
         let resourceIndex = -1;
         let targetKey: SpaceType | '' = '';
         let resourceKey: SpaceType | '' = '';
+        let oldParentId = '';
         each(data, (items, key) => {
           if (Array.isArray(items.children) && items.children.length > 0) {
             const maybeResourceIndex = items.children.findIndex(
@@ -343,6 +391,7 @@ export default function useContext() {
             if (maybeResourceIndex >= 0) {
               resourceKey = key;
               resourceIndex = maybeResourceIndex;
+              oldParentId = items.children[maybeResourceIndex].parent_id;
             }
             const maybeTargetIndex = items.children.findIndex(
               (node: Resource) => node.id === targetId
@@ -357,12 +406,6 @@ export default function useContext() {
         });
         if (!targetKey || !resourceKey || resourceIndex < 0) {
           return;
-        }
-        const emptyTargetIndex = data[targetKey].children.findIndex(
-          item => item.parent_id === targetId && item.id === 'empty'
-        );
-        if (emptyTargetIndex >= 0) {
-          data[targetKey].children.splice(emptyTargetIndex, 1);
         }
         const resourceChildrenIdToRemove: Array<string> = [];
         each(data[resourceKey].children, item => {
@@ -379,25 +422,77 @@ export default function useContext() {
           );
         }
         if (targetKey === resourceKey) {
+          // Move within the same space
           data[resourceKey].children[resourceIndex].parent_id = targetId;
         } else {
+          // Move across spaces
           const resources = data[resourceKey].children.splice(resourceIndex, 1);
           resources[0].parent_id = targetId;
-          const emptyResourceIndex = data[resourceKey].children.findIndex(
-            item => item.parent_id === resources[0].id && item.id === 'empty'
-          );
-          if (emptyResourceIndex >= 0) {
-            data[resourceKey].children.splice(emptyResourceIndex, 1);
+
+          // Ensure resource is displayed in target space
+          if (!data[targetKey].children) {
+            data[targetKey].children = [];
           }
-          // Do not update manually, as there may be other child elements
-          // data[targetKey].children.push(resources[0]);
+          data[targetKey].children.push(resources[0]);
+        }
+
+        // Update original parent's has_children field
+        if (oldParentId) {
+          if (oldParentId === data[resourceKey].id) {
+            // Dragged from root, update root's has_children
+            const remainingChildren = data[resourceKey].children.filter(
+              item => item.parent_id === oldParentId && item.id !== resourceId
+            );
+            data[resourceKey].has_children = remainingChildren.length > 0;
+          } else {
+            // Dragged from subfolder, update subfolder's has_children
+            const oldParentIndex = data[resourceKey].children.findIndex(
+              item => item.id === oldParentId
+            );
+            if (oldParentIndex >= 0) {
+              const remainingChildren = data[resourceKey].children.filter(
+                item => item.parent_id === oldParentId && item.id !== resourceId
+              );
+              data[resourceKey].children[oldParentIndex].has_children =
+                remainingChildren.length > 0;
+            }
+          }
+        }
+
+        // Update target parent's has_children field
+        if (targetId === data[targetKey].id) {
+          // Dragged to root, update root's has_children
+          data[targetKey].has_children = true;
+        } else {
+          // Dragged to subfolder, update subfolder's has_children
+          const targetParentIndex = data[targetKey].children.findIndex(
+            item => item.id === targetId
+          );
+          if (targetParentIndex >= 0) {
+            data[targetKey].children[targetParentIndex].has_children = true;
+          }
         }
         onData({ ...data });
         onExpands(expands => expands.filter(expand => expand !== resourceId));
         expandedRef.current = false;
+
+        // Automatically expand target folder
         if (!expands.includes(targetId)) {
+          // Clear current expanding state to ensure handleExpand works
           onExpanding('');
-          handleExpand(targetKey as SpaceType, targetId);
+          // Use setTimeout to ensure state updates before expanding, and give backend time to process
+          setTimeout(() => {
+            // If dragged to root, no need to expand (root is always shown)
+            if (targetId !== data[targetKey].id) {
+              handleExpand(targetKey as SpaceType, targetId);
+            } else {
+              // Dragged to root, directly mark as expanded to show resource
+              if (!expands.includes(targetId)) {
+                expands.push(targetId);
+                onExpands([...expands]);
+              }
+            }
+          }, 100); // Add delay to give backend time to process move
         }
       })
     );
@@ -410,8 +505,8 @@ export default function useContext() {
       })
     );
     return () => {
-      each(hooks, destory => {
-        destory();
+      each(hooks, destroy => {
+        destroy();
       });
     };
   }, [data]);
@@ -453,6 +548,9 @@ export default function useContext() {
         cancelToken: source.token,
       })
       .then(resource => {
+        if (!resource) {
+          return;
+        }
         const path = resource.path;
         if (!Array.isArray(path) || path.length <= 0) {
           return;
@@ -537,7 +635,18 @@ export default function useContext() {
       .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`, {
         cancelToken: source.token,
       })
-      .then(onData)
+      .then(items => {
+        const state: {
+          [index: string]: IResourceData;
+        } = {};
+        Object.keys(items).forEach(key => {
+          state[key] = {
+            has_children: true,
+            ...items[key],
+          };
+        });
+        onData(state);
+      })
       .finally(() => {
         onExpands([]);
       });

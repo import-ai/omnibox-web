@@ -12,7 +12,6 @@ import { Input } from '@/components/ui/input';
 import { SidebarMenuAction } from '@/components/ui/sidebar';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
-import { Resource } from '@/interface';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
@@ -32,9 +31,6 @@ export default function Action(props: ISidebarProps) {
   const { t } = useTranslation();
   const [moveTo, setMoveTo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const children = Array.isArray(data.children)
-    ? data.children.filter((item: Resource) => item.id !== 'empty')
-    : [];
   const handleCreateFile = () => {
     onCreate(spaceType, data.id, 'doc');
   };
@@ -123,7 +119,7 @@ export default function Action(props: ISidebarProps) {
           <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
             {t('edit')}
           </DropdownMenuItem>
-          {children.length > 0 && (
+          {data.has_children && (
             <DropdownMenuItem
               className="cursor-pointer"
               onClick={handleAddAllToChat}

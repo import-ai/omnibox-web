@@ -5,6 +5,7 @@ import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
@@ -151,21 +152,13 @@ export default function Tree(props: ITreeProps) {
     drop(ref);
   }, []);
 
-  if (data.id === 'empty') {
-    return (
-      <SidebarMenuItem>
-        <SidebarMenuButton disabled>{t('no_pages_inside')}</SidebarMenuButton>
-      </SidebarMenuItem>
-    );
-  }
-
   return (
     <SidebarMenuItem>
       <Collapsible
         open={expand}
         className={cn('group/collapsible', {
-          '[&[data-state=open]>span>div>div>svg:first-child]:rotate-90':
-            expand && expanding !== data.id,
+          '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
+            expand && expanding !== data.id && data.has_children,
         })}
       >
         <CollapsibleTrigger asChild>
@@ -180,26 +173,36 @@ export default function Tree(props: ITreeProps) {
                 <div
                   ref={ref}
                   style={dragStyle}
-                  className={cn(
-                    'flex cursor-pointer relative before:absolute before:content-[""] before:hidden before:left-[13px] before:right-[4px] before:h-[2px] before:bg-blue-500',
-                    {
-                      'bg-sidebar-accent text-sidebar-accent-foreground':
-                        (target && target.id === data.id) || isFileDragOver,
-                    }
-                  )}
+                  className={cn('flex list cursor-pointer', {
+                    'pl-1': data.has_children,
+                    'pl-8': !data.has_children,
+                    'bg-sidebar-accent text-sidebar-accent-foreground':
+                      (target && target.id === data.id) || isFileDragOver,
+                  })}
                 >
-                  {expanding === data.id ? (
-                    <LoaderCircle className="transition-transform animate-spin" />
-                  ) : (
-                    <ChevronRight
-                      className="transition-transform"
-                      onClick={event => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        handleExpand();
-                      }}
-                    />
-                  )}
+                  {data.has_children &&
+                    (expanding === data.id ? (
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-6 w-6 bg-transparent shadow-none border-none hover:bg-sidebar-border"
+                      >
+                        <LoaderCircle className="transition-transform animate-spin" />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-6 w-6 bg-transparent shadow-none border-none hover:bg-sidebar-border"
+                        onClick={event => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          handleExpand();
+                        }}
+                      >
+                        <ChevronRight className="transition-transform" />
+                      </Button>
+                    ))}
                   <Icon expand={expand} resource={data} />
                   <span className="truncate">{data.name || t('untitled')}</span>
                 </div>
@@ -210,7 +213,8 @@ export default function Tree(props: ITreeProps) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub className="pr-0 mr-0">
-            {Array.isArray(data.children) &&
+            {data.has_children &&
+              Array.isArray(data.children) &&
               data.children.length > 0 &&
               data.children.map((item: IResourceData) => (
                 <Tree {...props} data={item} key={item.id} />

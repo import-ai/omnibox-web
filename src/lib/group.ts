@@ -2,9 +2,9 @@ import { orderBy } from 'lodash-es';
 
 import { IResourceData } from '@/interface';
 
-export default function group(node: IResourceData) {
+export default function group(node: IResourceData): IResourceData {
   if (!node) {
-    return {};
+    return {} as IResourceData;
   }
 
   const roots: IResourceData = {
@@ -25,7 +25,12 @@ export default function group(node: IResourceData) {
       roots.children.push(currentNode);
     } else {
       const parentNode = nodeMap.get(parent_id)!;
-      parentNode.children.push(currentNode);
+      if (parentNode) {
+        if (!Array.isArray(parentNode.children)) {
+          parentNode.children = [];
+        }
+        parentNode.children.push(currentNode);
+      }
     }
   });
 
