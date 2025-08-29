@@ -47,22 +47,26 @@ interface Attributes {
   language?: string;
 }
 
-export function track(event: string, payload: Attributes = {}) {
-  const { once = false, ...attributes } = payload;
+export function track(name: string, payload: Attributes = {}) {
+  const { once = false, ...props } = payload;
 
   // Handle different "once" modes
-  if (once && eventStorage.isEventTracked(event)) {
+  if (once && eventStorage.isEventTracked(name)) {
     return;
   }
 
   http
-    .post('/track', {
-      event,
-      attributes,
+    .post('/trace', {
+      events: [
+        {
+          name,
+          props,
+        },
+      ],
     })
     .then(() => {
       if (once) {
-        eventStorage.markEventAsTracked(event);
+        eventStorage.markEventAsTracked(name);
       }
     })
     .catch(err => {

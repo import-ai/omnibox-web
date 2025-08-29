@@ -24,6 +24,8 @@ export default function Layout() {
     }
     track('visit_web_from', {
       referrer,
+      url: location.href,
+      language: localStorage.getItem('i18nextLng') || navigator.language,
     });
   }, []);
 
