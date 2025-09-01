@@ -36,4 +36,5 @@ export interface ChatRequestBody {
   tools?: ChatTool[];
   parent_message_id?: string;
   enable_thinking: boolean;
+  lang?: '简体中文' | 'English';
 }
