@@ -3,6 +3,7 @@ import { Clock, File, Link } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Metadata } from '@/components/attributes/metadata.tsx';
 import { Button } from '@/components/button';
 import ResourceTasks from '@/components/resource-tasks';
 import Tag from '@/components/tags';
@@ -74,6 +75,9 @@ export default function Attributes(props: IProps) {
             onResource={onResource}
           />
         )}
+        {resource.attrs?.metadata && (
+          <Metadata metadata={resource.attrs.metadata}></Metadata>
+        )}
       </div>
     );
   }
@@ -144,6 +148,9 @@ export default function Attributes(props: IProps) {
             onResource={onResource}
           />
         )}
+        {resource.attrs?.metadata && (
+          <Metadata metadata={resource.attrs.metadata}></Metadata>
+        )}
       </div>
     );
   }
@@ -183,6 +190,9 @@ export default function Attributes(props: IProps) {
           namespaceId={namespaceId}
           onResource={onResource}
         />
+      )}
+      {resource.attrs?.metadata && (
+        <Metadata metadata={resource.attrs.metadata}></Metadata>
       )}
     </div>
   );

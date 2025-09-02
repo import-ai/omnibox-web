@@ -1,3 +1,4 @@
+import { getWizardLang } from '@/lib/wizard-lang';
 import {
   ChatMode,
   type IResTypeContext,
@@ -38,6 +39,7 @@ export function prepareBody(
     conversation_id: conversationId,
     query,
     enable_thinking: false,
+    lang: getWizardLang(),
   };
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
