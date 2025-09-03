@@ -148,7 +148,7 @@
     "description": "请输入发送到您邮箱的验证码",
     "send_success": "发送验证码成功，请检查邮件",
     "code": "验证码",
-    "code_limit": "6位数字验证码"
+    "code_limit": "6 位验证码"
   },
   "setting": {
     "title": "设置",
