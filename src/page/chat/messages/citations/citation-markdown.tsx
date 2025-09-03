@@ -42,10 +42,13 @@ export function replaceCiteTag(input: string): string {
 
 function copyPreprocess(content: string, citations: Citation[]): string {
   let citationsFooter: string = '';
+  const origin = location.origin;
+  const namespace = location.pathname.split('/')[1] || 'default';
   for (let i = 0; i < citations.length; i++) {
     const citation = citations[i];
     const title = citation.title.replace('"', '\\"');
-    citationsFooter += `[${i + 1}]: ${citation.link} "${title}"\n`;
+    const link = `${origin}/${namespace}/${citation.link}`;
+    citationsFooter += `[${i + 1}]: ${link} "${title}"\n`;
   }
 
   if (citationsFooter) {
