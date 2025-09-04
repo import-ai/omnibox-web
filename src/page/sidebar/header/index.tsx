@@ -33,7 +33,7 @@ export function Header(props: IProps) {
     <>
       <SearchMenu open={search} onOpenChange={setSearch} />
       <SidebarMenu>
-        <SidebarMenuItem>
+        <SidebarMenuItem className="group">
           <SidebarMenuButton asChild isActive={active}>
             <div className="flex cursor-pointer" onClick={onChat}>
               <Sparkles className="w-4 h-4" />
@@ -44,7 +44,7 @@ export function Header(props: IProps) {
             size="icon"
             variant="ghost"
             onClick={onChatHistory}
-            className="p-0 w-5 h-5 [&_svg]:size-4 absolute top-[6px] z-10 right-0 focus-visible:outline-none focus-visible:ring-transparent"
+            className="p-0 w-5 h-5 [&_svg]:size-4 absolute top-[6px] z-10 right-0 focus-visible:outline-none focus-visible:ring-transparent opacity-0 group-hover:opacity-100"
           >
             <History className="focus-visible:outline-none focus-visible:ring-transparent" />
           </Button>
