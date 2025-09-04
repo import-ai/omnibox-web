@@ -134,7 +134,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
             <span className="text-sm">{t('share.share.ai_chat')}</span>
             <ShareTypeSelector
               disabled={!shareInfo?.enabled}
-              shareType={shareInfo?.share_type || 'all'}
+              shareType={shareInfo?.share_type || 'doc_only'}
               onChange={handleShareTypeChange}
             />
           </div>
