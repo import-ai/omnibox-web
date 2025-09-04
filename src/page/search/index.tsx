@@ -127,8 +127,17 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                   onOpenChange(false);
                 }}
               >
-                <File className="size-4 text-muted-foreground" />
-                {resource.title}
+                <div className="flex flex-col items-start w-full">
+                  <div className="flex items-center gap-2">
+                    <File className="size-4 text-muted-foreground" />
+                    <div className="font-medium">{resource.title}</div>
+                  </div>
+                  {resource.content && (
+                    <div className="text-sm text-muted-foreground ml-6">
+                      {resource.content}
+                    </div>
+                  )}
+                </div>
               </CommandItem>
             ))}
           </CommandGroup>

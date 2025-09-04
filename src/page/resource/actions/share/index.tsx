@@ -11,7 +11,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 import ShareTabs from './tabs';
 
-export default function Share() {
+export interface ShareActionProps {
+  spaceType: string;
+}
+
+export default function ShareAction(props: ShareActionProps) {
+  const { spaceType } = props;
   const { t } = useTranslation();
   const isMobile = useIsMobile();
 
@@ -29,7 +34,7 @@ export default function Share() {
         alignOffset={isMobile ? 0 : -106}
         className="w-full sm:w-[456px] p-0 overflow-hidden"
       >
-        <ShareTabs />
+        <ShareTabs showPermissions={spaceType === 'teamspace'} />
       </PopoverContent>
     </Popover>
   );
