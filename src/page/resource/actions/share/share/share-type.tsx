@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ShareType, ShareTypes, shareTypeToString } from '@/interface';
+import { ShareType, shareTypeToString } from '@/interface';
 
 export interface ShareTypeProps {
   disabled?: boolean;
@@ -17,6 +17,7 @@ export interface ShareTypeProps {
 
 export function ShareTypeSelector(props: ShareTypeProps) {
   const { disabled, shareType, onChange } = props;
+  const shareTypes = ['doc_only' as ShareType];
 
   return (
     <Select disabled={disabled} value={shareType} onValueChange={onChange}>
@@ -24,7 +25,7 @@ export function ShareTypeSelector(props: ShareTypeProps) {
         <SelectValue placeholder={t('share.share.ai_chat')} />
       </SelectTrigger>
       <SelectContent>
-        {ShareTypes.map(type => (
+        {shareTypes.map(type => (
           <SelectItem value={type}>{shareTypeToString(type)}</SelectItem>
         ))}
       </SelectContent>
