@@ -45,7 +45,7 @@ import { uploadFiles } from '@/lib/upload-files';
 import { getTime } from '@/page/resource/utils';
 
 import MoveTo from './move';
-import Share from './share';
+import ShareAction from './share';
 
 export interface IActionProps extends IUseResource {
   wide: boolean;
@@ -202,9 +202,9 @@ export default function Actions(props: IActionProps) {
               ? resource.current_permission
               : 'full_access'
           }
-          spaceType={resource.space_type}
+          // spaceType={resource.space_type}
         >
-          <Share />
+          <ShareAction spaceType={resource.space_type} />
         </PermissionWrapper>
       )}
       {resource && (

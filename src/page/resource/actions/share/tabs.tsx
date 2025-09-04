@@ -7,21 +7,28 @@ import Invite from './permissions/invite';
 import Table from './permissions/table';
 import { ShareTabContent } from './share';
 
-export default function ShareTabs() {
+export interface ShareTabsProps {
+  showPermissions?: boolean;
+}
+
+export default function ShareTabs(props: ShareTabsProps) {
+  const { showPermissions } = props;
   const { t } = useTranslation();
   const params = useParams();
   const resource_id = params.resource_id || '';
   const namespace_id = params.namespace_id || '';
 
   return (
-    <Tabs defaultValue="permissions">
+    <Tabs defaultValue={showPermissions ? 'permissions' : 'share'}>
       <TabsList className="w-full justify-start h-11 border-b rounded-none px-5">
-        <TabsTrigger
-          value="permissions"
-          className="flex-1 h-11 max-w-[80px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
-        >
-          {t('share.permissions.title')}
-        </TabsTrigger>
+        {showPermissions && (
+          <TabsTrigger
+            value="permissions"
+            className="flex-1 h-11 max-w-[80px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
+          >
+            {t('share.permissions.title')}
+          </TabsTrigger>
+        )}
         <TabsTrigger
           value="share"
           className="flex-1 h-11 max-w-[80px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
