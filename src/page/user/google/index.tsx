@@ -16,7 +16,15 @@ export default function Google() {
     http
       .get('/google/auth-url')
       .then(authUrl => {
-        window.open(authUrl, 'googleLogin', 'width=500,height=600');
+        const width = 500;
+        const height = 600;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+        window.open(
+          authUrl,
+          'googleLogin',
+          `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+        );
       })
       .catch(error => {
         toast.error(error.message, { position: 'bottom-right' });
