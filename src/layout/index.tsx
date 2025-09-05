@@ -6,6 +6,7 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import useTheme from '@/hooks/use-theme';
 import { http } from '@/lib/request';
+import { track } from '@/lib/send-track-event';
 
 export default function Layout() {
   const loc = useLocation();
@@ -15,6 +16,18 @@ export default function Layout() {
   const { app, onToggleTheme } = useTheme();
   const namespace_id = params.namespace_id;
   const share_id = params.share_id;
+
+  useEffect(() => {
+    const referrer = document.referrer;
+    if (!referrer || referrer.includes(location.hostname)) {
+      return;
+    }
+    track('visit_web_from', {
+      referrer,
+      url: location.href,
+      language: localStorage.getItem('i18nextLng') || navigator.language,
+    });
+  }, []);
 
   useEffect(() => {
     if (share_id) {
