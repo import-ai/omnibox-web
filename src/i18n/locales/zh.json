@@ -180,6 +180,10 @@
     "title": "应用管理",
     "description": "管理你的应用集成和绑定",
     "empty": "暂无应用",
+    "app_names": {
+      "wechat_bot": "微信机器人"
+    },
+    "unsupported_app": "不支持的应用类型：{{ app_id }}",
     "status": {
       "bound": "已连接",
       "unbound": "未连接",

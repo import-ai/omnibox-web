@@ -26,6 +26,20 @@ import { BindDialog } from './bind-dialog';
 
 type ApplicationState = 'unbound' | 'binding_in_progress' | 'bound';
 
+function getLocalizedAppName(appId: string, t: any): string {
+  const appName = t(`applications.app_names.${appId}`, { defaultValue: '' });
+  if (!appName) {
+    throw new Error(t('applications.unsupported_app', { app_id: appId }));
+  }
+  return appName;
+}
+
+function validateAppId(appId: string): void {
+  if (appId !== 'wechat_bot') {
+    throw new Error(`Unsupported application type: ${appId}`);
+  }
+}
+
 function getApplicationState(application: Application): ApplicationState {
   if (!application.id) {
     return 'unbound';
@@ -133,13 +147,31 @@ export function ApplicationsForm() {
           applications.map((application: Application) => {
             const state = getApplicationState(application);
 
+            let appDisplayName: string;
+            let hasError = false;
+
+            try {
+              validateAppId(application.app_id);
+              appDisplayName = getLocalizedAppName(application.app_id, t);
+            } catch {
+              appDisplayName = application.app_id;
+              hasError = true;
+            }
+
             return (
               <Card key={application.app_id}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-semibold">{application.app_id}</h4>
+                        <h4 className="font-semibold">{appDisplayName}</h4>
+                        {hasError && (
+                          <Badge variant="destructive" className="text-red-600">
+                            {t('applications.unsupported_app', {
+                              app_id: application.app_id,
+                            })}
+                          </Badge>
+                        )}
                         {state === 'bound' && (
                           <Badge variant="secondary" className="text-green-600">
                             <Link className="size-3 mr-1" />
@@ -161,7 +193,13 @@ export function ApplicationsForm() {
                       </div>
                     </div>
 
-                    {state === 'bound' ? (
+                    {hasError ? (
+                      <Button variant="outline" size="sm" disabled>
+                        {t('applications.unsupported_app', {
+                          app_id: application.app_id,
+                        })}
+                      </Button>
+                    ) : state === 'bound' ? (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="sm">
@@ -175,7 +213,7 @@ export function ApplicationsForm() {
                             </AlertDialogTitle>
                             <AlertDialogDescription>
                               {t('applications.unbind.confirm.description', {
-                                name: application.app_id,
+                                name: appDisplayName,
                               })}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
@@ -222,7 +260,7 @@ export function ApplicationsForm() {
                                 {t(
                                   'applications.bind.cancel.confirm.description',
                                   {
-                                    name: application.app_id,
+                                    name: appDisplayName,
                                   }
                                 )}
                               </AlertDialogDescription>

@@ -180,6 +180,10 @@
     "title": "Application Management",
     "description": "Manage your application integrations and bindings",
     "empty": "No applications found",
+    "app_names": {
+      "wechat_bot": "WeChat Bot"
+    },
+    "unsupported_app": "Unsupported application type: {{ app_id }}",
     "status": {
       "bound": "Connected",
       "unbound": "Not Connected",
