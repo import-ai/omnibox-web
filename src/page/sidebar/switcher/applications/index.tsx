@@ -1,4 +1,4 @@
-import { Link, LoaderCircle, Unlink } from 'lucide-react';
+import { Clock, Link, LoaderCircle, Unlink } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -24,6 +24,24 @@ import { Application } from '@/interface';
 
 import { BindDialog } from './bind-dialog';
 
+type ApplicationState = 'unbound' | 'binding_in_progress' | 'bound';
+
+function getApplicationState(application: Application): ApplicationState {
+  if (!application.id) {
+    return 'unbound';
+  }
+
+  if (application.attrs?.verify_code && !application.api_key_id) {
+    return 'binding_in_progress';
+  }
+
+  if (application.api_key_id) {
+    return 'bound';
+  }
+
+  return 'unbound';
+}
+
 export function ApplicationsForm() {
   const { t } = useTranslation();
   const params = useParams();
@@ -40,10 +58,20 @@ export function ApplicationsForm() {
   const handleBind = async (application: Application) => {
     try {
       setBindingLoading(true);
-      const response = await bindApplication(application.app_id);
-      setBindingCode(response.attrs.verify_code);
-      setBindDialogOpen(true);
-      toast.success(t('applications.bind.initiated'));
+
+      // Check if there's already a verify_code in progress
+      if (application.attrs?.verify_code) {
+        // Use existing verify_code
+        setBindingCode(application.attrs.verify_code);
+        setBindDialogOpen(true);
+        toast.success(t('applications.bind.continue'));
+      } else {
+        // Start new binding process
+        const response = await bindApplication(application.app_id);
+        setBindingCode(response.attrs.verify_code);
+        setBindDialogOpen(true);
+        toast.success(t('applications.bind.initiated'));
+      }
     } catch (error: any) {
       toast.error(error.message || t('applications.bind.error'));
     } finally {
@@ -89,76 +117,94 @@ export function ApplicationsForm() {
             </CardContent>
           </Card>
         ) : (
-          applications.map((application: Application) => (
-            <Card key={application.id}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold">{application.app_id}</h4>
-                      {application.id ? (
-                        <Badge variant="secondary" className="text-green-600">
-                          <Link className="size-3 mr-1" />
-                          {t('applications.status.bound')}
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-red-600">
-                          <Unlink className="size-3 mr-1" />
-                          {t('applications.status.unbound')}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
+          applications.map((application: Application) => {
+            const state = getApplicationState(application);
 
-                  {application.id ? (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          {t('applications.unbind.button')}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {t('applications.unbind.confirm.title')}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t('applications.unbind.confirm.description', {
-                              name: application.app_id,
-                            })}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                          <AlertDialogAction
-                            disabled={unbindingLoading}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            onClick={() => handleUnbind(application)}
-                          >
-                            {unbindingLoading && (
-                              <LoaderCircle className="size-4 mr-2 animate-spin" />
-                            )}
-                            {t('applications.unbind.confirm.button')}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  ) : (
-                    <Button
-                      size="sm"
-                      onClick={() => handleBind(application)}
-                      disabled={bindingLoading}
-                    >
-                      {bindingLoading && (
-                        <LoaderCircle className="size-4 mr-2 animate-spin" />
-                      )}
-                      {t('applications.bind.button')}
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))
+            return (
+              <Card key={application.app_id}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold">{application.app_id}</h4>
+                        {state === 'bound' && (
+                          <Badge variant="secondary" className="text-green-600">
+                            <Link className="size-3 mr-1" />
+                            {t('applications.status.bound')}
+                          </Badge>
+                        )}
+                        {state === 'binding_in_progress' && (
+                          <Badge variant="secondary" className="text-amber-600">
+                            <Clock className="size-3 mr-1" />
+                            {t('applications.status.binding_in_progress')}
+                          </Badge>
+                        )}
+                        {state === 'unbound' && (
+                          <Badge variant="secondary" className="text-red-600">
+                            <Unlink className="size-3 mr-1" />
+                            {t('applications.status.unbound')}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {state === 'bound' ? (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            {t('applications.unbind.button')}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              {t('applications.unbind.confirm.title')}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t('applications.unbind.confirm.description', {
+                                name: application.app_id,
+                              })}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                            <AlertDialogAction
+                              disabled={unbindingLoading}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => handleUnbind(application)}
+                            >
+                              {unbindingLoading && (
+                                <LoaderCircle className="size-4 mr-2 animate-spin" />
+                              )}
+                              {t('applications.unbind.confirm.button')}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={() => handleBind(application)}
+                        disabled={bindingLoading}
+                        variant={
+                          state === 'binding_in_progress'
+                            ? 'outline'
+                            : 'default'
+                        }
+                      >
+                        {bindingLoading && (
+                          <LoaderCircle className="size-4 mr-2 animate-spin" />
+                        )}
+                        {state === 'binding_in_progress'
+                          ? t('applications.bind.continue_button')
+                          : t('applications.bind.button')}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
 

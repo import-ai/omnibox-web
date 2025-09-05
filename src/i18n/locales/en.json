@@ -182,10 +182,12 @@
     "empty": "No applications found",
     "status": {
       "bound": "Connected",
-      "unbound": "Not Connected"
+      "unbound": "Not Connected",
+      "binding_in_progress": "Pending Verification"
     },
     "bind": {
       "button": "Bind",
+      "continue_button": "Continue Binding",
       "title": "Bind Application",
       "description": "Follow these steps to connect your application",
       "step1": "Step 1: Add WeChat Bot",
@@ -193,6 +195,7 @@
       "code_label": "Binding Code:",
       "code_instruction": "Send this code to the WeChat bot to complete the binding",
       "initiated": "Binding process initiated",
+      "continue": "Continuing binding process",
       "error": "Failed to initiate binding"
     },
     "unbind": {
