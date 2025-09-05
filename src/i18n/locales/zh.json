@@ -196,7 +196,16 @@
       "code_instruction": "将此代码发送给微信机器人以完成绑定",
       "initiated": "绑定流程已启动",
       "continue": "继续绑定流程",
-      "error": "启动绑定失败"
+      "error": "启动绑定失败",
+      "cancel_button": "取消绑定",
+      "cancel": {
+        "confirm": {
+          "title": "取消绑定",
+          "description": "确定要取消 {{ name }} 的绑定流程吗？",
+          "button": "取消"
+        },
+        "success": "已成功取消绑定"
+      }
     },
     "unbind": {
       "button": "解绑",

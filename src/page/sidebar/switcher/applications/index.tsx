@@ -52,6 +52,7 @@ export function ApplicationsForm() {
 
   const [bindingLoading, setBindingLoading] = useState(false);
   const [unbindingLoading, setUnbindingLoading] = useState(false);
+  const [cancelingLoading, setCancelingLoading] = useState(false);
   const [bindDialogOpen, setBindDialogOpen] = useState(false);
   const [bindingCode, setBindingCode] = useState('');
 
@@ -88,6 +89,18 @@ export function ApplicationsForm() {
       toast.error(error.message || t('applications.unbind.error'));
     } finally {
       setUnbindingLoading(false);
+    }
+  };
+
+  const handleCancelBind = async (application: Application) => {
+    try {
+      setCancelingLoading(true);
+      await unbindApplication(application.id);
+      toast.success(t('applications.bind.cancel.success'));
+    } catch (error: any) {
+      toast.error(error.message || t('applications.unbind.error'));
+    } finally {
+      setCancelingLoading(false);
     }
   };
 
@@ -181,23 +194,68 @@ export function ApplicationsForm() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                    ) : state === 'binding_in_progress' ? (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleBind(application)}
+                          disabled={bindingLoading}
+                          variant="outline"
+                        >
+                          {bindingLoading && (
+                            <LoaderCircle className="size-4 mr-2 animate-spin" />
+                          )}
+                          {t('applications.bind.continue_button')}
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              {t('applications.bind.cancel_button')}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {t('applications.bind.cancel.confirm.title')}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t(
+                                  'applications.bind.cancel.confirm.description',
+                                  {
+                                    name: application.app_id,
+                                  }
+                                )}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>
+                                {t('cancel')}
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                disabled={cancelingLoading}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                onClick={() => handleCancelBind(application)}
+                              >
+                                {cancelingLoading && (
+                                  <LoaderCircle className="size-4 mr-2 animate-spin" />
+                                )}
+                                {t('applications.bind.cancel.confirm.button')}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     ) : (
                       <Button
                         size="sm"
                         onClick={() => handleBind(application)}
                         disabled={bindingLoading}
-                        variant={
-                          state === 'binding_in_progress'
-                            ? 'outline'
-                            : 'default'
-                        }
+                        variant="default"
                       >
                         {bindingLoading && (
                           <LoaderCircle className="size-4 mr-2 animate-spin" />
                         )}
-                        {state === 'binding_in_progress'
-                          ? t('applications.bind.continue_button')
-                          : t('applications.bind.button')}
+                        {t('applications.bind.button')}
                       </Button>
                     )}
                   </div>

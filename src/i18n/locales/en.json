@@ -196,7 +196,16 @@
       "code_instruction": "Send this code to the WeChat bot to complete the binding",
       "initiated": "Binding process initiated",
       "continue": "Continuing binding process",
-      "error": "Failed to initiate binding"
+      "error": "Failed to initiate binding",
+      "cancel_button": "Cancel Binding",
+      "cancel": {
+        "confirm": {
+          "title": "Cancel Binding",
+          "description": "Are you sure you want to cancel the binding process for {{ name }}?",
+          "button": "Cancel"
+        },
+        "success": "Binding cancelled successfully"
+      }
     },
     "unbind": {
       "button": "Unbind",
