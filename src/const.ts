@@ -5,3 +5,5 @@ export const ALLOW_FILE_EXTENSIONS =
 export const SITE_NAME = 'OmniBox';
 export const LAZY_LOAD_IMAGE: string =
   '/assets/vditor/dist/images/img-loading.svg';
+export const WECHAT_BOT_QRCODE_URL =
+  'https://work.weixin.qq.com/u/vc89b7a1ee17bb08a0';

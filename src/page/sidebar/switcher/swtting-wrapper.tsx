@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import { http } from '@/lib/request';
 import { SidebarNav } from '@/page/user/form/sidebar';
 
+import { ApplicationsForm } from './applications';
 import CommonForm from './basic';
 import { APIKeyForm } from './form/api-key';
 import ProfileForm from './form/profile';
@@ -42,6 +43,12 @@ export default function SettingWrapper() {
       label: t('setting.tasks'),
       value: 'tasks',
       children: <TasksManagement />,
+      requireOwner: true,
+    },
+    {
+      label: t('setting.applications'),
+      value: 'applications',
+      children: <ApplicationsForm />,
       requireOwner: true,
     },
     {

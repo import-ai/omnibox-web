@@ -257,3 +257,18 @@ export interface Task {
   ended_at: string | null;
   canceled_at: string | null;
 }
+
+export interface Application extends IBase {
+  id: string;
+  namespace_id: string;
+  user_id: string;
+  app_id: string;
+  api_key_id?: string;
+  attrs?: Record<string, any>;
+}
+
+export interface BindApplicationResponse {
+  attrs: {
+    verify_code: string;
+  };
+}

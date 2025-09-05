@@ -159,6 +159,7 @@
     "preferences": "Preferences",
     "namespace": "Namespace",
     "api_key": "API Keys",
+    "applications": "Applications",
     "third_party_account": {
       "manage": "Third-party",
       "title": "Third-party Account Management",
@@ -173,6 +174,36 @@
       "unbind_success": "Successfully unbound",
       "confirm_unbind": "Confirm Unbind",
       "bind": "Connect"
+    }
+  },
+  "applications": {
+    "title": "Application Management",
+    "description": "Manage your application integrations and bindings",
+    "empty": "No applications found",
+    "status": {
+      "bound": "Connected",
+      "unbound": "Not Connected"
+    },
+    "bind": {
+      "button": "Bind",
+      "title": "Bind Application",
+      "description": "Follow these steps to connect your application",
+      "step1": "Step 1: Add WeChat Bot",
+      "step2": "Step 2: Send Code to WeChat Bot",
+      "code_label": "Binding Code:",
+      "code_instruction": "Send this code to the WeChat bot to complete the binding",
+      "initiated": "Binding process initiated",
+      "error": "Failed to initiate binding"
+    },
+    "unbind": {
+      "button": "Unbind",
+      "success": "Application unbound successfully",
+      "error": "Failed to unbind application",
+      "confirm": {
+        "title": "Unbind Application",
+        "description": "Are you sure you want to unbind {{ name }}? This will disconnect the application from your workspace.",
+        "button": "Confirm Unbind"
+      }
     }
   },
   "manage": {
