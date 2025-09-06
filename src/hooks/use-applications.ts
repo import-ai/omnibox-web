@@ -26,10 +26,10 @@ export default function useApplications(namespaceId: string) {
   };
 
   const bindApplication = async (
-    applicationId: string
+    appId: string
   ): Promise<BindApplicationResponse> => {
     const response = await http.post(
-      `/namespaces/${namespaceId}/applications/${applicationId}`
+      `/namespaces/${namespaceId}/applications/${appId}`
     );
     await fetchApplications(); // Refresh the list
     return response;
@@ -42,6 +42,14 @@ export default function useApplications(namespaceId: string) {
     await fetchApplications(); // Refresh the list
   };
 
+  const checkApplicationStatus = async (
+    applicationId: string
+  ): Promise<Application> => {
+    return await http.get(
+      `/namespaces/${namespaceId}/applications/${applicationId}`
+    );
+  };
+
   useEffect(() => {
     fetchApplications();
   }, [namespaceId]);
@@ -52,6 +60,7 @@ export default function useApplications(namespaceId: string) {
     error,
     bindApplication,
     unbindApplication,
+    checkApplicationStatus,
     refetch: fetchApplications,
   };
 }

@@ -201,6 +201,7 @@
       "initiated": "Binding process initiated",
       "continue": "Continuing binding process",
       "error": "Failed to initiate binding",
+      "success": "Application bound successfully",
       "cancel_button": "Cancel Binding",
       "cancel": {
         "confirm": {

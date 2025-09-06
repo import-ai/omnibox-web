@@ -61,14 +61,22 @@ export function ApplicationsForm() {
   const params = useParams();
   const namespaceId = params.namespace_id || '';
 
-  const { applications, loading, bindApplication, unbindApplication } =
-    useApplications(namespaceId);
+  const {
+    applications,
+    loading,
+    bindApplication,
+    unbindApplication,
+    checkApplicationStatus,
+    refetch,
+  } = useApplications(namespaceId);
 
   const [bindingLoading, setBindingLoading] = useState(false);
   const [unbindingLoading, setUnbindingLoading] = useState(false);
   const [cancelingLoading, setCancelingLoading] = useState(false);
   const [bindDialogOpen, setBindDialogOpen] = useState(false);
   const [bindingCode, setBindingCode] = useState('');
+  const [currentBindingApplication, setCurrentBindingApplication] =
+    useState<Application | null>(null);
 
   const handleBind = async (application: Application) => {
     try {
@@ -78,12 +86,14 @@ export function ApplicationsForm() {
       if (application.attrs?.verify_code) {
         // Use existing verify_code
         setBindingCode(application.attrs.verify_code);
+        setCurrentBindingApplication(application);
         setBindDialogOpen(true);
         toast.success(t('applications.bind.continue'));
       } else {
         // Start new binding process
         const response = await bindApplication(application.app_id);
         setBindingCode(response.attrs.verify_code);
+        setCurrentBindingApplication(application);
         setBindDialogOpen(true);
         toast.success(t('applications.bind.initiated'));
       }
@@ -104,6 +114,14 @@ export function ApplicationsForm() {
     } finally {
       setUnbindingLoading(false);
     }
+  };
+
+  const handleBindingComplete = async () => {
+    setBindDialogOpen(false);
+    setCurrentBindingApplication(null);
+    setBindingCode('');
+    await refetch();
+    toast.success(t('applications.bind.success'));
   };
 
   const handleCancelBind = async (application: Application) => {
@@ -308,6 +326,9 @@ export function ApplicationsForm() {
         open={bindDialogOpen}
         onOpenChange={setBindDialogOpen}
         bindingCode={bindingCode}
+        applicationId={currentBindingApplication?.id || ''}
+        checkApplicationStatus={checkApplicationStatus}
+        onBindingComplete={handleBindingComplete}
       />
     </>
   );

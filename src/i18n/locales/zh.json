@@ -201,6 +201,7 @@
       "initiated": "绑定流程已启动",
       "continue": "继续绑定流程",
       "error": "启动绑定失败",
+      "success": "应用绑定成功",
       "cancel_button": "取消绑定",
       "cancel": {
         "confirm": {
