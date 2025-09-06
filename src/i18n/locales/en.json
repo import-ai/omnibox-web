@@ -377,6 +377,12 @@
     "copy": {
       "success": "API key copied to clipboard"
     },
+    "update": {
+      "title": "Update API Key",
+      "description": "Update the permission scope for this API key.",
+      "success": "API key updated successfully",
+      "error": "Failed to update API key"
+    },
     "permission_scope": "Permission Scope",
     "permission_scope_tooltip": "The root resource for this API key, which will limit this key to access only that resource and its sub-resources.",
     "root_resource_id_placeholder": "Enter resource name to search",
@@ -425,6 +431,8 @@
   "loading": "Loading...",
   "creating": "Creating...",
   "create": "Create",
+  "updating": "Updating...",
+  "update": "Update",
   "share": {
     "permissions": {
       "title": "Permissions",
