@@ -341,6 +341,22 @@ export function APIKeyForm() {
                     </p>
                   </div>
 
+                  {key.attrs.related_app_id && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">
+                        {t('api_key.related_application')}
+                      </Label>
+                      <p className="text-sm">
+                        {t(
+                          `applications.app_names.${key.attrs.related_app_id}`,
+                          {
+                            defaultValue: key.attrs.related_app_id,
+                          }
+                        )}
+                      </p>
+                    </div>
+                  )}
+
                   <div>
                     <Label className="text-xs text-muted-foreground">
                       {t('api_key.permissions')}
