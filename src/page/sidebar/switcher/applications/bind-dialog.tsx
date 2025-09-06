@@ -2,6 +2,7 @@ import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import logoUrl from '@/assets/logo.svg';
 import {
   Dialog,
   DialogContent,
@@ -61,11 +62,20 @@ export function BindDialog({
               {t('applications.bind.step1')}
             </h3>
             {qrCodeDataUrl ? (
-              <img
-                src={qrCodeDataUrl}
-                alt="WeChat Bot QR Code"
-                className="w-48 h-48 border border-border rounded-lg"
-              />
+              <div className="relative">
+                <img
+                  src={qrCodeDataUrl}
+                  alt="WeChat Bot QR Code"
+                  className="w-48 h-48 border border-border rounded-lg"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <img
+                    src={logoUrl}
+                    alt="OmniBox Logo"
+                    className="w-12 h-12 bg-white p-1 rounded-lg shadow-sm"
+                  />
+                </div>
+              </div>
             ) : (
               <div className="w-48 h-48 border border-border rounded-lg flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
