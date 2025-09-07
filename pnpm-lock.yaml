@@ -71,9 +71,6 @@ importers:
       '@tailwindcss/typography':
         specifier: ^0.5.16
         version: 0.5.16(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.16.5)(typescript@5.8.3)))
-      '@types/qrcode':
-        specifier: ^1.5.5
-        version: 1.5.5
       axios:
         specifier: ^1.11.0
         version: 1.11.0
@@ -186,6 +183,9 @@ importers:
       '@types/node':
         specifier: ^22.16.5
         version: 22.16.5
+      '@types/qrcode':
+        specifier: ^1.5.5
+        version: 1.5.5
       '@types/react':
         specifier: ^19.1.8
         version: 19.1.8
