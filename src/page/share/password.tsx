@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 
 export interface PasswordProps {
   passwordFailed?: boolean;
+  loading?: boolean;
   onPassword: (password: string) => void;
 }
 
@@ -25,7 +26,7 @@ const passwordSchema = z.object({
 type TPasswordForm = z.infer<typeof passwordSchema>;
 
 export function Password(props: PasswordProps) {
-  const { passwordFailed, onPassword } = props;
+  const { passwordFailed, loading, onPassword } = props;
 
   const form = useForm<TPasswordForm>({
     resolver: zodResolver(passwordSchema),
@@ -62,7 +63,11 @@ export function Password(props: PasswordProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full disabled:opacity-60">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full disabled:opacity-60"
+        >
           {t('shared_resources.submit')}
         </Button>
       </form>

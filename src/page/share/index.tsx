@@ -37,10 +37,12 @@ export default function SharePage() {
   const [resource, setResource] = useState<SharedResource | null>(null);
   const [requirePassword, setRequirePassword] = useState<boolean>(false);
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
+  const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
   const shareId = params.share_id;
   const resourceId = params.resource_id || shareInfo?.resource?.id;
 
   const handlePassword = (password: string) => {
+    setPasswordLoading(true);
     setCookie(SHARE_PASSWORD_COOKIE, password, `/s/${shareId}`);
     setCookie(SHARE_PASSWORD_COOKIE, password, `/api/v1/shares/${shareId}`);
     if (cancelTokenSource.current) {
@@ -52,10 +54,12 @@ export default function SharePage() {
         cancelToken: cancelTokenSource.current.token,
       })
       .then(data => {
+        setPasswordLoading(false);
         setRequirePassword(false);
         setShareInfo(data);
       })
       .catch(err => {
+        setPasswordLoading(false);
         if (err && err.status && err.status === 403) {
           setPasswordFailed(true);
         }
@@ -122,6 +126,7 @@ export default function SharePage() {
           </span>
           <Password
             passwordFailed={passwordFailed}
+            loading={passwordLoading}
             onPassword={handlePassword}
           />
         </div>
