@@ -2,7 +2,6 @@ import axios, { CancelTokenSource } from 'axios';
 import { t } from 'i18next';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'sonner';
 
 import Loading from '@/components/loading';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -37,10 +36,13 @@ export default function SharePage() {
   const [shareInfo, setShareInfo] = useState<PublicShareInfo | null>(null);
   const [resource, setResource] = useState<SharedResource | null>(null);
   const [requirePassword, setRequirePassword] = useState<boolean>(false);
+  const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
+  const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
   const shareId = params.share_id;
   const resourceId = params.resource_id || shareInfo?.resource?.id;
 
   const handlePassword = (password: string) => {
+    setPasswordLoading(true);
     setCookie(SHARE_PASSWORD_COOKIE, password, `/s/${shareId}`);
     setCookie(SHARE_PASSWORD_COOKIE, password, `/api/v1/shares/${shareId}`);
     if (cancelTokenSource.current) {
@@ -52,12 +54,14 @@ export default function SharePage() {
         cancelToken: cancelTokenSource.current.token,
       })
       .then(data => {
+        setPasswordLoading(false);
         setRequirePassword(false);
         setShareInfo(data);
       })
       .catch(err => {
+        setPasswordLoading(false);
         if (err && err.status && err.status === 403) {
-          toast.error(t('shared_resources.incorrect_password'));
+          setPasswordFailed(true);
         }
       });
   };
@@ -120,7 +124,11 @@ export default function SharePage() {
           <span className="text-sm">
             {t('shared_resources.password_required')}
           </span>
-          <Password onPassword={handlePassword} />
+          <Password
+            passwordFailed={passwordFailed}
+            loading={passwordLoading}
+            onPassword={handlePassword}
+          />
         </div>
       </div>
     );
