@@ -157,7 +157,7 @@ export function BindDialog({
             <h3 className="text-lg font-medium">
               {t('applications.bind.step2')}
             </h3>
-            <div className="p-4 bg-muted rounded-lg">
+            <div className="p-4">
               <p className="text-sm text-muted-foreground mb-2">
                 {t('applications.bind.code_label')}
               </p>

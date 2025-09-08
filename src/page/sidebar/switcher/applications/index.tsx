@@ -92,8 +92,8 @@ export function ApplicationsForm() {
       } else {
         // Start new binding process
         const response = await bindApplication(application.app_id);
-        setBindingCode(response.attrs.verify_code);
-        setCurrentBindingApplication(application);
+        setBindingCode(response.attrs?.verify_code!);
+        setCurrentBindingApplication(response);
         setBindDialogOpen(true);
         toast.success(t('applications.bind.initiated'));
       }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { Application, BindApplicationResponse } from '@/interface';
+import { Application } from '@/interface';
 import { http } from '@/lib/request';
 
 export default function useApplications(namespaceId: string) {
@@ -25,10 +25,8 @@ export default function useApplications(namespaceId: string) {
     }
   };
 
-  const bindApplication = async (
-    appId: string
-  ): Promise<BindApplicationResponse> => {
-    const response = await http.post(
+  const bindApplication = async (appId: string): Promise<Application> => {
+    const response: Application = await http.post(
       `/namespaces/${namespaceId}/applications/${appId}`
     );
     await fetchApplications(); // Refresh the list
