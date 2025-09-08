@@ -65,7 +65,7 @@ export function APIKeyForm() {
   const { uid } = useUser();
   const namespaceId = params.namespace_id || '';
 
-  const { apiKeys, loading, createAPIKey, updateAPIKey, deleteAPIKey } =
+  const { apiKeys, loading, createAPIKey, patchAPIKey, deleteAPIKey } =
     useAPIKeys(uid!, namespaceId);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -139,7 +139,7 @@ export function APIKeyForm() {
         ],
       };
 
-      await updateAPIKey(editingKey.id, { attrs });
+      await patchAPIKey(editingKey.id, attrs);
       toast.success(t('api_key.update.success'));
       setUpdateDialogOpen(false);
       setEditingKey(null);
