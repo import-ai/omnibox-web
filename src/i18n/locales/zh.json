@@ -207,7 +207,7 @@
         "confirm": {
           "title": "取消绑定",
           "description": "确定要取消 {{ name }} 的绑定流程吗？",
-          "button": "取消"
+          "button": "确认取消"
         },
         "success": "已成功取消绑定"
       }

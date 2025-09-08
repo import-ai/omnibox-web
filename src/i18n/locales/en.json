@@ -207,7 +207,7 @@
         "confirm": {
           "title": "Cancel Binding",
           "description": "Are you sure you want to cancel the binding process for {{ name }}?",
-          "button": "Cancel"
+          "button": "Confirm Cancel"
         },
         "success": "Binding cancelled successfully"
       }
