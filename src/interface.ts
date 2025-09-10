@@ -155,6 +155,7 @@ export interface APIKeyPermission {
 }
 
 export interface APIKeyAttrs {
+  related_app_id?: string;
   root_resource_id: string;
   permissions: APIKeyPermission[];
 }
@@ -256,4 +257,17 @@ export interface Task {
   started_at: string | null;
   ended_at: string | null;
   canceled_at: string | null;
+}
+
+export interface ApplicationAttrs {
+  verify_code?: string;
+}
+
+export interface Application extends IBase {
+  id: string;
+  namespace_id: string;
+  user_id: string;
+  app_id: string;
+  api_key_id?: string;
+  attrs?: ApplicationAttrs;
 }

@@ -1,4 +1,12 @@
-import { Copy, Eye, EyeOff, HelpCircle, Plus, Trash2 } from 'lucide-react';
+import {
+  Copy,
+  Eye,
+  EyeOff,
+  HelpCircle,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -57,14 +65,15 @@ export function APIKeyForm() {
   const { uid } = useUser();
   const namespaceId = params.namespace_id || '';
 
-  const { apiKeys, loading, createAPIKey, deleteAPIKey } = useAPIKeys(
-    uid!,
-    namespaceId
-  );
+  const { apiKeys, loading, createAPIKey, patchAPIKey, deleteAPIKey } =
+    useAPIKeys(uid!, namespaceId);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [editingKey, setEditingKey] = useState<APIKey | null>(null);
   const [formData, setFormData] = useState({
     root_resource_id: '',
     permissions: [APIKeyPermissionType.READ],
@@ -108,6 +117,43 @@ export function APIKeyForm() {
     }
   };
 
+  const handleUpdateAPIKey = async () => {
+    if (
+      !editingKey ||
+      !formData.root_resource_id ||
+      formData.permissions.length === 0
+    ) {
+      toast.error(t('api_key.create.validation_error'));
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const attrs: APIKeyAttrs = {
+        root_resource_id: formData.root_resource_id,
+        permissions: [
+          {
+            target: APIKeyPermissionTarget.RESOURCES,
+            permissions: formData.permissions,
+          },
+        ],
+      };
+
+      await patchAPIKey(editingKey.id, attrs);
+      toast.success(t('api_key.update.success'));
+      setUpdateDialogOpen(false);
+      setEditingKey(null);
+      setFormData({
+        root_resource_id: '',
+        permissions: [APIKeyPermissionType.READ],
+      });
+    } catch {
+      toast.error(t('api_key.update.error'));
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const handleDeleteAPIKey = async (key: APIKey) => {
     try {
       await deleteAPIKey(key.id);
@@ -115,6 +161,17 @@ export function APIKeyForm() {
     } catch {
       toast.error(t('api_key.delete.error'));
     }
+  };
+
+  const handleEditClick = (key: APIKey) => {
+    setEditingKey(key);
+    setFormData({
+      root_resource_id: key.attrs.root_resource_id,
+      permissions: key.attrs.permissions[0]?.permissions || [
+        APIKeyPermissionType.READ,
+      ],
+    });
+    setUpdateDialogOpen(true);
   };
 
   const copyToClipboard = (value: string) => {
@@ -255,6 +312,91 @@ export function APIKeyForm() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t('api_key.update.title')}</DialogTitle>
+              <DialogDescription>
+                {t('api_key.update.description')}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-1">
+                  <Label htmlFor="update_root_resource_id">
+                    {t('api_key.permission_scope')}
+                  </Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 w-5 p-0 hover:bg-transparent"
+                        type="button"
+                      >
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t('api_key.permission_scope_tooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <ResourceSearch
+                  namespaceId={namespaceId}
+                  value={formData.root_resource_id}
+                  onValueChange={resourceId =>
+                    setFormData(prev => ({
+                      ...prev,
+                      root_resource_id: resourceId,
+                    }))
+                  }
+                  placeholder={t('api_key.root_resource_id_placeholder')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('api_key.permissions')}</Label>
+                <div className="space-y-2">
+                  {Object.values(APIKeyPermissionType).map(permission => (
+                    <div
+                      key={permission}
+                      className="flex items-center space-x-2"
+                    >
+                      <Checkbox
+                        id={`update-${permission}`}
+                        checked={formData.permissions.includes(permission)}
+                        onCheckedChange={checked =>
+                          handlePermissionChange(permission, !!checked)
+                        }
+                      />
+                      <Label
+                        htmlFor={`update-${permission}`}
+                        className="capitalize"
+                      >
+                        {permission}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setUpdateDialogOpen(false)}
+              >
+                {t('cancel')}
+              </Button>
+              <Button onClick={handleUpdateAPIKey} disabled={updating}>
+                {updating ? t('updating') : t('update')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="space-y-4">
@@ -300,6 +442,14 @@ export function APIKeyForm() {
                       <Copy className="w-4 h-4" />
                     </Button>
 
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditClick(key)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="ghost" size="sm">
@@ -340,6 +490,22 @@ export function APIKeyForm() {
                       {key.attrs.root_resource_id}
                     </p>
                   </div>
+
+                  {key.attrs.related_app_id && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">
+                        {t('api_key.related_application')}
+                      </Label>
+                      <p className="text-sm">
+                        {t(
+                          `applications.app_names.${key.attrs.related_app_id}`,
+                          {
+                            defaultValue: key.attrs.related_app_id,
+                          }
+                        )}
+                      </p>
+                    </div>
+                  )}
 
                   <div>
                     <Label className="text-xs text-muted-foreground">

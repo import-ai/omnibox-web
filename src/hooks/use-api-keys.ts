@@ -1,7 +1,12 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-import type { APIKey, CreateAPIKeyDto, UpdateAPIKeyDto } from '@/interface';
+import {
+  APIKey,
+  APIKeyAttrs,
+  CreateAPIKeyDto,
+  UpdateAPIKeyDto,
+} from '@/interface';
 import { http } from '@/lib/request';
 
 export default function useAPIKeys(userId?: string, namespaceId?: string) {
@@ -45,6 +50,13 @@ export default function useAPIKeys(userId?: string, namespaceId?: string) {
     });
   };
 
+  const patchAPIKey = (id: string, data: Partial<APIKeyAttrs>) => {
+    return http.patch(`/api-keys/${id}`, data).then((updatedKey: APIKey) => {
+      setAPIKeys(prev => prev.map(key => (key.id === id ? updatedKey : key)));
+      return updatedKey;
+    });
+  };
+
   const deleteAPIKey = (id: string) => {
     return http.delete(`/api-keys/${id}`).then(() => {
       setAPIKeys(prev => prev.filter(key => key.id !== id));
@@ -61,6 +73,7 @@ export default function useAPIKeys(userId?: string, namespaceId?: string) {
     loading,
     refetch: fetchAPIKeys,
     createAPIKey,
+    patchAPIKey,
     updateAPIKey,
     deleteAPIKey,
   };

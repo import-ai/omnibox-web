@@ -1,0 +1,15 @@
+release:
+  name: omnibox-web
+  namespace:
+
+image:
+  repository: ghcr.io/import-ai/omnibox-web
+  tag: main
+
+replicas: 1
+
+app:
+  port: 80
+
+affinity: {}
+nodeSelector: {}
