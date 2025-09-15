@@ -59,11 +59,8 @@ export interface PathItem {
   name: string;
 }
 
-export interface SharedResource {
-  id: string;
-  name: string;
+export interface SharedResource extends ResourceMeta {
   content: string;
-  resource_type: ResourceType;
   attrs?: Record<string, any>;
 }
 
@@ -235,6 +232,7 @@ export interface ResourceMeta {
 export interface PublicShareInfo {
   id: string;
   all_resources: boolean;
+  share_type: ShareType;
   resource: ResourceMeta;
 }
 

@@ -1,0 +1,52 @@
+import { useTranslation } from 'react-i18next';
+
+import { Messages } from '@/page/chat/messages';
+import { normalizeChatData } from '@/page/chat/normalize-chat';
+
+import ChatArea from '../chat-input';
+import Scrollbar from './scrollbar';
+import useContext from './useContext';
+
+export default function SharedChatConversationPage() {
+  const { t } = useTranslation();
+  const {
+    mode,
+    value,
+    tools,
+    setMode,
+    loading,
+    context,
+    onChange,
+    onAction,
+    messages,
+    onToolsChange,
+    onContextChange,
+  } = useContext();
+
+  return (
+    <div className="flex flex-col h-full">
+      <Scrollbar>
+        <Messages messages={normalizeChatData(messages)} />
+      </Scrollbar>
+      <div className="flex justify-center px-4">
+        <div className="flex-1 max-w-3xl w-full">
+          <ChatArea
+            mode={mode}
+            tools={tools}
+            value={value}
+            setMode={setMode}
+            loading={loading}
+            context={context}
+            onChange={onChange}
+            onAction={onAction}
+            onToolsChange={onToolsChange}
+            onContextChange={onContextChange}
+          />
+          <div className="text-center text-xs pt-2 text-muted-foreground truncate">
+            {t('chat.disclaimer')}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
