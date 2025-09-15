@@ -7,6 +7,7 @@
   "cancel": "Cancel",
   "ok": "OK",
   "undo": "Undo",
+  "no_pages_inside": "No pages inside",
   "updated": "Updated {{ related_updated_at }}",
   "created": "Created",
   "private": "Private",
