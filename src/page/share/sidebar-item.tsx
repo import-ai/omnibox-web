@@ -1,4 +1,4 @@
-import { ChevronRight, LoaderCircle } from 'lucide-react';
+import { ChevronRight, LoaderCircle, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -9,10 +9,24 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
+import useApp from '@/hooks/use-app';
 import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
@@ -27,6 +41,7 @@ export default function SidebarItem(props: SidebarItemProps) {
   const { shareId, resource, isResourceActive } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const app = useApp();
   const [isExpanded, setIsExpanded] = useState(false);
   const [children, setChildren] = useState<ResourceMeta[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,11 +78,112 @@ export default function SidebarItem(props: SidebarItemProps) {
     navigate(`/s/${shareId}/${resource.id}`);
   };
 
+  const handleAddToChat = () => {
+    if (!location.pathname.includes('/chat')) {
+      navigate(`/s/${shareId}/chat`);
+      setTimeout(() => {
+        app.fire('context', resource, 'resource');
+      }, 100);
+    } else {
+      app.fire('context', resource, 'resource');
+    }
+  };
+
+  const handleAddAllToChat = () => {
+    if (!location.pathname.includes('/chat')) {
+      navigate(`/s/${shareId}/chat`);
+      setTimeout(() => {
+        app.fire('context', resource, 'folder');
+      }, 100);
+    } else {
+      app.fire('context', resource, 'folder');
+    }
+  };
+
   return (
     <SidebarMenuItem>
-      {hasChildren ? (
-        <Collapsible open={isExpanded}>
-          <CollapsibleTrigger asChild>
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          {hasChildren ? (
+            <Collapsible open={isExpanded}>
+              <CollapsibleTrigger asChild>
+                <div>
+                  <SidebarMenuButton
+                    asChild
+                    className="gap-1 py-2 h-auto"
+                    isActive={isActive}
+                  >
+                    <div
+                      className="flex cursor-pointer items-center"
+                      onClick={handleClick}
+                    >
+                      <div
+                        onClick={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleToggle();
+                        }}
+                        className="flex items-center justify-center w-4 h-4"
+                      >
+                        {loading ? (
+                          <LoaderCircle className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <ChevronRight
+                            className={cn(
+                              'w-3 h-3 transition-transform',
+                              isExpanded && 'rotate-90'
+                            )}
+                          />
+                        )}
+                      </div>
+                      <span className="truncate ml-1">
+                        {resource.name || t('untitled')}
+                      </span>
+                    </div>
+                  </SidebarMenuButton>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuAction>
+                        <MoreHorizontal className="w-4 h-4" />
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      side="right"
+                      align="start"
+                      sideOffset={10}
+                    >
+                      {resource.resource_type === 'folder' && (
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={handleAddAllToChat}
+                        >
+                          {t('actions.add_all_to_context')}
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={handleAddToChat}
+                      >
+                        {t('actions.add_it_to_context')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarMenuSub className="pr-0 mr-0 pl-2">
+                  {children.map(child => (
+                    <SidebarItem
+                      key={child.id}
+                      shareId={shareId}
+                      resource={child}
+                      isResourceActive={isResourceActive}
+                    />
+                  ))}
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </Collapsible>
+          ) : (
             <div>
               <SidebarMenuButton
                 asChild
@@ -78,62 +194,52 @@ export default function SidebarItem(props: SidebarItemProps) {
                   className="flex cursor-pointer items-center"
                   onClick={handleClick}
                 >
-                  <div
-                    onClick={e => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleToggle();
-                    }}
-                    className="flex items-center justify-center w-4 h-4"
-                  >
-                    {loading ? (
-                      <LoaderCircle className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <ChevronRight
-                        className={cn(
-                          'w-3 h-3 transition-transform',
-                          isExpanded && 'rotate-90'
-                        )}
-                      />
-                    )}
-                  </div>
+                  <div className="w-4 h-4" />
                   <span className="truncate ml-1">
                     {resource.name || t('untitled')}
                   </span>
                 </div>
               </SidebarMenuButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuAction>
+                    <MoreHorizontal className="w-4 h-4" />
+                  </SidebarMenuAction>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="right" align="start" sideOffset={10}>
+                  {resource.resource_type === 'folder' && (
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={handleAddAllToChat}
+                    >
+                      {t('actions.add_all_to_context')}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={handleAddToChat}
+                  >
+                    {t('actions.add_it_to_context')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <SidebarMenuSub className="pr-0 mr-0 pl-2">
-              {children.map(child => (
-                <SidebarItem
-                  key={child.id}
-                  shareId={shareId}
-                  resource={child}
-                  isResourceActive={isResourceActive}
-                />
-              ))}
-            </SidebarMenuSub>
-          </CollapsibleContent>
-        </Collapsible>
-      ) : (
-        <SidebarMenuButton
-          asChild
-          className="gap-1 py-2 h-auto"
-          isActive={isActive}
-        >
-          <div
-            className="flex cursor-pointer items-center"
-            onClick={handleClick}
-          >
-            <div className="w-4 h-4" />
-            <span className="truncate ml-1">
-              {resource.name || t('untitled')}
-            </span>
-          </div>
-        </SidebarMenuButton>
-      )}
+          )}
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          {resource.resource_type === 'folder' && (
+            <ContextMenuItem
+              className="cursor-pointer"
+              onClick={handleAddAllToChat}
+            >
+              {t('actions.add_all_to_context')}
+            </ContextMenuItem>
+          )}
+          <ContextMenuItem className="cursor-pointer" onClick={handleAddToChat}>
+            {t('actions.add_it_to_context')}
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
     </SidebarMenuItem>
   );
 }
