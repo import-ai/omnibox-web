@@ -224,16 +224,18 @@ export interface UpdateShareInfoReq {
   expires_seconds?: number;
 }
 
-export interface SharedResourceMeta {
+export interface ResourceMeta {
   id: string;
   name: string;
   resource_type: ResourceType;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PublicShareInfo {
   id: string;
   all_resources: boolean;
-  resource: SharedResourceMeta;
+  resource: ResourceMeta;
 }
 
 export type TaskStatus =
