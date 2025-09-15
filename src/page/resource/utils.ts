@@ -2,7 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN } from 'date-fns/locale';
 import i18next from 'i18next';
 
-import { Resource } from '@/interface';
+import { Resource, ResourceMeta } from '@/interface';
 
 export function getTime(resource: Resource | null) {
   if (!resource) {
@@ -30,7 +30,7 @@ export function getTime(resource: Resource | null) {
 }
 
 interface GroupedItems {
-  [key: string]: Array<Resource>;
+  [key: string]: Array<ResourceMeta>;
 }
 
 function convert(year: number, month: number): string {
@@ -45,8 +45,8 @@ function convert(year: number, month: number): string {
 }
 
 export function groupItemsByTimestamp(
-  items: Array<Resource>
-): [string, Array<Resource>][] {
+  items: Array<ResourceMeta>
+): [string, Array<ResourceMeta>][] {
   const now = new Date();
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
@@ -95,7 +95,7 @@ export function groupItemsByTimestamp(
 
   monthGroups.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-  const orderedGroups: [string, Array<Resource>][] = [];
+  const orderedGroups: [string, Array<ResourceMeta>][] = [];
 
   if (grouped[i18next.t('date.today')]) {
     orderedGroups.push([
