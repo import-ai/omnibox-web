@@ -40,6 +40,7 @@ export default function SharePage() {
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
   const shareId = params.share_id;
   const resourceId = params.resource_id || shareInfo?.resource?.id;
+  const showChat = shareInfo && shareInfo.share_type !== 'doc_only';
 
   const handlePassword = (password: string) => {
     setPasswordLoading(true);
@@ -134,7 +135,7 @@ export default function SharePage() {
     );
   }
   if (shareInfo) {
-    const showSidebar = shareInfo.all_resources;
+    const showSidebar = shareInfo.all_resources || showChat;
     return (
       <ShareContext.Provider value={{ shareInfo, resource }}>
         {!showSidebar && <Outlet />}
@@ -144,6 +145,7 @@ export default function SharePage() {
               shareId={shareInfo.id}
               currentResourceId={resourceId!}
               rootResource={shareInfo.resource}
+              showChat={!!showChat}
             />
             <main className="flex-1">
               <Outlet />
