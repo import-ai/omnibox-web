@@ -5,14 +5,14 @@ import {
   SidebarGroupContent,
   SidebarMenu,
 } from '@/components/ui/sidebar';
-import { SharedResourceMeta } from '@/interface';
+import { ResourceMeta } from '@/interface';
 
 import SidebarItem from './sidebar-item';
 
 interface SharedSidebarProps {
   shareId: string;
   currentResourceId: string;
-  rootResource: SharedResourceMeta;
+  rootResource: ResourceMeta;
 }
 
 export default function ShareSidebar(props: SharedSidebarProps) {
