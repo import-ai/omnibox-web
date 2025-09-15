@@ -1,7 +1,7 @@
 import axios, { CancelTokenSource } from 'axios';
 import { t } from 'i18next';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Outlet, useNavigate, useParams } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -31,6 +31,7 @@ export const useShareContext = () => {
 
 export default function SharePage() {
   const params = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const cancelTokenSource = useRef<CancelTokenSource>(null);
   const [shareInfo, setShareInfo] = useState<PublicShareInfo | null>(null);
@@ -39,7 +40,8 @@ export default function SharePage() {
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
   const shareId = params.share_id;
-  const resourceId = params.resource_id || shareInfo?.resource?.id;
+  const isOnChatRoute = location.pathname.includes('/chat');
+  const currentResourceId = params.resource_id || shareInfo?.resource?.id;
   const showChat = shareInfo && shareInfo.share_type !== 'doc_only';
 
   const handlePassword = (password: string) => {
@@ -99,7 +101,7 @@ export default function SharePage() {
     }
     const source = axios.CancelToken.source();
     http
-      .get(`/shares/${shareId}/resources/${resourceId}`, {
+      .get(`/shares/${shareId}/resources/${currentResourceId}`, {
         cancelToken: source.token,
       })
       .then(data => {
@@ -116,7 +118,7 @@ export default function SharePage() {
         }
       });
     return () => source.cancel();
-  }, [shareInfo, resourceId]);
+  }, [shareInfo, currentResourceId]);
 
   if (requirePassword) {
     return (
@@ -143,9 +145,11 @@ export default function SharePage() {
           <SidebarProvider>
             <ShareSidebar
               shareId={shareInfo.id}
-              currentResourceId={resourceId!}
               rootResource={shareInfo.resource}
               showChat={!!showChat}
+              isResourceActive={resourceId =>
+                !isOnChatRoute && resourceId === currentResourceId
+              }
             />
             <main className="flex-1">
               <Outlet />
