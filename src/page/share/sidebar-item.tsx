@@ -20,18 +20,18 @@ import { cn } from '@/lib/utils';
 interface SidebarItemProps {
   shareId: string;
   resource: ResourceMeta;
-  currentResourceId: string;
+  isResourceActive: (resourceId: string) => boolean;
 }
 
 export default function SidebarItem(props: SidebarItemProps) {
-  const { shareId, resource, currentResourceId } = props;
+  const { shareId, resource, isResourceActive } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [children, setChildren] = useState<ResourceMeta[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasChildren, setHasChildren] = useState(true);
-  const isActive = currentResourceId === resource.id;
+  const isActive = isResourceActive(resource.id);
 
   const fetchChildren = async () => {
     if (loading) {
@@ -111,7 +111,7 @@ export default function SidebarItem(props: SidebarItemProps) {
                   key={child.id}
                   shareId={shareId}
                   resource={child}
-                  currentResourceId={currentResourceId}
+                  isResourceActive={isResourceActive}
                 />
               ))}
             </SidebarMenuSub>
