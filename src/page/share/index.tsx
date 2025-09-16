@@ -40,8 +40,8 @@ export default function SharePage() {
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
   const shareId = params.share_id;
-  const isOnChatRoute = location.pathname.includes('/chat');
   const currentResourceId = params.resource_id || shareInfo?.resource?.id;
+  const isChatActive = location.pathname.includes('/chat');
   const showChat = shareInfo && shareInfo.share_type !== 'doc_only';
 
   const handlePassword = (password: string) => {
@@ -147,8 +147,9 @@ export default function SharePage() {
               shareId={shareInfo.id}
               rootResource={shareInfo.resource}
               showChat={!!showChat}
+              isChatActive={isChatActive}
               isResourceActive={resourceId =>
-                !isOnChatRoute && resourceId === currentResourceId
+                !isChatActive && resourceId === currentResourceId
               }
             />
             <main className="flex-1">
