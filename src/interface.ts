@@ -227,6 +227,7 @@ export interface ResourceMeta {
   resource_type: ResourceType;
   created_at: string;
   updated_at: string;
+  has_children?: boolean;
 }
 
 export interface PublicShareInfo {
