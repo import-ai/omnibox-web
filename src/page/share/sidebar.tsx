@@ -1,6 +1,6 @@
 import { Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Sidebar,
@@ -20,17 +20,16 @@ import SidebarItem from './sidebar-item';
 interface SharedSidebarProps {
   shareId: string;
   rootResource: ResourceMeta;
-  showChat?: boolean;
+  showChat: boolean;
+  isChatActive: boolean;
   isResourceActive: (resourceId: string) => boolean;
 }
 
 export default function ShareSidebar(props: SharedSidebarProps) {
-  const { shareId, rootResource, showChat, isResourceActive } = props;
+  const { shareId, rootResource, showChat, isChatActive, isResourceActive } =
+    props;
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const isChatActive = location.pathname.includes('/chat');
 
   const handleChatClick = () => {
     navigate(`/s/${shareId}/chat`);
@@ -61,6 +60,8 @@ export default function ShareSidebar(props: SharedSidebarProps) {
                 shareId={shareId}
                 resource={rootResource}
                 isResourceActive={isResourceActive}
+                isChatActive={isChatActive}
+                hasChildren={!!rootResource.has_children}
               />
             </SidebarMenu>
           </SidebarGroupContent>
