@@ -34,18 +34,20 @@ import { cn } from '@/lib/utils';
 interface SidebarItemProps {
   shareId: string;
   resource: ResourceMeta;
+  isChatActive: boolean;
+  hasChildren: boolean;
   isResourceActive: (resourceId: string) => boolean;
 }
 
 export default function SidebarItem(props: SidebarItemProps) {
-  const { shareId, resource, isResourceActive } = props;
+  const { shareId, resource, isChatActive, hasChildren, isResourceActive } =
+    props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const app = useApp();
   const [isExpanded, setIsExpanded] = useState(false);
   const [children, setChildren] = useState<ResourceMeta[]>([]);
   const [loading, setLoading] = useState(false);
-  const [hasChildren, setHasChildren] = useState(true);
   const isActive = isResourceActive(resource.id);
 
   const fetchChildren = async () => {
@@ -58,9 +60,7 @@ export default function SidebarItem(props: SidebarItemProps) {
         `/shares/${shareId}/resources/${resource.id}/children`
       );
       setChildren(data || []);
-      setHasChildren(data && data.length > 0);
     } catch {
-      setHasChildren(false);
       setChildren([]);
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ export default function SidebarItem(props: SidebarItemProps) {
   };
 
   const handleAddToChat = () => {
-    if (!location.pathname.includes('/chat')) {
+    if (!isChatActive) {
       navigate(`/s/${shareId}/chat`);
       setTimeout(() => {
         app.fire('context', resource, 'resource');
@@ -90,7 +90,7 @@ export default function SidebarItem(props: SidebarItemProps) {
   };
 
   const handleAddAllToChat = () => {
-    if (!location.pathname.includes('/chat')) {
+    if (!isChatActive) {
       navigate(`/s/${shareId}/chat`);
       setTimeout(() => {
         app.fire('context', resource, 'folder');
@@ -178,6 +178,8 @@ export default function SidebarItem(props: SidebarItemProps) {
                       shareId={shareId}
                       resource={child}
                       isResourceActive={isResourceActive}
+                      isChatActive={isChatActive}
+                      hasChildren={!!child.has_children}
                     />
                   ))}
                 </SidebarMenuSub>
