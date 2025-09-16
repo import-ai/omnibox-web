@@ -5,8 +5,8 @@ import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
 
+import useContext from '../chat/useContext';
 import ChatArea from './chat-input';
-import useContext from './useContext';
 
 export default function SharedChatHomePage() {
   const app = useApp();
@@ -21,16 +21,6 @@ export default function SharedChatHomePage() {
   ]);
   const handleAction = () => {
     http.post(`/shares/${shareId}/conversations`).then(conversation => {
-      sessionStorage.setItem(
-        'sharedState',
-        JSON.stringify({
-          mode,
-          value,
-          tools,
-          context,
-          conversation,
-        })
-      );
       navigate(`/s/${shareId}/chat/${conversation.id}`);
     });
   };
