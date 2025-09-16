@@ -61,7 +61,6 @@ export default function ShareSidebar(props: SharedSidebarProps) {
                 resource={rootResource}
                 isResourceActive={isResourceActive}
                 isChatActive={isChatActive}
-                hasChildren={!!rootResource.has_children}
               />
             </SidebarMenu>
           </SidebarGroupContent>
