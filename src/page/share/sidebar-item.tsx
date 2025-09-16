@@ -25,13 +25,11 @@ interface SidebarItemProps {
   shareId: string;
   resource: ResourceMeta;
   isChatActive: boolean;
-  hasChildren: boolean;
   isResourceActive: (resourceId: string) => boolean;
 }
 
 export default function SidebarItem(props: SidebarItemProps) {
-  const { shareId, resource, isChatActive, hasChildren, isResourceActive } =
-    props;
+  const { shareId, resource, isChatActive, isResourceActive } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const app = useApp();
@@ -40,6 +38,7 @@ export default function SidebarItem(props: SidebarItemProps) {
   const [loading, setLoading] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const isActive = isResourceActive(resource.id);
+  const hasChildren = !!resource.has_children;
 
   const fetchChildren = async () => {
     if (loading) {
@@ -179,7 +178,6 @@ export default function SidebarItem(props: SidebarItemProps) {
                   resource={child}
                   isResourceActive={isResourceActive}
                   isChatActive={isChatActive}
-                  hasChildren={!!child.has_children}
                 />
               ))}
             </SidebarMenuSub>
