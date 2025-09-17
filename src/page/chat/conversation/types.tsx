@@ -19,7 +19,6 @@ export interface PrivateSearchResource {
 
 export interface PrivateSearch extends IChatTool {
   name: ToolType.PRIVATE_SEARCH;
-  namespace_id: string;
   resources?: PrivateSearchResource[];
 }
 
@@ -30,7 +29,6 @@ export interface Reasoning extends IChatTool {
 type ChatTool = WebSearch | PrivateSearch | Reasoning;
 
 export interface ChatRequestBody {
-  namespace_id: string;
   conversation_id: string;
   query: string;
   tools?: ChatTool[];
