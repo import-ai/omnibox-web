@@ -38,8 +38,7 @@ export default function SharedChatConversationPage() {
   const [tools, onToolsChange] = useState<Array<ToolType>>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const { selectedResources: context, setSelectedResources: onContextChange } =
-    useShareContext();
+  const { selectedResources, setSelectedResources } = useShareContext();
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
     mapping: {},
@@ -98,7 +97,7 @@ export default function SharedChatConversationPage() {
         conversationId,
         query,
         tools,
-        context,
+        selectedResources,
         messages,
         messageOperator,
         `/api/v1/shares/${shareId}/wizard/${mode}`
@@ -127,11 +126,11 @@ export default function SharedChatConversationPage() {
             value={value}
             setMode={setMode}
             loading={loading}
-            context={context}
+            context={selectedResources}
             onChange={onChange}
             onAction={onAction}
             onToolsChange={onToolsChange}
-            onContextChange={onContextChange}
+            onContextChange={setSelectedResources}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">
             {t('chat.disclaimer')}
