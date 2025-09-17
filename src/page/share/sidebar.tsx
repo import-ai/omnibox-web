@@ -23,11 +23,18 @@ interface SharedSidebarProps {
   showChat: boolean;
   isChatActive: boolean;
   isResourceActive: (resourceId: string) => boolean;
+  onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
 }
 
 export default function ShareSidebar(props: SharedSidebarProps) {
-  const { shareId, rootResource, showChat, isChatActive, isResourceActive } =
-    props;
+  const {
+    shareId,
+    rootResource,
+    showChat,
+    isChatActive,
+    isResourceActive,
+    onAddToContext,
+  } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -61,6 +68,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
                 resource={rootResource}
                 isResourceActive={isResourceActive}
                 isChatActive={isChatActive}
+                onAddToContext={onAddToContext}
               />
             </SidebarMenu>
           </SidebarGroupContent>
