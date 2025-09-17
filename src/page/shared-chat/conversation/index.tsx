@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
+import ChatArea from '@/page/chat/chat-input';
 import {
   type ChatActionType,
   ChatMode,
@@ -14,17 +15,15 @@ import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/conversation/message-operator';
+import Scrollbar from '@/page/chat/conversation/scrollbar';
+import { ask } from '@/page/chat/conversation/utils';
 import { Messages } from '@/page/chat/messages';
 import { normalizeChatData } from '@/page/chat/normalize-chat';
 import {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/types/conversation';
-import useGlobalContext from '@/page/chat/useContext';
-
-import ChatArea from '../chat-input';
-import Scrollbar from './scrollbar';
-import { ask } from './utils';
+import { useShareContext } from '@/page/share';
 
 export default function SharedChatConversationPage() {
   const { t } = useTranslation();
@@ -39,9 +38,8 @@ export default function SharedChatConversationPage() {
   const [tools, onToolsChange] = useState<Array<ToolType>>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const { context, onContextChange } = useGlobalContext({
-    data: [],
-  });
+  const { selectedResources: context, setSelectedResources: onContextChange } =
+    useShareContext();
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
     mapping: {},
@@ -97,13 +95,13 @@ export default function SharedChatConversationPage() {
     setLoading(true);
     try {
       const askFN = ask(
-        shareId,
         conversationId,
         query,
         tools,
         context,
         messages,
-        messageOperator
+        messageOperator,
+        `/api/v1/shares/${shareId}/wizard/${mode}`
       );
       askAbortRef.current = askFN.destory;
       await askFN.start();

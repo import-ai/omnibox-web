@@ -1,10 +1,6 @@
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
-import {
-  ChatMode,
-  type IResTypeContext,
-  ToolType,
-} from '@/page/chat/chat-input/types';
+import { ToolType } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import type {
   ChatRequestBody,
@@ -14,29 +10,15 @@ import type {
 import { ChatResponse } from '@/page/chat/types/chat-response';
 import { MessageDetail } from '@/page/chat/types/conversation';
 
-function getPrivateSearchResources(
-  context: IResTypeContext[]
-): PrivateSearchResource[] {
-  return context.map(item => {
-    return {
-      name: item.resource.name || '',
-      id: item.resource.id,
-      type: item.type,
-    } as PrivateSearchResource;
-  });
-}
-
 export function prepareBody(
-  namespaceId: string,
   conversationId: string,
   query: string,
   tools: ToolType[],
-  context: IResTypeContext[],
+  context: PrivateSearchResource[],
   messages: MessageDetail[],
   lang: WizardLang | undefined
 ): ChatRequestBody {
   const body: ChatRequestBody = {
-    namespace_id: namespaceId,
     conversation_id: conversationId,
     query,
     enable_thinking: false,
@@ -52,8 +34,7 @@ export function prepareBody(
       body.tools = body?.tools || [];
       const tool: PrivateSearch = {
         name: ToolType.PRIVATE_SEARCH,
-        namespace_id: namespaceId,
-        resources: getPrivateSearchResources(context),
+        resources: context,
       };
       body.tools.push(tool);
     } else if (tool === ToolType.WEB_SEARCH) {
@@ -71,18 +52,16 @@ export function prepareBody(
 }
 
 export function ask(
-  namespaceId: string,
   conversationId: string,
   query: string,
   tools: ToolType[],
-  context: IResTypeContext[],
+  context: PrivateSearchResource[],
   messages: MessageDetail[],
   messageOperator: MessageOperator,
-  mode: ChatMode,
+  url: string,
   lang: WizardLang | undefined
 ) {
   const body = prepareBody(
-    namespaceId,
     conversationId,
     query,
     tools,
@@ -90,7 +69,7 @@ export function ask(
     messages,
     lang
   );
-  return createStreamTransport(`/api/v1/wizard/${mode}`, body, async data => {
+  return createStreamTransport(url, body, async data => {
     const chatResponse: ChatResponse = JSON.parse(data);
     if (chatResponse.response_type === 'bos') {
       messageOperator.add(chatResponse);

@@ -91,15 +91,14 @@ export default function useContext() {
     setLoading(true);
     try {
       const askFN = ask(
-        namespaceId,
         conversationId,
         query,
         tools,
         context,
         messages,
         messageOperator,
-        mode,
-        getWizardLang(i18n)
+        `/api/v1/namespaces/${namespaceId}/wizard/${mode,
+        getWizardLang(i18n)}`
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();

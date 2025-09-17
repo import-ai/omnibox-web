@@ -1,20 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
+import ChatArea from '@/page/chat/chat-input';
 import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
-
-import useContext from '../chat/useContext';
-import ChatArea from './chat-input';
+import { useShareContext } from '@/page/share';
 
 export default function SharedChatHomePage() {
-  const app = useApp();
   const params = useParams();
   const navigate = useNavigate();
   const [value, onChange] = useState('');
   const shareId = params.share_id || '';
-  const { context, onContextChange } = useContext({ data: [] });
+  const { selectedResources: context, setSelectedResources: onContextChange } =
+    useShareContext();
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [tools, onToolsChange] = useState<Array<ToolType>>([
     ToolType.PRIVATE_SEARCH,
@@ -24,10 +22,6 @@ export default function SharedChatHomePage() {
       navigate(`/s/${shareId}/chat/${conversation.id}`);
     });
   };
-
-  useEffect(() => {
-    app.fire('chat:title');
-  }, []);
 
   return (
     <div className="flex justify-center h-full p-4">

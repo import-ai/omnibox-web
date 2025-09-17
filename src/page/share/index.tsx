@@ -8,6 +8,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { PublicShareInfo, SharedResource } from '@/interface';
 import { setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
+import type { PrivateSearchResource } from '@/page/chat/conversation/types';
 
 import { Password } from './password';
 import ShareSidebar from './sidebar';
@@ -17,6 +18,8 @@ const SHARE_PASSWORD_COOKIE = 'share-password';
 interface ShareContextValue {
   shareInfo: PublicShareInfo | null;
   resource: SharedResource | null;
+  selectedResources: PrivateSearchResource[];
+  setSelectedResources: (resources: PrivateSearchResource[]) => void;
 }
 
 const ShareContext = createContext<ShareContextValue | null>(null);
@@ -36,6 +39,9 @@ export default function SharePage() {
   const cancelTokenSource = useRef<CancelTokenSource>(null);
   const [shareInfo, setShareInfo] = useState<PublicShareInfo | null>(null);
   const [resource, setResource] = useState<SharedResource | null>(null);
+  const [selectedResources, setSelectedResources] = useState<
+    PrivateSearchResource[]
+  >([]);
   const [requirePassword, setRequirePassword] = useState<boolean>(false);
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
@@ -139,7 +145,9 @@ export default function SharePage() {
   if (shareInfo) {
     const showSidebar = shareInfo.all_resources || showChat;
     return (
-      <ShareContext.Provider value={{ shareInfo, resource }}>
+      <ShareContext.Provider
+        value={{ shareInfo, resource, selectedResources, setSelectedResources }}
+      >
         {!showSidebar && <Outlet />}
         {showSidebar && (
           <SidebarProvider>

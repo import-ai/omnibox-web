@@ -13,13 +13,13 @@ import { groupItemsByTimestamp } from '../utils';
 import { FolderContent } from './content';
 
 interface IProps {
-  resource: ResourceMeta;
+  resourceId: string;
   apiPrefix: string;
   navigationPrefix: string;
 }
 
 export default function Folder(props: IProps) {
-  const { resource, apiPrefix, navigationPrefix } = props;
+  const { resourceId, apiPrefix, navigationPrefix } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [loading, onLoading] = useState(false);
@@ -29,7 +29,7 @@ export default function Folder(props: IProps) {
     onLoading(true);
     const source = axios.CancelToken.source();
     http
-      .get(`${apiPrefix}/${resource.id}/children`, {
+      .get(`${apiPrefix}/${resourceId}/children`, {
         cancelToken: source.token,
       })
       .then(onData)
@@ -39,7 +39,7 @@ export default function Folder(props: IProps) {
     return () => {
       source.cancel();
     };
-  }, [apiPrefix, resource.id]);
+  }, [apiPrefix, resourceId]);
 
   if (loading) {
     return <Loading />;
