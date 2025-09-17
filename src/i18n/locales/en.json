@@ -101,9 +101,10 @@
     "max": "At most 32 characters",
     "submit": "Save",
     "success": "Updated",
-    "member_count": "{{ size }} 名成员"
+    "member_count": "{{ size }} members"
   },
   "login": {
+    "product_name": "OmniBox",
     "logout": "Logout",
     "submit": "Login",
     "title": "Login to your account",
