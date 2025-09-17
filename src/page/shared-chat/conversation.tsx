@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import ChatArea from '@/page/chat/chat-input';
 import {
@@ -26,34 +25,20 @@ import {
 import { useShareContext } from '@/page/share';
 
 export default function SharedChatConversationPage() {
-  const { t } = useTranslation();
-
-  // Moved useContext logic inline
-  const app = useApp();
   const params = useParams();
-  const [value, onChange] = useState<string>('');
-  const askAbortRef = useRef<() => void>(null);
   const shareId = params.share_id || '';
   const conversationId = params.conversation_id || '';
-  const [tools, onToolsChange] = useState<Array<ToolType>>([]);
+  const askAbortRef = useRef<() => void>(null);
+  const { selectedResources, setSelectedResources } = useShareContext();
+  const { t } = useTranslation();
+  const [chatInput, setChatInput] = useState<string>('');
+  const [tools, setTools] = useState<Array<ToolType>>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const { selectedResources, setSelectedResources } = useShareContext();
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
     mapping: {},
   });
-
-  const refetch = () => {
-    return http
-      .get(`/shares/${shareId}/conversations/${conversationId}`)
-      .then(response => {
-        if (response.title) {
-          app.fire('chat:title:update', response.title);
-        }
-        setConversation(response);
-      });
-  };
 
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
@@ -79,9 +64,9 @@ export default function SharedChatConversationPage() {
       setLoading(false);
       return;
     } else {
-      const v = value.trim();
+      const v = chatInput.trim();
       if (v) {
-        onChange('');
+        setChatInput('');
         await submit(v);
       }
     }
@@ -110,8 +95,13 @@ export default function SharedChatConversationPage() {
   };
 
   useEffect(() => {
-    refetch();
-  }, []);
+    if (!conversationId) return;
+    http
+      .get(`/shares/${shareId}/conversations/${conversationId}`)
+      .then(response => {
+        setConversation(response);
+      });
+  }, [shareId, conversationId]);
 
   return (
     <div className="flex flex-col h-full">
@@ -123,13 +113,13 @@ export default function SharedChatConversationPage() {
           <ChatArea
             mode={mode}
             tools={tools}
-            value={value}
+            value={chatInput}
             setMode={setMode}
             loading={loading}
             context={selectedResources}
-            onChange={onChange}
+            onChange={setChatInput}
             onAction={onAction}
-            onToolsChange={onToolsChange}
+            onToolsChange={setTools}
             onContextChange={setSelectedResources}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">
