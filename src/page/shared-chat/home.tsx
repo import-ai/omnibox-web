@@ -9,10 +9,13 @@ import { useShareContext } from '@/page/share';
 export default function SharedChatHomePage() {
   const params = useParams();
   const navigate = useNavigate();
-  const [value, onChange] = useState('');
   const shareId = params.share_id || '';
-  const { selectedResources: context, setSelectedResources: onContextChange } =
-    useShareContext();
+  const {
+    selectedResources: context,
+    setSelectedResources: onContextChange,
+    chatInput,
+    setChatInput,
+  } = useShareContext();
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [tools, onToolsChange] = useState<Array<ToolType>>([
     ToolType.PRIVATE_SEARCH,
@@ -30,11 +33,11 @@ export default function SharedChatHomePage() {
           <ChatArea
             mode={mode}
             tools={tools}
-            value={value}
+            value={chatInput}
             loading={false}
             context={context}
             setMode={setMode}
-            onChange={onChange}
+            onChange={setChatInput}
             onAction={handleAction}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}

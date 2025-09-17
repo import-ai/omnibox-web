@@ -20,6 +20,8 @@ interface ShareContextValue {
   resource: SharedResource | null;
   selectedResources: PrivateSearchResource[];
   setSelectedResources: (resources: PrivateSearchResource[]) => void;
+  chatInput: string;
+  setChatInput: (input: string) => void;
 }
 
 const ShareContext = createContext<ShareContextValue | null>(null);
@@ -42,6 +44,7 @@ export default function SharePage() {
   const [selectedResources, setSelectedResources] = useState<
     PrivateSearchResource[]
   >([]);
+  const [chatInput, setChatInput] = useState<string>('');
   const [requirePassword, setRequirePassword] = useState<boolean>(false);
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
@@ -166,7 +169,14 @@ export default function SharePage() {
     const showSidebar = shareInfo.all_resources || showChat;
     return (
       <ShareContext.Provider
-        value={{ shareInfo, resource, selectedResources, setSelectedResources }}
+        value={{
+          shareInfo,
+          resource,
+          selectedResources,
+          setSelectedResources,
+          chatInput,
+          setChatInput,
+        }}
       >
         {!showSidebar && <Outlet />}
         {showSidebar && (

@@ -29,9 +29,9 @@ export default function SharedChatConversationPage() {
   const shareId = params.share_id || '';
   const conversationId = params.conversation_id || '';
   const askAbortRef = useRef<() => void>(null);
-  const { selectedResources, setSelectedResources } = useShareContext();
+  const { selectedResources, setSelectedResources, chatInput, setChatInput } =
+    useShareContext();
   const { t } = useTranslation();
-  const [chatInput, setChatInput] = useState<string>('');
   const [tools, setTools] = useState<Array<ToolType>>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
@@ -102,6 +102,13 @@ export default function SharedChatConversationPage() {
         setConversation(response);
       });
   }, [shareId, conversationId]);
+
+  useEffect(() => {
+    if (chatInput) {
+      setChatInput('');
+      submit(chatInput);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
