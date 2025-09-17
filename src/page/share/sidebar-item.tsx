@@ -16,7 +16,6 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
-import useApp from '@/hooks/use-app';
 import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
@@ -26,13 +25,14 @@ interface SidebarItemProps {
   resource: ResourceMeta;
   isChatActive: boolean;
   isResourceActive: (resourceId: string) => boolean;
+  onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
 }
 
 export default function SidebarItem(props: SidebarItemProps) {
-  const { shareId, resource, isChatActive, isResourceActive } = props;
+  const { shareId, resource, isChatActive, isResourceActive, onAddToContext } =
+    props;
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const app = useApp();
   const [isExpanded, setIsExpanded] = useState(false);
   const [children, setChildren] = useState<ResourceMeta[]>([]);
   const [loading, setLoading] = useState(false);
@@ -72,10 +72,10 @@ export default function SidebarItem(props: SidebarItemProps) {
     if (!isChatActive) {
       navigate(`/s/${shareId}/chat`);
       setTimeout(() => {
-        app.fire('context', resource, 'resource');
+        onAddToContext(resource, 'resource');
       }, 100);
     } else {
-      app.fire('context', resource, 'resource');
+      onAddToContext(resource, 'resource');
     }
   };
 
@@ -83,10 +83,10 @@ export default function SidebarItem(props: SidebarItemProps) {
     if (!isChatActive) {
       navigate(`/s/${shareId}/chat`);
       setTimeout(() => {
-        app.fire('context', resource, 'folder');
+        onAddToContext(resource, 'folder');
       }, 100);
     } else {
-      app.fire('context', resource, 'folder');
+      onAddToContext(resource, 'folder');
     }
   };
 
@@ -178,6 +178,7 @@ export default function SidebarItem(props: SidebarItemProps) {
                   resource={child}
                   isResourceActive={isResourceActive}
                   isChatActive={isChatActive}
+                  onAddToContext={onAddToContext}
                 />
               ))}
             </SidebarMenuSub>

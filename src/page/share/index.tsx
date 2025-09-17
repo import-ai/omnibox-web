@@ -5,7 +5,7 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { PublicShareInfo, SharedResource } from '@/interface';
+import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
 import type { PrivateSearchResource } from '@/page/chat/conversation/types';
@@ -49,6 +49,26 @@ export default function SharePage() {
   const currentResourceId = params.resource_id || shareInfo?.resource?.id;
   const isChatActive = location.pathname.includes('/chat');
   const showChat = shareInfo && shareInfo.share_type !== 'doc_only';
+
+  const handleAddToContext = (
+    resource: ResourceMeta,
+    type: 'resource' | 'folder'
+  ) => {
+    const target = selectedResources.find(
+      item => item.id === resource.id && item.type === type
+    );
+    if (target) {
+      return;
+    }
+    setSelectedResources([
+      ...selectedResources,
+      {
+        id: resource.id,
+        name: resource.name || '',
+        type,
+      },
+    ]);
+  };
 
   const handlePassword = (password: string) => {
     setPasswordLoading(true);
@@ -159,6 +179,7 @@ export default function SharePage() {
               isResourceActive={resourceId =>
                 !isChatActive && resourceId === currentResourceId
               }
+              onAddToContext={handleAddToContext}
             />
             <main className="flex-1">
               <Outlet />
