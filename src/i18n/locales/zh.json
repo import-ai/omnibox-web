@@ -104,6 +104,7 @@
     "member_count": "{{ size }} 名成员"
   },
   "login": {
+    "product_name": "小黑",
     "logout": "退出登录",
     "submit": "登录",
     "title": "登录您的账户",

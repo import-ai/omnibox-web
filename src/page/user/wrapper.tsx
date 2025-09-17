@@ -1,6 +1,7 @@
-import { GalleryVerticalEnd } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
+import logoSvg from '@/assets/logo.svg';
 import { LanguageToggle } from '@/components/toggle/language';
 import { ThemeToggle } from '@/components/toggle/theme';
 import {
@@ -19,6 +20,7 @@ interface WrapperPageProps {
 
 export default function WrapperPage(props: WrapperPageProps) {
   const { useCard = true, extra, children } = props;
+  const { t } = useTranslation();
 
   return (
     <div className="grid min-h-svh dark:bg-[#262626]">
@@ -33,10 +35,10 @@ export default function WrapperPage(props: WrapperPageProps) {
               href="/"
               className="flex items-center gap-2 font-medium text-black dark:text-white"
             >
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                <GalleryVerticalEnd className="size-4" />
+              <div className="flex items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <img src={logoSvg} alt="OmniBox Logo" className="size-6" />
               </div>
-              Import AI
+              {t('login.product_name')}
             </a>
           </div>
           {useCard ? (
