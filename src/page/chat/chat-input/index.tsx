@@ -3,9 +3,9 @@ import { useMemo } from 'react';
 import {
   type ChatActionType,
   ChatMode,
-  IResTypeContext,
   ToolType,
 } from '@/page/chat/chat-input/types';
+import type { PrivateSearchResource } from '@/page/chat/conversation/types';
 
 import ChatAction from './action';
 import ChatTool from './chat-tool';
@@ -17,12 +17,12 @@ interface IProps {
   mode: ChatMode;
   loading: boolean;
   tools: Array<ToolType>;
-  context: IResTypeContext[];
+  context: PrivateSearchResource[];
   setMode: (mode: ChatMode) => void;
   onChange: (value: string) => void;
   onAction: (action?: ChatActionType) => void;
   onToolsChange: (tool: Array<ToolType>) => void;
-  onContextChange: (context: IResTypeContext[]) => void;
+  onContextChange: (context: PrivateSearchResource[]) => void;
 }
 
 export default function ChatArea(props: IProps) {

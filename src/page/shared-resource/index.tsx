@@ -25,7 +25,7 @@ export default function SharedResourcePage() {
           </h1>
           {resource.resource_type === 'folder' ? (
             <Folder
-              resource={resource}
+              resourceId={resource.id}
               apiPrefix={`/shares/${shareInfo.id}/resources`}
               navigationPrefix={`/s/${shareInfo.id}`}
             />
