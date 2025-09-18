@@ -38,6 +38,7 @@ export default function SharedChatHomePage() {
           onAction={handleAction}
           onToolsChange={setTools}
           onContextChange={setSelectedResources}
+          navigatePrefix={`/s/${shareId}`}
         />
       </div>
     </div>

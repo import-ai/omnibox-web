@@ -18,6 +18,7 @@ interface IProps {
   loading: boolean;
   tools: Array<ToolType>;
   context: PrivateSearchResource[];
+  navigatePrefix: string;
   setMode: (mode: ChatMode) => void;
   onChange: (value: string) => void;
   onAction: (action?: ChatActionType) => void;
@@ -27,14 +28,15 @@ interface IProps {
 
 export default function ChatArea(props: IProps) {
   const {
-    mode,
     value,
-    tools,
-    setMode,
-    context,
+    mode,
     loading,
-    onAction,
+    tools,
+    context,
+    navigatePrefix,
+    setMode,
     onChange,
+    onAction,
     onToolsChange,
     onContextChange,
   } = props;
@@ -45,7 +47,11 @@ export default function ChatArea(props: IProps) {
 
   return (
     <div className="max-w-[766px] w-full mx-auto rounded-[12px] p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-none">
-      <ChatContext value={context} onChange={onContextChange} />
+      <ChatContext
+        value={context}
+        onChange={onContextChange}
+        navigatePrefix={navigatePrefix}
+      />
       <ChatInput value={value} onChange={onChange} onAction={onAction} />
       <div className="flex items-center justify-between">
         <ChatTool

@@ -21,6 +21,7 @@ export default function ChatConversationPage() {
     messages,
     onToolsChange,
     onContextChange,
+    namespaceId,
   } = useContext();
 
   return (
@@ -41,6 +42,7 @@ export default function ChatConversationPage() {
             onAction={onAction}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}
+            navigatePrefix={`/${namespaceId}`}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">
             {t('chat.disclaimer')}

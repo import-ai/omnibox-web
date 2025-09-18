@@ -145,5 +145,6 @@ export default function useContext() {
     messages,
     onToolsChange,
     onContextChange,
+    namespaceId,
   };
 }
