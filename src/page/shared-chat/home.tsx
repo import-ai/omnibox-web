@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { http } from '@/lib/request';
 import ChatArea from '@/page/chat/chat-input';
-import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
 import { useShareContext } from '@/page/share';
 
 export default function SharedChatHomePage() {
@@ -11,15 +9,15 @@ export default function SharedChatHomePage() {
   const navigate = useNavigate();
   const shareId = params.share_id || '';
   const {
-    selectedResources: context,
-    setSelectedResources: onContextChange,
+    selectedResources,
+    setSelectedResources,
     chatInput,
     setChatInput,
+    mode,
+    setMode,
+    tools,
+    setTools,
   } = useShareContext();
-  const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const [tools, onToolsChange] = useState<Array<ToolType>>([
-    ToolType.PRIVATE_SEARCH,
-  ]);
   const handleAction = () => {
     http.post(`/shares/${shareId}/conversations`).then(conversation => {
       navigate(`/s/${shareId}/chat/${conversation.id}`);
@@ -27,22 +25,20 @@ export default function SharedChatHomePage() {
   };
 
   return (
-    <div className="flex justify-center h-full p-4">
-      <div className="flex flex-col h-full max-w-3xl w-full">
-        <div className="flex flex-col justify-center h-full mb-40 pt-40">
-          <ChatArea
-            mode={mode}
-            tools={tools}
-            value={chatInput}
-            loading={false}
-            context={context}
-            setMode={setMode}
-            onChange={setChatInput}
-            onAction={handleAction}
-            onToolsChange={onToolsChange}
-            onContextChange={onContextChange}
-          />
-        </div>
+    <div className="flex justify-center items-center h-screen p-4">
+      <div className="max-w-3xl w-full">
+        <ChatArea
+          mode={mode}
+          tools={tools}
+          value={chatInput}
+          loading={false}
+          context={selectedResources}
+          setMode={setMode}
+          onChange={setChatInput}
+          onAction={handleAction}
+          onToolsChange={setTools}
+          onContextChange={setSelectedResources}
+        />
       </div>
     </div>
   );
