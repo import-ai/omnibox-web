@@ -1,6 +1,6 @@
 import { FileText, Folder, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import Badge from '@/components/badge';
 import { Button } from '@/components/ui/button';
@@ -8,15 +8,14 @@ import { PrivateSearchResource } from '@/page/chat/conversation/types';
 
 interface IProps {
   value: PrivateSearchResource[];
+  navigatePrefix: string;
   onChange: (value: PrivateSearchResource[]) => void;
 }
 
 export default function ChatContext(props: IProps) {
-  const { value, onChange } = props;
-  const params = useParams();
+  const { value, navigatePrefix, onChange } = props;
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const namespaceId = params.namespace_id || '';
 
   if (value.length <= 0) {
     return null;
@@ -49,7 +48,7 @@ export default function ChatContext(props: IProps) {
             variant="outline"
             className="dark:bg-transparent dark:border-[#6e7276]"
             onClick={() => {
-              navigate(`/${namespaceId}/${item.id}`);
+              navigate(`${navigatePrefix}/${item.id}`);
             }}
           >
             {item.type === 'folder' ? (
