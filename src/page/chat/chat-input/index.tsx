@@ -3,9 +3,9 @@ import { useMemo } from 'react';
 import {
   type ChatActionType,
   ChatMode,
-  IResTypeContext,
   ToolType,
 } from '@/page/chat/chat-input/types';
+import type { PrivateSearchResource } from '@/page/chat/conversation/types';
 
 import ChatAction from './action';
 import ChatTool from './chat-tool';
@@ -17,24 +17,26 @@ interface IProps {
   mode: ChatMode;
   loading: boolean;
   tools: Array<ToolType>;
-  context: IResTypeContext[];
+  context: PrivateSearchResource[];
+  navigatePrefix: string;
   setMode: (mode: ChatMode) => void;
   onChange: (value: string) => void;
   onAction: (action?: ChatActionType) => void;
   onToolsChange: (tool: Array<ToolType>) => void;
-  onContextChange: (context: IResTypeContext[]) => void;
+  onContextChange: (context: PrivateSearchResource[]) => void;
 }
 
 export default function ChatArea(props: IProps) {
   const {
-    mode,
     value,
-    tools,
-    setMode,
-    context,
+    mode,
     loading,
-    onAction,
+    tools,
+    context,
+    navigatePrefix,
+    setMode,
     onChange,
+    onAction,
     onToolsChange,
     onContextChange,
   } = props;
@@ -45,7 +47,11 @@ export default function ChatArea(props: IProps) {
 
   return (
     <div className="rounded-[12px] p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-none">
-      <ChatContext value={context} onChange={onContextChange} />
+      <ChatContext
+        value={context}
+        onChange={onContextChange}
+        navigatePrefix={navigatePrefix}
+      />
       <ChatInput value={value} onChange={onChange} onAction={onAction} />
       <div className="flex items-center justify-between">
         <ChatTool

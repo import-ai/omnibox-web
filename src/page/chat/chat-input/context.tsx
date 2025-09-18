@@ -1,22 +1,21 @@
 import { FileText, Folder, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import Badge from '@/components/badge';
 import { Button } from '@/components/ui/button';
-import { IResTypeContext } from '@/page/chat/chat-input/types';
+import { PrivateSearchResource } from '@/page/chat/conversation/types';
 
 interface IProps {
-  value: IResTypeContext[];
-  onChange: (value: IResTypeContext[]) => void;
+  value: PrivateSearchResource[];
+  navigatePrefix: string;
+  onChange: (value: PrivateSearchResource[]) => void;
 }
 
 export default function ChatContext(props: IProps) {
-  const { value, onChange } = props;
-  const params = useParams();
+  const { value, navigatePrefix, onChange } = props;
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const namespaceId = params.namespace_id || '';
 
   if (value.length <= 0) {
     return null;
@@ -26,7 +25,7 @@ export default function ChatContext(props: IProps) {
     <div className="flex items-center gap-1 pt-2 mt-[-8px] max-w-3xl overflow-x-auto no-scrollbar">
       {value.map(item => (
         <Badge
-          key={`${item.resource.id}_${item.type}`}
+          key={`${item.id}_${item.type}`}
           slot={
             <Button
               size="icon"
@@ -35,10 +34,7 @@ export default function ChatContext(props: IProps) {
                 onChange(
                   value.filter(
                     target =>
-                      !(
-                        target.resource.id === item.resource.id &&
-                        target.type === item.type
-                      )
+                      !(target.id === item.id && target.type === item.type)
                   )
                 );
               }}
@@ -52,7 +48,7 @@ export default function ChatContext(props: IProps) {
             variant="outline"
             className="dark:bg-transparent dark:border-[#6e7276]"
             onClick={() => {
-              navigate(`/${namespaceId}/${item.resource.id}`);
+              navigate(`${navigatePrefix}/${item.id}`);
             }}
           >
             {item.type === 'folder' ? (
@@ -61,7 +57,7 @@ export default function ChatContext(props: IProps) {
               <FileText className="w-4 h-4" />
             )}
             <span className="max-w-[130px] truncate">
-              {item.resource.name || t('untitled')}
+              {item.name || t('untitled')}
             </span>
           </Button>
         </Badge>
