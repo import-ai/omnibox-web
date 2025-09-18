@@ -130,6 +130,7 @@ export default function SharedChatConversationPage() {
             onAction={onAction}
             onToolsChange={setTools}
             onContextChange={setSelectedResources}
+            navigatePrefix={`/s/${shareId}`}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">
             {t('chat.disclaimer')}
