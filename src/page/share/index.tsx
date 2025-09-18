@@ -8,6 +8,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
+import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
 import type { PrivateSearchResource } from '@/page/chat/conversation/types';
 
 import { Password } from './password';
@@ -22,6 +23,10 @@ interface ShareContextValue {
   setSelectedResources: (resources: PrivateSearchResource[]) => void;
   chatInput: string;
   setChatInput: (input: string) => void;
+  mode: ChatMode;
+  setMode: (mode: ChatMode) => void;
+  tools: Array<ToolType>;
+  setTools: (tools: Array<ToolType>) => void;
 }
 
 const ShareContext = createContext<ShareContextValue | null>(null);
@@ -45,6 +50,10 @@ export default function SharePage() {
     PrivateSearchResource[]
   >([]);
   const [chatInput, setChatInput] = useState<string>('');
+  const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
+  const [tools, setTools] = useState<Array<ToolType>>([
+    ToolType.PRIVATE_SEARCH,
+  ]);
   const [requirePassword, setRequirePassword] = useState<boolean>(false);
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
@@ -176,6 +185,10 @@ export default function SharePage() {
           setSelectedResources,
           chatInput,
           setChatInput,
+          mode,
+          setMode,
+          tools,
+          setTools,
         }}
       >
         {!showSidebar && <Outlet />}
