@@ -233,6 +233,7 @@ export interface PublicShareInfo {
   id: string;
   all_resources: boolean;
   share_type: ShareType;
+  namespace_name: string;
   resource: ResourceMeta;
 }
 
