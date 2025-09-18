@@ -5,11 +5,7 @@ import { useParams } from 'react-router-dom';
 
 import { http } from '@/lib/request';
 import ChatArea from '@/page/chat/chat-input';
-import {
-  type ChatActionType,
-  ChatMode,
-  ToolType,
-} from '@/page/chat/chat-input/types';
+import { type ChatActionType } from '@/page/chat/chat-input/types';
 import {
   createMessageOperator,
   MessageOperator,
@@ -29,12 +25,18 @@ export default function SharedChatConversationPage() {
   const shareId = params.share_id || '';
   const conversationId = params.conversation_id || '';
   const askAbortRef = useRef<() => void>(null);
-  const { selectedResources, setSelectedResources, chatInput, setChatInput } =
-    useShareContext();
+  const {
+    selectedResources,
+    setSelectedResources,
+    chatInput,
+    setChatInput,
+    mode,
+    setMode,
+    tools,
+    setTools,
+  } = useShareContext();
   const { t } = useTranslation();
-  const [tools, setTools] = useState<Array<ToolType>>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
     mapping: {},
