@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react';
+import { Command, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,6 +20,7 @@ import SidebarItem from './sidebar-item';
 interface SharedSidebarProps {
   shareId: string;
   rootResource: ResourceMeta;
+  namespaceName: string;
   showChat: boolean;
   isChatActive: boolean;
   isResourceActive: (resourceId: string) => boolean;
@@ -30,6 +31,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
   const {
     shareId,
     rootResource,
+    namespaceName,
     showChat,
     isChatActive,
     isResourceActive,
@@ -44,8 +46,16 @@ export default function ShareSidebar(props: SharedSidebarProps) {
 
   return (
     <Sidebar>
-      {showChat && (
-        <SidebarHeader>
+      <SidebarHeader>
+        <div className="flex items-center gap-2 px-1.5 py-2">
+          <div className="flex aspect-square size-5 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+            <Command className="size-3" />
+          </div>
+          <span className="truncate font-semibold text-sm">
+            {namespaceName}
+          </span>
+        </div>
+        {showChat && (
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={isChatActive}>
@@ -56,8 +66,8 @@ export default function ShareSidebar(props: SharedSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-        </SidebarHeader>
-      )}
+        )}
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>{t('share.share.title')}</SidebarGroupLabel>
