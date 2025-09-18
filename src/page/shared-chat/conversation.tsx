@@ -58,7 +58,7 @@ export default function SharedChatConversationPage() {
 
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(setConversation);
-  }, [setConversation]);
+  }, []);
 
   const onAction = async (action?: ChatActionType) => {
     if (action === 'stop') {
