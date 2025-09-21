@@ -3,7 +3,7 @@ import i18next from 'i18next';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
@@ -48,6 +48,7 @@ interface IProps {
 
 export function RegisterForm({ children }: IProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<TRegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -67,6 +68,15 @@ export function RegisterForm({ children }: IProps) {
         toast(t('register.success'), {
           position: 'bottom-right',
         });
+      })
+      .catch(error => {
+        if (
+          error.response?.status === 400 &&
+          error.response?.data?.message ===
+            'The email is already registered. Please log in directly.'
+        ) {
+          navigate(`/user/login?email=${encodeURIComponent(data.email)}`);
+        }
       })
       .finally(() => {
         setIsLoading(false);
