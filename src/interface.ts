@@ -271,3 +271,57 @@ export interface Application extends IBase {
   api_key_id?: string;
   attrs?: ApplicationAttrs;
 }
+
+export interface OAuthClient {
+  id: string;
+  name: string;
+  description?: string;
+  redirect_uris: string[];
+  scopes: string[];
+  grants: string[];
+}
+
+export interface OAuthScope {
+  name: string;
+  description: string;
+}
+
+export interface OAuthAuthorizationRequest {
+  response_type: string;
+  client_id: string;
+  redirect_uri: string;
+  scope?: string;
+  state?: string;
+  code_challenge?: string;
+  code_challenge_method?: string;
+}
+
+export interface OAuthAuthorization {
+  client: {
+    id: string;
+    name: string;
+    description?: string;
+  };
+  scope: string[];
+  redirect_uri: string;
+  state?: string;
+  code_challenge?: string;
+  code_challenge_method?: string;
+}
+
+export interface OAuthAuthorizationDecision {
+  client_id: string;
+  redirect_uri: string;
+  scope?: string;
+  state?: string;
+  code_challenge?: string;
+  code_challenge_method?: string;
+  decision: 'allow' | 'deny';
+}
+
+export interface OAuthError {
+  error: string;
+  error_description?: string;
+  error_uri?: string;
+  state?: string;
+}

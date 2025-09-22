@@ -33,6 +33,9 @@ const SharedResourcePage = lazy(() => import('@/page/shared-resource'));
 const PrivacyPolicy = lazy(() => import('@/page/single/privacy-policy'));
 const TermsOfService = lazy(() => import('@/page/single/terms-of-service'));
 
+const OAuthAuthorizePage = lazy(() => import('@/page/oauth/authorize'));
+const OAuthCallbackPage = lazy(() => import('@/page/oauth/callback'));
+
 const app = new CoreApp();
 const router = createBrowserRouter([
   {
@@ -83,6 +86,14 @@ const router = createBrowserRouter([
       {
         path: 'invite/:namespace_id/:invitation_id',
         element: <InviteRedirectPage />,
+      },
+      {
+        path: 'oauth/authorize',
+        element: <OAuthAuthorizePage />,
+      },
+      {
+        path: 'oauth/callback',
+        element: <OAuthCallbackPage />,
       },
       {
         path: ':namespace_id',
