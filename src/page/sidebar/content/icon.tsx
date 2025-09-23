@@ -52,7 +52,7 @@ function getIconForFile(resource: IResourceData) {
     }
   }
 
-  const filename = resource.attrs.original_name;
+  const filename = resource.attrs.original_name || '';
   const getIcon = themeIcons({
     blue: '#519aba',
     grey: '#4d5a5e',
