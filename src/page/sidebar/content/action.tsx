@@ -131,7 +131,9 @@ export default function Action(props: ISidebarProps) {
             className="cursor-pointer"
             onClick={handleAddToChat}
           >
-            {t('actions.add_it_to_context')}
+            {data.has_children
+              ? t('actions.add_it_only_to_context')
+              : t('actions.add_it_to_context')}
           </DropdownMenuItem>
           <DropdownMenuItem className="cursor-pointer" onClick={handleMoveTo}>
             {t('actions.move_to')}
