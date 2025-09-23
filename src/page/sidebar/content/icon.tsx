@@ -1,56 +1,58 @@
 import parse, { domToReact } from 'html-react-parser';
-import { File, Folder, FolderOpen, LucideFileScan } from 'lucide-react';
+import { File, Folder, FolderOpen, Globe } from 'lucide-react';
 import { themeIcons } from 'seti-icons';
-import {
-  siDouban,
-  siGithub,
-  type SimpleIcon,
-  siReddit,
-  siTiktok,
-  siWechat,
-  siXiaohongshu,
-  siZhihu,
-} from 'simple-icons';
 
 import { IResourceData } from '@/interface';
+import {
+  DOMAIN_SUFFIX_TO_ICON,
+  FILE_ICON_CONDITIONS,
+} from '@/page/sidebar/content/icon/conditions';
 
 export interface IProps {
   expand: boolean;
   resource: IResourceData;
 }
 
-const DOMAIN_SUFFIX_TO_ICON: Record<string, SimpleIcon> = {
-  'xiaohongshu.com': siXiaohongshu,
-  'zhihu.com': siZhihu,
-  'weixin.qq.com': siWechat,
-  'reddit.com': siReddit,
-  'github.com': siGithub,
-  'douyin.com': siTiktok,
-  'tiktok.com': siTiktok,
-  'douban.com': siDouban,
-};
+const DefaultIcon = { link: <Globe color="#4876ff" />, file: <File /> };
 
-function getIconByHostname(hostname: string) {
+function getIconForLink(resource: IResourceData) {
+  if (!resource.attrs?.url) {
+    return DefaultIcon.link;
+  }
+  const url: URL = new URL(resource.attrs.url);
+  const hostname = url.hostname;
   for (const [suffix, icon] of Object.entries(DOMAIN_SUFFIX_TO_ICON)) {
     if (hostname.endsWith(suffix)) {
-      console.log({ icon });
-      return (
-        <svg
-          role="img"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-          fill={`#${icon.hex}`}
-        >
-          <path d={icon.path} />
-        </svg>
-      );
+      return icon;
     }
   }
-  return <LucideFileScan />;
+  return DefaultIcon.link;
 }
 
-function getIconByFilename(filename: string) {
+function getIconForFile(resource: IResourceData) {
+  if (!resource.attrs) {
+    return DefaultIcon.file;
+  }
+
+  for (const condition of FILE_ICON_CONDITIONS) {
+    const value: string =
+      (condition.field === 'mimetype'
+        ? resource.attrs.mimetype
+        : resource.attrs.original_name) || '';
+    for (const target of condition.values) {
+      if (condition.type === 'equal' && value === target) {
+        return condition.icon;
+      }
+      if (condition.type === 'prefix' && value.startsWith(target)) {
+        return condition.icon;
+      }
+      if (condition.type === 'suffix' && value.endsWith(target)) {
+        return condition.icon;
+      }
+    }
+  }
+
+  const filename = resource.attrs.original_name || '';
   const getIcon = themeIcons({
     blue: '#519aba',
     grey: '#4d5a5e',
@@ -87,7 +89,7 @@ function getIconByFilename(filename: string) {
       },
     });
   }
-  return <File />;
+  return DefaultIcon.file;
 }
 
 export default function Icon(props: IProps) {
@@ -101,13 +103,12 @@ export default function Icon(props: IProps) {
     return <File />;
   }
 
-  if (resource.resource_type === 'file' && resource.attrs.original_name) {
-    return getIconByFilename(resource.attrs.original_name);
+  if (resource.resource_type === 'file') {
+    return getIconForFile(resource);
   }
 
-  if (resource.resource_type === 'link' && resource.attrs.url) {
-    const url: URL = new URL(resource.attrs.url);
-    return getIconByHostname(url.hostname);
+  if (resource.resource_type === 'link') {
+    return getIconForLink(resource);
   }
 
   return <File />;
