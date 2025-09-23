@@ -1,8 +1,8 @@
 import parse, { domToReact } from 'html-react-parser';
-import { File, Folder, FolderOpen, Globe } from 'lucide-react';
+import { File, FileText, Folder, FolderOpen, Globe } from 'lucide-react';
 import { themeIcons } from 'seti-icons';
 
-import { IResourceData } from '@/interface';
+import { Resource } from '@/interface';
 import {
   DOMAIN_SUFFIX_TO_ICON,
   FILE_ICON_CONDITIONS,
@@ -10,12 +10,16 @@ import {
 
 export interface IProps {
   expand: boolean;
-  resource: IResourceData;
+  resource: Resource;
 }
 
-const DefaultIcon = { link: <Globe color="#4876ff" />, file: <File /> };
+const DefaultIcon = {
+  link: <Globe color="#4876ff" />,
+  file: <File />,
+  doc: <FileText />,
+};
 
-function getIconForLink(resource: IResourceData) {
+function getIconForLink(resource: Resource) {
   if (!resource.attrs?.url) {
     return DefaultIcon.link;
   }
@@ -29,7 +33,7 @@ function getIconForLink(resource: IResourceData) {
   return DefaultIcon.link;
 }
 
-function getIconForFile(resource: IResourceData) {
+function getIconForFile(resource: Resource) {
   if (!resource.attrs) {
     return DefaultIcon.file;
   }
@@ -92,24 +96,16 @@ function getIconForFile(resource: IResourceData) {
   return DefaultIcon.file;
 }
 
-export default function Icon(props: IProps) {
+export default function ResourceIcon(props: IProps) {
   const { expand, resource } = props;
-
   if (resource.resource_type === 'folder') {
     return expand ? <FolderOpen /> : <Folder />;
   }
-
-  if (!resource.attrs) {
-    return <File />;
-  }
-
   if (resource.resource_type === 'file') {
     return getIconForFile(resource);
   }
-
   if (resource.resource_type === 'link') {
     return getIconForLink(resource);
   }
-
-  return <File />;
+  return DefaultIcon.doc;
 }
