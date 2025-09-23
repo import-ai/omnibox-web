@@ -11,6 +11,7 @@ import {
   siDouban,
   siGithub,
   SimpleIcon,
+  siQuora,
   siReddit,
   siTiktok,
   siYoutube,
@@ -51,6 +52,7 @@ export const DOMAIN_SUFFIX_TO_ICON: Record<string, JSX.Element> = {
   'douban.com': siParser(siDouban),
   'youtube.com': siParser(siYoutube),
   'xiaohongshu.com': <RedNoteIcon />,
+  'quora.com': siParser(siQuora),
 };
 
 export const FILE_ICON_CONDITIONS: FileIconCondition[] = [
