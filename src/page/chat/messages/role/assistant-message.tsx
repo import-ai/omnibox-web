@@ -9,7 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown';
+import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
 import type { Citation } from '@/page/chat/types/chat-response';
 import {
   MessageStatus,
