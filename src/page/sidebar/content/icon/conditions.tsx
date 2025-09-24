@@ -8,6 +8,7 @@ import {
 } from '@remixicon/react';
 import { JSX } from 'react';
 import {
+  siBilibili,
   siDouban,
   siGithub,
   SimpleIcon,
@@ -53,6 +54,7 @@ export const DOMAIN_SUFFIX_TO_ICON: Record<string, JSX.Element> = {
   'youtube.com': siParser(siYoutube),
   'xiaohongshu.com': <RedNoteIcon />,
   'quora.com': siParser(siQuora),
+  'bilibili.com': siParser(siBilibili),
 };
 
 export const FILE_ICON_CONDITIONS: FileIconCondition[] = [
