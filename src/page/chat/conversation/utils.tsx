@@ -1,6 +1,6 @@
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
-import { ToolType } from '@/page/chat/chat-input/types';
+import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import type {
   ChatRequestBody,
@@ -10,11 +10,23 @@ import type {
 import { ChatResponse } from '@/page/chat/types/chat-response';
 import { MessageDetail } from '@/page/chat/types/conversation';
 
+function getPrivateSearchResources(
+  context: IResTypeContext[]
+): PrivateSearchResource[] {
+  return context.map(item => {
+    return {
+      name: item.resource.name || '',
+      id: item.resource.id,
+      type: item.type,
+    } as PrivateSearchResource;
+  });
+}
+
 export function prepareBody(
   conversationId: string,
   query: string,
   tools: ToolType[],
-  context: PrivateSearchResource[],
+  context: IResTypeContext[],
   messages: MessageDetail[],
   lang: WizardLang | undefined
 ): ChatRequestBody {
@@ -34,7 +46,7 @@ export function prepareBody(
       body.tools = body?.tools || [];
       const tool: PrivateSearch = {
         name: ToolType.PRIVATE_SEARCH,
-        resources: context,
+        resources: getPrivateSearchResources(context),
       };
       body.tools.push(tool);
     } else if (tool === ToolType.WEB_SEARCH) {
@@ -55,7 +67,7 @@ export function ask(
   conversationId: string,
   query: string,
   tools: ToolType[],
-  context: PrivateSearchResource[],
+  context: IResTypeContext[],
   messages: MessageDetail[],
   messageOperator: MessageOperator,
   url: string,

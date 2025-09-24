@@ -1,4 +1,4 @@
-import { Resource } from '@/interface.ts';
+import { ResourceMeta } from '@/interface.ts';
 
 export enum ToolType {
   WEB_SEARCH = 'web_search',
@@ -12,7 +12,7 @@ export type PrivateSearchResourceType = 'resource' | 'folder';
 
 export interface IResTypeContext {
   type: PrivateSearchResourceType;
-  resource: Resource;
+  resource: ResourceMeta;
 }
 
 export enum ChatMode {

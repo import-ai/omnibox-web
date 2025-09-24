@@ -5,12 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import Badge from '@/components/badge';
 import { Button } from '@/components/ui/button';
 import ResourceIcon from '@/page/sidebar/content/resourceIcon';
-import { PrivateSearchResource } from '@/page/chat/conversation/types';
+
+import { IResTypeContext } from './types';
 
 interface IProps {
-  value: PrivateSearchResource[];
+  value: IResTypeContext[];
   navigatePrefix: string;
-  onChange: (value: PrivateSearchResource[]) => void;
+  onChange: (value: IResTypeContext[]) => void;
 }
 
 export default function ChatContext(props: IProps) {
@@ -26,7 +27,7 @@ export default function ChatContext(props: IProps) {
     <div className="flex items-center gap-1 pt-2 mt-[-8px] max-w-3xl overflow-x-auto no-scrollbar">
       {value.map(item => (
         <Badge
-          key={`${item.id}_${item.type}`}
+          key={`${item.resource.id}_${item.type}`}
           slot={
             <Button
               size="icon"
@@ -35,7 +36,10 @@ export default function ChatContext(props: IProps) {
                 onChange(
                   value.filter(
                     target =>
-                      !(target.id === item.id && target.type === item.type)
+                      !(
+                        target.resource.id === item.resource.id &&
+                        target.type === item.type
+                      )
                   )
                 );
               }}
@@ -49,7 +53,7 @@ export default function ChatContext(props: IProps) {
             variant="outline"
             className="dark:bg-transparent dark:border-[#6e7276]"
             onClick={() => {
-              navigate(`${navigatePrefix}/${item.id}`);
+              navigate(`${navigatePrefix}/${item.resource.id}`);
             }}
           >
             {item.type === 'folder' ? (
@@ -58,7 +62,7 @@ export default function ChatContext(props: IProps) {
               <ResourceIcon expand={false} resource={item.resource} />
             )}
             <span className="max-w-[130px] truncate">
-              {item.name || t('untitled')}
+              {item.resource.name || t('untitled')}
             </span>
           </Button>
         </Badge>

@@ -223,10 +223,10 @@ export interface UpdateShareInfoReq {
 
 export interface ResourceMeta {
   id: string;
-  name: string;
+  name?: string;
   resource_type: ResourceType;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
   has_children?: boolean;
 }
 
