@@ -54,8 +54,9 @@
     "create_file": "创建文件",
     "create_folder": "创建文件夹",
     "upload_file": "上传文件",
-    "add_all_to_context": "全部添加到上下文",
-    "add_it_to_context": "添加到上下文",
+    "add_all_to_context": "添加全部文件到对话框",
+    "add_it_to_context": "添加该文件到对话框",
+    "add_it_only_to_context": "仅添加该文件到对话框",
     "wide": "宽屏模式"
   },
   "form": {
@@ -415,7 +416,7 @@
     "status_canceled": "取消",
     "status_error": "错误",
     "functions": {
-      "collect": "剪藏",
+      "collect": "收藏",
       "upsert_index": "索引",
       "delete_index": "删除索引",
       "file_reader": "文件解析",

@@ -23,7 +23,7 @@ import { ISidebarProps } from '@/page/sidebar/interface';
 
 import Action from './action';
 import ContextMenuMain from './contextMenu';
-import Icon from './icon';
+import ResourceIcon from './resourceIcon.tsx';
 
 // Helper function to validate file extensions
 const isValidFileType = (fileName: string): boolean => {
@@ -203,7 +203,7 @@ export default function Tree(props: ITreeProps) {
                         <ChevronRight className="transition-transform" />
                       </Button>
                     ))}
-                  <Icon expand={expand} resource={data} />
+                  <ResourceIcon expand={expand} resource={data} />
                   <span className="truncate">{data.name || t('untitled')}</span>
                 </div>
               </SidebarMenuButton>

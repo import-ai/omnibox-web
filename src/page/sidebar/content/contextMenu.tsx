@@ -121,9 +121,17 @@ export default function ContextMenuMain(props: IProps) {
               {t('actions.add_all_to_context')}
             </ContextMenuItem>
           )}
-          <ContextMenuItem className="cursor-pointer" onClick={handleAddToChat}>
-            {t('actions.add_it_to_context')}
-          </ContextMenuItem>
+
+          {data.resource_type !== 'folder' && (
+            <ContextMenuItem
+              className="cursor-pointer"
+              onClick={handleAddToChat}
+            >
+              {data.has_children
+                ? t('actions.add_it_only_to_context')
+                : t('actions.add_it_to_context')}
+            </ContextMenuItem>
+          )}
           <ContextMenuItem className="cursor-pointer" onClick={handleMoveTo}>
             {t('actions.move_to')}
           </ContextMenuItem>
