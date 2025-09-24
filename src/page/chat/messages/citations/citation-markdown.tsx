@@ -1,20 +1,23 @@
 import '@/styles/github-markdown.css';
 import 'katex/dist/katex.min.css';
-import 'vditor/dist/index.css';
-import '@/styles/vditor-patch.css';
 
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import Vditor from 'vditor';
+import React from 'react';
+import Markdown, { ExtraProps } from 'react-markdown';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import {
+  a11yDark,
+  a11yLight,
+} from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import rehypeKatex from 'rehype-katex';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 
-import { markdownPreviewConfig } from '@/components/markdown';
-import { LAZY_LOAD_IMAGE, VDITOR_CDN } from '@/const';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useTheme from '@/hooks/use-theme.ts';
-import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
-import Copy from '@/page/chat/messages/citations/actions/copy';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
+
+import Copy from './actions/copy';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const citePattern = / *\[\[(\d+)]]/g;
@@ -74,126 +77,87 @@ export function CitationMarkdown(props: IProps) {
   const { content, status, citations } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
-  const previewRef = useRef<HTMLDivElement>(null);
-  const [citationElements, setCitationElements] = useState<HTMLElement[]>([]);
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(cleanedContent);
 
-  function after(): void {
-    if (!previewRef.current) return;
-
-    // Handle table responsiveness
-    const tables = previewRef.current.querySelectorAll('table');
-    tables.forEach(table => {
-      if (!table.parentElement?.classList.contains('overflow-x-auto')) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'overflow-x-auto';
-        wrapper.style.width = isMobile ? 'calc(100vw - 2rem)' : '100%';
-        table.parentNode?.insertBefore(wrapper, table);
-        wrapper.appendChild(table);
-        table.style.maxWidth = 'max-content';
-      }
-    });
-
-    // Handle code block styling for mobile
-    if (isMobile) {
-      const codeBlocks = previewRef.current.querySelectorAll('pre > code');
-      codeBlocks.forEach(code => {
-        const pre = code.parentElement;
-        if (pre) {
-          pre.style.whiteSpace = 'pre-wrap';
-          pre.style.wordBreak = 'break-all';
-        }
-      });
-    }
-
-    // Process citations by creating placeholder elements for React portals
-    const citationLinks =
-      previewRef.current.querySelectorAll('a[href^="#cite-"]');
-    const elements: HTMLElement[] = [];
-
-    citationLinks.forEach(link => {
-      const href = link.getAttribute('href');
+  const components = {
+    a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
       const citeMatch = href?.match(citeLinkRegex);
       if (citeMatch) {
         const id = Number(citeMatch[1]) - 1;
-        if (id >= 0 && id < citations.length) {
-          // Create a span element to replace the link
-          const citationElement = document.createElement('span');
-          citationElement.setAttribute('data-citation-id', id.toString());
-          citationElement.className = 'citation-portal';
-          link.parentNode?.replaceChild(citationElement, link);
-          elements.push(citationElement);
+        if (id > 0 && id < citations.length) {
+          return <CitationHoverIcon citation={citations[id]} index={id} />;
         } else if (removeGeneratedCite) {
-          link.remove();
+          return null;
         }
       }
-    });
-
-    setCitationElements(elements);
-  }
-
-  async function renderMarkdown() {
-    if (!previewRef.current) return;
-
-    try {
-      await Vditor.preview(previewRef.current, replacedContent, {
-        ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
-        ...markdownPreviewConfig(theme),
-        theme: {
-          current: theme.content,
-        },
-        anchor: 0, // Disable heading anchors for citations
-        mode: theme.content,
-        transform: addReferrerPolicyForString,
-        lazyLoadImage: LAZY_LOAD_IMAGE,
-        hljs: {
-          ...markdownPreviewConfig(theme).hljs,
-          lineNumber: !isMobile, // Override line numbers based on mobile
-        },
-        after,
-      });
-    } catch (error) {
-      console.error({ message: 'Vditor preview error', error });
-    }
-  }
-
-  useEffect(() => {
-    void renderMarkdown();
-  }, [
-    replacedContent,
-    theme.content,
-    isMobile,
-    citations,
-    removeGeneratedCite,
-  ]);
+      return (
+        <a href={href} {...props}>
+          {children}
+        </a>
+      );
+    },
+    table({ children, ...props }: React.ComponentProps<'table'> & ExtraProps) {
+      return (
+        <div
+          className="overflow-x-auto"
+          style={isMobile ? { width: 'calc(100vw - 2rem)' } : { width: '100%' }}
+        >
+          <table {...props} style={{ maxWidth: 'max-content' }}>
+            {children}
+          </table>
+        </div>
+      );
+    },
+    code({
+      children,
+      className,
+      ...props
+    }: React.ComponentProps<'code'> & ExtraProps) {
+      const match = /language-(\w+)/.exec(className || '');
+      return match ? (
+        <div className="overflow-x-auto max-w-full md:text-sm text-xs">
+          <SyntaxHighlighter
+            PreTag="div"
+            language={match[1]}
+            style={theme.content === 'dark' ? a11yDark : a11yLight}
+            showLineNumbers={!isMobile}
+            customStyle={{
+              background: 'transparent',
+              whiteSpace: isMobile ? 'pre-wrap' : 'pre',
+              wordBreak: isMobile ? 'break-all' : 'normal',
+            }}
+            wrapLongLines={isMobile}
+          >
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
+        </div>
+      ) : (
+        <code {...props} className={className}>
+          {children}
+        </code>
+      );
+    },
+  };
 
   return (
-    <div className="reset-list" style={{ background: 'transparent' }}>
-      <div ref={previewRef} />
-
-      {citationElements.map((element, index) => {
-        const citationId = parseInt(
-          element.getAttribute('data-citation-id') || '0',
-          10
-        );
-        if (citationId >= 0 && citationId < citations.length) {
-          return createPortal(
-            <CitationHoverIcon
-              citation={citations[citationId]}
-              index={citationId}
-            />,
-            element,
-            `citation-${citationId}-${index}`
-          );
-        }
-        return null;
-      })}
-
+    <div
+      className="markdown-body reset-list"
+      style={{ background: 'transparent' }}
+    >
+      <Markdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={components}
+      >
+        {replacedContent}
+      </Markdown>
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
-        <Copy content={copyPreprocess(content, citations)} />
+        <div className="flex ml-[-6px] mt-[-10px]">
+          <Copy content={copyPreprocess(content, citations)} />
+        </div>
       )}
     </div>
   );
