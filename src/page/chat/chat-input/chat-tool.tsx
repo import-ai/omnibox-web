@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ToolType } from '@/page/chat/chat-input/types';
-import { PrivateSearchResource } from '@/page/chat/conversation/types';
+import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 
 const datasource = [
   {
@@ -26,7 +25,7 @@ const datasource = [
 
 interface IProps {
   tools: Array<ToolType>;
-  context: PrivateSearchResource[];
+  context: IResTypeContext[];
   onToolsChange: (tool: Array<ToolType>) => void;
 }
 

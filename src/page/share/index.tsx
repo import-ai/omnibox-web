@@ -8,8 +8,11 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
-import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
-import type { PrivateSearchResource } from '@/page/chat/conversation/types';
+import {
+  ChatMode,
+  IResTypeContext,
+  ToolType,
+} from '@/page/chat/chat-input/types';
 
 import { Password } from './password';
 import ShareSidebar from './sidebar';
@@ -19,8 +22,8 @@ const SHARE_PASSWORD_COOKIE = 'share-password';
 interface ShareContextValue {
   shareInfo: PublicShareInfo | null;
   resource: SharedResource | null;
-  selectedResources: PrivateSearchResource[];
-  setSelectedResources: (resources: PrivateSearchResource[]) => void;
+  selectedResources: IResTypeContext[];
+  setSelectedResources: (resources: IResTypeContext[]) => void;
   chatInput: string;
   setChatInput: (input: string) => void;
   mode: ChatMode;
@@ -46,9 +49,9 @@ export default function SharePage() {
   const cancelTokenSource = useRef<CancelTokenSource>(null);
   const [shareInfo, setShareInfo] = useState<PublicShareInfo | null>(null);
   const [resource, setResource] = useState<SharedResource | null>(null);
-  const [selectedResources, setSelectedResources] = useState<
-    PrivateSearchResource[]
-  >([]);
+  const [selectedResources, setSelectedResources] = useState<IResTypeContext[]>(
+    []
+  );
   const [chatInput, setChatInput] = useState<string>('');
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [tools, setTools] = useState<Array<ToolType>>([
@@ -67,7 +70,7 @@ export default function SharePage() {
     type: 'resource' | 'folder'
   ) => {
     const target = selectedResources.find(
-      item => item.id === resource.id && item.type === type
+      item => item.resource.id === resource.id && item.type === type
     );
     if (target) {
       return;
@@ -75,9 +78,8 @@ export default function SharePage() {
     setSelectedResources([
       ...selectedResources,
       {
-        id: resource.id,
-        name: resource.name || '',
         type,
+        resource,
       },
     ]);
   };
