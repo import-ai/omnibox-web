@@ -18,6 +18,7 @@ const CONTENT_MODIFYING_FUNCTIONS = [
   'file_reader',
   'extract_tags',
   'generate_title',
+  'generate_video_note',
 ];
 
 const DISPLAY_FUNCTIONS = CONTENT_MODIFYING_FUNCTIONS;

@@ -423,7 +423,8 @@
       "upsert_message_index": "消息索引",
       "delete_conversation": "删除对话",
       "extract_tags": "生成标签",
-      "generate_title": "生成标题"
+      "generate_title": "生成标题",
+      "generate_video_note": "视频解析"
     }
   },
   "common": {
