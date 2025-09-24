@@ -69,24 +69,16 @@ export default function SidebarItem(props: SidebarItemProps) {
   };
 
   const handleAddToChat = () => {
+    onAddToContext(resource, 'resource');
     if (!isChatActive) {
       navigate(`/s/${shareId}/chat`);
-      setTimeout(() => {
-        onAddToContext(resource, 'resource');
-      }, 100);
-    } else {
-      onAddToContext(resource, 'resource');
     }
   };
 
   const handleAddAllToChat = () => {
+    onAddToContext(resource, 'folder');
     if (!isChatActive) {
       navigate(`/s/${shareId}/chat`);
-      setTimeout(() => {
-        onAddToContext(resource, 'folder');
-      }, 100);
-    } else {
-      onAddToContext(resource, 'folder');
     }
   };
 
