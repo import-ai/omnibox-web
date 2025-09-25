@@ -41,6 +41,7 @@ export function RegisterConFirmForm() {
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const token = params.get('token');
+  const lang = navigator.language || navigator.languages[0];
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const form = useForm<TRegisterForm>({
@@ -54,7 +55,7 @@ export function RegisterConFirmForm() {
   const handleSubmit = (data: TRegisterForm) => {
     setIsLoading(true);
     http
-      .post('sign-up/confirm', { ...data, token })
+      .post('sign-up/confirm', { ...data, token, lang })
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
         navigate('/', { replace: true });

@@ -15,13 +15,14 @@ export default function AuthConfirmPage() {
   const [params] = useSearchParams();
   const code = params.get('code');
   const state = params.get('state');
+  const lang = navigator.language || navigator.languages[0];
 
   useEffect(() => {
     if (!code || !state) {
       return;
     }
     http
-      .get(`/wechat/callback?code=${code}&state=${state}`)
+      .get(`/wechat/callback?code=${code}&state=${state}&lang=${lang}`)
       .then(res => {
         setGlobalCredential(res.id, res.access_token);
         navigate('/', { replace: true });

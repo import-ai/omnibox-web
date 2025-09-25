@@ -12,6 +12,7 @@ import { GoogleIcon } from './icon';
 export default function Google() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const lang = navigator.language || navigator.languages[0];
   const loginWithGoogle = () => {
     http
       .get('/google/auth-url')
@@ -42,6 +43,7 @@ export default function Google() {
           .post(`/google/callback`, {
             code,
             state,
+            lang,
           })
           .then(res => {
             setGlobalCredential(res.id, res.access_token);
