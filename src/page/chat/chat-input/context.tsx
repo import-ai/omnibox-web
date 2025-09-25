@@ -1,10 +1,11 @@
-import { FileText, Folder, X } from 'lucide-react';
+import { Folder, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Badge from '@/components/badge';
 import { Button } from '@/components/ui/button';
 import { IResTypeContext } from '@/page/chat/chat-input/types';
+import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 interface IProps {
   value: IResTypeContext[];
@@ -58,7 +59,7 @@ export default function ChatContext(props: IProps) {
             {item.type === 'folder' ? (
               <Folder className="w-4 h-4" />
             ) : (
-              <FileText className="w-4 h-4" />
+              <ResourceIcon expand={false} resource={item.resource} />
             )}
             <span className="max-w-[130px] truncate">
               {item.resource.name || t('untitled')}

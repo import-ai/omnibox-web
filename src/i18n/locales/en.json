@@ -54,8 +54,9 @@
     "create_file": "Create File",
     "create_folder": "Create Folder",
     "upload_file": "Upload File",
-    "add_all_to_context": "Add all to Context",
-    "add_it_to_context": "Add it to Context",
+    "add_all_to_context": "Add all Files to Chat Box",
+    "add_it_to_context": "Add this File to Chat Box",
+    "add_it_only_to_context": "Add this File only to Chat Box",
     "wide": "Widescreen Mode"
   },
   "form": {
@@ -422,7 +423,8 @@
       "upsert_message_index": "Message Index",
       "delete_conversation": "Delete Chat",
       "extract_tags": "Gen Tags",
-      "generate_title": "Gen Title"
+      "generate_title": "Gen Title",
+      "generate_video_note": "Video Parsing"
     }
   },
   "common": {

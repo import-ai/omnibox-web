@@ -41,11 +41,12 @@ export function LoginForm({ className, children, ...props }: IProps) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
+  const emailParam = params.get('email');
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
+      email: emailParam || '',
       password: '',
     },
   });
