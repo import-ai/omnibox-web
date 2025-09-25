@@ -52,9 +52,11 @@ export const DOMAIN_SUFFIX_TO_ICON: Record<string, JSX.Element> = {
   'tiktok.com': siParser(siTiktok),
   'douban.com': siParser(siDouban),
   'youtube.com': siParser(siYoutube),
+  'youtu.be': siParser(siYoutube),
   'xiaohongshu.com': <RedNoteIcon />,
   'quora.com': siParser(siQuora),
   'bilibili.com': siParser(siBilibili),
+  'b23.tv': siParser(siBilibili),
 };
 
 export const FILE_ICON_CONDITIONS: FileIconCondition[] = [
