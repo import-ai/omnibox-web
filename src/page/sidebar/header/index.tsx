@@ -1,4 +1,4 @@
-import { History, Search, Sparkles } from 'lucide-react';
+import { History, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -9,6 +9,8 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import SearchMenu from '@/page/search';
+
+import { ChatIcon } from './Chat';
 
 interface IProps {
   active: boolean;
@@ -33,18 +35,21 @@ export function Header(props: IProps) {
     <>
       <SearchMenu open={search} onOpenChange={setSearch} />
       <SidebarMenu>
-        <SidebarMenuItem className="group">
+        <SidebarMenuItem className="group/chat">
           <SidebarMenuButton asChild isActive={active}>
-            <div className="flex cursor-pointer" onClick={onChat}>
-              <Sparkles className="w-4 h-4" />
-              <span>{t('chat.title')}</span>
+            <div
+              className="flex items-center cursor-pointer gap-[8px]"
+              onClick={onChat}
+            >
+              <ChatIcon className="size-[18px] text-[#3D86F9]" />
+              <span className="font-normal">{t('chat.title')}</span>
             </div>
           </SidebarMenuButton>
           <Button
             size="icon"
             variant="ghost"
             onClick={onChatHistory}
-            className="p-0 w-5 h-5 [&_svg]:size-4 absolute top-[6px] z-10 right-0 focus-visible:outline-none focus-visible:ring-transparent opacity-0 group-hover:opacity-100"
+            className="p-0 w-5 h-5 [&_svg]:size-4 absolute top-[6px] z-10 right-0 focus-visible:outline-none focus-visible:ring-transparent opacity-0 group-hover/chat:opacity-100"
           >
             <History className="focus-visible:outline-none focus-visible:ring-transparent" />
           </Button>
@@ -55,7 +60,7 @@ export function Header(props: IProps) {
               className="flex items-center gap-2 cursor-pointer"
               onClick={onSearch}
             >
-              <Search className="w-4 h-4" />
+              <Search className="size-4 text-[#8F959E]" />
               <span>{t('search.title')}</span>
             </div>
           </SidebarMenuButton>

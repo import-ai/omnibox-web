@@ -10,7 +10,7 @@
   "no_pages_inside": "内无页面",
   "updated": "{{ related_updated_at }}更新",
   "created": "已创建",
-  "private": "私有",
+  "private": "个人",
   "teamspace": "团队",
   "upload": {
     "invalid_ext": "当前文件格式不支持"
@@ -292,16 +292,16 @@
     "fail": "复制失败，请手动复制"
   },
   "chat": {
-    "title": "聊天",
+    "title": "OmniBox AI",
     "citations": "资料",
     "citations_results": "搜索结果",
     "searching": "搜索中...",
     "disclaimer": "OmniBox 也可能会犯错。请核查重要信息。",
     "conversations": {
       "new": "新对话",
-      "new_chat": "新建聊天",
+      "new_chat": "新建对话",
       "empty": "暂无对话",
-      "history": "历史对话",
+      "history": "历史记录",
       "deleted": "已删除对话",
       "deleted_description": "此对话已被删除",
       "delete": {
@@ -320,10 +320,10 @@
     },
     "home": {
       "greeting": {
-        "morning": "早上好，{{ name }}",
-        "afternoon": "下午好，{{ name }}",
-        "evening": "晚上好，{{ name }}",
-        "night": "夜深了，{{ name }}"
+        "morning": "早上好，今天有什么可以帮您的吗？",
+        "afternoon": "下午好，今天有什么可以帮您的吗？",
+        "evening": "晚上好，今天有什么可以帮您的吗？",
+        "night": "夜深了，今天有什么可以帮您的吗？"
       }
     },
     "tools": {

@@ -13,11 +13,13 @@ import {
   // DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/sidebar';
 import useNamespace from '@/hooks/use-namespaces';
 import { cn } from '@/lib/utils';
 import { Logout } from '@/page/user/logout';
@@ -33,6 +35,7 @@ interface IProps {
 
 export function Switcher(props: IProps) {
   const { namespaceId } = props;
+  const { open } = useSidebar();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { app, data } = useNamespace();
@@ -42,11 +45,15 @@ export function Switcher(props: IProps) {
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem>
+      <SidebarMenuItem
+        className={cn({
+          'flex justify-between items-center': open,
+        })}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="w-full px-1.5">
-              <div className="flex aspect-square size-5 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+            <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
+              <div className="flex aspect-square size-[24px] items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
                 <Command className="size-3" />
               </div>
               <span className="truncate font-semibold">{current.name}</span>
@@ -113,6 +120,7 @@ export function Switcher(props: IProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        {open && <SidebarTrigger className="text-[#8F959E]" />}
       </SidebarMenuItem>
     </SidebarMenu>
   );

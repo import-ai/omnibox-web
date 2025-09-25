@@ -33,7 +33,6 @@ const DOMAIN_SUFFIX_TO_ICON: Record<string, SimpleIcon> = {
 function getIconByHostname(hostname: string) {
   for (const [suffix, icon] of Object.entries(DOMAIN_SUFFIX_TO_ICON)) {
     if (hostname.endsWith(suffix)) {
-      console.log({ icon });
       return (
         <svg
           role="img"

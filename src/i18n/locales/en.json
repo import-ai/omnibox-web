@@ -292,7 +292,7 @@
     "fail": "Copy failed, please copy manually"
   },
   "chat": {
-    "title": "Chat",
+    "title": "OmniBox AI",
     "citations": "Citations",
     "citations_results": "Search Results",
     "searching": "Searching...",
@@ -320,10 +320,10 @@
     },
     "home": {
       "greeting": {
-        "morning": "Good morning, {{ name }}",
-        "afternoon": "Good afternoon, {{ name }}",
-        "evening": "Good evening, {{ name }}",
-        "night": "Good night, {{ name }}"
+        "morning": "Good morning, how can I help you today?",
+        "afternoon": "Good afternoon, how can I help you today?",
+        "evening": "Good evening, how can I help you today?",
+        "night": "Good night, how can I help you today?"
       }
     },
     "tools": {

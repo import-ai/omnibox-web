@@ -1,4 +1,4 @@
-import { ChevronRight, LoaderCircle } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
 import Action from './action';
+import { Arrow } from './arrow';
 import ContextMenuMain from './contextMenu';
 import Icon from './icon';
 
@@ -163,10 +164,10 @@ export default function Tree(props: ITreeProps) {
       >
         <CollapsibleTrigger asChild>
           <ContextMenuMain {...props}>
-            <div>
+            <div className="group/sidebar-item">
               <SidebarMenuButton
                 asChild
-                className="gap-1 py-2 h-auto"
+                className="gap-1 py-1.5 h-auto group-has-[[data-sidebar=menu-action]]/menu-item:pr-[24px] data-[active=true]:bg-[#E2E2E6]"
                 onClick={handleActiveKey}
                 isActive={data.id == activeKey}
               >
@@ -185,7 +186,7 @@ export default function Tree(props: ITreeProps) {
                       <Button
                         size="icon"
                         variant="outline"
-                        className="h-6 w-6 bg-transparent shadow-none border-none hover:bg-sidebar-border"
+                        className="h-6 w-6 bg-transparent shadow-none border-none hover:bg-transparent"
                       >
                         <LoaderCircle className="transition-transform animate-spin" />
                       </Button>
@@ -193,14 +194,14 @@ export default function Tree(props: ITreeProps) {
                       <Button
                         size="icon"
                         variant="outline"
-                        className="h-6 w-6 bg-transparent shadow-none border-none hover:bg-sidebar-border"
+                        className="size-6 bg-transparent shadow-none border-none text-[#8F959E] hover:bg-transparent"
                         onClick={event => {
                           event.preventDefault();
                           event.stopPropagation();
                           handleExpand();
                         }}
                       >
-                        <ChevronRight className="transition-transform" />
+                        <Arrow className="transition-transform" />
                       </Button>
                     ))}
                   <Icon expand={expand} resource={data} />
