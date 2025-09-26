@@ -7,15 +7,14 @@ import { http } from '@/lib/request';
 export function LanguageToggle() {
   const { i18n } = useTranslation();
   const toggleLanguage = () => {
-    const currentLang = i18n.language || navigator.language;
-    const newLanguage = currentLang === 'en' ? 'zh' : 'en';
-    i18n.changeLanguage(newLanguage).then(() => {
+    const lang = i18n.language === 'en-US' ? 'zh-CN' : 'en-US';
+    i18n.changeLanguage(lang).then(() => {
       if (!localStorage.getItem('uid')) {
         return;
       }
       http.post('/user/option', {
         name: 'language',
-        value: newLanguage === 'en' ? 'en-US' : 'zh-CN',
+        value: lang,
       });
     });
   };

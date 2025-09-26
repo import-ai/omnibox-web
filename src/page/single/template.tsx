@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Markdown } from '@/components/markdown';
+import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 
 interface IProps {
@@ -14,8 +15,7 @@ export default function Template(props: IProps) {
   const { id } = props;
   const { i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const rawLanguage = i18n.language || navigator.language || 'en';
-  const language = rawLanguage.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  const language = getLangOnly(i18n);
   const [data, onData] = useState<{
     title: string;
     content: string;

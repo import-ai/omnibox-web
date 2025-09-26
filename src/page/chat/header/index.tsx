@@ -21,7 +21,7 @@ export default function ChatHeader() {
   const loc = useLocation();
   const params = useParams();
   const modified = useRef(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const i18nTitle = t('chat.conversations.new');
   const [data, onData] = useState(i18nTitle);
   const namespaceId = params.namespace_id || '';
@@ -61,7 +61,7 @@ export default function ChatHeader() {
           `/namespaces/${namespaceId}/conversations/${conversationId}/title`,
           {
             text,
-            lang: getWizardLang(),
+            lang: getWizardLang(i18n),
           }
         )
         .then(res => {
