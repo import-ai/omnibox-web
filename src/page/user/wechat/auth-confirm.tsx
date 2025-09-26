@@ -21,8 +21,12 @@ export default function AuthConfirmPage() {
     if (!code || !state) {
       return;
     }
+    let url = `/wechat/callback?code=${code}&state=${state}`;
+    if (lang) {
+      url += `&lang=${lang}`;
+    }
     http
-      .get(`/wechat/callback?code=${code}&state=${state}&lang=${lang}`)
+      .get(url)
       .then(res => {
         setGlobalCredential(res.id, res.access_token);
         navigate('/', { replace: true });
