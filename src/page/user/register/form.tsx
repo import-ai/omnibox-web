@@ -56,12 +56,14 @@ export function RegisterForm({ children }: IProps) {
       email: '',
     },
   });
+  const lang = navigator.language || navigator.languages[0];
   const handleSubmit = (data: TRegisterForm) => {
     setIsLoading(true);
     http
       .post('sign-up', {
         email: data.email,
         url: `${location.origin}/user/sign-up/confirm`,
+        lang,
       })
       .then(() => {
         form.resetField('email');
