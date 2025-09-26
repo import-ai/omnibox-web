@@ -12,6 +12,7 @@ interface IProps {
 export function GoogleLogin(props: IProps) {
   const { onSuccess } = props;
   const { t } = useTranslation();
+  const lang = navigator.language || navigator.languages[0];
   const loginWithGoogle = () => {
     http
       .get('/google/auth-url')
@@ -34,6 +35,7 @@ export function GoogleLogin(props: IProps) {
           .post(`/google/callback`, {
             code,
             state,
+            lang,
           })
           .then(onSuccess)
           .catch(error => {
