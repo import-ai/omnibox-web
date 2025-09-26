@@ -9,6 +9,7 @@ import {
 import { Discord } from './Discord';
 import { Docs } from './Docs';
 import { Feedback } from './Feedback';
+import { QrCode } from './Qrcode';
 import { Wechat } from './Wechat';
 
 export function FooterSidebar() {
@@ -48,11 +49,7 @@ export function FooterSidebar() {
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-white w-[178px] px-[22px] pt-[22px] pb-[16px] rounded-[12px] shadow-sm border border-[#E0E0E0]">
-              <img
-                src="/wechat.png"
-                alt="QR Code"
-                className="size-[134px] object-contain"
-              />
+              <QrCode />
               <p className="text-[#8F959E] text-center p-0 mt-[8px] text-[14px] font-[500]">
                 诚邀您加入种子群
               </p>
