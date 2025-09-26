@@ -88,7 +88,7 @@ export const FILE_ICON_CONDITIONS: FileIconCondition[] = [
     field: 'original_name',
     type: 'suffix',
     values: ['.ppt', '.pptx'],
-    icon: <RiFilePptFill color="#FC2B2B" />,
+    icon: <RiFilePptFill color="#EB313C" />,
   },
   {
     field: 'original_name',
