@@ -1,10 +1,11 @@
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN } from 'date-fns/locale';
-import i18next from 'i18next';
+import type { i18n as I18nType } from 'i18next';
 
 import { Resource } from '@/interface';
+import { getLangOnly } from '@/lib/lang';
 
-export function getTime(resource: Resource | null) {
+export function getTime(resource: Resource | null, i18next: I18nType) {
   if (!resource) {
     return '';
   }
@@ -12,7 +13,7 @@ export function getTime(resource: Resource | null) {
     return i18next.t('updated', {
       related_updated_at: formatDistanceToNow(new Date(resource.updated_at), {
         addSuffix: true,
-        locale: i18next.language === 'zh' ? zhCN : enUS,
+        locale: getLangOnly(i18next) === 'zh' ? zhCN : enUS,
       }),
     });
   }
@@ -22,7 +23,7 @@ export function getTime(resource: Resource | null) {
       ' ' +
       formatDistanceToNow(new Date(resource.created_at), {
         addSuffix: true,
-        locale: i18next.language === 'zh' ? zhCN : enUS,
+        locale: getLangOnly(i18next) === 'zh' ? zhCN : enUS,
       })
     );
   }
@@ -33,8 +34,8 @@ interface GroupedItems {
   [key: string]: Array<Resource>;
 }
 
-function convert(year: number, month: number): string {
-  if (i18next.language === 'zh') {
+function convert(year: number, month: number, i18next: I18nType): string {
+  if (getLangOnly(i18next) === 'zh') {
     return `${year} 年 ${month} 月`;
   }
   const date = new Date(year, month - 1);
@@ -45,7 +46,8 @@ function convert(year: number, month: number): string {
 }
 
 export function groupItemsByTimestamp(
-  items: Array<Resource>
+  items: Array<Resource>,
+  i18next: I18nType
 ): [string, Array<Resource>][] {
   const now = new Date();
   const today = new Date(now);
@@ -81,7 +83,7 @@ export function groupItemsByTimestamp(
       }
       grouped[i18next.t('date.last_week')].push(item);
     } else {
-      const monthKey = convert(itemYear, itemMonth);
+      const monthKey = convert(itemYear, itemMonth, i18next);
       if (!grouped[monthKey]) {
         grouped[monthKey] = [];
         monthGroups.push({

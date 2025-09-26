@@ -38,10 +38,9 @@ const registerSchema = z
 type TRegisterForm = z.infer<typeof registerSchema>;
 
 export function RegisterConFirmForm() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [params] = useSearchParams();
   const token = params.get('token');
-  const lang = navigator.language || navigator.languages[0];
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const form = useForm<TRegisterForm>({
@@ -55,7 +54,7 @@ export function RegisterConFirmForm() {
   const handleSubmit = (data: TRegisterForm) => {
     setIsLoading(true);
     http
-      .post('sign-up/confirm', { ...data, token, lang })
+      .post('sign-up/confirm', { ...data, token, lang: i18n.language })
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
         navigate('/', { replace: true });

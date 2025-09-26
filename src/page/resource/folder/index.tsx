@@ -19,7 +19,7 @@ interface IProps {
 
 export default function Folder(props: IProps) {
   const { resource, namespaceId } = props;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [loading, onLoading] = useState(false);
   const [data, onData] = useState<Array<Resource>>([]);
@@ -48,7 +48,7 @@ export default function Folder(props: IProps) {
     <div className="space-y-6">
       {data.length > 0 ? (
         <>
-          {groupItemsByTimestamp(data).map(([key, items]) => (
+          {groupItemsByTimestamp(data, i18n).map(([key, items]) => (
             <div key={key}>
               <div className="pb-4">
                 <p className="text-sm text-muted-foreground font-light ml-0.5">

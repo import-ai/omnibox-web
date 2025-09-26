@@ -55,7 +55,7 @@ export interface IActionProps extends IUseResource {
 export default function Actions(props: IActionProps) {
   const { app, wide, onWide, forbidden, resource, editPage, namespaceId } =
     props;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
@@ -191,7 +191,7 @@ export default function Actions(props: IActionProps) {
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className="hidden font-medium text-muted-foreground md:inline-block">
-        {getTime(resource)}
+        {getTime(resource, i18n)}
       </div>
       {resource && (
         <PermissionWrapper

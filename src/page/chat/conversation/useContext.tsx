@@ -1,9 +1,11 @@
 import { isFunction } from 'lodash-es';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
+import { getWizardLang } from '@/lib/wizard-lang';
 import {
   type ChatActionType,
   ChatMode,
@@ -23,6 +25,7 @@ import useGlobalContext from '@/page/chat/useContext';
 export default function useContext() {
   const app = useApp();
   const params = useParams();
+  const { i18n } = useTranslation();
   const [value, onChange] = useState<string>('');
   const askAbortRef = useRef<() => void>(null);
   const namespaceId = params.namespace_id || '';
@@ -95,7 +98,8 @@ export default function useContext() {
         context,
         messages,
         messageOperator,
-        mode
+        mode,
+        getWizardLang(i18n)
       );
       askAbortRef.current = askFN.destory;
       await askFN.start();

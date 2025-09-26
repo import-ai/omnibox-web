@@ -1,13 +1,14 @@
-import i18next from 'i18next';
+import type { i18n as I18nType } from 'i18next';
 
+import { getLangOnly } from '@/lib/lang';
 import { ConversationSummary } from '@/page/chat/types/conversation';
 
 interface GroupedItems {
   [key: string]: Array<ConversationSummary>;
 }
 
-function convert(year: number, month: number): string {
-  if (i18next.language === 'zh') {
+function convert(year: number, month: number, i18n: I18nType): string {
+  if (getLangOnly(i18n) === 'zh') {
     return `${year} 年 ${month} 月`;
   }
   const date = new Date(year, month - 1);
@@ -18,7 +19,8 @@ function convert(year: number, month: number): string {
 }
 
 export function groupItemsByTimestamp(
-  items: Array<ConversationSummary>
+  items: Array<ConversationSummary>,
+  i18n: I18nType
 ): [string, Array<ConversationSummary>][] {
   const now = new Date();
   const today = new Date(now);
@@ -39,22 +41,22 @@ export function groupItemsByTimestamp(
     const itemMonth = itemDate.getMonth() + 1;
 
     if (itemDate >= today) {
-      if (!grouped[i18next.t('date.today')]) {
-        grouped[i18next.t('date.today')] = [];
+      if (!grouped[i18n.t('date.today')]) {
+        grouped[i18n.t('date.today')] = [];
       }
-      grouped[i18next.t('date.today')].push(item);
+      grouped[i18n.t('date.today')].push(item);
     } else if (itemDate >= yesterday && itemDate < today) {
-      if (!grouped[i18next.t('date.yesterday')]) {
-        grouped[i18next.t('date.yesterday')] = [];
+      if (!grouped[i18n.t('date.yesterday')]) {
+        grouped[i18n.t('date.yesterday')] = [];
       }
-      grouped[i18next.t('date.yesterday')].push(item);
+      grouped[i18n.t('date.yesterday')].push(item);
     } else if (itemDate >= sevenDaysAgo && itemDate < yesterday) {
-      if (!grouped[i18next.t('date.last_week')]) {
-        grouped[i18next.t('date.last_week')] = [];
+      if (!grouped[i18n.t('date.last_week')]) {
+        grouped[i18n.t('date.last_week')] = [];
       }
-      grouped[i18next.t('date.last_week')].push(item);
+      grouped[i18n.t('date.last_week')].push(item);
     } else {
-      const monthKey = convert(itemYear, itemMonth);
+      const monthKey = convert(itemYear, itemMonth, i18n);
       if (!grouped[monthKey]) {
         grouped[monthKey] = [];
         monthGroups.push({
@@ -70,22 +72,19 @@ export function groupItemsByTimestamp(
 
   const orderedGroups: [string, Array<ConversationSummary>][] = [];
 
-  if (grouped[i18next.t('date.today')]) {
+  if (grouped[i18n.t('date.today')]) {
+    orderedGroups.push([i18n.t('date.today'), grouped[i18n.t('date.today')]]);
+  }
+  if (grouped[i18n.t('date.yesterday')]) {
     orderedGroups.push([
-      i18next.t('date.today'),
-      grouped[i18next.t('date.today')],
+      i18n.t('date.yesterday'),
+      grouped[i18n.t('date.yesterday')],
     ]);
   }
-  if (grouped[i18next.t('date.yesterday')]) {
+  if (grouped[i18n.t('date.last_week')]) {
     orderedGroups.push([
-      i18next.t('date.yesterday'),
-      grouped[i18next.t('date.yesterday')],
-    ]);
-  }
-  if (grouped[i18next.t('date.last_week')]) {
-    orderedGroups.push([
-      i18next.t('date.last_week'),
-      grouped[i18next.t('date.last_week')],
+      i18n.t('date.last_week'),
+      grouped[i18n.t('date.last_week')],
     ]);
   }
 

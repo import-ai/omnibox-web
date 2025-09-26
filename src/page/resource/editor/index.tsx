@@ -12,6 +12,7 @@ import { VDITOR_CDN } from '@/const';
 import useTheme from '@/hooks/use-theme';
 import { Resource } from '@/interface';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
+import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 import { toolbar } from '@/page/resource/editor/const';
 
@@ -130,7 +131,7 @@ export default function Editor(props: IEditorProps) {
         pin: true,
       },
       mode: 'wysiwyg',
-      lang: i18n.language == 'en' ? 'en_US' : 'zh_CN',
+      lang: getLangOnly(i18n) === 'zh' ? 'zh_CN' : 'en_US',
       upload: {
         url: `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
         accept: 'image/*,.wav',

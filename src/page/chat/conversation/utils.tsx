@@ -1,4 +1,4 @@
-import { getWizardLang } from '@/lib/wizard-lang';
+import { WizardLang } from '@/lib/wizard-lang';
 import {
   ChatMode,
   type IResTypeContext,
@@ -32,14 +32,15 @@ export function prepareBody(
   query: string,
   tools: ToolType[],
   context: IResTypeContext[],
-  messages: MessageDetail[]
+  messages: MessageDetail[],
+  lang: WizardLang | undefined
 ): ChatRequestBody {
   const body: ChatRequestBody = {
     namespace_id: namespaceId,
     conversation_id: conversationId,
     query,
     enable_thinking: false,
-    lang: getWizardLang(),
+    lang,
   };
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
@@ -77,7 +78,8 @@ export function ask(
   context: IResTypeContext[],
   messages: MessageDetail[],
   messageOperator: MessageOperator,
-  mode: ChatMode = ChatMode.ASK
+  mode: ChatMode,
+  lang: WizardLang | undefined
 ) {
   const body = prepareBody(
     namespaceId,
@@ -85,7 +87,8 @@ export function ask(
     query,
     tools,
     context,
-    messages
+    messages,
+    lang
   );
   return stream(`/api/v1/wizard/${mode}`, body, async data => {
     const chatResponse: ChatResponse = JSON.parse(data);
