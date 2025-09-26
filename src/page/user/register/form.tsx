@@ -47,7 +47,7 @@ interface IProps {
 }
 
 export function RegisterForm({ children }: IProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<TRegisterForm>({
@@ -56,14 +56,13 @@ export function RegisterForm({ children }: IProps) {
       email: '',
     },
   });
-  const lang = navigator.language || navigator.languages[0];
   const handleSubmit = (data: TRegisterForm) => {
     setIsLoading(true);
     http
       .post('sign-up', {
         email: data.email,
         url: `${location.origin}/user/sign-up/confirm`,
-        lang,
+        lang: i18n.language,
       })
       .then(() => {
         form.resetField('email');

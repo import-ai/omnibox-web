@@ -10,20 +10,19 @@ import { setGlobalCredential } from '@/page/user/util';
 import WrapperPage from '../wrapper';
 
 export default function AuthConfirmPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const code = params.get('code');
   const state = params.get('state');
-  const lang = navigator.language || navigator.languages[0];
 
   useEffect(() => {
     if (!code || !state) {
       return;
     }
     let url = `/wechat/callback?code=${code}&state=${state}`;
-    if (lang) {
-      url += `&lang=${lang}`;
+    if (i18n.language) {
+      url += `&lang=${i18n.language}`;
     }
     http
       .get(url)
