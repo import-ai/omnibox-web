@@ -10,14 +10,16 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Resource } from '@/interface';
+import { cn } from '@/lib/utils';
 
 interface IProps {
+  className?: string;
   namespaceId: string;
   resource: Resource | null;
 }
 
 export default function BreadcrumbMain(props: IProps) {
-  const { resource, namespaceId } = props;
+  const { className, resource, namespaceId } = props;
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -28,7 +30,7 @@ export default function BreadcrumbMain(props: IProps) {
   const size = data.length - 1;
 
   return (
-    <Breadcrumb className="ml-[-10px]">
+    <Breadcrumb className={cn('ml-[-10px]', className)}>
       <BreadcrumbList className="gap-0 sm:gap-0">
         {data.slice(1).map((item, index) => (
           <React.Fragment key={item.id}>

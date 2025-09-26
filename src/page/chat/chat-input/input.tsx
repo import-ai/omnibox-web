@@ -29,13 +29,13 @@ export default function ChatInput(props: IProps) {
   };
 
   return (
-    <div className="mt-1 mb-5">
+    <div className="mb-[2px]">
       <Textarea
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={t('chat.textarea.placeholder')}
-        className="resize-none p-0 border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:shadow-none hover:border-transparent hover:shadow-none dark:placeholder:text-gray-400"
+        className="resize-none p-0 border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:shadow-none hover:border-transparent hover:shadow-none placeholder:text-[#9CA3AF] dark:placeholder:text-gray-400"
       />
     </div>
   );

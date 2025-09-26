@@ -1,6 +1,7 @@
 import { Sidebar, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
 
 import Content from './content';
+import { FooterSidebar } from './footer';
 import { Header } from './header';
 import { Switcher } from './switcher';
 import useContext from './useContext';
@@ -24,8 +25,8 @@ export default function MainSidebar() {
   } = useContext();
 
   return (
-    <Sidebar>
-      <SidebarHeader>
+    <Sidebar className="border-none">
+      <SidebarHeader className="pt-[16px] gap-[10px]">
         <Switcher namespaceId={namespaceId} />
         <Header active={chatPage} onActiveKey={handleActiveKey} />
       </SidebarHeader>
@@ -44,7 +45,8 @@ export default function MainSidebar() {
         onMenuMore={handleMenuMore}
         onActiveKey={handleActiveKey}
       />
-      <SidebarRail />
+      <FooterSidebar />
+      <SidebarRail className="opacity-0" />
     </Sidebar>
   );
 }
