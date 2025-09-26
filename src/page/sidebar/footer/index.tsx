@@ -23,7 +23,7 @@ export function FooterSidebar() {
         {
           icon: <Discord />,
           label: 'Discord',
-          value: '/discord',
+          value: 'https://discord.gg/Uc2HneCC',
         },
         {
           icon: <Wechat />,
