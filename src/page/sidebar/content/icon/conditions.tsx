@@ -52,9 +52,11 @@ export const DOMAIN_SUFFIX_TO_ICON: Record<string, JSX.Element> = {
   'tiktok.com': siParser(siTiktok),
   'douban.com': siParser(siDouban),
   'youtube.com': siParser(siYoutube),
+  'youtu.be': siParser(siYoutube),
   'xiaohongshu.com': <RedNoteIcon />,
   'quora.com': siParser(siQuora),
   'bilibili.com': siParser(siBilibili),
+  'b23.tv': siParser(siBilibili),
 };
 
 export const FILE_ICON_CONDITIONS: FileIconCondition[] = [
@@ -86,7 +88,7 @@ export const FILE_ICON_CONDITIONS: FileIconCondition[] = [
     field: 'original_name',
     type: 'suffix',
     values: ['.ppt', '.pptx'],
-    icon: <RiFilePptFill color="#FC2B2B" />,
+    icon: <RiFilePptFill color="#EB313C" />,
   },
   {
     field: 'original_name',
