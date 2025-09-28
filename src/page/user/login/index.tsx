@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { Available } from '../available';
 import Google from '../google';
@@ -12,6 +13,14 @@ import { LoginForm } from './form';
 export default function LoginPage() {
   const [scan, onScan] = useState(false);
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const uid = localStorage.getItem('uid');
+    if (uid) {
+      navigate('/', { replace: true });
+    }
+  }, []);
 
   return (
     <WrapperPage extra={<MetaPage />}>
