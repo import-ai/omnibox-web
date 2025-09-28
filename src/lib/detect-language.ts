@@ -1,11 +1,9 @@
-export function detectBrowserLanguage(): 'en' | 'zh' {
-  if (typeof navigator === 'undefined') {
-    return 'en';
+export function detectBrowserLanguage(): string {
+  if (navigator?.language) {
+    return navigator.language;
   }
-
-  const browserLang = navigator.language;
-  if (browserLang && browserLang.toLowerCase().startsWith('zh')) {
-    return 'zh';
+  if (navigator?.languages && navigator.languages.length > 0) {
+    return navigator.languages[0];
   }
-  return 'en';
+  return 'en-US';
 }

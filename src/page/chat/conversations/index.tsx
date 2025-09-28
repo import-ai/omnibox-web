@@ -20,7 +20,7 @@ import useContext from './useContext';
 
 export default function ChatConversationsPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     data,
     edit,
@@ -64,7 +64,7 @@ export default function ChatConversationsPage() {
           <div className="space-y-6">
             {data.data.length > 0 ? (
               <>
-                {groupItemsByTimestamp(data.data).map(([key, items]) => (
+                {groupItemsByTimestamp(data.data, i18n).map(([key, items]) => (
                   <div key={key}>
                     <div className="pb-4">
                       <p className="text-sm text-muted-foreground font-light ml-0.5">

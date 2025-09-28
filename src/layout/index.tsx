@@ -25,7 +25,7 @@ export default function Layout() {
     track('visit_web_from', {
       referrer,
       url: location.href,
-      language: localStorage.getItem('i18nextLng') || navigator.language,
+      language: i18n.language,
     });
   }, []);
 
@@ -74,12 +74,9 @@ export default function Layout() {
     http
       .get('/user/option/language', { cancelToken: source.token })
       .then(response => {
-        if (!response || !response.value) {
-          return;
-        }
-        const lng = response.value === 'en-US' ? 'en' : 'zh';
-        if (lng !== i18n.language) {
-          i18n.changeLanguage(lng);
+        const lang = response?.value;
+        if (lang && lang !== i18n.language) {
+          i18n.changeLanguage(lang);
         }
       });
     http
