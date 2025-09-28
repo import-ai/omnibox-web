@@ -164,10 +164,10 @@ export default function Tree(props: ITreeProps) {
       >
         <CollapsibleTrigger asChild>
           <ContextMenuMain {...props}>
-            <div className="group/sidebar-item">
+            <div className="group/sidebar-item rounded-[6px] hover:bg-sidebar-accent">
               <SidebarMenuButton
                 asChild
-                className="gap-1 py-1.5 h-auto group-has-[[data-sidebar=menu-action]]/menu-item:pr-[24px] data-[active=true]:bg-[#E2E2E6]"
+                className="gap-1 py-1.5 h-auto group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637]"
                 onClick={handleActiveKey}
                 isActive={data.id == activeKey}
               >
@@ -176,7 +176,7 @@ export default function Tree(props: ITreeProps) {
                   style={dragStyle}
                   className={cn('flex list cursor-pointer', {
                     'pl-1': data.has_children,
-                    'pl-8': !data.has_children,
+                    'pl-[28px]': !data.has_children,
                     'bg-sidebar-accent text-sidebar-accent-foreground':
                       (target && target.id === data.id) || isFileDragOver,
                   })}
@@ -186,7 +186,7 @@ export default function Tree(props: ITreeProps) {
                       <Button
                         size="icon"
                         variant="outline"
-                        className="h-6 w-6 bg-transparent shadow-none border-none hover:bg-transparent"
+                        className="size-6 bg-transparent shadow-none border-none hover:bg-transparent"
                       >
                         <LoaderCircle className="transition-transform animate-spin" />
                       </Button>
@@ -194,7 +194,7 @@ export default function Tree(props: ITreeProps) {
                       <Button
                         size="icon"
                         variant="outline"
-                        className="size-6 bg-transparent shadow-none border-none text-[#8F959E] hover:bg-transparent"
+                        className="size-[20px] bg-transparent shadow-none border-none text-[#8F959E] hover:bg-transparent"
                         onClick={event => {
                           event.preventDefault();
                           event.stopPropagation();
@@ -205,7 +205,9 @@ export default function Tree(props: ITreeProps) {
                       </Button>
                     ))}
                   <ResourceIcon expand={expand} resource={data} />
-                  <span className="truncate">{data.name || t('untitled')}</span>
+                  <span className="truncate flex-1">
+                    {data.name || t('untitled')}
+                  </span>
                 </div>
               </SidebarMenuButton>
               <Action {...props} />
@@ -213,7 +215,7 @@ export default function Tree(props: ITreeProps) {
           </ContextMenuMain>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarMenuSub className="pr-0 mr-0">
+          <SidebarMenuSub className="pr-0 py-0 mr-0 gap-0">
             {data.has_children &&
               Array.isArray(data.children) &&
               data.children.length > 0 &&

@@ -35,7 +35,7 @@ interface IProps {
 
 export function Switcher(props: IProps) {
   const { namespaceId } = props;
-  const { open } = useSidebar();
+  const { open, isMobile } = useSidebar();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { app, data } = useNamespace();
@@ -53,8 +53,8 @@ export function Switcher(props: IProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
-              <div className="flex aspect-square size-[24px] items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-                <Command className="size-3" />
+              <div className="flex rounded-[8px] size-[24px] text-[12px] text-white items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
+                {current.name.charAt(0)}
               </div>
               <span className="truncate font-semibold">{current.name}</span>
               <ChevronDown className="opacity-50" />
@@ -120,7 +120,9 @@ export function Switcher(props: IProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        {open && <SidebarTrigger className="text-[#8F959E]" />}
+        {open && !isMobile && (
+          <SidebarTrigger className="text-[#8F959E] hover:text-[#8F959E] hover:bg-[#E6E6EC]" />
+        )}
       </SidebarMenuItem>
     </SidebarMenu>
   );

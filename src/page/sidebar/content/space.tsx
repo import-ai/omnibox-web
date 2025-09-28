@@ -172,7 +172,7 @@ export default function Space(props: ITreeProps) {
                 {data.id === editingKey ? (
                   <LoaderCircle className="transition-transform animate-spin" />
                 ) : (
-                  <MoreHorizontal className="group-hover/sidebar-header:opacity-100 opacity-0 focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3]" />
+                  <MoreHorizontal className="group-hover/sidebar-header:block hidden focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3]" />
                 )}
               </SidebarMenuAction>
             </DropdownMenuTrigger>

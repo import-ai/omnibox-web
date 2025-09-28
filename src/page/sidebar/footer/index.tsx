@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
 import { SidebarFooter } from '@/components/ui/sidebar';
 import {
@@ -9,31 +11,33 @@ import {
 import { Discord } from './Discord';
 import { Docs } from './Docs';
 import { Feedback } from './Feedback';
-import { QrCode } from './Qrcode';
+import { QrCode } from './QrCode';
 import { Wechat } from './Wechat';
 
 export function FooterSidebar() {
+  const { t } = useTranslation();
+
   return (
-    <SidebarFooter className="flex-row flex-wrap items-center justify-around px-[24px] pb-[14px] gap-[24px]">
+    <SidebarFooter className="flex-row flex-wrap items-center justify-around px-[24px] pb-[8px] gap-[24px]">
       {[
         {
           icon: <Docs />,
-          label: '帮助文档',
+          label: t('footer.docs'),
           value: '/docs',
         },
         {
           icon: <Discord />,
-          label: 'Discord',
+          label: t('footer.discord'),
           value: 'https://discord.gg/Uc2HneCC',
         },
         {
           icon: <Wechat />,
-          label: '二维码',
+          label: t('footer.wechat'),
           value: '/wechat',
         },
         {
           icon: <Feedback />,
-          label: '意见反馈',
+          label: t('footer.feedback'),
           value: '/feedback',
         },
       ].map(item =>
@@ -43,7 +47,7 @@ export function FooterSidebar() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="px-0 size-[32px] [&_svg]:size-[20px] [&_svg]:scale-[1.3] text-[#8F959E]"
+                className="px-0 size-[32px] [&_svg]:size-[20px] [&_svg]:scale-[1.3] text-[#8F959E] hover:text-[#8F959E] hover:bg-[#E8E8EE]"
               >
                 {item.icon}
               </Button>
@@ -51,18 +55,18 @@ export function FooterSidebar() {
             <TooltipContent className="bg-white w-[178px] px-[22px] pt-[22px] pb-[16px] rounded-[12px] shadow-sm border border-[#E0E0E0]">
               <QrCode />
               <p className="text-[#8F959E] text-center p-0 mt-[8px] text-[14px] font-[500]">
-                诚邀您加入种子群
+                {t('footer.join')}
               </p>
             </TooltipContent>
           </Tooltip>
         ) : (
           <Tooltip key={item.value}>
             <TooltipTrigger asChild>
-              <a href={item.value} target="_blank" className="text-[#8F959E]">
+              <a href={item.value} target="_blank" className="!text-[#8F959E] ">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="px-0 size-[32px] [&_svg]:size-[20px]"
+                  className="px-0 size-[32px] [&_svg]:size-[20px] hover:text-[#8F959E] hover:bg-[#E8E8EE]"
                 >
                   {item.icon}
                 </Button>

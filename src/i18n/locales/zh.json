@@ -484,5 +484,12 @@
       "save": "保存",
       "discard": "放弃"
     }
+  },
+  "footer": {
+    "docs": "帮助文档",
+    "discord": "Discord",
+    "wechat": "二维码",
+    "feedback": "意见反馈",
+    "join": "诚邀您加入种子群"
   }
 }

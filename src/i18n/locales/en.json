@@ -484,5 +484,12 @@
       "save": "Save",
       "discard": "Discard"
     }
+  },
+  "footer": {
+    "docs": "Docs",
+    "discord": "Discord",
+    "wechat": "QR Code",
+    "feedback": "Feedback",
+    "join": "We sincerely invite you to join the seed group"
   }
 }

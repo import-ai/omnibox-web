@@ -19,7 +19,7 @@ export default function ChatHeader() {
   const app = useApp();
   const loc = useLocation();
   const params = useParams();
-  const { open } = useSidebar();
+  const { open, isMobile } = useSidebar();
   const modified = useRef(false);
   const { t } = useTranslation();
   const i18nTitle = t('chat.conversations.new');
@@ -89,9 +89,9 @@ export default function ChatHeader() {
   }, [data, conversationsPage]);
 
   return (
-    <header className="rounded-[16px] sticky z-[30] top-0 bg-white flex h-12 shrink-0 items-center gap-2 dark:bg-background">
+    <header className="rounded-[16px] sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
-        {!open && <SidebarTrigger className="text-[#8F959E]" />}
+        {(!open || isMobile) && <SidebarTrigger className="text-[#8F959E]" />}
         {conversationId && (
           <Breadcrumb>
             <BreadcrumbList>

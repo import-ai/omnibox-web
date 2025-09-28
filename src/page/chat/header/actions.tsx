@@ -126,7 +126,7 @@ export default function Actions(props: IProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="text-[#585D65] size-[28px]"
+              className="text-[#585D65] size-[28px] dark:text-white"
               onClick={onChatHistory}
             >
               <History />
