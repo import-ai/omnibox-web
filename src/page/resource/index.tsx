@@ -26,12 +26,12 @@ export default function ResourcePage() {
   }, []);
 
   return (
-    <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background">
+    <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-[calc(100vh-16px)]">
       <Header {...props} wide={wide} onWide={onWide} />
       <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
-      <div className="flex justify-center h-full p-4">
+      <div className="flex flex-1 justify-center p-4 overflow-auto">
         <div
-          className={cn('flex flex-col w-full h-full', {
+          className={cn('flex flex-col w-full', {
             'max-w-[680px]': !wide && (open || !large),
             'max-w-[800px]': !wide && (!open || large),
           })}

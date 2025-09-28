@@ -1,14 +1,15 @@
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 
-import { WECHAT_BOT_QRCODE_URL } from '@/const';
+import logoUrl from '@/assets/logo.svg';
+import { WECHAT_GROUP_QRCODE_URL } from '@/const';
 
 export function QrCode() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
 
   useEffect(() => {
-    if (WECHAT_BOT_QRCODE_URL) {
-      QRCode.toDataURL(WECHAT_BOT_QRCODE_URL, {
+    if (WECHAT_GROUP_QRCODE_URL) {
+      QRCode.toDataURL(WECHAT_GROUP_QRCODE_URL, {
         width: 134,
         margin: 0,
         color: {
@@ -26,10 +27,15 @@ export function QrCode() {
   }, [open]);
 
   return (
-    <img
-      src={qrCodeDataUrl}
-      alt="QR Code"
-      className="size-[134px] object-contain"
-    />
+    <div className="size-[134px] relative">
+      <img src={qrCodeDataUrl} alt="QR Code" className="size-[134px]" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <img
+          src={logoUrl}
+          alt="OmniBox Logo"
+          className="size-10 bg-white p-[3px] rounded-lg shadow-sm"
+        />
+      </div>
+    </div>
   );
 }

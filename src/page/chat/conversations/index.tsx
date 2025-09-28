@@ -39,7 +39,7 @@ export default function ChatConversationsPage() {
   } = useContext();
 
   return (
-    <div className="flex justify-center h-full p-4">
+    <div className="flex flex-1 justify-center p-4 overflow-auto">
       <div className="flex flex-col h-full max-w-3xl w-full">
         <EditHistory
           data={edit}

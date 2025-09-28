@@ -42,7 +42,7 @@ export function FooterSidebar() {
         },
       ].map(item =>
         item.value === '/wechat' ? (
-          <Tooltip key={item.value}>
+          <Tooltip key={item.value} open>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"

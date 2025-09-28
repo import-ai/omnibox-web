@@ -41,7 +41,7 @@ export default function Attributes(props: IProps) {
           <a
             target="_blank"
             href={resource.attrs.url}
-            className="text-base break-all text-foreground truncate"
+            className="max-w-[200px] sm:max-w-full text-base break-all text-foreground truncate"
           >
             {resource.attrs.url}
           </a>

@@ -4,6 +4,7 @@ import { Resource, SharedResource } from '@/interface';
 interface IProps {
   resource: Resource | SharedResource;
   linkBase?: string;
+  style?: React.CSSProperties;
 }
 
 interface Image {
@@ -31,7 +32,13 @@ function embedImage(resource: Resource | SharedResource): string {
 }
 
 export default function Render(props: IProps) {
-  const { resource, linkBase } = props;
+  const { resource, linkBase, style } = props;
 
-  return <Markdown content={embedImage(resource)} linkBase={linkBase} />;
+  return (
+    <Markdown
+      style={style}
+      content={embedImage(resource)}
+      linkBase={linkBase}
+    />
+  );
 }

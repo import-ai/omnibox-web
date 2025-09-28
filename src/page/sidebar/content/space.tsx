@@ -158,21 +158,21 @@ export default function Space(props: ITreeProps) {
           isDragOver || isResourceDragOver || (canDrop && isOver),
       })}
     >
-      <SidebarMenuButton
-        onClick={handleHeaderToggle}
-        className="group/sidebar-header pt-0 pb-[2px] h-[30px]"
-      >
-        <div className="flex items-center justify-between">
-          <SidebarGroupLabel className="h-auto text-[#8F959E]">
+      <SidebarMenuButton className="group/sidebar-header pt-0 pb-[1px] h-[32px]">
+        <div className="relative w-full h-full">
+          <SidebarGroupLabel
+            onClick={handleHeaderToggle}
+            className="h-full font-normal block leading-[32px] mr-[16px] text-[#8F959E]"
+          >
             {spaceType ? t(spaceType) : ''}
           </SidebarGroupLabel>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarMenuAction className="my-1.5 size-[16px] top-[9px] right-2 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent">
+              <SidebarMenuAction className="group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0 my-1.5 size-[16px] top-[2px] right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent">
                 {data.id === editingKey ? (
                   <LoaderCircle className="transition-transform animate-spin" />
                 ) : (
-                  <MoreHorizontal className="group-hover/sidebar-header:block hidden focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3]" />
+                  <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3]" />
                 )}
               </SidebarMenuAction>
             </DropdownMenuTrigger>

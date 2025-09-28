@@ -164,10 +164,10 @@ export default function Tree(props: ITreeProps) {
       >
         <CollapsibleTrigger asChild>
           <ContextMenuMain {...props}>
-            <div className="group/sidebar-item rounded-[6px] hover:bg-sidebar-accent">
+            <div className="group/sidebar-item my-[1px] rounded-[6px] hover:bg-sidebar-accent">
               <SidebarMenuButton
                 asChild
-                className="gap-1 py-1.5 h-auto group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637]"
+                className="gap-1 py-1.5 h-auto data-[active=true]:font-normal group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637] transition-none"
                 onClick={handleActiveKey}
                 isActive={data.id == activeKey}
               >

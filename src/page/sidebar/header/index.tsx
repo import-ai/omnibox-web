@@ -34,7 +34,7 @@ export function Header(props: IProps) {
   return (
     <>
       <SearchMenu open={search} onOpenChange={setSearch} />
-      <SidebarMenu>
+      <SidebarMenu className="mb-[16px]">
         <SidebarMenuItem className="group/chat">
           <SidebarMenuButton asChild isActive={active}>
             <div

@@ -45,7 +45,7 @@ export default function ChatHomePage() {
   }, []);
 
   return (
-    <div className="flex justify-center h-full p-4">
+    <div className="flex justify-center flex-1 p-4 overflow-auto">
       <div className="flex flex-col h-full max-w-3xl w-full">
         <div className="flex flex-col justify-center h-full mb-40">
           <h1 className="text-[28px] text-[#171717] text-center mb-[32px] font-medium dark:text-white">
