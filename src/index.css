@@ -97,12 +97,7 @@
 }
 
 body {
-  font-family:
-    'PingFang SC', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   background: hsl(var(--sidebar-background));
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 .reset-list ol {
