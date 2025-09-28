@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -14,8 +14,34 @@ export default function Layout() {
   const navigate = useNavigate();
   const { i18n } = useTranslation();
   const { app, onToggleTheme } = useTheme();
-  const namespace_id = params.namespace_id;
-  const share_id = params.share_id;
+  const namespaceId = params.namespace_id;
+  const shareId = params.share_id;
+  const [uid, setUid] = useState(localStorage.getItem('uid'));
+
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'i18nextLng') {
+        const lang = event.newValue;
+        if (lang && lang !== i18n.language) {
+          i18n.changeLanguage(lang);
+        }
+      } else if (event.key === 'theme') {
+        const themeInStorage = JSON.parse(event.newValue || '{}');
+        onToggleTheme(themeInStorage.skin);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const storedUid = localStorage.getItem('uid');
+    if (storedUid !== uid) {
+      setUid(storedUid);
+    }
+  }, [loc]);
 
   useEffect(() => {
     const referrer = document.referrer;
@@ -30,44 +56,46 @@ export default function Layout() {
   }, []);
 
   useEffect(() => {
-    if (share_id) {
+    // Be compatible with extension login
+    if (loc.search === '?from=extension' && uid) {
+      localStorage.removeItem('uid');
+      localStorage.removeItem('token');
       return;
     }
-    if (localStorage.getItem('uid')) {
-      // Compatible with extension login
-      if (location.search === '?from=extension') {
-        localStorage.removeItem('uid');
-        localStorage.removeItem('token');
-        return;
+
+    const requireLogin = () => {
+      if (!uid) {
+        if (namespaceId) {
+          return true;
+        }
+        if (loc.pathname.startsWith('/invite')) {
+          return true;
+        }
+        if (loc.pathname === '/') {
+          return true;
+        }
       }
-      if (namespace_id) {
-        return;
-      }
-      if (
-        !loc.pathname.startsWith('/invite/confirm') &&
-        !loc.pathname.startsWith('/single')
-      ) {
-        http.get('namespaces').then(data => {
-          if (Array.isArray(data) && data.length > 0) {
-            navigate(`/${data[0].id}/chat`, { replace: true });
-          }
-        });
-      }
-    } else {
-      if (
-        loc.pathname.startsWith('/user/') ||
-        loc.pathname.startsWith('/single')
-      ) {
-        return;
-      }
+      return false;
+    };
+
+    if (requireLogin()) {
       navigate(`/user/login?redirect=${encodeURIComponent(location.href)}`, {
         replace: true,
       });
+      return;
     }
-  }, [namespace_id, loc.pathname]);
+
+    if (loc.pathname === '/') {
+      http.get('namespaces').then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          navigate(`/${data[0].id}/chat`, { replace: true });
+        }
+      });
+    }
+  }, [namespaceId, shareId, uid, loc]);
 
   useEffect(() => {
-    if (!localStorage.getItem('uid')) {
+    if (!uid) {
       return;
     }
     const source = axios.CancelToken.source();
@@ -82,28 +110,13 @@ export default function Layout() {
     http
       .get('/user/option/theme', { cancelToken: source.token })
       .then(response => {
-        if (!response || !response.value) {
-          return;
-        }
-        const cuttentTheme = app.getTheme();
-        if (response.value !== cuttentTheme.skin) {
-          onToggleTheme(response.value);
+        const theme = response?.value;
+        if (theme && theme !== app.getTheme().skin) {
+          onToggleTheme(theme);
         }
       });
-    const storageChangeFN = (event: StorageEvent) => {
-      if (event.key === 'theme') {
-        const themeInStorage = JSON.parse(event.newValue || '{}');
-        onToggleTheme(themeInStorage.skin);
-      } else if (event.key === 'i18nextLng') {
-        event.newValue && i18n.changeLanguage(event.newValue);
-      }
-    };
-    window.addEventListener('storage', storageChangeFN);
-    return () => {
-      window.removeEventListener('storage', storageChangeFN);
-      source.cancel();
-    };
-  }, []);
+    return () => source.cancel();
+  }, [uid]);
 
   return (
     <>
