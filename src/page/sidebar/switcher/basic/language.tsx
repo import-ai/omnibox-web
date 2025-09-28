@@ -13,14 +13,14 @@ import { http } from '@/lib/request';
 export default function Language() {
   const { i18n, t } = useTranslation();
   const data = [
-    { label: '简体中文', value: 'zh' },
-    { label: 'English', value: 'en' },
+    { label: '简体中文', value: 'zh-CN' },
+    { label: 'English', value: 'en-US' },
   ];
   const toggleLanguage = (lang: string) => {
     i18n.changeLanguage(lang).then(() => {
       http.post('/user/option', {
         name: 'language',
-        value: lang === 'en' ? 'en-US' : 'zh-CN',
+        value: lang,
       });
     });
   };
