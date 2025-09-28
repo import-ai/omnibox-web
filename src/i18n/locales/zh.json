@@ -102,7 +102,8 @@
     "max": "最多 32 个字符",
     "submit": "保存",
     "success": "已更新",
-    "member_count": "{{ size }} 名成员"
+    "member_count": "{{ size }} 名成员",
+    "conflict": "已有相同名称的空间"
   },
   "login": {
     "product_name": "小黑",

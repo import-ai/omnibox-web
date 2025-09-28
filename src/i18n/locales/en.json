@@ -102,7 +102,8 @@
     "max": "At most 32 characters",
     "submit": "Save",
     "success": "Updated",
-    "member_count": "{{ size }} members"
+    "member_count": "{{ size }} members",
+    "conflict": "There's already a namespace with the same name"
   },
   "login": {
     "product_name": "OmniBox",
