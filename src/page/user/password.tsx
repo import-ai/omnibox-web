@@ -1,11 +1,21 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { ForgotPasswordForm } from '@/page/user/form/password';
 
 import WrapperPage from './wrapper';
 
 export default function ForgotPasswordPage() {
+  const navigate = useNavigate();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const uid = localStorage.getItem('uid');
+    if (uid) {
+      navigate('/', { replace: true });
+    }
+  }, []);
 
   return (
     <WrapperPage>

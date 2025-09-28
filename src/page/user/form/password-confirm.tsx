@@ -18,6 +18,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { http } from '@/lib/request';
 
+import { removeGlobalCredential } from '../util';
+
 const forgotPasswordSchema = z.object({
   password: z
     .string()
@@ -51,6 +53,7 @@ export function ForgotPasswordForm() {
       })
       .then(() => {
         toast.success(t('password.success'));
+        removeGlobalCredential();
         navigate('/user/login', { replace: true });
       })
       .finally(() => {
