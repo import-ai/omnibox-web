@@ -3,6 +3,7 @@ import i18next from 'i18next';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
@@ -41,6 +42,11 @@ export default function GenerateForm() {
       .post('namespaces', { name: data.name })
       .then(data => {
         location.href = `/${data.id}/chat`;
+      })
+      .catch(err => {
+        if (err?.response?.data?.code === 'namespace_conflict') {
+          toast.error(t('namespace.conflict'));
+        }
       })
       .finally(() => {
         setLoading(false);
