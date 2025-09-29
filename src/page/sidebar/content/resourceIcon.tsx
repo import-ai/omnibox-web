@@ -36,7 +36,7 @@ function getIconForLink(resource: Resource) {
 }
 
 function getIconForFile(resource: Resource) {
-  if (!resource.attrs) {
+  if (!resource.attrs || Object.keys(resource.attrs).length <= 0) {
     return DefaultIcon.file;
   }
 
