@@ -91,15 +91,14 @@ export default function useContext() {
     setLoading(true);
     try {
       const askFN = ask(
-        namespaceId,
         conversationId,
         query,
         tools,
         context,
         messages,
         messageOperator,
-        mode,
-        getWizardLang(i18n)
+        `/api/v1/namespaces/${namespaceId}/wizard/${mode,
+        getWizardLang(i18n)}`
       );
       askAbortRef.current = askFN.destory;
       await askFN.start();
@@ -121,6 +120,19 @@ export default function useContext() {
     submit(routeQuery);
   }, []);
 
+  // Handle title update from first user message
+  useEffect(() => {
+    if (messages.length === 0) return;
+
+    const firstUserMessage = messages.find(
+      msg => msg.message.role === 'user' && !msg.parent_id
+    );
+
+    if (firstUserMessage?.message.content) {
+      app.fire('chat:title', firstUserMessage.message.content);
+    }
+  }, [messages, app]);
+
   return {
     mode,
     value,
@@ -133,5 +145,6 @@ export default function useContext() {
     messages,
     onToolsChange,
     onContextChange,
+    namespaceId,
   };
 }

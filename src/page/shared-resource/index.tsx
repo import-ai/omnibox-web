@@ -4,9 +4,9 @@ import Loading from '@/components/loading';
 import useWide from '@/hooks/use-wide';
 import { cn } from '@/lib/utils';
 
+import Folder from '../resource/folder';
 import Render from '../resource/render';
 import { useShareContext } from '../share';
-import FolderChildren from './folder-children';
 
 export default function SharedResourcePage() {
   const { shareInfo, resource } = useShareContext();
@@ -24,7 +24,11 @@ export default function SharedResourcePage() {
             {resource.name || t('untitled')}
           </h1>
           {resource.resource_type === 'folder' ? (
-            <FolderChildren shareId={shareInfo.id} resourceId={resource.id} />
+            <Folder
+              resourceId={resource.id}
+              apiPrefix={`/shares/${shareInfo.id}/resources`}
+              navigationPrefix={`/s/${shareInfo.id}`}
+            />
           ) : (
             <Render
               resource={resource}
