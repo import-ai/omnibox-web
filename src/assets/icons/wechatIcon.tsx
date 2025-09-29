@@ -1,7 +1,7 @@
 export function WeChatIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 534 534">
-      <g fill-rule="evenodd">
+      <g fillRule="evenodd">
         <path
           d="M109.532.333C49.307.333.042 49.546.042 109.717v314.571c0 60.158 49.266 109.37 109.49 109.37h314.931c59.909 0 108.992-48.709 109.495-108.445V108.796C533.455 49.056 484.372.333 424.463.333H109.532z"
           fill="url(#A)"
@@ -20,8 +20,8 @@ export function WeChatIcon() {
           y2="533.668"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#02e36f" />
-          <stop offset="1" stop-color="#07c160" />
+          <stop stopColor="#02e36f" />
+          <stop offset="1" stopColor="#07c160" />
         </linearGradient>
       </defs>
     </svg>

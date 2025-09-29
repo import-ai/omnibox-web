@@ -15,7 +15,7 @@ import { QrCode } from './QrCode';
 import { Wechat } from './Wechat';
 
 export function FooterSidebar() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <SidebarFooter className="flex-row flex-wrap items-center justify-around px-[24px] pb-[8px] gap-[24px]">
@@ -62,7 +62,11 @@ export function FooterSidebar() {
         ) : (
           <Tooltip key={item.value}>
             <TooltipTrigger asChild>
-              <a href={item.value} target="_blank" className="!text-[#8F959E] ">
+              <a
+                href={`${item.value}${item.value === '/docs' && i18n.language.includes('zh') ? '/zh-cn/' : ''}`}
+                target="_blank"
+                className="!text-[#8F959E] "
+              >
                 <Button
                   variant="ghost"
                   size="sm"

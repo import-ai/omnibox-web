@@ -8,6 +8,8 @@ import {
   FILE_ICON_CONDITIONS,
 } from '@/page/sidebar/content/icon/conditions';
 
+import { TextIcon } from './icon/textIcon';
+
 export interface IProps {
   expand: boolean;
   resource: Resource;
@@ -16,7 +18,7 @@ export interface IProps {
 const DefaultIcon = {
   link: <Globe color="#4876ff" />,
   file: <File />,
-  doc: <FileText />,
+  doc: <FileText className="scale-110" />,
 };
 
 function getIconForLink(resource: Resource) {
@@ -57,6 +59,13 @@ function getIconForFile(resource: Resource) {
   }
 
   const filename = resource.attrs.original_name || '';
+
+  const ext: string = filename.slice(filename.indexOf('.'));
+
+  if (ext.toLowerCase() === '.txt') {
+    return <TextIcon className="scale-125" />;
+  }
+
   const getIcon = themeIcons({
     blue: '#519aba',
     grey: '#4d5a5e',

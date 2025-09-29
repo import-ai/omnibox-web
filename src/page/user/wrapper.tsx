@@ -20,7 +20,7 @@ interface WrapperPageProps {
 
 export default function WrapperPage(props: WrapperPageProps) {
   const { useCard = true, extra, children } = props;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <div className="grid min-h-svh dark:bg-[#262626]">
@@ -32,7 +32,7 @@ export default function WrapperPage(props: WrapperPageProps) {
         <div className="flex flex-1 flex-col items-center justify-center gap-4">
           <div className="flex gap-2">
             <a
-              href="/"
+              href={i18n.language.includes('zh') ? '/zh-cn' : '/'}
               className="flex items-center gap-2 font-medium text-black dark:text-white"
             >
               <div className="flex items-center justify-center rounded-md bg-primary text-primary-foreground">

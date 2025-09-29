@@ -186,7 +186,7 @@ export default function Tree(props: ITreeProps) {
                       <Button
                         size="icon"
                         variant="outline"
-                        className="size-6 bg-transparent shadow-none border-none hover:bg-transparent"
+                        className="size-[20px] bg-transparent shadow-none border-none hover:bg-transparent"
                       >
                         <LoaderCircle className="transition-transform animate-spin" />
                       </Button>
