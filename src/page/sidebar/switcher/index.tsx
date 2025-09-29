@@ -1,4 +1,4 @@
-import { ChevronDown, Command } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,11 +13,13 @@ import {
   // DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/sidebar';
 import useNamespace from '@/hooks/use-namespaces';
 import { cn } from '@/lib/utils';
 import { Logout } from '@/page/user/logout';
@@ -33,6 +35,7 @@ interface IProps {
 
 export function Switcher(props: IProps) {
   const { namespaceId } = props;
+  const { open, isMobile } = useSidebar();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { app, data } = useNamespace();
@@ -42,14 +45,18 @@ export function Switcher(props: IProps) {
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem>
+      <SidebarMenuItem
+        className={cn({
+          'flex justify-between items-center': open,
+        })}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="w-full px-1.5">
-              <div className="flex aspect-square size-5 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-                <Command className="size-3" />
+            <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
+              <div className="flex rounded-[8px] size-[24px] text-[12px] text-white items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
+                {current.name.charAt(0)}
               </div>
-              <span className="truncate font-semibold">{current.name}</span>
+              <span className="truncate">{current.name}</span>
               <ChevronDown className="opacity-50" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -61,8 +68,8 @@ export function Switcher(props: IProps) {
           >
             <DropdownMenuLabel>
               <div className="flex items-center gap-2 px-1 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg flex items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="cover" />
+                <Avatar className="size-8 text-[18px] rounded-lg  text-white flex items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
+                  {current.name.charAt(0)}
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{current.name}</span>
@@ -96,8 +103,8 @@ export function Switcher(props: IProps) {
                   navigate(`/${item.id}/chat`);
                 }}
               >
-                <div className="flex size-6 items-center justify-center rounded-sm border">
-                  <Command className="size-4 shrink-0" />
+                <div className="flex rounded-[6px] size-6 text-[11px] items-center justify-center border">
+                  {item.name.charAt(0)}
                 </div>
                 <span className="truncate">{item.name}</span>
                 {/* <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut> */}
@@ -113,6 +120,9 @@ export function Switcher(props: IProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        {open && !isMobile && (
+          <SidebarTrigger className="text-[#8F959E] hover:text-[#8F959E] hover:bg-[#E6E6EC]" />
+        )}
       </SidebarMenuItem>
     </SidebarMenu>
   );

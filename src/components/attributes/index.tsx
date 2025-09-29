@@ -33,15 +33,15 @@ export default function Attributes(props: IProps) {
           resourceId={resource.id}
           namespaceId={namespaceId}
         />
-        <div className="flex items-center gap-3">
-          <Link className="size-4 text-muted-foreground" />
+        <div className="flex flex-wrap sm:flex-nowrap items-start gap-3">
+          <Link className="shrink-0 size-4 text-muted-foreground" />
           <span className="text-muted-foreground font-medium min-w-[80px]">
             {t('resource.attrs.url')}
           </span>
           <a
             target="_blank"
             href={resource.attrs.url}
-            className="text-base text-foreground"
+            className="max-w-[200px] sm:max-w-full text-base break-all text-foreground truncate"
           >
             {resource.attrs.url}
           </a>
@@ -58,7 +58,7 @@ export default function Attributes(props: IProps) {
           </div>
         )} */}
         {resource.created_at && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
             <Clock className="size-4 text-muted-foreground" />
             <span className="text-muted-foreground font-medium min-w-[80px]">
               {t('resource.attrs.created')}
@@ -90,7 +90,7 @@ export default function Attributes(props: IProps) {
           resourceId={resource.id}
           namespaceId={namespaceId}
         />
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
           <File className="size-4 text-muted-foreground" />
           <span className="text-muted-foreground font-medium min-w-[80px]">
             {t('resource.attrs.filename')}
@@ -131,7 +131,7 @@ export default function Attributes(props: IProps) {
           </Button>
         </div>
         {resource.created_at && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
             <Clock className="size-4 text-muted-foreground" />
             <span className="text-muted-foreground font-medium min-w-[80px]">
               {t('resource.attrs.created')}
@@ -174,7 +174,7 @@ export default function Attributes(props: IProps) {
         </div>
       )} */}
       {resource.created_at && (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
           <Clock className="size-4 text-muted-foreground" />
           <span className="text-muted-foreground font-medium min-w-[80px]">
             {t('resource.attrs.created')}

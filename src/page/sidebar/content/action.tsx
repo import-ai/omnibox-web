@@ -92,11 +92,11 @@ export default function Action(props: ISidebarProps) {
     <>
       <DropdownMenu onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
-          <SidebarMenuAction className="right-0 focus-visible:outline-none focus-visible:ring-transparent">
+          <SidebarMenuAction className="group-hover/sidebar-item:opacity-100 group-hover/sidebar-item:pointer-events-auto pointer-events-none opacity-0 size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
             {data.id === editingKey ? (
               <LoaderCircle className="transition-transform animate-spin" />
             ) : (
-              <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent" />
+              <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3] text-[#8F959E] hover:text-[#8F959E]" />
             )}
           </SidebarMenuAction>
         </DropdownMenuTrigger>

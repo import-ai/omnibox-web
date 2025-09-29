@@ -1,5 +1,5 @@
 import { LoaderCircle, MoreHorizontal } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,7 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuAction,
+  SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { IResourceData } from '@/interface';
@@ -48,12 +49,16 @@ export default function Space(props: ITreeProps) {
     onFileDragTarget,
   } = props;
   const { t } = useTranslation();
+  const [open, onOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
   const isDragOver = fileDragTarget === data.id;
   const isResourceDragOver = target && target.id === data.id;
   const handleSelect = () => {
     fileInputRef.current?.click();
+  };
+  const handleHeaderToggle = () => {
+    onOpen(val => !val);
   };
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
@@ -148,64 +153,79 @@ export default function Space(props: ITreeProps) {
   return (
     <SidebarGroup
       ref={groupRef}
-      className={cn({
+      className={cn('pr-0', {
         'bg-sidebar-border text-sidebar-accent-foreground':
           isDragOver || isResourceDragOver || (canDrop && isOver),
       })}
     >
-      <div className="flex items-center justify-between">
-        <SidebarGroupLabel>{spaceType ? t(spaceType) : ''}</SidebarGroupLabel>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuAction className="my-1.5 right-2 focus-visible:outline-none focus-visible:ring-transparent">
-              {data.id === editingKey ? (
-                <LoaderCircle className="transition-transform animate-spin" />
-              ) : (
-                <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent" />
-              )}
-            </SidebarMenuAction>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" sideOffset={10} align="start">
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => {
-                onCreate(spaceType, data.id, 'doc');
-              }}
-            >
-              {t('actions.create_file')}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => {
-                onCreate(spaceType, data.id, 'folder');
-              }}
-            >
-              {t('actions.create_folder')}
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={handleSelect}>
-              {t('actions.upload_file')}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Input
-          multiple
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          onChange={handleUpload}
-          accept={ALLOW_FILE_EXTENSIONS}
-        />
-      </div>
-      <SidebarGroupContent>
-        <SidebarMenu className="gap-0">
-          {data.has_children &&
-            Array.isArray(data.children) &&
-            data.children.length > 0 &&
-            data.children.map((item: IResourceData) => (
-              <Tree {...props} data={item} key={item.id} />
-            ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
+      <SidebarMenuButton className="group/sidebar-header pt-0 pb-[1px] h-[32px]">
+        <div className="relative w-full h-full">
+          <SidebarGroupLabel
+            onClick={handleHeaderToggle}
+            className="h-full font-normal block leading-[32px] mr-[16px] text-[#8F959E]"
+          >
+            {spaceType ? t(spaceType) : ''}
+          </SidebarGroupLabel>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuAction
+                asChild
+                className="group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0 my-1.5 size-[16px] top-[2px] right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent"
+              >
+                {data.id === editingKey ? (
+                  <LoaderCircle className="transition-transform animate-spin" />
+                ) : (
+                  <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3]" />
+                )}
+              </SidebarMenuAction>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="right" sideOffset={10} align="start">
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => {
+                  onCreate(spaceType, data.id, 'doc');
+                }}
+              >
+                {t('actions.create_file')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => {
+                  onCreate(spaceType, data.id, 'folder');
+                }}
+              >
+                {t('actions.create_folder')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={handleSelect}
+              >
+                {t('actions.upload_file')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Input
+            multiple
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleUpload}
+            accept={ALLOW_FILE_EXTENSIONS}
+          />
+        </div>
+      </SidebarMenuButton>
+      {open && (
+        <SidebarGroupContent>
+          <SidebarMenu className="gap-[2px]">
+            {data.has_children &&
+              Array.isArray(data.children) &&
+              data.children.length > 0 &&
+              data.children.map((item: IResourceData) => (
+                <Tree {...props} data={item} key={item.id} />
+              ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      )}
     </SidebarGroup>
   );
 }

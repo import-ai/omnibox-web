@@ -24,7 +24,7 @@ export default function ChatConversationPage() {
   } = useContext();
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-1 flex-col h-full">
       <Scrollbar>
         <Messages messages={normalizeChatData(messages)} />
       </Scrollbar>

@@ -40,7 +40,11 @@ export default function Page(props: IProps) {
       {resource.resource_type === 'folder' ? (
         <Folder resource={resource} namespaceId={namespaceId} />
       ) : (
-        <Render resource={resource} linkBase={resource.id} />
+        <Render
+          resource={resource}
+          linkBase={resource.id}
+          style={{ overflow: 'inherit' }}
+        />
       )}
     </>
   );

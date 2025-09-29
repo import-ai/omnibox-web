@@ -7,8 +7,7 @@ import {
   BreadcrumbItem,
   BreadcrumbList,
 } from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang.ts';
@@ -20,6 +19,7 @@ export default function ChatHeader() {
   const app = useApp();
   const loc = useLocation();
   const params = useParams();
+  const { open, isMobile } = useSidebar();
   const modified = useRef(false);
   const { t, i18n } = useTranslation();
   const i18nTitle = t('chat.conversations.new');
@@ -89,24 +89,21 @@ export default function ChatHeader() {
   }, [data, conversationsPage]);
 
   return (
-    <header className="sticky z-[30] top-0 bg-white flex h-14 shrink-0 items-center gap-2 dark:bg-background">
+    <header className="rounded-[16px] sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
-        <SidebarTrigger />
+        {(!open || isMobile) && <SidebarTrigger className="text-[#8F959E]" />}
         {conversationId && (
-          <>
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <Title
-                    data={data}
-                    namespaceId={namespaceId}
-                    conversationId={conversationId}
-                  />
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </>
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <Title
+                  data={data}
+                  namespaceId={namespaceId}
+                  conversationId={conversationId}
+                />
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
         )}
       </div>
       <div className="ml-auto pr-3">

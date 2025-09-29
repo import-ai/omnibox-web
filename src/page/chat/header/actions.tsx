@@ -36,8 +36,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
+
+import { PlusIcon } from './plus';
 
 interface IProps {
   data: string;
@@ -99,17 +106,34 @@ export default function Actions(props: IProps) {
   };
 
   return (
-    <div className="flex items-center gap-2 text-sm">
-      {conversationsPage || conversationId ? (
-        <Button variant="ghost" size="sm" onClick={onChatCreate}>
-          <Plus />
-          {t('chat.conversations.new_chat')}
-        </Button>
-      ) : (
-        <Button variant="ghost" size="sm" onClick={onChatHistory}>
-          <History />
-          {t('chat.conversations.history')}
-        </Button>
+    <div className="flex items-center gap-1 text-sm">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="size-[28px]"
+            onClick={onChatCreate}
+          >
+            <PlusIcon />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{t('chat.conversations.new_chat')}</TooltipContent>
+      </Tooltip>
+      {!conversationsPage && !conversationId && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[#585D65] size-[28px] dark:text-white"
+              onClick={onChatHistory}
+            >
+              <History />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t('chat.conversations.history')}</TooltipContent>
+        </Tooltip>
       )}
       {conversationId && (
         <Popover>

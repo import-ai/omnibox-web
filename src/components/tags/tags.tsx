@@ -58,7 +58,7 @@ export default function Tags(props: IProps) {
   }, [data]);
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
       <TagsIcon className="size-4 text-muted-foreground" />
       <span className="text-muted-foreground font-medium min-w-[80px]">
         {t('resource.attrs.tag')}
@@ -68,7 +68,7 @@ export default function Tags(props: IProps) {
           <LoaderCircle className="transition-transform animate-spin" />
         </span>
       ) : (
-        <span className="flex items-center text-foreground h-7">
+        <span className="flex flex-wrap items-center text-foreground h-7">
           {editing ? (
             <MultipleSelector
               creatable
@@ -91,7 +91,7 @@ export default function Tags(props: IProps) {
           ) : (
             <Space
               onClick={enterEdit}
-              className="min-h-6 min-w-96 cursor-pointer"
+              className="flex-wrap min-h-6 cursor-pointer"
             >
               {tags.length > 0 ? (
                 tags.map(tag => <Badge key={tag.value}>{tag.label}</Badge>)

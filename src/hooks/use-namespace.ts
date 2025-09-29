@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { Namespace } from '@/interface';
 import { http } from '@/lib/request';
@@ -12,6 +14,7 @@ export default function useNamespace() {
   const params = useParams();
   const namespace_id = params.namespace_id;
   const [loading, onLoading] = useState(false);
+  const { t } = useTranslation();
   const [data, onData] = useState<Namespace>({
     id: '',
     name: '',
@@ -42,6 +45,12 @@ export default function useNamespace() {
       .then(() => {
         onData({ ...data, ...val });
         return Promise.resolve();
+      })
+      .catch(err => {
+        if (err?.response?.data?.code === 'namespace_conflict') {
+          toast.error(t('namespace.conflict'));
+        }
+        return Promise.reject(err);
       })
       .finally(() => {
         onLoading(false);

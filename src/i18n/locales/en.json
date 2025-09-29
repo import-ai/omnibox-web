@@ -102,7 +102,8 @@
     "max": "At most 32 characters",
     "submit": "Save",
     "success": "Updated",
-    "member_count": "{{ size }} members"
+    "member_count": "{{ size }} members",
+    "conflict": "There's already a namespace with the same name"
   },
   "login": {
     "product_name": "OmniBox",
@@ -293,7 +294,7 @@
     "fail": "Copy failed, please copy manually"
   },
   "chat": {
-    "title": "Chat",
+    "title": "OmniBox AI",
     "citations": "Citations",
     "citations_results": "Search Results",
     "searching": "Searching...",
@@ -321,10 +322,10 @@
     },
     "home": {
       "greeting": {
-        "morning": "Good morning, {{ name }}",
-        "afternoon": "Good afternoon, {{ name }}",
-        "evening": "Good evening, {{ name }}",
-        "night": "Good night, {{ name }}"
+        "morning": "Good morning, how can I help you today?",
+        "afternoon": "Good afternoon, how can I help you today?",
+        "evening": "Good evening, how can I help you today?",
+        "night": "Good night, how can I help you today?"
       }
     },
     "tools": {
@@ -484,5 +485,12 @@
       "save": "Save",
       "discard": "Discard"
     }
+  },
+  "footer": {
+    "docs": "Docs",
+    "discord": "Discord",
+    "wechat": "QR Code",
+    "feedback": "Feedback",
+    "join": "Scan with WeChat to join the group"
   }
 }

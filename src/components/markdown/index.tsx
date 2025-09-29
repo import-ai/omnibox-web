@@ -14,6 +14,7 @@ import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
 interface IProps {
   content: string;
   linkBase?: string;
+  style?: React.CSSProperties;
 }
 
 export function markdownPreviewConfig(theme: Theme) {
@@ -33,7 +34,7 @@ export function markdownPreviewConfig(theme: Theme) {
 }
 
 export function Markdown(props: IProps) {
-  const { content, linkBase } = props;
+  const { style, content, linkBase } = props;
   const { theme } = useTheme();
   const navigate = useNavigate();
   const element = useRef<HTMLDivElement>(null);
@@ -82,5 +83,5 @@ export function Markdown(props: IProps) {
     }
   }, [content, theme]);
 
-  return <div className="reset-list" ref={element} />;
+  return <div style={style} className="reset-list" ref={element} />;
 }
