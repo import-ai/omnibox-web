@@ -94,7 +94,7 @@ export function CitationMarkdown(props: IProps) {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const removeGeneratedCite =
-    import.meta.env.VITE_REMOVE_GENERATED_CITE !== 'false';
+    import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(
     cleanedContent,

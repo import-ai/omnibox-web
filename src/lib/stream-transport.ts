@@ -113,7 +113,8 @@ export function createStreamTransport(
   body: Record<string, any>,
   callback: StreamCallback
 ): StreamTransport {
-  const useWebSocket = import.meta.env.VITE_USE_WEBSOCKET === 'true';
+  const useWebSocket =
+    import.meta.env.VITE_USE_WEBSOCKET?.toLowerCase() !== 'false';
 
   if (useWebSocket) {
     const event = url.includes('/ask') ? 'ask' : 'write';
