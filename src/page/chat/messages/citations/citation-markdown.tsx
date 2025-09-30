@@ -39,8 +39,24 @@ export function trimIncompletedCitation(text: string) {
   return text;
 }
 
-export function replaceCiteTag(input: string): string {
-  return input.replace(citePattern, (_, i) => `[[${i}]](#cite-${i})`);
+/**
+ * Replace citation tag
+ * @param input
+ * @param removeGeneratedCite
+ * @param citesCount
+ */
+export function replaceCiteTag(
+  input: string,
+  removeGeneratedCite: boolean,
+  citesCount: number
+): string {
+  return input.replace(citePattern, (_, i) => {
+    const id = Number(i) - 1;
+    if ((id >= 0 && id < citesCount) || !removeGeneratedCite) {
+      return `[[${i}]](#cite-${i})`;
+    }
+    return '';
+  });
 }
 
 function copyPreprocess(content: string, citations: Citation[]): string {
@@ -80,18 +96,18 @@ export function CitationMarkdown(props: IProps) {
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
-  const replacedContent = replaceCiteTag(cleanedContent);
+  const replacedContent = replaceCiteTag(
+    cleanedContent,
+    removeGeneratedCite,
+    citations.length
+  );
 
   const components = {
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
       const citeMatch = href?.match(citeLinkRegex);
       if (citeMatch) {
         const id = Number(citeMatch[1]) - 1;
-        if (id > 0 && id < citations.length) {
-          return <CitationHoverIcon citation={citations[id]} index={id} />;
-        } else if (removeGeneratedCite) {
-          return null;
-        }
+        return <CitationHoverIcon citation={citations[id]} index={id} />;
       }
       return (
         <a href={href} {...props}>

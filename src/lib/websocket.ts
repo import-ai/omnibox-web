@@ -20,24 +20,15 @@ export function getWebSocketConnection(): Socket {
 
   socket = io(`${apiBaseUrl}/wizard`, {
     transports: ['websocket', 'polling'],
-    auth: {
-      token: `Bearer ${token}`,
-    },
-    extraHeaders: {
-      Authorization: `Bearer ${token}`,
-    },
+    auth: { token: `Bearer ${token}` },
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
   });
 
-  socket.on('connect', () => {
-    console.log('WebSocket connected:', socket?.id);
-  });
+  socket.on('connect', () => {});
 
-  socket.on('disconnect', reason => {
-    console.log('WebSocket disconnected:', reason);
-  });
+  socket.on('disconnect', () => {});
 
   socket.on('connect_error', error => {
     console.error('WebSocket connect_error:', error);

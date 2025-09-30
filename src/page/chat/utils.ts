@@ -95,8 +95,6 @@ export function groupItemsByTimestamp(
   return orderedGroups;
 }
 
-export { createStreamTransport as stream } from '@/lib/stream-transport';
-
 export function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 5) return 'night';

@@ -1,3 +1,4 @@
+import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
 import {
   ChatMode,
@@ -12,7 +13,6 @@ import type {
 } from '@/page/chat/conversation/types';
 import { ChatResponse } from '@/page/chat/types/chat-response';
 import { MessageDetail } from '@/page/chat/types/conversation';
-import { stream } from '@/page/chat/utils';
 
 function getPrivateSearchResources(
   context: IResTypeContext[]
@@ -90,7 +90,7 @@ export function ask(
     messages,
     lang
   );
-  return stream(`/api/v1/wizard/${mode}`, body, async data => {
+  return createStreamTransport(`/api/v1/wizard/${mode}`, body, async data => {
     const chatResponse: ChatResponse = JSON.parse(data);
     if (chatResponse.response_type === 'bos') {
       messageOperator.add(chatResponse);
