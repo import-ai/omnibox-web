@@ -101,7 +101,7 @@ export default function useContext() {
         mode,
         getWizardLang(i18n)
       );
-      askAbortRef.current = askFN.destory;
+      askAbortRef.current = askFN.destroy;
       await askFN.start();
     } finally {
       setLoading(false);
