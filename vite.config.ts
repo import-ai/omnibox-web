@@ -78,7 +78,7 @@ export default defineConfig(({ mode }) => {
             return path;
           },
         },
-        '/socket.io': {
+        '/api/v1/socket.io': {
           target:
             process.env.VITE_API_PATH ??
             env.VITE_API_PATH ??

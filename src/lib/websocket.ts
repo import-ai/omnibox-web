@@ -19,6 +19,7 @@ export function getWebSocketConnection(): Socket {
   const apiBaseUrl = window.location.origin;
 
   socket = io(`${apiBaseUrl}/wizard`, {
+    path: '/api/v1/socket.io',
     transports: ['websocket', 'polling'],
     auth: { token: `Bearer ${token}` },
     reconnection: true,
