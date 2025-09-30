@@ -90,8 +90,8 @@ export default class Hook {
         destroys.push(this.__addFilter(item, callback, once, priority));
       });
       return () => {
-        destroys.forEach(destory => {
-          destory();
+        destroys.forEach(destroy => {
+          destroy();
         });
       };
     }
