@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { WECHAT_BOT_QRCODE_URL } from '@/const';
+import { BIND_CHECK_INTERVAL, WECHAT_BOT_QRCODE_URL } from '@/const';
 
 interface BindDialogProps {
   open: boolean;
@@ -34,7 +34,6 @@ export function BindDialog({
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollingStartTimeRef = useRef<number>(0);
 
-  const POLLING_INTERVAL = 3000; // 3 seconds
   const POLLING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
   useEffect(() => {
@@ -101,7 +100,7 @@ export function BindDialog({
       pollingStartTimeRef.current = Date.now();
       pollingIntervalRef.current = setInterval(
         checkBindingStatus,
-        POLLING_INTERVAL
+        BIND_CHECK_INTERVAL
       );
     } else {
       stopPolling();
@@ -110,7 +109,7 @@ export function BindDialog({
     return () => {
       stopPolling();
     };
-  }, [open, applicationId, checkBindingStatus, stopPolling, POLLING_INTERVAL]);
+  }, [open, applicationId, checkBindingStatus, stopPolling]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

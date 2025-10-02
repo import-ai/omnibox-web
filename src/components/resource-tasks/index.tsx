@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/components/ui/badge';
+import { RESOURCE_TASKS_INTERVAL } from '@/const.ts';
 import { Resource, Task, TaskStatus } from '@/interface';
 import { http } from '@/lib/request';
 import { statusConfig } from '@/page/sidebar/switcher/manage/tasks/task-status-badge';
@@ -122,7 +123,7 @@ export default function ResourceTasks({
       } catch (err) {
         console.error('Failed to check task updates:', err);
       }
-    }, 1000);
+    }, RESOURCE_TASKS_INTERVAL);
 
     return () => clearInterval(interval);
   }, [tasks, resource.id, namespaceId, onResource]);
