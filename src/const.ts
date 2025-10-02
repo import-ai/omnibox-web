@@ -9,3 +9,5 @@ export const WECHAT_BOT_QRCODE_URL =
   'https://work.weixin.qq.com/u/vc89b7a1ee17bb08a0';
 export const WECHAT_GROUP_QRCODE_URL =
   'https://work.weixin.qq.com/gm/a5c463a6a4a42631d3a6c0a66044393c';
+export const RESOURCE_TASKS_INTERVAL = 3 * 1000;
+export const BIND_CHECK_INTERVAL = 3 * 1000;
