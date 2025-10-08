@@ -1,4 +1,4 @@
-import { File, Folder, LoaderCircle, Search } from 'lucide-react';
+import { Check, File, Folder, LoaderCircle, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -30,15 +30,18 @@ function ResourceItem({
   return (
     <Button
       variant={selected ? 'secondary' : 'ghost'}
-      className="w-full flex h-auto whitespace-normal justify-start items-center font-normal rounded-none gap-2"
+      className="w-full flex h-auto whitespace-normal justify-between items-center font-normal rounded-none gap-2"
       onClick={() => onSelect(resource.id)}
     >
-      {resource.resource_type === 'folder' ? (
-        <Folder className="w-4 h-4 shrink-0" />
-      ) : (
-        <File className="w-4 h-4 shrink-0" />
-      )}
-      <div className="text-left">{name}</div>
+      <div className="flex items-center gap-2">
+        {resource.resource_type === 'folder' ? (
+          <Folder className="w-4 h-4 shrink-0" />
+        ) : (
+          <File className="w-4 h-4 shrink-0" />
+        )}
+        <div className="text-left">{name}</div>
+      </div>
+      {selected && <Check className="w-4 h-4 shrink-0 text-primary" />}
     </Button>
   );
 }
