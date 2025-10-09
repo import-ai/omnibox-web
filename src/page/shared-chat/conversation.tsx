@@ -89,7 +89,7 @@ export default function SharedChatConversationPage() {
         messageOperator,
         `/api/v1/shares/${shareId}/wizard/${mode}`
       );
-      askAbortRef.current = askFN.destory;
+      askAbortRef.current = askFN.destroy;
       await askFN.start();
     } finally {
       setLoading(false);

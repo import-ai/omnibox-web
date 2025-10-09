@@ -71,7 +71,7 @@ export function ask(
   messages: MessageDetail[],
   messageOperator: MessageOperator,
   url: string,
-  lang: WizardLang | undefined
+  lang?: WizardLang
 ) {
   const body = prepareBody(
     conversationId,

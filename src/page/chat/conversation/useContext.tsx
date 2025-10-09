@@ -97,8 +97,8 @@ export default function useContext() {
         context,
         messages,
         messageOperator,
-        `/api/v1/namespaces/${namespaceId}/wizard/${mode,
-        getWizardLang(i18n)}`
+        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        getWizardLang(i18n)
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
