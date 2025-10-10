@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { http } from '@/lib/request';
+import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
 import { type ChatActionType } from '@/page/chat/chat-input/types';
 import {
@@ -35,7 +36,7 @@ export default function SharedChatConversationPage() {
     tools,
     setTools,
   } = useShareContext();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
@@ -87,7 +88,10 @@ export default function SharedChatConversationPage() {
         selectedResources,
         messages,
         messageOperator,
-        `/api/v1/shares/${shareId}/wizard/${mode}`
+        `/api/v1/shares/${shareId}/wizard/${mode}`,
+        getWizardLang(i18n),
+        undefined,
+        shareId
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();

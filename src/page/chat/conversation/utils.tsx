@@ -71,9 +71,11 @@ export function ask(
   messages: MessageDetail[],
   messageOperator: MessageOperator,
   url: string,
-  lang?: WizardLang
+  lang: WizardLang | undefined,
+  namespaceId: string | undefined,
+  shareId: string | undefined
 ) {
-  const body = prepareBody(
+  const chatReq = prepareBody(
     conversationId,
     query,
     tools,
@@ -81,7 +83,9 @@ export function ask(
     messages,
     lang
   );
-  return createStreamTransport(url, body, async data => {
+  chatReq.namespace_id = namespaceId;
+  chatReq.share_id = shareId;
+  return createStreamTransport(url, chatReq, async data => {
     const chatResponse: ChatResponse = JSON.parse(data);
     if (chatResponse.response_type === 'bos') {
       messageOperator.add(chatResponse);

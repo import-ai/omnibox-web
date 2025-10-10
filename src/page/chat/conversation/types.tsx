@@ -35,4 +35,6 @@ export interface ChatRequestBody {
   parent_message_id?: string;
   enable_thinking: boolean;
   lang?: '简体中文' | 'English';
+  namespace_id?: string;
+  share_id?: string;
 }
