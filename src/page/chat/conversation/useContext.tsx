@@ -122,18 +122,15 @@ export default function useContext() {
     submit(routeQuery);
   }, []);
 
-  // Handle title update from first user message
+  const firstUserMessage = messages.find(
+    msg => msg.message.role === 'user' && !msg.parent_id
+  );
+
   useEffect(() => {
-    if (messages.length === 0) return;
-
-    const firstUserMessage = messages.find(
-      msg => msg.message.role === 'user' && !msg.parent_id
-    );
-
     if (firstUserMessage?.message.content) {
       app.fire('chat:title', firstUserMessage.message.content);
     }
-  }, [messages, app]);
+  }, [firstUserMessage?.message.content, app]);
 
   return {
     mode,
