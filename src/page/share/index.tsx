@@ -6,7 +6,7 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Loading from '@/components/loading';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
-import { setCookie } from '@/lib/cookie';
+import { getCookie, setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
 import {
   ChatMode,
@@ -30,6 +30,7 @@ interface ShareContextValue {
   setMode: (mode: ChatMode) => void;
   tools: Array<ToolType>;
   setTools: (tools: Array<ToolType>) => void;
+  password: string | null;
 }
 
 const ShareContext = createContext<ShareContextValue | null>(null);
@@ -60,6 +61,9 @@ export default function SharePage() {
   const [requirePassword, setRequirePassword] = useState<boolean>(false);
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
+  const [password, setPassword] = useState<string | null>(
+    getCookie(SHARE_PASSWORD_COOKIE)
+  );
   const shareId = params.share_id;
   const currentResourceId = params.resource_id || shareInfo?.resource?.id;
   const isChatActive = location.pathname.includes('/chat');
@@ -88,6 +92,7 @@ export default function SharePage() {
     setPasswordLoading(true);
     setCookie(SHARE_PASSWORD_COOKIE, password, `/s/${shareId}`);
     setCookie(SHARE_PASSWORD_COOKIE, password, `/api/v1/shares/${shareId}`);
+    setPassword(password);
     if (cancelTokenSource.current) {
       cancelTokenSource.current.cancel('Canceled due to new request.');
     }
@@ -191,6 +196,7 @@ export default function SharePage() {
           setMode,
           tools,
           setTools,
+          password,
         }}
       >
         {!showSidebar && <Outlet />}

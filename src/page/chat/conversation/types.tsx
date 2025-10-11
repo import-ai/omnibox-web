@@ -37,4 +37,5 @@ export interface ChatRequestBody {
   lang?: '简体中文' | 'English';
   namespace_id?: string;
   share_id?: string;
+  share_password?: string;
 }

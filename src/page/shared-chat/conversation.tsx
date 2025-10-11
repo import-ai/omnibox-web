@@ -7,10 +7,7 @@ import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
 import { type ChatActionType } from '@/page/chat/chat-input/types';
-import {
-  createMessageOperator,
-  MessageOperator,
-} from '@/page/chat/conversation/message-operator';
+import { createMessageOperator } from '@/page/chat/conversation/message-operator';
 import Scrollbar from '@/page/chat/conversation/scrollbar';
 import { ask } from '@/page/chat/conversation/utils';
 import { Messages } from '@/page/chat/messages';
@@ -35,6 +32,7 @@ export default function SharedChatConversationPage() {
     setMode,
     tools,
     setTools,
+    password,
   } = useShareContext();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
@@ -56,10 +54,6 @@ export default function SharedChatConversationPage() {
     }
     return result;
   }, [conversation]);
-
-  const messageOperator = useMemo((): MessageOperator => {
-    return createMessageOperator(setConversation);
-  }, []);
 
   const onAction = async (action?: ChatActionType) => {
     if (action === 'stop') {
@@ -87,11 +81,12 @@ export default function SharedChatConversationPage() {
         tools,
         selectedResources,
         messages,
-        messageOperator,
+        createMessageOperator(setConversation),
         `/api/v1/shares/${shareId}/wizard/${mode}`,
         getWizardLang(i18n),
         undefined,
-        shareId
+        shareId,
+        password || undefined
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
@@ -106,15 +101,12 @@ export default function SharedChatConversationPage() {
       .get(`/shares/${shareId}/conversations/${conversationId}`)
       .then(response => {
         setConversation(response);
+        if (chatInput) {
+          setChatInput('');
+          submit(chatInput);
+        }
       });
   }, [shareId, conversationId]);
-
-  useEffect(() => {
-    if (chatInput) {
-      setChatInput('');
-      submit(chatInput);
-    }
-  }, []);
 
   return (
     <div className="flex flex-col h-full">

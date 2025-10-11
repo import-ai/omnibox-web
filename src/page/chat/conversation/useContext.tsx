@@ -100,6 +100,7 @@ export default function useContext() {
         `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
         getWizardLang(i18n),
         namespaceId,
+        undefined,
         undefined
       );
       askAbortRef.current = askFN.destroy;

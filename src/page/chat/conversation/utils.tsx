@@ -73,7 +73,8 @@ export function ask(
   url: string,
   lang: WizardLang | undefined,
   namespaceId: string | undefined,
-  shareId: string | undefined
+  shareId: string | undefined,
+  sharePassword: string | undefined
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -85,6 +86,7 @@ export function ask(
   );
   chatReq.namespace_id = namespaceId;
   chatReq.share_id = shareId;
+  chatReq.share_password = sharePassword;
   return createStreamTransport(url, chatReq, async data => {
     const chatResponse: ChatResponse = JSON.parse(data);
     if (chatResponse.response_type === 'bos') {
