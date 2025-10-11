@@ -2,26 +2,30 @@ import { useEffect, useState } from 'react';
 
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
+import {
+  getChatContext,
+  removeChatContext,
+  setChatContext,
+} from '@/lib/chat-context';
 import type {
   IResTypeContext,
   PrivateSearchResourceType,
 } from '@/page/chat/chat-input/types';
 
-interface IProps {
-  data: IResTypeContext[];
-}
-
-export default function useContext(props: IProps) {
+export default function useContext() {
   const app = useApp();
-  const [context, onContextChange] = useState<IResTypeContext[]>(props.data);
+  const [context, onContextChange] = useState<IResTypeContext[]>([]);
 
   useEffect(() => {
+    onContextChange(getChatContext());
     return app.on('context_clear', () => {
       onContextChange([]);
+      removeChatContext();
     });
   }, []);
 
   useEffect(() => {
+    setChatContext(context);
     return app.on(
       'context',
       (resource: Resource, type: PrivateSearchResourceType) => {

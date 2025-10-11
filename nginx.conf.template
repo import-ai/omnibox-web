@@ -26,6 +26,86 @@ map $upstream_http_cache_control $cache_control_value {
     default $upstream_http_cache_control;
 }
 
+# Detect bot User-Agents (only match explicit bot identifiers, not in-app browsers)
+map $http_user_agent $is_bot {
+    default 0;
+
+    # Generic bot identifiers (bot suffix or specific keywords)
+    ~*bot[^a-z] 1;                                        # xxxbot (non-letter after bot)
+    ~*crawler 1;                                          # crawler
+    ~*spider 1;                                           # spider
+    ~*scraper 1;                                          # scraper
+
+    # Social platform bots (explicit bot identifiers only)
+    ~*facebookexternalhit 1;                              # Facebook link preview
+    ~*facebot 1;                                          # Facebook bot
+    ~*twitterbot 1;                                       # Twitter bot
+    ~*linkedinbot 1;                                      # LinkedIn bot
+    ~*pinterestbot 1;                                     # Pinterest bot
+    ~*tumblrbot 1;                                        # Tumblr bot
+    ~*redditbot 1;                                        # Reddit bot
+    ~*instagrambot 1;                                     # Instagram bot
+    ~*snapchatbot 1;                                      # Snapchat bot
+    ~*tiktokbot 1;                                        # TikTok bot
+    ~*mastodonbot 1;                                      # Mastodon bot
+
+    # Chat/collaboration tool bots
+    ~*slackbot 1;                                         # Slack link unfurling
+    ~*slack-imgproxy 1;                                   # Slack image proxy
+    ~*discordbot 1;                                       # Discord bot
+    ~*telegrambot 1;                                      # Telegram bot
+    ~*whatsapp 1;                                         # WhatsApp link preview
+    ~*wechatbot 1;                                        # WeChat bot (if exists)
+    ~*dingtalkbot 1;                                      # DingTalk bot
+    ~*feibot 1;                                           # Feishu/Lark bot
+    ~*feishubot 1;                                        # Feishu bot
+    ~*larkbot 1;                                          # Lark bot
+    ~*lark-unfurler 1;                                    # Lark link unfurler
+    ~*skypebot 1;                                         # Skype bot
+    ~*msteamsbot 1;                                       # Microsoft Teams bot
+    ~*teamsbot 1;                                         # Teams bot
+    ~*linebot 1;                                          # Line bot
+    ~*kakaobot 1;                                         # KakaoTalk bot
+    ~*viberbot 1;                                         # Viber bot
+
+    # Search engine bots
+    ~*googlebot 1;                                        # Google bot
+    ~*bingbot 1;                                          # Bing bot
+    ~*bingpreview 1;                                      # Bing preview
+    ~*msnbot 1;                                           # MSN bot
+    ~*baiduspider 1;                                      # Baidu spider
+    ~*yandexbot 1;                                        # Yandex bot
+    ~*duckduckbot 1;                                      # DuckDuckGo bot
+    ~*sogou.*spider 1;                                    # Sogou spider
+    ~*360spider 1;                                        # 360 Search spider
+    ~*bytespider 1;                                       # ByteDance spider
+    ~*bytedance 1;                                        # ByteDance
+
+    # RSS/feed readers
+    ~*feedly 1;                                           # Feedly
+    ~*feedfetcher 1;                                      # Google Feedfetcher
+    ~*inoreader 1;                                        # Inoreader
+    ~*newsblur 1;                                         # NewsBlur
+    ~*flipboard 1;                                        # Flipboard
+
+    # Other tool bots
+    ~*notionbot 1;                                        # Notion bot
+    ~*mattermost 1;                                       # Mattermost
+    ~*rocketchat 1;                                       # Rocket.Chat
+    ~*matrixbot 1;                                        # Matrix bot
+    ~*zulipbot 1;                                         # Zulip bot
+
+    # Link preview/embed tools
+    ~*embed 1;                                            # Embed tools
+    ~*oembed 1;                                           # oEmbed
+    ~*preview 1;                                          # Preview tools
+    ~*linkpreview 1;                                      # Link preview
+    ~*urlpreview 1;                                       # URL preview
+    ~*metainspector 1;                                    # Meta inspector
+    ~*linkexpanding 1;                                    # Link expanding
+    ~*unfurling 1;                                        # Link unfurling
+}
+
 server {
     listen 80;
 
@@ -44,6 +124,43 @@ server {
         try_files $uri $uri/ =404;
         add_header Cache-Control "public, max-age=31536000, immutable";
         access_log off;
+    }
+
+    location ~ ^/s/([0-9]{10})(/([0-9A-Za-z]{16}))?$ {
+        set $share_id $1;
+        set $resource_id $3;
+
+        # If bot detected, proxy to backend SEO module for dynamic HTML with meta tags
+        if ($is_bot = 1) {
+            proxy_pass ${BACKEND}/api/v1/seo/shares/$share_id/$resource_id;
+            break;
+        }
+
+        # For regular users, serve SPA
+        root /usr/share/nginx/html;
+        try_files $uri /index.html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
+    }
+
+    location ~ ^/([0-9A-Za-z]{6})/([0-9A-Za-z]{16})$ {
+        set $namespace_id $1;
+        set $resource_id $2;
+
+        # If bot detected, proxy to backend SEO module
+        # Backend will check if enable_seo is true for this resource
+        if ($is_bot = 1) {
+            proxy_pass ${BACKEND}/api/v1/seo/namespaces/$namespace_id/resources/$resource_id;
+            break;
+        }
+
+        # For regular users, serve SPA
+        root /usr/share/nginx/html;
+        try_files $uri /index.html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
     }
 
     location / {

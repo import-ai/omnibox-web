@@ -123,10 +123,7 @@ export function RegisterForm({ children }: IProps) {
           </Button>
           <div className="text-center text-sm">
             {t('form.exist_account')}
-            <Link
-              to="/user/login"
-              className="font-semibold text-primary hover:underline ml-1"
-            >
+            <Link to="/user/login" className="text-sm ml-1">
               {t('login.submit')}
             </Link>
           </div>

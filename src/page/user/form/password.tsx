@@ -101,10 +101,7 @@ export function ForgotPasswordForm() {
         </Button>
         <div className="text-center text-sm">
           {t('password.remember')}
-          <Link
-            to="/user/login"
-            className="font-semibold text-primary hover:underline ml-1"
-          >
+          <Link to="/user/login" className="text-sm ml-1">
             {t('password.return_to_login')}
           </Link>
         </div>

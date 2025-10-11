@@ -19,7 +19,7 @@ export default function ChatHomePage() {
   const [value, onChange] = useState('');
   const namespaceId = params.namespace_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
-  const { context, onContextChange } = useContext({ data: [] });
+  const { context, onContextChange } = useContext();
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [tools, onToolsChange] = useState<Array<ToolType>>([
     ToolType.PRIVATE_SEARCH,

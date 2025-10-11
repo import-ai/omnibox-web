@@ -38,9 +38,7 @@ export default function useContext() {
     routeQuery !== undefined && routeQuery.trim().length > 0
   );
   const [mode, setMode] = useState<ChatMode>(state?.mode || ChatMode.ASK);
-  const { context, onContextChange } = useGlobalContext({
-    data: state?.context || [],
-  });
+  const { context, onContextChange } = useGlobalContext();
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
     mapping: {},

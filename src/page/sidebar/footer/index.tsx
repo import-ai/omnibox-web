@@ -1,3 +1,5 @@
+import { RiDiscordLine } from '@remixicon/react';
+import { MessageCircleWarning } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -8,9 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-import { Discord } from './Discord';
 import { Docs } from './Docs';
-import { Feedback } from './Feedback';
 import { QrCode } from './QrCode';
 import { Wechat } from './Wechat';
 
@@ -26,7 +26,7 @@ export function FooterSidebar() {
           value: '/docs',
         },
         {
-          icon: <Discord />,
+          icon: <RiDiscordLine />,
           label: t('footer.discord'),
           value: 'https://discord.gg/Uc2HneCC',
         },
@@ -36,7 +36,7 @@ export function FooterSidebar() {
           value: '/wechat',
         },
         {
-          icon: <Feedback />,
+          icon: <MessageCircleWarning />,
           label: t('footer.feedback'),
           value: '/feedback',
         },

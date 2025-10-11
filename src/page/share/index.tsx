@@ -9,9 +9,8 @@ import { PublicShareInfo, SharedResource } from '@/interface';
 import { setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
 
+import { ShareLayout } from './layout';
 import { Password } from './password';
-import ShareSidebar from './sidebar';
-
 const SHARE_PASSWORD_COOKIE = 'share-password';
 
 interface ShareContextValue {
@@ -140,14 +139,7 @@ export default function SharePage() {
         {!showSidebar && <Outlet />}
         {showSidebar && (
           <SidebarProvider>
-            <ShareSidebar
-              shareId={shareInfo.id}
-              currentResourceId={resourceId!}
-              rootResource={shareInfo.resource}
-            />
-            <main className="flex-1">
-              <Outlet />
-            </main>
+            <ShareLayout shareInfo={shareInfo} resourceId={resourceId} />
           </SidebarProvider>
         )}
       </ShareContext.Provider>

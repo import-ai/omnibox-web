@@ -12,6 +12,11 @@
   "created": "Created",
   "private": "Private",
   "teamspace": "Teamspace",
+  "toggle_language": "Toggle Language",
+  "toggle_theme": "Toggle Theme",
+  "sidebar": {
+    "toggle": "Toggle Sidebar"
+  },
   "upload": {
     "invalid_ext": "Invalid file type"
   },
@@ -47,6 +52,7 @@
     "copy_link": "Copy Link",
     "copy_content": "Copy content",
     "duplicate": "Create a copy",
+    "download": "Download source file",
     "move_to": "Move to",
     "move_page_to": "Move page to...",
     "move_to_trash": "Move to Trash",
@@ -75,7 +81,7 @@
     "email": "Email",
     "email_invalid": "Please enter a valid email address",
     "email_limit": "Only Gmail, Outlook, 163, and QQ emails are allowed",
-    "email_limit_rule": "Email must be from Gmail, Outlook, 163, or QQ",
+    "email_limit_rule": "Email cannot be empty and must be a Gmail, Outlook, 163, or QQ email address.",
     "email_or_username": "Email or username",
     "email_or_username_invalid": "Please enter a valid email address or username",
     "role": "Role"
