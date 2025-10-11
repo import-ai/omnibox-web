@@ -458,7 +458,7 @@
       "user_share": "{{username}}的分享",
       "url_placeholder": "发布的URL",
       "save": "保存",
-      "all_resources": "所有资源",
+      "all_resources": "是否分享子资源",
       "require_login": "需要登录",
       "ai_chat": "AI问答",
       "password": "密码保护",
