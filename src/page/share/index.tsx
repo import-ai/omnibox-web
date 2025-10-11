@@ -213,7 +213,7 @@ export default function SharePage() {
               }
               onAddToContext={handleAddToContext}
             />
-            <main className="flex-1">
+            <main className="flex-1 bg-white dark:bg-background">
               <Outlet />
             </main>
           </SidebarProvider>

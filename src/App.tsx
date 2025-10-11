@@ -29,7 +29,6 @@ const GoogleAuthConfirmPage = lazy(
 
 const SharePage = lazy(() => import('@/page/share'));
 const SharedResourcePage = lazy(() => import('@/page/shared-resource'));
-const SharedChatPage = lazy(() => import('@/page/shared-chat'));
 const SharedChatHomePage = lazy(() => import('@/page/shared-chat/home'));
 const SharedChatConversationPage = lazy(
   () => import('@/page/shared-chat/conversation')
@@ -135,17 +134,11 @@ const router = createBrowserRouter([
           },
           {
             path: 'chat',
-            element: <SharedChatPage />,
-            children: [
-              {
-                index: true,
-                element: <SharedChatHomePage />,
-              },
-              {
-                path: ':conversation_id',
-                element: <SharedChatConversationPage />,
-              },
-            ],
+            element: <SharedChatHomePage />,
+          },
+          {
+            path: 'chat/:conversation_id',
+            element: <SharedChatConversationPage />,
           },
         ],
       },
