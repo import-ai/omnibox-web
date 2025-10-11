@@ -31,6 +31,9 @@ export function createMessageOperator(
           id = prev.current_node!;
         }
         const message = prev.mapping[id];
+        if (!message) {
+          return prev;
+        }
 
         message.message.content = add(
           message.message.content,

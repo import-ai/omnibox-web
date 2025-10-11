@@ -1,6 +1,3 @@
-import { useEffect, useRef } from 'react';
-
-import useApp from '@/hooks/use-app';
 import { cn } from '@/lib/utils';
 import { MessageDetail } from '@/page/chat/types/conversation';
 
@@ -10,21 +7,8 @@ interface IProps {
 
 export function UserMessage(props: IProps) {
   const { message } = props;
-  const app = useApp();
-  const ref = useRef('');
   const openAIMessage = message.message;
   const lines = openAIMessage.content?.split('\n') || [];
-
-  useEffect(() => {
-    if (message.parent_id || !openAIMessage.content) {
-      return;
-    }
-    if (ref.current === openAIMessage.content) {
-      return;
-    }
-    ref.current = openAIMessage.content;
-    app.fire('chat:title', openAIMessage.content);
-  }, [openAIMessage.content]);
 
   return (
     <div

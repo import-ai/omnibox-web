@@ -6,29 +6,30 @@ import { useNavigate } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import { Separator } from '@/components/ui/separator';
-import { Resource } from '@/interface';
+import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 
 import { groupItemsByTimestamp } from '../utils';
 import { FolderContent } from './content';
 
 interface IProps {
-  resource: Resource;
-  namespaceId: string;
+  resourceId: string;
+  apiPrefix: string;
+  navigationPrefix: string;
 }
 
 export default function Folder(props: IProps) {
-  const { resource, namespaceId } = props;
+  const { resourceId, apiPrefix, navigationPrefix } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [loading, onLoading] = useState(false);
-  const [data, onData] = useState<Array<Resource>>([]);
+  const [data, onData] = useState<Array<ResourceMeta>>([]);
 
   useEffect(() => {
     onLoading(true);
     const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/resources/${resource.id}/children`, {
+      .get(`${apiPrefix}/${resourceId}/children`, {
         cancelToken: source.token,
       })
       .then(onData)
@@ -38,7 +39,7 @@ export default function Folder(props: IProps) {
     return () => {
       source.cancel();
     };
-  }, [namespaceId, resource.id]);
+  }, [apiPrefix, resourceId]);
 
   if (loading) {
     return <Loading />;
@@ -61,7 +62,7 @@ export default function Folder(props: IProps) {
                     className="cursor-pointer group"
                     key={item.id}
                     onClick={() => {
-                      navigate(`/${namespaceId}/${item.id}`);
+                      navigate(`${navigationPrefix}/${item.id}`);
                     }}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -70,10 +71,7 @@ export default function Folder(props: IProps) {
                       </h3>
                     </div>
                     {item.resource_type === 'folder' ? (
-                      <FolderContent
-                        resource={item}
-                        namespaceId={namespaceId}
-                      />
+                      <FolderContent resource={item} apiPrefix={apiPrefix} />
                     ) : (
                       <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
                         {item.updated_at

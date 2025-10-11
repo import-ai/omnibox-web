@@ -38,7 +38,11 @@ export default function Page(props: IProps) {
         onResource={onResource}
       />
       {resource.resource_type === 'folder' ? (
-        <Folder resource={resource} namespaceId={namespaceId} />
+        <Folder
+          resourceId={resource.id}
+          apiPrefix={`/namespaces/${namespaceId}/resources`}
+          navigationPrefix={`/${namespaceId}`}
+        />
       ) : (
         <Render
           resource={resource}

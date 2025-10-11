@@ -59,11 +59,8 @@ export interface PathItem {
   name: string;
 }
 
-export interface SharedResource {
-  id: string;
-  name: string;
+export interface SharedResource extends ResourceMeta {
   content: string;
-  resource_type: ResourceType;
   attrs?: Record<string, any>;
 }
 
@@ -224,16 +221,21 @@ export interface UpdateShareInfoReq {
   expires_seconds?: number;
 }
 
-export interface SharedResourceMeta {
+export interface ResourceMeta {
   id: string;
-  name: string;
+  name?: string;
   resource_type: ResourceType;
+  created_at?: string;
+  updated_at?: string;
+  has_children?: boolean;
 }
 
 export interface PublicShareInfo {
   id: string;
   all_resources: boolean;
-  resource: SharedResourceMeta;
+  share_type: ShareType;
+  username: string;
+  resource: ResourceMeta;
 }
 
 export type TaskStatus =

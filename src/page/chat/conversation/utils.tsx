@@ -1,10 +1,6 @@
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
-import {
-  ChatMode,
-  type IResTypeContext,
-  ToolType,
-} from '@/page/chat/chat-input/types';
+import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import type {
   ChatRequestBody,
@@ -27,7 +23,6 @@ function getPrivateSearchResources(
 }
 
 export function prepareBody(
-  namespaceId: string,
   conversationId: string,
   query: string,
   tools: ToolType[],
@@ -36,7 +31,6 @@ export function prepareBody(
   lang: WizardLang | undefined
 ): ChatRequestBody {
   const body: ChatRequestBody = {
-    namespace_id: namespaceId,
     conversation_id: conversationId,
     query,
     enable_thinking: false,
@@ -52,7 +46,6 @@ export function prepareBody(
       body.tools = body?.tools || [];
       const tool: PrivateSearch = {
         name: ToolType.PRIVATE_SEARCH,
-        namespace_id: namespaceId,
         resources: getPrivateSearchResources(context),
       };
       body.tools.push(tool);
@@ -71,18 +64,19 @@ export function prepareBody(
 }
 
 export function ask(
-  namespaceId: string,
   conversationId: string,
   query: string,
   tools: ToolType[],
   context: IResTypeContext[],
   messages: MessageDetail[],
   messageOperator: MessageOperator,
-  mode: ChatMode,
-  lang: WizardLang | undefined
+  url: string,
+  lang: WizardLang | undefined,
+  namespaceId: string | undefined,
+  shareId: string | undefined,
+  sharePassword: string | undefined
 ) {
-  const body = prepareBody(
-    namespaceId,
+  const chatReq = prepareBody(
     conversationId,
     query,
     tools,
@@ -90,7 +84,10 @@ export function ask(
     messages,
     lang
   );
-  return createStreamTransport(`/api/v1/wizard/${mode}`, body, async data => {
+  chatReq.namespace_id = namespaceId;
+  chatReq.share_id = shareId;
+  chatReq.share_password = sharePassword;
+  return createStreamTransport(url, chatReq, async data => {
     const chatResponse: ChatResponse = JSON.parse(data);
     if (chatResponse.response_type === 'bos') {
       messageOperator.add(chatResponse);

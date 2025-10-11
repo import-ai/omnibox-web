@@ -117,7 +117,10 @@ export function createStreamTransport(
     import.meta.env.VITE_USE_WEBSOCKET?.toLowerCase() !== 'false';
 
   if (useWebSocket) {
-    const event = url.includes('/ask') ? 'ask' : 'write';
+    let event = url.includes('/ask') ? 'ask' : 'write';
+    if (body.share_id) {
+      event = `share_${event}`;
+    }
     return createWebSocketTransport(event, body, callback);
   }
 
