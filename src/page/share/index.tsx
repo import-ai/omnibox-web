@@ -205,7 +205,7 @@ export default function SharePage() {
             <ShareSidebar
               shareId={shareInfo.id}
               rootResource={shareInfo.resource}
-              namespaceName={shareInfo.namespace_name}
+              username={shareInfo.username}
               showChat={!!showChat}
               isChatActive={isChatActive}
               isResourceActive={resourceId =>

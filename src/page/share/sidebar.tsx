@@ -20,7 +20,7 @@ import SidebarItem from './sidebar-item';
 interface SharedSidebarProps {
   shareId: string;
   rootResource: ResourceMeta;
-  namespaceName: string;
+  username: string;
   showChat: boolean;
   isChatActive: boolean;
   isResourceActive: (resourceId: string) => boolean;
@@ -31,7 +31,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
   const {
     shareId,
     rootResource,
-    namespaceName,
+    username,
     showChat,
     isChatActive,
     isResourceActive,
@@ -52,7 +52,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
             <Command className="size-3" />
           </div>
           <span className="truncate font-semibold text-sm">
-            {namespaceName}
+            {t('share.share.user_share', { username })}
           </span>
         </div>
         {showChat && (

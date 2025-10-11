@@ -455,6 +455,7 @@
     },
     "share": {
       "title": "Share",
+      "user_share": "{{username}}'s Share",
       "url_placeholder": "Published URL",
       "save": "Save",
       "all_resources": "All Resources",

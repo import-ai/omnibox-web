@@ -455,6 +455,7 @@
     },
     "share": {
       "title": "分享",
+      "user_share": "{{username}}的分享",
       "url_placeholder": "发布的URL",
       "save": "保存",
       "all_resources": "所有资源",
