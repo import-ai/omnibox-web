@@ -20,6 +20,12 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import useNamespace from '@/hooks/use-namespaces';
 import { cn } from '@/lib/utils';
 import { Logout } from '@/page/user/logout';
@@ -121,7 +127,14 @@ export function Switcher(props: IProps) {
           </DropdownMenuContent>
         </DropdownMenu>
         {open && !isMobile && (
-          <SidebarTrigger className="text-[#8F959E] hover:text-[#8F959E] hover:bg-[#E6E6EC]" />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarTrigger className="text-[#8F959E] hover:text-[#8F959E] hover:bg-[#E6E6EC]" />
+              </TooltipTrigger>
+              <TooltipContent>{t('sidebar.toggle')}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </SidebarMenuItem>
     </SidebarMenu>

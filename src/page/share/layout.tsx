@@ -1,6 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import { Outlet } from 'react-router-dom';
 
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { PublicShareInfo, ResourceMeta } from '@/interface';
 
 import ShareSidebar from './sidebar';
@@ -24,6 +31,7 @@ export function ShareLayout(props: IProps) {
     currentResourceId,
     handleAddToContext,
   } = props;
+  const { t } = useTranslation();
   const { isMobile } = useSidebar();
 
   return (
@@ -40,7 +48,16 @@ export function ShareLayout(props: IProps) {
         onAddToContext={handleAddToContext}
       />
       <main className="flex-1 bg-white dark:bg-background">
-        {isMobile && <SidebarTrigger />}
+        {isMobile && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarTrigger />
+              </TooltipTrigger>
+              <TooltipContent>{t('sidebar.toggle')}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         <Outlet />
       </main>
     </>

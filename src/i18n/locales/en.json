@@ -81,7 +81,7 @@
     "email": "Email",
     "email_invalid": "Please enter a valid email address",
     "email_limit": "Only Gmail, Outlook, 163, and QQ emails are allowed",
-    "email_limit_rule": "Email cannot be empty and must be a Gmail, Outlook, 163, or QQ email address.",
+    "email_limit_rule": "Email must be from Gmail, Outlook, 163, or QQ",
     "email_or_username": "Email or username",
     "email_or_username_invalid": "Please enter a valid email address or username",
     "role": "Role"
