@@ -29,6 +29,10 @@ const GoogleAuthConfirmPage = lazy(
 
 const SharePage = lazy(() => import('@/page/share'));
 const SharedResourcePage = lazy(() => import('@/page/shared-resource'));
+const SharedChatHomePage = lazy(() => import('@/page/shared-chat/home'));
+const SharedChatConversationPage = lazy(
+  () => import('@/page/shared-chat/conversation')
+);
 
 const PrivacyPolicy = lazy(() => import('@/page/single/privacy-policy'));
 const TermsOfService = lazy(() => import('@/page/single/terms-of-service'));
@@ -127,6 +131,14 @@ const router = createBrowserRouter([
           {
             path: ':resource_id',
             element: <SharedResourcePage />,
+          },
+          {
+            path: 'chat',
+            element: <SharedChatHomePage />,
+          },
+          {
+            path: 'chat/:conversation_id',
+            element: <SharedChatConversationPage />,
           },
         ],
       },

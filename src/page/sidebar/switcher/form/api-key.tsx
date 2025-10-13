@@ -52,6 +52,7 @@ import useUser from '@/hooks/use-user';
 import {
   type APIKey,
   type APIKeyAttrs,
+  APIKeyPermission,
   APIKeyPermissionTarget,
   APIKeyPermissionType,
   type CreateAPIKeyDto,
@@ -76,7 +77,8 @@ export function APIKeyForm() {
   const [editingKey, setEditingKey] = useState<APIKey | null>(null);
   const [formData, setFormData] = useState({
     root_resource_id: '',
-    permissions: [APIKeyPermissionType.READ],
+    resourcePermissions: [] as APIKeyPermissionType[],
+    chatPermissions: [] as APIKeyPermissionType[],
   });
 
   const handleCreateAPIKey = async () => {
@@ -85,16 +87,33 @@ export function APIKeyForm() {
       return;
     }
 
+    if (
+      formData.resourcePermissions.length === 0 &&
+      formData.chatPermissions.length === 0
+    ) {
+      toast.error(t('api_key.create.validation_error'));
+      return;
+    }
+
     setCreating(true);
     try {
+      const permissions: APIKeyPermission[] = [];
+      if (formData.resourcePermissions.length > 0) {
+        permissions.push({
+          target: APIKeyPermissionTarget.RESOURCES,
+          permissions: formData.resourcePermissions,
+        });
+      }
+      if (formData.chatPermissions.length > 0) {
+        permissions.push({
+          target: APIKeyPermissionTarget.CHAT,
+          permissions: formData.chatPermissions,
+        });
+      }
+
       const attrs: APIKeyAttrs = {
         root_resource_id: formData.root_resource_id,
-        permissions: [
-          {
-            target: APIKeyPermissionTarget.RESOURCES,
-            permissions: formData.permissions,
-          },
-        ],
+        permissions,
       };
 
       const createData: CreateAPIKeyDto = {
@@ -108,7 +127,8 @@ export function APIKeyForm() {
       setCreateDialogOpen(false);
       setFormData({
         root_resource_id: '',
-        permissions: [APIKeyPermissionType.READ],
+        resourcePermissions: [],
+        chatPermissions: [],
       });
     } catch {
       toast.error(t('api_key.create.error'));
@@ -118,10 +138,14 @@ export function APIKeyForm() {
   };
 
   const handleUpdateAPIKey = async () => {
+    if (!editingKey || !formData.root_resource_id) {
+      toast.error(t('api_key.create.validation_error'));
+      return;
+    }
+
     if (
-      !editingKey ||
-      !formData.root_resource_id ||
-      formData.permissions.length === 0
+      formData.resourcePermissions.length === 0 &&
+      formData.chatPermissions.length === 0
     ) {
       toast.error(t('api_key.create.validation_error'));
       return;
@@ -129,14 +153,23 @@ export function APIKeyForm() {
 
     setUpdating(true);
     try {
+      const permissions: APIKeyPermission[] = [];
+      if (formData.resourcePermissions.length > 0) {
+        permissions.push({
+          target: APIKeyPermissionTarget.RESOURCES,
+          permissions: formData.resourcePermissions,
+        });
+      }
+      if (formData.chatPermissions.length > 0) {
+        permissions.push({
+          target: APIKeyPermissionTarget.CHAT,
+          permissions: formData.chatPermissions,
+        });
+      }
+
       const attrs: APIKeyAttrs = {
         root_resource_id: formData.root_resource_id,
-        permissions: [
-          {
-            target: APIKeyPermissionTarget.RESOURCES,
-            permissions: formData.permissions,
-          },
-        ],
+        permissions,
       };
 
       await patchAPIKey(editingKey.id, attrs);
@@ -145,7 +178,8 @@ export function APIKeyForm() {
       setEditingKey(null);
       setFormData({
         root_resource_id: '',
-        permissions: [APIKeyPermissionType.READ],
+        resourcePermissions: [],
+        chatPermissions: [],
       });
     } catch {
       toast.error(t('api_key.update.error'));
@@ -165,11 +199,17 @@ export function APIKeyForm() {
 
   const handleEditClick = (key: APIKey) => {
     setEditingKey(key);
+    const resourcePerms =
+      key.attrs.permissions.find(
+        p => p.target === APIKeyPermissionTarget.RESOURCES
+      )?.permissions || [];
+    const chatPerms =
+      key.attrs.permissions.find(p => p.target === APIKeyPermissionTarget.CHAT)
+        ?.permissions || [];
     setFormData({
       root_resource_id: key.attrs.root_resource_id,
-      permissions: key.attrs.permissions[0]?.permissions || [
-        APIKeyPermissionType.READ,
-      ],
+      resourcePermissions: resourcePerms,
+      chatPermissions: chatPerms,
     });
     setUpdateDialogOpen(true);
   };
@@ -195,18 +235,23 @@ export function APIKeyForm() {
   };
 
   const handlePermissionChange = (
+    target: APIKeyPermissionTarget,
     permission: APIKeyPermissionType,
     checked: boolean
   ) => {
+    const field =
+      target === APIKeyPermissionTarget.RESOURCES
+        ? 'resourcePermissions'
+        : 'chatPermissions';
     if (checked) {
       setFormData(prev => ({
         ...prev,
-        permissions: [...prev.permissions, permission],
+        [field]: [...prev[field], permission],
       }));
     } else {
       setFormData(prev => ({
         ...prev,
-        permissions: prev.permissions.filter(p => p !== permission),
+        [field]: prev[field].filter(p => p !== permission),
       }));
     }
   };
@@ -275,26 +320,63 @@ export function APIKeyForm() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>{t('api_key.permissions')}</Label>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  {Object.values(APIKeyPermissionType).map(permission => (
-                    <div
-                      key={permission}
-                      className="flex items-center space-x-2"
-                    >
-                      <Checkbox
-                        id={permission}
-                        checked={formData.permissions.includes(permission)}
-                        onCheckedChange={checked =>
-                          handlePermissionChange(permission, !!checked)
-                        }
-                      />
-                      <Label htmlFor={permission} className="capitalize">
-                        {permission}
-                      </Label>
-                    </div>
-                  ))}
+                  <Label>{t('api_key.permissions_resources')}</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {Object.values(APIKeyPermissionType).map(permission => (
+                      <div
+                        key={permission}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={`resources-${permission}`}
+                          checked={formData.resourcePermissions.includes(
+                            permission
+                          )}
+                          onCheckedChange={checked =>
+                            handlePermissionChange(
+                              APIKeyPermissionTarget.RESOURCES,
+                              permission,
+                              !!checked
+                            )
+                          }
+                        />
+                        <Label htmlFor={`resources-${permission}`}>
+                          {t(`api_key.permission_types.${permission}`)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{t('api_key.permissions_chat')}</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {Object.values(APIKeyPermissionType).map(permission => (
+                      <div
+                        key={permission}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={`chat-${permission}`}
+                          checked={formData.chatPermissions.includes(
+                            permission
+                          )}
+                          onCheckedChange={checked =>
+                            handlePermissionChange(
+                              APIKeyPermissionTarget.CHAT,
+                              permission,
+                              !!checked
+                            )
+                          }
+                        />
+                        <Label htmlFor={`chat-${permission}`}>
+                          {t(`api_key.permission_types.${permission}`)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -357,29 +439,63 @@ export function APIKeyForm() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>{t('api_key.permissions')}</Label>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  {Object.values(APIKeyPermissionType).map(permission => (
-                    <div
-                      key={permission}
-                      className="flex items-center space-x-2"
-                    >
-                      <Checkbox
-                        id={`update-${permission}`}
-                        checked={formData.permissions.includes(permission)}
-                        onCheckedChange={checked =>
-                          handlePermissionChange(permission, !!checked)
-                        }
-                      />
-                      <Label
-                        htmlFor={`update-${permission}`}
-                        className="capitalize"
+                  <Label>{t('api_key.permissions_resources')}</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {Object.values(APIKeyPermissionType).map(permission => (
+                      <div
+                        key={permission}
+                        className="flex items-center space-x-2"
                       >
-                        {permission}
-                      </Label>
-                    </div>
-                  ))}
+                        <Checkbox
+                          id={`update-resources-${permission}`}
+                          checked={formData.resourcePermissions.includes(
+                            permission
+                          )}
+                          onCheckedChange={checked =>
+                            handlePermissionChange(
+                              APIKeyPermissionTarget.RESOURCES,
+                              permission,
+                              !!checked
+                            )
+                          }
+                        />
+                        <Label htmlFor={`update-resources-${permission}`}>
+                          {t(`api_key.permission_types.${permission}`)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{t('api_key.permissions_chat')}</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {Object.values(APIKeyPermissionType).map(permission => (
+                      <div
+                        key={permission}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={`update-chat-${permission}`}
+                          checked={formData.chatPermissions.includes(
+                            permission
+                          )}
+                          onCheckedChange={checked =>
+                            handlePermissionChange(
+                              APIKeyPermissionTarget.CHAT,
+                              permission,
+                              !!checked
+                            )
+                          }
+                        />
+                        <Label htmlFor={`update-chat-${permission}`}>
+                          {t(`api_key.permission_types.${permission}`)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -511,14 +627,23 @@ export function APIKeyForm() {
                     <Label className="text-xs text-muted-foreground">
                       {t('api_key.permissions')}
                     </Label>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {key.attrs.permissions[0]?.permissions.map(permission => (
-                        <span
-                          key={permission}
-                          className="px-2 py-1 text-xs bg-secondary rounded-md capitalize"
-                        >
-                          {permission}
-                        </span>
+                    <div className="space-y-2 mt-1">
+                      {key.attrs.permissions.map(perm => (
+                        <div key={perm.target}>
+                          <div className="text-xs font-medium text-muted-foreground capitalize mb-1">
+                            {perm.target}
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {perm.permissions.map(permission => (
+                              <span
+                                key={permission}
+                                className="px-2 py-1 text-xs bg-secondary rounded-md capitalize"
+                              >
+                                {permission}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>

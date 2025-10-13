@@ -1,37 +1,44 @@
-import { ChevronRight, LoaderCircle } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronRight, LoaderCircle, MoreHorizontal } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import {
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
-import { SharedResourceMeta } from '@/interface';
+import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 
 interface SidebarItemProps {
   shareId: string;
-  resource: SharedResourceMeta;
-  currentResourceId: string;
+  resource: ResourceMeta;
+  isChatActive: boolean;
+  isResourceActive: (resourceId: string) => boolean;
+  onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
 }
 
 export default function SidebarItem(props: SidebarItemProps) {
-  const { shareId, resource, currentResourceId } = props;
+  const { shareId, resource, isChatActive, isResourceActive, onAddToContext } =
+    props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [children, setChildren] = useState<SharedResourceMeta[]>([]);
+  const [children, setChildren] = useState<ResourceMeta[]>([]);
   const [loading, setLoading] = useState(false);
-  const [hasChildren, setHasChildren] = useState(true);
-  const isActive = currentResourceId === resource.id;
+  const contextMenuRef = useRef<HTMLDivElement>(null);
+  const isActive = isResourceActive(resource.id);
+  const hasChildren = !!resource.has_children;
 
   const fetchChildren = async () => {
     if (loading) {
@@ -43,9 +50,7 @@ export default function SidebarItem(props: SidebarItemProps) {
         `/shares/${shareId}/resources/${resource.id}/children`
       );
       setChildren(data || []);
-      setHasChildren(data && data.length > 0);
     } catch {
-      setHasChildren(false);
       setChildren([]);
     } finally {
       setLoading(false);
@@ -63,12 +68,41 @@ export default function SidebarItem(props: SidebarItemProps) {
     navigate(`/s/${shareId}/${resource.id}`);
   };
 
+  const handleAddToChat = () => {
+    onAddToContext(resource, 'resource');
+    if (!isChatActive) {
+      navigate(`/s/${shareId}/chat`);
+    }
+  };
+
+  const handleAddAllToChat = () => {
+    onAddToContext(resource, 'folder');
+    if (!isChatActive) {
+      navigate(`/s/${shareId}/chat`);
+    }
+  };
+
+  const handleContextMenuTrigger = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Trigger context menu by simulating right-click
+    if (contextMenuRef.current) {
+      const event = new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: e.clientX,
+        clientY: e.clientY,
+      });
+      contextMenuRef.current.dispatchEvent(event);
+    }
+  };
+
   return (
     <SidebarMenuItem>
-      {hasChildren ? (
-        <Collapsible open={isExpanded}>
-          <CollapsibleTrigger asChild>
-            <div>
+      <Collapsible open={isExpanded}>
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            <div ref={contextMenuRef}>
               <SidebarMenuButton
                 asChild
                 className="gap-1 py-2 h-auto"
@@ -89,12 +123,14 @@ export default function SidebarItem(props: SidebarItemProps) {
                     {loading ? (
                       <LoaderCircle className="w-3 h-3 animate-spin" />
                     ) : (
-                      <ChevronRight
-                        className={cn(
-                          'w-3 h-3 transition-transform',
-                          isExpanded && 'rotate-90'
-                        )}
-                      />
+                      hasChildren && (
+                        <ChevronRight
+                          className={cn(
+                            'w-3 h-3 transition-transform',
+                            isExpanded && 'rotate-90'
+                          )}
+                        />
+                      )
                     )}
                   </div>
                   <span className="truncate ml-1">
@@ -102,8 +138,29 @@ export default function SidebarItem(props: SidebarItemProps) {
                   </span>
                 </div>
               </SidebarMenuButton>
+              <SidebarMenuAction onClick={handleContextMenuTrigger}>
+                <MoreHorizontal className="w-4 h-4" />
+              </SidebarMenuAction>
             </div>
-          </CollapsibleTrigger>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            {hasChildren && (
+              <ContextMenuItem
+                className="cursor-pointer"
+                onClick={handleAddAllToChat}
+              >
+                {t('actions.add_all_to_context')}
+              </ContextMenuItem>
+            )}
+            <ContextMenuItem
+              className="cursor-pointer"
+              onClick={handleAddToChat}
+            >
+              {t('actions.add_it_to_context')}
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+        {hasChildren && (
           <CollapsibleContent>
             <SidebarMenuSub className="pr-0 mr-0 pl-2">
               {children.map(child => (
@@ -111,29 +168,15 @@ export default function SidebarItem(props: SidebarItemProps) {
                   key={child.id}
                   shareId={shareId}
                   resource={child}
-                  currentResourceId={currentResourceId}
+                  isResourceActive={isResourceActive}
+                  isChatActive={isChatActive}
+                  onAddToContext={onAddToContext}
                 />
               ))}
             </SidebarMenuSub>
           </CollapsibleContent>
-        </Collapsible>
-      ) : (
-        <SidebarMenuButton
-          asChild
-          className="gap-1 py-2 h-auto"
-          isActive={isActive}
-        >
-          <div
-            className="flex cursor-pointer items-center"
-            onClick={handleClick}
-          >
-            <div className="w-4 h-4" />
-            <span className="truncate ml-1">
-              {resource.name || t('untitled')}
-            </span>
-          </div>
-        </SidebarMenuButton>
-      )}
+        )}
+      </Collapsible>
     </SidebarMenuItem>
   );
 }

@@ -397,6 +397,14 @@
     "permission_scope_tooltip": "此API密钥的根文档，将限制此密钥只能访问该文档及其子文档。",
     "root_resource_id_placeholder": "输入文档名以搜索",
     "permissions": "权限",
+    "permissions_resources": "资源权限",
+    "permissions_chat": "对话权限",
+    "permission_types": {
+      "create": "创建",
+      "read": "读取",
+      "update": "更新",
+      "delete": "删除"
+    },
     "related_application": "关联应用"
   },
   "tasks": {
@@ -453,9 +461,10 @@
     },
     "share": {
       "title": "分享",
+      "user_share": "{{username}}的分享",
       "url_placeholder": "发布的URL",
       "save": "保存",
-      "all_resources": "所有资源",
+      "all_resources": "是否分享子资源",
       "require_login": "需要登录",
       "ai_chat": "AI问答",
       "password": "密码保护",

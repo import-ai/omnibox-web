@@ -397,6 +397,14 @@
     "permission_scope_tooltip": "The root resource for this API key, which will limit this key to access only that resource and its sub-resources.",
     "root_resource_id_placeholder": "Enter resource name to search",
     "permissions": "Permissions",
+    "permissions_resources": "Resource Permissions",
+    "permissions_chat": "Chat Permissions",
+    "permission_types": {
+      "create": "Create",
+      "read": "Read",
+      "update": "Update",
+      "delete": "Delete"
+    },
     "related_application": "Related Application"
   },
   "tasks": {
@@ -453,9 +461,10 @@
     },
     "share": {
       "title": "Share",
+      "user_share": "{{username}}'s Share",
       "url_placeholder": "Published URL",
       "save": "Save",
-      "all_resources": "All Resources",
+      "all_resources": "Share sub-resources",
       "require_login": "Require login to view",
       "ai_chat": "AI Chat",
       "password": "Password",

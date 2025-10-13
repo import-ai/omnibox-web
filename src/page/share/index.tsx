@@ -1,13 +1,18 @@
 import axios, { CancelTokenSource } from 'axios';
 import { t } from 'i18next';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Outlet, useNavigate, useParams } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { PublicShareInfo, SharedResource } from '@/interface';
-import { setCookie } from '@/lib/cookie';
+import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
+import { getCookie, setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
+import {
+  ChatMode,
+  IResTypeContext,
+  ToolType,
+} from '@/page/chat/chat-input/types';
 
 import { ShareLayout } from './layout';
 import { Password } from './password';
@@ -16,6 +21,15 @@ const SHARE_PASSWORD_COOKIE = 'share-password';
 interface ShareContextValue {
   shareInfo: PublicShareInfo | null;
   resource: SharedResource | null;
+  selectedResources: IResTypeContext[];
+  setSelectedResources: (resources: IResTypeContext[]) => void;
+  chatInput: string;
+  setChatInput: (input: string) => void;
+  mode: ChatMode;
+  setMode: (mode: ChatMode) => void;
+  tools: Array<ToolType>;
+  setTools: (tools: Array<ToolType>) => void;
+  password: string | null;
 }
 
 const ShareContext = createContext<ShareContextValue | null>(null);
@@ -30,20 +44,54 @@ export const useShareContext = () => {
 
 export default function SharePage() {
   const params = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const cancelTokenSource = useRef<CancelTokenSource>(null);
   const [shareInfo, setShareInfo] = useState<PublicShareInfo | null>(null);
   const [resource, setResource] = useState<SharedResource | null>(null);
+  const [selectedResources, setSelectedResources] = useState<IResTypeContext[]>(
+    []
+  );
+  const [chatInput, setChatInput] = useState<string>('');
+  const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
+  const [tools, setTools] = useState<Array<ToolType>>([
+    ToolType.PRIVATE_SEARCH,
+  ]);
   const [requirePassword, setRequirePassword] = useState<boolean>(false);
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
+  const [password, setPassword] = useState<string | null>(
+    getCookie(SHARE_PASSWORD_COOKIE)
+  );
   const shareId = params.share_id;
-  const resourceId = params.resource_id || shareInfo?.resource?.id;
+  const currentResourceId = params.resource_id || shareInfo?.resource?.id;
+  const isChatActive = location.pathname.includes('/chat');
+  const showChat = shareInfo && shareInfo.share_type !== 'doc_only';
+
+  const handleAddToContext = (
+    resource: ResourceMeta,
+    type: 'resource' | 'folder'
+  ) => {
+    const target = selectedResources.find(
+      item => item.resource.id === resource.id && item.type === type
+    );
+    if (target) {
+      return;
+    }
+    setSelectedResources([
+      ...selectedResources,
+      {
+        type,
+        resource,
+      },
+    ]);
+  };
 
   const handlePassword = (password: string) => {
     setPasswordLoading(true);
     setCookie(SHARE_PASSWORD_COOKIE, password, `/s/${shareId}`);
     setCookie(SHARE_PASSWORD_COOKIE, password, `/api/v1/shares/${shareId}`);
+    setPassword(password);
     if (cancelTokenSource.current) {
       cancelTokenSource.current.cancel('Canceled due to new request.');
     }
@@ -97,7 +145,7 @@ export default function SharePage() {
     }
     const source = axios.CancelToken.source();
     http
-      .get(`/shares/${shareId}/resources/${resourceId}`, {
+      .get(`/shares/${shareId}/resources/${currentResourceId}`, {
         cancelToken: source.token,
       })
       .then(data => {
@@ -114,7 +162,7 @@ export default function SharePage() {
         }
       });
     return () => source.cancel();
-  }, [shareInfo, resourceId]);
+  }, [shareInfo, currentResourceId]);
 
   if (requirePassword) {
     return (
@@ -133,13 +181,33 @@ export default function SharePage() {
     );
   }
   if (shareInfo) {
-    const showSidebar = shareInfo.all_resources;
+    const showSidebar = shareInfo.all_resources || showChat;
     return (
-      <ShareContext.Provider value={{ shareInfo, resource }}>
+      <ShareContext.Provider
+        value={{
+          shareInfo,
+          resource,
+          selectedResources,
+          setSelectedResources,
+          chatInput,
+          setChatInput,
+          mode,
+          setMode,
+          tools,
+          setTools,
+          password,
+        }}
+      >
         {!showSidebar && <Outlet />}
         {showSidebar && (
           <SidebarProvider>
-            <ShareLayout shareInfo={shareInfo} resourceId={resourceId} />
+            <ShareLayout
+              shareInfo={shareInfo}
+              isChatActive={isChatActive}
+              showChat={showChat}
+              currentResourceId={currentResourceId}
+              handleAddToContext={handleAddToContext}
+            />
           </SidebarProvider>
         )}
       </ShareContext.Provider>
