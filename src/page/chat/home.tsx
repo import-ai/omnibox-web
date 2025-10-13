@@ -62,6 +62,7 @@ export default function ChatHomePage() {
             onAction={handleAction}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}
+            navigatePrefix={`/${namespaceId}`}
           />
         </div>
       </div>

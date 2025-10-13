@@ -455,9 +455,10 @@
     },
     "share": {
       "title": "Share",
+      "user_share": "{{username}}'s Share",
       "url_placeholder": "Published URL",
       "save": "Save",
-      "all_resources": "All Resources",
+      "all_resources": "Share sub-resources",
       "require_login": "Require login to view",
       "ai_chat": "AI Chat",
       "password": "Password",
