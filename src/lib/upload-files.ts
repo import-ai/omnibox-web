@@ -34,7 +34,6 @@ export function uploadFile(
     formData.append('parent_id', args.parentId);
     formData.append('namespace_id', args.namespaceId);
     formData.append('file', file);
-    formData.append('file_name', encodeURIComponent(file.name));
     return http.post(
       `/namespaces/${args.namespaceId}/resources/files`,
       formData,
@@ -101,7 +100,7 @@ export function uploadFile(
     return http.post(`/namespaces/${args.namespaceId}/resources/files/merge`, {
       file_hash: fileHash,
       total_chunks: totalChunks,
-      file_name: encodeURIComponent(file.name),
+      file_name: file.name,
       mimetype: file.type,
       parent_id: args.parentId,
       namespace_id: args.namespaceId,
