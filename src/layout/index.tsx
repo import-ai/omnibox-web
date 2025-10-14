@@ -1,3 +1,4 @@
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +18,11 @@ export default function Layout() {
   const namespaceId = params.namespace_id;
   const shareId = params.share_id;
   const [uid, setUid] = useState(localStorage.getItem('uid'));
+  const getVisitorInfo = async () => {
+    const fp = await FingerprintJS.load();
+    const visitorInfo = await fp.get();
+    return visitorInfo;
+  };
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -48,10 +54,13 @@ export default function Layout() {
     if (!referrer || referrer.includes(location.hostname)) {
       return;
     }
-    track('visit_web_from', {
-      referrer,
-      url: location.href,
-      language: i18n.language,
+    getVisitorInfo().then(({ visitorId }) => {
+      track('visit_web_from', {
+        referrer,
+        finger: visitorId,
+        url: location.href,
+        language: i18n.language,
+      });
     });
   }, []);
 
