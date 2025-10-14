@@ -39,13 +39,15 @@ export default function GenerateForm() {
   const handleSubmit = (data: GenerateFormValues) => {
     setLoading(true);
     http
-      .post('namespaces', { name: data.name })
+      .post('namespaces', { name: data.name }, { mute: true })
       .then(data => {
         location.href = `/${data.id}/chat`;
       })
       .catch(err => {
         if (err?.response?.data?.code === 'namespace_conflict') {
-          toast.error(t('namespace.conflict'));
+          toast.error(t('namespace.conflict'), { position: 'bottom-right' });
+        } else {
+          toast.error(err.message, { position: 'bottom-right' });
         }
       })
       .finally(() => {

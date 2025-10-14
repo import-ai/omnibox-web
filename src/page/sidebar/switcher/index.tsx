@@ -59,7 +59,7 @@ export function Switcher(props: IProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
-              <div className="flex rounded-[8px] size-[24px] text-[12px] text-white items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
+              <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] text-white items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
                 {current.name.charAt(0)}
               </div>
               <span className="truncate">{current.name}</span>
