@@ -26,7 +26,7 @@ map $upstream_http_cache_control $cache_control_value {
     default $upstream_http_cache_control;
 }
 
-# 企业微信爬虫的规则：UA含wxwork + URL无wework_cfm_code + Referer为空
+# Rules for WeCom (Enterprise WeChat) crawling: User-Agent must contain "wxwork", URL must not include "wework_cfm_code", and Referer must be empty
 map "$http_user_agent:$request_uri:$http_referer" $is_wxwork_crawler {
     default 0;
     ~*wxwork.*[^:]*:[^:]*[^wework_cfm_code][^:]*:[^:]*$ 1;
@@ -38,9 +38,9 @@ map $http_user_agent $is_bot {
 
     ~*larkurl 1;                       # Lark
     ~*iframely/ 1;                     # Notion（Iframely-based）
-    ~*dingtalkbot 1;                   # 钉钉
-    ~*wxwork  $is_wxwork_crawler;      # 企业微信
-    ~*wechatshareextensionnew 1;       # 微信外部分享
+    ~*dingtalkbot 1;                   # DingDing
+    ~*wxwork  $is_wxwork_crawler;      # weChat Enterprise
+    ~*wechatshareextensionnew 1;       # weChat
 }
 
 server {
