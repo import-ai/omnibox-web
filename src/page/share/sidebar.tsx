@@ -78,6 +78,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
                 resource={rootResource}
                 isResourceActive={isResourceActive}
                 isChatActive={isChatActive}
+                showChat={showChat}
                 onAddToContext={onAddToContext}
               />
             </SidebarMenu>

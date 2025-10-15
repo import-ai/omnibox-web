@@ -304,11 +304,10 @@ export default function useContext() {
     if (!drag || !drop) {
       return;
     }
-    app.fire('move_resource', drag.id, drop.id);
     http
       .post(`/namespaces/${namespaceId}/resources/${drag.id}/move/${drop.id}`)
-      .catch(() => {
-        app.fire('move_resource', drop.id, drag.id);
+      .then(() => {
+        app.fire('move_resource', drag.id, drop.id);
       });
   };
 
