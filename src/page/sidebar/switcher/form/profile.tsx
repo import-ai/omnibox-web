@@ -42,7 +42,7 @@ const profileFormSchema = z.object({
     .refine(
       email => {
         if (!email) {
-          return true;
+          return false;
         }
         if (!isEmail(email)) {
           return false;

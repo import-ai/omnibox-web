@@ -12,6 +12,11 @@
   "created": "Created",
   "private": "Private",
   "teamspace": "Teamspace",
+  "toggle_language": "Toggle Language",
+  "toggle_theme": "Toggle Theme",
+  "sidebar": {
+    "toggle": "Toggle Sidebar"
+  },
   "upload": {
     "invalid_ext": "Invalid file type"
   },
@@ -47,6 +52,7 @@
     "copy_link": "Copy Link",
     "copy_content": "Copy content",
     "duplicate": "Create a copy",
+    "download": "Download source file",
     "move_to": "Move to",
     "move_page_to": "Move page to...",
     "move_to_trash": "Move to Trash",

@@ -14,9 +14,8 @@ import {
   ToolType,
 } from '@/page/chat/chat-input/types';
 
+import { ShareLayout } from './layout';
 import { Password } from './password';
-import ShareSidebar from './sidebar';
-
 const SHARE_PASSWORD_COOKIE = 'share-password';
 
 interface ShareContextValue {
@@ -202,20 +201,13 @@ export default function SharePage() {
         {!showSidebar && <Outlet />}
         {showSidebar && (
           <SidebarProvider>
-            <ShareSidebar
-              shareId={shareInfo.id}
-              rootResource={shareInfo.resource}
-              username={shareInfo.username}
-              showChat={!!showChat}
+            <ShareLayout
+              shareInfo={shareInfo}
               isChatActive={isChatActive}
-              isResourceActive={resourceId =>
-                !isChatActive && resourceId === currentResourceId
-              }
-              onAddToContext={handleAddToContext}
+              showChat={showChat}
+              currentResourceId={currentResourceId}
+              handleAddToContext={handleAddToContext}
             />
-            <main className="flex-1 bg-white dark:bg-background">
-              <Outlet />
-            </main>
           </SidebarProvider>
         )}
       </ShareContext.Provider>

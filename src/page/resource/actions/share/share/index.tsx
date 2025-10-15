@@ -1,6 +1,7 @@
-import { t } from 'i18next';
 import { Copy } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ interface ShareTabContentProps {
 
 export function ShareTabContent(props: ShareTabContentProps) {
   const { resource_id, namespace_id } = props;
+  const { t } = useTranslation();
   const [shareInfo, setShareInfo] = useState<ShareInfo | null>(null);
 
   useEffect(() => {
@@ -63,7 +65,12 @@ export function ShareTabContent(props: ShareTabContentProps) {
 
   const handleCopy = async () => {
     if (shareUrl) {
-      await navigator.clipboard.writeText(shareUrl);
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast(t('copy.success'), { position: 'bottom-right' });
+      } catch (error: any) {
+        toast(error.message, { position: 'bottom-right' });
+      }
     }
   };
 

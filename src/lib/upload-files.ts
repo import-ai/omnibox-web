@@ -83,7 +83,7 @@ export function uploadFile(
           success = true;
         } catch (err) {
           attempt++;
-          if (attempt >= maxRetries) {
+          if (attempt >= maxRetries && uploadedChunks.length > 0) {
             await http.post(
               `/namespaces/${args.namespaceId}/resources/files/chunk/clean`,
               {

@@ -3,6 +3,7 @@ import {
   ArrowUp,
   Copy,
   CornerUpRight,
+  Download,
   Files,
   Link,
   LoaderCircle,
@@ -116,6 +117,32 @@ export default function Actions(props: IActionProps) {
         .then(response => {
           setOpen(false);
           app.fire('generate_resource', resource.id, response);
+        })
+        .finally(() => {
+          onLoading('');
+        });
+      return;
+    }
+    if (id === 'download') {
+      onLoading(id);
+      http
+        .get(`/namespaces/${namespaceId}/resources/files/${resource.id}`, {
+          responseType: 'blob',
+        })
+        .then(blob => {
+          const link = document.createElement('a');
+          const url = window.URL.createObjectURL(blob);
+          link.href = url;
+          link.target = '_blank';
+          if (resource.attrs && resource.attrs.original_name) {
+            link.download = decodeURI(resource.attrs.original_name);
+          }
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(url);
+          setOpen(false);
         })
         .finally(() => {
           onLoading('');
@@ -281,6 +308,20 @@ export default function Actions(props: IActionProps) {
                         <span>{t('actions.duplicate')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+                    {resource && resource.resource_type === 'file' && (
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          onClick={() => handleAction('download')}
+                        >
+                          {loading === 'download' ? (
+                            <LoaderCircle className="transition-transform animate-spin" />
+                          ) : (
+                            <Download />
+                          )}
+                          <span>{t('actions.download')}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         onClick={() => handleAction('move_to')}

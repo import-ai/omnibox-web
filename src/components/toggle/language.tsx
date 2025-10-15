@@ -2,10 +2,16 @@ import { Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { http } from '@/lib/request';
 
 export function LanguageToggle() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const toggleLanguage = () => {
     const lang = i18n.language === 'en-US' ? 'zh-CN' : 'en-US';
     i18n.changeLanguage(lang).then(() => {
@@ -20,14 +26,21 @@ export function LanguageToggle() {
   };
 
   return (
-    <Button
-      size="icon"
-      variant="ghost"
-      className="h-7 w-7 "
-      onClick={toggleLanguage}
-      aria-label="Switch Language"
-    >
-      <Languages />
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 "
+            onClick={toggleLanguage}
+            aria-label="Switch Language"
+          >
+            <Languages />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{t('toggle_language')}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

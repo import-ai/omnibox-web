@@ -104,16 +104,24 @@ export function CitationMarkdown(props: IProps) {
 
   const components = {
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
+      const { node } = props;
       const citeMatch = href?.match(citeLinkRegex);
       if (citeMatch) {
         const id = Number(citeMatch[1]) - 1;
         return <CitationHoverIcon citation={citations[id]} index={id} />;
       }
-      return (
-        <a href={href} {...props}>
-          {children}
-        </a>
-      );
+      if (
+        node &&
+        node.properties &&
+        (!node.properties.target || node.properties.target !== 'blank')
+      ) {
+        return (
+          <a href={href} target="_blank">
+            {children}
+          </a>
+        );
+      }
+      return <a href={href}>{children}</a>;
     },
     table({ children, ...props }: React.ComponentProps<'table'> & ExtraProps) {
       return (

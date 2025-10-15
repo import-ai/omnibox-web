@@ -8,6 +8,12 @@ import {
   BreadcrumbList,
 } from '@/components/ui/breadcrumb';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang.ts';
@@ -91,7 +97,16 @@ export default function ChatHeader() {
   return (
     <header className="rounded-[16px] sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
-        {(!open || isMobile) && <SidebarTrigger className="text-[#8F959E]" />}
+        {(!open || isMobile) && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarTrigger className="text-[#8F959E]" />
+              </TooltipTrigger>
+              <TooltipContent>{t('sidebar.toggle')}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         {conversationId && (
           <Breadcrumb>
             <BreadcrumbList>

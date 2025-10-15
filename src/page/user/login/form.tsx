@@ -70,8 +70,11 @@ export function LoginForm({ className, children, ...props }: IProps) {
           navigate('/', { replace: true });
         }
       })
-      .catch(() => {
+      .catch(err => {
         setIsLoading(false);
+        if (err.status === 404) {
+          navigate('/user/sign-up');
+        }
       });
   };
 

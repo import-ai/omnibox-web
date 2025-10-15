@@ -20,6 +20,12 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import useNamespace from '@/hooks/use-namespaces';
 import { cn } from '@/lib/utils';
 import { Logout } from '@/page/user/logout';
@@ -53,7 +59,7 @@ export function Switcher(props: IProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
-              <div className="flex rounded-[8px] size-[24px] text-[12px] text-white items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
+              <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] text-white items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
                 {current.name.charAt(0)}
               </div>
               <span className="truncate">{current.name}</span>
@@ -121,7 +127,14 @@ export function Switcher(props: IProps) {
           </DropdownMenuContent>
         </DropdownMenu>
         {open && !isMobile && (
-          <SidebarTrigger className="text-[#8F959E] hover:text-[#8F959E] hover:bg-[#E6E6EC]" />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarTrigger className="text-[#8F959E] hover:text-[#8F959E] hover:bg-[#E6E6EC]" />
+              </TooltipTrigger>
+              <TooltipContent>{t('sidebar.toggle')}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </SidebarMenuItem>
     </SidebarMenu>

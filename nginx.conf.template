@@ -26,6 +26,23 @@ map $upstream_http_cache_control $cache_control_value {
     default $upstream_http_cache_control;
 }
 
+# Rules for WeCom (Enterprise WeChat) crawling: User-Agent must contain "wxwork", URL must not include "wework_cfm_code", and Referer must be empty
+map "$http_user_agent:$request_uri:$http_referer" $is_wxwork_crawler {
+    default 0;
+    ~*wxwork.*[^:]*:[^:]*[^wework_cfm_code][^:]*:[^:]*$ 1;
+}
+
+# Detect bot User-Agents (only match explicit bot identifiers, not in-app browsers)
+map $http_user_agent $is_bot {
+    default 0;
+
+    ~*larkurl 1;                       # Lark
+    ~*iframely/ 1;                     # Notion（Iframely-based）
+    ~*dingtalkbot 1;                   # DingDing
+    ~*wxwork  $is_wxwork_crawler;      # weChat Enterprise
+    ~*wechatshareextensionnew 1;       # weChat
+}
+
 server {
     listen 80;
 
@@ -44,6 +61,43 @@ server {
         try_files $uri $uri/ =404;
         add_header Cache-Control "public, max-age=31536000, immutable";
         access_log off;
+    }
+
+    location ~ "^/s/([0-9A-Za-z]{10})(/([0-9A-Za-z]{16}))?$" {
+        set $share_id $1;
+        set $resource_id $3;
+
+        # If bot detected, proxy to backend SEO module for dynamic HTML with meta tags
+        if ($is_bot = 1) {
+            proxy_pass ${BACKEND}/api/v1/seo/shares/$share_id/$resource_id;
+            break;
+        }
+
+        # For regular users, serve SPA
+        root /usr/share/nginx/html;
+        try_files $uri /index.html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
+    }
+
+    location ~ "^/([0-9A-Za-z]{6})/([0-9A-Za-z]{16})$" {
+        set $namespace_id $1;
+        set $resource_id $2;
+
+        # If bot detected, proxy to backend SEO module
+        # Backend will check if enable_seo is true for this resource
+        if ($is_bot = 1) {
+            proxy_pass ${BACKEND}/api/v1/seo/namespaces/$namespace_id/resources/$resource_id;
+            break;
+        }
+
+        # For regular users, serve SPA
+        root /usr/share/nginx/html;
+        try_files $uri /index.html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
     }
 
     location / {
