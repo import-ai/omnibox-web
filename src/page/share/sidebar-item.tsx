@@ -24,13 +24,20 @@ interface SidebarItemProps {
   shareId: string;
   resource: ResourceMeta;
   isChatActive: boolean;
+  showChat: boolean;
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
 }
 
 export default function SidebarItem(props: SidebarItemProps) {
-  const { shareId, resource, isChatActive, isResourceActive, onAddToContext } =
-    props;
+  const {
+    shareId,
+    resource,
+    isChatActive,
+    showChat,
+    isResourceActive,
+    onAddToContext,
+  } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -138,27 +145,31 @@ export default function SidebarItem(props: SidebarItemProps) {
                   </span>
                 </div>
               </SidebarMenuButton>
-              <SidebarMenuAction onClick={handleContextMenuTrigger}>
-                <MoreHorizontal className="w-4 h-4" />
-              </SidebarMenuAction>
+              {showChat && (
+                <SidebarMenuAction onClick={handleContextMenuTrigger}>
+                  <MoreHorizontal className="w-4 h-4" />
+                </SidebarMenuAction>
+              )}
             </div>
           </ContextMenuTrigger>
-          <ContextMenuContent>
-            {hasChildren && (
+          {showChat && (
+            <ContextMenuContent>
+              {hasChildren && (
+                <ContextMenuItem
+                  className="cursor-pointer"
+                  onClick={handleAddAllToChat}
+                >
+                  {t('actions.add_all_to_context')}
+                </ContextMenuItem>
+              )}
               <ContextMenuItem
                 className="cursor-pointer"
-                onClick={handleAddAllToChat}
+                onClick={handleAddToChat}
               >
-                {t('actions.add_all_to_context')}
+                {t('actions.add_it_to_context')}
               </ContextMenuItem>
-            )}
-            <ContextMenuItem
-              className="cursor-pointer"
-              onClick={handleAddToChat}
-            >
-              {t('actions.add_it_to_context')}
-            </ContextMenuItem>
-          </ContextMenuContent>
+            </ContextMenuContent>
+          )}
         </ContextMenu>
         {hasChildren && (
           <CollapsibleContent>
@@ -170,6 +181,7 @@ export default function SidebarItem(props: SidebarItemProps) {
                   resource={child}
                   isResourceActive={isResourceActive}
                   isChatActive={isChatActive}
+                  showChat={showChat}
                   onAddToContext={onAddToContext}
                 />
               ))}
