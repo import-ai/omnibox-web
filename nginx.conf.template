@@ -26,23 +26,10 @@ map $upstream_http_cache_control $cache_control_value {
     default $upstream_http_cache_control;
 }
 
-# 微信爬虫IP段
-map $remote_addr $is_wechat_ip {
-    default 0;
-    ~^113\.137\.[0-9]\{1,3\}\.[0-9]\{1,3\}$ 1;  # 爬虫IP段
-    ~^27\.115\.[0-9]\{1,3\}\.[0-9]\{1,3\}$ 1;   # 代理IP段
-}
-
 # 企业微信爬虫的规则：UA含wxwork + URL无wework_cfm_code + Referer为空
 map "$http_user_agent:$request_uri:$http_referer" $is_wxwork_crawler {
     default 0;
     ~*wxwork.*[^:]*:[^:]*[^wework_cfm_code][^:]*:[^:]*$ 1;
-}
-
-# 微信爬虫规则：IP在爬虫段 + UA无MicroMessenger + Referer为空 + GET请求
-map "$is_wechat_ip:$http_user_agent:$http_referer:$request_method" $is_wechat_crawler {
-    default 0;
-    ~*^1:[^:]*[^MicroMessenger][^:]*:[^:]*:GET$ 1;
 }
 
 # Detect bot User-Agents (only match explicit bot identifiers, not in-app browsers)
@@ -53,7 +40,7 @@ map $http_user_agent $is_bot {
     ~*iframely/ 1;                     # Notion（Iframely-based）
     ~*dingtalkbot 1;                   # 钉钉
     ~*wxwork  $is_wxwork_crawler;      # 企业微信
-    "~*.*"    $is_wechat_crawler;      # 微信
+    ~*wechatshareextensionnew 1;       # 微信外部分享
 }
 
 server {
