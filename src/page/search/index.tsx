@@ -123,7 +123,9 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                 value={resource.id}
                 className="cursor-pointer"
                 onSelect={() => {
-                  navigate(`/${params.namespace_id}/${resource.resource_id}`);
+                  navigate(
+                    `/${params.namespace_id}/${resource.resource_id}?query=${encodeURIComponent(keywords)}`
+                  );
                   onOpenChange(false);
                 }}
               >

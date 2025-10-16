@@ -179,6 +179,7 @@
       "binded": "Connected",
       "unbinding": "To be Connected",
       "unbind": "Unconnect",
+      "unbind_limit": "At least one email or binding exists",
       "unbind_confirm": "Are you sure you want to unbind this account?",
       "confirm_unbind_description": "Are you sure you want to unbind your {{ type }} account? After unbinding, you will not be able to log in with this account.",
       "unbind_success": "Successfully unbound",
