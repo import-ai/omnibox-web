@@ -300,6 +300,7 @@
     "fail": "Copy failed, please copy manually"
   },
   "chat": {
+    "tips": "Enter a message",
     "title": "OmniBox AI",
     "citations": "Citations",
     "citations_results": "Search Results",

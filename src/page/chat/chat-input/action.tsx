@@ -9,6 +9,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
@@ -71,9 +77,16 @@ export default function ChatAction(props: IActionProps) {
           <CircleStop />
         </Button>
       ) : disabled ? (
-        <Button size="icon" className="rounded-lg size-8 bg-[#edeff2]">
-          <ArrowUp className="text-[#999999]" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" className="rounded-lg size-8 bg-[#edeff2]">
+                <ArrowUp className="text-[#999999]" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('chat.tips')}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       ) : (
         <Button
           size="icon"

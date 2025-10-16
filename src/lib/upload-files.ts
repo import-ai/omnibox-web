@@ -100,7 +100,7 @@ export function uploadFile(
     return http.post(`/namespaces/${args.namespaceId}/resources/files/merge`, {
       file_hash: fileHash,
       total_chunks: totalChunks,
-      file_name: file.name,
+      file_name: encodeURIComponent(file.name),
       mimetype: file.type,
       parent_id: args.parentId,
       namespace_id: args.namespaceId,
