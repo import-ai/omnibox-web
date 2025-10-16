@@ -300,6 +300,7 @@
     "fail": "复制失败，请手动复制"
   },
   "chat": {
+    "tips": "请输入消息",
     "title": "OmniBox AI",
     "citations": "资料",
     "citations_results": "搜索结果",
