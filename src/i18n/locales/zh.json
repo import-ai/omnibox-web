@@ -332,6 +332,17 @@
         "afternoon": "下午好，今天有什么可以帮您的吗？",
         "evening": "晚上好，今天有什么可以帮您的吗？",
         "night": "夜深了，今天有什么可以帮您的吗？"
+      },
+      "upload": {
+        "title": "上传文档",
+        "subtitle": "让知识为你所用",
+        "description": "支持文档、网页、音频和视频等多种类型",
+        "local": "本地上传",
+        "wechat": "微信聊天",
+        "browser": "网页收藏"
+      },
+      "suggestions": {
+        "title": "你可能感兴趣"
       }
     },
     "tools": {

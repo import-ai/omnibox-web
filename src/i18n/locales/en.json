@@ -332,6 +332,17 @@
         "afternoon": "Good afternoon, how can I help you today?",
         "evening": "Good evening, how can I help you today?",
         "night": "Good night, how can I help you today?"
+      },
+      "upload": {
+        "title": "Import Resources",
+        "subtitle": "Let knowledge work for you",
+        "description": "Supports docs, webpage, audio, video and more",
+        "local": "Upload",
+        "wechat": "WeChat",
+        "browser": "Browser"
+      },
+      "suggestions": {
+        "title": "You Might Be Interested"
       }
     },
     "tools": {
