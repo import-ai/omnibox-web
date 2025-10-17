@@ -1,3 +1,4 @@
+import Copy from '@/components/copy';
 import { cn } from '@/lib/utils';
 import { MessageDetail } from '@/page/chat/types/conversation';
 
@@ -13,7 +14,7 @@ export function UserMessage(props: IProps) {
   return (
     <div
       className={cn(
-        'flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
+        'relative group flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
         'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]'
       )}
     >
@@ -23,6 +24,9 @@ export function UserMessage(props: IProps) {
           {idx !== lines.length - 1 && <br />}
         </span>
       ))}
+      <div className="absolute group-hover:opacity-100 opacity-0 left-[-32px] top-[5px]">
+        <Copy content={openAIMessage.content || ''} />
+      </div>
     </div>
   );
 }

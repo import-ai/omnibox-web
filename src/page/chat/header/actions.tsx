@@ -92,6 +92,7 @@ export default function Actions(props: IProps) {
     navigate(`/${namespaceId}/chat/conversations`);
   };
   const onChatCreate = () => {
+    app.fire('context_clear');
     navigate(`/${namespaceId}/chat`);
   };
   const handleAction = (id: string) => {

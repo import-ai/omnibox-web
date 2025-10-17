@@ -12,12 +12,11 @@ import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
+import Copy from '@/components/copy';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useTheme from '@/hooks/use-theme.ts';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
-
-import Copy from './actions/copy';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const citePattern = / *\[\[(\d+)]]/g;
