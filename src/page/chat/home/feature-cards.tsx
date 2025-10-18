@@ -24,7 +24,7 @@ import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
 export default function FeatureCards() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const app = useApp();
   const navigate = useNavigate();
   const { namespace_id: namespaceId } = useParams();
@@ -98,6 +98,14 @@ export default function FeatureCards() {
     });
   };
 
+  const handleBrowserClick = () => {
+    const isZh = i18n.language.startsWith('zh');
+    const url = isZh
+      ? '/docs/zh-cn/collect/browser-extension'
+      : '/docs/collect/browser-extension';
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
       {/* Upload Files Card */}
@@ -140,7 +148,7 @@ export default function FeatureCards() {
               <MessageCircle className="w-4 h-4 text-green-500" />
               {t('chat.home.upload.wechat')}
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleBrowserClick}>
               <GlobeIcon className="w-4 h-4 text-blue-500" />
               {t('chat.home.upload.browser')}
             </Button>

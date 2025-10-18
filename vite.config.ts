@@ -43,6 +43,13 @@ export default defineConfig(({ mode }) => {
             'http://127.0.0.1:8000',
           changeOrigin: true,
         },
+        '/docs': {
+          target:
+            process.env.VITE_API_PATH ??
+            env.VITE_API_PATH ??
+            'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
         // Proxy attachment routes to API
         '^/[^/]+/[^/]+/attachments/[^/]+$': {
           target:

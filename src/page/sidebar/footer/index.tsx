@@ -23,7 +23,7 @@ export function FooterSidebar() {
         {
           icon: <Docs />,
           label: t('footer.docs'),
-          value: '/docs',
+          value: '/docs/',
         },
         {
           icon: <RiDiscordLine />,
@@ -63,7 +63,7 @@ export function FooterSidebar() {
           <Tooltip key={item.value}>
             <TooltipTrigger asChild>
               <a
-                href={`${item.value}${item.value === '/docs' && i18n.language.includes('zh') ? '/zh-cn/' : ''}`}
+                href={`${item.value}${item.value === '/docs/' && i18n.language.includes('zh') ? 'zh-cn/' : ''}`}
                 target="_blank"
                 className="!text-[#8F959E] "
               >
