@@ -22,6 +22,7 @@ import { Separator } from '@/components/ui/separator';
 import useApplications from '@/hooks/use-applications';
 import { Application } from '@/interface';
 
+import { AlreadyBoundDialog } from './already-bound-dialog';
 import { BindDialog } from './bind-dialog';
 
 type ApplicationState = 'unbound' | 'binding_in_progress' | 'bound';
@@ -81,6 +82,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const [unbindingLoading, setUnbindingLoading] = useState(false);
   const [cancelingLoading, setCancelingLoading] = useState(false);
   const [bindDialogOpen, setBindDialogOpen] = useState(false);
+  const [alreadyBoundDialogOpen, setAlreadyBoundDialogOpen] = useState(false);
   const [bindingCode, setBindingCode] = useState('');
   const [currentBindingApplication, setCurrentBindingApplication] =
     useState<Application | null>(null);
@@ -91,6 +93,13 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const handleBind = async (application: Application) => {
     try {
       setBindingLoading(true);
+
+      // Check if already bound
+      const state = getApplicationState(application);
+      if (state === 'bound') {
+        setAlreadyBoundDialogOpen(true);
+        return;
+      }
 
       // Check if there's already a verify_code in progress
       if (application.attrs?.verify_code) {
@@ -363,6 +372,11 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         applicationId={currentBindingApplication?.id || ''}
         checkApplicationStatus={checkApplicationStatus}
         onBindingComplete={handleBindingComplete}
+      />
+
+      <AlreadyBoundDialog
+        open={alreadyBoundDialogOpen}
+        onOpenChange={setAlreadyBoundDialogOpen}
       />
     </>
   );

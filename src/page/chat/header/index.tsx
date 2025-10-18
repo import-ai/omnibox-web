@@ -33,6 +33,8 @@ export default function ChatHeader() {
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
   const conversationsPage = loc.pathname.endsWith('/chat/conversations');
+  const homePage =
+    loc.pathname.endsWith('/chat') && !conversationId && !conversationsPage;
 
   useEffect(() => {
     return app.on('chat:title:update', (val: string) => {
@@ -89,10 +91,12 @@ export default function ChatHeader() {
   useEffect(() => {
     if (conversationsPage) {
       document.title = t('chat.conversations.history');
-      return;
+    } else if (homePage) {
+      document.title = t('chat.page_title');
+    } else {
+      document.title = data;
     }
-    document.title = data;
-  }, [data, conversationsPage]);
+  }, [data, conversationsPage, homePage]);
 
   return (
     <header className="rounded-[16px] sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">

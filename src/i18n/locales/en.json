@@ -200,6 +200,11 @@
       "unbound": "Not Connected",
       "binding_in_progress": "Pending Verification"
     },
+    "already_bound": {
+      "title": "Already Connected",
+      "description": "You are already connected to the WeChat bot. You can scan the QR code below to add the bot to WeChat.",
+      "qr_instruction": "Scan this QR code with WeChat to add the bot"
+    },
     "bind": {
       "button": "Bind",
       "continue_button": "Continue Binding",
@@ -302,6 +307,7 @@
   },
   "chat": {
     "title": "OmniBox AI",
+    "page_title": "OmniBox",
     "citations": "Citations",
     "citations_results": "Search Results",
     "searching": "Searching...",
@@ -341,7 +347,7 @@
         "local": "Upload",
         "local_tooltip": "Try dragging local files to the sidebar",
         "wechat": "WeChat",
-        "wechat_tooltip": "Chat with '小黑' in WeChat",
+        "wechat_tooltip": "Chat with OmniBox AI in WeChat",
         "browser": "Browser",
         "browser_tooltip": "Save any webpage with one click"
       },

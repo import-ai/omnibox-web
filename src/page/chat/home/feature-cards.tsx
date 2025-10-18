@@ -24,6 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
 import { IResourceData } from '@/interface';
 import { http } from '@/lib/request';
@@ -131,7 +132,7 @@ export default function FeatureCards() {
           <input
             type="file"
             multiple
-            accept="*/*"
+            accept={ALLOW_FILE_EXTENSIONS}
             onChange={handleFileUpload}
             ref={fileInputRef}
             style={{ display: 'none' }}

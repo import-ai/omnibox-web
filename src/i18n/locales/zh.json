@@ -200,6 +200,11 @@
       "unbound": "未连接",
       "binding_in_progress": "待验证"
     },
+    "already_bound": {
+      "title": "已绑定",
+      "description": "您已成功绑定微信机器人。您可以扫描下方二维码添加机器人到微信。",
+      "qr_instruction": "用微信扫描此二维码添加机器人"
+    },
     "bind": {
       "button": "绑定",
       "continue_button": "继续绑定",
@@ -301,7 +306,8 @@
     "fail": "复制失败，请手动复制"
   },
   "chat": {
-    "title": "OmniBox AI",
+    "title": "小黑",
+    "page_title": "小黑",
     "citations": "资料",
     "citations_results": "搜索结果",
     "searching": "搜索中...",
