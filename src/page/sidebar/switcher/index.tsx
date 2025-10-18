@@ -33,7 +33,7 @@ import { Logout } from '@/page/user/logout';
 import Generate from './generate';
 import Invite from './invite';
 import NamespaceMember from './member';
-import Profile from './setting';
+import { SettingButton } from './setting';
 
 interface IProps {
   namespaceId: string;
@@ -85,7 +85,7 @@ export function Switcher(props: IProps) {
             </DropdownMenuLabel>
             <DropdownMenuLabel className="pt-1 pb-0">
               <Space>
-                <Profile />
+                <SettingButton />
                 <Invite />
               </Space>
             </DropdownMenuLabel>

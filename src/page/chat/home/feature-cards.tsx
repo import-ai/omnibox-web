@@ -18,12 +18,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import useApp from '@/hooks/use-app';
 import { IResourceData } from '@/interface';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
 export default function FeatureCards() {
   const { t } = useTranslation();
+  const app = useApp();
   const navigate = useNavigate();
   const { namespace_id: namespaceId } = useParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -86,6 +88,16 @@ export default function FeatureCards() {
     }
   };
 
+  const handleWeChatClick = () => {
+    app.fire('open_settings', {
+      tab: 'applications',
+      autoAction: {
+        type: 'bind' as const,
+        appId: 'wechat_bot',
+      },
+    });
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
       {/* Upload Files Card */}
@@ -124,7 +136,7 @@ export default function FeatureCards() {
               )}
               {t('chat.home.upload.local')}
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleWeChatClick}>
               <MessageCircle className="w-4 h-4 text-green-500" />
               {t('chat.home.upload.wechat')}
             </Button>

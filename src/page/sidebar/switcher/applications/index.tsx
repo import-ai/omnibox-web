@@ -1,5 +1,5 @@
 import { Clock, Link, LoaderCircle, Unlink } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -56,7 +56,14 @@ function getApplicationState(application: Application): ApplicationState {
   return 'unbound';
 }
 
-export function ApplicationsForm() {
+interface ApplicationsFormProps {
+  autoAction?: {
+    type: 'bind';
+    appId: string;
+  };
+}
+
+export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const { t } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
@@ -77,6 +84,9 @@ export function ApplicationsForm() {
   const [bindingCode, setBindingCode] = useState('');
   const [currentBindingApplication, setCurrentBindingApplication] =
     useState<Application | null>(null);
+
+  // Track if autoAction has been processed to prevent re-triggering
+  const autoActionProcessedRef = useRef(false);
 
   const handleBind = async (application: Application) => {
     try {
@@ -135,6 +145,30 @@ export function ApplicationsForm() {
       setCancelingLoading(false);
     }
   };
+
+  // Reset the processed flag when autoAction changes
+  useEffect(() => {
+    autoActionProcessedRef.current = false;
+  }, [autoAction]);
+
+  // Auto-trigger binding when autoAction is provided (only once)
+  useEffect(() => {
+    if (
+      autoAction &&
+      autoAction.type === 'bind' &&
+      !loading &&
+      applications.length > 0 &&
+      !autoActionProcessedRef.current
+    ) {
+      const targetApp = applications.find(
+        app => app.app_id === autoAction.appId
+      );
+      if (targetApp) {
+        autoActionProcessedRef.current = true;
+        handleBind(targetApp);
+      }
+    }
+  }, [autoAction, loading, applications]);
 
   if (loading) {
     return (
