@@ -15,7 +15,8 @@
   "toggle_language": "Toggle Language",
   "toggle_theme": "Toggle Theme",
   "sidebar": {
-    "toggle": "Toggle Sidebar"
+    "expand": "Expand Sidebar",
+    "collapse": "Collapse Sidebar"
   },
   "upload": {
     "invalid_ext": "Invalid file type"
@@ -176,7 +177,7 @@
       "description": "Manage your third-party account bindings for quick login",
       "google": "Google",
       "wechat": "WeChat",
-      "binded": "Connected",
+      "bound": "Connected",
       "unbinding": "To be Connected",
       "unbind": "Unconnect",
       "unbind_confirm": "Are you sure you want to unbind this account?",
@@ -309,7 +310,7 @@
       "new": "New conversation",
       "new_chat": "New Chat",
       "empty": "No conversation yet",
-      "history": "Conversation History",
+      "history": "Chat History",
       "deleted": "Deleted Conversations",
       "deleted_description": "This conversation has been deleted",
       "delete": {
@@ -338,8 +339,11 @@
         "subtitle": "Let knowledge work for you",
         "description": "Supports docs, webpage, audio, video and more",
         "local": "Upload",
+        "local_tooltip": "Try dragging local files to the sidebar",
         "wechat": "WeChat",
-        "browser": "Browser"
+        "wechat_tooltip": "Chat with '小黑' in WeChat",
+        "browser": "Browser",
+        "browser_tooltip": "Save any webpage with one click"
       },
       "suggestions": {
         "title": "You Might Be Interested"

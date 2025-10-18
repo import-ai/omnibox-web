@@ -18,6 +18,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import useApp from '@/hooks/use-app';
 import { IResourceData } from '@/interface';
 import { http } from '@/lib/request';
@@ -130,29 +136,60 @@ export default function FeatureCards() {
             ref={fileInputRef}
             style={{ display: 'none' }}
           />
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? (
-                <LoaderCircle className="w-4 h-4 text-red-500 animate-spin" />
-              ) : (
-                <FileUp className="w-4 h-4 text-red-500" />
-              )}
-              {t('chat.home.upload.local')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleWeChatClick}>
-              <MessageCircle className="w-4 h-4 text-green-500" />
-              {t('chat.home.upload.wechat')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleBrowserClick}>
-              <GlobeIcon className="w-4 h-4 text-blue-500" />
-              {t('chat.home.upload.browser')}
-            </Button>
-          </div>
+          <TooltipProvider>
+            <div className="flex gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <LoaderCircle className="w-4 h-4 text-red-500 animate-spin" />
+                    ) : (
+                      <FileUp className="w-4 h-4 text-red-500" />
+                    )}
+                    {t('chat.home.upload.local')}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {t('chat.home.upload.local_tooltip')}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleWeChatClick}
+                  >
+                    <MessageCircle className="w-4 h-4 text-green-500" />
+                    {t('chat.home.upload.wechat')}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {t('chat.home.upload.wechat_tooltip')}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBrowserClick}
+                  >
+                    <GlobeIcon className="w-4 h-4 text-blue-500" />
+                    {t('chat.home.upload.browser')}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {t('chat.home.upload.browser_tooltip')}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         </CardContent>
       </Card>
 

@@ -132,7 +132,7 @@ export function Switcher(props: IProps) {
               <TooltipTrigger asChild>
                 <SidebarTrigger className="text-[#8F959E] hover:text-[#8F959E] hover:bg-[#E6E6EC]" />
               </TooltipTrigger>
-              <TooltipContent>{t('sidebar.toggle')}</TooltipContent>
+              <TooltipContent>{t('sidebar.collapse')}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}
