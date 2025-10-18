@@ -15,7 +15,8 @@
   "toggle_language": "Toggle Language",
   "toggle_theme": "Toggle Theme",
   "sidebar": {
-    "toggle": "Toggle Sidebar"
+    "expand": "Expand Sidebar",
+    "collapse": "Collapse Sidebar"
   },
   "upload": {
     "invalid_ext": "Invalid file type"
@@ -176,7 +177,7 @@
       "description": "Manage your third-party account bindings for quick login",
       "google": "Google",
       "wechat": "WeChat",
-      "binded": "Connected",
+      "bound": "Connected",
       "unbinding": "To be Connected",
       "unbind": "Unconnect",
       "unbind_confirm": "Are you sure you want to unbind this account?",
@@ -198,6 +199,11 @@
       "bound": "Connected",
       "unbound": "Not Connected",
       "binding_in_progress": "Pending Verification"
+    },
+    "already_bound": {
+      "title": "Already Connected",
+      "description": "You are already connected to the WeChat bot. You can scan the QR code below to add the bot to WeChat.",
+      "qr_instruction": "Scan this QR code with WeChat to add the bot"
     },
     "bind": {
       "button": "Bind",
@@ -301,6 +307,7 @@
   },
   "chat": {
     "title": "OmniBox AI",
+    "page_title": "OmniBox",
     "citations": "Citations",
     "citations_results": "Search Results",
     "searching": "Searching...",
@@ -309,7 +316,7 @@
       "new": "New conversation",
       "new_chat": "New Chat",
       "empty": "No conversation yet",
-      "history": "Conversation History",
+      "history": "Chat History",
       "deleted": "Deleted Conversations",
       "deleted_description": "This conversation has been deleted",
       "delete": {
@@ -332,6 +339,20 @@
         "afternoon": "Good afternoon, how can I help you today?",
         "evening": "Good evening, how can I help you today?",
         "night": "Good night, how can I help you today?"
+      },
+      "upload": {
+        "title": "Import Resources",
+        "subtitle": "Let knowledge work for you",
+        "description": "Supports docs, webpage, audio, video and more",
+        "local": "Upload",
+        "local_tooltip": "Try dragging local files to the sidebar",
+        "wechat": "WeChat",
+        "wechat_tooltip": "Chat with OmniBox AI in WeChat",
+        "browser": "Browser",
+        "browser_tooltip": "Save any webpage with one click"
+      },
+      "suggestions": {
+        "title": "You Might Be Interested"
       }
     },
     "tools": {

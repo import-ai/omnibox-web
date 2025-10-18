@@ -15,7 +15,8 @@
   "toggle_language": "切换语言",
   "toggle_theme": "切换外观",
   "sidebar": {
-    "toggle": "切换侧边栏"
+    "expand": "展开侧边栏",
+    "collapse": "收起侧边栏"
   },
   "upload": {
     "invalid_ext": "当前文件格式不支持"
@@ -176,7 +177,7 @@
       "description": "管理你的第三方账号绑定，用于快速登录",
       "google": "谷歌",
       "wechat": "微信",
-      "binded": "已绑定",
+      "bound": "已绑定",
       "unbinding": "待绑定",
       "unbind": "解绑",
       "unbind_confirm": "确定要解除绑定此账号吗？",
@@ -198,6 +199,11 @@
       "bound": "已连接",
       "unbound": "未连接",
       "binding_in_progress": "待验证"
+    },
+    "already_bound": {
+      "title": "已绑定",
+      "description": "您已成功绑定微信机器人。您可以扫描下方二维码添加机器人到微信。",
+      "qr_instruction": "用微信扫描此二维码添加机器人"
     },
     "bind": {
       "button": "绑定",
@@ -300,7 +306,8 @@
     "fail": "复制失败，请手动复制"
   },
   "chat": {
-    "title": "OmniBox AI",
+    "title": "小黑",
+    "page_title": "小黑",
     "citations": "资料",
     "citations_results": "搜索结果",
     "searching": "搜索中...",
@@ -309,7 +316,7 @@
       "new": "新对话",
       "new_chat": "新建对话",
       "empty": "暂无对话",
-      "history": "历史记录",
+      "history": "聊天历史",
       "deleted": "已删除对话",
       "deleted_description": "此对话已被删除",
       "delete": {
@@ -332,6 +339,20 @@
         "afternoon": "下午好，今天有什么可以帮您的吗？",
         "evening": "晚上好，今天有什么可以帮您的吗？",
         "night": "夜深了，今天有什么可以帮您的吗？"
+      },
+      "upload": {
+        "title": "上传文档",
+        "subtitle": "让知识为你所用",
+        "description": "支持文档、网页、音频和视频等多种类型",
+        "local": "本地上传",
+        "local_tooltip": "试着将本地的文件拖拽到侧边栏试试吧",
+        "wechat": "微信聊天",
+        "wechat_tooltip": "在微信中和\"小黑\"聊天",
+        "browser": "网页收藏",
+        "browser_tooltip": "任何网页，一键保存"
+      },
+      "suggestions": {
+        "title": "你可能感兴趣"
       }
     },
     "tools": {

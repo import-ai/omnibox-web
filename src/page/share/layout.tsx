@@ -32,7 +32,7 @@ export function ShareLayout(props: IProps) {
     handleAddToContext,
   } = props;
   const { t } = useTranslation();
-  const { isMobile } = useSidebar();
+  const { open, isMobile } = useSidebar();
 
   return (
     <>
@@ -54,7 +54,9 @@ export function ShareLayout(props: IProps) {
               <TooltipTrigger asChild>
                 <SidebarTrigger />
               </TooltipTrigger>
-              <TooltipContent>{t('sidebar.toggle')}</TooltipContent>
+              <TooltipContent>
+                {t(open ? 'sidebar.collapse' : 'sidebar.expand')}
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}

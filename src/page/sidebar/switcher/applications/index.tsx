@@ -1,5 +1,5 @@
-import { Clock, Link, LoaderCircle, Unlink } from 'lucide-react';
-import { useState } from 'react';
+import { CircleHelp, Clock, Link, LoaderCircle, Unlink } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -19,9 +19,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import useApplications from '@/hooks/use-applications';
 import { Application } from '@/interface';
 
+import { AlreadyBoundDialog } from './already-bound-dialog';
 import { BindDialog } from './bind-dialog';
 
 type ApplicationState = 'unbound' | 'binding_in_progress' | 'bound';
@@ -56,8 +62,15 @@ function getApplicationState(application: Application): ApplicationState {
   return 'unbound';
 }
 
-export function ApplicationsForm() {
-  const { t } = useTranslation();
+interface ApplicationsFormProps {
+  autoAction?: {
+    type: 'bind';
+    appId: string;
+  };
+}
+
+export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
+  const { t, i18n } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
 
@@ -74,13 +87,24 @@ export function ApplicationsForm() {
   const [unbindingLoading, setUnbindingLoading] = useState(false);
   const [cancelingLoading, setCancelingLoading] = useState(false);
   const [bindDialogOpen, setBindDialogOpen] = useState(false);
+  const [alreadyBoundDialogOpen, setAlreadyBoundDialogOpen] = useState(false);
   const [bindingCode, setBindingCode] = useState('');
   const [currentBindingApplication, setCurrentBindingApplication] =
     useState<Application | null>(null);
 
+  // Track if autoAction has been processed to prevent re-triggering
+  const autoActionProcessedRef = useRef(false);
+
   const handleBind = async (application: Application) => {
     try {
       setBindingLoading(true);
+
+      // Check if already bound
+      const state = getApplicationState(application);
+      if (state === 'bound') {
+        setAlreadyBoundDialogOpen(true);
+        return;
+      }
 
       // Check if there's already a verify_code in progress
       if (application.attrs?.verify_code) {
@@ -136,6 +160,38 @@ export function ApplicationsForm() {
     }
   };
 
+  const handleDocsClick = (appId: string) => {
+    const isZh = i18n.language.startsWith('zh');
+    const url = isZh
+      ? `/docs/zh-cn/collect/${appId.replace('_', '-')}`
+      : `/docs/collect/${appId.replace('_', '-')}`;
+    window.open(url, '_blank');
+  };
+
+  // Reset the processed flag when autoAction changes
+  useEffect(() => {
+    autoActionProcessedRef.current = false;
+  }, [autoAction]);
+
+  // Auto-trigger binding when autoAction is provided (only once)
+  useEffect(() => {
+    if (
+      autoAction &&
+      autoAction.type === 'bind' &&
+      !loading &&
+      applications.length > 0 &&
+      !autoActionProcessedRef.current
+    ) {
+      const targetApp = applications.find(
+        app => app.app_id === autoAction.appId
+      );
+      if (targetApp) {
+        autoActionProcessedRef.current = true;
+        handleBind(targetApp);
+      }
+    }
+  }, [autoAction, loading, applications]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -183,6 +239,21 @@ export function ApplicationsForm() {
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold">{appDisplayName}</h4>
+                        {!hasError && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() =>
+                                  handleDocsClick(application.app_id)
+                                }
+                                className="text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                <CircleHelp className="size-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>{t('footer.docs')}</TooltipContent>
+                          </Tooltip>
+                        )}
                         {hasError && (
                           <Badge variant="destructive" className="text-red-600">
                             {t('applications.unsupported_app', {
@@ -329,6 +400,11 @@ export function ApplicationsForm() {
         applicationId={currentBindingApplication?.id || ''}
         checkApplicationStatus={checkApplicationStatus}
         onBindingComplete={handleBindingComplete}
+      />
+
+      <AlreadyBoundDialog
+        open={alreadyBoundDialogOpen}
+        onOpenChange={setAlreadyBoundDialogOpen}
       />
     </>
   );

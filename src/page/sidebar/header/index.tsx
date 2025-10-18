@@ -8,6 +8,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import SearchMenu from '@/page/search';
 
 import { ChatIcon } from './Chat';
@@ -45,14 +51,21 @@ export function Header(props: IProps) {
               <span className="font-normal">{t('chat.title')}</span>
             </div>
           </SidebarMenuButton>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={onChatHistory}
-            className="p-0 w-5 h-5 [&_svg]:size-4 absolute top-[6px] z-10 right-0 focus-visible:outline-none focus-visible:ring-transparent opacity-0 group-hover/chat:opacity-100"
-          >
-            <History className="focus-visible:outline-none focus-visible:ring-transparent" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={onChatHistory}
+                  className="p-0 w-5 h-5 [&_svg]:size-4 absolute top-[6px] z-10 right-0 focus-visible:outline-none focus-visible:ring-transparent opacity-0 group-hover/chat:opacity-100"
+                >
+                  <History className="focus-visible:outline-none focus-visible:ring-transparent" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('chat.conversations.history')}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>

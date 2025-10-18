@@ -47,14 +47,21 @@ import { http } from '@/lib/request';
 import { PlusIcon } from './plus';
 
 interface IProps {
-  data: string;
+  homePage: boolean;
+  chatTitle: string;
   conversationId: string;
   conversationsPage: boolean;
   namespaceId: string;
 }
 
 export default function Actions(props: IProps) {
-  const { data, conversationId, conversationsPage, namespaceId } = props;
+  const {
+    homePage,
+    chatTitle,
+    conversationId,
+    conversationsPage,
+    namespaceId,
+  } = props;
   const app = useApp();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -107,19 +114,21 @@ export default function Actions(props: IProps) {
 
   return (
     <div className="flex items-center gap-1 text-sm">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="size-[28px]"
-            onClick={onChatCreate}
-          >
-            <PlusIcon />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>{t('chat.conversations.new_chat')}</TooltipContent>
-      </Tooltip>
+      {!homePage && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="size-[28px]"
+              onClick={onChatCreate}
+            >
+              <PlusIcon />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t('chat.conversations.new_chat')}</TooltipContent>
+        </Tooltip>
+      )}
       {!conversationsPage && !conversationId && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -200,7 +209,7 @@ export default function Actions(props: IProps) {
             <AlertDialogDescription>
               <Trans
                 i18nKey="chat.conversations.delete.dialog.description"
-                values={{ title: data }}
+                values={{ title: chatTitle }}
                 components={{
                   strong: <strong className="font-bold" />,
                 }}
