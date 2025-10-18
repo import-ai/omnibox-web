@@ -1,5 +1,14 @@
-import { ChevronRight, FileUp, GlobeIcon, MessageCircle } from 'lucide-react';
+import {
+  ChevronRight,
+  FileUp,
+  GlobeIcon,
+  LoaderCircle,
+  MessageCircle,
+} from 'lucide-react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -9,11 +18,73 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { IResourceData } from '@/interface';
+import { http } from '@/lib/request';
+import { uploadFiles } from '@/lib/upload-files';
 
 export default function FeatureCards() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { namespace_id: namespaceId } = useParams();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   const suggestions: { title: string; description: string; url: string }[] = [];
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    if (uploading) return;
+
+    if (!namespaceId) {
+      toast.error('Namespace not found');
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Fetch the root resources for the namespace
+      const rootData: { [key: string]: IResourceData } = await http.get(
+        `/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`
+      );
+
+      // Get the private space root resource
+      const privateRoot = rootData['private'];
+      if (!privateRoot) {
+        toast.error('Private root resource not found');
+        return;
+      }
+
+      // Upload files to the private root
+      const results = await uploadFiles(files, {
+        namespaceId,
+        parentId: privateRoot.id,
+      });
+
+      const fileCount = results.length;
+      toast.success(
+        `${fileCount} ${fileCount === 1 ? 'file' : 'files'} uploaded successfully`
+      );
+
+      if (results.length > 0) {
+        const lastUploadedFile = results[results.length - 1];
+        navigate(`/${namespaceId}/${lastUploadedFile.id}`);
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Upload failed';
+      toast.error(errorMessage);
+      console.error('Upload error:', error);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
@@ -31,9 +102,26 @@ export default function FeatureCards() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-between">
+          <input
+            type="file"
+            multiple
+            accept="*/*"
+            onChange={handleFileUpload}
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+          />
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <FileUp className="w-4 h-4 text-red-500" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? (
+                <LoaderCircle className="w-4 h-4 text-red-500 animate-spin" />
+              ) : (
+                <FileUp className="w-4 h-4 text-red-500" />
+              )}
               {t('chat.home.upload.local')}
             </Button>
             <Button variant="outline" size="sm">
