@@ -29,7 +29,7 @@ export default function ChatHeader() {
   const modified = useRef(false);
   const { t, i18n } = useTranslation();
   const i18nTitle = t('chat.conversations.new');
-  const [data, onData] = useState(i18nTitle);
+  const [chatTitle, setChatTitle] = useState(i18nTitle);
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
   const conversationsPage = loc.pathname.endsWith('/chat/conversations');
@@ -41,7 +41,7 @@ export default function ChatHeader() {
       if (!modified.current) {
         modified.current = true;
       }
-      onData(val);
+      setChatTitle(val);
     });
   }, []);
 
@@ -49,7 +49,7 @@ export default function ChatHeader() {
     if (conversationId) {
       return;
     }
-    onData(i18nTitle);
+    setChatTitle(i18nTitle);
   }, [conversationId]);
 
   useEffect(() => {
@@ -58,10 +58,10 @@ export default function ChatHeader() {
         if (modified.current) {
           modified.current = false;
         }
-        onData(i18nTitle);
+        setChatTitle(i18nTitle);
         return;
       }
-      if (i18nTitle !== data) {
+      if (i18nTitle !== chatTitle) {
         return;
       }
       http
@@ -76,16 +76,16 @@ export default function ChatHeader() {
           if (!modified.current) {
             modified.current = true;
           }
-          onData(res.title);
+          setChatTitle(res.title);
         });
     });
-  }, [data, conversationId, namespaceId]);
+  }, [chatTitle, conversationId, namespaceId]);
 
   useEffect(() => {
     if (modified.current) {
       return;
     }
-    onData(i18nTitle);
+    setChatTitle(i18nTitle);
   }, [i18nTitle]);
 
   useEffect(() => {
@@ -94,9 +94,9 @@ export default function ChatHeader() {
     } else if (homePage) {
       document.title = t('chat.page_title');
     } else {
-      document.title = data;
+      document.title = chatTitle;
     }
-  }, [data, conversationsPage, homePage]);
+  }, [chatTitle, conversationsPage, homePage]);
 
   return (
     <header className="rounded-[16px] sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
@@ -116,7 +116,7 @@ export default function ChatHeader() {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <Title
-                  data={data}
+                  data={chatTitle}
                   namespaceId={namespaceId}
                   conversationId={conversationId}
                 />
@@ -127,7 +127,8 @@ export default function ChatHeader() {
       </div>
       <div className="ml-auto pr-3">
         <Actions
-          data={data}
+          homePage={homePage}
+          chatTitle={chatTitle}
           namespaceId={namespaceId}
           conversationId={conversationId}
           conversationsPage={conversationsPage}

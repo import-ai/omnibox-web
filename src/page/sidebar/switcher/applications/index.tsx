@@ -1,4 +1,4 @@
-import { Clock, Link, LoaderCircle, Unlink } from 'lucide-react';
+import { CircleHelp, Clock, Link, LoaderCircle, Unlink } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -19,6 +19,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import useApplications from '@/hooks/use-applications';
 import { Application } from '@/interface';
 
@@ -65,7 +70,7 @@ interface ApplicationsFormProps {
 }
 
 export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
 
@@ -155,6 +160,14 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     }
   };
 
+  const handleDocsClick = (appId: string) => {
+    const isZh = i18n.language.startsWith('zh');
+    const url = isZh
+      ? `/docs/zh-cn/collect/${appId.replace('_', '-')}`
+      : `/docs/collect/${appId.replace('_', '-')}`;
+    window.open(url, '_blank');
+  };
+
   // Reset the processed flag when autoAction changes
   useEffect(() => {
     autoActionProcessedRef.current = false;
@@ -226,6 +239,21 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold">{appDisplayName}</h4>
+                        {!hasError && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() =>
+                                  handleDocsClick(application.app_id)
+                                }
+                                className="text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                <CircleHelp className="size-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>{t('footer.docs')}</TooltipContent>
+                          </Tooltip>
+                        )}
                         {hasError && (
                           <Badge variant="destructive" className="text-red-600">
                             {t('applications.unsupported_app', {

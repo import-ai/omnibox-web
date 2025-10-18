@@ -1,5 +1,5 @@
 import { RiDiscordLine } from '@remixicon/react';
-import { MessageCircleWarning } from 'lucide-react';
+import { CircleHelp, MessageCircleWarning } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-import { Docs } from './Docs';
 import { QrCode } from './QrCode';
 import { Wechat } from './Wechat';
 
@@ -21,7 +20,7 @@ export function FooterSidebar() {
     <SidebarFooter className="flex-row flex-wrap items-center justify-around px-[24px] pb-[8px] gap-[24px]">
       {[
         {
-          icon: <Docs />,
+          icon: <CircleHelp />,
           label: t('footer.docs'),
           value: '/docs/',
         },
