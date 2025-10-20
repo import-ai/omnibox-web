@@ -14,10 +14,10 @@ import type {
 
 export default function useContext() {
   const app = useApp();
-  const [context, onContextChange] = useState<IResTypeContext[]>([]);
+  const [context, onContextChange] =
+    useState<IResTypeContext[]>(getChatContext());
 
   useEffect(() => {
-    onContextChange(getChatContext());
     return app.on('context_clear', () => {
       onContextChange([]);
       removeChatContext();
