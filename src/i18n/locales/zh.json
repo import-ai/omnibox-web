@@ -354,7 +354,8 @@
         "browser_tooltip": "任何网页，一键保存"
       },
       "recent": {
-        "title": "最近更新"
+        "title": "最近更新",
+        "empty": "暂无最近更新"
       },
       "suggestions": {
         "title": "你可能感兴趣"

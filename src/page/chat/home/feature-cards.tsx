@@ -212,16 +212,22 @@ export default function FeatureCards() {
       </Card>
 
       {/* Recent Resources Card */}
-      {recent.length > 0 && (
-        <Card className="bg-white dark:bg-[#303030] border-gray-200 dark:border-none shadow-none">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-medium">
-              {t('chat.home.recent.title', {
-                defaultValue: 'Recently Updated',
+      <Card className="bg-white dark:bg-[#303030] border-gray-200 dark:border-none shadow-none">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-medium">
+            {t('chat.home.recent.title', {
+              defaultValue: 'Recently Updated',
+            })}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {recent.length === 0 ? (
+            <div className="text-sm text-muted-foreground py-2">
+              {t('chat.home.recent.empty', {
+                defaultValue: 'No recent resources',
               })}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </div>
+          ) : (
             <div className="max-h-28 overflow-y-auto pr-1 space-y-1">
               {recent.map(item => {
                 const name = item.name || t('untitled');
@@ -259,9 +265,9 @@ export default function FeatureCards() {
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

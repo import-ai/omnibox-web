@@ -354,7 +354,8 @@
         "browser_tooltip": "Save any webpage with one click"
       },
       "recent": {
-        "title": "Recently Updated"
+        "title": "Recently Updated",
+        "empty": "No recent resources"
       },
       "suggestions": {
         "title": "You Might Be Interested"
