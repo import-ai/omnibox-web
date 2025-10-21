@@ -9,6 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { DISCORD_LINK } from '@/const';
 
 import { QrCode } from './QrCode';
 import { Wechat } from './Wechat';
@@ -27,7 +28,7 @@ export function FooterSidebar() {
         {
           icon: <RiDiscordLine />,
           label: t('footer.discord'),
-          value: 'https://discord.gg/Uc2HneCC',
+          value: DISCORD_LINK,
         },
         {
           icon: <Wechat />,

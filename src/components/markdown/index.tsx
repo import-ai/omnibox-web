@@ -15,6 +15,7 @@ interface IProps {
   content: string;
   linkBase?: string;
   style?: React.CSSProperties;
+  onRendered?: () => void;
 }
 
 export function markdownPreviewConfig(theme: Theme) {
@@ -34,7 +35,7 @@ export function markdownPreviewConfig(theme: Theme) {
 }
 
 export function Markdown(props: IProps) {
-  const { style, content, linkBase } = props;
+  const { style, content, linkBase, onRendered } = props;
   const { theme } = useTheme();
   const navigate = useNavigate();
   const element = useRef<HTMLDivElement>(null);
@@ -79,9 +80,14 @@ export function Markdown(props: IProps) {
         markdown: {
           linkBase,
         },
+        after: () => {
+          if (onRendered) {
+            onRendered();
+          }
+        },
       });
     }
-  }, [content, theme]);
+  }, [content, theme, onRendered]);
 
   return <div style={style} className="reset-list" ref={element} />;
 }

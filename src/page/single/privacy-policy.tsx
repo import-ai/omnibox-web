@@ -1,5 +1,9 @@
-import Template from './template';
+import { useEffect } from 'react';
 
 export default function PrivacyPolicy() {
-  return <Template id="privacy-policy" />;
+  useEffect(() => {
+    location.href = 'https://www.omnibox.pro/s/qYdPydLfW7';
+  }, []);
+
+  return null;
 }
