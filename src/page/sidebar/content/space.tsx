@@ -168,18 +168,23 @@ export default function Space(props: ITreeProps) {
           </SidebarGroupLabel>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarMenuAction
-                asChild
-                className="group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0 my-1.5 size-[16px] top-[2px] right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent"
-              >
-                {data.id === editingKey ? (
+              {data.id === editingKey ? (
+                <SidebarMenuAction
+                  asChild
+                  className="group-hover/sidebar-header:pointer-events-auto pointer-events-none my-1.5 size-[16px] top-[2px] right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent"
+                >
                   <span>
                     <LoaderCircle className="transition-transform animate-spin" />
                   </span>
-                ) : (
+                </SidebarMenuAction>
+              ) : (
+                <SidebarMenuAction
+                  asChild
+                  className="group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0 my-1.5 size-[16px] top-[2px] right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent"
+                >
                   <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3]" />
-                )}
-              </SidebarMenuAction>
+                </SidebarMenuAction>
+              )}
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" sideOffset={10} align="start">
               <DropdownMenuItem
