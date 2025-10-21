@@ -203,8 +203,7 @@
     },
     "already_bound": {
       "title": "Already Connected",
-      "description": "You are already connected to the WeChat bot. You can scan the QR code below to add the bot to WeChat.",
-      "qr_instruction": "Scan this QR code with WeChat to add the bot"
+      "description": "You are already connected to the WeChat bot. You can scan the QR code below to add the bot to WeChat."
     },
     "bind": {
       "button": "Bind",

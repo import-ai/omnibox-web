@@ -76,9 +76,6 @@ export function AlreadyBoundDialog({
               </div>
             </div>
           )}
-          <p className="text-sm text-muted-foreground text-center">
-            {t('applications.already_bound.qr_instruction')}
-          </p>
         </div>
       </DialogContent>
     </Dialog>

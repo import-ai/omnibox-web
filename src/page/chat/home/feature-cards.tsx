@@ -228,7 +228,7 @@ export default function FeatureCards() {
               })}
             </div>
           ) : (
-            <div className="max-h-28 overflow-y-auto pr-1 space-y-1">
+            <div className="max-h-28 overflow-y-auto pr-1 space-y-1 no-scrollbar">
               {recent.map(item => {
                 const name = item.name || t('untitled');
                 const time = getTime(item as any, i18n);
