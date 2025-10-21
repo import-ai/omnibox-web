@@ -1,12 +1,8 @@
 import axios from 'axios';
 import {
   ChevronRight,
-  File as FileIcon,
-  FileText,
   FileUp,
-  Folder as FolderIcon,
   GlobeIcon,
-  Link as LinkIcon,
   LoaderCircle,
   MessageCircle,
 } from 'lucide-react';
@@ -31,10 +27,11 @@ import {
 } from '@/components/ui/tooltip';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
-import { IResourceData, ResourceMeta } from '@/interface';
+import { IResourceData, Resource, ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 import { getTime } from '@/page/resource/utils';
+import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 export default function FeatureCards() {
   const { t, i18n } = useTranslation();
@@ -229,16 +226,15 @@ export default function FeatureCards() {
               {recent.map(item => {
                 const name = item.name || t('untitled');
                 const time = getTime(item as any, i18n);
-                const icon =
-                  item.resource_type === 'folder' ? (
-                    <FolderIcon className="w-4 h-4 text-foreground/80" />
-                  ) : item.resource_type === 'doc' ? (
-                    <FileText className="w-4 h-4 text-foreground/80" />
-                  ) : item.resource_type === 'link' ? (
-                    <LinkIcon className="w-4 h-4 text-foreground/80" />
-                  ) : (
-                    <FileIcon className="w-4 h-4 text-foreground/80" />
-                  );
+                const iconResource = {
+                  id: item.id,
+                  name: item.name,
+                  resource_type: item.resource_type,
+                  parent_id: '',
+                  space_type: 'private',
+                  has_children: !!item.has_children,
+                  attrs: (item as any).attrs || {},
+                } as unknown as Resource;
                 return (
                   <div
                     key={item.id}
@@ -246,7 +242,9 @@ export default function FeatureCards() {
                     onClick={() => navigate(`/${namespaceId}/${item.id}`)}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      {icon}
+                      <div className="[&>svg]:w-4 [&>svg]:h-4">
+                        <ResourceIcon expand={false} resource={iconResource} />
+                      </div>
                       <div className="min-w-0">
                         <div className="text-sm truncate group-hover:text-foreground">
                           {name}
