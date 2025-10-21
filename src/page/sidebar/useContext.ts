@@ -192,24 +192,24 @@ export default function useContext() {
           data[spaceType].children[parentIndex].has_children =
             remainingChildren.length > 0;
         }
-
-        onData({ ...data });
         if (routeToActive) {
           navigate(`/${namespaceId}/${routeToActive}`);
-          toast(t('resource.deleted'), {
-            description: t('resource.deleted_description'),
-            action: {
-              label: t('undo'),
-              onClick: () => {
-                http
-                  .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
-                  .then(response => {
-                    activeRoute(spaceType, parentId, response);
-                  });
-              },
-            },
-          });
         }
+        onExpands(expands => expands.filter(expand => expand !== id));
+        onData({ ...data });
+        toast(t('resource.deleted'), {
+          description: t('resource.deleted_description'),
+          action: {
+            label: t('undo'),
+            onClick: () => {
+              http
+                .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
+                .then(response => {
+                  activeRoute(spaceType, parentId, response);
+                });
+            },
+          },
+        });
       })
       .finally(() => {
         onEditingKey('');
@@ -248,7 +248,6 @@ export default function useContext() {
           data[spaceType].children.push({
             ...item,
             children: [],
-            has_children: false,
           });
         }
       }
@@ -544,6 +543,7 @@ export default function useContext() {
     const source = axios.CancelToken.source();
     http
       .get(`/namespaces/${namespaceId}/resources/${resourceId}`, {
+        mute: true,
         cancelToken: source.token,
       })
       .then(resource => {
