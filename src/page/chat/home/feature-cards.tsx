@@ -1,11 +1,16 @@
+import axios from 'axios';
 import {
   ChevronRight,
+  File as FileIcon,
+  FileText,
   FileUp,
+  Folder as FolderIcon,
   GlobeIcon,
+  Link as LinkIcon,
   LoaderCircle,
   MessageCircle,
 } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -26,9 +31,10 @@ import {
 } from '@/components/ui/tooltip';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
-import { IResourceData } from '@/interface';
+import { IResourceData, ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
+import { getTime } from '@/page/resource/utils';
 
 export default function FeatureCards() {
   const { t, i18n } = useTranslation();
@@ -37,8 +43,22 @@ export default function FeatureCards() {
   const { namespace_id: namespaceId } = useParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [recent, setRecent] = useState<ResourceMeta[]>([]);
 
-  const suggestions: { title: string; description: string; url: string }[] = [];
+  useEffect(() => {
+    if (!namespaceId) return;
+    const source = axios.CancelToken.source();
+    http
+      .get(`/namespaces/${namespaceId}/resources/recent?limit=6`, {
+        cancelToken: source.token,
+        mute: true,
+      })
+      .then((items: ResourceMeta[] = []) => {
+        setRecent((items || []).slice(0, 6));
+      })
+      .finally(() => void 0);
+    return () => source.cancel();
+  }, [namespaceId]);
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -194,23 +214,53 @@ export default function FeatureCards() {
         </CardContent>
       </Card>
 
-      {/* Suggestions Card */}
-      {suggestions.length > 0 && (
+      {/* Recent Resources Card */}
+      {recent.length > 0 && (
         <Card className="bg-white dark:bg-[#303030] border-gray-200 dark:border-none shadow-none">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg font-medium">
-              {t('chat.home.suggestions.title')}
+              {t('chat.home.recent.title', {
+                defaultValue: 'Recently Updated',
+              })}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {suggestions.map(suggestion => (
-              <div className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors group">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">{suggestion.title}</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </div>
-            ))}
+          <CardContent>
+            <div className="max-h-28 overflow-y-auto pr-1 space-y-1">
+              {recent.map(item => {
+                const name = item.name || t('untitled');
+                const time = getTime(item as any, i18n);
+                const icon =
+                  item.resource_type === 'folder' ? (
+                    <FolderIcon className="w-4 h-4 text-foreground/80" />
+                  ) : item.resource_type === 'doc' ? (
+                    <FileText className="w-4 h-4 text-foreground/80" />
+                  ) : item.resource_type === 'link' ? (
+                    <LinkIcon className="w-4 h-4 text-foreground/80" />
+                  ) : (
+                    <FileIcon className="w-4 h-4 text-foreground/80" />
+                  );
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors group"
+                    onClick={() => navigate(`/${namespaceId}/${item.id}`)}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {icon}
+                      <div className="min-w-0">
+                        <div className="text-sm truncate group-hover:text-foreground">
+                          {name}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {time}
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </div>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       )}

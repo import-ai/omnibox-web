@@ -348,10 +348,13 @@
         "description": "支持文档、网页、音频和视频等多种类型",
         "local": "本地上传",
         "local_tooltip": "试着将本地的文件拖拽到侧边栏试试吧",
-        "wechat": "微信聊天",
+        "wechat": "微信助手",
         "wechat_tooltip": "在微信中和\"小黑\"聊天",
         "browser": "网页收藏",
         "browser_tooltip": "任何网页，一键保存"
+      },
+      "recent": {
+        "title": "最近更新"
       },
       "suggestions": {
         "title": "你可能感兴趣"
