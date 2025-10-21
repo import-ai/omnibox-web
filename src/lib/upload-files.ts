@@ -83,15 +83,17 @@ export function uploadFile(
           success = true;
         } catch (err) {
           attempt++;
-          if (attempt >= maxRetries && uploadedChunks.length > 0) {
-            await http.post(
-              `/namespaces/${args.namespaceId}/resources/files/chunk/clean`,
-              {
-                file_hash: fileHash,
-                namespace_id: args.namespaceId,
-                chunks_number: uploadedChunks.join(','),
-              }
-            );
+          if (attempt >= maxRetries) {
+            if (uploadedChunks.length > 0) {
+              await http.post(
+                `/namespaces/${args.namespaceId}/resources/files/chunk/clean`,
+                {
+                  file_hash: fileHash,
+                  namespace_id: args.namespaceId,
+                  chunks_number: uploadedChunks.join(','),
+                }
+              );
+            }
             throw err;
           }
         }
