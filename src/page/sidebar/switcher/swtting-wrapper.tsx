@@ -15,12 +15,23 @@ import TasksManagement from './manage/tasks';
 import PeopleForm from './people';
 import { ThirdPartyForm } from './third-party';
 
-export default function SettingWrapper() {
+interface SettingWrapperProps {
+  initialTab?: string;
+  autoAction?: {
+    type: 'bind';
+    appId: string;
+  };
+}
+
+export default function SettingWrapper({
+  initialTab,
+  autoAction,
+}: SettingWrapperProps) {
   const { t } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
   const [userIsOwner, setUserIsOwner] = useState(false);
-  const [activeKey, onActiveKey] = useState('profile');
+  const [activeKey, onActiveKey] = useState(initialTab || 'profile');
   const items = [
     {
       label: t('setting.profile'),
@@ -48,7 +59,7 @@ export default function SettingWrapper() {
     {
       label: t('setting.applications'),
       value: 'applications',
-      children: <ApplicationsForm />,
+      children: <ApplicationsForm autoAction={autoAction} />,
       requireOwner: true,
     },
     {

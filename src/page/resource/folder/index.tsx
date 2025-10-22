@@ -6,8 +6,9 @@ import { useNavigate } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import { Separator } from '@/components/ui/separator';
-import { ResourceMeta } from '@/interface';
+import { Resource, ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
+import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 import { groupItemsByTimestamp } from '../utils';
 import { FolderContent } from './content';
@@ -57,6 +58,15 @@ export default function Folder(props: IProps) {
                 </p>
               </div>
               {items.map((item, index) => {
+                const iconResource = {
+                  id: item.id,
+                  name: item.name,
+                  resource_type: item.resource_type,
+                  parent_id: '',
+                  space_type: 'private',
+                  has_children: !!item.has_children,
+                  attrs: (item as any).attrs || {},
+                } as unknown as Resource;
                 return (
                   <div
                     className="cursor-pointer group"
@@ -66,9 +76,17 @@ export default function Folder(props: IProps) {
                     }}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-medium line-clamp-2  group-hover:text-blue-500">
-                        {item.name || t('untitled')}
-                      </h3>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="[&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
+                          <ResourceIcon
+                            expand={false}
+                            resource={iconResource}
+                          />
+                        </div>
+                        <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500 truncate">
+                          {item.name || t('untitled')}
+                        </h3>
+                      </div>
                     </div>
                     {item.resource_type === 'folder' ? (
                       <FolderContent resource={item} apiPrefix={apiPrefix} />
