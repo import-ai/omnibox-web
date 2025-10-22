@@ -74,7 +74,7 @@ export function ThirdPartyForm() {
                   {item.id ? (
                     <Badge variant="secondary" className="text-green-600">
                       <Link className="size-3 mr-1" />
-                      {t('setting.third_party_account.binded')}
+                      {t('setting.third_party_account.bound')}
                     </Badge>
                   ) : (
                     <Badge variant="secondary" className="text-red-600">

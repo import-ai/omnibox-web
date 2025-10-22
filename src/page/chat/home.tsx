@@ -8,6 +8,7 @@ import { http } from '@/lib/request';
 import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
 
 import ChatArea from './chat-input';
+import FeatureCards from './home/feature-cards';
 import useContext from './useContext';
 import { getGreeting } from './utils';
 
@@ -47,8 +48,8 @@ export default function ChatHomePage() {
   return (
     <div className="flex justify-center flex-1 p-4 overflow-auto">
       <div className="flex flex-col h-full max-w-3xl w-full">
-        <div className="flex flex-col justify-center h-full mb-40">
-          <h1 className="text-[28px] text-[#171717] text-center mb-[32px] font-medium dark:text-white">
+        <div className="flex flex-col justify-center flex-1 mb-8">
+          <h1 className="text-[28px] text-center mb-[32px] font-medium">
             <Typewriter text={t(i18n)} typeSpeed={32} />
           </h1>
           <ChatArea
@@ -65,6 +66,7 @@ export default function ChatHomePage() {
             navigatePrefix={`/${namespaceId}`}
           />
         </div>
+        <FeatureCards />
       </div>
     </div>
   );
