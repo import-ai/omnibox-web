@@ -70,7 +70,7 @@ export function RegisterForm({ children }: IProps) {
         });
       })
       .catch(err => {
-        if (err.response.data.code === 'EMAIL_EXISTS') {
+        if (err.response.data.code === 'email_exists') {
           navigate(`/user/login?email=${encodeURIComponent(data.email)}`);
         }
       })
