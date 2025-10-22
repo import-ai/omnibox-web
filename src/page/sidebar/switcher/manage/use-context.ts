@@ -27,7 +27,12 @@ export default function useContext() {
         `namespaces/${namespace_id}/members`,
         `namespaces/${namespace_id}/invitations?type=group`,
       ].map(url => http.get(url, { cancelToken: source.token }))
-    );
+    ).catch(error => {
+      if (error?.status === 403) {
+        window.location.reload();
+      }
+      return [[], [], []];
+    });
     onData({
       group,
       member,

@@ -1,6 +1,7 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import {
   AlertDialog,
@@ -76,6 +77,9 @@ export default function Action(props: ActionProps) {
     return http.delete(`namespaces/${namespace_id}/members/${id}`).then(() => {
       handleRemoveCancel();
       refetch();
+      toast.success(t('manage.member_remove_success'), {
+        position: 'bottom-right',
+      });
     });
   };
 
