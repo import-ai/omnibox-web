@@ -179,7 +179,6 @@
       "binded": "已绑定",
       "unbinding": "待绑定",
       "unbind": "解绑",
-      "unbind_limit": "邮箱或绑定至少存在一个",
       "unbind_confirm": "确定要解除绑定此账号吗？",
       "confirm_unbind_description": "你确定要解绑{{ type }}账号吗？解绑后将无法使用该账号登录。",
       "unbind_success": "已成功解绑",

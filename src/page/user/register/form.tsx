@@ -47,7 +47,7 @@ interface IProps {
 }
 
 export function RegisterForm({ children }: IProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<TRegisterForm>({
@@ -62,7 +62,6 @@ export function RegisterForm({ children }: IProps) {
       .post('sign-up', {
         email: data.email,
         url: `${location.origin}/user/sign-up/confirm`,
-        lang: i18n.language,
       })
       .then(() => {
         form.resetField('email');
@@ -70,12 +69,8 @@ export function RegisterForm({ children }: IProps) {
           position: 'bottom-right',
         });
       })
-      .catch(error => {
-        if (
-          error.response?.status === 400 &&
-          error.response?.data?.message ===
-            'The email is already registered. Please log in directly.'
-        ) {
+      .catch(err => {
+        if (err.response.data.code === 'EMAIL_EXISTS') {
           navigate(`/user/login?email=${encodeURIComponent(data.email)}`);
         }
       })

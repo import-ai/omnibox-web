@@ -72,7 +72,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
       })
       .catch(err => {
         setIsLoading(false);
-        if (err.status === 404) {
+        if (err.response.data.code === 'USER_NOT_FOUND') {
           navigate('/user/sign-up');
         }
       });
