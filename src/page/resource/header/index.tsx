@@ -26,7 +26,7 @@ export default function Header(props: IActionProps) {
               <TooltipTrigger asChild>
                 <SidebarTrigger className="text-[#8F959E]" />
               </TooltipTrigger>
-              <TooltipContent>{t('sidebar.toggle')}</TooltipContent>
+              <TooltipContent>{t('sidebar.expand')}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}

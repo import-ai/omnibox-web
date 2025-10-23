@@ -74,7 +74,7 @@ export function ThirdPartyForm() {
                   {item.id ? (
                     <Badge variant="secondary" className="text-green-600">
                       <Link className="size-3 mr-1" />
-                      {t('setting.third_party_account.binded')}
+                      {t('setting.third_party_account.bound')}
                     </Badge>
                   ) : (
                     <Badge variant="secondary" className="text-red-600">
@@ -115,33 +115,13 @@ export function ThirdPartyForm() {
                         onClick={() => {
                           onunbingding(true);
                           http
-                            .post(
-                              `/${item.login_type}/unbind`,
-                              {},
-                              {
-                                mute: true,
-                              }
-                            )
+                            .post(`/${item.login_type}/unbind`)
                             .then(() => {
                               refetch();
                               toast(
                                 t('setting.third_party_account.unbind_success'),
                                 { position: 'bottom-right' }
                               );
-                            })
-                            .catch(err => {
-                              if (err.status === 403) {
-                                toast(
-                                  t('setting.third_party_account.unbind_limit'),
-                                  {
-                                    position: 'bottom-right',
-                                  }
-                                );
-                              } else {
-                                toast(err.message, {
-                                  position: 'bottom-right',
-                                });
-                              }
                             })
                             .finally(() => {
                               onunbingding(false);

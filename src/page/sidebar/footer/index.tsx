@@ -1,5 +1,5 @@
 import { RiDiscordLine } from '@remixicon/react';
-import { MessageCircleWarning } from 'lucide-react';
+import { CircleHelp, MessageCircleWarning } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/tooltip';
 import { DISCORD_LINK } from '@/const';
 
-import { Docs } from './Docs';
 import { QrCode } from './QrCode';
 import { Wechat } from './Wechat';
 
@@ -22,9 +21,9 @@ export function FooterSidebar() {
     <SidebarFooter className="flex-row flex-wrap items-center justify-around px-[24px] pb-[8px] gap-[24px]">
       {[
         {
-          icon: <Docs />,
+          icon: <CircleHelp />,
           label: t('footer.docs'),
-          value: '/docs',
+          value: '/docs/',
         },
         {
           icon: <RiDiscordLine />,
@@ -64,7 +63,7 @@ export function FooterSidebar() {
           <Tooltip key={item.value}>
             <TooltipTrigger asChild>
               <a
-                href={`${item.value}${item.value === '/docs' && i18n.language.includes('zh') ? '/zh-cn/' : ''}`}
+                href={`${item.value}${item.value === '/docs/' && i18n.language.includes('zh') ? 'zh-cn/' : ''}`}
                 target="_blank"
                 className="!text-[#8F959E] "
               >

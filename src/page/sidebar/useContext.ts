@@ -176,7 +176,8 @@ export default function useContext() {
     http
       .delete(`/namespaces/${namespaceId}/resources/${id}`)
       .then(() => {
-        const routeToActive = getRouteToActive(spaceType, id, parentId);
+        const routeToActive =
+          id === resourceId ? getRouteToActive(spaceType, id, parentId) : '';
         data[spaceType].children = data[spaceType].children.filter(
           node => ![node.id, node.parent_id].includes(id)
         );
@@ -332,7 +333,8 @@ export default function useContext() {
     hooks.push(
       app.on('delete_resource', (id: string, parentId: string) => {
         const spaceType = getSpaceType(id);
-        const routeToActive = getRouteToActive(spaceType, id, parentId);
+        const routeToActive =
+          id === resourceId ? getRouteToActive(spaceType, id, parentId) : '';
         data[spaceType].children = data[spaceType].children.filter(
           node => ![node.id, node.parent_id].includes(id)
         );

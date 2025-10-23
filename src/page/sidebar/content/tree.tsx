@@ -122,7 +122,7 @@ export default function Tree(props: ITreeProps) {
         if (validFiles.length > 0) {
           const fileList = new DataTransfer();
           validFiles.forEach(file => fileList.items.add(file));
-          onUpload(spaceType, data.id, fileList.files);
+          void onUpload(spaceType, data.id, fileList.files);
         } else {
           toast(t('upload.invalid_ext'), { position: 'bottom-right' });
         }
@@ -145,7 +145,19 @@ export default function Tree(props: ITreeProps) {
     onExpand(spaceType, data.id);
   };
   const handleActiveKey = () => {
-    onActiveKey(data.id);
+    const isActive = data.id === activeKey;
+    if (data.has_children) {
+      if (isActive) {
+        onExpand(spaceType, data.id);
+      } else {
+        onActiveKey(data.id);
+        if (!expand) {
+          onExpand(spaceType, data.id);
+        }
+      }
+    } else {
+      onActiveKey(data.id);
+    }
   };
 
   useEffect(() => {
