@@ -28,7 +28,7 @@ export default function MainSidebar() {
   return (
     <>
       <Sidebar className="border-none">
-        <SidebarHeader className="pt-[16px] gap-[10px]">
+        <SidebarHeader className="pt-[16px] gap-[10px] pr-0">
           <Switcher namespaceId={namespaceId} />
           <Header active={chatPage} onActiveKey={handleActiveKey} />
         </SidebarHeader>

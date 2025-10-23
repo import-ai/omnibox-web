@@ -48,7 +48,10 @@ export default function useContext() {
     });
     return spaceType;
   };
-  const getResourceByField = (id: string, field: string = 'id') => {
+  const getResourceByField = (
+    id: string,
+    field: string = 'id'
+  ): Resource | null => {
     let current: Resource | null = null;
     each(data, item => {
       if (item[field] === id) {
@@ -540,6 +543,9 @@ export default function useContext() {
     }
     const target = getResourceByField(resourceId);
     if (target) {
+      if (target.has_children && !expands.includes(target.id)) {
+        handleExpand(getSpaceType(target.id), target.id);
+      }
       return;
     }
     const source = axios.CancelToken.source();

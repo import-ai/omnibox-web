@@ -97,7 +97,6 @@ export function RegisterForm({ children }: IProps) {
               <FormItem>
                 <FormControl>
                   <Input
-                    type="email"
                     placeholder={t('form.email')}
                     autoComplete="email"
                     {...field}
