@@ -10,6 +10,7 @@ import { isUndefined } from 'lodash-es';
 import { toast } from 'sonner';
 
 import { API_BASE_URL } from '@/const';
+import { detectBrowserLanguage } from '@/lib/detect-language';
 
 interface RequestConfig extends AxiosRequestConfig {
   // Whether to show error messages, default is true
@@ -28,6 +29,10 @@ request.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    const lang = localStorage.getItem('i18nextLng') || detectBrowserLanguage();
+    if (lang) {
+      config.headers['X-Lang'] = lang;
     }
     config.headers['From'] = 'web';
     if (!config.headers['Content-Type']) {
