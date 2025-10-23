@@ -47,7 +47,7 @@ export default function useResource() {
       })
       .then(onResource)
       .catch(err => {
-        if (err && err.status && err.status === 403) {
+        if (err.response.data.code === 'not_authorized') {
           onForbidden(true);
         }
       })
