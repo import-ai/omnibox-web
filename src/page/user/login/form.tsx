@@ -19,6 +19,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
+import useApp from '@/hooks/use-app';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
@@ -37,7 +38,8 @@ interface IProps extends React.ComponentPropsWithoutRef<'form'> {
 }
 
 export function LoginForm({ className, children, ...props }: IProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const app = useApp();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
@@ -64,11 +66,47 @@ export function LoginForm({ className, children, ...props }: IProps) {
       .post('login', data)
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
-        if (redirect) {
-          location.href = decodeURIComponent(redirect);
-        } else {
-          navigate('/', { replace: true });
-        }
+        // After logging in, synchronize the current configuration to the backend
+        http
+          .get('/user/option/list')
+          .then(
+            (response: Array<{ name: string; value: boolean | string }>) => {
+              const actions: Array<Promise<any>> = [];
+              const languageItem = response.find(
+                item => item.name === 'language'
+              );
+              if (languageItem) {
+                const lang = languageItem.value;
+                if (lang && lang !== i18n.language) {
+                  actions.push(
+                    http.post('/user/option', {
+                      name: 'language',
+                      value: i18n.language,
+                    })
+                  );
+                }
+              }
+              const themeValue = response.find(item => item.name === 'theme');
+              if (themeValue) {
+                const theme = themeValue.value;
+                if (theme && theme !== app.getTheme().skin) {
+                  actions.push(
+                    http.post('/user/option', {
+                      name: 'theme',
+                      value: app.getTheme().skin,
+                    })
+                  );
+                }
+              }
+              Promise.all(actions).finally(() => {
+                if (redirect) {
+                  location.href = decodeURIComponent(redirect);
+                } else {
+                  navigate('/', { replace: true });
+                }
+              });
+            }
+          );
       })
       .catch(err => {
         setIsLoading(false);
