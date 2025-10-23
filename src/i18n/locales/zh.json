@@ -265,6 +265,7 @@
     "edit_group": "编辑群组",
     "create_group": "创建群组",
     "keep_one_admin": "请至少保留一个管理员",
+    "member_remove_success": "成员移除成功",
     "invitation": "邀请",
     "invite_link": "邀请链接",
     "language_setting": "语言",

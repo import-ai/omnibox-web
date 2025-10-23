@@ -265,6 +265,7 @@
     "edit_group": "Edit Group",
     "create_group": "Create Group",
     "keep_one_admin": "Please keep at least one admin",
+    "member_remove_success": "Member removed successfully",
     "invitation": "Invitation",
     "invite_link": "Invite Link",
     "language_setting": "Language",

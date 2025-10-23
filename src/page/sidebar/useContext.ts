@@ -633,7 +633,7 @@ export default function useContext() {
     }
     const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`, {
+      .get(`/namespaces/${namespaceId}/root`, {
         cancelToken: source.token,
       })
       .then(items => {
