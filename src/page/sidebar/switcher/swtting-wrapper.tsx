@@ -86,10 +86,16 @@ export default function SettingWrapper({
         `/namespaces/${namespaceId}/members/${localStorage.getItem('uid')}`,
         {
           cancelToken: source.token,
+          mute: true,
         }
       )
       .then(res => {
         setUserIsOwner(res.role === 'owner');
+      })
+      .catch(err => {
+        if (err?.response?.data?.code === 'user_not_owner') {
+          setUserIsOwner(false);
+        }
       });
     return () => {
       source.cancel();

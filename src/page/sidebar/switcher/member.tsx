@@ -19,7 +19,7 @@ export default function NamespaceMember(props: IProps) {
   return (
     <span className="truncate font-normal text-xs text-gray-400">
       {t('namespace.member_count', {
-        size: data.length,
+        size: data.count,
       })}
     </span>
   );
