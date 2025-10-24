@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-import { Member } from '@/interface';
 import { http } from '@/lib/request';
 
 interface IProps {
@@ -11,12 +10,14 @@ interface IProps {
 export default function useNamespaceMember(props: IProps) {
   const { namespaceId } = props;
   const [loading, onLoading] = useState(false);
-  const [data, onData] = useState<Array<Member>>([]);
+  const [data, onData] = useState<{ count: number }>([]);
   const refetch = () => {
     onLoading(true);
     const source = axios.CancelToken.source();
     http
-      .get(`namespaces/${namespaceId}/members`, { cancelToken: source.token })
+      .get(`namespaces/${namespaceId}/members/count`, {
+        cancelToken: source.token,
+      })
       .then(onData)
       .finally(() => {
         onLoading(false);
