@@ -57,8 +57,17 @@ export default function Action(props: ActionProps) {
   ];
   const handleChange = (val: Role) => {
     return http
-      .patch(`namespaces/${namespace_id}/members/${id}`, { role: val })
-      .then(refetch);
+      .patch(
+        `namespaces/${namespace_id}/members/${id}`,
+        { role: val },
+        { mute: true }
+      )
+      .then(refetch)
+      .catch(err => {
+        if (err?.response?.data?.code === 'no_owner_afterwards') {
+          setOwnerOnly(true);
+        }
+      });
   };
   const handleRemove = () => {
     if (hasOwner) {
