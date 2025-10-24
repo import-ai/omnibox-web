@@ -10,7 +10,7 @@ interface IProps {
 export default function useNamespaceMember(props: IProps) {
   const { namespaceId } = props;
   const [loading, onLoading] = useState(false);
-  const [data, onData] = useState<{ count: number }>([]);
+  const [data, onData] = useState<{ count: number }>({ count: 0 });
   const refetch = () => {
     onLoading(true);
     const source = axios.CancelToken.source();
