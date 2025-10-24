@@ -22,6 +22,8 @@ import {
 } from '@/page/chat/types/conversation';
 import useGlobalContext from '@/page/chat/useContext';
 
+import { getTitleFromConversationDetail } from '../utils';
+
 export default function useContext() {
   const app = useApp();
   const params = useParams();
@@ -47,8 +49,9 @@ export default function useContext() {
     return http
       .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
       .then(response => {
-        if (response.title) {
-          app.fire('chat:title:update', response.title);
+        const conversationTitle = getTitleFromConversationDetail(response);
+        if (conversationTitle) {
+          app.fire('chat:title:update', conversationTitle);
         }
         setConversation(response);
       });
@@ -113,23 +116,16 @@ export default function useContext() {
       refetch();
       return;
     }
-    if (state.conversation.title) {
-      app.fire('chat:title:update', state.conversation.title);
+    const conversationTitle = getTitleFromConversationDetail(
+      state.conversation
+    );
+    if (conversationTitle) {
+      app.fire('chat:title:update', conversationTitle);
     }
     setConversation(state.conversation);
     sessionStorage.removeItem('state');
     submit(routeQuery);
   }, []);
-
-  const firstUserMessage = messages.find(
-    msg => msg.message.role === 'user' && !msg.parent_id
-  );
-
-  useEffect(() => {
-    if (firstUserMessage?.message.content) {
-      app.fire('chat:title', firstUserMessage.message.content);
-    }
-  }, [firstUserMessage?.message.content, app]);
 
   return {
     mode,

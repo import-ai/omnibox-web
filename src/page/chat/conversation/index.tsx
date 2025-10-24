@@ -1,5 +1,7 @@
+import { Loader2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/ui/button';
 import ChatArea from '@/page/chat/chat-input';
 import useContext from '@/page/chat/conversation/useContext';
 import { Messages } from '@/page/chat/messages';
@@ -27,7 +29,15 @@ export default function ChatConversationPage() {
   return (
     <div className="flex flex-1 flex-col h-full">
       <Scrollbar>
-        <Messages messages={normalizeChatData(messages)} />
+        {messages.length <= 0 ? (
+          <div className="space-y-4 flex justify-end items-center">
+            <Button disabled size="sm" variant="secondary">
+              <Loader2Icon className="animate-spin" />
+            </Button>
+          </div>
+        ) : (
+          <Messages messages={normalizeChatData(messages)} />
+        )}
       </Scrollbar>
       <div className="flex justify-center px-4">
         <div className="flex-1 max-w-3xl w-full">

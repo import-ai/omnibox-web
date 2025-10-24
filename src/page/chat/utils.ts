@@ -1,7 +1,10 @@
 import type { i18n as I18nType } from 'i18next';
 
 import { getLangOnly } from '@/lib/lang';
-import { ConversationSummary } from '@/page/chat/types/conversation';
+import {
+  ConversationDetail,
+  ConversationSummary,
+} from '@/page/chat/types/conversation';
 
 interface GroupedItems {
   [key: string]: Array<ConversationSummary>;
@@ -101,4 +104,26 @@ export function getGreeting() {
   if (hour < 12) return 'morning';
   if (hour < 18) return 'afternoon';
   return 'evening';
+}
+
+export function getTitleFromConversationDetail(
+  conversation: ConversationDetail
+) {
+  if (conversation.title) {
+    return conversation.title;
+  }
+
+  const mappingValues = Object.values(conversation.mapping || {});
+
+  for (const messageItem of mappingValues) {
+    if (
+      messageItem?.message?.role === 'user' &&
+      messageItem?.message?.content &&
+      messageItem.message.content.trim() !== ''
+    ) {
+      return messageItem.message.content;
+    }
+  }
+
+  return;
 }

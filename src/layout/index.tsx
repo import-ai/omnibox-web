@@ -1,5 +1,4 @@
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -14,7 +13,7 @@ export default function Layout() {
   const params = useParams();
   const navigate = useNavigate();
   const { i18n } = useTranslation();
-  const { app, onToggleTheme } = useTheme();
+  const { onToggleTheme } = useTheme();
   const namespaceId = params.namespace_id;
   const shareId = params.share_id;
   const [uid, setUid] = useState(localStorage.getItem('uid'));
@@ -102,30 +101,6 @@ export default function Layout() {
       });
     }
   }, [namespaceId, shareId, uid, loc]);
-
-  useEffect(() => {
-    if (!uid) {
-      return;
-    }
-    const source = axios.CancelToken.source();
-    http
-      .get('/user/option/language', { cancelToken: source.token })
-      .then(response => {
-        const lang = response?.value;
-        if (lang && lang !== i18n.language) {
-          i18n.changeLanguage(lang);
-        }
-      });
-    http
-      .get('/user/option/theme', { cancelToken: source.token })
-      .then(response => {
-        const theme = response?.value;
-        if (theme && theme !== app.getTheme().skin) {
-          onToggleTheme(theme);
-        }
-      });
-    return () => source.cancel();
-  }, [uid]);
 
   return (
     <>
