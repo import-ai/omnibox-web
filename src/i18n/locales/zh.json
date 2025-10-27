@@ -86,7 +86,7 @@
     "email_or_username": "邮箱或用户名",
     "email_or_username_invalid": "请输入有效的邮箱地址或用户名",
     "role": "角色",
-    "username_not_emptyStr": "请输入有效用户名，不能仅输入空格"
+    "username_not_emptyStr": "无效的用户名"
   },
   "invite": {
     "title": "通过邀请链接添加成员",
