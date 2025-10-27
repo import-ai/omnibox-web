@@ -85,7 +85,8 @@
     "email_limit_rule": "邮箱必须是 Gmail、Outlook、163 或 QQ 邮箱",
     "email_or_username": "邮箱或用户名",
     "email_or_username_invalid": "请输入有效的邮箱地址或用户名",
-    "role": "角色"
+    "role": "角色",
+    "username_not_emptyStr": "无效的用户名"
   },
   "invite": {
     "title": "通过邀请链接添加成员",
