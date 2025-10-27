@@ -120,6 +120,14 @@ export default function ProfileForm() {
         });
       return;
     }
+
+    if (!data.username.trim().length) {
+      toast.error(t('form.username_not_emptyStr'), {
+        position: 'bottom-right',
+      });
+      return;
+    }
+
     onSubmiting(true);
     onChange(data, () => {
       toast.success(t('profile.success'), { position: 'bottom-right' });
