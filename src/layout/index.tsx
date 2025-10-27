@@ -1,4 +1,5 @@
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -13,7 +14,7 @@ export default function Layout() {
   const params = useParams();
   const navigate = useNavigate();
   const { i18n } = useTranslation();
-  const { onToggleTheme } = useTheme();
+  const { app, onToggleTheme } = useTheme();
   const namespaceId = params.namespace_id;
   const shareId = params.share_id;
   const [uid, setUid] = useState(localStorage.getItem('uid'));
@@ -101,6 +102,32 @@ export default function Layout() {
       });
     }
   }, [namespaceId, shareId, uid, loc]);
+
+  useEffect(() => {
+    if (!uid) {
+      return;
+    }
+    const source = axios.CancelToken.source();
+    http
+      .get('/user/option/list', { cancelToken: source.token })
+      .then((response: Array<{ name: string; value: any }>) => {
+        const languageItem = response.find(item => item.name === 'language');
+        if (languageItem) {
+          const lang = languageItem.value;
+          if (lang && lang !== i18n.language) {
+            i18n.changeLanguage(lang);
+          }
+        }
+        const themeValue = response.find(item => item.name === 'theme');
+        if (themeValue) {
+          const theme = themeValue.value;
+          if (theme && theme !== app.getTheme().skin) {
+            onToggleTheme(theme);
+          }
+        }
+      });
+    return () => source.cancel();
+  }, [uid]);
 
   return (
     <>

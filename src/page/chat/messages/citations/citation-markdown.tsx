@@ -15,8 +15,10 @@ import remarkMath from 'remark-math';
 import Copy from '@/components/copy';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useTheme from '@/hooks/use-theme.ts';
+import Save from '@/page/chat/components/save';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
+import type { ConversationDetail } from '@/page/chat/types/conversation';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const citePattern = / *\[\[(\d+)]]/g;
@@ -65,7 +67,9 @@ function copyPreprocess(content: string, citations: Citation[]): string {
   for (let i = 0; i < citations.length; i++) {
     const citation = citations[i];
     const title = citation.title.replace('"', '\\"');
-    const link = `${origin}/${namespace}/${citation.link}`;
+    const link = citation.link.startsWith('http')
+      ? citation.link
+      : `${origin}/${namespace}/${citation.link}`;
     citationsFooter += `[${i + 1}]: ${link} "${title}"\n`;
   }
 
@@ -86,10 +90,11 @@ interface IProps {
   content: string;
   citations: Citation[];
   status: MessageStatus;
+  conversation: ConversationDetail;
 }
 
 export function CitationMarkdown(props: IProps) {
-  const { content, status, citations } = props;
+  const { content, status, citations, conversation } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const removeGeneratedCite =
@@ -180,6 +185,10 @@ export function CitationMarkdown(props: IProps) {
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
         <div className="flex ml-[-6px] mt-[-10px]">
           <Copy content={copyPreprocess(content, citations)} />
+          <Save
+            conversation={conversation}
+            content={copyPreprocess(content, citations)}
+          />
         </div>
       )}
     </div>

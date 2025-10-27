@@ -7,14 +7,18 @@ import {
   type Citation,
   OpenAIMessageRole,
 } from '@/page/chat/types/chat-response';
-import type { MessageDetail } from '@/page/chat/types/conversation';
+import type {
+  ConversationDetail,
+  MessageDetail,
+} from '@/page/chat/types/conversation';
 
 interface IProps {
+  conversation: ConversationDetail;
   messages: MessageDetail[];
 }
 
 export function Messages(props: IProps) {
-  const { messages } = props;
+  const { messages, conversation } = props;
   const citations = React.useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
@@ -38,6 +42,7 @@ export function Messages(props: IProps) {
           message={message}
           messages={messages}
           citations={citations}
+          conversation={conversation}
         />
       );
     } else if (openAIMessage.role === OpenAIMessageRole.TOOL) {
