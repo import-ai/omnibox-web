@@ -36,7 +36,8 @@ export function Messages(props: IProps) {
 
     if (openAIMessage.role === OpenAIMessageRole.USER) {
       return <UserMessage message={message} />;
-    } else if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
+    }
+    if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
       return (
         <AssistantMessage
           message={message}
@@ -45,24 +46,27 @@ export function Messages(props: IProps) {
           conversation={conversation}
         />
       );
-    } else if (openAIMessage.role === OpenAIMessageRole.TOOL) {
+    }
+    if (openAIMessage.role === OpenAIMessageRole.TOOL) {
       return <ToolMessage citations={citations} message={message} />;
     }
   }
 
   return (
     <div className="space-y-4">
-      {messages.map((message, index) => {
-        return (
-          <div key={message.id}>
-            {renderMessage(message)}
-            {index < messages.length - 1 &&
-              message.message.role !== OpenAIMessageRole.TOOL && (
-                <div className="py-4" />
-              )}
-          </div>
-        );
-      })}
+      {messages
+        .filter(message => message.message.role !== OpenAIMessageRole.SYSTEM)
+        .map((message, index) => {
+          return (
+            <div key={message.id}>
+              {renderMessage(message)}
+              {index < messages.length - 1 &&
+                ![OpenAIMessageRole.TOOL, OpenAIMessageRole.USER].includes(
+                  message.message.role
+                ) && <div className="py-4" />}
+            </div>
+          );
+        })}
     </div>
   );
 }

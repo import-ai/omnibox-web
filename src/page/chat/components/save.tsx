@@ -1,9 +1,9 @@
-import { Save } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
@@ -28,24 +28,19 @@ export default function SaveMain(props: IProps) {
   const [loading, onLoading] = useState(false);
   const handleCreate = () => {
     onLoading(true);
-    http
-      .get(`/namespaces/${namespaceId}/private`)
-      .then(privateRoot => {
-        return http
-          .post(`/namespaces/${namespaceId}/resources`, {
-            content,
-            resourceType: 'file',
-            parentId: privateRoot.id,
-            namespaceId: namespaceId,
-            name: getTitleFromConversationDetail(conversation),
-          })
-          .then(response => {
-            app.fire('generate_resource', privateRoot.id, response);
-          });
-      })
-      .finally(() => {
-        onLoading(false);
-      });
+    http.get(`/namespaces/${namespaceId}/private`).then(privateRoot => {
+      return http
+        .post(`/namespaces/${namespaceId}/resources`, {
+          content,
+          resourceType: 'file',
+          parentId: privateRoot.id,
+          namespaceId: namespaceId,
+          name: getTitleFromConversationDetail(conversation),
+        })
+        .then(response => {
+          app.fire('generate_resource', privateRoot.id, response);
+        });
+    });
   };
 
   return (
@@ -54,11 +49,10 @@ export default function SaveMain(props: IProps) {
         <Button
           size="icon"
           variant="ghost"
-          loading={loading}
           className="p-0 w-7 h-7"
           onClick={handleCreate}
         >
-          <Save />
+          {loading ? <Loader2 className="animate-spin" /> : <Save />}
         </Button>
       </TooltipTrigger>
       <TooltipContent>
