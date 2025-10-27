@@ -24,6 +24,7 @@ export default function ChatConversationPage() {
     onToolsChange,
     onContextChange,
     namespaceId,
+    conversation,
   } = useContext();
 
   return (
@@ -36,7 +37,10 @@ export default function ChatConversationPage() {
             </Button>
           </div>
         ) : (
-          <Messages messages={normalizeChatData(messages)} />
+          <Messages
+            conversation={conversation}
+            messages={normalizeChatData(messages)}
+          />
         )}
       </Scrollbar>
       <div className="flex justify-center px-4">

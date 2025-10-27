@@ -140,5 +140,6 @@ export default function useContext() {
     onToolsChange,
     onContextChange,
     namespaceId,
+    conversation,
   };
 }

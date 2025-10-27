@@ -12,19 +12,21 @@ export function UserMessage(props: IProps) {
   const lines = openAIMessage.content?.split('\n') || [];
 
   return (
-    <div
-      className={cn(
-        'relative group flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
-        'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]'
-      )}
-    >
-      {lines.map((line, idx) => (
-        <span key={idx} className="break-words">
-          {line}
-          {idx !== lines.length - 1 && <br />}
-        </span>
-      ))}
-      <div className="absolute group-hover:opacity-100 opacity-0 left-[-32px] top-[5px]">
+    <div className="group flex flex-col items-end">
+      <div
+        className={cn(
+          'flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
+          'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]'
+        )}
+      >
+        {lines.map((line, idx) => (
+          <span key={idx} className="break-words">
+            {line}
+            {idx !== lines.length - 1 && <br />}
+          </span>
+        ))}
+      </div>
+      <div className="group-hover:opacity-100 opacity-0">
         <Copy content={openAIMessage.content || ''} />
       </div>
     </div>

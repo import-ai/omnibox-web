@@ -15,16 +15,20 @@ import {
   MessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/types/chat-response';
-import { MessageDetail } from '@/page/chat/types/conversation';
+import type {
+  ConversationDetail,
+  MessageDetail,
+} from '@/page/chat/types/conversation';
 
 interface IProps {
+  conversation: ConversationDetail;
   message: MessageDetail;
   messages: MessageDetail[];
   citations: Citation[];
 }
 
 export function AssistantMessage(props: IProps) {
-  const { message, citations, messages } = props;
+  const { message, citations, messages, conversation } = props;
   const { t } = useTranslation();
   const openAIMessage = message.message;
 
@@ -54,6 +58,7 @@ export function AssistantMessage(props: IProps) {
         status={message.status}
         content={openAIMessage.content?.trim()}
         citations={citations}
+        conversation={conversation}
       />
     );
   }

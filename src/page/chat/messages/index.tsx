@@ -7,14 +7,18 @@ import {
   type Citation,
   OpenAIMessageRole,
 } from '@/page/chat/types/chat-response';
-import type { MessageDetail } from '@/page/chat/types/conversation';
+import type {
+  ConversationDetail,
+  MessageDetail,
+} from '@/page/chat/types/conversation';
 
 interface IProps {
+  conversation: ConversationDetail;
   messages: MessageDetail[];
 }
 
 export function Messages(props: IProps) {
-  const { messages } = props;
+  const { messages, conversation } = props;
   const citations = React.useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
@@ -32,32 +36,37 @@ export function Messages(props: IProps) {
 
     if (openAIMessage.role === OpenAIMessageRole.USER) {
       return <UserMessage message={message} />;
-    } else if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
+    }
+    if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
       return (
         <AssistantMessage
           message={message}
           messages={messages}
           citations={citations}
+          conversation={conversation}
         />
       );
-    } else if (openAIMessage.role === OpenAIMessageRole.TOOL) {
+    }
+    if (openAIMessage.role === OpenAIMessageRole.TOOL) {
       return <ToolMessage citations={citations} message={message} />;
     }
   }
 
   return (
     <div className="space-y-4">
-      {messages.map((message, index) => {
-        return (
-          <div key={message.id}>
-            {renderMessage(message)}
-            {index < messages.length - 1 &&
-              message.message.role !== OpenAIMessageRole.TOOL && (
-                <div className="py-4" />
-              )}
-          </div>
-        );
-      })}
+      {messages
+        .filter(message => message.message.role !== OpenAIMessageRole.SYSTEM)
+        .map((message, index) => {
+          return (
+            <div key={message.id}>
+              {renderMessage(message)}
+              {index < messages.length - 1 &&
+                ![OpenAIMessageRole.TOOL, OpenAIMessageRole.USER].includes(
+                  message.message.role
+                ) && <div className="py-4" />}
+            </div>
+          );
+        })}
     </div>
   );
 }
