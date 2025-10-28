@@ -19,7 +19,7 @@ export function getFileHash(file: File): Promise<string> {
   });
 }
 
-export function uploadFile(
+export async function uploadFile(
   file: File,
   args: {
     namespaceId: string;
@@ -57,56 +57,55 @@ export function uploadFile(
       chunk: file.slice(start, end),
     });
   }
-  return getFileHash(file).then(async (fileHash: string) => {
-    const maxRetries = 3;
-    const uploadedChunks: number[] = [];
-    for (const item of chunks) {
-      let attempt = 0;
-      let success = false;
-      while (attempt < maxRetries && !success) {
-        try {
-          const formData = new FormData();
-          formData.append('chunk', item.chunk);
-          formData.append('file_hash', fileHash);
-          formData.append('namespace_id', args.namespaceId);
-          formData.append('chunk_number', `${item.chunkNumber}`);
-          await http.post(
-            `/namespaces/${args.namespaceId}/resources/files/chunk`,
-            formData,
-            {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-            }
-          );
-          uploadedChunks.push(item.chunkNumber);
-          success = true;
-        } catch (err) {
-          attempt++;
-          if (attempt >= maxRetries) {
-            if (uploadedChunks.length > 0) {
-              await http.post(
-                `/namespaces/${args.namespaceId}/resources/files/chunk/clean`,
-                {
-                  file_hash: fileHash,
-                  namespace_id: args.namespaceId,
-                  chunks_number: uploadedChunks.join(','),
-                }
-              );
-            }
-            throw err;
+  const fileHash = await getFileHash(file);
+  const maxRetries = 3;
+  const uploadedChunks: number[] = [];
+  for (const item of chunks) {
+    let attempt = 0;
+    let success = false;
+    while (attempt < maxRetries && !success) {
+      try {
+        const formData_1 = new FormData();
+        formData_1.append('chunk', item.chunk);
+        formData_1.append('file_hash', fileHash);
+        formData_1.append('namespace_id', args.namespaceId);
+        formData_1.append('chunk_number', `${item.chunkNumber}`);
+        await http.post(
+          `/namespaces/${args.namespaceId}/resources/files/chunk`,
+          formData_1,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
           }
+        );
+        uploadedChunks.push(item.chunkNumber);
+        success = true;
+      } catch (err) {
+        attempt++;
+        if (attempt >= maxRetries) {
+          if (uploadedChunks.length > 0) {
+            await http.post(
+              `/namespaces/${args.namespaceId}/resources/files/chunk/clean`,
+              {
+                file_hash: fileHash,
+                namespace_id: args.namespaceId,
+                chunks_number: uploadedChunks.join(','),
+              }
+            );
+          }
+          throw err;
         }
       }
     }
-    return http.post(`/namespaces/${args.namespaceId}/resources/files/merge`, {
-      file_hash: fileHash,
-      total_chunks: totalChunks,
-      file_name: encodeURIComponent(file.name),
-      mimetype: file.type,
-      parent_id: args.parentId,
-      namespace_id: args.namespaceId,
-    });
+  }
+  return http.post(`/namespaces/${args.namespaceId}/resources/files/merge`, {
+    file_hash: fileHash,
+    total_chunks: totalChunks,
+    file_name: encodeURIComponent(file.name),
+    mimetype: file.type,
+    parent_id: args.parentId,
+    namespace_id: args.namespaceId,
   });
 }
 
