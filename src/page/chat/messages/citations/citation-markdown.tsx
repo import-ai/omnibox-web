@@ -64,6 +64,7 @@ function copyPreprocess(content: string, citations: Citation[]): string {
   let citationsFooter: string = '';
   const origin = location.origin;
   const namespace = location.pathname.split('/')[1] || 'default';
+
   for (let i = 0; i < citations.length; i++) {
     const citation = citations[i];
     const title = citation.title.replace('"', '\\"');

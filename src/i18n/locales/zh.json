@@ -7,6 +7,7 @@
   "cancel": "取消",
   "ok": "确定",
   "undo": "撤销",
+  "retry_answer": "重新回答",
   "no_pages_inside": "内无页面",
   "updated": "{{ related_updated_at }}更新",
   "created": "已创建",
