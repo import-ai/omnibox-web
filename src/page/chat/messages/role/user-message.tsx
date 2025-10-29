@@ -84,7 +84,29 @@ export function UserMessage(props: IProps) {
     if (editValue.trim() && onAction) {
       // 传入当前消息的 parent_id，这样新消息会成为兄弟节点
       // 形成类似 ChatGPT 的编辑版本功能
-      onAction(undefined, editValue.trim(), message.parent_id || undefined);
+      let parentId = message.parent_id;
+
+      // 如果 parent_id 为空，尝试找到合适的父节点
+      if (!parentId) {
+        // 查找 system 消息作为父节点
+        const systemNode = Object.values(conversation.mapping).find(
+          node => node.message.role === 'system'
+        );
+        if (systemNode) {
+          parentId = systemNode.id;
+        } else {
+          // 如果没有 system 节点，查找根节点
+          const rootNode = Object.values(conversation.mapping).find(
+            node => !node.parent_id && node.id !== message.id
+          );
+          if (rootNode) {
+            parentId = rootNode.id;
+          }
+        }
+      }
+
+      // 确保 parentId 存在且不为空字符串，否则不传入（让系统使用默认逻辑）
+      onAction(undefined, editValue.trim(), parentId || undefined);
       setIsEditing(false);
     }
   };

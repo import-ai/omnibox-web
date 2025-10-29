@@ -27,10 +27,20 @@ interface IProps {
     userMessageId: string,
     assistantMessageId: string
   ) => void;
+  onUserBranchNavigate?: (
+    parentMessageId: string,
+    userMessageId: string
+  ) => void;
 }
 
 export function Messages(props: IProps) {
-  const { messages, conversation, onAction, onBranchNavigate } = props;
+  const {
+    messages,
+    conversation,
+    onAction,
+    onBranchNavigate,
+    onUserBranchNavigate,
+  } = props;
 
   const citations = React.useMemo((): Citation[] => {
     // 添加会话消息到全局状态
@@ -55,7 +65,7 @@ export function Messages(props: IProps) {
           message={message}
           conversation={conversation}
           onAction={onAction}
-          onBranchNavigate={onBranchNavigate}
+          onBranchNavigate={onUserBranchNavigate}
         />
       );
     }

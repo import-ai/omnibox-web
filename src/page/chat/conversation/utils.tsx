@@ -58,12 +58,22 @@ export function prepareBody(
     }
   }
 
-  // 如果指定了 parentMessageId，使用它；否则使用最后一条消息
+  // 如果指定了 parentMessageId，使用它（重新编辑场景）
+  // 否则使用最后一条消息作为父节点（正常对话场景）
   if (parentMessageId) {
     body.parent_message_id = parentMessageId;
   } else if (messages.length > 0) {
-    body.parent_message_id = messages[messages.length - 1].id;
+    // 正常对话：直接使用最后一条消息作为父节点
+    const lastMessage = messages[messages.length - 1];
+    body.parent_message_id = lastMessage.id;
   }
+
+  console.log(
+    '[API请求] parent_message_id:',
+    body.parent_message_id,
+    '| 消息数量:',
+    messages.length
+  );
   return body;
 }
 

@@ -71,6 +71,16 @@ export default function useContext() {
     // 从根节点开始构建消息路径，支持用户消息和助手消息的分支选择
     const result: MessageDetail[] = [];
 
+    // 如果 mapping 不存在，返回空数组
+    if (!conversation?.mapping) return [];
+
+    // 打印对话树结构（用于调试）
+    const nodesWithMultipleChildren = Object.values(
+      conversation.mapping
+    ).filter(node => node.children.length > 1);
+    if (nodesWithMultipleChildren.length > 0) {
+    }
+
     // 找到根节点（没有 parent_id 的节点）
     const rootNodes = Object.values(conversation.mapping).filter(
       msg => !msg.parent_id
@@ -128,12 +138,25 @@ export default function useContext() {
     return createMessageOperator(setConversation);
   }, [setConversation]);
 
-  // 处理分支导航
+  // 处理分支导航 - assistant 消息
   const onBranchNavigate = useCallback(
     (userMessageId: string, assistantMessageId: string) => {
       const newSelections = {
         ...branchSelections,
         [userMessageId]: assistantMessageId,
+      };
+      setBranchSelections(newSelections);
+      saveBranchSelections(conversationId, newSelections);
+    },
+    [branchSelections, conversationId]
+  );
+
+  // 处理分支导航 - user 消息（重新编辑产生的多个版本）
+  const onUserBranchNavigate = useCallback(
+    (parentMessageId: string, userMessageId: string) => {
+      const newSelections = {
+        ...branchSelections,
+        [parentMessageId]: userMessageId,
       };
       setBranchSelections(newSelections);
       saveBranchSelections(conversationId, newSelections);
@@ -155,16 +178,29 @@ export default function useContext() {
       if (v) {
         onChange('');
 
-        // 如果是重新编辑（有 parentMessageId），清除该父节点的分支选择
+        // 如果是重新编辑（有 reValue 但没有有效的 parentMessageId）
+        // 需要智能查找父节点，确保新消息成为最后一条用户消息的兄弟节点
+        let effectiveParentId = parentMessageId;
+        if (reValue && !parentMessageId && messages.length > 0) {
+          // 找到最后一条用户消息
+          for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].message.role === 'user') {
+              effectiveParentId = messages[i].parent_id;
+              break;
+            }
+          }
+        }
+
+        // 如果是重新编辑（有 effectiveParentId），清除该父节点的分支选择
         // 这样系统会自动选择最新的版本
-        if (parentMessageId) {
+        if (effectiveParentId) {
           const newSelections = { ...branchSelections };
-          delete newSelections[parentMessageId];
+          delete newSelections[effectiveParentId];
           setBranchSelections(newSelections);
           saveBranchSelections(conversationId, newSelections);
         }
 
-        await submit(v, parentMessageId);
+        await submit(v, effectiveParentId);
       }
     }
   };
@@ -190,10 +226,48 @@ export default function useContext() {
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
+
+      // 重新编辑完成后，重新获取对话数据以确保数据同步
+      if (parentMessageId) {
+        await refetch();
+        // useEffect 会自动为新分支选择最新版本，无需手动干预
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  // 初始化：为所有有多个分支的节点自动选择最新版本
+  useEffect(() => {
+    if (
+      !conversation?.mapping ||
+      Object.keys(conversation.mapping).length === 0
+    ) {
+      return;
+    }
+
+    const currentSelections = getBranchSelections(conversationId);
+    const newSelections = { ...currentSelections };
+    let hasUpdates = false;
+
+    // 遍历所有节点，找到有多个子节点的情况
+    Object.values(conversation.mapping).forEach(node => {
+      if (node.children && node.children.length > 1) {
+        // 如果这个节点还没有分支选择记录，自动选择最后一个（最新的）
+        if (!newSelections[node.id]) {
+          const lastChildId = node.children[node.children.length - 1];
+          newSelections[node.id] = lastChildId;
+          hasUpdates = true;
+        }
+      }
+    });
+
+    // 如果有更新，保存到状态和 localStorage
+    if (hasUpdates) {
+      setBranchSelections(newSelections);
+      saveBranchSelections(conversationId, newSelections);
+    }
+  }, [conversation?.mapping, conversationId]);
 
   useEffect(() => {
     if (!state.conversation) {
@@ -227,5 +301,6 @@ export default function useContext() {
     namespaceId,
     conversation,
     onBranchNavigate,
+    onUserBranchNavigate,
   };
 }

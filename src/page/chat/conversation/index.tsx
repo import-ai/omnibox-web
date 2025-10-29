@@ -26,6 +26,7 @@ export default function ChatConversationPage() {
     namespaceId,
     conversation,
     onBranchNavigate,
+    onUserBranchNavigate,
   } = useContext();
 
   return (
@@ -43,6 +44,7 @@ export default function ChatConversationPage() {
             messages={normalizeChatData(messages)}
             onAction={onAction}
             onBranchNavigate={onBranchNavigate}
+            onUserBranchNavigate={onUserBranchNavigate}
           />
         )}
       </Scrollbar>
