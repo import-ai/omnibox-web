@@ -7,7 +7,11 @@ async function uploadFile(
   file: File
 ): Promise<IResourceData> {
   const fileInfo: FileInfo = await http.post(
-    `/namespaces/${namespaceId}/files`
+    `/namespaces/${namespaceId}/files`,
+    {
+      name: file.name,
+      mimetype: file.type,
+    }
   );
   await fetch(fileInfo.url, {
     method: 'PUT',
@@ -20,7 +24,6 @@ async function uploadFile(
     resourceType: 'file',
     name: file.name,
     file_id: fileInfo.id,
-    file_type: file.type,
   });
 }
 

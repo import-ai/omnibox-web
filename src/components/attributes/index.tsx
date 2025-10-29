@@ -8,7 +8,7 @@ import { Button } from '@/components/button';
 import ResourceTasks from '@/components/resource-tasks';
 import Tag from '@/components/tags';
 import { Resource } from '@/interface';
-import { http } from '@/lib/request';
+import { downloadFile } from '@/lib/download-file';
 
 interface IProps {
   resource: Resource;
@@ -82,7 +82,7 @@ export default function Attributes(props: IProps) {
     );
   }
 
-  if (resource.attrs && resource.attrs.url && resource.attrs.original_name) {
+  if (resource.attrs?.original_name) {
     return (
       <div className="space-y-2 mt-2 mb-6 text-base">
         <Tag
@@ -101,30 +101,9 @@ export default function Attributes(props: IProps) {
             className="text-base font-normal ml-[-16px]"
             onClick={() => {
               onDownload(true);
-              http
-                .get(
-                  `/namespaces/${namespaceId}/resources/files/${resource.id}`,
-                  {
-                    responseType: 'blob',
-                  }
-                )
-                .then(blob => {
-                  const link = document.createElement('a');
-                  const url = window.URL.createObjectURL(blob);
-                  link.href = url;
-                  link.target = '_blank';
-                  if (resource.attrs && resource.attrs.original_name) {
-                    link.download = decodeURI(resource.attrs.original_name);
-                  }
-                  link.style.display = 'none';
-                  document.body.appendChild(link);
-                  link.click();
-                  link.remove();
-                  window.URL.revokeObjectURL(url);
-                })
-                .finally(() => {
-                  onDownload(false);
-                });
+              downloadFile(namespaceId, resource.id).finally(() => {
+                onDownload(false);
+              });
             }}
           >
             {resource.attrs.original_name}
