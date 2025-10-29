@@ -32,9 +32,8 @@ export default function SaveMain(props: IProps) {
       return http
         .post(`/namespaces/${namespaceId}/resources`, {
           content,
-          resourceType: 'file',
+          resourceType: 'doc',
           parentId: privateRoot.id,
-          namespaceId: namespaceId,
           name: getTitleFromConversationDetail(conversation),
         })
         .then(response => {
