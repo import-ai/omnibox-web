@@ -13,12 +13,15 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 import Copy from '@/components/copy';
+import Retry from '@/components/retry';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useTheme from '@/hooks/use-theme.ts';
 import Save from '@/page/chat/components/save';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
 import type { ConversationDetail } from '@/page/chat/types/conversation';
+
+import { ChatActionType } from '../../chat-input/types';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const citePattern = / *\[\[(\d+)]]/g;
@@ -92,10 +95,17 @@ interface IProps {
   citations: Citation[];
   status: MessageStatus;
   conversation: ConversationDetail;
+  messageId: string;
+  onAction: (
+    action?: ChatActionType,
+    reValue?: string,
+    parentMessageId?: string
+  ) => void;
 }
 
 export function CitationMarkdown(props: IProps) {
-  const { content, status, citations, conversation } = props;
+  const { content, status, citations, conversation, messageId, onAction } =
+    props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const removeGeneratedCite =
@@ -171,6 +181,8 @@ export function CitationMarkdown(props: IProps) {
     },
   };
 
+  console.log('replacedContentreplacedContent', replacedContent);
+
   return (
     <div
       className="markdown-body reset-list"
@@ -184,11 +196,16 @@ export function CitationMarkdown(props: IProps) {
         {replacedContent}
       </Markdown>
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
-        <div className="flex ml-[-6px] mt-[-10px]">
+        <div className="flex items-center ml-[-6px] mt-[-10px]">
           <Copy content={copyPreprocess(content, citations)} />
           <Save
             conversation={conversation}
             content={copyPreprocess(content, citations)}
+          />
+          <Retry
+            messageId={messageId}
+            conversation={conversation}
+            onAction={onAction}
           />
         </div>
       )}

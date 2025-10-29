@@ -62,9 +62,23 @@ export default function useContext() {
     while (currentNode) {
       const message = conversation.mapping[currentNode];
       if (!message) {
+        console.warn('Message not found in mapping:', currentNode);
         break;
       }
-      result.unshift(message);
+
+      // 检测并跳过 retry 产生的重复 user 消息
+      // 如果当前是 user 消息，且它的 parent 也是 user 消息，说明这是 retry 产生的重复消息
+      const parentMessage = message.parent_id
+        ? conversation.mapping[message.parent_id]
+        : null;
+      const isRetryDuplicateUser =
+        message.message.role === 'user' &&
+        parentMessage?.message.role === 'user';
+
+      if (!isRetryDuplicateUser) {
+        result.unshift(message);
+      }
+
       currentNode = message.parent_id;
     }
     return result;
@@ -72,20 +86,24 @@ export default function useContext() {
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(setConversation);
   }, [setConversation]);
-  const onAction = async (action?: ChatActionType) => {
+  const onAction = async (
+    action?: ChatActionType,
+    reValue?: string,
+    parentMessageId?: string
+  ) => {
     if (action === 'stop') {
       isFunction(askAbortRef.current) && askAbortRef.current();
       setLoading(false);
       return;
     } else {
-      const v = value.trim();
+      const v = reValue ? reValue.trim() : value.trim();
       if (v) {
         onChange('');
-        await submit(v);
+        await submit(v, parentMessageId);
       }
     }
   };
-  const submit = async (query?: string) => {
+  const submit = async (query?: string, parentMessageId?: string) => {
     if (!query || query.trim().length === 0) {
       return;
     }
@@ -102,7 +120,8 @@ export default function useContext() {
         getWizardLang(i18n),
         namespaceId,
         undefined,
-        undefined
+        undefined,
+        parentMessageId
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
@@ -122,6 +141,7 @@ export default function useContext() {
     if (conversationTitle) {
       app.fire('chat:title:update', conversationTitle);
     }
+
     setConversation(state.conversation);
     sessionStorage.removeItem('state');
     submit(routeQuery);

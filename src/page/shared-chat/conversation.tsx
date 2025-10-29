@@ -49,7 +49,20 @@ export default function SharedChatConversationPage() {
       if (!message) {
         break;
       }
-      result.unshift(message);
+
+      // 检测并跳过 retry 产生的重复 user 消息
+      // 如果当前是 user 消息，且它的 parent 也是 user 消息，说明这是 retry 产生的重复消息
+      const parentMessage = message.parent_id
+        ? conversation.mapping[message.parent_id]
+        : null;
+      const isRetryDuplicateUser =
+        message.message.role === 'user' &&
+        parentMessage?.message.role === 'user';
+
+      if (!isRetryDuplicateUser) {
+        result.unshift(message);
+      }
+
       currentNode = message.parent_id;
     }
     return result;
@@ -111,7 +124,11 @@ export default function SharedChatConversationPage() {
   return (
     <div className="flex flex-col h-full">
       <Scrollbar>
-        <Messages messages={normalizeChatData(messages)} />
+        <Messages
+          conversation={conversation}
+          messages={normalizeChatData(messages)}
+          onAction={onAction}
+        />
       </Scrollbar>
       <div className="flex justify-center px-4">
         <div className="flex-1 max-w-3xl w-full">

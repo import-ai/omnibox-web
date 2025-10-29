@@ -28,7 +28,8 @@ export function prepareBody(
   tools: ToolType[],
   context: IResTypeContext[],
   messages: MessageDetail[],
-  lang: WizardLang | undefined
+  lang: WizardLang | undefined,
+  parentMessageId?: string
 ): ChatRequestBody {
   const body: ChatRequestBody = {
     conversation_id: conversationId,
@@ -57,7 +58,10 @@ export function prepareBody(
     }
   }
 
-  if (messages.length > 0) {
+  // 如果指定了 parentMessageId，使用它；否则使用最后一条消息
+  if (parentMessageId) {
+    body.parent_message_id = parentMessageId;
+  } else if (messages.length > 0) {
     body.parent_message_id = messages[messages.length - 1].id;
   }
   return body;
@@ -74,7 +78,8 @@ export function ask(
   lang: WizardLang | undefined,
   namespaceId: string | undefined,
   shareId: string | undefined,
-  sharePassword: string | undefined
+  sharePassword: string | undefined,
+  parentMessageId?: string
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -82,7 +87,8 @@ export function ask(
     tools,
     context,
     messages,
-    lang
+    lang,
+    parentMessageId
   );
   chatReq.namespace_id = namespaceId;
   chatReq.share_id = shareId;

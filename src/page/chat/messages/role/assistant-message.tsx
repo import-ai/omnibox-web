@@ -20,15 +20,23 @@ import type {
   MessageDetail,
 } from '@/page/chat/types/conversation';
 
+import { ChatActionType } from '../../chat-input/types';
+
 interface IProps {
   conversation: ConversationDetail;
   message: MessageDetail;
   messages: MessageDetail[];
   citations: Citation[];
+  onAction: (
+    action?: ChatActionType,
+    reValue?: string,
+    parentMessageId?: string
+  ) => void;
 }
 
 export function AssistantMessage(props: IProps) {
-  const { message, citations, messages, conversation } = props;
+  const { message, citations, messages, conversation, onAction } = props;
+
   const { t } = useTranslation();
   const openAIMessage = message.message;
 
@@ -59,6 +67,8 @@ export function AssistantMessage(props: IProps) {
         content={openAIMessage.content?.trim()}
         citations={citations}
         conversation={conversation}
+        messageId={message.id}
+        onAction={onAction}
       />
     );
   }
@@ -82,5 +92,7 @@ export function AssistantMessage(props: IProps) {
       </div>
     );
   }
-  return domList.length === 1 ? domList[0] : domList;
+  return (
+    <div className="group">{domList.length === 1 ? domList[0] : domList}</div>
+  );
 }

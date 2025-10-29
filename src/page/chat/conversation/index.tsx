@@ -40,6 +40,7 @@ export default function ChatConversationPage() {
           <Messages
             conversation={conversation}
             messages={normalizeChatData(messages)}
+            onAction={onAction}
           />
         )}
       </Scrollbar>

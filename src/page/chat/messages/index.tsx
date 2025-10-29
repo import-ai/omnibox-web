@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { addMessage } from '@/model/message';
 import { AssistantMessage } from '@/page/chat/messages/role/assistant-message';
 import { ToolMessage } from '@/page/chat/messages/role/tool-message';
 import { UserMessage } from '@/page/chat/messages/role/user-message';
@@ -12,14 +13,24 @@ import type {
   MessageDetail,
 } from '@/page/chat/types/conversation';
 
+import { ChatActionType } from '../chat-input/types';
+
 interface IProps {
   conversation: ConversationDetail;
   messages: MessageDetail[];
+  onAction: (
+    action?: ChatActionType,
+    reValue?: string,
+    parentMessageId?: string
+  ) => void;
 }
 
 export function Messages(props: IProps) {
-  const { messages, conversation } = props;
+  const { messages, conversation, onAction } = props;
+
   const citations = React.useMemo((): Citation[] => {
+    // 添加会话消息到全局状态
+    addMessage(messages);
     const result: Citation[] = [];
     for (const message of messages) {
       if (message.attrs?.citations && message.attrs.citations.length > 0) {
@@ -35,11 +46,18 @@ export function Messages(props: IProps) {
     const openAIMessage = message.message;
 
     if (openAIMessage.role === OpenAIMessageRole.USER) {
-      return <UserMessage message={message} />;
+      return (
+        <UserMessage
+          message={message}
+          conversation={conversation}
+          onAction={onAction}
+        />
+      );
     }
     if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
       return (
         <AssistantMessage
+          onAction={onAction}
           message={message}
           messages={messages}
           citations={citations}

@@ -24,6 +24,10 @@ export interface MessageOperator {
 export function createMessageOperator(
   setConversation: Dispatch<SetStateAction<ConversationDetail>>
 ): MessageOperator {
+  // 用于跟踪 retry 场景：记录应该被跳过的 user 消息 ID，以及它应该映射到的真实 parent ID
+  let retryUserMessageId: string | null = null;
+  let actualParentId: string | null = null;
+
   return {
     update: (delta: ChatDeltaResponse, id?: string) => {
       setConversation(prev => {
@@ -70,27 +74,98 @@ export function createMessageOperator(
     },
 
     add: (chatResponse: ChatBOSResponse): string => {
+      // 如果这是 assistant 消息，且其 parent 是被标记为 retry 的 user 消息
+      // 则重定向到真实的 parent
+      let parentId = chatResponse.parentId;
+      let isRetryAssistant = false;
+      if (
+        chatResponse.role === 'assistant' &&
+        retryUserMessageId &&
+        parentId === retryUserMessageId
+      ) {
+        console.log('Retry: Redirecting assistant message', {
+          originalParent: parentId,
+          newParent: actualParentId,
+        });
+        parentId = actualParentId || undefined;
+        isRetryAssistant = true; // 标记这是 retry 产生的 assistant 消息
+        retryUserMessageId = null;
+        actualParentId = null;
+      }
+
       const message: MessageDetail = {
         id: chatResponse.id,
         message: {
           role: chatResponse.role,
         },
         status: MessageStatus.PENDING,
-        parent_id: chatResponse.parentId,
+        parent_id: parentId,
         children: [],
       };
 
+      // 检测 retry 场景：user 消息的 parent 是另一个 user 消息
+      if (chatResponse.role === 'user' && parentId) {
+        setConversation(prev => {
+          const parentMessage = prev.mapping[parentId];
+          // 如果 parent 是 user 消息，说明这是 retry
+          if (parentMessage?.message.role === 'user') {
+            retryUserMessageId = chatResponse.id;
+            actualParentId = parentId;
+            return prev; // 不添加这个 user 消息
+          }
+          return prev;
+        });
+
+        // 如果检测到是 retry，直接返回，不添加这个 user 消息
+        if (retryUserMessageId === chatResponse.id) {
+          return chatResponse.id;
+        }
+      }
+
       setConversation(prev => {
-        const newMapping = { ...prev.mapping, [message.id]: message };
         let currentNode = prev.current_node;
+
+        // 如果新消息的 parent_id 等于当前节点，自动追加
         if (message.parent_id === currentNode) {
           currentNode = message.id;
         }
+        // 如果是 retry 产生的 assistant 消息，自动激活它
+        else if (isRetryAssistant) {
+          currentNode = message.id;
+        }
+        // 如果是用户消息，说明可能是新的分支，自动激活到这个分支
+        else if (chatResponse.role === 'user') {
+          currentNode = message.id;
+        }
+
+        // 更新 parent 的 children 数组
         if (message.parent_id) {
           const parentMessage = prev.mapping[message.parent_id];
           if (parentMessage) {
             if (!parentMessage.children.includes(message.id)) {
-              parentMessage.children.push(message.id);
+              // 创建新的 parent 对象，确保 React 检测到变化
+              const updatedParent = {
+                ...parentMessage,
+                children: [...parentMessage.children, message.id],
+              };
+              console.log('Adding message to parent children:', {
+                messageId: message.id,
+                messageRole: message.message.role,
+                parentId: message.parent_id,
+                oldChildren: parentMessage.children,
+                newChildren: updatedParent.children,
+                isRetryAssistant,
+              });
+              const newMapping = {
+                ...prev.mapping,
+                [message.parent_id]: updatedParent,
+                [message.id]: message,
+              };
+              return {
+                ...prev,
+                mapping: newMapping,
+                current_node: currentNode,
+              };
             }
           } else {
             console.error(
@@ -98,6 +173,9 @@ export function createMessageOperator(
             );
           }
         }
+
+        // 如果没有 parent 或 children 已经包含，只添加新消息
+        const newMapping = { ...prev.mapping, [message.id]: message };
         return {
           ...prev,
           mapping: newMapping,
@@ -125,20 +203,24 @@ export function createMessageOperator(
     },
 
     /**
-     * When there is multi message, activate one of them.
-     * Designed for future, now enabled for now.
-     * @param id
+     * 激活指定的消息分支，并追溯到该分支的最后一个节点
+     * @param id - 要激活的消息ID（通常是用户消息或助手消息）
      */
     activate: (id: string) => {
       setConversation(prev => {
         let currentNode = id;
-        let children: string[] = prev.mapping[currentNode].children;
+        let children: string[] = prev.mapping[currentNode]?.children || [];
+
+        // 追溯到最后一个子节点
         while (children.length > 0) {
+          // 选择最后一个子节点（最新的分支）
           currentNode = children[children.length - 1];
-          children = prev.mapping[currentNode].children;
+          children = prev.mapping[currentNode]?.children || [];
         }
+
         return {
           ...prev,
+          mapping: { ...prev.mapping },
           current_node: currentNode,
         };
       });

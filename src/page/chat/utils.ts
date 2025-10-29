@@ -6,8 +6,25 @@ import {
   ConversationSummary,
 } from '@/page/chat/types/conversation';
 
+import { ToolType } from './chat-input/types';
+
 interface GroupedItems {
   [key: string]: Array<ConversationSummary>;
+}
+
+export interface MessageNode {
+  attrs: {
+    enable_thinking: boolean;
+    lang: string;
+    tools: ToolType[];
+  };
+  id: string;
+  children: string[];
+  message: {
+    role: 'system' | 'user' | 'assistant' | 'tool';
+    content?: string;
+  };
+  parent_id: string | null;
 }
 
 function convert(year: number, month: number, i18n: I18nType): string {
@@ -126,4 +143,44 @@ export function getTitleFromConversationDetail(
   }
 
   return;
+}
+
+/**
+ * 根据节点ID向上查找最近的用户角色父节点
+ * @param nodes 所有节点的数组
+ * @param targetId 目标节点ID
+ * @returns 找到的用户角色节点，若未找到则返回null
+ */
+export function findNearestUserParent(
+  nodes: MessageNode[],
+  targetId: string
+): MessageNode | null {
+  // 创建ID到节点的映射，提高查找效率
+  const nodeMap = new Map<string, MessageNode>();
+  nodes.forEach(node => nodeMap.set(node.id, node));
+
+  let currentId: string | null = targetId;
+
+  while (currentId) {
+    const currentNode = nodeMap.get(currentId);
+    if (!currentNode) break; // 节点不存在，终止查找
+
+    // 获取父节点ID
+    const parentId = currentNode.parent_id;
+    if (!parentId) break; // 已到根节点，无父节点
+
+    const parentNode = nodeMap.get(parentId);
+    if (!parentNode) break; // 父节点不存在，终止查找
+
+    // 检查父节点是否为用户角色
+    if (parentNode.message.role === 'user') {
+      return parentNode;
+    }
+
+    // 继续向上追溯
+    currentId = parentId;
+  }
+
+  // 未找到符合条件的父节点
+  return null;
 }
