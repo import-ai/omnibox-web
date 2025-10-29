@@ -83,10 +83,6 @@ export function createMessageOperator(
         retryUserMessageId &&
         parentId === retryUserMessageId
       ) {
-        console.log('Retry: Redirecting assistant message', {
-          originalParent: parentId,
-          newParent: actualParentId,
-        });
         parentId = actualParentId || undefined;
         isRetryAssistant = true; // 标记这是 retry 产生的 assistant 消息
         retryUserMessageId = null;
@@ -148,14 +144,7 @@ export function createMessageOperator(
                 ...parentMessage,
                 children: [...parentMessage.children, message.id],
               };
-              console.log('Adding message to parent children:', {
-                messageId: message.id,
-                messageRole: message.message.role,
-                parentId: message.parent_id,
-                oldChildren: parentMessage.children,
-                newChildren: updatedParent.children,
-                isRetryAssistant,
-              });
+
               const newMapping = {
                 ...prev.mapping,
                 [message.parent_id]: updatedParent,
