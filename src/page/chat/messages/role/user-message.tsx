@@ -1,6 +1,7 @@
 import { Check, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
+import BranchNavigator from '@/components/branch-navigator';
 import Copy from '@/components/copy';
 import ReEdit from '@/components/reedit';
 import { Button } from '@/components/ui/button';
@@ -19,15 +20,55 @@ interface IProps {
     reValue?: string,
     parentMessageId?: string
   ) => void;
+  onBranchNavigate?: (parentMessageId: string, userMessageId: string) => void;
 }
 
 export function UserMessage(props: IProps) {
-  const { message, onAction } = props;
+  const { message, conversation, onAction, onBranchNavigate } = props;
   const openAIMessage = message.message;
   const lines = openAIMessage.content?.split('\n') || [];
 
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(openAIMessage.content || '');
+
+  // 计算用户消息的分支信息：检测是否有多个编辑版本
+  const branchInfo = useMemo(() => {
+    const parentId = message.parent_id;
+    if (!parentId) return null;
+
+    const parentMessage = conversation.mapping[parentId];
+    if (!parentMessage) return null;
+
+    // 获取父节点的所有 user 子节点（编辑产生的多个版本）
+    const userSiblings = parentMessage.children
+      .map(childId => conversation.mapping[childId])
+      .filter(child => child?.message.role === 'user') as MessageDetail[];
+
+    // 如果只有一个版本，不需要分页器
+    if (userSiblings.length <= 1) return null;
+
+    // 找到当前消息在兄弟节点中的索引
+    const currentIndex = userSiblings.findIndex(
+      sibling => sibling.id === message.id
+    );
+    if (currentIndex === -1) return null;
+
+    return {
+      parentMessageId: parentId,
+      siblings: userSiblings,
+      currentIndex,
+      totalCount: userSiblings.length,
+    };
+  }, [message, conversation]);
+
+  // 处理分页器点击
+  const handleBranchNavigate = (index: number) => {
+    if (!branchInfo || !onBranchNavigate) return;
+    const targetUser = branchInfo.siblings[index];
+    if (targetUser) {
+      onBranchNavigate(branchInfo.parentMessageId, targetUser.id);
+    }
+  };
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -42,6 +83,7 @@ export function UserMessage(props: IProps) {
   const handleSubmit = () => {
     if (editValue.trim() && onAction) {
       // 传入当前消息的 parent_id，这样新消息会成为兄弟节点
+      // 形成类似 ChatGPT 的编辑版本功能
       onAction(undefined, editValue.trim(), message.parent_id || undefined);
       setIsEditing(false);
     }
@@ -100,6 +142,13 @@ export function UserMessage(props: IProps) {
         ))}
       </div>
       <div className="flex items-center gap-2 mt-1">
+        {branchInfo && (
+          <BranchNavigator
+            currentIndex={branchInfo.currentIndex}
+            totalCount={branchInfo.totalCount}
+            onNavigate={handleBranchNavigate}
+          />
+        )}
         <div className="group-hover:opacity-100 opacity-0">
           <Copy content={openAIMessage.content || ''} />
           <ReEdit onEdit={handleEdit} />

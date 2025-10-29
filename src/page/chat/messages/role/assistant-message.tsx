@@ -1,7 +1,8 @@
 import { Loader2Icon } from 'lucide-react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import BranchNavigator from '@/components/branch-navigator';
 import {
   Accordion,
   AccordionContent,
@@ -32,13 +33,64 @@ interface IProps {
     reValue?: string,
     parentMessageId?: string
   ) => void;
+  onBranchNavigate?: (
+    userMessageId: string,
+    assistantMessageId: string
+  ) => void;
 }
 
 export function AssistantMessage(props: IProps) {
-  const { message, citations, messages, conversation, onAction } = props;
+  const {
+    message,
+    citations,
+    messages,
+    conversation,
+    onAction,
+    onBranchNavigate,
+  } = props;
 
   const { t } = useTranslation();
   const openAIMessage = message.message;
+
+  // 计算分支信息：检测是否有多个回答可以切换
+  const branchInfo = useMemo(() => {
+    // 找到父用户消息
+    const parentId = message.parent_id;
+    if (!parentId) return null;
+
+    const parentMessage = conversation.mapping[parentId];
+    if (!parentMessage || parentMessage.message.role !== 'user') return null;
+
+    // 获取父用户消息的所有 assistant 子节点
+    const assistantSiblings = parentMessage.children
+      .map(childId => conversation.mapping[childId])
+      .filter(child => child?.message.role === 'assistant') as MessageDetail[];
+
+    // 如果只有一个回答，不需要分页器
+    if (assistantSiblings.length <= 1) return null;
+
+    // 找到当前消息在兄弟节点中的索引
+    const currentIndex = assistantSiblings.findIndex(
+      sibling => sibling.id === message.id
+    );
+    if (currentIndex === -1) return null;
+
+    return {
+      userMessageId: parentId,
+      siblings: assistantSiblings,
+      currentIndex,
+      totalCount: assistantSiblings.length,
+    };
+  }, [message, conversation]);
+
+  // 处理分页器点击
+  const handleBranchNavigate = (index: number) => {
+    if (!branchInfo || !onBranchNavigate) return;
+    const targetAssistant = branchInfo.siblings[index];
+    if (targetAssistant) {
+      onBranchNavigate(branchInfo.userMessageId, targetAssistant.id);
+    }
+  };
 
   const domList: React.ReactNode[] = [];
   if (openAIMessage.reasoning_content?.trim()) {
@@ -93,6 +145,17 @@ export function AssistantMessage(props: IProps) {
     );
   }
   return (
-    <div className="group">{domList.length === 1 ? domList[0] : domList}</div>
+    <div className="group">
+      {branchInfo && (
+        <div className="mb-2">
+          <BranchNavigator
+            currentIndex={branchInfo.currentIndex}
+            totalCount={branchInfo.totalCount}
+            onNavigate={handleBranchNavigate}
+          />
+        </div>
+      )}
+      {domList.length === 1 ? domList[0] : domList}
+    </div>
   );
 }
