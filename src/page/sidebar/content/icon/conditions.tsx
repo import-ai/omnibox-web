@@ -19,6 +19,8 @@ import {
   siZhihu,
 } from 'simple-icons';
 
+import { ITHomeIcon } from '@/assets/icons/itHomeIcon.tsx';
+import { OKJikeIcon } from '@/assets/icons/okJikeIcon.tsx';
 import { RedNoteIcon } from '@/assets/icons/redNoteIcon';
 import { WeChatIcon } from '@/assets/icons/wechatIcon';
 
@@ -46,6 +48,8 @@ interface FileIconCondition {
 export const DOMAIN_SUFFIX_TO_ICON: Record<string, JSX.Element> = {
   'zhihu.com': siParser(siZhihu),
   'weixin.qq.com': <WeChatIcon />,
+  'okjike.com': <OKJikeIcon />,
+  'ithome.com': <ITHomeIcon />,
   'reddit.com': siParser(siReddit),
   'github.com': siParser(siGithub),
   'douyin.com': siParser(siTiktok),
