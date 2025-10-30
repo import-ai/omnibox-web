@@ -70,7 +70,7 @@ export default function useContext() {
     return result;
   }, [conversation]);
   const messageOperator = useMemo((): MessageOperator => {
-    return createMessageOperator(setConversation);
+    return createMessageOperator(conversation, setConversation);
   }, [setConversation]);
   const onAction = async (action?: ChatActionType) => {
     if (action === 'stop') {

@@ -81,7 +81,7 @@ export default function SharedChatConversationPage() {
         tools,
         selectedResources,
         messages,
-        createMessageOperator(setConversation),
+        createMessageOperator(conversation, setConversation),
         `/api/v1/shares/${shareId}/wizard/${mode}`,
         getWizardLang(i18n),
         undefined,
@@ -111,7 +111,10 @@ export default function SharedChatConversationPage() {
   return (
     <div className="flex flex-col h-full">
       <Scrollbar>
-        <Messages messages={normalizeChatData(messages)} />
+        <Messages
+          messages={normalizeChatData(messages)}
+          conversation={conversation}
+        />
       </Scrollbar>
       <div className="flex justify-center px-4">
         <div className="flex-1 max-w-3xl w-full">
