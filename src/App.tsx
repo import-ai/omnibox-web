@@ -6,6 +6,8 @@ import AppContext from '@/hooks/app-context';
 import Layout from '@/layout';
 import Error from '@/layout/error';
 
+const WeixinPay = lazy(() => import('@/page/pay'));
+
 const ChatPage = lazy(() => import('@/page/chat'));
 const ChatHomePage = lazy(() => import('@/page/chat/home'));
 const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
@@ -87,6 +89,10 @@ const router = createBrowserRouter([
       {
         path: 'invite/:namespace_id/:invitation_id',
         element: <InviteRedirectPage />,
+      },
+      {
+        path: 'single/pay',
+        element: <WeixinPay />,
       },
       {
         path: ':namespace_id',

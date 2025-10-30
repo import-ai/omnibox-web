@@ -1,8 +1,8 @@
-import isMobile from 'ismobilejs';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/button';
+import { useDevice } from '@/hooks/use-device';
 import { http } from '@/lib/request';
 
 import { WeChatIcon } from './icon';
@@ -14,14 +14,12 @@ interface IProps {
 export default function WeChat(props: IProps) {
   const { onScan } = props;
   const { t } = useTranslation();
-  const userAgent = navigator.userAgent.toLowerCase();
-  const isPhone = isMobile(userAgent).phone;
-  const isWeChat = userAgent.includes('micromessenger');
+  const { mobile, wechat } = useDevice();
   const alertDisableWeChatLogin = () => {
     toast(t('login.wechat_disabled'), { position: 'bottom-right' });
   };
   const loginWithWeChat = () => {
-    if (isWeChat) {
+    if (wechat) {
       http
         .get('/wechat/auth-url')
         .then(authUrl => {
@@ -35,7 +33,7 @@ export default function WeChat(props: IProps) {
     }
   };
 
-  if (isPhone && !isWeChat) {
+  if (mobile && !wechat) {
     return (
       <Button
         variant="outline"
