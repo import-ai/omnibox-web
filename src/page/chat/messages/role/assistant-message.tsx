@@ -1,8 +1,7 @@
 import { Loader2Icon } from 'lucide-react';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import BranchNavigator from '@/components/branch-navigator';
 import {
   Accordion,
   AccordionContent,
@@ -51,7 +50,7 @@ export function AssistantMessage(props: IProps) {
 
   const { t } = useTranslation();
   const openAIMessage = message.message;
-
+  const [currentIndex, setCurrentIndex] = useState(0);
   // 计算分支信息：检测是否有多个回答可以切换
   const branchInfo = useMemo(() => {
     // 找到父用户消息
@@ -121,6 +120,9 @@ export function AssistantMessage(props: IProps) {
         conversation={conversation}
         messageId={message.id}
         onAction={onAction}
+        handleBranchNavigate={handleBranchNavigate}
+        currentIndex={currentIndex}
+        setCurrentIndex={setCurrentIndex}
       />
     );
   }
@@ -145,17 +147,6 @@ export function AssistantMessage(props: IProps) {
     );
   }
   return (
-    <div className="group">
-      {branchInfo && (
-        <div className="mb-2">
-          <BranchNavigator
-            currentIndex={branchInfo.currentIndex}
-            totalCount={branchInfo.totalCount}
-            onNavigate={handleBranchNavigate}
-          />
-        </div>
-      )}
-      {domList.length === 1 ? domList[0] : domList}
-    </div>
+    <div className="group">{domList.length === 1 ? domList[0] : domList}</div>
   );
 }

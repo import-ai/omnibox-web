@@ -12,6 +12,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
+import BranchNavigator from '@/components/branch-navigator';
 import Copy from '@/components/copy';
 import Retry from '@/components/retry';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -101,11 +102,23 @@ interface IProps {
     reValue?: string,
     parentMessageId?: string
   ) => void;
+  currentIndex: number;
+  handleBranchNavigate: (index: number) => void;
+  setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export function CitationMarkdown(props: IProps) {
-  const { content, status, citations, conversation, messageId, onAction } =
-    props;
+  const {
+    content,
+    status,
+    citations,
+    conversation,
+    messageId,
+    onAction,
+    currentIndex,
+    setCurrentIndex,
+    handleBranchNavigate,
+  } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const removeGeneratedCite =
@@ -206,6 +219,12 @@ export function CitationMarkdown(props: IProps) {
             messageId={messageId}
             conversation={conversation}
             onAction={onAction}
+          />
+          <BranchNavigator
+            currentIndex={currentIndex}
+            setCurrentIndex={setCurrentIndex}
+            totalCount={10}
+            onNavigate={handleBranchNavigate}
           />
         </div>
       )}
