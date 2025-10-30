@@ -82,7 +82,7 @@ export default function Attributes(props: IProps) {
     );
   }
 
-  if (resource.attrs?.original_name) {
+  if (resource.resource_type === 'file' && resource.attrs?.original_name) {
     return (
       <div className="space-y-2 mt-2 mb-6 text-base">
         <Tag
@@ -101,7 +101,11 @@ export default function Attributes(props: IProps) {
             className="text-base font-normal ml-[-16px]"
             onClick={() => {
               onDownload(true);
-              downloadFile(namespaceId, resource.id).finally(() => {
+              downloadFile(
+                namespaceId,
+                resource.id,
+                resource.attrs?.original_name
+              ).finally(() => {
                 onDownload(false);
               });
             }}

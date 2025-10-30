@@ -126,7 +126,7 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'download') {
       onLoading(id);
-      downloadFile(namespaceId, resource.id)
+      downloadFile(namespaceId, resource.id, resource.attrs?.original_name)
         .then(() => {
           setOpen(false);
         })
