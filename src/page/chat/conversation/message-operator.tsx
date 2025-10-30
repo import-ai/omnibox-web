@@ -4,6 +4,7 @@ import {
   ChatBOSResponse,
   ChatDeltaResponse,
   MessageStatus,
+  OpenAIMessageRole,
 } from '@/page/chat/types/chat-response';
 import {
   ConversationDetail,
@@ -19,9 +20,30 @@ export interface MessageOperator {
   add: (chatResponse: ChatBOSResponse) => string;
   done: (id?: string) => void;
   activate: (id: string) => void;
+  getSiblings: (id: string) => string[];
+}
+
+function getChildren(
+  conversation: ConversationDetail,
+  id: string,
+  targetRole: OpenAIMessageRole
+): string[] {
+  const currentNode = conversation.mapping[id];
+  if (currentNode) {
+    if (currentNode.message.role === targetRole) {
+      return [id];
+    }
+    const targetChildren: string[] = [];
+    for (const childId of currentNode.children || []) {
+      targetChildren.push(...getChildren(conversation, childId, targetRole));
+    }
+    return targetChildren;
+  }
+  return [];
 }
 
 export function createMessageOperator(
+  conversation: ConversationDetail,
   setConversation: Dispatch<SetStateAction<ConversationDetail>>
 ): MessageOperator {
   return {
@@ -125,8 +147,27 @@ export function createMessageOperator(
     },
 
     /**
+     * Get siblings of a message.
+     * @param id
+     */
+    getSiblings: (id: string): string[] => {
+      const currentNode = conversation.mapping[id];
+      if (currentNode) {
+        const currentRole = currentNode.message.role;
+        if (currentRole === OpenAIMessageRole.USER) {
+          return conversation.mapping[currentNode.parent_id!]?.children || [];
+        }
+        let parentNode = currentNode;
+        while (parentNode.message.role !== OpenAIMessageRole.USER) {
+          parentNode = conversation.mapping[parentNode.parent_id!];
+        }
+        return getChildren(conversation, parentNode.id, OpenAIMessageRole.USER);
+      }
+      return [];
+    },
+
+    /**
      * When there is multi message, activate one of them.
-     * Designed for future, now enabled for now.
      * @param id
      */
     activate: (id: string) => {
