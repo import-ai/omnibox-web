@@ -7,7 +7,7 @@ async function uploadFile(
   file: File
 ): Promise<IResourceData> {
   const fileInfo: FileInfo = await http.post(
-    `/namespaces/${namespaceId}/files`,
+    `/namespaces/${namespaceId}/resources/files`,
     {
       name: file.name,
       mimetype: file.type,
