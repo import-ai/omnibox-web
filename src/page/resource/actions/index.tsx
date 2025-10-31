@@ -1,6 +1,8 @@
 import copy from 'copy-to-clipboard';
+import JSZip from 'jszip';
 import {
   ArrowUp,
+  ChevronRight,
   Copy,
   CornerUpRight,
   Download,
@@ -44,7 +46,7 @@ import { IUseResource } from '@/hooks/user-resource';
 import { downloadFile } from '@/lib/download-file';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
-import { getTime } from '@/page/resource/utils';
+import { getTime, parseImageLinks } from '@/page/resource/utils';
 
 import MoveTo from './move';
 import ShareAction from './share';
@@ -63,7 +65,9 @@ export default function Actions(props: IActionProps) {
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);
+  const [downloadAsOpen, setDownloadAsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleEdit = () => {
     if (!resource) {
       return;
@@ -169,6 +173,108 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'import') {
       fileInputRef.current?.click();
+      return;
+    }
+    if (id === 'download_as_markdown') {
+      if (!resource.content) {
+        toast(t('resource.no_content'), {
+          position: 'bottom-right',
+        });
+        setOpen(false);
+        return;
+      }
+
+      // generate file name: use resource.name, if empty, use "untitled"
+      const baseName = resource.name || t('untitled');
+      const fileName = baseName.endsWith('.md') ? baseName : `${baseName}.md`;
+
+      const imageLinks = parseImageLinks(resource.content);
+      const imageArray = imageLinks.map(item => `${resource.id}/${item}`);
+
+      // if no image, download markdown file
+      if (imageArray.length === 0) {
+        const blob = new Blob([resource.content], { type: 'text/markdown' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        setOpen(false);
+        return;
+      }
+
+      // if has image, pack into zip
+      onLoading('download_as_markdown');
+      const zip = new JSZip();
+      const attachmentsFolder = zip.folder('attachments');
+
+      const imagePromises: Promise<void>[] = [];
+
+      imageArray.forEach((imageUrl, idx) => {
+        const promise = (async () => {
+          try {
+            const response = await fetch(imageUrl);
+
+            if (!response.ok) {
+              throw new Error(`Failed to fetch image: ${response.statusText}`);
+            }
+
+            const imageBlob = await response.blob();
+            const arrayBuffer = await imageBlob.arrayBuffer();
+
+            // get file name from image url
+            const originalLink = imageLinks[idx];
+            const fileName = originalLink.split('/').pop() || `image${idx + 1}`;
+
+            // add to zip
+            if (attachmentsFolder) {
+              attachmentsFolder.file(fileName, arrayBuffer);
+            }
+          } catch (error) {
+            console.error(`Failed to process image ${idx + 1}:`, error);
+            console.error('Image URL:', imageUrl);
+          }
+        })();
+
+        imagePromises.push(promise);
+      });
+
+      // wait for all images to be processed
+      Promise.all(imagePromises)
+        .then(() => {
+          // add markdown file to zip (no modification, keep original)
+          zip.file(fileName, resource.content || '');
+
+          // generate zip file
+          return zip.generateAsync({ type: 'blob' });
+        })
+        .then(zipBlob => {
+          // download zip file
+          const url = window.URL.createObjectURL(zipBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${baseName}.zip`;
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(url);
+          setOpen(false);
+        })
+        .catch(error => {
+          console.error('Failed to create zip:', error);
+          toast(t('download.failed'), {
+            position: 'bottom-right',
+          });
+        })
+        .finally(() => {
+          onLoading('');
+        });
+
       return;
     }
   };
@@ -282,6 +388,7 @@ export default function Actions(props: IActionProps) {
                         <span>{t('actions.copy_content')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         onClick={() => handleAction('duplicate')}
@@ -294,6 +401,46 @@ export default function Actions(props: IActionProps) {
                         <span>{t('actions.duplicate')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+                    {/* Download as */}
+                    <SidebarMenuItem>
+                      <Popover
+                        open={downloadAsOpen}
+                        onOpenChange={setDownloadAsOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <SidebarMenuButton
+                            onMouseEnter={() => setDownloadAsOpen(true)}
+                            onMouseLeave={() => setDownloadAsOpen(false)}
+                          >
+                            <Download />
+                            <span>{t('actions.download_as')}</span>
+                            <ChevronRight className="ml-auto" />
+                          </SidebarMenuButton>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          side="right"
+                          align="start"
+                          className="w-48 p-1"
+                          onMouseEnter={() => setDownloadAsOpen(true)}
+                          onMouseLeave={() => setDownloadAsOpen(false)}
+                        >
+                          <div className="flex flex-col gap-1">
+                            <button
+                              className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-left"
+                              onClick={() => {
+                                handleAction('download_as_markdown');
+                                setDownloadAsOpen(false);
+                              }}
+                            >
+                              {t('actions.download_as_tooltip', {
+                                format: 'Markdown',
+                              })}
+                            </button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </SidebarMenuItem>
+
                     {resource && resource.resource_type === 'file' && (
                       <SidebarMenuItem>
                         <SidebarMenuButton
