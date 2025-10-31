@@ -41,6 +41,7 @@ import { Switch } from '@/components/ui/switch';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { IUseResource } from '@/hooks/user-resource';
+import { downloadFile } from '@/lib/download-file';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 import { getTime } from '@/page/resource/utils';
@@ -125,23 +126,8 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'download') {
       onLoading(id);
-      http
-        .get(`/namespaces/${namespaceId}/resources/files/${resource.id}`, {
-          responseType: 'blob',
-        })
-        .then(blob => {
-          const link = document.createElement('a');
-          const url = window.URL.createObjectURL(blob);
-          link.href = url;
-          link.target = '_blank';
-          if (resource.attrs && resource.attrs.original_name) {
-            link.download = decodeURI(resource.attrs.original_name);
-          }
-          link.style.display = 'none';
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-          window.URL.revokeObjectURL(url);
+      downloadFile(namespaceId, resource.id, resource.attrs?.original_name)
+        .then(() => {
           setOpen(false);
         })
         .finally(() => {
