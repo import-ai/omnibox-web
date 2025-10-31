@@ -27,6 +27,7 @@
     },
     "deleted": "Deleted",
     "deleted_description": "This resource has been deleted",
+    "no_content": "Resource has no content to download",
     "attrs": {
       "tag": "Tag",
       "add_tag": "Add tag",
@@ -61,6 +62,8 @@
     "create_file": "Create File",
     "create_folder": "Create Folder",
     "upload_file": "Upload File",
+    "download_as": "Download as",
+    "download_as_tooltip": "Download as {{ format }} format",
     "add_all_to_context": "Add all Files to Chat Box",
     "add_it_to_context": "Add this File to Chat Box",
     "add_it_only_to_context": "Add this File only to Chat Box",

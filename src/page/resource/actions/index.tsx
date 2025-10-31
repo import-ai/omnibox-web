@@ -1,6 +1,7 @@
 import copy from 'copy-to-clipboard';
 import {
   ArrowUp,
+  ChevronRight,
   Copy,
   CornerUpRight,
   Download,
@@ -63,7 +64,10 @@ export default function Actions(props: IActionProps) {
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);
+  const [downloadAsOpen, setDownloadAsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  console.log('resourcecontent', props);
+
   const handleEdit = () => {
     if (!resource) {
       return;
@@ -169,6 +173,35 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'import') {
       fileInputRef.current?.click();
+      return;
+    }
+    if (id === 'download_as_markdown') {
+      if (!resource.content) {
+        toast(t('resource.no_content'), {
+          position: 'bottom-right',
+        });
+        setOpen(false);
+        return;
+      }
+
+      // 创建 markdown 文件并下载
+      const blob = new Blob([resource.content], { type: 'text/markdown' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      // 生成文件名：优先使用 resource.name，如果为空则使用"未命名"
+      const baseName = resource.name || t('untitled');
+      const fileName = baseName.endsWith('.md') ? baseName : `${baseName}.md`;
+
+      link.download = fileName;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      setOpen(false);
       return;
     }
   };
@@ -282,6 +315,7 @@ export default function Actions(props: IActionProps) {
                         <span>{t('actions.copy_content')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         onClick={() => handleAction('duplicate')}
@@ -294,6 +328,46 @@ export default function Actions(props: IActionProps) {
                         <span>{t('actions.duplicate')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+                    {/* 下载为 */}
+                    <SidebarMenuItem>
+                      <Popover
+                        open={downloadAsOpen}
+                        onOpenChange={setDownloadAsOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <SidebarMenuButton
+                            onMouseEnter={() => setDownloadAsOpen(true)}
+                            onMouseLeave={() => setDownloadAsOpen(false)}
+                          >
+                            <Download />
+                            <span>{t('actions.download_as')}</span>
+                            <ChevronRight className="ml-auto" />
+                          </SidebarMenuButton>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          side="right"
+                          align="start"
+                          className="w-48 p-1"
+                          onMouseEnter={() => setDownloadAsOpen(true)}
+                          onMouseLeave={() => setDownloadAsOpen(false)}
+                        >
+                          <div className="flex flex-col gap-1">
+                            <button
+                              className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-left"
+                              onClick={() => {
+                                handleAction('download_as_markdown');
+                                setDownloadAsOpen(false);
+                              }}
+                            >
+                              {t('actions.download_as_tooltip', {
+                                format: 'Markdown',
+                              })}
+                            </button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </SidebarMenuItem>
+
                     {resource && resource.resource_type === 'file' && (
                       <SidebarMenuItem>
                         <SidebarMenuButton
