@@ -68,15 +68,6 @@ export default function Actions(props: IActionProps) {
   const [downloadAsOpen, setDownloadAsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // http://localhost:5173/ddElvT/wDH1iyjgjVzyzgiV/attachments/J7nt9VEvSXqpqUGFr6wGHsW74YQlSrVG.jpg
-  // baseUrl/namespaceId/resourceId/md解析图片地址
-  const href = window.location.href;
-  console.log(
-    'resourcecontent',
-    resource,
-    `${href}/attachments/J7nt9VEvSXqpqUGFr6wGHsW74YQlSrVG.jpg`
-  );
-
   const handleEdit = () => {
     if (!resource) {
       return;
@@ -193,16 +184,14 @@ export default function Actions(props: IActionProps) {
         return;
       }
 
-      // 生成文件名：优先使用 resource.name，如果为空则使用"未命名"
+      // generate file name: use resource.name, if empty, use "untitled"
       const baseName = resource.name || t('untitled');
       const fileName = baseName.endsWith('.md') ? baseName : `${baseName}.md`;
 
-      // 解析 markdown 中的所有图片链接
       const imageLinks = parseImageLinks(resource.content);
-      const href = window.location.href;
-      const imageArray = imageLinks.map(item => `${href}/${item}`);
+      const imageArray = imageLinks.map(item => `${resource.id}/${item}`);
 
-      // 如果没有图片，直接下载 markdown 文件
+      // if no image, download markdown file
       if (imageArray.length === 0) {
         const blob = new Blob([resource.content], { type: 'text/markdown' });
         const url = window.URL.createObjectURL(blob);
@@ -218,122 +207,49 @@ export default function Actions(props: IActionProps) {
         return;
       }
 
-      // 如果有图片，打包成 zip
+      // if has image, pack into zip
       onLoading('download_as_markdown');
       const zip = new JSZip();
-      const imagesFolder = zip.folder('images');
+      const attachmentsFolder = zip.folder('attachments');
 
-      // 处理图片并收集替换映射
-      const imagePromises: Promise<{
-        oldUrl: string;
-        newPath: string;
-        alt: string;
-      } | null>[] = [];
+      const imagePromises: Promise<void>[] = [];
 
       imageArray.forEach((imageUrl, idx) => {
         const promise = (async () => {
           try {
-            // 下载图片（需要认证）
-            const token = localStorage.getItem('token') || '';
-            const headers: HeadersInit = {};
-            if (token) {
-              headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch(imageUrl, {
-              headers,
-              credentials: 'include',
-            });
+            const response = await fetch(imageUrl);
 
             if (!response.ok) {
               throw new Error(`Failed to fetch image: ${response.statusText}`);
             }
 
-            // 检查响应类型
-            const contentType = response.headers.get('content-type');
-            if (!contentType?.includes('image/')) {
-              throw new Error(`Invalid image content type: ${contentType}`);
-            }
+            const imageBlob = await response.blob();
+            const arrayBuffer = await imageBlob.arrayBuffer();
 
-            const imageData = await response.blob();
-
-            // 从响应头或 URL 获取扩展名
-            let imageExtension = 'png';
-            if (contentType.includes('image/')) {
-              const mimeType = contentType.split('/')[1];
-              imageExtension = mimeType === 'jpeg' ? 'jpg' : mimeType;
-            } else {
-              // 尝试从 URL 获取扩展名
-              const urlMatch = imageUrl.match(
-                /\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i
-              );
-              if (urlMatch) {
-                imageExtension = urlMatch[1].toLowerCase();
-                if (imageExtension === 'jpeg') imageExtension = 'jpg';
-              }
-            }
-
-            // 生成图片文件名
-            const imageFileName = `image${idx + 1}.${imageExtension}`;
-            const imagePath = `images/${imageFileName}`;
-
-            // 添加到 zip
-            if (imagesFolder) {
-              const arrayBuffer = await imageData.arrayBuffer();
-              imagesFolder.file(imageFileName, arrayBuffer);
-            }
-
-            // 返回替换映射
+            // get file name from image url
             const originalLink = imageLinks[idx];
-            const imageRegex = new RegExp(
-              `!\\[([^\\]]*)\\]\\(${originalLink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`,
-              'g'
-            );
-            const match = imageRegex.exec(resource.content || '');
-            const alt = match ? match[1] : '';
+            const fileName = originalLink.split('/').pop() || `image${idx + 1}`;
 
-            return {
-              oldUrl: originalLink,
-              newPath: imagePath,
-              alt: alt,
-            };
+            // add to zip
+            if (attachmentsFolder) {
+              attachmentsFolder.file(fileName, arrayBuffer);
+            }
           } catch (error) {
             console.error(`Failed to process image ${idx + 1}:`, error);
             console.error('Image URL:', imageUrl);
-            return null;
           }
         })();
 
         imagePromises.push(promise);
       });
 
-      // 等待所有图片处理完成
+      // wait for all images to be processed
       Promise.all(imagePromises)
-        .then(replacements => {
-          // 收集所有成功的替换映射
-          const validReplacements = replacements.filter(
-            (r): r is { oldUrl: string; newPath: string; alt: string } =>
-              r !== null
-          );
+        .then(() => {
+          // add markdown file to zip (no modification, keep original)
+          zip.file(fileName, resource.content || '');
 
-          // 修改 markdown 内容：替换所有图片路径
-          let modifiedContent: string = resource.content || '';
-          validReplacements.forEach(({ oldUrl, newPath, alt }) => {
-            // 使用完整的 markdown 语法替换
-            const imagePattern = new RegExp(
-              `!\\[${alt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]\\(${oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`,
-              'g'
-            );
-            modifiedContent = modifiedContent.replace(
-              imagePattern,
-              `![${alt}](${newPath})`
-            );
-          });
-
-          // 添加 markdown 文件到 zip
-          zip.file(fileName, modifiedContent);
-
-          // 生成 zip 文件
+          // generate zip file
           return zip.generateAsync({ type: 'blob' });
         })
         .then(zipBlob => {
