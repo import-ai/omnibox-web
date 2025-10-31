@@ -148,3 +148,21 @@ export function embedImage(resource: Resource | SharedResource): string {
   }
   return content;
 }
+
+/**
+ * 解析 markdown 中的图片链接
+ * @param markdownContent markdown 内容
+ * @returns 图片链接数组，例如: ['attachments/xxx.jpg', 'attachments/xxx.jpg']
+ */
+export function parseImageLinks(markdownContent: string): string[] {
+  const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  const imageLinks: string[] = [];
+  let match;
+
+  while ((match = imageRegex.exec(markdownContent)) !== null) {
+    const imageUrl = match[2];
+    imageLinks.push(imageUrl);
+  }
+
+  return imageLinks;
+}
