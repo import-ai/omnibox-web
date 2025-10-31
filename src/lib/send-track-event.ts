@@ -1,3 +1,5 @@
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
+
 import { http } from '@/lib/request';
 
 class EventStorage {
@@ -39,19 +41,20 @@ class EventStorage {
 const eventStorage = new EventStorage();
 
 interface Attributes {
-  once?: boolean;
-  url?: string;
-  referrer?: string;
-  finger?: string;
-  section?: string;
-  language?: string;
+  [index: string]: string | boolean;
 }
 
-export function track(name: string, payload: Attributes = {}) {
-  const { once = false, ...props } = payload;
+export async function track(name: string, payload: Attributes = {}) {
+  const { once = false, userId, ...props } = payload;
+
+  const fp = await FingerprintJS.load();
+  const { visitorId } = await fp.get();
+
+  // Dealing with many to many relationships
+  const key = userId ? `${userId}_${visitorId}` : name;
 
   // Handle different "once" modes
-  if (once && eventStorage.isEventTracked(name)) {
+  if (once && eventStorage.isEventTracked(key)) {
     return;
   }
 
@@ -60,13 +63,16 @@ export function track(name: string, payload: Attributes = {}) {
       events: [
         {
           name,
-          props,
+          props: {
+            finger: visitorId,
+            ...props,
+          },
         },
       ],
     })
     .then(() => {
       if (once) {
-        eventStorage.markEventAsTracked(name);
+        eventStorage.markEventAsTracked(key);
       }
     })
     .catch(err => {
