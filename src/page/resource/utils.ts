@@ -150,9 +150,9 @@ export function embedImage(resource: Resource | SharedResource): string {
 }
 
 /**
- * 解析 markdown 中的图片链接
- * @param markdownContent markdown 内容
- * @returns 图片链接数组，例如: ['attachments/xxx.jpg', 'attachments/xxx.jpg']
+ *  Analyze image links in markdown
+ *  @ parammarkdownContent markdownContent
+ *  @ returns image link array, for example: ['attachments/xxx. jpg ','attachments/xxx. jpg']
  */
 export function parseImageLinks(markdownContent: string): string[] {
   const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;

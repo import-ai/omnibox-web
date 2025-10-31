@@ -253,7 +253,7 @@ export default function Actions(props: IActionProps) {
           return zip.generateAsync({ type: 'blob' });
         })
         .then(zipBlob => {
-          // 下载 zip 文件
+          // download zip file
           const url = window.URL.createObjectURL(zipBlob);
           const link = document.createElement('a');
           link.href = url;
@@ -401,7 +401,7 @@ export default function Actions(props: IActionProps) {
                         <span>{t('actions.duplicate')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    {/* 下载为 */}
+                    {/* Download as */}
                     <SidebarMenuItem>
                       <Popover
                         open={downloadAsOpen}
