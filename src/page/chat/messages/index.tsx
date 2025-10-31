@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { addMessage } from '@/model/message';
 import { AssistantMessage } from '@/page/chat/messages/role/assistant-message';
 import { ToolMessage } from '@/page/chat/messages/role/tool-message';
 import { UserMessage } from '@/page/chat/messages/role/user-message';
@@ -43,8 +42,6 @@ export function Messages(props: IProps) {
   } = props;
 
   const citations = React.useMemo((): Citation[] => {
-    // 添加会话消息到全局状态
-    addMessage(messages);
     const result: Citation[] = [];
     for (const message of messages) {
       if (message.attrs?.citations && message.attrs.citations.length > 0) {

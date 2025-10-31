@@ -116,7 +116,6 @@ export function CitationMarkdown(props: IProps) {
     messageId,
     onAction,
     currentIndex,
-    setCurrentIndex,
     handleBranchNavigate,
   } = props;
   const { theme } = useTheme();
@@ -194,8 +193,6 @@ export function CitationMarkdown(props: IProps) {
     },
   };
 
-  console.log('replacedContentreplacedContent', replacedContent);
-
   return (
     <div
       className="markdown-body reset-list"
@@ -222,7 +219,6 @@ export function CitationMarkdown(props: IProps) {
           />
           <BranchNavigator
             currentIndex={currentIndex}
-            setCurrentIndex={setCurrentIndex}
             totalCount={10}
             onNavigate={handleBranchNavigate}
           />
