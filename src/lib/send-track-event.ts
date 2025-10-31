@@ -45,15 +45,18 @@ interface Attributes {
 }
 
 export async function track(name: string, payload: Attributes = {}) {
-  const { once = false, ...props } = payload;
-
-  // Handle different "once" modes
-  if (once && eventStorage.isEventTracked(name)) {
-    return;
-  }
+  const { once = false, userId, ...props } = payload;
 
   const fp = await FingerprintJS.load();
   const { visitorId } = await fp.get();
+
+  // Dealing with many to many relationships
+  const key = userId ? `${userId}_${visitorId}` : name;
+
+  // Handle different "once" modes
+  if (once && eventStorage.isEventTracked(key)) {
+    return;
+  }
 
   http
     .post('/trace', {
@@ -69,7 +72,7 @@ export async function track(name: string, payload: Attributes = {}) {
     })
     .then(() => {
       if (once) {
-        eventStorage.markEventAsTracked(name);
+        eventStorage.markEventAsTracked(key);
       }
     })
     .catch(err => {

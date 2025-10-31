@@ -48,7 +48,7 @@ export default function Layout() {
     if (storedUid) {
       track('related_relationships', {
         once: true,
-        uid: storedUid,
+        userId: storedUid,
       });
     }
   }, []);
