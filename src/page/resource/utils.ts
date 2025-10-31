@@ -155,13 +155,37 @@ export function embedImage(resource: Resource | SharedResource): string {
  *  @ returns image link array, for example: ['attachments/xxx. jpg ','attachments/xxx. jpg']
  */
 export function parseImageLinks(markdownContent: string): string[] {
-  const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
   const imageLinks: string[] = [];
+
+  // Match Markdown format: ![alt](url)
+  const markdownImageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
   let match;
 
-  while ((match = imageRegex.exec(markdownContent)) !== null) {
+  while ((match = markdownImageRegex.exec(markdownContent)) !== null) {
     const imageUrl = match[2];
     imageLinks.push(imageUrl);
+  }
+
+  // Match HTML img tag format: <img src="url" ... /> or <img src='url' ... /> or <img src=url ... />
+  // Match quoted src attributes: <img src="url" ... /> or <img src='url' ... />
+  const htmlImageRegexQuoted = /<img[^>]+src\s*=\s*["']([^"']+)["'][^>]*>/gi;
+  const matchedUrls = new Set<string>();
+
+  while ((match = htmlImageRegexQuoted.exec(markdownContent)) !== null) {
+    const imageUrl = match[1];
+    matchedUrls.add(imageUrl);
+    imageLinks.push(imageUrl);
+  }
+
+  // Match unquoted src attributes: <img src=url ... />
+  const htmlImageRegexUnquoted = /<img[^>]+src\s*=\s*([^\s>]+)[^>]*>/gi;
+  while ((match = htmlImageRegexUnquoted.exec(markdownContent)) !== null) {
+    const imageUrl = match[1];
+    // Only add if not already matched by quoted regex
+    if (!matchedUrls.has(imageUrl)) {
+      matchedUrls.add(imageUrl);
+      imageLinks.push(imageUrl);
+    }
   }
 
   return imageLinks;
