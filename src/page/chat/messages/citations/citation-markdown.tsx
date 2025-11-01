@@ -1,7 +1,7 @@
 import '@/styles/github-markdown.css';
 import 'katex/dist/katex.min.css';
 
-import { RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Markdown, { ExtraProps } from 'react-markdown';
@@ -101,11 +101,27 @@ interface IProps {
   conversation: ConversationDetail;
   messageId: string;
   onRegenerate: (messageId: string) => void;
+  hasSiblings?: boolean;
+  currentIndex?: number;
+  siblingsLength?: number;
+  onPrevious?: () => void;
+  onNext?: () => void;
 }
 
 export function CitationMarkdown(props: IProps) {
-  const { content, status, citations, conversation, messageId, onRegenerate } =
-    props;
+  const {
+    content,
+    status,
+    citations,
+    conversation,
+    messageId,
+    onRegenerate,
+    hasSiblings,
+    currentIndex,
+    siblingsLength,
+    onPrevious,
+    onNext,
+  } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
@@ -195,7 +211,32 @@ export function CitationMarkdown(props: IProps) {
         {replacedContent}
       </Markdown>
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
-        <div className="flex ml-[-6px] mt-[-10px]">
+        <div className="flex items-center gap-1 ml-[-6px] mt-[-10px]">
+          {hasSiblings && (
+            <>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="p-0 w-4 h-7"
+                onClick={onPrevious}
+                disabled={currentIndex === 0}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
+                {(currentIndex ?? 0) + 1}/{siblingsLength}
+              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="p-0 w-4 h-7"
+                onClick={onNext}
+                disabled={currentIndex === (siblingsLength ?? 1) - 1}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </>
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
