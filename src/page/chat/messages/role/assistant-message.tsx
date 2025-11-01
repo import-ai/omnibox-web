@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Loader2Icon } from 'lucide-react';
+import { Loader2Icon } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -82,41 +82,20 @@ export function AssistantMessage(props: IProps) {
   }
   if (openAIMessage.content?.trim()) {
     domList.push(
-      <div key="content">
-        <CitationMarkdown
-          status={message.status}
-          content={openAIMessage.content?.trim()}
-          citations={citations}
-          conversation={conversation}
-          messageId={message.id}
-          onRegenerate={onRegenerate}
-        />
-        {hasSiblings && (
-          <div className="flex items-center gap-1 ml-[-6px]">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="p-0 w-7 h-7"
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
-              {currentIndex + 1}/{siblings.length}
-            </span>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="p-0 w-7 h-7"
-              onClick={handleNext}
-              disabled={currentIndex === siblings.length - 1}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
-      </div>
+      <CitationMarkdown
+        key="content"
+        status={message.status}
+        content={openAIMessage.content?.trim()}
+        citations={citations}
+        conversation={conversation}
+        messageId={message.id}
+        onRegenerate={onRegenerate}
+        hasSiblings={hasSiblings}
+        currentIndex={currentIndex}
+        siblingsLength={siblings.length}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+      />
     );
   }
   if (openAIMessage.tool_calls) {

@@ -99,31 +99,6 @@ export function UserMessage(props: IProps) {
         )}
       </div>
       <div className="flex items-center gap-1 group-hover:opacity-100 opacity-0">
-        {hasSiblings && (
-          <>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="p-0 w-7 h-7"
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
-              {currentIndex + 1}/{siblings.length}
-            </span>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="p-0 w-7 h-7"
-              onClick={handleNext}
-              disabled={currentIndex === siblings.length - 1}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </>
-        )}
         {!isEditing && (
           <Button
             size="icon"
@@ -135,6 +110,31 @@ export function UserMessage(props: IProps) {
           </Button>
         )}
         <Copy content={openAIMessage.content || ''} />
+        {hasSiblings && (
+          <>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="p-0 w-6 h-6"
+              onClick={handlePrevious}
+              disabled={currentIndex === 0}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
+              {currentIndex + 1}/{siblings.length}
+            </span>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="p-0 w-6 h-6"
+              onClick={handleNext}
+              disabled={currentIndex === siblings.length - 1}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
