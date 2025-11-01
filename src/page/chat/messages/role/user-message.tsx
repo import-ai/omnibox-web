@@ -5,25 +5,21 @@ import Copy from '@/components/copy';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/types/conversation';
+import { MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {
   message: MessageDetail;
-  conversation: ConversationDetail;
   messageOperator: MessageOperator;
 }
 
 export function UserMessage(props: IProps) {
-  const { message, conversation, messageOperator } = props;
+  const { message, messageOperator } = props;
   const openAIMessage = message.message;
   const lines = openAIMessage.content?.split('\n') || [];
 
   const siblings = useMemo(() => {
     return messageOperator.getSiblings(message.id);
-  }, [messageOperator, message.id, conversation.mapping]);
+  }, [messageOperator, message.id]);
 
   const currentIndex = siblings.indexOf(message.id);
   const hasSiblings = siblings.length > 1;

@@ -71,7 +71,7 @@ export default function useContext() {
   }, [conversation]);
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(conversation, setConversation);
-  }, [setConversation]);
+  }, [conversation, setConversation]);
   const onAction = async (action?: ChatActionType) => {
     if (action === 'stop') {
       isFunction(askAbortRef.current) && askAbortRef.current();

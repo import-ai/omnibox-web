@@ -44,7 +44,7 @@ export function AssistantMessage(props: IProps) {
 
   const siblings = useMemo(() => {
     return messageOperator.getSiblings(message.id);
-  }, [messageOperator, message.id, conversation.mapping]);
+  }, [messageOperator, message.id]);
 
   const currentIndex = siblings.indexOf(message.id);
   const hasSiblings = siblings.length > 1;
