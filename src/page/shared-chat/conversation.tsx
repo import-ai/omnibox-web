@@ -123,6 +123,35 @@ export default function SharedChatConversationPage() {
     }
   };
 
+  const onRegenerate = async (messageId: string) => {
+    const parentId = messageOperator.getParent(messageId);
+    const parentMessage = conversation.mapping[parentId];
+    if (!parentMessage || !parentMessage.message.content) {
+      console.error('Cannot find parent user message to regenerate from');
+      return;
+    }
+    setLoading(true);
+    try {
+      const askFN = ask(
+        conversationId,
+        parentMessage.message.content,
+        tools,
+        selectedResources,
+        parentId,
+        messageOperator,
+        `/api/v1/shares/${shareId}/wizard/${mode}`,
+        getWizardLang(i18n),
+        undefined,
+        shareId,
+        password || undefined
+      );
+      askAbortRef.current = askFN.destroy;
+      await askFN.start();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!conversationId) return;
     http
@@ -143,7 +172,7 @@ export default function SharedChatConversationPage() {
           messages={normalizeChatData(messages)}
           conversation={conversation}
           messageOperator={messageOperator}
-          onRegenerate={() => {}}
+          onRegenerate={onRegenerate}
           onEdit={onEdit}
         />
       </Scrollbar>
