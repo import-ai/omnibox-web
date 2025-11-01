@@ -127,6 +127,35 @@ export default function useContext() {
     submit(routeQuery);
   }, []);
 
+  const onRegenerate = async (messageId: string) => {
+    const parentId = messageOperator.getParent(messageId);
+    const parentMessage = conversation.mapping[parentId];
+    if (!parentMessage || !parentMessage.message.content) {
+      console.error('Cannot find parent user message to regenerate from');
+      return;
+    }
+    setLoading(true);
+    try {
+      const askFN = ask(
+        conversationId,
+        parentMessage.message.content,
+        tools,
+        context,
+        messages.slice(0, messages.findIndex(m => m.id === parentId) + 1),
+        messageOperator,
+        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        getWizardLang(i18n),
+        namespaceId,
+        undefined,
+        undefined
+      );
+      askAbortRef.current = askFN.destroy;
+      await askFN.start();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     mode,
     value,
@@ -141,5 +170,7 @@ export default function useContext() {
     onContextChange,
     namespaceId,
     conversation,
+    messageOperator,
+    onRegenerate,
   };
 }
