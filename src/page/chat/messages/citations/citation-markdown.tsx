@@ -1,7 +1,9 @@
 import '@/styles/github-markdown.css';
 import 'katex/dist/katex.min.css';
 
+import { RefreshCw } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import Markdown, { ExtraProps } from 'react-markdown';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
@@ -13,6 +15,12 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 import Copy from '@/components/copy';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useTheme from '@/hooks/use-theme.ts';
 import Save from '@/page/chat/components/save';
@@ -91,12 +99,16 @@ interface IProps {
   citations: Citation[];
   status: MessageStatus;
   conversation: ConversationDetail;
+  messageId: string;
+  onRegenerate: (messageId: string) => void;
 }
 
 export function CitationMarkdown(props: IProps) {
-  const { content, status, citations, conversation } = props;
+  const { content, status, citations, conversation, messageId, onRegenerate } =
+    props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
@@ -184,6 +196,21 @@ export function CitationMarkdown(props: IProps) {
       </Markdown>
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
         <div className="flex ml-[-6px] mt-[-10px]">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="p-0 w-7 h-7"
+                onClick={() => onRegenerate(messageId)}
+              >
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t('chat.regenerate', 'Regenerate')}</p>
+            </TooltipContent>
+          </Tooltip>
           <Copy content={copyPreprocess(content, citations)} />
           <Save
             conversation={conversation}

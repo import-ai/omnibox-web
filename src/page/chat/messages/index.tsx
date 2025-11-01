@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { AssistantMessage } from '@/page/chat/messages/role/assistant-message';
 import { ToolMessage } from '@/page/chat/messages/role/tool-message';
 import { UserMessage } from '@/page/chat/messages/role/user-message';
@@ -15,10 +16,49 @@ import type {
 interface IProps {
   conversation: ConversationDetail;
   messages: MessageDetail[];
+  messageOperator: MessageOperator;
+  onRegenerate: (messageId: string) => void;
+}
+
+function renderMessage(
+  message: MessageDetail,
+  messages: MessageDetail[],
+  citations: Citation[],
+  conversation: ConversationDetail,
+  messageOperator: MessageOperator,
+  onRegenerate: (messageId: string) => void
+) {
+  const openAIMessage = message.message;
+
+  if (openAIMessage.role === OpenAIMessageRole.USER) {
+    return (
+      <UserMessage
+        message={message}
+        conversation={conversation}
+        messageOperator={messageOperator}
+      />
+    );
+  }
+  if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
+    return (
+      <AssistantMessage
+        message={message}
+        messages={messages}
+        citations={citations}
+        conversation={conversation}
+        messageOperator={messageOperator}
+        onRegenerate={onRegenerate}
+      />
+    );
+  }
+  if (openAIMessage.role === OpenAIMessageRole.TOOL) {
+    return <ToolMessage citations={citations} message={message} />;
+  }
+  return <></>;
 }
 
 export function Messages(props: IProps) {
-  const { messages, conversation } = props;
+  const { messages, conversation, messageOperator, onRegenerate } = props;
   const citations = React.useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
@@ -31,27 +71,6 @@ export function Messages(props: IProps) {
     return result;
   }, [messages]);
 
-  function renderMessage(message: MessageDetail) {
-    const openAIMessage = message.message;
-
-    if (openAIMessage.role === OpenAIMessageRole.USER) {
-      return <UserMessage message={message} />;
-    }
-    if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
-      return (
-        <AssistantMessage
-          message={message}
-          messages={messages}
-          citations={citations}
-          conversation={conversation}
-        />
-      );
-    }
-    if (openAIMessage.role === OpenAIMessageRole.TOOL) {
-      return <ToolMessage citations={citations} message={message} />;
-    }
-  }
-
   return (
     <div className="space-y-4">
       {messages
@@ -59,7 +78,14 @@ export function Messages(props: IProps) {
         .map((message, index) => {
           return (
             <div key={message.id}>
-              {renderMessage(message)}
+              {renderMessage(
+                message,
+                messages,
+                citations,
+                conversation,
+                messageOperator,
+                onRegenerate
+              )}
               {index < messages.length - 1 &&
                 ![OpenAIMessageRole.TOOL, OpenAIMessageRole.USER].includes(
                   message.message.role
