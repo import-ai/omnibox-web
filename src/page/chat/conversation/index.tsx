@@ -27,6 +27,7 @@ export default function ChatConversationPage() {
     conversation,
     messageOperator,
     onRegenerate,
+    onEdit,
   } = useContext();
 
   return (
@@ -44,6 +45,7 @@ export default function ChatConversationPage() {
             messages={normalizeChatData(messages)}
             messageOperator={messageOperator}
             onRegenerate={onRegenerate}
+            onEdit={onEdit}
           />
         )}
       </Scrollbar>

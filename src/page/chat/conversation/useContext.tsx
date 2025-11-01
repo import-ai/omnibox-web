@@ -96,7 +96,7 @@ export default function useContext() {
         query,
         tools,
         context,
-        messages,
+        messages[messages.length - 1]?.id,
         messageOperator,
         `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
         getWizardLang(i18n),
@@ -141,7 +141,31 @@ export default function useContext() {
         parentMessage.message.content,
         tools,
         context,
-        messages.slice(0, messages.findIndex(m => m.id === parentId) + 1),
+        parentId,
+        messageOperator,
+        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        getWizardLang(i18n),
+        namespaceId,
+        undefined,
+        undefined
+      );
+      askAbortRef.current = askFN.destroy;
+      await askFN.start();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onEdit = async (messageId: string, newContent: string) => {
+    const parentId = conversation.mapping[messageId].parent_id!;
+    setLoading(true);
+    try {
+      const askFN = ask(
+        conversationId,
+        newContent,
+        tools,
+        context,
+        parentId,
         messageOperator,
         `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
         getWizardLang(i18n),
@@ -172,5 +196,6 @@ export default function useContext() {
     conversation,
     messageOperator,
     onRegenerate,
+    onEdit,
   };
 }

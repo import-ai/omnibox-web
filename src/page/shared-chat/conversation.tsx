@@ -84,7 +84,31 @@ export default function SharedChatConversationPage() {
         query,
         tools,
         selectedResources,
-        messages,
+        messages[messages.length - 1]?.id,
+        messageOperator,
+        `/api/v1/shares/${shareId}/wizard/${mode}`,
+        getWizardLang(i18n),
+        undefined,
+        shareId,
+        password || undefined
+      );
+      askAbortRef.current = askFN.destroy;
+      await askFN.start();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onEdit = async (messageId: string, newContent: string) => {
+    const parentId = conversation.mapping[messageId].parent_id!;
+    setLoading(true);
+    try {
+      const askFN = ask(
+        conversationId,
+        newContent,
+        tools,
+        selectedResources,
+        parentId,
         messageOperator,
         `/api/v1/shares/${shareId}/wizard/${mode}`,
         getWizardLang(i18n),
@@ -119,7 +143,8 @@ export default function SharedChatConversationPage() {
           messages={normalizeChatData(messages)}
           conversation={conversation}
           messageOperator={messageOperator}
-          regnerate={undefined}
+          onRegenerate={() => {}}
+          onEdit={onEdit}
         />
       </Scrollbar>
       <div className="flex justify-center px-4">

@@ -18,6 +18,7 @@ interface IProps {
   messages: MessageDetail[];
   messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
+  onEdit: (messageId: string, newContent: string) => void;
 }
 
 function renderMessage(
@@ -26,12 +27,19 @@ function renderMessage(
   citations: Citation[],
   conversation: ConversationDetail,
   messageOperator: MessageOperator,
-  onRegenerate: (messageId: string) => void
+  onRegenerate: (messageId: string) => void,
+  onEdit: (messageId: string, newContent: string) => void
 ) {
   const openAIMessage = message.message;
 
   if (openAIMessage.role === OpenAIMessageRole.USER) {
-    return <UserMessage message={message} messageOperator={messageOperator} />;
+    return (
+      <UserMessage
+        message={message}
+        messageOperator={messageOperator}
+        onEdit={onEdit}
+      />
+    );
   }
   if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
     return (
@@ -52,7 +60,8 @@ function renderMessage(
 }
 
 export function Messages(props: IProps) {
-  const { messages, conversation, messageOperator, onRegenerate } = props;
+  const { messages, conversation, messageOperator, onRegenerate, onEdit } =
+    props;
   const citations = React.useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
@@ -78,7 +87,8 @@ export function Messages(props: IProps) {
                 citations,
                 conversation,
                 messageOperator,
-                onRegenerate
+                onRegenerate,
+                onEdit
               )}
               {index < messages.length - 1 &&
                 ![OpenAIMessageRole.TOOL, OpenAIMessageRole.USER].includes(
