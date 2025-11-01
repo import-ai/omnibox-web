@@ -8,7 +8,6 @@ import type {
   PrivateSearchResource,
 } from '@/page/chat/conversation/types';
 import { ChatResponse } from '@/page/chat/types/chat-response';
-import { MessageDetail } from '@/page/chat/types/conversation';
 
 function getPrivateSearchResources(
   context: IResTypeContext[]
@@ -27,7 +26,7 @@ export function prepareBody(
   query: string,
   tools: ToolType[],
   context: IResTypeContext[],
-  messages: MessageDetail[],
+  parent_message_id: string | undefined,
   lang: WizardLang | undefined
 ): ChatRequestBody {
   const body: ChatRequestBody = {
@@ -57,8 +56,8 @@ export function prepareBody(
     }
   }
 
-  if (messages.length > 0) {
-    body.parent_message_id = messages[messages.length - 1].id;
+  if (parent_message_id) {
+    body.parent_message_id = parent_message_id;
   }
   return body;
 }
@@ -68,7 +67,7 @@ export function ask(
   query: string,
   tools: ToolType[],
   context: IResTypeContext[],
-  messages: MessageDetail[],
+  parent_message_id: string | undefined,
   messageOperator: MessageOperator,
   url: string,
   lang: WizardLang | undefined,
@@ -81,7 +80,7 @@ export function ask(
     query,
     tools,
     context,
-    messages,
+    parent_message_id,
     lang
   );
   chatReq.namespace_id = namespaceId;
