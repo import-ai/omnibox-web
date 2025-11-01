@@ -31,13 +31,7 @@ function renderMessage(
   const openAIMessage = message.message;
 
   if (openAIMessage.role === OpenAIMessageRole.USER) {
-    return (
-      <UserMessage
-        message={message}
-        conversation={conversation}
-        messageOperator={messageOperator}
-      />
-    );
+    return <UserMessage message={message} messageOperator={messageOperator} />;
   }
   if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
     return (

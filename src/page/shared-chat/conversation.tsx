@@ -40,6 +40,10 @@ export default function SharedChatConversationPage() {
     id: conversationId,
     mapping: {},
   });
+  const messageOperator = useMemo(
+    () => createMessageOperator(conversation, setConversation),
+    [conversation, setConversation]
+  );
 
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
@@ -81,7 +85,7 @@ export default function SharedChatConversationPage() {
         tools,
         selectedResources,
         messages,
-        createMessageOperator(conversation, setConversation),
+        messageOperator,
         `/api/v1/shares/${shareId}/wizard/${mode}`,
         getWizardLang(i18n),
         undefined,
@@ -114,6 +118,8 @@ export default function SharedChatConversationPage() {
         <Messages
           messages={normalizeChatData(messages)}
           conversation={conversation}
+          messageOperator={messageOperator}
+          regnerate={undefined}
         />
       </Scrollbar>
       <div className="flex justify-center px-4">

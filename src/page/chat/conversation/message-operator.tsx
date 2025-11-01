@@ -105,11 +105,8 @@ export function createMessageOperator(
 
       setConversation(prev => {
         const newMapping = { ...prev.mapping, [message.id]: message };
-        let currentNode = prev.current_node;
-        if (message.parent_id === currentNode) {
-          currentNode = message.id;
-        }
-        if (message.parent_id) {
+
+        if (message.parent_id && prev.current_node !== undefined) {
           const parentMessage = prev.mapping[message.parent_id];
           if (parentMessage) {
             if (!parentMessage.children.includes(message.id)) {
@@ -124,7 +121,7 @@ export function createMessageOperator(
         return {
           ...prev,
           mapping: newMapping,
-          current_node: currentNode,
+          current_node: message.id,
         };
       });
       return chatResponse.id;
@@ -162,7 +159,7 @@ export function createMessageOperator(
         while (parentNode.message.role !== OpenAIMessageRole.USER) {
           parentNode = conversation.mapping[parentNode.parent_id!];
         }
-        return getChildren(conversation, parentNode.id, OpenAIMessageRole.USER);
+        return getChildren(conversation, parentNode.id, currentRole);
       }
       return [];
     },
