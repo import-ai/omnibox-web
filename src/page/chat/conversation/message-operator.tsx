@@ -21,6 +21,7 @@ export interface MessageOperator {
   done: (id?: string) => void;
   activate: (id: string) => void;
   getSiblings: (id: string) => string[];
+  getParent: (id: string) => string;
 }
 
 function getChildren(
@@ -164,6 +165,25 @@ export function createMessageOperator(
         return getChildren(conversation, parentNode.id, OpenAIMessageRole.USER);
       }
       return [];
+    },
+
+    /**
+     * Get non-tool parent of a message.
+     * @param id
+     */
+    getParent: (id: string): string => {
+      let currentNode = conversation.mapping[id];
+      if (currentNode) {
+        const targetRoles =
+          currentNode.message.role === OpenAIMessageRole.ASSISTANT
+            ? [OpenAIMessageRole.USER]
+            : [OpenAIMessageRole.ASSISTANT, OpenAIMessageRole.SYSTEM];
+        while (!targetRoles.includes(currentNode.message.role)) {
+          currentNode = conversation.mapping[currentNode.parent_id!];
+        }
+        return currentNode.id;
+      }
+      return '';
     },
 
     /**
