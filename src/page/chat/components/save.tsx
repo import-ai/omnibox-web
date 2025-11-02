@@ -55,7 +55,7 @@ export default function SaveMain(props: IProps) {
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <p>{t('chat.save_to_private')}</p>
+        <p>{t('chat.messages.actions.save')}</p>
       </TooltipContent>
     </Tooltip>
   );

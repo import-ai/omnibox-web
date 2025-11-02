@@ -50,7 +50,7 @@ export default function CopyMain(props: IProps) {
         )}
       </TooltipTrigger>
       <TooltipContent>
-        <p>{t('copy.title')}</p>
+        <p>{t('chat.messages.actions.copy')}</p>
       </TooltipContent>
     </Tooltip>
   );

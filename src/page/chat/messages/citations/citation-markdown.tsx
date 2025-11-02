@@ -249,7 +249,7 @@ export function CitationMarkdown(props: IProps) {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{t('chat.regenerate', 'Regenerate')}</p>
+              <p>{t('chat.messages.actions.regenerate')}</p>
             </TooltipContent>
           </Tooltip>
           <Copy content={copyPreprocess(content, citations)} />
