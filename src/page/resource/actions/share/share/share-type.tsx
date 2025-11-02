@@ -26,7 +26,9 @@ export function ShareTypeSelector(props: ShareTypeProps) {
       </SelectTrigger>
       <SelectContent>
         {shareTypes.map(type => (
-          <SelectItem value={type}>{shareTypeToString(type)}</SelectItem>
+          <SelectItem key={type} value={type}>
+            {shareTypeToString(type)}
+          </SelectItem>
         ))}
       </SelectContent>
     </Select>

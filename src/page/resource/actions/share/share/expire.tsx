@@ -116,7 +116,7 @@ export function Expire(props: ExpireProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger disabled={disabled}>
+      <DialogTrigger asChild>
         <Button variant="outline" className="h-6" disabled={disabled}>
           {expiresAt
             ? expiresAt.toLocaleString()
@@ -134,7 +134,7 @@ export function Expire(props: ExpireProps) {
             </SelectTrigger>
             <SelectContent>
               {ExpiresTypes.map(type => (
-                <SelectItem value={type}>
+                <SelectItem key={type} value={type}>
                   {expiresTypeToString(type)}
                 </SelectItem>
               ))}
@@ -174,7 +174,9 @@ export function Expire(props: ExpireProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {CountDownUnits.map(unit => (
-                    <SelectItem value={unit}>{unitToString(unit)}</SelectItem>
+                    <SelectItem key={unit} value={unit}>
+                      {unitToString(unit)}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
