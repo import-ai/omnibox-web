@@ -1,3 +1,5 @@
+import { toast } from 'sonner';
+
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
 import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
@@ -96,6 +98,9 @@ export function ask(
       messageOperator.done();
     } else if (chatResponse.response_type === 'done') {
     } else if (chatResponse.response_type === 'error') {
+      toast('Chat Error', {
+        description: chatResponse.error,
+      });
       console.error(chatResponse);
     } else {
       console.error({ message: 'Unknown response type', chatResponse });

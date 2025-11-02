@@ -73,7 +73,7 @@ export interface ChatDoneResponse extends ChatBaseResponse {
 
 export interface ChatErrorResponse extends ChatBaseResponse {
   response_type: 'error';
-  message: string;
+  error: string;
 }
 
 export type ChatResponse =

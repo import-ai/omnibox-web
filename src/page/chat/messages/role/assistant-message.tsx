@@ -46,6 +46,8 @@ export function AssistantMessage(props: IProps) {
     return messageOperator.getSiblings(message.id);
   }, [messageOperator, message.id]);
 
+  console.log({ siblings });
+
   const currentIndex = siblings.indexOf(message.id);
   const hasSiblings = siblings.length > 1;
 

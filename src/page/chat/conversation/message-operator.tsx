@@ -24,19 +24,18 @@ export interface MessageOperator {
   getParent: (id: string) => string;
 }
 
-function getChildren(
-  conversation: ConversationDetail,
-  id: string,
-  targetRole: OpenAIMessageRole
-): string[] {
+function getChildren(conversation: ConversationDetail, id: string): string[] {
   const currentNode = conversation.mapping[id];
   if (currentNode) {
-    if (currentNode.message.role === targetRole) {
+    if (
+      currentNode.message.role === OpenAIMessageRole.ASSISTANT &&
+      !currentNode.message.tool_calls
+    ) {
       return [id];
     }
     const targetChildren: string[] = [];
     for (const childId of currentNode.children || []) {
-      targetChildren.push(...getChildren(conversation, childId, targetRole));
+      targetChildren.push(...getChildren(conversation, childId));
     }
     return targetChildren;
   }
@@ -159,7 +158,7 @@ export function createMessageOperator(
         while (parentNode.message.role !== OpenAIMessageRole.USER) {
           parentNode = conversation.mapping[parentNode.parent_id!];
         }
-        return getChildren(conversation, parentNode.id, currentRole);
+        return getChildren(conversation, parentNode.id);
       }
       return [];
     },
