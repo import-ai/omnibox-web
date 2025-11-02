@@ -1,5 +1,5 @@
 import { Loader2Icon } from 'lucide-react';
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
+import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
 import type { Citation } from '@/page/chat/types/chat-response';
 import {
   MessageStatus,
@@ -42,24 +43,8 @@ export function AssistantMessage(props: IProps) {
   const { t } = useTranslation();
   const openAIMessage = message.message;
 
-  const siblings = useMemo(() => {
-    return messageOperator.getSiblings(message.id);
-  }, [messageOperator, message.id]);
-
-  const currentIndex = siblings.indexOf(message.id);
-  const hasSiblings = siblings.length > 1;
-
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      messageOperator.activate(siblings[currentIndex - 1]);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentIndex < siblings.length - 1) {
-      messageOperator.activate(siblings[currentIndex + 1]);
-    }
-  };
+  const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
+    useMessageSiblings(message.id, messageOperator);
 
   const domList: React.ReactNode[] = [];
   if (openAIMessage.reasoning_content?.trim()) {

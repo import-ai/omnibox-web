@@ -1,11 +1,12 @@
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import Copy from '@/components/copy';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
+import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
 import { MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {
@@ -24,24 +25,8 @@ export function UserMessage(props: IProps) {
     openAIMessage.content || ''
   );
 
-  const siblings = useMemo(() => {
-    return messageOperator.getSiblings(message.id);
-  }, [messageOperator, message.id]);
-
-  const currentIndex = siblings.indexOf(message.id);
-  const hasSiblings = siblings.length > 1;
-
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      messageOperator.activate(siblings[currentIndex - 1]);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentIndex < siblings.length - 1) {
-      messageOperator.activate(siblings[currentIndex + 1]);
-    }
-  };
+  const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
+    useMessageSiblings(message.id, messageOperator);
 
   const handleEditClick = () => {
     setEditedContent(openAIMessage.content || '');

@@ -9,7 +9,10 @@ import ChatArea from '@/page/chat/chat-input';
 import { type ChatActionType } from '@/page/chat/chat-input/types';
 import { createMessageOperator } from '@/page/chat/conversation/message-operator';
 import Scrollbar from '@/page/chat/conversation/scrollbar';
-import { ask, extractToolsAndContext } from '@/page/chat/conversation/utils';
+import {
+  ask,
+  extractOriginalMessageSettings,
+} from '@/page/chat/conversation/utils';
 import { Messages } from '@/page/chat/messages';
 import { normalizeChatData } from '@/page/chat/normalize-chat';
 import {
@@ -103,23 +106,16 @@ export default function SharedChatConversationPage() {
     const parentId = conversation.mapping[messageId].parent_id;
     const editedMessage = conversation.mapping[messageId];
 
-    // Use original tools/settings from the message being edited, fallback to current state
-    let originalTools = tools;
-    let originalContext = selectedResources;
-    let originalLang = getWizardLang(i18n);
-    let originalEnableThinking: boolean | undefined = undefined;
-
-    if (editedMessage.attrs?.tools) {
-      const extracted = extractToolsAndContext(editedMessage.attrs.tools);
-      originalTools = extracted.tools;
-      originalContext = extracted.context;
-    }
-    if (editedMessage.attrs?.lang) {
-      originalLang = editedMessage.attrs.lang;
-    }
-    if (editedMessage.attrs?.enable_thinking !== undefined) {
-      originalEnableThinking = editedMessage.attrs.enable_thinking;
-    }
+    const {
+      originalTools,
+      originalContext,
+      originalLang,
+      originalEnableThinking,
+    } = extractOriginalMessageSettings(editedMessage, {
+      tools,
+      context: selectedResources,
+      lang: getWizardLang(i18n),
+    });
 
     setLoading(true);
     try {
@@ -152,23 +148,16 @@ export default function SharedChatConversationPage() {
       return;
     }
 
-    // Use original tools/settings from parent message, fallback to current state
-    let originalTools = tools;
-    let originalContext = selectedResources;
-    let originalLang = getWizardLang(i18n);
-    let originalEnableThinking: boolean | undefined = undefined;
-
-    if (parentMessage.attrs?.tools) {
-      const extracted = extractToolsAndContext(parentMessage.attrs.tools);
-      originalTools = extracted.tools;
-      originalContext = extracted.context;
-    }
-    if (parentMessage.attrs?.lang) {
-      originalLang = parentMessage.attrs.lang;
-    }
-    if (parentMessage.attrs?.enable_thinking !== undefined) {
-      originalEnableThinking = parentMessage.attrs.enable_thinking;
-    }
+    const {
+      originalTools,
+      originalContext,
+      originalLang,
+      originalEnableThinking,
+    } = extractOriginalMessageSettings(parentMessage, {
+      tools,
+      context: selectedResources,
+      lang: getWizardLang(i18n),
+    });
 
     setLoading(true);
     try {

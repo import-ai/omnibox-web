@@ -11,6 +11,7 @@ import type {
   PrivateSearchResource,
 } from '@/page/chat/conversation/types';
 import { ChatResponse } from '@/page/chat/types/chat-response';
+import { MessageDetail } from '@/page/chat/types/conversation';
 
 function getPrivateSearchResources(
   context: IResTypeContext[]
@@ -56,6 +57,48 @@ export function extractToolsAndContext(chatTools: ChatTool[]): {
   }
 
   return { tools, context };
+}
+
+/**
+ * Extract original tools/settings from a message's attributes with fallback to current state
+ */
+export function extractOriginalMessageSettings(
+  message: MessageDetail | undefined,
+  fallbacks: {
+    tools: ToolType[];
+    context: IResTypeContext[];
+    lang: WizardLang;
+    enableThinking?: boolean;
+  }
+): {
+  originalTools: ToolType[];
+  originalContext: IResTypeContext[];
+  originalLang: WizardLang;
+  originalEnableThinking: boolean | undefined;
+} {
+  let originalTools = fallbacks.tools;
+  let originalContext = fallbacks.context;
+  let originalLang = fallbacks.lang;
+  let originalEnableThinking: boolean | undefined = fallbacks.enableThinking;
+
+  if (message?.attrs?.tools) {
+    const extracted = extractToolsAndContext(message.attrs.tools);
+    originalTools = extracted.tools;
+    originalContext = extracted.context;
+  }
+  if (message?.attrs?.lang) {
+    originalLang = message.attrs.lang;
+  }
+  if (message?.attrs?.enable_thinking !== undefined) {
+    originalEnableThinking = message.attrs.enable_thinking;
+  }
+
+  return {
+    originalTools,
+    originalContext,
+    originalLang,
+    originalEnableThinking,
+  };
 }
 
 export function prepareBody(
