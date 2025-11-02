@@ -1,9 +1,15 @@
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import Copy from '@/components/copy';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
@@ -17,6 +23,7 @@ interface IProps {
 
 export function UserMessage(props: IProps) {
   const { message, messageOperator, onEdit } = props;
+  const { t } = useTranslation();
   const openAIMessage = message.message;
   const lines = openAIMessage.content?.split('\n') || [];
 
@@ -63,14 +70,14 @@ export function UserMessage(props: IProps) {
             />
             <div className="flex gap-2 justify-end">
               <Button size="sm" variant="outline" onClick={handleCancel}>
-                Cancel
+                {t('chat.messages.actions.cancel_edit')}
               </Button>
               <Button
                 size="sm"
                 onClick={handleSave}
                 disabled={!editedContent.trim()}
               >
-                Save
+                {t('chat.messages.actions.save_edit')}
               </Button>
             </div>
           </div>
@@ -85,14 +92,21 @@ export function UserMessage(props: IProps) {
       </div>
       <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
         {!isEditing && (
-          <Button
-            size="icon"
-            variant="ghost"
-            className="p-0 w-7 h-7"
-            onClick={handleEditClick}
-          >
-            <Pencil className="w-4 h-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="p-0 w-7 h-7"
+                onClick={handleEditClick}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t('chat.messages.actions.edit')}</p>
+            </TooltipContent>
+          </Tooltip>
         )}
         <Copy content={openAIMessage.content || ''} />
         {hasSiblings && (
@@ -100,7 +114,7 @@ export function UserMessage(props: IProps) {
             <Button
               size="icon"
               variant="ghost"
-              className="p-0 w-6 h-6"
+              className="p-0 w-4 h-7"
               onClick={handlePrevious}
               disabled={currentIndex === 0}
             >
@@ -112,7 +126,7 @@ export function UserMessage(props: IProps) {
             <Button
               size="icon"
               variant="ghost"
-              className="p-0 w-6 h-6"
+              className="p-0 w-4 h-7"
               onClick={handleNext}
               disabled={currentIndex === siblings.length - 1}
             >

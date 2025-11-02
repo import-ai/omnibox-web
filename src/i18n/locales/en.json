@@ -321,7 +321,10 @@
       "actions": {
         "regenerate": "Regenerate",
         "save": "Save to private space",
-        "copy": "Copy Markdown"
+        "copy": "Copy Markdown",
+        "edit": "Edit message",
+        "save_edit": "Save",
+        "cancel_edit": "Cancel"
       }
     },
     "conversations": {

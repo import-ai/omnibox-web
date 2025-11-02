@@ -29,6 +29,7 @@ interface IProps {
   citations: Citation[];
   messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
+  isLastMessage: boolean;
 }
 
 export function AssistantMessage(props: IProps) {
@@ -39,6 +40,7 @@ export function AssistantMessage(props: IProps) {
     conversation,
     messageOperator,
     onRegenerate,
+    isLastMessage,
   } = props;
   const { t } = useTranslation();
   const openAIMessage = message.message;
@@ -80,6 +82,7 @@ export function AssistantMessage(props: IProps) {
         siblingsLength={siblings.length}
         onPrevious={handlePrevious}
         onNext={handleNext}
+        isLastMessage={isLastMessage}
       />
     );
   }

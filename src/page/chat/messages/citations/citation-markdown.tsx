@@ -106,6 +106,7 @@ interface IProps {
   siblingsLength?: number;
   onPrevious?: () => void;
   onNext?: () => void;
+  isLastMessage: boolean;
 }
 
 export function CitationMarkdown(props: IProps) {
@@ -121,6 +122,7 @@ export function CitationMarkdown(props: IProps) {
     siblingsLength,
     onPrevious,
     onNext,
+    isLastMessage,
   } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
@@ -200,7 +202,7 @@ export function CitationMarkdown(props: IProps) {
 
   return (
     <div
-      className="markdown-body reset-list"
+      className="group markdown-body reset-list"
       style={{ background: 'transparent' }}
     >
       <Markdown
@@ -211,7 +213,13 @@ export function CitationMarkdown(props: IProps) {
         {replacedContent}
       </Markdown>
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
-        <div className="flex items-center gap-1 ml-[-6px] mt-[-10px]">
+        <div
+          className={`flex items-center gap-1 ml-[-6px] mt-[-10px] ${
+            isLastMessage
+              ? ''
+              : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
+          }`}
+        >
           {hasSiblings && (
             <>
               <Button

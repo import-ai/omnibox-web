@@ -321,7 +321,10 @@
       "actions": {
         "regenerate": "重新生成",
         "save": "保存至个人空间",
-        "copy": "复制 Markdown"
+        "copy": "复制 Markdown",
+        "edit": "编辑消息",
+        "save_edit": "保存",
+        "cancel_edit": "取消"
       }
     },
     "conversations": {
