@@ -83,7 +83,7 @@ export function UserMessage(props: IProps) {
           ))
         )}
       </div>
-      <div className="flex items-center gap-1 group-hover:opacity-100 opacity-0">
+      <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
         {!isEditing && (
           <Button
             size="icon"
