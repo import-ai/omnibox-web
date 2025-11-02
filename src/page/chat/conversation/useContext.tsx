@@ -15,7 +15,7 @@ import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/conversation/message-operator';
-import { ask } from '@/page/chat/conversation/utils';
+import { ask, extractToolsAndContext } from '@/page/chat/conversation/utils';
 import {
   ConversationDetail,
   MessageDetail,
@@ -134,20 +134,40 @@ export default function useContext() {
       console.error('Cannot find parent user message to regenerate from');
       return;
     }
+
+    // Use original tools/settings from parent message, fallback to current state
+    let originalTools = tools;
+    let originalContext = context;
+    let originalLang = getWizardLang(i18n);
+    let originalEnableThinking: boolean | undefined = undefined;
+
+    if (parentMessage.attrs?.tools) {
+      const extracted = extractToolsAndContext(parentMessage.attrs.tools);
+      originalTools = extracted.tools;
+      originalContext = extracted.context;
+    }
+    if (parentMessage.attrs?.lang) {
+      originalLang = parentMessage.attrs.lang;
+    }
+    if (parentMessage.attrs?.enable_thinking !== undefined) {
+      originalEnableThinking = parentMessage.attrs.enable_thinking;
+    }
+
     setLoading(true);
     try {
       const askFN = ask(
         conversationId,
         parentMessage.message.content,
-        tools,
-        context,
+        originalTools,
+        originalContext,
         parentId,
         messageOperator,
         `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
-        getWizardLang(i18n),
+        originalLang,
         namespaceId,
         undefined,
-        undefined
+        undefined,
+        originalEnableThinking
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
@@ -157,21 +177,42 @@ export default function useContext() {
   };
 
   const onEdit = async (messageId: string, newContent: string) => {
-    const parentId = conversation.mapping[messageId].parent_id!;
+    const parentId = conversation.mapping[messageId].parent_id;
+    const editedMessage = conversation.mapping[messageId];
+
+    // Use original tools/settings from the message being edited, fallback to current state
+    let originalTools = tools;
+    let originalContext = context;
+    let originalLang = getWizardLang(i18n);
+    let originalEnableThinking: boolean | undefined = undefined;
+
+    if (editedMessage.attrs?.tools) {
+      const extracted = extractToolsAndContext(editedMessage.attrs.tools);
+      originalTools = extracted.tools;
+      originalContext = extracted.context;
+    }
+    if (editedMessage.attrs?.lang) {
+      originalLang = editedMessage.attrs.lang;
+    }
+    if (editedMessage.attrs?.enable_thinking !== undefined) {
+      originalEnableThinking = editedMessage.attrs.enable_thinking;
+    }
+
     setLoading(true);
     try {
       const askFN = ask(
         conversationId,
         newContent,
-        tools,
-        context,
+        originalTools,
+        originalContext,
         parentId,
         messageOperator,
         `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
-        getWizardLang(i18n),
+        originalLang,
         namespaceId,
         undefined,
-        undefined
+        undefined,
+        originalEnableThinking
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();

@@ -24,20 +24,38 @@ export interface MessageOperator {
   getParent: (id: string) => string;
 }
 
-function getChildren(conversation: ConversationDetail, id: string): string[] {
-  const currentNode = conversation.mapping[id];
-  if (currentNode) {
-    if (
-      currentNode.message.role === OpenAIMessageRole.ASSISTANT &&
-      !currentNode.message.tool_calls
-    ) {
-      return [id];
+function getChildren(
+  conversation: ConversationDetail,
+  id: string,
+  targetRole: OpenAIMessageRole
+): string[] {
+  if (targetRole === OpenAIMessageRole.ASSISTANT) {
+    const currentNode = conversation.mapping[id];
+    if (currentNode) {
+      if (
+        currentNode.message.role === OpenAIMessageRole.ASSISTANT &&
+        !currentNode.message.tool_calls
+      ) {
+        return [id];
+      }
+      const targetChildren: string[] = [];
+      for (const childId of currentNode.children || []) {
+        targetChildren.push(...getChildren(conversation, childId, targetRole));
+      }
+      return targetChildren;
     }
-    const targetChildren: string[] = [];
-    for (const childId of currentNode.children || []) {
-      targetChildren.push(...getChildren(conversation, childId));
+  } else if (targetRole === OpenAIMessageRole.USER) {
+    const currentNode = conversation.mapping[id];
+    if (currentNode) {
+      return currentNode.children;
     }
-    return targetChildren;
+    const children: string[] = [];
+    for (const node of Object.values(conversation.mapping)) {
+      if (node.parent_id === id) {
+        children.push(node.id);
+      }
+    }
+    return children;
   }
   return [];
 }
@@ -149,16 +167,19 @@ export function createMessageOperator(
      */
     getSiblings: (id: string): string[] => {
       const currentNode = conversation.mapping[id];
+      if (currentNode.message.tool_calls) {
+        return [id];
+      }
       if (currentNode) {
         const currentRole = currentNode.message.role;
-        if (currentRole === OpenAIMessageRole.USER) {
-          return conversation.mapping[currentNode.parent_id!]?.children || [];
+        if (currentNode.message.role === OpenAIMessageRole.USER) {
+          return getChildren(conversation, currentNode.parent_id, currentRole);
         }
         let parentNode = currentNode;
         while (parentNode.message.role !== OpenAIMessageRole.USER) {
-          parentNode = conversation.mapping[parentNode.parent_id!];
+          parentNode = conversation.mapping[parentNode.parent_id];
         }
-        return getChildren(conversation, parentNode.id);
+        return getChildren(conversation, parentNode.id, currentRole);
       }
       return [];
     },
@@ -175,7 +196,7 @@ export function createMessageOperator(
             ? [OpenAIMessageRole.USER]
             : [OpenAIMessageRole.ASSISTANT, OpenAIMessageRole.SYSTEM];
         while (!targetRoles.includes(currentNode.message.role)) {
-          currentNode = conversation.mapping[currentNode.parent_id!];
+          currentNode = conversation.mapping[currentNode.parent_id];
         }
         return currentNode.id;
       }

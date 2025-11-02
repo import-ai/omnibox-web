@@ -26,7 +26,7 @@ export interface Reasoning extends IChatTool {
   name: ToolType.REASONING;
 }
 
-type ChatTool = WebSearch | PrivateSearch | Reasoning;
+export type ChatTool = WebSearch | PrivateSearch | Reasoning;
 
 export interface ChatRequestBody {
   conversation_id: string;
