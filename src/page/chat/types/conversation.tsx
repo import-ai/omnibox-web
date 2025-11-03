@@ -1,4 +1,5 @@
 import { IBase } from '@/interface';
+import type { ChatTool } from '@/page/chat/conversation/types';
 import type {
   Citation,
   MessageStatus,
@@ -12,13 +13,20 @@ export interface ConversationSummary extends IBase {
   assistant_content?: string;
 }
 
+export interface MessageAttrs {
+  citations?: Citation[];
+  tools?: ChatTool[];
+  enable_thinking?: boolean;
+  lang?: '简体中文' | 'English';
+}
+
 export interface MessageDetail extends IBase {
   id: string;
   message: OpenAIMessage;
   status: MessageStatus;
-  parent_id?: string;
+  parent_id: string;
   children: string[];
-  attrs?: { citations?: Citation[] };
+  attrs?: MessageAttrs;
 }
 
 export interface ConversationDetail extends IBase {

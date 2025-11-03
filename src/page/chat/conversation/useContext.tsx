@@ -15,7 +15,10 @@ import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/conversation/message-operator';
-import { ask } from '@/page/chat/conversation/utils';
+import {
+  ask,
+  extractOriginalMessageSettings,
+} from '@/page/chat/conversation/utils';
 import {
   ConversationDetail,
   MessageDetail,
@@ -70,8 +73,8 @@ export default function useContext() {
     return result;
   }, [conversation]);
   const messageOperator = useMemo((): MessageOperator => {
-    return createMessageOperator(setConversation);
-  }, [setConversation]);
+    return createMessageOperator(conversation, setConversation);
+  }, [conversation, setConversation]);
   const onAction = async (action?: ChatActionType) => {
     if (action === 'stop') {
       isFunction(askAbortRef.current) && askAbortRef.current();
@@ -96,7 +99,7 @@ export default function useContext() {
         query,
         tools,
         context,
-        messages,
+        messages[messages.length - 1]?.id,
         messageOperator,
         `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
         getWizardLang(i18n),
@@ -127,6 +130,86 @@ export default function useContext() {
     submit(routeQuery);
   }, []);
 
+  const onRegenerate = async (messageId: string) => {
+    const parentId = messageOperator.getParent(messageId);
+    const parentMessage = conversation.mapping[parentId];
+    if (!parentMessage || !parentMessage.message.content) {
+      console.error('Cannot find parent user message to regenerate from');
+      return;
+    }
+
+    const {
+      originalTools,
+      originalContext,
+      originalLang,
+      originalEnableThinking,
+    } = extractOriginalMessageSettings(parentMessage, {
+      tools,
+      context,
+      lang: getWizardLang(i18n),
+    });
+
+    setLoading(true);
+    try {
+      const askFN = ask(
+        conversationId,
+        parentMessage.message.content,
+        originalTools,
+        originalContext,
+        parentId,
+        messageOperator,
+        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        originalLang,
+        namespaceId,
+        undefined,
+        undefined,
+        originalEnableThinking
+      );
+      askAbortRef.current = askFN.destroy;
+      await askFN.start();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onEdit = async (messageId: string, newContent: string) => {
+    const parentId = conversation.mapping[messageId].parent_id;
+    const editedMessage = conversation.mapping[messageId];
+
+    const {
+      originalTools,
+      originalContext,
+      originalLang,
+      originalEnableThinking,
+    } = extractOriginalMessageSettings(editedMessage, {
+      tools,
+      context,
+      lang: getWizardLang(i18n),
+    });
+
+    setLoading(true);
+    try {
+      const askFN = ask(
+        conversationId,
+        newContent,
+        originalTools,
+        originalContext,
+        parentId,
+        messageOperator,
+        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        originalLang,
+        namespaceId,
+        undefined,
+        undefined,
+        originalEnableThinking
+      );
+      askAbortRef.current = askFN.destroy;
+      await askFN.start();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     mode,
     value,
@@ -141,5 +224,8 @@ export default function useContext() {
     onContextChange,
     namespaceId,
     conversation,
+    messageOperator,
+    onRegenerate,
+    onEdit,
   };
 }

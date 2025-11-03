@@ -317,7 +317,16 @@
     "citations_results": "Search Results",
     "searching": "Searching...",
     "disclaimer": "OmniBox can make mistakes. Check important info.",
-    "save_to_private": "Save to private space",
+    "messages": {
+      "actions": {
+        "regenerate": "Regenerate",
+        "save": "Save to private space",
+        "copy": "Copy Markdown",
+        "edit": "Edit message",
+        "save_edit": "Save",
+        "cancel_edit": "Cancel"
+      }
+    },
     "conversations": {
       "new": "New conversation",
       "new_chat": "New Chat",

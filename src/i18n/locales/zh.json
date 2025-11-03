@@ -317,7 +317,16 @@
     "citations_results": "搜索结果",
     "searching": "搜索中...",
     "disclaimer": "OmniBox 也可能会犯错。请核查重要信息。",
-    "save_to_private": "保存至个人空间",
+    "messages": {
+      "actions": {
+        "regenerate": "重新生成",
+        "save": "保存至个人空间",
+        "copy": "复制 Markdown",
+        "edit": "编辑消息",
+        "save_edit": "保存",
+        "cancel_edit": "取消"
+      }
+    },
     "conversations": {
       "new": "新对话",
       "new_chat": "新建对话",

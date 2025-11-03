@@ -9,7 +9,10 @@ import ChatArea from '@/page/chat/chat-input';
 import { type ChatActionType } from '@/page/chat/chat-input/types';
 import { createMessageOperator } from '@/page/chat/conversation/message-operator';
 import Scrollbar from '@/page/chat/conversation/scrollbar';
-import { ask } from '@/page/chat/conversation/utils';
+import {
+  ask,
+  extractOriginalMessageSettings,
+} from '@/page/chat/conversation/utils';
 import { Messages } from '@/page/chat/messages';
 import { normalizeChatData } from '@/page/chat/normalize-chat';
 import {
@@ -40,6 +43,10 @@ export default function SharedChatConversationPage() {
     id: conversationId,
     mapping: {},
   });
+  const messageOperator = useMemo(
+    () => createMessageOperator(conversation, setConversation),
+    [conversation, setConversation]
+  );
 
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
@@ -80,13 +87,93 @@ export default function SharedChatConversationPage() {
         query,
         tools,
         selectedResources,
-        messages,
-        createMessageOperator(setConversation),
+        messages[messages.length - 1]?.id,
+        messageOperator,
         `/api/v1/shares/${shareId}/wizard/${mode}`,
         getWizardLang(i18n),
         undefined,
         shareId,
         password || undefined
+      );
+      askAbortRef.current = askFN.destroy;
+      await askFN.start();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onEdit = async (messageId: string, newContent: string) => {
+    const parentId = conversation.mapping[messageId].parent_id;
+    const editedMessage = conversation.mapping[messageId];
+
+    const {
+      originalTools,
+      originalContext,
+      originalLang,
+      originalEnableThinking,
+    } = extractOriginalMessageSettings(editedMessage, {
+      tools,
+      context: selectedResources,
+      lang: getWizardLang(i18n),
+    });
+
+    setLoading(true);
+    try {
+      const askFN = ask(
+        conversationId,
+        newContent,
+        originalTools,
+        originalContext,
+        parentId,
+        messageOperator,
+        `/api/v1/shares/${shareId}/wizard/${mode}`,
+        originalLang,
+        undefined,
+        shareId,
+        password || undefined,
+        originalEnableThinking
+      );
+      askAbortRef.current = askFN.destroy;
+      await askFN.start();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRegenerate = async (messageId: string) => {
+    const parentId = messageOperator.getParent(messageId);
+    const parentMessage = conversation.mapping[parentId];
+    if (!parentMessage || !parentMessage.message.content) {
+      console.error('Cannot find parent user message to regenerate from');
+      return;
+    }
+
+    const {
+      originalTools,
+      originalContext,
+      originalLang,
+      originalEnableThinking,
+    } = extractOriginalMessageSettings(parentMessage, {
+      tools,
+      context: selectedResources,
+      lang: getWizardLang(i18n),
+    });
+
+    setLoading(true);
+    try {
+      const askFN = ask(
+        conversationId,
+        parentMessage.message.content,
+        originalTools,
+        originalContext,
+        parentId,
+        messageOperator,
+        `/api/v1/shares/${shareId}/wizard/${mode}`,
+        originalLang,
+        undefined,
+        shareId,
+        password || undefined,
+        originalEnableThinking
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
@@ -111,7 +198,13 @@ export default function SharedChatConversationPage() {
   return (
     <div className="flex flex-col h-full">
       <Scrollbar>
-        <Messages messages={normalizeChatData(messages)} />
+        <Messages
+          messages={normalizeChatData(messages)}
+          conversation={conversation}
+          messageOperator={messageOperator}
+          onRegenerate={onRegenerate}
+          onEdit={onEdit}
+        />
       </Scrollbar>
       <div className="flex justify-center px-4">
         <div className="flex-1 max-w-3xl w-full">

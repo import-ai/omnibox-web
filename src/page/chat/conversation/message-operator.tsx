@@ -4,6 +4,7 @@ import {
   ChatBOSResponse,
   ChatDeltaResponse,
   MessageStatus,
+  OpenAIMessageRole,
 } from '@/page/chat/types/chat-response';
 import {
   ConversationDetail,
@@ -19,9 +20,48 @@ export interface MessageOperator {
   add: (chatResponse: ChatBOSResponse) => string;
   done: (id?: string) => void;
   activate: (id: string) => void;
+  getSiblings: (id: string) => string[];
+  getParent: (id: string) => string;
+}
+
+function getChildren(
+  conversation: ConversationDetail,
+  id: string,
+  targetRole: OpenAIMessageRole
+): string[] {
+  if (targetRole === OpenAIMessageRole.ASSISTANT) {
+    const currentNode = conversation.mapping[id];
+    if (currentNode) {
+      if (
+        currentNode.message.role === OpenAIMessageRole.ASSISTANT &&
+        !currentNode.message.tool_calls
+      ) {
+        return [id];
+      }
+      const targetChildren: string[] = [];
+      for (const childId of currentNode.children || []) {
+        targetChildren.push(...getChildren(conversation, childId, targetRole));
+      }
+      return targetChildren;
+    }
+  } else if (targetRole === OpenAIMessageRole.USER) {
+    const currentNode = conversation.mapping[id];
+    if (currentNode) {
+      return currentNode.children;
+    }
+    const children: string[] = [];
+    for (const node of Object.values(conversation.mapping)) {
+      if (node.parent_id === id) {
+        children.push(node.id);
+      }
+    }
+    return children;
+  }
+  return [];
 }
 
 export function createMessageOperator(
+  conversation: ConversationDetail,
   setConversation: Dispatch<SetStateAction<ConversationDetail>>
 ): MessageOperator {
   return {
@@ -82,11 +122,8 @@ export function createMessageOperator(
 
       setConversation(prev => {
         const newMapping = { ...prev.mapping, [message.id]: message };
-        let currentNode = prev.current_node;
-        if (message.parent_id === currentNode) {
-          currentNode = message.id;
-        }
-        if (message.parent_id) {
+
+        if (message.parent_id && prev.current_node !== undefined) {
           const parentMessage = prev.mapping[message.parent_id];
           if (parentMessage) {
             if (!parentMessage.children.includes(message.id)) {
@@ -101,7 +138,7 @@ export function createMessageOperator(
         return {
           ...prev,
           mapping: newMapping,
-          current_node: currentNode,
+          current_node: message.id,
         };
       });
       return chatResponse.id;
@@ -125,8 +162,49 @@ export function createMessageOperator(
     },
 
     /**
+     * Get siblings of a message.
+     * @param id
+     */
+    getSiblings: (id: string): string[] => {
+      const currentNode = conversation.mapping[id];
+      if (currentNode.message.tool_calls) {
+        return [id];
+      }
+      if (currentNode) {
+        const currentRole = currentNode.message.role;
+        if (currentNode.message.role === OpenAIMessageRole.USER) {
+          return getChildren(conversation, currentNode.parent_id, currentRole);
+        }
+        let parentNode = currentNode;
+        while (parentNode.message.role !== OpenAIMessageRole.USER) {
+          parentNode = conversation.mapping[parentNode.parent_id];
+        }
+        return getChildren(conversation, parentNode.id, currentRole);
+      }
+      return [];
+    },
+
+    /**
+     * Get non-tool parent of a message.
+     * @param id
+     */
+    getParent: (id: string): string => {
+      let currentNode = conversation.mapping[id];
+      if (currentNode) {
+        const targetRoles =
+          currentNode.message.role === OpenAIMessageRole.ASSISTANT
+            ? [OpenAIMessageRole.USER]
+            : [OpenAIMessageRole.ASSISTANT, OpenAIMessageRole.SYSTEM];
+        while (!targetRoles.includes(currentNode.message.role)) {
+          currentNode = conversation.mapping[currentNode.parent_id];
+        }
+        return currentNode.id;
+      }
+      return '';
+    },
+
+    /**
      * When there is multi message, activate one of them.
-     * Designed for future, now enabled for now.
      * @param id
      */
     activate: (id: string) => {
