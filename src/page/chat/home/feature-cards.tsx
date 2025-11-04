@@ -163,9 +163,9 @@ export default function FeatureCards() {
           <TooltipProvider>
             <div className="flex gap-2">
               {uploading ? (
-                <Tooltip>
+                <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" disabled>
+                    <Button variant="outline" size="sm" className="opacity-50">
                       <LoaderCircle className="w-4 h-4 text-red-500 animate-spin" />
                       {t('chat.home.upload.local')}
                     </Button>
