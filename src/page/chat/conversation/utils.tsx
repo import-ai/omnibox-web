@@ -188,3 +188,14 @@ export function ask(
     }
   });
 }
+
+/**
+ * Find the first message whose parent_id does not exist in the messages array
+ * This is typically the root message of a conversation
+ */
+export function findFirstMessageWithMissingParent(
+  messages: MessageDetail[]
+): MessageDetail | undefined {
+  const idSet = new Set(messages.map(msg => msg.id));
+  return messages.find(msg => !idSet.has(msg.parent_id));
+}

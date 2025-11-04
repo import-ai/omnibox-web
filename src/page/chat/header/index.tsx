@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useParams } from 'react-router-dom';
 
@@ -26,7 +26,6 @@ export default function ChatHeader() {
   const loc = useLocation();
   const params = useParams();
   const { open, isMobile } = useSidebar();
-  const modified = useRef(false);
   const { t, i18n } = useTranslation();
   const i18nTitle = t('chat.conversations.new');
   const [chatTitle, setChatTitle] = useState(i18nTitle);
@@ -38,9 +37,6 @@ export default function ChatHeader() {
 
   useEffect(() => {
     return app.on('chat:title:update', (val: string) => {
-      if (!modified.current) {
-        modified.current = true;
-      }
       setChatTitle(val);
     });
   }, []);
@@ -55,9 +51,6 @@ export default function ChatHeader() {
   useEffect(() => {
     return app.on('chat:title', (text?: string) => {
       if (!text) {
-        if (modified.current) {
-          modified.current = false;
-        }
         setChatTitle(i18nTitle);
         return;
       }
@@ -73,20 +66,10 @@ export default function ChatHeader() {
           }
         )
         .then(res => {
-          if (!modified.current) {
-            modified.current = true;
-          }
           setChatTitle(res.title);
         });
     });
-  }, [chatTitle, conversationId, namespaceId]);
-
-  useEffect(() => {
-    if (modified.current) {
-      return;
-    }
-    setChatTitle(i18nTitle);
-  }, [i18nTitle]);
+  }, [i18nTitle, chatTitle, conversationId, namespaceId]);
 
   useEffect(() => {
     if (conversationsPage) {
