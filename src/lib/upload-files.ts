@@ -1,6 +1,13 @@
 import { FileInfo, IResourceData } from '@/interface';
 import { http } from '@/lib/request';
 
+export interface UploadProgress {
+  done: number;
+  total: number;
+}
+
+export type UploadProgressCallback = (progress: UploadProgress) => void;
+
 async function uploadFile(
   namespaceId: string,
   parentId: string,
@@ -32,12 +39,27 @@ export async function uploadFiles(
   args: {
     namespaceId: string;
     parentId: string;
+    onProgress?: UploadProgressCallback;
   }
 ): Promise<Array<IResourceData>> {
   const results: IResourceData[] = [];
-  for (const file of Array.from(files)) {
+  const fileArray = Array.from(files);
+  const total = fileArray.length;
+
+  args.onProgress?.({
+    done: 0,
+    total,
+  });
+
+  for (let i = 0; i < total; i++) {
+    const file = fileArray[i];
     const res = await uploadFile(args.namespaceId, args.parentId, file);
     results.push(res);
+    args.onProgress?.({
+      done: i + 1,
+      total,
+    });
   }
+
   return results;
 }

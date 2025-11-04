@@ -100,6 +100,9 @@ export default function Layout() {
     http
       .get('/user/option/list', { cancelToken: source.token })
       .then((response: Array<{ name: string; value: any }>) => {
+        if (!Array.isArray(response)) {
+          return;
+        }
         const languageItem = response.find(item => item.name === 'language');
         if (languageItem) {
           const lang = languageItem.value;

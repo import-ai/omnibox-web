@@ -20,6 +20,12 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { IResourceData } from '@/interface';
 import { cn } from '@/lib/utils';
@@ -42,6 +48,7 @@ export default function Space(props: ITreeProps) {
     spaceType,
     onCreate,
     onUpload,
+    progress,
     onDrop,
     target,
     onTarget,
@@ -174,7 +181,22 @@ export default function Space(props: ITreeProps) {
                   className="group-hover/sidebar-header:pointer-events-auto pointer-events-none my-1.5 size-[16px] top-[2px] right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent"
                 >
                   <span>
-                    <LoaderCircle className="transition-transform animate-spin" />
+                    {progress ? (
+                      <TooltipProvider>
+                        <Tooltip delayDuration={0}>
+                          <TooltipTrigger asChild>
+                            <span className="[&>svg]:size-[16px]">
+                              <LoaderCircle className="transition-transform animate-spin" />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>{progress}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <span>
+                        <LoaderCircle className="transition-transform animate-spin" />
+                      </span>
+                    )}
                   </span>
                 </SidebarMenuAction>
               ) : (
