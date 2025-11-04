@@ -4,6 +4,7 @@ export interface ISidebarProps {
   data: IResourceData;
   spaceType: SpaceType;
   activeKey?: string;
+  progress: string;
   resourceId: string;
   expanding: string;
   editingKey: string;

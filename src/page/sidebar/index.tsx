@@ -11,6 +11,7 @@ export default function MainSidebar() {
   const {
     data,
     expands,
+    progress,
     chatPage,
     expanding,
     editingKey,
@@ -36,6 +37,7 @@ export default function MainSidebar() {
           data={data}
           expands={expands}
           onDrop={handleDrop}
+          progress={progress}
           expanding={expanding}
           editingKey={editingKey}
           resourceId={resourceId}

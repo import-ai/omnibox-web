@@ -65,6 +65,7 @@ export default function Actions(props: IActionProps) {
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);
+  const [progress, setProgress] = useState('');
   const [downloadAsOpen, setDownloadAsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -291,6 +292,9 @@ export default function Actions(props: IActionProps) {
     uploadFiles(e.target.files, {
       namespaceId: namespaceId,
       parentId: resource.parent_id,
+      onProgress: ({ done, total }) => {
+        setProgress(`${done}/${total}`);
+      },
     })
       .then(responses => {
         app.fire('generate_resource', resource.parent_id, responses);
@@ -303,6 +307,7 @@ export default function Actions(props: IActionProps) {
       .finally(() => {
         fileInputRef.current!.value = '';
         onLoading('');
+        setProgress('');
         setOpen(false);
       });
   };
@@ -512,14 +517,21 @@ export default function Actions(props: IActionProps) {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     <SidebarMenuItem>
-                      <SidebarMenuButton onClick={() => handleAction('import')}>
-                        {loading === 'import' ? (
+                      {loading === 'import' ? (
+                        <SidebarMenuButton>
                           <LoaderCircle className="transition-transform animate-spin" />
-                        ) : (
+                          <span>
+                            {t('actions.import')} {progress}
+                          </span>
+                        </SidebarMenuButton>
+                      ) : (
+                        <SidebarMenuButton
+                          onClick={() => handleAction('import')}
+                        >
                           <ArrowUp />
-                        )}
-                        <span>{t('actions.import')}</span>
-                      </SidebarMenuButton>
+                          <span>{t('actions.import')}</span>
+                        </SidebarMenuButton>
+                      )}
                     </SidebarMenuItem>
                   </SidebarMenu>
                 </SidebarGroupContent>

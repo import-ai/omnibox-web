@@ -19,6 +19,7 @@ export default function useContext() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const expandedRef = useRef(false);
+  const [progress, setProgress] = useState('');
   const { isMobile, setOpenMobile } = useSidebar();
   const chatPage = loc.pathname.includes('/chat');
   const resourceId = params.resource_id || '';
@@ -290,6 +291,9 @@ export default function useContext() {
     return uploadFiles(file, {
       parentId: parentId,
       namespaceId: namespaceId,
+      onProgress: ({ done, total }) => {
+        setProgress(`${done}/${total}`);
+      },
     })
       .then(response => {
         activeRoute(spaceType, parentId, response);
@@ -301,6 +305,7 @@ export default function useContext() {
       })
       .finally(() => {
         onEditingKey('');
+        setProgress('');
       });
   };
   const handleDrop = (drag: IResourceData, drop: IResourceData | null) => {
@@ -665,6 +670,7 @@ export default function useContext() {
   return {
     data,
     expands,
+    progress,
     chatPage,
     expanding,
     editingKey,
