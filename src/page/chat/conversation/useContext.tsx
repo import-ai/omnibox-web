@@ -18,6 +18,7 @@ import {
 import {
   ask,
   extractOriginalMessageSettings,
+  findFirstMessageWithMissingParent,
 } from '@/page/chat/conversation/utils';
 import {
   ConversationDetail,
@@ -209,6 +210,14 @@ export default function useContext() {
       setLoading(false);
     }
   };
+
+  const firstUserMessage = findFirstMessageWithMissingParent(messages);
+
+  useEffect(() => {
+    if (firstUserMessage?.message.content) {
+      app.fire('chat:title', firstUserMessage.message.content);
+    }
+  }, [firstUserMessage?.message.content, app]);
 
   return {
     mode,

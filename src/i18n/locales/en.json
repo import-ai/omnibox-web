@@ -77,6 +77,7 @@
     "username": "Username",
     "username_min": "Username must be at least 2 characters",
     "username_max": "Username must be at most 32 characters",
+    "username_no_emoji": "Special characters are not allowed in username",
     "password": "Password",
     "confirm_password": "Confirm Password",
     "password_min": "Password must be at least 8 characters",
@@ -110,11 +111,12 @@
     "add": "Add Namespace",
     "name": "Namespace Name",
     "min": "At least 2 characters",
-    "max": "At most 32 characters",
+    "max": "At most 64 characters",
     "submit": "Save",
     "success": "Updated",
     "member_count": "{{ size }} members",
-    "conflict": "There's already a namespace with the same name"
+    "conflict": "There's already a namespace with the same name",
+    "no_special_chars": "Special characters are not allowed in namespace name"
   },
   "login": {
     "product_name": "OmniBox",

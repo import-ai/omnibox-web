@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
 
@@ -23,7 +24,15 @@ const registerSchema = z
     username: z
       .string()
       .min(2, i18next.t('form.username_min'))
-      .max(32, i18next.t('form.username_max')),
+      .max(32, i18next.t('form.username_max'))
+      .refine(
+        value => {
+          return !Array.from(value).some(char => isEmoji(char));
+        },
+        {
+          message: i18next.t('form.username_no_emoji'),
+        }
+      ),
     password: z
       .string()
       .min(8, i18next.t('form.password_min'))
