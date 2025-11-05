@@ -17,7 +17,6 @@ export interface ISidebarProps {
     file: FileList
   ) => Promise<void>;
   onExpand: (spaceType: SpaceType, id: string) => void;
-  onMenuMore: (spaceType: SpaceType, id: string) => void;
   onDelete: (spaceType: SpaceType, id: string, parentId: string) => void;
   onCreate: (
     spaceType: SpaceType,

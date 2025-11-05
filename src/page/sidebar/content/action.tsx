@@ -29,7 +29,6 @@ export default function Action(props: ISidebarProps) {
     onDelete,
     progress,
     spaceType,
-    onMenuMore,
     editingKey,
     onActiveKey,
     namespaceId,
@@ -88,16 +87,10 @@ export default function Action(props: ISidebarProps) {
     setMoveTo(false);
     app.fire('move_resource', resourceId, targetId);
   };
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      return;
-    }
-    onMenuMore(spaceType, data.id);
-  };
 
   return (
     <>
-      <DropdownMenu onOpenChange={handleOpenChange}>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
           {data.id === editingKey ? (
             <>
