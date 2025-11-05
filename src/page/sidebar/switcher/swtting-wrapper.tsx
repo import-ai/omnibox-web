@@ -54,7 +54,6 @@ export default function SettingWrapper({
       label: t('setting.tasks'),
       value: 'tasks',
       children: <TasksManagement />,
-      requireOwner: true,
     },
     {
       label: t('setting.applications'),
