@@ -490,7 +490,9 @@
   "common": {
     "actions": "操作",
     "refresh": "刷新",
-    "retry": "重试"
+    "retry": "重试",
+    "previous": "上一页",
+    "next": "下一页"
   },
   "loading": "加载中...",
   "creating": "创建中...",

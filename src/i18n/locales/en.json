@@ -490,7 +490,9 @@
   "common": {
     "actions": "Actions",
     "refresh": "Refresh",
-    "retry": "Retry"
+    "retry": "Retry",
+    "previous": "Previous",
+    "next": "Next"
   },
   "loading": "Loading...",
   "creating": "Creating...",

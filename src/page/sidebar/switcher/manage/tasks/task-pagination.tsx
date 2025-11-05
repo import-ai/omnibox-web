@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
 
 export interface TaskPaginationProps {
@@ -11,6 +13,7 @@ export function TaskPagination({
   totalPages,
   onPageChange,
 }: TaskPaginationProps) {
+  const { t } = useTranslation();
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const maxVisible = 7; // Show max 7 page numbers
@@ -55,7 +58,7 @@ export function TaskPagination({
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
       >
-        Previous
+        {t('common.previous')}
       </Button>
 
       {getPageNumbers().map((page, index) => {
@@ -89,7 +92,7 @@ export function TaskPagination({
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
-        Next
+        {t('common.next')}
       </Button>
     </div>
   );
