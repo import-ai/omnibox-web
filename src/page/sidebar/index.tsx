@@ -22,7 +22,6 @@ export default function MainSidebar() {
     handleDelete,
     handleCreate,
     handleUpload,
-    handleMenuMore,
     handleActiveKey,
   } = useContext();
 
@@ -46,7 +45,6 @@ export default function MainSidebar() {
           onCreate={handleCreate}
           onUpload={handleUpload}
           namespaceId={namespaceId}
-          onMenuMore={handleMenuMore}
           onActiveKey={handleActiveKey}
         />
         <FooterSidebar />

@@ -102,14 +102,15 @@ export default function useContext() {
     data[spaceType].children = data[spaceType].children.filter(
       item => item.parent_id !== id
     );
-
     http
       .get(`/namespaces/${namespaceId}/resources/${id}/children`)
       .then(response => {
         // Merge backend data and existing frontend data, remove duplicates
         const allChildren = [...response];
         existingChildren.forEach(existingChild => {
-          const exists = response.find(item => item.id === existingChild.id);
+          const exists = response.find(
+            (item: IResourceData) => item.id === existingChild.id
+          );
           if (!exists) {
             // If backend doesn't return this resource but frontend has it (maybe just dragged in), keep frontend data
             allChildren.push(existingChild);
@@ -125,23 +126,6 @@ export default function useContext() {
       })
       .finally(() => {
         onExpanding('');
-      });
-  };
-  const handleMenuMore = (spaceType: SpaceType, id: string) => {
-    const target = getResourceByField(id, 'parent_id');
-    if (target) {
-      return;
-    }
-    http
-      .get(`/namespaces/${namespaceId}/resources/${id}/children`)
-      .then(response => {
-        if (response.length <= 0) {
-          return;
-        }
-        each(response, item => {
-          data[spaceType].children.push(item);
-        });
-        onData({ ...data });
       });
   };
   const getRouteToActive = (
@@ -483,25 +467,6 @@ export default function useContext() {
         onData({ ...data });
         onExpands(expands => expands.filter(expand => expand !== resourceId));
         expandedRef.current = false;
-
-        // Automatically expand target folder
-        if (!expands.includes(targetId)) {
-          // Clear current expanding state to ensure handleExpand works
-          onExpanding('');
-          // Use setTimeout to ensure state updates before expanding, and give backend time to process
-          setTimeout(() => {
-            // If dragged to root, no need to expand (root is always shown)
-            if (targetId !== data[targetKey].id) {
-              handleExpand(targetKey as SpaceType, targetId);
-            } else {
-              // Dragged to root, directly mark as expanded to show resource
-              if (!expands.includes(targetId)) {
-                expands.push(targetId);
-                onExpands([...expands]);
-              }
-            }
-          }, 100); // Add delay to give backend time to process move
-        }
       })
     );
     hooks.push(
@@ -681,7 +646,6 @@ export default function useContext() {
     handleDelete,
     handleCreate,
     handleUpload,
-    handleMenuMore,
     handleActiveKey,
   };
 }
