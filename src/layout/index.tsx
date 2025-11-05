@@ -44,14 +44,14 @@ export default function Layout() {
   }, [loc]);
 
   useEffect(() => {
-    const storedUid = localStorage.getItem('uid');
-    if (storedUid) {
-      track('related_relationships', {
-        once: true,
-        userId: storedUid,
-      });
+    if (!uid) {
+      return;
     }
-  }, []);
+    track('related_relationships', {
+      once: true,
+      userId: uid,
+    });
+  }, [uid]);
 
   useEffect(() => {
     // Be compatible with extension login
