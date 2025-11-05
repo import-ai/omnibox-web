@@ -467,6 +467,9 @@
     "fetch_error": "Failed to fetch tasks",
     "no_tasks": "No tasks found",
     "view_resource": "View Resource",
+    "my_tasks": "My Tasks",
+    "all_tasks": "All Tasks",
+    "task_id": "Task ID",
     "status_pending": "Pending",
     "status_running": "Running",
     "status_finished": "Done",
@@ -487,7 +490,9 @@
   "common": {
     "actions": "Actions",
     "refresh": "Refresh",
-    "retry": "Retry"
+    "retry": "Retry",
+    "previous": "Previous",
+    "next": "Next"
   },
   "loading": "Loading...",
   "creating": "Creating...",
