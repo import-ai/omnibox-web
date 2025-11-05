@@ -16,8 +16,8 @@ export default function AutoTag() {
         const response = await http.get(
           '/user/option/enable_ai_tag_extraction'
         );
-        if (response.data?.value !== undefined) {
-          setIsEnabled(response.data.value === 'true');
+        if (response.value !== undefined) {
+          setIsEnabled(response.value === 'true');
         }
       } catch {
         // If option doesn't exist, default is enabled
@@ -26,7 +26,7 @@ export default function AutoTag() {
         setLoading(false);
       }
     };
-    loadPreference();
+    loadPreference().then();
   }, []);
 
   const handleToggle = async (checked: boolean) => {
