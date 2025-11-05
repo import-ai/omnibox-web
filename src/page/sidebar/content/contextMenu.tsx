@@ -25,7 +25,6 @@ export default function ContextMenuMain(props: IProps) {
     onCreate,
     onDelete,
     spaceType,
-    onMenuMore,
     onActiveKey,
     namespaceId,
   } = props;
@@ -83,16 +82,10 @@ export default function ContextMenuMain(props: IProps) {
     setMoveTo(false);
     app.fire('move_resource', resourceId, targetId);
   };
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      return;
-    }
-    onMenuMore(spaceType, data.id);
-  };
 
   return (
     <>
-      <ContextMenu onOpenChange={handleOpenChange}>
+      <ContextMenu>
         <ContextMenuTrigger>{children}</ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem
