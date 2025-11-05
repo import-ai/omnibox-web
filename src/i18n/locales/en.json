@@ -177,6 +177,7 @@
     "namespace": "Namespace",
     "api_key": "API Keys",
     "applications": "Applications",
+    "content": "Content",
     "third_party_account": {
       "manage": "Third-party",
       "title": "Third-party Account Management",
@@ -278,7 +279,9 @@
     "theme_setting": "Appearance",
     "theme_light": "Light",
     "theme_dark": "Dark",
-    "theme_system": "System"
+    "theme_system": "System",
+    "auto_tag_setting": "AI-Powered Tag Extraction",
+    "auto_tag_description": "Automatically extract and generate tags from content using AI"
   },
   "unauth_page": {
     "title": "Access Denied",

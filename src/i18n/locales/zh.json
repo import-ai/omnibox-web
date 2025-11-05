@@ -177,6 +177,7 @@
     "namespace": "空间设置",
     "api_key": "API 密钥",
     "applications": "应用管理",
+    "content": "内容",
     "third_party_account": {
       "manage": "三方账号管理",
       "title": "第三方账号管理",
@@ -278,7 +279,9 @@
     "theme_setting": "外观",
     "theme_light": "浅色",
     "theme_dark": "深色",
-    "theme_system": "系统"
+    "theme_system": "系统",
+    "auto_tag_setting": "AI 智能标签提取",
+    "auto_tag_description": "使用 AI 自动从内容中提取和生成标签"
   },
   "unauth_page": {
     "title": "访问被拒绝",
