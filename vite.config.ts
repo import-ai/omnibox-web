@@ -37,7 +37,10 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
         },
         '/assets/vditor': {
-          target: 'https://test.omnibox.pro',
+          target:
+            process.env.VITE_API_PATH ??
+            env.VITE_API_PATH ??
+            'https://test.omnibox.pro',
           changeOrigin: true,
         },
         '/docs': {
