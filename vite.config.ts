@@ -38,8 +38,8 @@ export default defineConfig(({ mode }) => {
         },
         '/assets/vditor': {
           target:
-            process.env.VITE_API_PATH ??
-            env.VITE_API_PATH ??
+            process.env.VITE_VDITOR_DIST_PATH ??
+            env.VITE_VDITOR_DIST_PATH ??
             'https://test.omnibox.pro',
           changeOrigin: true,
         },
