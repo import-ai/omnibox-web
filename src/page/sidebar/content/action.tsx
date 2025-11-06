@@ -96,7 +96,7 @@ export default function Action(props: ISidebarProps) {
             <>
               {progress ? (
                 <TooltipProvider>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
                       <SidebarMenuAction className="group-hover/sidebar-item:pointer-events-auto pointer-events-none size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
                         <LoaderCircle className="transition-transform animate-spin" />
