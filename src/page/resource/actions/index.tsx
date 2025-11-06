@@ -44,6 +44,7 @@ import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { IUseResource } from '@/hooks/user-resource';
 import { downloadFile } from '@/lib/download-file';
+import { formatFileSize } from '@/lib/format';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
@@ -300,7 +301,21 @@ export default function Actions(props: IActionProps) {
         app.fire('generate_resource', resource.parent_id, responses);
       })
       .catch(err => {
-        toast(err && err.message ? err.message : err, {
+        let errorMessage = err && err.message ? err.message : err;
+
+        // Handle FILE_TOO_LARGE error
+        try {
+          const errorData = JSON.parse(err.message);
+          if (errorData.code === 'FILE_TOO_LARGE') {
+            const userSize = formatFileSize(errorData.actualSize);
+            const limitSize = formatFileSize(errorData.maxSize);
+            errorMessage = t('upload.file_too_large', { userSize, limitSize });
+          }
+        } catch {
+          // Not a JSON error, use original message
+        }
+
+        toast(errorMessage, {
           position: 'bottom-right',
         });
       })

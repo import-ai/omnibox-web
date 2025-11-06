@@ -9,6 +9,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
 import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
 import each from '@/lib/each';
+import { formatFileSize } from '@/lib/format';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
@@ -283,7 +284,21 @@ export default function useContext() {
         activeRoute(spaceType, parentId, response);
       })
       .catch(err => {
-        toast(err && err.message ? err.message : err, {
+        let errorMessage = err && err.message ? err.message : err;
+
+        // Handle FILE_TOO_LARGE error
+        try {
+          const errorData = JSON.parse(err.message);
+          if (errorData.code === 'FILE_TOO_LARGE') {
+            const userSize = formatFileSize(errorData.actualSize);
+            const limitSize = formatFileSize(errorData.maxSize);
+            errorMessage = t('upload.file_too_large', { userSize, limitSize });
+          }
+        } catch {
+          // Not a JSON error, use original message
+        }
+
+        toast(errorMessage, {
           position: 'bottom-right',
         });
       })

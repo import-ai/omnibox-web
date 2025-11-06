@@ -1,3 +1,4 @@
+import { MAX_UPLOAD_SIZE } from '@/const';
 import { FileInfo, IResourceData } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -13,6 +14,16 @@ async function uploadFile(
   parentId: string,
   file: File
 ): Promise<IResourceData> {
+  if (file.size > MAX_UPLOAD_SIZE * 1024 * 1024) {
+    throw new Error(
+      JSON.stringify({
+        code: 'FILE_TOO_LARGE',
+        actualSize: file.size,
+        maxSize: MAX_UPLOAD_SIZE * 1024 * 1024,
+      })
+    );
+  }
+
   const fileInfo: FileInfo = await http.post(
     `/namespaces/${namespaceId}/resources/files`,
     {

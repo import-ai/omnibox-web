@@ -12,3 +12,4 @@ export const WECHAT_GROUP_QRCODE_URL =
 export const RESOURCE_TASKS_INTERVAL = 3 * 1000;
 export const BIND_CHECK_INTERVAL = 3 * 1000;
 export const DISCORD_LINK = 'https://www.omnibox.pro/links/discord';
+export const MAX_UPLOAD_SIZE = 20;

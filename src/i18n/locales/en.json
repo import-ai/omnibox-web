@@ -19,7 +19,8 @@
     "collapse": "Collapse Sidebar"
   },
   "upload": {
-    "invalid_ext": "Invalid file type"
+    "invalid_ext": "Invalid file type",
+    "file_too_large": "Your file ({{ userSize }}) exceeds the maximum limit of {{ limitSize }}"
   },
   "resource": {
     "folder": {

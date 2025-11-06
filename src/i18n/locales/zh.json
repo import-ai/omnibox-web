@@ -19,7 +19,8 @@
     "collapse": "收起侧边栏"
   },
   "upload": {
-    "invalid_ext": "当前文件格式不支持"
+    "invalid_ext": "当前文件格式不支持",
+    "file_too_large": "您的文件 ({{ userSize }}) 超过最大限制 {{ limitSize }}"
   },
   "resource": {
     "folder": {
