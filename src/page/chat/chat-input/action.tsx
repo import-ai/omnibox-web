@@ -78,7 +78,7 @@ export default function ChatAction(props: IActionProps) {
         </Button>
       ) : disabled ? (
         <TooltipProvider>
-          <Tooltip>
+          <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Button size="icon" className="rounded-lg size-8 bg-[#edeff2]">
                 <ArrowUp className="text-[#999999]" />
