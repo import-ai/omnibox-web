@@ -23,19 +23,33 @@ async function uploadFile(
       })
     );
   }
-
-  const fileInfo: FileInfo = await http.post(
-    `/namespaces/${namespaceId}/resources/files`,
-    {
-      name: file.name,
-      mimetype: file.type,
+  let fileInfo: FileInfo;
+  try {
+    fileInfo = await http.post(
+      `/namespaces/${namespaceId}/resources/files`,
+      {
+        name: file.name,
+        mimetype: file.type,
+        size: file.size,
+      },
+      { mute: true }
+    );
+  } catch (error: any) {
+    if (error.response?.data?.message) {
+      throw error.response?.data?.message;
     }
-  );
-  await fetch(fileInfo.url, {
-    method: 'PUT',
+    throw error;
+  }
+  const formData = new FormData();
+  for (const [key, value] of fileInfo.post_fields || []) {
+    formData.append(key, value);
+  }
+  formData.append('file', file);
+  await fetch(fileInfo.post_url, {
+    method: 'POST',
     mode: 'cors',
     credentials: 'omit',
-    body: file,
+    body: formData,
   });
   return await http.post(`/namespaces/${namespaceId}/resources`, {
     parentId,

@@ -277,5 +277,6 @@ export interface Application extends IBase {
 
 export interface FileInfo {
   id: string;
-  url: string;
+  post_url: string;
+  post_fields: [string, string][];
 }
