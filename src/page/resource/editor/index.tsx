@@ -142,17 +142,23 @@ export default function Editor(props: IEditorProps) {
         format,
       },
       after: () => {
-        vditor.setValue(resource.content || '');
+        const resourceContent = resource.content || '';
+        const hasContent = resourceContent.length > 0;
+        if (hasContent) {
+          vditor.setValue(resourceContent);
+        }
         vditor.setTheme(
           theme.content === 'dark' ? 'dark' : 'classic',
           theme.content,
           theme.code
         );
-        if (vditor.vditor.ir && vditor.vditor.ir.element) {
-          addReferrerPolicyForElement(vditor.vditor.ir.element);
-        }
-        if (vditor.vditor.wysiwyg && vditor.vditor.wysiwyg.element) {
-          addReferrerPolicyForElement(vditor.vditor.wysiwyg.element);
+        if (hasContent) {
+          if (vditor.vditor.ir && vditor.vditor.ir.element) {
+            addReferrerPolicyForElement(vditor.vditor.ir.element);
+          }
+          if (vditor.vditor.wysiwyg && vditor.vditor.wysiwyg.element) {
+            addReferrerPolicyForElement(vditor.vditor.wysiwyg.element);
+          }
         }
         setVd(vditor);
       },

@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => {
           target:
             process.env.VITE_VDITOR_DIST_PATH ??
             env.VITE_VDITOR_DIST_PATH ??
-            'http://127.0.0.1:8000',
+            'https://test.omnibox.pro',
           changeOrigin: true,
         },
         '/docs': {
