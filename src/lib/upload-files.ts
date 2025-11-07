@@ -26,7 +26,7 @@ async function uploadFile(
     );
   } catch (error: any) {
     if (error.response?.data?.message) {
-      throw error.response?.data?.message;
+      throw new Error(error.response?.data?.message);
     }
     throw error;
   }
