@@ -71,9 +71,9 @@ export function RegisterForm({ children }: IProps) {
   const handleSubmit = async (data: TRegisterForm) => {
     setIsLoading(true);
     try {
-      const response = await http.post('auth/send-otp', {
+      const response = await http.post('auth/send-signup-otp', {
         email: data.email,
-        url: `${window.location.origin}/user/verify-otp?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`,
+        url: `${window.location.origin}/user/verify-otp${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`,
       });
 
       // If user already exists, redirect to login

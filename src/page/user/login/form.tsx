@@ -76,7 +76,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
     try {
       const response = await http.post('auth/send-otp', {
         email: data.email,
-        url: `${window.location.origin}/user/verify-otp?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`,
+        url: `${window.location.origin}/user/verify-otp${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`,
       });
 
       // Check if user exists - if not, redirect to registration

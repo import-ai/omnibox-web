@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
 
@@ -123,7 +122,7 @@ export default function VerifyOtpPage() {
     try {
       await http.post('auth/send-otp', {
         email,
-        url: `${window.location.origin}/user/verify-otp?email=${encodeURIComponent(email)}`,
+        url: `${window.location.origin}/user/verify-otp`,
       });
 
       toast.success(t('verify_otp.resend_success'), {
@@ -138,10 +137,6 @@ export default function VerifyOtpPage() {
     } finally {
       setIsResending(false);
     }
-  };
-
-  const handleOpenEmail = () => {
-    window.open('mailto:', '_blank');
   };
 
   // Don't render if magic link is being verified
@@ -199,15 +194,6 @@ export default function VerifyOtpPage() {
                   : t('verify_otp.resend_countdown', { seconds: countdown })}
             </button>
           </div>
-
-          <Button
-            variant="outline"
-            onClick={handleOpenEmail}
-            className="w-full"
-            type="button"
-          >
-            {t('verify_otp.open_email')}
-          </Button>
 
           <button
             onClick={() => navigate('/user/login')}
