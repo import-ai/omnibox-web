@@ -18,6 +18,7 @@ async function uploadFile(
     {
       name: file.name,
       mimetype: file.type,
+      size: file.size,
     }
   );
   await fetch(fileInfo.url, {
@@ -25,6 +26,7 @@ async function uploadFile(
     mode: 'cors',
     credentials: 'omit',
     body: file,
+    headers: fileInfo.headers,
   });
   return await http.post(`/namespaces/${namespaceId}/resources`, {
     parentId,

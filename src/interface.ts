@@ -278,4 +278,5 @@ export interface Application extends IBase {
 export interface FileInfo {
   id: string;
   url: string;
+  headers?: Record<string, string>;
 }
