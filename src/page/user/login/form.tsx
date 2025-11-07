@@ -24,7 +24,11 @@ import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 import { setGlobalCredential } from '@/page/user/util';
 
-const formSchema = z.object({
+const emailFormSchema = z.object({
+  email: z.string().email(i18next.t('form.email_invalid')),
+});
+
+const passwordFormSchema = z.object({
   email: z.string().nonempty(i18next.t('form.email_or_username_invalid')),
   password: z
     .string()
@@ -43,14 +47,59 @@ export function LoginForm({ className, children, ...props }: IProps) {
   const redirect = params.get('redirect');
   const emailParam = params.get('email');
   const [isLoading, setIsLoading] = useState(false);
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const [usePassword, setUsePassword] = useState(false);
+
+  const emailForm = useForm<z.infer<typeof emailFormSchema>>({
+    resolver: zodResolver(emailFormSchema),
+    defaultValues: {
+      email: emailParam || '',
+    },
+  });
+
+  const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
+    resolver: zodResolver(passwordFormSchema),
     defaultValues: {
       email: emailParam || '',
       password: '',
     },
   });
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
+
+  const onEmailSubmit = async (data: z.infer<typeof emailFormSchema>) => {
+    const allowedDomains = ['gmail.com', 'outlook.com', '163.com', 'qq.com'];
+    const domain = data.email.split('@')[1];
+    if (!allowedDomains.includes(domain)) {
+      toast(t('form.email_limit_rule'), { position: 'bottom-right' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await http.post('auth/send-otp', {
+        email: data.email,
+        url: `${window.location.origin}/user/verify-otp?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`,
+      });
+
+      // Check if user exists - if not, redirect to registration
+      if (!response.exists) {
+        navigate(
+          `/user/sign-up?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
+        );
+        return;
+      }
+
+      // Navigate to OTP verification page
+      navigate(
+        `/user/verify-otp?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
+      );
+    } catch (err: any) {
+      setIsLoading(false);
+      const errorMessage =
+        err.response?.data?.message || t('login.error_sending_otp');
+      toast.error(errorMessage, { position: 'bottom-right' });
+    }
+  };
+
+  const onPasswordSubmit = (data: z.infer<typeof passwordFormSchema>) => {
     if (isEmail(data.email)) {
       const allowedDomains = ['gmail.com', 'outlook.com', '163.com', 'qq.com'];
       const domain = data.email.split('@')[1];
@@ -94,72 +143,130 @@ export function LoginForm({ className, children, ...props }: IProps) {
         </p>
       </div>
       {children}
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className={cn('flex flex-col gap-4', className)}
-          {...props}
-        >
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    type="text"
-                    startIcon={Mail}
-                    autoComplete="email"
-                    disabled={isLoading}
-                    placeholder={t('form.email_or_username')}
-                    className="text-base md:text-sm"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>{t('form.email_limit_rule')}</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    type="password"
-                    autoComplete="current-password"
-                    startIcon={Lock}
-                    disabled={isLoading}
-                    placeholder={t('form.password')}
-                    className="text-base md:text-sm"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            type="submit"
-            variant="default"
-            className="w-full disabled:opacity-60"
-            loading={isLoading}
+
+      {!usePassword ? (
+        <Form {...emailForm}>
+          <form
+            onSubmit={emailForm.handleSubmit(onEmailSubmit)}
+            className={cn('flex flex-col gap-4', className)}
+            {...props}
           >
-            {t('login.submit')}
-          </Button>
-          <Space className="text-sm justify-center">
-            <Link to="/user/sign-up" className="text-sm ml-1">
-              {t('register.submit')}
-            </Link>
-            {t('form.or')}
-            <Link to="/user/password" className="text-sm ml-1">
-              {t('password.submit')}
-            </Link>
-          </Space>
-        </form>
-      </Form>
+            <FormField
+              control={emailForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      startIcon={Mail}
+                      autoComplete="email"
+                      disabled={isLoading}
+                      placeholder={t('form.email')}
+                      className="text-base md:text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t('form.email_limit_rule')}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              variant="default"
+              className="w-full disabled:opacity-60"
+              loading={isLoading}
+            >
+              {t('login.continue')}
+            </Button>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setUsePassword(true)}
+                className="text-sm text-muted-foreground hover:underline"
+              >
+                {t('login.use_password')}
+              </button>
+            </div>
+          </form>
+        </Form>
+      ) : (
+        <Form {...passwordForm}>
+          <form
+            onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
+            className={cn('flex flex-col gap-4', className)}
+            {...props}
+          >
+            <FormField
+              control={passwordForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      startIcon={Mail}
+                      autoComplete="email"
+                      disabled={isLoading}
+                      placeholder={t('form.email_or_username')}
+                      className="text-base md:text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t('form.email_limit_rule')}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={passwordForm.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="current-password"
+                      startIcon={Lock}
+                      disabled={isLoading}
+                      placeholder={t('form.password')}
+                      className="text-base md:text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              variant="default"
+              className="w-full disabled:opacity-60"
+              loading={isLoading}
+            >
+              {t('login.submit')}
+            </Button>
+            <Space className="text-sm justify-center">
+              <button
+                type="button"
+                onClick={() => setUsePassword(false)}
+                className="text-sm hover:underline"
+              >
+                {t('login.use_email')}
+              </button>
+              {t('form.or')}
+              <Link to="/user/password" className="text-sm ml-1">
+                {t('password.submit')}
+              </Link>
+            </Space>
+          </form>
+        </Form>
+      )}
     </div>
   );
 }

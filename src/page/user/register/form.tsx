@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import i18next from 'i18next';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
@@ -49,34 +49,51 @@ interface IProps {
 export function RegisterForm({ children }: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const emailParam = params.get('email');
+  const redirect = params.get('redirect');
   const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<TRegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      email: '',
+      email: emailParam || '',
     },
   });
-  const handleSubmit = (data: TRegisterForm) => {
+
+  useEffect(() => {
+    // If email is provided in URL, pre-fill and optionally auto-submit
+    if (emailParam) {
+      form.setValue('email', emailParam);
+    }
+  }, [emailParam]);
+
+  const handleSubmit = async (data: TRegisterForm) => {
     setIsLoading(true);
-    http
-      .post('sign-up', {
+    try {
+      const response = await http.post('auth/send-otp', {
         email: data.email,
-        url: `${location.origin}/user/sign-up/confirm`,
-      })
-      .then(() => {
-        form.resetField('email');
-        toast(t('register.success'), {
-          position: 'bottom-right',
-        });
-      })
-      .catch(err => {
-        if (err.response.data.code === 'email_exists') {
-          navigate(`/user/login?email=${encodeURIComponent(data.email)}`);
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
+        url: `${window.location.origin}/user/verify-otp?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`,
       });
+
+      // If user already exists, redirect to login
+      if (response.exists) {
+        navigate(
+          `/user/login?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
+        );
+        return;
+      }
+
+      // Navigate to OTP verification page for registration
+      navigate(
+        `/user/verify-otp?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
+      );
+    } catch (err: any) {
+      setIsLoading(false);
+      const errorMessage =
+        err.response?.data?.message || t('register.error_sending_otp');
+      toast.error(errorMessage, { position: 'bottom-right' });
+    }
   };
 
   return (
@@ -97,6 +114,7 @@ export function RegisterForm({ children }: IProps) {
               <FormItem>
                 <FormControl>
                   <Input
+                    type="email"
                     placeholder={t('form.email')}
                     autoComplete="email"
                     {...field}

@@ -16,6 +16,7 @@ const InvitePage = lazy(() => import('@/page/user/invite'));
 const ResourcePage = lazy(() => import('@/page/resource'));
 const NamespacePage = lazy(() => import('@/page/namespace'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
+const VerifyOtpPage = lazy(() => import('@/page/user/verify-otp'));
 const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
 const InviteRedirectPage = lazy(() => import('@/page/invite-redirect'));
 const PasswordConfirmPage = lazy(() => import('@/page/user/password-confirm'));
@@ -71,6 +72,10 @@ const router = createBrowserRouter([
       {
         path: 'user/sign-up/confirm',
         element: <RegisterConfirmPage />,
+      },
+      {
+        path: 'user/verify-otp',
+        element: <VerifyOtpPage />,
       },
       {
         path: 'user/password',
