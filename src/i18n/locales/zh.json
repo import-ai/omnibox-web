@@ -105,7 +105,10 @@
     "submit": "保存",
     "button": "发送邀请",
     "success": "邀请已发送",
-    "add_namespace": "加入空间"
+    "add_namespace": "加入空间",
+    "please_login_first": "请先登录以接受此邀请",
+    "user_mismatch": "此邀请是给 {{ username }} 的",
+    "user_mismatch_generic": "此邀请是给其他用户的"
   },
   "namespace": {
     "add": "创建空间",

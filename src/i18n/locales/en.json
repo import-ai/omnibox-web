@@ -105,7 +105,10 @@
     "submit": "Save",
     "button": "Send Invitation",
     "success": "Invitation sent",
-    "add_namespace": "Add namespace"
+    "add_namespace": "Add namespace",
+    "please_login_first": "Please log in first to accept this invitation",
+    "user_mismatch": "This invitation is for {{ username }}",
+    "user_mismatch_generic": "This invitation is for another user"
   },
   "namespace": {
     "add": "Add Namespace",

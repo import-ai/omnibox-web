@@ -21,6 +21,21 @@ export function InviteForm() {
     username: '--',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoginMessage, setShowLoginMessage] = useState(false);
+  const [userMismatchMessage, setUserMismatchMessage] = useState<string | null>(
+    null
+  );
+
+  // Decode JWT token to get invited user ID
+  const getInvitedUserId = (token: string): string | null => {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.userId;
+    } catch {
+      return null;
+    }
+  };
+
   const handleSubmit = () => {
     setIsLoading(true);
     http
@@ -28,35 +43,100 @@ export function InviteForm() {
       .then(() => {
         navigate('/', { replace: true });
       })
+      .catch(error => {
+        if (error.response?.status === 403) {
+          setUserMismatchMessage(error.response.data.message);
+        }
+      })
       .finally(() => {
         setIsLoading(false);
       });
   };
 
   useEffect(() => {
-    if (!namespaceId || !userId) {
+    if (!namespaceId || !userId || !token) {
       return;
     }
+
+    // Validate user identity before making API calls
+    const invitedUserId = getInvitedUserId(token);
+    const currentUserId = localStorage.getItem('uid');
+
+    if (!currentUserId) {
+      setShowLoginMessage(true);
+      return;
+    }
+
+    if (invitedUserId && invitedUserId !== currentUserId) {
+      // Fetch invited user's username to display in error message
+      http
+        .get(`user/${invitedUserId}`)
+        .then(user => {
+          setUserMismatchMessage(
+            t('invite.user_mismatch', { username: user.username })
+          );
+        })
+        .catch(() => {
+          setUserMismatchMessage(t('invite.user_mismatch_generic'));
+        });
+      return;
+    }
+
     const source = axios.CancelToken.source();
     Promise.all(
       [`namespaces/${namespaceId}`, `user/${userId}`].map(uri =>
         http.get(uri, { cancelToken: source.token })
       )
-    ).then(([namespace, user]) => {
-      onData({
-        namespace: namespace.name,
-        username: user.username,
+    )
+      .then(([namespace, user]) => {
+        onData({
+          namespace: namespace.name,
+          username: user.username,
+        });
+      })
+      .catch(error => {
+        if (axios.isCancel(error)) {
+          return;
+        }
+        if (error.response?.status === 401) {
+          setShowLoginMessage(true);
+        }
       });
-    });
     return () => {
       source.cancel();
     };
-  }, []);
+  }, [token, namespaceId, userId, t]);
 
   if (!token || !namespaceId || !userId) {
     return (
       <div className="text-center text-sm">
         <p>{t('form.invalid_request')}</p>
+      </div>
+    );
+  }
+
+  if (showLoginMessage) {
+    return (
+      <div className="text-center text-sm space-y-4">
+        <p>{t('invite.please_login_first')}</p>
+        <Button
+          className="w-full"
+          onClick={() =>
+            navigate(
+              `/user/login?redirect=${encodeURIComponent(location.href)}`
+            )
+          }
+        >
+          {t('user.login')}
+        </Button>
+      </div>
+    );
+  }
+
+  if (userMismatchMessage) {
+    return (
+      <div className="text-center text-sm">
+        <p>{userMismatchMessage}</p>
       </div>
     );
   }
