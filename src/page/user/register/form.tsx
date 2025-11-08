@@ -135,7 +135,10 @@ export function RegisterForm({ children }: IProps) {
           </Button>
           <div className="text-center text-sm">
             {t('form.exist_account')}
-            <Link to="/user/login" className="text-sm ml-1">
+            <Link
+              to="/user/login"
+              className="text-sm hover:underline underline-offset-2"
+            >
               {t('login.submit')}
             </Link>
           </div>

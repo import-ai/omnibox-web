@@ -87,7 +87,7 @@
     "email_invalid": "请输入有效的邮箱地址",
     "email_limit": "仅支持 Gmail、Outlook、163 和 QQ 邮箱",
     "email_limit_rule": "邮箱必须是 Gmail、Outlook、163 或 QQ 邮箱",
-    "email_or_username": "邮箱或用户名",
+    "email_or_username": "邮箱 或 用户名",
     "email_or_username_invalid": "请输入有效的邮箱地址或用户名",
     "role": "角色",
     "username_not_emptyStr": "无效的用户名"
@@ -125,6 +125,7 @@
     "continue": "继续",
     "use_password": "使用密码登录",
     "use_email": "使用邮箱验证码",
+    "sign_up": "注册",
     "error_sending_otp": "发送验证码失败",
     "title": "登录您的账户",
     "description": "请输入您的邮箱以登录账户",
@@ -151,7 +152,7 @@
   },
   "verify_otp": {
     "title": "输入验证码",
-    "description": "我们已向以下邮箱发送6位验证码：",
+    "description": "我们已向以下邮箱发送 6 位验证码：",
     "didnt_receive": "没有收到验证码？",
     "resend": "重新发送",
     "resending": "发送中...",

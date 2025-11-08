@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/form';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
-import { cn } from '@/lib/utils';
+import { buildUrl, cn } from '@/lib/utils';
 import { setGlobalCredential } from '@/page/user/util';
 
 const emailFormSchema = z.object({
@@ -48,6 +48,8 @@ export function LoginForm({ className, children, ...props }: IProps) {
   const emailParam = params.get('email');
   const [isLoading, setIsLoading] = useState(false);
   const [usePassword, setUsePassword] = useState(false);
+  const linkClass =
+    'text-sm hover:underline dark:text-[#60a5fa] underline-offset-2';
 
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
@@ -76,21 +78,17 @@ export function LoginForm({ className, children, ...props }: IProps) {
     try {
       const response = await http.post('auth/send-otp', {
         email: data.email,
-        url: `${window.location.origin}/user/verify-otp${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`,
+        url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
       });
 
       // Check if user exists - if not, redirect to registration
       if (!response.exists) {
-        navigate(
-          `/user/sign-up?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
-        );
+        navigate(buildUrl('/user/sign-up', { email: data.email, redirect }));
         return;
       }
 
       // Navigate to OTP verification page
-      navigate(
-        `/user/verify-otp?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
-      );
+      navigate(buildUrl('/user/verify-otp', { email: data.email, redirect }));
     } catch (err: any) {
       setIsLoading(false);
       const errorMessage =
@@ -182,15 +180,25 @@ export function LoginForm({ className, children, ...props }: IProps) {
             >
               {t('login.continue')}
             </Button>
-            <div className="text-center">
+            <Space className="text-sm justify-center">
               <button
                 type="button"
                 onClick={() => setUsePassword(true)}
-                className="text-sm text-muted-foreground hover:underline"
+                className={linkClass}
               >
                 {t('login.use_password')}
               </button>
-            </div>
+              {t('form.or')}
+              <Link
+                to={buildUrl('/user/sign-up', {
+                  email: emailParam,
+                  redirect,
+                })}
+                className={linkClass}
+              >
+                {t('login.sign_up')}
+              </Link>
+            </Space>
           </form>
         </Form>
       ) : (
@@ -255,13 +263,19 @@ export function LoginForm({ className, children, ...props }: IProps) {
               <button
                 type="button"
                 onClick={() => setUsePassword(false)}
-                className="text-sm hover:underline"
+                className={linkClass}
               >
                 {t('login.use_email')}
               </button>
               {t('form.or')}
-              <Link to="/user/password" className="text-sm ml-1">
-                {t('password.submit')}
+              <Link
+                to={buildUrl('/user/sign-up', {
+                  email: emailParam,
+                  redirect,
+                })}
+                className={linkClass}
+              >
+                {t('login.sign_up')}
               </Link>
             </Space>
           </form>
