@@ -81,7 +81,7 @@ export default function InviteForm(props: IProps) {
         permission: data.permission,
         namespace: namespace_id,
         inviteUrl: `${location.origin}/invite/confirm`,
-        registerUrl: `${location.origin}/user/sign-up/confirm`,
+        registerUrl: `${location.origin}/user/accept-invite`,
       })
       .then(() => {
         form.resetField('email');

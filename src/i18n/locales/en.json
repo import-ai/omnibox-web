@@ -166,6 +166,13 @@
     "verifying": "Verifying...",
     "verifying_description": "Please wait..."
   },
+  "accept_invite": {
+    "accepting": "Accepting invitation...",
+    "accepting_description": "Creating your account and joining the space",
+    "error_accept": "Failed to accept invitation. The link may be expired or invalid.",
+    "error_title": "Invitation Error",
+    "back_to_login": "Back to login"
+  },
   "password": {
     "title": "Reset Password",
     "description": "Enter your email address and we'll send you a link to reset your password",

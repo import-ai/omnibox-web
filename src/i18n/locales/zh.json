@@ -166,6 +166,13 @@
     "verifying": "验证中...",
     "verifying_description": "请稍候..."
   },
+  "accept_invite": {
+    "accepting": "接受邀请中...",
+    "accepting_description": "正在创建您的账户并加入空间",
+    "error_accept": "接受邀请失败。链接可能已过期或无效。",
+    "error_title": "邀请错误",
+    "back_to_login": "返回登录"
+  },
   "password": {
     "title": "重置密码",
     "description": "输入您的邮箱地址，我们将向您发送重置密码的链接",
