@@ -135,7 +135,7 @@ export function InviteForm() {
 
   if (userMismatchMessage) {
     return (
-      <div className="text-center text-sm">
+      <div className="text-center text-sm pt-6">
         <p>{userMismatchMessage}</p>
       </div>
     );
