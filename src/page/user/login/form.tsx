@@ -138,7 +138,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
       {children}
 
       {!usePassword ? (
-        <Form {...emailForm}>
+        <Form {...emailForm} key="email-form">
           <form
             onSubmit={emailForm.handleSubmit(onEmailSubmit)}
             className={cn('flex flex-col gap-4', className)}
@@ -178,7 +178,10 @@ export function LoginForm({ className, children, ...props }: IProps) {
             <Space className="text-sm justify-center">
               <button
                 type="button"
-                onClick={() => setUsePassword(true)}
+                onClick={() => {
+                  passwordForm.setValue('email', emailForm.getValues('email'));
+                  setUsePassword(true);
+                }}
                 className={linkClass}
               >
                 {t('login.use_password')}
@@ -197,7 +200,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
           </form>
         </Form>
       ) : (
-        <Form {...passwordForm}>
+        <Form {...passwordForm} key="password-form">
           <form
             onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
             className={cn('flex flex-col gap-4', className)}
@@ -257,7 +260,10 @@ export function LoginForm({ className, children, ...props }: IProps) {
             <Space className="text-sm justify-center">
               <button
                 type="button"
-                onClick={() => setUsePassword(false)}
+                onClick={() => {
+                  emailForm.setValue('email', passwordForm.getValues('email'));
+                  setUsePassword(false);
+                }}
                 className={linkClass}
               >
                 {t('login.use_email')}
