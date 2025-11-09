@@ -18,9 +18,7 @@ const NamespacePage = lazy(() => import('@/page/namespace'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const VerifyOtpPage = lazy(() => import('@/page/user/verify-otp'));
 const AcceptInvitePage = lazy(() => import('@/page/user/accept-invite'));
-const ForgotPasswordPage = lazy(() => import('@/page/user/password'));
 const InviteRedirectPage = lazy(() => import('@/page/invite-redirect'));
-const PasswordConfirmPage = lazy(() => import('@/page/user/password-confirm'));
 const WechatAuthConfirmPage = lazy(
   () => import('@/page/user/wechat/auth-confirm')
 );
@@ -76,14 +74,6 @@ const router = createBrowserRouter([
       {
         path: 'user/accept-invite',
         element: <AcceptInvitePage />,
-      },
-      {
-        path: 'user/password',
-        element: <ForgotPasswordPage />,
-      },
-      {
-        path: 'user/password/confirm',
-        element: <PasswordConfirmPage />,
       },
       {
         path: 'invite/confirm',
