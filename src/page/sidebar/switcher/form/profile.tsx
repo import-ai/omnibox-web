@@ -27,9 +27,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import useUser from '@/hooks/use-user';
+import { isAllowedEmailDomain } from '@/lib/email-validation';
 import { isEmoji } from '@/lib/emoji';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
+import { optionalPasswordSchema } from '@/lib/validation-schemas';
 
 import EmailValidate from './email-validate';
 
@@ -56,40 +58,14 @@ const profileFormSchema = z.object({
         if (!isEmail(email)) {
           return false;
         }
-        const allowedDomains = [
-          'gmail.com',
-          'outlook.com',
-          '163.com',
-          'qq.com',
-        ];
-        const domain = email.split('@')[1];
-        return allowedDomains.includes(domain);
+        return isAllowedEmailDomain(email);
       },
       {
         message: i18next.t('form.email_limit_rule'),
       }
     )
     .optional(),
-  password: z
-    .string()
-    .optional()
-    .refine(
-      password => {
-        if (!password || password.length <= 0) {
-          return true;
-        }
-        if (
-          password.length < 8 ||
-          !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)
-        ) {
-          return false;
-        }
-        return true;
-      },
-      {
-        message: i18next.t('form.password_reg'),
-      }
-    ),
+  password: optionalPasswordSchema,
   password_repeat: z.string().optional(),
 });
 

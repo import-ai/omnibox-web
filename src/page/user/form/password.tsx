@@ -17,27 +17,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { createEmailDomainValidator } from '@/lib/email-validation';
 import { http } from '@/lib/request';
 
 const forgotPasswordSchema = z.object({
   email: z
     .string()
     .email(i18next.t('form.email.invalid'))
-    .refine(
-      email => {
-        const allowedDomains = [
-          'gmail.com',
-          'outlook.com',
-          '163.com',
-          'qq.com',
-        ];
-        const domain = email.split('@')[1];
-        return allowedDomains.includes(domain);
-      },
-      {
-        message: i18next.t('form.email_limit_rule'),
-      }
-    ),
+    .refine(createEmailDomainValidator(i18next.t('form.email_limit_rule'))),
 });
 
 type TForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;

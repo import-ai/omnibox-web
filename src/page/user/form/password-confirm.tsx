@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -17,14 +16,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { http } from '@/lib/request';
+import { passwordSchema } from '@/lib/validation-schemas';
 
 import { removeGlobalCredential } from '../util';
 
 const forgotPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, i18next.t('form.password_min'))
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg')),
+  password: passwordSchema,
   password_repeat: z.string(),
 });
 

@@ -25,27 +25,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { createEmailDomainValidator } from '@/lib/email-validation';
 import { http } from '@/lib/request';
 
 const FormSchema = z.object({
   email: z
     .string()
     .email(i18next.t('form.email_invalid'))
-    .refine(
-      email => {
-        const allowedDomains = [
-          'gmail.com',
-          'outlook.com',
-          '163.com',
-          'qq.com',
-        ];
-        const domain = email.split('@')[1];
-        return allowedDomains.includes(domain);
-      },
-      {
-        message: i18next.t('form.email_limit_rule'),
-      }
-    ),
+    .refine(createEmailDomainValidator(i18next.t('form.email_limit_rule'))),
   role: z
     .string()
     .min(2, i18next.t('invite.min'))

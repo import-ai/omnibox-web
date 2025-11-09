@@ -19,9 +19,11 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
+import { isAllowedEmailDomain } from '@/lib/email-validation';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
+import { passwordSchema } from '@/lib/validation-schemas';
 import { setGlobalCredential } from '@/page/user/util';
 
 const emailFormSchema = z.object({
@@ -30,10 +32,7 @@ const emailFormSchema = z.object({
 
 const passwordFormSchema = z.object({
   email: z.string().nonempty(i18next.t('form.email_or_username_invalid')),
-  password: z
-    .string()
-    .min(8, i18next.t('form.password_min'))
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg')),
+  password: passwordSchema,
 });
 
 interface IProps extends React.ComponentPropsWithoutRef<'form'> {
@@ -67,9 +66,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
   });
 
   const onEmailSubmit = async (data: z.infer<typeof emailFormSchema>) => {
-    const allowedDomains = ['gmail.com', 'outlook.com', '163.com', 'qq.com'];
-    const domain = data.email.split('@')[1];
-    if (!allowedDomains.includes(domain)) {
+    if (!isAllowedEmailDomain(data.email)) {
       toast(t('form.email_limit_rule'), { position: 'bottom-right' });
       return;
     }
@@ -99,9 +96,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
 
   const onPasswordSubmit = (data: z.infer<typeof passwordFormSchema>) => {
     if (isEmail(data.email)) {
-      const allowedDomains = ['gmail.com', 'outlook.com', '163.com', 'qq.com'];
-      const domain = data.email.split('@')[1];
-      if (!allowedDomains.includes(domain)) {
+      if (!isAllowedEmailDomain(data.email)) {
         toast(t('form.email_limit_rule'), { position: 'bottom-right' });
         return;
       }
