@@ -98,9 +98,7 @@ export default function FeatureCards() {
       setProgress('');
 
       const fileCount = results.length;
-      toast.success(
-        `${fileCount} ${fileCount === 1 ? 'file' : 'files'} uploaded successfully`
-      );
+      toast.success(t('chat.home.upload.success', { count: fileCount }));
 
       if (results.length > 0) {
         const lastUploadedFile = results[results.length - 1];

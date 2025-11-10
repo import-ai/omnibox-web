@@ -369,7 +369,9 @@
         "wechat": "微信助手",
         "wechat_tooltip": "在微信中和\"小黑\"聊天",
         "browser": "网页收藏",
-        "browser_tooltip": "任何网页，一键保存"
+        "browser_tooltip": "任何网页，一键保存",
+        "success_one": "成功上传 {{count}} 个文件",
+        "success_other": "成功上传 {{count}} 个文件"
       },
       "recent": {
         "title": "最近更新",
