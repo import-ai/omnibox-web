@@ -27,6 +27,7 @@
     },
     "deleted": "已删除",
     "deleted_description": "此资源已被删除",
+    "no_content": "资源没有内容可下载",
     "attrs": {
       "tag": "标签",
       "add_tag": "点击添加标签",
@@ -61,6 +62,8 @@
     "create_file": "创建文件",
     "create_folder": "创建文件夹",
     "upload_file": "上传文件",
+    "download_as": "下载为",
+    "download_as_tooltip": "{{ format }} 格式",
     "add_all_to_context": "添加全部文件到对话框",
     "add_it_to_context": "添加该文件到对话框",
     "add_it_only_to_context": "仅添加该文件到对话框",
@@ -74,6 +77,7 @@
     "username": "用户名",
     "username_min": "用户名至少2个字符",
     "username_max": "用户名最多32个字符",
+    "username_no_emoji": "用户名不允许使用特殊符号",
     "password": "密码",
     "confirm_password": "确认密码",
     "password_min": "密码至少8个字符",
@@ -97,7 +101,7 @@
     "owner": "空间所有者",
     "member": "成员",
     "min": "至少2个字符",
-    "max": "最多32个字符",
+    "max": "最多64个字符",
     "submit": "保存",
     "button": "发送邀请",
     "success": "邀请已发送",
@@ -111,7 +115,8 @@
     "submit": "保存",
     "success": "已更新",
     "member_count": "{{ size }} 名成员",
-    "conflict": "已有相同名称的空间"
+    "conflict": "已有相同名称的空间",
+    "no_special_chars": "空间名不允许使用特殊符号"
   },
   "login": {
     "product_name": "小黑",
@@ -172,6 +177,7 @@
     "namespace": "空间设置",
     "api_key": "API 密钥",
     "applications": "应用管理",
+    "content": "内容",
     "third_party_account": {
       "manage": "三方账号管理",
       "title": "第三方账号管理",
@@ -273,7 +279,9 @@
     "theme_setting": "外观",
     "theme_light": "浅色",
     "theme_dark": "深色",
-    "theme_system": "系统"
+    "theme_system": "系统",
+    "auto_tag_setting": "AI 智能标签提取",
+    "auto_tag_description": "使用 AI 自动从内容中提取和生成标签"
   },
   "unauth_page": {
     "title": "访问被拒绝",
@@ -314,7 +322,16 @@
     "citations_results": "搜索结果",
     "searching": "搜索中...",
     "disclaimer": "OmniBox 也可能会犯错。请核查重要信息。",
-    "save_to_private": "保存至个人空间",
+    "messages": {
+      "actions": {
+        "regenerate": "重新生成",
+        "save": "保存至个人空间",
+        "copy": "复制 Markdown",
+        "edit": "编辑消息",
+        "save_edit": "保存",
+        "cancel_edit": "取消"
+      }
+    },
     "conversations": {
       "new": "新对话",
       "new_chat": "新建对话",
@@ -453,6 +470,9 @@
     "fetch_error": "获取任务失败",
     "no_tasks": "暂无任务",
     "view_resource": "查看文档",
+    "my_tasks": "我的任务",
+    "all_tasks": "所有任务",
+    "task_id": "任务ID",
     "status_pending": "等待",
     "status_running": "运行",
     "status_finished": "完成",
@@ -473,7 +493,9 @@
   "common": {
     "actions": "操作",
     "refresh": "刷新",
-    "retry": "重试"
+    "retry": "重试",
+    "previous": "上一页",
+    "next": "下一页"
   },
   "loading": "加载中...",
   "creating": "创建中...",

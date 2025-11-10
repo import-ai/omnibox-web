@@ -274,3 +274,9 @@ export interface Application extends IBase {
   api_key_id?: string;
   attrs?: ApplicationAttrs;
 }
+
+export interface FileInfo {
+  id: string;
+  post_url: string;
+  post_fields: [string, string][];
+}

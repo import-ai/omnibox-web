@@ -1,4 +1,3 @@
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,11 +17,6 @@ export default function Layout() {
   const namespaceId = params.namespace_id;
   const shareId = params.share_id;
   const [uid, setUid] = useState(localStorage.getItem('uid'));
-  const getVisitorInfo = async () => {
-    const fp = await FingerprintJS.load();
-    const visitorInfo = await fp.get();
-    return visitorInfo;
-  };
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -50,19 +44,14 @@ export default function Layout() {
   }, [loc]);
 
   useEffect(() => {
-    const referrer = document.referrer;
-    if (!referrer || referrer.includes(location.hostname)) {
+    if (!uid) {
       return;
     }
-    getVisitorInfo().then(({ visitorId }) => {
-      track('visit_web_from', {
-        referrer,
-        finger: visitorId,
-        url: location.href,
-        language: i18n.language,
-      });
+    track('related_relationships', {
+      once: true,
+      userId: uid,
     });
-  }, []);
+  }, [uid]);
 
   useEffect(() => {
     // Be compatible with extension login
@@ -111,6 +100,9 @@ export default function Layout() {
     http
       .get('/user/option/list', { cancelToken: source.token })
       .then((response: Array<{ name: string; value: any }>) => {
+        if (!Array.isArray(response)) {
+          return;
+        }
         const languageItem = response.find(item => item.name === 'language');
         if (languageItem) {
           const lang = languageItem.value;

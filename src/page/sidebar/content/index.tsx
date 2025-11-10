@@ -19,7 +19,7 @@ export interface IProps extends Omit<ISidebarProps, 'spaceType' | 'data'> {
 }
 
 export default function Content(props: IProps) {
-  const { data, resourceId, onDrop } = props;
+  const { data, resourceId, progress, onDrop } = props;
   const isMobile = useIsMobile();
   const [target, onTarget] = useState<IResourceData | null>(null);
   const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
@@ -80,6 +80,7 @@ export default function Content(props: IProps) {
               {...props}
               key={spaceType}
               target={target}
+              progress={progress}
               onTarget={onTarget}
               onDrop={handleDrop}
               activeKey={resourceId}

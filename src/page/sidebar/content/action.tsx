@@ -10,6 +10,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { SidebarMenuAction } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
 import MoveTo from '@/page/resource/actions/move';
@@ -21,8 +27,8 @@ export default function Action(props: ISidebarProps) {
     onUpload,
     onCreate,
     onDelete,
+    progress,
     spaceType,
-    onMenuMore,
     editingKey,
     onActiveKey,
     namespaceId,
@@ -81,21 +87,30 @@ export default function Action(props: ISidebarProps) {
     setMoveTo(false);
     app.fire('move_resource', resourceId, targetId);
   };
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      return;
-    }
-    onMenuMore(spaceType, data.id);
-  };
 
   return (
     <>
-      <DropdownMenu onOpenChange={handleOpenChange}>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
           {data.id === editingKey ? (
-            <SidebarMenuAction className="group-hover/sidebar-item:pointer-events-auto pointer-events-none size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
-              <LoaderCircle className="transition-transform animate-spin" />
-            </SidebarMenuAction>
+            <>
+              {progress ? (
+                <TooltipProvider>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuAction className="group-hover/sidebar-item:pointer-events-auto pointer-events-none size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
+                        <LoaderCircle className="transition-transform animate-spin" />
+                      </SidebarMenuAction>
+                    </TooltipTrigger>
+                    <TooltipContent>{progress}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <SidebarMenuAction className="group-hover/sidebar-item:pointer-events-auto pointer-events-none size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
+                  <LoaderCircle className="transition-transform animate-spin" />
+                </SidebarMenuAction>
+              )}
+            </>
           ) : (
             <SidebarMenuAction className="group-hover/sidebar-item:opacity-100 group-hover/sidebar-item:pointer-events-auto pointer-events-none opacity-0 size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
               <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3] text-[#8F959E] hover:text-[#8F959E]" />

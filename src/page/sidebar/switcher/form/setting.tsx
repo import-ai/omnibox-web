@@ -18,12 +18,21 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import useNamespace from '@/hooks/use-namespace';
+import { isEmoji } from '@/lib/emoji';
 
 const FormSchema = z.object({
   name: z
     .string()
     .min(2, i18next.t('namespace.min'))
-    .max(22, i18next.t('namespace.max')),
+    .max(64, i18next.t('namespace.max'))
+    .refine(
+      value => {
+        return !Array.from(value).some(char => isEmoji(char));
+      },
+      {
+        message: i18next.t('namespace.no_special_chars'),
+      }
+    ),
 });
 
 type FormValues = z.infer<typeof FormSchema>;

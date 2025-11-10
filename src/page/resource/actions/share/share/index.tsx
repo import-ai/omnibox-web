@@ -107,14 +107,17 @@ export function ShareTabContent(props: ShareTabContentProps) {
         >
           <Copy className="w-4 h-4" />
         </Button>
-        <Switch checked={shareInfo?.enabled} onCheckedChange={handleEnable} />
+        <Switch
+          checked={shareInfo?.enabled ?? false}
+          onCheckedChange={handleEnable}
+        />
       </div>
       {shareInfo?.enabled && (
         <>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
             <span className="text-sm">{t('share.share.all_resources')}</span>
             <Switch
-              checked={shareInfo?.all_resources}
+              checked={shareInfo?.all_resources ?? false}
               disabled={!shareInfo?.enabled}
               onCheckedChange={handleShareAll}
             />
@@ -122,7 +125,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
             <span className="text-sm">{t('share.share.require_login')}</span>
             <Switch
-              checked={shareInfo?.require_login}
+              checked={shareInfo?.require_login ?? false}
               disabled={!shareInfo?.enabled}
               onCheckedChange={handleRequireLogin}
             />

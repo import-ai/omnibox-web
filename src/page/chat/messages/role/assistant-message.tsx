@@ -9,7 +9,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
+import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
 import type { Citation } from '@/page/chat/types/chat-response';
 import {
   MessageStatus,
@@ -25,12 +27,26 @@ interface IProps {
   message: MessageDetail;
   messages: MessageDetail[];
   citations: Citation[];
+  messageOperator: MessageOperator;
+  onRegenerate: (messageId: string) => void;
+  isLastMessage: boolean;
 }
 
 export function AssistantMessage(props: IProps) {
-  const { message, citations, messages, conversation } = props;
+  const {
+    message,
+    citations,
+    messages,
+    conversation,
+    messageOperator,
+    onRegenerate,
+    isLastMessage,
+  } = props;
   const { t } = useTranslation();
   const openAIMessage = message.message;
+
+  const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
+    useMessageSiblings(message.id, messageOperator);
 
   const domList: React.ReactNode[] = [];
   if (openAIMessage.reasoning_content?.trim()) {
@@ -59,6 +75,14 @@ export function AssistantMessage(props: IProps) {
         content={openAIMessage.content?.trim()}
         citations={citations}
         conversation={conversation}
+        messageId={message.id}
+        onRegenerate={onRegenerate}
+        hasSiblings={hasSiblings}
+        currentIndex={currentIndex}
+        siblingsLength={siblings.length}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        isLastMessage={isLastMessage}
       />
     );
   }

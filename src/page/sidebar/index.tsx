@@ -11,6 +11,7 @@ export default function MainSidebar() {
   const {
     data,
     expands,
+    progress,
     chatPage,
     expanding,
     editingKey,
@@ -21,7 +22,6 @@ export default function MainSidebar() {
     handleDelete,
     handleCreate,
     handleUpload,
-    handleMenuMore,
     handleActiveKey,
   } = useContext();
 
@@ -36,6 +36,7 @@ export default function MainSidebar() {
           data={data}
           expands={expands}
           onDrop={handleDrop}
+          progress={progress}
           expanding={expanding}
           editingKey={editingKey}
           resourceId={resourceId}
@@ -44,7 +45,6 @@ export default function MainSidebar() {
           onCreate={handleCreate}
           onUpload={handleUpload}
           namespaceId={namespaceId}
-          onMenuMore={handleMenuMore}
           onActiveKey={handleActiveKey}
         />
         <FooterSidebar />

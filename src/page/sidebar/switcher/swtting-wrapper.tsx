@@ -8,6 +8,7 @@ import { SidebarNav } from '@/page/user/form/sidebar';
 
 import { ApplicationsForm } from './applications';
 import CommonForm from './basic';
+import Content from './content';
 import { APIKeyForm } from './form/api-key';
 import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
@@ -54,7 +55,6 @@ export default function SettingWrapper({
       label: t('setting.tasks'),
       value: 'tasks',
       children: <TasksManagement />,
-      requireOwner: true,
     },
     {
       label: t('setting.applications'),
@@ -71,6 +71,11 @@ export default function SettingWrapper({
       label: t('setting.basic'),
       value: 'basic',
       children: <CommonForm />,
+    },
+    {
+      label: t('setting.content'),
+      value: 'content',
+      children: <Content />,
     },
     {
       label: t('setting.third_party_account.manage'),

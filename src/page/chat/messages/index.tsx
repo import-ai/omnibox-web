@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { AssistantMessage } from '@/page/chat/messages/role/assistant-message';
 import { ToolMessage } from '@/page/chat/messages/role/tool-message';
 import { UserMessage } from '@/page/chat/messages/role/user-message';
@@ -15,10 +16,54 @@ import type {
 interface IProps {
   conversation: ConversationDetail;
   messages: MessageDetail[];
+  messageOperator: MessageOperator;
+  onRegenerate: (messageId: string) => void;
+  onEdit: (messageId: string, newContent: string) => void;
+}
+
+function renderMessage(
+  message: MessageDetail,
+  messages: MessageDetail[],
+  citations: Citation[],
+  conversation: ConversationDetail,
+  messageOperator: MessageOperator,
+  onRegenerate: (messageId: string) => void,
+  onEdit: (messageId: string, newContent: string) => void,
+  isLastMessage: boolean
+) {
+  const openAIMessage = message.message;
+
+  if (openAIMessage.role === OpenAIMessageRole.USER) {
+    return (
+      <UserMessage
+        message={message}
+        messageOperator={messageOperator}
+        onEdit={onEdit}
+      />
+    );
+  }
+  if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
+    return (
+      <AssistantMessage
+        message={message}
+        messages={messages}
+        citations={citations}
+        conversation={conversation}
+        messageOperator={messageOperator}
+        onRegenerate={onRegenerate}
+        isLastMessage={isLastMessage}
+      />
+    );
+  }
+  if (openAIMessage.role === OpenAIMessageRole.TOOL) {
+    return <ToolMessage citations={citations} message={message} />;
+  }
+  return <></>;
 }
 
 export function Messages(props: IProps) {
-  const { messages, conversation } = props;
+  const { messages, conversation, messageOperator, onRegenerate, onEdit } =
+    props;
   const citations = React.useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
@@ -31,42 +76,41 @@ export function Messages(props: IProps) {
     return result;
   }, [messages]);
 
-  function renderMessage(message: MessageDetail) {
-    const openAIMessage = message.message;
+  const filteredMessages = messages.filter(
+    message => message.message.role !== OpenAIMessageRole.SYSTEM
+  );
 
-    if (openAIMessage.role === OpenAIMessageRole.USER) {
-      return <UserMessage message={message} />;
-    }
-    if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
-      return (
-        <AssistantMessage
-          message={message}
-          messages={messages}
-          citations={citations}
-          conversation={conversation}
-        />
-      );
-    }
-    if (openAIMessage.role === OpenAIMessageRole.TOOL) {
-      return <ToolMessage citations={citations} message={message} />;
-    }
-  }
+  // Find the index of the last assistant message
+  const lastAssistantIndex = filteredMessages.reduce((lastIndex, msg, idx) => {
+    return msg.message.role === OpenAIMessageRole.ASSISTANT ? idx : lastIndex;
+  }, -1);
 
   return (
     <div className="space-y-4">
-      {messages
-        .filter(message => message.message.role !== OpenAIMessageRole.SYSTEM)
-        .map((message, index) => {
-          return (
-            <div key={message.id}>
-              {renderMessage(message)}
-              {index < messages.length - 1 &&
-                ![OpenAIMessageRole.TOOL, OpenAIMessageRole.USER].includes(
-                  message.message.role
-                ) && <div className="py-4" />}
-            </div>
-          );
-        })}
+      {filteredMessages.map((message, index) => {
+        const isLastAssistantMessage =
+          message.message.role === OpenAIMessageRole.ASSISTANT &&
+          index === lastAssistantIndex;
+
+        return (
+          <div key={message.id}>
+            {renderMessage(
+              message,
+              messages,
+              citations,
+              conversation,
+              messageOperator,
+              onRegenerate,
+              onEdit,
+              isLastAssistantMessage
+            )}
+            {index < filteredMessages.length - 1 &&
+              ![OpenAIMessageRole.TOOL, OpenAIMessageRole.USER].includes(
+                message.message.role
+              ) && <div className="py-4" />}
+          </div>
+        );
+      })}
     </div>
   );
 }

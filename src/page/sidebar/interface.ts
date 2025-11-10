@@ -4,6 +4,7 @@ export interface ISidebarProps {
   data: IResourceData;
   spaceType: SpaceType;
   activeKey?: string;
+  progress: string;
   resourceId: string;
   expanding: string;
   editingKey: string;
@@ -16,7 +17,6 @@ export interface ISidebarProps {
     file: FileList
   ) => Promise<void>;
   onExpand: (spaceType: SpaceType, id: string) => void;
-  onMenuMore: (spaceType: SpaceType, id: string) => void;
   onDelete: (spaceType: SpaceType, id: string, parentId: string) => void;
   onCreate: (
     spaceType: SpaceType,

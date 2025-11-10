@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import useUser from '@/hooks/use-user';
+import { isEmoji } from '@/lib/emoji';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 
@@ -36,7 +37,15 @@ const profileFormSchema = z.object({
   username: z
     .string()
     .min(2, i18next.t('form.username_min'))
-    .max(32, i18next.t('form.username_max')),
+    .max(32, i18next.t('form.username_max'))
+    .refine(
+      value => {
+        return !Array.from(value).some(char => isEmoji(char));
+      },
+      {
+        message: i18next.t('form.username_no_emoji'),
+      }
+    ),
   email: z
     .string()
     .refine(

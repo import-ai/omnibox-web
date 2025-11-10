@@ -1,7 +1,9 @@
 import '@/styles/github-markdown.css';
 import 'katex/dist/katex.min.css';
 
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import Markdown, { ExtraProps } from 'react-markdown';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
@@ -13,6 +15,12 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 import Copy from '@/components/copy';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useTheme from '@/hooks/use-theme.ts';
 import Save from '@/page/chat/components/save';
@@ -91,12 +99,34 @@ interface IProps {
   citations: Citation[];
   status: MessageStatus;
   conversation: ConversationDetail;
+  messageId: string;
+  onRegenerate: (messageId: string) => void;
+  hasSiblings?: boolean;
+  currentIndex?: number;
+  siblingsLength?: number;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  isLastMessage: boolean;
 }
 
 export function CitationMarkdown(props: IProps) {
-  const { content, status, citations, conversation } = props;
+  const {
+    content,
+    status,
+    citations,
+    conversation,
+    messageId,
+    onRegenerate,
+    hasSiblings,
+    currentIndex,
+    siblingsLength,
+    onPrevious,
+    onNext,
+    isLastMessage,
+  } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
@@ -172,7 +202,7 @@ export function CitationMarkdown(props: IProps) {
 
   return (
     <div
-      className="markdown-body reset-list"
+      className="group markdown-body reset-list"
       style={{ background: 'transparent' }}
     >
       <Markdown
@@ -183,7 +213,53 @@ export function CitationMarkdown(props: IProps) {
         {replacedContent}
       </Markdown>
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
-        <div className="flex ml-[-6px] mt-[-10px]">
+        <div
+          className={`flex items-center gap-1 ml-[-6px] mt-[-10px] ${
+            isLastMessage
+              ? ''
+              : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
+          }`}
+        >
+          {hasSiblings && (
+            <>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="p-0 w-4 h-7"
+                onClick={onPrevious}
+                disabled={currentIndex === 0}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
+                {(currentIndex ?? 0) + 1}/{siblingsLength}
+              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="p-0 w-4 h-7"
+                onClick={onNext}
+                disabled={currentIndex === (siblingsLength ?? 1) - 1}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </>
+          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="p-0 w-7 h-7"
+                onClick={() => onRegenerate(messageId)}
+              >
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t('chat.messages.actions.regenerate')}</p>
+            </TooltipContent>
+          </Tooltip>
           <Copy content={copyPreprocess(content, citations)} />
           <Save
             conversation={conversation}

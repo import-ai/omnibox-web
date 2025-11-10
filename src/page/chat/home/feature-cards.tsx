@@ -37,6 +37,7 @@ export default function FeatureCards() {
   const { t, i18n } = useTranslation();
   const app = useApp();
   const navigate = useNavigate();
+  const [progress, setProgress] = useState('');
   const { namespace_id: namespaceId } = useParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -89,7 +90,12 @@ export default function FeatureCards() {
       const results = await uploadFiles(files, {
         namespaceId,
         parentId: privateRoot.id,
+        onProgress: ({ done, total }) => {
+          setProgress(`${done}/${total}`);
+        },
       });
+
+      setProgress('');
 
       const fileCount = results.length;
       toast.success(
@@ -156,26 +162,35 @@ export default function FeatureCards() {
           />
           <TooltipProvider>
             <div className="flex gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                  >
-                    {uploading ? (
+              {uploading ? (
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" className="opacity-50">
                       <LoaderCircle className="w-4 h-4 text-red-500 animate-spin" />
-                    ) : (
+                      {t('chat.home.upload.local')}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {progress || t('chat.home.upload.local_tooltip')}
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       <FileUp className="w-4 h-4 text-red-500" />
-                    )}
-                    {t('chat.home.upload.local')}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {t('chat.home.upload.local_tooltip')}
-                </TooltipContent>
-              </Tooltip>
+                      {t('chat.home.upload.local')}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {t('chat.home.upload.local_tooltip')}
+                  </TooltipContent>
+                </Tooltip>
+              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

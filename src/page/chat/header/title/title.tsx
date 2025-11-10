@@ -59,7 +59,7 @@ export default function HeaderTitle(props: IProps) {
 
   return (
     <Space className="items-center gap-0 group">
-      <span>{data}</span>
+      <span className="max-w-[400px] line-clamp-1">{data}</span>
       {editable && (
         <Button
           size="icon"

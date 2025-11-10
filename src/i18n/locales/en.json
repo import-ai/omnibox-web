@@ -27,6 +27,7 @@
     },
     "deleted": "Deleted",
     "deleted_description": "This resource has been deleted",
+    "no_content": "Resource has no content to download",
     "attrs": {
       "tag": "Tag",
       "add_tag": "Add tag",
@@ -61,6 +62,8 @@
     "create_file": "Create File",
     "create_folder": "Create Folder",
     "upload_file": "Upload File",
+    "download_as": "Download as",
+    "download_as_tooltip": "Download as {{ format }} format",
     "add_all_to_context": "Add all Files to Chat Box",
     "add_it_to_context": "Add this File to Chat Box",
     "add_it_only_to_context": "Add this File only to Chat Box",
@@ -74,6 +77,7 @@
     "username": "Username",
     "username_min": "Username must be at least 2 characters",
     "username_max": "Username must be at most 32 characters",
+    "username_no_emoji": "Special characters are not allowed in username",
     "password": "Password",
     "confirm_password": "Confirm Password",
     "password_min": "Password must be at least 8 characters",
@@ -107,11 +111,12 @@
     "add": "Add Namespace",
     "name": "Namespace Name",
     "min": "At least 2 characters",
-    "max": "At most 32 characters",
+    "max": "At most 64 characters",
     "submit": "Save",
     "success": "Updated",
     "member_count": "{{ size }} members",
-    "conflict": "There's already a namespace with the same name"
+    "conflict": "There's already a namespace with the same name",
+    "no_special_chars": "Special characters are not allowed in namespace name"
   },
   "login": {
     "product_name": "OmniBox",
@@ -172,6 +177,7 @@
     "namespace": "Namespace",
     "api_key": "API Keys",
     "applications": "Applications",
+    "content": "Content",
     "third_party_account": {
       "manage": "Third-party",
       "title": "Third-party Account Management",
@@ -273,7 +279,9 @@
     "theme_setting": "Appearance",
     "theme_light": "Light",
     "theme_dark": "Dark",
-    "theme_system": "System"
+    "theme_system": "System",
+    "auto_tag_setting": "AI-Powered Tag Extraction",
+    "auto_tag_description": "Automatically extract and generate tags from content using AI"
   },
   "unauth_page": {
     "title": "Access Denied",
@@ -314,7 +322,16 @@
     "citations_results": "Search Results",
     "searching": "Searching...",
     "disclaimer": "OmniBox can make mistakes. Check important info.",
-    "save_to_private": "Save to private space",
+    "messages": {
+      "actions": {
+        "regenerate": "Regenerate",
+        "save": "Save to private space",
+        "copy": "Copy Markdown",
+        "edit": "Edit message",
+        "save_edit": "Save",
+        "cancel_edit": "Cancel"
+      }
+    },
     "conversations": {
       "new": "New conversation",
       "new_chat": "New Chat",
@@ -453,6 +470,9 @@
     "fetch_error": "Failed to fetch tasks",
     "no_tasks": "No tasks found",
     "view_resource": "View Resource",
+    "my_tasks": "My Tasks",
+    "all_tasks": "All Tasks",
+    "task_id": "Task ID",
     "status_pending": "Pending",
     "status_running": "Running",
     "status_finished": "Done",
@@ -473,7 +493,9 @@
   "common": {
     "actions": "Actions",
     "refresh": "Refresh",
-    "retry": "Retry"
+    "retry": "Retry",
+    "previous": "Previous",
+    "next": "Next"
   },
   "loading": "Loading...",
   "creating": "Creating...",
