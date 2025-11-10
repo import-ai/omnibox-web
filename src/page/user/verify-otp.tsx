@@ -74,12 +74,10 @@ export default function VerifyOtpPage() {
       } else {
         navigate('/', { replace: true });
       }
-    } catch (err: any) {
+    } catch {
       setIsVerifying(false);
-      const errorMessage =
-        err.response?.data?.message || t('verify_otp.error_magic_link');
-      toast.error(errorMessage, { position: 'bottom-right' });
       // If magic link fails, show the OTP input
+      // Global axios interceptor will handle the error toast
     }
   };
 
@@ -109,7 +107,7 @@ export default function VerifyOtpPage() {
       const errorMessage =
         err.response?.data?.message || t('verify_otp.error_invalid_code');
       setError(errorMessage);
-      toast.error(errorMessage, { position: 'bottom-right' });
+      // Global axios interceptor will handle the error toast
     }
   };
 
@@ -130,10 +128,8 @@ export default function VerifyOtpPage() {
       });
       setCanResend(false);
       setCountdown(60);
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || t('verify_otp.error_resend');
-      toast.error(errorMessage, { position: 'bottom-right' });
+    } catch {
+      // Global axios interceptor will handle the error toast
     } finally {
       setIsResending(false);
     }
