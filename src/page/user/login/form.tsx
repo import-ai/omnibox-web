@@ -80,6 +80,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
 
       // Check if user exists - if not, redirect to registration
       if (!response.exists) {
+        toast.error(t('login.email_not_exists'), { position: 'bottom-right' });
         navigate(buildUrl('/user/sign-up', { email: data.email, redirect }));
         return;
       }

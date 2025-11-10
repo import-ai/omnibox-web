@@ -130,6 +130,7 @@
     "use_email": "使用邮箱验证码",
     "sign_up": "注册",
     "error_sending_otp": "发送验证码失败",
+    "email_not_exists": "该邮箱不存在，请注册以继续。",
     "title": "登录您的账户",
     "description": "请输入您的邮箱以登录账户",
     "authorizing": "授权中，请稍候...",

@@ -130,6 +130,7 @@
     "use_email": "Use email code",
     "sign_up": "Sign Up",
     "error_sending_otp": "Failed to send verification code",
+    "email_not_exists": "This email doesn't exist. Please sign up to continue.",
     "title": "Login to your account",
     "description": "Enter your email below to login your account",
     "authorizing": "Authorizing, please wait...",
