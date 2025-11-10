@@ -1,7 +1,7 @@
 {
   "name": "omnibox",
   "private": true,
-  "version": "0.1.4",
+  "version": "0.1.10",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -45,6 +45,7 @@
     "html-react-parser": "^5.2.7",
     "i18next": "^25.6.0",
     "i18next-browser-languagedetector": "^8.2.0",
+    "input-otp": "^1.4.2",
     "ismobilejs": "^1.1.1",
     "jszip": "^3.10.1",
     "katex": "^0.16.25",

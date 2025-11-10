@@ -72,7 +72,7 @@
   "form": {
     "or": "or",
     "operator": "Action",
-    "exist_account": "Already have an account?",
+    "exist_account": "Already have an account? ",
     "invalid_request": "Invalid request parameters",
     "username": "Username",
     "username_min": "Username must be at least 2 characters",
@@ -105,7 +105,10 @@
     "submit": "Save",
     "button": "Send Invitation",
     "success": "Invitation sent",
-    "add_namespace": "Add namespace"
+    "add_namespace": "Add namespace",
+    "please_login_first": "Please log in first to accept this invitation",
+    "user_mismatch": "This invitation is for {{ username }}",
+    "user_mismatch_generic": "This invitation is for another user"
   },
   "namespace": {
     "add": "Add Namespace",
@@ -122,6 +125,12 @@
     "product_name": "OmniBox",
     "logout": "Logout",
     "submit": "Login",
+    "continue": "Continue",
+    "use_password": "Use password",
+    "use_email": "Use email code",
+    "sign_up": "Sign Up",
+    "error_sending_otp": "Failed to send verification code",
+    "email_not_exists": "This email doesn't exist. Please sign up to continue.",
     "title": "Login to your account",
     "description": "Enter your email below to login your account",
     "authorizing": "Authorizing, please wait...",
@@ -141,8 +150,37 @@
     "description": "Enter your information to create an account",
     "submit": "Sign Up",
     "success": "Registration successful, please check your email to activate your account",
+    "error_sending_otp": "Failed to send verification code",
+    "email_already_exists": "This email is already registered. Please login to continue.",
     "conform_title": "Complete Account Creation",
     "conform_description": "Enter your information to complete account creation"
+  },
+  "verify_otp": {
+    "title": "Enter verification code",
+    "description": "We sent a 6-digit code to",
+    "didnt_receive": "Didn't receive the code?",
+    "resend": "Resend code",
+    "resending": "Sending...",
+    "resend_countdown": "Resend in {{seconds}}s",
+    "resend_success": "Code sent successfully",
+    "error_resend": "Failed to resend code",
+    "error_invalid_code": "Invalid verification code",
+    "error_invalid_code_with_attempts": "Invalid verification code. {{remaining}} attempts remaining.",
+    "error_expired_code": "Verification code has expired",
+    "error_too_many_attempts": "Too many failed attempts. Please request a new code.",
+    "error_too_many_otp_requests": "Too many OTP requests. Please try again in {{minutes}} minutes.",
+    "error_magic_link": "Invalid or expired magic link",
+    "open_email": "Open email app",
+    "back_to_login": "Back to login",
+    "verifying": "Verifying...",
+    "verifying_description": "Please wait..."
+  },
+  "accept_invite": {
+    "accepting": "Accepting invitation...",
+    "accepting_description": "Creating your account and joining the space",
+    "error_accept": "Failed to accept invitation. The link may be expired or invalid.",
+    "error_title": "Invitation Error",
+    "back_to_login": "Back to login"
   },
   "password": {
     "title": "Reset Password",
