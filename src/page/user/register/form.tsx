@@ -65,6 +65,9 @@ export function RegisterForm({ children }: IProps) {
 
       // If user already exists, redirect to login
       if (response.exists) {
+        toast.error(t('register.email_already_exists'), {
+          position: 'bottom-right',
+        });
         navigate(
           `/user/login?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
         );

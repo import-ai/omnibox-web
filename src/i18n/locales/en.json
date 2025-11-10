@@ -151,6 +151,7 @@
     "submit": "Sign Up",
     "success": "Registration successful, please check your email to activate your account",
     "error_sending_otp": "Failed to send verification code",
+    "email_already_exists": "This email is already registered. Please login to continue.",
     "conform_title": "Complete Account Creation",
     "conform_description": "Enter your information to complete account creation"
   },
@@ -167,6 +168,7 @@
     "error_invalid_code_with_attempts": "Invalid verification code. {{remaining}} attempts remaining.",
     "error_expired_code": "Verification code has expired",
     "error_too_many_attempts": "Too many failed attempts. Please request a new code.",
+    "error_too_many_otp_requests": "Too many OTP requests. Please try again in {{minutes}} minutes.",
     "error_magic_link": "Invalid or expired magic link",
     "open_email": "Open email app",
     "back_to_login": "Back to login",
