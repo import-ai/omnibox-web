@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { passwordSchema } from '@/lib/validation-schemas';
 
 export interface PasswordProps {
   disabled?: boolean;
@@ -22,12 +23,9 @@ export interface PasswordProps {
   onSave?: (password: string | null) => void;
 }
 
-const passwordSchema = z
+const passwordFormSchema = z
   .object({
-    password: z
-      .string()
-      .min(8, t('form.password_min'))
-      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, t('form.password_reg')),
+    password: passwordSchema,
     password_repeat: z.string(),
   })
   .refine(data => data.password === data.password_repeat, {
@@ -35,13 +33,13 @@ const passwordSchema = z
     path: ['password_repeat'],
   });
 
-type TPasswordForm = z.infer<typeof passwordSchema>;
+type TPasswordForm = z.infer<typeof passwordFormSchema>;
 
 export function Password(props: PasswordProps) {
   const { disabled, passwordEnabled, onSave } = props;
   const [open, setOpen] = useState<boolean>(false);
   const form = useForm<TPasswordForm>({
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(passwordFormSchema),
     defaultValues: {
       password: '',
       password_repeat: '',
