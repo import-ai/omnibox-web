@@ -6,8 +6,6 @@ import AppContext from '@/hooks/app-context';
 import Layout from '@/layout';
 import Error from '@/layout/error';
 
-const WeixinPay = lazy(() => import('@/page/pay'));
-
 const ChatPage = lazy(() => import('@/page/chat'));
 const ChatHomePage = lazy(() => import('@/page/chat/home'));
 const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
@@ -27,6 +25,8 @@ const WechatAuthConfirmPage = lazy(
 const GoogleAuthConfirmPage = lazy(
   () => import('@/page/user/google/auth-confirm')
 );
+const UpgradePage = lazy(() => import('@/page/upgrade'));
+const PaymentPage = lazy(() => import('@/page/upgrade/payment'));
 
 const SharePage = lazy(() => import('@/page/share'));
 const SharedResourcePage = lazy(() => import('@/page/shared-resource'));
@@ -82,12 +82,16 @@ const router = createBrowserRouter([
         element: <InvitePage />,
       },
       {
-        path: 'invite/:namespace_id/:invitation_id',
-        element: <InviteRedirectPage />,
+        path: 'upgrade',
+        element: <UpgradePage />,
       },
       {
-        path: 'single/pay',
-        element: <WeixinPay />,
+        path: 'upgrade/payment',
+        element: <PaymentPage />,
+      },
+      {
+        path: 'invite/:namespace_id/:invitation_id',
+        element: <InviteRedirectPage />,
       },
       {
         path: ':namespace_id',

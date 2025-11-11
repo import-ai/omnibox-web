@@ -1,4 +1,5 @@
 import { Sidebar, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
+import { UpgradeButton } from '@/page/upgrade/button';
 
 import Content from './content';
 import { FooterSidebar } from './footer';
@@ -31,6 +32,7 @@ export default function MainSidebar() {
         <SidebarHeader className="pt-[16px] gap-[10px] pr-0">
           <Switcher namespaceId={namespaceId} />
           <Header active={chatPage} onActiveKey={handleActiveKey} />
+          <UpgradeButton />
         </SidebarHeader>
         <Content
           data={data}

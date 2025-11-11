@@ -280,3 +280,38 @@ export interface FileInfo {
   post_url: string;
   post_fields: [string, string][];
 }
+
+export enum OrderStatus {
+  PENDING = 'pending',
+  PAID = 'paid',
+  CLOSED = 'closed',
+  REFUNDED = 'refunded',
+}
+
+export enum PaymentMethod {
+  ALIPAY = 'alipay',
+  WECHAT = 'wechat',
+}
+
+export enum PaymentType {
+  NATIVE = 'native',
+  H5 = 'h5',
+  JSAPI = 'jsapi',
+}
+
+export interface Order extends IBase {
+  id: string;
+  order_no: string;
+  user_id: string;
+  product_id: string | null;
+  amount: number;
+  currency: string;
+  status: OrderStatus;
+  payment_method: PaymentMethod | null;
+  payment_type: PaymentType | null;
+  third_party_order_no: string | null;
+  description: string;
+  paid_at: string | null;
+  closed_at: string | null;
+  refunded_at: string | null;
+}
