@@ -56,7 +56,7 @@ export default function InviteForm(props: InviteFormProps) {
         namespace: namespace_id,
         permission: permission,
         inviteUrl: `${location.origin}/invite/confirm`,
-        registerUrl: `${location.origin}/user/sign-up/confirm`,
+        registerUrl: `${location.origin}/user/accept-invite`,
       })
       .then(() => {
         onChange('');

@@ -19,17 +19,20 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
+import { isAllowedEmailDomain } from '@/lib/email-validation';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
-import { cn } from '@/lib/utils';
+import { buildUrl, cn } from '@/lib/utils';
+import { passwordSchema } from '@/lib/validation-schemas';
 import { setGlobalCredential } from '@/page/user/util';
 
-const formSchema = z.object({
+const emailFormSchema = z.object({
+  email: z.string().email(i18next.t('form.email_invalid')),
+});
+
+const passwordFormSchema = z.object({
   email: z.string().nonempty(i18next.t('form.email_or_username_invalid')),
-  password: z
-    .string()
-    .min(8, i18next.t('form.password_min'))
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg')),
+  password: passwordSchema,
 });
 
 interface IProps extends React.ComponentPropsWithoutRef<'form'> {
@@ -43,18 +46,58 @@ export function LoginForm({ className, children, ...props }: IProps) {
   const redirect = params.get('redirect');
   const emailParam = params.get('email');
   const [isLoading, setIsLoading] = useState(false);
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const [usePassword, setUsePassword] = useState(false);
+  const linkClass =
+    'text-sm hover:underline dark:text-[#60a5fa] underline-offset-2';
+
+  const emailForm = useForm<z.infer<typeof emailFormSchema>>({
+    resolver: zodResolver(emailFormSchema),
+    defaultValues: {
+      email: emailParam || '',
+    },
+  });
+
+  const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
+    resolver: zodResolver(passwordFormSchema),
     defaultValues: {
       email: emailParam || '',
       password: '',
     },
   });
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
+
+  const onEmailSubmit = async (data: z.infer<typeof emailFormSchema>) => {
+    if (!isAllowedEmailDomain(data.email)) {
+      toast(t('form.email_limit_rule'), { position: 'bottom-right' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await http.post('auth/send-otp', {
+        email: data.email,
+        url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
+      });
+
+      // Check if user exists - if not, redirect to registration
+      if (!response.exists) {
+        toast.error(t('login.email_not_exists'), { position: 'bottom-right' });
+        navigate(buildUrl('/user/sign-up', { email: data.email, redirect }));
+        return;
+      }
+
+      // Navigate to OTP verification page
+      navigate(buildUrl('/user/verify-otp', { email: data.email, redirect }));
+    } catch (err: any) {
+      setIsLoading(false);
+      const errorMessage =
+        err.response?.data?.message || t('login.error_sending_otp');
+      toast.error(errorMessage, { position: 'bottom-right' });
+    }
+  };
+
+  const onPasswordSubmit = (data: z.infer<typeof passwordFormSchema>) => {
     if (isEmail(data.email)) {
-      const allowedDomains = ['gmail.com', 'outlook.com', '163.com', 'qq.com'];
-      const domain = data.email.split('@')[1];
-      if (!allowedDomains.includes(domain)) {
+      if (!isAllowedEmailDomain(data.email)) {
         toast(t('form.email_limit_rule'), { position: 'bottom-right' });
         return;
       }
@@ -94,72 +137,152 @@ export function LoginForm({ className, children, ...props }: IProps) {
         </p>
       </div>
       {children}
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className={cn('flex flex-col gap-4', className)}
-          {...props}
-        >
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    type="text"
-                    startIcon={Mail}
-                    autoComplete="email"
-                    disabled={isLoading}
-                    placeholder={t('form.email_or_username')}
-                    className="text-base md:text-sm"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>{t('form.email_limit_rule')}</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    type="password"
-                    autoComplete="current-password"
-                    startIcon={Lock}
-                    disabled={isLoading}
-                    placeholder={t('form.password')}
-                    className="text-base md:text-sm"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            type="submit"
-            variant="default"
-            className="w-full disabled:opacity-60"
-            loading={isLoading}
+
+      {!usePassword ? (
+        <Form {...emailForm} key="email-form">
+          <form
+            onSubmit={emailForm.handleSubmit(onEmailSubmit)}
+            className={cn('flex flex-col gap-4', className)}
+            {...props}
           >
-            {t('login.submit')}
-          </Button>
-          <Space className="text-sm justify-center">
-            <Link to="/user/sign-up" className="text-sm ml-1">
-              {t('register.submit')}
-            </Link>
-            {t('form.or')}
-            <Link to="/user/password" className="text-sm ml-1">
-              {t('password.submit')}
-            </Link>
-          </Space>
-        </form>
-      </Form>
+            <FormField
+              control={emailForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      startIcon={Mail}
+                      autoComplete="email"
+                      disabled={isLoading}
+                      placeholder={t('form.email')}
+                      className="text-base md:text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t('form.email_limit_rule')}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              variant="default"
+              className="w-full disabled:opacity-60"
+              loading={isLoading}
+            >
+              {t('login.continue')}
+            </Button>
+            <Space className="text-sm justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  passwordForm.setValue('email', emailForm.getValues('email'));
+                  setUsePassword(true);
+                }}
+                className={linkClass}
+              >
+                {t('login.use_password')}
+              </button>
+              {t('form.or')}
+              <Link
+                to={buildUrl('/user/sign-up', {
+                  email: emailParam,
+                  redirect,
+                })}
+                className={linkClass}
+              >
+                {t('login.sign_up')}
+              </Link>
+            </Space>
+          </form>
+        </Form>
+      ) : (
+        <Form {...passwordForm} key="password-form">
+          <form
+            onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
+            className={cn('flex flex-col gap-4', className)}
+            {...props}
+          >
+            <FormField
+              control={passwordForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      startIcon={Mail}
+                      autoComplete="email"
+                      disabled={isLoading}
+                      placeholder={t('form.email_or_username')}
+                      className="text-base md:text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t('form.email_limit_rule')}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={passwordForm.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="current-password"
+                      startIcon={Lock}
+                      disabled={isLoading}
+                      placeholder={t('form.password')}
+                      className="text-base md:text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              variant="default"
+              className="w-full disabled:opacity-60"
+              loading={isLoading}
+            >
+              {t('login.submit')}
+            </Button>
+            <Space className="text-sm justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  emailForm.setValue('email', passwordForm.getValues('email'));
+                  setUsePassword(false);
+                }}
+                className={linkClass}
+              >
+                {t('login.use_email')}
+              </button>
+              {t('form.or')}
+              <Link
+                to={buildUrl('/user/sign-up', {
+                  email: emailParam,
+                  redirect,
+                })}
+                className={linkClass}
+              >
+                {t('login.sign_up')}
+              </Link>
+            </Space>
+          </form>
+        </Form>
+      )}
     </div>
   );
 }
