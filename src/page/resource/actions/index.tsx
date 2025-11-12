@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { Input } from '@/components/input';
 import PermissionWrapper from '@/components/permission-action/wrapper';
 import { Button } from '@/components/ui/button';
@@ -67,6 +68,7 @@ export default function Actions(props: IActionProps) {
   const [moveTo, setMoveTo] = useState(false);
   const [progress, setProgress] = useState('');
   const [downloadAsOpen, setDownloadAsOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEdit = () => {
@@ -145,31 +147,7 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'move_to_trash') {
-      onLoading(id);
-      http
-        .delete(`/namespaces/${namespaceId}/resources/${resource.id}`)
-        .then(() => {
-          setOpen(false);
-          app.fire('delete_resource', resource.id, resource.parent_id);
-          toast(t('resource.deleted'), {
-            description: t('resource.deleted_description'),
-            action: {
-              label: t('undo'),
-              onClick: () => {
-                http
-                  .post(
-                    `/namespaces/${namespaceId}/resources/${resource.id}/restore`
-                  )
-                  .then(response => {
-                    app.fire('generate_resource', response.parent_id, response);
-                  });
-              },
-            },
-          });
-        })
-        .finally(() => {
-          onLoading('');
-        });
+      setShowDeleteDialog(true);
       return;
     }
     if (id === 'import') {
@@ -284,6 +262,18 @@ export default function Actions(props: IActionProps) {
     setOpen(false);
     app.fire('move_resource', resourceId, targetId);
   };
+
+  const handleDeleteSuccess = () => {
+    if (!resource) return;
+    setOpen(false);
+    app.fire('delete_resource', resource.id, resource.parent_id);
+  };
+
+  const handleRestoreSuccess = (response: any) => {
+    if (!resource) return;
+    app.fire('generate_resource', response.parent_id, response);
+  };
+
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!resource || !e.target.files) {
       return;
@@ -557,6 +547,21 @@ export default function Actions(props: IActionProps) {
           </Sidebar>
         </PopoverContent>
       </Popover>
+      {resource && (
+        <ConfirmDeleteDialog
+          open={showDeleteDialog}
+          title={t('resource.delete.dialog.title')}
+          description="resource.delete.dialog.description"
+          itemTitle={resource.name || t('resource.untitled')}
+          deleteUrl={`/namespaces/${namespaceId}/resources/${resource.id}`}
+          restoreUrl={`/namespaces/${namespaceId}/resources/${resource.id}/restore`}
+          successMessage={t('resource.deleted')}
+          successDescription={t('resource.deleted_description')}
+          onOpenChange={setShowDeleteDialog}
+          onSuccess={handleDeleteSuccess}
+          onRestoreSuccess={handleRestoreSuccess}
+        />
+      )}
     </div>
   );
 }

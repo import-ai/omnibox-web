@@ -28,6 +28,13 @@
     "deleted": "已删除",
     "deleted_description": "此资源已被删除",
     "no_content": "资源没有内容可下载",
+    "untitled": "未命名",
+    "delete": {
+      "dialog": {
+        "title": "确定删除资源？",
+        "description": "正在删除 <strong>{{ title }}</strong>，删除后将不可恢复。"
+      }
+    },
     "attrs": {
       "tag": "标签",
       "add_tag": "点击添加标签",

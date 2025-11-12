@@ -28,6 +28,13 @@
     "deleted": "Deleted",
     "deleted_description": "This resource has been deleted",
     "no_content": "Resource has no content to download",
+    "untitled": "Untitled",
+    "delete": {
+      "dialog": {
+        "title": "Confirm Delete Resource?",
+        "description": "You are deleting <strong>{{ title }}</strong>. This action cannot be undone."
+      }
+    },
     "attrs": {
       "tag": "Tag",
       "add_tag": "Add tag",

@@ -1,26 +1,9 @@
-import {
-  Edit2,
-  History,
-  LoaderCircle,
-  MoreHorizontal,
-  Plus,
-  Trash2,
-} from 'lucide-react';
+import { Edit2, History, MoreHorizontal, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -42,7 +25,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import useApp from '@/hooks/use-app';
-import { http } from '@/lib/request';
 
 import { PlusIcon } from './plus';
 
@@ -66,34 +48,13 @@ export default function Actions(props: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [remove, onRemove] = useState(false);
-  const [removeLoading, onRemoveLoading] = useState(false);
-  const onDeleteCancel = () => {
-    onRemove(false);
+
+  const handleDeleteSuccess = () => {
+    navigate(`/${namespaceId}/chat/conversations`);
   };
-  const onDeleteOk = () => {
-    onRemoveLoading(true);
-    http
-      .delete(`/namespaces/${namespaceId}/conversations/${conversationId}`)
-      .then(() => {
-        onRemoveLoading(false);
-        onRemove(false);
-        navigate(`/${namespaceId}/chat/conversations`);
-        toast(t('chat.conversations.deleted'), {
-          description: t('chat.conversations.deleted_description'),
-          action: {
-            label: t('undo'),
-            onClick: () => {
-              http
-                .post(
-                  `/namespaces/${namespaceId}/conversations/${conversationId}/restore`
-                )
-                .then(response => {
-                  navigate(`/${namespaceId}/chat/${response.id}`);
-                });
-            },
-          },
-        });
-      });
+
+  const handleRestoreSuccess = (response: any) => {
+    navigate(`/${namespaceId}/chat/${response.id}`);
   };
   const onChatHistory = () => {
     navigate(`/${namespaceId}/chat/conversations`);
@@ -201,39 +162,19 @@ export default function Actions(props: IProps) {
           </PopoverContent>
         </Popover>
       )}
-      <AlertDialog open={remove}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('chat.conversations.delete.dialog.title')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              <Trans
-                i18nKey="chat.conversations.delete.dialog.description"
-                values={{ title: chatTitle }}
-                components={{
-                  strong: <strong className="font-bold" />,
-                }}
-              />
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={onDeleteCancel}>
-              {t('cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-500 text-white"
-              disabled={removeLoading}
-              onClick={onDeleteOk}
-            >
-              {removeLoading && (
-                <LoaderCircle className="transition-transform animate-spin" />
-              )}
-              {t('delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        open={remove}
+        title={t('chat.conversations.delete.dialog.title')}
+        description="chat.conversations.delete.dialog.description"
+        itemTitle={chatTitle}
+        deleteUrl={`/namespaces/${namespaceId}/conversations/${conversationId}`}
+        restoreUrl={`/namespaces/${namespaceId}/conversations/${conversationId}/restore`}
+        successMessage={t('chat.conversations.deleted')}
+        successDescription={t('chat.conversations.deleted_description')}
+        onOpenChange={onRemove}
+        onSuccess={handleDeleteSuccess}
+        onRestoreSuccess={handleRestoreSuccess}
+      />
     </div>
   );
 }
