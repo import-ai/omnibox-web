@@ -99,11 +99,11 @@ export default function Payment() {
     http
       .post(`/pay/weixin/transactions/${type}/${productId}`, { mute: true })
       .then(response => {
-        const { orderId, ...args } = response;
+        const { order_id, ...args } = response;
         if (type === 'jsapi') {
           function onBridgeReady() {
             WeixinJSBridge.invoke('getBrandWCPayRequest', args, function () {
-              queryOrder('weixin', orderId);
+              queryOrder('weixin', order_id);
             });
           }
           if (typeof WeixinJSBridge == 'undefined') {
@@ -126,12 +126,12 @@ export default function Payment() {
           return;
         }
         if (type === 'h5') {
-          location.href = `${args.h5_url}&redirect_url=${encodeURIComponent(location.href + '&type=weixin&orderId=' + orderId)}`;
+          location.href = `${args.h5_url}&redirect_url=${encodeURIComponent(location.href + '&type=weixin&orderId=' + order_id)}`;
           return;
         }
         if (type === 'native') {
+          codeOrderId.current = order_id;
           setCode(args.code_url);
-          codeOrderId.current = orderId;
           return;
         }
       })
@@ -182,7 +182,7 @@ export default function Payment() {
   }, [orderIdFromPay, orderType]);
 
   useEffect(() => {
-    if (!code || !codeOrderId.current) {
+    if (!code) {
       return;
     }
 
