@@ -22,7 +22,7 @@
     "invalid_ext": "当前文件格式不支持"
   },
   "resource": {
-    "name": "资源",
+    "name": "文件",
     "folder": {
       "children_count": "{{ count }} 个文件"
     },
@@ -30,12 +30,6 @@
     "deleted_description": "此资源已被删除",
     "no_content": "资源没有内容可下载",
     "untitled": "未命名",
-    "delete": {
-      "dialog": {
-        "title": "删除{{ resource_name }}{{ title }}？",
-        "description": "您将要删除 <strong>{{ title }}</strong>"
-      }
-    },
     "attrs": {
       "tag": "标签",
       "add_tag": "点击添加标签",
@@ -387,11 +381,7 @@
       "deleted": "已删除对话",
       "deleted_description": "此对话已被删除",
       "delete": {
-        "option": "删除对话",
-        "dialog": {
-          "title": "删除{{ resource_name }}{{ title }}？",
-          "description": "您将要删除 <strong>{{ title }}</strong>。"
-        }
+        "option": "删除对话"
       },
       "rename": {
         "option": "重命名",
@@ -544,7 +534,13 @@
     "refresh": "刷新",
     "retry": "重试",
     "previous": "上一页",
-    "next": "下一页"
+    "next": "下一页",
+    "dialog": {
+      "delete": {
+        "title": "删除{{target_name}}？",
+        "description": "您将要删除 <strong>{{title}}</strong>"
+      }
+    }
   },
   "loading": "加载中...",
   "creating": "创建中...",

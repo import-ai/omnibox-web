@@ -164,10 +164,7 @@ export default function Actions(props: IProps) {
       )}
       <ConfirmDeleteDialog
         open={remove}
-        title={t('chat.conversations.delete.dialog.title')}
-        titleKey="chat.conversations.delete.dialog.title"
-        resourceName={t('chat.conversations.name')}
-        description="chat.conversations.delete.dialog.description"
+        targetName={t('chat.conversations.name')}
         itemTitle={chatTitle}
         deleteUrl={`/namespaces/${namespaceId}/conversations/${conversationId}`}
         restoreUrl={`/namespaces/${namespaceId}/conversations/${conversationId}/restore`}
