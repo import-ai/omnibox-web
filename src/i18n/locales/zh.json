@@ -22,12 +22,14 @@
     "invalid_ext": "当前文件格式不支持"
   },
   "resource": {
+    "name": "文件",
     "folder": {
       "children_count": "{{ count }} 个文件"
     },
     "deleted": "已删除",
     "deleted_description": "此资源已被删除",
     "no_content": "资源没有内容可下载",
+    "untitled": "未命名",
     "attrs": {
       "tag": "标签",
       "add_tag": "点击添加标签",
@@ -371,6 +373,7 @@
       }
     },
     "conversations": {
+      "name": "会话",
       "new": "新对话",
       "new_chat": "新建对话",
       "empty": "暂无对话",
@@ -378,11 +381,7 @@
       "deleted": "已删除对话",
       "deleted_description": "此对话已被删除",
       "delete": {
-        "option": "删除对话",
-        "dialog": {
-          "title": "确定删除对话？",
-          "description": "正在删除 <strong>{{ title }}</strong>，删除后，聊天记录将不可恢复。"
-        }
+        "option": "删除对话"
       },
       "rename": {
         "option": "重命名",
@@ -535,7 +534,13 @@
     "refresh": "刷新",
     "retry": "重试",
     "previous": "上一页",
-    "next": "下一页"
+    "next": "下一页",
+    "dialog": {
+      "delete": {
+        "title": "删除{{target_name}}？",
+        "description": "您将要删除 <strong>{{title}}</strong>"
+      }
+    }
   },
   "loading": "加载中...",
   "creating": "创建中...",
