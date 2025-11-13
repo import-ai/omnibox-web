@@ -17,11 +17,10 @@ import { http } from '@/lib/request';
 
 interface IProps {
   open: boolean;
-  title: string;
   titleKey?: string;
-  resourceName?: string;
-  description: string;
-  itemTitle?: string;
+  descriptionKey?: string;
+  targetName: string;
+  itemTitle: string;
   deleteUrl: string;
   restoreUrl?: string;
   successMessage?: string;
@@ -35,10 +34,9 @@ interface IProps {
 export default function ConfirmDeleteDialog(props: IProps) {
   const {
     open,
-    title,
     titleKey,
-    resourceName,
-    description,
+    targetName,
+    descriptionKey,
     itemTitle,
     deleteUrl,
     restoreUrl,
@@ -103,27 +101,19 @@ export default function ConfirmDeleteDialog(props: IProps) {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {titleKey && itemTitle && resourceName ? (
-              <Trans
-                i18nKey={titleKey}
-                values={{ title: itemTitle, resource_name: resourceName }}
-              />
-            ) : (
-              title
-            )}
+            <Trans
+              i18nKey={titleKey || 'common.dialog.delete.title'}
+              values={{ target_name: targetName }}
+            />
           </AlertDialogTitle>
           <AlertDialogDescription>
-            {itemTitle ? (
-              <Trans
-                i18nKey={description}
-                values={{ title: itemTitle }}
-                components={{
-                  strong: <strong className="font-bold" />,
-                }}
-              />
-            ) : (
-              description
-            )}
+            <Trans
+              i18nKey={descriptionKey || 'common.dialog.delete.description'}
+              values={{ title: itemTitle }}
+              components={{
+                strong: <strong className="font-bold" />,
+              }}
+            />
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
