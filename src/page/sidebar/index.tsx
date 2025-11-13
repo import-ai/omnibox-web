@@ -62,6 +62,8 @@ export default function MainSidebar() {
       <ConfirmDeleteDialog
         open={deleteDialog.open}
         title={t('resource.delete.dialog.title')}
+        titleKey="resource.delete.dialog.title"
+        resourceName={t('resource.name')}
         description="resource.delete.dialog.description"
         itemTitle={deleteDialog.title}
         deleteUrl={`/namespaces/${namespaceId}/resources/${deleteDialog.id}`}

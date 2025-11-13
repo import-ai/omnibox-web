@@ -22,6 +22,7 @@
     "invalid_ext": "Invalid file type"
   },
   "resource": {
+    "name": "Resource",
     "folder": {
       "children_count": "{{ count }} files"
     },
@@ -31,8 +32,8 @@
     "untitled": "Untitled",
     "delete": {
       "dialog": {
-        "title": "Confirm Delete Resource?",
-        "description": "You are deleting <strong>{{ title }}</strong>. This action cannot be undone."
+        "title": "Delete {{ resource_name }} {{ title }}?",
+        "description": "You are going to delete <strong>{{ title }}</strong>"
       }
     },
     "attrs": {
@@ -378,6 +379,7 @@
       }
     },
     "conversations": {
+      "name": "Conversation",
       "new": "New conversation",
       "new_chat": "New Chat",
       "empty": "No conversation yet",
@@ -387,8 +389,8 @@
       "delete": {
         "option": "Delete",
         "dialog": {
-          "title": "Delete conversation?",
-          "description": "All your <strong>{{ title }}</strong> history will be deleted, This cannot be undo."
+          "title": "Delete {{ resource_name }} {{ title }}?",
+          "description": "You are going to delete <strong>{{ title }}</strong>"
         }
       },
       "rename": {

@@ -21,6 +21,8 @@ export default function RemoveHistory(props: IProps) {
     <ConfirmDeleteDialog
       open={data.open}
       title={t('chat.conversations.delete.dialog.title')}
+      titleKey="chat.conversations.delete.dialog.title"
+      resourceName={t('chat.conversations.name')}
       description="chat.conversations.delete.dialog.description"
       itemTitle={data.title}
       deleteUrl={`namespaces/${namespaceId}/conversations/${data.id}`}

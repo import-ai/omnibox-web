@@ -18,6 +18,8 @@ import { http } from '@/lib/request';
 interface IProps {
   open: boolean;
   title: string;
+  titleKey?: string;
+  resourceName?: string;
   description: string;
   itemTitle?: string;
   deleteUrl: string;
@@ -34,6 +36,8 @@ export default function ConfirmDeleteDialog(props: IProps) {
   const {
     open,
     title,
+    titleKey,
+    resourceName,
     description,
     itemTitle,
     deleteUrl,
@@ -98,7 +102,16 @@ export default function ConfirmDeleteDialog(props: IProps) {
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogTitle>
+            {titleKey && itemTitle && resourceName ? (
+              <Trans
+                i18nKey={titleKey}
+                values={{ title: itemTitle, resource_name: resourceName }}
+              />
+            ) : (
+              title
+            )}
+          </AlertDialogTitle>
           <AlertDialogDescription>
             {itemTitle ? (
               <Trans

@@ -551,6 +551,8 @@ export default function Actions(props: IActionProps) {
         <ConfirmDeleteDialog
           open={showDeleteDialog}
           title={t('resource.delete.dialog.title')}
+          titleKey="resource.delete.dialog.title"
+          resourceName={t('resource.name')}
           description="resource.delete.dialog.description"
           itemTitle={resource.name || t('resource.untitled')}
           deleteUrl={`/namespaces/${namespaceId}/resources/${resource.id}`}

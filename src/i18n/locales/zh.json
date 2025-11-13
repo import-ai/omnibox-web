@@ -22,6 +22,7 @@
     "invalid_ext": "当前文件格式不支持"
   },
   "resource": {
+    "name": "资源",
     "folder": {
       "children_count": "{{ count }} 个文件"
     },
@@ -31,8 +32,8 @@
     "untitled": "未命名",
     "delete": {
       "dialog": {
-        "title": "确定删除资源？",
-        "description": "正在删除 <strong>{{ title }}</strong>，删除后将不可恢复。"
+        "title": "删除{{ resource_name }}{{ title }}？",
+        "description": "您将要删除 <strong>{{ title }}</strong>"
       }
     },
     "attrs": {
@@ -378,6 +379,7 @@
       }
     },
     "conversations": {
+      "name": "会话",
       "new": "新对话",
       "new_chat": "新建对话",
       "empty": "暂无对话",
@@ -387,8 +389,8 @@
       "delete": {
         "option": "删除对话",
         "dialog": {
-          "title": "确定删除对话？",
-          "description": "正在删除 <strong>{{ title }}</strong>，删除后，聊天记录将不可恢复。"
+          "title": "删除{{ resource_name }}{{ title }}？",
+          "description": "您将要删除 <strong>{{ title }}</strong>。"
         }
       },
       "rename": {
