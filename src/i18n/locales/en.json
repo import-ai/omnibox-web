@@ -22,12 +22,14 @@
     "invalid_ext": "Invalid file type"
   },
   "resource": {
+    "name": "Resource",
     "folder": {
       "children_count": "{{ count }} files"
     },
     "deleted": "Deleted",
     "deleted_description": "This resource has been deleted",
     "no_content": "Resource has no content to download",
+    "untitled": "Untitled",
     "attrs": {
       "tag": "Tag",
       "add_tag": "Add tag",
@@ -371,6 +373,7 @@
       }
     },
     "conversations": {
+      "name": "Conversation",
       "new": "New conversation",
       "new_chat": "New Chat",
       "empty": "No conversation yet",
@@ -378,11 +381,7 @@
       "deleted": "Deleted Conversations",
       "deleted_description": "This conversation has been deleted",
       "delete": {
-        "option": "Delete",
-        "dialog": {
-          "title": "Delete conversation?",
-          "description": "All your <strong>{{ title }}</strong> history will be deleted, This cannot be undo."
-        }
+        "option": "Delete"
       },
       "rename": {
         "option": "Rename",
@@ -535,7 +534,13 @@
     "refresh": "Refresh",
     "retry": "Retry",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "dialog": {
+      "delete": {
+        "title": "Delete {{target_name}}？",
+        "description": "You are going to delete <strong>{{title}}</strong>"
+      }
+    }
   },
   "loading": "Loading...",
   "creating": "Creating...",
