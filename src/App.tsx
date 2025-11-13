@@ -25,6 +25,8 @@ const WechatAuthConfirmPage = lazy(
 const GoogleAuthConfirmPage = lazy(
   () => import('@/page/user/google/auth-confirm')
 );
+const UpgradePage = lazy(() => import('@/page/upgrade'));
+const PaymentPage = lazy(() => import('@/page/upgrade/payment'));
 
 const SharePage = lazy(() => import('@/page/share'));
 const SharedResourcePage = lazy(() => import('@/page/shared-resource'));
@@ -78,6 +80,14 @@ const router = createBrowserRouter([
       {
         path: 'invite/confirm',
         element: <InvitePage />,
+      },
+      {
+        path: 'upgrade',
+        element: <UpgradePage />,
+      },
+      {
+        path: 'upgrade/payment',
+        element: <PaymentPage />,
       },
       {
         path: 'invite/:namespace_id/:invitation_id',
