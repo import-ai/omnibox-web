@@ -19,7 +19,7 @@ interface IProps {
   open: boolean;
   titleKey?: string;
   descriptionKey?: string;
-  targetName: string;
+  targetName?: string;
   itemTitle: string;
   deleteUrl: string;
   restoreUrl?: string;
@@ -35,7 +35,6 @@ export default function ConfirmDeleteDialog(props: IProps) {
   const {
     open,
     titleKey,
-    targetName,
     descriptionKey,
     itemTitle,
     deleteUrl,
@@ -47,6 +46,7 @@ export default function ConfirmDeleteDialog(props: IProps) {
     onRestoreSuccess,
     onError,
   } = props;
+
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
@@ -96,20 +96,24 @@ export default function ConfirmDeleteDialog(props: IProps) {
       });
   };
 
+  const targetTitle = (itemTitle: string) => {
+    if (itemTitle.length > 50) {
+      return itemTitle.slice(0, 10) + '...' + itemTitle.slice(-10);
+    }
+    return itemTitle;
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            <Trans
-              i18nKey={titleKey || 'common.dialog.delete.title'}
-              values={{ target_name: targetName }}
-            />
+            <Trans i18nKey={titleKey || 'common.dialog.delete.title'} />
           </AlertDialogTitle>
           <AlertDialogDescription>
             <Trans
               i18nKey={descriptionKey || 'common.dialog.delete.description'}
-              values={{ title: itemTitle }}
+              values={{ title: targetTitle(itemTitle) }}
               components={{
                 strong: <strong className="font-bold" />,
               }}
