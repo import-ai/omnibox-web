@@ -1,4 +1,4 @@
-import { FileInfo, IResourceData } from '@/interface';
+import { IResourceData, UploadFileInfo } from '@/interface';
 import { http } from '@/lib/request';
 
 export interface UploadProgress {
@@ -13,7 +13,7 @@ async function uploadFile(
   parentId: string,
   file: File
 ): Promise<IResourceData> {
-  let fileInfo: FileInfo;
+  let fileInfo: UploadFileInfo;
   try {
     fileInfo = await http.post(
       `/namespaces/${namespaceId}/resources/files`,
