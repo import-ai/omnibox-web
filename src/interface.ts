@@ -275,8 +275,12 @@ export interface Application extends IBase {
   attrs?: ApplicationAttrs;
 }
 
-export interface FileInfo {
+export interface UploadFileInfo {
   id: string;
   post_url: string;
   post_fields: [string, string][];
+}
+
+export interface DownloadFileInfo {
+  url: string;
 }
