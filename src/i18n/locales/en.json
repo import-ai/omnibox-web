@@ -537,7 +537,7 @@
     "next": "Next",
     "dialog": {
       "delete": {
-        "title": "Delete {{target_name}}？",
+        "title": "Confirm Delete ？",
         "description": "You are going to delete <strong>{{title}}</strong>"
       }
     }
