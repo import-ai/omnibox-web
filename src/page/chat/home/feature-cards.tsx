@@ -72,6 +72,7 @@ export default function FeatureCards() {
     }
 
     setUploading(true);
+    setProgress(`${0}/${files.length}`);
 
     try {
       // Fetch the root resources for the namespace
