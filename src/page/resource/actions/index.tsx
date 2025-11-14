@@ -288,6 +288,9 @@ export default function Actions(props: IActionProps) {
     })
       .then(responses => {
         app.fire('generate_resource', resource.parent_id, responses);
+        toast.success(
+          t('upload.success', { count: e.target.files?.length || 1 })
+        );
       })
       .catch(err => {
         toast(err && err.message ? err.message : err, {
