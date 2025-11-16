@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/tooltip';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
+import { useIsTouch } from '@/hooks/use-is-touch';
+import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
@@ -35,6 +37,7 @@ export default function Action(props: ISidebarProps) {
   } = props;
   const app = useApp();
   const { t } = useTranslation();
+  const isTouch = useIsTouch();
   const [moveTo, setMoveTo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleCreateFile = () => {
@@ -112,7 +115,14 @@ export default function Action(props: ISidebarProps) {
               )}
             </>
           ) : (
-            <SidebarMenuAction className="group-hover/sidebar-item:opacity-100 group-hover/sidebar-item:pointer-events-auto pointer-events-none opacity-0 size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
+            <SidebarMenuAction
+              className={cn(
+                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 focus-visible:outline-none focus-visible:ring-transparent',
+                isTouch
+                  ? 'opacity-100 pointer-events-auto'
+                  : 'group-hover/sidebar-item:opacity-100 group-hover/sidebar-item:pointer-events-auto pointer-events-none opacity-0'
+              )}
+            >
               <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3] text-[#8F959E] hover:text-[#8F959E]" />
             </SidebarMenuAction>
           )}
