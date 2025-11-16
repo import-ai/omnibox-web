@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { HelpTooltip } from '@/components/help-tooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -115,8 +116,11 @@ export function ShareTabContent(props: ShareTabContentProps) {
       {shareInfo?.enabled && (
         <>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
-            <span className="text-sm">
-              <Trans i18nKey={'share.share.current_resource_only'}></Trans>
+            <span className="text-sm flex items-center gap-1">
+              <Trans i18nKey={'share.share.current_file_only'}></Trans>
+              <HelpTooltip
+                content={t('share.share.current_file_only_tooltip')}
+              />
             </span>
             <Switch
               checked={!(shareInfo?.all_resources ?? false)}
