@@ -178,8 +178,6 @@ export interface UpdateAPIKeyDto {
 
 export type ShareType = 'doc_only' | 'chat_only' | 'all';
 
-export const ShareTypes: ShareType[] = ['doc_only', 'chat_only', 'all'];
-
 export function shareTypeToString(type: ShareType): string {
   switch (type) {
     case 'doc_only':
