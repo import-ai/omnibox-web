@@ -1,4 +1,4 @@
-import { HelpCircle } from 'lucide-react';
+import { CircleHelp } from 'lucide-react';
 
 import {
   Popover,
@@ -27,7 +27,7 @@ export function HelpTooltip({ content, iconClassName }: HelpTooltipProps) {
     return (
       <Popover>
         <PopoverTrigger asChild>
-          <HelpCircle
+          <CircleHelp
             className={cn('w-3.5 h-3.5 text-muted-foreground', iconClassName)}
           />
         </PopoverTrigger>
@@ -43,7 +43,7 @@ export function HelpTooltip({ content, iconClassName }: HelpTooltipProps) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <HelpCircle
+          <CircleHelp
             className={cn(
               'w-3.5 h-3.5 text-muted-foreground cursor-help',
               iconClassName
