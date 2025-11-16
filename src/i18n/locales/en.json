@@ -562,6 +562,7 @@
       "current_file_only": "Current file only",
       "current_file_only_tooltip": "When enabled, only shares the current file. When disabled, shares with all sub-files",
       "require_login": "Require login to view",
+      "require_login_tooltip": "When enabled, users must log in to view this shared resource. When disabled, anyone with the link can access it",
       "ai_chat": "AI Chat",
       "password": "Password",
       "expire": {

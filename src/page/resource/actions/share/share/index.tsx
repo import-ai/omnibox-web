@@ -117,7 +117,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
         <>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
             <span className="text-sm flex items-center gap-1">
-              <Trans i18nKey={'share.share.current_file_only'}></Trans>
+              <Trans i18nKey="share.share.current_file_only" />
               <HelpTooltip
                 content={t('share.share.current_file_only_tooltip')}
               />
@@ -129,7 +129,10 @@ export function ShareTabContent(props: ShareTabContentProps) {
             />
           </div>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
-            <span className="text-sm">{t('share.share.require_login')}</span>
+            <span className="text-sm flex items-center gap-1">
+              <Trans i18nKey="share.share.require_login" />
+              <HelpTooltip content={t('share.share.require_login_tooltip')} />
+            </span>
             <Switch
               checked={shareInfo?.require_login ?? false}
               disabled={!shareInfo?.enabled}
