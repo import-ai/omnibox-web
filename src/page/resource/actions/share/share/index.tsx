@@ -1,6 +1,6 @@
 import { Copy } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -115,9 +115,11 @@ export function ShareTabContent(props: ShareTabContentProps) {
       {shareInfo?.enabled && (
         <>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
-            <span className="text-sm">{t('share.share.all_resources')}</span>
+            <span className="text-sm">
+              <Trans i18nKey={'share.share.current_resource_only'}></Trans>
+            </span>
             <Switch
-              checked={shareInfo?.all_resources ?? false}
+              checked={!(shareInfo?.all_resources ?? false)}
               disabled={!shareInfo?.enabled}
               onCheckedChange={handleShareAll}
             />

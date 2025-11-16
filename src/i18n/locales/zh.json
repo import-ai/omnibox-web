@@ -560,8 +560,9 @@
       "url_placeholder": "发布的URL",
       "save": "保存",
       "all_resources": "是否分享子资源",
+      "current_resource_only": "仅分享当前文件",
       "require_login": "需要登录",
-      "ai_chat": "AI问答",
+      "ai_chat": "AI 问答",
       "password": "密码保护",
       "expire": {
         "title": "过期时间",
@@ -578,9 +579,9 @@
         "days": "天"
       },
       "share_type": {
-        "doc_only": "仅文档",
+        "doc_only": "禁用",
         "chat_only": "仅对话",
-        "all": "全部"
+        "all": "启用"
       }
     }
   },

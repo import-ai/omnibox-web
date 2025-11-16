@@ -578,9 +578,9 @@
         "days": "Days"
       },
       "share_type": {
-        "doc_only": "Document Only",
+        "doc_only": "Disabled",
         "chat_only": "Chat Only",
-        "all": "All"
+        "all": "Enabled"
       }
     }
   },
