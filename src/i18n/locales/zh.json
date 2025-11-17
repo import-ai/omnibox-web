@@ -19,6 +19,8 @@
     "collapse": "收起侧边栏"
   },
   "upload": {
+    "success_one": "成功上传 {{count}} 个文件",
+    "success_other": "成功上传 {{count}} 个文件",
     "invalid_ext": "当前文件格式不支持"
   },
   "resource": {
@@ -34,6 +36,7 @@
       "tag": "标签",
       "add_tag": "点击添加标签",
       "create_tag": "创建",
+      "tag_too_long": "标签名称不能超过 {{max}} 个字符",
       "url": "地址",
       "author": "作者",
       "created": "创建时间",
@@ -406,9 +409,7 @@
         "wechat": "微信助手",
         "wechat_tooltip": "在微信中和\"小黑\"聊天",
         "browser": "网页收藏",
-        "browser_tooltip": "任何网页，一键保存",
-        "success_one": "成功上传 {{count}} 个文件",
-        "success_other": "成功上传 {{count}} 个文件"
+        "browser_tooltip": "任何网页，一键保存"
       },
       "recent": {
         "title": "最近更新",

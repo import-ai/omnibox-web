@@ -72,6 +72,7 @@ export default function FeatureCards() {
     }
 
     setUploading(true);
+    setProgress(`${0}/${files.length}`);
 
     try {
       // Fetch the root resources for the namespace
@@ -98,7 +99,7 @@ export default function FeatureCards() {
       setProgress('');
 
       const fileCount = results.length;
-      toast.success(t('chat.home.upload.success', { count: fileCount }));
+      toast.success(t('upload.success', { count: fileCount }));
 
       if (results.length > 0) {
         const lastUploadedFile = results[results.length - 1];

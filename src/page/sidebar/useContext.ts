@@ -292,10 +292,10 @@ export default function useContext() {
   const handleUpload = (
     spaceType: SpaceType,
     parentId: string,
-    file: FileList
+    files: FileList
   ) => {
     onEditingKey(parentId);
-    return uploadFiles(file, {
+    return uploadFiles(files, {
       parentId: parentId,
       namespaceId: namespaceId,
       onProgress: ({ done, total }) => {
@@ -304,6 +304,7 @@ export default function useContext() {
     })
       .then(response => {
         activeRoute(spaceType, parentId, response);
+        toast.success(t('upload.success', { count: files.length }));
       })
       .catch(err => {
         toast(err && err.message ? err.message : err, {
