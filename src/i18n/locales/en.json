@@ -21,7 +21,8 @@
   "upload": {
     "success_one": "{{count}} file uploaded successfully",
     "success_other": "{{count}} files uploaded successfully",
-    "invalid_ext": "Invalid file type"
+    "invalid_ext": "Invalid file type",
+    "failed": "Failed to upload file, please try again later"
   },
   "resource": {
     "name": "Resource",

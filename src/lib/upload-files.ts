@@ -1,3 +1,5 @@
+import { t } from 'i18next';
+
 import { IResourceData, UploadFileInfo } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -35,12 +37,15 @@ async function uploadFile(
     formData.append(key, value);
   }
   formData.append('file', file);
-  await fetch(fileInfo.post_url, {
+  const resp = await fetch(fileInfo.post_url, {
     method: 'POST',
     mode: 'cors',
     credentials: 'omit',
     body: formData,
   });
+  if (!resp.ok) {
+    throw new Error(t('upload.failed'));
+  }
   return await http.post(`/namespaces/${namespaceId}/resources`, {
     parentId,
     resourceType: 'file',

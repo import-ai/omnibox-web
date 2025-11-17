@@ -21,7 +21,8 @@
   "upload": {
     "success_one": "成功上传 {{count}} 个文件",
     "success_other": "成功上传 {{count}} 个文件",
-    "invalid_ext": "当前文件格式不支持"
+    "invalid_ext": "当前文件格式不支持",
+    "failed": "上传文件失败，请稍后再试"
   },
   "resource": {
     "name": "文件",
