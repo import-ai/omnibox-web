@@ -19,6 +19,17 @@ export default function Layout() {
   const [uid, setUid] = useState(localStorage.getItem('uid'));
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(loc.search);
+    const langParam = searchParams.get('lang');
+    if (langParam) {
+      const normalizedLang = langParam.toLowerCase();
+      if (normalizedLang !== i18n.language) {
+        i18n.changeLanguage(normalizedLang);
+      }
+    }
+  }, [loc.search, i18n]);
+
+  useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'i18nextLng') {
         const lang = event.newValue;

@@ -19,7 +19,10 @@
     "collapse": "Collapse Sidebar"
   },
   "upload": {
-    "invalid_ext": "Invalid file type"
+    "success_one": "{{count}} file uploaded successfully",
+    "success_other": "{{count}} files uploaded successfully",
+    "invalid_ext": "Invalid file type",
+    "failed": "Failed to upload file, please try again later"
   },
   "resource": {
     "name": "Resource",
@@ -34,6 +37,7 @@
       "tag": "Tag",
       "add_tag": "Add tag",
       "create_tag": "Create",
+      "tag_too_long": "Tag name cannot exceed {{max}} characters",
       "url": "URL",
       "author": "Author",
       "created": "Created",
@@ -406,9 +410,7 @@
         "wechat": "WeChat",
         "wechat_tooltip": "Chat with OmniBox AI in WeChat",
         "browser": "Browser",
-        "browser_tooltip": "Save any webpage with one click",
-        "success_one": "{{count}} file uploaded successfully",
-        "success_other": "{{count}} files uploaded successfully"
+        "browser_tooltip": "Save any webpage with one click"
       },
       "recent": {
         "title": "Recently Updated",

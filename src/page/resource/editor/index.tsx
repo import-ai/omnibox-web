@@ -14,6 +14,12 @@ import { Resource } from '@/interface';
 import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
+import {
+  clearCache,
+  getCache,
+  updateCacheContent,
+  updateCacheTitle,
+} from '@/page/resource/editor/cache';
 import { toolbar } from '@/page/resource/editor/const';
 
 interface IEditorProps {
@@ -60,8 +66,11 @@ export default function Editor(props: IEditorProps) {
   const { app, theme } = useTheme();
   const [vd, setVd] = useState<Vditor>();
   const [title, onTitle] = useState('');
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onTitle(e.target.value);
+    const newTitle = e.target.value;
+    onTitle(newTitle);
+    updateCacheTitle(resource.id, newTitle);
   };
 
   useEffect(() => {
@@ -81,6 +90,7 @@ export default function Editor(props: IEditorProps) {
         .then((delta: Resource) => {
           app.fire('update_resource', delta);
           onResource(delta);
+          clearCache(resource.id);
           navigate(`/${namespaceId}/${resource.id}`);
           onSuccess && onSuccess();
         });
@@ -117,18 +127,26 @@ export default function Editor(props: IEditorProps) {
 
   useEffect(() => {
     const token = localStorage.getItem('token') || '';
-    onTitle(resource.name || '');
+    const cache = getCache(resource.id);
+    const cachedTitle = cache?.title || resource.name || '';
+    const cachedContent = cache?.content || resource.content || '';
+
+    onTitle(cachedTitle);
+
     if (!resource || !root.current || resource.resource_type === 'folder') {
       return;
     }
+
     const vditor = new Vditor(root.current, {
       ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
       tab: '\t',
-      cache: { id: `_${resource.id}` },
       preview: markdownPreviewConfig(theme),
       toolbar,
       toolbarConfig: {
         pin: true,
+      },
+      cache: {
+        enable: false,
       },
       mode: 'wysiwyg',
       lang: getLangOnly(i18n) === 'zh' ? 'zh_CN' : 'en_US',
@@ -141,18 +159,17 @@ export default function Editor(props: IEditorProps) {
         },
         format,
       },
+      input: (value: string) => {
+        updateCacheContent(resource.id, value);
+      },
       after: () => {
-        const resourceContent = resource.content || '';
-        const hasContent = resourceContent.length > 0;
-        if (hasContent) {
-          vditor.setValue(resourceContent);
-        }
+        vditor.setValue(cachedContent);
         vditor.setTheme(
           theme.content === 'dark' ? 'dark' : 'classic',
           theme.content,
           theme.code
         );
-        if (hasContent) {
+        if (resource.content) {
           if (vditor.vditor.ir && vditor.vditor.ir.element) {
             addReferrerPolicyForElement(vditor.vditor.ir.element);
           }
