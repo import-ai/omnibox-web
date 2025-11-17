@@ -128,8 +128,8 @@ export default function Editor(props: IEditorProps) {
   useEffect(() => {
     const token = localStorage.getItem('token') || '';
     const cache = getCache(resource.id);
-    const cachedTitle = resource.name || cache?.title || '';
-    const cachedContent = resource.content || cache?.content || '';
+    const cachedTitle = cache?.title || resource.name || '';
+    const cachedContent = cache?.content || resource.content || '';
 
     onTitle(cachedTitle);
 
