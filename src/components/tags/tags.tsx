@@ -2,6 +2,7 @@ import { TagsIcon } from 'lucide-react';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import MultipleSelector, { Option } from '@/components/multiple-selector';
 import Space from '@/components/space';
@@ -15,6 +16,8 @@ interface IProps {
   namespaceId: string;
   resourceId: string;
 }
+
+const MAX_TAG_LENGTH = 64;
 
 export default function Tags(props: IProps) {
   const { data, loading, resourceId, namespaceId } = props;
@@ -48,6 +51,10 @@ export default function Tags(props: IProps) {
     onChange('');
   };
   const handleCreate = (val: Option) => {
+    if (val.value.length > MAX_TAG_LENGTH) {
+      toast.error(t('resource.attrs.tag_too_long', { max: MAX_TAG_LENGTH }));
+      return Promise.reject(new Error('Tag name too long'));
+    }
     return http
       .post(`/namespaces/${namespaceId}/tag`, { name: val.value })
       .then(res => Promise.resolve({ label: res.name, value: res.id }));
@@ -84,6 +91,7 @@ export default function Tags(props: IProps) {
               createText={t('resource.attrs.create_tag')}
               inputProps={{
                 className: 'py-0',
+                maxLength: MAX_TAG_LENGTH,
                 onBlur: leaveEdit,
                 onValueChange: onChange,
               }}

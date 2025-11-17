@@ -36,6 +36,7 @@
       "tag": "标签",
       "add_tag": "点击添加标签",
       "create_tag": "创建",
+      "tag_too_long": "标签名称不能超过 {{max}} 个字符",
       "url": "地址",
       "author": "作者",
       "created": "创建时间",

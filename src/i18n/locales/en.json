@@ -36,6 +36,7 @@
       "tag": "Tag",
       "add_tag": "Add tag",
       "create_tag": "Create",
+      "tag_too_long": "Tag name cannot exceed {{max}} characters",
       "url": "URL",
       "author": "Author",
       "created": "Created",

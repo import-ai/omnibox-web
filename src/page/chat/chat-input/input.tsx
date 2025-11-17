@@ -38,7 +38,7 @@ export default function ChatInput(props: IProps) {
       if (e.metaKey || e.ctrlKey) {
         return;
       }
-      if (e.shiftKey) {
+      if (e.shiftKey || e.altKey) {
         const textarea = e.currentTarget;
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
