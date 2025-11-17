@@ -178,8 +178,6 @@ export interface UpdateAPIKeyDto {
 
 export type ShareType = 'doc_only' | 'chat_only' | 'all';
 
-export const ShareTypes: ShareType[] = ['doc_only', 'chat_only', 'all'];
-
 export function shareTypeToString(type: ShareType): string {
   switch (type) {
     case 'doc_only':
@@ -275,8 +273,12 @@ export interface Application extends IBase {
   attrs?: ApplicationAttrs;
 }
 
-export interface FileInfo {
+export interface UploadFileInfo {
   id: string;
   post_url: string;
   post_fields: [string, string][];
+}
+
+export interface DownloadFileInfo {
+  url: string;
 }

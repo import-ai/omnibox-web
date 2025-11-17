@@ -1,4 +1,4 @@
-import { FileInfo } from '@/interface';
+import { DownloadFileInfo } from '@/interface';
 
 import { http } from './request';
 
@@ -8,7 +8,7 @@ export async function downloadFile(
   originalName: string
 ) {
   try {
-    const fileInfo: FileInfo = await http.get(
+    const fileInfo: DownloadFileInfo = await http.get(
       `/namespaces/${namespaceId}/resources/${resourceId}/file`,
       { mute: true }
     );

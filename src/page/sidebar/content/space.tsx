@@ -27,6 +27,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import { useIsTouch } from '@/hooks/use-is-touch';
 import { IResourceData } from '@/interface';
 import { cn } from '@/lib/utils';
 
@@ -56,6 +57,7 @@ export default function Space(props: ITreeProps) {
     onFileDragTarget,
   } = props;
   const { t } = useTranslation();
+  const isTouch = useIsTouch();
   const [open, onOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
@@ -202,7 +204,12 @@ export default function Space(props: ITreeProps) {
               ) : (
                 <SidebarMenuAction
                   asChild
-                  className="group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0 my-1.5 size-[16px] top-[2px] right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent"
+                  className={cn(
+                    'my-1.5 size-4 top-0.5 right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent',
+                    isTouch
+                      ? 'opacity-100 pointer-events-auto'
+                      : 'group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0'
+                  )}
                 >
                   <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3]" />
                 </SidebarMenuAction>

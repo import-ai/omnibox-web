@@ -560,9 +560,11 @@
       "user_share": "{{username}}的分享",
       "url_placeholder": "发布的URL",
       "save": "保存",
-      "all_resources": "是否分享子资源",
+      "current_file_only": "仅分享当前文件",
+      "current_file_only_tooltip": "启用时，仅分享当前文件。禁用时，会连同所有子文件一起分享",
       "require_login": "需要登录",
-      "ai_chat": "AI问答",
+      "require_login_tooltip": "启用时，用户必须登录才能查看此共享资源。禁用时，任何拥有链接的人都可以访问",
+      "ai_chat": "AI 问答",
       "password": "密码保护",
       "expire": {
         "title": "过期时间",
@@ -579,9 +581,9 @@
         "days": "天"
       },
       "share_type": {
-        "doc_only": "仅文档",
+        "doc_only": "禁用",
         "chat_only": "仅对话",
-        "all": "全部"
+        "all": "启用"
       }
     }
   },
