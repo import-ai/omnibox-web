@@ -1,8 +1,8 @@
 import {
+  CircleHelp,
   Copy,
   Eye,
   EyeOff,
-  HelpCircle,
   Pencil,
   Plus,
   Trash2,
@@ -299,7 +299,7 @@ export function APIKeyForm() {
                         className="h-5 w-5 p-0 hover:bg-transparent"
                         type="button"
                       >
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        <CircleHelp className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -418,7 +418,7 @@ export function APIKeyForm() {
                         className="h-5 w-5 p-0 hover:bg-transparent"
                         type="button"
                       >
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        <CircleHelp className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>

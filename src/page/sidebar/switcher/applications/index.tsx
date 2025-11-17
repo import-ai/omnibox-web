@@ -163,8 +163,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const handleDocsClick = (appId: string) => {
     const isZh = i18n.language.startsWith('zh');
     const url = isZh
-      ? `/docs/zh-cn/collect/${appId.replace('_', '-')}`
-      : `/docs/collect/${appId.replace('_', '-')}`;
+      ? `/docs/zh-cn/${appId.replace('_', '-')}`
+      : `/docs/${appId.replace('_', '-')}`;
     window.open(url, '_blank');
   };
 
