@@ -17,7 +17,7 @@ interface IProps {
   resourceId: string;
 }
 
-const MAX_TAG_LENGTH = 64;
+const MAX_TAG_LENGTH = 20;
 
 export default function Tags(props: IProps) {
   const { data, loading, resourceId, namespaceId } = props;

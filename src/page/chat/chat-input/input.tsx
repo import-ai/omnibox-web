@@ -35,10 +35,10 @@ export default function ChatInput(props: IProps) {
     }
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (e.metaKey || e.ctrlKey) {
+      if (e.metaKey || e.ctrlKey || e.altKey) {
         return;
       }
-      if (e.shiftKey || e.altKey) {
+      if (e.shiftKey) {
         const textarea = e.currentTarget;
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
