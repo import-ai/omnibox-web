@@ -545,6 +545,7 @@
     }
   },
   "loading": "加载中...",
+  "load_more": "加载更多",
   "creating": "创建中...",
   "create": "创建",
   "updating": "更新中...",

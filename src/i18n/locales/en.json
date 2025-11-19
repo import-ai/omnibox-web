@@ -545,6 +545,7 @@
     }
   },
   "loading": "Loading...",
+  "load_more": "Load More",
   "creating": "Creating...",
   "create": "Create",
   "updating": "Updating...",
