@@ -1,11 +1,13 @@
 import axios from 'axios';
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import Loading from '@/components/loading';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import useApp from '@/hooks/use-app';
 import { Resource, ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import ResourceIcon from '@/page/sidebar/content/resourceIcon';
@@ -19,21 +21,33 @@ interface IProps {
   navigationPrefix: string;
 }
 
+const PAGE_SIZE = 10;
+
 export default function Folder(props: IProps) {
   const { resourceId, apiPrefix, navigationPrefix } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const app = useApp();
   const [loading, onLoading] = useState(false);
+  const [loadingMore, onLoadingMore] = useState(false);
   const [data, onData] = useState<Array<ResourceMeta>>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
     onLoading(true);
+    onData([]);
+    setOffset(0);
+    setHasMore(true);
     const source = axios.CancelToken.source();
     http
-      .get(`${apiPrefix}/${resourceId}/children`, {
+      .get(`${apiPrefix}/${resourceId}/children?offset=0&limit=${PAGE_SIZE}`, {
         cancelToken: source.token,
       })
-      .then(onData)
+      .then((res: Array<ResourceMeta>) => {
+        onData(res);
+        setHasMore(res.length === PAGE_SIZE);
+      })
       .finally(() => {
         onLoading(false);
       });
@@ -41,6 +55,33 @@ export default function Folder(props: IProps) {
       source.cancel();
     };
   }, [apiPrefix, resourceId]);
+
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return;
+
+    onLoadingMore(true);
+    const newOffset = offset + PAGE_SIZE;
+    http
+      .get(
+        `${apiPrefix}/${resourceId}/children?offset=${newOffset}&limit=${PAGE_SIZE}`
+      )
+      .then((res: Array<ResourceMeta>) => {
+        onData(prevData => [...prevData, ...res]);
+        setOffset(newOffset);
+        setHasMore(res.length === PAGE_SIZE);
+      })
+      .finally(() => {
+        onLoadingMore(false);
+      });
+  }, [loadingMore, hasMore, offset, apiPrefix, resourceId]);
+
+  useEffect(() => {
+    return app.on('scroll-to-bottom', () => {
+      if (hasMore && !loadingMore) {
+        loadMore();
+      }
+    });
+  }, [hasMore, loadingMore, loadMore]);
 
   if (loading) {
     return <Loading />;
@@ -103,6 +144,18 @@ export default function Folder(props: IProps) {
               })}
             </div>
           ))}
+          {hasMore && (
+            <div className="pb-4 flex justify-center">
+              <Button
+                variant="secondary"
+                className="block w-full"
+                onClick={loadMore}
+                disabled={loadingMore}
+              >
+                {loadingMore ? t('loading') : t('load_more')}
+              </Button>
+            </div>
+          )}
         </>
       ) : (
         <div className="mt-12 text-center text-gray-500">
