@@ -1,12 +1,13 @@
 import axios from 'axios';
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import useApp from '@/hooks/use-app';
 import { Resource, ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import ResourceIcon from '@/page/sidebar/content/resourceIcon';
@@ -26,6 +27,7 @@ export default function Folder(props: IProps) {
   const { resourceId, apiPrefix, navigationPrefix } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const app = useApp();
   const [loading, onLoading] = useState(false);
   const [loadingMore, onLoadingMore] = useState(false);
   const [data, onData] = useState<Array<ResourceMeta>>([]);
@@ -54,7 +56,7 @@ export default function Folder(props: IProps) {
     };
   }, [apiPrefix, resourceId]);
 
-  const loadMore = () => {
+  const loadMore = useCallback(() => {
     if (loadingMore || !hasMore) return;
 
     onLoadingMore(true);
@@ -64,14 +66,22 @@ export default function Folder(props: IProps) {
         `${apiPrefix}/${resourceId}/children?offset=${newOffset}&limit=${PAGE_SIZE}`
       )
       .then((res: Array<ResourceMeta>) => {
-        onData([...data, ...res]);
+        onData(prevData => [...prevData, ...res]);
         setOffset(newOffset);
         setHasMore(res.length === PAGE_SIZE);
       })
       .finally(() => {
         onLoadingMore(false);
       });
-  };
+  }, [loadingMore, hasMore, offset, apiPrefix, resourceId]);
+
+  useEffect(() => {
+    return app.on('scroll-to-bottom', () => {
+      if (hasMore && !loadingMore) {
+        loadMore();
+      }
+    });
+  }, [hasMore, loadingMore, loadMore]);
 
   if (loading) {
     return <Loading />;
