@@ -22,9 +22,17 @@ export default function Layout() {
     const searchParams = new URLSearchParams(loc.search);
     const langParam = searchParams.get('lang');
     if (langParam) {
-      const normalizedLang = langParam.toLowerCase();
-      if (normalizedLang !== i18n.language) {
-        i18n.changeLanguage(normalizedLang);
+      const lang = langParam.includes('en') ? 'en-US' : 'zh-CN';
+      if (lang !== i18n.language) {
+        i18n.changeLanguage(lang).then(() => {
+          if (!localStorage.getItem('uid')) {
+            return;
+          }
+          http.post('/user/option', {
+            name: 'language',
+            value: lang,
+          });
+        });
       }
     }
   }, [loc.search, i18n]);

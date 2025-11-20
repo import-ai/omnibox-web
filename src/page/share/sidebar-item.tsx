@@ -109,7 +109,7 @@ export default function SidebarItem(props: SidebarItemProps) {
       <Collapsible open={isExpanded}>
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <div className="relative group" ref={contextMenuRef}>
+            <div className="relative group/sidebar-header" ref={contextMenuRef}>
               <SidebarMenuButton
                 asChild
                 className="gap-1 py-1.5 h-auto"
@@ -147,7 +147,7 @@ export default function SidebarItem(props: SidebarItemProps) {
               </SidebarMenuButton>
               {showChat && (
                 <SidebarMenuAction
-                  className="group-hover:opacity-100 opacity-0"
+                  className="group-hover/sidebar-header:opacity-100 opacity-0"
                   onClick={handleContextMenuTrigger}
                 >
                   <MoreHorizontal className="w-4 h-4" />
