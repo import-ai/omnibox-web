@@ -84,7 +84,7 @@ export default function MemberMain(props: MemberProps) {
             {data.map(item => (
               <TableRow key={item.user_id}>
                 <TableCell>
-                  <UserCard email={item.email} username={item.username} />
+                  <UserCard email={item.email || ''} username={item.username} />
                 </TableCell>
                 <TableCell>
                   <PermissionAction
