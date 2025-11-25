@@ -35,7 +35,11 @@ export default function ManagePeople() {
           namespace_id={namespace_id}
           data={
             search
-              ? data.member.filter(item => item.email.indexOf(search) >= 0)
+              ? data.member.filter(
+                  item =>
+                    item.email?.indexOf(search) >= 0 ||
+                    item.username.indexOf(search) >= 0
+                )
               : data.member
           }
         />
