@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import useApp from '@/hooks/use-app';
 
-import SettingWrapper from './swtting-wrapper';
+import SettingWrapper from './setting-wrapper';
 
 interface OpenSettingsPayload {
   tab?: string;

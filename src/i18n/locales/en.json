@@ -409,7 +409,7 @@
         "local_tooltip": "Try dragging local files to the sidebar",
         "wechat": "WeChat",
         "wechat_tooltip": "Chat with OmniBox AI in WeChat",
-        "browser": "Browser",
+        "browser": "Extension",
         "browser_tooltip": "Save any webpage with one click"
       },
       "recent": {
