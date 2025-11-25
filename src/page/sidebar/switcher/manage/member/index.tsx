@@ -82,7 +82,7 @@ export default function MemberMain(props: MemberProps) {
           </TableHeader>
           <TableBody>
             {data.map(item => (
-              <TableRow key={item.id}>
+              <TableRow key={item.user_id}>
                 <TableCell>
                   <UserCard email={item.email} username={item.username} />
                 </TableCell>
