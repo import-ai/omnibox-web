@@ -49,8 +49,10 @@ import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 
+import ExportItem from './exportItem';
 import MoveTo from './move';
 import ShareAction from './share';
+import { exportMarkdownToPdf } from './utils';
 
 export interface IActionProps extends IUseResource {
   wide: boolean;
@@ -70,6 +72,17 @@ export default function Actions(props: IActionProps) {
   const [downloadAsOpen, setDownloadAsOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const exportItems = [
+    {
+      format: 'Markdown',
+      actionId: 'download_as_markdown',
+    },
+    {
+      format: 'PDF',
+      actionId: 'download_as_pdf',
+    },
+  ];
 
   const handleEdit = () => {
     if (!resource) {
@@ -256,6 +269,10 @@ export default function Actions(props: IActionProps) {
 
       return;
     }
+    if (id === 'download_as_pdf') {
+      exportMarkdownToPdf('### 123', resource.name || '');
+      console.log('resource', resource);
+    }
   };
   const handleMoveFinished = (resourceId: string, targetId: string) => {
     setMoveTo(false);
@@ -422,19 +439,15 @@ export default function Actions(props: IActionProps) {
                           onMouseEnter={() => setDownloadAsOpen(true)}
                           onMouseLeave={() => setDownloadAsOpen(false)}
                         >
-                          <div className="flex flex-col gap-1">
-                            <button
-                              className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-left"
-                              onClick={() => {
-                                handleAction('download_as_markdown');
-                                setDownloadAsOpen(false);
-                              }}
-                            >
-                              {t('actions.download_as_tooltip', {
-                                format: 'Markdown',
-                              })}
-                            </button>
-                          </div>
+                          {exportItems.map(item => (
+                            <ExportItem
+                              key={item.actionId}
+                              format={item.format}
+                              actionId={item.actionId}
+                              handleAction={handleAction}
+                              setDownloadAsOpen={setDownloadAsOpen}
+                            />
+                          ))}
                         </PopoverContent>
                       </Popover>
                     </SidebarMenuItem>
