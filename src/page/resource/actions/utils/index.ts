@@ -1,106 +1,85 @@
-import html2pdf from 'html2pdf.js';
-import { marked } from 'marked';
+import axios from 'axios';
 
-export function exportMarkdownToPdf(
+import { API_BASE_URL } from '@/const';
+
+const sanitizeFilename = (filename: string): string => {
+  const nameWithoutExt = filename.replace(/\.pdf$/i, '');
+
+  const sanitized = nameWithoutExt
+    .replace(/[^\x20-\x7E]/g, '_')
+    .replace(/[<>:"/\\|?*]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .trim();
+
+  const finalName = sanitized || 'document';
+
+  return `${finalName}.pdf`;
+};
+
+export const exportMarkdownToPdf = async (
   markdown: string,
-  filename: string = 'document'
-): void {
-  // 1. 使用 parseSync 确保同步（v4+）
-  const html = marked.parse(markdown) as string; // ✅ 更安全
+  filename: string,
+  namespaceId: string,
+  options?: {
+    format?: 'A4' | 'Letter' | 'Legal' | 'A3' | 'A5' | 'A6';
+    landscape?: boolean;
+    margin?: {
+      top?: string;
+      right?: string;
+      bottom?: string;
+      left?: string;
+    };
+  }
+) => {
+  try {
+    const token = localStorage.getItem('token');
+    const lang = localStorage.getItem('i18nextLng');
 
-  // 2. 创建容器
-  const container = document.createElement('div');
-  container.innerHTML = html;
+    const safeFilename = sanitizeFilename(filename || 'document.pdf');
 
-  // 设置基本样式
-  container.style.padding = '20px';
-  container.style.fontFamily = 'Arial, sans-serif';
-  container.style.lineHeight = '1.6';
-  container.style.fontSize = '14px';
-  container.style.color = '#333';
-  container.style.width = '210mm'; // A4 宽度
-  container.style.minHeight = '297mm'; // A4 高度
-  container.style.boxSizing = 'border-box';
-  container.style.visibility = 'hidden'; // 隐藏但可渲染
-  container.style.position = 'absolute'; // 绝对定位，不影响布局
-  container.style.top = '-9999px'; // 移出可视区域，但保留尺寸
-  container.style.left = '0';
-
-  // 添加内联样式
-  const style = document.createElement('style');
-  style.textContent = `
-    h1, h2, h3, h4, h5, h6 {
-      color: #2c3e50;
-      margin-top: 1.2em;
-      margin-bottom: 0.6em;
-    }
-    pre {
-      background: #f4f4f4;
-      padding: 12px;
-      border-radius: 6px;
-      overflow-x: auto;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-    code:not([class]) {
-      font-family: monospace;
-      background: #f9f9f9;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.95em;
-    }
-    blockquote {
-      border-left: 4px solid #ddd;
-      padding-left: 16px;
-      color: #666;
-      margin: 16px 0;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-    }
-    ul, ol {
-      padding-left: 20px;
-    }
-  `;
-  container.appendChild(style);
-
-  // 3. 挂载到 body
-  document.body.appendChild(container);
-
-  // 5. 导出并清理
-  html2pdf()
-    .from(container)
-    .set({
-      margin: [10, 10] as [number, number], // ✅ 显式元组类型
-      filename: `${filename}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
+    const response = await axios.post(
+      `${API_BASE_URL}/namespaces/${namespaceId}/resources/export-pdf`,
+      {
+        markdown,
+        filename: safeFilename,
+        format: options?.format || 'A4',
+        landscape: options?.landscape || false,
+        margin: options?.margin || {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm',
+        },
       },
-      jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait',
-      },
-    })
-    .save()
-    .finally(() => {
-      if (container.parentNode) {
-        container.parentNode.removeChild(container);
+      {
+        responseType: 'blob',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : '',
+          'X-Lang': lang || 'en',
+          From: 'web',
+        },
       }
-    });
-}
+    );
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = safeFilename;
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error exporting PDF:', error);
+    throw new Error(
+      `Failed to export PDF: ${error.message || 'Unknown error'}`
+    );
+  }
+};

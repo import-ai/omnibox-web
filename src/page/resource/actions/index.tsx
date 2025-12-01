@@ -270,8 +270,27 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'download_as_pdf') {
-      exportMarkdownToPdf('### 123', resource.name || '');
-      console.log('resource', resource);
+      onLoading(t('downloading'));
+      exportMarkdownToPdf(
+        resource.content as string,
+        `${resource.name || 'document'}.pdf`,
+        namespaceId
+      )
+        .then(() => {
+          toast(t('actions.success'), {
+            position: 'bottom-right',
+          });
+          setOpen(false);
+        })
+        .catch(error => {
+          console.error('Failed to export PDF:', error);
+          toast(t('download.failed'), {
+            position: 'bottom-right',
+          });
+        })
+        .finally(() => {
+          onLoading('');
+        });
     }
   };
   const handleMoveFinished = (resourceId: string, targetId: string) => {
