@@ -26,6 +26,7 @@ export default function MainSidebar() {
     handleDelete,
     handleCreate,
     handleUpload,
+    handleRename,
     deleteDialog,
     handleActiveKey,
     setDeleteDialog,
@@ -52,6 +53,7 @@ export default function MainSidebar() {
           onDelete={handleDelete}
           onCreate={handleCreate}
           onUpload={handleUpload}
+          onRename={handleRename}
           namespaceId={namespaceId}
           onActiveKey={handleActiveKey}
         />
