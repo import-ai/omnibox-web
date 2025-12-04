@@ -96,7 +96,7 @@ export interface Member {
   id: string;
   user_id: string;
   username: string;
-  email: string;
+  email: string | null;
   role: Role;
   permission: Permission;
 }

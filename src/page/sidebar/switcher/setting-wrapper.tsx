@@ -60,7 +60,6 @@ export default function SettingWrapper({
       label: t('setting.applications'),
       value: 'applications',
       children: <ApplicationsForm autoAction={autoAction} />,
-      requireOwner: true,
     },
     {
       label: t('setting.api_key'),
