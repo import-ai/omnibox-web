@@ -1,5 +1,5 @@
 import { LoaderCircle } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
@@ -56,16 +56,28 @@ export default function Tree(props: ITreeProps) {
     onExpand,
     onActiveKey,
     onUpload,
+    onRename,
     fileDragTarget,
     onFileDragTarget,
   } = props;
   const ref = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const clickTimeoutRef = useRef<number | null>(null);
   const { t } = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(data.name || '');
+
+  // 同步 data.name 变化到 editName
+  useEffect(() => {
+    setEditName(data.name || '');
+  }, [data.name]);
+
   const expand = expands.includes(data.id);
   const isFileDragOver = fileDragTarget === data.id;
   const [dragStyle, drag] = useDrag({
     type: 'card',
     item: data,
+    canDrag: () => !isEditing,
     collect: monitor => ({
       opacity: monitor.isDragging() ? 0.5 : 1,
     }),
@@ -160,6 +172,63 @@ export default function Tree(props: ITreeProps) {
     }
   };
 
+  const handleClick = () => {
+    if (isEditing) return;
+
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+      return;
+    }
+
+    clickTimeoutRef.current = window.setTimeout(() => {
+      clickTimeoutRef.current = null;
+      handleActiveKey();
+    }, 200);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+    setEditName(data.name || '');
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    const trimmedName = editName.trim();
+    setIsEditing(false);
+    if (trimmedName && trimmedName !== data.name) {
+      try {
+        await onRename(data.id, trimmedName);
+      } catch {
+        setEditName(data.name || '');
+      }
+    } else {
+      setEditName(data.name || '');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditName(data.name || '');
+    }
+  };
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
   useEffect(() => {
     drag(ref);
     drop(ref);
@@ -180,7 +249,8 @@ export default function Tree(props: ITreeProps) {
               <SidebarMenuButton
                 asChild
                 className="gap-1 py-1.5 h-auto data-[active=true]:font-normal group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637] transition-none"
-                onClick={handleActiveKey}
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
                 isActive={data.id == activeKey}
               >
                 <div
@@ -217,9 +287,23 @@ export default function Tree(props: ITreeProps) {
                       </Button>
                     ))}
                   <ResourceIcon expand={expand} resource={data} />
-                  <span className="truncate flex-1">
-                    {data.name || t('untitled')}
-                  </span>
+                  {isEditing ? (
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={editName}
+                      onChange={e => setEditName(e.target.value)}
+                      onBlur={handleSave}
+                      onKeyDown={handleKeyDown}
+                      onClick={e => e.stopPropagation()}
+                      onDoubleClick={e => e.stopPropagation()}
+                      className="flex-1 min-w-0 bg-transparent border border-primary rounded px-1 outline-none text-sm caret-[#3B82F6]"
+                    />
+                  ) : (
+                    <span className="truncate flex-1">
+                      {data.name || t('untitled')}
+                    </span>
+                  )}
                 </div>
               </SidebarMenuButton>
               <Action {...props} />

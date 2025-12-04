@@ -67,6 +67,19 @@ export default function useResource() {
     document.title = resource.name ? resource.name : t('untitled');
   }, [resource]);
 
+  // 监听 update_resource 事件，同步更新当前页面的资源名称
+  useEffect(() => {
+    return app.on('update_resource', (delta: Resource) => {
+      if (delta.id === resourceId && resource) {
+        onResource({
+          ...resource,
+          name: delta.name,
+          content: delta.content,
+        });
+      }
+    });
+  }, [app, resourceId, resource]);
+
   return {
     app,
     loading,
