@@ -18,11 +18,21 @@ export function patchDOMForGoogleTranslate() {
     ): T {
       if (child.parentNode !== this) {
         if (console) {
-          console.error(
-            'Cannot remove a child from a different parent',
+          console.warn(
+            'Attempting to remove a child from a different parent. Trying to remove from actual parent instead.',
             child,
             this
           );
+        }
+
+        // Try to remove from the actual parent
+        if (child.parentNode) {
+          try {
+            return originalRemoveChild.call(child.parentNode, child) as T;
+          } catch (e) {
+            console.error('Failed to remove child from actual parent:', e);
+            return child;
+          }
         }
 
         return child;
@@ -38,14 +48,20 @@ export function patchDOMForGoogleTranslate() {
     ): T {
       if (referenceNode && referenceNode.parentNode !== this) {
         if (console) {
-          console.error(
-            'Cannot insert before a reference node from a different parent',
+          console.warn(
+            'Cannot insert before a reference node from a different parent. Falling back to appendChild.',
             referenceNode,
             this
           );
         }
 
-        return newNode;
+        // Fall back to appendChild when reference node is invalid
+        try {
+          return this.appendChild(newNode) as T;
+        } catch (e) {
+          console.error('Failed to appendChild as fallback:', e);
+          return newNode;
+        }
       }
 
       return originalInsertBefore.call(this, newNode, referenceNode) as T;
