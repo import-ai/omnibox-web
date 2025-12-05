@@ -9,7 +9,7 @@ import {
   SquarePen,
   Trash2,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -36,7 +36,6 @@ export default function ContextMenuMain(props: IProps) {
     onUpload,
     onCreate,
     onDelete,
-    onRename,
     spaceType,
     onActiveKey,
     namespaceId,
@@ -44,15 +43,7 @@ export default function ContextMenuMain(props: IProps) {
   const app = useApp();
   const { t } = useTranslation();
   const [moveTo, setMoveTo] = useState(false);
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [renameName, setRenameName] = useState(data.name || '');
-  const renameInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 同步 data.name 变化到 renameName
-  useEffect(() => {
-    setRenameName(data.name || '');
-  }, [data.name]);
 
   const handleCreateFile = () => {
     onCreate(spaceType, data.id, 'doc');
@@ -64,55 +55,20 @@ export default function ContextMenuMain(props: IProps) {
     onActiveKey(data.id, true);
   };
   const handleRename = () => {
-    setRenameName(data.name || '');
-    setIsRenaming(true);
-    setTimeout(() => {
-      renameInputRef.current?.focus();
-      renameInputRef.current?.select();
-    }, 0);
+    // Trigger inline rename in tree component
+    app.fire('start_rename', data.id);
   };
-  const handleRenameSave = async () => {
-    const trimmedName = renameName.trim();
-    setIsRenaming(false);
-    if (trimmedName && trimmedName !== data.name) {
-      try {
-        await onRename(data.id, trimmedName);
-      } catch {
-        setRenameName(data.name || '');
-      }
+  const addToContext = (type: 'resource' | 'folder') => {
+    const fireEvent = () => app.fire('context', data, type);
+    if (location.pathname.includes('/chat')) {
+      fireEvent();
     } else {
-      setRenameName(data.name || '');
-    }
-  };
-  const handleRenameKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleRenameSave();
-    } else if (e.key === 'Escape') {
-      setIsRenaming(false);
-      setRenameName(data.name || '');
-    }
-  };
-  const handleAddToChat = () => {
-    if (!location.pathname.includes('/chat')) {
       onActiveKey('chat');
-      setTimeout(() => {
-        app.fire('context', data, 'resource');
-      }, 100);
-    } else {
-      app.fire('context', data, 'resource');
+      setTimeout(fireEvent, 100);
     }
   };
-  const handleAddAllToChat = () => {
-    if (!location.pathname.includes('/chat')) {
-      onActiveKey('chat');
-      setTimeout(() => {
-        app.fire('context', data, 'folder');
-      }, 100);
-    } else {
-      app.fire('context', data, 'folder');
-    }
-  };
+  const handleAddToChat = () => addToContext('resource');
+  const handleAddAllToChat = () => addToContext('folder');
   const handleMoveTo = () => {
     setMoveTo(true);
   };
@@ -162,27 +118,13 @@ export default function ContextMenuMain(props: IProps) {
             {t('actions.upload_file')}
           </ContextMenuItem>
           <ContextMenuSeparator />
-          {isRenaming ? (
-            <div className="px-2 py-1.5">
-              <input
-                ref={renameInputRef}
-                type="text"
-                value={renameName}
-                onChange={e => setRenameName(e.target.value)}
-                onBlur={handleRenameSave}
-                onKeyDown={handleRenameKeyDown}
-                className="w-full bg-transparent border border-primary rounded px-2 py-1 outline-none text-sm caret-[#3B82F6]"
-              />
-            </div>
-          ) : (
-            <ContextMenuItem
-              className="cursor-pointer gap-2 text-popover-foreground"
-              onClick={handleRename}
-            >
-              <Pencil className="size-4 text-neutral-500" />
-              {t('actions.rename')}
-            </ContextMenuItem>
-          )}
+          <ContextMenuItem
+            className="cursor-pointer gap-2 text-popover-foreground"
+            onSelect={handleRename}
+          >
+            <Pencil className="size-4 text-neutral-500" />
+            {t('actions.rename')}
+          </ContextMenuItem>
           <ContextMenuItem
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleEdit}
