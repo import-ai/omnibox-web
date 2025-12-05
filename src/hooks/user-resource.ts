@@ -67,16 +67,26 @@ export default function useResource() {
     document.title = resource.name ? resource.name : t('untitled');
   }, [resource]);
 
-  // Monitor the update_desource event and synchronize the update of the resource name on the current page
+  // Monitor the update_resource event and synchronize the update of the resource name on the current page
   useEffect(() => {
     return app.on('update_resource', (delta: Resource) => {
-      if (delta.id === resourceId && resource) {
-        onResource({
-          ...resource,
-          name: delta.name,
-          content: delta.content,
-        });
-      }
+      if (!resource) return;
+
+      const isCurrentResource = delta.id === resourceId;
+      const isInPath = resource.path?.some(item => item.id === delta.id);
+
+      if (!isCurrentResource && !isInPath) return;
+
+      const newName = delta.name ?? '';
+      const updatedPath = resource.path?.map(item =>
+        item.id === delta.id ? { ...item, name: newName } : item
+      );
+
+      onResource({
+        ...resource,
+        ...(isCurrentResource && { name: delta.name, content: delta.content }),
+        path: updatedPath,
+      });
     });
   }, [app, resourceId, resource]);
 
