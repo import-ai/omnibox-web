@@ -29,7 +29,7 @@ import ResourceIcon from './resourceIcon.tsx';
 
 // Timing constants for rename functionality
 const FOCUS_DELAY = 10;
-const BLUR_ENABLE_DELAY = 150;
+const BLUR_ENABLE_DELAY = 200;
 const CLICK_DEBOUNCE_DELAY = 200;
 
 // Helper function to validate file extensions
@@ -74,6 +74,7 @@ export default function Tree(props: ITreeProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(data.name || '');
   const isBlurEnabledRef = useRef(false);
+  const isEditingRef = useRef(false);
 
   // Sync data.name changes to editName
   useEffect(() => {
@@ -208,7 +209,7 @@ export default function Tree(props: ITreeProps) {
 
   const handleBlur = () => {
     // Skip if blur is not enabled yet (prevents immediate blur when menu closes)
-    if (!isBlurEnabledRef.current) {
+    if (!isBlurEnabledRef.current || !isEditing) {
       return;
     }
     handleSave();
@@ -240,6 +241,11 @@ export default function Tree(props: ITreeProps) {
     }
   };
 
+  // Keep isEditingRef in sync with isEditing state
+  useEffect(() => {
+    isEditingRef.current = isEditing;
+  }, [isEditing]);
+
   useEffect(() => {
     if (isEditing) {
       // Reset blur flag
@@ -247,7 +253,7 @@ export default function Tree(props: ITreeProps) {
 
       // Use setTimeout to ensure input is rendered and focused properly
       const focusTimer = setTimeout(() => {
-        if (inputRef.current) {
+        if (inputRef.current && isEditingRef.current) {
           inputRef.current.focus();
           inputRef.current.select();
         }
@@ -255,7 +261,10 @@ export default function Tree(props: ITreeProps) {
 
       // Enable blur handler after a short delay to prevent immediate blur when menu closes
       const blurTimer = setTimeout(() => {
-        isBlurEnabledRef.current = true;
+        // Only enable blur if still in editing mode
+        if (isEditingRef.current) {
+          isBlurEnabledRef.current = true;
+        }
       }, BLUR_ENABLE_DELAY);
 
       return () => {
@@ -272,14 +281,14 @@ export default function Tree(props: ITreeProps) {
       if (resourceId === data.id) {
         setEditName(data.name || '');
         setIsEditing(true);
-      } else if (isEditing) {
+      } else {
         // Close current editing when another item starts renaming
         isBlurEnabledRef.current = false;
         setIsEditing(false);
         setEditName(data.name || '');
       }
     });
-  }, [app, data.id, data.name, isEditing]);
+  }, [app, data.id, data.name]);
 
   useEffect(() => {
     drag(ref);
