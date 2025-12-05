@@ -1,3 +1,14 @@
+import {
+  FilePlus,
+  FolderPlus,
+  MessageSquarePlus,
+  MessageSquareQuote,
+  MonitorUp,
+  Move,
+  Pencil,
+  SquarePen,
+  Trash2,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -5,6 +16,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { Input } from '@/components/ui/input';
@@ -32,6 +44,7 @@ export default function ContextMenuMain(props: IProps) {
   const { t } = useTranslation();
   const [moveTo, setMoveTo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleCreateFile = () => {
     onCreate(spaceType, data.id, 'doc');
   };
@@ -41,26 +54,21 @@ export default function ContextMenuMain(props: IProps) {
   const handleEdit = () => {
     onActiveKey(data.id, true);
   };
-  const handleAddToChat = () => {
-    if (!location.pathname.includes('/chat')) {
-      onActiveKey('chat');
-      setTimeout(() => {
-        app.fire('context', data, 'resource');
-      }, 100);
+  const handleRename = () => {
+    // Trigger inline rename in tree component
+    app.fire('start_rename', data.id);
+  };
+  const addToContext = (type: 'resource' | 'folder') => {
+    const fireEvent = () => app.fire('context', data, type);
+    if (location.pathname.includes('/chat')) {
+      fireEvent();
     } else {
-      app.fire('context', data, 'resource');
+      onActiveKey('chat');
+      setTimeout(fireEvent, 100);
     }
   };
-  const handleAddAllToChat = () => {
-    if (!location.pathname.includes('/chat')) {
-      onActiveKey('chat');
-      setTimeout(() => {
-        app.fire('context', data, 'folder');
-      }, 100);
-    } else {
-      app.fire('context', data, 'folder');
-    }
-  };
+  const handleAddToChat = () => addToContext('resource');
+  const handleAddAllToChat = () => addToContext('folder');
   const handleMoveTo = () => {
     setMoveTo(true);
   };
@@ -89,46 +97,73 @@ export default function ContextMenuMain(props: IProps) {
         <ContextMenuTrigger>{children}</ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem
-            className="cursor-pointer"
+            className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleCreateFile}
           >
+            <FilePlus className="size-4 text-neutral-500" />
             {t('actions.create_file')}
           </ContextMenuItem>
           <ContextMenuItem
-            className="cursor-pointer"
+            className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleCreateFolder}
           >
+            <FolderPlus className="size-4 text-neutral-500" />
             {t('actions.create_folder')}
           </ContextMenuItem>
-          <ContextMenuItem className="cursor-pointer" onClick={handleSelect}>
+          <ContextMenuItem
+            className="cursor-pointer gap-2 text-popover-foreground"
+            onClick={handleSelect}
+          >
+            <MonitorUp className="size-4 text-neutral-500" />
             {t('actions.upload_file')}
           </ContextMenuItem>
-          <ContextMenuItem className="cursor-pointer" onClick={handleEdit}>
+          <ContextMenuSeparator />
+          <ContextMenuItem
+            className="cursor-pointer gap-2 text-popover-foreground"
+            onSelect={handleRename}
+          >
+            <Pencil className="size-4 text-neutral-500" />
+            {t('actions.rename')}
+          </ContextMenuItem>
+          <ContextMenuItem
+            className="cursor-pointer gap-2 text-popover-foreground"
+            onClick={handleEdit}
+          >
+            <SquarePen className="size-4 text-neutral-500" />
             {t('edit')}
           </ContextMenuItem>
+          <ContextMenuItem
+            className="cursor-pointer gap-2 text-popover-foreground"
+            onClick={handleMoveTo}
+          >
+            <Move className="size-4 text-neutral-500" />
+            {t('actions.move_to')}
+          </ContextMenuItem>
+          <ContextMenuSeparator />
           {data.has_children && (
             <ContextMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer gap-2 text-popover-foreground"
               onClick={handleAddAllToChat}
             >
+              <MessageSquarePlus className="size-4 text-neutral-500" />
               {t('actions.add_all_to_context')}
             </ContextMenuItem>
           )}
-
-          {data.resource_type !== 'folder' && (
-            <ContextMenuItem
-              className="cursor-pointer"
-              onClick={handleAddToChat}
-            >
-              {data.has_children
-                ? t('actions.add_it_only_to_context')
-                : t('actions.add_it_to_context')}
-            </ContextMenuItem>
-          )}
-          <ContextMenuItem className="cursor-pointer" onClick={handleMoveTo}>
-            {t('actions.move_to')}
+          <ContextMenuItem
+            className="cursor-pointer gap-2 text-popover-foreground"
+            onClick={handleAddToChat}
+          >
+            <MessageSquareQuote className="size-4 text-neutral-500" />
+            {data.has_children
+              ? t('actions.add_it_only_to_context')
+              : t('actions.add_it_to_context')}
           </ContextMenuItem>
-          <ContextMenuItem className="cursor-pointer" onClick={handleDelete}>
+          <ContextMenuSeparator />
+          <ContextMenuItem
+            className="cursor-pointer gap-2 text-destructive"
+            onClick={handleDelete}
+          >
+            <Trash2 className="size-4" />
             {t('delete')}
           </ContextMenuItem>
         </ContextMenuContent>

@@ -16,6 +16,7 @@ export interface IProps extends Omit<ISidebarProps, 'spaceType' | 'data'> {
     [index: string]: IResourceData;
   };
   onDrop: (item: IResourceData, target: IResourceData | null) => void;
+  onRename: (id: string, newName: string) => Promise<void>;
 }
 
 export default function Content(props: IProps) {

@@ -23,4 +23,5 @@ export interface ISidebarProps {
     parentId: string,
     resourceType: ResourceType
   ) => void;
+  onRename: (id: string, newName: string) => Promise<void>;
 }
