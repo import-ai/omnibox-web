@@ -29,6 +29,15 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        // Commercial module routes (pay, orders, products, feedback)
+        '^/api/v1/(pay|orders|products|feedback)': {
+          target:
+            process.env.VITE_API_PATH_PRO ??
+            env.VITE_API_PATH_PRO ??
+            'http://127.0.0.1:8001',
+          changeOrigin: true,
+        },
+        // Open source module routes (all other APIs)
         '/api/v1': {
           target:
             process.env.VITE_API_PATH ??
@@ -50,7 +59,7 @@ export default defineConfig(({ mode }) => {
             'http://127.0.0.1:8000',
           changeOrigin: true,
         },
-        // Proxy attachment routes to API
+        // Proxy attachment routes to API (open source module)
         '^/[^/]+/[^/]+/attachments/[^/]+$': {
           target:
             process.env.VITE_API_PATH ??
