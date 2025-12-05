@@ -17,6 +17,7 @@ import {
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import useApp from '@/hooks/use-app';
 import { IResourceData } from '@/interface';
 import { cn } from '@/lib/utils';
 import { ISidebarProps } from '@/page/sidebar/interface';
@@ -25,6 +26,11 @@ import Action from './action';
 import { Arrow } from './arrow';
 import ContextMenuMain from './contextMenu';
 import ResourceIcon from './resourceIcon.tsx';
+
+// Timing constants for rename functionality
+const FOCUS_DELAY = 10;
+const BLUR_ENABLE_DELAY = 150;
+const CLICK_DEBOUNCE_DELAY = 200;
 
 // Helper function to validate file extensions
 const isValidFileType = (fileName: string): boolean => {
@@ -60,14 +66,16 @@ export default function Tree(props: ITreeProps) {
     fileDragTarget,
     onFileDragTarget,
   } = props;
+  const app = useApp();
   const ref = useRef(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const clickTimeoutRef = useRef<number | null>(null);
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(data.name || '');
+  const isBlurEnabledRef = useRef(false);
 
-  // 同步 data.name 变化到 editName
+  // Sync data.name changes to editName
   useEffect(() => {
     setEditName(data.name || '');
   }, [data.name]);
@@ -184,7 +192,7 @@ export default function Tree(props: ITreeProps) {
     clickTimeoutRef.current = window.setTimeout(() => {
       clickTimeoutRef.current = null;
       handleActiveKey();
-    }, 200);
+    }, CLICK_DEBOUNCE_DELAY);
   };
 
   const handleDoubleClick = (e: React.MouseEvent) => {
@@ -194,11 +202,20 @@ export default function Tree(props: ITreeProps) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
     }
-    setEditName(data.name || '');
-    setIsEditing(true);
+    // Fire event to close other editing items first
+    app.fire('start_rename', data.id);
+  };
+
+  const handleBlur = () => {
+    // Skip if blur is not enabled yet (prevents immediate blur when menu closes)
+    if (!isBlurEnabledRef.current) {
+      return;
+    }
+    handleSave();
   };
 
   const handleSave = async () => {
+    isBlurEnabledRef.current = false;
     const trimmedName = editName.trim();
     setIsEditing(false);
     if (trimmedName && trimmedName !== data.name) {
@@ -217,22 +234,57 @@ export default function Tree(props: ITreeProps) {
       e.preventDefault();
       handleSave();
     } else if (e.key === 'Escape') {
+      isBlurEnabledRef.current = false;
       setIsEditing(false);
       setEditName(data.name || '');
     }
   };
 
   useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
+    if (isEditing) {
+      // Reset blur flag
+      isBlurEnabledRef.current = false;
+
+      // Use setTimeout to ensure input is rendered and focused properly
+      const focusTimer = setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.select();
+        }
+      }, FOCUS_DELAY);
+
+      // Enable blur handler after a short delay to prevent immediate blur when menu closes
+      const blurTimer = setTimeout(() => {
+        isBlurEnabledRef.current = true;
+      }, BLUR_ENABLE_DELAY);
+
+      return () => {
+        clearTimeout(focusTimer);
+        clearTimeout(blurTimer);
+        isBlurEnabledRef.current = false;
+      };
     }
   }, [isEditing]);
+
+  // Listen for start_rename event to trigger inline editing
+  useEffect(() => {
+    return app.on('start_rename', (resourceId: string) => {
+      if (resourceId === data.id) {
+        setEditName(data.name || '');
+        setIsEditing(true);
+      } else if (isEditing) {
+        // Close current editing when another item starts renaming
+        isBlurEnabledRef.current = false;
+        setIsEditing(false);
+        setEditName(data.name || '');
+      }
+    });
+  }, [app, data.id, data.name, isEditing]);
 
   useEffect(() => {
     drag(ref);
     drop(ref);
-  }, []);
+  }, [drag, drop]);
 
   return (
     <SidebarMenuItem>
@@ -293,7 +345,7 @@ export default function Tree(props: ITreeProps) {
                       type="text"
                       value={editName}
                       onChange={e => setEditName(e.target.value)}
-                      onBlur={handleSave}
+                      onBlur={handleBlur}
                       onKeyDown={handleKeyDown}
                       onClick={e => e.stopPropagation()}
                       onDoubleClick={e => e.stopPropagation()}
