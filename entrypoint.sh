@@ -3,7 +3,7 @@
 set -e
 
 export BACKEND=${BACKEND:-http://backend:8000}
-export BACKEND_PRO=${BACKEND_PRO:-http://backend-pro:8000}
+export BACKEND_PRO=${BACKEND_PRO:-http://omnibox-backend-pro:8000}
 
 echo "Configuring nginx with:"
 echo "  BACKEND=$BACKEND (open source module)"
