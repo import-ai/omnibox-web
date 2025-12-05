@@ -358,7 +358,7 @@ export default function Tree(props: ITreeProps) {
                       onKeyDown={handleKeyDown}
                       onClick={e => e.stopPropagation()}
                       onDoubleClick={e => e.stopPropagation()}
-                      className="flex-1 min-w-0 bg-transparent border border-primary rounded px-1 outline-none text-sm caret-[#3B82F6]"
+                      className="flex-1 min-w-0 bg-transparent border border-primary rounded px-1 outline-none text-sm caret-blue-500"
                     />
                   ) : (
                     <span className="truncate flex-1">
