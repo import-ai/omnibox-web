@@ -14,6 +14,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useIsTouch } from '@/hooks/use-is-touch';
+import { cn } from '@/lib/utils';
 import SearchMenu from '@/page/search';
 
 import { ChatIcon } from './Chat';
@@ -27,6 +29,7 @@ export function Header(props: IProps) {
   const { active, onActiveKey } = props;
   const [search, setSearch] = useState(false);
   const { t } = useTranslation();
+  const isTouch = useIsTouch();
   const onChat = () => {
     onActiveKey('chat');
   };
@@ -62,7 +65,12 @@ export function Header(props: IProps) {
                   size="icon"
                   variant="ghost"
                   onClick={onChatHistory}
-                  className="p-0 w-5 h-5 [&_svg]:size-4 absolute top-[6px] z-10 right-1 focus-visible:outline-none focus-visible:ring-transparent opacity-0 group-hover/chat:opacity-100"
+                  className={cn(
+                    'p-0 w-5 h-5 [&_svg]:size-4 absolute top-[6px] z-10 right-1 focus-visible:outline-none focus-visible:ring-transparent',
+                    isTouch
+                      ? 'opacity-100 pointer-events-auto'
+                      : 'opacity-0 pointer-events-none group-hover/chat:opacity-100 group-hover/chat:pointer-events-auto'
+                  )}
                 >
                   <History className="focus-visible:outline-none focus-visible:ring-transparent" />
                 </Button>

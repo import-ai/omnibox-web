@@ -19,7 +19,10 @@
     "collapse": "Collapse Sidebar"
   },
   "upload": {
-    "invalid_ext": "Invalid file type"
+    "success_one": "{{count}} file uploaded successfully",
+    "success_other": "{{count}} files uploaded successfully",
+    "invalid_ext": "Invalid file type",
+    "failed": "Failed to upload file, please try again later"
   },
   "resource": {
     "name": "Resource",
@@ -34,6 +37,7 @@
       "tag": "Tag",
       "add_tag": "Add tag",
       "create_tag": "Create",
+      "tag_too_long": "Tag name cannot exceed {{max}} characters",
       "url": "URL",
       "author": "Author",
       "created": "Created",
@@ -405,10 +409,8 @@
         "local_tooltip": "Try dragging local files to the sidebar",
         "wechat": "WeChat",
         "wechat_tooltip": "Chat with OmniBox AI in WeChat",
-        "browser": "Browser",
-        "browser_tooltip": "Save any webpage with one click",
-        "success_one": "{{count}} file uploaded successfully",
-        "success_other": "{{count}} files uploaded successfully"
+        "browser": "Extension",
+        "browser_tooltip": "Save any webpage with one click"
       },
       "recent": {
         "title": "Recently Updated",
@@ -537,12 +539,13 @@
     "next": "Next",
     "dialog": {
       "delete": {
-        "title": "Delete {{target_name}}？",
+        "title": "Delete?",
         "description": "You are going to delete <strong>{{title}}</strong>"
       }
     }
   },
   "loading": "Loading...",
+  "load_more": "Load More",
   "creating": "Creating...",
   "create": "Create",
   "updating": "Updating...",
@@ -559,8 +562,10 @@
       "user_share": "{{username}}'s Share",
       "url_placeholder": "Published URL",
       "save": "Save",
-      "all_resources": "Share sub-resources",
+      "current_file_only": "Current file only",
+      "current_file_only_tooltip": "When enabled, only shares the current file. When disabled, shares with all sub-files",
       "require_login": "Require login to view",
+      "require_login_tooltip": "When enabled, users must log in to view this shared resource. When disabled, anyone with the link can access it",
       "ai_chat": "AI Chat",
       "password": "Password",
       "expire": {
@@ -578,9 +583,9 @@
         "days": "Days"
       },
       "share_type": {
-        "doc_only": "Document Only",
+        "doc_only": "Disabled",
         "chat_only": "Chat Only",
-        "all": "All"
+        "all": "Enabled"
       }
     }
   },

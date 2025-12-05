@@ -19,7 +19,10 @@
     "collapse": "收起侧边栏"
   },
   "upload": {
-    "invalid_ext": "当前文件格式不支持"
+    "success_one": "成功上传 {{count}} 个文件",
+    "success_other": "成功上传 {{count}} 个文件",
+    "invalid_ext": "当前文件格式不支持",
+    "failed": "上传文件失败，请稍后再试"
   },
   "resource": {
     "name": "文件",
@@ -34,6 +37,7 @@
       "tag": "标签",
       "add_tag": "点击添加标签",
       "create_tag": "创建",
+      "tag_too_long": "标签名称不能超过 {{max}} 个字符",
       "url": "地址",
       "author": "作者",
       "created": "创建时间",
@@ -405,10 +409,8 @@
         "local_tooltip": "试着将本地的文件拖拽到侧边栏试试吧",
         "wechat": "微信助手",
         "wechat_tooltip": "在微信中和\"小黑\"聊天",
-        "browser": "网页收藏",
-        "browser_tooltip": "任何网页，一键保存",
-        "success_one": "成功上传 {{count}} 个文件",
-        "success_other": "成功上传 {{count}} 个文件"
+        "browser": "安装插件",
+        "browser_tooltip": "网页正文一键剪藏"
       },
       "recent": {
         "title": "最近更新",
@@ -537,12 +539,13 @@
     "next": "下一页",
     "dialog": {
       "delete": {
-        "title": "删除{{target_name}}？",
+        "title": "确认删除？",
         "description": "您将要删除 <strong>{{title}}</strong>"
       }
     }
   },
   "loading": "加载中...",
+  "load_more": "加载更多",
   "creating": "创建中...",
   "create": "创建",
   "updating": "更新中...",
@@ -559,9 +562,11 @@
       "user_share": "{{username}}的分享",
       "url_placeholder": "发布的URL",
       "save": "保存",
-      "all_resources": "是否分享子资源",
+      "current_file_only": "仅分享当前文件",
+      "current_file_only_tooltip": "启用时，仅分享当前文件。禁用时，会连同所有子文件一起分享",
       "require_login": "需要登录",
-      "ai_chat": "AI问答",
+      "require_login_tooltip": "启用时，用户必须登录才能查看此共享资源。禁用时，任何拥有链接的人都可以访问",
+      "ai_chat": "AI 问答",
       "password": "密码保护",
       "expire": {
         "title": "过期时间",
@@ -578,9 +583,9 @@
         "days": "天"
       },
       "share_type": {
-        "doc_only": "仅文档",
+        "doc_only": "禁用",
         "chat_only": "仅对话",
-        "all": "全部"
+        "all": "启用"
       }
     }
   },

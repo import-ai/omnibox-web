@@ -112,7 +112,7 @@ export default function AddMember(props: AddMemberProps) {
           onChange={onChange}
           inputValue={inputValue}
           options={data.map(item => ({
-            label: item.email,
+            label: item.email || item.username,
             value: item.user_id,
           }))}
           inputProps={{

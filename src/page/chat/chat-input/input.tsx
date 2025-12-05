@@ -35,11 +35,19 @@ export default function ChatInput(props: IProps) {
     }
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (e.metaKey || e.ctrlKey) {
+      if (e.metaKey || e.ctrlKey || e.altKey) {
         return;
       }
       if (e.shiftKey) {
-        onChange(`${value}\n`);
+        const textarea = e.currentTarget;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const newValue =
+          value.substring(0, start) + '\n' + value.substring(end);
+        onChange(newValue);
+        setTimeout(() => {
+          textarea.selectionStart = textarea.selectionEnd = start + 1;
+        }, 0);
         adjustHeight();
       } else {
         onAction();

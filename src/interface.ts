@@ -96,7 +96,7 @@ export interface Member {
   id: string;
   user_id: string;
   username: string;
-  email: string;
+  email: string | null;
   role: Role;
   permission: Permission;
 }
@@ -177,8 +177,6 @@ export interface UpdateAPIKeyDto {
 }
 
 export type ShareType = 'doc_only' | 'chat_only' | 'all';
-
-export const ShareTypes: ShareType[] = ['doc_only', 'chat_only', 'all'];
 
 export function shareTypeToString(type: ShareType): string {
   switch (type) {
@@ -275,7 +273,7 @@ export interface Application extends IBase {
   attrs?: ApplicationAttrs;
 }
 
-export interface FileInfo {
+export interface UploadFileInfo {
   id: string;
   post_url: string;
   post_fields: [string, string][];
@@ -298,20 +296,6 @@ export enum PaymentType {
   H5 = 'h5',
   JSAPI = 'jsapi',
 }
-
-export interface Order extends IBase {
-  id: string;
-  order_no: string;
-  user_id: string;
-  product_id: string | null;
-  amount: number;
-  currency: string;
-  status: OrderStatus;
-  payment_method: PaymentMethod | null;
-  payment_type: PaymentType | null;
-  third_party_order_no: string | null;
-  description: string;
-  paid_at: string | null;
-  closed_at: string | null;
-  refunded_at: string | null;
+export interface DownloadFileInfo {
+  url: string;
 }

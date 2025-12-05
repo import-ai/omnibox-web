@@ -128,7 +128,7 @@ server {
         proxy_read_timeout 86400;
     }
 
-    location ~ ^/(open/)?api/v1/ {
+    location ~ ^/(open/)?api/ {
         proxy_pass ${BACKEND};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

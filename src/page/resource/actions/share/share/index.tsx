@@ -1,8 +1,9 @@
 import { Copy } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { HelpTooltip } from '@/components/help-tooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -59,8 +60,8 @@ export function ShareTabContent(props: ShareTabContentProps) {
     updateShareInfo({ require_login: enabled });
   };
 
-  const handleShareAll = (enabled: boolean) => {
-    updateShareInfo({ all_resources: enabled });
+  const handleOnlyCurrent = (onlyCurrent: boolean) => {
+    updateShareInfo({ all_resources: !onlyCurrent });
   };
 
   const handleCopy = async () => {
@@ -115,15 +116,23 @@ export function ShareTabContent(props: ShareTabContentProps) {
       {shareInfo?.enabled && (
         <>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
-            <span className="text-sm">{t('share.share.all_resources')}</span>
+            <span className="text-sm flex items-center gap-1">
+              <Trans i18nKey="share.share.current_file_only" />
+              <HelpTooltip
+                content={t('share.share.current_file_only_tooltip')}
+              />
+            </span>
             <Switch
-              checked={shareInfo?.all_resources ?? false}
+              checked={!(shareInfo?.all_resources ?? false)}
               disabled={!shareInfo?.enabled}
-              onCheckedChange={handleShareAll}
+              onCheckedChange={handleOnlyCurrent}
             />
           </div>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
-            <span className="text-sm">{t('share.share.require_login')}</span>
+            <span className="text-sm flex items-center gap-1">
+              <Trans i18nKey="share.share.require_login" />
+              <HelpTooltip content={t('share.share.require_login_tooltip')} />
+            </span>
             <Switch
               checked={shareInfo?.require_login ?? false}
               disabled={!shareInfo?.enabled}

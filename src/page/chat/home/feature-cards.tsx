@@ -2,7 +2,6 @@ import axios from 'axios';
 import {
   ChevronRight,
   FileUp,
-  GlobeIcon,
   LoaderCircle,
   MessageCircle,
 } from 'lucide-react';
@@ -11,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { ExtensionIcon } from '@/assets/icons/extensionIcon';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -72,6 +72,7 @@ export default function FeatureCards() {
     }
 
     setUploading(true);
+    setProgress(`${0}/${files.length}`);
 
     try {
       // Fetch the root resources for the namespace
@@ -98,7 +99,7 @@ export default function FeatureCards() {
       setProgress('');
 
       const fileCount = results.length;
-      toast.success(t('chat.home.upload.success', { count: fileCount }));
+      toast.success(t('upload.success', { count: fileCount }));
 
       if (results.length > 0) {
         const lastUploadedFile = results[results.length - 1];
@@ -129,8 +130,8 @@ export default function FeatureCards() {
   const handleBrowserClick = () => {
     const isZh = i18n.language.startsWith('zh');
     const url = isZh
-      ? '/docs/zh-cn/collect/browser-extension'
-      : '/docs/collect/browser-extension';
+      ? '/docs/zh-cn/browser-extension'
+      : '/docs/browser-extension';
     window.open(url, '_blank');
   };
 
@@ -159,11 +160,15 @@ export default function FeatureCards() {
             style={{ display: 'none' }}
           />
           <TooltipProvider>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {uploading ? (
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" className="opacity-50">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="opacity-50 w-24"
+                    >
                       <LoaderCircle className="w-4 h-4 text-red-500 animate-spin" />
                       {t('chat.home.upload.local')}
                     </Button>
@@ -178,6 +183,7 @@ export default function FeatureCards() {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="w-24"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <FileUp className="w-4 h-4 text-red-500" />
@@ -194,6 +200,7 @@ export default function FeatureCards() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="w-24"
                     onClick={handleWeChatClick}
                   >
                     <MessageCircle className="w-4 h-4 text-green-500" />
@@ -209,9 +216,10 @@ export default function FeatureCards() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="w-24"
                     onClick={handleBrowserClick}
                   >
-                    <GlobeIcon className="w-4 h-4 text-blue-500" />
+                    <ExtensionIcon />
                     {t('chat.home.upload.browser')}
                   </Button>
                 </TooltipTrigger>

@@ -93,9 +93,27 @@ export default function Layout() {
   }, [namespaceId, shareId, uid, loc]);
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(loc.search);
+    const langParam = searchParams.get('lang');
+
+    if (langParam) {
+      const lang = langParam.includes('en') ? 'en-US' : 'zh-CN';
+      if (lang !== i18n.language) {
+        i18n.changeLanguage(lang).then(() => {
+          if (uid) {
+            http.post('/user/option', {
+              name: 'language',
+              value: lang,
+            });
+          }
+        });
+      }
+    }
+
     if (!uid) {
       return;
     }
+
     const source = axios.CancelToken.source();
     http
       .get('/user/option/list', { cancelToken: source.token })
@@ -103,11 +121,13 @@ export default function Layout() {
         if (!Array.isArray(response)) {
           return;
         }
-        const languageItem = response.find(item => item.name === 'language');
-        if (languageItem) {
-          const lang = languageItem.value;
-          if (lang && lang !== i18n.language) {
-            i18n.changeLanguage(lang);
+        if (!langParam) {
+          const languageItem = response.find(item => item.name === 'language');
+          if (languageItem) {
+            const lang = languageItem.value;
+            if (lang && lang !== i18n.language) {
+              i18n.changeLanguage(lang);
+            }
           }
         }
         const themeValue = response.find(item => item.name === 'theme');
@@ -118,8 +138,9 @@ export default function Layout() {
           }
         }
       });
+
     return () => source.cancel();
-  }, [uid]);
+  }, [loc.search, uid, i18n]);
 
   return (
     <>

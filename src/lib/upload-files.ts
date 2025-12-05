@@ -1,4 +1,6 @@
-import { FileInfo, IResourceData } from '@/interface';
+import { t } from 'i18next';
+
+import { IResourceData, UploadFileInfo } from '@/interface';
 import { http } from '@/lib/request';
 
 export interface UploadProgress {
@@ -13,7 +15,7 @@ async function uploadFile(
   parentId: string,
   file: File
 ): Promise<IResourceData> {
-  let fileInfo: FileInfo;
+  let fileInfo: UploadFileInfo;
   try {
     fileInfo = await http.post(
       `/namespaces/${namespaceId}/resources/files`,
@@ -35,12 +37,15 @@ async function uploadFile(
     formData.append(key, value);
   }
   formData.append('file', file);
-  await fetch(fileInfo.post_url, {
+  const resp = await fetch(fileInfo.post_url, {
     method: 'POST',
     mode: 'cors',
     credentials: 'omit',
     body: formData,
   });
+  if (!resp.ok) {
+    throw new Error(t('upload.failed'));
+  }
   return await http.post(`/namespaces/${namespaceId}/resources`, {
     parentId,
     resourceType: 'file',
