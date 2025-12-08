@@ -74,8 +74,7 @@
     "add_it_to_context": "Add this File to Chat Box",
     "add_it_only_to_context": "Add this File only to Chat Box",
     "wide": "Widescreen Mode",
-    "rename": "Rename",
-    "move_to_recycle_bin": "Move to Recycle Bin"
+    "rename": "Rename"
   },
   "form": {
     "or": "or",
