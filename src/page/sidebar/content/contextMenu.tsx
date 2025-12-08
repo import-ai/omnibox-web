@@ -25,6 +25,8 @@ import useApp from '@/hooks/use-app';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
+import { menuIconClass, menuItemClass, menuItemGroupClass } from './styles';
+
 export interface IProps extends ISidebarProps {
   children: React.ReactNode;
 }
@@ -98,91 +100,76 @@ export default function ContextMenuMain(props: IProps) {
       <ContextMenu>
         <ContextMenuTrigger>{children}</ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
-            onClick={handleCreateFile}
-          >
-            <FilePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <ContextMenuItem className={menuItemClass} onClick={handleCreateFile}>
+            <FilePlus className={menuIconClass} />
             {t('actions.create_file')}
           </ContextMenuItem>
           <ContextMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
+            className={menuItemClass}
             onClick={handleCreateFolder}
           >
-            <FolderPlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <FolderPlus className={menuIconClass} />
             {t('actions.create_folder')}
           </ContextMenuItem>
-          <ContextMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
-            onClick={handleSelect}
-          >
-            <MonitorUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <ContextMenuItem className={menuItemClass} onClick={handleSelect}>
+            <MonitorUp className={menuIconClass} />
             {t('actions.upload_file')}
           </ContextMenuItem>
           <ContextMenuSeparator />
-          <ContextMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
-            onClick={handleRename}
-          >
-            <SquarePen className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <ContextMenuItem className={menuItemClass} onClick={handleRename}>
+            <SquarePen className={menuIconClass} />
             {t('actions.rename')}
           </ContextMenuItem>
-          <ContextMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
-            onClick={handleEdit}
-          >
-            <Pencil className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <ContextMenuItem className={menuItemClass} onClick={handleEdit}>
+            <Pencil className={menuIconClass} />
             {t('edit')}
           </ContextMenuItem>
-          <ContextMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
-            onClick={handleMoveTo}
-          >
-            <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <ContextMenuItem className={menuItemClass} onClick={handleMoveTo}>
+            <Move className={menuIconClass} />
             {t('actions.move_to')}
           </ContextMenuItem>
           <ContextMenuSeparator />
           {data.resource_type === 'folder' ? (
             <ContextMenuItem
-              className="cursor-pointer gap-2 text-popover-foreground"
+              className={menuItemClass}
               onClick={handleAddAllToChat}
             >
-              <MessageSquarePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <MessageSquarePlus className={menuIconClass} />
               {t('actions.add_all_to_context')}
             </ContextMenuItem>
           ) : data.has_children ? (
             <>
               <ContextMenuItem
-                className="cursor-pointer gap-2 text-popover-foreground"
+                className={menuItemClass}
                 onClick={handleAddAllToChat}
               >
-                <MessageSquarePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <MessageSquarePlus className={menuIconClass} />
                 {t('actions.add_all_to_context')}
               </ContextMenuItem>
               <ContextMenuItem
-                className="cursor-pointer gap-2 text-popover-foreground"
+                className={menuItemClass}
                 onClick={handleAddToChat}
               >
-                <MessageSquareQuote className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <MessageSquareQuote className={menuIconClass} />
                 {t('actions.add_it_to_context')}
               </ContextMenuItem>
             </>
           ) : (
             <ContextMenuItem
-              className="cursor-pointer gap-2 text-popover-foreground"
+              className={menuItemClass}
               onClick={handleAddToChat}
             >
-              <MessageSquareQuote className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <MessageSquareQuote className={menuIconClass} />
               {t('actions.add_it_to_context')}
             </ContextMenuItem>
           )}
           <ContextMenuSeparator />
           <ContextMenuItem
-            className="group cursor-pointer gap-2 text-popover-foreground"
+            className={menuItemGroupClass}
             onClick={handleDelete}
           >
-            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-            {t('delete')}
+            <Trash2 className={menuIconClass} />
+            {t('move-delete')}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>

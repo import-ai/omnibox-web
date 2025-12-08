@@ -37,6 +37,7 @@ import { useIsTouch } from '@/hooks/use-is-touch';
 import { IResourceData } from '@/interface';
 import { cn } from '@/lib/utils';
 
+import { menuIconClass, menuItemClass } from './styles';
 import Tree, { ITreeProps } from './tree';
 
 // Helper function to validate file extensions
@@ -223,28 +224,28 @@ export default function Space(props: ITreeProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" sideOffset={10} align="start">
               <DropdownMenuItem
-                className="cursor-pointer gap-2 text-popover-foreground"
+                className={menuItemClass}
                 onClick={() => {
                   onCreate(spaceType, data.id, 'doc');
                 }}
               >
-                <FilePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <FilePlus className={menuIconClass} />
                 {t('actions.create_file')}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer gap-2 text-popover-foreground"
+                className={menuItemClass}
                 onClick={() => {
                   onCreate(spaceType, data.id, 'folder');
                 }}
               >
-                <FolderPlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <FolderPlus className={menuIconClass} />
                 {t('actions.create_folder')}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer gap-2 text-popover-foreground"
+                className={menuItemClass}
                 onClick={handleSelect}
               >
-                <MonitorUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <MonitorUp className={menuIconClass} />
                 {t('actions.upload_file')}
               </DropdownMenuItem>
             </DropdownMenuContent>

@@ -36,6 +36,8 @@ import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
+import { menuIconClass, menuItemClass, menuItemGroupClass } from './styles';
+
 export default function Action(props: ISidebarProps) {
   const {
     data,
@@ -146,92 +148,80 @@ export default function Action(props: ISidebarProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" sideOffset={10}>
           <DropdownMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
+            className={menuItemClass}
             onClick={handleCreateFile}
           >
-            <FilePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <FilePlus className={menuIconClass} />
             {t('actions.create_file')}
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
+            className={menuItemClass}
             onClick={handleCreateFolder}
           >
-            <FolderPlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <FolderPlus className={menuIconClass} />
             {t('actions.create_folder')}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
-            onClick={handleSelect}
-          >
-            <MonitorUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <DropdownMenuItem className={menuItemClass} onClick={handleSelect}>
+            <MonitorUp className={menuIconClass} />
             {t('actions.upload_file')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
-            onSelect={handleRename}
-          >
-            <SquarePen className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <DropdownMenuItem className={menuItemClass} onSelect={handleRename}>
+            <SquarePen className={menuIconClass} />
             {t('actions.rename')}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground "
-            onClick={handleEdit}
-          >
-            <Pencil className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <DropdownMenuItem className={menuItemClass} onClick={handleEdit}>
+            <Pencil className={menuIconClass} />
             {t('edit')}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
-            onClick={handleMoveTo}
-          >
-            <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <DropdownMenuItem className={menuItemClass} onClick={handleMoveTo}>
+            <Move className={menuIconClass} />
             {t('actions.move_to')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
 
           {data.resource_type === 'folder' ? (
             <DropdownMenuItem
-              className="cursor-pointer gap-2 text-popover-foreground"
+              className={menuItemClass}
               onClick={handleAddAllToChat}
             >
-              <MessageSquarePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <MessageSquarePlus className={menuIconClass} />
               {t('actions.add_all_to_context')}
             </DropdownMenuItem>
           ) : data.has_children ? (
             <>
               <DropdownMenuItem
-                className="cursor-pointer gap-2 text-popover-foreground"
+                className={menuItemClass}
                 onClick={handleAddAllToChat}
               >
-                <MessageSquarePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <MessageSquarePlus className={menuIconClass} />
                 {t('actions.add_all_to_context')}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer gap-2 text-popover-foreground"
+                className={menuItemClass}
                 onClick={handleAddToChat}
               >
-                <MessageSquareQuote className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <MessageSquareQuote className={menuIconClass} />
                 {t('actions.add_it_to_context')}
               </DropdownMenuItem>
             </>
           ) : (
             <DropdownMenuItem
-              className="cursor-pointer gap-2 text-popover-foreground"
+              className={menuItemClass}
               onClick={handleAddToChat}
             >
-              <MessageSquareQuote className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <MessageSquareQuote className={menuIconClass} />
               {t('actions.add_it_to_context')}
             </DropdownMenuItem>
           )}
 
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className="group cursor-pointer gap-2 text-popover-foreground"
+            className={menuItemGroupClass}
             onClick={handleDelete}
           >
-            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-            {t('delete')}
+            <Trash2 className={menuIconClass} />
+            {t('move-delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
