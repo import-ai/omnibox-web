@@ -102,21 +102,21 @@ export default function ContextMenuMain(props: IProps) {
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleCreateFile}
           >
-            <FilePlus className="size-4 text-neutral-500" />
+            <FilePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('actions.create_file')}
           </ContextMenuItem>
           <ContextMenuItem
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleCreateFolder}
           >
-            <FolderPlus className="size-4 text-neutral-500" />
+            <FolderPlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('actions.create_folder')}
           </ContextMenuItem>
           <ContextMenuItem
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleSelect}
           >
-            <MonitorUp className="size-4 text-neutral-500" />
+            <MonitorUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('actions.upload_file')}
           </ContextMenuItem>
           <ContextMenuSeparator />
@@ -124,21 +124,21 @@ export default function ContextMenuMain(props: IProps) {
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleRename}
           >
-            <SquarePen className="size-4 text-neutral-500" />
+            <SquarePen className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('actions.rename')}
           </ContextMenuItem>
           <ContextMenuItem
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleEdit}
           >
-            <Pencil className="size-4 text-neutral-500" />
+            <Pencil className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('edit')}
           </ContextMenuItem>
           <ContextMenuItem
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleMoveTo}
           >
-            <Move className="size-4 text-neutral-500" />
+            <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('actions.move_to')}
           </ContextMenuItem>
           <ContextMenuSeparator />
@@ -147,7 +147,7 @@ export default function ContextMenuMain(props: IProps) {
               className="cursor-pointer gap-2 text-popover-foreground"
               onClick={handleAddAllToChat}
             >
-              <MessageSquarePlus className="size-4 text-neutral-500" />
+              <MessageSquarePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
               {t('actions.add_all_to_context')}
             </ContextMenuItem>
           ) : data.has_children ? (
@@ -156,14 +156,14 @@ export default function ContextMenuMain(props: IProps) {
                 className="cursor-pointer gap-2 text-popover-foreground"
                 onClick={handleAddAllToChat}
               >
-                <MessageSquarePlus className="size-4 text-neutral-500" />
+                <MessageSquarePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
                 {t('actions.add_all_to_context')}
               </ContextMenuItem>
               <ContextMenuItem
                 className="cursor-pointer gap-2 text-popover-foreground"
                 onClick={handleAddToChat}
               >
-                <MessageSquareQuote className="size-4 text-neutral-500" />
+                <MessageSquareQuote className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
                 {t('actions.add_it_to_context')}
               </ContextMenuItem>
             </>
@@ -172,7 +172,7 @@ export default function ContextMenuMain(props: IProps) {
               className="cursor-pointer gap-2 text-popover-foreground"
               onClick={handleAddToChat}
             >
-              <MessageSquareQuote className="size-4 text-neutral-500" />
+              <MessageSquareQuote className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
               {t('actions.add_it_to_context')}
             </ContextMenuItem>
           )}
@@ -181,7 +181,7 @@ export default function ContextMenuMain(props: IProps) {
             className="group cursor-pointer gap-2 text-popover-foreground"
             onClick={handleDelete}
           >
-            <Trash2 className="size-4 text-neutral-500" />
+            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('delete')}
           </ContextMenuItem>
         </ContextMenuContent>
