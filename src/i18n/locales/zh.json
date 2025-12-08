@@ -3,7 +3,6 @@
   "untitled": "未命名",
   "edit": "编辑",
   "delete": "删除",
-  "move-delete": "移入回收站",
   "rename": "重命名",
   "cancel": "取消",
   "ok": "确定",
@@ -75,7 +74,8 @@
     "add_it_to_context": "添加该文件到对话框",
     "add_it_only_to_context": "仅添加该文件到对话框",
     "wide": "宽屏模式",
-    "rename": "重命名"
+    "rename": "重命名",
+    "move_to_recycle_bin": "移动到回收站"
   },
   "form": {
     "or": "或",
