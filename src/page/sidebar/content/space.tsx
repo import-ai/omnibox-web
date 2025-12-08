@@ -1,4 +1,10 @@
-import { LoaderCircle, MoreHorizontal } from 'lucide-react';
+import {
+  FilePlus,
+  FolderPlus,
+  LoaderCircle,
+  MonitorUp,
+  MoreHorizontal,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
@@ -217,25 +223,28 @@ export default function Space(props: ITreeProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" sideOffset={10} align="start">
               <DropdownMenuItem
-                className="cursor-pointer"
+                className="cursor-pointer gap-2 text-popover-foreground"
                 onClick={() => {
                   onCreate(spaceType, data.id, 'doc');
                 }}
               >
+                <FilePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
                 {t('actions.create_file')}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer"
+                className="cursor-pointer gap-2 text-popover-foreground"
                 onClick={() => {
                   onCreate(spaceType, data.id, 'folder');
                 }}
               >
+                <FolderPlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
                 {t('actions.create_folder')}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer"
+                className="cursor-pointer gap-2 text-popover-foreground"
                 onClick={handleSelect}
               >
+                <MonitorUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
                 {t('actions.upload_file')}
               </DropdownMenuItem>
             </DropdownMenuContent>

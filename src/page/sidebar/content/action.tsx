@@ -134,13 +134,13 @@ export default function Action(props: ISidebarProps) {
             <SidebarMenuAction
               asChild
               className={cn(
-                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 !text-[#8F959E] hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent',
+                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 !text-[#8F959E] hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent cursor-pointer',
                 isTouch
                   ? 'opacity-100 pointer-events-auto'
                   : 'group-hover/sidebar-item:opacity-100 group-hover/sidebar-item:pointer-events-auto pointer-events-none opacity-0'
               )}
             >
-              <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent" />
+              <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent cursor-pointer" />
             </SidebarMenuAction>
           )}
         </DropdownMenuTrigger>
@@ -149,21 +149,21 @@ export default function Action(props: ISidebarProps) {
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleCreateFile}
           >
-            <FilePlus className="size-4 text-neutral-500" />
+            <FilePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('actions.create_file')}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleCreateFolder}
           >
-            <FolderPlus className="size-4 text-neutral-500" />
+            <FolderPlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('actions.create_folder')}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleSelect}
           >
-            <MonitorUp className="size-4 text-neutral-500" />
+            <MonitorUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('actions.upload_file')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -171,21 +171,21 @@ export default function Action(props: ISidebarProps) {
             className="cursor-pointer gap-2 text-popover-foreground"
             onSelect={handleRename}
           >
-            <SquarePen className="size-4 text-neutral-500" />
+            <SquarePen className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('actions.rename')}
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
+            className="cursor-pointer gap-2 text-popover-foreground "
             onClick={handleEdit}
           >
-            <Pencil className="size-4 text-neutral-500" />
+            <Pencil className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('edit')}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleMoveTo}
           >
-            <Move className="size-4 text-neutral-500" />
+            <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('actions.move_to')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -195,7 +195,7 @@ export default function Action(props: ISidebarProps) {
               className="cursor-pointer gap-2 text-popover-foreground"
               onClick={handleAddAllToChat}
             >
-              <MessageSquarePlus className="size-4 text-neutral-500" />
+              <MessageSquarePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
               {t('actions.add_all_to_context')}
             </DropdownMenuItem>
           ) : data.has_children ? (
@@ -204,14 +204,14 @@ export default function Action(props: ISidebarProps) {
                 className="cursor-pointer gap-2 text-popover-foreground"
                 onClick={handleAddAllToChat}
               >
-                <MessageSquarePlus className="size-4 text-neutral-500" />
+                <MessageSquarePlus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
                 {t('actions.add_all_to_context')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer gap-2 text-popover-foreground"
                 onClick={handleAddToChat}
               >
-                <MessageSquareQuote className="size-4 text-neutral-500" />
+                <MessageSquareQuote className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
                 {t('actions.add_it_to_context')}
               </DropdownMenuItem>
             </>
@@ -220,7 +220,7 @@ export default function Action(props: ISidebarProps) {
               className="cursor-pointer gap-2 text-popover-foreground"
               onClick={handleAddToChat}
             >
-              <MessageSquareQuote className="size-4 text-neutral-500" />
+              <MessageSquareQuote className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
               {t('actions.add_it_to_context')}
             </DropdownMenuItem>
           )}
@@ -230,7 +230,7 @@ export default function Action(props: ISidebarProps) {
             className="group cursor-pointer gap-2 text-popover-foreground"
             onClick={handleDelete}
           >
-            <Trash2 className="size-4 text-neutral-500" />
+            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             {t('delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
