@@ -169,7 +169,7 @@ export default function ContextMenuMain(props: IProps) {
             onClick={handleDelete}
           >
             <Trash2 className={menuIconClass} />
-            {t('actions.move_to_recycle_bin')}
+            {t('actions.move_to_trash')}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>

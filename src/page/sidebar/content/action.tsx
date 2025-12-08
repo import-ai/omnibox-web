@@ -221,7 +221,7 @@ export default function Action(props: ISidebarProps) {
             onClick={handleDelete}
           >
             <Trash2 className={menuIconClass} />
-            {t('actions.move_to_recycle_bin')}
+            {t('actions.move_to_trash')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
