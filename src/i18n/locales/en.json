@@ -3,7 +3,6 @@
   "untitled": "Untitled",
   "edit": "Edit",
   "delete": "Delete",
-  "move-delete": "Move to Recycle Bin",
   "rename": "Rename",
   "cancel": "Cancel",
   "ok": "OK",
@@ -75,7 +74,8 @@
     "add_it_to_context": "Add this File to Chat Box",
     "add_it_only_to_context": "Add this File only to Chat Box",
     "wide": "Widescreen Mode",
-    "rename": "Rename"
+    "rename": "Rename",
+    "move_to_recycle_bin": "Move to Recycle Bin"
   },
   "form": {
     "or": "or",
