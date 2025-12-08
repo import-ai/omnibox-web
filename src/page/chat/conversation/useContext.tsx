@@ -18,6 +18,7 @@ import {
 import {
   ask,
   extractOriginalMessageSettings,
+  extractToolsAndContext,
   findFirstMessageWithMissingParent,
 } from '@/page/chat/conversation/utils';
 import {
@@ -52,13 +53,54 @@ export default function useContext() {
   const refetch = () => {
     return http
       .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
-      .then(response => {
+      .then((response: ConversationDetail) => {
         const conversationTitle = getTitleFromConversationDetail(response);
         if (conversationTitle) {
           app.fire('chat:title:update', conversationTitle);
         }
         setConversation(response);
+
+        // Extract tools from the last user message
+        const messagesFromResponse = getMessagesFromConversation(response);
+        const lastUserMessage =
+          findLastUserMessageWithTools(messagesFromResponse);
+        if (lastUserMessage?.attrs?.tools) {
+          const { tools: extractedTools, context: extractedContext } =
+            extractToolsAndContext(lastUserMessage.attrs.tools);
+          onToolsChange(extractedTools);
+          onContextChange(extractedContext);
+        }
       });
+  };
+
+  // Helper to get ordered messages from conversation
+  const getMessagesFromConversation = (
+    conv: ConversationDetail
+  ): MessageDetail[] => {
+    const result: MessageDetail[] = [];
+    let currentNode: string | undefined = conv.current_node;
+    while (currentNode) {
+      const message = conv.mapping[currentNode];
+      if (!message) {
+        break;
+      }
+      result.unshift(message);
+      currentNode = message.parent_id;
+    }
+    return result;
+  };
+
+  // Find the last user message that has tools attributes
+  const findLastUserMessageWithTools = (
+    msgs: MessageDetail[]
+  ): MessageDetail | undefined => {
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      const msg = msgs[i];
+      if (msg.message.role === 'user' && msg.attrs?.tools) {
+        return msg;
+      }
+    }
+    return undefined;
   };
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
