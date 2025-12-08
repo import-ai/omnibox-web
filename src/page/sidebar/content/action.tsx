@@ -190,7 +190,7 @@ export default function Action(props: ISidebarProps) {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
 
-          {data.has_children && (
+          {data.resource_type === 'folder' ? (
             <DropdownMenuItem
               className="cursor-pointer gap-2 text-popover-foreground"
               onClick={handleAddAllToChat}
@@ -198,16 +198,32 @@ export default function Action(props: ISidebarProps) {
               <MessageSquarePlus className="size-4 text-neutral-500" />
               {t('actions.add_all_to_context')}
             </DropdownMenuItem>
+          ) : data.has_children ? (
+            <>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 text-popover-foreground"
+                onClick={handleAddAllToChat}
+              >
+                <MessageSquarePlus className="size-4 text-neutral-500" />
+                {t('actions.add_all_to_context')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 text-popover-foreground"
+                onClick={handleAddToChat}
+              >
+                <MessageSquareQuote className="size-4 text-neutral-500" />
+                {t('actions.add_it_to_context')}
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2 text-popover-foreground"
+              onClick={handleAddToChat}
+            >
+              <MessageSquareQuote className="size-4 text-neutral-500" />
+              {t('actions.add_it_to_context')}
+            </DropdownMenuItem>
           )}
-          <DropdownMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
-            onClick={handleAddToChat}
-          >
-            <MessageSquareQuote className="size-4 text-neutral-500" />
-            {data.has_children
-              ? t('actions.add_it_only_to_context')
-              : t('actions.add_it_to_context')}
-          </DropdownMenuItem>
 
           <DropdownMenuSeparator />
           <DropdownMenuItem

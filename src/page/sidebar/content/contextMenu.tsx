@@ -142,7 +142,7 @@ export default function ContextMenuMain(props: IProps) {
             {t('actions.move_to')}
           </ContextMenuItem>
           <ContextMenuSeparator />
-          {data.has_children && (
+          {data.resource_type === 'folder' ? (
             <ContextMenuItem
               className="cursor-pointer gap-2 text-popover-foreground"
               onClick={handleAddAllToChat}
@@ -150,16 +150,32 @@ export default function ContextMenuMain(props: IProps) {
               <MessageSquarePlus className="size-4 text-neutral-500" />
               {t('actions.add_all_to_context')}
             </ContextMenuItem>
+          ) : data.has_children ? (
+            <>
+              <ContextMenuItem
+                className="cursor-pointer gap-2 text-popover-foreground"
+                onClick={handleAddAllToChat}
+              >
+                <MessageSquarePlus className="size-4 text-neutral-500" />
+                {t('actions.add_all_to_context')}
+              </ContextMenuItem>
+              <ContextMenuItem
+                className="cursor-pointer gap-2 text-popover-foreground"
+                onClick={handleAddToChat}
+              >
+                <MessageSquareQuote className="size-4 text-neutral-500" />
+                {t('actions.add_it_to_context')}
+              </ContextMenuItem>
+            </>
+          ) : (
+            <ContextMenuItem
+              className="cursor-pointer gap-2 text-popover-foreground"
+              onClick={handleAddToChat}
+            >
+              <MessageSquareQuote className="size-4 text-neutral-500" />
+              {t('actions.add_it_to_context')}
+            </ContextMenuItem>
           )}
-          <ContextMenuItem
-            className="cursor-pointer gap-2 text-popover-foreground"
-            onClick={handleAddToChat}
-          >
-            <MessageSquareQuote className="size-4 text-neutral-500" />
-            {data.has_children
-              ? t('actions.add_it_only_to_context')
-              : t('actions.add_it_to_context')}
-          </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem
             className="group cursor-pointer gap-2 text-popover-foreground hover:!text-destructive focus:!text-destructive focus:!bg-transparent"
