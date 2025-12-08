@@ -43,7 +43,6 @@ export default function ContextMenuMain(props: IProps) {
   const app = useApp();
   const { t } = useTranslation();
   const [moveTo, setMoveTo] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreateFile = () => {
@@ -55,11 +54,7 @@ export default function ContextMenuMain(props: IProps) {
   const handleEdit = () => {
     onActiveKey(data.id, true);
   };
-  const handleRename = (e: Event) => {
-    // Prevent default menu close behavior
-    e.preventDefault();
-    // Manually close the menu
-    setMenuOpen(false);
+  const handleRename = () => {
     // Delay to ensure context menu is fully closed before triggering rename
     setTimeout(() => {
       app.fire('start_rename', data.id);
@@ -100,7 +95,7 @@ export default function ContextMenuMain(props: IProps) {
 
   return (
     <>
-      <ContextMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      <ContextMenu>
         <ContextMenuTrigger>{children}</ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem
@@ -127,7 +122,7 @@ export default function ContextMenuMain(props: IProps) {
           <ContextMenuSeparator />
           <ContextMenuItem
             className="cursor-pointer gap-2 text-popover-foreground"
-            onSelect={handleRename}
+            onClick={handleRename}
           >
             <SquarePen className="size-4 text-neutral-500" />
             {t('actions.rename')}
