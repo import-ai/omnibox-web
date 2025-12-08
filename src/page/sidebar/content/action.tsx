@@ -227,10 +227,10 @@ export default function Action(props: ISidebarProps) {
 
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className="group cursor-pointer gap-2 text-popover-foreground hover:!text-destructive focus:!text-destructive focus:!bg-transparent"
+            className="group cursor-pointer gap-2 text-popover-foreground"
             onClick={handleDelete}
           >
-            <Trash2 className="size-4 text-neutral-500 group-hover:!text-destructive group-focus:!text-destructive" />
+            <Trash2 className="size-4 text-neutral-500" />
             {t('delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
