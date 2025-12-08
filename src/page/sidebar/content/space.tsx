@@ -205,7 +205,7 @@ export default function Space(props: ITreeProps) {
                 <SidebarMenuAction
                   asChild
                   className={cn(
-                    'my-1.5 size-4 top-0.5 right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent',
+                    'my-1.5 size-4 top-0.5 right-0 text-[#8F959E] hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent',
                     isTouch
                       ? 'opacity-100 pointer-events-auto'
                       : 'group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0'
