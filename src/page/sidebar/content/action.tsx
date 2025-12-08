@@ -52,6 +52,7 @@ export default function Action(props: ISidebarProps) {
   const { t } = useTranslation();
   const isTouch = useIsTouch();
   const [moveTo, setMoveTo] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreateFile = () => {
@@ -63,9 +64,15 @@ export default function Action(props: ISidebarProps) {
   const handleEdit = () => {
     onActiveKey(data.id, true);
   };
-  const handleRename = () => {
-    // Trigger inline rename in tree component
-    app.fire('start_rename', data.id);
+  const handleRename = (e: Event) => {
+    // Prevent default menu close behavior
+    e.preventDefault();
+    // Manually close the menu
+    setMenuOpen(false);
+    // Delay to ensure dropdown menu is fully closed before triggering rename
+    setTimeout(() => {
+      app.fire('start_rename', data.id);
+    }, 150);
   };
   const addToContext = (type: 'resource' | 'folder') => {
     const fireEvent = () => app.fire('context', data, type);
@@ -102,7 +109,7 @@ export default function Action(props: ISidebarProps) {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           {data.id === editingKey ? (
             <>
@@ -125,14 +132,15 @@ export default function Action(props: ISidebarProps) {
             </>
           ) : (
             <SidebarMenuAction
+              asChild
               className={cn(
-                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 focus-visible:outline-none focus-visible:ring-transparent',
+                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 !text-[#8F959E] hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent',
                 isTouch
                   ? 'opacity-100 pointer-events-auto'
                   : 'group-hover/sidebar-item:opacity-100 group-hover/sidebar-item:pointer-events-auto pointer-events-none opacity-0'
               )}
             >
-              <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3] text-[#8F959E] hover:text-[#8F959E]" />
+              <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent" />
             </SidebarMenuAction>
           )}
         </DropdownMenuTrigger>
@@ -163,14 +171,14 @@ export default function Action(props: ISidebarProps) {
             className="cursor-pointer gap-2 text-popover-foreground"
             onSelect={handleRename}
           >
-            <Pencil className="size-4 text-neutral-500" />
+            <SquarePen className="size-4 text-neutral-500" />
             {t('actions.rename')}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer gap-2 text-popover-foreground"
             onClick={handleEdit}
           >
-            <SquarePen className="size-4 text-neutral-500" />
+            <Pencil className="size-4 text-neutral-500" />
             {t('edit')}
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -203,10 +211,10 @@ export default function Action(props: ISidebarProps) {
 
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className="cursor-pointer gap-2 text-destructive"
+            className="group cursor-pointer gap-2 text-popover-foreground hover:!text-destructive focus:!text-destructive focus:!bg-transparent"
             onClick={handleDelete}
           >
-            <Trash2 className="size-4" />
+            <Trash2 className="size-4 text-neutral-500 group-hover:!text-destructive group-focus:!text-destructive" />
             {t('delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>

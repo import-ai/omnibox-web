@@ -28,7 +28,7 @@ import ContextMenuMain from './contextMenu';
 import ResourceIcon from './resourceIcon.tsx';
 
 // Timing constants for rename functionality
-const FOCUS_DELAY = 10;
+const FOCUS_DELAY = 50;
 const BLUR_ENABLE_DELAY = 200;
 const CLICK_DEBOUNCE_DELAY = 200;
 
@@ -312,7 +312,7 @@ export default function Tree(props: ITreeProps) {
                 className="gap-1 py-1.5 h-auto data-[active=true]:font-normal group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637] transition-none"
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
-                isActive={data.id == activeKey}
+                isActive={data.id == activeKey || isEditing}
               >
                 <div
                   ref={ref}
@@ -358,7 +358,7 @@ export default function Tree(props: ITreeProps) {
                       onKeyDown={handleKeyDown}
                       onClick={e => e.stopPropagation()}
                       onDoubleClick={e => e.stopPropagation()}
-                      className="flex-1 min-w-0 bg-transparent border border-primary rounded px-1 outline-none text-sm caret-blue-500"
+                      className="flex-1 min-w-0 bg-transparent outline-none text-sm caret-blue-500"
                     />
                   ) : (
                     <span className="truncate flex-1">
