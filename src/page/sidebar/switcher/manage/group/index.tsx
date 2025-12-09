@@ -44,12 +44,12 @@ export default function GroupMain(props: GroupProps) {
 
   return (
     <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between flex-wrap">
+      <div className="flex items-center justify-between">
         <Input
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-9 w-[447px] rounded-md border-border placeholder:text-muted-foreground"
         />
         <CreateGroup
           data={edit}
@@ -57,20 +57,19 @@ export default function GroupMain(props: GroupProps) {
           onToggle={handleToggle}
         />
       </div>
-      <div className="rounded-md border overflow-auto max-w-[83vw] sm:w-full">
-        <div className="w-full flex justify-between text-muted-foreground border-b font-bold">
-          <div className="text-sm h-10 leading-10 px-2 min-w-[90px]">
+      <div className="border-0">
+        <div className="flex w-full border-b border-border">
+          <div className="flex h-10 w-[210px] items-center px-2 text-base font-medium text-foreground">
             {t('manage.group')}
           </div>
-          <div className="text-sm h-10 leading-10 px-2 min-w-[90px]">
+          <div className="flex h-10 w-[124px] items-center px-2 text-base font-medium text-foreground">
             {t('manage.member')}
           </div>
-          <div className="text-sm h-10 leading-10 px-2 min-w-[90px]">
+          <div className="flex h-10 w-[127px] items-center px-2 text-base font-medium text-foreground">
             {t('manage.invite_link')}
           </div>
-          <div className="text-sm h-10 leading-10 px-2 min-w-[200px] relative top-[1px] border-b"></div>
         </div>
-        <div className="min-w-[450px]">
+        <div className="w-full">
           {data.map(item => (
             <GroupData
               key={item.id}

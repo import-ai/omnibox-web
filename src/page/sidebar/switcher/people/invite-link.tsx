@@ -66,23 +66,27 @@ export default function InvitePeople(props: IProps) {
           />
         </DialogContent>
       </Dialog>
-      <div className="flex justify-between mb-4 flex-wrap gap-2">
-        <div className="flex flex-col">
-          <h2 className="font-medium mb-2">{t('invite.title')}</h2>
-          <p className="text-muted-foreground text-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-xl font-semibold text-foreground">
+            {t('invite.title')}
+          </h2>
+          <p className="text-sm text-muted-foreground">
             {t('invite.description')}
           </p>
         </div>
-        <div className="flex items-center gap-2 justify-between">
+        <div className="flex items-center gap-2">
           {!!invitationId && (
-            <Button size="sm" variant="copyLink" onClick={handleCopy}>
+            <span
+              className="cursor-pointer text-sm text-muted-foreground hover:text-foreground"
+              onClick={handleCopy}
+            >
               {t('actions.copy_link')}
-            </Button>
+            </span>
           )}
           <Switch
             checked={!!invitationId}
             onCheckedChange={handleCheckedChange}
-            className="data-[state=checked]:bg-blue-500"
           />
         </div>
       </div>

@@ -1,10 +1,7 @@
-import copy from 'copy-to-clipboard';
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import PopConfirm from '@/components/popconfirm';
-import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
@@ -28,7 +25,7 @@ interface GroupProps extends Group {
 }
 
 export default function GroupData(props: GroupProps) {
-  const { id, title, onEdit, member, namespace_id, refetch, invitation_id } =
+  const { id, title, member, namespace_id, refetch, invitation_id } =
     props;
   const { t } = useTranslation();
   const [fold, onFold] = useState(false);
@@ -62,12 +59,6 @@ export default function GroupData(props: GroupProps) {
     }
   };
 
-  const handleCopyLink = () => {
-    copy(`${location.origin}/invite/${namespace_id}/${invitation_id}`, {
-      format: 'text/plain',
-    });
-  };
-
   return (
     <Collapsible
       open={fold}
@@ -76,47 +67,23 @@ export default function GroupData(props: GroupProps) {
         '[&[data-state=open]>div>div>svg:first-child]:rotate-90': fold,
       })}
     >
-      <div className="flex justify-between items-center">
-        <div className="flex items-center text-sm h-10 leading-10 px-2 min-w-[90px]">
+      <div className="flex h-[60px] items-center border-b border-border">
+        <div className="flex w-[210px] items-center px-2">
           <CollapsibleTrigger asChild>
-            <ChevronRight className="transition-transform cursor-pointer size-4" />
+            <ChevronRight className="mr-2 size-4 cursor-pointer transition-transform" />
           </CollapsibleTrigger>
           <UserCard username={title} />
         </div>
-        <div className="text-sm h-10 leading-10 px-2 min-w-[90px]">
-          <span>
+        <div className="w-[124px] px-2">
+          <span className="text-sm text-muted-foreground">
             {t('manage.member_count', { size: groupUserData.length })}
           </span>
         </div>
-        <div className="px-2 h-10 flex items-center min-w-[90px]">
+        <div className="flex w-[127px] items-center px-2">
           <Switch
-            className="data-[state=checked]:bg-blue-500"
             checked={Boolean(invitation_id)}
             onCheckedChange={handleCheckedChange}
           />
-        </div>
-        <div className="flex h-10 items-center justify-end gap-1 text-sm leading-10 px-2 min-w-[200px] relative top-[1px] border-b">
-          {invitation_id && (
-            <Button size="sm" variant="copyLink" onClick={handleCopyLink}>
-              {t('actions.copy_link')}
-            </Button>
-          )}
-          <Button size="sm" onClick={() => onEdit(id, title)}>
-            {t('manage.edit')}
-          </Button>
-          <PopConfirm
-            title={t('manage.remove_title')}
-            message={t('manage.remove_desc')}
-            onOk={() => {
-              http
-                .delete(`/namespaces/${namespace_id}/groups/${id}`)
-                .then(refetch);
-            }}
-          >
-            <Button size="sm" variant="destructive">
-              {t('manage.delete')}
-            </Button>
-          </PopConfirm>
         </div>
       </div>
       <CollapsibleContent>

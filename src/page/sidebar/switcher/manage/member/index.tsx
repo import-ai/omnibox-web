@@ -52,41 +52,44 @@ export default function MemberMain(props: MemberProps) {
 
   return (
     <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between flex-wrap">
+      <div className="flex items-center justify-between">
         <Input
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-9 w-[447px] rounded-md border-border placeholder:text-muted-foreground"
         />
         <Invite onFinish={refetch}>
-          <Button size="sm" variant="default">
-            {t('manage.add_member')}
+          <Button size="sm" className="text-sm font-semibold">
+            {t('manage.add')}
           </Button>
         </Invite>
       </div>
-      <div className="rounded-md border">
-        <Table rootClassName="max-w-[83vw] sm:w-full">
+      <div className="border-0">
+        <Table rootClassName="w-full">
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[40%] min-w-[200px]">
+            <TableRow className="border-b border-border">
+              <TableHead className="h-10 w-[210px] px-2 text-base font-medium text-foreground">
                 {t('manage.user')}
               </TableHead>
-              <TableHead className="w-[30%] min-w-[150px]">
+              <TableHead className="h-10 w-[124px] px-2 text-left text-base font-medium text-foreground">
                 {t('manage.permission')}
               </TableHead>
-              <TableHead className="text-right min-w-[150px]">
+              <TableHead className="h-10 w-[127px] px-2 text-left text-base font-medium text-foreground">
                 {t('manage.role')}
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map(item => (
-              <TableRow key={item.user_id}>
-                <TableCell>
+              <TableRow
+                key={item.user_id}
+                className="h-[60px] border-b border-border"
+              >
+                <TableCell className="w-[210px] px-2">
                   <UserCard email={item.email || ''} username={item.username} />
                 </TableCell>
-                <TableCell>
+                <TableCell className="w-[124px] px-2 text-left">
                   <PermissionAction
                     disabled={!isOwner}
                     value={item.permission}
@@ -98,7 +101,7 @@ export default function MemberMain(props: MemberProps) {
                     canNoAccess={true}
                   />
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="w-[127px] px-2 text-left">
                   <Action
                     disabled={!isOwner}
                     id={item.user_id}

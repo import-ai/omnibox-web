@@ -1,4 +1,6 @@
-import { Check, ChevronDown, PanelTop } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
+
+import { AppearanceIcon } from '@/components/icons/appearance-icon';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -29,23 +31,32 @@ export default function Theme() {
     });
   };
 
+  const selectedLabel =
+    data.find(item => item.value === theme.skin)?.label ||
+    t('setting.select_placeholder');
+
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex h-10 w-full items-center justify-between">
       <div className="flex items-center gap-2">
-        <PanelTop className="size-4" />
-        <span>{t('manage.theme_setting')}</span>
+        <AppearanceIcon className="text-muted-foreground" />
+        <span className="whitespace-nowrap text-base font-semibold text-foreground">
+          {t('manage.theme_setting')}
+        </span>
       </div>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="font-normal w-40 justify-between"
+            className="h-9 w-[180px] justify-between rounded-md border-border bg-background px-3 font-normal shadow-none"
           >
-            {data.find(item => item.value === theme.skin)?.label}
-            <ChevronDown className="size-4 ml-2" />
+            <span className="text-sm font-normal text-muted-foreground">
+              {selectedLabel}
+            </span>
+            <ChevronDown className="size-4 text-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        <DropdownMenuContent className="w-[180px]">
           {data.map(item => (
             <DropdownMenuItem
               key={item.value}

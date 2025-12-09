@@ -4,7 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Task } from '@/interface.ts';
 import { http } from '@/lib/request';
 
@@ -23,7 +28,7 @@ export function TaskActions({
   const [isLoading, setIsLoading] = useState(false);
 
   const canCancel = task.status === 'pending' || task.status === 'running';
-  const canRerun = task.status === 'canceled';
+  const canRerun = task.status === 'canceled' || task.status === 'error' || task.status === 'finished';
 
   const handleCancel = async () => {
     setIsLoading(true);
@@ -54,37 +59,60 @@ export function TaskActions({
   };
 
   return (
-    <div className="flex gap-2">
-      {task.attrs?.resource_id && (
-        <Button size="sm" variant="outline" asChild>
-          <Link to={`/${namespaceId}/${task.attrs.resource_id}`}>
-            <ExternalLink className="h-4 w-4" />
-            {t('tasks.view_resource')}
-          </Link>
-        </Button>
-      )}
-      {canCancel && (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleCancel}
-          disabled={isLoading}
-        >
-          <X className="h-4 w-4" />
-          {t('tasks.cancel')}
-        </Button>
-      )}
-      {canRerun && (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleRerun}
-          disabled={isLoading}
-        >
-          <RefreshCw className="h-4 w-4" />
-          {t('tasks.rerun')}
-        </Button>
-      )}
+    <div className="flex items-center gap-2.5">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {task.attrs?.resource_id ? (
+              <Link
+                to={`/${namespaceId}/${task.attrs.resource_id}`}
+                className="flex items-center justify-center transition-opacity hover:opacity-70"
+              >
+                <ExternalLink className="size-4 text-muted-foreground" />
+              </Link>
+            ) : (
+              <span className="flex cursor-not-allowed items-center justify-center opacity-40">
+                <ExternalLink className="size-4 text-muted-foreground" />
+              </span>
+            )}
+          </TooltipTrigger>
+          <TooltipContent side="top">{t('tasks.view_resource')}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={canRerun ? handleRerun : undefined}
+              disabled={isLoading || !canRerun}
+              className={`flex items-center justify-center transition-opacity disabled:opacity-40 ${
+                canRerun ? 'hover:opacity-70' : 'cursor-not-allowed opacity-40'
+              }`}
+            >
+              <RefreshCw className="size-3.5 text-muted-foreground" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top">{t('common.refresh')}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={canCancel ? handleCancel : undefined}
+              disabled={isLoading || !canCancel}
+              className={`flex items-center justify-center transition-opacity disabled:opacity-40 ${
+                canCancel ? 'hover:opacity-70' : 'cursor-not-allowed opacity-40'
+              }`}
+            >
+              <X className="size-3.5 text-muted-foreground" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top">{t('cancel')}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import axios from 'axios';
+import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import useUser from '@/hooks/use-user';
 import { http } from '@/lib/request';
-import { SidebarNav } from '@/page/user/form/sidebar';
 
 import { ApplicationsForm } from './applications';
 import CommonForm from './basic';
@@ -14,7 +15,7 @@ import ProfileForm from './form/profile';
 import SettingForm from './form/setting';
 import TasksManagement from './manage/tasks';
 import PeopleForm from './people';
-import { ThirdPartyForm } from './third-party';
+import { SettingsSidebar } from './settings-sidebar';
 
 interface SettingWrapperProps {
   initialTab?: string;
@@ -22,64 +23,55 @@ interface SettingWrapperProps {
     type: 'bind';
     appId: string;
   };
+  onClose?: () => void;
 }
 
 export default function SettingWrapper({
   initialTab,
   autoAction,
+  onClose,
 }: SettingWrapperProps) {
   const { t } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
   const [userIsOwner, setUserIsOwner] = useState(false);
   const [activeKey, onActiveKey] = useState(initialTab || 'profile');
+  const { user } = useUser();
+
   const items = [
     {
-      label: t('setting.profile'),
       value: 'profile',
       children: <ProfileForm />,
     },
     {
-      label: t('setting.namespace'),
       value: 'namespace',
       children: <SettingForm />,
       requireOwner: true,
     },
     {
-      label: t('setting.members'),
       value: 'people',
       children: <PeopleForm />,
       requireOwner: true,
     },
     {
-      label: t('setting.tasks'),
       value: 'tasks',
       children: <TasksManagement />,
     },
     {
-      label: t('setting.applications'),
       value: 'applications',
       children: <ApplicationsForm autoAction={autoAction} />,
     },
     {
-      label: t('setting.api_key'),
       value: 'apikey',
       children: <APIKeyForm />,
     },
     {
-      label: t('setting.basic'),
       value: 'basic',
       children: <CommonForm />,
     },
     {
-      label: t('setting.content'),
       value: 'content',
       children: <Content />,
-    },
-    {
-      label: t('setting.third_party_account.manage'),
-      value: 'third-party',
-      children: <ThirdPartyForm />,
     },
   ];
 
@@ -107,20 +99,27 @@ export default function SettingWrapper({
   }, []);
 
   return (
-    <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-8 lg:space-y-0">
-      <aside className="lg:w-1/5">
-        <SidebarNav
+    <div className="relative h-[517px] w-[858px] rounded-xl bg-card">
+      <div className="absolute inset-0 rounded-xl bg-card" />
+
+      <div className="absolute left-0 top-0 h-[517px] w-[247px]">
+        <SettingsSidebar
           value={activeKey}
           onChange={onActiveKey}
-          items={items
-            .filter(item => !item.requireOwner || userIsOwner)
-            .map(item => ({
-              label: item.label,
-              value: item.value,
-            }))}
+          username={user?.username || ''}
+          userIsOwner={userIsOwner}
         />
-      </aside>
-      <div className="lg:flex-1 h-[66vh] sm:h-[440px] max-h-[98%] overflow-auto">
+      </div>
+
+      <button
+        onClick={onClose}
+        className="absolute right-4 top-3.5 z-10 text-foreground opacity-70 transition-opacity hover:opacity-100"
+      >
+        <X className="size-4" />
+        <span className="sr-only">Close</span>
+      </button>
+
+      <div className="absolute left-[286px] top-10 h-[calc(517px-60px)] w-[533px] overflow-auto">
         {
           items
             .filter(item => !item.requireOwner || userIsOwner)

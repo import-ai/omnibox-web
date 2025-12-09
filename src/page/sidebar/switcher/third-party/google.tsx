@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 
 interface IProps {
@@ -49,8 +48,11 @@ export function GoogleLogin(props: IProps) {
   }, []);
 
   return (
-    <Button size="sm" onClick={loginWithGoogle}>
-      {t('setting.third_party_account.bind')}
-    </Button>
+    <button
+      onClick={loginWithGoogle}
+      className="flex h-[30px] w-[71px] shrink-0 items-center justify-center rounded-md bg-foreground text-sm font-semibold text-background hover:opacity-90"
+    >
+      {t('setting.bind_btn')}
+    </button>
   );
 }

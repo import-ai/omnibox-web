@@ -15,72 +15,66 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import useUser from '@/hooks/use-user';
-import { isAllowedEmailDomain } from '@/lib/email-validation';
-import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 
-const EmailSchema = z.object({
-  email: z
+const PhoneSchema = z.object({
+  phone: z
     .string()
-    .min(1, i18next.t('form.email_required'))
-    .refine(val => isEmail(val), { message: i18next.t('form.email_invalid') })
-    .refine(val => isAllowedEmailDomain(val), {
-      message: i18next.t('form.email_domain_not_allowed'),
-    }),
+    .min(1, i18next.t('phone.phone_required'))
+    .regex(/^1[3-9]\d{9}$/, { message: i18next.t('phone.phone_invalid') }),
 });
 
-type EmailFormValues = z.infer<typeof EmailSchema>;
+type PhoneFormValues = z.infer<typeof PhoneSchema>;
 
 interface IProps {
-  onFinish: (code: string) => void;
+  onFinish: () => void;
+  currentPhone?: string;
 }
 
-// Step 1: Input new email interface
-function EmailInputStep({
-  currentEmail,
+// Step 1: Input phone number interface
+function PhoneInputStep({
+  currentPhone,
   onSendCode,
   submitting,
 }: {
-  currentEmail: string;
-  onSendCode: (email: string) => void;
+  currentPhone?: string;
+  onSendCode: (phone: string) => void;
   submitting: boolean;
 }) {
   const { t } = useTranslation();
-  const form = useForm<EmailFormValues>({
-    resolver: zodResolver(EmailSchema),
-    defaultValues: { email: '' },
+  const form = useForm<PhoneFormValues>({
+    resolver: zodResolver(PhoneSchema),
+    defaultValues: { phone: '' },
   });
 
-  const handleSubmit = (data: EmailFormValues) => {
-    onSendCode(data.email);
+  const handleSubmit = (data: PhoneFormValues) => {
+    onSendCode(data.phone);
   };
 
   return (
     <div className="flex w-96 flex-col items-center gap-5">
       <div className="flex w-full flex-col items-center gap-2.5">
         <p className="w-full text-center text-2xl font-semibold text-foreground">
-          {t('email.input_new_email')}
+          {t('phone.input_phone')}
         </p>
 
         <div className="w-full text-center text-sm font-medium leading-relaxed text-muted-foreground">
-          <p>
-            <span>{t('email.current_email_is')} </span>
-            <span className="font-semibold text-muted-foreground">
-              {currentEmail || t('setting.not_bound')}
-            </span>
-          </p>
-          <p>{t('email.will_send_verification')}</p>
+          {currentPhone ? (
+            <p>
+              <span>{t('phone.current_phone_is')} </span>
+              <span className="font-semibold text-muted-foreground">
+                {currentPhone}
+              </span>
+            </p>
+          ) : null}
+          <p>{t('phone.will_send_verification')}</p>
         </div>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="w-full"
-          >
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="w-full">
             <FormField
               control={form.control}
-              name="email"
+              name="phone"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
@@ -88,13 +82,13 @@ function EmailInputStep({
                       <Input
                         {...field}
                         disabled={submitting}
-                        placeholder={t('email.enter_new_email')}
+                        placeholder={t('phone.enter_phone')}
                         className="h-10 w-full rounded-md border-border pr-10 text-sm font-medium"
                       />
                       {field.value && (
                         <button
                           type="button"
-                          onClick={() => form.setValue('email', '')}
+                          onClick={() => form.setValue('phone', '')}
                           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
                           <X className="size-5" />
@@ -107,16 +101,12 @@ function EmailInputStep({
               )}
             />
 
-            <div className="mt-2.5 w-full text-center text-xs font-medium text-muted-foreground">
-              {t('email.supported_providers')}
-            </div>
-
             <button
               type="submit"
               disabled={submitting}
               className="mt-5 h-10 w-full rounded-md bg-foreground text-sm font-medium text-background hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {t('email.send_verification_code')}
+              {t('phone.send_verification_code')}
             </button>
           </form>
         </Form>
@@ -127,12 +117,12 @@ function EmailInputStep({
 
 // Step 2: Verification code interface
 function VerificationCodeStep({
-  email,
+  phone,
   onVerify,
   onResend,
   submitting,
 }: {
-  email: string;
+  phone: string;
   onVerify: (code: string) => void;
   onResend: () => void;
   submitting: boolean;
@@ -199,20 +189,22 @@ function VerificationCodeStep({
     }
   };
 
+  // Mask phone number for display (e.g., 138****1234)
+  const maskedPhone = phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+
   return (
     <div className="flex w-96 flex-col items-start gap-5">
       <div className="flex w-full flex-col items-start gap-4">
         <div className="flex w-full flex-col items-center gap-2.5">
           <p className="w-full text-center text-2xl font-semibold text-foreground">
-            {t('email.input_verification_code')}
+            {t('phone.input_verification_code')}
           </p>
 
           <p className="w-full text-center text-sm font-medium text-muted-foreground">
-            {t('email.sent_code_to_account')}
-            <span className="font-semibold text-muted-foreground">{email}</span>
-          </p>
-          <p className="text-sm font-medium text-muted-foreground">
-            {t('email.sent_verification_code')}
+            {t('phone.sent_code_to')}
+            <span className="font-semibold text-muted-foreground">
+              {maskedPhone}
+            </span>
           </p>
         </div>
 
@@ -243,7 +235,7 @@ function VerificationCodeStep({
         <div className="flex w-full flex-col items-center justify-center gap-2.5">
           <p className="text-sm font-medium">
             <span className="text-muted-foreground">
-              {t('email.not_received')}
+              {t('phone.not_received')}
             </span>
             {canResend ? (
               <span
@@ -251,12 +243,12 @@ function VerificationCodeStep({
                 onClick={handleResend}
               >
                 {' '}
-                {t('email.resend')}
+                {t('phone.resend')}
               </span>
             ) : (
               <span className="text-foreground">
                 {' '}
-                {t('email.resend_after_seconds', { seconds: countdown })}
+                {t('phone.resend_after_seconds', { seconds: countdown })}
               </span>
             )}
           </p>
@@ -266,23 +258,22 @@ function VerificationCodeStep({
   );
 }
 
-export default function EmailValidate(props: IProps) {
-  const { onFinish } = props;
+export default function PhoneValidate(props: IProps) {
+  const { onFinish, currentPhone } = props;
   const { t } = useTranslation();
-  const { user } = useUser();
-  const [step, setStep] = useState<'email' | 'code'>('email');
-  const [newEmail, setNewEmail] = useState('');
+  const [step, setStep] = useState<'phone' | 'code'>('phone');
+  const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSendCode = async (email: string) => {
+  const handleSendCode = async (phoneNumber: string) => {
     setSubmitting(true);
     try {
-      await http.post('/user/email/send-code', { email });
-      setNewEmail(email);
+      await http.post('/user/phone/send-code', { phone: phoneNumber });
+      setPhone(phoneNumber);
       setStep('code');
-      toast.success(t('email.code_sent'), { position: 'bottom-right' });
+      toast.success(t('phone.code_sent'), { position: 'bottom-right' });
     } catch (error: any) {
-      toast.error(error.message || t('email.send_failed'), { position: 'bottom-right' });
+      toast.error(error.message || t('phone.send_failed'), { position: 'bottom-right' });
     } finally {
       setSubmitting(false);
     }
@@ -290,21 +281,30 @@ export default function EmailValidate(props: IProps) {
 
   const handleResendCode = async () => {
     try {
-      await http.post('/user/email/send-code', { email: newEmail });
-      toast.success(t('email.code_sent'), { position: 'bottom-right' });
+      await http.post('/user/phone/send-code', { phone });
+      toast.success(t('phone.code_sent'), { position: 'bottom-right' });
     } catch (error: any) {
-      toast.error(error.message || t('email.send_failed'), { position: 'bottom-right' });
+      toast.error(error.message || t('phone.send_failed'), { position: 'bottom-right' });
     }
   };
 
-  const handleVerify = (code: string) => {
-    onFinish(code);
+  const handleVerify = async (code: string) => {
+    setSubmitting(true);
+    try {
+      await http.post('/user/phone/bind', { phone, code });
+      toast.success(t('phone.bind_success'), { position: 'bottom-right' });
+      onFinish();
+    } catch (error: any) {
+      toast.error(error.message || t('phone.bind_failed'), { position: 'bottom-right' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (step === 'email') {
+  if (step === 'phone') {
     return (
-      <EmailInputStep
-        currentEmail={user?.email || ''}
+      <PhoneInputStep
+        currentPhone={currentPhone}
         onSendCode={handleSendCode}
         submitting={submitting}
       />
@@ -313,7 +313,7 @@ export default function EmailValidate(props: IProps) {
 
   return (
     <VerificationCodeStep
-      email={newEmail}
+      phone={phone}
       onVerify={handleVerify}
       onResend={handleResendCode}
       submitting={submitting}

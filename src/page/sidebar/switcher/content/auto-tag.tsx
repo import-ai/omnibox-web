@@ -42,15 +42,17 @@ export default function AutoTag() {
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <Tags className="size-4" />
-          <span>{t('manage.auto_tag_setting')}</span>
+    <div className="flex w-full items-center justify-between">
+      <div className="flex items-start gap-2">
+        <Tags className="size-5 shrink-0 text-muted-foreground" />
+        <div className="flex flex-col gap-2">
+          <span className="text-base font-semibold text-foreground">
+            {t('manage.auto_tag_setting')}
+          </span>
+          <span className="text-sm text-muted-foreground">
+            {t('manage.auto_tag_description')}
+          </span>
         </div>
-        <span className="text-xs text-muted-foreground ml-6">
-          {t('manage.auto_tag_description')}
-        </span>
       </div>
       <Switch
         checked={isEnabled}
