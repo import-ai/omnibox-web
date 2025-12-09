@@ -17,6 +17,15 @@ export default class App extends Hook {
       this.theme = JSON.parse(cache);
     }
     this.applyTheme(this.theme.skin);
+
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', () => {
+        if (this.theme.skin === 'system') {
+          this.applyTheme('system');
+          this.fire('theme-toggle', { ...this.theme });
+        }
+      });
   }
 
   applyTheme(skin: 'light' | 'system' | 'dark') {
