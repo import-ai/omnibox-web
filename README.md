@@ -1,50 +1,95 @@
-# React + TypeScript + Vite
+# Omnibox Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+English | [简体中文](./README.zh-CN.md)
 
-Currently, two official plugins are available:
+A modern web application built with React, TypeScript, and Vite, featuring chat functionality, resource management, and collaborative tools.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **Chat Interface**: Real-time messaging with markdown support, code syntax highlighting, and LaTeX rendering
+- **Resource Management**: File/folder organization with drag-and-drop, sharing, and permissions
+- **User Management**: User authentication, invitation system, and role-based access control
+- **Third-party Integration**: Google and WeChat login support
+- **Internationalization**: Multi-language support with i18next
+- **Dark Mode**: Theme switching support
+- **Responsive Design**: Mobile and desktop optimized
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Tech Stack
 
-- Configure the top-level `parserOptions` property like this:
+- **Frontend Framework**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **UI Components**: Radix UI + Tailwind CSS
+- **Form Handling**: React Hook Form + Zod
+- **Markdown Rendering**: React Markdown with KaTeX and syntax highlighting
+- **State Management**: React Context + Hooks
+- **Routing**: React Router v7
+- **Real-time Communication**: Socket.io Client
+- **Code Quality**: ESLint + Prettier + Husky
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-});
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 18
+- pnpm >= 10.17.1
+
+### Installation
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Preview production build
+pnpm preview
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### Development
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react';
+```bash
+# Run linter
+pnpm lint
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-});
+# Fix linting issues
+pnpm lint:fix
+
+# Format code
+pnpm format
 ```
+
+## Project Structure
+
+```
+src/
+├── components/       # Reusable UI components
+├── page/            # Page components
+│   ├── chat/        # Chat interface
+│   ├── resource/    # Resource management
+│   ├── user/        # User management
+│   └── sidebar/     # Sidebar navigation
+├── hooks/           # Custom React hooks
+├── layout/          # Layout components
+└── ...
+```
+
+## Scripts
+
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm preview` - Preview production build
+- `pnpm lint` - Run ESLint and Prettier checks
+- `pnpm lint:fix` - Fix linting issues automatically
+- `pnpm format` - Format code with Prettier
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
