@@ -277,18 +277,24 @@ export default function useContext() {
     initialName?: string
   ) => {
     onEditingKey(parentId);
+    const payload: {
+      parentId: string;
+      namespaceId: string;
+      resourceType: ResourceType;
+      name?: string;
+    } = {
+      parentId: parentId,
+      namespaceId: namespaceId,
+      resourceType: resourceType,
+    };
+    // If an initial name is provided, include it in the creation request
+    if (initialName && initialName.trim()) {
+      payload.name = initialName.trim();
+    }
     http
-      .post(`/namespaces/${namespaceId}/resources`, {
-        parentId: parentId,
-        namespaceId: namespaceId,
-        resourceType: resourceType,
-      })
+      .post(`/namespaces/${namespaceId}/resources`, payload)
       .then((response: Resource) => {
         activeRoute(spaceType, parentId, response, resourceType !== 'folder');
-        // If an initial name is provided, rename the resource immediately
-        if (initialName && initialName.trim()) {
-          handleRename(response.id, initialName.trim());
-        }
       })
       .finally(() => {
         onEditingKey('');
