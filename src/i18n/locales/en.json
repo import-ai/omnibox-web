@@ -44,6 +44,13 @@
       "filename": "File"
     }
   },
+  "folder": {
+    "create_dialog": {
+      "title": "New Folder",
+      "name": "Name",
+      "placeholder": "Enter folder name"
+    }
+  },
   "error": {
     "title": "404 Not Found"
   },

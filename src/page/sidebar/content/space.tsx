@@ -37,6 +37,7 @@ import { useIsTouch } from '@/hooks/use-is-touch';
 import { IResourceData } from '@/interface';
 import { cn } from '@/lib/utils';
 
+import { CreateFolderDialog } from './create-folder-dialog';
 import { menuIconClass, menuItemClass } from './styles';
 import Tree, { ITreeProps } from './tree';
 
@@ -66,6 +67,7 @@ export default function Space(props: ITreeProps) {
   const { t } = useTranslation();
   const isTouch = useIsTouch();
   const [open, onOpen] = useState(true);
+  const [createFolderOpen, setCreateFolderOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
   const isDragOver = fileDragTarget === data.id;
@@ -83,6 +85,12 @@ export default function Space(props: ITreeProps) {
     onUpload(spaceType, data.id, e.target.files).finally(() => {
       fileInputRef.current!.value = '';
     });
+  };
+  const handleCreateFolder = () => {
+    setCreateFolderOpen(true);
+  };
+  const handleConfirmCreateFolder = (folderName: string) => {
+    onCreate(spaceType, data.id, 'folder', folderName);
   };
 
   // File and resource drop handling
@@ -234,9 +242,7 @@ export default function Space(props: ITreeProps) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className={menuItemClass}
-                onClick={() => {
-                  onCreate(spaceType, data.id, 'folder');
-                }}
+                onClick={handleCreateFolder}
               >
                 <FolderPlus className={menuIconClass} />
                 {t('actions.create_folder')}
@@ -250,6 +256,11 @@ export default function Space(props: ITreeProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <CreateFolderDialog
+            open={createFolderOpen}
+            onOpenChange={setCreateFolderOpen}
+            onConfirm={handleConfirmCreateFolder}
+          />
           <Input
             multiple
             type="file"

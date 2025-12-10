@@ -21,7 +21,8 @@ export interface ISidebarProps {
   onCreate: (
     spaceType: SpaceType,
     parentId: string,
-    resourceType: ResourceType
+    resourceType: ResourceType,
+    initialName?: string
   ) => void;
   onRename: (id: string, newName: string) => Promise<void>;
 }

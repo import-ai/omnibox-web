@@ -273,7 +273,8 @@ export default function useContext() {
   const handleCreate = (
     spaceType: SpaceType,
     parentId: string,
-    resourceType: ResourceType
+    resourceType: ResourceType,
+    initialName?: string
   ) => {
     onEditingKey(parentId);
     http
@@ -284,6 +285,10 @@ export default function useContext() {
       })
       .then((response: Resource) => {
         activeRoute(spaceType, parentId, response, resourceType !== 'folder');
+        // If an initial name is provided, rename the resource immediately
+        if (initialName && initialName.trim()) {
+          handleRename(response.id, initialName.trim());
+        }
       })
       .finally(() => {
         onEditingKey('');
