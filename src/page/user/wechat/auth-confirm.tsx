@@ -28,14 +28,11 @@ export default function AuthConfirmPage() {
       .get(url)
       .then(res => {
         setGlobalCredential(res.id, res.access_token);
-
-        // 根据来源判断跳转目标
+        // Redirect to H5
         if (res.source === 'h5' && res.h5_redirect) {
-          // 如果是H5来源，跳转到H5端并传递登录态
           const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
           window.location.href = h5Url;
         } else {
-          // 否则跳转到Web端首页
           navigate('/', { replace: true });
         }
       })
