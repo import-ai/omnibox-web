@@ -1,4 +1,16 @@
-import { LoaderCircle, MoreHorizontal } from 'lucide-react';
+import {
+  FilePlus,
+  FolderPlus,
+  LoaderCircle,
+  MessageSquarePlus,
+  MessageSquareQuote,
+  MonitorUp,
+  MoreHorizontal,
+  Move,
+  Pencil,
+  SquarePen,
+  Trash2,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -6,6 +18,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -23,6 +36,8 @@ import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
+import { menuIconClass, menuItemClass, menuItemGroupClass } from './styles';
+
 export default function Action(props: ISidebarProps) {
   const {
     data,
@@ -39,7 +54,9 @@ export default function Action(props: ISidebarProps) {
   const { t } = useTranslation();
   const isTouch = useIsTouch();
   const [moveTo, setMoveTo] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleCreateFile = () => {
     onCreate(spaceType, data.id, 'doc');
   };
@@ -49,26 +66,27 @@ export default function Action(props: ISidebarProps) {
   const handleEdit = () => {
     onActiveKey(data.id, true);
   };
-  const handleAddToChat = () => {
-    if (!location.pathname.includes('/chat')) {
-      onActiveKey('chat');
-      setTimeout(() => {
-        app.fire('context', data, 'resource');
-      }, 100);
+  const handleRename = (e: Event) => {
+    // Prevent default menu close behavior
+    e.preventDefault();
+    // Manually close the menu
+    setMenuOpen(false);
+    // Delay to ensure dropdown menu is fully closed before triggering rename
+    setTimeout(() => {
+      app.fire('start_rename', data.id);
+    }, 150);
+  };
+  const addToContext = (type: 'resource' | 'folder') => {
+    const fireEvent = () => app.fire('context', data, type);
+    if (location.pathname.includes('/chat')) {
+      fireEvent();
     } else {
-      app.fire('context', data, 'resource');
+      onActiveKey('chat');
+      setTimeout(fireEvent, 100);
     }
   };
-  const handleAddAllToChat = () => {
-    if (!location.pathname.includes('/chat')) {
-      onActiveKey('chat');
-      setTimeout(() => {
-        app.fire('context', data, 'folder');
-      }, 100);
-    } else {
-      app.fire('context', data, 'folder');
-    }
-  };
+  const handleAddToChat = () => addToContext('resource');
+  const handleAddAllToChat = () => addToContext('folder');
   const handleMoveTo = () => {
     setMoveTo(true);
   };
@@ -93,7 +111,7 @@ export default function Action(props: ISidebarProps) {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           {data.id === editingKey ? (
             <>
@@ -116,57 +134,94 @@ export default function Action(props: ISidebarProps) {
             </>
           ) : (
             <SidebarMenuAction
+              asChild
               className={cn(
-                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 focus-visible:outline-none focus-visible:ring-transparent',
+                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 !text-[#8F959E] hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent cursor-pointer',
                 isTouch
                   ? 'opacity-100 pointer-events-auto'
                   : 'group-hover/sidebar-item:opacity-100 group-hover/sidebar-item:pointer-events-auto pointer-events-none opacity-0'
               )}
             >
-              <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3] text-[#8F959E] hover:text-[#8F959E]" />
+              <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent cursor-pointer" />
             </SidebarMenuAction>
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" sideOffset={10}>
           <DropdownMenuItem
-            className="cursor-pointer"
+            className={menuItemClass}
             onClick={handleCreateFile}
           >
+            <FilePlus className={menuIconClass} />
             {t('actions.create_file')}
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="cursor-pointer"
+            className={menuItemClass}
             onClick={handleCreateFolder}
           >
+            <FolderPlus className={menuIconClass} />
             {t('actions.create_folder')}
           </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" onClick={handleSelect}>
+          <DropdownMenuItem className={menuItemClass} onClick={handleSelect}>
+            <MonitorUp className={menuIconClass} />
             {t('actions.upload_file')}
           </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className={menuItemClass} onSelect={handleRename}>
+            <SquarePen className={menuIconClass} />
+            {t('actions.rename')}
+          </DropdownMenuItem>
+          <DropdownMenuItem className={menuItemClass} onClick={handleEdit}>
+            <Pencil className={menuIconClass} />
             {t('edit')}
           </DropdownMenuItem>
-          {data.has_children && (
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={handleAddAllToChat}
-            >
-              {t('actions.add_all_to_context')}
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={handleAddToChat}
-          >
-            {data.has_children
-              ? t('actions.add_it_only_to_context')
-              : t('actions.add_it_to_context')}
-          </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" onClick={handleMoveTo}>
+          <DropdownMenuItem className={menuItemClass} onClick={handleMoveTo}>
+            <Move className={menuIconClass} />
             {t('actions.move_to')}
           </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
-            {t('delete')}
+          <DropdownMenuSeparator />
+
+          {data.resource_type === 'folder' ? (
+            <DropdownMenuItem
+              className={menuItemClass}
+              onClick={handleAddAllToChat}
+            >
+              <MessageSquarePlus className={menuIconClass} />
+              {t('actions.add_all_to_context')}
+            </DropdownMenuItem>
+          ) : data.has_children ? (
+            <>
+              <DropdownMenuItem
+                className={menuItemClass}
+                onClick={handleAddAllToChat}
+              >
+                <MessageSquarePlus className={menuIconClass} />
+                {t('actions.add_all_to_context')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className={menuItemClass}
+                onClick={handleAddToChat}
+              >
+                <MessageSquareQuote className={menuIconClass} />
+                {t('actions.add_it_to_context')}
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <DropdownMenuItem
+              className={menuItemClass}
+              onClick={handleAddToChat}
+            >
+              <MessageSquareQuote className={menuIconClass} />
+              {t('actions.add_it_to_context')}
+            </DropdownMenuItem>
+          )}
+
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className={menuItemGroupClass}
+            onClick={handleDelete}
+          >
+            <Trash2 className={menuIconClass} />
+            {t('actions.move_to_trash')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

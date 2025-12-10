@@ -1,4 +1,10 @@
-import { LoaderCircle, MoreHorizontal } from 'lucide-react';
+import {
+  FilePlus,
+  FolderPlus,
+  LoaderCircle,
+  MonitorUp,
+  MoreHorizontal,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
@@ -31,6 +37,7 @@ import { useIsTouch } from '@/hooks/use-is-touch';
 import { IResourceData } from '@/interface';
 import { cn } from '@/lib/utils';
 
+import { menuIconClass, menuItemClass } from './styles';
 import Tree, { ITreeProps } from './tree';
 
 // Helper function to validate file extensions
@@ -205,7 +212,7 @@ export default function Space(props: ITreeProps) {
                 <SidebarMenuAction
                   asChild
                   className={cn(
-                    'my-1.5 size-4 top-0.5 right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent',
+                    'my-1.5 size-4 top-0.5 right-0 text-[#8F959E] hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent',
                     isTouch
                       ? 'opacity-100 pointer-events-auto'
                       : 'group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0'
@@ -217,25 +224,28 @@ export default function Space(props: ITreeProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" sideOffset={10} align="start">
               <DropdownMenuItem
-                className="cursor-pointer"
+                className={menuItemClass}
                 onClick={() => {
                   onCreate(spaceType, data.id, 'doc');
                 }}
               >
+                <FilePlus className={menuIconClass} />
                 {t('actions.create_file')}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer"
+                className={menuItemClass}
                 onClick={() => {
                   onCreate(spaceType, data.id, 'folder');
                 }}
               >
+                <FolderPlus className={menuIconClass} />
                 {t('actions.create_folder')}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer"
+                className={menuItemClass}
                 onClick={handleSelect}
               >
+                <MonitorUp className={menuIconClass} />
                 {t('actions.upload_file')}
               </DropdownMenuItem>
             </DropdownMenuContent>

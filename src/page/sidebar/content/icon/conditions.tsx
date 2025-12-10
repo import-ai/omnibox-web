@@ -1,4 +1,5 @@
 import {
+  RiFileImageFill,
   RiFileMusicFill,
   RiFilePdf2Fill,
   RiFilePptFill,
@@ -99,5 +100,11 @@ export const FILE_ICON_CONDITIONS: FileIconCondition[] = [
     type: 'suffix',
     values: ['.md'],
     icon: <RiMarkdownFill color="#8F959E" size={16} className="scale-125" />,
+  },
+  {
+    field: 'original_name',
+    type: 'suffix',
+    values: ['.jpg', '.jpeg', '.png'],
+    icon: <RiFileImageFill size={16} className="scale-125 fill-rose-500" />,
   },
 ];

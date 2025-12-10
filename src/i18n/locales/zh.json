@@ -73,7 +73,8 @@
     "add_all_to_context": "添加全部文件到对话框",
     "add_it_to_context": "添加该文件到对话框",
     "add_it_only_to_context": "仅添加该文件到对话框",
-    "wide": "宽屏模式"
+    "wide": "宽屏模式",
+    "rename": "重命名"
   },
   "form": {
     "or": "或",

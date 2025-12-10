@@ -327,6 +327,14 @@ export default function useContext() {
       });
   };
 
+  const handleRename = async (id: string, newName: string) => {
+    const response = await http.patch(
+      `/namespaces/${namespaceId}/resources/${id}`,
+      { name: newName, namespaceId }
+    );
+    app.fire('update_resource', response);
+  };
+
   useEffect(() => {
     const hooks: Array<() => void> = [];
     hooks.push(
@@ -670,6 +678,7 @@ export default function useContext() {
     handleDelete,
     handleCreate,
     handleUpload,
+    handleRename,
     deleteDialog,
     handleActiveKey,
     setDeleteDialog,

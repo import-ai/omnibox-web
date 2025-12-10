@@ -1,5 +1,5 @@
 import { LoaderCircle } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +17,7 @@ import {
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import useApp from '@/hooks/use-app';
 import { IResourceData } from '@/interface';
 import { cn } from '@/lib/utils';
 import { ISidebarProps } from '@/page/sidebar/interface';
@@ -25,6 +26,11 @@ import Action from './action';
 import { Arrow } from './arrow';
 import ContextMenuMain from './contextMenu';
 import ResourceIcon from './resourceIcon.tsx';
+
+// Timing constants for rename functionality
+const FOCUS_DELAY = 50;
+const BLUR_ENABLE_DELAY = 200;
+const CLICK_DEBOUNCE_DELAY = 200;
 
 // Helper function to validate file extensions
 const isValidFileType = (fileName: string): boolean => {
@@ -56,16 +62,31 @@ export default function Tree(props: ITreeProps) {
     onExpand,
     onActiveKey,
     onUpload,
+    onRename,
     fileDragTarget,
     onFileDragTarget,
   } = props;
+  const app = useApp();
   const ref = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const clickTimeoutRef = useRef<number | null>(null);
   const { t } = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(data.name || '');
+  const isBlurEnabledRef = useRef(false);
+  const isEditingRef = useRef(false);
+
+  // Sync data.name changes to editName
+  useEffect(() => {
+    setEditName(data.name || '');
+  }, [data.name]);
+
   const expand = expands.includes(data.id);
   const isFileDragOver = fileDragTarget === data.id;
   const [dragStyle, drag] = useDrag({
     type: 'card',
     item: data,
+    canDrag: () => !isEditing,
     collect: monitor => ({
       opacity: monitor.isDragging() ? 0.5 : 1,
     }),
@@ -160,10 +181,119 @@ export default function Tree(props: ITreeProps) {
     }
   };
 
+  const handleClick = () => {
+    if (isEditing) return;
+
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+      return;
+    }
+
+    clickTimeoutRef.current = window.setTimeout(() => {
+      clickTimeoutRef.current = null;
+      handleActiveKey();
+    }, CLICK_DEBOUNCE_DELAY);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+    // Fire event to close other editing items first
+    app.fire('start_rename', data.id);
+  };
+
+  const handleBlur = () => {
+    // Skip if blur is not enabled yet (prevents immediate blur when menu closes)
+    if (!isBlurEnabledRef.current || !isEditing) {
+      return;
+    }
+    handleSave();
+  };
+
+  const handleSave = async () => {
+    isBlurEnabledRef.current = false;
+    const trimmedName = editName.trim();
+    setIsEditing(false);
+    if (trimmedName && trimmedName !== data.name) {
+      try {
+        await onRename(data.id, trimmedName);
+      } catch {
+        setEditName(data.name || '');
+      }
+    } else {
+      setEditName(data.name || '');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Escape') {
+      isBlurEnabledRef.current = false;
+      setIsEditing(false);
+      setEditName(data.name || '');
+    }
+  };
+
+  // Keep isEditingRef in sync with isEditing state
+  useEffect(() => {
+    isEditingRef.current = isEditing;
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (isEditing) {
+      // Reset blur flag
+      isBlurEnabledRef.current = false;
+
+      // Use setTimeout to ensure input is rendered and focused properly
+      const focusTimer = setTimeout(() => {
+        if (inputRef.current && isEditingRef.current) {
+          inputRef.current.focus();
+          inputRef.current.select();
+        }
+      }, FOCUS_DELAY);
+
+      // Enable blur handler after a short delay to prevent immediate blur when menu closes
+      const blurTimer = setTimeout(() => {
+        // Only enable blur if still in editing mode
+        if (isEditingRef.current) {
+          isBlurEnabledRef.current = true;
+        }
+      }, BLUR_ENABLE_DELAY);
+
+      return () => {
+        clearTimeout(focusTimer);
+        clearTimeout(blurTimer);
+        isBlurEnabledRef.current = false;
+      };
+    }
+  }, [isEditing]);
+
+  // Listen for start_rename event to trigger inline editing
+  useEffect(() => {
+    return app.on('start_rename', (resourceId: string) => {
+      if (resourceId === data.id) {
+        setEditName(data.name || '');
+        setIsEditing(true);
+      } else {
+        // Close current editing when another item starts renaming
+        isBlurEnabledRef.current = false;
+        setIsEditing(false);
+        setEditName(data.name || '');
+      }
+    });
+  }, [app, data.id, data.name]);
+
   useEffect(() => {
     drag(ref);
     drop(ref);
-  }, []);
+  }, [drag, drop]);
 
   return (
     <SidebarMenuItem>
@@ -180,8 +310,9 @@ export default function Tree(props: ITreeProps) {
               <SidebarMenuButton
                 asChild
                 className="gap-1 py-1.5 h-auto data-[active=true]:font-normal group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637] transition-none"
-                onClick={handleActiveKey}
-                isActive={data.id == activeKey}
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
+                isActive={data.id == activeKey || isEditing}
               >
                 <div
                   ref={ref}
@@ -217,9 +348,23 @@ export default function Tree(props: ITreeProps) {
                       </Button>
                     ))}
                   <ResourceIcon expand={expand} resource={data} />
-                  <span className="truncate flex-1">
-                    {data.name || t('untitled')}
-                  </span>
+                  {isEditing ? (
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={editName}
+                      onChange={e => setEditName(e.target.value)}
+                      onBlur={handleBlur}
+                      onKeyDown={handleKeyDown}
+                      onClick={e => e.stopPropagation()}
+                      onDoubleClick={e => e.stopPropagation()}
+                      className="flex-1 min-w-0 bg-transparent outline-none text-sm caret-blue-500"
+                    />
+                  ) : (
+                    <span className="truncate flex-1">
+                      {data.name || t('untitled')}
+                    </span>
+                  )}
                 </div>
               </SidebarMenuButton>
               <Action {...props} />
