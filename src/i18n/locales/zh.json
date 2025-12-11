@@ -44,6 +44,13 @@
       "filename": "文件"
     }
   },
+  "folder": {
+    "create_dialog": {
+      "title": "新建文件夹",
+      "name": "名称",
+      "placeholder": "请输入文件夹名称"
+    }
+  },
   "error": {
     "title": "404 页面未找到"
   },

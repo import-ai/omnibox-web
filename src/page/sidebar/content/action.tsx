@@ -36,6 +36,7 @@ import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
+import { CreateFolderDialog } from './create-folder-dialog';
 import { menuIconClass, menuItemClass, menuItemGroupClass } from './styles';
 
 export default function Action(props: ISidebarProps) {
@@ -55,13 +56,17 @@ export default function Action(props: ISidebarProps) {
   const isTouch = useIsTouch();
   const [moveTo, setMoveTo] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [createFolderOpen, setCreateFolderOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreateFile = () => {
     onCreate(spaceType, data.id, 'doc');
   };
   const handleCreateFolder = () => {
-    onCreate(spaceType, data.id, 'folder');
+    setCreateFolderOpen(true);
+  };
+  const handleConfirmCreateFolder = (folderName: string) => {
+    onCreate(spaceType, data.id, 'folder', folderName);
   };
   const handleEdit = () => {
     onActiveKey(data.id, true);
@@ -231,6 +236,11 @@ export default function Action(props: ISidebarProps) {
         onOpenChange={setMoveTo}
         namespaceId={namespaceId}
         onFinished={handleMoveFinished}
+      />
+      <CreateFolderDialog
+        open={createFolderOpen}
+        onOpenChange={setCreateFolderOpen}
+        onConfirm={handleConfirmCreateFolder}
       />
       <Input
         multiple

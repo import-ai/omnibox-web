@@ -273,15 +273,26 @@ export default function useContext() {
   const handleCreate = (
     spaceType: SpaceType,
     parentId: string,
-    resourceType: ResourceType
+    resourceType: ResourceType,
+    initialName?: string
   ) => {
     onEditingKey(parentId);
+    const payload: {
+      parentId: string;
+      namespaceId: string;
+      resourceType: ResourceType;
+      name?: string;
+    } = {
+      parentId: parentId,
+      namespaceId: namespaceId,
+      resourceType: resourceType,
+    };
+    // If an initial name is provided, include it in the creation request
+    if (initialName && initialName.trim()) {
+      payload.name = initialName.trim();
+    }
     http
-      .post(`/namespaces/${namespaceId}/resources`, {
-        parentId: parentId,
-        namespaceId: namespaceId,
-        resourceType: resourceType,
-      })
+      .post(`/namespaces/${namespaceId}/resources`, payload)
       .then((response: Resource) => {
         activeRoute(spaceType, parentId, response, resourceType !== 'folder');
       })
