@@ -147,10 +147,10 @@ export function SettingsSidebar({
             >
               <div className="relative flex size-[21px] shrink-0 items-center justify-center">
                 <div
-                  className="absolute inset-0 rounded bg-primary"
+                  className="absolute inset-0 rounded bg-primary dark:bg-neutral-950"
                   style={{ boxShadow: '0 1px 2px 0 #00000040' }}
                 />
-                <span className="relative text-xs font-semibold text-primary-foreground">
+                <span className="relative text-xs font-semibold text-primary-foreground dark:text-white">
                   {initial}
                 </span>
               </div>

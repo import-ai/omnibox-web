@@ -1,11 +1,13 @@
 import {
   FileText,
-  Hash,
-  MessageSquare,
-  Search,
-  Tags,
-  Trash2,
-  Video,
+  FileUp,
+  FolderSearch2,
+  MessageCircleX,
+  SearchX,
+  Star,
+  Tag,
+  TvMinimalPlay,
+  Type,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -24,39 +26,39 @@ const taskTypeConfig: Record<
   }
 > = {
   upsert_index: {
-    icon: Search,
+    icon: FolderSearch2,
     labelKey: 'tasks.functions.upsert_index',
   },
   extract_tags: {
-    icon: Tags,
+    icon: Tag,
     labelKey: 'tasks.functions.extract_tags',
   },
   upsert_message_index: {
-    icon: MessageSquare,
+    icon: FolderSearch2,
     labelKey: 'tasks.functions.upsert_message_index',
   },
   delete_conversation: {
-    icon: Trash2,
+    icon: MessageCircleX,
     labelKey: 'tasks.functions.delete_conversation',
   },
   generate_title: {
-    icon: FileText,
+    icon: Type,
     labelKey: 'tasks.functions.generate_title',
   },
   delete_index: {
-    icon: Hash,
+    icon: SearchX,
     labelKey: 'tasks.functions.delete_index',
   },
   file_reader: {
-    icon: FileText,
+    icon: FileUp,
     labelKey: 'tasks.functions.file_reader',
   },
   collect: {
-    icon: FileText,
+    icon: Star,
     labelKey: 'tasks.functions.collect',
   },
   generate_video_note: {
-    icon: Video,
+    icon: TvMinimalPlay,
     labelKey: 'tasks.functions.generate_video_note',
   },
 };
