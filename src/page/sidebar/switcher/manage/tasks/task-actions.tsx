@@ -45,7 +45,10 @@ export function TaskActions({
   const [isLoading, setIsLoading] = useState(false);
 
   const canCancel = task.status === 'pending' || task.status === 'running';
-  const canRerun = task.status === 'canceled';
+  const canRerun =
+    task.status === 'canceled' ||
+    task.status === 'error' ||
+    task.status === 'finished';
 
   const handleCancel = async () => {
     setIsLoading(true);
