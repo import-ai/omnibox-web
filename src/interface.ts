@@ -33,6 +33,7 @@ export interface UserBinding extends IBase {
   user_id: string;
   login_type: string;
   login_id: string;
+  email?: string;
 }
 
 export interface Namespace extends IBase {

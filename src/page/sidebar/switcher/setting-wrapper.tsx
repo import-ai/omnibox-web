@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import useUser from '@/hooks/use-user';
@@ -31,7 +30,6 @@ export default function SettingWrapper({
   autoAction,
   onClose,
 }: SettingWrapperProps) {
-  const { t } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
   const [userIsOwner, setUserIsOwner] = useState(false);
@@ -119,6 +117,7 @@ export default function SettingWrapper({
         <span className="sr-only">Close</span>
       </button>
 
+      <div className="absolute left-[247px] top-0 right-0 bottom-0 rounded-r-xl dark:bg-neutral-900" />
       <div className="absolute left-[286px] top-10 h-[calc(517px-60px)] w-[533px] overflow-auto">
         {
           items

@@ -7,8 +7,8 @@ import { http } from '@/lib/request';
 
 export default function AutoTag() {
   const { t } = useTranslation();
-  const [isEnabled, setIsEnabled] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [submitting] = useState(false);
 
   useEffect(() => {
     const loadPreference = async () => {
@@ -16,17 +16,13 @@ export default function AutoTag() {
         const response = await http.get(
           '/user/option/enable_ai_tag_extraction'
         );
-        if (response.value !== undefined) {
-          setIsEnabled(response.value === 'true');
-        }
+        setIsEnabled(response.value === 'true');
       } catch {
         // If option doesn't exist, default is enabled
         setIsEnabled(true);
-      } finally {
-        setLoading(false);
       }
     };
-    loadPreference().then();
+    loadPreference();
   }, []);
 
   const handleToggle = async (checked: boolean) => {
@@ -54,11 +50,13 @@ export default function AutoTag() {
           </span>
         </div>
       </div>
-      <Switch
-        checked={isEnabled}
-        onCheckedChange={handleToggle}
-        disabled={loading}
-      />
+      {isEnabled !== null && (
+        <Switch
+          checked={isEnabled}
+          onCheckedChange={handleToggle}
+          disabled={submitting}
+        />
+      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,8 +9,16 @@ import useContext from './use-context';
 
 export default function ManagePeople() {
   const { t } = useTranslation();
-  const { tab, onTab, data, refetch, search, onSearch, namespace_id } =
+  const { tab, onTab, data, refetch, search, onSearch, loading, namespace_id } =
     useContext();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <LoaderCircle className="size-6 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   return (
     <Tabs value={tab} onValueChange={onTab}>

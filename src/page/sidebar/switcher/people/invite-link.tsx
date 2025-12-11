@@ -3,7 +3,6 @@ import copy from 'copy-to-clipboard';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -53,7 +52,7 @@ export default function InvitePeople(props: IProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl p-4 sm:p-6">
+        <DialogContent className="w-[90%] max-w-sm p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>{t('invite.title')}</DialogTitle>
             <VisuallyHidden>
@@ -68,17 +67,15 @@ export default function InvitePeople(props: IProps) {
       </Dialog>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex flex-col gap-2">
-          <h2 className="text-xl font-semibold text-foreground">
+          <h2 className="text-base font-semibold text-foreground">
             {t('invite.title')}
           </h2>
-          <p className="text-sm text-muted-foreground">
-            {t('invite.description')}
-          </p>
+          <p className="text-sm text-neutral-400">{t('invite.description')}</p>
         </div>
         <div className="flex items-center gap-2">
           {!!invitationId && (
             <span
-              className="cursor-pointer text-sm text-muted-foreground hover:text-foreground"
+              className="cursor-pointer text-sm text-neutral-400 hover:text-foreground"
               onClick={handleCopy}
             >
               {t('actions.copy_link')}

@@ -1,6 +1,4 @@
-import { Check, ChevronDown } from 'lucide-react';
-
-import { AppearanceIcon } from '@/components/icons/appearance-icon';
+import { Check, ChevronDown, SunMoon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -38,7 +36,7 @@ export default function Theme() {
   return (
     <div className="flex h-10 w-full items-center justify-between">
       <div className="flex items-center gap-2">
-        <AppearanceIcon className="text-muted-foreground" />
+        <SunMoon className="size-5 dark:text-neutral-50" />
         <span className="whitespace-nowrap text-base font-semibold text-foreground">
           {t('manage.theme_setting')}
         </span>
@@ -48,19 +46,19 @@ export default function Theme() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="h-9 w-[180px] justify-between rounded-md border-border bg-background px-3 font-normal shadow-none"
+            className="h-9 w-[180px] justify-between rounded-md border-border bg-transparent px-3 font-normal shadow-none"
           >
-            <span className="text-sm font-normal text-muted-foreground">
+            <span className="text-sm font-normal text-neutral-950 dark:text-neutral-50">
               {selectedLabel}
             </span>
             <ChevronDown className="size-4 text-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[180px]">
+        <DropdownMenuContent className="w-[180px] dark:bg-neutral-900">
           {data.map(item => (
             <DropdownMenuItem
               key={item.value}
-              className="flex justify-between"
+              className="flex justify-between dark:focus:bg-neutral-700"
               onClick={() => handleToggleTheme(item.value)}
             >
               {item.label}

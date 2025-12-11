@@ -1,4 +1,4 @@
-import { ExternalLink, RefreshCw, X } from 'lucide-react';
+import { ExternalLink, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -12,6 +12,23 @@ import {
 } from '@/components/ui/tooltip';
 import { Task } from '@/interface.ts';
 import { http } from '@/lib/request';
+
+// Stop icon: hollow circle with rounded square inside
+function StopIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="4.5" y="4.5" width="5" height="5" rx="1" fill="currentColor" />
+    </svg>
+  );
+}
 
 export interface TaskActionsProps {
   task: Task;
@@ -28,7 +45,7 @@ export function TaskActions({
   const [isLoading, setIsLoading] = useState(false);
 
   const canCancel = task.status === 'pending' || task.status === 'running';
-  const canRerun = task.status === 'canceled' || task.status === 'error' || task.status === 'finished';
+  const canRerun = task.status === 'canceled';
 
   const handleCancel = async () => {
     setIsLoading(true);
@@ -79,6 +96,22 @@ export function TaskActions({
           <TooltipContent side="top">{t('tasks.view_resource')}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={canCancel ? handleCancel : undefined}
+              disabled={isLoading || !canCancel}
+              className={`flex items-center justify-center transition-opacity disabled:opacity-40 ${
+                canCancel ? 'hover:opacity-70' : 'cursor-not-allowed opacity-40'
+              }`}
+            >
+              <StopIcon className="size-3.5 text-muted-foreground" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top">{t('cancel')}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       <TooltipProvider>
         <Tooltip>
@@ -93,24 +126,7 @@ export function TaskActions({
               <RefreshCw className="size-3.5 text-muted-foreground" />
             </button>
           </TooltipTrigger>
-          <TooltipContent side="top">{t('common.refresh')}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={canCancel ? handleCancel : undefined}
-              disabled={isLoading || !canCancel}
-              className={`flex items-center justify-center transition-opacity disabled:opacity-40 ${
-                canCancel ? 'hover:opacity-70' : 'cursor-not-allowed opacity-40'
-              }`}
-            >
-              <X className="size-3.5 text-muted-foreground" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="top">{t('cancel')}</TooltipContent>
+          <TooltipContent side="top">{t('common.retry')}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     </div>

@@ -5,7 +5,10 @@ import { TaskStatus } from '@/interface.ts';
 export const statusConfig: Record<
   TaskStatus,
   {
-    icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+    icon: React.ComponentType<{
+      className?: string;
+      style?: React.CSSProperties;
+    }>;
     color: string;
     bgColor?: string;
   }
@@ -46,7 +49,18 @@ export function TaskStatusBadge({ status }: { status: TaskStatus }) {
         className="flex size-5 items-center justify-center rounded-full"
         style={{ backgroundColor: config.bgColor }}
       >
-        <div className="size-1.5 rounded-full bg-white" />
+        <svg
+          className="ml-0.5"
+          width="7"
+          height="8"
+          viewBox="0 0 7 8"
+          fill="none"
+        >
+          <path
+            d="M6.2 3.4C6.6 3.7 6.6 4.3 6.2 4.6L1.2 7.6C0.8 7.9 0.3 7.6 0.3 7.1L0.3 0.9C0.3 0.4 0.8 0.1 1.2 0.4L6.2 3.4Z"
+            fill="white"
+          />
+        </svg>
       </div>
     );
   }
@@ -88,7 +102,7 @@ export function TaskStatusBadge({ status }: { status: TaskStatus }) {
         className="flex size-5 items-center justify-center rounded-full"
         style={{ backgroundColor: config.bgColor }}
       >
-        <div className="h-[3px] w-2 rounded-sm bg-white" />
+        <div className="h-[2px] w-2 rounded-sm bg-white" />
       </div>
     );
   }

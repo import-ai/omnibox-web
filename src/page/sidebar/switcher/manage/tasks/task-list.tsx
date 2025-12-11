@@ -1,5 +1,6 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -66,7 +67,9 @@ export function TaskList({ namespaceId }: TaskListProps) {
     if (task.status === 'finished' && task.started_at && task.ended_at) {
       const startedAt = new Date(task.started_at);
       const endedAt = new Date(task.ended_at);
-      const seconds = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
+      const seconds = Math.floor(
+        (endedAt.getTime() - startedAt.getTime()) / 1000
+      );
       if (seconds < 60) {
         return `已完成：耗时 ${seconds} 秒`;
       }
@@ -77,7 +80,9 @@ export function TaskList({ namespaceId }: TaskListProps) {
     if (task.status === 'error' && task.started_at && task.ended_at) {
       const startedAt = new Date(task.started_at);
       const endedAt = new Date(task.ended_at);
-      const seconds = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
+      const seconds = Math.floor(
+        (endedAt.getTime() - startedAt.getTime()) / 1000
+      );
       if (seconds < 60) {
         return `失败：耗时 ${seconds} 秒`;
       }
@@ -169,8 +174,8 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin h-8 w-8 border-b-2 border-primary rounded-full" />
+      <div className="flex items-center justify-center w-full h-full">
+        <LoaderCircle className="size-6 animate-spin text-gray-400" />
       </div>
     );
   }
@@ -213,15 +218,23 @@ export function TaskList({ namespaceId }: TaskListProps) {
             </Select>
           )}
         </div>
-        <Button size="sm" className="text-sm font-semibold" onClick={handleRefresh}>
+        <Button
+          size="sm"
+          className="text-sm font-semibold"
+          onClick={handleRefresh}
+        >
           {t('common.refresh')}
         </Button>
       </div>
 
       <div className="w-full rounded-md border border-border">
         <div className="flex h-10 items-center border-b border-border px-8 text-sm font-medium text-muted-foreground">
-          <div className="w-[81px] whitespace-nowrap">{t('tasks.function')}</div>
-          <div className="ml-6 w-7 whitespace-nowrap">{t('tasks.status')}</div>
+          <div className="w-[81px] whitespace-nowrap">
+            {t('tasks.function')}
+          </div>
+          <div className="ml-6 w-7 whitespace-nowrap text-center">
+            {t('tasks.status')}
+          </div>
           <div className="ml-7 w-[119px] whitespace-nowrap">
             {t('tasks.time') || '时间'}
           </div>
@@ -240,7 +253,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
                 <TaskTypeBadge functionName={task.function} />
               </div>
 
-              <div className="ml-6 w-7">
+              <div className="ml-6 flex w-7 justify-center">
                 <TaskStatusBadge status={task.status as any} />
               </div>
 

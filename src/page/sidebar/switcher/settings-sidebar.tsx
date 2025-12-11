@@ -1,14 +1,18 @@
 import {
-  Key,
-  LayoutGrid,
+  BrainCircuit,
+  KeyRound,
   List,
-  RefreshCcw,
-  Settings2,
-  SlidersHorizontal,
+  MonitorCog,
+  UserCog,
   Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { DarkRegularIcon } from '@/assets/icons/darkRegular';
+import { DarkWhiteIcon } from '@/assets/icons/darkWhite';
+import { LightBlackIcon } from '@/assets/icons/lightBlack';
+import { LightRegularIcon } from '@/assets/icons/lightRegular';
+import useTheme from '@/hooks/use-theme';
 import { cn } from '@/lib/utils';
 
 interface SettingsSidebarProps {
@@ -25,6 +29,13 @@ interface MenuItem {
   requireOwner?: boolean;
 }
 
+interface MenuItemWithDynamicIcon {
+  label: string;
+  value: string;
+  icon: (selected: boolean) => React.ReactNode;
+  requireOwner?: boolean;
+}
+
 export function SettingsSidebar({
   value,
   onChange,
@@ -32,27 +43,50 @@ export function SettingsSidebar({
   userIsOwner,
 }: SettingsSidebarProps) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+
+  // Determine if dark mode is active
+  const isDarkMode =
+    theme.skin === 'dark' ||
+    (theme.skin === 'system' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  // Get the appropriate AppManager icon based on theme and selection state
+  const getAppManagerIcon = (selected: boolean) => {
+    if (isDarkMode) {
+      return selected ? (
+        <DarkWhiteIcon className="size-4" />
+      ) : (
+        <DarkRegularIcon className="size-4" />
+      );
+    }
+    return selected ? (
+      <LightBlackIcon className="size-4" />
+    ) : (
+      <LightRegularIcon className="size-4" />
+    );
+  };
 
   // Account section items - icons match Figma design
   const accountItems: MenuItem[] = [
     {
       label: t('setting.general'),
       value: 'basic',
-      icon: <Settings2 className="size-4" />,
+      icon: <UserCog className="size-4" />,
     },
     {
       label: t('setting.content'),
       value: 'content',
-      icon: <SlidersHorizontal className="size-4" />,
+      icon: <BrainCircuit className="size-4" />,
     },
   ];
 
   // Space section items
-  const spaceItems: MenuItem[] = [
+  const spaceItems: (MenuItem | MenuItemWithDynamicIcon)[] = [
     {
       label: t('setting.general'),
       value: 'namespace',
-      icon: <RefreshCcw className="size-4" />,
+      icon: <MonitorCog className="size-4" />,
       requireOwner: true,
     },
     {
@@ -69,12 +103,12 @@ export function SettingsSidebar({
     {
       label: t('setting.applications'),
       value: 'applications',
-      icon: <LayoutGrid className="size-4" />,
+      icon: (selected: boolean) => getAppManagerIcon(selected),
     },
     {
       label: t('setting.api_key'),
       value: 'apikey',
-      icon: <Key className="size-4" />,
+      icon: <KeyRound className="size-4" />,
     },
   ];
 
@@ -91,7 +125,7 @@ export function SettingsSidebar({
       : username || 'User';
 
   return (
-    <div className="relative h-full w-[247px] shrink-0 rounded-l-xl bg-muted">
+    <div className="relative h-full w-[247px] shrink-0 rounded-l-xl bg-muted dark:bg-neutral-800">
       <div className="absolute left-2 top-3 flex w-[231px] flex-col gap-5">
         {/* Account Section */}
         <div className="flex w-full flex-col gap-2">
@@ -107,12 +141,15 @@ export function SettingsSidebar({
               className={cn(
                 'flex h-[30px] w-full items-center gap-3 rounded px-2.5 py-1 text-left',
                 value === 'profile'
-                  ? 'bg-neutral-200'
-                  : 'hover:bg-neutral-200/50'
+                  ? 'bg-neutral-200 dark:bg-neutral-700'
+                  : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
               )}
             >
               <div className="relative flex size-[21px] shrink-0 items-center justify-center">
-                <div className="absolute inset-0 rounded bg-primary shadow-sm" />
+                <div
+                  className="absolute inset-0 rounded bg-primary"
+                  style={{ boxShadow: '0 1px 2px 0 #00000040' }}
+                />
                 <span className="relative text-xs font-semibold text-primary-foreground">
                   {initial}
                 </span>
@@ -122,39 +159,38 @@ export function SettingsSidebar({
               </span>
             </button>
 
-            {accountItems.map(item => (
-              <button
-                key={item.value}
-                onClick={() => onChange(item.value)}
-                className={cn(
-                  'flex h-[30px] w-full items-center gap-3 rounded px-3 text-left',
-                  value === item.value
-                    ? 'bg-neutral-200'
-                    : 'hover:bg-neutral-200/50'
-                )}
-              >
-                <span
+            {accountItems.map(item => {
+              const isSelected = value === item.value;
+              return (
+                <button
+                  key={item.value}
+                  onClick={() => onChange(item.value)}
                   className={cn(
-                    'size-4 shrink-0',
-                    value === item.value
-                      ? 'text-foreground'
-                      : 'text-muted-foreground'
+                    'flex h-[30px] w-full items-center gap-3 rounded px-3 text-left',
+                    isSelected
+                      ? 'bg-neutral-200 dark:bg-neutral-700'
+                      : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
                   )}
                 >
-                  {item.icon}
-                </span>
-                <span
-                  className={cn(
-                    'whitespace-nowrap text-sm font-medium',
-                    value === item.value
-                      ? 'text-foreground'
-                      : 'text-muted-foreground'
-                  )}
-                >
-                  {item.label}
-                </span>
-              </button>
-            ))}
+                  <span
+                    className={cn(
+                      'size-4 shrink-0',
+                      isSelected ? 'text-foreground' : 'text-muted-foreground'
+                    )}
+                  >
+                    {item.icon}
+                  </span>
+                  <span
+                    className={cn(
+                      'whitespace-nowrap text-sm font-medium',
+                      isSelected ? 'text-foreground' : 'text-muted-foreground'
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -167,39 +203,43 @@ export function SettingsSidebar({
           </div>
 
           <div className="flex w-full flex-col gap-0.5 px-2">
-            {filteredSpaceItems.map(item => (
-              <button
-                key={item.value}
-                onClick={() => onChange(item.value)}
-                className={cn(
-                  'flex h-[30px] w-full items-center gap-3 rounded px-1 text-left',
-                  value === item.value
-                    ? 'bg-neutral-200'
-                    : 'hover:bg-neutral-200/50'
-                )}
-              >
-                <span
+            {filteredSpaceItems.map(item => {
+              const isSelected = value === item.value;
+              const icon =
+                typeof item.icon === 'function'
+                  ? item.icon(isSelected)
+                  : item.icon;
+
+              return (
+                <button
+                  key={item.value}
+                  onClick={() => onChange(item.value)}
                   className={cn(
-                    'size-4 shrink-0',
-                    value === item.value
-                      ? 'text-foreground'
-                      : 'text-muted-foreground'
+                    'flex h-[30px] w-full items-center gap-3 rounded px-1 text-left',
+                    isSelected
+                      ? 'bg-neutral-200 dark:bg-neutral-700'
+                      : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
                   )}
                 >
-                  {item.icon}
-                </span>
-                <span
-                  className={cn(
-                    'whitespace-nowrap text-sm font-medium',
-                    value === item.value
-                      ? 'text-foreground'
-                      : 'text-muted-foreground'
-                  )}
-                >
-                  {item.label}
-                </span>
-              </button>
-            ))}
+                  <span
+                    className={cn(
+                      'size-4 shrink-0',
+                      isSelected ? 'text-foreground' : 'text-muted-foreground'
+                    )}
+                  >
+                    {icon}
+                  </span>
+                  <span
+                    className={cn(
+                      'whitespace-nowrap text-sm font-medium',
+                      isSelected ? 'text-foreground' : 'text-muted-foreground'
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

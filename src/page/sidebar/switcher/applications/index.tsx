@@ -193,8 +193,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <LoaderCircle className="w-6 h-6 animate-spin" />
+      <div className="flex items-center justify-center w-full h-full">
+        <LoaderCircle className="size-6 animate-spin text-gray-400" />
       </div>
     );
   }
@@ -318,7 +318,6 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                     <Button
                       onClick={() => handleBind(application)}
                       disabled={bindingLoading}
-                      variant="outline"
                       size="sm"
                       className="text-sm font-semibold"
                     >
@@ -343,12 +342,9 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                             {t('applications.bind.cancel.confirm.title')}
                           </AlertDialogTitle>
                           <AlertDialogDescription>
-                            {t(
-                              'applications.bind.cancel.confirm.description',
-                              {
-                                name: appDisplayName,
-                              }
-                            )}
+                            {t('applications.bind.cancel.confirm.description', {
+                              name: appDisplayName,
+                            })}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

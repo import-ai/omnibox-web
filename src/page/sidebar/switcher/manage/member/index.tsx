@@ -60,7 +60,7 @@ export default function MemberMain(props: MemberProps) {
           className="h-9 w-[447px] rounded-md border-border placeholder:text-muted-foreground"
         />
         <Invite onFinish={refetch}>
-          <Button size="sm" className="text-sm font-semibold">
+          <Button size="sm" className="h-[30px] w-[71px] text-sm font-semibold">
             {t('manage.add')}
           </Button>
         </Invite>

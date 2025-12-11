@@ -32,7 +32,7 @@ export default function Language() {
   return (
     <div className="flex h-10 w-full items-center justify-between">
       <div className="flex items-center gap-2.5">
-        <Languages className="size-5 text-muted-foreground" />
+        <Languages className="size-5 dark:text-neutral-50" />
         <span className="whitespace-nowrap text-base font-semibold text-foreground">
           {t('manage.language_setting')}
         </span>
@@ -42,19 +42,19 @@ export default function Language() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="h-9 w-[180px] justify-between rounded-md border-border bg-background px-3 font-normal shadow-none"
+            className="h-9 w-[180px] justify-between rounded-md border-border bg-transparent px-3 font-normal shadow-none"
           >
-            <span className="text-sm font-normal text-muted-foreground">
+            <span className="text-sm font-normal text-neutral-950 dark:text-neutral-50">
               {selectedLabel}
             </span>
             <ChevronDown className="size-4 text-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[180px]">
+        <DropdownMenuContent className="w-[180px] dark:bg-neutral-900">
           {data.map(item => (
             <DropdownMenuItem
               key={item.value}
-              className="flex justify-between"
+              className="flex justify-between dark:focus:bg-neutral-700"
               onClick={() => toggleLanguage(item.value)}
             >
               {item.label}

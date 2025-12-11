@@ -3,6 +3,7 @@ import {
   Copy,
   Eye,
   EyeOff,
+  LoaderCircle,
   Pencil,
   Trash2,
 } from 'lucide-react';
@@ -249,7 +250,11 @@ export function APIKeyForm() {
   };
 
   if (loading) {
-    return <div className="flex justify-center p-4">{t('loading')}</div>;
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <LoaderCircle className="size-6 animate-spin text-gray-400" />
+      </div>
+    );
   }
 
   return (
@@ -514,10 +519,7 @@ export function APIKeyForm() {
         </div>
       ) : (
         apiKeys.map(key => (
-          <div
-            key={key.id}
-            className="rounded-md border border-border p-5"
-          >
+          <div key={key.id} className="rounded-md border border-border p-5">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col gap-1">
@@ -542,9 +544,9 @@ export function APIKeyForm() {
                         className="flex items-center justify-center transition-opacity hover:opacity-70"
                       >
                         {visibleKeys.has(key.id) ? (
-                          <EyeOff className="size-5 text-muted-foreground" />
+                          <EyeOff className="size-4 text-muted-foreground" />
                         ) : (
-                          <Eye className="size-5 text-muted-foreground" />
+                          <Eye className="size-4 text-muted-foreground" />
                         )}
                       </button>
                     </TooltipTrigger>
@@ -561,7 +563,7 @@ export function APIKeyForm() {
                         onClick={() => copyToClipboard(key.value)}
                         className="flex items-center justify-center transition-opacity hover:opacity-70"
                       >
-                        <Copy className="size-5 text-muted-foreground" />
+                        <Copy className="size-4 text-muted-foreground" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top">{t('copy')}</TooltipContent>
@@ -573,7 +575,7 @@ export function APIKeyForm() {
                         onClick={() => handleEditClick(key)}
                         className="flex items-center justify-center transition-opacity hover:opacity-70"
                       >
-                        <Pencil className="size-5 text-muted-foreground" />
+                        <Pencil className="size-4 text-muted-foreground" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top">{t('edit')}</TooltipContent>
@@ -584,7 +586,7 @@ export function APIKeyForm() {
                       <TooltipTrigger asChild>
                         <AlertDialogTrigger asChild>
                           <button className="flex items-center justify-center transition-opacity hover:opacity-70">
-                            <Trash2 className="size-5 text-muted-foreground" />
+                            <Trash2 className="size-4 text-muted-foreground" />
                           </button>
                         </AlertDialogTrigger>
                       </TooltipTrigger>
