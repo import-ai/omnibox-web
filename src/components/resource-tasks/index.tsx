@@ -176,10 +176,10 @@ export default function ResourceTasks({
         <span className="flex gap-2">
           {pendingTasks.length > 0 && (
             <DropdownMenu>
-              <DropdownMenuTrigger>
+              <DropdownMenuTrigger className="focus-visible:outline-none">
                 <Button
                   variant="secondary"
-                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs text-neutral-600 bg-neutral-100 dark:bg-neutral-100"
+                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs focus-visible:outline-none border border-neutral-500 text-neutral-500 bg-transparent dark:border-neutral-200 dark:text-neutral-200"
                 >
                   <ListVideo />
                   {t('tasks.status_label_pending')}
@@ -202,10 +202,10 @@ export default function ResourceTasks({
           )}
           {runningTasks.length > 0 && (
             <DropdownMenu>
-              <DropdownMenuTrigger>
+              <DropdownMenuTrigger className="focus-visible:outline-none">
                 <Button
                   variant="secondary"
-                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs text-neutral-600 bg-blue-100 dark:bg-blue-100"
+                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs border border-blue-500 text-blue-500 bg-transparent dark:border-blue-400 dark:text-blue-400"
                 >
                   <ProgressIcon />
                   {t('tasks.status_label_running')}
@@ -228,10 +228,10 @@ export default function ResourceTasks({
           )}
           {finishedTasks.length > 0 && (
             <DropdownMenu>
-              <DropdownMenuTrigger>
+              <DropdownMenuTrigger className="focus-visible:outline-none">
                 <Button
                   variant="secondary"
-                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs text-neutral-600 bg-lime-100 dark:bg-lime-100"
+                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs border border-green-600 text-green-600 bg-transparent dark:border-green-500 dark:text-green-500"
                 >
                   <DoneIcon />
                   {t('tasks.status_label_finished')}

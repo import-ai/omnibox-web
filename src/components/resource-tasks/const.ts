@@ -1,6 +1,6 @@
 export const CONTENT_MODIFYING_FUNCTIONS = [
   'collect',
-  'index',
+  'upsert_index',
   'delete_index',
   'file_reader',
   'message_index',

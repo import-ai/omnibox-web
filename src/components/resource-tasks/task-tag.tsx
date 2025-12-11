@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 
 export type TaskType =
   | 'collect'
-  | 'index'
+  | 'upsert_index'
   | 'delete_index'
   | 'file_reader'
   | 'message_index'
@@ -34,7 +34,7 @@ const taskTagMap: Record<TaskType, TaskTagConfig> = {
     icon: <Star />,
     translationKey: 'tasks.functions.collect',
   },
-  index: {
+  upsert_index: {
     icon: <FolderSearch />,
     translationKey: 'tasks.functions.index',
   },
@@ -84,7 +84,7 @@ export function TaskTag({ type, variant = 'outline' }: TaskTagProps) {
   return (
     <Button
       variant={variant}
-      className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs text-neutral-600  dark:text-white"
+      className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs text-neutral-600 bg-transparent  dark:text-white"
     >
       {config.icon}
       {t(config.translationKey)}
