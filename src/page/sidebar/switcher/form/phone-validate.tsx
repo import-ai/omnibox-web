@@ -273,7 +273,9 @@ export default function PhoneValidate(props: IProps) {
       setStep('code');
       toast.success(t('phone.code_sent'), { position: 'bottom-right' });
     } catch (error: any) {
-      toast.error(error.message || t('phone.send_failed'), { position: 'bottom-right' });
+      toast.error(error.message || t('phone.send_failed'), {
+        position: 'bottom-right',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -284,7 +286,9 @@ export default function PhoneValidate(props: IProps) {
       await http.post('/user/phone/send-code', { phone });
       toast.success(t('phone.code_sent'), { position: 'bottom-right' });
     } catch (error: any) {
-      toast.error(error.message || t('phone.send_failed'), { position: 'bottom-right' });
+      toast.error(error.message || t('phone.send_failed'), {
+        position: 'bottom-right',
+      });
     }
   };
 
@@ -295,7 +299,9 @@ export default function PhoneValidate(props: IProps) {
       toast.success(t('phone.bind_success'), { position: 'bottom-right' });
       onFinish();
     } catch (error: any) {
-      toast.error(error.message || t('phone.bind_failed'), { position: 'bottom-right' });
+      toast.error(error.message || t('phone.bind_failed'), {
+        position: 'bottom-right',
+      });
     } finally {
       setSubmitting(false);
     }

@@ -16,7 +16,10 @@ interface TaskTypeBadgeProps {
 const taskTypeConfig: Record<
   string,
   {
-    icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+    icon: React.ComponentType<{
+      className?: string;
+      style?: React.CSSProperties;
+    }>;
     labelKey: string;
   }
 > = {

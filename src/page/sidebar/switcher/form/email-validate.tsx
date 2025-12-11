@@ -74,10 +74,7 @@ function EmailInputStep({
         </div>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="w-full"
-          >
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="w-full">
             <FormField
               control={form.control}
               name="email"
@@ -282,7 +279,9 @@ export default function EmailValidate(props: IProps) {
       setStep('code');
       toast.success(t('email.code_sent'), { position: 'bottom-right' });
     } catch (error: any) {
-      toast.error(error.message || t('email.send_failed'), { position: 'bottom-right' });
+      toast.error(error.message || t('email.send_failed'), {
+        position: 'bottom-right',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -293,7 +292,9 @@ export default function EmailValidate(props: IProps) {
       await http.post('/user/email/send-code', { email: newEmail });
       toast.success(t('email.code_sent'), { position: 'bottom-right' });
     } catch (error: any) {
-      toast.error(error.message || t('email.send_failed'), { position: 'bottom-right' });
+      toast.error(error.message || t('email.send_failed'), {
+        position: 'bottom-right',
+      });
     }
   };
 

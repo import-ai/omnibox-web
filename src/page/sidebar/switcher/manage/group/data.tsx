@@ -25,8 +25,7 @@ interface GroupProps extends Group {
 }
 
 export default function GroupData(props: GroupProps) {
-  const { id, title, member, namespace_id, refetch, invitation_id } =
-    props;
+  const { id, title, member, namespace_id, refetch, invitation_id } = props;
   const { t } = useTranslation();
   const [fold, onFold] = useState(false);
   const [loading, setLoading] = useState(false);

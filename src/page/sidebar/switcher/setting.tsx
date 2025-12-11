@@ -1,5 +1,5 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { Settings, X } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,7 +10,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from '@/components/ui/dialog';
 import useApp from '@/hooks/use-app';
 
@@ -59,7 +58,11 @@ export default function Setting() {
             <DialogDescription></DialogDescription>
           </DialogHeader>
         </VisuallyHidden>
-        <SettingWrapper initialTab={initialTab} autoAction={autoAction} onClose={() => setOpen(false)} />
+        <SettingWrapper
+          initialTab={initialTab}
+          autoAction={autoAction}
+          onClose={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   );
