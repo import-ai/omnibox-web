@@ -297,9 +297,8 @@ export default function EmailValidate(props: IProps) {
   const handleSendCode = async (email: string) => {
     setSubmitting(true);
     try {
-      await http.post('/auth/send-otp', {
+      await http.post('/user/email/validate', {
         email,
-        url: `${window.location.origin}/user/verify-otp`,
       });
       setNewEmail(email);
       setStep('code');
@@ -316,9 +315,8 @@ export default function EmailValidate(props: IProps) {
 
   const handleResendCode = async () => {
     try {
-      await http.post('/auth/send-otp', {
+      await http.post('/user/email/validate', {
         email: newEmail,
-        url: `${window.location.origin}/user/verify-otp`,
       });
       setError('');
       toast.success(t('email.code_sent'), { position: 'bottom-right' });
