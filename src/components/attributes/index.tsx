@@ -46,17 +46,6 @@ export default function Attributes(props: IProps) {
             {resource.attrs.url}
           </a>
         </div>
-        {/* {resource.user && (
-          <div className="flex items-center gap-3">
-            <User2 className="size-4 text-muted-foreground" />
-            <span className="text-muted-foreground font-medium min-w-[80px]">
-              {t('resource.attrs.author')}
-            </span>
-            <span className="text-foreground">
-              {resource.user.username}&lt;{resource.user.email}&gt;
-            </span>
-          </div>
-        )} */}
         {resource.created_at && (
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
             <Clock className="size-4 text-muted-foreground" />
@@ -145,17 +134,6 @@ export default function Attributes(props: IProps) {
         resourceId={resource.id}
         namespaceId={namespaceId}
       />
-      {/* {resource.user && (
-        <div className="flex items-center gap-3">
-          <User2 className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground font-medium min-w-[80px]">
-            {t('resource.attrs.author')}
-          </span>
-          <span className="text-foreground">
-            {resource.user.username}&lt;{resource.user.email}&gt;
-          </span>
-        </div>
-      )} */}
       {resource.created_at && (
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
           <Clock className="size-4 text-muted-foreground" />
