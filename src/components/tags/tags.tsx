@@ -18,6 +18,7 @@ interface IProps {
 }
 
 const MAX_TAG_LENGTH = 20;
+const MAX_TAGS = 10;
 
 export default function Tags(props: IProps) {
   const { data, loading, resourceId, namespaceId } = props;
@@ -47,10 +48,18 @@ export default function Tags(props: IProps) {
     });
   };
   const handleChange = (val: Array<Option>) => {
+    if (val.length > MAX_TAGS) {
+      toast.error(t('resource.attrs.tag_limit', { max: MAX_TAGS }));
+      return;
+    }
     setTags(val);
     onChange('');
   };
   const handleCreate = (val: Option) => {
+    if (tags.length >= MAX_TAGS) {
+      toast.error(t('resource.attrs.tag_limit', { max: MAX_TAGS }));
+      return Promise.reject(new Error('Tag limit exceeded'));
+    }
     if (val.value.length > MAX_TAG_LENGTH) {
       toast.error(t('resource.attrs.tag_too_long', { max: MAX_TAG_LENGTH }));
       return Promise.reject(new Error('Tag name too long'));
@@ -65,17 +74,19 @@ export default function Tags(props: IProps) {
   }, [data]);
 
   return (
-    <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-      <TagsIcon className="size-4 text-muted-foreground" />
-      <span className="text-muted-foreground font-medium min-w-[80px]">
-        {t('resource.attrs.tag')}
-      </span>
+    <div className="flex flex-wrap sm:flex-nowrap items-start gap-3">
+      <div className="flex items-center gap-3">
+        <TagsIcon className="size-4 text-muted-foreground flex-shrink-0" />
+        <span className="text-muted-foreground font-medium min-w-[80px]">
+          {t('resource.attrs.tag')}
+        </span>
+      </div>
       {loading ? (
         <span className="flex items-center text-foreground h-7">
           <LoaderCircle className="transition-transform animate-spin" />
         </span>
       ) : (
-        <span className="flex flex-wrap items-center text-foreground h-7">
+        <span className="flex flex-wrap items-center text-foreground min-h-7">
           {editing ? (
             <MultipleSelector
               creatable
