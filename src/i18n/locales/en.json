@@ -231,6 +231,9 @@
     "api_key": "API Keys",
     "applications": "Applications",
     "content": "Content",
+    "about": "About",
+    "about_title": "About OmniBox",
+    "copyright": "© 2025 Import AI. All rights reserved",
     "third_party_account": {
       "manage": "Third-party",
       "title": "Third-party Account Management",
