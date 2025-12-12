@@ -179,7 +179,7 @@ export default function ResourceTasks({
               <DropdownMenuTrigger className="focus-visible:outline-none">
                 <Button
                   variant="secondary"
-                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs focus-visible:outline-none border border-neutral-500 text-neutral-500 bg-transparent dark:border-neutral-200 dark:text-neutral-200"
+                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs focus-visible:outline-none border border-neutral-500 text-neutral-500 bg-transparent dark:border-neutral-300 dark:text-neutral-300"
                 >
                   <ListVideo />
                   {t('tasks.status_label_pending')}
