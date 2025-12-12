@@ -229,13 +229,13 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
       <div className="w-full rounded-md border border-border">
         <div className="flex h-10 items-center border-b border-border px-8 text-sm font-medium text-muted-foreground">
-          <div className="w-[81px] whitespace-nowrap">
+          <div className="w-[120px] whitespace-nowrap">
             {t('tasks.function')}
           </div>
-          <div className="ml-6 w-7 whitespace-nowrap text-center">
+          <div className="ml-4 w-7 whitespace-nowrap text-center">
             {t('tasks.status')}
           </div>
-          <div className="ml-7 w-[119px] whitespace-nowrap">
+          <div className="ml-8 w-[119px] whitespace-nowrap">
             {t('tasks.time') || '时间'}
           </div>
           <div className="ml-auto w-16 whitespace-nowrap">
@@ -249,18 +249,18 @@ export function TaskList({ namespaceId }: TaskListProps) {
               key={task.id}
               className="flex h-14 items-center border-b border-border px-8 last:border-b-0"
             >
-              <div className="w-[81px]">
+              <div className="w-[100px]">
                 <TaskTypeBadge functionName={task.function} />
               </div>
 
-              <div className="ml-6 flex w-7 justify-center">
+              <div className="ml-8 flex w-7 justify-center">
                 <TaskStatusBadge status={task.status as any} />
               </div>
 
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="ml-7 w-[119px] cursor-default text-xs font-medium text-muted-foreground">
+                    <div className="ml-8 w-[119px] cursor-default text-xs font-medium text-muted-foreground">
                       {getTimeDescription(task)}
                     </div>
                   </TooltipTrigger>

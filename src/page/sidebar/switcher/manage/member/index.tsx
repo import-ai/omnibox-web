@@ -57,7 +57,7 @@ export default function MemberMain(props: MemberProps) {
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-9 w-[447px] rounded-md border-border placeholder:text-muted-foreground"
+          className="h-9 w-[435px] rounded-md border-border placeholder:text-muted-foreground"
         />
         <Invite onFinish={refetch}>
           <Button size="sm" className="h-[30px] w-[71px] text-sm font-semibold">

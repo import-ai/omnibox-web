@@ -49,7 +49,7 @@ export default function GroupMain(props: GroupProps) {
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-9 w-[447px] rounded-md border-border placeholder:text-muted-foreground"
+          className="h-9 w-[435px] rounded-md border-border placeholder:text-muted-foreground"
         />
         <CreateGroup
           data={edit}
@@ -62,10 +62,10 @@ export default function GroupMain(props: GroupProps) {
           <div className="flex h-10 w-[210px] items-center px-2 text-base font-medium text-foreground">
             {t('manage.group')}
           </div>
-          <div className="flex h-10 w-[124px] items-center px-2 text-base font-medium text-foreground">
+          <div className="flex h-10 w-[115px] items-center px-2 text-base font-medium text-foreground">
             {t('manage.member')}
           </div>
-          <div className="flex h-10 w-[127px] items-center px-2 text-base font-medium text-foreground">
+          <div className="flex h-10 w-[127px] items-center justify-center text-base font-medium text-foreground">
             {t('manage.invite_link')}
           </div>
         </div>

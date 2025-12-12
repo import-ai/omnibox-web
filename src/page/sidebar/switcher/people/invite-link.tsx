@@ -13,6 +13,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { http } from '@/lib/request';
 
+import { useSettingsToast } from '../settings-toast';
 import { AddNamespaceInvitationForm } from './add-form';
 
 interface IProps {
@@ -24,11 +25,24 @@ interface IProps {
 export default function InvitePeople(props: IProps) {
   const { namespaceId, invitationId, refetch } = props;
   const { t } = useTranslation();
+  const { showToast } = useSettingsToast();
   const [open, setOpen] = useState(false);
   const handleCopy = () => {
-    copy(`${location.origin}/invite/${namespaceId}/${invitationId}`, {
-      format: 'text/plain',
-    });
+    try {
+      const success = copy(
+        `${location.origin}/invite/${namespaceId}/${invitationId}`,
+        {
+          format: 'text/plain',
+        }
+      );
+      if (success) {
+        showToast(t('actions.copy_link_success'), 'success');
+      } else {
+        showToast(t('actions.copy_link_failed'), 'error');
+      }
+    } catch {
+      showToast(t('actions.copy_link_failed'), 'error');
+    }
   };
   const handleDisable = () => {
     if (invitationId) {

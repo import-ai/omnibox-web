@@ -34,6 +34,15 @@ export interface UserBinding extends IBase {
   login_type: string;
   login_id: string;
   email?: string;
+  metadata?: {
+    sub?: string;
+    name?: string;
+    email?: string;
+    picture?: string;
+    given_name?: string;
+    family_name?: string;
+    email_verified?: boolean;
+  };
 }
 
 export interface Namespace extends IBase {

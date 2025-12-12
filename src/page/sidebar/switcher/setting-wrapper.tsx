@@ -15,6 +15,7 @@ import SettingForm from './form/setting';
 import TasksManagement from './manage/tasks';
 import PeopleForm from './people';
 import { SettingsSidebar } from './settings-sidebar';
+import { SettingsToastProvider } from './settings-toast';
 
 interface SettingWrapperProps {
   initialTab?: string;
@@ -97,34 +98,36 @@ export default function SettingWrapper({
   }, []);
 
   return (
-    <div className="relative h-[517px] w-[858px] rounded-xl bg-card">
-      <div className="absolute inset-0 rounded-xl bg-card" />
+    <SettingsToastProvider>
+      <div className="relative h-[517px] w-[858px] rounded-xl bg-card">
+        <div className="absolute inset-0 rounded-xl bg-card" />
 
-      <div className="absolute left-0 top-0 h-[517px] w-[247px]">
-        <SettingsSidebar
-          value={activeKey}
-          onChange={onActiveKey}
-          username={user?.username || ''}
-          userIsOwner={userIsOwner}
-        />
+        <div className="absolute left-0 top-0 h-[517px] w-[247px]">
+          <SettingsSidebar
+            value={activeKey}
+            onChange={onActiveKey}
+            username={user?.username || ''}
+            userIsOwner={userIsOwner}
+          />
+        </div>
+
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-3.5 z-10 text-foreground opacity-70 transition-opacity hover:opacity-100"
+        >
+          <X className="size-4" />
+          <span className="sr-only">Close</span>
+        </button>
+
+        <div className="absolute left-[247px] top-0 right-0 bottom-0 rounded-r-xl dark:bg-neutral-900" />
+        <div className="absolute left-[286px] top-10 h-[calc(517px-60px)] w-[549px] overflow-y-auto overflow-x-hidden pr-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900">
+          {
+            items
+              .filter(item => !item.requireOwner || userIsOwner)
+              .find(item => item.value === activeKey)?.children
+          }
+        </div>
       </div>
-
-      <button
-        onClick={onClose}
-        className="absolute right-4 top-3.5 z-10 text-foreground opacity-70 transition-opacity hover:opacity-100"
-      >
-        <X className="size-4" />
-        <span className="sr-only">Close</span>
-      </button>
-
-      <div className="absolute left-[247px] top-0 right-0 bottom-0 rounded-r-xl dark:bg-neutral-900" />
-      <div className="absolute left-[286px] top-10 h-[calc(517px-60px)] w-[533px] overflow-auto">
-        {
-          items
-            .filter(item => !item.requireOwner || userIsOwner)
-            .find(item => item.value === activeKey)?.children
-        }
-      </div>
-    </div>
+    </SettingsToastProvider>
   );
 }

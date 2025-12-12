@@ -65,6 +65,8 @@
   },
   "actions": {
     "copy_link": "复制链接",
+    "copy_link_success": "您的链接复制成功",
+    "copy_link_failed": "您的链接复制失败",
     "copy_content": "复制正文",
     "duplicate": "创建副本",
     "download": "下载源文件",
@@ -99,6 +101,7 @@
     "password_not_match": "密码不匹配",
     "email": "邮箱",
     "email_invalid": "请输入有效的邮箱地址",
+    "email_domain_not_allowed": "仅支持 Gmail、Outlook、163 和 QQ 邮箱",
     "email_limit": "仅支持 Gmail、Outlook、163 和 QQ 邮箱",
     "email_limit_rule": "邮箱必须是 Gmail、Outlook、163 或 QQ 邮箱",
     "email_or_username": "邮箱 或 用户名",
@@ -541,7 +544,9 @@
       "update": "更新",
       "delete": "删除"
     },
-    "related_application": "关联应用"
+    "related_application": "关联应用",
+    "show": "显示",
+    "hide": "隐藏"
   },
   "tasks": {
     "title": "后台任务管理",
@@ -570,6 +575,10 @@
     "status_finished": "完成",
     "status_canceled": "取消",
     "status_error": "错误",
+    "confirm_cancel_title": "确认取消",
+    "confirm_cancel_description": "取消后将立即停止执行，操作不可撤销",
+    "continue_running": "继续运行",
+    "confirm_cancel": "确认取消",
     "functions": {
       "collect": "收藏",
       "upsert_index": "索引",

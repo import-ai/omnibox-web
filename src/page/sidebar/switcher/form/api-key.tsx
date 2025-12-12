@@ -566,7 +566,9 @@ export function APIKeyForm() {
                         <Copy className="size-4 text-muted-foreground" />
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="top">{t('copy')}</TooltipContent>
+                    <TooltipContent side="top">
+                      {t('copy.title')}
+                    </TooltipContent>
                   </Tooltip>
 
                   <Tooltip>

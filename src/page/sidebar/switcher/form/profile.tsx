@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import i18next from 'i18next';
 import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -45,7 +45,7 @@ import useUser from '@/hooks/use-user';
 import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
-import { optionalPasswordSchema } from '@/lib/validation-schemas';
+import { createOptionalPasswordSchema } from '@/lib/validation-schemas';
 import { GoogleIcon } from '@/page/user/google/icon';
 import { WeChatIcon } from '@/page/user/wechat/icon';
 
@@ -53,30 +53,34 @@ import { Wrapper } from '../third-party/wrapper';
 import EmailValidate from './email-validate';
 import PhoneValidate from './phone-validate';
 
-// Schema for username change dialog
-const usernameSchema = z.object({
-  username: z
-    .string()
-    .min(2, i18next.t('form.username_min'))
-    .max(32, i18next.t('form.username_max'))
-    .refine(
-      value => {
-        return !Array.from(value).some(char => isEmoji(char));
-      },
-      {
-        message: i18next.t('form.username_no_emoji'),
-      }
-    ),
-});
+// Schema factory for username change dialog
+function createUsernameSchema() {
+  return z.object({
+    username: z
+      .string()
+      .min(2, i18next.t('form.username_min'))
+      .max(32, i18next.t('form.username_max'))
+      .refine(
+        value => {
+          return !Array.from(value).some(char => isEmoji(char));
+        },
+        {
+          message: i18next.t('form.username_no_emoji'),
+        }
+      ),
+  });
+}
 
-// Schema for password change dialog
-const passwordSchema = z.object({
-  password: optionalPasswordSchema,
-  password_repeat: z.string().optional(),
-});
+// Schema factory for password change dialog
+function createPasswordChangeSchema() {
+  return z.object({
+    password: createOptionalPasswordSchema(),
+    password_repeat: z.string(),
+  });
+}
 
-type UsernameFormValues = z.infer<typeof usernameSchema>;
-type PasswordFormValues = z.infer<typeof passwordSchema>;
+type UsernameFormValues = { username: string };
+type PasswordFormValues = { password: string; password_repeat: string };
 
 // Action button wrapper using shadcn Button - FIXED SIZE: 71×30px
 // Figma: primary = black bg, white text; secondary = white bg, border, black text
@@ -142,7 +146,6 @@ function SectionHeader({
 }
 
 // Info row component for username/password - Figma: flex, items-center, justify-between, h-[30px] to align with button
-// Gray value positioned at left: 78px to align with binding rows
 function InfoRow({
   label,
   value,
@@ -157,10 +160,10 @@ function InfoRow({
       className="flex items-center justify-between"
       style={{ width: '533px', height: '30px' }}
     >
-      {/* Left side with label and value - relative container for absolute value positioning */}
+      {/* Left side with label and value */}
       <div
-        className="relative flex items-center"
-        style={{ height: '24px', width: '411.5px' }}
+        className="flex items-center"
+        style={{ height: '24px', width: '411.5px', gap: '12px' }}
       >
         {/* Label */}
         <p
@@ -175,13 +178,10 @@ function InfoRow({
         >
           {label}
         </p>
-        {/* Value positioned at left: 78px to align with binding rows */}
+        {/* Value */}
         <p
-          className="absolute text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
+          className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
           style={{
-            left: '78px',
-            top: '50%',
-            transform: 'translateY(-50%)',
             fontFamily: 'Inter, sans-serif',
             fontSize: '16px',
             fontWeight: 400,
@@ -199,7 +199,7 @@ function InfoRow({
   );
 }
 
-// Binding info row with icon - Figma: w-[532px], h-[30px] to align with button, icon 20x20, gap 9px, value at left: 78px
+// Binding info row with icon - Figma: w-[532px], h-[30px] to align with button, icon 20x20, gap 9px
 function BindingRow({
   icon,
   label,
@@ -224,13 +224,13 @@ function BindingRow({
       className="flex items-center justify-between"
       style={{ width: '532px', height: '30px' }}
     >
-      {/* Left side with icon, label, and value - Figma: h-[22px], w-[411.5px], relative positioning */}
+      {/* Left side with icon, label, and value */}
       <div
-        className="relative flex items-center"
-        style={{ height: '22px', width: '411.5px' }}
+        className="flex items-center"
+        style={{ height: '22px', width: '411.5px', gap: '12px' }}
       >
         {/* Icon and label group - gap: 9px */}
-        <div className="flex items-center" style={{ gap: '9px' }}>
+        <div className="flex items-center flex-shrink-0" style={{ gap: '9px' }}>
           <span
             className="flex-shrink-0 flex items-center justify-center"
             style={{ width: '20px', height: '20px' }}
@@ -250,13 +250,10 @@ function BindingRow({
             {label}
           </p>
         </div>
-        {/* Value positioned at left: 78px - absolute to ensure exact position */}
+        {/* Value */}
         <p
-          className="absolute text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis"
+          className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis"
           style={{
-            left: '78px',
-            top: '50%',
-            transform: 'translateY(-50%)',
             fontFamily: 'Inter, sans-serif',
             fontSize: '16px',
             fontWeight: 400,
@@ -322,7 +319,7 @@ interface BindingData extends UserBinding {
 
 export default function ProfileForm() {
   const { t } = useTranslation();
-  const { user, onChange, loading } = useUser();
+  const { user, onChange, loading, refetch } = useUser();
   const { theme } = useTheme();
   const isDark =
     theme.skin === 'dark' ||
@@ -335,12 +332,6 @@ export default function ProfileForm() {
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const submitData = useRef<{
-    username?: string;
-    email?: string;
-    password?: string;
-    code?: string;
-  } | null>(null);
 
   // Binding states
   const [bindingData, setBindingData] = useState<BindingData[]>([]);
@@ -349,6 +340,10 @@ export default function ProfileForm() {
   // Password visibility states
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordRepeat, setShowPasswordRepeat] = useState(false);
+
+  // Create schemas dynamically to get current language translations
+  const usernameSchema = useMemo(() => createUsernameSchema(), []);
+  const passwordSchema = useMemo(() => createPasswordChangeSchema(), []);
 
   // Forms
   const usernameForm = useForm<UsernameFormValues>({
@@ -426,16 +421,24 @@ export default function ProfileForm() {
   };
 
   // Handle email validation finish
-  const handleEmailValidateFinish = (code: string) => {
-    const query = submitData.current;
-    if (!query) return;
-    setSubmitting(true);
-    onChange({ ...query, code }, () => {
-      toast.success(t('profile.success'), { position: 'bottom-right' });
-    }).finally(() => {
-      setEmailDialogOpen(false);
-      setSubmitting(false);
-    });
+  const handleEmailValidateFinish = async (
+    email: string,
+    code: string
+  ): Promise<void> => {
+    const uid = localStorage.getItem('uid');
+    return http
+      .patch(`/user/${uid}`, {
+        email,
+        code,
+        username: user?.username || '',
+        password: '',
+        password_repeat: '',
+      })
+      .then(() => {
+        toast.success(t('profile.success'), { position: 'bottom-right' });
+        setEmailDialogOpen(false);
+        refetch();
+      });
   };
 
   // Handle unbind
@@ -520,10 +523,13 @@ export default function ProfileForm() {
         style={{ width: '532px', height: '30px' }}
       >
         <div
-          className="relative flex items-center"
-          style={{ height: '22px', width: '411.5px' }}
+          className="flex items-center"
+          style={{ height: '22px', width: '411.5px', gap: '12px' }}
         >
-          <div className="flex items-center" style={{ gap: '9px' }}>
+          <div
+            className="flex items-center flex-shrink-0"
+            style={{ gap: '9px' }}
+          >
             <span
               className="flex-shrink-0 flex items-center justify-center"
               style={{ width: '20px', height: '20px' }}
@@ -544,11 +550,8 @@ export default function ProfileForm() {
             </p>
           </div>
           <p
-            className="absolute text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis"
+            className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis"
             style={{
-              left: '78px',
-              top: '50%',
-              transform: 'translateY(-50%)',
               fontFamily: 'Inter, sans-serif',
               fontSize: '16px',
               fontWeight: 400,
@@ -576,7 +579,7 @@ export default function ProfileForm() {
           value={
             item.id
               ? item.login_type === 'google'
-                ? item.email || ''
+                ? item.metadata?.email || item.email || ''
                 : t('setting.third_party_account.bound')
               : t('setting.not_bound')
           }
@@ -637,7 +640,17 @@ export default function ProfileForm() {
       </Dialog>
 
       {/* Password Change Dialog */}
-      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+      <Dialog
+        open={passwordDialogOpen}
+        onOpenChange={open => {
+          setPasswordDialogOpen(open);
+          if (!open) {
+            passwordForm.reset();
+            setShowPassword(false);
+            setShowPasswordRepeat(false);
+          }
+        }}
+      >
         <DialogContent className="w-[90%] sm:w-1/2 max-w-md">
           <DialogHeader>
             <DialogTitle>{t('form.password')}</DialogTitle>
@@ -719,7 +732,12 @@ export default function ProfileForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setPasswordDialogOpen(false)}
+                  onClick={() => {
+                    setPasswordDialogOpen(false);
+                    passwordForm.reset();
+                    setShowPassword(false);
+                    setShowPasswordRepeat(false);
+                  }}
                 >
                   {t('cancel')}
                 </Button>

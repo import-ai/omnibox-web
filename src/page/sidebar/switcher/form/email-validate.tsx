@@ -33,7 +33,7 @@ const EmailSchema = z.object({
 type EmailFormValues = z.infer<typeof EmailSchema>;
 
 interface IProps {
-  onFinish: (code: string) => void;
+  onFinish: (email: string, code: string) => Promise<void>;
 }
 
 // Step 1: Input new email interface
@@ -128,17 +128,29 @@ function VerificationCodeStep({
   onVerify,
   onResend,
   submitting,
+  error,
+  onClearError,
 }: {
   email: string;
   onVerify: (code: string) => void;
   onResend: () => void;
   submitting: boolean;
+  error: string;
+  onClearError: () => void;
 }) {
   const { t } = useTranslation();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Clear code and focus first input when error occurs
+  useEffect(() => {
+    if (error) {
+      setCode(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+    }
+  }, [error]);
 
   // Countdown timer
   useEffect(() => {
@@ -153,6 +165,11 @@ function VerificationCodeStep({
   const handleInputChange = (index: number, value: string) => {
     // Only allow digits
     if (value && !/^\d$/.test(value)) return;
+
+    // Clear error when user starts typing
+    if (error) {
+      onClearError();
+    }
 
     const newCode = [...code];
     newCode[index] = value;
@@ -213,28 +230,33 @@ function VerificationCodeStep({
           </p>
         </div>
 
-        <div className="flex h-14 w-96 items-center justify-center">
-          {code.map((digit, index) => (
-            <input
-              key={index}
-              ref={el => (inputRefs.current[index] = el)}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={e => handleInputChange(index, e.target.value)}
-              onKeyDown={e => handleKeyDown(index, e)}
-              onPaste={index === 0 ? handlePaste : undefined}
-              disabled={submitting}
-              className={`h-12 w-12 border border-border bg-background text-center text-2xl font-semibold outline-none focus:border-primary ${
-                index === 0
-                  ? 'rounded-l-md'
-                  : index === 5
-                    ? 'rounded-r-md border-l-0'
-                    : 'border-l-0'
-              }`}
-            />
-          ))}
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex h-14 w-96 items-center justify-center">
+            {code.map((digit, index) => (
+              <input
+                key={index}
+                ref={el => (inputRefs.current[index] = el)}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={e => handleInputChange(index, e.target.value)}
+                onKeyDown={e => handleKeyDown(index, e)}
+                onPaste={index === 0 ? handlePaste : undefined}
+                disabled={submitting}
+                className={`h-12 w-12 border bg-background text-center text-2xl font-semibold outline-none focus:border-primary ${
+                  error ? 'border-red-500' : 'border-border'
+                } ${
+                  index === 0
+                    ? 'rounded-l-md'
+                    : index === 5
+                      ? 'rounded-r-md border-l-0'
+                      : 'border-l-0'
+                }`}
+              />
+            ))}
+          </div>
+          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
         </div>
 
         <div className="flex w-full flex-col items-center justify-center gap-2.5">
@@ -270,13 +292,18 @@ export default function EmailValidate(props: IProps) {
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [newEmail, setNewEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSendCode = async (email: string) => {
     setSubmitting(true);
     try {
-      await http.post('/user/email/send-code', { email });
+      await http.post('/auth/send-otp', {
+        email,
+        url: `${window.location.origin}/user/verify-otp`,
+      });
       setNewEmail(email);
       setStep('code');
+      setError('');
       toast.success(t('email.code_sent'), { position: 'bottom-right' });
     } catch (error: any) {
       toast.error(error.message || t('email.send_failed'), {
@@ -289,7 +316,11 @@ export default function EmailValidate(props: IProps) {
 
   const handleResendCode = async () => {
     try {
-      await http.post('/user/email/send-code', { email: newEmail });
+      await http.post('/auth/send-otp', {
+        email: newEmail,
+        url: `${window.location.origin}/user/verify-otp`,
+      });
+      setError('');
       toast.success(t('email.code_sent'), { position: 'bottom-right' });
     } catch (error: any) {
       toast.error(error.message || t('email.send_failed'), {
@@ -298,8 +329,36 @@ export default function EmailValidate(props: IProps) {
     }
   };
 
-  const handleVerify = (code: string) => {
-    onFinish(code);
+  const handleVerify = async (code: string) => {
+    setSubmitting(true);
+    setError('');
+    try {
+      // Call onFinish to update user email with the verification code
+      await onFinish(newEmail, code);
+    } catch (err: any) {
+      setSubmitting(false);
+      const response = err.response?.data;
+      // Handle error with remaining attempts
+      if (response?.remaining !== undefined) {
+        if (response.remaining > 0) {
+          setError(
+            t('verify_otp.error_invalid_code_with_attempts', {
+              remaining: response.remaining,
+            })
+          );
+        } else {
+          setError(t('verify_otp.error_too_many_attempts'));
+        }
+      } else if (response?.code === 'otp_expired') {
+        setError(t('verify_otp.error_expired_code'));
+      } else {
+        setError(response?.message || t('verify_otp.error_invalid_code'));
+      }
+    }
+  };
+
+  const handleClearError = () => {
+    setError('');
   };
 
   if (step === 'email') {
@@ -318,6 +377,8 @@ export default function EmailValidate(props: IProps) {
       onVerify={handleVerify}
       onResend={handleResendCode}
       submitting={submitting}
+      error={error}
+      onClearError={handleClearError}
     />
   );
 }

@@ -60,7 +60,7 @@ export function Switcher(props: IProps) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
               <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
-                {current.name.charAt(0)}
+                {current.name.charAt(0).toUpperCase()}
               </div>
               <span className="truncate">{current.name}</span>
               <ChevronDown className="opacity-50" />
@@ -75,7 +75,7 @@ export function Switcher(props: IProps) {
             <DropdownMenuLabel>
               <div className="flex items-center gap-2 px-1 text-left text-sm">
                 <Avatar className="size-8 text-[18px] rounded-lg flex items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
-                  {current.name.charAt(0)}
+                  {current.name.charAt(0).toUpperCase()}
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{current.name}</span>
@@ -110,7 +110,7 @@ export function Switcher(props: IProps) {
                 }}
               >
                 <div className="flex rounded-[6px] size-6 text-[11px] items-center justify-center border">
-                  {item.name.charAt(0)}
+                  {item.name.charAt(0).toUpperCase()}
                 </div>
                 <span className="truncate">{item.name}</span>
                 {/* <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut> */}

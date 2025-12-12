@@ -65,6 +65,8 @@
   },
   "actions": {
     "copy_link": "Copy Link",
+    "copy_link_success": "Your link has been copied successfully",
+    "copy_link_failed": "Failed to copy your link",
     "copy_content": "Copy content",
     "duplicate": "Create a copy",
     "download": "Download source file",
@@ -99,6 +101,7 @@
     "password_not_match": "Password does not match",
     "email": "Email",
     "email_invalid": "Please enter a valid email address",
+    "email_domain_not_allowed": "Only Gmail, Outlook, 163, and QQ emails are allowed",
     "email_limit": "Only Gmail, Outlook, 163, and QQ emails are allowed",
     "email_limit_rule": "Email must be from Gmail, Outlook, 163, or QQ",
     "email_or_username": "Email or username",
@@ -541,7 +544,9 @@
       "update": "Update",
       "delete": "Delete"
     },
-    "related_application": "Related Application"
+    "related_application": "Related Application",
+    "show": "Show",
+    "hide": "Hide"
   },
   "tasks": {
     "title": "Task Management",
@@ -570,6 +575,10 @@
     "status_finished": "Done",
     "status_canceled": "Canceled",
     "status_error": "Error",
+    "confirm_cancel_title": "Confirm Cancel",
+    "confirm_cancel_description": "The task will be stopped immediately. This action cannot be undone.",
+    "continue_running": "Continue Running",
+    "confirm_cancel": "Confirm Cancel",
     "functions": {
       "collect": "Collect",
       "upsert_index": "Index",

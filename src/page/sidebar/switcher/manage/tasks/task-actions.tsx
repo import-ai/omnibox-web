@@ -1,9 +1,20 @@
-import { ExternalLink, RefreshCw } from 'lucide-react';
+import { ExternalLink, LoaderCircle, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Tooltip,
   TooltipContent,
@@ -96,22 +107,50 @@ export function TaskActions({
           <TooltipContent side="top">{t('tasks.view_resource')}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={canCancel ? handleCancel : undefined}
-              disabled={isLoading || !canCancel}
-              className={`flex items-center justify-center transition-opacity disabled:opacity-40 ${
-                canCancel ? 'hover:opacity-70' : 'cursor-not-allowed opacity-40'
-              }`}
+      <AlertDialog>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <AlertDialogTrigger asChild>
+                <button
+                  disabled={isLoading || !canCancel}
+                  className={`flex items-center justify-center transition-opacity disabled:opacity-40 ${
+                    canCancel
+                      ? 'hover:opacity-70'
+                      : 'cursor-not-allowed opacity-40'
+                  }`}
+                >
+                  <StopIcon className="size-3.5 text-muted-foreground" />
+                </button>
+              </AlertDialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="top">{t('cancel')}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('tasks.confirm_cancel_title')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('tasks.confirm_cancel_description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('tasks.continue_running')}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleCancel}
             >
-              <StopIcon className="size-3.5 text-muted-foreground" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="top">{t('cancel')}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+              {isLoading && (
+                <LoaderCircle className="mr-2 size-4 animate-spin" />
+              )}
+              {t('tasks.confirm_cancel')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <TooltipProvider>
         <Tooltip>
