@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import { http } from '@/lib/request';
 import { SidebarNav } from '@/page/user/form/sidebar';
 
+import About from './about';
 import { ApplicationsForm } from './applications';
 import CommonForm from './basic';
 import Content from './content';
@@ -80,6 +81,11 @@ export default function SettingWrapper({
       label: t('setting.third_party_account.manage'),
       value: 'third-party',
       children: <ThirdPartyForm />,
+    },
+    {
+      label: t('setting.about'),
+      value: 'about',
+      children: <About />,
     },
   ];
 
