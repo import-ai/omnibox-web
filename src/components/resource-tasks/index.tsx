@@ -1,28 +1,29 @@
-import { ListChecks, LoaderCircle } from 'lucide-react';
+import { ListChecks, ListVideo, LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { RESOURCE_TASKS_INTERVAL } from '@/const.ts';
-import { Resource, Task, TaskStatus } from '@/interface';
+import { Resource, Task } from '@/interface';
 import { http } from '@/lib/request';
-import { statusConfig } from '@/page/sidebar/switcher/manage/tasks/task-status-badge';
+
+import { CONTENT_MODIFYING_FUNCTIONS, DISPLAY_FUNCTIONS } from './const';
+import { DoneIcon } from './done-icon';
+import { ProgressIcon } from './progress-icon';
+import { TaskTag } from './task-tag';
+import { hasActiveContentModifyingTasks } from './utils';
 
 interface ResourceTasksProps {
   resource: Resource;
   namespaceId: string;
   onResource: (resource: Resource) => void;
 }
-
-const CONTENT_MODIFYING_FUNCTIONS = [
-  'collect',
-  'file_reader',
-  'extract_tags',
-  'generate_title',
-  'generate_video_note',
-];
-
-const DISPLAY_FUNCTIONS = CONTENT_MODIFYING_FUNCTIONS;
 
 export default function ResourceTasks({
   resource,
@@ -33,16 +34,6 @@ export default function ResourceTasks({
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const formatFunction = (functionName: string): string => {
-    const translationKey = `tasks.functions.${functionName}`;
-    const translated = t(translationKey);
-    return translated !== translationKey ? translated : functionName;
-  };
-
-  const getTaskBadgeConfig = (status: TaskStatus) => {
-    return statusConfig[status];
-  };
 
   const fetchTasks = async () => {
     try {
@@ -57,14 +48,6 @@ export default function ResourceTasks({
     } finally {
       setLoading(false);
     }
-  };
-
-  const hasActiveContentModifyingTasks = (taskList: Task[]): boolean => {
-    return taskList.some(
-      task =>
-        CONTENT_MODIFYING_FUNCTIONS.includes(task.function) &&
-        (task.status === 'running' || task.status === 'pending')
-    );
   };
 
   // Initial fetch
@@ -176,6 +159,13 @@ export default function ResourceTasks({
     return null;
   }
 
+  // Group tasks by status
+  const pendingTasks = relevantTasks.filter(task => task.status === 'pending');
+  const runningTasks = relevantTasks.filter(task => task.status === 'running');
+  const finishedTasks = relevantTasks.filter(
+    task => task.status === 'finished'
+  );
+
   return (
     <div className="flex items-center gap-3">
       <ListChecks className="size-4 text-muted-foreground" />
@@ -184,18 +174,84 @@ export default function ResourceTasks({
       </span>
       <span className="flex items-center text-foreground h-7">
         <span className="flex gap-2">
-          {relevantTasks.map(task => {
-            const config = getTaskBadgeConfig(task.status);
-            return (
-              <Badge
-                key={task.id}
-                variant={config.variant}
-                className={config.className}
+          {pendingTasks.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="focus-visible:outline-none">
+                <Button
+                  variant="secondary"
+                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs focus-visible:outline-none border border-neutral-500 text-neutral-500 bg-transparent dark:border-neutral-300 dark:text-neutral-300"
+                >
+                  <ListVideo />
+                  {t('tasks.status_label_pending')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="bottom"
+                className="flex flex-col gap-[5px] p-[3px] min-w-[93px] max-h-[90px] overflow-y-auto"
               >
-                {formatFunction(task.function)}
-              </Badge>
-            );
-          })}
+                {pendingTasks.map(task => (
+                  <DropdownMenuItem
+                    key={task.id}
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <TaskTag type={task.function as any} />
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {runningTasks.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="focus-visible:outline-none">
+                <Button
+                  variant="secondary"
+                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs border border-blue-500 text-blue-500 bg-transparent dark:border-blue-400 dark:text-blue-400"
+                >
+                  <ProgressIcon />
+                  {t('tasks.status_label_running')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="bottom"
+                className="flex flex-col gap-[5px] p-[3px] min-w-[93px] max-h-[90px] overflow-y-auto"
+              >
+                {runningTasks.map(task => (
+                  <DropdownMenuItem
+                    key={task.id}
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <TaskTag type={task.function as any} />
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {finishedTasks.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="focus-visible:outline-none">
+                <Button
+                  variant="secondary"
+                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs border border-green-600 text-green-600 bg-transparent dark:border-green-500 dark:text-green-500"
+                >
+                  <DoneIcon />
+                  {t('tasks.status_label_finished')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="bottom"
+                className="flex flex-col gap-[5px] p-[3px] min-w-[93px] max-h-[90px] overflow-y-auto"
+              >
+                {finishedTasks.map(task => (
+                  <DropdownMenuItem
+                    key={task.id}
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <TaskTag type={task.function as any} />
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </span>
         {hasActiveContentModifyingTasks(relevantTasks) && (
           <LoaderCircle className="ml-2 transition-transform animate-spin" />
