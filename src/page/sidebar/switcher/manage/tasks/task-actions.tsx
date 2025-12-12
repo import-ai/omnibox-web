@@ -22,9 +22,6 @@ export function TaskActions({
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
-  const canCancel = task.status === 'pending' || task.status === 'running';
-  const canRerun = task.status === 'canceled';
-
   const handleCancel = async () => {
     setIsLoading(true);
     try {
@@ -55,7 +52,7 @@ export function TaskActions({
 
   return (
     <div className="flex gap-2">
-      {task.attrs?.resource_id && (
+      {task.canRedirect && task.attrs?.resource_id && (
         <Button size="sm" variant="outline" asChild>
           <Link to={`/${namespaceId}/${task.attrs.resource_id}`}>
             <ExternalLink className="h-4 w-4" />
@@ -63,7 +60,7 @@ export function TaskActions({
           </Link>
         </Button>
       )}
-      {canCancel && (
+      {task.canCancel && (
         <Button
           size="sm"
           variant="outline"
@@ -74,7 +71,7 @@ export function TaskActions({
           {t('tasks.cancel')}
         </Button>
       )}
-      {canRerun && (
+      {task.canRerun && (
         <Button
           size="sm"
           variant="outline"
