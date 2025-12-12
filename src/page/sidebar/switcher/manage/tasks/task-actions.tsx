@@ -55,8 +55,9 @@ export function TaskActions({
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
-  const canCancel = task.status === 'pending' || task.status === 'running';
-  const canRerun = task.status === 'canceled';
+  const canCancel = task.canCancel;
+  const canRerun = task.canRerun;
+  const canRedirect = task.canRedirect;
 
   const handleCancel = async () => {
     setIsLoading(true);
@@ -91,7 +92,7 @@ export function TaskActions({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            {task.attrs?.resource_id ? (
+            {canRedirect && task.attrs?.resource_id ? (
               <Link
                 to={`/${namespaceId}/${task.attrs.resource_id}`}
                 className="flex items-center justify-center transition-opacity hover:opacity-70"

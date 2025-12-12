@@ -269,6 +269,9 @@ export interface Task {
   started_at: string | null;
   ended_at: string | null;
   canceled_at: string | null;
+  canCancel?: boolean;
+  canRerun?: boolean;
+  canRedirect?: boolean;
 }
 
 export interface ApplicationAttrs {
