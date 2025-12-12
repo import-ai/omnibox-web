@@ -581,9 +581,11 @@
     "confirm_cancel": "确认取消",
     "functions": {
       "collect": "收藏",
+      "index": "索引",
       "upsert_index": "索引",
       "delete_index": "删除索引",
       "file_reader": "文件解析",
+      "message_index": "消息索引",
       "upsert_message_index": "消息索引",
       "delete_conversation": "删除对话",
       "extract_tags": "生成标签",
