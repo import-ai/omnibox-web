@@ -228,12 +228,12 @@ export function TaskList({ namespaceId }: TaskListProps) {
       </div>
 
       <div className="flex-1 min-h-0 w-full overflow-auto rounded-md border border-border">
-        <div className="min-w-[310px]">
+        <div className="min-w-[320px]">
           <div className="flex h-8 lg:h-10 items-center border-b border-border px-2 lg:px-8 text-xs lg:text-sm font-medium text-muted-foreground sticky top-0 bg-background z-10">
-            <div className="w-[90px] lg:w-[120px] whitespace-nowrap">
+            <div className="w-[110px] lg:w-[120px] whitespace-nowrap">
               {t('tasks.function')}
             </div>
-            <div className="ml-2 lg:ml-4 w-7 whitespace-nowrap text-center">
+            <div className="ml-3 lg:ml-4 w-7 whitespace-nowrap text-center">
               {t('tasks.status')}
             </div>
             <div className="ml-4 lg:ml-8 w-[90px] lg:w-[119px] whitespace-nowrap">
@@ -250,11 +250,11 @@ export function TaskList({ namespaceId }: TaskListProps) {
                 key={task.id}
                 className="flex h-12 lg:h-14 items-center border-b border-border px-2 lg:px-8 last:border-b-0"
               >
-                <div className="w-[90px] lg:w-[100px]">
+                <div className="w-[110px] lg:w-[120px]">
                   <TaskTypeBadge functionName={task.function} />
                 </div>
 
-                <div className="ml-2 lg:ml-8 flex w-7 justify-center">
+                <div className="ml-3 lg:ml-4 flex w-7 justify-center">
                   <TaskStatusBadge status={task.status as any} />
                 </div>
 

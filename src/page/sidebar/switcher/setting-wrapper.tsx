@@ -99,7 +99,7 @@ export default function SettingWrapper({
 
   return (
     <SettingsToastProvider>
-      <div className="relative flex flex-col lg:flex-row h-full w-full rounded-xl bg-card">
+      <div className="relative flex flex-col lg:flex-row flex-1 min-h-0 w-full rounded-xl bg-card">
         {/* 侧边栏 */}
         <div className="w-full lg:w-[247px] shrink-0">
           <SettingsSidebar
@@ -120,14 +120,12 @@ export default function SettingWrapper({
         </button>
 
         {/* 内容区域 */}
-        <div className="flex-1 flex flex-col min-h-0 min-w-0 rounded-b-xl lg:rounded-r-xl lg:rounded-bl-none dark:bg-neutral-900">
-          <div className="flex-1 min-h-0 flex flex-col p-2 pt-2 lg:p-4 lg:pl-10 lg:pr-4 lg:pt-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900">
-            {
-              items
-                .filter(item => !item.requireOwner || userIsOwner)
-                .find(item => item.value === activeKey)?.children
-            }
-          </div>
+        <div className="flex-1 min-h-0 min-w-0 rounded-b-xl lg:rounded-r-xl lg:rounded-bl-none dark:bg-neutral-900 overflow-auto p-2 pt-2 lg:p-4 lg:pl-10 lg:pr-4 lg:pt-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900">
+          {
+            items
+              .filter(item => !item.requireOwner || userIsOwner)
+              .find(item => item.value === activeKey)?.children
+          }
         </div>
       </div>
     </SettingsToastProvider>

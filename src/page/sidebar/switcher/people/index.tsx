@@ -34,16 +34,14 @@ export default function PeopleManage() {
   useEffect(refetch, []);
 
   return (
-    <div className="flex flex-col h-full">
+    <div>
       <Invite
         namespaceId={namespaceId}
         invitationId={invitationId}
         refetch={refetch}
       />
       <Separator className="my-2 lg:my-4" />
-      <div className="flex-1 min-h-0">
-        <Table />
-      </div>
+      <Table />
     </div>
   );
 }

@@ -124,7 +124,7 @@ export default function GroupData(props: GroupProps) {
             <span className="block truncate text-sm">{title}</span>
           </div>
         </div>
-        <div className="w-[60px] lg:w-[115px] px-2 whitespace-nowrap">
+        <div className="w-[80px] lg:w-[115px] px-2 whitespace-nowrap">
           <span className="text-sm text-muted-foreground">
             {t('manage.member_count', { size: groupUserData.length })}
           </span>

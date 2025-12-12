@@ -21,11 +21,7 @@ export default function ManagePeople() {
   }
 
   return (
-    <Tabs
-      value={tab}
-      onValueChange={onTab}
-      className="w-full h-full flex flex-col"
-    >
+    <Tabs value={tab} onValueChange={onTab} className="w-full">
       <TabsList className="h-9 lg:h-11 w-full justify-start rounded-none border-b border-border bg-transparent shrink-0">
         <TabsTrigger
           value="member"
@@ -40,10 +36,7 @@ export default function ManagePeople() {
           {t('manage.group')} {data.group.length}
         </TabsTrigger>
       </TabsList>
-      <TabsContent
-        value="member"
-        className="pt-2 lg:pt-4 flex-1 min-h-0 mt-0 overflow-hidden"
-      >
+      <TabsContent value="member" className="pt-2 lg:pt-4 mt-0">
         <Member
           search={search}
           refetch={refetch}
@@ -60,10 +53,7 @@ export default function ManagePeople() {
           }
         />
       </TabsContent>
-      <TabsContent
-        value="group"
-        className="pt-2 lg:pt-4 flex-1 min-h-0 mt-0 overflow-hidden"
-      >
+      <TabsContent value="group" className="pt-2 lg:pt-4 mt-0">
         <Group
           search={search}
           refetch={refetch}

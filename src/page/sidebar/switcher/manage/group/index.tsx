@@ -43,29 +43,27 @@ export default function GroupMain(props: GroupProps) {
   };
 
   return (
-    <div className="h-full flex flex-col w-full overflow-hidden">
-      <div className="flex items-center justify-between gap-2 shrink-0 mb-2 lg:mb-4">
+    <div className="space-y-2 lg:space-y-4">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <Input
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
           className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground"
         />
-        <div className="shrink-0">
-          <CreateGroup
-            data={edit}
-            onFinish={handleFinish}
-            onToggle={handleToggle}
-          />
-        </div>
+        <CreateGroup
+          data={edit}
+          onFinish={handleFinish}
+          onToggle={handleToggle}
+        />
       </div>
-      <div className="h-[300px] lg:h-[377px] overflow-y-auto pb-2">
-        <div className="w-[320px] lg:w-full">
+      <div className="overflow-auto max-w-[83vw] sm:max-w-full">
+        <div className="min-w-[320px]">
           <div className="flex w-full border-b border-border sticky top-0 bg-background z-10">
             <div className="flex h-8 lg:h-10 w-[100px] lg:w-[210px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
               {t('manage.group')}
             </div>
-            <div className="flex h-8 lg:h-10 w-[60px] lg:w-[115px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
+            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[115px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
               {t('manage.member')}
             </div>
             <div className="flex h-8 lg:h-10 w-[60px] lg:w-[127px] items-center justify-center text-sm lg:text-base font-medium text-foreground whitespace-nowrap">

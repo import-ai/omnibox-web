@@ -43,27 +43,22 @@ export default function MemberMain(props: MemberProps) {
   }, [namespace_id]);
 
   return (
-    <div className="h-full flex flex-col w-full overflow-hidden">
-      <div className="flex items-center justify-between gap-2 shrink-0 mb-2 lg:mb-4">
+    <div className="space-y-2 lg:space-y-4">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <Input
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
           className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground"
         />
-        <div className="shrink-0">
-          <Invite onFinish={refetch}>
-            <Button
-              size="sm"
-              className="h-[30px] w-[71px] text-sm font-semibold"
-            >
-              {t('manage.add')}
-            </Button>
-          </Invite>
-        </div>
+        <Invite onFinish={refetch}>
+          <Button size="sm" className="h-[30px] w-[71px] text-sm font-semibold">
+            {t('manage.add')}
+          </Button>
+        </Invite>
       </div>
-      <div className="h-[300px] lg:h-[377px] overflow-y-auto pb-2">
-        <div className="w-[320px] lg:w-full">
+      <div className="overflow-auto max-w-[83vw] sm:max-w-full">
+        <div className="min-w-[320px]">
           <div className="flex w-full border-b border-border sticky top-0 bg-background z-10">
             <div className="flex h-8 lg:h-10 w-[120px] lg:w-[210px] items-center px-2 text-sm font-medium text-foreground whitespace-nowrap">
               {t('manage.user')}
