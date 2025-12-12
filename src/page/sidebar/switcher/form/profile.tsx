@@ -113,23 +113,15 @@ function ActionButton({
 }
 
 // Section header with divider - Title: 20px, weight 600, line-height 28px; Divider at 38px from top
-function SectionHeader({
-  title,
-  width = 532,
-}: {
-  title: string;
-  width?: number;
-}) {
+function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="relative" style={{ height: '48px', width: `${width}px` }}>
+    <div className="relative w-full lg:w-[532px]" style={{ height: '48px' }}>
       <p
-        className="absolute text-foreground whitespace-nowrap"
+        className="absolute text-foreground whitespace-nowrap text-base lg:text-xl font-semibold"
         style={{
           left: 0,
           top: 0,
           fontFamily: 'Inter, "Noto Sans SC", "Noto Sans JP", sans-serif',
-          fontSize: '20px',
-          fontWeight: 600,
           lineHeight: '28px',
           letterSpacing: '0px',
         }}
@@ -138,8 +130,8 @@ function SectionHeader({
       </p>
       {/* Divider line at 38px from top */}
       <Separator
-        className="absolute"
-        style={{ left: 0, top: '38px', width: `${width}px` }}
+        className="absolute w-full lg:w-[532px]"
+        style={{ left: 0, top: '38px' }}
       />
     </div>
   );
@@ -156,45 +148,20 @@ function InfoRow({
   button: React.ReactNode;
 }) {
   return (
-    <div
-      className="flex items-center justify-between"
-      style={{ width: '533px', height: '30px' }}
-    >
+    <div className="flex items-center justify-between w-full lg:w-[533px] h-[30px]">
       {/* Left side with label and value */}
-      <div
-        className="flex items-center"
-        style={{ height: '24px', width: '411.5px', gap: '12px' }}
-      >
+      <div className="flex items-center h-[24px] flex-1 min-w-0 gap-2 lg:gap-3">
         {/* Label */}
-        <p
-          className="text-foreground whitespace-nowrap flex-shrink-0"
-          style={{
-            fontFamily: 'Inter, "Noto Sans JP", "Noto Sans SC", sans-serif',
-            fontSize: '16px',
-            fontWeight: 600,
-            lineHeight: '24px',
-            letterSpacing: '0px',
-          }}
-        >
+        <p className="text-foreground whitespace-nowrap flex-shrink-0 text-sm lg:text-base font-semibold">
           {label}
         </p>
         {/* Value */}
-        <p
-          className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '16px',
-            fontWeight: 400,
-            lineHeight: '24px',
-            letterSpacing: '0px',
-            maxWidth: '333px',
-          }}
-        >
+        <p className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap text-sm lg:text-base flex-1 min-w-0">
           {value}
         </p>
       </div>
       {/* Button - fixed 71×30px */}
-      <div className="flex-shrink-0">{button}</div>
+      <div className="flex-shrink-0 ml-2">{button}</div>
     </div>
   );
 }
@@ -220,53 +187,25 @@ function BindingRow({
   const { t } = useTranslation();
 
   return (
-    <div
-      className="flex items-center justify-between"
-      style={{ width: '532px', height: '30px' }}
-    >
+    <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
       {/* Left side with icon, label, and value */}
-      <div
-        className="flex items-center"
-        style={{ height: '22px', width: '411.5px', gap: '12px' }}
-      >
+      <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
         {/* Icon and label group - gap: 9px */}
-        <div className="flex items-center flex-shrink-0" style={{ gap: '9px' }}>
-          <span
-            className="flex-shrink-0 flex items-center justify-center"
-            style={{ width: '20px', height: '20px' }}
-          >
+        <div className="flex items-center flex-shrink-0 gap-2">
+          <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
             {icon}
           </span>
-          <p
-            className="text-foreground whitespace-nowrap"
-            style={{
-              fontFamily: 'Inter, "Noto Sans JP", sans-serif',
-              fontSize: '16px',
-              fontWeight: 600,
-              lineHeight: '24px',
-              letterSpacing: '0px',
-            }}
-          >
+          <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
             {label}
           </p>
         </div>
         {/* Value */}
-        <p
-          className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis"
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '16px',
-            fontWeight: 400,
-            lineHeight: '24px',
-            letterSpacing: '0px',
-            maxWidth: '333px',
-          }}
-        >
+        <p className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis text-sm lg:text-base flex-1 min-w-0">
           {value}
         </p>
       </div>
       {/* Button - Figma: both bound and unbound use outline style (white bg, border) */}
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 ml-2">
         {isBound ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -468,10 +407,7 @@ export default function ProfileForm() {
   const maskedPassword = '••••••••••••';
 
   return (
-    <div
-      className="flex flex-col items-start"
-      style={{ width: '533px', gap: '20px' }}
-    >
+    <div className="flex flex-col items-start w-full lg:w-[533px] gap-4 lg:gap-5">
       {/* Account Section Header */}
       <SectionHeader title={t('setting.account')} />
 
@@ -518,52 +454,21 @@ export default function ProfileForm() {
       */}
 
       {/* Email Row */}
-      <div
-        className="flex items-center justify-between"
-        style={{ width: '532px', height: '30px' }}
-      >
-        <div
-          className="flex items-center"
-          style={{ height: '22px', width: '411.5px', gap: '12px' }}
-        >
-          <div
-            className="flex items-center flex-shrink-0"
-            style={{ gap: '9px' }}
-          >
-            <span
-              className="flex-shrink-0 flex items-center justify-center"
-              style={{ width: '20px', height: '20px' }}
-            >
+      <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
+        <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
+          <div className="flex items-center flex-shrink-0 gap-2">
+            <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
               {isDark ? <DarkMailIcon /> : <MailIcon />}
             </span>
-            <p
-              className="text-foreground whitespace-nowrap"
-              style={{
-                fontFamily: 'Inter, "Noto Sans JP", sans-serif',
-                fontSize: '16px',
-                fontWeight: 600,
-                lineHeight: '24px',
-                letterSpacing: '0px',
-              }}
-            >
+            <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
               {t('setting.email_binding')}
             </p>
           </div>
-          <p
-            className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis"
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '16px',
-              fontWeight: 400,
-              lineHeight: '24px',
-              letterSpacing: '0px',
-              maxWidth: '333px',
-            }}
-          >
+          <p className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis text-sm lg:text-base flex-1 min-w-0">
             {user?.email || t('setting.not_bound')}
           </p>
         </div>
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 ml-2">
           <ActionButton onClick={() => setEmailDialogOpen(true)}>
             {t('setting.change')}
           </ActionButton>
@@ -756,24 +661,14 @@ export default function ProfileForm() {
 
       {/* Email Validation Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent
-          className="p-0 border-none bg-transparent shadow-none"
-          style={{ width: '445px', maxWidth: '445px' }}
-        >
+        <DialogContent className="p-0 border-none bg-transparent shadow-none w-[90%] lg:w-[445px] max-w-[445px]">
           <VisuallyHidden>
             <DialogHeader>
               <DialogTitle>{t('email.validate')}</DialogTitle>
               <DialogDescription>{t('email.description')}</DialogDescription>
             </DialogHeader>
           </VisuallyHidden>
-          <div
-            className="bg-card rounded-[12px] flex items-center justify-center"
-            style={{
-              width: '445px',
-              minHeight: '303px',
-              padding: '48px 30px 32px 30px',
-            }}
-          >
+          <div className="bg-card rounded-[12px] flex items-center justify-center w-full min-h-[280px] lg:min-h-[303px] p-6 lg:p-[48px_30px_32px_30px]">
             <EmailValidate onFinish={handleEmailValidateFinish} />
           </div>
         </DialogContent>
@@ -781,10 +676,7 @@ export default function ProfileForm() {
 
       {/* Phone Binding Dialog */}
       <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
-        <DialogContent
-          className="p-0 border-none bg-transparent shadow-none"
-          style={{ width: '445px', maxWidth: '445px' }}
-        >
+        <DialogContent className="p-0 border-none bg-transparent shadow-none w-[90%] lg:w-[445px] max-w-[445px]">
           <VisuallyHidden>
             <DialogHeader>
               <DialogTitle>{t('phone.input_phone')}</DialogTitle>
@@ -793,14 +685,7 @@ export default function ProfileForm() {
               </DialogDescription>
             </DialogHeader>
           </VisuallyHidden>
-          <div
-            className="bg-card rounded-[12px] flex items-center justify-center"
-            style={{
-              width: '445px',
-              minHeight: '303px',
-              padding: '48px 30px 32px 30px',
-            }}
-          >
+          <div className="bg-card rounded-[12px] flex items-center justify-center w-full min-h-[280px] lg:min-h-[303px] p-6 lg:p-[48px_30px_32px_30px]">
             <PhoneValidate
               currentPhone={user?.phone}
               onFinish={() => {

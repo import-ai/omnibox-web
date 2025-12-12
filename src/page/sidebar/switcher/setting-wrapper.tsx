@@ -99,10 +99,9 @@ export default function SettingWrapper({
 
   return (
     <SettingsToastProvider>
-      <div className="relative h-[517px] w-[858px] rounded-xl bg-card">
-        <div className="absolute inset-0 rounded-xl bg-card" />
-
-        <div className="absolute left-0 top-0 h-[517px] w-[247px]">
+      <div className="relative flex flex-col lg:flex-row h-full w-full rounded-xl bg-card">
+        {/* 侧边栏 */}
+        <div className="w-full lg:w-[247px] shrink-0">
           <SettingsSidebar
             value={activeKey}
             onChange={onActiveKey}
@@ -111,6 +110,7 @@ export default function SettingWrapper({
           />
         </div>
 
+        {/* 关闭按钮 */}
         <button
           onClick={onClose}
           className="absolute right-4 top-3.5 z-10 text-foreground opacity-70 transition-opacity hover:opacity-100"
@@ -119,13 +119,15 @@ export default function SettingWrapper({
           <span className="sr-only">Close</span>
         </button>
 
-        <div className="absolute left-[247px] top-0 right-0 bottom-0 rounded-r-xl dark:bg-neutral-900" />
-        <div className="absolute left-[286px] top-10 h-[calc(517px-60px)] w-[549px] overflow-y-auto overflow-x-hidden pr-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900">
-          {
-            items
-              .filter(item => !item.requireOwner || userIsOwner)
-              .find(item => item.value === activeKey)?.children
-          }
+        {/* 内容区域 */}
+        <div className="flex-1 flex flex-col min-h-0 min-w-0 rounded-b-xl lg:rounded-r-xl lg:rounded-bl-none dark:bg-neutral-900">
+          <div className="flex-1 min-h-0 flex flex-col p-2 pt-2 lg:p-4 lg:pl-10 lg:pr-4 lg:pt-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900">
+            {
+              items
+                .filter(item => !item.requireOwner || userIsOwner)
+                .find(item => item.value === activeKey)?.children
+            }
+          </div>
         </div>
       </div>
     </SettingsToastProvider>

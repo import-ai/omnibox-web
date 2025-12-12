@@ -38,14 +38,14 @@ export default function AutoTag() {
   };
 
   return (
-    <div className="flex w-full items-center justify-between">
-      <div className="flex items-start gap-2">
-        <Tags className="size-5 shrink-0 text-muted-foreground" />
-        <div className="flex flex-col gap-2">
-          <span className="text-base font-semibold text-foreground">
+    <div className="flex w-full items-center justify-between gap-2">
+      <div className="flex items-start gap-2 min-w-0">
+        <Tags className="size-4 lg:size-5 shrink-0 text-muted-foreground mt-0.5" />
+        <div className="flex flex-col gap-1 lg:gap-2 min-w-0">
+          <span className="text-sm lg:text-base font-semibold text-foreground">
             {t('manage.auto_tag_setting')}
           </span>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-xs lg:text-sm text-muted-foreground">
             {t('manage.auto_tag_description')}
           </span>
         </div>
@@ -55,6 +55,7 @@ export default function AutoTag() {
           checked={isEnabled}
           onCheckedChange={handleToggle}
           disabled={submitting}
+          className="shrink-0"
         />
       )}
     </div>

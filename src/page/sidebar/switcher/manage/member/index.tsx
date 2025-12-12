@@ -5,14 +5,6 @@ import { useTranslation } from 'react-i18next';
 import PermissionAction from '@/components/permission-action';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import UserCard from '@/components/user-card';
 import { Member } from '@/interface';
 import { http } from '@/lib/request';
@@ -51,45 +43,48 @@ export default function MemberMain(props: MemberProps) {
   }, [namespace_id]);
 
   return (
-    <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between">
+    <div className="h-full flex flex-col w-full overflow-hidden">
+      <div className="flex items-center justify-between gap-2 shrink-0 mb-2 lg:mb-4">
         <Input
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-9 w-[435px] rounded-md border-border placeholder:text-muted-foreground"
+          className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground"
         />
-        <Invite onFinish={refetch}>
-          <Button size="sm" className="h-[30px] w-[71px] text-sm font-semibold">
-            {t('manage.add')}
-          </Button>
-        </Invite>
+        <div className="shrink-0">
+          <Invite onFinish={refetch}>
+            <Button
+              size="sm"
+              className="h-[30px] w-[71px] text-sm font-semibold"
+            >
+              {t('manage.add')}
+            </Button>
+          </Invite>
+        </div>
       </div>
-      <div className="border-0">
-        <Table rootClassName="w-full">
-          <TableHeader>
-            <TableRow className="border-b border-border">
-              <TableHead className="h-10 w-[210px] px-2 text-base font-medium text-foreground">
-                {t('manage.user')}
-              </TableHead>
-              <TableHead className="h-10 w-[124px] px-2 text-left text-base font-medium text-foreground">
-                {t('manage.permission')}
-              </TableHead>
-              <TableHead className="h-10 w-[127px] px-2 text-left text-base font-medium text-foreground">
-                {t('manage.role')}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <div className="h-[300px] lg:h-[377px] overflow-y-auto pb-2">
+        <div className="w-[320px] lg:w-full">
+          <div className="flex w-full border-b border-border sticky top-0 bg-background z-10">
+            <div className="flex h-8 lg:h-10 w-[120px] lg:w-[210px] items-center px-2 text-sm font-medium text-foreground whitespace-nowrap">
+              {t('manage.user')}
+            </div>
+            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[124px] items-center px-2 text-sm font-medium text-foreground whitespace-nowrap">
+              {t('manage.permission')}
+            </div>
+            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[127px] items-center px-2 text-sm font-medium text-foreground whitespace-nowrap">
+              {t('manage.role')}
+            </div>
+          </div>
+          <div className="w-full text-sm">
             {data.map(item => (
-              <TableRow
+              <div
                 key={item.user_id}
-                className="h-[60px] border-b border-border"
+                className="flex h-[50px] lg:h-[60px] items-center border-b border-border"
               >
-                <TableCell className="w-[210px] px-2">
+                <div className="w-[120px] lg:w-[210px] px-2 whitespace-nowrap">
                   <UserCard email={item.email || ''} username={item.username} />
-                </TableCell>
-                <TableCell className="w-[124px] px-2 text-left">
+                </div>
+                <div className="w-[90px] lg:w-[124px] px-2 whitespace-nowrap">
                   <PermissionAction
                     disabled={!isOwner}
                     value={item.permission}
@@ -100,8 +95,8 @@ export default function MemberMain(props: MemberProps) {
                     canRemove={false}
                     canNoAccess={true}
                   />
-                </TableCell>
-                <TableCell className="w-[127px] px-2 text-left">
+                </div>
+                <div className="w-[90px] lg:w-[127px] px-2 whitespace-nowrap">
                   <Action
                     disabled={!isOwner}
                     id={item.user_id}
@@ -114,11 +109,11 @@ export default function MemberMain(props: MemberProps) {
                         .findIndex(i => i.role === 'owner') >= 0
                     }
                   />
-                </TableCell>
-              </TableRow>
+                </div>
+              </div>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -70,7 +70,7 @@ export function SettingsSidebar({
   // Account section items - icons match Figma design
   const accountItems: MenuItem[] = [
     {
-      label: t('setting.general'),
+      label: t('setting.preferences'),
       value: 'basic',
       icon: <UserCog className="size-4" />,
     },
@@ -125,21 +125,21 @@ export function SettingsSidebar({
       : username || 'User';
 
   return (
-    <div className="relative h-full w-[247px] shrink-0 rounded-l-xl bg-muted dark:bg-neutral-800">
-      <div className="absolute left-2 top-3 flex w-[231px] flex-col gap-5">
+    <div className="relative h-auto lg:h-full w-full lg:w-[247px] shrink-0 rounded-t-xl lg:rounded-l-xl lg:rounded-tr-none bg-muted dark:bg-neutral-800 overflow-y-auto lg:overflow-visible">
+      <div className="p-3 lg:absolute lg:left-2 lg:top-3 lg:w-[231px] flex flex-col gap-1 lg:gap-5">
         {/* Account Section */}
-        <div className="flex w-full flex-col gap-2">
-          <div className="px-2">
+        <div className="flex w-full flex-col gap-2 lg:gap-2">
+          <div className="hidden lg:block px-2">
             <span className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
               {t('setting.account')}
             </span>
           </div>
 
-          <div className="flex w-full flex-col gap-0.5">
+          <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5">
             <button
               onClick={() => onChange('profile')}
               className={cn(
-                'flex h-[30px] w-full items-center gap-3 rounded px-2.5 py-1 text-left',
+                'flex h-[30px] w-auto lg:w-full items-center gap-2 lg:gap-3 rounded px-2.5 py-1 text-left',
                 value === 'profile'
                   ? 'bg-neutral-200 dark:bg-neutral-700'
                   : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
@@ -166,7 +166,7 @@ export function SettingsSidebar({
                   key={item.value}
                   onClick={() => onChange(item.value)}
                   className={cn(
-                    'flex h-[30px] w-full items-center gap-3 rounded px-3 text-left',
+                    'flex h-[30px] w-auto lg:w-full items-center gap-3 rounded px-3 text-left',
                     isSelected
                       ? 'bg-neutral-200 dark:bg-neutral-700'
                       : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
@@ -195,14 +195,14 @@ export function SettingsSidebar({
         </div>
 
         {/* Space Section */}
-        <div className="flex w-full flex-col gap-2">
-          <div className="px-2">
+        <div className="flex w-full flex-col gap-2 lg:gap-2">
+          <div className="hidden lg:block px-2">
             <span className="w-full text-xs font-semibold text-muted-foreground">
               {t('setting.space')}
             </span>
           </div>
 
-          <div className="flex w-full flex-col gap-0.5 px-2">
+          <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5 px-0 lg:px-2">
             {filteredSpaceItems.map(item => {
               const isSelected = value === item.value;
               const icon =
@@ -215,7 +215,7 @@ export function SettingsSidebar({
                   key={item.value}
                   onClick={() => onChange(item.value)}
                   className={cn(
-                    'flex h-[30px] w-full items-center gap-3 rounded px-1 text-left',
+                    'flex h-[30px] w-auto lg:w-full items-center gap-3 rounded px-2 lg:px-1 text-left',
                     isSelected
                       ? 'bg-neutral-200 dark:bg-neutral-700'
                       : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'

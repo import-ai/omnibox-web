@@ -193,22 +193,22 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
   if (tasks.length === 0) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        <p>{t('tasks.no_tasks')}</p>
+      <div className="p-4 lg:p-8 text-center text-muted-foreground">
+        <p className="text-sm lg:text-base">{t('tasks.no_tasks')}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 p-px">
-      <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h3 className="text-base font-semibold text-foreground">
+    <div className="flex flex-col h-full">
+      <div className="flex w-full items-center justify-between gap-2 shrink-0 mb-2 lg:mb-4">
+        <div className="flex items-center gap-2 lg:gap-4">
+          <h3 className="text-sm lg:text-base font-semibold text-foreground">
             {t('tasks.title')}
           </h3>
           {showViewFilter && (
             <Select value={viewFilter} onValueChange={handleViewFilterChange}>
-              <SelectTrigger className="h-[30px] w-[120px]">
+              <SelectTrigger className="h-7 lg:h-[30px] w-[100px] lg:w-[120px] text-xs lg:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -220,96 +220,98 @@ export function TaskList({ namespaceId }: TaskListProps) {
         </div>
         <Button
           size="sm"
-          className="text-sm font-semibold"
+          className="h-7 lg:h-[30px] px-2 lg:px-3 text-xs lg:text-sm font-semibold shrink-0"
           onClick={handleRefresh}
         >
           {t('common.refresh')}
         </Button>
       </div>
 
-      <div className="w-full rounded-md border border-border">
-        <div className="flex h-10 items-center border-b border-border px-8 text-sm font-medium text-muted-foreground">
-          <div className="w-[120px] whitespace-nowrap">
-            {t('tasks.function')}
-          </div>
-          <div className="ml-4 w-7 whitespace-nowrap text-center">
-            {t('tasks.status')}
-          </div>
-          <div className="ml-8 w-[119px] whitespace-nowrap">
-            {t('tasks.time') || '时间'}
-          </div>
-          <div className="ml-auto w-16 whitespace-nowrap">
-            {t('common.actions')}
-          </div>
-        </div>
-
-        <div>
-          {tasks.map(task => (
-            <div
-              key={task.id}
-              className="flex h-14 items-center border-b border-border px-8 last:border-b-0"
-            >
-              <div className="w-[100px]">
-                <TaskTypeBadge functionName={task.function} />
-              </div>
-
-              <div className="ml-8 flex w-7 justify-center">
-                <TaskStatusBadge status={task.status as any} />
-              </div>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="ml-8 w-[119px] cursor-default text-xs font-medium text-muted-foreground">
-                      {getTimeDescription(task)}
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="p-2.5">
-                    <div className="text-xs">
-                      <div>
-                        {t('tasks.task_id')}：{task.id}
-                      </div>
-                      <div>
-                        {t('tasks.created_at')}：
-                        {task.created_at
-                          ? format(
-                              new Date(task.created_at),
-                              'yyyy-MM-dd HH:mm:ss'
-                            )
-                          : '-'}
-                      </div>
-                      <div>
-                        {t('tasks.started_at')}：
-                        {task.started_at
-                          ? format(
-                              new Date(task.started_at),
-                              'yyyy-MM-dd HH:mm:ss'
-                            )
-                          : '-'}
-                      </div>
-                      <div>
-                        {t('tasks.ended_at')}：
-                        {task.ended_at
-                          ? format(
-                              new Date(task.ended_at),
-                              'yyyy-MM-dd HH:mm:ss'
-                            )
-                          : '-'}
-                      </div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <div className="ml-auto w-16">
-                <TaskActions
-                  task={task}
-                  namespaceId={namespaceId}
-                  onTaskUpdated={fetchTasks}
-                />
-              </div>
+      <div className="flex-1 min-h-0 w-full overflow-auto rounded-md border border-border">
+        <div className="min-w-[310px]">
+          <div className="flex h-8 lg:h-10 items-center border-b border-border px-2 lg:px-8 text-xs lg:text-sm font-medium text-muted-foreground sticky top-0 bg-background z-10">
+            <div className="w-[90px] lg:w-[120px] whitespace-nowrap">
+              {t('tasks.function')}
             </div>
-          ))}
+            <div className="ml-2 lg:ml-4 w-7 whitespace-nowrap text-center">
+              {t('tasks.status')}
+            </div>
+            <div className="ml-4 lg:ml-8 w-[90px] lg:w-[119px] whitespace-nowrap">
+              {t('tasks.time') || '时间'}
+            </div>
+            <div className="ml-auto w-12 lg:w-16 whitespace-nowrap">
+              {t('common.actions')}
+            </div>
+          </div>
+
+          <div>
+            {tasks.map(task => (
+              <div
+                key={task.id}
+                className="flex h-12 lg:h-14 items-center border-b border-border px-2 lg:px-8 last:border-b-0"
+              >
+                <div className="w-[90px] lg:w-[100px]">
+                  <TaskTypeBadge functionName={task.function} />
+                </div>
+
+                <div className="ml-2 lg:ml-8 flex w-7 justify-center">
+                  <TaskStatusBadge status={task.status as any} />
+                </div>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="ml-4 lg:ml-8 w-[90px] lg:w-[119px] cursor-default text-xs font-medium text-muted-foreground">
+                        {getTimeDescription(task)}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="p-2.5">
+                      <div className="text-xs">
+                        <div>
+                          {t('tasks.task_id')}：{task.id}
+                        </div>
+                        <div>
+                          {t('tasks.created_at')}：
+                          {task.created_at
+                            ? format(
+                                new Date(task.created_at),
+                                'yyyy-MM-dd HH:mm:ss'
+                              )
+                            : '-'}
+                        </div>
+                        <div>
+                          {t('tasks.started_at')}：
+                          {task.started_at
+                            ? format(
+                                new Date(task.started_at),
+                                'yyyy-MM-dd HH:mm:ss'
+                              )
+                            : '-'}
+                        </div>
+                        <div>
+                          {t('tasks.ended_at')}：
+                          {task.ended_at
+                            ? format(
+                                new Date(task.ended_at),
+                                'yyyy-MM-dd HH:mm:ss'
+                              )
+                            : '-'}
+                        </div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <div className="ml-auto w-12 lg:w-16">
+                  <TaskActions
+                    task={task}
+                    namespaceId={namespaceId}
+                    onTaskUpdated={fetchTasks}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

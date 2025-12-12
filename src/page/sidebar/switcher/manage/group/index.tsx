@@ -43,43 +43,48 @@ export default function GroupMain(props: GroupProps) {
   };
 
   return (
-    <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between">
+    <div className="h-full flex flex-col w-full overflow-hidden">
+      <div className="flex items-center justify-between gap-2 shrink-0 mb-2 lg:mb-4">
         <Input
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-9 w-[435px] rounded-md border-border placeholder:text-muted-foreground"
+          className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground"
         />
-        <CreateGroup
-          data={edit}
-          onFinish={handleFinish}
-          onToggle={handleToggle}
-        />
-      </div>
-      <div className="border-0">
-        <div className="flex w-full border-b border-border">
-          <div className="flex h-10 w-[210px] items-center px-2 text-base font-medium text-foreground">
-            {t('manage.group')}
-          </div>
-          <div className="flex h-10 w-[115px] items-center px-2 text-base font-medium text-foreground">
-            {t('manage.member')}
-          </div>
-          <div className="flex h-10 w-[127px] items-center justify-center text-base font-medium text-foreground">
-            {t('manage.invite_link')}
-          </div>
+        <div className="shrink-0">
+          <CreateGroup
+            data={edit}
+            onFinish={handleFinish}
+            onToggle={handleToggle}
+          />
         </div>
-        <div className="w-full">
-          {data.map(item => (
-            <GroupData
-              key={item.id}
-              {...item}
-              member={member}
-              refetch={refetch}
-              onEdit={handleEdit}
-              namespace_id={namespace_id}
-            />
-          ))}
+      </div>
+      <div className="h-[300px] lg:h-[377px] overflow-y-auto pb-2">
+        <div className="w-[320px] lg:w-full">
+          <div className="flex w-full border-b border-border sticky top-0 bg-background z-10">
+            <div className="flex h-8 lg:h-10 w-[100px] lg:w-[210px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
+              {t('manage.group')}
+            </div>
+            <div className="flex h-8 lg:h-10 w-[60px] lg:w-[115px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
+              {t('manage.member')}
+            </div>
+            <div className="flex h-8 lg:h-10 w-[60px] lg:w-[127px] items-center justify-center text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
+              {t('manage.invite_link')}
+            </div>
+            <div className="flex h-8 lg:h-10 flex-1 items-center px-2"></div>
+          </div>
+          <div className="w-full">
+            {data.map(item => (
+              <GroupData
+                key={item.id}
+                {...item}
+                member={member}
+                refetch={refetch}
+                onEdit={handleEdit}
+                namespace_id={namespace_id}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

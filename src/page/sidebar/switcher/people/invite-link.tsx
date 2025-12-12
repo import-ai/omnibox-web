@@ -79,17 +79,19 @@ export default function InvitePeople(props: IProps) {
           />
         </DialogContent>
       </Dialog>
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-base font-semibold text-foreground">
+      <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-1 lg:gap-2">
+          <h2 className="text-sm lg:text-base font-semibold text-foreground">
             {t('invite.title')}
           </h2>
-          <p className="text-sm text-neutral-400">{t('invite.description')}</p>
+          <p className="text-xs lg:text-sm text-neutral-400">
+            {t('invite.description')}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-2 lg:mt-0">
           {!!invitationId && (
             <span
-              className="cursor-pointer text-sm text-neutral-400 hover:text-foreground"
+              className="cursor-pointer text-xs lg:text-sm text-neutral-400 hover:text-foreground"
               onClick={handleCopy}
             >
               {t('actions.copy_link')}

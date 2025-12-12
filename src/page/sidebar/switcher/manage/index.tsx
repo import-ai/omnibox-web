@@ -21,22 +21,29 @@ export default function ManagePeople() {
   }
 
   return (
-    <Tabs value={tab} onValueChange={onTab}>
-      <TabsList className="h-11 w-full justify-start rounded-none border-b border-border bg-transparent">
+    <Tabs
+      value={tab}
+      onValueChange={onTab}
+      className="w-full h-full flex flex-col"
+    >
+      <TabsList className="h-9 lg:h-11 w-full justify-start rounded-none border-b border-border bg-transparent shrink-0">
         <TabsTrigger
           value="member"
-          className="h-11 max-w-[120px] flex-1 text-sm font-bold text-muted-foreground data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+          className="h-9 lg:h-11 max-w-[100px] lg:max-w-[120px] flex-1 text-xs lg:text-sm font-bold text-muted-foreground data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
         >
           {t('manage.member')} {data.member.length}
         </TabsTrigger>
         <TabsTrigger
           value="group"
-          className="h-11 max-w-[120px] flex-1 text-sm font-bold text-muted-foreground data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+          className="h-9 lg:h-11 max-w-[100px] lg:max-w-[120px] flex-1 text-xs lg:text-sm font-bold text-muted-foreground data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
         >
           {t('manage.group')} {data.group.length}
         </TabsTrigger>
       </TabsList>
-      <TabsContent value="member">
+      <TabsContent
+        value="member"
+        className="pt-2 lg:pt-4 flex-1 min-h-0 mt-0 overflow-hidden"
+      >
         <Member
           search={search}
           refetch={refetch}
@@ -53,7 +60,10 @@ export default function ManagePeople() {
           }
         />
       </TabsContent>
-      <TabsContent value="group">
+      <TabsContent
+        value="group"
+        className="pt-2 lg:pt-4 flex-1 min-h-0 mt-0 overflow-hidden"
+      >
         <Group
           search={search}
           refetch={refetch}
