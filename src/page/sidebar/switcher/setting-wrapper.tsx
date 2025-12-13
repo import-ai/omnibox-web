@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import useUser from '@/hooks/use-user';
 import { http } from '@/lib/request';
 
+import About from './about';
 import { ApplicationsForm } from './applications';
 import CommonForm from './basic';
 import Content from './content';
@@ -71,6 +72,10 @@ export default function SettingWrapper({
     {
       value: 'content',
       children: <Content />,
+    },
+    {
+      value: 'about',
+      children: <About />,
     },
   ];
 
