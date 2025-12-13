@@ -89,9 +89,16 @@ export default function SettingForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={submiting} loading={submiting}>
-          {t('namespace.submit')}
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            disabled={submiting}
+            loading={submiting}
+            className="h-[30px] w-[71px]"
+          >
+            {t('namespace.submit')}
+          </Button>
+        </div>
       </form>
     </Form>
   );

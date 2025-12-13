@@ -1,4 +1,6 @@
-import { format, isValid } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
+import { LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,14 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -30,6 +24,7 @@ import { http } from '@/lib/request';
 import { TaskActions } from './task-actions';
 import { TaskPagination } from './task-pagination';
 import { TaskStatusBadge } from './task-status-badge';
+import { TaskTypeBadge } from './task-type-badge';
 
 export interface TaskListProps {
   namespaceId: string;
@@ -47,17 +42,60 @@ export function TaskList({ namespaceId }: TaskListProps) {
   const [viewFilter, setViewFilter] = useState<'own' | 'all'>('own');
   const pageSize = 20;
 
-  const formatDate = (dateValue: string | null | undefined): string => {
-    if (!dateValue) return '-';
-    const date = new Date(dateValue);
-    if (!isValid(date)) return '-';
-    return format(date, 'yyyy-MM-dd HH:mm:ss');
-  };
+  const getTimeDescription = (task: Task): string => {
+    const now = new Date();
+    const locale = zhCN;
 
-  const formatFunction = (functionName: string): string => {
-    const translationKey = `tasks.functions.${functionName}`;
-    const translated = t(translationKey);
-    return translated !== translationKey ? translated : functionName;
+    if (task.status === 'running' && task.started_at) {
+      const startedAt = new Date(task.started_at);
+      const seconds = Math.floor((now.getTime() - startedAt.getTime()) / 1000);
+      if (seconds < 60) {
+        return `进行中：已运行 ${seconds} 秒`;
+      }
+      return `进行中：${formatDistanceToNow(startedAt, { locale, addSuffix: false })}`;
+    }
+
+    if (task.status === 'pending' && task.created_at) {
+      const createdAt = new Date(task.created_at);
+      const seconds = Math.floor((now.getTime() - createdAt.getTime()) / 1000);
+      if (seconds < 60) {
+        return `排队中：已等待 ${seconds} 秒`;
+      }
+      return `排队中：${formatDistanceToNow(createdAt, { locale, addSuffix: false })}`;
+    }
+
+    if (task.status === 'finished' && task.started_at && task.ended_at) {
+      const startedAt = new Date(task.started_at);
+      const endedAt = new Date(task.ended_at);
+      const seconds = Math.floor(
+        (endedAt.getTime() - startedAt.getTime()) / 1000
+      );
+      if (seconds < 60) {
+        return `已完成：耗时 ${seconds} 秒`;
+      }
+      const minutes = Math.floor(seconds / 60);
+      return `已完成：耗时 ${minutes} 分钟`;
+    }
+
+    if (task.status === 'error' && task.started_at && task.ended_at) {
+      const startedAt = new Date(task.started_at);
+      const endedAt = new Date(task.ended_at);
+      const seconds = Math.floor(
+        (endedAt.getTime() - startedAt.getTime()) / 1000
+      );
+      if (seconds < 60) {
+        return `失败：耗时 ${seconds} 秒`;
+      }
+      const minutes = Math.floor(seconds / 60);
+      return `失败：耗时 ${minutes} 分钟`;
+    }
+
+    if (task.status === 'canceled' && task.canceled_at) {
+      const canceledAt = new Date(task.canceled_at);
+      return `已取消：${formatDistanceToNow(canceledAt, { locale, addSuffix: true })}`;
+    }
+
+    return '-';
   };
 
   const fetchTasks = async () => {
@@ -136,8 +174,8 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin h-8 w-8 border-b-2 border-primary rounded-full" />
+      <div className="flex items-center justify-center w-full h-full">
+        <LoaderCircle className="size-6 animate-spin text-gray-400" />
       </div>
     );
   }
@@ -155,20 +193,22 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
   if (tasks.length === 0) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        <p>{t('tasks.no_tasks')}</p>
+      <div className="p-4 lg:p-8 text-center text-muted-foreground">
+        <p className="text-sm lg:text-base">{t('tasks.no_tasks')}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <h3 className="text-lg font-semibold">{t('tasks.title')}</h3>
+    <div className="flex flex-col h-full">
+      <div className="flex w-full items-center justify-between gap-2 shrink-0 mb-2 lg:mb-4">
+        <div className="flex items-center gap-2 lg:gap-4">
+          <h3 className="text-sm lg:text-base font-semibold text-foreground">
+            {t('tasks.title')}
+          </h3>
           {showViewFilter && (
             <Select value={viewFilter} onValueChange={handleViewFilterChange}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="h-7 lg:h-[30px] w-[100px] lg:w-[120px] text-xs lg:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -178,63 +218,101 @@ export function TaskList({ namespaceId }: TaskListProps) {
             </Select>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh}>
+        <Button
+          size="sm"
+          className="h-7 lg:h-[30px] px-2 lg:px-3 text-xs lg:text-sm font-semibold shrink-0"
+          onClick={handleRefresh}
+        >
           {t('common.refresh')}
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('tasks.function')}</TableHead>
-              <TableHead>{t('tasks.status')}</TableHead>
-              <TableHead>{t('tasks.created_at')}</TableHead>
-              <TableHead>{t('tasks.started_at')}</TableHead>
-              <TableHead>{t('tasks.ended_at')}</TableHead>
-              <TableHead>{t('common.actions')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TooltipProvider>
-              {tasks.map(task => (
-                <Tooltip key={task.id}>
-                  <TooltipTrigger asChild>
-                    <TableRow className="cursor-default">
-                      <TableCell className="font-medium">
-                        {formatFunction(task.function)}
-                      </TableCell>
-                      <TableCell>
-                        <TaskStatusBadge status={task.status as any} />
-                      </TableCell>
-                      <TableCell>{formatDate(task.created_at)}</TableCell>
-                      <TableCell>{formatDate(task.started_at)}</TableCell>
-                      <TableCell>
-                        {task.ended_at
-                          ? formatDate(task.ended_at)
-                          : task.canceled_at
-                            ? formatDate(task.canceled_at) + ' (canceled)'
+      <div className="flex-1 min-h-0 w-full overflow-auto rounded-md border border-border">
+        <div className="min-w-[320px]">
+          <div className="flex h-8 lg:h-10 items-center border-b border-border px-2 lg:px-8 text-xs lg:text-sm font-medium text-muted-foreground sticky top-0 bg-background z-10">
+            <div className="w-[110px] lg:w-[120px] whitespace-nowrap">
+              {t('tasks.function')}
+            </div>
+            <div className="ml-3 lg:ml-4 w-7 whitespace-nowrap text-center">
+              {t('tasks.status')}
+            </div>
+            <div className="ml-4 lg:ml-8 w-[90px] lg:w-[119px] whitespace-nowrap">
+              {t('tasks.time') || '时间'}
+            </div>
+            <div className="ml-auto w-12 lg:w-16 whitespace-nowrap">
+              {t('common.actions')}
+            </div>
+          </div>
+
+          <div>
+            {tasks.map(task => (
+              <div
+                key={task.id}
+                className="flex h-12 lg:h-14 items-center border-b border-border px-2 lg:px-8 last:border-b-0"
+              >
+                <div className="w-[110px] lg:w-[120px]">
+                  <TaskTypeBadge functionName={task.function} />
+                </div>
+
+                <div className="ml-3 lg:ml-4 flex w-7 justify-center">
+                  <TaskStatusBadge status={task.status as any} />
+                </div>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="ml-4 lg:ml-8 w-[90px] lg:w-[119px] cursor-default text-xs font-medium text-muted-foreground">
+                        {getTimeDescription(task)}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="p-2.5">
+                      <div className="text-xs">
+                        <div>
+                          {t('tasks.task_id')}：{task.id}
+                        </div>
+                        <div>
+                          {t('tasks.created_at')}：
+                          {task.created_at
+                            ? format(
+                                new Date(task.created_at),
+                                'yyyy-MM-dd HH:mm:ss'
+                              )
                             : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <TaskActions
-                          task={task}
-                          namespaceId={namespaceId}
-                          onTaskUpdated={fetchTasks}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      {t('tasks.task_id')}: {task.id}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              ))}
-            </TooltipProvider>
-          </TableBody>
-        </Table>
+                        </div>
+                        <div>
+                          {t('tasks.started_at')}：
+                          {task.started_at
+                            ? format(
+                                new Date(task.started_at),
+                                'yyyy-MM-dd HH:mm:ss'
+                              )
+                            : '-'}
+                        </div>
+                        <div>
+                          {t('tasks.ended_at')}：
+                          {task.ended_at
+                            ? format(
+                                new Date(task.ended_at),
+                                'yyyy-MM-dd HH:mm:ss'
+                              )
+                            : '-'}
+                        </div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <div className="ml-auto w-12 lg:w-16">
+                  <TaskActions
+                    task={task}
+                    namespaceId={namespaceId}
+                    onTaskUpdated={fetchTasks}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {totalPages > 1 && (

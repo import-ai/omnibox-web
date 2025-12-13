@@ -5,14 +5,6 @@ import { useTranslation } from 'react-i18next';
 import PermissionAction from '@/components/permission-action';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import UserCard from '@/components/user-card';
 import { Member } from '@/interface';
 import { http } from '@/lib/request';
@@ -51,42 +43,43 @@ export default function MemberMain(props: MemberProps) {
   }, [namespace_id]);
 
   return (
-    <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between flex-wrap">
+    <div className="space-y-2 lg:space-y-4">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <Input
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground"
         />
         <Invite onFinish={refetch}>
-          <Button size="sm" variant="default">
-            {t('manage.add_member')}
+          <Button size="sm" className="h-[30px] w-[71px] text-sm font-semibold">
+            {t('manage.add')}
           </Button>
         </Invite>
       </div>
-      <div className="rounded-md border">
-        <Table rootClassName="max-w-[83vw] sm:w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[40%] min-w-[200px]">
-                {t('manage.user')}
-              </TableHead>
-              <TableHead className="w-[30%] min-w-[150px]">
-                {t('manage.permission')}
-              </TableHead>
-              <TableHead className="text-right min-w-[150px]">
-                {t('manage.role')}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <div className="overflow-auto max-w-[83vw] sm:max-w-full">
+        <div className="min-w-[320px]">
+          <div className="flex w-full border-b border-border sticky top-0 bg-background z-10">
+            <div className="flex h-8 lg:h-10 w-[120px] lg:w-[210px] items-center px-2 text-sm font-medium text-foreground whitespace-nowrap">
+              {t('manage.user')}
+            </div>
+            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[124px] items-center px-2 text-sm font-medium text-foreground whitespace-nowrap">
+              {t('manage.permission')}
+            </div>
+            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[127px] items-center px-2 text-sm font-medium text-foreground whitespace-nowrap">
+              {t('manage.role')}
+            </div>
+          </div>
+          <div className="w-full text-sm">
             {data.map(item => (
-              <TableRow key={item.user_id}>
-                <TableCell>
+              <div
+                key={item.user_id}
+                className="flex h-[50px] lg:h-[60px] items-center border-b border-border"
+              >
+                <div className="w-[120px] lg:w-[210px] px-2 whitespace-nowrap">
                   <UserCard email={item.email || ''} username={item.username} />
-                </TableCell>
-                <TableCell>
+                </div>
+                <div className="w-[90px] lg:w-[124px] px-2 whitespace-nowrap">
                   <PermissionAction
                     disabled={!isOwner}
                     value={item.permission}
@@ -97,8 +90,8 @@ export default function MemberMain(props: MemberProps) {
                     canRemove={false}
                     canNoAccess={true}
                   />
-                </TableCell>
-                <TableCell className="text-right">
+                </div>
+                <div className="w-[90px] lg:w-[127px] px-2 whitespace-nowrap">
                   <Action
                     disabled={!isOwner}
                     id={item.user_id}
@@ -111,11 +104,11 @@ export default function MemberMain(props: MemberProps) {
                         .findIndex(i => i.role === 'owner') >= 0
                     }
                   />
-                </TableCell>
-              </TableRow>
+                </div>
+              </div>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </div>
       </div>
     </div>
   );

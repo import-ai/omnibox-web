@@ -43,13 +43,13 @@ export default function GroupMain(props: GroupProps) {
   };
 
   return (
-    <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between flex-wrap">
+    <div className="space-y-2 lg:space-y-4">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <Input
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground"
         />
         <CreateGroup
           data={edit}
@@ -57,30 +57,32 @@ export default function GroupMain(props: GroupProps) {
           onToggle={handleToggle}
         />
       </div>
-      <div className="rounded-md border overflow-auto max-w-[83vw] sm:w-full">
-        <div className="w-full flex justify-between text-muted-foreground border-b font-bold">
-          <div className="text-sm h-10 leading-10 px-2 min-w-[90px]">
-            {t('manage.group')}
+      <div className="overflow-auto max-w-[83vw] sm:max-w-full">
+        <div className="min-w-[320px]">
+          <div className="flex w-full border-b border-border sticky top-0 bg-background z-10">
+            <div className="flex h-8 lg:h-10 w-[100px] lg:w-[210px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
+              {t('manage.group')}
+            </div>
+            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[115px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
+              {t('manage.member')}
+            </div>
+            <div className="flex h-8 lg:h-10 w-[60px] lg:w-[127px] items-center justify-center text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
+              {t('manage.invite_link')}
+            </div>
+            <div className="flex h-8 lg:h-10 flex-1 items-center px-2"></div>
           </div>
-          <div className="text-sm h-10 leading-10 px-2 min-w-[90px]">
-            {t('manage.member')}
+          <div className="w-full">
+            {data.map(item => (
+              <GroupData
+                key={item.id}
+                {...item}
+                member={member}
+                refetch={refetch}
+                onEdit={handleEdit}
+                namespace_id={namespace_id}
+              />
+            ))}
           </div>
-          <div className="text-sm h-10 leading-10 px-2 min-w-[90px]">
-            {t('manage.invite_link')}
-          </div>
-          <div className="text-sm h-10 leading-10 px-2 min-w-[200px] relative top-[1px] border-b"></div>
-        </div>
-        <div className="min-w-[450px]">
-          {data.map(item => (
-            <GroupData
-              key={item.id}
-              {...item}
-              member={member}
-              refetch={refetch}
-              onEdit={handleEdit}
-              namespace_id={namespace_id}
-            />
-          ))}
         </div>
       </div>
     </div>

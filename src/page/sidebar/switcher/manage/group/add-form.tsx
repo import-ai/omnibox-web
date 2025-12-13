@@ -98,9 +98,16 @@ export default function AddGroupForm(props: IProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading} loading={loading}>
-          {t('manage.submit')}
-        </Button>
+        <div className="flex justify-center">
+          <Button
+            type="submit"
+            disabled={loading}
+            loading={loading}
+            className="w-full"
+          >
+            {t('manage.submit')}
+          </Button>
+        </div>
       </form>
     </Form>
   );

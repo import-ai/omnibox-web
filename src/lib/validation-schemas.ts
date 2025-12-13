@@ -10,8 +10,10 @@ import { z } from 'zod';
  */
 export const passwordSchema = z
   .string()
-  .min(8, i18next.t('form.password_min'))
-  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, i18next.t('form.password_reg'));
+  .min(8, { message: i18next.t('form.password_min') })
+  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message: i18next.t('form.password_reg'),
+  });
 
 /**
  * Optional password schema for update forms
@@ -19,24 +21,58 @@ export const passwordSchema = z
  */
 export const optionalPasswordSchema = z
   .string()
-  .optional()
-  .refine(
-    password => {
-      if (!password || password.length <= 0) {
-        return true;
-      }
-      if (
-        password.length < 8 ||
-        !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: i18next.t('form.password_reg'),
+  .superRefine((password, ctx) => {
+    // Allow empty password
+    if (!password || password.length === 0) {
+      return;
     }
-  );
+    // Check password requirements
+    if (
+      password.length < 8 ||
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: i18next.t('form.password_reg'),
+      });
+    }
+  });
+
+/**
+ * Create password schema with dynamic translation
+ * Use this function to get a schema with current language translations
+ */
+export function createPasswordSchema() {
+  return z
+    .string()
+    .min(8, { message: i18next.t('form.password_min') })
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+      message: i18next.t('form.password_reg'),
+    });
+}
+
+/**
+ * Create optional password schema with dynamic translation
+ * Use this function to get a schema with current language translations
+ */
+export function createOptionalPasswordSchema() {
+  return z.string().superRefine((password, ctx) => {
+    // Allow empty password
+    if (!password || password.length === 0) {
+      return;
+    }
+    // Check password requirements
+    if (
+      password.length < 8 ||
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: i18next.t('form.password_reg'),
+      });
+    }
+  });
+}
 
 /**
  * Schema for forms with password and password confirmation
@@ -44,7 +80,7 @@ export const optionalPasswordSchema = z
 export function createPasswordWithConfirmSchema() {
   return z
     .object({
-      password: passwordSchema,
+      password: createPasswordSchema(),
       password_repeat: z.string(),
     })
     .refine(data => data.password === data.password_repeat, {

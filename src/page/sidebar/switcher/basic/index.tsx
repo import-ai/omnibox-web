@@ -3,7 +3,7 @@ import Theme from './theme';
 
 export default function CommonForm() {
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-8 pt-4">
       <Theme />
       <Language />
     </div>

@@ -9,5 +9,9 @@ export default function TasksManagement() {
     return <div>Invalid namespace</div>;
   }
 
-  return <TaskList namespaceId={namespaceId} />;
+  return (
+    <div className="h-full">
+      <TaskList namespaceId={namespaceId} />
+    </div>
+  );
 }

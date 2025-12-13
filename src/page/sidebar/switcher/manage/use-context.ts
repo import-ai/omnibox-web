@@ -11,6 +11,7 @@ export default function useContext() {
   const navigate = useNavigate();
   const [search, onSearch] = useState('');
   const [tab, onTab] = useState('member');
+  const [loading, setLoading] = useState(true);
   const [data, onData] = useState<{
     member: Array<Member>;
     group: Array<Group>;
@@ -42,6 +43,7 @@ export default function useContext() {
       member,
       invitation,
     });
+    setLoading(false);
     return () => {
       source.cancel();
     };
@@ -62,6 +64,7 @@ export default function useContext() {
     search,
     refetch,
     onSearch,
+    loading,
     namespace_id,
   };
 }

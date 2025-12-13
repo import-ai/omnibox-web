@@ -1,4 +1,4 @@
-import { Check, ChevronDown, PanelTop } from 'lucide-react';
+import { Check, ChevronDown, SunMoon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -29,27 +29,36 @@ export default function Theme() {
     });
   };
 
+  const selectedLabel =
+    data.find(item => item.value === theme.skin)?.label ||
+    t('setting.select_placeholder');
+
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <PanelTop className="size-4" />
-        <span>{t('manage.theme_setting')}</span>
+    <div className="flex h-10 w-full items-center justify-between gap-2">
+      <div className="flex items-center gap-2 shrink-0">
+        <SunMoon className="size-4 lg:size-5 dark:text-neutral-50" />
+        <span className="whitespace-nowrap text-sm lg:text-base font-semibold text-foreground">
+          {t('manage.theme_setting')}
+        </span>
       </div>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="font-normal w-40 justify-between"
+            className="h-8 lg:h-9 w-[120px] lg:w-[180px] justify-between rounded-md border-border bg-transparent px-2 lg:px-3 font-normal shadow-none"
           >
-            {data.find(item => item.value === theme.skin)?.label}
-            <ChevronDown className="size-4 ml-2" />
+            <span className="text-xs lg:text-sm font-normal text-neutral-950 dark:text-neutral-50">
+              {selectedLabel}
+            </span>
+            <ChevronDown className="size-4 text-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        <DropdownMenuContent className="w-[120px] lg:w-[180px] dark:bg-neutral-900">
           {data.map(item => (
             <DropdownMenuItem
               key={item.value}
-              className="flex justify-between"
+              className="flex justify-between dark:focus:bg-neutral-700"
               onClick={() => handleToggleTheme(item.value)}
             >
               {item.label}

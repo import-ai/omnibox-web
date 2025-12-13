@@ -43,7 +43,7 @@ export default function Invite(props: IProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl">
+      <DialogContent className="w-[90%] max-w-sm">
         <DialogHeader>
           <DialogTitle>{t('invite.add')}</DialogTitle>
           <VisuallyHidden>

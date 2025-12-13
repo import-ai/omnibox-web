@@ -128,7 +128,12 @@ export function AddNamespaceInvitationForm(props: IProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading} loading={loading}>
+        <Button
+          type="submit"
+          disabled={loading}
+          loading={loading}
+          className="w-full"
+        >
           {t('manage.submit')}
         </Button>
       </form>
