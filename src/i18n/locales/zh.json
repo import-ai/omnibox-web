@@ -276,6 +276,9 @@
     "unbind_btn": "解绑",
     "bind_btn": "绑定",
     "not_bound": "未绑定",
+    "about": "关于",
+    "about_title": "关于小黑",
+    "copyright": "© 2025 杭州小黑智能科技有限公司 保留所有权利",
     "third_party_account": {
       "manage": "三方账号管理",
       "title": "第三方账号管理",
