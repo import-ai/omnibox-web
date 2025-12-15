@@ -100,7 +100,7 @@ export function SettingsSidebar({
 
   return (
     <div className="relative h-auto lg:h-full w-full lg:w-[247px] shrink-0 rounded-t-xl lg:rounded-l-xl lg:rounded-tr-none bg-muted dark:bg-neutral-800 overflow-y-auto lg:overflow-visible">
-      <div className="p-3 lg:absolute lg:inset-2 lg:w-[231px] flex flex-col gap-1 lg:gap-5 lg:justify-between">
+      <div className="lg:absolute lg:inset-2 lg:w-[231px] flex flex-col gap-1 lg:gap-5 lg:justify-between">
         <div className="flex flex-col gap-1 lg:gap-5">
           {/* Account Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
@@ -177,7 +177,7 @@ export function SettingsSidebar({
               </span>
             </div>
 
-            <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5 px-0 lg:px-2">
+            <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5">
               {filteredSpaceItems.map(item => {
                 const isSelected = value === item.value;
                 const icon =
@@ -190,7 +190,7 @@ export function SettingsSidebar({
                     key={item.value}
                     onClick={() => onChange(item.value)}
                     className={cn(
-                      'flex h-[30px] w-auto lg:w-full items-center gap-3 rounded px-2 lg:px-1 text-left',
+                      'flex h-[30px] w-auto lg:w-full items-center gap-3 rounded px-3 text-left',
                       isSelected
                         ? 'bg-neutral-200 dark:bg-neutral-700'
                         : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
@@ -221,11 +221,11 @@ export function SettingsSidebar({
 
         {/* About Section */}
         <div className="flex w-full flex-col gap-2 lg:gap-2">
-          <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5 px-0 lg:px-2">
+          <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5">
             <button
               onClick={() => onChange(aboutItem.value)}
               className={cn(
-                'flex h-[30px] w-auto lg:w-full items-center gap-3 rounded px-2 lg:px-1 text-left',
+                'flex h-[30px] w-auto lg:w-full items-center gap-3 rounded px-3 text-left',
                 value === aboutItem.value
                   ? 'bg-neutral-200 dark:bg-neutral-700'
                   : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
