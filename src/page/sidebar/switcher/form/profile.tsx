@@ -207,9 +207,7 @@ function BindingRow({
         {isBound ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <ActionButton variant="destructive">
-                {t('setting.unbind_btn')}
-              </ActionButton>
+              <ActionButton>{t('setting.unbind_btn')}</ActionButton>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
