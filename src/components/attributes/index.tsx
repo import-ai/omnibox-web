@@ -27,32 +27,32 @@ export default function Attributes(props: IProps) {
     resource.attrs.url
   ) {
     return (
-      <div className="space-y-2 mt-2 mb-6 text-base">
+      <div className="space-y-2 mt-2 mb-6 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
         />
         <div className="flex flex-wrap sm:flex-nowrap items-start gap-3">
-          <Link className="shrink-0 size-4 text-muted-foreground" />
-          <span className="text-muted-foreground font-medium min-w-[80px]">
+          <Link className="shrink-0 size-4 text-[#8F959E]" />
+          <span className="text-[#8F959E] min-w-[80px]">
             {t('resource.attrs.url')}
           </span>
           <a
             target="_blank"
             href={resource.attrs.url}
-            className="max-w-[200px] sm:max-w-full text-base break-all text-foreground truncate"
+            className="max-w-[200px] sm:max-w-full break-all text-[#585D65] dark:text-white truncate"
           >
             {resource.attrs.url}
           </a>
         </div>
         {resource.created_at && (
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-            <Clock className="size-4 text-muted-foreground" />
-            <span className="text-muted-foreground font-medium min-w-[80px]">
+            <Clock className="size-4 text-[#8F959E]" />
+            <span className="text-[#8F959E] min-w-[80px]">
               {t('resource.attrs.created')}
             </span>
-            <span className="text-foreground">
+            <span className="text-[#585D65] dark:text-white">
               {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
             </span>
           </div>
@@ -73,21 +73,21 @@ export default function Attributes(props: IProps) {
 
   if (resource.resource_type === 'file' && resource.attrs?.original_name) {
     return (
-      <div className="space-y-2 mt-2 mb-6 text-base">
+      <div className="space-y-2 mt-2 mb-6 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
         />
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-          <File className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground font-medium min-w-[80px]">
+          <File className="size-4 text-[#8F959E]" />
+          <span className="text-[#8F959E] min-w-[80px]">
             {t('resource.attrs.filename')}
           </span>
           <Button
             variant="ghost"
             loading={download}
-            className="text-base font-normal ml-[-16px]"
+            className="font-normal ml-[-16px]"
             onClick={() => {
               onDownload(true);
               downloadFile(
@@ -104,11 +104,11 @@ export default function Attributes(props: IProps) {
         </div>
         {resource.created_at && (
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-            <Clock className="size-4 text-muted-foreground" />
-            <span className="text-muted-foreground font-medium min-w-[80px]">
+            <Clock className="size-4 text-[#8F959E]" />
+            <span className="text-[#8F959E] min-w-[80px]">
               {t('resource.attrs.created')}
             </span>
-            <span className="text-foreground">
+            <span className="text-[#585D65] dark:text-white">
               {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
             </span>
           </div>
@@ -121,14 +121,14 @@ export default function Attributes(props: IProps) {
           />
         )}
         {resource.attrs?.metadata && (
-          <Metadata metadata={resource.attrs.metadata}></Metadata>
+          <Metadata metadata={resource.attrs.metadata} />
         )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-2 mt-2 mb-6 text-base">
+    <div className="space-y-2 mt-2 mb-6 text-sm">
       <Tag
         data={resource.tags}
         resourceId={resource.id}
@@ -136,11 +136,11 @@ export default function Attributes(props: IProps) {
       />
       {resource.created_at && (
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-          <Clock className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground font-medium min-w-[80px]">
+          <Clock className="size-4 text-[#8F959E]" />
+          <span className="text-[#8F959E] min-w-[80px]">
             {t('resource.attrs.created')}
           </span>
-          <span className="text-foreground">
+          <span className="text-[#585D65] dark:text-white">
             {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
           </span>
         </div>

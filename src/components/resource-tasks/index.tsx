@@ -114,11 +114,11 @@ export default function ResourceTasks({
   if (loading) {
     return (
       <div className="flex items-center gap-3">
-        <ListChecks className="size-4 text-muted-foreground" />
-        <span className="text-muted-foreground font-medium min-w-[80px]">
+        <ListChecks className="size-4 text-[#8F959E]" />
+        <span className="text-[#8F959E] min-w-[80px]">
           {t('tasks.related_tasks')}
         </span>
-        <span className="flex items-center text-foreground h-7">
+        <span className="flex items-center text-[#585D65] dark:text-white h-7">
           <LoaderCircle className="transition-transform animate-spin" />
         </span>
       </div>
@@ -128,8 +128,8 @@ export default function ResourceTasks({
   if (error) {
     return (
       <div className="flex items-center gap-3">
-        <ListChecks className="size-4 text-muted-foreground" />
-        <span className="text-muted-foreground font-medium min-w-[80px]">
+        <ListChecks className="size-4 text-[#8F959E]" />
+        <span className="text-[#8F959E] min-w-[80px]">
           {t('tasks.related_tasks')}
         </span>
         <span className="text-sm text-red-600">{error}</span>
@@ -168,8 +168,8 @@ export default function ResourceTasks({
 
   return (
     <div className="flex items-center gap-3">
-      <ListChecks className="size-4 text-muted-foreground" />
-      <span className="text-muted-foreground font-medium min-w-[80px]">
+      <ListChecks className="size-4 text-[#8F959E]" />
+      <span className="text-[#8F959E] min-w-[80px]">
         {t('tasks.related_tasks')}
       </span>
       <span className="flex items-center text-foreground h-7">
