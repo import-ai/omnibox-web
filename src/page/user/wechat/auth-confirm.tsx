@@ -4,12 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
 
 import WrapperPage from '../wrapper';
 
 export default function AuthConfirmPage() {
+  const app = useApp();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -27,20 +29,31 @@ export default function AuthConfirmPage() {
     http
       .get(url)
       .then(res => {
-        setGlobalCredential(res.id, res.access_token);
-
-        // Redirect to H5 or Web based on source
-        if (res.source === 'h5' && res.h5_redirect) {
-          const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
-          window.location.href = h5Url;
-        } else {
+        if (res.isBinding) {
+          toast.success(t('setting.third_party_account.bound'), {
+            position: 'bottom-right',
+          });
           navigate('/', { replace: true });
+          setTimeout(() => {
+            app.fire('open_settings', {
+              tab: 'third-party',
+            });
+          }, 2000);
+        } else {
+          setGlobalCredential(res.id, res.access_token);
+          // Redirect to H5 or Web based on source
+          if (res.source === 'h5' && res.h5_redirect) {
+            const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
+            window.location.href = h5Url;
+          } else {
+            navigate('/', { replace: true });
+          }
         }
       })
-      .catch(error => {
-        toast.error(error.message, { position: 'bottom-right' });
+      .catch(() => {
+        navigate('/user/login', { replace: true });
       });
-  }, [code, state]);
+  }, [code, state, i18n.language]);
 
   return (
     <WrapperPage useCard={false}>
