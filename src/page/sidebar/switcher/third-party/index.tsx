@@ -137,7 +137,7 @@ export function ThirdPartyForm() {
                   </AlertDialogContent>
                 </AlertDialog>
               ) : (
-                <Wrapper type={item.login_type} onSuccess={refetch} />
+                <Wrapper type={item.login_type} />
               )}
             </div>
           </CardContent>

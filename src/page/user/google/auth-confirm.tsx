@@ -4,12 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
 
 import WrapperPage from '../wrapper';
 
 export default function AuthConfirmPage() {
+  const app = useApp();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -27,8 +29,17 @@ export default function AuthConfirmPage() {
         lang: i18n.language,
       })
       .then(res => {
-        setGlobalCredential(res.id, res.access_token);
-        navigate('/', { replace: true });
+        if (res.isBinding) {
+          app.fire('open_settings', {
+            tab: 'third-party',
+          });
+          toast.success(t('setting.third_party_account.bind_success'), {
+            position: 'bottom-right',
+          });
+        } else {
+          setGlobalCredential(res.id, res.access_token);
+          navigate('/', { replace: true });
+        }
       })
       .catch(error => {
         toast.error(error.message, { position: 'bottom-right' });
