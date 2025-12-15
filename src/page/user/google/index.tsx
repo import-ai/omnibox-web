@@ -1,10 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { GoogleIcon } from '@/assets/icons/google';
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
-
-import { GoogleIcon } from './icon';
 
 export default function Google() {
   const { t } = useTranslation();
