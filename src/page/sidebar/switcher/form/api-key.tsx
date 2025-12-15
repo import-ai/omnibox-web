@@ -536,12 +536,12 @@ export function APIKeyForm() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 lg:gap-4">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => toggleKeyVisibility(key.id)}
-                        className="flex items-center justify-center transition-opacity hover:opacity-70"
+                        className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70"
                       >
                         {visibleKeys.has(key.id) ? (
                           <EyeOff className="size-4 text-muted-foreground" />
@@ -561,7 +561,7 @@ export function APIKeyForm() {
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => copyToClipboard(key.value)}
-                        className="flex items-center justify-center transition-opacity hover:opacity-70"
+                        className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70"
                       >
                         <Copy className="size-4 text-muted-foreground" />
                       </button>
@@ -575,7 +575,7 @@ export function APIKeyForm() {
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => handleEditClick(key)}
-                        className="flex items-center justify-center transition-opacity hover:opacity-70"
+                        className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70"
                       >
                         <Pencil className="size-4 text-muted-foreground" />
                       </button>
@@ -587,7 +587,7 @@ export function APIKeyForm() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <AlertDialogTrigger asChild>
-                          <button className="flex items-center justify-center transition-opacity hover:opacity-70">
+                          <button className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70">
                             <Trash2 className="size-4 text-muted-foreground" />
                           </button>
                         </AlertDialogTrigger>

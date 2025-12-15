@@ -8,12 +8,8 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { DarkRegularIcon } from '@/assets/icons/darkRegular';
-import { DarkWhiteIcon } from '@/assets/icons/darkWhite';
-import { LightBlackIcon } from '@/assets/icons/lightBlack';
-import { LightRegularIcon } from '@/assets/icons/lightRegular';
+import { AppManagerIcon } from '@/assets/icons/appManager';
 import logoUrl from '@/assets/logo.svg';
-import useTheme from '@/hooks/use-theme';
 import { cn } from '@/lib/utils';
 
 interface SettingsSidebarProps {
@@ -30,13 +26,6 @@ interface MenuItem {
   requireOwner?: boolean;
 }
 
-interface MenuItemWithDynamicIcon {
-  label: string;
-  value: string;
-  icon: (selected: boolean) => React.ReactNode;
-  requireOwner?: boolean;
-}
-
 export function SettingsSidebar({
   value,
   onChange,
@@ -44,29 +33,6 @@ export function SettingsSidebar({
   userIsOwner,
 }: SettingsSidebarProps) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
-
-  // Determine if dark mode is active
-  const isDarkMode =
-    theme.skin === 'dark' ||
-    (theme.skin === 'system' &&
-      window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-  // Get the appropriate AppManager icon based on theme and selection state
-  const getAppManagerIcon = (selected: boolean) => {
-    if (isDarkMode) {
-      return selected ? (
-        <DarkWhiteIcon className="size-4" />
-      ) : (
-        <DarkRegularIcon className="size-4" />
-      );
-    }
-    return selected ? (
-      <LightBlackIcon className="size-4" />
-    ) : (
-      <LightRegularIcon className="size-4" />
-    );
-  };
 
   // Account section items - icons match Figma design
   const accountItems: MenuItem[] = [
@@ -83,7 +49,7 @@ export function SettingsSidebar({
   ];
 
   // Space section items
-  const spaceItems: (MenuItem | MenuItemWithDynamicIcon)[] = [
+  const spaceItems: MenuItem[] = [
     {
       label: t('setting.general'),
       value: 'namespace',
@@ -104,7 +70,7 @@ export function SettingsSidebar({
     {
       label: t('setting.applications'),
       value: 'applications',
-      icon: (selected: boolean) => getAppManagerIcon(selected),
+      icon: <AppManagerIcon className="size-4" />,
     },
     {
       label: t('setting.api_key'),
@@ -139,7 +105,7 @@ export function SettingsSidebar({
           {/* Account Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
             <div className="hidden lg:block px-2">
-              <span className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
+              <span className="whitespace-nowrap text-xs font-semibold text-neutral-400">
                 {t('setting.account')}
               </span>
             </div>

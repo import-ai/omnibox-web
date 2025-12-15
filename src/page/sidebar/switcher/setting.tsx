@@ -51,7 +51,7 @@ export default function Setting() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex flex-col w-[90vw] sm:w-[85vw] lg:w-[858px] max-w-[858px] h-[85vh] sm:h-[80vh] lg:h-[517px] max-h-[517px] p-0 rounded-[12px] overflow-hidden gap-0 [&>button]:hidden">
+      <DialogContent className="flex flex-col w-[90vw] sm:w-[85vw] lg:w-[858px] max-w-[858px] h-[85vh] sm:h-[80vh] lg:h-[517px] max-h-[517px] p-0 rounded-[12px] overflow-hidden gap-0 border-0 [&>button]:hidden">
         <VisuallyHidden>
           <DialogHeader>
             <DialogTitle>{t('setting.preferences')}</DialogTitle>
