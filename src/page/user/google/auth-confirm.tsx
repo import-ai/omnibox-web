@@ -44,8 +44,7 @@ export default function AuthConfirmPage() {
           navigate('/', { replace: true });
         }
       })
-      .catch(error => {
-        toast.error(error.message, { position: 'bottom-right' });
+      .catch(() => {
         navigate('/user/login', { replace: true });
       });
   }, [code, state, i18n.language]);
