@@ -74,7 +74,7 @@ export function Switcher(props: IProps) {
           >
             <DropdownMenuLabel>
               <div className="flex items-center gap-2 px-1 text-left text-sm">
-                <Avatar className="size-8 text-[18px] rounded-lg flex items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
+                <Avatar className="size-8 font-normal rounded-lg flex items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
                   {current.name.charAt(0).toUpperCase()}
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -109,7 +109,7 @@ export function Switcher(props: IProps) {
                   navigate(`/${item.id}/chat`);
                 }}
               >
-                <div className="flex rounded-[6px] size-6 text-[11px] items-center justify-center border">
+                <div className="flex rounded-[6px] size-6 text-[11px] font-normal items-center justify-center border">
                   {item.name.charAt(0).toUpperCase()}
                 </div>
                 <span className="truncate">{item.name}</span>

@@ -125,7 +125,7 @@ export function SettingsSidebar({
                     className="absolute inset-0 rounded bg-primary dark:bg-neutral-950"
                     style={{ boxShadow: '0 1px 2px 0 #00000040' }}
                   />
-                  <span className="relative text-xs font-semibold text-primary-foreground dark:text-white">
+                  <span className="relative text-xs font-normal text-primary-foreground dark:text-white">
                     {initial}
                   </span>
                 </div>
