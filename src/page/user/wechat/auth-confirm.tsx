@@ -28,7 +28,14 @@ export default function AuthConfirmPage() {
       .get(url)
       .then(res => {
         setGlobalCredential(res.id, res.access_token);
-        navigate('/', { replace: true });
+
+        // Redirect to H5 or Web based on source
+        if (res.source === 'h5' && res.h5_redirect) {
+          const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
+          window.location.href = h5Url;
+        } else {
+          navigate('/', { replace: true });
+        }
       })
       .catch(error => {
         toast.error(error.message, { position: 'bottom-right' });
