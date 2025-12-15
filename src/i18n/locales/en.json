@@ -108,7 +108,9 @@
     "email_or_username": "Email or username",
     "email_or_username_invalid": "Please enter a valid email address or username",
     "role": "Role",
-    "username_not_emptyStr": "Invalid username"
+    "username_not_emptyStr": "Invalid username",
+    "change_username_desc": "Change your username",
+    "change_password_desc": "Change your password"
   },
   "invite": {
     "title": "Add members via invite link",
@@ -586,6 +588,15 @@
     "confirm_cancel_description": "The task will be stopped immediately. This action cannot be undone.",
     "continue_running": "Continue Running",
     "confirm_cancel": "Confirm Cancel",
+    "time_running_seconds": "Running: {{seconds}}s",
+    "time_running": "Running: {{time}}",
+    "time_pending_seconds": "Pending: {{seconds}}s",
+    "time_pending": "Pending: {{time}}",
+    "time_finished_seconds": "Finished: {{seconds}}s",
+    "time_finished_minutes": "Finished: {{minutes}}min",
+    "time_error_seconds": "Failed: {{seconds}}s",
+    "time_error_minutes": "Failed: {{minutes}}min",
+    "time_canceled": "Canceled: {{time}}",
     "functions": {
       "collect": "Collect",
       "index": "Index",

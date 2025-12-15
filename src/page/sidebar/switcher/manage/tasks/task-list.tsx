@@ -1,5 +1,5 @@
 import { format, formatDistanceToNow } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { enUS, zhCN } from 'date-fns/locale';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,7 +31,7 @@ export interface TaskListProps {
 }
 
 export function TaskList({ namespaceId }: TaskListProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,24 +44,28 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
   const getTimeDescription = (task: Task): string => {
     const now = new Date();
-    const locale = zhCN;
+    const locale = i18n.language === 'zh' ? zhCN : enUS;
 
     if (task.status === 'running' && task.started_at) {
       const startedAt = new Date(task.started_at);
       const seconds = Math.floor((now.getTime() - startedAt.getTime()) / 1000);
       if (seconds < 60) {
-        return `进行中：已运行 ${seconds} 秒`;
+        return t('tasks.time_running_seconds', { seconds });
       }
-      return `进行中：${formatDistanceToNow(startedAt, { locale, addSuffix: false })}`;
+      return t('tasks.time_running', {
+        time: formatDistanceToNow(startedAt, { locale, addSuffix: false }),
+      });
     }
 
     if (task.status === 'pending' && task.created_at) {
       const createdAt = new Date(task.created_at);
       const seconds = Math.floor((now.getTime() - createdAt.getTime()) / 1000);
       if (seconds < 60) {
-        return `排队中：已等待 ${seconds} 秒`;
+        return t('tasks.time_pending_seconds', { seconds });
       }
-      return `排队中：${formatDistanceToNow(createdAt, { locale, addSuffix: false })}`;
+      return t('tasks.time_pending', {
+        time: formatDistanceToNow(createdAt, { locale, addSuffix: false }),
+      });
     }
 
     if (task.status === 'finished' && task.started_at && task.ended_at) {
@@ -71,10 +75,10 @@ export function TaskList({ namespaceId }: TaskListProps) {
         (endedAt.getTime() - startedAt.getTime()) / 1000
       );
       if (seconds < 60) {
-        return `已完成：耗时 ${seconds} 秒`;
+        return t('tasks.time_finished_seconds', { seconds });
       }
       const minutes = Math.floor(seconds / 60);
-      return `已完成：耗时 ${minutes} 分钟`;
+      return t('tasks.time_finished_minutes', { minutes });
     }
 
     if (task.status === 'error' && task.started_at && task.ended_at) {
@@ -84,15 +88,17 @@ export function TaskList({ namespaceId }: TaskListProps) {
         (endedAt.getTime() - startedAt.getTime()) / 1000
       );
       if (seconds < 60) {
-        return `失败：耗时 ${seconds} 秒`;
+        return t('tasks.time_error_seconds', { seconds });
       }
       const minutes = Math.floor(seconds / 60);
-      return `失败：耗时 ${minutes} 分钟`;
+      return t('tasks.time_error_minutes', { minutes });
     }
 
     if (task.status === 'canceled' && task.canceled_at) {
       const canceledAt = new Date(task.canceled_at);
-      return `已取消：${formatDistanceToNow(canceledAt, { locale, addSuffix: true })}`;
+      return t('tasks.time_canceled', {
+        time: formatDistanceToNow(canceledAt, { locale, addSuffix: true }),
+      });
     }
 
     return '-';
@@ -237,7 +243,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
               {t('tasks.status')}
             </div>
             <div className="ml-4 lg:ml-8 w-[90px] lg:w-[119px] whitespace-nowrap">
-              {t('tasks.time') || '时间'}
+              {t('tasks.time')}
             </div>
             <div className="ml-auto w-12 lg:w-16 whitespace-nowrap">
               {t('common.actions')}

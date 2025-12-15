@@ -162,8 +162,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const handleDocsClick = (appId: string) => {
     const isZh = i18n.language.startsWith('zh');
     const url = isZh
-      ? `https://www.omnibox.pro/docs/zh-cn/${appId.replace('_', '-')}`
-      : `https://www.omnibox.pro/docs/${appId.replace('_', '-')}`;
+      ? `/docs/zh-cn/${appId.replace('_', '-')}`
+      : `/docs/${appId.replace('_', '-')}`;
     window.open(url, '_blank');
   };
 

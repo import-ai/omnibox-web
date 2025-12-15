@@ -105,7 +105,7 @@ export default function SettingWrapper({
   return (
     <SettingsToastProvider>
       <div className="relative flex flex-col lg:flex-row flex-1 min-h-0 w-full rounded-[12px] bg-card overflow-hidden">
-        {/* 侧边栏 */}
+        {/* Sidebar */}
         <div className="w-full lg:w-[247px] shrink-0">
           <SettingsSidebar
             value={activeKey}
@@ -115,7 +115,7 @@ export default function SettingWrapper({
           />
         </div>
 
-        {/* 关闭按钮 */}
+        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute right-4 top-3.5 z-10 text-foreground opacity-70 transition-opacity hover:opacity-100"
@@ -124,7 +124,7 @@ export default function SettingWrapper({
           <span className="sr-only">Close</span>
         </button>
 
-        {/* 内容区域 */}
+        {/* Content area */}
         <div className="flex-1 min-h-0 min-w-0 bg-white dark:bg-neutral-900 overflow-auto p-2 pt-2 lg:p-4 lg:pl-10 lg:pr-4 lg:pt-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900">
           {
             items

@@ -98,7 +98,7 @@
     "password": "密码",
     "confirm_password": "确认密码",
     "password_min": "密码至少8个字符",
-    "password_reg": "密码至少8位,必须包含大写字母、小写字母和数字",
+    "password_reg": "密码至少8位，必须包含大写字母、小写字母和数字",
     "password_not_match": "密码不匹配",
     "email": "邮箱",
     "email_invalid": "请输入有效的邮箱地址",
@@ -108,7 +108,9 @@
     "email_or_username": "邮箱 或 用户名",
     "email_or_username_invalid": "请输入有效的邮箱地址或用户名",
     "role": "角色",
-    "username_not_emptyStr": "无效的用户名"
+    "username_not_emptyStr": "无效的用户名",
+    "change_username_desc": "修改您的用户名",
+    "change_password_desc": "修改您的密码"
   },
   "invite": {
     "title": "通过邀请链接添加成员",
@@ -233,7 +235,7 @@
     "sent_verification_code": "发送了一个验证码",
     "not_received": "没有收到验证码？",
     "resend": "重新发送",
-    "resend_after_seconds": "{{seconds}}秒后可重新发送",
+    "resend_after_seconds": "{{seconds}} 秒后可重新发送",
     "code_sent": "验证码已发送",
     "send_failed": "发送验证码失败"
   },
@@ -249,7 +251,7 @@
     "sent_code_to": "验证码已发送至 ",
     "not_received": "没有收到验证码？",
     "resend": "重新发送",
-    "resend_after_seconds": "{{seconds}}秒后可重新发送",
+    "resend_after_seconds": "{{seconds}} 秒后可重新发送",
     "code_sent": "验证码已发送",
     "send_failed": "发送验证码失败",
     "bind_success": "手机绑定成功",
@@ -586,6 +588,15 @@
     "confirm_cancel_description": "取消后将立即停止执行，操作不可撤销",
     "continue_running": "继续运行",
     "confirm_cancel": "确认取消",
+    "time_running_seconds": "进行中：已运行 {{seconds}} 秒",
+    "time_running": "进行中：{{time}}",
+    "time_pending_seconds": "排队中：已等待 {{seconds}} 秒",
+    "time_pending": "排队中：{{time}}",
+    "time_finished_seconds": "已完成：耗时 {{seconds}} 秒",
+    "time_finished_minutes": "已完成：耗时 {{minutes}} 分钟",
+    "time_error_seconds": "失败：耗时 {{seconds}} 秒",
+    "time_error_minutes": "失败：耗时 {{minutes}} 分钟",
+    "time_canceled": "已取消：{{time}}",
     "functions": {
       "collect": "收藏",
       "index": "索引",

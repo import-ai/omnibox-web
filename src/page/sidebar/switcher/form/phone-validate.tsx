@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 const PhoneSchema = z.object({
   phone: z
@@ -221,13 +222,14 @@ function VerificationCodeStep({
               onKeyDown={e => handleKeyDown(index, e)}
               onPaste={index === 0 ? handlePaste : undefined}
               disabled={submitting}
-              className={`h-12 w-12 border border-border bg-background text-center text-2xl font-semibold outline-none focus:border-primary ${
+              className={cn(
+                'h-12 w-12 border border-border bg-background text-center text-2xl font-semibold outline-none focus:border-primary',
                 index === 0
                   ? 'rounded-l-md'
                   : index === 5
                     ? 'rounded-r-md border-l-0'
                     : 'border-l-0'
-              }`}
+              )}
             />
           ))}
         </div>

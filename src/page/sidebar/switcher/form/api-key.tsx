@@ -54,7 +54,7 @@ import {
 import ResourceSearch from './components/resource-search';
 
 export function APIKeyForm() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const params = useParams();
   const { uid } = useUser();
   const namespaceId = params.namespace_id || '';
@@ -527,12 +527,16 @@ export function APIKeyForm() {
                     {visibleKeys.has(key.id) ? key.value : maskKey(key.value)}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {t('created')}：
-                    {new Date(key.created_at!).toLocaleDateString('zh-CN', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                    })}
+                    {t('created')}
+                    {i18n.language.startsWith('zh') ? '：' : ': '}
+                    {new Date(key.created_at!).toLocaleDateString(
+                      i18n.language.startsWith('zh') ? 'zh-CN' : 'en-US',
+                      {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                      }
+                    )}
                   </span>
                 </div>
 

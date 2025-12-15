@@ -100,7 +100,7 @@ export function SettingsSidebar({
 
   return (
     <div className="relative h-auto lg:h-full w-full lg:w-[247px] shrink-0 rounded-t-xl lg:rounded-l-xl lg:rounded-tr-none bg-muted dark:bg-neutral-800 overflow-y-auto lg:overflow-visible">
-      <div className="lg:absolute lg:inset-2 lg:w-[231px] flex flex-col gap-1 lg:gap-5 lg:justify-between">
+      <div className="p-2 lg:p-0 lg:absolute lg:inset-2 lg:w-[231px] flex flex-col gap-1 lg:gap-5 lg:justify-between">
         <div className="flex flex-col gap-1 lg:gap-5">
           {/* Account Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
@@ -121,10 +121,7 @@ export function SettingsSidebar({
                 )}
               >
                 <div className="relative flex size-[21px] shrink-0 items-center justify-center">
-                  <div
-                    className="absolute inset-0 rounded bg-primary dark:bg-neutral-950"
-                    style={{ boxShadow: '0 1px 2px 0 #00000040' }}
-                  />
+                  <div className="absolute inset-0 rounded bg-primary dark:bg-neutral-950 shadow-[0_1px_2px_0_#00000040]" />
                   <span className="relative text-xs font-normal text-primary-foreground dark:text-white">
                     {initial}
                   </span>

@@ -1,10 +1,14 @@
-export function PhoneIcon() {
+interface PhoneIconProps {
+  className?: string;
+}
+
+export function PhoneIcon({ className }: PhoneIconProps) {
   return (
     <svg
+      className={className || 'size-5'}
       viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="size-5"
     >
       {/* Simple gray phone icon matching Figma */}
       <rect x="5" y="2" width="10" height="16" rx="2" fill="#a3a3a3" />

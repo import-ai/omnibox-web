@@ -1,10 +1,14 @@
-export function EmailIcon() {
+interface EmailIconProps {
+  className?: string;
+}
+
+export function EmailIcon({ className }: EmailIconProps) {
   return (
     <svg
+      className={className || 'size-5'}
       viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="size-5"
     >
       {/* Blue envelope icon matching Figma */}
       <rect x="2" y="4" width="16" height="12" rx="2" fill="#38bdf8" />

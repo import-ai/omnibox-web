@@ -19,6 +19,7 @@ import useUser from '@/hooks/use-user';
 import { isAllowedEmailDomain } from '@/lib/email-validation';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 const EmailSchema = z.object({
   email: z
@@ -57,9 +58,9 @@ function EmailInputStep({
   };
 
   return (
-    <div className="flex w-96 flex-col items-center gap-5">
+    <div className="flex w-full max-w-96 flex-col items-center gap-5">
       <div className="flex w-full flex-col items-center gap-2.5">
-        <p className="w-full text-center text-2xl font-semibold text-foreground">
+        <p className="w-full text-center text-xl lg:text-2xl font-semibold text-foreground">
           {t('email.input_new_email')}
         </p>
 
@@ -214,10 +215,10 @@ function VerificationCodeStep({
   };
 
   return (
-    <div className="flex w-96 flex-col items-start gap-5">
+    <div className="flex w-full max-w-96 flex-col items-start gap-5">
       <div className="flex w-full flex-col items-start gap-4">
         <div className="flex w-full flex-col items-center gap-2.5">
-          <p className="w-full text-center text-2xl font-semibold text-foreground">
+          <p className="w-full text-center text-xl lg:text-2xl font-semibold text-foreground">
             {t('email.input_verification_code')}
           </p>
 
@@ -230,8 +231,8 @@ function VerificationCodeStep({
           </p>
         </div>
 
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex h-14 w-96 items-center justify-center">
+        <div className="flex flex-col items-center gap-2 w-full">
+          <div className="flex h-12 lg:h-14 w-full max-w-96 items-center justify-center">
             {code.map((digit, index) => (
               <input
                 key={index}
@@ -244,15 +245,15 @@ function VerificationCodeStep({
                 onKeyDown={e => handleKeyDown(index, e)}
                 onPaste={index === 0 ? handlePaste : undefined}
                 disabled={submitting}
-                className={`h-12 w-12 border bg-background text-center text-2xl font-semibold outline-none focus:border-primary ${
-                  error ? 'border-red-500' : 'border-border'
-                } ${
+                className={cn(
+                  'h-10 w-10 lg:h-12 lg:w-12 border bg-background text-center text-xl lg:text-2xl font-semibold outline-none focus:border-primary',
+                  error ? 'border-red-500' : 'border-border',
                   index === 0
                     ? 'rounded-l-md'
                     : index === 5
                       ? 'rounded-r-md border-l-0'
                       : 'border-l-0'
-                }`}
+                )}
               />
             ))}
           </div>

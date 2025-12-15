@@ -8,8 +8,9 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
-import { DarkMailIcon } from '@/assets/icons/darkMail';
+import { GoogleIcon } from '@/assets/icons/google';
 import { MailIcon } from '@/assets/icons/mail';
+import { WeChatIcon } from '@/assets/icons/wechat';
 // import { SmartphoneIcon } from '@/assets/icons/smartphone';
 import {
   AlertDialog,
@@ -40,14 +41,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import useTheme from '@/hooks/use-theme';
 import useUser from '@/hooks/use-user';
 import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
 import { createOptionalPasswordSchema } from '@/lib/validation-schemas';
-import { GoogleIcon } from '@/page/user/google/icon';
-import { WeChatIcon } from '@/page/user/wechat/icon';
 
 import { Wrapper } from '../third-party/wrapper';
 import EmailValidate from './email-validate';
@@ -115,24 +113,12 @@ function ActionButton({
 // Section header with divider - Title: 20px, weight 600, line-height 28px; Divider at 38px from top
 function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="relative w-full lg:w-[532px]" style={{ height: '48px' }}>
-      <p
-        className="absolute text-foreground whitespace-nowrap text-base lg:text-xl font-semibold"
-        style={{
-          left: 0,
-          top: 0,
-          fontFamily: 'Inter, "Noto Sans SC", "Noto Sans JP", sans-serif',
-          lineHeight: '28px',
-          letterSpacing: '0px',
-        }}
-      >
+    <div className="relative w-full lg:w-[532px] h-12">
+      <p className="absolute left-0 top-0 text-foreground whitespace-nowrap text-base lg:text-xl font-semibold leading-7 tracking-normal">
         {title}
       </p>
       {/* Divider line at 38px from top */}
-      <Separator
-        className="absolute w-full lg:w-[532px]"
-        style={{ left: 0, top: '38px' }}
-      />
+      <Separator className="absolute left-0 top-[38px] w-full lg:w-[532px]" />
     </div>
   );
 }
@@ -259,11 +245,6 @@ interface BindingData extends UserBinding {
 export default function ProfileForm() {
   const { t } = useTranslation();
   const { user, onChange, loading, refetch } = useUser();
-  const { theme } = useTheme();
-  const isDark =
-    theme.skin === 'dark' ||
-    (theme.skin === 'system' &&
-      window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   // Dialog states
   const [usernameDialogOpen, setUsernameDialogOpen] = useState(false);
@@ -458,7 +439,7 @@ export default function ProfileForm() {
         <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
           <div className="flex items-center flex-shrink-0 gap-2">
             <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
-              {isDark ? <DarkMailIcon /> : <MailIcon />}
+              <MailIcon />
             </span>
             <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
               {t('setting.email_binding')}
@@ -503,7 +484,9 @@ export default function ProfileForm() {
           <DialogHeader>
             <DialogTitle>{t('form.username')}</DialogTitle>
             <VisuallyHidden>
-              <DialogDescription>Change your username</DialogDescription>
+              <DialogDescription>
+                {t('form.change_username_desc')}
+              </DialogDescription>
             </VisuallyHidden>
           </DialogHeader>
           <Form {...usernameForm}>
@@ -560,7 +543,9 @@ export default function ProfileForm() {
           <DialogHeader>
             <DialogTitle>{t('form.password')}</DialogTitle>
             <VisuallyHidden>
-              <DialogDescription>Change your password</DialogDescription>
+              <DialogDescription>
+                {t('form.change_password_desc')}
+              </DialogDescription>
             </VisuallyHidden>
           </DialogHeader>
           <Form {...passwordForm}>
