@@ -55,9 +55,9 @@ export function TaskActions({
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
-  const canCancel = task.canCancel;
-  const canRerun = task.canRerun;
-  const canRedirect = task.canRedirect;
+  const canCancel = task.can_cancel;
+  const canRerun = task.can_rerun;
+  const canRedirect = task.can_redirect;
 
   const handleCancel = async () => {
     setIsLoading(true);
@@ -95,6 +95,7 @@ export function TaskActions({
             {canRedirect && task.attrs?.resource_id ? (
               <Link
                 to={`/${namespaceId}/${task.attrs.resource_id}`}
+                reloadDocument
                 className="flex items-center justify-center transition-opacity hover:opacity-70"
               >
                 <ExternalLink className="size-4 text-muted-foreground" />
