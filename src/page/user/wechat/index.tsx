@@ -2,7 +2,7 @@ import isMobile from 'ismobilejs';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { WeChatIcon } from '@/assets/icons/wechatIcon';
+import { WeChatIcon } from '@/assets/icons/wechat';
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 
