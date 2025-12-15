@@ -105,7 +105,7 @@ export function SettingsSidebar({
           {/* Account Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
             <div className="hidden lg:block px-2">
-              <span className="whitespace-nowrap text-xs font-semibold text-neutral-400">
+              <span className="whitespace-nowrap text-xs font-semibold text-neutral-500">
                 {t('setting.account')}
               </span>
             </div>
@@ -172,7 +172,7 @@ export function SettingsSidebar({
           {/* Space Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
             <div className="hidden lg:block px-2">
-              <span className="w-full text-xs font-semibold text-muted-foreground">
+              <span className="w-full text-xs font-semibold text-neutral-500">
                 {t('setting.space')}
               </span>
             </div>
