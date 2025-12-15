@@ -45,7 +45,7 @@ export default function AuthConfirmPage() {
         toast.error(error.message, { position: 'bottom-right' });
         navigate('/user/login', { replace: true });
       });
-  }, [code, state, i18n.language, navigate]);
+  }, [code, state, i18n.language]);
 
   return (
     <WrapperPage useCard={false}>
