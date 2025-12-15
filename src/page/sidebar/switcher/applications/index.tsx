@@ -282,7 +282,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-sm font-semibold"
+                        className="text-sm font-semibold dark:bg-destructive dark:text-destructive-foreground dark:border-destructive dark:hover:bg-destructive/90"
                       >
                         {t('applications.unbind.button')}
                       </Button>
@@ -331,7 +331,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-sm font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          className="text-sm font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive dark:bg-destructive dark:text-destructive-foreground dark:border-destructive dark:hover:bg-destructive/90"
                         >
                           {t('applications.bind.cancel_button')}
                         </Button>

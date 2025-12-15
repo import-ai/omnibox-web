@@ -233,41 +233,41 @@ export function TaskList({ namespaceId }: TaskListProps) {
         </Button>
       </div>
 
-      <div className="flex-1 min-h-0 w-full overflow-auto rounded-md border border-border">
+      <div className="flex-1 min-h-0 overflow-auto max-w-[83vw] sm:max-w-full rounded-md border border-border">
         <div className="min-w-[320px]">
-          <div className="flex h-8 lg:h-10 items-center border-b border-border px-2 lg:px-8 text-xs lg:text-sm font-medium text-muted-foreground sticky top-0 bg-background z-10">
-            <div className="w-[110px] lg:w-[120px] whitespace-nowrap">
+          <div className="flex w-full h-8 lg:h-10 items-center border-b border-border px-2 lg:px-8 text-xs lg:text-sm font-medium text-muted-foreground sticky top-0 bg-background z-10">
+            <div className="flex-1 min-w-[100px] whitespace-nowrap">
               {t('tasks.function')}
             </div>
-            <div className="ml-3 lg:ml-4 w-7 whitespace-nowrap text-center">
+            <div className="w-12 md:w-16 ml-2 lg:ml-4 whitespace-nowrap text-center">
               {t('tasks.status')}
             </div>
-            <div className="ml-4 lg:ml-8 w-[90px] lg:w-[119px] whitespace-nowrap">
+            <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 md:whitespace-nowrap">
               {t('tasks.time')}
             </div>
-            <div className="ml-auto w-12 lg:w-16 whitespace-nowrap">
+            <div className="w-14 lg:w-16 whitespace-nowrap text-right">
               {t('common.actions')}
             </div>
           </div>
 
-          <div>
+          <div className="w-full">
             {tasks.map(task => (
               <div
                 key={task.id}
-                className="flex h-12 lg:h-14 items-center border-b border-border px-2 lg:px-8 last:border-b-0"
+                className="flex w-full h-12 lg:h-14 items-center border-b border-border px-2 lg:px-8 last:border-b-0"
               >
-                <div className="w-[110px] lg:w-[120px]">
+                <div className="flex-1 min-w-[100px]">
                   <TaskTypeBadge functionName={task.function} />
                 </div>
 
-                <div className="ml-3 lg:ml-4 flex w-7 justify-center">
+                <div className="flex w-12 md:w-16 ml-2 lg:ml-4 justify-center">
                   <TaskStatusBadge status={task.status as any} />
                 </div>
 
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="ml-4 lg:ml-8 w-[90px] lg:w-[119px] cursor-default text-xs font-medium text-muted-foreground">
+                      <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 cursor-default text-xs font-medium text-muted-foreground md:whitespace-nowrap">
                         {getTimeDescription(task)}
                       </div>
                     </TooltipTrigger>
@@ -308,7 +308,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
                   </Tooltip>
                 </TooltipProvider>
 
-                <div className="ml-auto w-12 lg:w-16">
+                <div className="w-14 lg:w-16 flex justify-end">
                   <TaskActions
                     task={task}
                     namespaceId={namespaceId}

@@ -81,7 +81,7 @@ type UsernameFormValues = { username: string };
 type PasswordFormValues = { password: string; password_repeat: string };
 
 // Action button wrapper using shadcn Button - FIXED SIZE: 71×30px
-// Figma: primary = black bg, white text; secondary = white bg, border, black text
+// Figma: primary = black bg, white text; secondary = white bg, border, black text; destructive = red bg, white text
 function ActionButton({
   children,
   onClick,
@@ -91,19 +91,31 @@ function ActionButton({
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'destructive';
 }) {
-  const isPrimary = variant === 'primary';
+  const getClassName = () => {
+    switch (variant) {
+      case 'primary':
+        return 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] dark:bg-white dark:text-[#0a0a0a] dark:hover:bg-neutral-200 shadow-none border-none';
+      case 'destructive':
+        return 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-none border-none';
+      default:
+        return 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-white border-neutral-200 hover:bg-neutral-50 dark:bg-transparent dark:border-neutral-600 dark:text-white dark:hover:bg-neutral-800 shadow-none';
+    }
+  };
+
   return (
     <Button
       onClick={onClick}
       disabled={disabled}
-      variant={isPrimary ? 'default' : 'outline'}
-      className={
-        isPrimary
-          ? 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] dark:bg-white dark:text-[#0a0a0a] dark:hover:bg-neutral-200 shadow-none border-none'
-          : 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-white border-neutral-200 hover:bg-neutral-50 dark:bg-transparent dark:border-neutral-600 dark:text-white dark:hover:bg-neutral-800 shadow-none'
+      variant={
+        variant === 'destructive'
+          ? 'destructive'
+          : variant === 'primary'
+            ? 'default'
+            : 'outline'
       }
+      className={getClassName()}
     >
       {children}
     </Button>
@@ -195,7 +207,7 @@ function BindingRow({
         {isBound ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <ActionButton variant="secondary">
+              <ActionButton variant="destructive">
                 {t('setting.unbind_btn')}
               </ActionButton>
             </AlertDialogTrigger>
