@@ -108,7 +108,7 @@ export default function Action(props: ActionProps) {
           side="bottom"
           align="end"
           alignOffset={-10}
-          className="w-[264px]"
+          className="w-[85vw] max-w-[240px]"
         >
           {data.map(item => (
             <DropdownMenuItem
@@ -145,7 +145,7 @@ export default function Action(props: ActionProps) {
         </DropdownMenuContent>
       </DropdownMenu>
       <AlertDialog open={ownerOnly}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[85%] max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('manage.keep_one_admin')}</AlertDialogTitle>
           </AlertDialogHeader>
@@ -157,7 +157,7 @@ export default function Action(props: ActionProps) {
         </AlertDialogContent>
       </AlertDialog>
       <AlertDialog open={remove}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[85%] max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('manage.sure_to_remove')}</AlertDialogTitle>
           </AlertDialogHeader>

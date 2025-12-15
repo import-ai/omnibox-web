@@ -45,6 +45,8 @@ export default function GroupDataUser(props: GroupProps) {
           <PopConfirm
             title={t('manage.remove_member')}
             onOk={() => onRemove(item.id)}
+            okText={t('ok')}
+            cancelText={t('cancel')}
           >
             <Button size="sm" variant="ghost" className="hover:text-red-500">
               {t('manage.remove_from_group')}

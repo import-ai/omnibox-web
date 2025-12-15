@@ -7,8 +7,8 @@ import { http } from '@/lib/request';
 
 export default function AutoTag() {
   const { t } = useTranslation();
-  const [isEnabled, setIsEnabled] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [submitting] = useState(false);
 
   useEffect(() => {
     const loadPreference = async () => {
@@ -16,17 +16,13 @@ export default function AutoTag() {
         const response = await http.get(
           '/user/option/enable_ai_tag_extraction'
         );
-        if (response.value !== undefined) {
-          setIsEnabled(response.value === 'true');
-        }
+        setIsEnabled(response.value === 'true');
       } catch {
         // If option doesn't exist, default is enabled
         setIsEnabled(true);
-      } finally {
-        setLoading(false);
       }
     };
-    loadPreference().then();
+    loadPreference();
   }, []);
 
   const handleToggle = async (checked: boolean) => {
@@ -42,21 +38,26 @@ export default function AutoTag() {
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <Tags className="size-4" />
-          <span>{t('manage.auto_tag_setting')}</span>
+    <div className="flex w-full items-center justify-between gap-2">
+      <div className="flex items-start gap-2 min-w-0">
+        <Tags className="size-4 lg:size-5 shrink-0 text-muted-foreground mt-0.5" />
+        <div className="flex flex-col gap-1 lg:gap-2 min-w-0">
+          <span className="text-sm lg:text-base font-semibold text-foreground">
+            {t('manage.auto_tag_setting')}
+          </span>
+          <span className="text-xs lg:text-sm text-muted-foreground">
+            {t('manage.auto_tag_description')}
+          </span>
         </div>
-        <span className="text-xs text-muted-foreground ml-6">
-          {t('manage.auto_tag_description')}
-        </span>
       </div>
-      <Switch
-        checked={isEnabled}
-        onCheckedChange={handleToggle}
-        disabled={loading}
-      />
+      {isEnabled !== null && (
+        <Switch
+          checked={isEnabled}
+          onCheckedChange={handleToggle}
+          disabled={submitting}
+          className="shrink-0"
+        />
+      )}
     </div>
   );
 }

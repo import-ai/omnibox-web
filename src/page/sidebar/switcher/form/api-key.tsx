@@ -3,8 +3,8 @@ import {
   Copy,
   Eye,
   EyeOff,
+  LoaderCircle,
   Pencil,
-  Plus,
   Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -24,13 +24,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -61,7 +54,7 @@ import {
 import ResourceSearch from './components/resource-search';
 
 export function APIKeyForm() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const params = useParams();
   const { uid } = useUser();
   const namespaceId = params.namespace_id || '';
@@ -257,14 +250,20 @@ export function APIKeyForm() {
   };
 
   if (loading) {
-    return <div className="flex justify-center p-4">{t('loading')}</div>;
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <LoaderCircle className="size-6 animate-spin text-gray-400" />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-medium">{t('setting.api_key')}</h3>
+    <div className="space-y-4">
+      <div className="flex w-full items-center justify-between">
+        <div className="flex flex-col gap-2.5">
+          <h3 className="text-base font-semibold text-foreground">
+            {t('setting.api_key')}
+          </h3>
           <p className="text-sm text-muted-foreground">
             {t('api_key.description')}
           </p>
@@ -272,9 +271,8 @@ export function APIKeyForm() {
 
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4" />
-              {t('api_key.create.title')}
+            <Button size="sm" className="text-sm font-semibold">
+              {t('create')}
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -515,144 +513,169 @@ export function APIKeyForm() {
         </Dialog>
       </div>
 
-      <div className="space-y-4">
-        {apiKeys.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-muted-foreground">{t('api_key.empty')}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          apiKeys.map(key => (
-            <Card key={key.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-sm font-mono">
-                      {visibleKeys.has(key.id) ? key.value : maskKey(key.value)}
-                    </CardTitle>
-                    <CardDescription>
-                      {t('created')}:{' '}
-                      {new Date(key.created_at!).toLocaleDateString()}
-                    </CardDescription>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleKeyVisibility(key.id)}
-                    >
-                      {visibleKeys.has(key.id) ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(key.value)}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditClick(key)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {t('api_key.delete.confirm.title')}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t('api_key.delete.confirm.description')}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteAPIKey(key)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            {t('delete')}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
+      {apiKeys.length === 0 ? (
+        <div className="rounded-md border border-border p-6 text-center">
+          <p className="text-sm text-muted-foreground">{t('api_key.empty')}</p>
+        </div>
+      ) : (
+        apiKeys.map(key => (
+          <div key={key.id} className="rounded-md border border-border p-5">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold text-foreground">
+                    {visibleKeys.has(key.id) ? key.value : maskKey(key.value)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {t('created')}
+                    {i18n.language.startsWith('zh') ? '：' : ': '}
+                    {new Date(key.created_at!).toLocaleDateString(
+                      i18n.language.startsWith('zh') ? 'zh-CN' : 'en-US',
+                      {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                      }
+                    )}
+                  </span>
                 </div>
-              </CardHeader>
 
-              <CardContent>
-                <div className="space-y-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">
-                      {t('api_key.permission_scope')}
-                    </Label>
-                    <p className="text-sm font-mono">
-                      {key.attrs.root_resource_id}
-                    </p>
-                  </div>
-
-                  {key.attrs.related_app_id && (
-                    <div>
-                      <Label className="text-xs text-muted-foreground">
-                        {t('api_key.related_application')}
-                      </Label>
-                      <p className="text-sm">
-                        {t(
-                          `applications.app_names.${key.attrs.related_app_id}`,
-                          {
-                            defaultValue: key.attrs.related_app_id,
-                          }
+                <div className="flex items-center gap-1 lg:gap-4">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => toggleKeyVisibility(key.id)}
+                        className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70"
+                      >
+                        {visibleKeys.has(key.id) ? (
+                          <EyeOff className="size-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="size-4 text-muted-foreground" />
                         )}
-                      </p>
-                    </div>
-                  )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      {visibleKeys.has(key.id)
+                        ? t('api_key.hide')
+                        : t('api_key.show')}
+                    </TooltipContent>
+                  </Tooltip>
 
-                  <div>
-                    <Label className="text-xs text-muted-foreground">
-                      {t('api_key.permissions')}
-                    </Label>
-                    <div className="space-y-2 mt-1">
-                      {key.attrs.permissions.map(perm => (
-                        <div key={perm.target}>
-                          <div className="text-xs font-medium text-muted-foreground capitalize mb-1">
-                            {perm.target}
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            {perm.permissions.map(permission => (
-                              <span
-                                key={permission}
-                                className="px-2 py-1 text-xs bg-secondary rounded-md capitalize"
-                              >
-                                {permission}
-                              </span>
-                            ))}
-                          </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => copyToClipboard(key.value)}
+                        className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70"
+                      >
+                        <Copy className="size-4 text-muted-foreground" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      {t('copy.title')}
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => handleEditClick(key)}
+                        className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70"
+                      >
+                        <Pencil className="size-4 text-muted-foreground" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">{t('edit')}</TooltipContent>
+                  </Tooltip>
+
+                  <AlertDialog>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <AlertDialogTrigger asChild>
+                          <button className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70">
+                            <Trash2 className="size-4 text-muted-foreground" />
+                          </button>
+                        </AlertDialogTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">{t('delete')}</TooltipContent>
+                    </Tooltip>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          {t('api_key.delete.confirm.title')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t('api_key.delete.confirm.description')}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteAPIKey(key)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {t('delete')}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-sm text-muted-foreground">
+                  {t('api_key.permission_scope')}
+                </span>
+                <span className="text-sm font-semibold text-foreground">
+                  {key.attrs.root_resource_id}
+                </span>
+              </div>
+
+              {key.attrs.related_app_id && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm text-muted-foreground">
+                    {t('api_key.related_application')}
+                  </span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {t(`applications.app_names.${key.attrs.related_app_id}`, {
+                      defaultValue: key.attrs.related_app_id,
+                    })}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1">
+                <span className="text-sm text-muted-foreground">
+                  {t('api_key.permissions')}
+                </span>
+                {key.attrs.permissions.map(perm => (
+                  <div key={perm.target} className="flex flex-col gap-1">
+                    <span className="text-sm text-muted-foreground">
+                      {perm.target === 'resources'
+                        ? 'Resources'
+                        : perm.target === 'chat'
+                          ? 'Chat'
+                          : perm.target}
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {perm.permissions.map(permission => (
+                        <div
+                          key={permission}
+                          className="inline-flex h-6 items-center justify-center rounded-lg border border-border px-2 py-0.5"
+                        >
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {permission.charAt(0).toUpperCase() +
+                              permission.slice(1)}
+                          </span>
                         </div>
                       ))}
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }

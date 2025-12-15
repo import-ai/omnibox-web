@@ -104,7 +104,7 @@ export default function AddMember(props: AddMemberProps) {
       <PopoverContent
         side="bottom"
         align="start"
-        className="p-0 shadow-none w-[400px] border-none"
+        className="p-0 shadow-none w-[85vw] max-w-[360px] border-none"
       >
         <MultipleSelector
           value={value}

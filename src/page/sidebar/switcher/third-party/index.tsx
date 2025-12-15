@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { GoogleIcon } from '@/assets/icons/google';
+import { WeChatIcon } from '@/assets/icons/wechat';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,8 +22,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { UserBinding } from '@/interface';
 import { http } from '@/lib/request';
-import { GoogleIcon } from '@/page/user/google/icon';
-import { WeChatIcon } from '@/page/user/wechat/icon';
 
 import { Wrapper } from './wrapper';
 

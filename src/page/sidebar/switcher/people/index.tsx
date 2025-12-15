@@ -40,7 +40,7 @@ export default function PeopleManage() {
         invitationId={invitationId}
         refetch={refetch}
       />
-      <Separator className="mb-4" />
+      <Separator className="my-2 lg:my-4" />
       <Table />
     </div>
   );
