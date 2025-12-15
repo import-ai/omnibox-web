@@ -14,11 +14,10 @@ import { WechatLogin } from './wechat';
 
 interface IProps {
   type: string;
-  onSuccess: () => void;
 }
 
 export function Wrapper(props: IProps) {
-  const { type, onSuccess } = props;
+  const { type } = props;
   const [open, onOpen] = useState(false);
 
   if (type === 'wechat') {
@@ -38,5 +37,5 @@ export function Wrapper(props: IProps) {
     );
   }
 
-  return <GoogleLogin onSuccess={onSuccess} />;
+  return <GoogleLogin />;
 }
