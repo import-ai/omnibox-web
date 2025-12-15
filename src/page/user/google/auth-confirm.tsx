@@ -30,12 +30,15 @@ export default function AuthConfirmPage() {
       })
       .then(res => {
         if (res.isBinding) {
-          app.fire('open_settings', {
-            tab: 'third-party',
-          });
-          toast.success(t('setting.third_party_account.bind_success'), {
+          toast.success(t('setting.third_party_account.bound'), {
             position: 'bottom-right',
           });
+          navigate('/', { replace: true });
+          setTimeout(() => {
+            app.fire('open_settings', {
+              tab: 'third-party',
+            });
+          }, 2000);
         } else {
           setGlobalCredential(res.id, res.access_token);
           navigate('/', { replace: true });
