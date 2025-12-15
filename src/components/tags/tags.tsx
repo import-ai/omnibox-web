@@ -96,6 +96,7 @@ export default function Tags(props: IProps) {
               inputValue={value}
               hideClearAllButton
               className="min-h-6"
+              badgeClassName="!border-[#E5E6EA] !bg-background !text-[#585D65] !font-normal !rounded-[8px] !px-[8px] !py-[2px] !shadow-none dark:!border-neutral-500 dark:!text-neutral-400 hover:!bg-background"
               onSearch={handleSearch}
               onCreate={handleCreate}
               onChange={handleChange}
