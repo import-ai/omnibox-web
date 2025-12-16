@@ -1,4 +1,3 @@
-import { LoaderCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -13,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { http } from '@/lib/request';
 
 interface IProps {
@@ -129,7 +129,7 @@ export default function ConfirmDeleteDialog(props: IProps) {
             onClick={handleConfirm}
             className="bg-red-500 text-white hover:bg-red-600"
           >
-            {loading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Spinner className="mr-2" />}
             {t('delete')}
           </AlertDialogAction>
         </AlertDialogFooter>

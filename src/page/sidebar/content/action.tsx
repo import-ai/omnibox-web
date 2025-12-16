@@ -1,7 +1,6 @@
 import {
   FilePlus,
   FolderPlus,
-  LoaderCircle,
   MessageSquarePlus,
   MessageSquareQuote,
   MonitorUp,
@@ -23,6 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { SidebarMenuAction } from '@/components/ui/sidebar';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -125,7 +125,7 @@ export default function Action(props: ISidebarProps) {
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
                       <SidebarMenuAction className="group-hover/sidebar-item:pointer-events-auto pointer-events-none size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
-                        <LoaderCircle className="transition-transform animate-spin" />
+                        <Spinner />
                       </SidebarMenuAction>
                     </TooltipTrigger>
                     <TooltipContent>{progress}</TooltipContent>
@@ -133,7 +133,7 @@ export default function Action(props: ISidebarProps) {
                 </TooltipProvider>
               ) : (
                 <SidebarMenuAction className="group-hover/sidebar-item:pointer-events-auto pointer-events-none size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
-                  <LoaderCircle className="transition-transform animate-spin" />
+                  <Spinner />
                 </SidebarMenuAction>
               )}
             </>

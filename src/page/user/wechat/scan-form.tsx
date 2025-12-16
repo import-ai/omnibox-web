@@ -1,8 +1,8 @@
-import { LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Spinner } from '@/components/ui/spinner';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
@@ -88,7 +88,7 @@ export function ScanForm() {
       />
       {loading && (
         <div className="absolute left-0 top-0 z-10 flex items-center justify-center w-full h-full text-foreground">
-          <LoaderCircle className="transition-transform animate-spin" />
+          <Spinner />
         </div>
       )}
     </div>

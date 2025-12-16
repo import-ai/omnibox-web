@@ -1,4 +1,4 @@
-import { Link, LoaderCircle, Unlink } from 'lucide-react';
+import { Link, Unlink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 import { UserBinding } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -128,9 +129,7 @@ export function ThirdPartyForm() {
                             });
                         }}
                       >
-                        {unbinding && (
-                          <LoaderCircle className="size-4 mr-2 transition-transform animate-spin" />
-                        )}
+                        {unbinding && <Spinner className="mr-2" />}
                         {t('setting.third_party_account.confirm_unbind')}
                       </AlertDialogAction>
                     </AlertDialogFooter>

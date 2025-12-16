@@ -1,6 +1,6 @@
-import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import Group from './group';
@@ -15,7 +15,7 @@ export default function ManagePeople() {
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <LoaderCircle className="size-6 animate-spin text-gray-400" />
+        <Spinner className="size-6 text-gray-400" />
       </div>
     );
   }

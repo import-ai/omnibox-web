@@ -1,9 +1,9 @@
-import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
@@ -53,7 +53,7 @@ export default function AuthConfirmPage() {
     <WrapperPage useCard={false}>
       {code && state ? (
         <div className="flex font-bold gap-2 justify-center items-center">
-          <LoaderCircle className="transition-transform animate-spin" />
+          <Spinner />
           {t('login.authorizing')}
         </div>
       ) : (
