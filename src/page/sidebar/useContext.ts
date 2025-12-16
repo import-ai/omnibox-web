@@ -568,24 +568,34 @@ export default function useContext() {
     if (!namespaceId || !resourceId || Object.keys(data).length <= 0) {
       return;
     }
+
+    // Check if all ancestors in the path are expanded
+    const areAllAncestorsExpanded = (
+      id: string,
+      spaceType: SpaceType
+    ): boolean => {
+      const rootId = data[spaceType]?.id;
+      let currentId = id;
+      while (currentId) {
+        const resource = getResourceByField(currentId);
+        if (!resource) return false;
+        const parentId = resource.parent_id;
+        if (!parentId || parentId === rootId) return true;
+        if (!expands.includes(parentId)) return false;
+        currentId = parentId;
+      }
+      return true;
+    };
+
     const target = getResourceByField(resourceId);
     if (target) {
       const spaceType = getSpaceType(resourceId);
-      const rootId = data[spaceType]?.id;
-
-      // Check if parent folder needs to be expanded
-      const parentId = target.parent_id;
-      const needExpandParent =
-        parentId && parentId !== rootId && !expands.includes(parentId);
-
-      if (!needExpandParent) {
-        // Parent folder is already expanded or resource is at root, scroll directly
-        if (target.has_children && !expands.includes(target.id)) {
-          handleExpand(spaceType, target.id);
-        }
+      // Check if all ancestors are expanded (not just direct parent)
+      if (areAllAncestorsExpanded(resourceId, spaceType)) {
         scrollToResource(resourceId);
         return;
       }
+      // Some ancestors not expanded, continue via API to get full path
     }
     const source = axios.CancelToken.source();
     http
