@@ -98,6 +98,35 @@ export default function useContext() {
     });
     return current;
   };
+  /**
+   * Retrieve all ancestor IDs of resources (in top to bottom order, excluding self and space root)
+   */
+  const getAncestorPath = (
+    resourceId: string,
+    spaceType: SpaceType
+  ): string[] => {
+    const children = data[spaceType]?.children;
+    if (!children?.length) return [];
+
+    const resourceMap = new Map(children.map(item => [item.id, item]));
+    const spaceRootId = data[spaceType].id;
+    const ancestors: string[] = [];
+
+    let currentId = resourceId;
+    let current = resourceMap.get(currentId);
+
+    while (current) {
+      const { parent_id: parentId } = current;
+      if (parentId === spaceRootId || !resourceMap.has(parentId)) break;
+
+      ancestors.push(parentId);
+      currentId = parentId;
+      current = resourceMap.get(currentId);
+    }
+
+    return ancestors.reverse();
+  };
+
   const handleActiveKey = (id: string, edit?: boolean) => {
     if (edit) {
       navigate(`/${namespaceId}/${id}/edit`);
@@ -568,34 +597,27 @@ export default function useContext() {
     if (!namespaceId || !resourceId || Object.keys(data).length <= 0) {
       return;
     }
-
-    // Check if all ancestors in the path are expanded
-    const areAllAncestorsExpanded = (
-      id: string,
-      spaceType: SpaceType
-    ): boolean => {
-      const rootId = data[spaceType]?.id;
-      let currentId = id;
-      while (currentId) {
-        const resource = getResourceByField(currentId);
-        if (!resource) return false;
-        const parentId = resource.parent_id;
-        if (!parentId || parentId === rootId) return true;
-        if (!expands.includes(parentId)) return false;
-        currentId = parentId;
-      }
-      return true;
-    };
-
     const target = getResourceByField(resourceId);
     if (target) {
-      const spaceType = getSpaceType(resourceId);
-      // Check if all ancestors are expanded (not just direct parent)
-      if (areAllAncestorsExpanded(resourceId, spaceType)) {
-        scrollToResource(resourceId);
-        return;
+      const spaceType = getSpaceType(target.id);
+
+      // Obtain all ancestor paths of the target resource
+      const ancestors = getAncestorPath(target.id, spaceType);
+
+      // Identify the ancestors that need to be expanded (not yet in expansions)
+      const ancestorsToExpand = ancestors.filter(id => !expands.includes(id));
+
+      // If there are ancestors that need to be expanded, add them to expansions all at once
+      if (ancestorsToExpand.length > 0) {
+        onExpands([...expands, ...ancestorsToExpand]);
       }
-      // Some ancestors not expanded, continue via API to get full path
+      if (target.has_children && !expands.includes(target.id)) {
+        handleExpand(spaceType, target.id);
+      }
+      // Scroll to the target resource (use longer delay when ancestors need to expand)
+      const delay = ancestorsToExpand.length > 0 ? 500 : 300;
+      scrollToResource(resourceId, delay);
+      return;
     }
     const source = axios.CancelToken.source();
     http
@@ -618,20 +640,10 @@ export default function useContext() {
           }
           resourceIdsToLoad.push(item.id);
         });
-        const spaceType = getSpaceType(path[0].id);
-        // If all resources on the path are loaded, just expand the path and scroll
-        if (resourceIdsToLoad.length === 0) {
-          const parentNodes = path.slice(0, -1);
-          const nodesToExpand = parentNodes.filter(
-            item => !expands.includes(item.id)
-          );
-          if (nodesToExpand.length > 0) {
-            nodesToExpand.forEach(item => expands.push(item.id));
-            onExpands([...expands]);
-          }
-          scrollToResource(resourceId, 300);
+        if (resourceIdsToLoad.length <= 0) {
           return;
         }
+        const spaceType = getSpaceType(path[0].id);
         http
           .get(
             `/namespaces/${namespaceId}/resources?id=${resourceIdsToLoad.join(',')}`,
@@ -684,7 +696,7 @@ export default function useContext() {
                 });
               });
               onData({ ...data });
-              // After path expansion is complete, scroll to target resource (delay 500ms for DOM rendering)
+              // After the path expansion is completed, scroll to the target resource location (delay 500ms for DOM rendering)
               scrollToResource(resourceId, 500);
             });
           });
