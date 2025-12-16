@@ -12,6 +12,20 @@ import each from '@/lib/each';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
+const scrollToResource = (resourceId: string, delay: number = 300) => {
+  setTimeout(() => {
+    const element = document.querySelector(
+      `[data-resource-id="${resourceId}"]`
+    );
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, delay);
+};
+
 export default function useContext() {
   const app = useApp();
   const loc = useLocation();
@@ -556,10 +570,22 @@ export default function useContext() {
     }
     const target = getResourceByField(resourceId);
     if (target) {
-      if (target.has_children && !expands.includes(target.id)) {
-        handleExpand(getSpaceType(target.id), target.id);
+      const spaceType = getSpaceType(resourceId);
+      const rootId = data[spaceType]?.id;
+
+      // Check if parent folder needs to be expanded
+      const parentId = target.parent_id;
+      const needExpandParent =
+        parentId && parentId !== rootId && !expands.includes(parentId);
+
+      if (!needExpandParent) {
+        // Parent folder is already expanded or resource is at root, scroll directly
+        if (target.has_children && !expands.includes(target.id)) {
+          handleExpand(spaceType, target.id);
+        }
+        scrollToResource(resourceId);
+        return;
       }
-      return;
     }
     const source = axios.CancelToken.source();
     http
@@ -582,10 +608,20 @@ export default function useContext() {
           }
           resourceIdsToLoad.push(item.id);
         });
-        if (resourceIdsToLoad.length <= 0) {
+        const spaceType = getSpaceType(path[0].id);
+        // If all resources on the path are loaded, just expand the path and scroll
+        if (resourceIdsToLoad.length === 0) {
+          const parentNodes = path.slice(0, -1);
+          const nodesToExpand = parentNodes.filter(
+            item => !expands.includes(item.id)
+          );
+          if (nodesToExpand.length > 0) {
+            nodesToExpand.forEach(item => expands.push(item.id));
+            onExpands([...expands]);
+          }
+          scrollToResource(resourceId, 300);
           return;
         }
-        const spaceType = getSpaceType(path[0].id);
         http
           .get(
             `/namespaces/${namespaceId}/resources?id=${resourceIdsToLoad.join(',')}`,
@@ -638,6 +674,8 @@ export default function useContext() {
                 });
               });
               onData({ ...data });
+              // After path expansion is complete, scroll to target resource (delay 500ms for DOM rendering)
+              scrollToResource(resourceId, 500);
             });
           });
       });
