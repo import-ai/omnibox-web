@@ -1,12 +1,4 @@
-import {
-  CircleHelp,
-  Copy,
-  Eye,
-  EyeOff,
-  LoaderCircle,
-  Pencil,
-  Trash2,
-} from 'lucide-react';
+import { CircleHelp, Copy, Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -35,6 +27,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -252,7 +245,7 @@ export function APIKeyForm() {
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <LoaderCircle className="size-6 animate-spin text-gray-400" />
+        <Spinner className="size-6 text-gray-400" />
       </div>
     );
   }

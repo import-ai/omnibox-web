@@ -1,7 +1,8 @@
-import { File, Folder, LoaderCircle } from 'lucide-react';
+import { File, Folder } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
 import type { Resource, SpaceType } from '@/interface';
 import { http } from '@/lib/request';
@@ -58,7 +59,7 @@ export default function Resource(props: IProps) {
       }}
     >
       {data.id === editId ? (
-        <LoaderCircle className="transition-transform animate-spin" />
+        <Spinner />
       ) : data.resource_type === 'folder' ? (
         <Folder />
       ) : (

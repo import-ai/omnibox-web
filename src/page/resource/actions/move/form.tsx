@@ -1,9 +1,10 @@
-import { LoaderCircle, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LazyInput } from '@/components/input/lazy';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import type { Resource } from '@/interface';
 import each from '@/lib/each';
 import { http } from '@/lib/request';
@@ -94,7 +95,7 @@ export default function MoveToForm(props: IFormProps) {
     <div>
       <div className="relative mb-2">
         {loading ? (
-          <LoaderCircle className="absolute left-3 top-[10px] size-4 opacity-50 transition-transform animate-spin" />
+          <Spinner className="absolute left-3 top-[10px] opacity-50" />
         ) : (
           <Search className="absolute left-3 top-[10px] size-4 opacity-50" />
         )}

@@ -1,4 +1,4 @@
-import { ExternalLink, LoaderCircle, RefreshCw } from 'lucide-react';
+import { ExternalLink, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -131,9 +132,7 @@ export function TaskActions({
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleCancel}
             >
-              {isLoading && (
-                <LoaderCircle className="mr-2 size-4 animate-spin" />
-              )}
+              {isLoading && <Spinner className="mr-2" />}
               {t('tasks.confirm_cancel')}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1,4 +1,3 @@
-import { LoaderCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { Spinner } from '@/components/ui/spinner';
 import { Permission } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -148,9 +148,7 @@ export default function PermissionAction(props: IProps) {
                 disabled={removeing}
                 className="text-red-500 cursor-pointer justify-between hover:bg-gray-100 dark:hover:bg-gray-400"
               >
-                {removeing && (
-                  <LoaderCircle className="transition-transform animate-spin" />
-                )}
+                {removeing && <Spinner />}
                 {t('permission.remove')}
               </DropdownMenuItem>
             </>
@@ -167,9 +165,7 @@ export default function PermissionAction(props: IProps) {
               {t('permission.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction disabled={permissioning} onClick={handleOk}>
-              {permissioning && (
-                <LoaderCircle className="transition-transform animate-spin" />
-              )}
+              {permissioning && <Spinner />}
               {t('permission.ok')}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -185,9 +181,7 @@ export default function PermissionAction(props: IProps) {
               {t('permission.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction disabled={removeing} onClick={handleRemoveOk}>
-              {removeing && (
-                <LoaderCircle className="transition-transform animate-spin" />
-              )}
+              {removeing && <Spinner />}
               {t('permission.ok')}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -206,9 +200,7 @@ export default function PermissionAction(props: IProps) {
               disabled={granting}
               onClick={handleGrantOk}
             >
-              {granting && (
-                <LoaderCircle className="transition-transform animate-spin" />
-              )}
+              {granting && <Spinner />}
               {t('permission.ok')}
             </AlertDialogAction>
           </AlertDialogFooter>

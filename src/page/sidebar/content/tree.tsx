@@ -1,4 +1,3 @@
-import { LoaderCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
@@ -16,6 +15,7 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
+import { Spinner } from '@/components/ui/spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
 import { IResourceData } from '@/interface';
@@ -331,7 +331,7 @@ export default function Tree(props: ITreeProps) {
                         variant="outline"
                         className="size-[20px] bg-transparent shadow-none border-none hover:bg-transparent"
                       >
-                        <LoaderCircle className="transition-transform animate-spin" />
+                        <Spinner />
                       </Button>
                     ) : (
                       <Button

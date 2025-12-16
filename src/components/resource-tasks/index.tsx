@@ -1,4 +1,4 @@
-import { ListChecks, ListVideo, LoaderCircle } from 'lucide-react';
+import { ListChecks, ListVideo } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Spinner } from '@/components/ui/spinner';
 import { RESOURCE_TASKS_INTERVAL } from '@/const.ts';
 import { Resource, Task } from '@/interface';
 import { http } from '@/lib/request';
@@ -119,7 +120,7 @@ export default function ResourceTasks({
           {t('tasks.related_tasks')}
         </span>
         <span className="flex items-center text-foreground h-7">
-          <LoaderCircle className="transition-transform animate-spin" />
+          <Spinner />
         </span>
       </div>
     );
@@ -254,7 +255,7 @@ export default function ResourceTasks({
           )}
         </span>
         {hasActiveContentModifyingTasks(relevantTasks) && (
-          <LoaderCircle className="ml-2 transition-transform animate-spin" />
+          <Spinner className="ml-2" />
         )}
       </span>
     </div>

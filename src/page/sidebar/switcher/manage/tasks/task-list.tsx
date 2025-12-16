@@ -1,6 +1,5 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN } from 'date-fns/locale';
-import { LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -181,7 +181,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <LoaderCircle className="size-6 animate-spin text-gray-400" />
+        <Spinner className="size-6 text-gray-400" />
       </div>
     );
   }

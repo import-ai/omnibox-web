@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import i18next from 'i18next';
-import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 import useUser from '@/hooks/use-user';
 import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
@@ -215,9 +216,7 @@ function BindingRow({
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   onClick={onUnbind}
                 >
-                  {unbinding && (
-                    <LoaderCircle className="size-4 mr-2 transition-transform animate-spin" />
-                  )}
+                  {unbinding && <Spinner className="mr-2" />}
                   {t('setting.third_party_account.confirm_unbind')}
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -378,7 +377,7 @@ export default function ProfileForm() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[200px]">
-        <LoaderCircle className="size-6 animate-spin text-gray-400" />
+        <Spinner className="size-6 text-gray-400" />
       </div>
     );
   }
@@ -513,11 +512,7 @@ export default function ProfileForm() {
                   {t('cancel')}
                 </Button>
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? (
-                    <LoaderCircle className="size-4 animate-spin" />
-                  ) : (
-                    t('ok')
-                  )}
+                  {submitting ? <Spinner /> : t('ok')}
                 </Button>
               </div>
             </form>
@@ -630,11 +625,7 @@ export default function ProfileForm() {
                   {t('cancel')}
                 </Button>
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? (
-                    <LoaderCircle className="size-4 animate-spin" />
-                  ) : (
-                    t('ok')
-                  )}
+                  {submitting ? <Spinner /> : t('ok')}
                 </Button>
               </div>
             </form>

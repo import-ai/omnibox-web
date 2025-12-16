@@ -1,9 +1,10 @@
-import { Check, File, Folder, LoaderCircle, Search } from 'lucide-react';
+import { Check, File, Folder, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LazyInput } from '@/components/input/lazy';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import type { Resource } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -116,7 +117,7 @@ export default function ResourceSearch({
     <div className="space-y-2">
       <div className="relative">
         {loading ? (
-          <LoaderCircle className="absolute left-3 top-[10px] size-4 opacity-50 transition-transform animate-spin" />
+          <Spinner className="absolute left-3 top-[10px] opacity-50" />
         ) : (
           <Search className="absolute left-3 top-[10px] size-4 opacity-50" />
         )}

@@ -1,4 +1,4 @@
-import { CircleHelp, LoaderCircle } from 'lucide-react';
+import { CircleHelp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -18,6 +18,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -194,7 +195,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <LoaderCircle className="size-6 animate-spin text-gray-400" />
+        <Spinner className="size-6 text-gray-400" />
       </div>
     );
   }
@@ -305,9 +306,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           onClick={() => handleUnbind(application)}
                         >
-                          {unbindingLoading && (
-                            <LoaderCircle className="mr-2 size-4 animate-spin" />
-                          )}
+                          {unbindingLoading && <Spinner className="mr-2" />}
                           {t('applications.unbind.confirm.button')}
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -321,9 +320,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                       size="sm"
                       className="text-sm font-semibold"
                     >
-                      {bindingLoading && (
-                        <LoaderCircle className="mr-2 size-4 animate-spin" />
-                      )}
+                      {bindingLoading && <Spinner className="mr-2" />}
                       {t('applications.bind.continue_button')}
                     </Button>
                     <AlertDialog>
@@ -354,9 +351,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => handleCancelBind(application)}
                           >
-                            {cancelingLoading && (
-                              <LoaderCircle className="mr-2 size-4 animate-spin" />
-                            )}
+                            {cancelingLoading && <Spinner className="mr-2" />}
                             {t('applications.bind.cancel.confirm.button')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -370,9 +365,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                     size="sm"
                     className="text-sm font-semibold"
                   >
-                    {bindingLoading && (
-                      <LoaderCircle className="mr-2 size-4 animate-spin" />
-                    )}
+                    {bindingLoading && <Spinner className="mr-2" />}
                     {t('applications.bind.button')}
                   </Button>
                 )}

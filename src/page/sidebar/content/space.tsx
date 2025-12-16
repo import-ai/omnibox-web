@@ -1,10 +1,4 @@
-import {
-  FilePlus,
-  FolderPlus,
-  LoaderCircle,
-  MonitorUp,
-  MoreHorizontal,
-} from 'lucide-react';
+import { FilePlus, FolderPlus, MonitorUp, MoreHorizontal } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
@@ -26,6 +20,7 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -203,7 +198,7 @@ export default function Space(props: ITreeProps) {
                         <Tooltip delayDuration={0}>
                           <TooltipTrigger asChild>
                             <span className="[&>svg]:size-[16px]">
-                              <LoaderCircle className="transition-transform animate-spin" />
+                              <Spinner />
                             </span>
                           </TooltipTrigger>
                           <TooltipContent>{progress}</TooltipContent>
@@ -211,7 +206,7 @@ export default function Space(props: ITreeProps) {
                       </TooltipProvider>
                     ) : (
                       <span>
-                        <LoaderCircle className="transition-transform animate-spin" />
+                        <Spinner />
                       </span>
                     )}
                   </span>
