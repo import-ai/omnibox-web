@@ -23,6 +23,7 @@ export interface User extends IBase {
   id: string;
   email: string;
   username: string;
+  phone?: string;
   password?: string;
   password_repeat?: string;
 }
@@ -32,6 +33,16 @@ export interface UserBinding extends IBase {
   user_id: string;
   login_type: string;
   login_id: string;
+  email?: string;
+  metadata?: {
+    sub?: string;
+    name?: string;
+    email?: string;
+    picture?: string;
+    given_name?: string;
+    family_name?: string;
+    email_verified?: boolean;
+  };
 }
 
 export interface Namespace extends IBase {
@@ -258,6 +269,9 @@ export interface Task {
   started_at: string | null;
   ended_at: string | null;
   canceled_at: string | null;
+  can_cancel?: boolean;
+  can_rerun?: boolean;
+  can_redirect?: boolean;
 }
 
 export interface ApplicationAttrs {

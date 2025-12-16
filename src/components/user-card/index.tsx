@@ -19,20 +19,27 @@ export default function UserCard(props: IProps) {
   }
 
   return (
-    <div>
+    <div className="max-w-[180px]">
       {username && (
-        <div className="flex items-center">
-          <span className={cn({ 'font-medium': !!email, 'text-sm': !email })}>
+        <div className="flex min-w-0 items-center">
+          <span
+            className={cn('truncate', {
+              'font-medium': !!email,
+              'text-sm': !email,
+            })}
+          >
             {username}
           </span>
           {you && (
-            <span className="text-muted-foreground ml-2">
+            <span className="ml-2 flex-shrink-0 text-muted-foreground">
               ({t('permission.you')})
             </span>
           )}
         </div>
       )}
-      {email && <div className="text-muted-foreground text-sm">{email}</div>}
+      {email && (
+        <div className="truncate text-sm text-muted-foreground">{email}</div>
+      )}
     </div>
   );
 

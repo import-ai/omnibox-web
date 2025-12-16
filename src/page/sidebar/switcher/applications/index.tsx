@@ -1,4 +1,4 @@
-import { CircleHelp, Clock, Link, LoaderCircle, Unlink } from 'lucide-react';
+import { CircleHelp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -17,8 +17,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -194,29 +194,32 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <LoaderCircle className="w-6 h-6 animate-spin" />
+      <div className="flex items-center justify-center w-full h-full">
+        <Spinner className="size-6 text-gray-400" />
       </div>
     );
   }
 
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex flex-col mb-4 gap-2">
-          <h2 className="font-medium">{t('applications.title')}</h2>
-          <p className="text-muted-foreground text-sm">
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2.5">
+          <h3 className="text-base font-semibold text-foreground">
+            {t('applications.title')}
+          </h3>
+          <p className="text-sm text-muted-foreground">
             {t('applications.description')}
           </p>
         </div>
-        <Separator className="mb-4" />
+
+        <Separator className="my-6" />
 
         {applications.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-muted-foreground">{t('applications.empty')}</p>
-            </CardContent>
-          </Card>
+          <div className="py-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              {t('applications.empty')}
+            </p>
+          </div>
         ) : (
           applications.map((application: Application) => {
             const state = getApplicationState(application);
@@ -233,161 +236,140 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
             }
 
             return (
-              <Card key={application.app_id}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-semibold">{appDisplayName}</h4>
-                        {!hasError && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={() =>
-                                  handleDocsClick(application.app_id)
-                                }
-                                className="text-muted-foreground hover:text-foreground transition-colors"
-                              >
-                                <CircleHelp className="size-4" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>{t('footer.docs')}</TooltipContent>
-                          </Tooltip>
-                        )}
-                        {hasError && (
-                          <Badge variant="destructive" className="text-red-600">
-                            {t('applications.unsupported_app', {
-                              app_id: application.app_id,
-                            })}
-                          </Badge>
-                        )}
-                        {state === 'bound' && (
-                          <Badge variant="secondary" className="text-green-600">
-                            <Link className="size-3 mr-1" />
-                            {t('applications.status.bound')}
-                          </Badge>
-                        )}
-                        {state === 'binding_in_progress' && (
-                          <Badge variant="secondary" className="text-amber-600">
-                            <Clock className="size-3 mr-1" />
-                            {t('applications.status.binding_in_progress')}
-                          </Badge>
-                        )}
-                        {state === 'unbound' && (
-                          <Badge variant="secondary" className="text-red-600">
-                            <Unlink className="size-3 mr-1" />
-                            {t('applications.status.unbound')}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    {hasError ? (
-                      <Button variant="outline" size="sm" disabled>
-                        {t('applications.unsupported_app', {
-                          app_id: application.app_id,
-                        })}
-                      </Button>
-                    ) : state === 'bound' ? (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            {t('applications.unbind.button')}
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              {t('applications.unbind.confirm.title')}
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {t('applications.unbind.confirm.description', {
-                                name: appDisplayName,
-                              })}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                            <AlertDialogAction
-                              disabled={unbindingLoading}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => handleUnbind(application)}
-                            >
-                              {unbindingLoading && (
-                                <LoaderCircle className="size-4 mr-2 animate-spin" />
-                              )}
-                              {t('applications.unbind.confirm.button')}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    ) : state === 'binding_in_progress' ? (
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleBind(application)}
-                          disabled={bindingLoading}
-                          variant="outline"
+              <div
+                key={application.app_id}
+                className="flex w-full items-center justify-between"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-base font-semibold text-foreground">
+                    {appDisplayName}
+                  </span>
+                  {!hasError && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handleDocsClick(application.app_id)}
+                          className="flex items-center justify-center transition-opacity hover:opacity-70"
                         >
-                          {bindingLoading && (
-                            <LoaderCircle className="size-4 mr-2 animate-spin" />
-                          )}
-                          {t('applications.bind.continue_button')}
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm">
-                              {t('applications.bind.cancel_button')}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                {t('applications.bind.cancel.confirm.title')}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t(
-                                  'applications.bind.cancel.confirm.description',
-                                  {
-                                    name: appDisplayName,
-                                  }
-                                )}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>
-                                {t('cancel')}
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                disabled={cancelingLoading}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                onClick={() => handleCancelBind(application)}
-                              >
-                                {cancelingLoading && (
-                                  <LoaderCircle className="size-4 mr-2 animate-spin" />
-                                )}
-                                {t('applications.bind.cancel.confirm.button')}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    ) : (
+                          <CircleHelp className="size-5 text-muted-foreground" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        {t('footer.docs')}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  {hasError && (
+                    <Badge variant="destructive" className="ml-2 text-red-600">
+                      {t('applications.unsupported_app', {
+                        app_id: application.app_id,
+                      })}
+                    </Badge>
+                  )}
+                </div>
+
+                {hasError ? (
+                  <Button
+                    disabled
+                    variant="outline"
+                    size="sm"
+                    className="text-sm font-semibold"
+                  >
+                    {t('applications.unbind.button')}
+                  </Button>
+                ) : state === 'bound' ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
                       <Button
+                        variant="outline"
                         size="sm"
-                        onClick={() => handleBind(application)}
-                        disabled={bindingLoading}
-                        variant="default"
+                        className="text-sm font-semibold dark:bg-destructive dark:text-destructive-foreground dark:border-destructive dark:hover:bg-destructive/90"
                       >
-                        {bindingLoading && (
-                          <LoaderCircle className="size-4 mr-2 animate-spin" />
-                        )}
-                        {t('applications.bind.button')}
+                        {t('applications.unbind.button')}
                       </Button>
-                    )}
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          {t('applications.unbind.confirm.title')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t('applications.unbind.confirm.description', {
+                            name: appDisplayName,
+                          })}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                        <AlertDialogAction
+                          disabled={unbindingLoading}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          onClick={() => handleUnbind(application)}
+                        >
+                          {unbindingLoading && <Spinner className="mr-2" />}
+                          {t('applications.unbind.confirm.button')}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : state === 'binding_in_progress' ? (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleBind(application)}
+                      disabled={bindingLoading}
+                      size="sm"
+                      className="text-sm font-semibold"
+                    >
+                      {bindingLoading && <Spinner className="mr-2" />}
+                      {t('applications.bind.continue_button')}
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-sm font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive dark:bg-destructive dark:text-destructive-foreground dark:border-destructive dark:hover:bg-destructive/90"
+                        >
+                          {t('applications.bind.cancel_button')}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            {t('applications.bind.cancel.confirm.title')}
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t('applications.bind.cancel.confirm.description', {
+                              name: appDisplayName,
+                            })}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                          <AlertDialogAction
+                            disabled={cancelingLoading}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => handleCancelBind(application)}
+                          >
+                            {cancelingLoading && <Spinner className="mr-2" />}
+                            {t('applications.bind.cancel.confirm.button')}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
-                </CardContent>
-              </Card>
+                ) : (
+                  <Button
+                    onClick={() => handleBind(application)}
+                    disabled={bindingLoading}
+                    size="sm"
+                    className="text-sm font-semibold"
+                  >
+                    {bindingLoading && <Spinner className="mr-2" />}
+                    {t('applications.bind.button')}
+                  </Button>
+                )}
+              </div>
             );
           })
         )}

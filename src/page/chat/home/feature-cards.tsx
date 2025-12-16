@@ -1,10 +1,5 @@
 import axios from 'axios';
-import {
-  ChevronRight,
-  FileUp,
-  LoaderCircle,
-  MessageCircle,
-} from 'lucide-react';
+import { ChevronRight, FileUp, MessageCircle } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -19,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -169,7 +165,7 @@ export default function FeatureCards() {
                       size="sm"
                       className="opacity-50 w-24"
                     >
-                      <LoaderCircle className="w-4 h-4 text-red-500 animate-spin" />
+                      <Spinner className="text-red-500" />
                       {t('chat.home.upload.local')}
                     </Button>
                   </TooltipTrigger>

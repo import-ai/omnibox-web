@@ -59,8 +59,8 @@ export function Switcher(props: IProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
-              <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] text-white items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
-                {current.name.charAt(0)}
+              <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
+                {current.name.charAt(0).toUpperCase()}
               </div>
               <span className="truncate">{current.name}</span>
               <ChevronDown className="opacity-50" />
@@ -74,8 +74,8 @@ export function Switcher(props: IProps) {
           >
             <DropdownMenuLabel>
               <div className="flex items-center gap-2 px-1 text-left text-sm">
-                <Avatar className="size-8 text-[18px] rounded-lg  text-white flex items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
-                  {current.name.charAt(0)}
+                <Avatar className="size-8 font-normal rounded-lg flex items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
+                  {current.name.charAt(0).toUpperCase()}
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{current.name}</span>
@@ -109,8 +109,8 @@ export function Switcher(props: IProps) {
                   navigate(`/${item.id}/chat`);
                 }}
               >
-                <div className="flex rounded-[6px] size-6 text-[11px] items-center justify-center border">
-                  {item.name.charAt(0)}
+                <div className="flex rounded-[6px] size-6 text-[11px] font-normal items-center justify-center border">
+                  {item.name.charAt(0).toUpperCase()}
                 </div>
                 <span className="truncate">{item.name}</span>
                 {/* <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut> */}

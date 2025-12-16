@@ -1,14 +1,29 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import i18next from 'i18next';
-import { useEffect, useRef, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
-import { Button } from '@/components/button';
-import Loading from '@/components/loading';
+import { GoogleIcon } from '@/assets/icons/google';
+import { MailIcon } from '@/assets/icons/mail';
+import { WeChatIcon } from '@/assets/icons/wechat';
+// import { SmartphoneIcon } from '@/assets/icons/smartphone';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -19,224 +34,643 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 import useUser from '@/hooks/use-user';
-import { isAllowedEmailDomain } from '@/lib/email-validation';
+import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
-import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
-import { optionalPasswordSchema } from '@/lib/validation-schemas';
+import { createOptionalPasswordSchema } from '@/lib/validation-schemas';
 
+import { Wrapper } from '../third-party/wrapper';
 import EmailValidate from './email-validate';
+import PhoneValidate from './phone-validate';
 
-const profileFormSchema = z.object({
-  username: z
-    .string()
-    .min(2, i18next.t('form.username_min'))
-    .max(32, i18next.t('form.username_max'))
-    .refine(
-      value => {
-        return !Array.from(value).some(char => isEmoji(char));
-      },
-      {
-        message: i18next.t('form.username_no_emoji'),
-      }
-    ),
-  email: z
-    .string()
-    .refine(
-      email => {
-        if (!email) {
-          return false;
+// Schema factory for username change dialog
+function createUsernameSchema() {
+  return z.object({
+    username: z
+      .string()
+      .min(2, i18next.t('form.username_min'))
+      .max(32, i18next.t('form.username_max'))
+      .refine(
+        value => {
+          return !Array.from(value).some(char => isEmoji(char));
+        },
+        {
+          message: i18next.t('form.username_no_emoji'),
         }
-        if (!isEmail(email)) {
-          return false;
-        }
-        return isAllowedEmailDomain(email);
-      },
-      {
-        message: i18next.t('form.email_limit_rule'),
-      }
-    )
-    .optional(),
-  password: optionalPasswordSchema,
-  password_repeat: z.string().optional(),
-});
+      ),
+  });
+}
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+// Schema factory for password change dialog
+function createPasswordChangeSchema() {
+  return z.object({
+    password: createOptionalPasswordSchema(),
+    password_repeat: z.string(),
+  });
+}
+
+type UsernameFormValues = { username: string };
+type PasswordFormValues = { password: string; password_repeat: string };
+
+// Action button wrapper using shadcn Button - FIXED SIZE: 71×30px
+// Figma: primary = black bg, white text; secondary = white bg, border, black text; destructive = red bg, white text
+function ActionButton({
+  children,
+  onClick,
+  disabled,
+  variant = 'secondary',
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  variant?: 'primary' | 'secondary';
+}) {
+  const isPrimary = variant === 'primary';
+  return (
+    <Button
+      onClick={onClick}
+      disabled={disabled}
+      variant={isPrimary ? 'default' : 'outline'}
+      className={
+        isPrimary
+          ? 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] dark:bg-white dark:text-[#0a0a0a] dark:hover:bg-neutral-200 shadow-none border-none'
+          : 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-white border-neutral-200 hover:bg-neutral-50 dark:bg-transparent dark:border-neutral-600 dark:text-white dark:hover:bg-neutral-800 shadow-none'
+      }
+    >
+      {children}
+    </Button>
+  );
+}
+
+// Section header with divider - Title: 20px, weight 600, line-height 28px; Divider at 38px from top
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <div className="relative w-full lg:w-[532px] h-12">
+      <p className="absolute left-0 top-0 text-foreground whitespace-nowrap text-base lg:text-xl font-semibold leading-7 tracking-normal">
+        {title}
+      </p>
+      {/* Divider line at 38px from top */}
+      <Separator className="absolute left-0 top-[38px] w-full lg:w-[532px]" />
+    </div>
+  );
+}
+
+// Info row component for username/password - Figma: flex, items-center, justify-between, h-[30px] to align with button
+function InfoRow({
+  label,
+  value,
+  button,
+}: {
+  label: string;
+  value: string;
+  button: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between w-full lg:w-[533px] h-[30px]">
+      {/* Left side with label and value */}
+      <div className="flex items-center h-[24px] flex-1 min-w-0 gap-2 lg:gap-3">
+        {/* Label */}
+        <p className="text-foreground whitespace-nowrap flex-shrink-0 text-sm lg:text-base font-semibold">
+          {label}
+        </p>
+        {/* Value */}
+        <p className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap text-sm lg:text-base flex-1 min-w-0">
+          {value}
+        </p>
+      </div>
+      {/* Button - fixed 71×30px */}
+      <div className="flex-shrink-0 ml-2">{button}</div>
+    </div>
+  );
+}
+
+// Binding info row with icon - Figma: w-[532px], h-[30px] to align with button, icon 20x20, gap 9px
+function BindingRow({
+  icon,
+  label,
+  value,
+  isBound,
+  onUnbind,
+  onBind,
+  unbinding,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  isBound: boolean;
+  onUnbind?: () => void;
+  onBind?: React.ReactNode;
+  unbinding?: boolean;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
+      {/* Left side with icon, label, and value */}
+      <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
+        {/* Icon and label group - gap: 9px */}
+        <div className="flex items-center flex-shrink-0 gap-2">
+          <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
+            {icon}
+          </span>
+          <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
+            {label}
+          </p>
+        </div>
+        {/* Value */}
+        <p className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis text-sm lg:text-base flex-1 min-w-0">
+          {value}
+        </p>
+      </div>
+      {/* Button - Figma: both bound and unbound use outline style (white bg, border) */}
+      <div className="flex-shrink-0 ml-2">
+        {isBound ? (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <ActionButton>{t('setting.unbind_btn')}</ActionButton>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {t('setting.third_party_account.confirm_unbind')}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('setting.third_party_account.confirm_unbind_description', {
+                    type: label,
+                  })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={unbinding}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={onUnbind}
+                >
+                  {unbinding && <Spinner className="mr-2" />}
+                  {t('setting.third_party_account.confirm_unbind')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ) : (
+          onBind || (
+            <ActionButton variant="secondary">
+              {t('setting.bind_btn')}
+            </ActionButton>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface BindingData extends UserBinding {
+  icon: React.ReactNode;
+  connected: boolean;
+}
 
 export default function ProfileForm() {
   const { t } = useTranslation();
-  const [open, onOpen] = useState(false);
-  const { user, onChange, loading } = useUser();
-  const [submiting, onSubmiting] = useState(false);
-  const submitData = useRef<ProfileFormValues | null>(null);
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      username: '',
-      password_repeat: '',
-    },
-  });
-  const handleSubmit = (data: ProfileFormValues) => {
-    if (data.password || data.password_repeat) {
-      if (data.password !== data.password_repeat) {
-        toast.error(t('form.password_not_match'), { position: 'bottom-right' });
-        return;
-      }
-    }
-    if (data.email && user.email !== data.email) {
-      http
-        .post('/user/email/validate', {
-          email: data.email,
-        })
-        .then(() => {
-          submitData.current = data;
-          onOpen(true);
-          toast(t('email.send_success'), { position: 'bottom-right' });
-        });
-      return;
-    }
+  const { user, onChange, loading, refetch } = useUser();
 
+  // Dialog states
+  const [usernameDialogOpen, setUsernameDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Binding states
+  const [bindingData, setBindingData] = useState<BindingData[]>([]);
+  const [unbinding, setUnbinding] = useState(false);
+
+  // Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordRepeat, setShowPasswordRepeat] = useState(false);
+
+  // Create schemas dynamically to get current language translations
+  const usernameSchema = useMemo(() => createUsernameSchema(), []);
+  const passwordSchema = useMemo(() => createPasswordChangeSchema(), []);
+
+  // Forms
+  const usernameForm = useForm<UsernameFormValues>({
+    resolver: zodResolver(usernameSchema),
+    defaultValues: { username: '' },
+  });
+
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: { password: '', password_repeat: '' },
+  });
+
+  // Fetch bindings
+  const refetchBindings = () => {
+    http.get('/user/binding/list').then(response => {
+      setBindingData(
+        [
+          { icon: <GoogleIcon />, login_type: 'google' },
+          { icon: <WeChatIcon />, login_type: 'wechat' },
+        ].map(item => ({
+          ...item,
+          ...response.find(
+            (i: BindingData) => i.login_type === item.login_type
+          ),
+        }))
+      );
+    });
+  };
+
+  useEffect(() => {
+    refetchBindings();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      usernameForm.setValue('username', user.username || '');
+    }
+  }, [user]);
+
+  // Handle username change
+  const handleUsernameSubmit = async (data: UsernameFormValues) => {
     if (!data.username.trim().length) {
       toast.error(t('form.username_not_emptyStr'), {
         position: 'bottom-right',
       });
       return;
     }
-
-    onSubmiting(true);
-    onChange(data, () => {
-      toast.success(t('profile.success'), { position: 'bottom-right' });
-    }).finally(() => {
-      onSubmiting(false);
-    });
-  };
-  const handleEmailValidateFinish = (code: string) => {
-    const query = submitData.current;
-    if (!query) {
-      return;
+    setSubmitting(true);
+    try {
+      await onChange({ username: data.username }, () => {
+        toast.success(t('profile.success'), { position: 'bottom-right' });
+      });
+      setUsernameDialogOpen(false);
+    } finally {
+      setSubmitting(false);
     }
-    onSubmiting(true);
-    onChange({ ...query, code }, () => {
-      toast.success(t('profile.success'), { position: 'bottom-right' });
-    }).finally(() => {
-      onOpen(false);
-      onSubmiting(false);
-    });
   };
 
-  useEffect(() => {
-    if (!user) {
+  // Handle password change
+  const handlePasswordSubmit = async (data: PasswordFormValues) => {
+    if (data.password !== data.password_repeat) {
+      toast.error(t('form.password_not_match'), { position: 'bottom-right' });
       return;
     }
-    form.setValue('email', user.email || '');
-    form.setValue('username', user.username || '');
-  }, [user]);
+    setSubmitting(true);
+    try {
+      await onChange({ password: data.password }, () => {
+        toast.success(t('profile.success'), { position: 'bottom-right' });
+      });
+      setPasswordDialogOpen(false);
+      passwordForm.reset();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handle email validation finish
+  const handleEmailValidateFinish = async (
+    email: string,
+    code: string
+  ): Promise<void> => {
+    const uid = localStorage.getItem('uid');
+    return http
+      .patch(`/user/${uid}`, {
+        email,
+        code,
+        username: user?.username || '',
+        password: '',
+        password_repeat: '',
+      })
+      .then(() => {
+        toast.success(t('profile.success'), { position: 'bottom-right' });
+        setEmailDialogOpen(false);
+        refetch();
+      });
+  };
+
+  // Handle unbind
+  const handleUnbind = (loginType: string) => {
+    setUnbinding(true);
+    http
+      .post(`/${loginType}/unbind`)
+      .then(() => {
+        refetchBindings();
+        toast(t('setting.third_party_account.unbind_success'), {
+          position: 'bottom-right',
+        });
+      })
+      .finally(() => {
+        setUnbinding(false);
+      });
+  };
 
   if (loading) {
-    return <Loading />;
+    return (
+      <div className="flex items-center justify-center h-[200px]">
+        <Spinner className="size-6 text-gray-400" />
+      </div>
+    );
   }
 
+  const maskedPassword = '••••••••••••';
+
   return (
-    <div>
-      <Dialog open={open} onOpenChange={onOpen}>
-        <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl">
+    <div className="flex flex-col items-start w-full lg:w-[533px] gap-4 lg:gap-5">
+      {/* Account Section Header */}
+      <SectionHeader title={t('setting.account')} />
+
+      {/* Username Row */}
+      <InfoRow
+        label={t('form.username')}
+        value={user?.username || ''}
+        button={
+          <ActionButton onClick={() => setUsernameDialogOpen(true)}>
+            {t('setting.change')}
+          </ActionButton>
+        }
+      />
+
+      {/* Password Row */}
+      <InfoRow
+        label={t('form.password')}
+        value={maskedPassword}
+        button={
+          <ActionButton onClick={() => setPasswordDialogOpen(true)}>
+            {t('setting.change')}
+          </ActionButton>
+        }
+      />
+
+      {/* Binding Section Header */}
+      <SectionHeader title={t('setting.binding')} />
+
+      {/* Phone Row - Hidden temporarily, uncomment when phone binding API is ready
+      <BindingRow
+        icon={<SmartphoneIcon />}
+        label={t('setting.phone')}
+        value={user?.phone || t('setting.not_bound')}
+        isBound={!!user?.phone}
+        onBind={
+          <ActionButton
+            variant="primary"
+            onClick={() => setPhoneDialogOpen(true)}
+          >
+            {t('setting.bind_btn')}
+          </ActionButton>
+        }
+      />
+      */}
+
+      {/* Email Row */}
+      <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
+        <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
+          <div className="flex items-center flex-shrink-0 gap-2">
+            <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
+              <MailIcon />
+            </span>
+            <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
+              {t('setting.email_binding')}
+            </p>
+          </div>
+          <p className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis text-sm lg:text-base flex-1 min-w-0">
+            {user?.email || t('setting.not_bound')}
+          </p>
+        </div>
+        <div className="flex-shrink-0 ml-2">
+          <ActionButton onClick={() => setEmailDialogOpen(true)}>
+            {t('setting.change')}
+          </ActionButton>
+        </div>
+      </div>
+
+      {/* Google & WeChat Bindings */}
+      {bindingData.map(item => (
+        <BindingRow
+          key={item.login_type}
+          icon={item.icon}
+          label={t(`setting.third_party_account.${item.login_type}`)}
+          value={
+            item.id
+              ? item.login_type === 'google'
+                ? item.metadata?.email || item.email || ''
+                : t('setting.third_party_account.bound')
+              : t('setting.not_bound')
+          }
+          isBound={!!item.id}
+          onUnbind={() => handleUnbind(item.login_type)}
+          onBind={
+            <Wrapper type={item.login_type} onSuccess={refetchBindings} />
+          }
+          unbinding={unbinding}
+        />
+      ))}
+
+      {/* Username Change Dialog */}
+      <Dialog open={usernameDialogOpen} onOpenChange={setUsernameDialogOpen}>
+        <DialogContent className="w-[90%] sm:w-1/2 max-w-md">
           <DialogHeader>
-            <DialogTitle>{t('email.validate')}</DialogTitle>
+            <DialogTitle>{t('form.username')}</DialogTitle>
             <VisuallyHidden>
-              <DialogDescription>{t('email.description')}</DialogDescription>
+              <DialogDescription>
+                {t('form.change_username_desc')}
+              </DialogDescription>
             </VisuallyHidden>
           </DialogHeader>
-          <EmailValidate onFinish={handleEmailValidateFinish} />
+          <Form {...usernameForm}>
+            <form
+              onSubmit={usernameForm.handleSubmit(handleUsernameSubmit)}
+              className="space-y-4"
+            >
+              <FormField
+                control={usernameForm.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input {...field} disabled={submitting} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setUsernameDialogOpen(false)}
+                >
+                  {t('cancel')}
+                </Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? <Spinner /> : t('ok')}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
-      <Form {...form}>
-        <form
-          className="space-y-4 px-px"
-          onSubmit={form.handleSubmit(handleSubmit)}
-        >
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('form.username')}</FormLabel>
-                <FormControl>
-                  <Input {...field} disabled={submiting} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('form.email')}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    autoComplete="email"
-                    {...field}
-                    disabled={submiting}
-                  />
-                </FormControl>
-                <FormDescription>{t('form.email_limit')}</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('form.password')}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    autoComplete="new-password"
-                    {...field}
-                    disabled={submiting}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password_repeat"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('form.confirm_password')}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    autoComplete="new-password"
-                    {...field}
-                    disabled={submiting}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" disabled={submiting} loading={submiting}>
-            {t('profile.submit')}
-          </Button>
-        </form>
-      </Form>
+
+      {/* Password Change Dialog */}
+      <Dialog
+        open={passwordDialogOpen}
+        onOpenChange={open => {
+          setPasswordDialogOpen(open);
+          if (!open) {
+            passwordForm.reset();
+            setShowPassword(false);
+            setShowPasswordRepeat(false);
+          }
+        }}
+      >
+        <DialogContent className="w-[90%] sm:w-1/2 max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('form.password')}</DialogTitle>
+            <VisuallyHidden>
+              <DialogDescription>
+                {t('form.change_password_desc')}
+              </DialogDescription>
+            </VisuallyHidden>
+          </DialogHeader>
+          <Form {...passwordForm}>
+            <form
+              onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)}
+              className="space-y-4"
+            >
+              <FormField
+                control={passwordForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          autoComplete="new-password"
+                          {...field}
+                          disabled={submitting}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={passwordForm.control}
+                name="password_repeat"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('form.confirm_password')}</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPasswordRepeat ? 'text' : 'password'}
+                          autoComplete="new-password"
+                          {...field}
+                          disabled={submitting}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPasswordRepeat(!showPasswordRepeat)
+                          }
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showPasswordRepeat ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setPasswordDialogOpen(false);
+                    passwordForm.reset();
+                    setShowPassword(false);
+                    setShowPasswordRepeat(false);
+                  }}
+                >
+                  {t('cancel')}
+                </Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? <Spinner /> : t('ok')}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Validation Dialog */}
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+        <DialogContent className="p-0 border-none bg-transparent shadow-none w-[90%] lg:w-[445px] max-w-[445px]">
+          <VisuallyHidden>
+            <DialogHeader>
+              <DialogTitle>{t('email.validate')}</DialogTitle>
+              <DialogDescription>{t('email.description')}</DialogDescription>
+            </DialogHeader>
+          </VisuallyHidden>
+          <div className="bg-card rounded-[12px] flex items-center justify-center w-full min-h-[280px] lg:min-h-[303px] p-6 lg:p-[48px_30px_32px_30px]">
+            <EmailValidate onFinish={handleEmailValidateFinish} />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phone Binding Dialog */}
+      <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
+        <DialogContent className="p-0 border-none bg-transparent shadow-none w-[90%] lg:w-[445px] max-w-[445px]">
+          <VisuallyHidden>
+            <DialogHeader>
+              <DialogTitle>{t('phone.input_phone')}</DialogTitle>
+              <DialogDescription>
+                {t('phone.will_send_verification')}
+              </DialogDescription>
+            </DialogHeader>
+          </VisuallyHidden>
+          <div className="bg-card rounded-[12px] flex items-center justify-center w-full min-h-[280px] lg:min-h-[303px] p-6 lg:p-[48px_30px_32px_30px]">
+            <PhoneValidate
+              currentPhone={user?.phone}
+              onFinish={() => {
+                setPhoneDialogOpen(false);
+                // Refresh user data to show updated phone
+                window.location.reload();
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

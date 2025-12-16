@@ -1,12 +1,31 @@
-import { ExternalLink, RefreshCw, X } from 'lucide-react';
+import { ExternalLink, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
+import { StopIcon } from '@/assets/icons/stop';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Spinner } from '@/components/ui/spinner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Task } from '@/interface.ts';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 export interface TaskActionsProps {
   task: Task;
@@ -22,8 +41,9 @@ export function TaskActions({
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
-  const canCancel = task.status === 'pending' || task.status === 'running';
-  const canRerun = task.status === 'canceled';
+  const canCancel = task.can_cancel;
+  const canRerun = task.can_rerun;
+  const canRedirect = task.can_redirect;
 
   const handleCancel = async () => {
     setIsLoading(true);
@@ -54,37 +74,88 @@ export function TaskActions({
   };
 
   return (
-    <div className="flex gap-2">
-      {task.attrs?.resource_id && (
-        <Button size="sm" variant="outline" asChild>
-          <Link to={`/${namespaceId}/${task.attrs.resource_id}`}>
-            <ExternalLink className="h-4 w-4" />
-            {t('tasks.view_resource')}
-          </Link>
-        </Button>
-      )}
-      {canCancel && (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleCancel}
-          disabled={isLoading}
-        >
-          <X className="h-4 w-4" />
-          {t('tasks.cancel')}
-        </Button>
-      )}
-      {canRerun && (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleRerun}
-          disabled={isLoading}
-        >
-          <RefreshCw className="h-4 w-4" />
-          {t('tasks.rerun')}
-        </Button>
-      )}
+    <div className="flex items-center gap-2.5">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {canRedirect && task.attrs?.resource_id ? (
+              <Link
+                to={`/${namespaceId}/${task.attrs.resource_id}`}
+                reloadDocument
+                className="flex items-center justify-center transition-opacity hover:opacity-70"
+              >
+                <ExternalLink className="size-4 text-muted-foreground" />
+              </Link>
+            ) : (
+              <span className="flex cursor-not-allowed items-center justify-center opacity-40">
+                <ExternalLink className="size-4 text-muted-foreground" />
+              </span>
+            )}
+          </TooltipTrigger>
+          <TooltipContent side="top">{t('tasks.view_resource')}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <AlertDialog>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <AlertDialogTrigger asChild>
+                <button
+                  disabled={isLoading || !canCancel}
+                  className={cn(
+                    'flex items-center justify-center transition-opacity disabled:opacity-40',
+                    canCancel
+                      ? 'hover:opacity-70'
+                      : 'cursor-not-allowed opacity-40'
+                  )}
+                >
+                  <StopIcon className="size-3.5 text-muted-foreground" />
+                </button>
+              </AlertDialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="top">{t('cancel')}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('tasks.confirm_cancel_title')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('tasks.confirm_cancel_description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('tasks.continue_running')}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleCancel}
+            >
+              {isLoading && <Spinner className="mr-2" />}
+              {t('tasks.confirm_cancel')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={canRerun ? handleRerun : undefined}
+              disabled={isLoading || !canRerun}
+              className={cn(
+                'flex items-center justify-center transition-opacity disabled:opacity-40',
+                canRerun ? 'hover:opacity-70' : 'cursor-not-allowed opacity-40'
+              )}
+            >
+              <RefreshCw className="size-3.5 text-muted-foreground" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top">{t('common.retry')}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }

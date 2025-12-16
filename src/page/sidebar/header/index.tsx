@@ -54,7 +54,7 @@ export function Header(props: IProps) {
               className="flex items-center cursor-pointer gap-[8px]"
               onClick={onChat}
             >
-              <ChatIcon className="size-[18px] text-[#3D86F9]" />
+              <ChatIcon className="size-4" />
               <span className="font-normal">{t('chat.title')}</span>
             </div>
           </SidebarMenuButton>

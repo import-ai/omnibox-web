@@ -1,16 +1,15 @@
 import { TagsIcon } from 'lucide-react';
-import { LoaderCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { ATTRIBUTE_STYLES } from '@/components/attributes/constants';
 import MultipleSelector, { Option } from '@/components/multiple-selector';
+import { Spinner } from '@/components/ui/spinner';
 import type { Tag } from '@/interface';
 import { http } from '@/lib/request';
 
 import { TagsDisplay } from './display';
-
 interface IProps {
   loading: boolean;
   data: Array<Option>;
@@ -84,7 +83,7 @@ export default function Tags(props: IProps) {
       </div>
       {loading ? (
         <span className="flex items-center text-foreground h-7">
-          <LoaderCircle className="transition-transform animate-spin" />
+          <Spinner />
         </span>
       ) : (
         <span className="flex flex-wrap items-center text-foreground min-h-7">

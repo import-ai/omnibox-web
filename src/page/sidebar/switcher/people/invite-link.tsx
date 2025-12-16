@@ -3,7 +3,6 @@ import copy from 'copy-to-clipboard';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +13,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { http } from '@/lib/request';
 
+import { useSettingsToast } from '../settings-toast';
 import { AddNamespaceInvitationForm } from './add-form';
 
 interface IProps {
@@ -25,11 +25,24 @@ interface IProps {
 export default function InvitePeople(props: IProps) {
   const { namespaceId, invitationId, refetch } = props;
   const { t } = useTranslation();
+  const { showToast } = useSettingsToast();
   const [open, setOpen] = useState(false);
   const handleCopy = () => {
-    copy(`${location.origin}/invite/${namespaceId}/${invitationId}`, {
-      format: 'text/plain',
-    });
+    try {
+      const success = copy(
+        `${location.origin}/invite/${namespaceId}/${invitationId}`,
+        {
+          format: 'text/plain',
+        }
+      );
+      if (success) {
+        showToast(t('actions.copy_link_success'), 'success');
+      } else {
+        showToast(t('actions.copy_link_failed'), 'error');
+      }
+    } catch {
+      showToast(t('actions.copy_link_failed'), 'error');
+    }
   };
   const handleDisable = () => {
     if (invitationId) {
@@ -53,7 +66,7 @@ export default function InvitePeople(props: IProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl p-4 sm:p-6">
+        <DialogContent className="w-[90%] max-w-sm p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>{t('invite.title')}</DialogTitle>
             <VisuallyHidden>
@@ -66,23 +79,27 @@ export default function InvitePeople(props: IProps) {
           />
         </DialogContent>
       </Dialog>
-      <div className="flex justify-between mb-4 flex-wrap gap-2">
-        <div className="flex flex-col">
-          <h2 className="font-medium mb-2">{t('invite.title')}</h2>
-          <p className="text-muted-foreground text-sm">
+      <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-1 lg:gap-2">
+          <h2 className="text-sm lg:text-base font-semibold text-foreground">
+            {t('invite.title')}
+          </h2>
+          <p className="text-xs lg:text-sm text-neutral-400">
             {t('invite.description')}
           </p>
         </div>
-        <div className="flex items-center gap-2 justify-between">
+        <div className="flex items-center gap-2 mt-2 lg:mt-0">
           {!!invitationId && (
-            <Button size="sm" variant="copyLink" onClick={handleCopy}>
+            <span
+              className="cursor-pointer text-xs lg:text-sm text-neutral-400 hover:text-foreground"
+              onClick={handleCopy}
+            >
               {t('actions.copy_link')}
-            </Button>
+            </span>
           )}
           <Switch
             checked={!!invitationId}
             onCheckedChange={handleCheckedChange}
-            className="data-[state=checked]:bg-blue-500"
           />
         </div>
       </div>

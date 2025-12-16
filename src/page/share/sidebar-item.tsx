@@ -1,4 +1,4 @@
-import { ChevronRight, LoaderCircle, MoreHorizontal } from 'lucide-react';
+import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
+import { Spinner } from '@/components/ui/spinner';
 import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
@@ -128,7 +129,7 @@ export default function SidebarItem(props: SidebarItemProps) {
                     className="flex items-center justify-center w-4 h-4"
                   >
                     {loading ? (
-                      <LoaderCircle className="w-3 h-3 animate-spin" />
+                      <Spinner className="w-3 h-3" />
                     ) : (
                       hasChildren && (
                         <ChevronRight

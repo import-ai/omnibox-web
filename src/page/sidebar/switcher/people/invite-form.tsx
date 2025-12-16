@@ -171,9 +171,16 @@ export default function InviteForm(props: IProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading} loading={loading}>
-          {t('invite.submit')}
-        </Button>
+        <div className="flex justify-center">
+          <Button
+            type="submit"
+            disabled={loading}
+            loading={loading}
+            className="w-full"
+          >
+            {t('invite.submit')}
+          </Button>
+        </div>
       </form>
     </Form>
   );

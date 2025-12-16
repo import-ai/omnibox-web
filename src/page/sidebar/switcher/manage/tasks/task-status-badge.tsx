@@ -1,44 +1,41 @@
-import { useTranslation } from 'react-i18next';
-
-import { Badge } from '@/components/ui/badge';
+import { CancelStatus } from '@/assets/icons/cancelStatus';
+import { CompletedStatus } from '@/assets/icons/completedStatus';
+import { ErrorStatus } from '@/assets/icons/errorStatus';
+import { InProgressStatus } from '@/assets/icons/inProgressStatus';
+import { QueueStatus } from '@/assets/icons/queueStatus';
 import { TaskStatus } from '@/interface.ts';
+import { cn } from '@/lib/utils';
 
 export const statusConfig: Record<
   TaskStatus,
   {
-    variant: 'default' | 'secondary' | 'destructive' | 'outline';
-    className: string;
+    icon: React.ComponentType<{
+      className?: string;
+    }>;
   }
 > = {
   pending: {
-    variant: 'secondary' as const,
-    className: 'bg-gray-100 text-gray-800',
+    icon: QueueStatus,
   },
   running: {
-    variant: 'default' as const,
-    className: 'bg-blue-100 text-blue-800',
+    icon: InProgressStatus,
   },
   finished: {
-    variant: 'default' as const,
-    className: 'bg-green-100 text-green-800',
+    icon: CompletedStatus,
   },
   canceled: {
-    variant: 'outline' as const,
-    className: 'bg-yellow-100 text-yellow-800',
+    icon: CancelStatus,
   },
   error: {
-    variant: 'destructive' as const,
-    className: 'bg-red-100 text-red-800',
+    icon: ErrorStatus,
   },
 };
 
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {
-  const { t } = useTranslation();
   const config = statusConfig[status];
+  const Icon = config.icon;
 
   return (
-    <Badge variant={config.variant} className={config.className}>
-      {t(`tasks.status_${status}`)}
-    </Badge>
+    <Icon className={cn('size-5', status === 'pending' && 'animate-spin')} />
   );
 }

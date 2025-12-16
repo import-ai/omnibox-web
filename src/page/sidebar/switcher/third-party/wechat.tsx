@@ -2,11 +2,27 @@ import isMobile from 'ismobilejs';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 
 interface IProps {
   onScan: (value: boolean) => void;
+}
+
+function ActionButton({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex h-[30px] w-[71px] shrink-0 items-center justify-center rounded-md bg-foreground text-sm font-semibold text-background hover:opacity-90"
+    >
+      {children}
+    </button>
+  );
 }
 
 export function WechatLogin(props: IProps) {
@@ -35,15 +51,15 @@ export function WechatLogin(props: IProps) {
 
   if (isPhone && !isWeChat) {
     return (
-      <Button size="sm" onClick={alertDisableWeChatLogin}>
-        {t('setting.third_party_account.bind')}
-      </Button>
+      <ActionButton onClick={alertDisableWeChatLogin}>
+        {t('setting.bind_btn')}
+      </ActionButton>
     );
   }
 
   return (
-    <Button size="sm" onClick={loginWithWeChat}>
-      {t('setting.third_party_account.bind')}
-    </Button>
+    <ActionButton onClick={loginWithWeChat}>
+      {t('setting.bind_btn')}
+    </ActionButton>
   );
 }

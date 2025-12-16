@@ -8,7 +8,6 @@ import {
   Download,
   Files,
   Link,
-  LoaderCircle,
   MoreHorizontal,
   MoveHorizontal,
   Pencil,
@@ -40,6 +39,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -391,11 +391,7 @@ export default function Actions(props: IActionProps) {
                       <SidebarMenuButton
                         onClick={() => handleAction('duplicate')}
                       >
-                        {loading === 'duplicate' ? (
-                          <LoaderCircle className="transition-transform animate-spin" />
-                        ) : (
-                          <Copy />
-                        )}
+                        {loading === 'duplicate' ? <Spinner /> : <Copy />}
                         <span>{t('actions.duplicate')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -444,11 +440,7 @@ export default function Actions(props: IActionProps) {
                         <SidebarMenuButton
                           onClick={() => handleAction('download')}
                         >
-                          {loading === 'download' ? (
-                            <LoaderCircle className="transition-transform animate-spin" />
-                          ) : (
-                            <Download />
-                          )}
+                          {loading === 'download' ? <Spinner /> : <Download />}
                           <span>{t('actions.download')}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -458,7 +450,7 @@ export default function Actions(props: IActionProps) {
                         onClick={() => handleAction('move_to')}
                       >
                         {loading === 'move_to' ? (
-                          <LoaderCircle className="transition-transform animate-spin" />
+                          <Spinner />
                         ) : (
                           <CornerUpRight />
                         )}
@@ -469,11 +461,7 @@ export default function Actions(props: IActionProps) {
                       <SidebarMenuButton
                         onClick={() => handleAction('move_to_trash')}
                       >
-                        {loading === 'move_to_trash' ? (
-                          <LoaderCircle className="transition-transform animate-spin" />
-                        ) : (
-                          <Trash2 />
-                        )}
+                        {loading === 'move_to_trash' ? <Spinner /> : <Trash2 />}
                         <span>{t('actions.move_to_trash')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -492,7 +480,7 @@ export default function Actions(props: IActionProps) {
                           <div className="flex items-center justify-between">
                             <div className="flex gap-2 items-center">
                               {loading === 'wide' ? (
-                                <LoaderCircle className="transition-transform animate-spin" />
+                                <Spinner />
                               ) : (
                                 <MoveHorizontal className="size-4" />
                               )}
@@ -512,7 +500,7 @@ export default function Actions(props: IActionProps) {
                     <SidebarMenuItem>
                       {loading === 'import' ? (
                         <SidebarMenuButton>
-                          <LoaderCircle className="transition-transform animate-spin" />
+                          <Spinner />
                           <span>
                             {t('actions.import')} {progress}
                           </span>

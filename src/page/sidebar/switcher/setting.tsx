@@ -51,14 +51,18 @@ export default function Setting() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-[90%] sm:w-4/5 max-w-7xl p-3 sm:p-6">
-        <DialogHeader>
-          <DialogTitle>{t('setting.preferences')}</DialogTitle>
-          <VisuallyHidden>
+      <DialogContent className="flex flex-col w-[90vw] sm:w-[85vw] lg:w-[858px] max-w-[858px] h-[85vh] sm:h-[80vh] lg:h-[517px] max-h-[517px] p-0 !rounded-[12px] overflow-hidden gap-0 border-0 [&>button]:hidden">
+        <VisuallyHidden>
+          <DialogHeader>
+            <DialogTitle>{t('setting.preferences')}</DialogTitle>
             <DialogDescription></DialogDescription>
-          </VisuallyHidden>
-        </DialogHeader>
-        <SettingWrapper initialTab={initialTab} autoAction={autoAction} />
+          </DialogHeader>
+        </VisuallyHidden>
+        <SettingWrapper
+          initialTab={initialTab}
+          autoAction={autoAction}
+          onClose={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   );
