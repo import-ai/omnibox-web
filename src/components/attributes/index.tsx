@@ -1,14 +1,10 @@
-import { format } from 'date-fns';
-import { Clock, File, Link } from 'lucide-react';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-
-import { Metadata } from '@/components/attributes/metadata.tsx';
-import { Button } from '@/components/button';
+import { CreatedTimeAttribute } from '@/components/attributes/created';
+import { Metadata } from '@/components/attributes/metadata';
+import { FilenameAttribute } from '@/components/attributes/name';
+import { UrlAttribute } from '@/components/attributes/url';
 import ResourceTasks from '@/components/resource-tasks';
 import Tag from '@/components/tags';
 import { Resource } from '@/interface';
-import { downloadFile } from '@/lib/download-file';
 
 interface IProps {
   resource: Resource;
@@ -18,8 +14,6 @@ interface IProps {
 
 export default function Attributes(props: IProps) {
   const { resource, namespaceId, onResource } = props;
-  const { t } = useTranslation();
-  const [download, onDownload] = useState(false);
 
   if (
     resource.resource_type === 'link' &&
@@ -27,35 +21,15 @@ export default function Attributes(props: IProps) {
     resource.attrs.url
   ) {
     return (
-      <div className="space-y-2 mt-2 mb-6 text-base">
+      <div className="space-y-1 mb-6 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
         />
-        <div className="flex flex-wrap sm:flex-nowrap items-start gap-3">
-          <Link className="shrink-0 size-4 text-muted-foreground" />
-          <span className="text-muted-foreground font-medium min-w-[80px]">
-            {t('resource.attrs.url')}
-          </span>
-          <a
-            target="_blank"
-            href={resource.attrs.url}
-            className="max-w-[200px] sm:max-w-full text-base break-all text-foreground truncate"
-          >
-            {resource.attrs.url}
-          </a>
-        </div>
+        <UrlAttribute url={resource.attrs.url} />
         {resource.created_at && (
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-            <Clock className="size-4 text-muted-foreground" />
-            <span className="text-muted-foreground font-medium min-w-[80px]">
-              {t('resource.attrs.created')}
-            </span>
-            <span className="text-foreground">
-              {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
-            </span>
-          </div>
+          <CreatedTimeAttribute createdAt={resource.created_at} />
         )}
         {onResource && (
           <ResourceTasks
@@ -65,7 +39,7 @@ export default function Attributes(props: IProps) {
           />
         )}
         {resource.attrs?.metadata && (
-          <Metadata metadata={resource.attrs.metadata}></Metadata>
+          <Metadata metadata={resource.attrs.metadata} />
         )}
       </div>
     );
@@ -73,45 +47,19 @@ export default function Attributes(props: IProps) {
 
   if (resource.resource_type === 'file' && resource.attrs?.original_name) {
     return (
-      <div className="space-y-2 mt-2 mb-6 text-base">
+      <div className="space-y-1 mb-6 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
         />
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-          <File className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground font-medium min-w-[80px]">
-            {t('resource.attrs.filename')}
-          </span>
-          <Button
-            variant="ghost"
-            loading={download}
-            className="text-base font-normal ml-[-16px]"
-            onClick={() => {
-              onDownload(true);
-              downloadFile(
-                namespaceId,
-                resource.id,
-                resource.attrs?.original_name
-              ).finally(() => {
-                onDownload(false);
-              });
-            }}
-          >
-            {resource.attrs.original_name}
-          </Button>
-        </div>
+        <FilenameAttribute
+          filename={resource.attrs.original_name}
+          namespaceId={namespaceId}
+          resourceId={resource.id}
+        />
         {resource.created_at && (
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-            <Clock className="size-4 text-muted-foreground" />
-            <span className="text-muted-foreground font-medium min-w-[80px]">
-              {t('resource.attrs.created')}
-            </span>
-            <span className="text-foreground">
-              {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
-            </span>
-          </div>
+          <CreatedTimeAttribute createdAt={resource.created_at} />
         )}
         {onResource && (
           <ResourceTasks
@@ -121,29 +69,21 @@ export default function Attributes(props: IProps) {
           />
         )}
         {resource.attrs?.metadata && (
-          <Metadata metadata={resource.attrs.metadata}></Metadata>
+          <Metadata metadata={resource.attrs.metadata} />
         )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-2 mt-2 mb-6 text-base">
+    <div className="space-y-1 mb-6 text-sm">
       <Tag
         data={resource.tags}
         resourceId={resource.id}
         namespaceId={namespaceId}
       />
       {resource.created_at && (
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
-          <Clock className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground font-medium min-w-[80px]">
-            {t('resource.attrs.created')}
-          </span>
-          <span className="text-foreground">
-            {format(resource.created_at, 'yyyy-MM-dd HH:mm:ss')}
-          </span>
-        </div>
+        <CreatedTimeAttribute createdAt={resource.created_at} />
       )}
       {onResource && (
         <ResourceTasks
@@ -153,7 +93,7 @@ export default function Attributes(props: IProps) {
         />
       )}
       {resource.attrs?.metadata && (
-        <Metadata metadata={resource.attrs.metadata}></Metadata>
+        <Metadata metadata={resource.attrs.metadata} />
       )}
     </div>
   );

@@ -1,15 +1,19 @@
 import { Text } from 'lucide-react';
 
+import { ATTRIBUTE_STYLES } from './constants';
+
 export function Metadata({ metadata }: { metadata: Record<string, any> }) {
   return (
     <>
       {Object.entries(metadata).map(([key, value]) => (
-        <div key={key} className="flex items-start gap-3">
-          <Text className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground font-medium min-w-[80px]">
-            {key}
+        <div key={key} className={ATTRIBUTE_STYLES.containerStart}>
+          <div className={ATTRIBUTE_STYLES.containerLabel}>
+            <Text className={ATTRIBUTE_STYLES.icon} />
+            <span className={ATTRIBUTE_STYLES.label}>{key}</span>
+          </div>
+          <span className={`${ATTRIBUTE_STYLES.value} break-all`}>
+            {String(value)}
           </span>
-          <span className="text-foreground break-all">{String(value)}</span>
         </div>
       ))}
     </>

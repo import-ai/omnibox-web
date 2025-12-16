@@ -3,12 +3,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { ATTRIBUTE_STYLES } from '@/components/attributes/constants';
 import MultipleSelector, { Option } from '@/components/multiple-selector';
-import Space from '@/components/space';
-import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
 import type { Tag } from '@/interface';
 import { http } from '@/lib/request';
+
+import { TagsDisplay } from './display';
 interface IProps {
   loading: boolean;
   data: Array<Option>;
@@ -73,10 +74,10 @@ export default function Tags(props: IProps) {
   }, [data]);
 
   return (
-    <div className="flex flex-wrap sm:flex-nowrap items-start gap-3">
-      <div className="flex items-center gap-3">
-        <TagsIcon className="size-4 text-muted-foreground flex-shrink-0" />
-        <span className="text-muted-foreground font-medium min-w-[80px]">
+    <div className={ATTRIBUTE_STYLES.containerStart}>
+      <div className={`min-h-7 ${ATTRIBUTE_STYLES.containerLabel}`}>
+        <TagsIcon className={`flex-shrink-0 ${ATTRIBUTE_STYLES.icon}`} />
+        <span className={ATTRIBUTE_STYLES.label}>
           {t('resource.attrs.tag')}
         </span>
       </div>
@@ -99,26 +100,17 @@ export default function Tags(props: IProps) {
               onCreate={handleCreate}
               onChange={handleChange}
               createText={t('resource.attrs.create_tag')}
+              badgeClassName="!text-sm !border-neutral-300 !bg-transparent !text-neutral-500 !font-normal !rounded-[8px] !px-[8px] !py-[2px] !shadow-none dark:!border-neutral-500 dark:!text-neutral-400 hover:!bg-transparent"
               inputProps={{
-                className: 'py-0',
+                className:
+                  'py-0 !text-sm !text-neutral-500 dark:!text-neutral-400',
                 maxLength: MAX_TAG_LENGTH,
                 onBlur: leaveEdit,
                 onValueChange: onChange,
               }}
             />
           ) : (
-            <Space
-              onClick={enterEdit}
-              className="flex-wrap min-h-6 cursor-pointer"
-            >
-              {tags.length > 0 ? (
-                tags.map(tag => <Badge key={tag.value}>{tag.label}</Badge>)
-              ) : (
-                <Badge variant="secondary" className="dark:bg-[#666666]">
-                  {t('resource.attrs.add_tag')}
-                </Badge>
-              )}
-            </Space>
+            <TagsDisplay data={tags} onEdit={enterEdit} />
           )}
         </span>
       )}
