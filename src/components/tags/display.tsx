@@ -71,7 +71,7 @@ export function TagsDisplay(props: IProps) {
             setIsExpanded(false);
           }}
         >
-          <ChevronUp className="size-4 text-neutral-500" />
+          <ChevronUp className="size-4 text-neutral-500 dark:text-neutral-400" />
         </Badge>
       )}
     </Space>
