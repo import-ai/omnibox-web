@@ -1,3 +1,4 @@
+import { ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -17,10 +18,13 @@ export function TagsDisplay(props: IProps) {
 
   if (data.length <= 0) {
     return (
-      <Space onClick={onEdit} className="flex-wrap min-h-6 cursor-pointer">
+      <Space
+        onClick={onEdit}
+        className="flex-wrap min-h-6 cursor-pointer gap-y-4 mb-1"
+      >
         <Badge
           variant="outline"
-          className="border-[#E5E6EA] text-[#585D65] font-normal rounded-[8px] px-[8px] py-[2px] dark:border-neutral-500 dark:text-neutral-400"
+          className="border-neutral-300 text-neutral-500 font-normal rounded-[8px] px-[8px] py-[2px] dark:border-neutral-500 dark:text-neutral-400"
         >
           {t('resource.attrs.add_tag')}
         </Badge>
@@ -33,12 +37,15 @@ export function TagsDisplay(props: IProps) {
   const remainingCount = data.length - maxVisibleTags;
 
   return (
-    <Space onClick={onEdit} className="flex-wrap min-h-6 cursor-pointer">
+    <Space
+      onClick={onEdit}
+      className="flex-wrap min-h-6 cursor-pointer gap-y-4 mb-1"
+    >
       {displayedTags.map(tag => (
         <Badge
           key={tag.value}
           variant="outline"
-          className="border-[#E5E6EA] text-[#585D65] font-normal rounded-[8px] px-[8px] py-[2px] dark:border-neutral-500 dark:text-neutral-400"
+          className="border-neutral-300 text-neutral-500 font-normal rounded-[8px] px-[8px] py-[2px] dark:border-neutral-500 dark:text-neutral-400"
         >
           {tag.label}
         </Badge>
@@ -46,13 +53,25 @@ export function TagsDisplay(props: IProps) {
       {!isExpanded && remainingCount > 0 && (
         <Badge
           variant="outline"
-          className="border-[#E5E6EA] text-[#585D65] font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-[2px] dark:border-neutral-500 dark:text-neutral-400"
+          className="border-neutral-300 text-neutral-500 font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-[2px] dark:border-neutral-500 dark:text-neutral-400"
           onClick={e => {
             e.stopPropagation();
             setIsExpanded(true);
           }}
         >
           +{remainingCount}
+        </Badge>
+      )}
+      {isExpanded && remainingCount > 0 && (
+        <Badge
+          variant="outline"
+          className="border-neutral-300 text-neutral-500 font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-[2px] dark:border-neutral-500 dark:text-neutral-400"
+          onClick={e => {
+            e.stopPropagation();
+            setIsExpanded(false);
+          }}
+        >
+          <ChevronUp className="size-4 text-neutral-500" />
         </Badge>
       )}
     </Space>

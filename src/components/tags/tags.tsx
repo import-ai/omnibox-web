@@ -1,9 +1,10 @@
-import { Bookmark } from 'lucide-react';
+import { TagsIcon } from 'lucide-react';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { ATTRIBUTE_STYLES } from '@/components/attributes/constants';
 import MultipleSelector, { Option } from '@/components/multiple-selector';
 import type { Tag } from '@/interface';
 import { http } from '@/lib/request';
@@ -74,10 +75,10 @@ export default function Tags(props: IProps) {
   }, [data]);
 
   return (
-    <div className="flex flex-wrap sm:flex-nowrap items-start gap-3">
-      <div className="flex items-center gap-3">
-        <Bookmark className="size-4  flex-shrink-0 text-[#8F959E]" />
-        <span className="min-w-[80px] text-[#8F959E]">
+    <div className={ATTRIBUTE_STYLES.containerStart}>
+      <div className={`min-h-7 ${ATTRIBUTE_STYLES.containerLabel}`}>
+        <TagsIcon className={`flex-shrink-0 ${ATTRIBUTE_STYLES.icon}`} />
+        <span className={ATTRIBUTE_STYLES.label}>
           {t('resource.attrs.tag')}
         </span>
       </div>
@@ -96,13 +97,14 @@ export default function Tags(props: IProps) {
               inputValue={value}
               hideClearAllButton
               className="min-h-6"
-              badgeClassName="!border-[#E5E6EA] !bg-background !text-[#585D65] !font-normal !rounded-[8px] !px-[8px] !py-[2px] !shadow-none dark:!border-neutral-500 dark:!text-neutral-400 hover:!bg-background"
               onSearch={handleSearch}
               onCreate={handleCreate}
               onChange={handleChange}
               createText={t('resource.attrs.create_tag')}
+              badgeClassName="!border-neutral-300 !bg-transparent !text-neutral-500 !font-normal !rounded-[8px] !px-[8px] !py-[2px] !shadow-none dark:!border-neutral-500 dark:!text-neutral-400 hover:!bg-transparent"
               inputProps={{
-                className: 'py-0',
+                className:
+                  'py-0 text-xs !text-neutral-500 dark:!text-neutral-400',
                 maxLength: MAX_TAG_LENGTH,
                 onBlur: leaveEdit,
                 onValueChange: onChange,

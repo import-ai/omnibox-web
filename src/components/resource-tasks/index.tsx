@@ -2,6 +2,7 @@ import { ListChecks, ListVideo, LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ATTRIBUTE_STYLES } from '@/components/attributes/constants';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -113,12 +114,14 @@ export default function ResourceTasks({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3">
-        <ListChecks className="size-4 text-[#8F959E]" />
-        <span className="text-[#8F959E] min-w-[80px]">
-          {t('tasks.related_tasks')}
-        </span>
-        <span className="flex items-center text-[#585D65] dark:text-white h-7">
+      <div className={ATTRIBUTE_STYLES.container}>
+        <div className={ATTRIBUTE_STYLES.containerLabel}>
+          <ListChecks className={ATTRIBUTE_STYLES.icon} />
+          <span className={ATTRIBUTE_STYLES.label}>
+            {t('tasks.related_tasks')}
+          </span>
+        </div>
+        <span className={`flex items-center ${ATTRIBUTE_STYLES.value} h-7`}>
           <LoaderCircle className="transition-transform animate-spin" />
         </span>
       </div>
@@ -127,11 +130,13 @@ export default function ResourceTasks({
 
   if (error) {
     return (
-      <div className="flex items-center gap-3">
-        <ListChecks className="size-4 text-[#8F959E]" />
-        <span className="text-[#8F959E] min-w-[80px]">
-          {t('tasks.related_tasks')}
-        </span>
+      <div className={ATTRIBUTE_STYLES.container}>
+        <div className={ATTRIBUTE_STYLES.containerLabel}>
+          <ListChecks className={ATTRIBUTE_STYLES.icon} />
+          <span className={ATTRIBUTE_STYLES.label}>
+            {t('tasks.related_tasks')}
+          </span>
+        </div>
         <span className="text-sm text-red-600">{error}</span>
       </div>
     );
@@ -167,11 +172,13 @@ export default function ResourceTasks({
   );
 
   return (
-    <div className="flex items-center gap-3">
-      <ListChecks className="size-4 text-[#8F959E]" />
-      <span className="text-[#8F959E] min-w-[80px]">
-        {t('tasks.related_tasks')}
-      </span>
+    <div className={ATTRIBUTE_STYLES.container}>
+      <div className={ATTRIBUTE_STYLES.containerLabel}>
+        <ListChecks className={ATTRIBUTE_STYLES.icon} />
+        <span className={ATTRIBUTE_STYLES.label}>
+          {t('tasks.related_tasks')}
+        </span>
+      </div>
       <span className="flex items-center text-foreground h-7">
         <span className="flex gap-2">
           {pendingTasks.length > 0 && (
