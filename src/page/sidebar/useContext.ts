@@ -12,18 +12,14 @@ import each from '@/lib/each';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
-const scrollToResource = (resourceId: string, delay: number = 300) => {
-  setTimeout(() => {
-    const element = document.querySelector(
-      `[data-resource-id="${resourceId}"]`
-    );
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
-  }, delay);
+const scrollToResource = (resourceId: string) => {
+  const element = document.querySelector(`[data-resource-id="${resourceId}"]`);
+  if (element) {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  }
 };
 
 export default function useContext() {
@@ -598,6 +594,12 @@ export default function useContext() {
       return;
     }
     const isFromSidebar = loc.state?.fromSidebar === true;
+
+    // Clear the state immediately to prevent it from persisting after refresh
+    if (isFromSidebar) {
+      loc.state.fromSidebar = undefined;
+      // navigate(loc.pathname, { replace: true, state: null });
+    }
     const target = getResourceByField(resourceId);
     if (target) {
       const spaceType = getSpaceType(target.id);
@@ -617,8 +619,7 @@ export default function useContext() {
       }
       // Scroll to the target resource only if not from sidebar click
       if (!isFromSidebar) {
-        const delay = ancestorsToExpand.length > 0 ? 500 : 300;
-        scrollToResource(resourceId, delay);
+        scrollToResource(resourceId);
       }
       return;
     }
@@ -699,9 +700,8 @@ export default function useContext() {
                 });
               });
               onData({ ...data });
-              // After the path expansion is completed, scroll to the target resource location (delay 500ms for DOM rendering)
               if (!isFromSidebar) {
-                scrollToResource(resourceId, 500);
+                scrollToResource(resourceId);
               }
             });
           });
