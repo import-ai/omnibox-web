@@ -598,7 +598,6 @@ export default function useContext() {
     // Clear the state immediately to prevent it from persisting after refresh
     if (isFromSidebar) {
       loc.state.fromSidebar = undefined;
-      // navigate(loc.pathname, { replace: true, state: null });
     }
     const target = getResourceByField(resourceId);
     if (target) {
