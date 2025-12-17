@@ -129,9 +129,9 @@ export default function useContext() {
 
   const handleActiveKey = (id: string, edit?: boolean) => {
     if (edit) {
-      navigate(`/${namespaceId}/${id}/edit`);
+      navigate(`/${namespaceId}/${id}/edit`, { state: { fromSidebar: true } });
     } else {
-      navigate(`/${namespaceId}/${id}`);
+      navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
     }
     isMobile && setOpenMobile(false);
   };
@@ -597,6 +597,7 @@ export default function useContext() {
     if (!namespaceId || !resourceId || Object.keys(data).length <= 0) {
       return;
     }
+    const isFromSidebar = loc.state?.fromSidebar === true;
     const target = getResourceByField(resourceId);
     if (target) {
       const spaceType = getSpaceType(target.id);
@@ -614,9 +615,11 @@ export default function useContext() {
       if (target.has_children && !expands.includes(target.id)) {
         handleExpand(spaceType, target.id);
       }
-      // Scroll to the target resource (use longer delay when ancestors need to expand)
-      const delay = ancestorsToExpand.length > 0 ? 500 : 300;
-      scrollToResource(resourceId, delay);
+      // Scroll to the target resource only if not from sidebar click
+      if (!isFromSidebar) {
+        const delay = ancestorsToExpand.length > 0 ? 500 : 300;
+        scrollToResource(resourceId, delay);
+      }
       return;
     }
     const source = axios.CancelToken.source();
@@ -697,7 +700,9 @@ export default function useContext() {
               });
               onData({ ...data });
               // After the path expansion is completed, scroll to the target resource location (delay 500ms for DOM rendering)
-              scrollToResource(resourceId, 500);
+              if (!isFromSidebar) {
+                scrollToResource(resourceId, 500);
+              }
             });
           });
       });
