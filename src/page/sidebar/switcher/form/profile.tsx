@@ -41,12 +41,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import useUser from '@/hooks/use-user';
 import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils.ts';
 import { createOptionalPasswordSchema } from '@/lib/validation-schemas';
 
 import { Wrapper } from '../third-party/wrapper';
@@ -113,20 +113,25 @@ function ActionButton({
   );
 }
 
-// Section header with divider - Title: 20px, weight 600, line-height 28px; Divider at 38px from top
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({
+  title,
+  className,
+}: {
+  title: string;
+  className?: string;
+}) {
   return (
-    <div className="relative w-full lg:w-[532px] h-12">
-      <p className="absolute left-0 top-0 text-foreground whitespace-nowrap text-base lg:text-xl font-semibold leading-7 tracking-normal">
-        {title}
-      </p>
-      {/* Divider line at 38px from top */}
-      <Separator className="absolute left-0 top-[38px] w-full lg:w-[532px]" />
+    <div
+      className={cn(
+        'w-full pb-2 border-b text-foreground whitespace-nowrap lg:text-xl font-semibold',
+        className
+      )}
+    >
+      {title}
     </div>
   );
 }
 
-// Info row component for username/password - Figma: flex, items-center, justify-between, h-[30px] to align with button
 function InfoRow({
   label,
   value,
@@ -138,18 +143,14 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-center justify-between w-full lg:w-[533px] h-[30px]">
-      {/* Left side with label and value */}
       <div className="flex items-center h-[24px] flex-1 min-w-0 gap-2 lg:gap-3">
-        {/* Label */}
         <p className="text-foreground whitespace-nowrap flex-shrink-0 text-sm lg:text-base font-semibold">
           {label}
         </p>
-        {/* Value */}
         <p className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap text-sm lg:text-base flex-1 min-w-0">
           {value}
         </p>
       </div>
-      {/* Button - fixed 71×30px */}
       <div className="flex-shrink-0 ml-2">{button}</div>
     </div>
   );
@@ -415,7 +416,7 @@ export default function ProfileForm() {
       />
 
       {/* Binding Section Header */}
-      <SectionHeader title={t('setting.binding')} />
+      <SectionHeader title={t('setting.binding')} className="mt-4" />
 
       {/* Phone Row - Hidden temporarily, uncomment when phone binding API is ready
       <BindingRow
@@ -687,19 +688,21 @@ export default function ProfileForm() {
       </Dialog>
 
       {/* Danger Zone Section */}
-      <div className="mt-8 pt-8 border-t border-destructive/20">
-        <SectionHeader title={t('setting.danger_zone')} />
-
-        <div className="flex flex-col gap-4 mt-4">
-          <div className="bg-destructive/5 border border-destructive/20 rounded-md p-4">
-            <h3 className="text-base font-semibold text-foreground mb-2">
-              {t('setting.delete_account.section_title')}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              {t('setting.delete_account.section_description')}
-            </p>
-            <DeleteAccountDialog username={user?.username || ''} />
-          </div>
+      <SectionHeader
+        title={t('setting.danger_zone')}
+        className="text-destructive mt-4"
+      />
+      <div className="flex items-center justify-between w-full lg:w-[533px] h-[30px]">
+        <div className="flex items-center h-[24px] flex-1 min-w-0 gap-2 lg:gap-3">
+          <p className="text-foreground whitespace-nowrap flex-shrink-0 text-sm lg:text-base font-semibold">
+            {t('setting.delete_account.section_title')}
+          </p>
+          <p className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap text-sm lg:text-base flex-1 min-w-0">
+            {t('setting.delete_account.section_description')}
+          </p>
+        </div>
+        <div className="flex-shrink-0 ml-2">
+          <DeleteAccountDialog username={user?.username || ''} />
         </div>
       </div>
     </div>
