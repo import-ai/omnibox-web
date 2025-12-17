@@ -94,34 +94,6 @@ export default function useContext() {
     });
     return current;
   };
-  /**
-   * Retrieve all ancestor IDs of resources (in top to bottom order, excluding self and space root)
-   */
-  const getAncestorPath = (
-    resourceId: string,
-    spaceType: SpaceType
-  ): string[] => {
-    const children = data[spaceType]?.children;
-    if (!children?.length) return [];
-
-    const resourceMap = new Map(children.map(item => [item.id, item]));
-    const spaceRootId = data[spaceType].id;
-    const ancestors: string[] = [];
-
-    let currentId = resourceId;
-    let current = resourceMap.get(currentId);
-
-    while (current) {
-      const { parent_id: parentId } = current;
-      if (parentId === spaceRootId || !resourceMap.has(parentId)) break;
-
-      ancestors.push(parentId);
-      currentId = parentId;
-      current = resourceMap.get(currentId);
-    }
-
-    return ancestors.reverse();
-  };
 
   const handleActiveKey = (id: string, edit?: boolean) => {
     if (edit) {
@@ -607,22 +579,9 @@ export default function useContext() {
     }
     const target = getResourceByField(resourceId);
     if (target) {
-      const spaceType = getSpaceType(target.id);
-
-      // Obtain all ancestor paths of the target resource
-      const ancestors = getAncestorPath(target.id, spaceType);
-
-      // Identify the ancestors that need to be expanded (not yet in expansions)
-      const ancestorsToExpand = ancestors.filter(id => !expands.includes(id));
-
-      // If there are ancestors that need to be expanded, add them to expansions all at once
-      if (ancestorsToExpand.length > 0) {
-        onExpands([...expands, ...ancestorsToExpand]);
-      }
       if (target.has_children && !expands.includes(target.id)) {
-        handleExpand(spaceType, target.id);
+        handleExpand(getSpaceType(target.id), target.id);
       }
-      // Scroll to the target resource only if not from sidebar click
       if (!isFromSidebar) {
         scrollToResource(resourceId);
       }
