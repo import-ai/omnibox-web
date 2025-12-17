@@ -30,10 +30,11 @@ export default function AccountDeleteConfirm() {
     http
       .post('/user/account/delete/confirm', { token })
       .then(() => {
+        removeGlobalCredential();
+
         setState('success');
-        // Auto logout after 3 seconds
+
         setTimeout(() => {
-          removeGlobalCredential();
           navigate('/user/login', { replace: true });
         }, 3000);
       })
