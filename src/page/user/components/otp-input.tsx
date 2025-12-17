@@ -1,5 +1,4 @@
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
-import React from 'react';
 
 import {
   InputOTP,

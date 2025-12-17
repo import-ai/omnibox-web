@@ -25,7 +25,7 @@ export default function Google() {
       onClick={loginWithGoogle}
       className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
     >
-      <GoogleIcon />
+      <GoogleIcon className="scale-90" />
       {t('login.login_use_google')}
     </Button>
   );
