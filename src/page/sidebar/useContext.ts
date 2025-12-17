@@ -12,6 +12,16 @@ import each from '@/lib/each';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
+const scrollToResource = (resourceId: string) => {
+  const element = document.querySelector(`[data-resource-id="${resourceId}"]`);
+  if (element) {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  }
+};
+
 export default function useContext() {
   const app = useApp();
   const loc = useLocation();
@@ -84,11 +94,12 @@ export default function useContext() {
     });
     return current;
   };
+
   const handleActiveKey = (id: string, edit?: boolean) => {
     if (edit) {
-      navigate(`/${namespaceId}/${id}/edit`);
+      navigate(`/${namespaceId}/${id}/edit`, { state: { fromSidebar: true } });
     } else {
-      navigate(`/${namespaceId}/${id}`);
+      navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
     }
     isMobile && setOpenMobile(false);
   };
@@ -554,10 +565,25 @@ export default function useContext() {
     if (!namespaceId || !resourceId || Object.keys(data).length <= 0) {
       return;
     }
+    const isFromSidebar = loc.state?.fromSidebar === true;
+
+    // Clear the state immediately to prevent it from persisting after refresh
+    if (isFromSidebar) {
+      navigate(loc.pathname, {
+        replace: true,
+        state: {
+          ...loc.state,
+          fromSidebar: undefined,
+        },
+      });
+    }
     const target = getResourceByField(resourceId);
     if (target) {
       if (target.has_children && !expands.includes(target.id)) {
         handleExpand(getSpaceType(target.id), target.id);
+      }
+      if (!isFromSidebar) {
+        scrollToResource(resourceId);
       }
       return;
     }
@@ -638,6 +664,9 @@ export default function useContext() {
                 });
               });
               onData({ ...data });
+              if (!isFromSidebar) {
+                scrollToResource(resourceId);
+              }
             });
           });
       });
