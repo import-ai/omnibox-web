@@ -316,6 +316,7 @@ export default function Tree(props: ITreeProps) {
               >
                 <div
                   ref={ref}
+                  data-resource-id={data.id}
                   style={dragStyle}
                   className={cn('flex list cursor-pointer', {
                     'pl-1': data.has_children,
