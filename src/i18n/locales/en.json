@@ -307,10 +307,10 @@
     "delete_account": {
       "button": "Delete Account",
       "section_title": "Delete Your Account",
-      "section_description": "Once you delete your account, there is no going back. Please be certain.",
+      "section_description": "This will permanently delete your account and all associated data. Please be certain.",
       "title": "Delete Account",
       "warning_title": "⚠️ This action requires confirmation",
-      "warning_body": "Your account will be deactivated. All your data will be preserved but you will no longer be able to access it. You will receive a confirmation email.",
+      "warning_body": "Your account will be deactivated. All your data will be permanently deleted and cannot be recovered. You will receive a confirmation email.",
       "confirm_label": "Type \"{{username}}\" to confirm",
       "confirm_button": "Send Confirmation Email",
       "username_mismatch": "Username does not match",
@@ -322,7 +322,7 @@
       "processing": "Deleting your account...",
       "processing_description": "Please wait while we process your request.",
       "success_title": "Account Deleted",
-      "success_description": "Your account has been successfully deleted. You will be redirected to the login page.",
+      "success_description": "Your account and all associated data have been permanently deleted and cannot be recovered. You will be redirected to the login page.",
       "redirecting": "Redirecting in 3 seconds...",
       "error_title": "Deletion Failed",
       "back_to_login": "Back to Login"

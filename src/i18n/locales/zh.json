@@ -307,10 +307,10 @@
     "delete_account": {
       "button": "删除账户",
       "section_title": "删除您的账户",
-      "section_description": "一旦删除您的账户，将无法恢复。请谨慎操作。",
+      "section_description": "此操作将永久删除您的账户和所有相关数据。请谨慎操作。",
       "title": "删除账户",
       "warning_title": "⚠️ 此操作需要确认",
-      "warning_body": "您的账户将被停用。所有数据将被保留，但您将无法再访问它们。您将收到一封确认邮件。",
+      "warning_body": "您的账户将被停用。所有数据将被永久删除且无法恢复。您将收到一封确认邮件。",
       "confirm_label": "输入 \"{{username}}\" 以确认",
       "confirm_button": "发送确认邮件",
       "username_mismatch": "用户名不匹配",
@@ -322,7 +322,7 @@
       "processing": "正在删除您的账户...",
       "processing_description": "请稍候，我们正在处理您的请求。",
       "success_title": "账户已删除",
-      "success_description": "您的账户已成功删除。您将被重定向到登录页面。",
+      "success_description": "您的账户及所有相关数据已被永久删除且无法恢复。您将被重定向到登录页面。",
       "redirecting": "3秒后跳转...",
       "error_title": "删除失败",
       "back_to_login": "返回登录"
