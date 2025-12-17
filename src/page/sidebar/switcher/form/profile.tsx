@@ -50,6 +50,7 @@ import { http } from '@/lib/request';
 import { createOptionalPasswordSchema } from '@/lib/validation-schemas';
 
 import { Wrapper } from '../third-party/wrapper';
+import { DeleteAccountDialog } from './delete-account-dialog';
 import EmailValidate from './email-validate';
 import PhoneValidate from './phone-validate';
 
@@ -684,6 +685,23 @@ export default function ProfileForm() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Danger Zone Section */}
+      <div className="mt-8 pt-8 border-t border-destructive/20">
+        <SectionHeader title={t('setting.danger_zone')} />
+
+        <div className="flex flex-col gap-4 mt-4">
+          <div className="bg-destructive/5 border border-destructive/20 rounded-md p-4">
+            <h3 className="text-base font-semibold text-foreground mb-2">
+              {t('setting.delete_account.section_title')}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t('setting.delete_account.section_description')}
+            </p>
+            <DeleteAccountDialog username={user?.username || ''} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -302,6 +302,30 @@
       "unbind_success": "Successfully unbound",
       "confirm_unbind": "Confirm Unbind",
       "bind": "Connect"
+    },
+    "danger_zone": "Danger Zone",
+    "delete_account": {
+      "button": "Delete Account",
+      "section_title": "Delete Your Account",
+      "section_description": "Once you delete your account, there is no going back. Please be certain.",
+      "title": "Delete Account",
+      "warning_title": "⚠️ This action requires confirmation",
+      "warning_body": "Your account will be deactivated. All your data will be preserved but you will no longer be able to access it. You will receive a confirmation email.",
+      "confirm_label": "Type \"{{username}}\" to confirm",
+      "confirm_button": "Send Confirmation Email",
+      "username_mismatch": "Username does not match",
+      "email_sent": "Confirmation email sent. Please check your inbox.",
+      "owner_with_members_error": "Cannot delete account. You own one or more namespaces with other members. Please transfer ownership or remove members first.",
+      "invalid_token": "Invalid confirmation link",
+      "token_expired": "Confirmation link has expired. Please try again.",
+      "deletion_failed": "Failed to delete account. Please try again.",
+      "processing": "Deleting your account...",
+      "processing_description": "Please wait while we process your request.",
+      "success_title": "Account Deleted",
+      "success_description": "Your account has been successfully deleted. You will be redirected to the login page.",
+      "redirecting": "Redirecting in 3 seconds...",
+      "error_title": "Deletion Failed",
+      "back_to_login": "Back to Login"
     }
   },
   "applications": {
