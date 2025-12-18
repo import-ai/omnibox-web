@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { AppleIcon } from '@/assets/icons/apple';
 import { GoogleIcon } from '@/assets/icons/google';
 import { WeChatIcon } from '@/assets/icons/wechat';
 import {
@@ -41,6 +42,7 @@ export function ThirdPartyForm() {
         [
           { icon: <GoogleIcon />, login_type: 'google' },
           { icon: <WeChatIcon />, login_type: 'wechat' },
+          { icon: <AppleIcon />, login_type: 'apple' },
         ].map(item => ({
           ...item,
           ...response.find((i: IData) => i.login_type === item.login_type),
@@ -136,7 +138,7 @@ export function ThirdPartyForm() {
                   </AlertDialogContent>
                 </AlertDialog>
               ) : (
-                <Wrapper type={item.login_type} />
+                <Wrapper type={item.login_type} onSuccess={refetch} />
               )}
             </div>
           </CardContent>

@@ -1,13 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { AppleIcon } from '@/assets/icons/apple';
-import { Button } from '@/components/button';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
-import { setGlobalCredential } from '@/page/user/util';
 
 declare global {
   interface Window {
@@ -35,9 +31,12 @@ interface AppleAuthResponse {
   };
 }
 
-export default function Apple() {
+interface AppleLoginProps {
+  onSuccess?: () => void;
+}
+
+export function AppleLogin({ onSuccess }: AppleLoginProps) {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -77,7 +76,7 @@ export default function Apple() {
 
   useEffect(() => {
     const handleSuccess = (event: CustomEvent) => {
-      const data = event.detail as AppleAuthResponse;
+      const data = event.detail.data as AppleAuthResponse;
       http
         .post('/apple/callback', {
           code: data.authorization.code,
@@ -86,9 +85,11 @@ export default function Apple() {
           user: data.user,
           lang: i18n.language,
         })
-        .then(res => {
-          setGlobalCredential(res.id, res.access_token);
-          navigate('/', { replace: true });
+        .then(() => {
+          toast(t('setting.third_party_account.bind_success'), {
+            position: 'bottom-right',
+          });
+          onSuccess?.();
         })
         .catch(error => {
           toast.error(error.message || t('login.apple_signin_failed'), {
@@ -96,6 +97,7 @@ export default function Apple() {
           });
         });
     };
+
     const handleFailure = (event: CustomEvent) => {
       const errorCode = event.detail.error;
       if (
@@ -110,6 +112,7 @@ export default function Apple() {
         position: 'bottom-right',
       });
     };
+
     document.addEventListener(
       'AppleIDSignInOnSuccess',
       handleSuccess as EventListener
@@ -118,6 +121,7 @@ export default function Apple() {
       'AppleIDSignInOnFailure',
       handleFailure as EventListener
     );
+
     return () => {
       document.removeEventListener(
         'AppleIDSignInOnSuccess',
@@ -128,7 +132,7 @@ export default function Apple() {
         handleFailure as EventListener
       );
     };
-  }, [t, i18n.language]);
+  }, [t, i18n.language, onSuccess]);
 
   const loginWithApple = async () => {
     if (!sdkLoaded) {
@@ -167,14 +171,12 @@ export default function Apple() {
   };
 
   return (
-    <Button
-      variant="outline"
+    <button
       onClick={loginWithApple}
       disabled={!sdkLoaded || loading}
-      className="w-full [&_svg]:size-5"
+      className="flex h-[30px] w-[71px] shrink-0 items-center justify-center rounded-md bg-foreground text-sm font-semibold text-background hover:opacity-90 disabled:opacity-50"
     >
-      <AppleIcon className="scale-125" />
-      {loading ? t('login.authorizing') : t('login.login_use_apple')}
-    </Button>
+      {loading ? t('login.authorizing') : t('setting.bind_btn')}
+    </button>
   );
 }

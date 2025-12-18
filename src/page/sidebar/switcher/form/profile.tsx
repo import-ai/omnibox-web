@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { AppleIcon } from '@/assets/icons/apple';
 import { GoogleIcon } from '@/assets/icons/google';
 import { MailIcon } from '@/assets/icons/mail';
 import { WeChatIcon } from '@/assets/icons/wechat';
@@ -278,8 +279,9 @@ export default function ProfileForm() {
     http.get('/user/binding/list').then(response => {
       setBindingData(
         [
-          { icon: <GoogleIcon />, login_type: 'google' },
           { icon: <WeChatIcon />, login_type: 'wechat' },
+          { icon: <GoogleIcon />, login_type: 'google' },
+          { icon: <AppleIcon />, login_type: 'apple' },
         ].map(item => ({
           ...item,
           ...response.find(

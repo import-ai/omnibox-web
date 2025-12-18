@@ -9,15 +9,17 @@ import {
 } from '@/components/ui/dialog';
 import Scan from '@/page/user/wechat/scan';
 
+import { AppleLogin } from './apple';
 import { GoogleLogin } from './google';
 import { WechatLogin } from './wechat';
 
 interface IProps {
   type: string;
+  onSuccess?: () => void;
 }
 
 export function Wrapper(props: IProps) {
-  const { type } = props;
+  const { type, onSuccess } = props;
   const [open, onOpen] = useState(false);
 
   if (type === 'wechat') {
@@ -35,6 +37,10 @@ export function Wrapper(props: IProps) {
         <WechatLogin onScan={onOpen} />
       </>
     );
+  }
+
+  if (type === 'apple') {
+    return <AppleLogin onSuccess={onSuccess} />;
   }
 
   return <GoogleLogin />;
