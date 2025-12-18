@@ -46,13 +46,23 @@ request.interceptors.request.use(
   }
 );
 
+function handleTokenError(redirect: boolean) {
+  removeGlobalCredential();
+  setTimeout(() => {
+    let target: string = '/user/login';
+    if (redirect) {
+      target = target + `?redirect=${encodeURIComponent(window.location.href)}`;
+    }
+    window.location.href = target;
+  }, 1000);
+}
+
 request.interceptors.response.use(
   (response: AxiosResponse) => {
     return response.data;
   },
   (error: AxiosError) => {
     if (axios.isCancel(error)) {
-      // If the request is cancelled, do not show error message
       return Promise.resolve();
     }
     const err = error as AxiosError;
@@ -88,20 +98,20 @@ request.interceptors.response.use(
             errorMessage = i18next.t('request.unknown_error');
         }
       }
+      if (
+        errorMessage.toLowerCase() === 'unauthorized' ||
+        errorMessage === i18next.t('request.unauthorized')
+      ) {
+        handleTokenError(false);
+      }
       toast.error(errorMessage, { position: 'bottom-right' });
     }
     // @ts-ignore
     const errorCode: string = (err.response?.data?.code || '').toLowerCase();
     if (errorCode === 'token_expired') {
-      removeGlobalCredential();
-      setTimeout(() => {
-        window.location.href = `/user/login?redirect=${encodeURIComponent(window.location.href)}`;
-      }, 1000);
+      handleTokenError(true);
     } else if (errorCode === 'invalid_token') {
-      removeGlobalCredential();
-      setTimeout(() => {
-        window.location.href = '/user/login';
-      }, 1000);
+      handleTokenError(false);
     }
     return Promise.reject(error);
   }
