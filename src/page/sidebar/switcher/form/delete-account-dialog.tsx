@@ -45,6 +45,7 @@ export function DeleteAccountDialog({
     try {
       await http.post('/user/account/delete/initiate', {
         username: confirmUsername,
+        url: `${window.location.origin}/user/account/delete/confirm`,
       });
 
       toast.success(t('setting.delete_account.email_sent'), {
