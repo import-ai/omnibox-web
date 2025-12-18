@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 import { API_BASE_URL } from '@/const';
 import { detectBrowserLanguage } from '@/lib/detect-language';
+import { removeGlobalCredential } from '@/page/user/util';
 
 interface RequestConfig extends AxiosRequestConfig {
   // Whether to show error messages, default is true
@@ -88,13 +89,19 @@ request.interceptors.response.use(
         }
       }
       toast.error(errorMessage, { position: 'bottom-right' });
-      if (err.status === 401 && localStorage.getItem('uid')) {
-        localStorage.removeItem('uid');
-        localStorage.removeItem('token');
-        setTimeout(() => {
-          window.location.href = '/user/login';
-        }, 1000);
-      }
+    }
+    // @ts-ignore
+    const errorCode: string = (err.response?.data?.code || '').toLowerCase();
+    if (errorCode === 'token_expired') {
+      removeGlobalCredential();
+      setTimeout(() => {
+        window.location.href = `/user/login?redirect=${encodeURIComponent(window.location.href)}`;
+      }, 1000);
+    } else if (errorCode === 'invalid_token') {
+      removeGlobalCredential();
+      setTimeout(() => {
+        window.location.href = '/user/login';
+      }, 1000);
     }
     return Promise.reject(error);
   }
