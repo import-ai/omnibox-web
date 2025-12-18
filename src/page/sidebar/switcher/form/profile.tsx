@@ -8,8 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { MailIcon } from '@/assets/icons/email';
 import { GoogleIcon } from '@/assets/icons/google';
-import { MailIcon } from '@/assets/icons/setEmail';
 import { WeChatIcon } from '@/assets/icons/wechat';
 // import { SmartphoneIcon } from '@/assets/icons/smartphone';
 import {
