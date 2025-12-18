@@ -128,7 +128,8 @@
     "add_namespace": "加入空间",
     "please_login_first": "请先登录以接受此邀请",
     "user_mismatch": "此邀请是给 {{ username }} 的",
-    "user_mismatch_generic": "此邀请是给其他用户的"
+    "user_mismatch_generic": "此邀请是给其他用户的",
+    "not_found": "邀请未找到"
   },
   "namespace": {
     "add": "创建空间",

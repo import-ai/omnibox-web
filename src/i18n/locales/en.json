@@ -128,7 +128,8 @@
     "add_namespace": "Add namespace",
     "please_login_first": "Please log in first to accept this invitation",
     "user_mismatch": "This invitation is for {{ username }}",
-    "user_mismatch_generic": "This invitation is for another user"
+    "user_mismatch_generic": "This invitation is for another user",
+    "not_found": "Invitation not found"
   },
   "namespace": {
     "add": "Add Namespace",
