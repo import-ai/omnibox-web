@@ -9,8 +9,8 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { AppleIcon } from '@/assets/icons/apple';
+import { MailIcon } from '@/assets/icons/email';
 import { GoogleIcon } from '@/assets/icons/google';
-import { MailIcon } from '@/assets/icons/setEmail';
 import { WeChatIcon } from '@/assets/icons/wechat';
 // import { SmartphoneIcon } from '@/assets/icons/smartphone';
 import {
