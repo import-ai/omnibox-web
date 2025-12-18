@@ -174,7 +174,7 @@ export default function Apple() {
       className="w-full [&_svg]:size-5"
     >
       <AppleIcon className="scale-125" />
-      {loading ? t('login.authorizing') : t('login.login_use_apple')}
+      {t('login.login_use_apple')}
     </Button>
   );
 }

@@ -76,7 +76,7 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
 
   useEffect(() => {
     const handleSuccess = (event: CustomEvent) => {
-      const data = event.detail.data as AppleAuthResponse;
+      const data = event.detail as AppleAuthResponse;
       http
         .post('/apple/callback', {
           code: data.authorization.code,
@@ -176,7 +176,7 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
       disabled={!sdkLoaded || loading}
       className="flex h-[30px] w-[71px] shrink-0 items-center justify-center rounded-md bg-foreground text-sm font-semibold text-background hover:opacity-90 disabled:opacity-50"
     >
-      {loading ? t('login.authorizing') : t('setting.bind_btn')}
+      {t('setting.bind_btn')}
     </button>
   );
 }
