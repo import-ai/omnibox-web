@@ -161,7 +161,6 @@
     "wechat_disabled": "当前环境不支持微信登录",
     "apple_signin_failed": "Apple 登录失败",
     "apple_sdk_not_loaded": "Apple SDK 未加载",
-    "popup_closed_by_user": "已取消登录",
     "or_continue": "或",
     "agree_our_rule": "继续之前，请先阅读并同意我们的",
     "service": "用户协议",

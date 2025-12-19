@@ -114,9 +114,6 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
       if (
         ['user_cancelled_authorize', 'popup_closed_by_user'].includes(errorCode)
       ) {
-        toast.error(t('login.popup_closed_by_user'), {
-          position: 'bottom-right',
-        });
         return;
       }
       toast.error(t('login.apple_signin_failed'), {

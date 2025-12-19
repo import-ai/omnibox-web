@@ -161,7 +161,6 @@
     "wechat_disabled": "WeChat login is not supported in the current environment",
     "apple_signin_failed": "Apple sign in failed",
     "apple_sdk_not_loaded": "Apple SDK not loaded",
-    "popup_closed_by_user": "Sign in cancelled",
     "or_continue": "Or continue with",
     "agree_our_rule": "By clicking continue, you agree to our",
     "service": "Terms of Service",
