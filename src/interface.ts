@@ -42,6 +42,7 @@ export interface UserBinding extends IBase {
     given_name?: string;
     family_name?: string;
     email_verified?: boolean;
+    nickname?: string; // WeChat nickname
   };
 }
 

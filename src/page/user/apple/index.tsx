@@ -35,12 +35,19 @@ interface AppleAuthResponse {
   };
 }
 
-export default function Apple() {
+interface IProps {
+  mode?: 'login' | 'register';
+}
+
+export default function Apple(props: IProps) {
+  const { mode = 'login' } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [authConfig, setAuthConfig] = useState<any>(null);
 
+  // Load Apple SDK
   useEffect(() => {
     if (window.AppleID) {
       setSdkLoaded(true);
@@ -75,6 +82,20 @@ export default function Apple() {
     };
   }, [i18n, t]);
 
+  // Pre-fetch auth config to avoid async delay on click
+  useEffect(() => {
+    if (sdkLoaded) {
+      http
+        .get('/apple/auth-config')
+        .then(config => {
+          setAuthConfig(config);
+        })
+        .catch(() => {
+          // Silent fail, will retry on click
+        });
+    }
+  }, [sdkLoaded]);
+
   useEffect(() => {
     const handleSuccess = (event: CustomEvent) => {
       const data = event.detail as AppleAuthResponse;
@@ -89,11 +110,6 @@ export default function Apple() {
         .then(res => {
           setGlobalCredential(res.id, res.access_token);
           navigate('/', { replace: true });
-        })
-        .catch(error => {
-          toast.error(error.message || t('login.apple_signin_failed'), {
-            position: 'bottom-right',
-          });
         });
     };
     const handleFailure = (event: CustomEvent) => {
@@ -138,17 +154,23 @@ export default function Apple() {
       return;
     }
 
+    if (!window.AppleID) {
+      toast.error(t('login.apple_sdk_not_loaded'), {
+        position: 'bottom-right',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const config = await http.get('/apple/auth-config');
-
-      if (!window.AppleID) {
-        toast.error(t('login.apple_sdk_not_loaded'), {
-          position: 'bottom-right',
-        });
-        return;
+      // Use pre-fetched config if available, otherwise fetch it
+      let config = authConfig;
+      if (!config) {
+        config = await http.get('/apple/auth-config');
+        setAuthConfig(config);
       }
 
+      // Initialize and sign in synchronously to preserve user gesture context
       window.AppleID.auth.init({
         clientId: config.client_id,
         scope: config.scope || 'name email',
@@ -173,8 +195,12 @@ export default function Apple() {
       disabled={!sdkLoaded || loading}
       className="w-full [&_svg]:size-5"
     >
-      <AppleIcon className="scale-125" />
-      {t('login.login_use_apple')}
+      <AppleIcon />
+      {t(
+        mode === 'register'
+          ? 'register.register_use_apple'
+          : 'login.login_use_apple'
+      )}
     </Button>
   );
 }

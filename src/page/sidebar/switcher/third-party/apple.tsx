@@ -39,7 +39,9 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
   const { t, i18n } = useTranslation();
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [authConfig, setAuthConfig] = useState<any>(null);
 
+  // Load Apple SDK
   useEffect(() => {
     if (window.AppleID) {
       setSdkLoaded(true);
@@ -74,6 +76,20 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
     };
   }, [i18n, t]);
 
+  // Pre-fetch auth config to avoid async delay on click
+  useEffect(() => {
+    if (sdkLoaded) {
+      http
+        .get('/apple/auth-config')
+        .then(config => {
+          setAuthConfig(config);
+        })
+        .catch(() => {
+          // Silent fail, will retry on click
+        });
+    }
+  }, [sdkLoaded]);
+
   useEffect(() => {
     const handleSuccess = (event: CustomEvent) => {
       const data = event.detail as AppleAuthResponse;
@@ -90,11 +106,6 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
             position: 'bottom-right',
           });
           onSuccess?.();
-        })
-        .catch(error => {
-          toast.error(error.message || t('login.apple_signin_failed'), {
-            position: 'bottom-right',
-          });
         });
     };
 
@@ -142,17 +153,23 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
       return;
     }
 
+    if (!window.AppleID) {
+      toast.error(t('login.apple_sdk_not_loaded'), {
+        position: 'bottom-right',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const config = await http.get('/apple/auth-config');
-
-      if (!window.AppleID) {
-        toast.error(t('login.apple_sdk_not_loaded'), {
-          position: 'bottom-right',
-        });
-        return;
+      // Use pre-fetched config if available, otherwise fetch it
+      let config = authConfig;
+      if (!config) {
+        config = await http.get('/apple/auth-config');
+        setAuthConfig(config);
       }
 
+      // Initialize and sign in synchronously to preserve user gesture context
       window.AppleID.auth.init({
         clientId: config.client_id,
         scope: config.scope || 'name email',
