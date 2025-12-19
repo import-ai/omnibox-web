@@ -14,6 +14,10 @@
   "teamspace": "团队",
   "toggle_language": "切换语言",
   "toggle_theme": "切换外观",
+  "welcome": {
+    "title": "创建您的空间",
+    "description": "创建您的第一个工作空间，开始整理内容并与他人协作。"
+  },
   "sidebar": {
     "expand": "展开侧边栏",
     "collapse": "收起侧边栏"

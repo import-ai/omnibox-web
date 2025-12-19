@@ -38,6 +38,7 @@ const SharedChatConversationPage = lazy(
 
 const PrivacyPolicy = lazy(() => import('@/page/single/privacy-policy'));
 const TermsOfService = lazy(() => import('@/page/single/terms-of-service'));
+const WelcomePage = lazy(() => import('@/page/welcome'));
 
 const app = new CoreApp();
 const router = createBrowserRouter([
@@ -65,6 +66,10 @@ const router = createBrowserRouter([
       {
         path: 'single/terms-of-service',
         element: <TermsOfService />,
+      },
+      {
+        path: 'welcome',
+        element: <WelcomePage />,
       },
       {
         path: 'user/sign-up',

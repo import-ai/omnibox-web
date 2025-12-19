@@ -105,7 +105,7 @@ export default function SettingForm({
       if (otherNamespace) {
         navigate(`/${otherNamespace.id}`);
       } else {
-        navigate('/');
+        navigate('/welcome');
       }
     } catch {
       // Error toast handled by request lib
@@ -127,7 +127,7 @@ export default function SettingForm({
       if (otherNamespace) {
         navigate(`/${otherNamespace.id}`);
       } else {
-        navigate('/');
+        navigate('/welcome');
       }
     } catch {
       // Error toast handled by request lib
