@@ -29,6 +29,7 @@ export default function useContext() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const expandedRef = useRef(false);
+  const lastScrolledResourceId = useRef<string>('');
   const [progress, setProgress] = useState('');
   const { isMobile, setOpenMobile } = useSidebar();
   const chatPage = loc.pathname.includes('/chat');
@@ -576,14 +577,16 @@ export default function useContext() {
           fromSidebar: undefined,
         },
       });
+      lastScrolledResourceId.current = resourceId;
     }
     const target = getResourceByField(resourceId);
     if (target) {
       if (target.has_children && !expands.includes(target.id)) {
         handleExpand(getSpaceType(target.id), target.id);
       }
-      if (!isFromSidebar) {
+      if (!isFromSidebar && resourceId !== lastScrolledResourceId.current) {
         scrollToResource(resourceId);
+        lastScrolledResourceId.current = resourceId;
       }
       return;
     }
@@ -664,8 +667,12 @@ export default function useContext() {
                 });
               });
               onData({ ...data });
-              if (!isFromSidebar) {
+              if (
+                !isFromSidebar &&
+                resourceId !== lastScrolledResourceId.current
+              ) {
                 scrollToResource(resourceId);
+                lastScrolledResourceId.current = resourceId;
               }
             });
           });
