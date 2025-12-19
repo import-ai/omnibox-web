@@ -54,7 +54,6 @@ export function SettingsSidebar({
       label: t('setting.general'),
       value: 'namespace',
       icon: <MonitorCog className="size-4" />,
-      requireOwner: true,
     },
     {
       label: t('setting.members'),

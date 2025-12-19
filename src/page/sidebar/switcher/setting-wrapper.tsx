@@ -45,8 +45,13 @@ export default function SettingWrapper({
     },
     {
       value: 'namespace',
-      children: <SettingForm />,
-      requireOwner: true,
+      children: (
+        <SettingForm
+          namespaceId={namespaceId}
+          userIsOwner={userIsOwner}
+          onClose={onClose}
+        />
+      ),
     },
     {
       value: 'people',

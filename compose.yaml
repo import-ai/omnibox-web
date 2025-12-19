@@ -1,0 +1,13 @@
+name: omnibox-local
+
+services:
+  web:
+    build:
+      context: .
+    ports:
+      - "5173:80"
+    environment:
+      BACKEND: ${BACKEND:-http://host.docker.internal:8000}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+

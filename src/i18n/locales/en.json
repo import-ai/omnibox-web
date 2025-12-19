@@ -140,7 +140,26 @@
     "success": "Updated",
     "member_count": "{{ size }} members",
     "conflict": "There's already a namespace with the same name",
-    "no_special_chars": "Special characters are not allowed in namespace name"
+    "no_special_chars": "Special characters are not allowed in namespace name",
+    "leave": {
+      "title": "Leave Space",
+      "description": "Leave this workspace. Your private data will be deleted.",
+      "button": "Leave Space",
+      "confirm_title": "Leave Space?",
+      "confirm_description": "Are you sure you want to leave? Your private data will be permanently deleted.",
+      "success": "You have left the space",
+      "error_last_member": "You are the only member. Please delete the space instead.",
+      "error_last_owner": "You are the last owner. Please transfer ownership before leaving."
+    },
+    "delete": {
+      "title": "Delete Space",
+      "description": "Permanently delete this workspace and all its data.",
+      "button": "Delete Space",
+      "confirm_title": "Delete Space?",
+      "confirm_description": "All data will be permanently deleted and cannot be recovered.",
+      "success": "Space deleted successfully",
+      "error_has_members": "Cannot delete space with multiple members. Remove other members first."
+    }
   },
   "login": {
     "product_name": "OmniBox",

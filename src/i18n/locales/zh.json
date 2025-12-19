@@ -140,7 +140,26 @@
     "success": "已更新",
     "member_count": "{{ size }} 名成员",
     "conflict": "已有相同名称的空间",
-    "no_special_chars": "空间名不允许使用特殊符号"
+    "no_special_chars": "空间名不允许使用特殊符号",
+    "leave": {
+      "title": "离开空间",
+      "description": "离开此工作空间。您的私人数据将被删除。",
+      "button": "离开空间",
+      "confirm_title": "确定离开？",
+      "confirm_description": "确定要离开吗？您的私人数据将被永久删除。",
+      "success": "已离开空间",
+      "error_last_member": "您是唯一的成员，请直接删除空间。",
+      "error_last_owner": "您是最后一个所有者，请先转移所有权。"
+    },
+    "delete": {
+      "title": "删除空间",
+      "description": "永久删除此工作空间及其所有数据。",
+      "button": "删除空间",
+      "confirm_title": "确定删除？",
+      "confirm_description": "所有数据将被永久删除且无法恢复。",
+      "success": "空间已删除",
+      "error_has_members": "无法删除有多个成员的空间，请先移除其他成员。"
+    }
   },
   "login": {
     "product_name": "小黑",
