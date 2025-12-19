@@ -566,27 +566,10 @@ export default function useContext() {
     if (!namespaceId || !resourceId || Object.keys(data).length <= 0) {
       return;
     }
-    const isFromSidebar = loc.state?.fromSidebar === true;
-
-    // Clear the state immediately to prevent it from persisting after refresh
-    if (isFromSidebar) {
-      navigate(loc.pathname, {
-        replace: true,
-        state: {
-          ...loc.state,
-          fromSidebar: undefined,
-        },
-      });
-      lastScrolledResourceId.current = resourceId;
-    }
     const target = getResourceByField(resourceId);
     if (target) {
       if (target.has_children && !expands.includes(target.id)) {
         handleExpand(getSpaceType(target.id), target.id);
-      }
-      if (!isFromSidebar && resourceId !== lastScrolledResourceId.current) {
-        scrollToResource(resourceId);
-        lastScrolledResourceId.current = resourceId;
       }
       return;
     }
@@ -667,13 +650,6 @@ export default function useContext() {
                 });
               });
               onData({ ...data });
-              if (
-                !isFromSidebar &&
-                resourceId !== lastScrolledResourceId.current
-              ) {
-                scrollToResource(resourceId);
-                lastScrolledResourceId.current = resourceId;
-              }
             });
           });
       });
@@ -681,6 +657,29 @@ export default function useContext() {
       source.cancel();
     };
   }, [namespaceId, resourceId, chatPage, data]);
+
+  // Scroll to resource when route changes
+  useEffect(() => {
+    if (!resourceId || lastScrolledResourceId.current === resourceId) {
+      return;
+    }
+    const isFromSidebar = loc.state?.fromSidebar === true;
+    if (isFromSidebar) {
+      navigate(loc.pathname, {
+        replace: true,
+        state: { ...loc.state, fromSidebar: undefined },
+      });
+      lastScrolledResourceId.current = resourceId;
+      return;
+    }
+    const element = document.querySelector(
+      `[data-resource-id="${resourceId}"]`
+    );
+    if (element) {
+      scrollToResource(resourceId);
+      lastScrolledResourceId.current = resourceId;
+    }
+  }, [resourceId, data]);
 
   useEffect(() => {
     if (!localStorage.getItem('uid')) {
