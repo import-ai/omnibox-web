@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +14,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner.tsx';
@@ -61,7 +61,10 @@ export function DeleteAccountDialog({
   };
 
   const defaultTrigger = (
-    <Button variant="outline" className="w-full text-destructive">
+    <Button
+      variant="destructive"
+      className="w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold"
+    >
       {t('setting.delete_account.button')}
     </Button>
   );

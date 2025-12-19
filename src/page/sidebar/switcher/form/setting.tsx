@@ -107,15 +107,8 @@ export default function SettingForm({
       } else {
         navigate('/');
       }
-    } catch (err: any) {
-      const code = err?.response?.data?.code;
-      if (code === 'last_member_cannot_quit') {
-        toast.error(t('namespace.leave.error_last_member'));
-      } else if (code === 'last_owner_cannot_quit') {
-        toast.error(t('namespace.leave.error_last_owner'));
-      } else {
-        toast.error(err?.response?.data?.message || t('request.failed'));
-      }
+    } catch {
+      // Error toast handled by request lib
     } finally {
       setLeaving(false);
       setLeaveDialogOpen(false);
@@ -136,13 +129,8 @@ export default function SettingForm({
       } else {
         navigate('/');
       }
-    } catch (err: any) {
-      const code = err?.response?.data?.code;
-      if (code === 'cannot_delete_with_members') {
-        toast.error(t('namespace.delete.error_has_members'));
-      } else {
-        toast.error(err?.response?.data?.message || t('request.failed'));
-      }
+    } catch {
+      // Error toast handled by request lib
     } finally {
       setDeleting(false);
       setDeleteDialogOpen(false);
@@ -213,8 +201,7 @@ export default function SettingForm({
               </p>
             </div>
             <Button
-              variant="outline"
-              className="shrink-0 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+              variant="destructive"
               onClick={() => setLeaveDialogOpen(true)}
             >
               {t('namespace.leave.button')}

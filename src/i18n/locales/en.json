@@ -147,9 +147,7 @@
       "button": "Leave Space",
       "confirm_title": "Leave Space?",
       "confirm_description": "Are you sure you want to leave? Your private data will be permanently deleted.",
-      "success": "You have left the space",
-      "error_last_member": "You are the only member. Please delete the space instead.",
-      "error_last_owner": "You are the last owner. Please transfer ownership before leaving."
+      "success": "You have left the space"
     },
     "delete": {
       "title": "Delete Space",
@@ -157,8 +155,7 @@
       "button": "Delete Space",
       "confirm_title": "Delete Space?",
       "confirm_description": "All data will be permanently deleted and cannot be recovered.",
-      "success": "Space deleted successfully",
-      "error_has_members": "Cannot delete space with multiple members. Remove other members first."
+      "success": "Space deleted successfully"
     }
   },
   "login": {

@@ -12,7 +12,7 @@ import { AppleIcon } from '@/assets/icons/apple';
 import { MailIcon } from '@/assets/icons/email';
 import { GoogleIcon } from '@/assets/icons/google';
 import { WeChatIcon } from '@/assets/icons/wechat';
-// import { SmartphoneIcon } from '@/assets/icons/smartphone';
+import { Button } from '@/components/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +24,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -83,30 +82,25 @@ function createPasswordChangeSchema() {
 type UsernameFormValues = { username: string };
 type PasswordFormValues = { password: string; password_repeat: string };
 
-// Action button wrapper using shadcn Button - FIXED SIZE: 71×30px
-// Figma: primary = black bg, white text; secondary = white bg, border, black text; destructive = red bg, white text
 function ActionButton({
   children,
   onClick,
   disabled,
-  variant = 'secondary',
+  variant = 'outline',
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
-  variant?: 'primary' | 'secondary';
+  variant?: 'default' | 'outline' | 'destructive';
 }) {
-  const isPrimary = variant === 'primary';
+  const className =
+    'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold';
   return (
     <Button
       onClick={onClick}
       disabled={disabled}
-      variant={isPrimary ? 'default' : 'outline'}
-      className={
-        isPrimary
-          ? 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] dark:bg-white dark:text-[#0a0a0a] dark:hover:bg-neutral-200 shadow-none border-none'
-          : 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-white border-neutral-200 hover:bg-neutral-50 dark:bg-transparent dark:border-neutral-600 dark:text-white dark:hover:bg-neutral-800 shadow-none'
-      }
+      variant={variant}
+      className={className}
     >
       {children}
     </Button>
@@ -227,7 +221,7 @@ function BindingRow({
           </AlertDialog>
         ) : (
           onBind || (
-            <ActionButton variant="secondary">
+            <ActionButton variant="outline">
               {t('setting.bind_btn')}
             </ActionButton>
           )
