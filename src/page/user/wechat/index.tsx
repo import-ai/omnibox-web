@@ -8,10 +8,11 @@ import { http } from '@/lib/request';
 
 interface IProps {
   onScan: (value: boolean) => void;
+  mode?: 'login' | 'register';
 }
 
 export default function WeChat(props: IProps) {
-  const { onScan } = props;
+  const { onScan, mode = 'login' } = props;
   const { t } = useTranslation();
   const userAgent = navigator.userAgent.toLowerCase();
   const isPhone = isMobile(userAgent).phone;
@@ -42,7 +43,11 @@ export default function WeChat(props: IProps) {
         className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white opacity-50"
       >
         <WeChatIcon />
-        {t('login.login_use_wechat')}
+        {t(
+          mode === 'register'
+            ? 'register.register_use_wechat'
+            : 'login.login_use_wechat'
+        )}
       </Button>
     );
   }
@@ -54,7 +59,11 @@ export default function WeChat(props: IProps) {
       className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
     >
       <WeChatIcon />
-      {t('login.login_use_wechat')}
+      {t(
+        mode === 'register'
+          ? 'register.register_use_wechat'
+          : 'login.login_use_wechat'
+      )}
     </Button>
   );
 }

@@ -5,7 +5,12 @@ import { GoogleIcon } from '@/assets/icons/google';
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 
-export default function Google() {
+interface IProps {
+  mode?: 'login' | 'register';
+}
+
+export default function Google(props: IProps) {
+  const { mode = 'login' } = props;
   const { t } = useTranslation();
 
   const loginWithGoogle = () => {
@@ -26,7 +31,11 @@ export default function Google() {
       className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
     >
       <GoogleIcon />
-      {t('login.login_use_google')}
+      {t(
+        mode === 'register'
+          ? 'register.register_use_google'
+          : 'login.login_use_google'
+      )}
     </Button>
   );
 }

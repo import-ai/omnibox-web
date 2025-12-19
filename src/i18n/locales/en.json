@@ -157,7 +157,10 @@
     "back": "Back",
     "login_use_wechat": "Login with WeChat",
     "login_use_google": "Login with Google",
+    "login_use_apple": "Login with Apple",
     "wechat_disabled": "WeChat login is not supported in the current environment",
+    "apple_signin_failed": "Apple sign in failed",
+    "apple_sdk_not_loaded": "Apple SDK not loaded",
     "or_continue": "Or continue with",
     "agree_our_rule": "By clicking continue, you agree to our",
     "service": "Terms of Service",
@@ -173,7 +176,10 @@
     "error_sending_otp": "Failed to send verification code",
     "email_already_exists": "This email is already registered. Please login to continue.",
     "conform_title": "Complete Account Creation",
-    "conform_description": "Enter your information to complete account creation"
+    "conform_description": "Enter your information to complete account creation",
+    "register_use_wechat": "Sign up with WeChat",
+    "register_use_google": "Sign up with Google",
+    "register_use_apple": "Sign up with Apple"
   },
   "verify_otp": {
     "title": "Enter verification code",
@@ -287,6 +293,7 @@
       "description": "Manage your third-party account bindings for quick login",
       "google": "Google",
       "wechat": "WeChat",
+      "apple": "Apple",
       "bound": "Connected",
       "unbinding": "To be Connected",
       "unbind": "Unconnect",

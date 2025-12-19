@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { AppleIcon } from '@/assets/icons/apple';
 import { GoogleIcon } from '@/assets/icons/google';
 import { MailIcon } from '@/assets/icons/mail';
 import { WeChatIcon } from '@/assets/icons/wechat';
@@ -278,8 +279,9 @@ export default function ProfileForm() {
     http.get('/user/binding/list').then(response => {
       setBindingData(
         [
-          { icon: <GoogleIcon />, login_type: 'google' },
           { icon: <WeChatIcon />, login_type: 'wechat' },
+          { icon: <GoogleIcon />, login_type: 'google' },
+          { icon: <AppleIcon />, login_type: 'apple' },
         ].map(item => ({
           ...item,
           ...response.find(
@@ -453,27 +455,38 @@ export default function ProfileForm() {
         </div>
       </div>
 
-      {/* Google & WeChat Bindings */}
-      {bindingData.map(item => (
-        <BindingRow
-          key={item.login_type}
-          icon={item.icon}
-          label={t(`setting.third_party_account.${item.login_type}`)}
-          value={
-            item.id
-              ? item.login_type === 'google'
-                ? item.metadata?.email || item.email || ''
-                : t('setting.third_party_account.bound')
-              : t('setting.not_bound')
+      {/* Google & WeChat & Apple Bindings */}
+      {bindingData.map(item => {
+        let displayValue = t('setting.not_bound');
+        if (item.id) {
+          if (item.login_type === 'wechat') {
+            displayValue =
+              item.metadata?.nickname || t('setting.third_party_account.bound');
+          } else if (
+            item.login_type === 'google' ||
+            item.login_type === 'apple'
+          ) {
+            displayValue = item.metadata?.email || item.email || '';
+          } else {
+            displayValue = t('setting.third_party_account.bound');
           }
-          isBound={!!item.id}
-          onUnbind={() => handleUnbind(item.login_type)}
-          onBind={
-            <Wrapper type={item.login_type} onSuccess={refetchBindings} />
-          }
-          unbinding={unbinding}
-        />
-      ))}
+        }
+
+        return (
+          <BindingRow
+            key={item.login_type}
+            icon={item.icon}
+            label={t(`setting.third_party_account.${item.login_type}`)}
+            value={displayValue}
+            isBound={!!item.id}
+            onUnbind={() => handleUnbind(item.login_type)}
+            onBind={
+              <Wrapper type={item.login_type} onSuccess={refetchBindings} />
+            }
+            unbinding={unbinding}
+          />
+        );
+      })}
 
       {/* Username Change Dialog */}
       <Dialog open={usernameDialogOpen} onOpenChange={setUsernameDialogOpen}>
