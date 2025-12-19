@@ -94,6 +94,19 @@ export function TaskList({ namespaceId }: TaskListProps) {
       return t('tasks.time_error_minutes', { minutes });
     }
 
+    if (task.status === 'timeout' && task.started_at && task.ended_at) {
+      const startedAt = new Date(task.started_at);
+      const endedAt = new Date(task.ended_at);
+      const seconds = Math.floor(
+        (endedAt.getTime() - startedAt.getTime()) / 1000
+      );
+      if (seconds < 60) {
+        return `超时：耗时 ${seconds} 秒`;
+      }
+      const minutes = Math.floor(seconds / 60);
+      return `超时：耗时 ${minutes} 分钟`;
+    }
+
     if (task.status === 'canceled' && task.canceled_at) {
       const canceledAt = new Date(task.canceled_at);
       return t('tasks.time_canceled', {
