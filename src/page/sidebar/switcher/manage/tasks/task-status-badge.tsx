@@ -29,6 +29,9 @@ export const statusConfig: Record<
   error: {
     icon: ErrorStatus,
   },
+  timeout: {
+    icon: ErrorStatus,
+  },
 };
 
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {
