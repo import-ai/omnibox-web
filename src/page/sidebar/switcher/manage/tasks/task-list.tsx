@@ -37,7 +37,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalTasks, setTotalTasks] = useState(0);
-  const [isOwner, setIsOwner] = useState(false);
+  const [isOwnerOrAdmin, setIsOwnerOrAdmin] = useState(false);
   const [memberCount, setMemberCount] = useState(0);
   const [viewFilter, setViewFilter] = useState<'own' | 'all'>('own');
   const pageSize = 20;
@@ -141,12 +141,14 @@ export function TaskList({ namespaceId }: TaskListProps) {
         const userId = localStorage.getItem('uid');
         if (!userId) return;
 
-        // Check if user is owner
+        // Check if user is owner or admin
         const memberResponse = await http.get(
           `/namespaces/${namespaceId}/members/${userId}`,
           { mute: true }
         );
-        setIsOwner(memberResponse?.role === 'owner');
+        const userIsOwnerOrAdmin =
+          memberResponse?.role === 'owner' || memberResponse?.role === 'admin';
+        setIsOwnerOrAdmin(userIsOwnerOrAdmin);
 
         // Get member count
         const membersResponse = await http.get(
@@ -176,7 +178,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
   };
 
   const totalPages = Math.ceil(totalTasks / pageSize);
-  const showViewFilter = isOwner && memberCount > 1;
+  const showViewFilter = isOwnerOrAdmin && memberCount > 1;
 
   if (loading) {
     return (
@@ -193,14 +195,6 @@ export function TaskList({ namespaceId }: TaskListProps) {
         <Button variant="outline" onClick={handleRefresh} className="mt-2">
           {t('common.retry')}
         </Button>
-      </div>
-    );
-  }
-
-  if (tasks.length === 0) {
-    return (
-      <div className="p-4 lg:p-8 text-center text-muted-foreground">
-        <p className="text-sm lg:text-base">{t('tasks.no_tasks')}</p>
       </div>
     );
   }
@@ -233,93 +227,99 @@ export function TaskList({ namespaceId }: TaskListProps) {
         </Button>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-auto max-w-[83vw] sm:max-w-full rounded-md border border-border">
-        <div className="min-w-[320px]">
-          <div className="flex w-full h-8 lg:h-10 items-center border-b border-border px-2 lg:px-8 text-xs lg:text-sm font-medium text-muted-foreground sticky top-0 bg-background z-10">
-            <div className="flex-1 min-w-[100px] whitespace-nowrap">
-              {t('tasks.function')}
-            </div>
-            <div className="w-12 md:w-16 ml-2 lg:ml-4 whitespace-nowrap text-center">
-              {t('tasks.status')}
-            </div>
-            <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 md:whitespace-nowrap">
-              {t('tasks.time')}
-            </div>
-            <div className="w-14 lg:w-16 whitespace-nowrap text-right">
-              {t('common.actions')}
-            </div>
-          </div>
-
-          <div className="w-full">
-            {tasks.map(task => (
-              <div
-                key={task.id}
-                className="flex w-full h-12 lg:h-14 items-center border-b border-border px-2 lg:px-8 last:border-b-0"
-              >
-                <div className="flex-1 min-w-[100px]">
-                  <TaskTypeBadge functionName={task.function} />
-                </div>
-
-                <div className="flex w-12 md:w-16 ml-2 lg:ml-4 justify-center">
-                  <TaskStatusBadge status={task.status as any} />
-                </div>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 cursor-default text-xs font-medium text-muted-foreground md:whitespace-nowrap">
-                        {getTimeDescription(task)}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="p-2.5">
-                      <div className="text-xs">
-                        <div>
-                          {t('tasks.task_id')}：{task.id}
-                        </div>
-                        <div>
-                          {t('tasks.created_at')}：
-                          {task.created_at
-                            ? format(
-                                new Date(task.created_at),
-                                'yyyy-MM-dd HH:mm:ss'
-                              )
-                            : '-'}
-                        </div>
-                        <div>
-                          {t('tasks.started_at')}：
-                          {task.started_at
-                            ? format(
-                                new Date(task.started_at),
-                                'yyyy-MM-dd HH:mm:ss'
-                              )
-                            : '-'}
-                        </div>
-                        <div>
-                          {t('tasks.ended_at')}：
-                          {task.ended_at
-                            ? format(
-                                new Date(task.ended_at),
-                                'yyyy-MM-dd HH:mm:ss'
-                              )
-                            : '-'}
-                        </div>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <div className="w-14 lg:w-16 flex justify-end">
-                  <TaskActions
-                    task={task}
-                    namespaceId={namespaceId}
-                    onTaskUpdated={fetchTasks}
-                  />
-                </div>
+      {tasks.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-muted-foreground">
+          <p className="text-sm lg:text-base">{t('tasks.no_tasks')}</p>
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0 overflow-auto max-w-[83vw] sm:max-w-full rounded-md border border-border">
+          <div className="min-w-[320px]">
+            <div className="flex w-full h-8 lg:h-10 items-center border-b border-border px-2 lg:px-8 text-xs lg:text-sm font-medium text-muted-foreground sticky top-0 bg-background z-10">
+              <div className="flex-1 min-w-[100px] whitespace-nowrap">
+                {t('tasks.function')}
               </div>
-            ))}
+              <div className="w-12 md:w-16 ml-2 lg:ml-4 whitespace-nowrap text-center">
+                {t('tasks.status')}
+              </div>
+              <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 md:whitespace-nowrap">
+                {t('tasks.time')}
+              </div>
+              <div className="w-14 lg:w-16 whitespace-nowrap text-right">
+                {t('common.actions')}
+              </div>
+            </div>
+
+            <div className="w-full">
+              {tasks.map(task => (
+                <div
+                  key={task.id}
+                  className="flex w-full h-12 lg:h-14 items-center border-b border-border px-2 lg:px-8 last:border-b-0"
+                >
+                  <div className="flex-1 min-w-[100px]">
+                    <TaskTypeBadge functionName={task.function} />
+                  </div>
+
+                  <div className="flex w-12 md:w-16 ml-2 lg:ml-4 justify-center">
+                    <TaskStatusBadge status={task.status as any} />
+                  </div>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 cursor-default text-xs font-medium text-muted-foreground md:whitespace-nowrap">
+                          {getTimeDescription(task)}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="p-2.5">
+                        <div className="text-xs">
+                          <div>
+                            {t('tasks.task_id')}：{task.id}
+                          </div>
+                          <div>
+                            {t('tasks.created_at')}：
+                            {task.created_at
+                              ? format(
+                                  new Date(task.created_at),
+                                  'yyyy-MM-dd HH:mm:ss'
+                                )
+                              : '-'}
+                          </div>
+                          <div>
+                            {t('tasks.started_at')}：
+                            {task.started_at
+                              ? format(
+                                  new Date(task.started_at),
+                                  'yyyy-MM-dd HH:mm:ss'
+                                )
+                              : '-'}
+                          </div>
+                          <div>
+                            {t('tasks.ended_at')}：
+                            {task.ended_at
+                              ? format(
+                                  new Date(task.ended_at),
+                                  'yyyy-MM-dd HH:mm:ss'
+                                )
+                              : '-'}
+                          </div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <div className="w-14 lg:w-16 flex justify-end">
+                    <TaskActions
+                      task={task}
+                      namespaceId={namespaceId}
+                      onTaskUpdated={fetchTasks}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {totalPages > 1 && (
         <TaskPagination

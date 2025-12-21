@@ -25,8 +25,10 @@ export default function MemberMain(props: MemberProps) {
   const { t } = useTranslation();
   const uid = localStorage.getItem('uid');
   const [resourceId, onResourceId] = useState('');
-  const isOwner =
-    data.findIndex(item => item.user_id === uid && item.role === 'owner') >= 0;
+  const currentUserMember = data.find(item => item.user_id === uid);
+  const currentUserRole = currentUserMember?.role;
+  const isOwnerOrAdmin =
+    currentUserRole === 'owner' || currentUserRole === 'admin';
 
   useEffect(() => {
     const source = axios.CancelToken.source();
@@ -81,7 +83,7 @@ export default function MemberMain(props: MemberProps) {
                 </div>
                 <div className="w-[90px] lg:w-[124px] px-2 whitespace-nowrap">
                   <PermissionAction
-                    disabled={!isOwner}
+                    disabled={!isOwnerOrAdmin}
                     value={item.permission}
                     refetch={refetch}
                     user_id={item.user_id}
@@ -93,9 +95,11 @@ export default function MemberMain(props: MemberProps) {
                 </div>
                 <div className="w-[90px] lg:w-[127px] px-2 whitespace-nowrap">
                   <Action
-                    disabled={!isOwner}
+                    disabled={!isOwnerOrAdmin}
                     id={item.user_id}
                     value={item.role}
+                    currentUserRole={currentUserRole}
+                    targetUsername={item.username}
                     refetch={refetch}
                     namespace_id={namespace_id}
                     hasOwner={

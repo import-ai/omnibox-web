@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import i18next from 'i18next';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -59,6 +59,16 @@ export default function InviteForm(props: IProps) {
       role: '',
     },
   });
+
+  const role = form.watch('role');
+  const isAdmin = role === 'admin';
+
+  useEffect(() => {
+    if (isAdmin) {
+      form.setValue('permission', 'full_access');
+    }
+  }, [isAdmin, form]);
+
   const handleSubmit = (data: FormValues) => {
     setLoading(true);
     http
@@ -123,7 +133,7 @@ export default function InviteForm(props: IProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="owner">{t('invite.owner')}</SelectItem>
+                    <SelectItem value="admin">{t('invite.admin')}</SelectItem>
                     <SelectItem value="member">{t('invite.member')}</SelectItem>
                   </SelectContent>
                 </Select>
@@ -141,7 +151,9 @@ export default function InviteForm(props: IProps) {
               <FormControl>
                 <Select
                   defaultValue={field.value}
+                  value={field.value}
                   onValueChange={field.onChange}
+                  disabled={isAdmin}
                 >
                   <FormControl>
                     <SelectTrigger>

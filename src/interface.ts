@@ -102,7 +102,7 @@ export interface IResourceData extends Resource {
   children: Array<IResourceData>;
 }
 
-export type Role = 'owner' | 'member';
+export type Role = 'owner' | 'admin' | 'member';
 
 export interface Member {
   id: string;

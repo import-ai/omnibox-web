@@ -54,12 +54,14 @@ type FormValues = z.infer<typeof FormSchema>;
 interface SettingFormProps {
   namespaceId: string;
   userIsOwner: boolean;
+  userIsOwnerOrAdmin: boolean;
   onClose?: () => void;
 }
 
 export default function SettingForm({
   namespaceId,
   userIsOwner,
+  userIsOwnerOrAdmin,
   onClose,
 }: SettingFormProps) {
   const { t } = useTranslation();
@@ -150,8 +152,8 @@ export default function SettingForm({
 
   return (
     <div className="space-y-8">
-      {/* Namespace Name Form - Owner only */}
-      {userIsOwner && (
+      {/* Namespace Name Form - Owner and Admin */}
+      {userIsOwnerOrAdmin && (
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}

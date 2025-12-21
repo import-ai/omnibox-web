@@ -16,7 +16,7 @@ interface SettingsSidebarProps {
   value: string;
   onChange: (value: string) => void;
   username: string;
-  userIsOwner: boolean;
+  userIsOwnerOrAdmin: boolean;
 }
 
 interface MenuItem {
@@ -30,7 +30,7 @@ export function SettingsSidebar({
   value,
   onChange,
   username,
-  userIsOwner,
+  userIsOwnerOrAdmin,
 }: SettingsSidebarProps) {
   const { t } = useTranslation();
 
@@ -79,7 +79,7 @@ export function SettingsSidebar({
   ];
 
   const filteredSpaceItems = spaceItems.filter(
-    item => !item.requireOwner || userIsOwner
+    item => !item.requireOwner || userIsOwnerOrAdmin
   );
 
   // About section item
