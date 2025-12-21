@@ -160,6 +160,9 @@
       "button": "Delete Space",
       "confirm_title": "Delete Space?",
       "confirm_description": "All data will be permanently deleted and cannot be recovered.",
+      "warning_title": "⚠️ This action requires confirmation",
+      "warning_body": "All data in this workspace will be permanently deleted and cannot be recovered.",
+      "confirm_label": "Type \"{{name}}\" to confirm",
       "success": "Space deleted successfully"
     }
   },
@@ -429,7 +432,7 @@
     "remove_from_group": "Remove",
     "edit_group": "Edit Group",
     "create_group": "Create Group",
-    "keep_one_admin": "Please keep at least one admin",
+    "keep_one_owner": "Please keep at least one owner",
     "member_remove_success": "Member removed successfully",
     "transfer_ownership_title": "Transfer Ownership",
     "transfer_ownership_desc": "Are you sure you want to transfer ownership to {{username}}? You will become an Admin and lose owner privileges.",

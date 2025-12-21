@@ -160,6 +160,9 @@
       "button": "删除空间",
       "confirm_title": "确定删除？",
       "confirm_description": "所有数据将被永久删除且无法恢复。",
+      "warning_title": "⚠️ 此操作需要确认",
+      "warning_body": "此空间的所有数据将被永久删除且无法恢复。",
+      "confirm_label": "输入 \"{{name}}\" 以确认",
       "success": "空间已删除"
     }
   },
@@ -429,7 +432,7 @@
     "remove_from_group": "移除",
     "edit_group": "编辑群组",
     "create_group": "创建群组",
-    "keep_one_admin": "请至少保留一个管理员",
+    "keep_one_owner": "请至少保留一个所有者",
     "member_remove_success": "成员移除成功",
     "transfer_ownership_title": "转让所有权",
     "transfer_ownership_desc": "确定要将所有权转让给 {{username}} 吗？您将成为管理员并失去所有者权限。",

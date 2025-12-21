@@ -235,7 +235,7 @@ export default function Action(props: ActionProps) {
       <AlertDialog open={ownerOnly}>
         <AlertDialogContent className="w-[85%] max-w-sm">
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('manage.keep_one_admin')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('manage.keep_one_owner')}</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={handleOwnerOnly}>

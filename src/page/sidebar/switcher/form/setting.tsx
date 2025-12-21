@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
+import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
 import Loading from '@/components/loading';
 import {
   AlertDialog,
@@ -264,34 +265,19 @@ export default function SettingForm({
       </AlertDialog>
 
       {/* Delete Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('namespace.delete.confirm_title')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('namespace.delete.confirm_description')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>
-              {t('cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={e => {
-                e.preventDefault();
-                handleDelete();
-              }}
-            >
-              {deleting && <Spinner className="mr-2" />}
-              {t('namespace.delete.button')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmInputDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={t('namespace.delete.confirm_title')}
+        warningTitle={t('namespace.delete.warning_title')}
+        warningBody={t('namespace.delete.warning_body')}
+        confirmText={data.name}
+        confirmLabel={t('namespace.delete.confirm_label', { name: data.name })}
+        confirmButtonText={t('namespace.delete.button')}
+        cancelButtonText={t('cancel')}
+        loading={deleting}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
