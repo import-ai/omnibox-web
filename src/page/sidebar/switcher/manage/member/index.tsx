@@ -17,11 +17,13 @@ interface MemberProps {
   refetch: () => void;
   data: Array<Member>;
   namespace_id: string;
+  namespaceName?: string;
   onSearch: (value: string) => void;
 }
 
 export default function MemberMain(props: MemberProps) {
-  const { search, data, namespace_id, refetch, onSearch } = props;
+  const { search, data, namespace_id, namespaceName, refetch, onSearch } =
+    props;
   const { t } = useTranslation();
   const uid = localStorage.getItem('uid');
   const [resourceId, onResourceId] = useState('');
@@ -102,6 +104,7 @@ export default function MemberMain(props: MemberProps) {
                     targetUsername={item.username}
                     refetch={refetch}
                     namespace_id={namespace_id}
+                    namespaceName={namespaceName}
                     hasOwner={
                       data
                         .filter(i => i.user_id !== item.user_id)

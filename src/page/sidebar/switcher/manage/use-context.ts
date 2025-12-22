@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { Group, Invitation, Member } from '@/interface';
+import { Group, Invitation, Member, Namespace } from '@/interface';
 import { http } from '@/lib/request';
 
 export default function useContext() {
@@ -12,6 +12,7 @@ export default function useContext() {
   const [search, onSearch] = useState('');
   const [tab, onTab] = useState('member');
   const [loading, setLoading] = useState(true);
+  const [namespace, setNamespace] = useState<Namespace>({ id: '', name: '' });
   const [data, onData] = useState<{
     member: Array<Member>;
     group: Array<Group>;
@@ -23,11 +24,12 @@ export default function useContext() {
   });
   const refetch = async () => {
     const source = axios.CancelToken.source();
-    const [group, member, invitation] = await Promise.all(
+    const [group, member, invitation, namespaceData] = await Promise.all(
       [
         `namespaces/${namespace_id}/groups`,
         `namespaces/${namespace_id}/members`,
         `namespaces/${namespace_id}/invitations?type=group`,
+        `namespaces/${namespace_id}`,
       ].map(url => http.get(url, { cancelToken: source.token, mute: true }))
     ).catch(error => {
       if (error?.status === 403) {
@@ -36,13 +38,14 @@ export default function useContext() {
           navigate('/');
         }, 1000);
       }
-      return [[], [], []];
+      return [[], [], [], { id: '', name: '' }];
     });
     onData({
       group,
       member,
       invitation,
     });
+    setNamespace(namespaceData);
     setLoading(false);
     return () => {
       source.cancel();
@@ -66,5 +69,6 @@ export default function useContext() {
     onSearch,
     loading,
     namespace_id,
+    namespaceName: namespace.name,
   };
 }

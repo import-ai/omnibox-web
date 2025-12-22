@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -20,7 +20,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Spinner } from '@/components/ui/spinner';
 import { Role } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
@@ -30,6 +29,7 @@ export interface ActionProps {
   id: string;
   disabled?: boolean;
   namespace_id: string;
+  namespaceName?: string;
   refetch: () => void;
   className?: string;
   hasOwner?: boolean;
@@ -45,6 +45,7 @@ export default function Action(props: ActionProps) {
     disabled,
     value,
     namespace_id,
+    namespaceName,
     refetch,
     currentUserRole,
     targetUsername,
@@ -114,6 +115,7 @@ export default function Action(props: ActionProps) {
     try {
       await http.post(`namespaces/${namespace_id}/transfer-ownership`, {
         newOwnerId: id,
+        namespaceName,
       });
       toast.success(t('manage.transfer_success'));
       refetch();
@@ -125,6 +127,10 @@ export default function Action(props: ActionProps) {
     }
   };
   const handleRemove = () => {
+    // Admin cannot remove other admins
+    if (currentUserRole === 'admin' && value === 'admin') {
+      return;
+    }
     if (hasOwner) {
       onRemove(true);
     } else {
@@ -193,7 +199,13 @@ export default function Action(props: ActionProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleRemove}
-            className="text-red-500 cursor-pointer justify-between hover:bg-gray-100"
+            disabled={currentUserRole === 'admin' && value === 'admin'}
+            className={cn(
+              'cursor-pointer justify-between hover:bg-gray-100',
+              currentUserRole === 'admin' && value === 'admin'
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-red-500'
+            )}
           >
             {t('manage.remove')}
           </DropdownMenuItem>
@@ -201,36 +213,23 @@ export default function Action(props: ActionProps) {
       </DropdownMenu>
 
       {/* Transfer Ownership Dialog */}
-      <AlertDialog open={transferOwnership}>
-        <AlertDialogContent className="w-[85%] max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('manage.transfer_ownership_title')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('manage.transfer_ownership_desc', {
-                username: targetUsername,
-              })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={transferring}
-              onClick={() => setTransferOwnership(false)}
-            >
-              {t('cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={transferring}
-              onClick={handleTransferOwnership}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {transferring && <Spinner className="mr-2 h-4 w-4" />}
-              {t('manage.transfer_confirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmInputDialog
+        open={transferOwnership}
+        onOpenChange={setTransferOwnership}
+        title={t('manage.transfer_ownership_title')}
+        warningTitle={t('manage.transfer_ownership_warning_title')}
+        warningBody={t('manage.transfer_ownership_desc', {
+          username: targetUsername,
+        })}
+        confirmText={namespaceName || ''}
+        confirmLabel={t('manage.transfer_ownership_confirm_label', {
+          name: namespaceName,
+        })}
+        confirmButtonText={t('manage.transfer_confirm')}
+        cancelButtonText={t('cancel')}
+        loading={transferring}
+        onConfirm={handleTransferOwnership}
+      />
 
       <AlertDialog open={ownerOnly}>
         <AlertDialogContent className="w-[85%] max-w-sm">
