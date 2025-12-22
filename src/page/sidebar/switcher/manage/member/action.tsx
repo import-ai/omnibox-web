@@ -24,6 +24,13 @@ import { Role } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 
+// Role hierarchy levels: lower number = higher privilege
+const ROLE_LEVEL: Record<Role, number> = {
+  owner: 0,
+  admin: 1,
+  member: 2,
+};
+
 export interface ActionProps {
   value: Role;
   id: string;
@@ -79,14 +86,21 @@ export default function Action(props: ActionProps) {
     },
   ];
 
+  // Check if current user can modify target based on role hierarchy
+  // Owner can modify anyone, others can only modify users at levels > their own
+  const currentLevel = ROLE_LEVEL[currentUserRole ?? 'member'];
+  const targetLevel = ROLE_LEVEL[value];
+  const canModifyTarget =
+    currentUserRole === 'owner' || currentLevel < targetLevel;
+
   // Filter roles based on current user's role
-  // Admin can only change to roles lower than admin (member only)
-  // Owner can change to any role
+  // Owner can assign any role
+  // Others can only assign roles at levels > their own
   const availableRoles = allRoles.filter(role => {
-    if (currentUserRole === 'admin') {
-      return role.value === 'member';
+    if (currentUserRole === 'owner') {
+      return true;
     }
-    return true; // Owner can see all roles
+    return ROLE_LEVEL[role.value] > currentLevel;
   });
 
   const handleChange = (val: Role) => {
@@ -127,8 +141,8 @@ export default function Action(props: ActionProps) {
     }
   };
   const handleRemove = () => {
-    // Admin cannot remove other admins
-    if (currentUserRole === 'admin' && value === 'admin') {
+    // Cannot remove if current user cannot modify target
+    if (!canModifyTarget) {
       return;
     }
     if (hasOwner) {
@@ -153,16 +167,19 @@ export default function Action(props: ActionProps) {
     });
   };
 
+  // Disable dropdown if current user cannot modify target
+  const isDisabled = disabled || !canModifyTarget;
+
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger
-          disabled={disabled}
-          className={cn(className, { 'opacity-40': disabled })}
+          disabled={isDisabled}
+          className={cn(className, { 'opacity-40': isDisabled })}
         >
           <div className="flex items-center text-gray-600 dark:text-white">
             <span>{allRoles.find(item => item.value === value)?.label}</span>
-            {!disabled && <ChevronDown className="h-5 w-5 ml-1" />}
+            {!isDisabled && <ChevronDown className="h-5 w-5 ml-1" />}
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -199,13 +216,7 @@ export default function Action(props: ActionProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleRemove}
-            disabled={currentUserRole === 'admin' && value === 'admin'}
-            className={cn(
-              'cursor-pointer justify-between hover:bg-gray-100',
-              currentUserRole === 'admin' && value === 'admin'
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-red-500'
-            )}
+            className="cursor-pointer justify-between hover:bg-gray-100 text-red-500"
           >
             {t('manage.remove')}
           </DropdownMenuItem>
