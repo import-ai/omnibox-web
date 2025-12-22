@@ -240,6 +240,26 @@ export interface ResourceMeta {
   has_children?: boolean;
 }
 
+export interface SidebarChild {
+  id: string;
+  parent_id: string | null;
+  name: string;
+  resource_type: ResourceType;
+  attrs: Record<string, any>;
+  has_children: boolean;
+}
+
+export interface ResourceSummary {
+  id: string;
+  name: string;
+  resource_type: ResourceType;
+  attrs: Record<string, any>;
+  content: string;
+  has_children: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PublicShareInfo {
   id: string;
   all_resources: boolean;

@@ -18,24 +18,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Resource } from '@/interface';
+import { PathItem } from '@/interface';
 import { cn } from '@/lib/utils';
 
 interface IProps {
   className?: string;
   namespaceId: string;
-  resource: Resource | null;
+  path?: PathItem[];
 }
 
 export default function BreadcrumbMain(props: IProps) {
-  const { className, resource, namespaceId } = props;
+  const { className, namespaceId, path = [] } = props;
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  if (!resource || !Array.isArray(resource.path) || resource.path.length <= 1) {
+  if (path.length <= 1) {
     return null;
   }
-  const data = resource.path.slice(1); // Remove first item (root)
+  const data = path.slice(1); // Remove first item (root)
 
   // If 3 or fewer items, display all normally
   if (data.length <= 3) {

@@ -2,11 +2,11 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ResourceMeta } from '@/interface';
+import { ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
 
 interface IProps {
-  resource: ResourceMeta;
+  resource: ResourceSummary;
   apiPrefix: string;
 }
 
@@ -18,10 +18,10 @@ export function FolderContent(props: IProps) {
   useEffect(() => {
     const source = axios.CancelToken.source();
     http
-      .get(`${apiPrefix}/${resource.id}/children`, {
+      .get(`${apiPrefix}/${resource.id}/children?summary=true`, {
         cancelToken: source.token,
       })
-      .then(response => {
+      .then((response: ResourceSummary[]) => {
         setChildrenCount(response.length);
       });
     return () => {
