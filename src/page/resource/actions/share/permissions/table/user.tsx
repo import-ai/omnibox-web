@@ -1,17 +1,51 @@
 import Action from '@/components/permission-action';
 import UserCard from '@/components/user-card';
-import { UserPermission } from '@/interface';
+import { Permission, Role, UserPermission } from '@/interface';
+
+const ROLE_LEVEL: Record<Role, number> = {
+  owner: 0,
+  admin: 1,
+  member: 2,
+};
 
 interface IProps {
   resource_id: string;
   namespace_id: string;
   refetch: () => void;
   data: Array<UserPermission>;
+  current_permission: Permission;
+  current_role: Role;
 }
 
 export default function User(props: IProps) {
-  const { data, resource_id, namespace_id, refetch } = props;
+  const {
+    data,
+    resource_id,
+    namespace_id,
+    refetch,
+    current_permission,
+    current_role,
+  } = props;
   const uid = localStorage.getItem('uid');
+
+  const canModifyUser = (targetRole?: Role): boolean => {
+    // Must have FULL_ACCESS to modify permissions
+    if (current_permission !== 'full_access') {
+      return false;
+    }
+    // Owner can modify anyone
+    if (current_role === 'owner') {
+      return true;
+    }
+    // Member cannot modify anyone
+    if (current_role === 'member') {
+      return false;
+    }
+    // Admin can only modify members
+    const currentLevel = ROLE_LEVEL[current_role];
+    const targetLevel = ROLE_LEVEL[targetRole || 'member'];
+    return currentLevel < targetLevel;
+  };
 
   return (
     <>
@@ -34,6 +68,8 @@ export default function User(props: IProps) {
                 resource_id={resource_id}
                 namespace_id={namespace_id}
                 canNoAccess={item.permission === 'no_access'}
+                disabled={!canModifyUser(item.role)}
+                canRemove={canModifyUser(item.role)}
                 alertWhenDelete={
                   data
                     .filter(

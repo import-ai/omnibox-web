@@ -130,6 +130,7 @@ export interface Group extends IBase {
 export interface UserPermission extends IBase {
   id: number;
   permission: Permission;
+  role?: Role;
   namespace?: Namespace;
   resource?: Resource;
   user?: User;

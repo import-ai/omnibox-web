@@ -98,10 +98,7 @@ request.interceptors.response.use(
             errorMessage = i18next.t('request.unknown_error');
         }
       }
-      if (
-        errorMessage.toLowerCase() === 'unauthorized' ||
-        errorMessage === i18next.t('request.unauthorized')
-      ) {
+      if (err.status === 401) {
         handleTokenError(false);
       }
       toast.error(errorMessage, { position: 'bottom-right' });

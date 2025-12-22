@@ -6,11 +6,18 @@ import PermissionAction from '@/components/permission-action';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import UserCard from '@/components/user-card';
-import { Member } from '@/interface';
+import { Member, Role } from '@/interface';
 import { http } from '@/lib/request';
 
 import Invite from '../../invite';
 import Action from './action';
+
+// Role hierarchy levels: lower number = higher privilege
+const ROLE_LEVEL: Record<Role, number> = {
+  owner: 0,
+  admin: 1,
+  member: 2,
+};
 
 interface MemberProps {
   search: string;
@@ -75,45 +82,56 @@ export default function MemberMain(props: MemberProps) {
             </div>
           </div>
           <div className="w-full text-sm">
-            {data.map(item => (
-              <div
-                key={item.user_id}
-                className="flex h-[50px] lg:h-[60px] items-center border-b border-border"
-              >
-                <div className="w-[120px] lg:w-[210px] px-2 whitespace-nowrap">
-                  <UserCard email={item.email || ''} username={item.username} />
+            {data.map(item => {
+              // Check if current user can modify target based on role hierarchy
+              const currentLevel = ROLE_LEVEL[currentUserRole ?? 'member'];
+              const targetLevel = ROLE_LEVEL[item.role];
+              const canModifyTarget =
+                currentUserRole === 'owner' || currentLevel < targetLevel;
+
+              return (
+                <div
+                  key={item.user_id}
+                  className="flex h-[50px] lg:h-[60px] items-center border-b border-border"
+                >
+                  <div className="w-[120px] lg:w-[210px] px-2 whitespace-nowrap">
+                    <UserCard
+                      email={item.email || ''}
+                      username={item.username}
+                    />
+                  </div>
+                  <div className="w-[90px] lg:w-[124px] px-2 whitespace-nowrap">
+                    <PermissionAction
+                      disabled={!isOwnerOrAdmin || !canModifyTarget}
+                      value={item.permission}
+                      refetch={refetch}
+                      user_id={item.user_id}
+                      resource_id={resourceId}
+                      namespace_id={namespace_id}
+                      canRemove={false}
+                      canNoAccess={true}
+                    />
+                  </div>
+                  <div className="w-[90px] lg:w-[127px] px-2 whitespace-nowrap">
+                    <Action
+                      disabled={!isOwnerOrAdmin}
+                      id={item.user_id}
+                      value={item.role}
+                      currentUserRole={currentUserRole}
+                      targetUsername={item.username}
+                      refetch={refetch}
+                      namespace_id={namespace_id}
+                      namespaceName={namespaceName}
+                      hasOwner={
+                        data
+                          .filter(i => i.user_id !== item.user_id)
+                          .findIndex(i => i.role === 'owner') >= 0
+                      }
+                    />
+                  </div>
                 </div>
-                <div className="w-[90px] lg:w-[124px] px-2 whitespace-nowrap">
-                  <PermissionAction
-                    disabled={!isOwnerOrAdmin}
-                    value={item.permission}
-                    refetch={refetch}
-                    user_id={item.user_id}
-                    resource_id={resourceId}
-                    namespace_id={namespace_id}
-                    canRemove={false}
-                    canNoAccess={true}
-                  />
-                </div>
-                <div className="w-[90px] lg:w-[127px] px-2 whitespace-nowrap">
-                  <Action
-                    disabled={!isOwnerOrAdmin}
-                    id={item.user_id}
-                    value={item.role}
-                    currentUserRole={currentUserRole}
-                    targetUsername={item.username}
-                    refetch={refetch}
-                    namespace_id={namespace_id}
-                    namespaceName={namespaceName}
-                    hasOwner={
-                      data
-                        .filter(i => i.user_id !== item.user_id)
-                        .findIndex(i => i.role === 'owner') >= 0
-                    }
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
