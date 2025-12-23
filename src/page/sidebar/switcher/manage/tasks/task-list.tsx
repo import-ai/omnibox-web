@@ -44,7 +44,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
   const getTimeDescription = (task: Task): string => {
     const now = new Date();
-    const locale = i18n.language === 'zh' ? zhCN : enUS;
+    const locale = i18n.language.startsWith('zh-') ? zhCN : enUS;
 
     if (task.status === 'running' && task.started_at) {
       const startedAt = new Date(task.started_at);
@@ -92,6 +92,19 @@ export function TaskList({ namespaceId }: TaskListProps) {
       }
       const minutes = Math.floor(seconds / 60);
       return t('tasks.time_error_minutes', { minutes });
+    }
+
+    if (task.status === 'timeout' && task.started_at && task.ended_at) {
+      const startedAt = new Date(task.started_at);
+      const endedAt = new Date(task.ended_at);
+      const seconds = Math.floor(
+        (endedAt.getTime() - startedAt.getTime()) / 1000
+      );
+      if (seconds < 60) {
+        return t('tasks.time_timeout_seconds', { seconds });
+      }
+      const minutes = Math.floor(seconds / 60);
+      return t('tasks.time_timeout_minutes', { minutes });
     }
 
     if (task.status === 'canceled' && task.canceled_at) {

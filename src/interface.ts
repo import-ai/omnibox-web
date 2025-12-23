@@ -274,7 +274,8 @@ export type TaskStatus =
   | 'running'
   | 'finished'
   | 'canceled'
-  | 'error';
+  | 'error'
+  | 'timeout';
 
 export interface TaskAttrs {
   resource_id?: string;

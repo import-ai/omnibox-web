@@ -3,6 +3,7 @@ import { CompletedStatus } from '@/assets/icons/completedStatus';
 import { ErrorStatus } from '@/assets/icons/errorStatus';
 import { InProgressStatus } from '@/assets/icons/inProgressStatus';
 import { QueueStatus } from '@/assets/icons/queueStatus';
+import { TimeoutStatus } from '@/assets/icons/timeoutStatus';
 import { TaskStatus } from '@/interface.ts';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +29,9 @@ export const statusConfig: Record<
   },
   error: {
     icon: ErrorStatus,
+  },
+  timeout: {
+    icon: TimeoutStatus,
   },
 };
 
