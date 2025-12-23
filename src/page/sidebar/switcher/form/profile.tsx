@@ -433,7 +433,7 @@ export default function ProfileForm() {
       <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
         <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
           <div className="flex items-center flex-shrink-0 gap-2">
-            <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
+            <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 text-blue-400">
               <MailIcon />
             </span>
             <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
