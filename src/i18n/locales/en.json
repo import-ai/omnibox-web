@@ -660,6 +660,8 @@
     "time_finished_minutes": "Finished: {{minutes}}min",
     "time_error_seconds": "Failed: {{seconds}}s",
     "time_error_minutes": "Failed: {{minutes}}min",
+    "time_timeout_seconds": "Timeout: {{seconds}}s",
+    "time_timeout_minutes": "Timeout: {{minutes}}min",
     "time_canceled": "Canceled: {{time}}",
     "functions": {
       "collect": "Collect",

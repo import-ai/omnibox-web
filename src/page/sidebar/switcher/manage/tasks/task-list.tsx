@@ -101,10 +101,10 @@ export function TaskList({ namespaceId }: TaskListProps) {
         (endedAt.getTime() - startedAt.getTime()) / 1000
       );
       if (seconds < 60) {
-        return `超时：耗时 ${seconds} 秒`;
+        return t('tasks.time_timeout_seconds', { seconds });
       }
       const minutes = Math.floor(seconds / 60);
-      return `超时：耗时 ${minutes} 分钟`;
+      return t('tasks.time_timeout_minutes', { minutes });
     }
 
     if (task.status === 'canceled' && task.canceled_at) {
