@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 import { API_BASE_URL } from '@/const';
 import { detectBrowserLanguage } from '@/lib/detect-language';
+import { removeGlobalCredential } from '@/page/user/util';
 
 interface RequestConfig extends AxiosRequestConfig {
   // Whether to show error messages, default is true
@@ -45,13 +46,23 @@ request.interceptors.request.use(
   }
 );
 
+function handleTokenError(redirect: boolean) {
+  removeGlobalCredential();
+  setTimeout(() => {
+    let target: string = '/user/login';
+    if (redirect) {
+      target = target + `?redirect=${encodeURIComponent(window.location.href)}`;
+    }
+    window.location.href = target;
+  }, 1000);
+}
+
 request.interceptors.response.use(
   (response: AxiosResponse) => {
     return response.data;
   },
   (error: AxiosError) => {
     if (axios.isCancel(error)) {
-      // If the request is cancelled, do not show error message
       return Promise.resolve();
     }
     const err = error as AxiosError;
@@ -87,14 +98,17 @@ request.interceptors.response.use(
             errorMessage = i18next.t('request.unknown_error');
         }
       }
-      toast.error(errorMessage, { position: 'bottom-right' });
-      if (err.status === 401 && localStorage.getItem('uid')) {
-        localStorage.removeItem('uid');
-        localStorage.removeItem('token');
-        setTimeout(() => {
-          window.location.href = '/user/login';
-        }, 1000);
+      if (err.status === 401) {
+        handleTokenError(false);
       }
+      toast.error(errorMessage, { position: 'bottom-right' });
+    }
+    // @ts-ignore
+    const errorCode: string = (err.response?.data?.code || '').toLowerCase();
+    if (errorCode === 'token_expired') {
+      handleTokenError(true);
+    } else if (errorCode === 'invalid_token') {
+      handleTokenError(false);
     }
     return Promise.reject(error);
   }

@@ -102,7 +102,7 @@ export interface IResourceData extends Resource {
   children: Array<IResourceData>;
 }
 
-export type Role = 'owner' | 'member';
+export type Role = 'owner' | 'admin' | 'member';
 
 export interface Member {
   id: string;
@@ -130,6 +130,7 @@ export interface Group extends IBase {
 export interface UserPermission extends IBase {
   id: number;
   permission: Permission;
+  role?: Role;
   namespace?: Namespace;
   resource?: Resource;
   user?: User;

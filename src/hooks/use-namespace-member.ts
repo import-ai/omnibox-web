@@ -3,11 +3,14 @@ import { useEffect, useState } from 'react';
 
 import { http } from '@/lib/request';
 
+import useApp from './use-app';
+
 interface IProps {
   namespaceId: string;
 }
 
 export default function useNamespaceMember(props: IProps) {
+  const app = useApp();
   const { namespaceId } = props;
   const [loading, onLoading] = useState(false);
   const [data, onData] = useState<{ count: number }>({ count: 0 });
@@ -28,6 +31,10 @@ export default function useNamespaceMember(props: IProps) {
   };
 
   useEffect(refetch, []);
+
+  useEffect(() => {
+    return app.on('namespaces_refetch', refetch);
+  }, []);
 
   return {
     data,

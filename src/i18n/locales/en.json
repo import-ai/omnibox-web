@@ -14,6 +14,10 @@
   "teamspace": "Teamspace",
   "toggle_language": "Toggle Language",
   "toggle_theme": "Toggle Theme",
+  "welcome": {
+    "title": "Create Your Space",
+    "description": "Get started by creating your first workspace to organize your content and collaborate with others."
+  },
   "sidebar": {
     "expand": "Expand Sidebar",
     "collapse": "Collapse Sidebar"
@@ -119,6 +123,7 @@
     "join": "{{ user }} invites you to join {{ namespace }}",
     "add": "Invite Member",
     "owner": "Workspace Owner",
+    "admin": "Admin",
     "member": "Member",
     "min": "At least 2 characters",
     "max": "At most 32 characters",
@@ -128,7 +133,8 @@
     "add_namespace": "Add namespace",
     "please_login_first": "Please log in first to accept this invitation",
     "user_mismatch": "This invitation is for {{ username }}",
-    "user_mismatch_generic": "This invitation is for another user"
+    "user_mismatch_generic": "This invitation is for another user",
+    "not_found": "Invitation not found"
   },
   "namespace": {
     "add": "Add Namespace",
@@ -139,7 +145,26 @@
     "success": "Updated",
     "member_count": "{{ size }} members",
     "conflict": "There's already a namespace with the same name",
-    "no_special_chars": "Special characters are not allowed in namespace name"
+    "no_special_chars": "Special characters are not allowed in namespace name",
+    "leave": {
+      "title": "Leave Space",
+      "description": "Leave this workspace. Your private data will be deleted.",
+      "button": "Leave Space",
+      "confirm_title": "Leave Space?",
+      "confirm_description": "Are you sure you want to leave? Your private data will be permanently deleted.",
+      "success": "You have left the space"
+    },
+    "delete": {
+      "title": "Delete Space",
+      "description": "Permanently delete this workspace and all its data.",
+      "button": "Delete Space",
+      "confirm_title": "Delete Space?",
+      "confirm_description": "All data will be permanently deleted and cannot be recovered.",
+      "warning_title": "⚠️ This action requires confirmation",
+      "warning_body": "All data in this workspace will be permanently deleted and cannot be recovered.",
+      "confirm_label": "Type \"{{name}}\" to confirm",
+      "success": "Space deleted successfully"
+    }
   },
   "login": {
     "product_name": "OmniBox",
@@ -302,6 +327,30 @@
       "unbind_success": "Successfully unbound",
       "confirm_unbind": "Confirm Unbind",
       "bind": "Connect"
+    },
+    "danger_zone": "Danger Zone",
+    "delete_account": {
+      "button": "Delete Account",
+      "section_title": "Delete Account",
+      "section_description": "This will permanently delete your account and all associated data",
+      "title": "Delete Account",
+      "warning_title": "⚠️ This action requires confirmation",
+      "warning_body": "Your account will be deleted. All your data will be permanently deleted and cannot be recovered. You will receive a confirmation email.",
+      "confirm_label": "Type \"{{username}}\" to confirm",
+      "confirm_button": "Send Confirmation Email",
+      "username_mismatch": "Username does not match",
+      "email_sent": "Confirmation email sent. Please check your inbox.",
+      "owner_with_members_error": "Cannot delete account. You own one or more namespaces with other members. Please transfer ownership or remove members first.",
+      "invalid_token": "Invalid confirmation link",
+      "token_expired": "Confirmation link has expired. Please try again.",
+      "deletion_failed": "Failed to delete account. Please try again.",
+      "processing": "Deleting your account...",
+      "processing_description": "Please wait while we process your request.",
+      "success_title": "Account Deleted",
+      "success_description": "Your account and all associated data have been permanently deleted and cannot be recovered. You will be redirected to the login page.",
+      "redirecting": "Redirecting in 3 seconds...",
+      "error_title": "Deletion Failed",
+      "back_to_login": "Back to Login"
     }
   },
   "applications": {
@@ -365,6 +414,8 @@
     "role": "Role",
     "owner": "Workspace Owner",
     "owner_desc": "Can change workspace settings and invite new members to the workspace.",
+    "admin": "Admin",
+    "admin_desc": "Can manage members and change workspace settings, but cannot transfer ownership or delete the workspace.",
     "member": "Member",
     "member_desc": "Cannot change workspace settings or invite new members to the workspace.",
     "sure_to_remove": "Are you sure you want to delete the member?",
@@ -381,8 +432,14 @@
     "remove_from_group": "Remove",
     "edit_group": "Edit Group",
     "create_group": "Create Group",
-    "keep_one_admin": "Please keep at least one admin",
+    "keep_one_owner": "Please keep at least one owner",
     "member_remove_success": "Member removed successfully",
+    "transfer_ownership_title": "Transfer Ownership",
+    "transfer_ownership_warning_title": "This action requires confirmation",
+    "transfer_ownership_desc": "Are you sure you want to transfer ownership to {{username}}? You will become an Admin and lose owner privileges.",
+    "transfer_ownership_confirm_label": "Type \"{{name}}\" to confirm",
+    "transfer_confirm": "Transfer Ownership",
+    "transfer_success": "Ownership transferred successfully",
     "invitation": "Invitation",
     "invite_link": "Invite Link",
     "language_setting": "Language",
