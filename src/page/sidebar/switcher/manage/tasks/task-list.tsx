@@ -44,7 +44,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
   const getTimeDescription = (task: Task): string => {
     const now = new Date();
-    const locale = i18n.language === 'zh' ? zhCN : enUS;
+    const locale = i18n.language.startsWith('zh-') ? zhCN : enUS;
 
     if (task.status === 'running' && task.started_at) {
       const startedAt = new Date(task.started_at);
