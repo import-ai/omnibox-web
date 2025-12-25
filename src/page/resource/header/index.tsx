@@ -32,7 +32,7 @@ export default function Header(props: IActionProps) {
         )}
         <Breadcrumb
           namespaceId={namespaceId}
-          resource={resource}
+          path={resource?.path}
           className={cn({
             'ml-2': open,
           })}

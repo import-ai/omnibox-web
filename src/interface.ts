@@ -102,7 +102,7 @@ export interface IResourceData extends Resource {
   children: Array<IResourceData>;
 }
 
-export type Role = 'owner' | 'member';
+export type Role = 'owner' | 'admin' | 'member';
 
 export interface Member {
   id: string;
@@ -130,6 +130,7 @@ export interface Group extends IBase {
 export interface UserPermission extends IBase {
   id: number;
   permission: Permission;
+  role?: Role;
   namespace?: Namespace;
   resource?: Resource;
   user?: User;
@@ -240,6 +241,26 @@ export interface ResourceMeta {
   has_children?: boolean;
 }
 
+export interface SidebarChild {
+  id: string;
+  parent_id: string | null;
+  name: string;
+  resource_type: ResourceType;
+  attrs: Record<string, any>;
+  has_children: boolean;
+}
+
+export interface ResourceSummary {
+  id: string;
+  name: string;
+  resource_type: ResourceType;
+  attrs: Record<string, any>;
+  content: string;
+  has_children: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PublicShareInfo {
   id: string;
   all_resources: boolean;
@@ -253,7 +274,8 @@ export type TaskStatus =
   | 'running'
   | 'finished'
   | 'canceled'
-  | 'error';
+  | 'error'
+  | 'timeout';
 
 export interface TaskAttrs {
   resource_id?: string;

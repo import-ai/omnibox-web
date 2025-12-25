@@ -12,16 +12,6 @@ import each from '@/lib/each';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
-const scrollToResource = (resourceId: string) => {
-  const element = document.querySelector(`[data-resource-id="${resourceId}"]`);
-  if (element) {
-    element.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    });
-  }
-};
-
 export default function useContext() {
   const app = useApp();
   const loc = useLocation();
@@ -37,6 +27,7 @@ export default function useContext() {
   const [expanding, onExpanding] = useState('');
   const [editingKey, onEditingKey] = useState('');
   const [expands, onExpands] = useState<Array<string>>([]);
+  const [visibleResourceId, setVisibleResourceId] = useState<string>('');
   const [data, onData] = useState<{
     [index: string]: IResourceData;
   }>({});
@@ -53,6 +44,33 @@ export default function useContext() {
     parentId: '',
     title: '',
   });
+
+  const scrollToResource = (resourceId: string) => {
+    if (visibleResourceId === resourceId) {
+      return;
+    }
+    setVisibleResourceId(resourceId);
+
+    const isFromSidebar = loc.state?.fromSidebar === true;
+    if (isFromSidebar) {
+      navigate(loc.pathname, {
+        replace: true,
+        state: { ...loc.state, fromSidebar: undefined },
+      });
+      return;
+    }
+
+    const element = document.querySelector(
+      `[data-resource-id="${resourceId}"]`
+    );
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  };
+
   const getSpaceType = (id: string): SpaceType => {
     let spaceType: SpaceType = 'private';
     each(data, (resource, key) => {
@@ -72,6 +90,7 @@ export default function useContext() {
     });
     return spaceType;
   };
+
   const getResourceByField = (
     id: string,
     field: string = 'id'
@@ -565,26 +584,25 @@ export default function useContext() {
     if (!namespaceId || !resourceId || Object.keys(data).length <= 0) {
       return;
     }
-    const isFromSidebar = loc.state?.fromSidebar === true;
-
-    // Clear the state immediately to prevent it from persisting after refresh
-    if (isFromSidebar) {
-      navigate(loc.pathname, {
-        replace: true,
-        state: {
-          ...loc.state,
-          fromSidebar: undefined,
-        },
-      });
-    }
     const target = getResourceByField(resourceId);
     if (target) {
       if (target.has_children && !expands.includes(target.id)) {
         handleExpand(getSpaceType(target.id), target.id);
       }
-      if (!isFromSidebar) {
-        scrollToResource(resourceId);
+      for (
+        let current: string | undefined = target.parent_id;
+        current;
+        current = getResourceByField(current)?.parent_id
+      ) {
+        if (!expands.includes(current)) {
+          expands.push(current);
+        }
       }
+
+      onExpands([...expands]);
+      requestAnimationFrame(() => {
+        scrollToResource(resourceId);
+      });
       return;
     }
     const source = axios.CancelToken.source();
@@ -664,9 +682,10 @@ export default function useContext() {
                 });
               });
               onData({ ...data });
-              if (!isFromSidebar) {
+              // Scroll after all parent folders loaded
+              requestAnimationFrame(() => {
                 scrollToResource(resourceId);
-              }
+              });
             });
           });
       });

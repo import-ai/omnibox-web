@@ -2,18 +2,21 @@ import { useTranslation } from 'react-i18next';
 
 import GroupAction from '@/components/permission-action/group';
 import UserCard from '@/components/user-card';
-import { GroupPermission } from '@/interface';
+import { GroupPermission, Permission } from '@/interface';
 
 interface IProps {
   resource_id: string;
   namespace_id: string;
   refetch: () => void;
   data: Array<GroupPermission>;
+  current_permission: Permission;
 }
 
 export default function Group(props: IProps) {
-  const { data, resource_id, namespace_id, refetch } = props;
+  const { data, resource_id, namespace_id, refetch, current_permission } =
+    props;
   const { t } = useTranslation();
+  const canModify = current_permission === 'full_access';
 
   return (
     <>
@@ -29,6 +32,7 @@ export default function Group(props: IProps) {
             group_id={item.group.id}
             resource_id={resource_id}
             namespace_id={namespace_id}
+            disabled={!canModify}
           />
         </div>
       ))}

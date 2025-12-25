@@ -8,7 +8,7 @@ import Loading from '@/components/loading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import useApp from '@/hooks/use-app';
-import { Resource, ResourceMeta } from '@/interface';
+import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
 import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
@@ -30,7 +30,7 @@ export default function Folder(props: IProps) {
   const app = useApp();
   const [loading, onLoading] = useState(false);
   const [loadingMore, onLoadingMore] = useState(false);
-  const [data, onData] = useState<Array<ResourceMeta>>([]);
+  const [data, onData] = useState<Array<ResourceSummary>>([]);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
 
@@ -41,10 +41,13 @@ export default function Folder(props: IProps) {
     setHasMore(true);
     const source = axios.CancelToken.source();
     http
-      .get(`${apiPrefix}/${resourceId}/children?offset=0&limit=${PAGE_SIZE}`, {
-        cancelToken: source.token,
-      })
-      .then((res: Array<ResourceMeta>) => {
+      .get(
+        `${apiPrefix}/${resourceId}/children?summary=true&offset=0&limit=${PAGE_SIZE}`,
+        {
+          cancelToken: source.token,
+        }
+      )
+      .then((res: Array<ResourceSummary>) => {
         onData(res);
         setHasMore(res.length === PAGE_SIZE);
       })
@@ -63,9 +66,9 @@ export default function Folder(props: IProps) {
     const newOffset = offset + PAGE_SIZE;
     http
       .get(
-        `${apiPrefix}/${resourceId}/children?offset=${newOffset}&limit=${PAGE_SIZE}`
+        `${apiPrefix}/${resourceId}/children?summary=true&offset=${newOffset}&limit=${PAGE_SIZE}`
       )
-      .then((res: Array<ResourceMeta>) => {
+      .then((res: Array<ResourceSummary>) => {
         onData(prevData => [...prevData, ...res]);
         setOffset(newOffset);
         setHasMore(res.length === PAGE_SIZE);

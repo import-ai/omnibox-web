@@ -16,7 +16,7 @@ interface SettingsSidebarProps {
   value: string;
   onChange: (value: string) => void;
   username: string;
-  userIsOwner: boolean;
+  userIsOwnerOrAdmin: boolean;
 }
 
 interface MenuItem {
@@ -30,7 +30,7 @@ export function SettingsSidebar({
   value,
   onChange,
   username,
-  userIsOwner,
+  userIsOwnerOrAdmin,
 }: SettingsSidebarProps) {
   const { t } = useTranslation();
 
@@ -54,7 +54,6 @@ export function SettingsSidebar({
       label: t('setting.general'),
       value: 'namespace',
       icon: <MonitorCog className="size-4" />,
-      requireOwner: true,
     },
     {
       label: t('setting.members'),
@@ -80,7 +79,7 @@ export function SettingsSidebar({
   ];
 
   const filteredSpaceItems = spaceItems.filter(
-    item => !item.requireOwner || userIsOwner
+    item => !item.requireOwner || userIsOwnerOrAdmin
   );
 
   // About section item

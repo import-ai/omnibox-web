@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -43,6 +43,15 @@ export function AddNamespaceInvitationForm(props: IProps) {
     defaultValues: {},
   });
 
+  const namespaceRole = form.watch('namespaceRole');
+  const isAdmin = namespaceRole === 'admin';
+
+  useEffect(() => {
+    if (isAdmin) {
+      form.setValue('rootPermission', 'full_access');
+    }
+  }, [isAdmin, form]);
+
   const handleSubmit = (val: FormValues) => {
     setLoading(true);
     http
@@ -80,7 +89,7 @@ export function AddNamespaceInvitationForm(props: IProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="owner">{t('invite.owner')}</SelectItem>
+                    <SelectItem value="admin">{t('invite.admin')}</SelectItem>
                     <SelectItem value="member">{t('invite.member')}</SelectItem>
                   </SelectContent>
                 </Select>
@@ -98,7 +107,9 @@ export function AddNamespaceInvitationForm(props: IProps) {
               <FormControl>
                 <Select
                   defaultValue={field.value}
+                  value={field.value}
                   onValueChange={field.onChange}
+                  disabled={isAdmin}
                 >
                   <FormControl>
                     <SelectTrigger>
