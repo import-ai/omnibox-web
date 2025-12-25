@@ -17,14 +17,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { createEmailDomainValidator } from '@/lib/email-validation';
+import { isAllowedEmailDomain } from '@/lib/email-validation';
+import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 
 const registerSchema = z.object({
   email: z
     .string()
-    .email(i18next.t('form.email_invalid'))
-    .refine(createEmailDomainValidator(i18next.t('form.email_limit_rule'))),
+    .min(1, i18next.t('form.email_required'))
+    .refine(val => isEmail(val), { message: i18next.t('form.email_invalid') })
+    .refine(val => isAllowedEmailDomain(val), {
+      message: i18next.t('form.email_domain_not_allowed'),
+    }),
 });
 
 type TRegisterForm = z.infer<typeof registerSchema>;
