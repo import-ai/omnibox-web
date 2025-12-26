@@ -94,6 +94,12 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .touch-none-select {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
 }
 
 body {
