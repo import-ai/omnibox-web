@@ -60,10 +60,14 @@ export default function ContextMenuMain(props: IProps) {
     };
   });
 
-  // Close the menu when starting to drag by simulating a click outside
+  // Close the menu when dragging actually starts
   useEffect(() => {
     if (isActuallyDragging) {
-      document.body.click();
+      document.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          bubbles: true,
+        })
+      );
     }
   }, [isActuallyDragging]);
 
