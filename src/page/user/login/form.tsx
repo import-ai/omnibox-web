@@ -27,7 +27,13 @@ import { passwordSchema } from '@/lib/validation-schemas';
 import { setGlobalCredential } from '@/page/user/util';
 
 const emailFormSchema = z.object({
-  email: z.string().email(i18next.t('form.email_invalid')),
+  email: z
+    .string()
+    .min(1, i18next.t('form.email_required'))
+    .refine(val => isEmail(val), { message: i18next.t('form.email_invalid') })
+    .refine(val => isAllowedEmailDomain(val), {
+      message: i18next.t('form.email_domain_not_allowed'),
+    }),
 });
 
 const passwordFormSchema = z.object({
@@ -66,11 +72,6 @@ export function LoginForm({ className, children, ...props }: IProps) {
   });
 
   const onEmailSubmit = async (data: z.infer<typeof emailFormSchema>) => {
-    if (!isAllowedEmailDomain(data.email)) {
-      toast(t('form.email_limit_rule'), { position: 'bottom-right' });
-      return;
-    }
-
     setIsLoading(true);
     try {
       const response = await http.post('auth/send-otp', {
