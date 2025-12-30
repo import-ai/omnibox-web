@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/tooltip';
 import { DISCORD_LINK } from '@/const';
 
-import { QrCode } from './QrCode';
+import { WechatGroupQrCode } from './QrCode';
 import { Wechat } from './Wechat';
 
 export function FooterSidebar() {
@@ -53,7 +53,7 @@ export function FooterSidebar() {
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-white w-[178px] px-[22px] pt-[22px] pb-[16px] rounded-[12px] shadow-sm border border-[#E0E0E0]">
-              <QrCode />
+              <WechatGroupQrCode />
               <p className="text-[#8F959E] text-center p-0 mt-[8px] text-[14px] font-[500]">
                 {t('footer.join')}
               </p>
