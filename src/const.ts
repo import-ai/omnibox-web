@@ -12,6 +12,13 @@ export const DISCORD_LINK = 'https://www.omnibox.pro/links/discord';
 export const ALLOWED_EMAIL_DOMAINS = [
   'gmail.com',
   'outlook.com',
+  'hotmail.com',
   '163.com',
   'qq.com',
+  '126.com',
+  'foxmail.com',
+  'yeah.net',
+  'sina.com',
+  'yahoo.com',
+  'sohu.com',
 ];
