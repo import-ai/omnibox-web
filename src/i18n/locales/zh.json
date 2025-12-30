@@ -105,6 +105,7 @@
     "password_reg": "密码至少8位，必须包含大写字母、小写字母和数字",
     "password_not_match": "密码不匹配",
     "email": "邮箱",
+    "email_required": "请输入邮箱地址",
     "email_invalid": "请输入有效的邮箱地址",
     "supported_email_providers": "支持的邮箱类型",
     "email_or_username": "邮箱 或 用户名",

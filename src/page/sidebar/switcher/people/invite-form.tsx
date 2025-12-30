@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -53,8 +53,12 @@ export default function InviteForm(props: IProps) {
     [t]
   );
 
+  const schemaRef = useRef(formSchema);
+  schemaRef.current = formSchema;
+
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: (values, context, options) =>
+      zodResolver(schemaRef.current)(values, context, options),
     defaultValues: {
       email: '',
       role: '',
@@ -69,6 +73,13 @@ export default function InviteForm(props: IProps) {
       form.setValue('permission', 'full_access');
     }
   }, [isAdmin, form]);
+
+  // Re-trigger validation when language changes to update error messages
+  useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      form.trigger();
+    }
+  }, [i18n.language]);
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
     setLoading(true);

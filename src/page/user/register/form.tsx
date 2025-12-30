@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -44,8 +44,12 @@ export function RegisterForm({ children }: IProps) {
     [t]
   );
 
+  const schemaRef = useRef(registerSchema);
+  schemaRef.current = registerSchema;
+
   const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
+    resolver: (values, context, options) =>
+      zodResolver(schemaRef.current)(values, context, options),
     defaultValues: {
       email: emailParam || '',
     },
@@ -57,6 +61,13 @@ export function RegisterForm({ children }: IProps) {
       form.setValue('email', emailParam);
     }
   }, [emailParam]);
+
+  // Re-trigger validation when language changes to update error messages
+  useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      form.trigger();
+    }
+  }, [i18n.language]);
 
   const handleSubmit = async (data: z.infer<typeof registerSchema>) => {
     setIsLoading(true);

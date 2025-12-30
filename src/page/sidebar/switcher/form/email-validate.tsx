@@ -33,7 +33,7 @@ function EmailInputStep({
   onSendCode: (email: string) => void;
   submitting: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const emailSchema = useMemo(
     () =>
@@ -46,10 +46,21 @@ function EmailInputStep({
     [t]
   );
 
+  const schemaRef = useRef(emailSchema);
+  schemaRef.current = emailSchema;
+
   const form = useForm<z.infer<typeof emailSchema>>({
-    resolver: zodResolver(emailSchema),
+    resolver: (values, context, options) =>
+      zodResolver(schemaRef.current)(values, context, options),
     defaultValues: { email: '' },
   });
+
+  // Re-trigger validation when language changes to update error messages
+  useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      form.trigger();
+    }
+  }, [i18n.language]);
 
   const handleSubmit = (data: z.infer<typeof emailSchema>) => {
     onSendCode(data.email);

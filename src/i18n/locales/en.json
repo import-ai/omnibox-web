@@ -105,6 +105,7 @@
     "password_reg": "Password must be at least 8 characters long and contain uppercase, lowercase letters, and numbers",
     "password_not_match": "Password does not match",
     "email": "Email",
+    "email_required": "Please enter your email address",
     "email_invalid": "Please enter a valid email address",
     "supported_email_providers": "Supported email providers",
     "email_or_username": "Email or username",

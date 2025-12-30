@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Lock, Mail } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -61,20 +61,38 @@ export function LoginForm({ className, children, ...props }: IProps) {
     [t]
   );
 
+  const emailSchemaRef = useRef(emailFormSchema);
+  emailSchemaRef.current = emailFormSchema;
+
+  const passwordSchemaRef = useRef(passwordFormSchema);
+  passwordSchemaRef.current = passwordFormSchema;
+
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
-    resolver: zodResolver(emailFormSchema),
+    resolver: (values, context, options) =>
+      zodResolver(emailSchemaRef.current)(values, context, options),
     defaultValues: {
       email: emailParam || '',
     },
   });
 
   const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
-    resolver: zodResolver(passwordFormSchema),
+    resolver: (values, context, options) =>
+      zodResolver(passwordSchemaRef.current)(values, context, options),
     defaultValues: {
       email: emailParam || '',
       password: '',
     },
   });
+
+  // Re-trigger validation when language changes to update error messages
+  useEffect(() => {
+    if (Object.keys(emailForm.formState.errors).length > 0) {
+      emailForm.trigger();
+    }
+    if (Object.keys(passwordForm.formState.errors).length > 0) {
+      passwordForm.trigger();
+    }
+  }, [i18n.language]);
 
   const onEmailSubmit = async (data: z.infer<typeof emailFormSchema>) => {
     setIsLoading(true);
