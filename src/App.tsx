@@ -36,8 +36,6 @@ const SharedChatConversationPage = lazy(
   () => import('@/page/shared-chat/conversation')
 );
 
-const PrivacyPolicy = lazy(() => import('@/page/single/privacy-policy'));
-const TermsOfService = lazy(() => import('@/page/single/terms-of-service'));
 const WelcomePage = lazy(() => import('@/page/welcome'));
 
 const app = new CoreApp();
@@ -58,14 +56,6 @@ const router = createBrowserRouter([
       {
         path: 'user/auth/confirm/google',
         element: <GoogleAuthConfirmPage />,
-      },
-      {
-        path: 'single/privacy-policy',
-        element: <PrivacyPolicy />,
-      },
-      {
-        path: 'single/terms-of-service',
-        element: <TermsOfService />,
       },
       {
         path: 'welcome',
