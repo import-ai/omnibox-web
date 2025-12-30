@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -29,6 +29,15 @@ import { getDocsLink } from '@/lib/get-docs-link';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 
+const formSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'form.email_required')
+    .refine(val => isEmail(val), { message: 'form.email_invalid' }),
+  role: z.string().min(2, 'invite.min').max(22, 'invite.max'),
+  permission: z.string(),
+});
+
 interface IProps {
   onFinish: () => void;
 }
@@ -40,25 +49,8 @@ export default function InviteForm(props: IProps) {
   const namespace_id = params.namespace_id || '';
   const [loading, setLoading] = useState(false);
 
-  const formSchema = useMemo(
-    () =>
-      z.object({
-        email: z
-          .string()
-          .min(1, t('form.email_required'))
-          .refine(val => isEmail(val), { message: t('form.email_invalid') }),
-        role: z.string().min(2, t('invite.min')).max(22, t('invite.max')),
-        permission: z.string(),
-      }),
-    [t]
-  );
-
-  const schemaRef = useRef(formSchema);
-  schemaRef.current = formSchema;
-
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: (values, context, options) =>
-      zodResolver(schemaRef.current)(values, context, options),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       role: '',
@@ -73,13 +65,6 @@ export default function InviteForm(props: IProps) {
       form.setValue('permission', 'full_access');
     }
   }, [isAdmin, form]);
-
-  // Re-trigger validation when language changes to update error messages
-  useEffect(() => {
-    if (Object.keys(form.formState.errors).length > 0) {
-      form.trigger();
-    }
-  }, [i18n.language]);
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
     setLoading(true);

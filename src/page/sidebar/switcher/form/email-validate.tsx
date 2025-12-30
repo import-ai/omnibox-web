@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -23,6 +23,13 @@ interface IProps {
   onFinish: (email: string, code: string) => Promise<void>;
 }
 
+const emailSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'form.email_required')
+    .refine(val => isEmail(val), { message: 'form.email_invalid' }),
+});
+
 // Step 1: Input new email interface
 function EmailInputStep({
   currentEmail,
@@ -33,34 +40,12 @@ function EmailInputStep({
   onSendCode: (email: string) => void;
   submitting: boolean;
 }) {
-  const { t, i18n } = useTranslation();
-
-  const emailSchema = useMemo(
-    () =>
-      z.object({
-        email: z
-          .string()
-          .min(1, t('form.email_required'))
-          .refine(val => isEmail(val), { message: t('form.email_invalid') }),
-      }),
-    [t]
-  );
-
-  const schemaRef = useRef(emailSchema);
-  schemaRef.current = emailSchema;
+  const { t } = useTranslation();
 
   const form = useForm<z.infer<typeof emailSchema>>({
-    resolver: (values, context, options) =>
-      zodResolver(schemaRef.current)(values, context, options),
+    resolver: zodResolver(emailSchema),
     defaultValues: { email: '' },
   });
-
-  // Re-trigger validation when language changes to update error messages
-  useEffect(() => {
-    if (Object.keys(form.formState.errors).length > 0) {
-      form.trigger();
-    }
-  }, [i18n.language]);
 
   const handleSubmit = (data: z.infer<typeof emailSchema>) => {
     onSendCode(data.email);

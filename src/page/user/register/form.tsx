@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -21,6 +21,13 @@ import { getDocsLink } from '@/lib/get-docs-link';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 
+const registerSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'form.email_required')
+    .refine(val => isEmail(val), { message: 'form.email_invalid' }),
+});
+
 interface IProps {
   children: React.ReactNode;
 }
@@ -33,23 +40,8 @@ export function RegisterForm({ children }: IProps) {
   const redirect = params.get('redirect');
   const [isLoading, setIsLoading] = useState(false);
 
-  const registerSchema = useMemo(
-    () =>
-      z.object({
-        email: z
-          .string()
-          .min(1, t('form.email_required'))
-          .refine(val => isEmail(val), { message: t('form.email_invalid') }),
-      }),
-    [t]
-  );
-
-  const schemaRef = useRef(registerSchema);
-  schemaRef.current = registerSchema;
-
   const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: (values, context, options) =>
-      zodResolver(schemaRef.current)(values, context, options),
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: emailParam || '',
     },
@@ -61,13 +53,6 @@ export function RegisterForm({ children }: IProps) {
       form.setValue('email', emailParam);
     }
   }, [emailParam]);
-
-  // Re-trigger validation when language changes to update error messages
-  useEffect(() => {
-    if (Object.keys(form.formState.errors).length > 0) {
-      form.trigger();
-    }
-  }, [i18n.language]);
 
   const handleSubmit = async (data: z.infer<typeof registerSchema>) => {
     setIsLoading(true);

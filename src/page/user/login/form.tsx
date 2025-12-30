@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Lock, Mail } from 'lucide-react';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -23,8 +23,20 @@ import { getDocsLink } from '@/lib/get-docs-link';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
-import { createPasswordSchema } from '@/lib/validation-schemas';
+import { passwordSchema } from '@/lib/validation-schemas';
 import { setGlobalCredential } from '@/page/user/util';
+
+const emailFormSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'form.email_required')
+    .refine(val => isEmail(val), { message: 'form.email_invalid' }),
+});
+
+const passwordFormSchema = z.object({
+  email: z.string().min(1, 'form.email_or_username_invalid'),
+  password: passwordSchema,
+});
 
 interface IProps extends React.ComponentPropsWithoutRef<'form'> {
   children: React.ReactNode;
@@ -41,58 +53,20 @@ export function LoginForm({ className, children, ...props }: IProps) {
   const linkClass =
     'text-sm hover:underline dark:text-[#60a5fa] text-[#107bfa] underline-offset-2';
 
-  const emailFormSchema = useMemo(
-    () =>
-      z.object({
-        email: z
-          .string()
-          .min(1, t('form.email_required'))
-          .refine(val => isEmail(val), { message: t('form.email_invalid') }),
-      }),
-    [t]
-  );
-
-  const passwordFormSchema = useMemo(
-    () =>
-      z.object({
-        email: z.string().min(1, t('form.email_or_username_invalid')),
-        password: createPasswordSchema(t),
-      }),
-    [t]
-  );
-
-  const emailSchemaRef = useRef(emailFormSchema);
-  emailSchemaRef.current = emailFormSchema;
-
-  const passwordSchemaRef = useRef(passwordFormSchema);
-  passwordSchemaRef.current = passwordFormSchema;
-
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
-    resolver: (values, context, options) =>
-      zodResolver(emailSchemaRef.current)(values, context, options),
+    resolver: zodResolver(emailFormSchema),
     defaultValues: {
       email: emailParam || '',
     },
   });
 
   const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
-    resolver: (values, context, options) =>
-      zodResolver(passwordSchemaRef.current)(values, context, options),
+    resolver: zodResolver(passwordFormSchema),
     defaultValues: {
       email: emailParam || '',
       password: '',
     },
   });
-
-  // Re-trigger validation when language changes to update error messages
-  useEffect(() => {
-    if (Object.keys(emailForm.formState.errors).length > 0) {
-      emailForm.trigger();
-    }
-    if (Object.keys(passwordForm.formState.errors).length > 0) {
-      passwordForm.trigger();
-    }
-  }, [i18n.language]);
 
   const onEmailSubmit = async (data: z.infer<typeof emailFormSchema>) => {
     setIsLoading(true);
