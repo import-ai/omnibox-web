@@ -256,7 +256,6 @@
     "current_email_is": "Your current email address is",
     "will_send_verification": "Please enter your new email address, we will send you a verification code",
     "enter_new_email": "Enter new email",
-    "supported_providers": "Only Gmail, Outlook, 163 and QQ email are supported",
     "send_verification_code": "Send Verification Code",
     "input_verification_code": "Enter Verification Code",
     "sent_code_to_account": "We just sent a verification code to your account ",

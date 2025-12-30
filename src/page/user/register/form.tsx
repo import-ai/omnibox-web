@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
+import { SupportedEmailLink } from '@/components/supported-email-link';
 import {
   Form,
   FormControl,
@@ -16,8 +17,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { SUPPORTED_EMAIL_DOCS_LINK } from '@/const';
-import { getDocsLink } from '@/lib/get-docs-link';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 
@@ -33,7 +32,7 @@ interface IProps {
 }
 
 export function RegisterForm({ children }: IProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const emailParam = params.get('email');
@@ -108,14 +107,7 @@ export function RegisterForm({ children }: IProps) {
                   />
                 </FormControl>
                 <FormDescription>
-                  <a
-                    href={getDocsLink(SUPPORTED_EMAIL_DOCS_LINK, i18n.language)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    {t('form.supported_email_providers')}
-                  </a>
+                  <SupportedEmailLink />
                 </FormDescription>
                 <FormMessage />
               </FormItem>

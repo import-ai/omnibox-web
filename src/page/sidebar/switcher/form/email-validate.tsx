@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { SupportedEmailLink } from '@/components/supported-email-link';
 import {
   Form,
   FormControl,
@@ -100,7 +101,7 @@ function EmailInputStep({
             />
 
             <div className="mt-2.5 w-full text-center text-xs font-medium text-muted-foreground">
-              {t('email.supported_providers')}
+              <SupportedEmailLink />
             </div>
 
             <button

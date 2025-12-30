@@ -256,7 +256,6 @@
     "current_email_is": "当前的邮件地址是",
     "will_send_verification": "请输入新的电子邮件地址，我们将向你发送验证码",
     "enter_new_email": "请输入新邮箱",
-    "supported_providers": "仅支持Gmail、Outlook、163和QQ邮箱",
     "send_verification_code": "发送验证码",
     "input_verification_code": "输入验证码",
     "sent_code_to_account": "我们刚刚向您的帐号",

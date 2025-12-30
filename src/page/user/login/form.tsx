@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import Space from '@/components/space';
+import { SupportedEmailLink } from '@/components/supported-email-link';
 import {
   Form,
   FormControl,
@@ -18,8 +19,6 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { SUPPORTED_EMAIL_DOCS_LINK } from '@/const';
-import { getDocsLink } from '@/lib/get-docs-link';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
@@ -43,7 +42,7 @@ interface IProps extends React.ComponentPropsWithoutRef<'form'> {
 }
 
 export function LoginForm({ className, children, ...props }: IProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
@@ -151,17 +150,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    <a
-                      href={getDocsLink(
-                        SUPPORTED_EMAIL_DOCS_LINK,
-                        i18n.language
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      {t('form.supported_email_providers')}
-                    </a>
+                    <SupportedEmailLink />
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -223,17 +212,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    <a
-                      href={getDocsLink(
-                        SUPPORTED_EMAIL_DOCS_LINK,
-                        i18n.language
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      {t('form.supported_email_providers')}
-                    </a>
+                    <SupportedEmailLink />
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
