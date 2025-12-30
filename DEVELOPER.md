@@ -32,7 +32,6 @@ Routes are defined in `src/App.tsx` using `createBrowserRouter` with lazy loadin
   - `/:resource_id` - Resource viewer
   - `/chat/:conversation_id` - Chat interface
 - `/s/:share_id` - Public share access
-- `/single/*` - Static pages (privacy policy, terms)
 
 ### State Management (Event-Driven)
 
