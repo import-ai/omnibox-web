@@ -8,7 +8,6 @@ import Actions from '@/components/permission-action/action';
 import { getData } from '@/components/permission-action/data';
 import useApp from '@/hooks/use-app';
 import { Permission } from '@/interface';
-import { isAllowedEmailDomain } from '@/lib/email-validation';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
@@ -46,15 +45,6 @@ export default function InviteForm(props: InviteFormProps) {
     });
     if (groupTitles.length <= 0 && userEmails.length <= 0) {
       return;
-    }
-    if (userEmails.length > 0) {
-      const validUserEmial = userEmails.find(
-        userEmail => !isAllowedEmailDomain(userEmail)
-      );
-      if (validUserEmial) {
-        toast(t('form.email_limit_rule'), { position: 'bottom-right' });
-        return;
-      }
     }
     onLoading(true);
     http

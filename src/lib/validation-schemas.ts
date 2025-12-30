@@ -1,4 +1,4 @@
-import i18next from 'i18next';
+import i18next, { TFunction } from 'i18next';
 import { z } from 'zod';
 
 /**
@@ -42,12 +42,12 @@ export const optionalPasswordSchema = z
  * Create password schema with dynamic translation
  * Use this function to get a schema with current language translations
  */
-export function createPasswordSchema() {
+export function createPasswordSchema(t: TFunction) {
   return z
     .string()
-    .min(8, { message: i18next.t('form.password_min') })
+    .min(8, { message: t('form.password_min') })
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-      message: i18next.t('form.password_reg'),
+      message: t('form.password_reg'),
     });
 }
 
@@ -55,7 +55,7 @@ export function createPasswordSchema() {
  * Create optional password schema with dynamic translation
  * Use this function to get a schema with current language translations
  */
-export function createOptionalPasswordSchema() {
+export function createOptionalPasswordSchema(t: TFunction) {
   return z.string().superRefine((password, ctx) => {
     // Allow empty password
     if (!password || password.length === 0) {
@@ -68,7 +68,7 @@ export function createOptionalPasswordSchema() {
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: i18next.t('form.password_reg'),
+        message: t('form.password_reg'),
       });
     }
   });
@@ -77,14 +77,14 @@ export function createOptionalPasswordSchema() {
 /**
  * Schema for forms with password and password confirmation
  */
-export function createPasswordWithConfirmSchema() {
+export function createPasswordWithConfirmSchema(t: TFunction) {
   return z
     .object({
-      password: createPasswordSchema(),
+      password: createPasswordSchema(t),
       password_repeat: z.string(),
     })
     .refine(data => data.password === data.password_repeat, {
-      message: i18next.t('form.password_not_match'),
+      message: t('form.password_not_match'),
       path: ['password_repeat'],
     });
 }

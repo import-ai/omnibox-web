@@ -9,16 +9,4 @@ export const WECHAT_BOT_QRCODE_URL =
 export const RESOURCE_TASKS_INTERVAL = 3 * 1000;
 export const BIND_CHECK_INTERVAL = 3 * 1000;
 export const DISCORD_LINK = 'https://www.omnibox.pro/links/discord';
-export const ALLOWED_EMAIL_DOMAINS = [
-  'gmail.com',
-  'outlook.com',
-  'hotmail.com',
-  '163.com',
-  'qq.com',
-  '126.com',
-  'foxmail.com',
-  'yeah.net',
-  'sina.com',
-  'yahoo.com',
-  'sohu.com',
-];
+export const SUPPORTED_EMAIL_DOCS_LINK: string = '/faq#supported-email';

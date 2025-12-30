@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
 import { X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -16,22 +15,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import useUser from '@/hooks/use-user';
-import { isAllowedEmailDomain } from '@/lib/email-validation';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
-
-const EmailSchema = z.object({
-  email: z
-    .string()
-    .min(1, i18next.t('form.email_required'))
-    .refine(val => isEmail(val), { message: i18next.t('form.email_invalid') })
-    .refine(val => isAllowedEmailDomain(val), {
-      message: i18next.t('form.email_domain_not_allowed'),
-    }),
-});
-
-type EmailFormValues = z.infer<typeof EmailSchema>;
 
 interface IProps {
   onFinish: (email: string, code: string) => Promise<void>;
@@ -48,12 +34,24 @@ function EmailInputStep({
   submitting: boolean;
 }) {
   const { t } = useTranslation();
-  const form = useForm<EmailFormValues>({
-    resolver: zodResolver(EmailSchema),
+
+  const emailSchema = useMemo(
+    () =>
+      z.object({
+        email: z
+          .string()
+          .min(1, t('form.email_required'))
+          .refine(val => isEmail(val), { message: t('form.email_invalid') }),
+      }),
+    [t]
+  );
+
+  const form = useForm<z.infer<typeof emailSchema>>({
+    resolver: zodResolver(emailSchema),
     defaultValues: { email: '' },
   });
 
-  const handleSubmit = (data: EmailFormValues) => {
+  const handleSubmit = (data: z.infer<typeof emailSchema>) => {
     onSendCode(data.email);
   };
 

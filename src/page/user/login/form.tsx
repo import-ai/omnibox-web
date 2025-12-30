@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
 import { Lock, Mail } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -19,34 +18,20 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { isAllowedEmailDomain } from '@/lib/email-validation';
+import { SUPPORTED_EMAIL_DOCS_LINK } from '@/const';
+import { getDocsLink } from '@/lib/get-docs-link';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
-import { passwordSchema } from '@/lib/validation-schemas';
+import { createPasswordSchema } from '@/lib/validation-schemas';
 import { setGlobalCredential } from '@/page/user/util';
-
-const emailFormSchema = z.object({
-  email: z
-    .string()
-    .min(1, i18next.t('form.email_required'))
-    .refine(val => isEmail(val), { message: i18next.t('form.email_invalid') })
-    .refine(val => isAllowedEmailDomain(val), {
-      message: i18next.t('form.email_domain_not_allowed'),
-    }),
-});
-
-const passwordFormSchema = z.object({
-  email: z.string().nonempty(i18next.t('form.email_or_username_invalid')),
-  password: passwordSchema,
-});
 
 interface IProps extends React.ComponentPropsWithoutRef<'form'> {
   children: React.ReactNode;
 }
 
 export function LoginForm({ className, children, ...props }: IProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
@@ -55,6 +40,26 @@ export function LoginForm({ className, children, ...props }: IProps) {
   const [usePassword, setUsePassword] = useState(false);
   const linkClass =
     'text-sm hover:underline dark:text-[#60a5fa] text-[#107bfa] underline-offset-2';
+
+  const emailFormSchema = useMemo(
+    () =>
+      z.object({
+        email: z
+          .string()
+          .min(1, t('form.email_required'))
+          .refine(val => isEmail(val), { message: t('form.email_invalid') }),
+      }),
+    [t]
+  );
+
+  const passwordFormSchema = useMemo(
+    () =>
+      z.object({
+        email: z.string().min(1, t('form.email_or_username_invalid')),
+        password: createPasswordSchema(t),
+      }),
+    [t]
+  );
 
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
@@ -88,21 +93,12 @@ export function LoginForm({ className, children, ...props }: IProps) {
 
       // Navigate to OTP verification page
       navigate(buildUrl('/user/verify-otp', { email: data.email, redirect }));
-    } catch (err: any) {
+    } catch {
       setIsLoading(false);
-      const errorMessage =
-        err.response?.data?.message || t('login.error_sending_otp');
-      toast.error(errorMessage, { position: 'bottom-right' });
     }
   };
 
   const onPasswordSubmit = (data: z.infer<typeof passwordFormSchema>) => {
-    if (isEmail(data.email)) {
-      if (!isAllowedEmailDomain(data.email)) {
-        toast(t('form.email_limit_rule'), { position: 'bottom-right' });
-        return;
-      }
-    }
     setIsLoading(true);
     http
       .post('login', data)
@@ -163,7 +159,17 @@ export function LoginForm({ className, children, ...props }: IProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    {t('form.email_limit_rule')}
+                    <a
+                      href={getDocsLink(
+                        SUPPORTED_EMAIL_DOCS_LINK,
+                        i18n.language
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      {t('form.supported_email_providers')}
+                    </a>
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -225,7 +231,17 @@ export function LoginForm({ className, children, ...props }: IProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    {t('form.email_limit_rule')}
+                    <a
+                      href={getDocsLink(
+                        SUPPORTED_EMAIL_DOCS_LINK,
+                        i18n.language
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      {t('form.supported_email_providers')}
+                    </a>
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -17,35 +16,35 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { isAllowedEmailDomain } from '@/lib/email-validation';
+import { SUPPORTED_EMAIL_DOCS_LINK } from '@/const';
+import { getDocsLink } from '@/lib/get-docs-link';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
-
-const registerSchema = z.object({
-  email: z
-    .string()
-    .min(1, i18next.t('form.email_required'))
-    .refine(val => isEmail(val), { message: i18next.t('form.email_invalid') })
-    .refine(val => isAllowedEmailDomain(val), {
-      message: i18next.t('form.email_domain_not_allowed'),
-    }),
-});
-
-type TRegisterForm = z.infer<typeof registerSchema>;
 
 interface IProps {
   children: React.ReactNode;
 }
 
 export function RegisterForm({ children }: IProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const emailParam = params.get('email');
   const redirect = params.get('redirect');
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<TRegisterForm>({
+  const registerSchema = useMemo(
+    () =>
+      z.object({
+        email: z
+          .string()
+          .min(1, t('form.email_required'))
+          .refine(val => isEmail(val), { message: t('form.email_invalid') }),
+      }),
+    [t]
+  );
+
+  const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       email: emailParam || '',
@@ -59,7 +58,7 @@ export function RegisterForm({ children }: IProps) {
     }
   }, [emailParam]);
 
-  const handleSubmit = async (data: TRegisterForm) => {
+  const handleSubmit = async (data: z.infer<typeof registerSchema>) => {
     setIsLoading(true);
     try {
       const response = await http.post('auth/send-signup-otp', {
@@ -82,11 +81,8 @@ export function RegisterForm({ children }: IProps) {
       navigate(
         `/user/verify-otp?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
       );
-    } catch (err: any) {
+    } catch {
       setIsLoading(false);
-      const errorMessage =
-        err.response?.data?.message || t('register.error_sending_otp');
-      toast.error(errorMessage, { position: 'bottom-right' });
     }
   };
 
@@ -115,7 +111,16 @@ export function RegisterForm({ children }: IProps) {
                     disabled={isLoading}
                   />
                 </FormControl>
-                <FormDescription>{t('form.email_limit')}</FormDescription>
+                <FormDescription>
+                  <a
+                    href={getDocsLink(SUPPORTED_EMAIL_DOCS_LINK, i18n.language)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    {t('form.supported_email_providers')}
+                  </a>
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

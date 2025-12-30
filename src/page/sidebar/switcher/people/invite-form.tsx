@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -25,26 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { isAllowedEmailDomain } from '@/lib/email-validation';
+import { SUPPORTED_EMAIL_DOCS_LINK } from '@/const';
+import { getDocsLink } from '@/lib/get-docs-link';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
-
-const FormSchema = z.object({
-  email: z
-    .string()
-    .min(1, i18next.t('form.email_required'))
-    .refine(val => isEmail(val), { message: i18next.t('form.email_invalid') })
-    .refine(val => isAllowedEmailDomain(val), {
-      message: i18next.t('form.email_domain_not_allowed'),
-    }),
-  role: z
-    .string()
-    .min(2, i18next.t('invite.min'))
-    .max(22, i18next.t('invite.max')),
-  permission: z.string(),
-});
-
-type FormValues = z.infer<typeof FormSchema>;
 
 interface IProps {
   onFinish: () => void;
@@ -52,12 +35,26 @@ interface IProps {
 
 export default function InviteForm(props: IProps) {
   const { onFinish } = props;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const params = useParams();
   const namespace_id = params.namespace_id || '';
   const [loading, setLoading] = useState(false);
-  const form = useForm<FormValues>({
-    resolver: zodResolver(FormSchema),
+
+  const formSchema = useMemo(
+    () =>
+      z.object({
+        email: z
+          .string()
+          .min(1, t('form.email_required'))
+          .refine(val => isEmail(val), { message: t('form.email_invalid') }),
+        role: z.string().min(2, t('invite.min')).max(22, t('invite.max')),
+        permission: z.string(),
+      }),
+    [t]
+  );
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       role: '',
@@ -73,7 +70,7 @@ export default function InviteForm(props: IProps) {
     }
   }, [isAdmin, form]);
 
-  const handleSubmit = (data: FormValues) => {
+  const handleSubmit = (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     http
       .post('invite', {
@@ -115,7 +112,16 @@ export default function InviteForm(props: IProps) {
                   disabled={loading}
                 />
               </FormControl>
-              <FormDescription>{t('form.email_limit')}</FormDescription>
+              <FormDescription>
+                <a
+                  href={getDocsLink(SUPPORTED_EMAIL_DOCS_LINK, i18n.language)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {t('form.supported_email_providers')}
+                </a>
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
