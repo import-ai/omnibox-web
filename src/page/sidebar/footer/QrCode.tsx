@@ -2,7 +2,7 @@ import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 
 import logoUrl from '@/assets/logo.svg';
-import weixinqunUrl from '@/assets/wechatGroup.png';
+import wechatGroupUrl from '@/assets/wechatGroup.png';
 import { WECHAT_GROUP_QRCODE_URL } from '@/const';
 
 export function QrCode() {
@@ -42,7 +42,5 @@ export function QrCode() {
 }
 
 export function WechatGroupQrCode() {
-  return (
-    <img src={weixinqunUrl} alt="WeChat Group QR Code" className="size-36" />
-  );
+  return <img src={wechatGroupUrl} alt="WeChat Group QR Code" />;
 }
