@@ -9,6 +9,7 @@ import {
   FormProvider,
   useFormContext,
 } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -141,28 +142,45 @@ const FormDescription = React.forwardRef<
 });
 FormDescription.displayName = 'FormDescription';
 
-const FormMessage = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, children, ...props }, ref) => {
-  const { error, formMessageId } = useFormField();
-  const body = error ? String(error?.message ?? '') : children;
+interface FormMessageProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  error?: string | null;
+  errorI18nKey?: string;
+}
 
-  if (!body) {
-    return null;
+const FormMessage = React.forwardRef<HTMLParagraphElement, FormMessageProps>(
+  ({ className, children, error: errorProp, errorI18nKey, ...props }, ref) => {
+    const { error: fieldError, formMessageId } = useFormField();
+    const { t } = useTranslation();
+
+    // Priority: errorI18nKey > errorProp > fieldError.message > children
+    let body: React.ReactNode;
+    if (errorI18nKey) {
+      body = t(errorI18nKey);
+    } else if (errorProp) {
+      body = errorProp;
+    } else if (fieldError?.message) {
+      // Field error message is an i18n key, translate it
+      body = t(fieldError.message);
+    } else {
+      body = children;
+    }
+
+    if (!body) {
+      return null;
+    }
+
+    return (
+      <p
+        ref={ref}
+        id={formMessageId}
+        className={cn('text-[0.8rem] font-medium text-destructive', className)}
+        {...props}
+      >
+        {body}
+      </p>
+    );
   }
-
-  return (
-    <p
-      ref={ref}
-      id={formMessageId}
-      className={cn('text-[0.8rem] font-medium text-destructive', className)}
-      {...props}
-    >
-      {body}
-    </p>
-  );
-});
+);
 FormMessage.displayName = 'FormMessage';
 
 export {

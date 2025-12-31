@@ -1,8 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import i18next from 'i18next';
 import { Eye, EyeOff } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -46,38 +45,34 @@ import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils.ts';
-import { createOptionalPasswordSchema } from '@/lib/validation-schemas';
+import { optionalPasswordSchema } from '@/lib/validation-schemas';
 
 import { Wrapper } from '../third-party/wrapper';
 import { DeleteAccountDialog } from './delete-account-dialog';
 import EmailValidate from './email-validate';
 import PhoneValidate from './phone-validate';
 
-// Schema factory for username change dialog
-function createUsernameSchema() {
-  return z.object({
-    username: z
-      .string()
-      .min(2, i18next.t('form.username_min'))
-      .max(32, i18next.t('form.username_max'))
-      .refine(
-        value => {
-          return !Array.from(value).some(char => isEmoji(char));
-        },
-        {
-          message: i18next.t('form.username_no_emoji'),
-        }
-      ),
-  });
-}
+// Schema for username change dialog
+const usernameSchema = z.object({
+  username: z
+    .string()
+    .min(2, 'form.username_min')
+    .max(32, 'form.username_max')
+    .refine(
+      value => {
+        return !Array.from(value).some(char => isEmoji(char));
+      },
+      {
+        message: 'form.username_no_emoji',
+      }
+    ),
+});
 
-// Schema factory for password change dialog
-function createPasswordChangeSchema() {
-  return z.object({
-    password: createOptionalPasswordSchema(),
-    password_repeat: z.string(),
-  });
-}
+// Schema for password change dialog
+const passwordChangeSchema = z.object({
+  password: optionalPasswordSchema,
+  password_repeat: z.string(),
+});
 
 type UsernameFormValues = { username: string };
 type PasswordFormValues = { password: string; password_repeat: string };
@@ -255,10 +250,6 @@ export default function ProfileForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordRepeat, setShowPasswordRepeat] = useState(false);
 
-  // Create schemas dynamically to get current language translations
-  const usernameSchema = useMemo(() => createUsernameSchema(), []);
-  const passwordSchema = useMemo(() => createPasswordChangeSchema(), []);
-
   // Forms
   const usernameForm = useForm<UsernameFormValues>({
     resolver: zodResolver(usernameSchema),
@@ -266,7 +257,7 @@ export default function ProfileForm() {
   });
 
   const passwordForm = useForm<PasswordFormValues>({
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(passwordChangeSchema),
     defaultValues: { password: '', password_repeat: '' },
   });
 

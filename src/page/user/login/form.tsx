@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
 import { Lock, Mail } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -11,6 +10,7 @@ import { z } from 'zod';
 import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import Space from '@/components/space';
+import { SupportedEmailLink } from '@/components/supported-email-link';
 import {
   Form,
   FormControl,
@@ -19,7 +19,6 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { isAllowedEmailDomain } from '@/lib/email-validation';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
@@ -29,15 +28,12 @@ import { setGlobalCredential } from '@/page/user/util';
 const emailFormSchema = z.object({
   email: z
     .string()
-    .min(1, i18next.t('form.email_required'))
-    .refine(val => isEmail(val), { message: i18next.t('form.email_invalid') })
-    .refine(val => isAllowedEmailDomain(val), {
-      message: i18next.t('form.email_domain_not_allowed'),
-    }),
+    .min(1, 'form.email_required')
+    .refine(val => isEmail(val), { message: 'form.email_invalid' }),
 });
 
 const passwordFormSchema = z.object({
-  email: z.string().nonempty(i18next.t('form.email_or_username_invalid')),
+  email: z.string().min(1, 'form.email_or_username_invalid'),
   password: passwordSchema,
 });
 
@@ -88,21 +84,12 @@ export function LoginForm({ className, children, ...props }: IProps) {
 
       // Navigate to OTP verification page
       navigate(buildUrl('/user/verify-otp', { email: data.email, redirect }));
-    } catch (err: any) {
+    } catch {
       setIsLoading(false);
-      const errorMessage =
-        err.response?.data?.message || t('login.error_sending_otp');
-      toast.error(errorMessage, { position: 'bottom-right' });
     }
   };
 
   const onPasswordSubmit = (data: z.infer<typeof passwordFormSchema>) => {
-    if (isEmail(data.email)) {
-      if (!isAllowedEmailDomain(data.email)) {
-        toast(t('form.email_limit_rule'), { position: 'bottom-right' });
-        return;
-      }
-    }
     setIsLoading(true);
     http
       .post('login', data)
@@ -163,7 +150,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    {t('form.email_limit_rule')}
+                    <SupportedEmailLink />
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -225,7 +212,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    {t('form.email_limit_rule')}
+                    <SupportedEmailLink />
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
