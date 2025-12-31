@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import useUser from '@/hooks/use-user';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
-import { cn } from '@/lib/utils';
+import { OtpInput } from '@/page/user/components/otp-input';
 
 interface IProps {
   onFinish: (email: string, code: string) => Promise<void>;
@@ -135,16 +135,14 @@ function VerificationCodeStep({
   onClearError: () => void;
 }) {
   const { t } = useTranslation();
-  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [code, setCode] = useState('');
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Clear code and focus first input when error occurs
+  // Clear code when error occurs
   useEffect(() => {
     if (error) {
-      setCode(['', '', '', '', '', '']);
-      inputRefs.current[0]?.focus();
+      setCode('');
     }
   }, [error]);
 
@@ -158,47 +156,11 @@ function VerificationCodeStep({
     }
   }, [countdown]);
 
-  const handleInputChange = (index: number, value: string) => {
-    // Only allow digits
-    if (value && !/^\d$/.test(value)) return;
-
-    // Clear error when user starts typing
+  const handleCodeChange = (value: string) => {
     if (error) {
       onClearError();
     }
-
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    // Auto-submit when all 6 digits entered
-    if (newCode.every(digit => digit !== '') && newCode.join('').length === 6) {
-      onVerify(newCode.join(''));
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData
-      .getData('text')
-      .replace(/\D/g, '')
-      .slice(0, 6);
-    if (pastedData.length === 6) {
-      const newCode = pastedData.split('');
-      setCode(newCode);
-      onVerify(pastedData);
-    }
+    setCode(value);
   };
 
   const handleResend = () => {
@@ -227,32 +189,13 @@ function VerificationCodeStep({
         </div>
 
         <div className="flex flex-col items-center gap-2 w-full">
-          <div className="flex h-12 lg:h-14 w-full max-w-96 items-center justify-center">
-            {code.map((digit, index) => (
-              <input
-                key={index}
-                ref={el => (inputRefs.current[index] = el)}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={e => handleInputChange(index, e.target.value)}
-                onKeyDown={e => handleKeyDown(index, e)}
-                onPaste={index === 0 ? handlePaste : undefined}
-                disabled={submitting}
-                className={cn(
-                  'h-10 w-10 lg:h-12 lg:w-12 border bg-background text-center text-xl lg:text-2xl font-semibold outline-none focus:border-primary',
-                  error ? 'border-red-500' : 'border-border',
-                  index === 0
-                    ? 'rounded-l-md'
-                    : index === 5
-                      ? 'rounded-r-md border-l-0'
-                      : 'border-l-0'
-                )}
-              />
-            ))}
-          </div>
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          <OtpInput
+            value={code}
+            onChange={handleCodeChange}
+            onComplete={onVerify}
+            error={error}
+            disabled={submitting}
+          />
         </div>
 
         <div className="flex w-full flex-col items-center justify-center gap-2.5">
@@ -300,10 +243,6 @@ export default function EmailValidate(props: IProps) {
       setStep('code');
       setError('');
       toast.success(t('email.code_sent'), { position: 'bottom-right' });
-    } catch (error: any) {
-      toast.error(error.message || t('email.send_failed'), {
-        position: 'bottom-right',
-      });
     } finally {
       setSubmitting(false);
     }
@@ -316,10 +255,8 @@ export default function EmailValidate(props: IProps) {
       });
       setError('');
       toast.success(t('email.code_sent'), { position: 'bottom-right' });
-    } catch (error: any) {
-      toast.error(error.message || t('email.send_failed'), {
-        position: 'bottom-right',
-      });
+    } catch {
+      // Error is handled by the request library
     }
   };
 
