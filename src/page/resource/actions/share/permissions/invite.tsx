@@ -37,10 +37,12 @@ export default function InviteForm(props: InviteFormProps) {
     const groupTitles: Array<string> = [];
     const userEmails: Array<string> = [];
     value.split(/，|,/).forEach(item => {
-      if (isEmail(item)) {
-        userEmails.push(item.trim());
+      const trimmedItem = item.trim();
+      if (!trimmedItem) return;
+      if (isEmail(trimmedItem)) {
+        userEmails.push(trimmedItem);
       } else {
-        groupTitles.push(item.trim());
+        groupTitles.push(trimmedItem);
       }
     });
     if (groupTitles.length <= 0 && userEmails.length <= 0) {
