@@ -443,6 +443,19 @@ export default function useContext() {
       })
     );
     hooks.push(
+      app.on('restore_resource', (resource: Resource) => {
+        if (
+          !resource ||
+          !Array.isArray(resource.path) ||
+          resource.path.length <= 0
+        ) {
+          return;
+        }
+        const spaceType = getSpaceType(resource.path[0].id);
+        activeRoute(spaceType, resource.parent_id, resource);
+      })
+    );
+    hooks.push(
       app.on('move_resource', (resourceId: string, targetId: string) => {
         let resourceIndex = -1;
         let targetKey: SpaceType | '' = '';
