@@ -88,7 +88,7 @@ export default function ChatHeader() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <SidebarTrigger className="text-[#8F959E]" />
+                <SidebarTrigger className="text-neutral-400" />
               </TooltipTrigger>
               <TooltipContent>{t('sidebar.expand')}</TooltipContent>
             </Tooltip>

@@ -141,7 +141,7 @@ export default function Action(props: ISidebarProps) {
             <SidebarMenuAction
               asChild
               className={cn(
-                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 !text-[#8F959E] hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent cursor-pointer',
+                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 !text-neutral-400 hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent cursor-pointer',
                 isTouch
                   ? 'opacity-100 pointer-events-auto'
                   : 'group-hover/sidebar-item:opacity-100 group-hover/sidebar-item:pointer-events-auto pointer-events-none opacity-0'

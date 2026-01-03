@@ -85,7 +85,7 @@ export function Header(props: IProps) {
               className="flex items-center gap-2 cursor-pointer"
               onClick={onSearch}
             >
-              <Search className="size-4 text-[#8F959E]" />
+              <Search className="size-4 text-neutral-400" />
               <span>{t('search.title')}</span>
             </div>
           </SidebarMenuButton>

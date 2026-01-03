@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import type { IResourceData, SpaceType } from '@/interface';
 import group from '@/lib/group';
 import { ISidebarProps } from '@/page/sidebar/interface';
+import { TrashPanel } from '@/page/sidebar/trash';
 
 import Space from './space';
 
@@ -91,6 +92,7 @@ export default function Content(props: IProps) {
               onFileDragTarget={setFileDragTarget}
             />
           ))}
+        <TrashPanel />
       </SidebarContent>
     </DndProvider>
   );
