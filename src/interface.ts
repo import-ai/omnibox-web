@@ -235,19 +235,12 @@ export interface UpdateShareInfoReq {
 export interface ResourceMeta {
   id: string;
   name?: string;
+  parent_id: string | null;
   resource_type: ResourceType;
   created_at?: string;
   updated_at?: string;
+  attrs?: Record<string, any>;
   has_children?: boolean;
-}
-
-export interface SidebarChild {
-  id: string;
-  parent_id: string | null;
-  name: string;
-  resource_type: ResourceType;
-  attrs: Record<string, any>;
-  has_children: boolean;
 }
 
 export interface ResourceSummary {

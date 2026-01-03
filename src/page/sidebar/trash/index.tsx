@@ -92,7 +92,7 @@ export function TrashPanel() {
   return (
     <>
       <SidebarGroup>
-        <SidebarGroupLabel className="h-[32px] font-normal leading-[32px] text-[#8F959E]">
+        <SidebarGroupLabel className="h-8 font-normal leading-8 text-neutral-400 pl-4">
           {t('trash.system')}
         </SidebarGroupLabel>
         <SidebarGroupContent>

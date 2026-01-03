@@ -74,7 +74,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="group flex items-center gap-2 px-3 py-2 hover:bg-muted/50 rounded-md">
+    <div className="group flex items-center gap-0.5 px-3 py-1 hover:bg-muted rounded-md">
       {getResourceIcon(item)}
       <span className="flex-1 text-sm truncate">
         {item.name || t('untitled')}
@@ -85,7 +85,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-7 w-7 text-neutral-400 hover:text-foreground"
               onClick={() => onRestore(item.id)}
             >
               <Undo2 className="h-4 w-4" />
@@ -98,7 +98,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 hover:text-destructive"
+              className="h-7 w-7 text-neutral-400 hover:text-destructive"
               onClick={() => onDelete(item.id)}
             >
               <Trash className="h-4 w-4" />

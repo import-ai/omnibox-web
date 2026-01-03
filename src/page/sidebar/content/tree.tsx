@@ -338,7 +338,7 @@ export default function Tree(props: ITreeProps) {
                       <Button
                         size="icon"
                         variant="outline"
-                        className="size-[20px] bg-transparent shadow-none border-none text-[#8F959E] hover:bg-transparent"
+                        className="size-[20px] bg-transparent shadow-none border-none text-neutral-400 hover:bg-transparent"
                         onClick={event => {
                           event.preventDefault();
                           event.stopPropagation();
