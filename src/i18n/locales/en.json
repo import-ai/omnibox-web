@@ -752,9 +752,10 @@
   },
   "trash": {
     "title": "Trash",
+    "system": "System",
     "search_placeholder": "Search items in trash",
     "empty": "No items",
-    "loading": "Loading...",
+    "loading": "Loading",
     "auto_delete_notice": "Items in trash older than 30 days will be automatically deleted",
     "restore": "Restore",
     "delete_permanently": "Delete permanently",
