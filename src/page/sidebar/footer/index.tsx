@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/tooltip';
 import { DISCORD_LINK } from '@/const';
 
-import { TrashPanel } from '../trash';
 import { WechatGroupQrCode } from './QrCode';
 import { Wechat } from './Wechat';
 
@@ -20,7 +19,6 @@ export function FooterSidebar() {
 
   return (
     <SidebarFooter className="flex-row flex-wrap items-center justify-around px-[24px] pb-[8px] gap-[24px]">
-      <TrashPanel />
       {[
         {
           icon: <CircleHelp />,

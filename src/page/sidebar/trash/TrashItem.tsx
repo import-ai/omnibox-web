@@ -1,5 +1,5 @@
 import parse, { domToReact } from 'html-react-parser';
-import { File, Folder, RotateCcw, X } from 'lucide-react';
+import { File, Folder, Trash, Undo2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { themeIcons } from 'seti-icons';
 
@@ -88,7 +88,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
               className="h-7 w-7"
               onClick={() => onRestore(item.id)}
             >
-              <RotateCcw className="h-4 w-4" />
+              <Undo2 className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{t('trash.restore')}</TooltipContent>
@@ -101,7 +101,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
               className="h-7 w-7 hover:text-destructive"
               onClick={() => onDelete(item.id)}
             >
-              <X className="h-4 w-4" />
+              <Trash className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{t('trash.delete_permanently')}</TooltipContent>

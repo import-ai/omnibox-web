@@ -1,18 +1,17 @@
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenuButton,
+} from '@/components/ui/sidebar';
 
 import { ConfirmPermanentDeleteDialog } from './ConfirmPermanentDeleteDialog';
 import { TrashEmpty } from './TrashEmpty';
@@ -82,66 +81,61 @@ export function TrashPanel() {
 
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="px-0 size-[32px] [&_svg]:size-[20px] text-[#8F959E] hover:text-[#8F959E] hover:bg-[#E8E8EE]"
+      <SidebarGroup className="pr-0">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <SidebarMenuButton className="group/sidebar-header pt-0 pb-[1px] h-[32px]">
+              <SidebarGroupLabel className="h-full font-normal block leading-[32px] mr-[16px] text-[#8F959E]">
+                {t('trash.title')}
+              </SidebarGroupLabel>
+            </SidebarMenuButton>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-80 p-3"
+            side="right"
+            align="start"
+            sideOffset={8}
+          >
+            <div className="space-y-3">
+              <TrashSearch value={searchValue} onChange={setSearchValue} />
+
+              <div
+                className="max-h-[300px] overflow-y-auto -mx-1"
+                onScroll={handleScroll}
               >
-                <Trash2 />
-              </Button>
-            </PopoverTrigger>
-          </TooltipTrigger>
-          <TooltipContent>{t('trash.title')}</TooltipContent>
-        </Tooltip>
-        <PopoverContent
-          className="w-80 p-3"
-          side="top"
-          align="start"
-          sideOffset={8}
-        >
-          <div className="space-y-3">
-            <TrashSearch value={searchValue} onChange={setSearchValue} />
+                {loading && items.length === 0 ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : items.length === 0 ? (
+                  <TrashEmpty />
+                ) : (
+                  <div className="space-y-1">
+                    {items.map(item => (
+                      <TrashItemRow
+                        key={item.id}
+                        item={item}
+                        onRestore={restoreItem}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                    {loading && items.length > 0 && (
+                      <div className="flex items-center justify-center py-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
-            <div
-              className="max-h-[300px] overflow-y-auto -mx-1"
-              onScroll={handleScroll}
-            >
-              {loading && items.length === 0 ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : items.length === 0 ? (
-                <TrashEmpty />
-              ) : (
-                <div className="space-y-1">
-                  {items.map(item => (
-                    <TrashItemRow
-                      key={item.id}
-                      item={item}
-                      onRestore={restoreItem}
-                      onDelete={handleDelete}
-                    />
-                  ))}
-                  {loading && items.length > 0 && (
-                    <div className="flex items-center justify-center py-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-              )}
+              <TrashFooter
+                onClearAll={handleClearAll}
+                hasItems={items.length > 0}
+              />
             </div>
-
-            <TrashFooter
-              onClearAll={handleClearAll}
-              hasItems={items.length > 0}
-            />
-          </div>
-        </PopoverContent>
-      </Popover>
+          </PopoverContent>
+        </Popover>
+      </SidebarGroup>
 
       <ConfirmPermanentDeleteDialog
         open={deleteDialogOpen}
