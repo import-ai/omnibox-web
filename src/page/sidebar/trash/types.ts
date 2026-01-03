@@ -1,11 +1,6 @@
-import { ResourceType } from '@/interface';
+import { ResourceMeta } from '@/interface';
 
-export interface TrashItem {
-  id: string;
-  parent_id: string | null;
-  name: string;
-  resource_type: ResourceType;
-  attrs: Record<string, any>;
+export interface TrashItem extends ResourceMeta {
   deleted_at: string;
 }
 
