@@ -749,5 +749,24 @@
     "wechat": "QR Code",
     "feedback": "Feedback",
     "join": "Scan with WeChat to join the group"
+  },
+  "trash": {
+    "title": "Trash",
+    "search_placeholder": "Search items in trash",
+    "empty": "No items",
+    "loading": "Loading...",
+    "auto_delete_notice": "Items in trash older than 30 days will be automatically deleted",
+    "restore": "Restore",
+    "delete_permanently": "Delete permanently",
+    "clear_all": "Empty Trash",
+    "confirm": {
+      "single_title": "Delete Permanently",
+      "single_description": "Are you sure you want to permanently delete this item? This action cannot be undone.",
+      "clear_title": "Empty Trash",
+      "clear_description": "Are you sure you want to permanently delete all items in trash? This action cannot be undone."
+    },
+    "restore_success": "Restored",
+    "delete_success": "Permanently deleted",
+    "clear_success": "Trash emptied"
   }
 }

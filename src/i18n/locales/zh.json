@@ -749,5 +749,24 @@
     "wechat": "二维码",
     "feedback": "意见反馈",
     "join": "微信扫码加入社群"
+  },
+  "trash": {
+    "title": "回收站",
+    "search_placeholder": "搜索被移入回收站的项目",
+    "empty": "暂无项目",
+    "loading": "加载中...",
+    "auto_delete_notice": "回收站中超过 30 天的页面将自动删除",
+    "restore": "恢复",
+    "delete_permanently": "立即删除",
+    "clear_all": "清倒",
+    "confirm": {
+      "single_title": "永久删除",
+      "single_description": "确定要永久删除此项目吗？删除后将无法撤回",
+      "clear_title": "清空回收站",
+      "clear_description": "确定要永久删除回收站中的所有项目吗？此操作无法撤销"
+    },
+    "restore_success": "已恢复",
+    "delete_success": "已永久删除",
+    "clear_success": "回收站已清空"
   }
 }
