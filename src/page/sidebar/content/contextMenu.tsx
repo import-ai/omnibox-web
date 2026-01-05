@@ -26,7 +26,7 @@ import useApp from '@/hooks/use-app';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
-import { menuIconClass, menuItemClass, menuItemGroupClass } from './styles';
+import { menuIconClass, menuItemClass } from './styles';
 
 export interface IProps extends ISidebarProps {
   children: React.ReactNode;
@@ -191,10 +191,10 @@ export default function ContextMenuMain(props: IProps) {
           )}
           <ContextMenuSeparator />
           <ContextMenuItem
-            className={menuItemGroupClass}
+            className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
             onClick={handleDelete}
           >
-            <Trash2 className={menuIconClass} />
+            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
             {t('actions.move_to_trash')}
           </ContextMenuItem>
         </ContextMenuContent>

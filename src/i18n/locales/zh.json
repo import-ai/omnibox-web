@@ -35,6 +35,7 @@
     },
     "deleted": "已删除",
     "deleted_description": "此资源已被删除",
+    "moved_to_trash": "已移动到回收站",
     "no_content": "资源没有内容可下载",
     "untitled": "未命名",
     "attrs": {

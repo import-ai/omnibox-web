@@ -19,7 +19,7 @@ export function TrashSearch({ value, onChange }: TrashSearchProps) {
         placeholder={t('trash.search_placeholder')}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="pl-9 h-9 text-sm bg-muted/50 border-0 focus-visible:ring-1"
+        className="pl-9 h-9 text-sm rounded-md border-border placeholder:text-muted-foreground bg-transparent"
       />
     </div>
   );

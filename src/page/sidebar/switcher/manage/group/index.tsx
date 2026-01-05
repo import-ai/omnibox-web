@@ -49,7 +49,7 @@ export default function GroupMain(props: GroupProps) {
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground"
+          className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground bg-transparent dark:bg-transparent"
         />
         <CreateGroup
           data={edit}

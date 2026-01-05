@@ -1,6 +1,3 @@
-import { useTranslation } from 'react-i18next';
-
-import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { Sidebar, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
 
 import Content from './content';
@@ -11,7 +8,6 @@ import Setting from './switcher/setting';
 import useContext from './useContext';
 
 export default function MainSidebar() {
-  const { t } = useTranslation();
   const {
     data,
     expands,
@@ -27,11 +23,7 @@ export default function MainSidebar() {
     handleCreate,
     handleUpload,
     handleRename,
-    deleteDialog,
     handleActiveKey,
-    setDeleteDialog,
-    handleDeleteSuccess,
-    handleRestoreSuccess,
   } = useContext();
 
   return (
@@ -61,18 +53,6 @@ export default function MainSidebar() {
         <SidebarRail className="opacity-0" />
       </Sidebar>
       <Setting />
-      <ConfirmDeleteDialog
-        open={deleteDialog.open}
-        targetName={t('resource.name')}
-        itemTitle={deleteDialog.title}
-        deleteUrl={`/namespaces/${namespaceId}/resources/${deleteDialog.id}`}
-        restoreUrl={`/namespaces/${namespaceId}/resources/${deleteDialog.id}/restore`}
-        successMessage={t('resource.deleted')}
-        successDescription={t('resource.deleted_description')}
-        onOpenChange={open => setDeleteDialog({ ...deleteDialog, open })}
-        onSuccess={handleDeleteSuccess}
-        onRestoreSuccess={handleRestoreSuccess}
-      />
     </>
   );
 }

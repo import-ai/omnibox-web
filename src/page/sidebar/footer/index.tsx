@@ -18,7 +18,7 @@ export function FooterSidebar() {
   const { t, i18n } = useTranslation();
 
   return (
-    <SidebarFooter className="flex-row flex-wrap items-center justify-around px-[24px] pb-[8px] gap-[24px]">
+    <SidebarFooter className="flex-row flex-wrap items-center justify-around px-6 pb-2 gap-6">
       {[
         {
           icon: <CircleHelp />,
@@ -47,14 +47,14 @@ export function FooterSidebar() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="px-0 size-[32px] [&_svg]:size-[20px] [&_svg]:scale-[1.3] text-neutral-400 hover:text-neutral-400 hover:bg-[#E8E8EE]"
+                className="px-0 size-8 [&_svg]:size-5 [&_svg]:scale-[1.3] text-neutral-400 hover:text-neutral-400 hover:bg-[#E8E8EE] dark:hover:bg-accent"
               >
                 {item.icon}
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-white w-[178px] px-[22px] pt-[22px] pb-[16px] rounded-[12px] shadow-sm border border-[#E0E0E0]">
               <WechatGroupQrCode />
-              <p className="text-neutral-400 text-center p-0 mt-[8px] text-[14px] font-[500]">
+              <p className="text-neutral-400 text-center p-0 mt-2 text-[14px] font-[500]">
                 {t('footer.join')}
               </p>
             </TooltipContent>
@@ -70,7 +70,7 @@ export function FooterSidebar() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="px-0 size-[32px] [&_svg]:size-[20px] hover:text-neutral-400 hover:bg-[#E8E8EE]"
+                  className="px-0 size-8 [&_svg]:size-5 hover:text-neutral-400 hover:bg-[#E8E8EE] dark:hover:bg-accent"
                 >
                   {item.icon}
                 </Button>

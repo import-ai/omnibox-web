@@ -7,7 +7,7 @@ export function TrashEmpty() {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
       <Trash className="size-6 mb-2 opacity-50" />
-      <span className="text-sm">{t('trash.empty')}</span>
+      <span className="text-sm opacity-50">{t('trash.empty')}</span>
     </div>
   );
 }
