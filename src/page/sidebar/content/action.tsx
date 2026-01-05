@@ -37,7 +37,7 @@ import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
 import { CreateFolderDialog } from './create-folder-dialog';
-import { menuIconClass, menuItemClass, menuItemGroupClass } from './styles';
+import { menuIconClass, menuItemClass } from './styles';
 
 export default function Action(props: ISidebarProps) {
   const {
@@ -222,10 +222,10 @@ export default function Action(props: ISidebarProps) {
 
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className={menuItemGroupClass}
+            className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
             onClick={handleDelete}
           >
-            <Trash2 className={menuIconClass} />
+            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
             {t('actions.move_to_trash')}
           </DropdownMenuItem>
         </DropdownMenuContent>

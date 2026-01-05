@@ -31,19 +31,6 @@ export default function useContext() {
   const [data, onData] = useState<{
     [index: string]: IResourceData;
   }>({});
-  const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean;
-    spaceType: SpaceType;
-    id: string;
-    parentId: string;
-    title: string;
-  }>({
-    open: false,
-    spaceType: 'private',
-    id: '',
-    parentId: '',
-    title: '',
-  });
 
   const scrollToResource = (resourceId: string) => {
     if (visibleResourceId === resourceId) {
@@ -202,66 +189,56 @@ export default function useContext() {
     }
     return activeKey;
   };
-  const getResourceById = (
-    spaceType: SpaceType,
-    id: string
-  ): Resource | null => {
-    const children = data[spaceType]?.children;
-    if (!children || children.length === 0) {
-      return null;
-    }
-    return children.find(item => item.id === id) || null;
-  };
 
   const handleDelete = (spaceType: SpaceType, id: string, parentId: string) => {
-    const resource = getResourceById(spaceType, id);
-    const title = resource?.name || t('resource.untitled');
+    http.delete(`/namespaces/${namespaceId}/resources/${id}`).then(() => {
+      const routeToActive =
+        id === resourceId ? getRouteToActive(spaceType, id, parentId) : '';
+      data[spaceType].children = data[spaceType].children.filter(
+        node => ![node.id, node.parent_id].includes(id)
+      );
 
-    setDeleteDialog({
-      open: true,
-      spaceType,
-      id,
-      parentId,
-      title,
+      // Update parent's has_children field
+      const parentIndex = data[spaceType].children.findIndex(
+        item => item.id === parentId
+      );
+      if (parentIndex >= 0) {
+        const remainingChildren = data[spaceType].children.filter(
+          item => item.parent_id === parentId
+        );
+        data[spaceType].children[parentIndex].has_children =
+          remainingChildren.length > 0;
+      }
+      if (routeToActive) {
+        navigate(`/${namespaceId}/${routeToActive}`);
+      }
+      onExpands(expands => expands.filter(expand => expand !== id));
+      onData({ ...data });
+
+      // Notify trash panel to update icon
+      app.fire('trash_updated');
+
+      toast(t('resource.moved_to_trash'), {
+        action: {
+          label: t('undo'),
+          onClick: () => {
+            http
+              .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
+              .then(response => {
+                activeRoute(spaceType, parentId, response);
+              });
+          },
+        },
+      });
     });
   };
 
-  const handleDeleteSuccess = () => {
-    const { spaceType, id, parentId } = deleteDialog;
-
-    const routeToActive =
-      id === resourceId ? getRouteToActive(spaceType, id, parentId) : '';
-    data[spaceType].children = data[spaceType].children.filter(
-      node => ![node.id, node.parent_id].includes(id)
-    );
-
-    // Update parent's has_children field
-    const parentIndex = data[spaceType].children.findIndex(
-      item => item.id === parentId
-    );
-    if (parentIndex >= 0) {
-      const remainingChildren = data[spaceType].children.filter(
-        item => item.parent_id === parentId
-      );
-      data[spaceType].children[parentIndex].has_children =
-        remainingChildren.length > 0;
-    }
-    if (routeToActive) {
-      navigate(`/${namespaceId}/${routeToActive}`);
-    }
-    onExpands(expands => expands.filter(expand => expand !== id));
-    onData({ ...data });
-  };
-
-  const handleRestoreSuccess = (response: any) => {
-    const { spaceType, parentId } = deleteDialog;
-    activeRoute(spaceType, parentId, response);
-  };
   const activeRoute = (
     spaceType: SpaceType,
     parentId: string,
     resource: Resource | Array<Resource>,
-    edit?: boolean
+    edit?: boolean,
+    scrollToTarget?: boolean
   ) => {
     const resources = Array.isArray(resource) ? resource : [resource];
     resources.forEach(item => {
@@ -298,7 +275,13 @@ export default function useContext() {
     if (!expands.includes(parentId)) {
       onExpands([...expands, parentId]);
     }
-    handleActiveKey(resources[resources.length - 1].id, edit);
+    const targetResourceId = resources[resources.length - 1].id;
+    if (scrollToTarget) {
+      navigate(`/${namespaceId}/${targetResourceId}${edit ? '/edit' : ''}`);
+      isMobile && setOpenMobile(false);
+    } else {
+      handleActiveKey(targetResourceId, edit);
+    }
   };
   const handleCreate = (
     spaceType: SpaceType,
@@ -452,7 +435,7 @@ export default function useContext() {
           return;
         }
         const spaceType = getSpaceType(resource.path[0].id);
-        activeRoute(spaceType, resource.parent_id, resource);
+        activeRoute(spaceType, resource.parent_id, resource, false, true);
       })
     );
     hooks.push(
@@ -751,10 +734,6 @@ export default function useContext() {
     handleCreate,
     handleUpload,
     handleRename,
-    deleteDialog,
     handleActiveKey,
-    setDeleteDialog,
-    handleDeleteSuccess,
-    handleRestoreSuccess,
   };
 }

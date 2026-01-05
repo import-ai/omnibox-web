@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
+import useApp from '@/hooks/use-app';
 
 import { ConfirmPermanentDeleteDialog } from './ConfirmPermanentDeleteDialog';
 import { TrashEmpty } from './TrashEmpty';
@@ -26,6 +27,7 @@ import { useTrash } from './useTrash';
 
 export function TrashPanel() {
   const { t } = useTranslation();
+  const app = useApp();
   const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
@@ -56,6 +58,13 @@ export function TrashPanel() {
       fetchTrash('', 0, false);
     }
   }, [open, fetchTrash]);
+
+  // Update to monitor sidebar deletion operations
+  useEffect(() => {
+    return app.on('trash_updated', () => {
+      fetchTrash('', 0, false);
+    });
+  }, [app, fetchTrash]);
 
   const handleDelete = useCallback((id: string) => {
     setDeleteItemId(id);
@@ -122,7 +131,7 @@ export function TrashPanel() {
                     />
 
                     <div
-                      className="max-h-[300px] overflow-y-auto -mx-1"
+                      className="max-h-[300px] overflow-y-auto -mr-3 pr-3"
                       onScroll={handleScroll}
                     >
                       {loading && items.length === 0 ? (

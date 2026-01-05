@@ -35,6 +35,7 @@
     },
     "deleted": "Deleted",
     "deleted_description": "This resource has been deleted",
+    "moved_to_trash": "Moved to trash",
     "no_content": "Resource has no content to download",
     "untitled": "Untitled",
     "attrs": {

@@ -17,8 +17,8 @@ export function TrashFooter({ onClearAll, hasItems }: TrashFooterProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center justify-between pt-2 border-t">
-      <span className="text-xs text-muted-foreground">
+    <div className="flex items-center justify-between pt-3 border-t">
+      <span className="text-sm text-muted-foreground leading-4">
         {t('trash.auto_delete_notice')}
       </span>
       {hasItems && (
@@ -27,10 +27,10 @@ export function TrashFooter({ onClearAll, hasItems }: TrashFooterProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 hover:text-destructive"
+              className="h-4 w-4 hover:text-destructive"
               onClick={onClearAll}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-8 w-8" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{t('trash.clear_all')}</TooltipContent>
