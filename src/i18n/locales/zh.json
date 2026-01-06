@@ -763,9 +763,9 @@
     "clear_all": "清倒",
     "confirm": {
       "single_title": "永久删除",
-      "single_description": "确定要永久删除此项目吗？删除后将无法撤回",
+      "single_description": "确定要永久删除此资源吗？删除后将无法撤回",
       "clear_title": "清空回收站",
-      "clear_description": "确定要永久删除回收站中的所有项目吗？此操作无法撤销"
+      "clear_description": "确定要永久删除回收站中的所有资源吗？此操作无法撤销"
     },
     "restore_success": "已恢复",
     "delete_success": "已永久删除",
