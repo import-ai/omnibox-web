@@ -77,7 +77,7 @@ export function useTrash() {
   }, [loading, hasMore, fetchTrash, searchValue, items.length]);
 
   const restoreItem = useCallback(
-    async (id: string) => {
+    async (id: string, onSuccess?: () => void) => {
       if (!namespace_id) return;
 
       try {
@@ -92,6 +92,8 @@ export function useTrash() {
 
         // Fire event to update sidebar
         app.fire('restore_resource', response);
+
+        onSuccess?.();
       } catch {
         // Error is automatically toasted
       }

@@ -16,6 +16,7 @@ export default function MainSidebar() {
     expanding,
     editingKey,
     resourceId,
+    openSpaces,
     handleDrop,
     namespaceId,
     handleExpand,
@@ -24,6 +25,7 @@ export default function MainSidebar() {
     handleUpload,
     handleRename,
     handleActiveKey,
+    handleSpaceToggle,
   } = useContext();
 
   return (
@@ -41,6 +43,7 @@ export default function MainSidebar() {
           expanding={expanding}
           editingKey={editingKey}
           resourceId={resourceId}
+          openSpaces={openSpaces}
           onExpand={handleExpand}
           onDelete={handleDelete}
           onCreate={handleCreate}
@@ -48,6 +51,7 @@ export default function MainSidebar() {
           onRename={handleRename}
           namespaceId={namespaceId}
           onActiveKey={handleActiveKey}
+          onSpaceToggle={handleSpaceToggle}
         />
         <FooterSidebar />
         <SidebarRail className="opacity-0" />

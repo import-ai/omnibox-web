@@ -10,6 +10,7 @@ export interface ISidebarProps {
   editingKey: string;
   namespaceId: string;
   expands: Array<string>;
+  open?: boolean;
   onActiveKey: (id: string, edit?: boolean) => void;
   onUpload: (
     spaceType: SpaceType,
@@ -25,4 +26,5 @@ export interface ISidebarProps {
     initialName?: string
   ) => void;
   onRename: (id: string, newName: string) => Promise<void>;
+  onSpaceToggle: (spaceType: string, open?: boolean) => void;
 }

@@ -58,10 +58,11 @@ export default function Space(props: ITreeProps) {
     onTarget,
     fileDragTarget,
     onFileDragTarget,
+    open = true,
+    onSpaceToggle,
   } = props;
   const { t } = useTranslation();
   const isTouch = useIsTouch();
-  const [open, onOpen] = useState(true);
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
@@ -71,7 +72,7 @@ export default function Space(props: ITreeProps) {
     fileInputRef.current?.click();
   };
   const handleHeaderToggle = () => {
-    onOpen(val => !val);
+    onSpaceToggle(spaceType);
   };
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
