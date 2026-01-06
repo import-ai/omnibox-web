@@ -763,9 +763,9 @@
     "clear_all": "Empty Trash",
     "confirm": {
       "single_title": "Delete Permanently",
-      "single_description": "Are you sure you want to permanently delete this item? This action cannot be undone.",
+      "single_description": "Are you sure you want to permanently delete this resource? Once deleted, it cannot be undone.",
       "clear_title": "Empty Trash",
-      "clear_description": "Are you sure you want to permanently delete all items in trash? This action cannot be undone."
+      "clear_description": "Are you sure you want to permanently delete all resources in the trash? This action cannot be undone."
     },
     "restore_success": "Restored",
     "delete_success": "Permanently deleted",
