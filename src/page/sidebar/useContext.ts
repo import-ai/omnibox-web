@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { orderBy } from 'lodash-es';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -28,6 +28,7 @@ export default function useContext() {
   const [editingKey, onEditingKey] = useState('');
   const [expands, onExpands] = useState<Array<string>>([]);
   const [visibleResourceId, setVisibleResourceId] = useState<string>('');
+  const [openSpaces, setOpenSpaces] = useState<Record<string, boolean>>({});
   const [data, onData] = useState<{
     [index: string]: IResourceData;
   }>({});
@@ -109,6 +110,15 @@ export default function useContext() {
     }
     isMobile && setOpenMobile(false);
   };
+
+  const handleSpaceToggle = useCallback((spaceType: string, open?: boolean) => {
+    setOpenSpaces(prev => ({
+      ...prev,
+      [spaceType]:
+        open !== undefined ? open : prev[spaceType] !== false ? false : true,
+    }));
+  }, []);
+
   const handleExpand = (spaceType: SpaceType, id: string) => {
     if (expandedRef.current || expanding) {
       return;
@@ -226,6 +236,7 @@ export default function useContext() {
               .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
               .then(response => {
                 activeRoute(spaceType, parentId, response);
+                app.fire('trash_updated');
               });
           },
         },
@@ -435,6 +446,8 @@ export default function useContext() {
           return;
         }
         const spaceType = getSpaceType(resource.path[0].id);
+        // Expand the corresponding space (individual/team)
+        handleSpaceToggle(spaceType, true);
         activeRoute(spaceType, resource.parent_id, resource, false, true);
       })
     );
@@ -727,6 +740,7 @@ export default function useContext() {
     expanding,
     editingKey,
     resourceId,
+    openSpaces,
     handleDrop,
     namespaceId,
     handleExpand,
@@ -735,5 +749,6 @@ export default function useContext() {
     handleUpload,
     handleRename,
     handleActiveKey,
+    handleSpaceToggle,
   };
 }

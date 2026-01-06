@@ -59,6 +59,34 @@ export function TrashPanel() {
     }
   }, [open, fetchTrash]);
 
+  // Disable scrolling of the entire page when opening the trash can
+  useEffect(() => {
+    if (!open) return;
+
+    // Prevent all scrolling events
+    const preventScroll = (e: WheelEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
+      const popoverContent = document.querySelector(
+        '[data-radix-popper-content-wrapper]'
+      );
+
+      // If scrolling occurs within the Popover, it is allowed
+      if (popoverContent?.contains(target)) {
+        return;
+      }
+
+      e.preventDefault();
+    };
+
+    document.addEventListener('wheel', preventScroll, { passive: false });
+    document.addEventListener('touchmove', preventScroll, { passive: false });
+
+    return () => {
+      document.removeEventListener('wheel', preventScroll);
+      document.removeEventListener('touchmove', preventScroll);
+    };
+  }, [open]);
+
   // Update to monitor sidebar deletion operations
   useEffect(() => {
     return app.on('trash_updated', () => {
@@ -123,6 +151,8 @@ export function TrashPanel() {
                   side="right"
                   align="start"
                   sideOffset={8}
+                  onOpenAutoFocus={e => e.preventDefault()}
+                  onCloseAutoFocus={e => e.preventDefault()}
                 >
                   <div className="space-y-3">
                     <TrashSearch
@@ -149,7 +179,9 @@ export function TrashPanel() {
                             <TrashItemRow
                               key={item.id}
                               item={item}
-                              onRestore={restoreItem}
+                              onRestore={id =>
+                                restoreItem(id, () => setOpen(false))
+                              }
                               onDelete={handleDelete}
                             />
                           ))}

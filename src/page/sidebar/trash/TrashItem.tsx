@@ -21,14 +21,14 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="group flex items-center gap-1.5 px-1 py-1 hover:bg-muted rounded-md">
-      <div className="h-4 w-5 shrink-0 [&>svg]:h-4 [&>svg]:w-4 px-1">
+    <div className="group/trash-item relative flex items-center gap-1.5 px-3 py-1.5 hover:bg-sidebar-accent rounded-md">
+      <div className="h-4 w-4 shrink-0 [&>svg]:h-4 [&>svg]:w-4">
         <ResourceIcon expand={false} resource={item} />
       </div>
-      <span className="flex-1 text-sm truncate">
+      <span className="flex-1 text-sm truncate group-hover/trash-item:pr-[50px] transition-[padding]">
         {item.name || t('untitled')}
       </span>
-      <div className="flex justify-between gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute right-2 flex items-center gap-0.5 opacity-0 group-hover/trash-item:opacity-100 group-hover/trash-item:pointer-events-auto pointer-events-none transition-opacity">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
