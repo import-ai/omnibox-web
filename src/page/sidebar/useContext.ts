@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { orderBy } from 'lodash-es';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -28,22 +28,10 @@ export default function useContext() {
   const [editingKey, onEditingKey] = useState('');
   const [expands, onExpands] = useState<Array<string>>([]);
   const [visibleResourceId, setVisibleResourceId] = useState<string>('');
+  const [openSpaces, setOpenSpaces] = useState<Record<string, boolean>>({});
   const [data, onData] = useState<{
     [index: string]: IResourceData;
   }>({});
-  const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean;
-    spaceType: SpaceType;
-    id: string;
-    parentId: string;
-    title: string;
-  }>({
-    open: false,
-    spaceType: 'private',
-    id: '',
-    parentId: '',
-    title: '',
-  });
 
   const scrollToResource = (resourceId: string) => {
     if (visibleResourceId === resourceId) {
@@ -122,6 +110,15 @@ export default function useContext() {
     }
     isMobile && setOpenMobile(false);
   };
+
+  const handleSpaceToggle = useCallback((spaceType: string, open?: boolean) => {
+    setOpenSpaces(prev => ({
+      ...prev,
+      [spaceType]:
+        open !== undefined ? open : prev[spaceType] !== false ? false : true,
+    }));
+  }, []);
+
   const handleExpand = (spaceType: SpaceType, id: string) => {
     if (expandedRef.current || expanding) {
       return;
@@ -202,66 +199,57 @@ export default function useContext() {
     }
     return activeKey;
   };
-  const getResourceById = (
-    spaceType: SpaceType,
-    id: string
-  ): Resource | null => {
-    const children = data[spaceType]?.children;
-    if (!children || children.length === 0) {
-      return null;
-    }
-    return children.find(item => item.id === id) || null;
-  };
 
   const handleDelete = (spaceType: SpaceType, id: string, parentId: string) => {
-    const resource = getResourceById(spaceType, id);
-    const title = resource?.name || t('resource.untitled');
+    http.delete(`/namespaces/${namespaceId}/resources/${id}`).then(() => {
+      const routeToActive =
+        id === resourceId ? getRouteToActive(spaceType, id, parentId) : '';
+      data[spaceType].children = data[spaceType].children.filter(
+        node => ![node.id, node.parent_id].includes(id)
+      );
 
-    setDeleteDialog({
-      open: true,
-      spaceType,
-      id,
-      parentId,
-      title,
+      // Update parent's has_children field
+      const parentIndex = data[spaceType].children.findIndex(
+        item => item.id === parentId
+      );
+      if (parentIndex >= 0) {
+        const remainingChildren = data[spaceType].children.filter(
+          item => item.parent_id === parentId
+        );
+        data[spaceType].children[parentIndex].has_children =
+          remainingChildren.length > 0;
+      }
+      if (routeToActive) {
+        navigate(`/${namespaceId}/${routeToActive}`);
+      }
+      onExpands(expands => expands.filter(expand => expand !== id));
+      onData({ ...data });
+
+      // Notify trash panel to update icon
+      app.fire('trash_updated');
+
+      toast(t('resource.moved_to_trash'), {
+        action: {
+          label: t('undo'),
+          onClick: () => {
+            http
+              .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
+              .then(response => {
+                activeRoute(spaceType, parentId, response);
+                app.fire('trash_updated');
+              });
+          },
+        },
+      });
     });
   };
 
-  const handleDeleteSuccess = () => {
-    const { spaceType, id, parentId } = deleteDialog;
-
-    const routeToActive =
-      id === resourceId ? getRouteToActive(spaceType, id, parentId) : '';
-    data[spaceType].children = data[spaceType].children.filter(
-      node => ![node.id, node.parent_id].includes(id)
-    );
-
-    // Update parent's has_children field
-    const parentIndex = data[spaceType].children.findIndex(
-      item => item.id === parentId
-    );
-    if (parentIndex >= 0) {
-      const remainingChildren = data[spaceType].children.filter(
-        item => item.parent_id === parentId
-      );
-      data[spaceType].children[parentIndex].has_children =
-        remainingChildren.length > 0;
-    }
-    if (routeToActive) {
-      navigate(`/${namespaceId}/${routeToActive}`);
-    }
-    onExpands(expands => expands.filter(expand => expand !== id));
-    onData({ ...data });
-  };
-
-  const handleRestoreSuccess = (response: any) => {
-    const { spaceType, parentId } = deleteDialog;
-    activeRoute(spaceType, parentId, response);
-  };
   const activeRoute = (
     spaceType: SpaceType,
     parentId: string,
     resource: Resource | Array<Resource>,
-    edit?: boolean
+    edit?: boolean,
+    scrollToTarget?: boolean
   ) => {
     const resources = Array.isArray(resource) ? resource : [resource];
     resources.forEach(item => {
@@ -298,7 +286,13 @@ export default function useContext() {
     if (!expands.includes(parentId)) {
       onExpands([...expands, parentId]);
     }
-    handleActiveKey(resources[resources.length - 1].id, edit);
+    const targetResourceId = resources[resources.length - 1].id;
+    if (scrollToTarget) {
+      navigate(`/${namespaceId}/${targetResourceId}${edit ? '/edit' : ''}`);
+      isMobile && setOpenMobile(false);
+    } else {
+      handleActiveKey(targetResourceId, edit);
+    }
   };
   const handleCreate = (
     spaceType: SpaceType,
@@ -440,6 +434,21 @@ export default function useContext() {
           }
         });
         onData({ ...data });
+      })
+    );
+    hooks.push(
+      app.on('restore_resource', (resource: Resource) => {
+        if (
+          !resource ||
+          !Array.isArray(resource.path) ||
+          resource.path.length <= 0
+        ) {
+          return;
+        }
+        const spaceType = getSpaceType(resource.path[0].id);
+        // Expand the corresponding space (individual/team)
+        handleSpaceToggle(spaceType, true);
+        activeRoute(spaceType, resource.parent_id, resource, false, true);
       })
     );
     hooks.push(
@@ -731,6 +740,7 @@ export default function useContext() {
     expanding,
     editingKey,
     resourceId,
+    openSpaces,
     handleDrop,
     namespaceId,
     handleExpand,
@@ -738,10 +748,7 @@ export default function useContext() {
     handleCreate,
     handleUpload,
     handleRename,
-    deleteDialog,
     handleActiveKey,
-    setDeleteDialog,
-    handleDeleteSuccess,
-    handleRestoreSuccess,
+    handleSpaceToggle,
   };
 }

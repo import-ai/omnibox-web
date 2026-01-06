@@ -2,7 +2,7 @@ import parse, { domToReact } from 'html-react-parser';
 import { File, FileText, Folder, FolderOpen, Globe } from 'lucide-react';
 import { themeIcons } from 'seti-icons';
 
-import { Resource } from '@/interface';
+import { ResourceMeta } from '@/interface';
 import {
   DOMAIN_SUFFIX_TO_ICON,
   FILE_ICON_CONDITIONS,
@@ -12,7 +12,7 @@ import { TextIcon } from './icon/textIcon';
 
 export interface IProps {
   expand: boolean;
-  resource: Resource;
+  resource: ResourceMeta;
 }
 
 const DefaultIcon = {
@@ -21,7 +21,7 @@ const DefaultIcon = {
   doc: <FileText className="scale-110" />,
 };
 
-function getIconForLink(resource: Resource) {
+function getIconForLink(resource: ResourceMeta) {
   if (!resource.attrs?.url) {
     return DefaultIcon.link;
   }
@@ -35,7 +35,7 @@ function getIconForLink(resource: Resource) {
   return DefaultIcon.link;
 }
 
-function getIconForFile(resource: Resource) {
+function getIconForFile(resource: ResourceMeta) {
   if (!resource.attrs || Object.keys(resource.attrs).length <= 0) {
     return DefaultIcon.file;
   }

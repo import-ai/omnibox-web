@@ -8,19 +8,24 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import type { IResourceData, SpaceType } from '@/interface';
 import group from '@/lib/group';
 import { ISidebarProps } from '@/page/sidebar/interface';
+import { TrashPanel } from '@/page/sidebar/trash';
 
 import Space from './space';
 
-export interface IProps extends Omit<ISidebarProps, 'spaceType' | 'data'> {
+export interface IProps extends Omit<
+  ISidebarProps,
+  'spaceType' | 'data' | 'open'
+> {
   data: {
     [index: string]: IResourceData;
   };
+  openSpaces: Record<string, boolean>;
   onDrop: (item: IResourceData, target: IResourceData | null) => void;
   onRename: (id: string, newName: string) => Promise<void>;
 }
 
 export default function Content(props: IProps) {
-  const { data, resourceId, progress, onDrop } = props;
+  const { data, resourceId, progress, onDrop, openSpaces } = props;
   const isMobile = useIsMobile();
   const [target, onTarget] = useState<IResourceData | null>(null);
   const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
@@ -87,10 +92,12 @@ export default function Content(props: IProps) {
               activeKey={resourceId}
               data={group(data[spaceType])}
               spaceType={spaceType as SpaceType}
+              open={openSpaces[spaceType] !== false}
               fileDragTarget={fileDragTarget}
               onFileDragTarget={setFileDragTarget}
             />
           ))}
+        <TrashPanel />
       </SidebarContent>
     </DndProvider>
   );

@@ -58,10 +58,11 @@ export default function Space(props: ITreeProps) {
     onTarget,
     fileDragTarget,
     onFileDragTarget,
+    open = true,
+    onSpaceToggle,
   } = props;
   const { t } = useTranslation();
   const isTouch = useIsTouch();
-  const [open, onOpen] = useState(true);
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
@@ -71,7 +72,7 @@ export default function Space(props: ITreeProps) {
     fileInputRef.current?.click();
   };
   const handleHeaderToggle = () => {
-    onOpen(val => !val);
+    onSpaceToggle(spaceType);
   };
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
@@ -177,11 +178,11 @@ export default function Space(props: ITreeProps) {
           isDragOver || isResourceDragOver || (canDrop && isOver),
       })}
     >
-      <SidebarMenuButton className="group/sidebar-header pt-0 pb-[1px] h-[32px]">
+      <SidebarMenuButton className="group/sidebar-header pt-0 pb-[1px] h-8">
         <div className="relative w-full h-full">
           <SidebarGroupLabel
             onClick={handleHeaderToggle}
-            className="h-full font-normal block leading-[32px] mr-[16px] text-[#8F959E]"
+            className="h-full font-normal block leading-8 mr-4 text-neutral-400"
           >
             {spaceType ? t(spaceType) : ''}
           </SidebarGroupLabel>
@@ -190,7 +191,7 @@ export default function Space(props: ITreeProps) {
               {data.id === editingKey ? (
                 <SidebarMenuAction
                   asChild
-                  className="group-hover/sidebar-header:pointer-events-auto pointer-events-none my-1.5 size-[16px] top-[2px] right-0 text-[#8F959E] focus-visible:outline-none focus-visible:ring-transparent"
+                  className="group-hover/sidebar-header:pointer-events-auto pointer-events-none my-1.5 size-[16px] top-[2px] right-0 text-neutral-400 focus-visible:outline-none focus-visible:ring-transparent"
                 >
                   <span>
                     {progress ? (
@@ -215,7 +216,7 @@ export default function Space(props: ITreeProps) {
                 <SidebarMenuAction
                   asChild
                   className={cn(
-                    'my-1.5 size-4 top-0.5 right-0 text-[#8F959E] hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent',
+                    'my-1.5 size-4 top-0.5 right-0 text-neutral-400 hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent',
                     isTouch
                       ? 'opacity-100 pointer-events-auto'
                       : 'group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0'

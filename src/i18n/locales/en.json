@@ -35,6 +35,7 @@
     },
     "deleted": "Deleted",
     "deleted_description": "This resource has been deleted",
+    "moved_to_trash": "Moved to trash",
     "no_content": "Resource has no content to download",
     "untitled": "Untitled",
     "attrs": {
@@ -749,5 +750,25 @@
     "wechat": "QR Code",
     "feedback": "Feedback",
     "join": "Scan with WeChat to join the group"
+  },
+  "trash": {
+    "title": "Trash",
+    "system": "System",
+    "search_placeholder": "Search resources in trash",
+    "empty": "Nothing here",
+    "loading": "Loading",
+    "auto_delete_notice": "Resources in trash older than 30 days will be automatically deleted",
+    "restore": "Restore",
+    "delete_permanently": "Delete permanently",
+    "clear_all": "Empty Trash",
+    "confirm": {
+      "single_title": "Delete Permanently",
+      "single_description": "Are you sure you want to permanently delete this resource? Once deleted, it cannot be undone.",
+      "clear_title": "Empty Trash",
+      "clear_description": "Are you sure you want to permanently delete all resources in the trash? This action cannot be undone."
+    },
+    "restore_success": "Restored",
+    "delete_success": "Permanently deleted",
+    "clear_success": "Trash emptied"
   }
 }

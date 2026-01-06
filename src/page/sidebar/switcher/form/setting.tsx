@@ -167,7 +167,11 @@ export default function SettingForm({
                 <FormItem>
                   <FormLabel>{t('namespace.name')}</FormLabel>
                   <FormControl>
-                    <Input {...field} disabled={submiting} />
+                    <Input
+                      {...field}
+                      disabled={submiting}
+                      className="rounded-md border-border bg-transparent dark:bg-transparent"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

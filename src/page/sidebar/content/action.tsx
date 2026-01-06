@@ -37,7 +37,7 @@ import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
 import { CreateFolderDialog } from './create-folder-dialog';
-import { menuIconClass, menuItemClass, menuItemGroupClass } from './styles';
+import { menuIconClass, menuItemClass } from './styles';
 
 export default function Action(props: ISidebarProps) {
   const {
@@ -141,7 +141,7 @@ export default function Action(props: ISidebarProps) {
             <SidebarMenuAction
               asChild
               className={cn(
-                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 !text-[#8F959E] hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent cursor-pointer',
+                'size-4 peer-data-[size=default]/menu-button:top-2 right-2 !text-neutral-400 hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent cursor-pointer',
                 isTouch
                   ? 'opacity-100 pointer-events-auto'
                   : 'group-hover/sidebar-item:opacity-100 group-hover/sidebar-item:pointer-events-auto pointer-events-none opacity-0'
@@ -222,10 +222,10 @@ export default function Action(props: ISidebarProps) {
 
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className={menuItemGroupClass}
+            className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
             onClick={handleDelete}
           >
-            <Trash2 className={menuIconClass} />
+            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
             {t('actions.move_to_trash')}
           </DropdownMenuItem>
         </DropdownMenuContent>

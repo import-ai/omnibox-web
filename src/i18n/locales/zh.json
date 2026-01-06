@@ -35,6 +35,7 @@
     },
     "deleted": "已删除",
     "deleted_description": "此资源已被删除",
+    "moved_to_trash": "已移动到回收站",
     "no_content": "资源没有内容可下载",
     "untitled": "未命名",
     "attrs": {
@@ -749,5 +750,25 @@
     "wechat": "二维码",
     "feedback": "意见反馈",
     "join": "微信扫码加入社群"
+  },
+  "trash": {
+    "title": "回收站",
+    "system": "系统",
+    "search_placeholder": "搜索被移入回收站的资源",
+    "empty": "空空如也",
+    "loading": "加载中",
+    "auto_delete_notice": "回收站中超过 30 天的资源将自动删除",
+    "restore": "恢复",
+    "delete_permanently": "立即删除",
+    "clear_all": "清倒",
+    "confirm": {
+      "single_title": "永久删除",
+      "single_description": "确定要永久删除此资源吗？删除后将无法撤回",
+      "clear_title": "清空回收站",
+      "clear_description": "确定要永久删除回收站中的所有资源吗？此操作无法撤销"
+    },
+    "restore_success": "已恢复",
+    "delete_success": "已永久删除",
+    "clear_success": "回收站已清空"
   }
 }
