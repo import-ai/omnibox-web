@@ -19,6 +19,9 @@ const RegisterPage = lazy(() => import('@/page/user/register'));
 const VerifyOtpPage = lazy(() => import('@/page/user/verify-otp'));
 const AcceptInvitePage = lazy(() => import('@/page/user/accept-invite'));
 const InviteRedirectPage = lazy(() => import('@/page/invite-redirect'));
+const AccountDeleteConfirmPage = lazy(
+  () => import('@/page/user/account-delete-confirm')
+);
 const WechatAuthConfirmPage = lazy(
   () => import('@/page/user/wechat/auth-confirm')
 );
@@ -33,8 +36,7 @@ const SharedChatConversationPage = lazy(
   () => import('@/page/shared-chat/conversation')
 );
 
-const PrivacyPolicy = lazy(() => import('@/page/single/privacy-policy'));
-const TermsOfService = lazy(() => import('@/page/single/terms-of-service'));
+const WelcomePage = lazy(() => import('@/page/welcome'));
 
 const app = new CoreApp();
 const router = createBrowserRouter([
@@ -56,12 +58,8 @@ const router = createBrowserRouter([
         element: <GoogleAuthConfirmPage />,
       },
       {
-        path: 'single/privacy-policy',
-        element: <PrivacyPolicy />,
-      },
-      {
-        path: 'single/terms-of-service',
-        element: <TermsOfService />,
+        path: 'welcome',
+        element: <WelcomePage />,
       },
       {
         path: 'user/sign-up',
@@ -74,6 +72,10 @@ const router = createBrowserRouter([
       {
         path: 'user/accept-invite',
         element: <AcceptInvitePage />,
+      },
+      {
+        path: 'user/account/delete/confirm',
+        element: <AccountDeleteConfirmPage />,
       },
       {
         path: 'invite/confirm',

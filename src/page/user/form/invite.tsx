@@ -25,6 +25,7 @@ export function InviteForm() {
   const [userMismatchMessage, setUserMismatchMessage] = useState<string | null>(
     null
   );
+  const [invitationNotFound, setInvitationNotFound] = useState(false);
 
   // Decode JWT token to get invited user ID
   const getInvitedUserId = (token: string): string | null => {
@@ -100,6 +101,8 @@ export function InviteForm() {
         }
         if (error.response?.status === 401) {
           setShowLoginMessage(true);
+        } else if (error.response?.status === 404) {
+          setInvitationNotFound(true);
         }
       });
     return () => {
@@ -137,6 +140,14 @@ export function InviteForm() {
     return (
       <div className="text-center text-sm pt-6">
         <p>{userMismatchMessage}</p>
+      </div>
+    );
+  }
+
+  if (invitationNotFound) {
+    return (
+      <div className="text-center text-sm pt-6">
+        <p>{t('invite.not_found')}</p>
       </div>
     );
   }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import useApp from '@/hooks/use-app';
-import { GroupPermission, Permission, UserPermission } from '@/interface';
+import { GroupPermission, Permission, Role, UserPermission } from '@/interface';
 import { http } from '@/lib/request';
 
 import Group from './group';
@@ -19,10 +19,14 @@ export default function Wrapper(props: UserFormProps) {
     global_permission: Permission;
     users: Array<UserPermission>;
     groups: Array<GroupPermission>;
+    current_permission: Permission;
+    current_role: Role;
   }>({
     users: [],
     groups: [],
     global_permission: 'full_access',
+    current_permission: 'full_access',
+    current_role: 'member',
   });
   const refetch = () => {
     if (!namespace_id || !resource_id) {
@@ -45,12 +49,15 @@ export default function Wrapper(props: UserFormProps) {
         refetch={refetch}
         resource_id={resource_id}
         namespace_id={namespace_id}
+        current_permission={data.current_permission}
+        current_role={data.current_role}
       />
       <Group
         data={data.groups}
         refetch={refetch}
         resource_id={resource_id}
         namespace_id={namespace_id}
+        current_permission={data.current_permission}
       />
     </div>
   );

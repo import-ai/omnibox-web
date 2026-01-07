@@ -9,7 +9,8 @@ import {
   SquarePen,
   Trash2,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useDragLayer } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -25,7 +26,7 @@ import useApp from '@/hooks/use-app';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
-import { menuIconClass, menuItemClass, menuItemGroupClass } from './styles';
+import { menuIconClass, menuItemClass } from './styles';
 
 export interface IProps extends ISidebarProps {
   children: React.ReactNode;
@@ -46,6 +47,29 @@ export default function ContextMenuMain(props: IProps) {
   const { t } = useTranslation();
   const [moveTo, setMoveTo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  //Check whether to drag from the initial position
+  const { isActuallyDragging } = useDragLayer(monitor => {
+    const isDragging = monitor.isDragging();
+    const diff = monitor.getDifferenceFromInitialOffset();
+    const hasMoved = diff
+      ? Math.abs(diff.x) > 5 || Math.abs(diff.y) > 5
+      : false;
+    return {
+      isActuallyDragging: isDragging && hasMoved,
+    };
+  });
+
+  // Close the menu when dragging actually starts
+  useEffect(() => {
+    if (isActuallyDragging) {
+      document.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          bubbles: true,
+        })
+      );
+    }
+  }, [isActuallyDragging]);
 
   const handleCreateFile = () => {
     onCreate(spaceType, data.id, 'doc');
@@ -98,7 +122,9 @@ export default function ContextMenuMain(props: IProps) {
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger>{children}</ContextMenuTrigger>
+        <ContextMenuTrigger disabled={isActuallyDragging}>
+          {children}
+        </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem className={menuItemClass} onClick={handleCreateFile}>
             <FilePlus className={menuIconClass} />
@@ -165,10 +191,10 @@ export default function ContextMenuMain(props: IProps) {
           )}
           <ContextMenuSeparator />
           <ContextMenuItem
-            className={menuItemGroupClass}
+            className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
             onClick={handleDelete}
           >
-            <Trash2 className={menuIconClass} />
+            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
             {t('actions.move_to_trash')}
           </ContextMenuItem>
         </ContextMenuContent>

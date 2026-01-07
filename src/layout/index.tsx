@@ -87,6 +87,8 @@ export default function Layout() {
       http.get('namespaces').then(data => {
         if (Array.isArray(data) && data.length > 0) {
           navigate(`/${data[0].id}/chat`, { replace: true });
+        } else {
+          navigate('/welcome', { replace: true });
         }
       });
     }

@@ -34,6 +34,7 @@ export default function SettingWrapper({
 }: SettingWrapperProps) {
   const params = useParams();
   const namespaceId = params.namespace_id || '';
+  const [userIsOwnerOrAdmin, setUserIsOwnerOrAdmin] = useState(false);
   const [userIsOwner, setUserIsOwner] = useState(false);
   const [activeKey, onActiveKey] = useState(initialTab || 'profile');
   const { user } = useUser();
@@ -45,8 +46,14 @@ export default function SettingWrapper({
     },
     {
       value: 'namespace',
-      children: <SettingForm />,
-      requireOwner: true,
+      children: (
+        <SettingForm
+          namespaceId={namespaceId}
+          userIsOwner={userIsOwner}
+          userIsOwnerOrAdmin={userIsOwnerOrAdmin}
+          onClose={onClose}
+        />
+      ),
     },
     {
       value: 'people',
@@ -91,10 +98,12 @@ export default function SettingWrapper({
       )
       .then(res => {
         setUserIsOwner(res.role === 'owner');
+        setUserIsOwnerOrAdmin(res.role === 'owner' || res.role === 'admin');
       })
       .catch(err => {
         if (err?.response?.data?.code === 'user_not_owner') {
           setUserIsOwner(false);
+          setUserIsOwnerOrAdmin(false);
         }
       });
     return () => {
@@ -111,7 +120,7 @@ export default function SettingWrapper({
             value={activeKey}
             onChange={onActiveKey}
             username={user?.username || ''}
-            userIsOwner={userIsOwner}
+            userIsOwnerOrAdmin={userIsOwnerOrAdmin}
           />
         </div>
 
@@ -128,7 +137,7 @@ export default function SettingWrapper({
         <div className="flex-1 min-h-0 min-w-0 bg-white dark:bg-neutral-900 overflow-auto px-5 py-4 lg:p-4 lg:pl-10 lg:pr-4 lg:pt-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900">
           {
             items
-              .filter(item => !item.requireOwner || userIsOwner)
+              .filter(item => !item.requireOwner || userIsOwnerOrAdmin)
               .find(item => item.value === activeKey)?.children
           }
         </div>

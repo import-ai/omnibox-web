@@ -1,4 +1,5 @@
 import { ChevronDown } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +28,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import useNamespace from '@/hooks/use-namespaces';
+import { Role } from '@/interface';
+import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 import { Logout } from '@/page/user/logout';
 
@@ -48,6 +51,22 @@ export function Switcher(props: IProps) {
   const current = data.find(item => item.id === namespaceId) || {
     name: '--',
   };
+
+  // Fetch current user's role for the namespace
+  const [currentUserRole, setCurrentUserRole] = useState<Role | null>(null);
+  const uid = localStorage.getItem('uid');
+
+  useEffect(() => {
+    if (namespaceId && uid) {
+      http
+        .get(`namespaces/${namespaceId}/members/${uid}`, { mute: true })
+        .then(res => setCurrentUserRole(res?.role))
+        .catch(() => setCurrentUserRole(null));
+    }
+  }, [namespaceId, uid]);
+
+  const isOwnerOrAdmin =
+    currentUserRole === 'owner' || currentUserRole === 'admin';
 
   return (
     <SidebarMenu>
@@ -86,7 +105,7 @@ export function Switcher(props: IProps) {
             <DropdownMenuLabel className="pt-1 pb-0">
               <Space>
                 <SettingButton />
-                <Invite />
+                {isOwnerOrAdmin && <Invite />}
               </Space>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="my-2" />
@@ -130,7 +149,7 @@ export function Switcher(props: IProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <SidebarTrigger className="text-[#8F959E] hover:text-[#8F959E] hover:bg-[#E6E6EC]" />
+                <SidebarTrigger className="text-neutral-400 hover:text-neutral-400 hover:bg-[#E6E6EC] dark:hover:bg-accent" />
               </TooltipTrigger>
               <TooltipContent>{t('sidebar.collapse')}</TooltipContent>
             </Tooltip>

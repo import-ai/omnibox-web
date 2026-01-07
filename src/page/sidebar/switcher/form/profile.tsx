@@ -1,18 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import i18next from 'i18next';
 import { Eye, EyeOff } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { AppleIcon } from '@/assets/icons/apple';
+import { MailIcon } from '@/assets/icons/email';
 import { GoogleIcon } from '@/assets/icons/google';
-import { MailIcon } from '@/assets/icons/mail';
 import { WeChatIcon } from '@/assets/icons/wechat';
-// import { SmartphoneIcon } from '@/assets/icons/smartphone';
+import { Button } from '@/components/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +23,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -41,91 +39,88 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import useUser from '@/hooks/use-user';
 import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
-import { createOptionalPasswordSchema } from '@/lib/validation-schemas';
+import { cn } from '@/lib/utils.ts';
+import { optionalPasswordSchema } from '@/lib/validation-schemas';
 
 import { Wrapper } from '../third-party/wrapper';
+import { DeleteAccountDialog } from './delete-account-dialog';
 import EmailValidate from './email-validate';
 import PhoneValidate from './phone-validate';
 
-// Schema factory for username change dialog
-function createUsernameSchema() {
-  return z.object({
-    username: z
-      .string()
-      .min(2, i18next.t('form.username_min'))
-      .max(32, i18next.t('form.username_max'))
-      .refine(
-        value => {
-          return !Array.from(value).some(char => isEmoji(char));
-        },
-        {
-          message: i18next.t('form.username_no_emoji'),
-        }
-      ),
-  });
-}
+// Schema for username change dialog
+const usernameSchema = z.object({
+  username: z
+    .string()
+    .min(2, 'form.username_min')
+    .max(32, 'form.username_max')
+    .refine(
+      value => {
+        return !Array.from(value).some(char => isEmoji(char));
+      },
+      {
+        message: 'form.username_no_emoji',
+      }
+    ),
+});
 
-// Schema factory for password change dialog
-function createPasswordChangeSchema() {
-  return z.object({
-    password: createOptionalPasswordSchema(),
-    password_repeat: z.string(),
-  });
-}
+// Schema for password change dialog
+const passwordChangeSchema = z.object({
+  password: optionalPasswordSchema,
+  password_repeat: z.string(),
+});
 
 type UsernameFormValues = { username: string };
 type PasswordFormValues = { password: string; password_repeat: string };
 
-// Action button wrapper using shadcn Button - FIXED SIZE: 71×30px
-// Figma: primary = black bg, white text; secondary = white bg, border, black text; destructive = red bg, white text
 function ActionButton({
   children,
   onClick,
   disabled,
-  variant = 'secondary',
+  variant = 'outline',
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
-  variant?: 'primary' | 'secondary';
+  variant?: 'default' | 'outline' | 'destructive';
 }) {
-  const isPrimary = variant === 'primary';
+  const className =
+    'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold';
   return (
     <Button
       onClick={onClick}
       disabled={disabled}
-      variant={isPrimary ? 'default' : 'outline'}
-      className={
-        isPrimary
-          ? 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] dark:bg-white dark:text-[#0a0a0a] dark:hover:bg-neutral-200 shadow-none border-none'
-          : 'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold bg-white border-neutral-200 hover:bg-neutral-50 dark:bg-transparent dark:border-neutral-600 dark:text-white dark:hover:bg-neutral-800 shadow-none'
-      }
+      variant={variant}
+      className={className}
     >
       {children}
     </Button>
   );
 }
 
-// Section header with divider - Title: 20px, weight 600, line-height 28px; Divider at 38px from top
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({
+  title,
+  className,
+}: {
+  title: string;
+  className?: string;
+}) {
   return (
-    <div className="relative w-full lg:w-[532px] h-12">
-      <p className="absolute left-0 top-0 text-foreground whitespace-nowrap text-base lg:text-xl font-semibold leading-7 tracking-normal">
-        {title}
-      </p>
-      {/* Divider line at 38px from top */}
-      <Separator className="absolute left-0 top-[38px] w-full lg:w-[532px]" />
+    <div
+      className={cn(
+        'w-full pb-2 border-b text-foreground whitespace-nowrap lg:text-xl font-semibold',
+        className
+      )}
+    >
+      {title}
     </div>
   );
 }
 
-// Info row component for username/password - Figma: flex, items-center, justify-between, h-[30px] to align with button
 function InfoRow({
   label,
   value,
@@ -137,18 +132,14 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-center justify-between w-full lg:w-[533px] h-[30px]">
-      {/* Left side with label and value */}
       <div className="flex items-center h-[24px] flex-1 min-w-0 gap-2 lg:gap-3">
-        {/* Label */}
         <p className="text-foreground whitespace-nowrap flex-shrink-0 text-sm lg:text-base font-semibold">
           {label}
         </p>
-        {/* Value */}
         <p className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap text-sm lg:text-base flex-1 min-w-0">
           {value}
         </p>
       </div>
-      {/* Button - fixed 71×30px */}
       <div className="flex-shrink-0 ml-2">{button}</div>
     </div>
   );
@@ -225,7 +216,7 @@ function BindingRow({
           </AlertDialog>
         ) : (
           onBind || (
-            <ActionButton variant="secondary">
+            <ActionButton variant="outline">
               {t('setting.bind_btn')}
             </ActionButton>
           )
@@ -259,10 +250,6 @@ export default function ProfileForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordRepeat, setShowPasswordRepeat] = useState(false);
 
-  // Create schemas dynamically to get current language translations
-  const usernameSchema = useMemo(() => createUsernameSchema(), []);
-  const passwordSchema = useMemo(() => createPasswordChangeSchema(), []);
-
   // Forms
   const usernameForm = useForm<UsernameFormValues>({
     resolver: zodResolver(usernameSchema),
@@ -270,7 +257,7 @@ export default function ProfileForm() {
   });
 
   const passwordForm = useForm<PasswordFormValues>({
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(passwordChangeSchema),
     defaultValues: { password: '', password_repeat: '' },
   });
 
@@ -414,7 +401,7 @@ export default function ProfileForm() {
       />
 
       {/* Binding Section Header */}
-      <SectionHeader title={t('setting.binding')} />
+      <SectionHeader title={t('setting.binding')} className="mt-4" />
 
       {/* Phone Row - Hidden temporarily, uncomment when phone binding API is ready
       <BindingRow
@@ -437,7 +424,7 @@ export default function ProfileForm() {
       <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
         <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
           <div className="flex items-center flex-shrink-0 gap-2">
-            <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
+            <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 text-blue-400">
               <MailIcon />
             </span>
             <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
@@ -684,6 +671,25 @@ export default function ProfileForm() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Danger Zone Section */}
+      <SectionHeader
+        title={t('setting.danger_zone')}
+        className="text-destructive mt-4"
+      />
+      <div className="flex items-center justify-between w-full lg:w-[533px] h-[30px]">
+        <div className="flex items-center h-[24px] flex-1 min-w-0 gap-2 lg:gap-3">
+          <p className="text-foreground whitespace-nowrap flex-shrink-0 text-sm lg:text-base font-semibold">
+            {t('setting.delete_account.section_title')}
+          </p>
+          <p className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap text-sm lg:text-base flex-1 min-w-0">
+            {t('setting.delete_account.section_description')}
+          </p>
+        </div>
+        <div className="flex-shrink-0 ml-2">
+          <DeleteAccountDialog username={user?.username || ''} />
+        </div>
+      </div>
     </div>
   );
 }

@@ -42,22 +42,4 @@ export default function UserCard(props: IProps) {
       )}
     </div>
   );
-
-  // return (
-  //   <div className="flex items-center gap-3">
-  //     <Avatar className="h-10 w-10 rounded-full">
-  //       <AvatarImage src="/placeholder.svg" />
-  //       <AvatarFallback className="bg-gray-200">
-  //         {username?.substring(0, 2)}
-  //       </AvatarFallback>
-  //     </Avatar>
-  //     <div>
-  //       <div className="flex items-center">
-  //         <span className="font-medium">{username}</span>
-  //         {you && <span className="text-gray-500 ml-2">({t('permission.you')})</span>}
-  //       </div>
-  //       <div className="text-gray-500 text-sm">{email}</div>
-  //     </div>
-  //   </div>
-  // );
 }

@@ -9,8 +9,17 @@ import useContext from './use-context';
 
 export default function ManagePeople() {
   const { t } = useTranslation();
-  const { tab, onTab, data, refetch, search, onSearch, loading, namespace_id } =
-    useContext();
+  const {
+    tab,
+    onTab,
+    data,
+    refetch,
+    search,
+    onSearch,
+    loading,
+    namespace_id,
+    namespaceName,
+  } = useContext();
 
   if (loading) {
     return (
@@ -42,6 +51,7 @@ export default function ManagePeople() {
           refetch={refetch}
           onSearch={onSearch}
           namespace_id={namespace_id}
+          namespaceName={namespaceName}
           data={
             search
               ? data.member.filter(

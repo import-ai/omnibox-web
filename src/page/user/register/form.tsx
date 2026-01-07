@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +7,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
+import { SupportedEmailLink } from '@/components/supported-email-link';
 import {
   Form,
   FormControl,
@@ -17,17 +17,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { createEmailDomainValidator } from '@/lib/email-validation';
+import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 
 const registerSchema = z.object({
   email: z
     .string()
-    .email(i18next.t('form.email_invalid'))
-    .refine(createEmailDomainValidator(i18next.t('form.email_limit_rule'))),
+    .min(1, 'form.email_required')
+    .refine(val => isEmail(val), { message: 'form.email_invalid' }),
 });
-
-type TRegisterForm = z.infer<typeof registerSchema>;
 
 interface IProps {
   children: React.ReactNode;
@@ -41,7 +39,7 @@ export function RegisterForm({ children }: IProps) {
   const redirect = params.get('redirect');
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<TRegisterForm>({
+  const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       email: emailParam || '',
@@ -55,7 +53,7 @@ export function RegisterForm({ children }: IProps) {
     }
   }, [emailParam]);
 
-  const handleSubmit = async (data: TRegisterForm) => {
+  const handleSubmit = async (data: z.infer<typeof registerSchema>) => {
     setIsLoading(true);
     try {
       const response = await http.post('auth/send-signup-otp', {
@@ -78,11 +76,8 @@ export function RegisterForm({ children }: IProps) {
       navigate(
         `/user/verify-otp?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
       );
-    } catch (err: any) {
+    } catch {
       setIsLoading(false);
-      const errorMessage =
-        err.response?.data?.message || t('register.error_sending_otp');
-      toast.error(errorMessage, { position: 'bottom-right' });
     }
   };
 
@@ -111,7 +106,9 @@ export function RegisterForm({ children }: IProps) {
                     disabled={isLoading}
                   />
                 </FormControl>
-                <FormDescription>{t('form.email_limit')}</FormDescription>
+                <FormDescription>
+                  <SupportedEmailLink />
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

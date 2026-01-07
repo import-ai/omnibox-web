@@ -6,27 +6,38 @@ import PermissionAction from '@/components/permission-action';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import UserCard from '@/components/user-card';
-import { Member } from '@/interface';
+import { Member, Role } from '@/interface';
 import { http } from '@/lib/request';
 
 import Invite from '../../invite';
 import Action from './action';
+
+// Role hierarchy levels: lower number = higher privilege
+const ROLE_LEVEL: Record<Role, number> = {
+  owner: 0,
+  admin: 1,
+  member: 2,
+};
 
 interface MemberProps {
   search: string;
   refetch: () => void;
   data: Array<Member>;
   namespace_id: string;
+  namespaceName?: string;
   onSearch: (value: string) => void;
 }
 
 export default function MemberMain(props: MemberProps) {
-  const { search, data, namespace_id, refetch, onSearch } = props;
+  const { search, data, namespace_id, namespaceName, refetch, onSearch } =
+    props;
   const { t } = useTranslation();
   const uid = localStorage.getItem('uid');
   const [resourceId, onResourceId] = useState('');
-  const isOwner =
-    data.findIndex(item => item.user_id === uid && item.role === 'owner') >= 0;
+  const currentUserMember = data.find(item => item.user_id === uid);
+  const currentUserRole = currentUserMember?.role;
+  const isOwnerOrAdmin =
+    currentUserRole === 'owner' || currentUserRole === 'admin';
 
   useEffect(() => {
     const source = axios.CancelToken.source();
@@ -49,7 +60,7 @@ export default function MemberMain(props: MemberProps) {
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground"
+          className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground bg-transparent dark:bg-transparent"
         />
         <Invite onFinish={refetch}>
           <Button size="sm" className="h-[30px] w-[71px] text-sm font-semibold">
@@ -71,42 +82,56 @@ export default function MemberMain(props: MemberProps) {
             </div>
           </div>
           <div className="w-full text-sm">
-            {data.map(item => (
-              <div
-                key={item.user_id}
-                className="flex h-[50px] lg:h-[60px] items-center border-b border-border"
-              >
-                <div className="w-[120px] lg:w-[210px] px-2 whitespace-nowrap">
-                  <UserCard email={item.email || ''} username={item.username} />
+            {data.map(item => {
+              // Check if current user can modify target based on role hierarchy
+              const currentLevel = ROLE_LEVEL[currentUserRole ?? 'member'];
+              const targetLevel = ROLE_LEVEL[item.role];
+              const canModifyTarget =
+                currentUserRole === 'owner' || currentLevel < targetLevel;
+
+              return (
+                <div
+                  key={item.user_id}
+                  className="flex h-[50px] lg:h-[60px] items-center border-b border-border"
+                >
+                  <div className="w-[120px] lg:w-[210px] px-2 whitespace-nowrap">
+                    <UserCard
+                      email={item.email || ''}
+                      username={item.username}
+                    />
+                  </div>
+                  <div className="w-[90px] lg:w-[124px] px-2 whitespace-nowrap">
+                    <PermissionAction
+                      disabled={!isOwnerOrAdmin || !canModifyTarget}
+                      value={item.permission}
+                      refetch={refetch}
+                      user_id={item.user_id}
+                      resource_id={resourceId}
+                      namespace_id={namespace_id}
+                      canRemove={false}
+                      canNoAccess={true}
+                    />
+                  </div>
+                  <div className="w-[90px] lg:w-[127px] px-2 whitespace-nowrap">
+                    <Action
+                      disabled={!isOwnerOrAdmin}
+                      id={item.user_id}
+                      value={item.role}
+                      currentUserRole={currentUserRole}
+                      targetUsername={item.username}
+                      refetch={refetch}
+                      namespace_id={namespace_id}
+                      namespaceName={namespaceName}
+                      hasOwner={
+                        data
+                          .filter(i => i.user_id !== item.user_id)
+                          .findIndex(i => i.role === 'owner') >= 0
+                      }
+                    />
+                  </div>
                 </div>
-                <div className="w-[90px] lg:w-[124px] px-2 whitespace-nowrap">
-                  <PermissionAction
-                    disabled={!isOwner}
-                    value={item.permission}
-                    refetch={refetch}
-                    user_id={item.user_id}
-                    resource_id={resourceId}
-                    namespace_id={namespace_id}
-                    canRemove={false}
-                    canNoAccess={true}
-                  />
-                </div>
-                <div className="w-[90px] lg:w-[127px] px-2 whitespace-nowrap">
-                  <Action
-                    disabled={!isOwner}
-                    id={item.user_id}
-                    value={item.role}
-                    refetch={refetch}
-                    namespace_id={namespace_id}
-                    hasOwner={
-                      data
-                        .filter(i => i.user_id !== item.user_id)
-                        .findIndex(i => i.role === 'owner') >= 0
-                    }
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
