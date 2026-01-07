@@ -1,18 +1,9 @@
-import 'vditor/dist/index.css';
-import '@/styles/vditor-patch.css';
-
-import React, { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Vditor from 'vditor';
 
-import { markdownPreviewConfig } from '@/components/markdown';
 import { Input } from '@/components/ui/input';
-import { VDITOR_CDN } from '@/const';
 import useTheme from '@/hooks/use-theme';
 import { Resource } from '@/interface';
-import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
-import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 import {
   clearCache,
@@ -20,7 +11,8 @@ import {
   updateCacheContent,
   updateCacheTitle,
 } from '@/page/resource/editor/cache';
-import { toolbar } from '@/page/resource/editor/const';
+
+import NewEditor from './components/newEditor';
 
 interface IEditorProps {
   namespaceId: string;
@@ -28,55 +20,43 @@ interface IEditorProps {
   onResource: (resource: Resource) => void;
 }
 
-interface UploadedFile {
-  name: string;
-  link: string;
-}
-
-interface UploadResponse {
-  namespace_id: string;
-  resource_id: string;
-  uploaded: UploadedFile[];
-  failed: string[];
-}
-
-function format(_files: File[], responseText: string): string {
-  const response: UploadResponse = JSON.parse(responseText);
-  const uploadedMap: Record<string, string> = {};
-  response.uploaded.forEach(file => {
-    uploadedMap[file.name] = `attachments/${file.link}`;
-  });
-  const processedResponse = {
-    msg: 'success',
-    code: 0,
-    data: {
-      errFiles: response.failed,
-      succMap: uploadedMap,
-    },
-  };
-  return JSON.stringify(processedResponse);
-}
-
 export default function Editor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
-  const { i18n } = useTranslation();
   const busy = useRef(false);
-  const root = useRef<any>(null);
+  const contentRef = useRef<string>('');
   const navigate = useNavigate();
-  const { app, theme } = useTheme();
-  const [vd, setVd] = useState<Vditor>();
+  const { app } = useTheme();
   const [title, onTitle] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Load cached data on mount
+  useEffect(() => {
+    const cache = getCache(resource.id);
+    const cachedTitle = cache?.title || resource.name || '';
+    const cachedContent = cache?.content || resource.content || '';
+
+    onTitle(cachedTitle);
+    contentRef.current = cachedContent;
+  }, [resource.id, resource.name, resource.content]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     onTitle(newTitle);
     updateCacheTitle(resource.id, newTitle);
   };
 
+  const handleContentChange = useCallback(
+    (content: string) => {
+      contentRef.current = content;
+      updateCacheContent(resource.id, content);
+    },
+    [resource.id]
+  );
+
+  // Save handler
   useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
       const name = title.trim();
-      const content: string | undefined = vd?.getValue();
+      const content = contentRef.current;
       if (!content && !name) {
         navigate(`/${namespaceId}/${resource.id}`);
         return;
@@ -95,16 +75,14 @@ export default function Editor(props: IEditorProps) {
           onSuccess && onSuccess();
         });
     });
-  }, [title, vd]);
+  }, [title, namespaceId, resource.id, navigate, app, onResource]);
 
+  // Ctrl+S save shortcut
   useEffect(() => {
     const keydownFN = (e: KeyboardEvent) => {
-      if (!vd) {
-        return;
-      }
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        const content = vd.getValue();
+        const content = contentRef.current;
         if (busy.current) {
           return;
         }
@@ -123,90 +101,27 @@ export default function Editor(props: IEditorProps) {
     return () => {
       document.removeEventListener('keydown', keydownFN);
     };
-  }, [vd, resource]);
+  }, [namespaceId, resource.id]);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token') || '';
-    const cache = getCache(resource.id);
-    const cachedTitle = cache?.title || resource.name || '';
-    const cachedContent = cache?.content || resource.content || '';
-
-    onTitle(cachedTitle);
-
-    if (!resource || !root.current || resource.resource_type === 'folder') {
-      return;
-    }
-
-    const vditor = new Vditor(root.current, {
-      ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
-      tab: '\t',
-      preview: markdownPreviewConfig(theme),
-      toolbar,
-      toolbarConfig: {
-        pin: true,
-      },
-      cache: {
-        enable: false,
-      },
-      mode: 'wysiwyg',
-      lang: getLangOnly(i18n) === 'zh' ? 'zh_CN' : 'en_US',
-      upload: {
-        url: `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
-        accept: 'image/*,.wav',
-        max: 1024 * 1024 * 5, // 5MB
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        format,
-      },
-      input: (value: string) => {
-        updateCacheContent(resource.id, value);
-      },
-      after: () => {
-        vditor.setValue(cachedContent);
-        vditor.setTheme(
-          theme.content === 'dark' ? 'dark' : 'classic',
-          theme.content,
-          theme.code
-        );
-        if (resource.content) {
-          if (vditor.vditor.ir && vditor.vditor.ir.element) {
-            addReferrerPolicyForElement(vditor.vditor.ir.element);
-          }
-          if (vditor.vditor.wysiwyg && vditor.vditor.wysiwyg.element) {
-            addReferrerPolicyForElement(vditor.vditor.wysiwyg.element);
-          }
-        }
-        setVd(vditor);
-      },
-    });
-    return () => {
-      vd?.destroy();
-      setVd(undefined);
-    };
-  }, [resource]);
-
-  useEffect(() => {
-    if (!vd) {
-      return;
-    }
-    vd.setTheme(
-      theme.content === 'dark' ? 'dark' : 'classic',
-      theme.content,
-      theme.code
-    );
-  }, [vd, theme]);
+  // Get initial content for editor
+  const initialContent =
+    getCache(resource.id)?.content || resource.content || '';
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       <Input
         type="text"
         value={title}
-        onChange={handleChange}
+        onChange={handleTitleChange}
         placeholder="Enter title"
         className="mb-4 p-2 border rounded"
       />
-      <div ref={root} className="vditor reset-list" />
+      <div className="flex-1 overflow-hidden">
+        <NewEditor
+          initialContent={initialContent}
+          onChange={handleContentChange}
+        />
+      </div>
     </div>
   );
 }

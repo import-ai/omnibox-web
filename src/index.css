@@ -37,6 +37,7 @@
     --sidebar-accent-foreground: 0 0% 9%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --brand: oklch(0.623 0.214 259.815);
   }
 
   .dark {
@@ -72,6 +73,7 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --brand: oklch(0.707 0.165 254.624);
   }
 }
 
@@ -122,4 +124,48 @@ a {
 
 .dark a {
   color: #60a5fa;
+}
+
+/* Plate editor styles */
+[data-slate-editor] h1 {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 0.67em 0;
+}
+
+[data-slate-editor] h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 0.83em 0;
+}
+
+[data-slate-editor] h3 {
+  font-size: 1.17em;
+  font-weight: bold;
+  margin: 1em 0;
+}
+
+[data-slate-editor] blockquote {
+  border-left: 4px solid hsl(var(--border));
+  padding-left: 1em;
+  margin: 1em 0;
+  color: hsl(var(--muted-foreground));
+}
+
+[data-slate-editor] hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 1em 0;
+}
+
+[data-slate-editor] ul {
+  list-style: disc;
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+[data-slate-editor] ol {
+  list-style: decimal;
+  padding-left: 1.5em;
+  margin: 0.5em 0;
 }
