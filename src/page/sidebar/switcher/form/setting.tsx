@@ -29,11 +29,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import useNamespace from '@/hooks/use-namespace';
 import useNamespaces from '@/hooks/use-namespaces';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
+
+import { RemainQuota } from '../quota';
 
 const FormSchema = z.object({
   name: z
@@ -152,7 +155,7 @@ export default function SettingForm({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Namespace Name Form - Owner and Admin */}
       {userIsOwnerOrAdmin && (
         <Form {...form}>
@@ -190,7 +193,8 @@ export default function SettingForm({
           </form>
         </Form>
       )}
-
+      <Separator className="bg-neutral-200" />
+      <RemainQuota />
       {/* Danger Zone */}
       <div className="border-t pt-6">
         <h3 className="text-sm font-medium text-destructive mb-4">
@@ -237,7 +241,6 @@ export default function SettingForm({
           )}
         </div>
       </div>
-
       {/* Leave Dialog */}
       <AlertDialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
         <AlertDialogContent className="max-w-md">
@@ -267,7 +270,6 @@ export default function SettingForm({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       {/* Delete Dialog */}
       <ConfirmInputDialog
         open={deleteDialogOpen}
