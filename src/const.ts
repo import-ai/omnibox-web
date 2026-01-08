@@ -5,7 +5,7 @@ export const ALLOW_FILE_EXTENSIONS =
 export const SITE_NAME = 'OmniBox';
 export const LAZY_LOAD_IMAGE: string = '/images/img-loading.svg';
 export const WECHAT_BOT_QRCODE_URL =
-  'https://work.weixin.qq.com/u/vc89b7a1ee17bb08a0';
+  'https://work.weixin.qq.com/u/vc3df33954d10ed707';
 export const RESOURCE_TASKS_INTERVAL = 3 * 1000;
 export const BIND_CHECK_INTERVAL = 3 * 1000;
 export const DISCORD_LINK = 'https://www.omnibox.pro/links/discord';
