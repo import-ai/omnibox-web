@@ -41,7 +41,7 @@ function getLocalizedAppName(appId: string, t: any): string {
 }
 
 function validateAppId(appId: string): void {
-  if (appId !== 'wechat_bot') {
+  if (appId !== 'wechat_bot' && appId !== 'qq_bot') {
     throw new Error(`Unsupported application type: ${appId}`);
   }
 }
@@ -89,6 +89,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const [bindDialogOpen, setBindDialogOpen] = useState(false);
   const [alreadyBoundDialogOpen, setAlreadyBoundDialogOpen] = useState(false);
   const [bindingCode, setBindingCode] = useState('');
+  const [currentAppId, setCurrentAppId] = useState<string>('');
   const [currentBindingApplication, setCurrentBindingApplication] =
     useState<Application | null>(null);
 
@@ -98,6 +99,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const handleBind = async (application: Application) => {
     try {
       setBindingLoading(true);
+      setCurrentAppId(application.app_id);
 
       // Check if already bound
       const state = getApplicationState(application);
@@ -144,6 +146,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     setBindDialogOpen(false);
     setCurrentBindingApplication(null);
     setBindingCode('');
+    setCurrentAppId('');
     await refetch();
     toast.success(t('applications.bind.success'));
   };
@@ -380,6 +383,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         onOpenChange={setBindDialogOpen}
         bindingCode={bindingCode}
         applicationId={currentBindingApplication?.id || ''}
+        appId={currentAppId}
         checkApplicationStatus={checkApplicationStatus}
         onBindingComplete={handleBindingComplete}
       />
@@ -387,6 +391,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
       <AlreadyBoundDialog
         open={alreadyBoundDialogOpen}
         onOpenChange={setAlreadyBoundDialogOpen}
+        appId={currentAppId}
       />
     </>
   );

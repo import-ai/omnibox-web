@@ -364,7 +364,8 @@
     "description": "Manage your application integrations and bindings",
     "empty": "No applications found",
     "app_names": {
-      "wechat_bot": "WeChat Bot"
+      "wechat_bot": "WeChat Assistant",
+      "qq_bot": "QQ Assistant"
     },
     "unsupported_app": "Unsupported application type: {{ app_id }}",
     "status": {
@@ -374,17 +375,17 @@
     },
     "already_bound": {
       "title": "Already Connected",
-      "description": "You are already connected to the WeChat bot. You can scan the QR code below to add the bot to WeChat."
+      "description": "You are already connected to the {{ platform_name }}. You can scan the QR code below to add the assistant."
     },
     "bind": {
       "button": "Bind",
       "continue_button": "Continue Binding",
       "title": "Bind Application",
       "description": "Follow these steps to connect your application",
-      "step1": "Step 1: Add WeChat Bot",
-      "step2": "Step 2: Send Code to WeChat Bot",
+      "step1": "Step 1: Add {{ platform_name }}",
+      "step2": "Step 2: Send Code to {{ platform_name }}",
       "code_label": "Binding Code:",
-      "code_instruction": "Send this code to the WeChat bot to complete the binding",
+      "code_instruction": "Send this code to {{ platform_name }} to complete the binding",
       "initiated": "Binding process initiated",
       "continue": "Continuing binding process",
       "error": "Failed to initiate binding",

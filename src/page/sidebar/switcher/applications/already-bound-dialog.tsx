@@ -10,23 +10,41 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { WECHAT_BOT_QRCODE_URL } from '@/const';
+import { QQ_ASSISTANT_URL, WECHAT_ASSISTANT_QRCODE_URL } from '@/const';
 
 interface AlreadyBoundDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  appId: string;
+}
+
+function getQrCodeUrl(appId: string): string {
+  switch (appId) {
+    case 'wechat_bot':
+      return WECHAT_ASSISTANT_QRCODE_URL;
+    case 'qq_bot':
+      return QQ_ASSISTANT_URL;
+    default:
+      return '';
+  }
 }
 
 export function AlreadyBoundDialog({
   open,
   onOpenChange,
+  appId,
 }: AlreadyBoundDialogProps) {
   const { t } = useTranslation();
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
 
+  const qrCodeUrl = getQrCodeUrl(appId);
+  const platformName = t(`applications.app_names.${appId}`, {
+    defaultValue: appId,
+  });
+
   useEffect(() => {
-    if (open && WECHAT_BOT_QRCODE_URL) {
-      QRCode.toDataURL(WECHAT_BOT_QRCODE_URL, {
+    if (open && qrCodeUrl) {
+      QRCode.toDataURL(qrCodeUrl, {
         width: 200,
         margin: 2,
         color: {
@@ -41,7 +59,7 @@ export function AlreadyBoundDialog({
           console.error('Error generating QR code:', err);
         });
     }
-  }, [open]);
+  }, [open, qrCodeUrl]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,7 +67,9 @@ export function AlreadyBoundDialog({
         <DialogHeader>
           <DialogTitle>{t('applications.already_bound.title')}</DialogTitle>
           <DialogDescription>
-            {t('applications.already_bound.description')}
+            {t('applications.already_bound.description', {
+              platform_name: platformName,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -58,7 +78,7 @@ export function AlreadyBoundDialog({
             <div className="relative">
               <img
                 src={qrCodeDataUrl}
-                alt="WeChat Bot QR Code"
+                alt="Bot QR Code"
                 className="w-48 h-48 border border-border rounded-lg"
               />
               <div className="absolute inset-0 flex items-center justify-center">
