@@ -25,10 +25,10 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
       <div className="h-4 w-4 shrink-0 [&>svg]:h-4 [&>svg]:w-4">
         <ResourceIcon expand={false} resource={item} />
       </div>
-      <span className="flex-1 text-sm truncate group-hover/trash-item:pr-[50px] transition-[padding]">
+      <span className="flex-1 text-sm truncate group-hover/trash-item:pr-[50px]">
         {item.name || t('untitled')}
       </span>
-      <div className="absolute right-2 flex items-center gap-0.5 opacity-0 group-hover/trash-item:opacity-100 group-hover/trash-item:pointer-events-auto pointer-events-none transition-opacity">
+      <div className="absolute right-2 flex items-center gap-0.5 opacity-0 group-hover/trash-item:opacity-100 group-hover/trash-item:pointer-events-auto pointer-events-none">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
