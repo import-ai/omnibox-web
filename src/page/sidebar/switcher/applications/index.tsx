@@ -319,11 +319,16 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                   <div className="flex gap-2">
                     <Button
                       onClick={() => handleBind(application)}
-                      disabled={bindingLoading}
+                      disabled={
+                        bindingLoading && currentAppId === application.app_id
+                      }
                       size="sm"
                       className="text-sm font-semibold"
                     >
-                      {bindingLoading && <Spinner className="mr-2" />}
+                      {bindingLoading &&
+                        currentAppId === application.app_id && (
+                          <Spinner className="mr-2" />
+                        )}
                       {t('applications.bind.continue_button')}
                     </Button>
                     <AlertDialog>
@@ -364,11 +369,15 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                 ) : (
                   <Button
                     onClick={() => handleBind(application)}
-                    disabled={bindingLoading}
+                    disabled={
+                      bindingLoading && currentAppId === application.app_id
+                    }
                     size="sm"
                     className="text-sm font-semibold"
                   >
-                    {bindingLoading && <Spinner className="mr-2" />}
+                    {bindingLoading && currentAppId === application.app_id && (
+                      <Spinner className="mr-2" />
+                    )}
                     {t('applications.bind.button')}
                   </Button>
                 )}
