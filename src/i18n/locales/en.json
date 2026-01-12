@@ -379,7 +379,7 @@
     },
     "bind": {
       "button": "Bind",
-      "continue_button": "Continue Binding",
+      "continue_button": "Continue",
       "title": "Bind Application",
       "description": "Follow these steps to connect your application",
       "step1": "Step 1: Add {{ platform_name }}",
@@ -390,7 +390,7 @@
       "continue": "Continuing binding process",
       "error": "Failed to initiate binding",
       "success": "Application bound successfully",
-      "cancel_button": "Cancel Binding",
+      "cancel_button": "Cancel",
       "cancel": {
         "confirm": {
           "title": "Cancel Binding",
