@@ -26,10 +26,8 @@ export default defineConfig(({ mode }) => {
         manifest: {
           name: 'OmniBox',
           short_name: 'OmniBox',
-          theme_color: '#3b82f6',
-          background_color: '#ffffff',
           display: 'standalone',
-          start_url: '/',
+          start_url: '.',
           icons: [
             {
               src: '/icons/pwa_192x192.png',
