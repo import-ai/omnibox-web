@@ -102,10 +102,35 @@
   }
 }
 
+html {
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  overflow: hidden;
+}
+
 body {
+  height: 100%;
+  overflow: hidden;
   background: hsl(var(--sidebar-background));
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top);
+  background: hsl(var(--sidebar-background));
+  z-index: 9999;
+  pointer-events: none;
 }
 
 .reset-list ol {

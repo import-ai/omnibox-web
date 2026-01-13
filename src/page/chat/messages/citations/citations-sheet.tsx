@@ -47,7 +47,7 @@ export function CitationsSheet(props: IProps) {
           </VisuallyHidden>
         </SheetHeader>
         <Separator className="dark:bg-gray-700" />
-        <div className="overflow-y-auto h-[calc(100vh-53px)]">
+        <div className="overflow-y-auto h-[calc(100%-53px)]">
           {citations.map((citation, i) => (
             <CitationCard
               key={index + i}
