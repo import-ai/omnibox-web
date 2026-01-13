@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { http } from '@/lib/request';
+import { buildUrl } from '@/lib/utils';
 import { setGlobalCredential } from '@/page/user/util';
 
 import { OtpInput } from './components/otp-input';
@@ -16,8 +17,13 @@ export default function VerifyOtpPage() {
   const [params] = useSearchParams();
 
   const email = params.get('email');
+  const phone = params.get('phone');
   const redirect = params.get('redirect');
   const magicToken = params.get('token');
+
+  // Determine verification type
+  const isPhoneVerification = !!phone && !email;
+  const identifier = isPhoneVerification ? phone : email;
 
   const [code, setCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -34,8 +40,8 @@ export default function VerifyOtpPage() {
       return;
     }
 
-    // If no email provided, redirect to login
-    if (!email && !magicToken) {
+    // If no email or phone provided, redirect to login
+    if (!email && !phone && !magicToken) {
       navigate('/user/login', { replace: true });
       return;
     }
@@ -44,7 +50,7 @@ export default function VerifyOtpPage() {
     if (magicToken) {
       verifyMagicLink(magicToken);
     }
-  }, [email, magicToken]);
+  }, [email, phone, magicToken]);
 
   useEffect(() => {
     // Countdown timer for resend button
@@ -82,17 +88,27 @@ export default function VerifyOtpPage() {
   };
 
   const handleComplete = async (otpCode: string) => {
-    if (!email) return;
+    if (!identifier) return;
 
     setIsVerifying(true);
     setError('');
 
     try {
-      const response = await http.post('auth/verify-otp', {
-        email,
-        code: otpCode,
-        lang: localStorage.getItem('i18nextLng'),
-      });
+      let response;
+
+      if (isPhoneVerification) {
+        response = await http.post('auth/verify-phone-otp', {
+          phone: identifier,
+          code: otpCode,
+          lang: localStorage.getItem('i18nextLng'),
+        });
+      } else {
+        response = await http.post('auth/verify-otp', {
+          email: identifier,
+          code: otpCode,
+          lang: localStorage.getItem('i18nextLng'),
+        });
+      }
 
       setGlobalCredential(response.id, response.access_token);
 
@@ -112,16 +128,22 @@ export default function VerifyOtpPage() {
   };
 
   const handleResend = async () => {
-    if (!email || !canResend || isResending) return;
+    if (!identifier || !canResend || isResending) return;
 
     setIsResending(true);
     setError('');
 
     try {
-      await http.post('auth/send-otp', {
-        email,
-        url: `${window.location.origin}/user/verify-otp`,
-      });
+      if (isPhoneVerification) {
+        await http.post('auth/send-phone-otp', {
+          phone: identifier,
+        });
+      } else {
+        await http.post('auth/send-otp', {
+          email: identifier,
+          url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
+        });
+      }
 
       toast.success(t('verify_otp.resend_success'), {
         position: 'bottom-right',
@@ -151,7 +173,7 @@ export default function VerifyOtpPage() {
     );
   }
 
-  if (!email) {
+  if (!identifier) {
     return null;
   }
 
@@ -161,7 +183,12 @@ export default function VerifyOtpPage() {
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-2xl font-bold">{t('verify_otp.title')}</h1>
           <p className="text-balance text-sm text-muted-foreground">
-            {t('verify_otp.description')} <strong>{email}</strong>
+            {t(
+              isPhoneVerification
+                ? 'verify_otp.description_phone'
+                : 'verify_otp.description'
+            )}{' '}
+            <strong>{identifier}</strong>
           </p>
         </div>
 

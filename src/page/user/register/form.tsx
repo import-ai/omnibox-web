@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isValidPhoneNumber } from 'libphonenumber-js';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +8,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
+import { PhoneNumberInput } from '@/components/phone-input';
 import { SupportedEmailLink } from '@/components/supported-email-link';
 import {
   Form,
@@ -19,63 +21,105 @@ import {
 import { Input } from '@/components/ui/input';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
+import { buildUrl } from '@/lib/utils';
 
-const registerSchema = z.object({
+import type { RegisterMode } from './index';
+
+const emailSchema = z.object({
   email: z
     .string()
     .min(1, 'form.email_required')
     .refine(val => isEmail(val), { message: 'form.email_invalid' }),
 });
 
+const phoneSchema = z.object({
+  phone: z
+    .string()
+    .min(1, 'form.phone_required')
+    .refine(val => isValidPhoneNumber(val || ''), {
+      message: 'form.phone_invalid',
+    }),
+});
+
 interface IProps {
   children: React.ReactNode;
+  mode: RegisterMode;
+  setMode: (mode: RegisterMode) => void;
 }
 
-export function RegisterForm({ children }: IProps) {
+export function RegisterForm({ children, mode }: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const emailParam = params.get('email');
+  const phoneParam = params.get('phone');
   const redirect = params.get('redirect');
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
+  const emailForm = useForm<z.infer<typeof emailSchema>>({
+    resolver: zodResolver(emailSchema),
     defaultValues: {
       email: emailParam || '',
     },
   });
 
+  const phoneForm = useForm<z.infer<typeof phoneSchema>>({
+    resolver: zodResolver(phoneSchema),
+    defaultValues: {
+      phone: phoneParam || '',
+    },
+  });
+
   useEffect(() => {
-    // If email is provided in URL, pre-fill and optionally auto-submit
     if (emailParam) {
-      form.setValue('email', emailParam);
+      emailForm.setValue('email', emailParam);
     }
   }, [emailParam]);
 
-  const handleSubmit = async (data: z.infer<typeof registerSchema>) => {
+  useEffect(() => {
+    if (phoneParam) {
+      phoneForm.setValue('phone', phoneParam);
+    }
+  }, [phoneParam]);
+
+  const handleEmailSubmit = async (data: z.infer<typeof emailSchema>) => {
     setIsLoading(true);
     try {
       const response = await http.post('auth/send-signup-otp', {
         email: data.email,
-        url: `${window.location.origin}/user/verify-otp${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`,
+        url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
       });
 
-      // If user already exists, redirect to login
       if (response.exists) {
         toast.error(t('register.email_already_exists'), {
           position: 'bottom-right',
         });
-        navigate(
-          `/user/login?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
-        );
+        navigate(buildUrl('/user/login', { email: data.email, redirect }));
         return;
       }
 
-      // Navigate to OTP verification page for registration
-      navigate(
-        `/user/verify-otp?email=${encodeURIComponent(data.email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`
-      );
+      navigate(buildUrl('/user/verify-otp', { email: data.email, redirect }));
+    } catch {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePhoneSubmit = async (data: z.infer<typeof phoneSchema>) => {
+    setIsLoading(true);
+    try {
+      const response = await http.post('auth/send-signup-phone-otp', {
+        phone: data.phone,
+      });
+
+      if (response.exists) {
+        toast.error(t('register.phone_already_exists'), {
+          position: 'bottom-right',
+        });
+        navigate(buildUrl('/user/login', { phone: data.phone, redirect }));
+        return;
+      }
+
+      navigate(buildUrl('/user/verify-otp', { phone: data.phone, redirect }));
     } catch {
       setIsLoading(false);
     }
@@ -89,48 +133,104 @@ export function RegisterForm({ children }: IProps) {
           {t('register.description')}
         </p>
       </div>
-      {children}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder={t('form.email')}
-                    autoComplete="email"
-                    {...field}
-                    disabled={isLoading}
-                  />
-                </FormControl>
-                <FormDescription>
-                  <SupportedEmailLink />
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            type="submit"
-            className="w-full disabled:opacity-60"
-            loading={isLoading}
+
+      {mode === 'email-otp' && (
+        <Form {...emailForm}>
+          <form
+            onSubmit={emailForm.handleSubmit(handleEmailSubmit)}
+            className="space-y-4"
           >
-            {t('register.submit')}
-          </Button>
-          <div className="text-center text-sm">
-            {t('form.exist_account')}
-            <Link
-              to="/user/login"
-              className="text-sm hover:underline underline-offset-2"
+            <FormField
+              control={emailForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder={t('form.email')}
+                      autoComplete="email"
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    <SupportedEmailLink />
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              className="w-full disabled:opacity-60"
+              loading={isLoading}
             >
-              {t('login.submit')}
-            </Link>
-          </div>
-        </form>
-      </Form>
+              {t('register.submit')}
+            </Button>
+            <div className="text-center text-sm">
+              {t('form.exist_account')}
+              <Link
+                to={buildUrl('/user/login', {
+                  email: emailForm.getValues('email'),
+                  redirect,
+                })}
+                className="text-sm hover:underline underline-offset-2"
+              >
+                {t('login.submit')}
+              </Link>
+            </div>
+          </form>
+        </Form>
+      )}
+
+      {mode === 'phone-otp' && (
+        <Form {...phoneForm}>
+          <form
+            onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)}
+            className="space-y-4"
+          >
+            <FormField
+              control={phoneForm.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <PhoneNumberInput
+                      value={field.value as any}
+                      onChange={field.onChange}
+                      disabled={isLoading}
+                      placeholder={t('form.phone')}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              className="w-full disabled:opacity-60"
+              loading={isLoading}
+            >
+              {t('register.submit')}
+            </Button>
+            <div className="text-center text-sm">
+              {t('form.exist_account')}
+              <Link
+                to={buildUrl('/user/login', {
+                  phone: phoneForm.getValues('phone'),
+                  redirect,
+                })}
+                className="text-sm hover:underline underline-offset-2"
+              >
+                {t('login.submit')}
+              </Link>
+            </div>
+          </form>
+        </Form>
+      )}
+
+      {children}
     </div>
   );
 }
