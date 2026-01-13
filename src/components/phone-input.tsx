@@ -3,6 +3,7 @@ import { getCountryCallingCode, parsePhoneNumber } from 'libphonenumber-js';
 import { ChevronDown } from 'lucide-react';
 import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 
+import { ALLOWED_PHONE_COUNTRIES } from '@/const';
 import { cn } from '@/lib/utils';
 
 import { Button } from './ui/button';
@@ -70,6 +71,13 @@ const countries: CountryData[] = [
   { code: 'PE', name: 'Peru', dialCode: '+51', flag: '🇵🇪' },
 ];
 
+// Filter countries based on whitelist
+const allowedCountries = countries.filter(c =>
+  ALLOWED_PHONE_COUNTRIES.includes(
+    c.code as (typeof ALLOWED_PHONE_COUNTRIES)[number]
+  )
+);
+
 interface PhoneNumberInputProps {
   value?: E164Number | undefined;
   onChange: (value: E164Number | undefined) => void;
@@ -96,7 +104,9 @@ const PhoneNumberInput = forwardRef<HTMLInputElement, PhoneNumberInputProps>(
     const [nationalNumber, setNationalNumber] = useState('');
 
     const selectedCountryData = useMemo(
-      () => countries.find(c => c.code === selectedCountry) || countries[0],
+      () =>
+        allowedCountries.find(c => c.code === selectedCountry) ||
+        allowedCountries[0],
       [selectedCountry]
     );
 
@@ -107,7 +117,7 @@ const PhoneNumberInput = forwardRef<HTMLInputElement, PhoneNumberInputProps>(
           const phoneNumber = parsePhoneNumber(value);
           if (phoneNumber) {
             const country = phoneNumber.country;
-            if (country && countries.some(c => c.code === country)) {
+            if (country && allowedCountries.some(c => c.code === country)) {
               setSelectedCountry(country);
             }
             setNationalNumber(phoneNumber.nationalNumber);
@@ -157,6 +167,8 @@ const PhoneNumberInput = forwardRef<HTMLInputElement, PhoneNumberInputProps>(
       [selectedCountry, onChange]
     );
 
+    const isSingleCountry = allowedCountries.length === 1;
+
     return (
       <div
         className={cn(
@@ -165,38 +177,47 @@ const PhoneNumberInput = forwardRef<HTMLInputElement, PhoneNumberInputProps>(
           className
         )}
       >
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild disabled={disabled}>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-full shrink-0 gap-1 rounded-l-md rounded-r-none border-r border-input px-2 text-sm hover:bg-accent focus-visible:ring-0"
-            >
-              <span className="text-base">{selectedCountryData.flag}</span>
-              <span className="text-muted-foreground">
-                {selectedCountryData.dialCode}
-              </span>
-              <ChevronDown className="size-3.5 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="p-0">
-            <ScrollArea className="h-[300px]">
-              {countries.map(country => (
-                <DropdownMenuItem
-                  key={country.code}
-                  onClick={() => handleCountryChange(country.code)}
-                  className="cursor-pointer gap-2"
-                >
-                  <span className="text-base">{country.flag}</span>
-                  <span>{country.name}</span>
-                  <span className="text-muted-foreground">
-                    {country.dialCode}
-                  </span>
-                </DropdownMenuItem>
-              ))}
-            </ScrollArea>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {isSingleCountry ? (
+          <div className="flex h-full shrink-0 items-center gap-1 border-r border-input px-2 text-sm">
+            <span className="text-base">{selectedCountryData.flag}</span>
+            <span className="text-muted-foreground">
+              {selectedCountryData.dialCode}
+            </span>
+          </div>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild disabled={disabled}>
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-full shrink-0 gap-1 rounded-l-md rounded-r-none border-r border-input px-2 text-sm hover:bg-accent focus-visible:ring-0"
+              >
+                <span className="text-base">{selectedCountryData.flag}</span>
+                <span className="text-muted-foreground">
+                  {selectedCountryData.dialCode}
+                </span>
+                <ChevronDown className="size-3.5 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="p-0">
+              <ScrollArea className="h-[300px]">
+                {allowedCountries.map(country => (
+                  <DropdownMenuItem
+                    key={country.code}
+                    onClick={() => handleCountryChange(country.code)}
+                    className="cursor-pointer gap-2"
+                  >
+                    <span className="text-base">{country.flag}</span>
+                    <span>{country.name}</span>
+                    <span className="text-muted-foreground">
+                      {country.dialCode}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </ScrollArea>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         <input
           ref={ref}
           type="tel"
