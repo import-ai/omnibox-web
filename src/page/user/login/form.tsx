@@ -324,6 +324,8 @@ export function LoginForm({
         </p>
       </div>
 
+      {children}
+
       {mode === 'email-otp' && (
         <Form {...emailForm} key="email-form">
           <form
@@ -523,8 +525,6 @@ export function LoginForm({
           </form>
         </Form>
       )}
-
-      {children}
     </div>
   );
 }

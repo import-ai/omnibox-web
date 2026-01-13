@@ -134,6 +134,8 @@ export function RegisterForm({ children, mode }: IProps) {
         </p>
       </div>
 
+      {children}
+
       {mode === 'email-otp' && (
         <Form {...emailForm}>
           <form
@@ -229,8 +231,6 @@ export function RegisterForm({ children, mode }: IProps) {
           </form>
         </Form>
       )}
-
-      {children}
     </div>
   );
 }
