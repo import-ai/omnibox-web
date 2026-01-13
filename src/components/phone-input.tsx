@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
 
 interface CountryData {
@@ -218,14 +219,14 @@ const PhoneNumberInput = forwardRef<HTMLInputElement, PhoneNumberInputProps>(
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <input
+        <Input
           ref={ref}
           type="tel"
           value={nationalNumber}
           onChange={handleInputChange}
           disabled={disabled}
           placeholder={placeholder}
-          className="h-full flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+          className="h-full flex-1 border-0 shadow-none focus-visible:ring-0"
         />
       </div>
     );

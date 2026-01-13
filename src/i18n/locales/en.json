@@ -187,8 +187,8 @@
     "login_use_wechat": "Login with WeChat",
     "login_use_google": "Login with Google",
     "login_use_apple": "Login with Apple",
-    "login_use_email": "Continue with Email",
-    "login_use_phone": "Continue with Phone",
+    "login_use_email": "Login with Email",
+    "login_use_phone": "Login with Phone",
     "wechat_disabled": "WeChat login is not supported in the current environment",
     "apple_signin_failed": "Apple sign in failed",
     "apple_sdk_not_loaded": "Apple SDK not loaded",
@@ -211,8 +211,8 @@
     "register_use_wechat": "Sign up with WeChat",
     "register_use_google": "Sign up with Google",
     "register_use_apple": "Sign up with Apple",
-    "register_use_email": "Continue with Email",
-    "register_use_phone": "Continue with Phone"
+    "register_use_email": "Sign up with Email",
+    "register_use_phone": "Sign up with Phone"
   },
   "verify_otp": {
     "title": "Enter verification code",
