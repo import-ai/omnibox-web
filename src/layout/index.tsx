@@ -54,8 +54,12 @@ export default function Layout() {
   }, [uid]);
 
   useEffect(() => {
-    // Be compatible with extension login
-    if (loc.search === '?from=extension' && uid) {
+    // Be compatible with extension login - only on login page
+    if (
+      loc.pathname === '/user/login' &&
+      loc.search === '?from=extension' &&
+      uid
+    ) {
       localStorage.removeItem('uid');
       localStorage.removeItem('token');
       return;
