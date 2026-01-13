@@ -55,9 +55,10 @@ export default function Layout() {
 
   useEffect(() => {
     // Be compatible with extension login - only on login page
+    const searchParams = new URLSearchParams(loc.search);
     if (
       loc.pathname === '/user/login' &&
-      loc.search === '?from=extension' &&
+      searchParams.get('from') === 'extension' &&
       uid
     ) {
       localStorage.removeItem('uid');

@@ -94,7 +94,14 @@ export function LoginForm({ className, children, ...props }: IProps) {
     http
       .post('login', data)
       .then(response => {
-        setGlobalCredential(response.id, response.access_token);
+        const isExtensionLogin = setGlobalCredential(
+          response.id,
+          response.access_token
+        );
+
+        // Skip navigation for extension login - extension will close the tab
+        if (isExtensionLogin) return;
+
         if (redirect) {
           location.href = decodeURIComponent(redirect);
         } else {
@@ -111,7 +118,8 @@ export function LoginForm({ className, children, ...props }: IProps) {
 
   useEffect(() => {
     // Extension login flag, to support Google and WeChat login
-    if (location.search === '?from=extension') {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('from') === 'extension') {
       localStorage.setItem('extension_login', 'true');
     }
   }, []);
