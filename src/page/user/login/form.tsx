@@ -111,7 +111,8 @@ export function LoginForm({ className, children, ...props }: IProps) {
 
   useEffect(() => {
     // Extension login flag, to support Google and WeChat login
-    if (location.search === '?from=extension') {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('from') === 'extension') {
       localStorage.setItem('extension_login', 'true');
     }
   }, []);

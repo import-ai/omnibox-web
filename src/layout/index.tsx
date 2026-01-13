@@ -51,11 +51,23 @@ export default function Layout() {
       once: true,
       userId: uid,
     });
+
+    // Handle extension login - signal extension to close the tab
+    const loginFromExtension = localStorage.getItem('extension_login');
+    if (loginFromExtension === 'true') {
+      localStorage.removeItem('extension_login');
+      document.body.classList.add('please_close_me');
+    }
   }, [uid]);
 
   useEffect(() => {
-    // Be compatible with extension login
-    if (loc.search === '?from=extension' && uid) {
+    // Be compatible with extension login - only on login page
+    const searchParams = new URLSearchParams(loc.search);
+    if (
+      loc.pathname === '/user/login' &&
+      searchParams.get('from') === 'extension' &&
+      uid
+    ) {
       localStorage.removeItem('uid');
       localStorage.removeItem('token');
       return;

@@ -1,3 +1,5 @@
+import Cookies from 'js-cookie';
+
 export function setGlobalCredential(userId: string, token: string) {
   localStorage.setItem('uid', userId);
   localStorage.setItem('token', token);
@@ -10,19 +12,17 @@ export function setGlobalCredential(userId: string, token: string) {
     jwtExpiration = new Date();
     jwtExpiration.setTime(jwtExpiration.getTime() + 24 * 60 * 60 * 1000);
   }
-  document.cookie = `token=${token}; path=/; secure; samesite=strict; expires=${jwtExpiration.toUTCString()}`;
-
-  const loginFromExtension = localStorage.getItem('extension_login');
-  if (loginFromExtension && loginFromExtension === 'true') {
-    localStorage.removeItem('extension_login');
-    document.body.classList.add('please_close_me');
-  }
+  const isSecure = location.protocol === 'https:';
+  Cookies.set('token', token, {
+    path: '/',
+    secure: isSecure,
+    sameSite: 'strict',
+    expires: jwtExpiration,
+  });
 }
 
 export function removeGlobalCredential() {
   localStorage.removeItem('uid');
   localStorage.removeItem('token');
-  document.cookie =
-    'token=; path=/; secure; samesite=strict; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-  localStorage.removeItem('extension_login');
+  Cookies.remove('token', { path: '/' });
 }
