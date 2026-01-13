@@ -133,6 +133,18 @@ body::before {
   pointer-events: none;
 }
 
+@media (display-mode: standalone) {
+  html {
+    height: 100dvh;
+    height: 100svh;
+  }
+
+  body {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
 .reset-list ol {
   list-style: decimal;
 }

@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx && prettier --check .",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix && prettier --write .",
     "format": "prettier --write .",
-    "preview": "vite preview",
+    "preview": "vite build && vite preview",
     "prepare": "husky"
   },
   "dependencies": {

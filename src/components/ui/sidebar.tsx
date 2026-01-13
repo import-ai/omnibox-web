@@ -231,7 +231,7 @@ const Sidebar = React.forwardRef<
           >
             <div className="flex h-full w-full flex-col touch-none-select pt-[env(safe-area-inset-top)]">
               <div
-                className="fixed top-0 left-0 right-0 bg-sidebar pointer-events-none"
+                className="fixed top-0 left-0 right-0 bg-sidebar pointer-events-none z-[10000]"
                 style={{ height: 'env(safe-area-inset-top)' }}
               />
               {children}

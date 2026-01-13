@@ -24,9 +24,10 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         injectRegister: false,
         manifest: {
-          name: 'OmniBox',
-          short_name: 'OmniBox',
+          name: 'omnibox',
+          short_name: 'omnibox',
           background_color: '#ffffff',
+          theme_color: '#ffffff',
           display: 'standalone',
           start_url: '.',
           icons: [
