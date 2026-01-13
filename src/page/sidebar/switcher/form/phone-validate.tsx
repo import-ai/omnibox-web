@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import i18next from 'i18next';
-import { X } from 'lucide-react';
+import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { PhoneNumberInput } from '@/components/phone-input';
 import {
   Form,
   FormControl,
@@ -14,7 +15,6 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +22,9 @@ const PhoneSchema = z.object({
   phone: z
     .string()
     .min(1, i18next.t('phone.phone_required'))
-    .regex(/^1[3-9]\d{9}$/, { message: i18next.t('phone.phone_invalid') }),
+    .refine(val => isValidPhoneNumber(val || ''), {
+      message: i18next.t('phone.phone_invalid'),
+    }),
 });
 
 type PhoneFormValues = z.infer<typeof PhoneSchema>;
@@ -79,23 +81,12 @@ function PhoneInputStep({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        disabled={submitting}
-                        placeholder={t('phone.enter_phone')}
-                        className="h-10 w-full rounded-md border-border pr-10 text-sm font-medium"
-                      />
-                      {field.value && (
-                        <button
-                          type="button"
-                          onClick={() => form.setValue('phone', '')}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          <X className="size-5" />
-                        </button>
-                      )}
-                    </div>
+                    <PhoneNumberInput
+                      value={field.value as any}
+                      onChange={field.onChange}
+                      disabled={submitting}
+                      placeholder={t('phone.enter_phone')}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -190,8 +181,21 @@ function VerificationCodeStep({
     }
   };
 
-  // Mask phone number for display (e.g., 138****1234)
-  const maskedPhone = phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+  // Mask phone number for display (e.g., +86 138****1234)
+  const getMaskedPhone = () => {
+    try {
+      const parsed = parsePhoneNumber(phone);
+      if (parsed) {
+        const national = parsed.nationalNumber;
+        const masked = national.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+        return `+${parsed.countryCallingCode} ${masked}`;
+      }
+    } catch {
+      // fallback
+    }
+    return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+  };
+  const maskedPhone = getMaskedPhone();
 
   return (
     <div className="flex w-96 flex-col items-start gap-5">
