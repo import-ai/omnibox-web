@@ -1,5 +1,3 @@
-import QRCode from 'qrcode';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logoUrl from '@/assets/logo.svg';
@@ -10,23 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { QQ_ASSISTANT_URL, WECHAT_ASSISTANT_QRCODE_URL } from '@/const';
+
+import { getQrCodeUrl } from './get-qr-code-url';
+import { useQrCode } from './use-qr-code';
 
 interface AlreadyBoundDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   appId: string;
-}
-
-function getQrCodeUrl(appId: string): string {
-  switch (appId) {
-    case 'wechat_bot':
-      return WECHAT_ASSISTANT_QRCODE_URL;
-    case 'qq_bot':
-      return QQ_ASSISTANT_URL;
-    default:
-      return '';
-  }
 }
 
 export function AlreadyBoundDialog({
@@ -35,31 +24,12 @@ export function AlreadyBoundDialog({
   appId,
 }: AlreadyBoundDialogProps) {
   const { t } = useTranslation();
-  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
 
   const qrCodeUrl = getQrCodeUrl(appId);
   const platformName = t(`applications.app_names.${appId}`, {
     defaultValue: appId,
   });
-
-  useEffect(() => {
-    if (open && qrCodeUrl) {
-      QRCode.toDataURL(qrCodeUrl, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF',
-        },
-      })
-        .then(url => {
-          setQrCodeDataUrl(url);
-        })
-        .catch(err => {
-          console.error('Error generating QR code:', err);
-        });
-    }
-  }, [open, qrCodeUrl]);
+  const qrCodeDataUrl = useQrCode(qrCodeUrl, open);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

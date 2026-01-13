@@ -1,5 +1,4 @@
-import QRCode from 'qrcode';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logoUrl from '@/assets/logo.svg';
@@ -10,11 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  BIND_CHECK_INTERVAL,
-  QQ_ASSISTANT_URL,
-  WECHAT_ASSISTANT_QRCODE_URL,
-} from '@/const';
+import { BIND_CHECK_INTERVAL } from '@/const';
+
+import { getQrCodeUrl } from './get-qr-code-url';
+import { useQrCode } from './use-qr-code';
 
 interface BindDialogProps {
   open: boolean;
@@ -24,17 +22,6 @@ interface BindDialogProps {
   appId: string;
   checkApplicationStatus: (applicationId: string) => Promise<any>;
   onBindingComplete: () => void;
-}
-
-function getQrCodeUrl(appId: string): string {
-  switch (appId) {
-    case 'wechat_bot':
-      return WECHAT_ASSISTANT_QRCODE_URL;
-    case 'qq_bot':
-      return QQ_ASSISTANT_URL;
-    default:
-      return '';
-  }
 }
 
 export function BindDialog({
@@ -47,7 +34,6 @@ export function BindDialog({
   onBindingComplete,
 }: BindDialogProps) {
   const { t } = useTranslation();
-  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollingStartTimeRef = useRef<number>(0);
 
@@ -57,25 +43,7 @@ export function BindDialog({
   const platformName = t(`applications.app_names.${appId}`, {
     defaultValue: appId,
   });
-
-  useEffect(() => {
-    if (open && qrCodeUrl) {
-      QRCode.toDataURL(qrCodeUrl, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF',
-        },
-      })
-        .then(url => {
-          setQrCodeDataUrl(url);
-        })
-        .catch(err => {
-          console.error('Error generating QR code:', err);
-        });
-    }
-  }, [open, qrCodeUrl]);
+  const qrCodeDataUrl = useQrCode(qrCodeUrl, open);
 
   const stopPolling = useCallback(() => {
     if (pollingIntervalRef.current) {

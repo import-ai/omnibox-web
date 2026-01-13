@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
+import { SupportedEmailLink } from '@/components/supported-email-link';
 import {
   Form,
   FormControl,
@@ -24,8 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SUPPORTED_EMAIL_DOCS_LINK } from '@/const';
-import { getDocsLink } from '@/lib/get-docs-link';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 
@@ -44,7 +43,7 @@ interface IProps {
 
 export default function InviteForm(props: IProps) {
   const { onFinish } = props;
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const params = useParams();
   const namespace_id = params.namespace_id || '';
   const [loading, setLoading] = useState(false);
@@ -109,14 +108,7 @@ export default function InviteForm(props: IProps) {
                 />
               </FormControl>
               <FormDescription>
-                <a
-                  href={getDocsLink(SUPPORTED_EMAIL_DOCS_LINK, i18n.language)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  {t('form.supported_email_providers')}
-                </a>
+                <SupportedEmailLink />
               </FormDescription>
               <FormMessage />
             </FormItem>
