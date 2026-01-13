@@ -1,8 +1,4 @@
-/**
- * Set global credentials and handle extension login.
- * @returns true if this is an extension login (caller should NOT navigate away)
- */
-export function setGlobalCredential(userId: string, token: string): boolean {
+export function setGlobalCredential(userId: string, token: string) {
   localStorage.setItem('uid', userId);
   localStorage.setItem('token', token);
   let jwtExpiration: Date;
@@ -16,14 +12,6 @@ export function setGlobalCredential(userId: string, token: string): boolean {
   }
   const secure = location.protocol === 'https:' ? 'secure;' : '';
   document.cookie = `token=${token}; path=/; ${secure}samesite=strict; expires=${jwtExpiration.toUTCString()}`;
-
-  const loginFromExtension = localStorage.getItem('extension_login');
-  if (loginFromExtension === 'true') {
-    localStorage.removeItem('extension_login');
-    document.body.classList.add('please_close_me');
-    return true;
-  }
-  return false;
 }
 
 export function removeGlobalCredential() {

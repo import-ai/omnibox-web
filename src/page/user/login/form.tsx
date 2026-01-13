@@ -94,14 +94,7 @@ export function LoginForm({ className, children, ...props }: IProps) {
     http
       .post('login', data)
       .then(response => {
-        const isExtensionLogin = setGlobalCredential(
-          response.id,
-          response.access_token
-        );
-
-        // Skip navigation for extension login - extension will close the tab
-        if (isExtensionLogin) return;
-
+        setGlobalCredential(response.id, response.access_token);
         if (redirect) {
           location.href = decodeURIComponent(redirect);
         } else {

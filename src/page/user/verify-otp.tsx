@@ -67,13 +67,7 @@ export default function VerifyOtpPage() {
           data: { lang: localStorage.getItem('i18nextLng') },
         }
       );
-      const isExtensionLogin = setGlobalCredential(
-        response.id,
-        response.access_token
-      );
-
-      // Skip navigation for extension login - extension will close the tab
-      if (isExtensionLogin) return;
+      setGlobalCredential(response.id, response.access_token);
 
       if (redirect) {
         location.href = decodeURIComponent(redirect);
@@ -100,13 +94,7 @@ export default function VerifyOtpPage() {
         lang: localStorage.getItem('i18nextLng'),
       });
 
-      const isExtensionLogin = setGlobalCredential(
-        response.id,
-        response.access_token
-      );
-
-      // Skip navigation for extension login - extension will close the tab
-      if (isExtensionLogin) return;
+      setGlobalCredential(response.id, response.access_token);
 
       if (redirect) {
         location.href = decodeURIComponent(redirect);

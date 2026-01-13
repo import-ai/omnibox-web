@@ -51,6 +51,13 @@ export default function Layout() {
       once: true,
       userId: uid,
     });
+
+    // Handle extension login - signal extension to close the tab
+    const loginFromExtension = localStorage.getItem('extension_login');
+    if (loginFromExtension === 'true') {
+      localStorage.removeItem('extension_login');
+      document.body.classList.add('please_close_me');
+    }
   }, [uid]);
 
   useEffect(() => {
