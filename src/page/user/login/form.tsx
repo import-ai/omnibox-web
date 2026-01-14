@@ -140,7 +140,11 @@ export function LoginForm({
   ) => {
     setIsLoading(true);
     http
-      .post('login', data)
+      .post('login', {
+        username: data.email,
+        password: data.password,
+        type: 'email',
+      })
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
         if (redirect) {
@@ -181,7 +185,11 @@ export function LoginForm({
   ) => {
     setIsLoading(true);
     http
-      .post('login', { phone: data.phone, password: data.password })
+      .post('login', {
+        username: data.phone,
+        password: data.password,
+        type: 'phone',
+      })
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
         if (redirect) {
