@@ -62,9 +62,9 @@ function PhoneInputStep({
   };
 
   return (
-    <div className="flex w-96 flex-col items-center gap-5">
+    <div className="flex w-full max-w-96 flex-col items-center gap-5">
       <div className="flex w-full flex-col items-center gap-2.5">
-        <p className="w-full text-center text-2xl font-semibold text-foreground">
+        <p className="w-full text-center text-xl lg:text-2xl font-semibold text-foreground">
           {t('phone.input_phone')}
         </p>
 
@@ -136,10 +136,10 @@ function VerificationCodeStep({
     useVerificationCode(error, onClearError);
 
   return (
-    <div className="flex w-96 flex-col items-start gap-5">
+    <div className="flex w-full max-w-96 flex-col items-start gap-5">
       <div className="flex w-full flex-col items-start gap-4">
         <div className="flex w-full flex-col items-center gap-2.5">
-          <p className="w-full text-center text-2xl font-semibold text-foreground">
+          <p className="w-full text-center text-xl lg:text-2xl font-semibold text-foreground">
             {t('phone.input_verification_code')}
           </p>
 

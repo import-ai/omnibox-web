@@ -137,7 +137,7 @@ function PhoneNumberInput({
   return (
     <div
       className={cn(
-        'flex h-9 w-full items-center rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow] focus-within:ring-ring/50 focus-within:ring-[3px] focus-within:border-ring',
+        'flex h-10 w-full items-center rounded-md border border-input bg-background dark:bg-[#303030] shadow-xs transition-[color,box-shadow] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring',
         disabled && 'cursor-not-allowed opacity-50',
         className
       )}
