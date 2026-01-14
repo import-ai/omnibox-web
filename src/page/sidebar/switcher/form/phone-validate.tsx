@@ -15,6 +15,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
+import { usePhoneConfig } from '@/hooks/use-phone-config';
 import { http } from '@/lib/request';
 import { OtpInput } from '@/page/user/components/otp-input';
 
@@ -45,6 +46,7 @@ function PhoneInputStep({
   submitting: boolean;
 }) {
   const { t } = useTranslation();
+  const { allowedCountries } = usePhoneConfig();
   const form = useForm<PhoneFormValues>({
     resolver: zodResolver(PhoneSchema),
     defaultValues: { phone: '' },
@@ -86,6 +88,7 @@ function PhoneInputStep({
                       onChange={field.onChange}
                       disabled={submitting}
                       placeholder={t('phone.enter_phone')}
+                      allowedCountries={allowedCountries}
                     />
                   </FormControl>
                   <FormMessage />
@@ -244,10 +247,8 @@ export default function PhoneValidate(props: IProps) {
       setStep('code');
       setError('');
       toast.success(t('phone.code_sent'), { position: 'bottom-right' });
-    } catch (error: any) {
-      toast.error(error.message || t('phone.send_failed'), {
-        position: 'bottom-right',
-      });
+    } catch {
+      // Error toast is handled automatically by http client
     } finally {
       setSubmitting(false);
     }
@@ -258,10 +259,8 @@ export default function PhoneValidate(props: IProps) {
       await http.post('/user/phone/send-code', { phone });
       setError('');
       toast.success(t('phone.code_sent'), { position: 'bottom-right' });
-    } catch (error: any) {
-      toast.error(error.message || t('phone.send_failed'), {
-        position: 'bottom-right',
-      });
+    } catch {
+      // Error toast is handled automatically by http client
     }
   };
 
@@ -269,7 +268,8 @@ export default function PhoneValidate(props: IProps) {
     setSubmitting(true);
     setError('');
     try {
-      await http.post('/user/phone/bind', { phone, code });
+      // Use mute: true since we handle errors in UI via setError
+      await http.post('/user/phone/bind', { phone, code }, { mute: true });
       toast.success(t('phone.bind_success'), { position: 'bottom-right' });
       onFinish();
     } catch (err: any) {

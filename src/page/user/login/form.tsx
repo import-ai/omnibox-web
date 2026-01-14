@@ -21,6 +21,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
+import { usePhoneConfig } from '@/hooks/use-phone-config';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
@@ -80,6 +81,7 @@ export function LoginForm({
   const emailParam = params.get('email');
   const phoneParam = params.get('phone');
   const [isLoading, setIsLoading] = useState(false);
+  const { allowedCountries } = usePhoneConfig();
   const linkClass =
     'text-sm hover:underline dark:text-[#60a5fa] text-[#107bfa] underline-offset-2';
 
@@ -450,6 +452,7 @@ export function LoginForm({
                       onChange={field.onChange}
                       disabled={isLoading}
                       placeholder={t('form.phone')}
+                      allowedCountries={allowedCountries}
                     />
                   </FormControl>
                   <FormMessage />
@@ -487,6 +490,7 @@ export function LoginForm({
                       onChange={field.onChange}
                       disabled={isLoading}
                       placeholder={t('form.phone')}
+                      allowedCountries={allowedCountries}
                     />
                   </FormControl>
                   <FormMessage />

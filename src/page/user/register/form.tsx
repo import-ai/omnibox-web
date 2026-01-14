@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { usePhoneConfig } from '@/hooks/use-phone-config';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
@@ -55,6 +56,7 @@ export function RegisterForm({ children, mode }: IProps) {
   const phoneParam = params.get('phone');
   const redirect = params.get('redirect');
   const [isLoading, setIsLoading] = useState(false);
+  const { allowedCountries } = usePhoneConfig();
 
   const emailForm = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
@@ -203,6 +205,7 @@ export function RegisterForm({ children, mode }: IProps) {
                       onChange={field.onChange}
                       disabled={isLoading}
                       placeholder={t('form.phone')}
+                      allowedCountries={allowedCountries}
                     />
                   </FormControl>
                   <FormMessage />
