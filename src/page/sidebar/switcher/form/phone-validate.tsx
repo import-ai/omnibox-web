@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import i18next from 'i18next';
 import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { http } from '@/lib/request';
-import { cn } from '@/lib/utils';
+import { OtpInput } from '@/page/user/components/otp-input';
 
 const PhoneSchema = z.object({
   phone: z
@@ -113,17 +113,27 @@ function VerificationCodeStep({
   onVerify,
   onResend,
   submitting,
+  error,
+  onClearError,
 }: {
   phone: string;
   onVerify: (code: string) => void;
   onResend: () => void;
   submitting: boolean;
+  error: string;
+  onClearError: () => void;
 }) {
   const { t } = useTranslation();
-  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [code, setCode] = useState('');
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Clear code when error occurs
+  useEffect(() => {
+    if (error) {
+      setCode('');
+    }
+  }, [error]);
 
   // Countdown timer
   useEffect(() => {
@@ -135,42 +145,11 @@ function VerificationCodeStep({
     }
   }, [countdown]);
 
-  const handleInputChange = (index: number, value: string) => {
-    // Only allow digits
-    if (value && !/^\d$/.test(value)) return;
-
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
+  const handleCodeChange = (value: string) => {
+    if (error) {
+      onClearError();
     }
-
-    // Auto-submit when all 6 digits entered
-    if (newCode.every(digit => digit !== '') && newCode.join('').length === 6) {
-      onVerify(newCode.join(''));
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData
-      .getData('text')
-      .replace(/\D/g, '')
-      .slice(0, 6);
-    if (pastedData.length === 6) {
-      const newCode = pastedData.split('');
-      setCode(newCode);
-      onVerify(pastedData);
-    }
+    setCode(value);
   };
 
   const handleResend = () => {
@@ -213,29 +192,14 @@ function VerificationCodeStep({
           </p>
         </div>
 
-        <div className="flex h-14 w-96 items-center justify-center">
-          {code.map((digit, index) => (
-            <input
-              key={index}
-              ref={el => (inputRefs.current[index] = el)}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={e => handleInputChange(index, e.target.value)}
-              onKeyDown={e => handleKeyDown(index, e)}
-              onPaste={index === 0 ? handlePaste : undefined}
-              disabled={submitting}
-              className={cn(
-                'h-12 w-12 border border-border bg-background text-center text-2xl font-semibold outline-none focus:border-primary',
-                index === 0
-                  ? 'rounded-l-md'
-                  : index === 5
-                    ? 'rounded-r-md border-l-0'
-                    : 'border-l-0'
-              )}
-            />
-          ))}
+        <div className="flex flex-col items-center gap-2 w-full">
+          <OtpInput
+            value={code}
+            onChange={handleCodeChange}
+            onComplete={onVerify}
+            error={error}
+            disabled={submitting}
+          />
         </div>
 
         <div className="flex w-full flex-col items-center justify-center gap-2.5">
@@ -270,6 +234,7 @@ export default function PhoneValidate(props: IProps) {
   const [step, setStep] = useState<'phone' | 'code'>('phone');
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSendCode = async (phoneNumber: string) => {
     setSubmitting(true);
@@ -277,6 +242,7 @@ export default function PhoneValidate(props: IProps) {
       await http.post('/user/phone/send-code', { phone: phoneNumber });
       setPhone(phoneNumber);
       setStep('code');
+      setError('');
       toast.success(t('phone.code_sent'), { position: 'bottom-right' });
     } catch (error: any) {
       toast.error(error.message || t('phone.send_failed'), {
@@ -290,6 +256,7 @@ export default function PhoneValidate(props: IProps) {
   const handleResendCode = async () => {
     try {
       await http.post('/user/phone/send-code', { phone });
+      setError('');
       toast.success(t('phone.code_sent'), { position: 'bottom-right' });
     } catch (error: any) {
       toast.error(error.message || t('phone.send_failed'), {
@@ -300,17 +267,35 @@ export default function PhoneValidate(props: IProps) {
 
   const handleVerify = async (code: string) => {
     setSubmitting(true);
+    setError('');
     try {
       await http.post('/user/phone/bind', { phone, code });
       toast.success(t('phone.bind_success'), { position: 'bottom-right' });
       onFinish();
-    } catch (error: any) {
-      toast.error(error.message || t('phone.bind_failed'), {
-        position: 'bottom-right',
-      });
-    } finally {
+    } catch (err: any) {
       setSubmitting(false);
+      const response = err.response?.data;
+      // Handle error with remaining attempts
+      if (response?.remaining !== undefined) {
+        if (response.remaining > 0) {
+          setError(
+            t('verify_otp.error_invalid_code_with_attempts', {
+              remaining: response.remaining,
+            })
+          );
+        } else {
+          setError(t('verify_otp.error_too_many_attempts'));
+        }
+      } else if (response?.code === 'otp_expired') {
+        setError(t('verify_otp.error_expired_code'));
+      } else {
+        setError(response?.message || t('verify_otp.error_invalid_code'));
+      }
     }
+  };
+
+  const handleClearError = () => {
+    setError('');
   };
 
   if (step === 'phone') {
@@ -329,6 +314,8 @@ export default function PhoneValidate(props: IProps) {
       onVerify={handleVerify}
       onResend={handleResendCode}
       submitting={submitting}
+      error={error}
+      onClearError={handleClearError}
     />
   );
 }
