@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isValidPhoneNumber } from 'libphonenumber-js';
+import { Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +9,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
+import { Input } from '@/components/input';
 import { PhoneNumberInput } from '@/components/phone-input';
 import { SupportedEmailLink } from '@/components/supported-email-link';
 import {
@@ -18,7 +20,6 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { usePhoneConfig } from '@/hooks/use-phone-config';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
@@ -152,10 +153,12 @@ export function RegisterForm({ children, mode }: IProps) {
                   <FormControl>
                     <Input
                       type="email"
+                      startIcon={Mail}
                       placeholder={t('form.email')}
                       autoComplete="email"
-                      {...field}
+                      className="text-base md:text-sm"
                       disabled={isLoading}
+                      {...field}
                     />
                   </FormControl>
                   <FormDescription>

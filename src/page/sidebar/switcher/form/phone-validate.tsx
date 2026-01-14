@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
 import { isValidPhoneNumber } from 'libphonenumber-js';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -27,9 +26,9 @@ import { OtpInput } from '@/page/user/components/otp-input';
 const PhoneSchema = z.object({
   phone: z
     .string()
-    .min(1, i18next.t('phone.phone_required'))
+    .min(1, 'phone.phone_required')
     .refine(val => isValidPhoneNumber(val || ''), {
-      message: i18next.t('phone.phone_invalid'),
+      message: 'phone.phone_invalid',
     }),
 });
 
