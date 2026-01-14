@@ -23,26 +23,7 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         injectRegister: false,
-        manifest: {
-          name: 'OmniBox',
-          short_name: 'OmniBox',
-          background_color: '#ffffff',
-          theme_color: '#ffffff',
-          display: 'standalone',
-          start_url: '.',
-          icons: [
-            {
-              src: '/icons/pwa_192x192.png',
-              sizes: '192x192',
-              type: 'image/png',
-            },
-            {
-              src: '/icons/pwa_512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-            },
-          ],
-        },
+        manifest: false,
       }),
     ],
     resolve: {

@@ -2,6 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function () {
+        var lang = localStorage.getItem('i18nextLng') || navigator.language;
+        var isZh = lang.toLowerCase().startsWith('zh');
+        var appName = isZh ? '小黑' : 'OmniBox';
+        var manifestHref = isZh ? '/manifest-zh.json' : '/manifest.json';
+
+        document.write(
+          '<meta name="apple-mobile-web-app-title" content="' + appName + '" />'
+        );
+        document.write('<link rel="manifest" href="' + manifestHref + '" />');
+        document.title = appName;
+      })();
+    </script>
     <meta
       http-equiv="Cache-Control"
       content="no-cache, no-store, must-revalidate"
@@ -18,10 +32,8 @@
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
-    <meta name="apple-mobile-web-app-title" content="OmniBox" />
     <link rel="apple-touch-icon" href="/icons/pwa_192x192.png" />
     <link rel="icon" href="/icons/favicon.ico" />
-    <title>OmniBox</title>
   </head>
   <body>
     <div id="root"></div>
