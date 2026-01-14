@@ -120,7 +120,7 @@ export default function VerifyOtpPage() {
     try {
       await http.post('auth/send-otp', {
         email,
-        url: `${window.location.origin}/user/verify-otp`,
+        url: `${window.location.origin}/user/verify-otp?email=${encodeURIComponent(email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`,
       });
 
       toast.success(t('verify_otp.resend_success'), {

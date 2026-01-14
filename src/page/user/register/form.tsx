@@ -123,7 +123,7 @@ export function RegisterForm({ children }: IProps) {
           <div className="text-center text-sm">
             {t('form.exist_account')}
             <Link
-              to="/user/login"
+              to={`/user/login${emailParam ? `?email=${encodeURIComponent(emailParam)}` : ''}${redirect ? `${emailParam ? '&' : '?'}redirect=${encodeURIComponent(redirect)}` : ''}`}
               className="text-sm hover:underline underline-offset-2"
             >
               {t('login.submit')}
