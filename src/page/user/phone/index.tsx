@@ -1,6 +1,6 @@
-import { Smartphone } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { SmartphoneIcon } from '@/assets/icons/smartphone';
 import { Button } from '@/components/button';
 
 interface IProps {
@@ -17,7 +17,7 @@ export default function Phone({ onClick, mode = 'login' }: IProps) {
       onClick={onClick}
       className="w-full [&_svg]:size-5"
     >
-      <Smartphone />
+      <SmartphoneIcon />
       {t(
         mode === 'register'
           ? 'register.register_use_phone'

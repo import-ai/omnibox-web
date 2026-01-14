@@ -1,6 +1,6 @@
-import { Mail } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { MailIcon } from '@/assets/icons/email';
 import { Button } from '@/components/button';
 
 interface IProps {
@@ -17,7 +17,7 @@ export default function Email({ onClick, mode = 'login' }: IProps) {
       onClick={onClick}
       className="w-full [&_svg]:size-5"
     >
-      <Mail />
+      <MailIcon className="text-blue-400" />
       {t(
         mode === 'register'
           ? 'register.register_use_email'
