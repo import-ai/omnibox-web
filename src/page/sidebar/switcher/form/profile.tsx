@@ -379,7 +379,7 @@ export default function ProfileForm() {
     );
   }
 
-  const maskedPassword = '••••••••••••';
+  const maskedPassword = '********';
 
   return (
     <div className="flex flex-col items-start w-full lg:w-[533px] gap-4 lg:gap-5">
@@ -424,7 +424,7 @@ export default function ProfileForm() {
           </div>
           <p className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis text-sm lg:text-base flex-1 min-w-0">
             {phoneBinding?.login_id
-              ? `+86 ${phoneBinding.login_id}`
+              ? phoneBinding.login_id
               : t('setting.not_bound')}
           </p>
         </div>

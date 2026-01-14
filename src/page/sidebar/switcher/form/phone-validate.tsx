@@ -1,7 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import i18next from 'i18next';
-import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js';
-import { useEffect, useState } from 'react';
+import {
+  isValidPhoneNumber,
+  parsePhoneNumberFromString,
+} from 'libphonenumber-js';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -163,21 +166,13 @@ function VerificationCodeStep({
     }
   };
 
-  // Mask phone number for display (e.g., +86 138****1234)
-  const getMaskedPhone = () => {
-    try {
-      const parsed = parsePhoneNumber(phone);
-      if (parsed) {
-        const national = parsed.nationalNumber;
-        const masked = national.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
-        return `+${parsed.countryCallingCode} ${masked}`;
-      }
-    } catch {
-      // fallback
+  const displayPhone = useMemo(() => {
+    const parsed = parsePhoneNumberFromString(phone);
+    if (parsed) {
+      return `+${parsed.countryCallingCode} ${parsed.nationalNumber}`;
     }
-    return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
-  };
-  const maskedPhone = getMaskedPhone();
+    return phone;
+  }, [phone]);
 
   return (
     <div className="flex w-96 flex-col items-start gap-5">
@@ -190,7 +185,7 @@ function VerificationCodeStep({
           <p className="w-full text-center text-sm font-medium text-muted-foreground">
             {t('phone.sent_code_to')}
             <span className="font-semibold text-muted-foreground">
-              {maskedPhone}
+              {displayPhone}
             </span>
           </p>
         </div>
