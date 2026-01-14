@@ -5,6 +5,25 @@ import { createRoot } from 'react-dom/client';
 
 import App from './App';
 
+// Set PWA application name according to language
+const setPWATitle = () => {
+  const lang = localStorage.getItem('i18nextLng') || navigator.language;
+  const isZh = lang.toLowerCase().startsWith('zh');
+  const appName = isZh ? '小黑' : 'OmniBox';
+
+  // 设置 apple-mobile-web-app-title
+  const metaTitle = document.querySelector(
+    'meta[name="apple-mobile-web-app-title"]'
+  );
+  if (metaTitle) {
+    metaTitle.setAttribute('content', appName);
+  }
+
+  // Set page title
+  document.title = appName;
+};
+setPWATitle();
+
 // Safari mobile viewport height adaptation
 const setViewportHeight = () => {
   const isStandalone =

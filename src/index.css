@@ -145,6 +145,24 @@ body::before {
   }
 }
 
+@media (max-width: 767px) {
+  body {
+    background: #ffffff;
+  }
+
+  body::before {
+    background: #ffffff;
+  }
+
+  .dark body {
+    background: hsl(var(--background));
+  }
+
+  .dark body::before {
+    background: hsl(var(--background));
+  }
+}
+
 .reset-list ol {
   list-style: decimal;
 }
