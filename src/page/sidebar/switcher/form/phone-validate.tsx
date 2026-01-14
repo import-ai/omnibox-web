@@ -1,16 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import i18next from 'i18next';
-import {
-  isValidPhoneNumber,
-  parsePhoneNumberFromString,
-} from 'libphonenumber-js';
-import { useEffect, useMemo, useState } from 'react';
+import { isValidPhoneNumber } from 'libphonenumber-js';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { PhoneNumberInput } from '@/components/phone-input';
+import { formatPhone } from '@/components/phone-input/utils.ts';
 import {
   Form,
   FormControl,
@@ -19,6 +17,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { usePhoneConfig } from '@/hooks/use-phone-config';
+import {
+  getOtpErrorMessage,
+  useVerificationCode,
+} from '@/hooks/use-verification-code';
 import { http } from '@/lib/request';
 import { OtpInput } from '@/page/user/components/otp-input';
 
@@ -130,49 +132,8 @@ function VerificationCodeStep({
   onClearError: () => void;
 }) {
   const { t } = useTranslation();
-  const [code, setCode] = useState('');
-  const [countdown, setCountdown] = useState(60);
-  const [canResend, setCanResend] = useState(false);
-
-  // Clear code when error occurs
-  useEffect(() => {
-    if (error) {
-      setCode('');
-    }
-  }, [error]);
-
-  // Countdown timer
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
-    }
-  }, [countdown]);
-
-  const handleCodeChange = (value: string) => {
-    if (error) {
-      onClearError();
-    }
-    setCode(value);
-  };
-
-  const handleResend = () => {
-    if (canResend) {
-      setCountdown(60);
-      setCanResend(false);
-      onResend();
-    }
-  };
-
-  const displayPhone = useMemo(() => {
-    const parsed = parsePhoneNumberFromString(phone);
-    if (parsed) {
-      return `+${parsed.countryCallingCode} ${parsed.nationalNumber}`;
-    }
-    return phone;
-  }, [phone]);
+  const { code, countdown, canResend, handleCodeChange, handleResend } =
+    useVerificationCode(error, onClearError);
 
   return (
     <div className="flex w-96 flex-col items-start gap-5">
@@ -185,7 +146,7 @@ function VerificationCodeStep({
           <p className="w-full text-center text-sm font-medium text-muted-foreground">
             {t('phone.sent_code_to')}
             <span className="font-semibold text-muted-foreground">
-              {displayPhone}
+              {formatPhone(phone)}
             </span>
           </p>
         </div>
@@ -208,7 +169,7 @@ function VerificationCodeStep({
             {canResend ? (
               <span
                 className="cursor-pointer text-foreground hover:underline"
-                onClick={handleResend}
+                onClick={() => handleResend(onResend)}
               >
                 {' '}
                 {t('phone.resend')}
@@ -269,23 +230,7 @@ export default function PhoneValidate(props: IProps) {
       onFinish();
     } catch (err: any) {
       setSubmitting(false);
-      const response = err.response?.data;
-      // Handle error with remaining attempts
-      if (response?.remaining !== undefined) {
-        if (response.remaining > 0) {
-          setError(
-            t('verify_otp.error_invalid_code_with_attempts', {
-              remaining: response.remaining,
-            })
-          );
-        } else {
-          setError(t('verify_otp.error_too_many_attempts'));
-        }
-      } else if (response?.code === 'otp_expired') {
-        setError(t('verify_otp.error_expired_code'));
-      } else {
-        setError(response?.message || t('verify_otp.error_invalid_code'));
-      }
+      setError(getOtpErrorMessage(err, t));
     }
   };
 

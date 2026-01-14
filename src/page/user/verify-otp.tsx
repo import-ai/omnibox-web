@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { formatPhone } from '@/components/phone-input/utils.ts';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { setGlobalCredential } from '@/page/user/util';
@@ -23,7 +24,7 @@ export default function VerifyOtpPage() {
 
   // Determine verification type
   const isPhoneVerification = !!phone && !email;
-  const identifier = isPhoneVerification ? phone : email;
+  const identifier = isPhoneVerification ? formatPhone(phone) : email;
 
   const [code, setCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
