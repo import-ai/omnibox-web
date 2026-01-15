@@ -83,7 +83,7 @@ export default function ChatHeader() {
   }, [chatTitle, conversationsPage, homePage]);
 
   return (
-    <header className="rounded-[16px] sticky z-[30] top-[env(safe-area-inset-top)] bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
+    <header className="rounded-2xl sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
         {(!open || isMobile) && (
           <TooltipProvider>

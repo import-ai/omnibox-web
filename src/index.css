@@ -113,13 +113,14 @@ body {
   height: 100%;
   overflow: hidden;
   background: hsl(var(--sidebar-background));
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 #root {
   height: 100%;
+  box-sizing: border-box;
   overflow: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 body::before {

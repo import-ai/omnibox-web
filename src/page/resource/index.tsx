@@ -49,7 +49,7 @@ export default function ResourcePage() {
   }, [app]);
 
   return (
-    <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-[calc(100svh-16px)]">
+    <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)]">
       <Header {...props} wide={wide} onWide={onWide} />
       <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
       <div
