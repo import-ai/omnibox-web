@@ -177,7 +177,7 @@
     "continue": "继续",
     "use_password": "使用密码登录",
     "use_email": "使用邮箱验证码",
-    "use_otp": "使用验证码",
+    "use_otp": "使用验证码登录",
     "sign_up": "注册",
     "email_not_exists": "该邮箱不存在，请注册以继续。",
     "phone_not_exists": "该手机号不存在，请注册以继续。",
