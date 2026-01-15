@@ -1,10 +1,17 @@
 import { Info } from 'lucide-react';
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
 import { SegmentedProgressBar } from './segmented-progress-bar';
 
 export interface StorageItem {
   label: string;
   color: string;
+  tooltip?: string;
 }
 
 export interface StorageSectionProps {
@@ -29,12 +36,19 @@ export function StorageSection({
       <SegmentedProgressBar segments={segments} />
       <div className="flex flex-wrap gap-7">
         {items.map((item, idx) => (
-          <div key={idx} className="flex items-center gap-1">
+          <div key={idx} className="flex items-center gap-1 min-w-14">
             <div className={`size-2 rounded-full ${item.color}`} />
             <span className="text-sm font-medium text-neutral-400">
               {item.label}
             </span>
-            <Info className="size-3 text-neutral-400" />
+            {item.tooltip && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="size-3 text-neutral-400" />
+                </TooltipTrigger>
+                <TooltipContent>{item.tooltip}</TooltipContent>
+              </Tooltip>
+            )}
           </div>
         ))}
       </div>

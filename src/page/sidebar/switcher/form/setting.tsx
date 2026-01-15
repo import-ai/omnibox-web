@@ -194,7 +194,7 @@ export default function SettingForm({
         </Form>
       )}
       <Separator className="bg-neutral-200" />
-      <RemainQuota />
+      <RemainQuota namespaceId={namespaceId} />
       {/* Danger Zone */}
       <div className="border-t pt-6">
         <h3 className="text-sm font-medium text-destructive mb-4">
