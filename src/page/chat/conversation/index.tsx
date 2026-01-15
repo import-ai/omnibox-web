@@ -31,7 +31,7 @@ export default function ChatConversationPage() {
   } = useContext();
 
   return (
-    <div className="flex flex-col h-[calc(100%-70px)]">
+    <div className="flex flex-col h-[calc(100vh-70px)]">
       <Scrollbar>
         {messages.length <= 0 ? (
           <div className="space-y-4 flex justify-end items-center">
