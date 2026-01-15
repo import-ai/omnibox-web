@@ -13,7 +13,7 @@ import Scan from '../wechat/scan';
 import WrapperPage from '../wrapper';
 import { RegisterForm } from './form';
 
-export type RegisterMode = 'email-otp' | 'phone-otp';
+export type ContactMethod = 'email' | 'phone';
 
 export default function RegisterPage() {
   const [scan, onScan] = useState(false);
@@ -21,15 +21,17 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const phoneParam = params.get('phone');
+  const modeParam = params.get('mode');
 
-  const getInitialMode = (): RegisterMode => {
-    if (phoneParam) return 'phone-otp';
-    return 'email-otp';
+  // Get initial contact method from URL params
+  const getInitialContactMethod = (): ContactMethod => {
+    if (modeParam === 'phone' || phoneParam) return 'phone';
+    return 'email';
   };
 
-  const [mode, setMode] = useState<RegisterMode>(getInitialMode);
-
-  const isPhoneMode = mode === 'phone-otp';
+  const [contactMethod, setContactMethod] = useState<ContactMethod>(
+    getInitialContactMethod
+  );
 
   useEffect(() => {
     const uid = localStorage.getItem('uid');
@@ -43,14 +45,14 @@ export default function RegisterPage() {
       {scan ? (
         <Scan onScan={onScan} />
       ) : (
-        <RegisterForm mode={mode} setMode={setMode}>
+        <RegisterForm
+          contactMethod={contactMethod}
+          setContactMethod={setContactMethod}
+        >
           <Available>
             {available => {
               const hasOtherOptions =
-                (isPhoneMode ? true : true) ||
-                available.wechat ||
-                available.google ||
-                available.apple;
+                available.wechat || available.google || available.apple;
 
               if (!hasOtherOptions) {
                 return null;
@@ -59,14 +61,14 @@ export default function RegisterPage() {
               return (
                 <div className="grid gap-6">
                   <div className="flex flex-col gap-2">
-                    {isPhoneMode ? (
+                    {contactMethod === 'phone' ? (
                       <Email
-                        onClick={() => setMode('email-otp')}
+                        onClick={() => setContactMethod('email')}
                         mode="register"
                       />
                     ) : (
                       <Phone
-                        onClick={() => setMode('phone-otp')}
+                        onClick={() => setContactMethod('phone')}
                         mode="register"
                       />
                     )}

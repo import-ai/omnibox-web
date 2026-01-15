@@ -27,7 +27,7 @@ import { buildUrl, cn } from '@/lib/utils';
 import { passwordSchema, phoneSchema } from '@/lib/validation-schemas';
 import { setGlobalCredential } from '@/page/user/util';
 
-import type { LoginMode } from './index';
+import type { AuthMethod, ContactMethod } from './index';
 
 const emailFormSchema = z.object({
   email: z
@@ -52,15 +52,17 @@ const phonePasswordFormSchema = z.object({
 
 interface IProps extends React.ComponentPropsWithoutRef<'form'> {
   children: React.ReactNode;
-  mode: LoginMode;
-  setMode: (mode: LoginMode) => void;
+  contactMethod: ContactMethod;
+  authMethod: AuthMethod;
+  setAuthMethod: (method: AuthMethod) => void;
 }
 
 export function LoginForm({
   className,
   children,
-  mode,
-  setMode,
+  contactMethod,
+  authMethod,
+  setAuthMethod,
   ...props
 }: IProps) {
   const { t } = useTranslation();
@@ -114,7 +116,13 @@ export function LoginForm({
 
       if (!response.exists) {
         toast.error(t('login.email_not_exists'), { position: 'bottom-right' });
-        navigate(buildUrl('/user/sign-up', { email: data.email, redirect }));
+        navigate(
+          buildUrl('/user/sign-up', {
+            email: data.email,
+            mode: 'email',
+            redirect,
+          })
+        );
         return;
       }
 
@@ -145,7 +153,13 @@ export function LoginForm({
       .catch(err => {
         setIsLoading(false);
         if (err.response?.data?.code === 'user_not_found') {
-          navigate('/user/sign-up');
+          navigate(
+            buildUrl('/user/sign-up', {
+              email: data.email,
+              mode: 'email',
+              redirect,
+            })
+          );
         }
       });
   };
@@ -159,7 +173,13 @@ export function LoginForm({
 
       if (!response.exists) {
         toast.error(t('login.phone_not_exists'), { position: 'bottom-right' });
-        navigate(buildUrl('/user/sign-up', { phone: data.phone, redirect }));
+        navigate(
+          buildUrl('/user/sign-up', {
+            phone: data.phone,
+            mode: 'phone',
+            redirect,
+          })
+        );
         return;
       }
 
@@ -190,7 +210,13 @@ export function LoginForm({
       .catch(err => {
         setIsLoading(false);
         if (err.response?.data?.code === 'user_not_found') {
-          navigate('/user/sign-up');
+          navigate(
+            buildUrl('/user/sign-up', {
+              phone: data.phone,
+              mode: 'phone',
+              redirect,
+            })
+          );
         }
       });
   };
@@ -203,14 +229,14 @@ export function LoginForm({
   }, []);
 
   const renderLinks = () => {
-    if (mode === 'email-otp') {
+    if (contactMethod === 'email' && authMethod === 'otp') {
       return (
         <Space className="text-sm justify-center">
           <button
             type="button"
             onClick={() => {
               emailPasswordForm.setValue('email', emailForm.getValues('email'));
-              setMode('email-password');
+              setAuthMethod('password');
             }}
             className={linkClass}
           >
@@ -220,6 +246,7 @@ export function LoginForm({
           <Link
             to={buildUrl('/user/sign-up', {
               email: emailForm.getValues('email'),
+              mode: 'email',
               redirect,
             })}
             className={linkClass}
@@ -230,14 +257,14 @@ export function LoginForm({
       );
     }
 
-    if (mode === 'email-password') {
+    if (contactMethod === 'email' && authMethod === 'password') {
       return (
         <Space className="text-sm justify-center">
           <button
             type="button"
             onClick={() => {
               emailForm.setValue('email', emailPasswordForm.getValues('email'));
-              setMode('email-otp');
+              setAuthMethod('otp');
             }}
             className={linkClass}
           >
@@ -247,6 +274,7 @@ export function LoginForm({
           <Link
             to={buildUrl('/user/sign-up', {
               email: emailPasswordForm.getValues('email'),
+              mode: 'email',
               redirect,
             })}
             className={linkClass}
@@ -257,14 +285,14 @@ export function LoginForm({
       );
     }
 
-    if (mode === 'phone-otp') {
+    if (contactMethod === 'phone' && authMethod === 'otp') {
       return (
         <Space className="text-sm justify-center">
           <button
             type="button"
             onClick={() => {
               phonePasswordForm.setValue('phone', phoneForm.getValues('phone'));
-              setMode('phone-password');
+              setAuthMethod('password');
             }}
             className={linkClass}
           >
@@ -274,6 +302,7 @@ export function LoginForm({
           <Link
             to={buildUrl('/user/sign-up', {
               phone: phoneForm.getValues('phone'),
+              mode: 'phone',
               redirect,
             })}
             className={linkClass}
@@ -284,14 +313,14 @@ export function LoginForm({
       );
     }
 
-    if (mode === 'phone-password') {
+    if (contactMethod === 'phone' && authMethod === 'password') {
       return (
         <Space className="text-sm justify-center">
           <button
             type="button"
             onClick={() => {
               phoneForm.setValue('phone', phonePasswordForm.getValues('phone'));
-              setMode('phone-otp');
+              setAuthMethod('otp');
             }}
             className={linkClass}
           >
@@ -301,6 +330,7 @@ export function LoginForm({
           <Link
             to={buildUrl('/user/sign-up', {
               phone: phonePasswordForm.getValues('phone'),
+              mode: 'phone',
               redirect,
             })}
             className={linkClass}
@@ -325,7 +355,7 @@ export function LoginForm({
 
       {children}
 
-      {mode === 'email-otp' && (
+      {contactMethod === 'email' && authMethod === 'otp' && (
         <Form {...emailForm} key="email-form">
           <form
             onSubmit={emailForm.handleSubmit(onEmailSubmit)}
@@ -368,7 +398,7 @@ export function LoginForm({
         </Form>
       )}
 
-      {mode === 'email-password' && (
+      {contactMethod === 'email' && authMethod === 'password' && (
         <Form {...emailPasswordForm} key="email-password-form">
           <form
             onSubmit={emailPasswordForm.handleSubmit(onEmailPasswordSubmit)}
@@ -431,7 +461,7 @@ export function LoginForm({
         </Form>
       )}
 
-      {mode === 'phone-otp' && (
+      {contactMethod === 'phone' && authMethod === 'otp' && (
         <Form {...phoneForm} key="phone-form">
           <form
             onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}
@@ -469,7 +499,7 @@ export function LoginForm({
         </Form>
       )}
 
-      {mode === 'phone-password' && (
+      {contactMethod === 'phone' && authMethod === 'password' && (
         <Form {...phonePasswordForm} key="phone-password-form">
           <form
             onSubmit={phonePasswordForm.handleSubmit(onPhonePasswordSubmit)}

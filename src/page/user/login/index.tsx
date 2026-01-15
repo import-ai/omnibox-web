@@ -13,11 +13,8 @@ import Scan from '../wechat/scan';
 import WrapperPage from '../wrapper';
 import { LoginForm } from './form';
 
-export type LoginMode =
-  | 'email-otp'
-  | 'email-password'
-  | 'phone-otp'
-  | 'phone-password';
+export type ContactMethod = 'email' | 'phone';
+export type AuthMethod = 'otp' | 'password';
 
 export default function LoginPage() {
   const [scan, onScan] = useState(false);
@@ -25,16 +22,24 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const phoneParam = params.get('phone');
+  const modeParam = params.get('mode');
 
-  // Start with appropriate mode based on URL params
-  const getInitialMode = (): LoginMode => {
-    if (phoneParam) return 'phone-otp';
-    return 'email-otp';
+  // Get initial contact method from URL params
+  const getInitialContactMethod = (): ContactMethod => {
+    if (modeParam === 'phone' || phoneParam) return 'phone';
+    return 'email';
   };
 
-  const [mode, setMode] = useState<LoginMode>(getInitialMode);
+  // Get initial auth method from URL params
+  const getInitialAuthMethod = (): AuthMethod => {
+    return 'otp';
+  };
 
-  const isPhoneMode = mode === 'phone-otp' || mode === 'phone-password';
+  const [contactMethod, setContactMethod] = useState<ContactMethod>(
+    getInitialContactMethod
+  );
+  const [authMethod, setAuthMethod] =
+    useState<AuthMethod>(getInitialAuthMethod);
 
   useEffect(() => {
     const uid = localStorage.getItem('uid');
@@ -48,14 +53,15 @@ export default function LoginPage() {
       {scan ? (
         <Scan onScan={onScan} />
       ) : (
-        <LoginForm mode={mode} setMode={setMode}>
+        <LoginForm
+          contactMethod={contactMethod}
+          authMethod={authMethod}
+          setAuthMethod={setAuthMethod}
+        >
           <Available>
             {available => {
               const hasOtherOptions =
-                (isPhoneMode ? true : true) ||
-                available.wechat ||
-                available.google ||
-                available.apple;
+                available.wechat || available.google || available.apple;
 
               if (!hasOtherOptions) {
                 return null;
@@ -64,14 +70,14 @@ export default function LoginPage() {
               return (
                 <div className="grid gap-6">
                   <div className="flex flex-col gap-2">
-                    {isPhoneMode ? (
+                    {contactMethod === 'phone' ? (
                       <Email
-                        onClick={() => setMode('email-otp')}
+                        onClick={() => setContactMethod('email')}
                         mode="login"
                       />
                     ) : (
                       <Phone
-                        onClick={() => setMode('phone-otp')}
+                        onClick={() => setContactMethod('phone')}
                         mode="login"
                       />
                     )}

@@ -25,7 +25,7 @@ import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { phoneSchema } from '@/lib/validation-schemas';
 
-import type { RegisterMode } from './index';
+import type { ContactMethod } from './index';
 
 const emailSchema = z.object({
   email: z
@@ -40,11 +40,11 @@ const phoneFormSchema = z.object({
 
 interface IProps {
   children: React.ReactNode;
-  mode: RegisterMode;
-  setMode: (mode: RegisterMode) => void;
+  contactMethod: ContactMethod;
+  setContactMethod: (method: ContactMethod) => void;
 }
 
-export function RegisterForm({ children, mode }: IProps) {
+export function RegisterForm({ children, contactMethod }: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -92,7 +92,13 @@ export function RegisterForm({ children, mode }: IProps) {
         toast.error(t('register.email_already_exists'), {
           position: 'bottom-right',
         });
-        navigate(buildUrl('/user/login', { email: data.email, redirect }));
+        navigate(
+          buildUrl('/user/login', {
+            email: data.email,
+            mode: 'email',
+            redirect,
+          })
+        );
         return;
       }
 
@@ -113,7 +119,13 @@ export function RegisterForm({ children, mode }: IProps) {
         toast.error(t('register.phone_already_exists'), {
           position: 'bottom-right',
         });
-        navigate(buildUrl('/user/login', { phone: data.phone, redirect }));
+        navigate(
+          buildUrl('/user/login', {
+            phone: data.phone,
+            mode: 'phone',
+            redirect,
+          })
+        );
         return;
       }
 
@@ -134,7 +146,7 @@ export function RegisterForm({ children, mode }: IProps) {
 
       {children}
 
-      {mode === 'email-otp' && (
+      {contactMethod === 'email' && (
         <Form {...emailForm}>
           <form
             onSubmit={emailForm.handleSubmit(handleEmailSubmit)}
@@ -175,6 +187,7 @@ export function RegisterForm({ children, mode }: IProps) {
               <Link
                 to={buildUrl('/user/login', {
                   email: emailForm.getValues('email'),
+                  mode: 'email',
                   redirect,
                 })}
                 className="text-sm hover:underline underline-offset-2"
@@ -186,7 +199,7 @@ export function RegisterForm({ children, mode }: IProps) {
         </Form>
       )}
 
-      {mode === 'phone-otp' && (
+      {contactMethod === 'phone' && (
         <Form {...phoneForm}>
           <form
             onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)}
@@ -222,6 +235,7 @@ export function RegisterForm({ children, mode }: IProps) {
               <Link
                 to={buildUrl('/user/login', {
                   phone: phoneForm.getValues('phone'),
+                  mode: 'phone',
                   redirect,
                 })}
                 className="text-sm hover:underline underline-offset-2"
