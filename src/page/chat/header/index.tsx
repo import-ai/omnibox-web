@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/tooltip';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
+import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang.ts';
 
 import Actions from './actions';
@@ -73,11 +74,11 @@ export default function ChatHeader() {
 
   useEffect(() => {
     if (conversationsPage) {
-      document.title = t('chat.conversations.history');
+      setDocumentTitle(t('chat.conversations.history'));
     } else if (homePage) {
-      document.title = t('chat.page_title');
+      setDocumentTitle(t('chat.page_title'));
     } else {
-      document.title = chatTitle;
+      setDocumentTitle(chatTitle);
     }
   }, [chatTitle, conversationsPage, homePage]);
 

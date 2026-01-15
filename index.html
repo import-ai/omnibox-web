@@ -9,11 +9,12 @@
         var appName = isZh ? '小黑' : 'OmniBox';
         var manifestHref = isZh ? '/manifest-zh.json' : '/manifest.json';
 
+        // Use document.write for both manifest link and apple-mobile-web-app-title
+        // This ensures the correct language version is used from the start
+        document.write('<link rel="manifest" href="' + manifestHref + '" />');
         document.write(
           '<meta name="apple-mobile-web-app-title" content="' + appName + '" />'
         );
-        document.write('<link rel="manifest" href="' + manifestHref + '" />');
-        document.title = appName;
       })();
     </script>
     <meta
@@ -26,7 +27,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#262626" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"

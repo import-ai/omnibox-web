@@ -6,6 +6,14 @@ import { detectBrowserLanguage } from '@/lib/detect-language';
 
 import locales from './locales';
 
+// Check if running in Chrome PWA standalone mode
+const isChromeStandalone = () => {
+  const isChrome =
+    /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  return isChrome && isStandalone;
+};
+
 // Update PWA name based on language
 const updatePWAName = (lang: string) => {
   const isZh = lang.toLowerCase().startsWith('zh');
@@ -26,8 +34,10 @@ const updatePWAName = (lang: string) => {
     manifestLink.setAttribute('href', manifestHref);
   }
 
-  // Update page title
-  document.title = appName;
+  // Update page title (skip for Chrome PWA to avoid mixed name display)
+  if (!isChromeStandalone()) {
+    document.title = appName;
+  }
 };
 
 i18n

@@ -106,6 +106,7 @@ html {
   height: 100vh;
   height: calc(var(--vh, 1vh) * 100);
   overflow: hidden;
+  background: hsl(var(--sidebar-background));
 }
 
 body {
