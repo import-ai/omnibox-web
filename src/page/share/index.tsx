@@ -1,12 +1,12 @@
 import axios, { CancelTokenSource } from 'axios';
 import { t } from 'i18next';
+import Cookies from 'js-cookie';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
-import { getCookie, setCookie } from '@/lib/cookie';
 import { http } from '@/lib/request';
 import {
   ChatMode,
@@ -62,7 +62,7 @@ export default function SharePage() {
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
   const [password, setPassword] = useState<string | null>(
-    getCookie(SHARE_PASSWORD_COOKIE)
+    Cookies.get(SHARE_PASSWORD_COOKIE) ?? null
   );
   const shareId = params.share_id;
   const currentResourceId = params.resource_id || shareInfo?.resource?.id;
@@ -90,8 +90,16 @@ export default function SharePage() {
 
   const handlePassword = (password: string) => {
     setPasswordLoading(true);
-    setCookie(SHARE_PASSWORD_COOKIE, password, `/s/${shareId}`);
-    setCookie(SHARE_PASSWORD_COOKIE, password, `/api/v1/shares/${shareId}`);
+    const isSecure = window.location.protocol === 'https:';
+    const cookieOptions = { secure: isSecure, sameSite: 'strict' as const };
+    Cookies.set(SHARE_PASSWORD_COOKIE, password, {
+      path: `/s/${shareId}`,
+      ...cookieOptions,
+    });
+    Cookies.set(SHARE_PASSWORD_COOKIE, password, {
+      path: `/api/v1/shares/${shareId}`,
+      ...cookieOptions,
+    });
     setPassword(password);
     if (cancelTokenSource.current) {
       cancelTokenSource.current.cancel('Canceled due to new request.');
