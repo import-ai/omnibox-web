@@ -220,7 +220,16 @@ export default function VerifyOtpPage() {
           </div>
 
           <button
-            onClick={() => navigate('/user/login')}
+            onClick={() =>
+              navigate(
+                buildUrl('/user/login', {
+                  email: isPhoneVerification ? undefined : email,
+                  phone: isPhoneVerification ? phone : undefined,
+                  mode: isPhoneVerification ? 'phone' : 'email',
+                  redirect,
+                })
+              )
+            }
             className="text-sm text-muted-foreground hover:underline"
           >
             {t('verify_otp.back_to_login')}
