@@ -126,7 +126,7 @@ function PhoneNumberInput({
         const fullNumber = `+${callingCode}${digitsOnly}`;
         onChange(fullNumber as E164Number);
       } else {
-        onChange(undefined);
+        onChange('' as E164Number);
       }
     },
     [selectedCountry, onChange]
