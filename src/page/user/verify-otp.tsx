@@ -24,7 +24,11 @@ export default function VerifyOtpPage() {
 
   // Determine verification type
   const isPhoneVerification = !!phone && !email;
-  const identifier = isPhoneVerification ? formatPhone(phone) : email;
+  // Use raw phone for API calls, formatPhone for display
+  const identifier = isPhoneVerification ? phone : email;
+  const displayIdentifier = isPhoneVerification
+    ? formatPhone(phone)
+    : identifier;
 
   const [code, setCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -98,17 +102,25 @@ export default function VerifyOtpPage() {
       let response;
 
       if (isPhoneVerification) {
-        response = await http.post('auth/verify-phone-otp', {
-          phone: identifier,
-          code: otpCode,
-          lang: localStorage.getItem('i18nextLng'),
-        });
+        response = await http.post(
+          'auth/verify-phone-otp',
+          {
+            phone: identifier,
+            code: otpCode,
+            lang: localStorage.getItem('i18nextLng'),
+          },
+          { mute: true }
+        );
       } else {
-        response = await http.post('auth/verify-otp', {
-          email: identifier,
-          code: otpCode,
-          lang: localStorage.getItem('i18nextLng'),
-        });
+        response = await http.post(
+          'auth/verify-otp',
+          {
+            email: identifier,
+            code: otpCode,
+            lang: localStorage.getItem('i18nextLng'),
+          },
+          { mute: true }
+        );
       }
 
       setGlobalCredential(response.id, response.access_token);
@@ -136,14 +148,22 @@ export default function VerifyOtpPage() {
 
     try {
       if (isPhoneVerification) {
-        await http.post('auth/send-phone-otp', {
-          phone: identifier,
-        });
+        await http.post(
+          'auth/send-phone-otp',
+          {
+            phone: identifier,
+          },
+          { mute: true }
+        );
       } else {
-        await http.post('auth/send-otp', {
-          email: identifier,
-          url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
-        });
+        await http.post(
+          'auth/send-otp',
+          {
+            email: identifier,
+            url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
+          },
+          { mute: true }
+        );
       }
 
       toast.success(t('verify_otp.resend_success'), {
@@ -189,7 +209,7 @@ export default function VerifyOtpPage() {
                 ? 'verify_otp.description_phone'
                 : 'verify_otp.description'
             )}{' '}
-            <strong>{identifier}</strong>
+            <strong>{displayIdentifier}</strong>
           </p>
         </div>
 

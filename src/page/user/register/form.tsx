@@ -41,7 +41,6 @@ const phoneFormSchema = z.object({
 interface IProps {
   children: React.ReactNode;
   contactMethod: ContactMethod;
-  setContactMethod: (method: ContactMethod) => void;
 }
 
 export function RegisterForm({ children, contactMethod }: IProps) {

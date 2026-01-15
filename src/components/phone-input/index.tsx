@@ -91,7 +91,7 @@ function PhoneNumberInput({
         // Invalid phone number, ignore
       }
     }
-  }, []);
+  }, [value, allowedCountries]);
 
   const handleCountryChange = useCallback(
     (country: CountryCode) => {

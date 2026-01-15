@@ -45,10 +45,7 @@ export default function RegisterPage() {
       {scan ? (
         <Scan onScan={onScan} />
       ) : (
-        <RegisterForm
-          contactMethod={contactMethod}
-          setContactMethod={setContactMethod}
-        >
+        <RegisterForm contactMethod={contactMethod}>
           <Available>
             {available => {
               const hasOtherOptions =

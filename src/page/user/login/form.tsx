@@ -161,6 +161,9 @@ export function LoginForm({
             })
           );
         }
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 
@@ -218,6 +221,9 @@ export function LoginForm({
             })
           );
         }
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 
