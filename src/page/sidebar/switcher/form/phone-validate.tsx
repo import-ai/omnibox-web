@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { isValidPhoneNumber } from 'libphonenumber-js';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -21,15 +20,11 @@ import {
   useVerificationCode,
 } from '@/hooks/use-verification-code';
 import { http } from '@/lib/request';
+import { phoneSchema } from '@/lib/validation-schemas';
 import { OtpInput } from '@/page/user/components/otp-input';
 
 const PhoneSchema = z.object({
-  phone: z
-    .string()
-    .min(1, 'phone.phone_required')
-    .refine(val => isValidPhoneNumber(val || ''), {
-      message: 'phone.phone_invalid',
-    }),
+  phone: phoneSchema,
 });
 
 type PhoneFormValues = z.infer<typeof PhoneSchema>;

@@ -279,8 +279,6 @@
     "send_failed": "Failed to send verification code"
   },
   "phone": {
-    "phone_required": "Please enter your phone number",
-    "phone_invalid": "Please enter a valid phone number",
     "input_phone": "Enter Phone Number",
     "current_phone_is": "Your current phone number is",
     "will_send_verification": "Please enter your phone number, we will send you a verification code",

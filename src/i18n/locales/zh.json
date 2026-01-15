@@ -280,8 +280,6 @@
     "send_failed": "发送验证码失败"
   },
   "phone": {
-    "phone_required": "请输入手机号",
-    "phone_invalid": "请输入有效的手机号",
     "input_phone": "输入手机号",
     "current_phone_is": "当前绑定的手机号是",
     "will_send_verification": "请输入手机号，我们将向您发送验证码",

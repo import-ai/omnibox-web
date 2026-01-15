@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { isValidPhoneNumber } from 'libphonenumber-js';
 import { Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -24,6 +23,7 @@ import { usePhoneConfig } from '@/hooks/use-phone-config';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
+import { phoneSchema } from '@/lib/validation-schemas';
 
 import type { RegisterMode } from './index';
 
@@ -34,13 +34,8 @@ const emailSchema = z.object({
     .refine(val => isEmail(val), { message: 'form.email_invalid' }),
 });
 
-const phoneSchema = z.object({
-  phone: z
-    .string()
-    .min(1, 'form.phone_required')
-    .refine(val => isValidPhoneNumber(val || ''), {
-      message: 'form.phone_invalid',
-    }),
+const phoneFormSchema = z.object({
+  phone: phoneSchema,
 });
 
 interface IProps {
@@ -66,8 +61,8 @@ export function RegisterForm({ children, mode }: IProps) {
     },
   });
 
-  const phoneForm = useForm<z.infer<typeof phoneSchema>>({
-    resolver: zodResolver(phoneSchema),
+  const phoneForm = useForm<z.infer<typeof phoneFormSchema>>({
+    resolver: zodResolver(phoneFormSchema),
     defaultValues: {
       phone: phoneParam || '',
     },
@@ -107,7 +102,7 @@ export function RegisterForm({ children, mode }: IProps) {
     }
   };
 
-  const handlePhoneSubmit = async (data: z.infer<typeof phoneSchema>) => {
+  const handlePhoneSubmit = async (data: z.infer<typeof phoneFormSchema>) => {
     setIsLoading(true);
     try {
       const response = await http.post('auth/send-signup-phone-otp', {

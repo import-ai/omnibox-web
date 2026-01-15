@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { isValidPhoneNumber } from 'libphonenumber-js';
 import { Lock, Mail } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -25,7 +24,7 @@ import { usePhoneConfig } from '@/hooks/use-phone-config';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
-import { passwordSchema } from '@/lib/validation-schemas';
+import { passwordSchema, phoneSchema } from '@/lib/validation-schemas';
 import { setGlobalCredential } from '@/page/user/util';
 
 import type { LoginMode } from './index';
@@ -43,21 +42,11 @@ const emailPasswordFormSchema = z.object({
 });
 
 const phoneFormSchema = z.object({
-  phone: z
-    .string()
-    .min(1, 'form.phone_required')
-    .refine(val => isValidPhoneNumber(val || ''), {
-      message: 'form.phone_invalid',
-    }),
+  phone: phoneSchema,
 });
 
 const phonePasswordFormSchema = z.object({
-  phone: z
-    .string()
-    .min(1, 'form.phone_required')
-    .refine(val => isValidPhoneNumber(val || ''), {
-      message: 'form.phone_invalid',
-    }),
+  phone: phoneSchema,
   password: passwordSchema,
 });
 
