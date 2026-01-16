@@ -4,8 +4,9 @@ export const ALLOW_FILE_EXTENSIONS =
   '.md,.doc,.ppt,.docx,.pptx,.txt,.pdf,.wav,.mp3,.m4a,.pcm,.opus,.webm,.mp4,.avi,.mov,.mkv,.flv,.webm,.jpg,.jpeg,.png';
 export const SITE_NAME = 'OmniBox';
 export const LAZY_LOAD_IMAGE: string = '/images/img-loading.svg';
-export const WECHAT_BOT_QRCODE_URL =
+export const WECHAT_ASSISTANT_QRCODE_URL =
   'https://work.weixin.qq.com/u/vc3df33954d10ed707';
+export const QQ_ASSISTANT_URL = 'https://qun.qq.com/qunpro/robot/placeholder';
 export const RESOURCE_TASKS_INTERVAL = 3 * 1000;
 export const BIND_CHECK_INTERVAL = 3 * 1000;
 export const DISCORD_LINK = 'https://www.omnibox.pro/links/discord';
