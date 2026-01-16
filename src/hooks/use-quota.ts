@@ -50,7 +50,7 @@ export default function useQuota(namespaceId: string) {
   const fetchQuota = () => {
     const source = axios.CancelToken.source();
     http
-      .get(`/api/v1/namespaces/${namespaceId}/usages`, {
+      .get(`/namespaces/${namespaceId}/usages`, {
         cancelToken: source.token,
       })
       .then(setData);
