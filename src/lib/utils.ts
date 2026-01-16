@@ -5,6 +5,21 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Check if running in Chrome PWA standalone mode
+function isChromeStandalone(): boolean {
+  const isChrome =
+    /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  return isChrome && isStandalone;
+}
+
+// Set document title, skip in Chrome standalone mode to avoid mixed name display
+export function setDocumentTitle(title: string): void {
+  if (!isChromeStandalone()) {
+    document.title = title;
+  }
+}
+
 export function isBlank(value: string | null | undefined): boolean {
   return value === null || value === undefined || value === '';
 }

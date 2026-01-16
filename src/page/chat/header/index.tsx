@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/tooltip';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
+import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang.ts';
 
 import Actions from './actions';
@@ -73,16 +74,16 @@ export default function ChatHeader() {
 
   useEffect(() => {
     if (conversationsPage) {
-      document.title = t('chat.conversations.history');
+      setDocumentTitle(t('chat.conversations.history'));
     } else if (homePage) {
-      document.title = t('chat.page_title');
+      setDocumentTitle(t('chat.page_title'));
     } else {
-      document.title = chatTitle;
+      setDocumentTitle(chatTitle);
     }
   }, [chatTitle, conversationsPage, homePage]);
 
   return (
-    <header className="rounded-[16px] sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
+    <header className="rounded-2xl sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
         {(!open || isMobile) && (
           <TooltipProvider>

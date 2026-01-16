@@ -102,8 +102,71 @@
   }
 }
 
-body {
+html {
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  overflow: hidden;
   background: hsl(var(--sidebar-background));
+}
+
+body {
+  height: 100%;
+  overflow: hidden;
+  background: hsl(var(--sidebar-background));
+}
+
+#root {
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top);
+  background: hsl(var(--sidebar-background));
+  z-index: 9999;
+  pointer-events: none;
+}
+
+@media (display-mode: standalone) {
+  html {
+    height: 100dvh;
+    height: 100svh;
+  }
+
+  body {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  #root {
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  body {
+    background: #ffffff;
+  }
+
+  body::before {
+    background: #ffffff;
+  }
+
+  .dark body {
+    background: hsl(var(--background));
+  }
+
+  .dark body::before {
+    background: hsl(var(--background));
+  }
 }
 
 .reset-list ol {
