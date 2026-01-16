@@ -89,7 +89,27 @@
     "add_it_to_context": "Add this File to Chat Box",
     "add_it_only_to_context": "Add this File only to Chat Box",
     "wide": "Widescreen Mode",
-    "rename": "Rename"
+    "rename": "Rename",
+    "export_all": "Export All"
+  },
+  "export": {
+    "title": "Export All Resources",
+    "description": "Export all documents and subfolders as a zip file",
+    "start": "Start Export",
+    "cancel": "Cancel",
+    "success": "Export completed successfully",
+    "failed": "Export failed",
+    "confirm_message": "Export all resources in \"{{name}}\" as a zip file?",
+    "phase": {
+      "fetching": "Fetching resources...",
+      "downloading": "Downloading content...",
+      "packaging": "Creating zip file...",
+      "complete": "Export complete!",
+      "error": "Export failed"
+    },
+    "progress": "{{current}} / {{total}}",
+    "current_item": "Processing: {{name}}",
+    "error_message": "Error: {{message}}"
   },
   "form": {
     "or": "or",

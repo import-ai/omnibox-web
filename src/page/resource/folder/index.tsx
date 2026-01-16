@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { format } from 'date-fns';
+import { Download } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -14,17 +15,21 @@ import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 import { groupItemsByTimestamp } from '../utils';
 import { FolderContent } from './content';
+import { ExportAllDialog } from './export-all-dialog';
 
 interface IProps {
   resourceId: string;
   apiPrefix: string;
   navigationPrefix: string;
+  namespaceId?: string;
+  folderName?: string;
 }
 
 const PAGE_SIZE = 10;
 
 export default function Folder(props: IProps) {
-  const { resourceId, apiPrefix, navigationPrefix } = props;
+  const { resourceId, apiPrefix, navigationPrefix, namespaceId, folderName } =
+    props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const app = useApp();
@@ -33,6 +38,7 @@ export default function Folder(props: IProps) {
   const [data, onData] = useState<Array<ResourceSummary>>([]);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   useEffect(() => {
     onLoading(true);
@@ -94,6 +100,18 @@ export default function Folder(props: IProps) {
     <div className="space-y-6">
       {data.length > 0 ? (
         <>
+          {namespaceId && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setExportDialogOpen(true)}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {t('actions.export_all')}
+              </Button>
+            </div>
+          )}
           {groupItemsByTimestamp(data, i18n).map(([key, items]) => (
             <div key={key}>
               <div className="pb-4">
@@ -164,6 +182,15 @@ export default function Folder(props: IProps) {
         <div className="mt-12 text-center text-gray-500">
           {t('no_pages_inside')}
         </div>
+      )}
+      {namespaceId && (
+        <ExportAllDialog
+          open={exportDialogOpen}
+          onOpenChange={setExportDialogOpen}
+          namespaceId={namespaceId}
+          resourceId={resourceId}
+          folderName={folderName || t('untitled')}
+        />
       )}
     </div>
   );

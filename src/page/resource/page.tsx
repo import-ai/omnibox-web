@@ -42,6 +42,8 @@ export default function Page(props: IProps) {
           resourceId={resource.id}
           apiPrefix={`/namespaces/${namespaceId}/resources`}
           navigationPrefix={`/${namespaceId}`}
+          namespaceId={namespaceId}
+          folderName={resource.name || t('untitled')}
         />
       ) : (
         <Render
