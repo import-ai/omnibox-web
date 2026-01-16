@@ -145,6 +145,10 @@ body::before {
     padding-top: 0;
     padding-bottom: 0;
   }
+
+  #root {
+    padding-bottom: 0;
+  }
 }
 
 @media (max-width: 767px) {
