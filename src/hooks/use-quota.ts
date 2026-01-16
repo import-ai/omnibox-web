@@ -22,6 +22,7 @@ export interface UsageData {
     other_users: number;
     total: number;
   };
+  expire_date?: Date | null;
 }
 
 export default function useQuota(namespaceId: string) {

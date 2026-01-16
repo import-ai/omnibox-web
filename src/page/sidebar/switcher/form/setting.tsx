@@ -193,8 +193,6 @@ export default function SettingForm({
           </form>
         </Form>
       )}
-      <Separator className="bg-neutral-200" />
-      <RemainQuota namespaceId={namespaceId} />
       {/* Danger Zone */}
       <div className="border-t pt-6">
         <h3 className="text-sm font-medium text-destructive mb-4">
@@ -284,6 +282,8 @@ export default function SettingForm({
         loading={deleting}
         onConfirm={handleDelete}
       />
+      <Separator className="bg-neutral-200" />
+      <RemainQuota namespaceId={namespaceId} />
     </div>
   );
 }
