@@ -1,20 +1,45 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import Apple from '../apple';
 import { Available } from '../available';
+import Email from '../email';
 import Google from '../google';
 import MetaPage from '../meta';
+import Phone from '../phone';
 import WeChat from '../wechat';
 import Scan from '../wechat/scan';
 import WrapperPage from '../wrapper';
 import { LoginForm } from './form';
 
+export type ContactMethod = 'email' | 'phone';
+export type AuthMethod = 'otp' | 'password';
+
 export default function LoginPage() {
   const [scan, onScan] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const phoneParam = params.get('phone');
+  const modeParam = params.get('mode');
+
+  // Get initial contact method from URL params
+  const getInitialContactMethod = (): ContactMethod => {
+    if (modeParam === 'phone' || phoneParam) return 'phone';
+    return 'email';
+  };
+
+  // Get initial auth method from URL params
+  const getInitialAuthMethod = (): AuthMethod => {
+    return 'otp';
+  };
+
+  const [contactMethod, setContactMethod] = useState<ContactMethod>(
+    getInitialContactMethod
+  );
+  const [authMethod, setAuthMethod] =
+    useState<AuthMethod>(getInitialAuthMethod);
 
   useEffect(() => {
     const uid = localStorage.getItem('uid');
@@ -28,15 +53,34 @@ export default function LoginPage() {
       {scan ? (
         <Scan onScan={onScan} />
       ) : (
-        <LoginForm>
+        <LoginForm
+          contactMethod={contactMethod}
+          authMethod={authMethod}
+          setAuthMethod={setAuthMethod}
+        >
           <Available>
             {available => {
-              if (Object.keys(available).length <= 0) {
+              const hasOtherOptions =
+                available.wechat || available.google || available.apple;
+
+              if (!hasOtherOptions) {
                 return null;
               }
+
               return (
                 <div className="grid gap-6">
                   <div className="flex flex-col gap-2">
+                    {contactMethod === 'phone' ? (
+                      <Email
+                        onClick={() => setContactMethod('email')}
+                        mode="login"
+                      />
+                    ) : (
+                      <Phone
+                        onClick={() => setContactMethod('phone')}
+                        mode="login"
+                      />
+                    )}
                     {available.wechat && <WeChat onScan={onScan} />}
                     {available.google && <Google />}
                     {available.apple && <Apple />}

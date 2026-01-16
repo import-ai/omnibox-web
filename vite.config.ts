@@ -3,6 +3,7 @@ import path from 'node:path';
 import react from '@vitejs/plugin-react';
 import { execSync } from 'child_process';
 import { defineConfig, loadEnv } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 let gitHash = 'unknown';
 try {
@@ -18,7 +19,13 @@ export default defineConfig(({ mode }) => {
     define: {
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(gitHash),
     },
-    plugins: [react()],
+    plugins: [
+      react(),
+      VitePWA({
+        injectRegister: false,
+        manifest: false,
+      }),
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

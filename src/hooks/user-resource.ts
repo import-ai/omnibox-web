@@ -7,6 +7,7 @@ import { SITE_NAME } from '@/const';
 import App from '@/hooks/app.class';
 import { Resource } from '@/interface';
 import { http } from '@/lib/request';
+import { setDocumentTitle } from '@/lib/utils';
 
 import useApp from './use-app';
 
@@ -61,10 +62,10 @@ export default function useResource() {
 
   useEffect(() => {
     if (!resource) {
-      document.title = SITE_NAME;
+      setDocumentTitle(SITE_NAME);
       return;
     }
-    document.title = resource.name ? resource.name : t('untitled');
+    setDocumentTitle(resource.name ? resource.name : t('untitled'));
   }, [resource]);
 
   // Monitor the update_resource event and synchronize the update of the resource name on the current page

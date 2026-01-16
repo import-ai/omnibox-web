@@ -10,6 +10,7 @@ import * as z from 'zod';
 import { AppleIcon } from '@/assets/icons/apple';
 import { MailIcon } from '@/assets/icons/email';
 import { GoogleIcon } from '@/assets/icons/google';
+import { SmartphoneIcon } from '@/assets/icons/smartphone';
 import { WeChatIcon } from '@/assets/icons/wechat';
 import { Button } from '@/components/button';
 import {
@@ -266,6 +267,7 @@ export default function ProfileForm() {
     http.get('/user/binding/list').then(response => {
       setBindingData(
         [
+          { icon: <SmartphoneIcon />, login_type: 'phone' },
           { icon: <WeChatIcon />, login_type: 'wechat' },
           { icon: <GoogleIcon />, login_type: 'google' },
           { icon: <AppleIcon />, login_type: 'apple' },
@@ -278,6 +280,9 @@ export default function ProfileForm() {
       );
     });
   };
+
+  // Get phone binding from bindingData
+  const phoneBinding = bindingData.find(b => b.login_type === 'phone');
 
   useEffect(() => {
     refetchBindings();
@@ -350,8 +355,11 @@ export default function ProfileForm() {
   // Handle unbind
   const handleUnbind = (loginType: string) => {
     setUnbinding(true);
+    // Phone unbind uses a different endpoint under /user
+    const unbindUrl =
+      loginType === 'phone' ? '/user/phone/unbind' : `/${loginType}/unbind`;
     http
-      .post(`/${loginType}/unbind`)
+      .post(unbindUrl)
       .then(() => {
         refetchBindings();
         toast(t('setting.third_party_account.unbind_success'), {
@@ -371,7 +379,7 @@ export default function ProfileForm() {
     );
   }
 
-  const maskedPassword = '••••••••••••';
+  const maskedPassword = '********';
 
   return (
     <div className="flex flex-col items-start w-full lg:w-[533px] gap-4 lg:gap-5">
@@ -403,22 +411,29 @@ export default function ProfileForm() {
       {/* Binding Section Header */}
       <SectionHeader title={t('setting.binding')} className="mt-4" />
 
-      {/* Phone Row - Hidden temporarily, uncomment when phone binding API is ready
-      <BindingRow
-        icon={<SmartphoneIcon />}
-        label={t('setting.phone')}
-        value={user?.phone || t('setting.not_bound')}
-        isBound={!!user?.phone}
-        onBind={
-          <ActionButton
-            variant="primary"
-            onClick={() => setPhoneDialogOpen(true)}
-          >
-            {t('setting.bind_btn')}
+      {/* Phone Row */}
+      <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
+        <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
+          <div className="flex items-center flex-shrink-0 gap-2">
+            <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
+              <SmartphoneIcon />
+            </span>
+            <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
+              {t('setting.phone')}
+            </p>
+          </div>
+          <p className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis text-sm lg:text-base flex-1 min-w-0">
+            {phoneBinding?.login_id
+              ? phoneBinding.login_id
+              : t('setting.not_bound')}
+          </p>
+        </div>
+        <div className="flex-shrink-0 ml-2">
+          <ActionButton onClick={() => setPhoneDialogOpen(true)}>
+            {phoneBinding?.id ? t('setting.change') : t('setting.bind_btn')}
           </ActionButton>
-        }
-      />
-      */}
+        </div>
+      </div>
 
       {/* Email Row */}
       <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
@@ -442,38 +457,41 @@ export default function ProfileForm() {
         </div>
       </div>
 
-      {/* Google & WeChat & Apple Bindings */}
-      {bindingData.map(item => {
-        let displayValue = t('setting.not_bound');
-        if (item.id) {
-          if (item.login_type === 'wechat') {
-            displayValue =
-              item.metadata?.nickname || t('setting.third_party_account.bound');
-          } else if (
-            item.login_type === 'google' ||
-            item.login_type === 'apple'
-          ) {
-            displayValue = item.metadata?.email || item.email || '';
-          } else {
-            displayValue = t('setting.third_party_account.bound');
-          }
-        }
-
-        return (
-          <BindingRow
-            key={item.login_type}
-            icon={item.icon}
-            label={t(`setting.third_party_account.${item.login_type}`)}
-            value={displayValue}
-            isBound={!!item.id}
-            onUnbind={() => handleUnbind(item.login_type)}
-            onBind={
-              <Wrapper type={item.login_type} onSuccess={refetchBindings} />
+      {/* WeChat, Google & Apple Bindings */}
+      {bindingData
+        .filter(item => item.login_type !== 'phone')
+        .map(item => {
+          let displayValue = t('setting.not_bound');
+          if (item.id) {
+            if (item.login_type === 'wechat') {
+              displayValue =
+                item.metadata?.nickname ||
+                t('setting.third_party_account.bound');
+            } else if (
+              item.login_type === 'google' ||
+              item.login_type === 'apple'
+            ) {
+              displayValue = item.metadata?.email || item.email || '';
+            } else {
+              displayValue = t('setting.third_party_account.bound');
             }
-            unbinding={unbinding}
-          />
-        );
-      })}
+          }
+
+          return (
+            <BindingRow
+              key={item.login_type}
+              icon={item.icon}
+              label={t(`setting.third_party_account.${item.login_type}`)}
+              value={displayValue}
+              isBound={!!item.id}
+              onUnbind={() => handleUnbind(item.login_type)}
+              onBind={
+                <Wrapper type={item.login_type} onSuccess={refetchBindings} />
+              }
+              unbinding={unbinding}
+            />
+          );
+        })}
 
       {/* Username Change Dialog */}
       <Dialog open={usernameDialogOpen} onOpenChange={setUsernameDialogOpen}>

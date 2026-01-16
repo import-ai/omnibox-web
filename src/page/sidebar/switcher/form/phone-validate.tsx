@@ -1,12 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
-import { X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { PhoneNumberInput } from '@/components/phone-input';
+import { formatPhone } from '@/components/phone-input/utils.ts';
 import {
   Form,
   FormControl,
@@ -14,15 +14,17 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { usePhoneConfig } from '@/hooks/use-phone-config';
+import {
+  getOtpErrorMessage,
+  useVerificationCode,
+} from '@/hooks/use-verification-code';
 import { http } from '@/lib/request';
-import { cn } from '@/lib/utils';
+import { phoneSchema } from '@/lib/validation-schemas';
+import { OtpInput } from '@/page/user/components/otp-input';
 
 const PhoneSchema = z.object({
-  phone: z
-    .string()
-    .min(1, i18next.t('phone.phone_required'))
-    .regex(/^1[3-9]\d{9}$/, { message: i18next.t('phone.phone_invalid') }),
+  phone: phoneSchema,
 });
 
 type PhoneFormValues = z.infer<typeof PhoneSchema>;
@@ -43,6 +45,7 @@ function PhoneInputStep({
   submitting: boolean;
 }) {
   const { t } = useTranslation();
+  const { allowedCountries } = usePhoneConfig();
   const form = useForm<PhoneFormValues>({
     resolver: zodResolver(PhoneSchema),
     defaultValues: { phone: '' },
@@ -53,9 +56,9 @@ function PhoneInputStep({
   };
 
   return (
-    <div className="flex w-96 flex-col items-center gap-5">
+    <div className="flex w-full max-w-96 flex-col items-center gap-5">
       <div className="flex w-full flex-col items-center gap-2.5">
-        <p className="w-full text-center text-2xl font-semibold text-foreground">
+        <p className="w-full text-center text-xl lg:text-2xl font-semibold text-foreground">
           {t('phone.input_phone')}
         </p>
 
@@ -79,23 +82,13 @@ function PhoneInputStep({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        disabled={submitting}
-                        placeholder={t('phone.enter_phone')}
-                        className="h-10 w-full rounded-md border-border pr-10 text-sm font-medium"
-                      />
-                      {field.value && (
-                        <button
-                          type="button"
-                          onClick={() => form.setValue('phone', '')}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          <X className="size-5" />
-                        </button>
-                      )}
-                    </div>
+                    <PhoneNumberInput
+                      value={field.value as any}
+                      onChange={field.onChange}
+                      disabled={submitting}
+                      placeholder={t('phone.enter_phone')}
+                      allowedCountries={allowedCountries}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -122,116 +115,44 @@ function VerificationCodeStep({
   onVerify,
   onResend,
   submitting,
+  error,
+  onClearError,
 }: {
   phone: string;
   onVerify: (code: string) => void;
   onResend: () => void;
   submitting: boolean;
+  error: string;
+  onClearError: () => void;
 }) {
   const { t } = useTranslation();
-  const [code, setCode] = useState(['', '', '', '', '', '']);
-  const [countdown, setCountdown] = useState(60);
-  const [canResend, setCanResend] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  // Countdown timer
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
-    }
-  }, [countdown]);
-
-  const handleInputChange = (index: number, value: string) => {
-    // Only allow digits
-    if (value && !/^\d$/.test(value)) return;
-
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    // Auto-submit when all 6 digits entered
-    if (newCode.every(digit => digit !== '') && newCode.join('').length === 6) {
-      onVerify(newCode.join(''));
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData
-      .getData('text')
-      .replace(/\D/g, '')
-      .slice(0, 6);
-    if (pastedData.length === 6) {
-      const newCode = pastedData.split('');
-      setCode(newCode);
-      onVerify(pastedData);
-    }
-  };
-
-  const handleResend = () => {
-    if (canResend) {
-      setCountdown(60);
-      setCanResend(false);
-      onResend();
-    }
-  };
-
-  // Mask phone number for display (e.g., 138****1234)
-  const maskedPhone = phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+  const { code, countdown, canResend, handleCodeChange, handleResend } =
+    useVerificationCode(error, onClearError);
 
   return (
-    <div className="flex w-96 flex-col items-start gap-5">
+    <div className="flex w-full max-w-96 flex-col items-start gap-5">
       <div className="flex w-full flex-col items-start gap-4">
         <div className="flex w-full flex-col items-center gap-2.5">
-          <p className="w-full text-center text-2xl font-semibold text-foreground">
+          <p className="w-full text-center text-xl lg:text-2xl font-semibold text-foreground">
             {t('phone.input_verification_code')}
           </p>
 
           <p className="w-full text-center text-sm font-medium text-muted-foreground">
             {t('phone.sent_code_to')}
             <span className="font-semibold text-muted-foreground">
-              {maskedPhone}
+              {formatPhone(phone)}
             </span>
           </p>
         </div>
 
-        <div className="flex h-14 w-96 items-center justify-center">
-          {code.map((digit, index) => (
-            <input
-              key={index}
-              ref={el => (inputRefs.current[index] = el)}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={e => handleInputChange(index, e.target.value)}
-              onKeyDown={e => handleKeyDown(index, e)}
-              onPaste={index === 0 ? handlePaste : undefined}
-              disabled={submitting}
-              className={cn(
-                'h-12 w-12 border border-border bg-background text-center text-2xl font-semibold outline-none focus:border-primary',
-                index === 0
-                  ? 'rounded-l-md'
-                  : index === 5
-                    ? 'rounded-r-md border-l-0'
-                    : 'border-l-0'
-              )}
-            />
-          ))}
+        <div className="flex flex-col items-center gap-2 w-full">
+          <OtpInput
+            value={code}
+            onChange={handleCodeChange}
+            onComplete={onVerify}
+            error={error}
+            disabled={submitting}
+          />
         </div>
 
         <div className="flex w-full flex-col items-center justify-center gap-2.5">
@@ -242,7 +163,7 @@ function VerificationCodeStep({
             {canResend ? (
               <span
                 className="cursor-pointer text-foreground hover:underline"
-                onClick={handleResend}
+                onClick={() => handleResend(onResend)}
               >
                 {' '}
                 {t('phone.resend')}
@@ -266,6 +187,7 @@ export default function PhoneValidate(props: IProps) {
   const [step, setStep] = useState<'phone' | 'code'>('phone');
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSendCode = async (phoneNumber: string) => {
     setSubmitting(true);
@@ -273,11 +195,10 @@ export default function PhoneValidate(props: IProps) {
       await http.post('/user/phone/send-code', { phone: phoneNumber });
       setPhone(phoneNumber);
       setStep('code');
+      setError('');
       toast.success(t('phone.code_sent'), { position: 'bottom-right' });
-    } catch (error: any) {
-      toast.error(error.message || t('phone.send_failed'), {
-        position: 'bottom-right',
-      });
+    } catch {
+      // Error toast is handled automatically by http client
     } finally {
       setSubmitting(false);
     }
@@ -286,27 +207,29 @@ export default function PhoneValidate(props: IProps) {
   const handleResendCode = async () => {
     try {
       await http.post('/user/phone/send-code', { phone });
+      setError('');
       toast.success(t('phone.code_sent'), { position: 'bottom-right' });
-    } catch (error: any) {
-      toast.error(error.message || t('phone.send_failed'), {
-        position: 'bottom-right',
-      });
+    } catch {
+      // Error toast is handled automatically by http client
     }
   };
 
   const handleVerify = async (code: string) => {
     setSubmitting(true);
+    setError('');
     try {
-      await http.post('/user/phone/bind', { phone, code });
+      // Use mute: true since we handle errors in UI via setError
+      await http.post('/user/phone/bind', { phone, code }, { mute: true });
       toast.success(t('phone.bind_success'), { position: 'bottom-right' });
       onFinish();
-    } catch (error: any) {
-      toast.error(error.message || t('phone.bind_failed'), {
-        position: 'bottom-right',
-      });
-    } finally {
+    } catch (err: any) {
       setSubmitting(false);
+      setError(getOtpErrorMessage(err, t));
     }
+  };
+
+  const handleClearError = () => {
+    setError('');
   };
 
   if (step === 'phone') {
@@ -325,6 +248,8 @@ export default function PhoneValidate(props: IProps) {
       onVerify={handleVerify}
       onResend={handleResendCode}
       submitting={submitting}
+      error={error}
+      onClearError={handleClearError}
     />
   );
 }

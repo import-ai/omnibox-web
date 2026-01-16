@@ -1,7 +1,7 @@
 {
   "name": "omnibox",
   "private": true,
-  "version": "0.1.17",
+  "version": "0.1.19",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx && prettier --check .",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix && prettier --write .",
     "format": "prettier --write .",
-    "preview": "vite preview",
+    "preview": "vite build && vite preview",
     "prepare": "husky"
   },
   "dependencies": {
@@ -50,6 +50,7 @@
     "js-cookie": "^3.0.5",
     "jszip": "^3.10.1",
     "katex": "^0.16.27",
+    "libphonenumber-js": "^1.12.34",
     "lodash-es": "^4.17.22",
     "lucide-react": "^0.468.0",
     "next-themes": "^0.4.6",
@@ -72,7 +73,6 @@
     "simple-icons": "^15.22.0",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
-    "spark-md5": "^3.0.2",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "vditor": "^3.11.2",
@@ -89,7 +89,6 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "@types/spark-md5": "^3.0.5",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
     "@vitejs/plugin-react": "^4.7.0",
@@ -109,7 +108,8 @@
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "vite": "^7.3.0"
+    "vite": "^7.3.0",
+    "vite-plugin-pwa": "^1.2.0"
   },
   "packageManager": "pnpm@10.27.0"
 }
