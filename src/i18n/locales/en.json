@@ -114,7 +114,10 @@
     "role": "Role",
     "username_not_emptyStr": "Invalid username",
     "change_username_desc": "Change your username",
-    "change_password_desc": "Change your password"
+    "change_password_desc": "Change your password",
+    "phone": "Phone number",
+    "phone_required": "Please enter your phone number",
+    "phone_invalid": "Please enter a valid phone number"
   },
   "invite": {
     "title": "Add members via invite link",
@@ -173,15 +176,19 @@
     "continue": "Continue",
     "use_password": "Use password",
     "use_email": "Use email code",
+    "use_otp": "Use verification code",
     "sign_up": "Sign Up",
+    "back": "Back",
     "email_not_exists": "This email doesn't exist. Please sign up to continue.",
+    "phone_not_exists": "This phone number doesn't exist. Please sign up to continue.",
     "title": "Login to your account",
     "description": "Enter your email below to login your account",
     "authorizing": "Authorizing, please wait...",
-    "back": "Back",
     "login_use_wechat": "Login with WeChat",
     "login_use_google": "Login with Google",
     "login_use_apple": "Login with Apple",
+    "login_use_email": "Login with Email",
+    "login_use_phone": "Login with Phone",
     "wechat_disabled": "WeChat login is not supported in the current environment",
     "apple_signin_failed": "Apple sign in failed",
     "apple_sdk_not_loaded": "Apple SDK not loaded",
@@ -198,15 +205,19 @@
     "submit": "Sign Up",
     "success": "Registration successful, please check your email to activate your account",
     "email_already_exists": "This email is already registered. Please login to continue.",
+    "phone_already_exists": "This phone number is already registered. Please login to continue.",
     "conform_title": "Complete Account Creation",
     "conform_description": "Enter your information to complete account creation",
     "register_use_wechat": "Sign up with WeChat",
     "register_use_google": "Sign up with Google",
-    "register_use_apple": "Sign up with Apple"
+    "register_use_apple": "Sign up with Apple",
+    "register_use_email": "Sign up with Email",
+    "register_use_phone": "Sign up with Phone"
   },
   "verify_otp": {
     "title": "Enter verification code",
     "description": "We sent a 6-digit code to",
+    "description_phone": "We sent a 6-digit code to",
     "didnt_receive": "Didn't receive the code?",
     "resend": "Resend code",
     "resending": "Sending...",
@@ -268,8 +279,6 @@
     "send_failed": "Failed to send verification code"
   },
   "phone": {
-    "phone_required": "Please enter your phone number",
-    "phone_invalid": "Please enter a valid phone number",
     "input_phone": "Enter Phone Number",
     "current_phone_is": "Your current phone number is",
     "will_send_verification": "Please enter your phone number, we will send you a verification code",
