@@ -1,3 +1,7 @@
+import {
+  isValidPhoneNumber,
+  parsePhoneNumberFromString,
+} from 'libphonenumber-js';
 import { z } from 'zod';
 
 /**
@@ -51,3 +55,27 @@ export const passwordWithConfirmSchema = z
     message: 'form.password_not_match',
     path: ['password_repeat'],
   });
+
+/**
+ * Phone number validation schema
+ * - Validates phone number format using libphonenumber-js
+ * - For Chinese numbers, only allows mobile phone prefixes (13x-19x)
+ */
+export const phoneSchema = z
+  .string()
+  .min(1, 'form.phone_required')
+  .refine(val => isValidPhoneNumber(val || ''), {
+    message: 'form.phone_invalid',
+  })
+  .refine(
+    val => {
+      const parsed = parsePhoneNumberFromString(val || '');
+      // If it's not a Chinese number, allow it
+      if (parsed?.country !== 'CN') return true;
+
+      // Chinese mobile numbers: 11 digits starting with 1[3-9]
+      const nationalNumber = parsed?.nationalNumber || '';
+      return /^1[3-9]\d{9}$/.test(nationalNumber);
+    },
+    { message: 'form.phone_invalid' }
+  );

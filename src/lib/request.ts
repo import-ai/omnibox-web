@@ -98,7 +98,7 @@ request.interceptors.response.use(
             errorMessage = i18next.t('request.unknown_error');
         }
       }
-      if (err.status === 401) {
+      if (err.status === 401 && window.location.pathname !== '/user/login') {
         handleTokenError(false);
       }
       toast.error(errorMessage, { position: 'bottom-right' });
