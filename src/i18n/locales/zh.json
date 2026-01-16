@@ -780,5 +780,19 @@
     "restore_success": "已恢复",
     "delete_success": "已永久删除",
     "clear_success": "回收站已清空"
+  },
+  "export": {
+    "export_all": "导出全部",
+    "title": "正在导出",
+    "description": "正在生成包含此文件夹所有资源的 ZIP 文件",
+    "starting": "开始导出...",
+    "fetching": "准备资源中...",
+    "processing": "处理资源中...",
+    "processing_count": "正在处理 {{current}}/{{total}} 个资源",
+    "downloading": "正在下载 ZIP 文件...",
+    "complete": "导出完成",
+    "error": "导出失败",
+    "timeout": "导出超时",
+    "canceled": "导出已取消"
   }
 }
