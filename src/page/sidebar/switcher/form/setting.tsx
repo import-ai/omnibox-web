@@ -31,6 +31,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
+import { enable_commercial_features } from '@/const';
 import useNamespace from '@/hooks/use-namespace';
 import useNamespaces from '@/hooks/use-namespaces';
 import { isEmoji } from '@/lib/emoji';
@@ -282,8 +283,12 @@ export default function SettingForm({
         loading={deleting}
         onConfirm={handleDelete}
       />
-      <Separator className="bg-neutral-200" />
-      <RemainQuota namespaceId={namespaceId} />
+      {enable_commercial_features && (
+        <>
+          <Separator className="bg-neutral-200" />
+          <RemainQuota namespaceId={namespaceId} />
+        </>
+      )}
     </div>
   );
 }

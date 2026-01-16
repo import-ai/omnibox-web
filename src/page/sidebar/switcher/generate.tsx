@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { enable_commercial_features } from '@/const';
 
 import GenerateForm from './form/namespace';
 
@@ -20,16 +21,18 @@ interface GenerateProps {
 }
 
 export default function Generate({ onCloseDropdown }: GenerateProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
+  const handleUpgrade = () => {
+    const lang = i18n.language === 'en-US' ? 'zh-cn' : 'en';
+    location.href = `/${lang}/pricing`;
+  };
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const quotaExceeded = true;
-
-    if (quotaExceeded) {
+    if (enable_commercial_features) {
       onCloseDropdown();
 
       toast(
@@ -50,9 +53,7 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
             <Button
               size="sm"
               className="toast-button bg-blue-500 hover:bg-blue-600"
-              onClick={() => {
-                location.href = '/pricing';
-              }}
+              onClick={handleUpgrade}
             >
               {t('namespace.quota_expand_button')}
               <SquareArrowOutUpRight />
