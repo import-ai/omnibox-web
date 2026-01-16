@@ -41,7 +41,15 @@ export default function AuthConfirmPage() {
           }, 2000);
         } else {
           setGlobalCredential(res.id, res.access_token);
-          navigate('/', { replace: true });
+
+          // Check for stored redirect parameter
+          const redirect = localStorage.getItem('oauth_redirect');
+          if (redirect) {
+            localStorage.removeItem('oauth_redirect');
+            location.href = decodeURIComponent(redirect);
+          } else {
+            navigate('/', { replace: true });
+          }
         }
       })
       .catch(() => {

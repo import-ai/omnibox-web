@@ -46,7 +46,14 @@ export default function AuthConfirmPage() {
             const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
             window.location.href = h5Url;
           } else {
-            navigate('/', { replace: true });
+            // Check for stored redirect parameter
+            const redirect = localStorage.getItem('oauth_redirect');
+            if (redirect) {
+              localStorage.removeItem('oauth_redirect');
+              location.href = decodeURIComponent(redirect);
+            } else {
+              navigate('/', { replace: true });
+            }
           }
         }
       })
