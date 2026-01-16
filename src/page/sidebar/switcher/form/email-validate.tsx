@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -16,6 +16,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import useUser from '@/hooks/use-user';
+import {
+  getOtpErrorMessage,
+  useVerificationCode,
+} from '@/hooks/use-verification-code';
 import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { OtpInput } from '@/page/user/components/otp-input';
@@ -135,41 +139,8 @@ function VerificationCodeStep({
   onClearError: () => void;
 }) {
   const { t } = useTranslation();
-  const [code, setCode] = useState('');
-  const [countdown, setCountdown] = useState(60);
-  const [canResend, setCanResend] = useState(false);
-
-  // Clear code when error occurs
-  useEffect(() => {
-    if (error) {
-      setCode('');
-    }
-  }, [error]);
-
-  // Countdown timer
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
-    }
-  }, [countdown]);
-
-  const handleCodeChange = (value: string) => {
-    if (error) {
-      onClearError();
-    }
-    setCode(value);
-  };
-
-  const handleResend = () => {
-    if (canResend) {
-      setCountdown(60);
-      setCanResend(false);
-      onResend();
-    }
-  };
+  const { code, countdown, canResend, handleCodeChange, handleResend } =
+    useVerificationCode(error, onClearError);
 
   return (
     <div className="flex w-full max-w-96 flex-col items-start gap-5">
@@ -206,7 +177,7 @@ function VerificationCodeStep({
             {canResend ? (
               <span
                 className="cursor-pointer text-foreground hover:underline"
-                onClick={handleResend}
+                onClick={() => handleResend(onResend)}
               >
                 {' '}
                 {t('email.resend')}
@@ -268,23 +239,7 @@ export default function EmailValidate(props: IProps) {
       await onFinish(newEmail, code);
     } catch (err: any) {
       setSubmitting(false);
-      const response = err.response?.data;
-      // Handle error with remaining attempts
-      if (response?.remaining !== undefined) {
-        if (response.remaining > 0) {
-          setError(
-            t('verify_otp.error_invalid_code_with_attempts', {
-              remaining: response.remaining,
-            })
-          );
-        } else {
-          setError(t('verify_otp.error_too_many_attempts'));
-        }
-      } else if (response?.code === 'otp_expired') {
-        setError(t('verify_otp.error_expired_code'));
-      } else {
-        setError(response?.message || t('verify_otp.error_invalid_code'));
-      }
+      setError(getOtpErrorMessage(err, t));
     }
   };
 
