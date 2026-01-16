@@ -2,6 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function () {
+        var lang = localStorage.getItem('i18nextLng') || navigator.language;
+        var isZh = lang.toLowerCase().startsWith('zh');
+        var appName = isZh ? '小黑' : 'OmniBox';
+        var manifestHref = isZh ? '/manifest-zh.json' : '/manifest.json';
+
+        // Use document.write for both manifest link and apple-mobile-web-app-title
+        // This ensures the correct language version is used from the start
+        document.write('<link rel="manifest" href="' + manifestHref + '" />');
+        document.write(
+          '<meta name="apple-mobile-web-app-title" content="' + appName + '" />'
+        );
+      })();
+    </script>
     <meta
       http-equiv="Cache-Control"
       content="no-cache, no-store, must-revalidate"
@@ -12,13 +27,23 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <!-- https://stackoverflow.com/questions/35409588/favicon-requested-on-every-route-change -->
-    <link
-      rel="shortcut icon"
-      href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAhOAAAITgBRZYxYAAAAuJQTFRFAAAAUJL5T5H5TpD5TZD5TZD5TZD5VJT6UpP5UZP6UZP6UpP6UZP5UZL5UZL6UZP5VJT5Vpb6VpX6VZX6VpX6W5n6W5n6W5j6X5v6X5v6Y577Y577Y576Y576aKH7aaH7bKT7baT7cKb7cKf7cab7dqr8dan7UXGkIigyKzZHYYvLdan6eq38eqz8bpvhICUsFxcXICUtXH62f6/8WXmqISYueqjxfaz4g7L8QVNvQ1Z1grH6g7P8eKLlR11/Jiw3GBgZSF6Ah7X9iLX9KzNAHB4hbZDGhbL4YYCwJSs1IykxfafojLj9i7b6GhsdOERYirb6RldzHyInfKPfkbv9f6PcOUVYPUpfQE5lRldyUmiJYn2ndZfLgqfhjrf4havnO0hcISUqgqjilb79cIy5GBgYISQpLzdESVlzKC02jbPumsH+X3SWNDxJmcD9nsT+nMH6Qk5gSlhunsP+osb+b4apGxwdaH2do8b+mLfmJSgtNzU0OTg3i6fSp8r+b4OhWlhV3NXM/fXr/vbs0szDV1VSHh8iqMj6rMz/PkZSOjk38urh3tfOqaSe5d7V9u7kRURBNzY1l5ONw762sq2mY2BdGhkZJiktsM//GxsclpKMurWuKCcnLCsr5+DXpaCaT01K9/Dm5N3U+vLolI+KorzmstD/raiign56saylvbewGRkZuLKr+PDnf3x3Pz08f3t39OzjKSgnkqnOkIyHt7KrJiYlKiko5t/Wn5uVKyopop2XpJ+ZXFpXiZ/CFxcXMTAv6+Tb2tPKo56Y4drS8OjfOzo54drRqKOdVlRRiJ7AstD/FxcXaWZj4NrR+/Pp/PTq29TMaGVit7Gq9u7lY2FdMjEwYV9b7+jejKPHstD/FxcXKysqRkVDSEZEJyYmOjk4+vLp6+Pa9+/mdHFtmLDXstD/FxcXHx8fb2xom5aRiYWAQD89GRoarMn2stD/FxcXFxcXLjM6stD/stD/P0dTuBP6hAAAAPZ0Uk5TAAEwp+r9/wFI6v//////6gEw6v//p///6v/9///9///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9///////////////96v/////////////////qp/////////////+nMP////////8wAUj/SAGnllsjPQAAAgdJREFUeJx1U11IVGEQnXNVzLIHjRX1oWRhS9GHfhQsiEIiXxSKzIegIBIENUpKxAR9UPpD+gFBFATfRBRJogghRBEkNPR9BUEQV5AyDTdtd79m5l5y79112Hv3zMw5Z+Z+dxcEDUoMo4F06conZsiKWTG9WYaMZUWslL0jyBI1DMyBNC5jB5/0Ka7tZhvkJhsftwjyoSJxYWTIk1k46fUnVwYUiINIbLmt04y7fIPfJePH9GYBco5qP/mWKIGx9Kj+2iPsOUY3kwQX+IpwMQ3RBHUqN1DOV1iyow5DqqQKmRtFBbtvSsHHRvh/FtxeJ8pHGFVMWFXJqbgZqViRLz/2UEMIOtXTcGL3GJa0cg7beEBYcG1WxgzzzcYX2aGRMJv8BDguI4pHwNShhApE8BSYPJRQyYQ2fNbJOdiYTyBU8xF3Tgi6oduPevq18g5eDTO6gz8ZwhhifF+5A0Kol59jfx+jho1c9D4E3hM9/pkNrPh71KKFHc4KaF0OvCRqw3Nqd/4m6JB6145D6F48j2cvgFZ6HcprIeqZu/RE6m9ChKlmBu8wc0WEDdRUjMF5urt7vV4IA8sBLNQJGlTje0TthYo+ntERI99LEbyt64xx9aaAD+O38OMEv2SJT9NXsb5W5374L+JwTeFXbPqwhaCHcRAzoTx+oK3w7187zUnab48X7adl/gOln6A7AMSkIwAAAABJRU5ErkJggg=="
-      type="image/x-icon"
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#ffffff"
     />
-    <title>OmniBox</title>
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#262626"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link rel="apple-touch-icon" href="/icons/pwa_192x192.png" />
+    <link rel="icon" href="/favicon.ico" />
   </head>
   <body>
     <div id="root"></div>
