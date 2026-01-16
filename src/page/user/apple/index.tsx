@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { AppleIcon } from '@/assets/icons/apple';
@@ -43,6 +43,8 @@ export default function Apple(props: IProps) {
   const { mode = 'login' } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const redirect = params.get('redirect');
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [authConfig, setAuthConfig] = useState<any>(null);
@@ -109,7 +111,15 @@ export default function Apple(props: IProps) {
         })
         .then(res => {
           setGlobalCredential(res.id, res.access_token);
-          navigate('/', { replace: true });
+
+          // Check for stored redirect parameter
+          const storedRedirect = localStorage.getItem('oauth_redirect');
+          if (storedRedirect) {
+            localStorage.removeItem('oauth_redirect');
+            location.href = decodeURIComponent(storedRedirect);
+          } else {
+            navigate('/', { replace: true });
+          }
         });
     };
     const handleFailure = (event: CustomEvent) => {
@@ -156,6 +166,11 @@ export default function Apple(props: IProps) {
         position: 'bottom-right',
       });
       return;
+    }
+
+    // Store redirect in localStorage to retrieve after OAuth callback
+    if (redirect) {
+      localStorage.setItem('oauth_redirect', redirect);
     }
 
     setLoading(true);
