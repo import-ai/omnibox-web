@@ -41,6 +41,16 @@ export default class App extends Hook {
     this.theme.code = state === 'dark' ? 'github-dark' : 'github';
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(state);
+
+    // Set color-scheme for native UI components (file picker, scrollbars, etc.)
+    document.documentElement.style.colorScheme = state;
+
+    // Update meta theme-color for PWA status bar
+    const themeColor = state === 'dark' ? '#262626' : '#ffffff';
+    document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
+      meta.setAttribute('content', themeColor);
+    });
+
     return this.theme;
   }
 
