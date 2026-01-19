@@ -93,7 +93,7 @@ export default function Render(props: IProps) {
   }, [search]);
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="pb-8">
       <Markdown
         style={style}
         content={embedImage(resource)}
