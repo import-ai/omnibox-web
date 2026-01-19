@@ -23,7 +23,7 @@ export default function WrapperPage(props: WrapperPageProps) {
   const { t, i18n } = useTranslation();
 
   return (
-    <div className="grid min-h-svh dark:bg-[#262626]">
+    <div className="fixed inset-0 overflow-y-auto dark:bg-[#262626]">
       <div className="flex flex-col gap-4 p-4">
         <div className="flex justify-end gap-2">
           <LanguageToggle />

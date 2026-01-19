@@ -14,9 +14,9 @@ export default function SharedResourcePage() {
 
   if (shareInfo && resource) {
     return (
-      <div className="flex justify-center h-full p-4">
+      <div className="flex justify-center h-full p-4 overflow-auto">
         <div
-          className={cn('flex flex-col w-full h-full', {
+          className={cn('flex flex-col w-full', {
             'max-w-3xl': !wide,
           })}
         >
