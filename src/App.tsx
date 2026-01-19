@@ -28,6 +28,7 @@ const WechatAuthConfirmPage = lazy(
 const GoogleAuthConfirmPage = lazy(
   () => import('@/page/user/google/auth-confirm')
 );
+const OAuthAuthorizePage = lazy(() => import('@/page/oauth/authorize'));
 
 const SharePage = lazy(() => import('@/page/share'));
 const SharedResourcePage = lazy(() => import('@/page/shared-resource'));
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
       {
         path: 'user/auth/confirm/google',
         element: <GoogleAuthConfirmPage />,
+      },
+      {
+        path: 'oauth/authorize',
+        element: <OAuthAuthorizePage />,
       },
       {
         path: 'welcome',
