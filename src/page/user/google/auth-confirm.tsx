@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import { setGlobalCredential } from '@/page/user/util';
+import { setGlobalCredential, setLastLoginMethod } from '@/page/user/util';
 
 import WrapperPage from '../wrapper';
 
@@ -41,6 +41,7 @@ export default function AuthConfirmPage() {
           }, 2000);
         } else {
           setGlobalCredential(res.id, res.access_token);
+          setLastLoginMethod('google');
           navigate('/', { replace: true });
         }
       })

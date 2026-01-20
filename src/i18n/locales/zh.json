@@ -190,6 +190,7 @@
     "login_use_wechat": "使用微信登录",
     "login_use_google": "使用 Google 登录",
     "login_use_apple": "使用 Apple 登录",
+    "last_used": "上次登录",
     "wechat_disabled": "当前环境不支持微信登录",
     "apple_signin_failed": "Apple 登录失败",
     "apple_sdk_not_loaded": "Apple SDK 未加载",

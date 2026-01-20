@@ -7,7 +7,7 @@ import { AppleIcon } from '@/assets/icons/apple';
 import { Button } from '@/components/button';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
-import { setGlobalCredential } from '@/page/user/util';
+import { setGlobalCredential, setLastLoginMethod } from '@/page/user/util';
 
 declare global {
   interface Window {
@@ -109,6 +109,7 @@ export default function Apple(props: IProps) {
         })
         .then(res => {
           setGlobalCredential(res.id, res.access_token);
+          setLastLoginMethod('apple');
           navigate('/', { replace: true });
         });
     };
