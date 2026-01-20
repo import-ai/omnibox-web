@@ -17,6 +17,7 @@ export default function AuthConfirmPage() {
   const [params] = useSearchParams();
   const code = params.get('code');
   const state = params.get('state');
+  const redirect = params.get('redirect');
 
   useEffect(() => {
     if (!code || !state) {
@@ -33,20 +34,32 @@ export default function AuthConfirmPage() {
           toast.success(t('setting.third_party_account.bound'), {
             position: 'bottom-right',
           });
-          navigate('/', { replace: true });
-          setTimeout(() => {
-            app.fire('open_settings', {
-              tab: 'third-party',
-            });
-          }, 2000);
+          // Use redirectUrl from response first, fallback to URL param
+          const finalRedirect = res.redirectUrl
+            ? decodeURIComponent(res.redirectUrl)
+            : redirect
+              ? decodeURIComponent(redirect)
+              : null;
+          if (finalRedirect) {
+            location.href = finalRedirect;
+          } else {
+            navigate('/', { replace: true });
+            setTimeout(() => {
+              app.fire('open_settings', {
+                tab: 'third-party',
+              });
+            }, 2000);
+          }
         } else {
           setGlobalCredential(res.id, res.access_token);
-
-          // Check for stored redirect parameter
-          const redirect = localStorage.getItem('oauth_redirect');
-          if (redirect) {
-            localStorage.removeItem('oauth_redirect');
-            location.href = decodeURIComponent(redirect);
+          // Use redirectUrl from response first, fallback to URL param
+          const finalRedirect = res.redirectUrl
+            ? decodeURIComponent(res.redirectUrl)
+            : redirect
+              ? decodeURIComponent(redirect)
+              : null;
+          if (finalRedirect) {
+            location.href = finalRedirect;
           } else {
             navigate('/', { replace: true });
           }
@@ -55,7 +68,7 @@ export default function AuthConfirmPage() {
       .catch(() => {
         navigate('/user/login', { replace: true });
       });
-  }, [code, state, i18n.language]);
+  }, [code, state, i18n.language, redirect]);
 
   return (
     <WrapperPage useCard={false}>

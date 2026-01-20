@@ -24,14 +24,11 @@ export default function WeChat(props: IProps) {
     toast(t('login.wechat_disabled'), { position: 'bottom-right' });
   };
   const loginWithWeChat = () => {
-    // Store redirect in localStorage to retrieve after OAuth callback
-    if (redirect) {
-      localStorage.setItem('oauth_redirect', redirect);
-    }
-
     if (isWeChat) {
       http
-        .get('/wechat/auth-url')
+        .get('/wechat/auth-url', {
+          params: redirect ? { redirect } : undefined,
+        })
         .then(authUrl => {
           location.href = authUrl;
         })

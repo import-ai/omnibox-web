@@ -17,13 +17,10 @@ export default function Google(props: IProps) {
   const redirect = params.get('redirect');
 
   const loginWithGoogle = () => {
-    // Store redirect in localStorage to retrieve after OAuth callback
-    if (redirect) {
-      localStorage.setItem('oauth_redirect', redirect);
-    }
-
     http
-      .get('/google/auth-url')
+      .get('/google/auth-url', {
+        params: redirect ? { redirect } : undefined,
+      })
       .then(authUrl => {
         window.location.href = authUrl;
       })

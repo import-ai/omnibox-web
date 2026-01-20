@@ -43,8 +43,8 @@ export default function Apple(props: IProps) {
   const { mode = 'login' } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [params] = useSearchParams();
-  const redirect = params.get('redirect');
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [authConfig, setAuthConfig] = useState<any>(null);
@@ -111,12 +111,8 @@ export default function Apple(props: IProps) {
         })
         .then(res => {
           setGlobalCredential(res.id, res.access_token);
-
-          // Check for stored redirect parameter
-          const storedRedirect = localStorage.getItem('oauth_redirect');
-          if (storedRedirect) {
-            localStorage.removeItem('oauth_redirect');
-            location.href = decodeURIComponent(storedRedirect);
+          if (redirect) {
+            location.href = decodeURIComponent(redirect);
           } else {
             navigate('/', { replace: true });
           }
@@ -151,7 +147,7 @@ export default function Apple(props: IProps) {
         handleFailure as EventListener
       );
     };
-  }, [t, i18n.language]);
+  }, [t, i18n.language, redirect]);
 
   const loginWithApple = async () => {
     if (!sdkLoaded) {
@@ -166,11 +162,6 @@ export default function Apple(props: IProps) {
         position: 'bottom-right',
       });
       return;
-    }
-
-    // Store redirect in localStorage to retrieve after OAuth callback
-    if (redirect) {
-      localStorage.setItem('oauth_redirect', redirect);
     }
 
     setLoading(true);
