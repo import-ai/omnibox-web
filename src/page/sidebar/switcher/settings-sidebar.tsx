@@ -176,6 +176,10 @@ export function SettingsSidebar({
             <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5">
               {filteredSpaceItems.map(item => {
                 const isSelected = value === item.value;
+                const icon =
+                  typeof item.icon === 'function'
+                    ? item.icon(isSelected)
+                    : item.icon;
 
                 return (
                   <button
@@ -194,7 +198,7 @@ export function SettingsSidebar({
                         isSelected ? 'text-foreground' : 'text-muted-foreground'
                       )}
                     >
-                      {item.icon}
+                      {icon}
                     </span>
                     <span
                       className={cn(

@@ -150,9 +150,6 @@
     "member_count": "{{ size }} 名成员",
     "conflict": "已有相同名称的空间",
     "no_special_chars": "空间名不允许使用特殊符号",
-    "quota_exceeded": "已超过额度",
-    "quota_exceeded_desc": "当前空间额度已耗尽,请扩容",
-    "quota_expand_button": "扩容",
     "leave": {
       "title": "离开空间",
       "description": "离开此空间。您的私人数据将被删除。",
@@ -783,27 +780,5 @@
     "restore_success": "已恢复",
     "delete_success": "已永久删除",
     "clear_success": "回收站已清空"
-  },
-  "quota": {
-    "storage_usage": "存储用量",
-    "upload": "上传",
-    "file": "文件",
-    "other_users": "空间内其他用户",
-    "audio_video_parse_usage": "音视频解析额度用量",
-    "audio": "音频",
-    "video": "视频",
-    "doc_parse_usage": "PDF/图片解析度用量",
-    "pdf": "PDF",
-    "image": "图片",
-    "other": "其他",
-    "expand_button": "扩容",
-    "validity_period": "空间有效期：",
-    "days_remaining": "剩余{{days}}天（到期{{date}}）",
-    "page_unit": "页",
-    "time": {
-      "seconds": "秒",
-      "minutes": "分钟",
-      "hours": "小时"
-    }
   }
 }
