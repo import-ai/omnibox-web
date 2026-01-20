@@ -34,8 +34,14 @@ export default function AuthConfirmPage() {
           toast.success(t('setting.third_party_account.bound'), {
             position: 'bottom-right',
           });
-          if (redirect) {
-            location.href = decodeURIComponent(redirect);
+          // Use redirectUrl from response first, fallback to URL param
+          const finalRedirect = res.redirectUrl
+            ? decodeURIComponent(res.redirectUrl)
+            : redirect
+              ? decodeURIComponent(redirect)
+              : null;
+          if (finalRedirect) {
+            location.href = finalRedirect;
           } else {
             navigate('/', { replace: true });
             setTimeout(() => {
@@ -50,10 +56,18 @@ export default function AuthConfirmPage() {
           if (res.source === 'h5' && res.h5_redirect) {
             const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
             window.location.href = h5Url;
-          } else if (redirect) {
-            location.href = decodeURIComponent(redirect);
           } else {
-            navigate('/', { replace: true });
+            // Use redirectUrl from response first, fallback to URL param
+            const finalRedirect = res.redirectUrl
+              ? decodeURIComponent(res.redirectUrl)
+              : redirect
+                ? decodeURIComponent(redirect)
+                : null;
+            if (finalRedirect) {
+              location.href = finalRedirect;
+            } else {
+              navigate('/', { replace: true });
+            }
           }
         }
       })

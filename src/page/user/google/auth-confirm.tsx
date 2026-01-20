@@ -34,8 +34,14 @@ export default function AuthConfirmPage() {
           toast.success(t('setting.third_party_account.bound'), {
             position: 'bottom-right',
           });
-          if (redirect) {
-            location.href = decodeURIComponent(redirect);
+          // Use redirectUrl from response first, fallback to URL param
+          const finalRedirect = res.redirectUrl
+            ? decodeURIComponent(res.redirectUrl)
+            : redirect
+              ? decodeURIComponent(redirect)
+              : null;
+          if (finalRedirect) {
+            location.href = finalRedirect;
           } else {
             navigate('/', { replace: true });
             setTimeout(() => {
@@ -46,8 +52,14 @@ export default function AuthConfirmPage() {
           }
         } else {
           setGlobalCredential(res.id, res.access_token);
-          if (redirect) {
-            location.href = decodeURIComponent(redirect);
+          // Use redirectUrl from response first, fallback to URL param
+          const finalRedirect = res.redirectUrl
+            ? decodeURIComponent(res.redirectUrl)
+            : redirect
+              ? decodeURIComponent(redirect)
+              : null;
+          if (finalRedirect) {
+            location.href = finalRedirect;
           } else {
             navigate('/', { replace: true });
           }

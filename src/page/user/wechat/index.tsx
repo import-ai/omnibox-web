@@ -1,5 +1,6 @@
 import isMobile from 'ismobilejs';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { WeChatIcon } from '@/assets/icons/wechat';
@@ -14,6 +15,8 @@ interface IProps {
 export default function WeChat(props: IProps) {
   const { onScan, mode = 'login' } = props;
   const { t } = useTranslation();
+  const [params] = useSearchParams();
+  const redirect = params.get('redirect');
   const userAgent = navigator.userAgent.toLowerCase();
   const isPhone = isMobile(userAgent).phone;
   const isWeChat = userAgent.includes('micromessenger');
@@ -23,7 +26,9 @@ export default function WeChat(props: IProps) {
   const loginWithWeChat = () => {
     if (isWeChat) {
       http
-        .get('/wechat/auth-url')
+        .get('/wechat/auth-url', {
+          params: redirect ? { redirect } : undefined,
+        })
         .then(authUrl => {
           location.href = authUrl;
         })
