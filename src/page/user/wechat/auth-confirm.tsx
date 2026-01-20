@@ -17,6 +17,7 @@ export default function AuthConfirmPage() {
   const [params] = useSearchParams();
   const code = params.get('code');
   const state = params.get('state');
+  const redirect = params.get('redirect');
 
   useEffect(() => {
     if (!code || !state) {
@@ -33,18 +34,24 @@ export default function AuthConfirmPage() {
           toast.success(t('setting.third_party_account.bound'), {
             position: 'bottom-right',
           });
-          navigate('/', { replace: true });
-          setTimeout(() => {
-            app.fire('open_settings', {
-              tab: 'third-party',
-            });
-          }, 2000);
+          if (redirect) {
+            location.href = decodeURIComponent(redirect);
+          } else {
+            navigate('/', { replace: true });
+            setTimeout(() => {
+              app.fire('open_settings', {
+                tab: 'third-party',
+              });
+            }, 2000);
+          }
         } else {
           setGlobalCredential(res.id, res.access_token);
-          // Redirect to H5 or Web based on source
+          // Redirect to H5, OAuth flow, or default based on source
           if (res.source === 'h5' && res.h5_redirect) {
             const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
             window.location.href = h5Url;
+          } else if (redirect) {
+            location.href = decodeURIComponent(redirect);
           } else {
             navigate('/', { replace: true });
           }
@@ -53,7 +60,7 @@ export default function AuthConfirmPage() {
       .catch(() => {
         navigate('/user/login', { replace: true });
       });
-  }, [code, state, i18n.language]);
+  }, [code, state, i18n.language, redirect]);
 
   return (
     <WrapperPage useCard={false}>
