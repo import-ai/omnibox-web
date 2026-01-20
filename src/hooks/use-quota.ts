@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 
 import { http } from '@/lib/request';
@@ -47,26 +46,11 @@ export default function useQuota(namespaceId: string) {
     },
   });
 
-  const fetchQuota = () => {
-    const source = axios.CancelToken.source();
-    http
-      .get(`/namespaces/${namespaceId}/usages`, {
-        cancelToken: source.token,
-      })
-      .then(setData);
-
-    return () => {
-      source.cancel();
-    };
-  };
-
   useEffect(() => {
-    const cleanup = fetchQuota();
-    return cleanup;
-  }, [namespaceId]);
+    http.get(`/namespaces/${namespaceId}/usages`).then(setData);
+  }, []);
 
   return {
     data,
-    refetch: fetchQuota,
   };
 }

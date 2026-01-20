@@ -31,7 +31,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
-import { enable_commercial_features } from '@/const';
+import useConfig from '@/hooks/use-config';
 import useNamespace from '@/hooks/use-namespace';
 import useNamespaces from '@/hooks/use-namespaces';
 import { isEmoji } from '@/lib/emoji';
@@ -78,6 +78,7 @@ export default function SettingForm({
   const [deleting, setDeleting] = useState(false);
   const { app, data, onChange, loading } = useNamespace();
   const { data: namespaces } = useNamespaces();
+  const { config } = useConfig();
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -283,7 +284,7 @@ export default function SettingForm({
         loading={deleting}
         onConfirm={handleDelete}
       />
-      {enable_commercial_features && (
+      {config.commercial && (
         <>
           <Separator className="bg-neutral-200" />
           <RemainQuota namespaceId={namespaceId} />

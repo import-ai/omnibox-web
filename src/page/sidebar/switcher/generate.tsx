@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { enable_commercial_features } from '@/const';
+import useConfig from '@/hooks/use-config';
 
 import GenerateForm from './form/namespace';
 
@@ -23,6 +23,7 @@ interface GenerateProps {
 export default function Generate({ onCloseDropdown }: GenerateProps) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
+  const { config } = useConfig();
   const handleUpgrade = () => {
     const lang = i18n.language === 'en-US' ? 'zh-cn' : 'en';
     location.href = `/${lang}/pricing`;
@@ -32,7 +33,7 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (enable_commercial_features) {
+    if (config.commercial) {
       onCloseDropdown();
 
       toast(
