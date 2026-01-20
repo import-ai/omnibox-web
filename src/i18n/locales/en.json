@@ -189,6 +189,7 @@
     "login_use_apple": "Login with Apple",
     "login_use_email": "Login with Email",
     "login_use_phone": "Login with Phone",
+    "last_used": "LAST USED",
     "wechat_disabled": "WeChat login is not supported in the current environment",
     "apple_signin_failed": "Apple sign in failed",
     "apple_sdk_not_loaded": "Apple SDK not loaded",

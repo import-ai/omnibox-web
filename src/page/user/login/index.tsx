@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import type { LastLoginMethod } from '@/page/user/util';
+import { getLastLoginMethod } from '@/page/user/util';
+
 import Apple from '../apple';
 import { Available } from '../available';
 import Email from '../email';
@@ -40,6 +43,8 @@ export default function LoginPage() {
   );
   const [authMethod, setAuthMethod] =
     useState<AuthMethod>(getInitialAuthMethod);
+  const [lastLoginMethod, setLastLoginMethod] =
+    useState<LastLoginMethod | null>(null);
 
   useEffect(() => {
     const uid = localStorage.getItem('uid');
@@ -47,6 +52,26 @@ export default function LoginPage() {
       navigate('/', { replace: true });
     }
   }, []);
+
+  useEffect(() => {
+    setLastLoginMethod(getLastLoginMethod());
+  }, []);
+
+  const renderLastUsedBadge = (method: LastLoginMethod) => {
+    if (lastLoginMethod !== method) {
+      return null;
+    }
+    return (
+      <span className="pointer-events-none absolute -right-2 -top-2 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
+        {t('login.last_used')}
+      </span>
+    );
+  };
+
+  const showEmailOption =
+    contactMethod !== 'email' || lastLoginMethod === 'email';
+  const showPhoneOption =
+    contactMethod !== 'phone' || lastLoginMethod === 'phone';
 
   return (
     <WrapperPage extra={<MetaPage />}>
@@ -70,20 +95,42 @@ export default function LoginPage() {
               return (
                 <div className="grid gap-6">
                   <div className="flex flex-col gap-2">
-                    {contactMethod === 'phone' ? (
-                      <Email
-                        onClick={() => setContactMethod('email')}
-                        mode="login"
-                      />
-                    ) : (
-                      <Phone
-                        onClick={() => setContactMethod('phone')}
-                        mode="login"
-                      />
+                    {showEmailOption && (
+                      <div className="relative">
+                        <Email
+                          onClick={() => setContactMethod('email')}
+                          mode="login"
+                        />
+                        {renderLastUsedBadge('email')}
+                      </div>
                     )}
-                    {available.wechat && <WeChat onScan={onScan} />}
-                    {available.google && <Google />}
-                    {available.apple && <Apple />}
+                    {showPhoneOption && (
+                      <div className="relative">
+                        <Phone
+                          onClick={() => setContactMethod('phone')}
+                          mode="login"
+                        />
+                        {renderLastUsedBadge('phone')}
+                      </div>
+                    )}
+                    {available.wechat && (
+                      <div className="relative">
+                        <WeChat onScan={onScan} />
+                        {renderLastUsedBadge('wechat')}
+                      </div>
+                    )}
+                    {available.google && (
+                      <div className="relative">
+                        <Google />
+                        {renderLastUsedBadge('google')}
+                      </div>
+                    )}
+                    {available.apple && (
+                      <div className="relative">
+                        <Apple />
+                        {renderLastUsedBadge('apple')}
+                      </div>
+                    )}
                   </div>
                   <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                     <span className="bg-white dark:bg-[#171717] text-muted-foreground relative z-10 px-2">
