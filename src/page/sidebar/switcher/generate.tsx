@@ -24,10 +24,6 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const { config } = useConfig();
-  const handleUpgrade = () => {
-    const lang = i18n.language === 'en-US' ? 'zh-cn' : 'en';
-    location.href = `/${lang}/pricing`;
-  };
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -52,12 +48,18 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
           },
           action: (
             <Button
+              asChild
               size="sm"
               className="toast-button bg-blue-500 hover:bg-blue-600"
-              onClick={handleUpgrade}
             >
-              {t('namespace.quota_expand_button')}
-              <SquareArrowOutUpRight />
+              <a
+                href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t('namespace.quota_expand_button')}
+                <SquareArrowOutUpRight />
+              </a>
             </Button>
           ),
         }

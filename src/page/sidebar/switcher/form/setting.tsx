@@ -286,7 +286,7 @@ export default function SettingForm({
       />
       {config.commercial && (
         <>
-          <Separator className="bg-neutral-200" />
+          <Separator className="border-t" />
           <RemainQuota namespaceId={namespaceId} />
         </>
       )}

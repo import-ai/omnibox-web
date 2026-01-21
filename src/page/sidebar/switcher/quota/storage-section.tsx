@@ -30,21 +30,23 @@ export function StorageSection({
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center">
-        <h2 className="text-sm font-medium text-black">{title}</h2>
-        <span className="text-sm font-medium text-neutral-500">{current}</span>
+        <h2 className="text-sm font-medium text-foreground">{title}</h2>
+        <span className="text-sm font-medium text-muted-foreground">
+          {current}
+        </span>
       </div>
       <SegmentedProgressBar segments={segments} />
       <div className="flex flex-wrap gap-7">
         {items.map((item, idx) => (
           <div key={idx} className="flex items-center gap-1 min-w-14">
             <div className={`size-2 rounded-full ${item.color}`} />
-            <span className="text-sm font-medium text-neutral-400">
+            <span className="text-sm font-medium text-muted-foreground">
               {item.label}
             </span>
             {item.tooltip && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="size-3 text-neutral-400" />
+                  <Info className="size-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>{item.tooltip}</TooltipContent>
               </Tooltip>

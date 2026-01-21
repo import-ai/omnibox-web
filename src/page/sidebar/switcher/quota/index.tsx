@@ -16,10 +16,6 @@ interface RemainQuotaProps {
 export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const { t, i18n } = useTranslation();
   const { data } = useQuota(namespaceId);
-  const handleUpgrade = () => {
-    const lang = i18n.language === 'en-US' ? 'zh-cn' : 'en';
-    location.href = `/${lang}/pricing`;
-  };
 
   const sections = [
     {
@@ -121,17 +117,23 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
         ))}
         <div className="flex justify-end">
           <Button
+            asChild
             size="sm"
-            onClick={handleUpgrade}
             className="gap-1 bg-blue-500 hover:bg-blue-600"
           >
-            {t('quota.expand_button')} <SquareArrowOutUpRight />
+            <a
+              href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t('quota.expand_button')} <SquareArrowOutUpRight />
+            </a>
           </Button>
         </div>
       </div>
       {data.expire_date && (
         <>
-          <Separator className="bg-neutral-200" />
+          <Separator className="bg-border" />
           <Expiration expireDate={data.expire_date} />
         </>
       )}

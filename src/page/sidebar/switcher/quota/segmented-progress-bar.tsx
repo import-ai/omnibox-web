@@ -10,7 +10,7 @@ interface SegmentedProgressBarProps {
 
 export function SegmentedProgressBar({ segments }: SegmentedProgressBarProps) {
   return (
-    <div className="w-full bg-gray-200 h-2 overflow-hidden flex">
+    <div className="w-full bg-muted h-2 overflow-hidden flex">
       {segments.map((segment, idx) => (
         <div
           key={idx}
