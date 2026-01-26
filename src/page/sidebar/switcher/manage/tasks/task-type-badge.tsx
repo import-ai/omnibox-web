@@ -2,6 +2,7 @@ import {
   FileText,
   FileUp,
   FolderSearch2,
+  Globe,
   MessageCircleX,
   SearchX,
   Star,
@@ -60,6 +61,10 @@ const taskTypeConfig: Record<
   generate_video_note: {
     icon: TvMinimalPlay,
     labelKey: 'tasks.functions.generate_video_note',
+  },
+  collect_url: {
+    icon: Globe,
+    labelKey: 'tasks.functions.collect_url',
   },
 };
 

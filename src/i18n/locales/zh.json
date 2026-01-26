@@ -681,7 +681,8 @@
       "delete_conversation": "删除对话",
       "extract_tags": "生成标签",
       "generate_title": "生成标题",
-      "generate_video_note": "视频解析"
+      "generate_video_note": "视频解析",
+      "collect_url": "访问网页"
     }
   },
   "common": {
