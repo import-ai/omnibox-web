@@ -671,6 +671,7 @@
     "time_error_minutes": "Failed: costs {{minutes}} min",
     "time_timeout_seconds": "Timeout: costs {{seconds}} sec",
     "time_timeout_minutes": "Timeout: costs {{minutes}} min",
+    "time_insufficient_quota": "Insufficient quota: {{time}}",
     "time_canceled": "Canceled: {{time}}",
     "functions": {
       "collect": "Collect",

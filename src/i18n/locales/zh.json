@@ -672,6 +672,7 @@
     "time_error_minutes": "失败：耗时 {{minutes}} 分钟",
     "time_timeout_seconds": "超时：耗时 {{seconds}} 秒",
     "time_timeout_minutes": "超时：耗时 {{minutes}} 分钟",
+    "time_insufficient_quota": "额度不足：{{time}}",
     "time_canceled": "已取消：{{time}}",
     "functions": {
       "collect": "收藏",
