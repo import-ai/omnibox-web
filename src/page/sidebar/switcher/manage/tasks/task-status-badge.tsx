@@ -33,6 +33,9 @@ export const statusConfig: Record<
   timeout: {
     icon: TimeoutStatus,
   },
+  insufficient_quota: {
+    icon: ErrorStatus,
+  },
 };
 
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {

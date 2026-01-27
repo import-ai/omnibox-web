@@ -114,6 +114,23 @@ export function TaskList({ namespaceId }: TaskListProps) {
       });
     }
 
+    if (
+      task.status === 'insufficient_quota' &&
+      task.started_at &&
+      task.ended_at
+    ) {
+      const startedAt = new Date(task.started_at);
+      const endedAt = new Date(task.ended_at);
+      const seconds = Math.floor(
+        (endedAt.getTime() - startedAt.getTime()) / 1000
+      );
+      if (seconds < 60) {
+        return t('tasks.time_error_seconds', { seconds });
+      }
+      const minutes = Math.floor(seconds / 60);
+      return t('tasks.time_error_minutes', { minutes });
+    }
+
     return '-';
   };
 
