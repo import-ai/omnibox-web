@@ -20,7 +20,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const sections = [
     {
       title: t('quota.storage_usage'),
-      current: `${formatStorage(data.storage.upload + data.storage.file)}/${formatStorage(data.storage.total)}`,
+      current: `${formatStorage(data.storage.upload + data.storage.file + data.storage.other_users)}/${formatStorage(data.storage.total)}`,
       items: [
         { label: t('quota.upload'), color: 'bg-blue-400' },
         { label: t('quota.file'), color: 'bg-blue-500' },
@@ -46,7 +46,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
     },
     {
       title: t('quota.audio_video_parse_usage'),
-      current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio)}/${formatTime(data.video_audio_parse.total)}`,
+      current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)}/${formatTime(data.video_audio_parse.total)}`,
       items: [
         { label: t('quota.audio'), color: 'bg-blue-400' },
         { label: t('quota.video'), color: 'bg-blue-500' },
@@ -77,7 +77,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
     },
     {
       title: t('quota.doc_parse_usage'),
-      current: `${data.doc_parse.pdf + data.doc_parse.image}${t('quota.page_unit')}/${data.doc_parse.total}${t('quota.page_unit')}`,
+      current: `${data.doc_parse.pdf + data.doc_parse.image + data.doc_parse.other_users}${t('quota.page_unit')}/${data.doc_parse.total}${t('quota.page_unit')}`,
       items: [
         { label: t('quota.pdf'), color: 'bg-blue-400' },
         { label: t('quota.image'), color: 'bg-blue-500' },
