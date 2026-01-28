@@ -59,6 +59,7 @@ export const DOMAIN_SUFFIX_TO_ICON: Record<string, JSX.Element> = {
   'youtube.com': siParser(siYoutube),
   'youtu.be': siParser(siYoutube),
   'xiaohongshu.com': <RedNoteIcon />,
+  'xhslink.com': <RedNoteIcon />,
   'quora.com': siParser(siQuora),
   'bilibili.com': siParser(siBilibili),
   'b23.tv': siParser(siBilibili),
