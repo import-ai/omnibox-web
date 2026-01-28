@@ -16,6 +16,7 @@ export interface IUseResource {
   editPage: boolean;
   loading: boolean;
   forbidden: boolean;
+  notFound: boolean;
   resourceId: string;
   namespaceId: string;
   resource: Resource | null;
@@ -32,6 +33,7 @@ export default function useResource() {
   const namespaceId = params.namespace_id || '';
   const [loading, onLoading] = useState(false);
   const [forbidden, onForbidden] = useState(false);
+  const [notFound, onNotFound] = useState(false);
   const [resource, onResource] = useState<Resource | null>(null);
 
   useEffect(() => {
@@ -40,6 +42,7 @@ export default function useResource() {
     }
     onLoading(true);
     onForbidden(false);
+    onNotFound(false);
     const source = axios.CancelToken.source();
     http
       .get(`/namespaces/${namespaceId}/resources/${resourceId}`, {
@@ -48,7 +51,9 @@ export default function useResource() {
       })
       .then(onResource)
       .catch(err => {
-        if (err.response.data.code === 'not_authorized') {
+        if (err.response?.status === 404) {
+          onNotFound(true);
+        } else if (err.response?.data?.code === 'not_authorized') {
           onForbidden(true);
         }
       })
@@ -96,6 +101,7 @@ export default function useResource() {
     loading,
     editPage,
     forbidden,
+    notFound,
     resource,
     onResource,
     namespaceId,

@@ -468,6 +468,9 @@
     "reason2": "您的会话可能已过期",
     "reason3": "您可能需要特定的角色或权限级别"
   },
+  "deleted_resource": {
+    "title": "文件已被删除"
+  },
   "permission": {
     "full_access": "全部权限",
     "full_access_desc": "编辑、建议、评论以及与他人分享",
@@ -493,7 +496,7 @@
     "tips": "请输入消息",
     "title": "小黑",
     "page_title": "小黑",
-    "citations": "资料",
+    "citations": "段落",
     "citations_results": "搜索结果",
     "searching": "搜索中...",
     "disclaimer": "内容由小黑 AI 生成，仅供参考",

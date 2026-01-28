@@ -5,15 +5,22 @@ import AuthPage from '@/page/auth';
 import Page from './page';
 
 export default function Wrapper(props: IUseResource) {
-  const { loading, forbidden, resource, editPage, onResource, namespaceId } =
-    props;
+  const {
+    loading,
+    forbidden,
+    notFound,
+    resource,
+    editPage,
+    onResource,
+    namespaceId,
+  } = props;
 
   if (loading) {
     return <Loading />;
   }
 
   return (
-    <AuthPage forbidden={forbidden} resource={resource}>
+    <AuthPage forbidden={forbidden} notFound={notFound} resource={resource}>
       {resource && (
         <Page
           editPage={editPage}
