@@ -276,10 +276,22 @@ export interface TaskAttrs {
   conversation_id?: string;
 }
 
+export type TaskType =
+  | 'collect'
+  | 'collect_url'
+  | 'upsert_index'
+  | 'delete_index'
+  | 'file_reader'
+  | 'delete_conversation'
+  | 'extract_tags'
+  | 'generate_title'
+  | 'generate_video_note'
+  | 'upsert_message_index';
+
 export interface Task {
   id: string;
   status: TaskStatus;
-  function: string;
+  function: TaskType;
   created_at: string;
   attrs: TaskAttrs | null;
   started_at: string | null;
