@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/tooltip';
 import useApplications from '@/hooks/use-applications';
 import { Application } from '@/interface';
+import { getDocsLink } from '@/lib/get-docs-link.ts';
 
 import { AlreadyBoundDialog } from './already-bound-dialog';
 import { BindDialog } from './bind-dialog';
@@ -166,10 +167,10 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   };
 
   const handleDocsClick = (appId: string) => {
-    const isZh = i18n.language.startsWith('zh');
-    const url = (
-      (isZh ? '/docs/zh-cn' : '/docs') + `/applications/${appId}`
-    ).replace('_bot', '-assistant');
+    const url = getDocsLink(`/applications/${appId}`, i18n.language).replace(
+      '_bot',
+      '-assistant'
+    );
     window.open(url, '_blank');
   };
 

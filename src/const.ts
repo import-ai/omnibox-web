@@ -11,7 +11,7 @@ export const QQ_ASSISTANT_URL =
 export const RESOURCE_TASKS_INTERVAL = 3 * 1000;
 export const BIND_CHECK_INTERVAL = 3 * 1000;
 export const DISCORD_LINK = 'https://www.omnibox.pro/links/discord';
-export const SUPPORTED_EMAIL_DOCS_LINK: string = '/faq#supported-email';
+export const SUPPORTED_EMAIL_DOCS_LINK: string = '/login#supported-email';
 
 // Allowed country codes for phone login/signup
 export const ALLOWED_PHONE_COUNTRIES = ['CN'] as const;
