@@ -96,6 +96,16 @@ export default function useResource() {
     });
   }, [app, resourceId, resource]);
 
+  // Monitor the restore_resource event to reload the resource when it's restored from trash
+  useEffect(() => {
+    return app.on('restore_resource', (restored: Resource) => {
+      if (restored.id === resourceId && notFound) {
+        onNotFound(false);
+        onResource(restored);
+      }
+    });
+  }, [app, resourceId, notFound]);
+
   return {
     app,
     loading,

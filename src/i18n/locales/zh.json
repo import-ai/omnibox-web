@@ -469,7 +469,9 @@
     "reason3": "您可能需要特定的角色或权限级别"
   },
   "deleted_resource": {
-    "title": "文件已被删除"
+    "title": "无法访问该链接",
+    "desc": "您可能没有访问权限，或者该资源已被删除。",
+    "hint": "请检查您的链接。"
   },
   "permission": {
     "full_access": "全部权限",
@@ -505,6 +507,7 @@
         "regenerate": "重新生成",
         "save": "保存至个人空间",
         "copy": "复制 Markdown",
+        "copy_simple": "复制",
         "edit": "编辑消息",
         "save_edit": "保存",
         "cancel_edit": "取消"
