@@ -1,10 +1,11 @@
-export const CONTENT_MODIFYING_FUNCTIONS = [
+import { TaskType } from '@/page/sidebar/switcher/manage/tasks/task-type-badge.tsx';
+
+export const CONTENT_MODIFYING_FUNCTIONS: TaskType[] = [
   'collect',
+  'collect_url',
   'upsert_index',
   'delete_index',
   'file_reader',
-  'message_index',
-  'delete_conversation',
   'extract_tags',
   'generate_title',
   'generate_video_note',

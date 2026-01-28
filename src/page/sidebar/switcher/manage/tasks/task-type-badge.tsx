@@ -10,14 +10,17 @@ import {
   TvMinimalPlay,
   Type,
 } from 'lucide-react';
+import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { TaskType } from '@/interface.ts';
+
 interface TaskTypeBadgeProps {
-  functionName: string;
+  functionName: TaskType;
 }
 
-const taskTypeConfig: Record<
-  string,
+export const taskTypeConfig: Record<
+  TaskType,
   {
     icon: React.ComponentType<{
       className?: string;

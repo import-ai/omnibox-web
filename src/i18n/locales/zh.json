@@ -365,7 +365,8 @@
     "description": "管理你的应用集成和绑定",
     "empty": "暂无应用",
     "app_names": {
-      "wechat_bot": "微信助手"
+      "wechat_bot": "微信助手",
+      "qq_bot": " QQ 助手"
     },
     "unsupported_app": "不支持的应用类型：{{ app_id }}",
     "status": {
@@ -375,17 +376,17 @@
     },
     "already_bound": {
       "title": "已绑定",
-      "description": "您已成功绑定微信助手，您可以扫描下方二维码将微信助手添加为微信好友。"
+      "description": "您已成功绑定{{ platform_name }}，您可以扫描下方二维码添加助手。"
     },
     "bind": {
       "button": "绑定",
       "continue_button": "继续绑定",
       "title": "绑定应用",
       "description": "按照以下步骤连接你的应用",
-      "step1": "第 1 步：添加微信助手",
-      "step2": "第 2 步：发送代码给微信助手",
+      "step1": "第 1 步：添加{{ platform_name }}",
+      "step2": "第 2 步：发送代码给{{ platform_name }}",
       "code_label": "绑定代码：",
-      "code_instruction": "将此代码发送给微信助手以完成绑定",
+      "code_instruction": "将此代码发送给{{ platform_name }}以完成绑定",
       "initiated": "绑定流程已启动",
       "continue": "继续绑定流程",
       "error": "启动绑定失败",
