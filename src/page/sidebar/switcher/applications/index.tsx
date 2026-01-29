@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +17,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import {
@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/tooltip';
 import useApplications from '@/hooks/use-applications';
 import { Application } from '@/interface';
+import { getDocsLink } from '@/lib/get-docs-link.ts';
 
 import { AlreadyBoundDialog } from './already-bound-dialog';
 import { BindDialog } from './bind-dialog';
@@ -41,7 +42,7 @@ function getLocalizedAppName(appId: string, t: any): string {
 }
 
 function validateAppId(appId: string): void {
-  if (appId !== 'wechat_bot') {
+  if (appId !== 'wechat_bot' && appId !== 'qq_bot') {
     throw new Error(`Unsupported application type: ${appId}`);
   }
 }
@@ -69,6 +70,8 @@ interface ApplicationsFormProps {
   };
 }
 
+const BUTTON_CLASS: string = 'text-sm font-semibold w-20';
+
 export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const { t, i18n } = useTranslation();
   const params = useParams();
@@ -89,6 +92,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const [bindDialogOpen, setBindDialogOpen] = useState(false);
   const [alreadyBoundDialogOpen, setAlreadyBoundDialogOpen] = useState(false);
   const [bindingCode, setBindingCode] = useState('');
+  const [currentAppId, setCurrentAppId] = useState<string>('');
   const [currentBindingApplication, setCurrentBindingApplication] =
     useState<Application | null>(null);
 
@@ -98,6 +102,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const handleBind = async (application: Application) => {
     try {
       setBindingLoading(true);
+      setCurrentAppId(application.app_id);
 
       // Check if already bound
       const state = getApplicationState(application);
@@ -144,6 +149,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     setBindDialogOpen(false);
     setCurrentBindingApplication(null);
     setBindingCode('');
+    setCurrentAppId('');
     await refetch();
     toast.success(t('applications.bind.success'));
   };
@@ -161,10 +167,10 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   };
 
   const handleDocsClick = (appId: string) => {
-    const isZh = i18n.language.startsWith('zh');
-    const url = isZh
-      ? `/docs/zh-cn/${appId.replace('_', '-')}`
-      : `/docs/${appId.replace('_', '-')}`;
+    const url = getDocsLink(`/applications/${appId}`, i18n.language).replace(
+      '_bot',
+      '-assistant'
+    );
     window.open(url, '_blank');
   };
 
@@ -249,9 +255,9 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                       <TooltipTrigger asChild>
                         <button
                           onClick={() => handleDocsClick(application.app_id)}
-                          className="flex items-center justify-center transition-opacity hover:opacity-70"
+                          className="transition-opacity hover:opacity-70"
                         >
-                          <CircleHelp className="size-5 text-muted-foreground" />
+                          <CircleHelp className="size-4 text-muted-foreground" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
@@ -273,7 +279,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                     disabled
                     variant="outline"
                     size="sm"
-                    className="text-sm font-semibold"
+                    className={BUTTON_CLASS}
                   >
                     {t('applications.unbind.button')}
                   </Button>
@@ -283,7 +289,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-sm font-semibold dark:bg-destructive dark:text-destructive-foreground dark:border-destructive dark:hover:bg-destructive/90"
+                        className={BUTTON_CLASS}
                       >
                         {t('applications.unbind.button')}
                       </Button>
@@ -316,11 +322,16 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                   <div className="flex gap-2">
                     <Button
                       onClick={() => handleBind(application)}
-                      disabled={bindingLoading}
+                      disabled={
+                        bindingLoading && currentAppId === application.app_id
+                      }
                       size="sm"
-                      className="text-sm font-semibold"
+                      className={BUTTON_CLASS}
                     >
-                      {bindingLoading && <Spinner className="mr-2" />}
+                      {bindingLoading &&
+                        currentAppId === application.app_id && (
+                          <Spinner className="mr-2" />
+                        )}
                       {t('applications.bind.continue_button')}
                     </Button>
                     <AlertDialog>
@@ -328,7 +339,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-sm font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive dark:bg-destructive dark:text-destructive-foreground dark:border-destructive dark:hover:bg-destructive/90"
+                          className={BUTTON_CLASS}
                         >
                           {t('applications.bind.cancel_button')}
                         </Button>
@@ -361,11 +372,15 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                 ) : (
                   <Button
                     onClick={() => handleBind(application)}
-                    disabled={bindingLoading}
+                    disabled={
+                      bindingLoading && currentAppId === application.app_id
+                    }
                     size="sm"
-                    className="text-sm font-semibold"
+                    className={BUTTON_CLASS}
                   >
-                    {bindingLoading && <Spinner className="mr-2" />}
+                    {bindingLoading && currentAppId === application.app_id && (
+                      <Spinner className="mr-2" />
+                    )}
                     {t('applications.bind.button')}
                   </Button>
                 )}
@@ -380,6 +395,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         onOpenChange={setBindDialogOpen}
         bindingCode={bindingCode}
         applicationId={currentBindingApplication?.id || ''}
+        appId={currentAppId}
         checkApplicationStatus={checkApplicationStatus}
         onBindingComplete={handleBindingComplete}
       />
@@ -387,6 +403,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
       <AlreadyBoundDialog
         open={alreadyBoundDialogOpen}
         onOpenChange={setAlreadyBoundDialogOpen}
+        appId={currentAppId}
       />
     </>
   );
