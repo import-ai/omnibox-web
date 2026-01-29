@@ -9,4 +9,5 @@ export interface TrashListResponse {
   total: number;
   limit: number;
   offset: number;
+  trash_retention_days: number | null;
 }

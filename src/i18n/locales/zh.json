@@ -771,7 +771,7 @@
     "search_placeholder": "搜索被移入回收站的资源",
     "empty": "空空如也",
     "loading": "加载中",
-    "auto_delete_notice": "回收站中超过 7 天的资源将自动删除",
+    "auto_delete_notice": "回收站中超过 {{days}} 天的资源将自动删除",
     "restore": "恢复",
     "delete_permanently": "立即删除",
     "clear_all": "清倒",

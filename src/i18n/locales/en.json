@@ -770,7 +770,7 @@
     "search_placeholder": "Search resources in trash",
     "empty": "Nothing here",
     "loading": "Loading",
-    "auto_delete_notice": "Resources in trash older than 7 days will be automatically deleted",
+    "auto_delete_notice": "Resources in trash older than {{days}} days will be automatically deleted",
     "restore": "Restore",
     "delete_permanently": "Delete permanently",
     "clear_all": "Empty Trash",
