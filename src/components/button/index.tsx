@@ -9,11 +9,15 @@ interface ButtonLoadingProps extends ButtonProps {
   children: React.ReactNode;
 }
 
-function CustomButton(props: ButtonLoadingProps) {
+const CustomButton = React.forwardRef<
+  React.ElementRef<typeof BaseButton>,
+  ButtonLoadingProps
+>(function CustomButton(props, ref) {
   const { children, variant = 'default', className, ...rest } = props;
   if (variant === 'destructive') {
     return (
       <BaseButton
+        ref={ref}
         variant="outline"
         className={cn(
           'bg-transparent text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground',
@@ -28,6 +32,7 @@ function CustomButton(props: ButtonLoadingProps) {
   if (variant === 'outline') {
     return (
       <BaseButton
+        ref={ref}
         variant={variant}
         className={cn('shadow-none bg-transparent', className)}
         {...rest}
@@ -38,6 +43,7 @@ function CustomButton(props: ButtonLoadingProps) {
   }
   return (
     <BaseButton
+      ref={ref}
       variant={variant}
       className={cn('shadow-none', className)}
       {...rest}
@@ -45,18 +51,25 @@ function CustomButton(props: ButtonLoadingProps) {
       {children}
     </BaseButton>
   );
-}
+});
 
-export function Button(props: ButtonLoadingProps) {
+export const Button = React.forwardRef<
+  React.ElementRef<typeof BaseButton>,
+  ButtonLoadingProps
+>(function Button(props, ref) {
   const { loading, children, ...rest } = props;
 
   if (loading) {
     return (
-      <CustomButton disabled {...rest}>
+      <CustomButton ref={ref} disabled {...rest}>
         <Spinner />
         {children}
       </CustomButton>
     );
   }
-  return <CustomButton {...rest}>{children}</CustomButton>;
-}
+  return (
+    <CustomButton ref={ref} {...rest}>
+      {children}
+    </CustomButton>
+  );
+});

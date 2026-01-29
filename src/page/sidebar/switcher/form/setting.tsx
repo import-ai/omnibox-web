@@ -29,11 +29,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
+import useConfig from '@/hooks/use-config';
 import useNamespace from '@/hooks/use-namespace';
 import useNamespaces from '@/hooks/use-namespaces';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
+
+import { RemainQuota } from '../quota';
 
 const FormSchema = z.object({
   name: z
@@ -74,6 +78,7 @@ export default function SettingForm({
   const [deleting, setDeleting] = useState(false);
   const { app, data, onChange, loading } = useNamespace();
   const { data: namespaces } = useNamespaces();
+  const { config } = useConfig();
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -152,7 +157,7 @@ export default function SettingForm({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Namespace Name Form - Owner and Admin */}
       {userIsOwnerOrAdmin && (
         <Form {...form}>
@@ -190,7 +195,6 @@ export default function SettingForm({
           </form>
         </Form>
       )}
-
       {/* Danger Zone */}
       <div className="border-t pt-6">
         <h3 className="text-sm font-medium text-destructive mb-4">
@@ -237,7 +241,6 @@ export default function SettingForm({
           )}
         </div>
       </div>
-
       {/* Leave Dialog */}
       <AlertDialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
         <AlertDialogContent className="max-w-md">
@@ -267,7 +270,6 @@ export default function SettingForm({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       {/* Delete Dialog */}
       <ConfirmInputDialog
         open={deleteDialogOpen}
@@ -282,6 +284,12 @@ export default function SettingForm({
         loading={deleting}
         onConfirm={handleDelete}
       />
+      {config.commercial && (
+        <>
+          <Separator className="border-t" />
+          <RemainQuota namespaceId={namespaceId} />
+        </>
+      )}
     </div>
   );
 }
