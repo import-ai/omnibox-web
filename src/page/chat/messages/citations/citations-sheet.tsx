@@ -22,7 +22,9 @@ interface IProps {
 
 export function CitationsSheet(props: IProps) {
   const { index, citations } = props;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEnglish = i18n.language === 'en-US';
+  const plural = isEnglish && citations.length > 1 ? 's' : '';
 
   if (citations.length === 0) {
     return null;
@@ -36,7 +38,8 @@ export function CitationsSheet(props: IProps) {
           size="sm"
           className="border-[#eaecf3] dark:border-[#4d4e4f] dark:bg-transparent hover:border-[#f7f8fa] dark:hover:border-[#626264] dark:hover:bg-[#404040]"
         >
-          {citations.length} {t('chat.citations')} <ChevronRight />
+          {citations.length} {t('chat.citations')}
+          {plural} <ChevronRight />
         </Button>
       </SheetTrigger>
       <SheetContent className="p-0">
