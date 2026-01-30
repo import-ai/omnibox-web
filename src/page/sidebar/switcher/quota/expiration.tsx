@@ -20,7 +20,7 @@ export function Expiration({ expireDate }: IProps) {
   const expirationInfo = calculateDaysRemaining(expireDate);
 
   return (
-    <div className="flex gap-0.5 text-xs mt-2 pb-1">
+    <div className="text-right space-x-0.5 text-xs pt-2">
       <span className="font-semibold text-foreground">
         {t('quota.validity_period')}
       </span>

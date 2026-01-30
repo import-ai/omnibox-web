@@ -141,6 +141,7 @@
   },
   "namespace": {
     "add": "Add Namespace",
+    "title": "Namespace Name",
     "name": "Namespace Name",
     "min": "At least 2 characters",
     "max": "At most 64 characters",
@@ -152,6 +153,7 @@
     "quota_exceeded": "Quota Exceeded",
     "quota_exceeded_desc": "Current space quota is exhausted, please expand",
     "quota_expand_button": "Expand",
+    "usage": "Usage",
     "leave": {
       "title": "Leave Space",
       "description": "Leave this workspace. Your private data will be deleted.",

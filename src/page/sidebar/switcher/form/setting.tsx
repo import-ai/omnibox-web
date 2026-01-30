@@ -157,49 +157,61 @@ export default function SettingForm({
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Namespace Name Form - Owner and Admin */}
       {userIsOwnerOrAdmin && (
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4 px-px"
-          >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('namespace.name')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled={submiting}
-                      className="rounded-md border-border bg-transparent dark:bg-transparent"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end">
-              <Button
-                type="submit"
-                disabled={submiting}
-                loading={submiting}
-                className="h-[30px] w-[71px]"
-              >
-                {t('namespace.submit')}
-              </Button>
-            </div>
-          </form>
-        </Form>
+        <div>
+          <h3 className="text-base font-semibold">{t('namespace.title')}</h3>
+          <Separator className="border-t my-2" />
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="flex flex-row items-center justify-between px-px w-full"
+            >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="flex gap-7 space-y-0 flex-row items-center w-4/5">
+                    <FormLabel>{t('namespace.name')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={submiting}
+                        className="rounded-md border-border bg-transparent dark:bg-transparent w-full max-w-72 mt-0"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  disabled={submiting}
+                  loading={submiting}
+                  className="h-[30px] w-[71px]"
+                >
+                  {t('namespace.submit')}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
+      )}
+      {config.commercial && (
+        <div>
+          <h3 className="text-base font-semibold">{t('namespace.usage')}</h3>
+          <Separator className="border-t my-2" />
+          <RemainQuota namespaceId={namespaceId} />
+        </div>
       )}
       {/* Danger Zone */}
-      <div className="border-t pt-6">
-        <h3 className="text-sm font-medium text-destructive mb-4">
+      <div>
+        <h3 className="text-base font-semibold text-destructive">
           {t('setting.danger_zone')}
         </h3>
+        <Separator className="border-t my-2" />
         <div className="space-y-4">
           {/* Leave Space */}
           <div className="flex items-center justify-between gap-4">
@@ -284,12 +296,6 @@ export default function SettingForm({
         loading={deleting}
         onConfirm={handleDelete}
       />
-      {config.commercial && (
-        <>
-          <Separator className="border-t" />
-          <RemainQuota namespaceId={namespaceId} />
-        </>
-      )}
     </div>
   );
 }

@@ -2,7 +2,6 @@ import { SquareArrowOutUpRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import useQuota from '@/hooks/use-quota';
 
 import { Expiration } from './expiration';
@@ -20,7 +19,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const sections = [
     {
       title: t('quota.storage_usage'),
-      current: `${formatStorage(data.storage.upload + data.storage.file + data.storage.other_users)}/${formatStorage(data.storage.total)}`,
+      current: `<${formatStorage(data.storage.upload + data.storage.file + data.storage.other_users)}/${formatStorage(data.storage.total)}`,
       items: [
         { label: t('quota.upload'), color: 'bg-blue-400' },
         { label: t('quota.file'), color: 'bg-blue-500' },
@@ -105,7 +104,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
 
   return (
     <div className="my-5">
-      <div className="space-y-5 mb-5">
+      <div className="space-y-5">
         {sections.map((section, idx) => (
           <StorageSection
             key={idx}
@@ -116,27 +115,21 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
           />
         ))}
         <div className="flex justify-end">
-          <Button
-            asChild
-            size="sm"
-            className="gap-1 bg-blue-500 hover:bg-blue-600"
+          <a
+            href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing`}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <a
-              href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Button
+              size="sm"
+              className="gap-1 text-white bg-blue-500 hover:bg-blue-600"
             >
               {t('quota.expand_button')} <SquareArrowOutUpRight />
-            </a>
-          </Button>
+            </Button>
+          </a>
         </div>
       </div>
-      {data.expire_date && (
-        <>
-          <Separator className="bg-border" />
-          <Expiration expireDate={data.expire_date} />
-        </>
-      )}
+      {data.expire_date && <Expiration expireDate={data.expire_date} />}
     </div>
   );
 }

@@ -32,7 +32,7 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
     if (config.commercial) {
       onCloseDropdown();
 
-      toast(
+      const toastId = toast(
         <div className="flex gap-1.5">
           <Info className="size-5 text-yellow-400" />
           <span>{t('namespace.quota_exceeded')}</span>
@@ -43,24 +43,27 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
           duration: 10000,
           className: 'justify-between',
           style: {
-            width: '488px',
-            backgroundColor: 'white',
+            width: '90%',
+            minWidth: '48vw',
           },
           action: (
-            <Button
-              asChild
-              size="sm"
-              className="toast-button bg-blue-500 hover:bg-blue-600"
+            <a
+              href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="toast-button"
+              onClick={() => {
+                toast.dismiss(toastId);
+              }}
             >
-              <a
-                href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Button
+                size="sm"
+                className="text-white bg-blue-500 hover:bg-blue-600"
               >
                 {t('namespace.quota_expand_button')}
                 <SquareArrowOutUpRight />
-              </a>
-            </Button>
+              </Button>
+            </a>
           ),
         }
       );

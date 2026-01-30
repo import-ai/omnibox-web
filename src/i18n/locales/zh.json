@@ -142,6 +142,7 @@
   },
   "namespace": {
     "add": "创建空间",
+    "title": "空间名称",
     "name": "空间名称",
     "min": "至少 2 个字符",
     "max": "最多 32 个字符",
@@ -153,6 +154,7 @@
     "quota_exceeded": "已超过额度",
     "quota_exceeded_desc": "当前空间额度已耗尽,请扩容",
     "quota_expand_button": "扩容",
+    "usage": "用量",
     "leave": {
       "title": "离开空间",
       "description": "离开此空间。您的私人数据将被删除。",
@@ -807,7 +809,7 @@
     "other": "其他",
     "expand_button": "扩容",
     "validity_period": "空间有效期：",
-    "days_remaining": "剩余{{days}}天（到期{{date}}）",
+    "days_remaining": "剩余 {{days}} 天 ({{date}} 到期)",
     "page_unit": "页",
     "time": {
       "seconds": "秒",
