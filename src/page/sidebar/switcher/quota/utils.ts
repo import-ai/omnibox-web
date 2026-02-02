@@ -1,8 +1,23 @@
 import i18next from 'i18next';
 
-// Helper function to format storage size (MB to GB)
-export function formatStorage(mb: number) {
-  return mb >= 1024 ? `${(mb / 1024).toFixed(0)}GB` : `${mb}MB`;
+// Helper function to format storage size (bytes to readable format)
+export function formatStorage(bytes: number) {
+  const kb = bytes / 1024;
+  const mb = kb / 1024;
+  const gb = mb / 1024;
+
+  const formatValue = (num: number) => parseFloat(num.toFixed(2));
+
+  if (kb < 0.01) {
+    return '0 KB';
+  }
+  if (mb < 1) {
+    return `${formatValue(kb)} KB`;
+  }
+  if (gb < 1) {
+    return `${formatValue(mb)} MB`;
+  }
+  return `${formatValue(gb)} GB`;
 }
 
 // Helper function to format time (seconds to minutes/hours)

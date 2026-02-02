@@ -19,7 +19,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const sections = [
     {
       title: t('quota.storage_usage'),
-      current: `<${formatStorage(data.storage.upload + data.storage.file + data.storage.other_users)}/${formatStorage(data.storage.total)}`,
+      current: `${formatStorage((data.storage.upload + data.storage.file + data.storage.other_users) * 1024 * 1024)}/${formatStorage(data.storage.total * 1024 * 1024)}`,
       items: [
         { label: t('quota.upload'), color: 'bg-blue-400' },
         { label: t('quota.file'), color: 'bg-blue-500' },
