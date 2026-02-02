@@ -1,4 +1,3 @@
-import { Command, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,8 +11,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from '@/components/ui/sidebar';
 import { ResourceMeta } from '@/interface';
+import { ChatIcon } from '@/page/sidebar/header/Chat';
 
 import SidebarItem from './sidebar-item';
 
@@ -48,8 +49,8 @@ export default function ShareSidebar(props: SharedSidebarProps) {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-1.5 py-2">
-          <div className="flex aspect-square size-5 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-            <Command className="size-3" />
+          <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
+            {username.charAt(0).toUpperCase()}
           </div>
           <span className="truncate font-semibold text-sm">
             {t('share.share.user_share', { username })}
@@ -60,7 +61,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={isChatActive}>
                 <div className="flex cursor-pointer" onClick={handleChatClick}>
-                  <Sparkles className="w-4 h-4" />
+                  <ChatIcon className="size-4" />
                   <span>{t('chat.title')}</span>
                 </div>
               </SidebarMenuButton>
@@ -85,6 +86,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarRail className="opacity-0" />
     </Sidebar>
   );
 }

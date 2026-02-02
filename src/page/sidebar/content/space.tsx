@@ -7,6 +7,12 @@ import { toast } from 'sonner';
 
 import { Input } from '@/components/input';
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -178,95 +184,121 @@ export default function Space(props: ITreeProps) {
           isDragOver || isResourceDragOver || (canDrop && isOver),
       })}
     >
-      <SidebarMenuButton className="group/sidebar-header pt-0 pb-[1px] h-8">
-        <div className="relative w-full h-full">
-          <SidebarGroupLabel
-            onClick={handleHeaderToggle}
-            className="h-full font-normal block leading-8 mr-4 text-neutral-400"
-          >
-            {spaceType ? t(spaceType) : ''}
-          </SidebarGroupLabel>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              {data.id === editingKey ? (
-                <SidebarMenuAction
-                  asChild
-                  className="group-hover/sidebar-header:pointer-events-auto pointer-events-none my-1.5 size-[16px] top-[2px] right-0 text-neutral-400 focus-visible:outline-none focus-visible:ring-transparent"
-                >
-                  <span>
-                    {progress ? (
-                      <TooltipProvider>
-                        <Tooltip delayDuration={0}>
-                          <TooltipTrigger asChild>
-                            <span className="[&>svg]:size-[16px]">
-                              <Spinner />
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>{progress}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <SidebarMenuButton className="group/sidebar-header pt-0 pb-[1px] h-8">
+            <div className="relative w-full h-full">
+              <SidebarGroupLabel
+                onClick={handleHeaderToggle}
+                className="h-full font-normal block leading-8 mr-4 text-neutral-400"
+              >
+                {spaceType ? t(spaceType) : ''}
+              </SidebarGroupLabel>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  {data.id === editingKey ? (
+                    <SidebarMenuAction
+                      asChild
+                      className="group-hover/sidebar-header:pointer-events-auto pointer-events-none my-1.5 size-[16px] top-[2px] right-0 text-neutral-400 focus-visible:outline-none focus-visible:ring-transparent"
+                    >
                       <span>
-                        <Spinner />
+                        {progress ? (
+                          <TooltipProvider>
+                            <Tooltip delayDuration={0}>
+                              <TooltipTrigger asChild>
+                                <span className="[&>svg]:size-[16px]">
+                                  <Spinner />
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>{progress}</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <span>
+                            <Spinner />
+                          </span>
+                        )}
                       </span>
-                    )}
-                  </span>
-                </SidebarMenuAction>
-              ) : (
-                <SidebarMenuAction
-                  asChild
-                  className={cn(
-                    'my-1.5 size-4 top-0.5 right-0 text-neutral-400 hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent',
-                    isTouch
-                      ? 'opacity-100 pointer-events-auto'
-                      : 'group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0'
+                    </SidebarMenuAction>
+                  ) : (
+                    <SidebarMenuAction
+                      asChild
+                      className={cn(
+                        'my-1.5 size-4 top-0.5 right-0 text-neutral-400 hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent',
+                        isTouch
+                          ? 'opacity-100 pointer-events-auto'
+                          : 'group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0'
+                      )}
+                    >
+                      <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3]" />
+                    </SidebarMenuAction>
                   )}
-                >
-                  <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3]" />
-                </SidebarMenuAction>
-              )}
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" sideOffset={10} align="start">
-              <DropdownMenuItem
-                className={menuItemClass}
-                onClick={() => {
-                  onCreate(spaceType, data.id, 'doc');
-                }}
-              >
-                <FilePlus className={menuIconClass} />
-                {t('actions.create_file')}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={menuItemClass}
-                onClick={handleCreateFolder}
-              >
-                <FolderPlus className={menuIconClass} />
-                {t('actions.create_folder')}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className={menuItemClass}
-                onClick={handleSelect}
-              >
-                <MonitorUp className={menuIconClass} />
-                {t('actions.upload_file')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <CreateFolderDialog
-            open={createFolderOpen}
-            onOpenChange={setCreateFolderOpen}
-            onConfirm={handleConfirmCreateFolder}
-          />
-          <Input
-            multiple
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            onChange={handleUpload}
-            accept={ALLOW_FILE_EXTENSIONS}
-          />
-        </div>
-      </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="right" sideOffset={10} align="start">
+                  <DropdownMenuItem
+                    className={menuItemClass}
+                    onClick={() => {
+                      onCreate(spaceType, data.id, 'doc');
+                    }}
+                  >
+                    <FilePlus className={menuIconClass} />
+                    {t('actions.create_file')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={menuItemClass}
+                    onClick={handleCreateFolder}
+                  >
+                    <FolderPlus className={menuIconClass} />
+                    {t('actions.create_folder')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={menuItemClass}
+                    onClick={handleSelect}
+                  >
+                    <MonitorUp className={menuIconClass} />
+                    {t('actions.upload_file')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <CreateFolderDialog
+                open={createFolderOpen}
+                onOpenChange={setCreateFolderOpen}
+                onConfirm={handleConfirmCreateFolder}
+              />
+              <Input
+                multiple
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleUpload}
+                accept={ALLOW_FILE_EXTENSIONS}
+              />
+            </div>
+          </SidebarMenuButton>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem
+            className={menuItemClass}
+            onClick={() => {
+              onCreate(spaceType, data.id, 'doc');
+            }}
+          >
+            <FilePlus className={menuIconClass} />
+            {t('actions.create_file')}
+          </ContextMenuItem>
+          <ContextMenuItem
+            className={menuItemClass}
+            onClick={handleCreateFolder}
+          >
+            <FolderPlus className={menuIconClass} />
+            {t('actions.create_folder')}
+          </ContextMenuItem>
+          <ContextMenuItem className={menuItemClass} onClick={handleSelect}>
+            <MonitorUp className={menuIconClass} />
+            {t('actions.upload_file')}
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
       {open && (
         <SidebarGroupContent>
           <SidebarMenu className="gap-[2px]">

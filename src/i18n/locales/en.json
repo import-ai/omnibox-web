@@ -336,7 +336,7 @@
     },
     "danger_zone": "Danger Zone",
     "delete_account": {
-      "button": "Delete Account",
+      "button": "Delete",
       "section_title": "Delete Account",
       "section_description": "This will permanently delete your account and all associated data",
       "title": "Delete Account",
