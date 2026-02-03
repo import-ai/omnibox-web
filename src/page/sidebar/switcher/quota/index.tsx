@@ -1,4 +1,3 @@
-import { SquareArrowOutUpRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import useQuota from '@/hooks/use-quota';
 
 import { Expiration } from './expiration';
 import { StorageSection } from './storage-section';
-import { formatStorage, formatTime } from './utils';
+import { formatStorage, formatTime, formatTimeAsMinutes } from './utils';
 
 interface RemainQuotaProps {
   namespaceId: string;
@@ -45,7 +44,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
     },
     {
       title: t('quota.audio_video_parse_usage'),
-      current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)}/${formatTime(data.video_audio_parse.total)}`,
+      current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)}/${formatTimeAsMinutes(data.video_audio_parse.total)}`,
       items: [
         { label: t('quota.audio'), color: 'bg-blue-400' },
         { label: t('quota.video'), color: 'bg-blue-500' },
@@ -120,11 +119,8 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button
-              size="sm"
-              className="gap-1 text-white bg-blue-500 hover:bg-blue-600"
-            >
-              {t('quota.expand_button')} <SquareArrowOutUpRight />
+            <Button size="sm" variant="default" className="h-[30px] w-[71px]">
+              {t('quota.expand_button')}
             </Button>
           </a>
         </div>

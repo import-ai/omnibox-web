@@ -20,21 +20,20 @@ export function formatStorage(bytes: number) {
   return `${formatValue(gb)} GB`;
 }
 
-// Helper function to format time (seconds to minutes/hours)
+// Helper function to format time (seconds to minutes)
 export function formatTime(seconds: number) {
   if (seconds < 60) {
     return `${seconds}${i18next.t('quota.time.seconds')}`;
   }
-  if (seconds < 3600) {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return secs > 0
-      ? `${minutes}${i18next.t('quota.time.minutes')}${secs}${i18next.t('quota.time.seconds')}`
-      : `${minutes}${i18next.t('quota.time.minutes')}`;
-  }
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  return minutes > 0
-    ? `${hours}${i18next.t('quota.time.hours')}${minutes}${i18next.t('quota.time.minutes')}`
-    : `${hours}${i18next.t('quota.time.hours')}`;
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return secs > 0
+    ? `${minutes}${i18next.t('quota.time.minutes')}${secs}${i18next.t('quota.time.seconds')}`
+    : `${minutes}${i18next.t('quota.time.minutes')}`;
+}
+
+// Helper function to format time as minutes (for total quota display)
+export function formatTimeAsMinutes(seconds: number) {
+  const minutes = Math.ceil(seconds / 60);
+  return `${minutes}${i18next.t('quota.time.minutes')}`;
 }
