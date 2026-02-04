@@ -207,8 +207,8 @@ export default function SharePage() {
   }
   if (errorMessage) {
     return (
-      <Empty>
-        <EmptyHeader className="pt-[20vh]">
+      <Empty className="h-full bg-white dark:bg-background">
+        <EmptyHeader>
           <EmptyMedia>
             <img
               src={DeleteIcon}

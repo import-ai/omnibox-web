@@ -317,7 +317,7 @@
     "not_bound": "Not Bound",
     "about": "About",
     "about_title": "About OmniBox",
-    "copyright": "© 2025 Import AI. All rights reserved",
+    "copyright": "© 2025 - {{year}} Import AI. All rights reserved",
     "third_party_account": {
       "manage": "Third-party",
       "title": "Third-party Account Management",

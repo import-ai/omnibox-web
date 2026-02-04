@@ -85,6 +85,12 @@
   }
 }
 
+@layer components {
+  .border-line {
+    @apply rounded-md border dark:border-neutral-700 border-neutral-200  bg-transparent dark:bg-transparent;
+  }
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;

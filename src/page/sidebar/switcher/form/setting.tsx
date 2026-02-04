@@ -170,7 +170,7 @@ export default function SettingForm({
                     <Input
                       {...field}
                       disabled={submiting}
-                      className="rounded-md border-border bg-transparent dark:bg-transparent"
+                      className="border-line"
                     />
                   </FormControl>
                   <FormMessage />

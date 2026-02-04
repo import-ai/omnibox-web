@@ -92,7 +92,7 @@ export default function AddGroupForm(props: IProps) {
             <FormItem>
               <FormLabel>{t('manage.group_name')}</FormLabel>
               <FormControl>
-                <Input {...field} disabled={loading} />
+                <Input {...field} disabled={loading} className="border-line" />
               </FormControl>
               <FormMessage />
             </FormItem>

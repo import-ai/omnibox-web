@@ -86,12 +86,13 @@ export function ConfirmInputDialog({
               placeholder={confirmText}
               disabled={loading}
               autoComplete="off"
+              className="border-line"
             />
           </div>
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel disabled={loading}>
+        <AlertDialogCancel disabled={loading} className="border-line">
           {cancelButtonText}
         </AlertDialogCancel>
         <AlertDialogAction
