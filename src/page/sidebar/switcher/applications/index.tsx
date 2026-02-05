@@ -27,6 +27,7 @@ import {
 import useApplications from '@/hooks/use-applications';
 import { Application } from '@/interface';
 import { getDocsLink } from '@/lib/get-docs-link.ts';
+import { cn } from '@/lib/utils';
 
 import { AlreadyBoundDialog } from './already-bound-dialog';
 import { BindDialog } from './bind-dialog';
@@ -289,7 +290,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className={BUTTON_CLASS}
+                        className={cn(BUTTON_CLASS, 'border-line')}
                       >
                         {t('applications.unbind.button')}
                       </Button>
@@ -339,7 +340,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={BUTTON_CLASS + ' border-line'}
+                          className={cn(BUTTON_CLASS, 'border-line')}
                         >
                           {t('applications.bind.cancel_button')}
                         </Button>

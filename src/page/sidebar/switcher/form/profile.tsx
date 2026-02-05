@@ -13,6 +13,7 @@ import { GoogleIcon } from '@/assets/icons/google';
 import { SmartphoneIcon } from '@/assets/icons/smartphone';
 import { WeChatIcon } from '@/assets/icons/wechat';
 import { Button } from '@/components/button';
+import { Input } from '@/components/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,7 +40,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import useUser from '@/hooks/use-user';
 import { UserBinding } from '@/interface';
@@ -583,7 +583,7 @@ export default function ProfileForm() {
                           autoComplete="new-password"
                           {...field}
                           disabled={submitting}
-                          className="border-line pr-10"
+                          className="border-line shadow-none pr-10"
                         />
                         <button
                           type="button"
@@ -615,7 +615,7 @@ export default function ProfileForm() {
                           autoComplete="new-password"
                           {...field}
                           disabled={submitting}
-                          className="border-line pr-10"
+                          className="border-line shadow-none pr-10"
                         />
                         <button
                           type="button"
