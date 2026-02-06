@@ -105,6 +105,7 @@ export default function InviteForm(props: IProps) {
                   autoComplete="email"
                   {...field}
                   disabled={loading}
+                  className="border-line"
                 />
               </FormControl>
               <FormDescription>

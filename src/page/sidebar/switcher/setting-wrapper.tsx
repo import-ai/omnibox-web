@@ -134,7 +134,7 @@ export default function SettingWrapper({
         </button>
 
         {/* Content area */}
-        <div className="flex-1 min-h-0 min-w-0 bg-white dark:bg-neutral-900 overflow-auto px-5 py-4 lg:p-4 lg:pl-10 lg:pr-4 lg:pt-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900">
+        <div className="flex-1 min-h-0 min-w-0 bg-white dark:bg-neutral-800 overflow-auto px-5 py-4 lg:p-4 lg:pl-10 lg:pr-4 lg:pt-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900">
           {
             items
               .filter(item => !item.requireOwner || userIsOwnerOrAdmin)

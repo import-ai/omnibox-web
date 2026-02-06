@@ -59,6 +59,7 @@ export default function InviteForm(props: InviteFormProps) {
         permission: permission,
         inviteUrl: `${location.origin}/invite/confirm`,
         registerUrl: `${location.origin}/user/accept-invite`,
+        inviteType: 'share',
       })
       .then(() => {
         onChange('');

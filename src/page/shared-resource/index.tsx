@@ -1,8 +1,9 @@
 import { t } from 'i18next';
+import { useEffect } from 'react';
 
 import Loading from '@/components/loading';
 import useWide from '@/hooks/use-wide';
-import { cn } from '@/lib/utils';
+import { cn, setDocumentTitle } from '@/lib/utils';
 
 import Folder from '../resource/folder';
 import Render from '../resource/render';
@@ -11,6 +12,12 @@ import { useShareContext } from '../share';
 export default function SharedResourcePage() {
   const { shareInfo, resource } = useShareContext();
   const { wide } = useWide();
+
+  useEffect(() => {
+    if (resource?.name) {
+      setDocumentTitle(resource.name);
+    }
+  }, [resource?.name]);
 
   if (shareInfo && resource) {
     return (

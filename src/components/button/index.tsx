@@ -4,9 +4,10 @@ import { Button as BaseButton, ButtonProps } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner.tsx';
 import { cn } from '@/lib/utils.ts';
 
-interface ButtonLoadingProps extends ButtonProps {
+interface ButtonLoadingProps extends Omit<ButtonProps, 'variant'> {
   loading?: boolean;
   children: React.ReactNode;
+  variant?: ButtonProps['variant'] | 'outline-border';
 }
 
 const CustomButton = React.forwardRef<
@@ -35,6 +36,20 @@ const CustomButton = React.forwardRef<
         ref={ref}
         variant={variant}
         className={cn('shadow-none bg-transparent', className)}
+        {...rest}
+      >
+        {children}
+      </BaseButton>
+    );
+  }
+  if (variant === 'outline-border') {
+    return (
+      <BaseButton
+        variant="outline"
+        className={cn(
+          'shadow-none bg-transparent hover:bg-background dark:border-neutral-700',
+          className
+        )}
         {...rest}
       >
         {children}

@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
+import { Input } from '@/components/input';
 import {
   Form,
   FormControl,
@@ -14,7 +15,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { http } from '@/lib/request';
 
 const FormSchema = z.object({
@@ -92,7 +92,7 @@ export default function AddGroupForm(props: IProps) {
             <FormItem>
               <FormLabel>{t('manage.group_name')}</FormLabel>
               <FormControl>
-                <Input {...field} disabled={loading} />
+                <Input {...field} disabled={loading} className="border-line" />
               </FormControl>
               <FormMessage />
             </FormItem>

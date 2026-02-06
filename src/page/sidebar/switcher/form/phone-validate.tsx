@@ -88,6 +88,7 @@ function PhoneInputStep({
                       disabled={submitting}
                       placeholder={t('phone.enter_phone')}
                       allowedCountries={allowedCountries}
+                      className="border-line"
                     />
                   </FormControl>
                   <FormMessage />
