@@ -157,7 +157,7 @@ export default function SettingForm({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Namespace Name Form - Owner and Admin */}
       {userIsOwnerOrAdmin && (
         <div>
