@@ -9,7 +9,6 @@ import * as z from 'zod';
 
 import { Button } from '@/components/button';
 import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
-import { Input } from '@/components/input';
 import Loading from '@/components/loading';
 import {
   AlertDialog,
@@ -29,11 +28,16 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
+import useConfig from '@/hooks/use-config';
 import useNamespace from '@/hooks/use-namespace';
 import useNamespaces from '@/hooks/use-namespaces';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
+
+import { RemainQuota } from '../quota';
 
 const FormSchema = z.object({
   name: z
@@ -74,6 +78,7 @@ export default function SettingForm({
   const [deleting, setDeleting] = useState(false);
   const { app, data, onChange, loading } = useNamespace();
   const { data: namespaces } = useNamespaces();
+  const { config } = useConfig();
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -155,29 +160,33 @@ export default function SettingForm({
     <div className="space-y-8">
       {/* Namespace Name Form - Owner and Admin */}
       {userIsOwnerOrAdmin && (
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4 px-px"
-          >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('namespace.name')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled={submiting}
-                      className="border-line"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end">
+        <div>
+          <h3 className="text-base font-semibold">{t('namespace.title')}</h3>
+          <Separator className="border-t my-2" />
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="flex flex-row gap-2.5 items-center justify-between px-px w-full"
+            >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="flex gap-7 space-y-0 flex-row items-center w-full">
+                    <FormLabel className="min-w-14">
+                      {t('namespace.name')}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={submiting}
+                        className="rounded-md border-border bg-transparent dark:bg-transparent w-full mt-0"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <Button
                 type="submit"
                 disabled={submiting}
@@ -186,16 +195,23 @@ export default function SettingForm({
               >
                 {t('namespace.submit')}
               </Button>
-            </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
       )}
-
+      {config.commercial && (
+        <div>
+          <h3 className="text-base font-semibold">{t('namespace.usage')}</h3>
+          <Separator className="border-t my-2" />
+          <RemainQuota namespaceId={namespaceId} />
+        </div>
+      )}
       {/* Danger Zone */}
-      <div className="border-t pt-6">
-        <h3 className="text-sm font-medium text-destructive mb-4">
+      <div>
+        <h3 className="text-base font-semibold text-destructive">
           {t('setting.danger_zone')}
         </h3>
+        <Separator className="border-t my-2" />
         <div className="space-y-4">
           {/* Leave Space */}
           <div className="flex items-center justify-between gap-4">
@@ -237,7 +253,6 @@ export default function SettingForm({
           )}
         </div>
       </div>
-
       {/* Leave Dialog */}
       <AlertDialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
         <AlertDialogContent className="max-w-md">
@@ -267,7 +282,6 @@ export default function SettingForm({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       {/* Delete Dialog */}
       <ConfirmInputDialog
         open={deleteDialogOpen}

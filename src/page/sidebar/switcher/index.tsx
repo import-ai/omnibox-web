@@ -48,6 +48,7 @@ export function Switcher(props: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { app, data } = useNamespace();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const current = data.find(item => item.id === namespaceId) || {
     name: '--',
   };
@@ -75,7 +76,7 @@ export function Switcher(props: IProps) {
           'flex justify-between items-center': open,
         })}
       >
-        <DropdownMenu>
+        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
               <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
@@ -137,7 +138,7 @@ export function Switcher(props: IProps) {
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="p-0">
-              <Generate />
+              <Generate onCloseDropdown={() => setDropdownOpen(false)} />
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="p-0">

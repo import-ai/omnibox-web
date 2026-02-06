@@ -5,6 +5,7 @@ RUN corepack enable
 RUN pnpm install
 COPY . .
 ENV VITE_REMOVE_GENERATED_CITE=TRUE
+
 RUN pnpm build
 
 FROM nginx:1.29
