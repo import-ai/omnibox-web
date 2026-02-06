@@ -28,17 +28,26 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
         {
           label: t('quota.upload'),
           color: 'bg-blue-400',
-          percentage: (data.storage.upload / data.storage.total) * 100,
+          percentage:
+            data.storage.total > 0
+              ? (data.storage.upload / data.storage.total) * 100
+              : 0,
         },
         {
           label: t('quota.file'),
           color: 'bg-blue-500',
-          percentage: (data.storage.file / data.storage.total) * 100,
+          percentage:
+            data.storage.total > 0
+              ? (data.storage.file / data.storage.total) * 100
+              : 0,
         },
         {
           label: t('quota.other'),
           color: 'bg-gray-300',
-          percentage: (data.storage.other_users / data.storage.total) * 100,
+          percentage:
+            data.storage.total > 0
+              ? (data.storage.other_users / data.storage.total) * 100
+              : 0,
         },
       ],
     },
@@ -55,21 +64,29 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
           label: t('quota.audio'),
           color: 'bg-blue-400',
           percentage:
-            (data.video_audio_parse.audio / data.video_audio_parse.total) * 100,
+            data.video_audio_parse.total > 0
+              ? (data.video_audio_parse.audio / data.video_audio_parse.total) *
+                100
+              : 0,
         },
         {
           label: t('quota.video'),
           color: 'bg-blue-500',
           percentage:
-            (data.video_audio_parse.video / data.video_audio_parse.total) * 100,
+            data.video_audio_parse.total > 0
+              ? (data.video_audio_parse.video / data.video_audio_parse.total) *
+                100
+              : 0,
         },
         {
           label: t('quota.other'),
           color: 'bg-gray-300',
           percentage:
-            (data.video_audio_parse.other_users /
-              data.video_audio_parse.total) *
-            100,
+            data.video_audio_parse.total > 0
+              ? (data.video_audio_parse.other_users /
+                  data.video_audio_parse.total) *
+                100
+              : 0,
         },
       ],
     },
@@ -85,17 +102,26 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
         {
           label: t('quota.pdf'),
           color: 'bg-blue-400',
-          percentage: (data.doc_parse.pdf / data.doc_parse.total) * 100,
+          percentage:
+            data.doc_parse.total > 0
+              ? (data.doc_parse.pdf / data.doc_parse.total) * 100
+              : 0,
         },
         {
           label: t('quota.image'),
           color: 'bg-blue-500',
-          percentage: (data.doc_parse.image / data.doc_parse.total) * 100,
+          percentage:
+            data.doc_parse.total > 0
+              ? (data.doc_parse.image / data.doc_parse.total) * 100
+              : 0,
         },
         {
           label: t('quota.other'),
           color: 'bg-gray-300',
-          percentage: (data.doc_parse.other_users / data.doc_parse.total) * 100,
+          percentage:
+            data.doc_parse.total > 0
+              ? (data.doc_parse.other_users / data.doc_parse.total) * 100
+              : 0,
         },
       ],
     },
