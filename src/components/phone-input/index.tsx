@@ -137,13 +137,13 @@ function PhoneNumberInput({
   return (
     <div
       className={cn(
-        'flex h-10 w-full items-center rounded-md border border-input bg-background dark:bg-[#303030] shadow-xs transition-[color,box-shadow] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring',
+        'flex h-10 w-full items-center rounded-md border border-input bg-transparent transition-[color,box-shadow] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring',
         disabled && 'cursor-not-allowed opacity-50',
         className
       )}
     >
       {isSingleCountry ? (
-        <div className="flex h-full shrink-0 items-center gap-1 border-r border-input px-2 text-sm">
+        <div className="flex h-full shrink-0 items-center gap-1 border-r px-2 text-sm">
           <span className="text-base">{selectedCountryData.flag}</span>
           <span className="text-muted-foreground">
             {selectedCountryData.dialCode}

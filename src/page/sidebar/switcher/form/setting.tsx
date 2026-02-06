@@ -9,6 +9,7 @@ import * as z from 'zod';
 
 import { Button } from '@/components/button';
 import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
+import { Input } from '@/components/input';
 import Loading from '@/components/loading';
 import {
   AlertDialog,
@@ -28,7 +29,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import useNamespace from '@/hooks/use-namespace';
 import useNamespaces from '@/hooks/use-namespaces';
@@ -170,7 +170,7 @@ export default function SettingForm({
                     <Input
                       {...field}
                       disabled={submiting}
-                      className="rounded-md border-border bg-transparent dark:bg-transparent"
+                      className="border-line"
                     />
                   </FormControl>
                   <FormMessage />

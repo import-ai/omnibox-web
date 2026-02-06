@@ -46,7 +46,7 @@ export default function AuthConfirmPage() {
             navigate('/', { replace: true });
             setTimeout(() => {
               app.fire('open_settings', {
-                tab: 'third-party',
+                tab: 'profile',
               });
             }, 2000);
           }
