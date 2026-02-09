@@ -43,7 +43,7 @@ export default function Wrapper(props: UserFormProps) {
   }, [namespace_id, resource_id]);
 
   return (
-    <div className="space-y-2 text-sm">
+    <div className="space-y-2 text-sm max-h-[60vh] sm:max-h-[60vh] overflow-y-auto overflow-x-hidden pr-3">
       <User
         data={data.users}
         refetch={refetch}

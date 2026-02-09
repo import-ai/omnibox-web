@@ -46,16 +46,20 @@ export default function ShareSidebar(props: SharedSidebarProps) {
   };
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-1.5 py-2">
-          <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
-            {username.charAt(0).toUpperCase()}
-          </div>
-          <span className="truncate font-semibold text-sm">
-            {t('share.share.user_share', { username })}
-          </span>
-        </div>
+    <Sidebar className="border-none">
+      <SidebarHeader className="pt-[16px] gap-[10px] pr-0">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
+              <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
+                {username.charAt(0).toUpperCase()}
+              </div>
+              <span className="truncate">
+                {t('share.share.user_share', { username })}
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         {showChat && (
           <SidebarMenu>
             <SidebarMenuItem>
@@ -71,7 +75,9 @@ export default function ShareSidebar(props: SharedSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{t('share.share.title')}</SidebarGroupLabel>
+          <SidebarGroupLabel className="h-8 font-normal leading-8 text-neutral-400">
+            {t('share.share.title')}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarItem
