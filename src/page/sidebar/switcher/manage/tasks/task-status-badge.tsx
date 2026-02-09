@@ -2,6 +2,7 @@ import { CancelStatus } from '@/assets/icons/cancelStatus';
 import { CompletedStatus } from '@/assets/icons/completedStatus';
 import { ErrorStatus } from '@/assets/icons/errorStatus';
 import { InProgressStatus } from '@/assets/icons/inProgressStatus';
+import { InsufficientQuotaStatus } from '@/assets/icons/insufficientQuotaStatus';
 import { QueueStatus } from '@/assets/icons/queueStatus';
 import { TimeoutStatus } from '@/assets/icons/timeoutStatus';
 import { TaskStatus } from '@/interface.ts';
@@ -32,6 +33,9 @@ export const statusConfig: Record<
   },
   timeout: {
     icon: TimeoutStatus,
+  },
+  insufficient_quota: {
+    icon: InsufficientQuotaStatus,
   },
 };
 

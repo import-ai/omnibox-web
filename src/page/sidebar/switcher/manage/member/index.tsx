@@ -2,9 +2,9 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Input } from '@/components/input';
 import PermissionAction from '@/components/permission-action';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import UserCard from '@/components/user-card';
 import { Member, Role } from '@/interface';
 import { http } from '@/lib/request';

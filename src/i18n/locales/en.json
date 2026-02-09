@@ -141,6 +141,7 @@
   },
   "namespace": {
     "add": "Add Namespace",
+    "title": "Namespace Name",
     "name": "Namespace Name",
     "min": "At least 2 characters",
     "max": "At most 64 characters",
@@ -149,6 +150,10 @@
     "member_count": "{{ size }} members",
     "conflict": "There's already a namespace with the same name",
     "no_special_chars": "Special characters are not allowed in namespace name",
+    "quota_exceeded": "Quota Exceeded",
+    "quota_exceeded_desc": "Current space quota is exhausted, please expand",
+    "quota_expand_button": "Expand",
+    "usage": "Usage",
     "leave": {
       "title": "Leave Space",
       "description": "Leave this workspace. Your private data will be deleted.",
@@ -675,6 +680,7 @@
     "time_error_minutes": "Failed: costs {{minutes}} min",
     "time_timeout_seconds": "Timeout: costs {{seconds}} sec",
     "time_timeout_minutes": "Timeout: costs {{minutes}} min",
+    "time_insufficient_quota": "Insufficient quota: {{time}}",
     "time_canceled": "Canceled: {{time}}",
     "functions": {
       "collect": "Collect",
@@ -774,7 +780,7 @@
     "search_placeholder": "Search resources in trash",
     "empty": "Nothing here",
     "loading": "Loading",
-    "auto_delete_notice": "Resources in trash older than 7 days will be automatically deleted",
+    "auto_delete_notice": "Resources in trash older than {{days}} days will be automatically deleted",
     "restore": "Restore",
     "delete_permanently": "Delete permanently",
     "clear_all": "Empty Trash",
@@ -787,5 +793,27 @@
     "restore_success": "Restored",
     "delete_success": "Permanently deleted",
     "clear_success": "Trash emptied"
+  },
+  "quota": {
+    "storage_usage": "Storage Usage",
+    "upload": "Upload",
+    "file": "File",
+    "other_users": "Other Users in Space",
+    "audio_video_parse_usage": "Audio/Video Parse Quota",
+    "audio": "Audio",
+    "video": "Video",
+    "doc_parse_usage": "PDF/Image Parse Quota",
+    "pdf": "PDF",
+    "image": "Image",
+    "other": "Other",
+    "expand_button": "Expand",
+    "validity_period": "Space Validity Period:",
+    "days_remaining": "{{days}} days remaining (expires {{date}})",
+    "page_unit": "pages",
+    "time": {
+      "seconds": "sec",
+      "minutes": "min",
+      "hours": "hrs"
+    }
   }
 }

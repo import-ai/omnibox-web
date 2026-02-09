@@ -16,6 +16,12 @@ export default function SharedResourcePage() {
     }
   }, [resource?.name]);
 
+  useEffect(() => {
+    if (resource?.name) {
+      setDocumentTitle(resource.name);
+    }
+  }, [resource?.name]);
+
   if (shareInfo && resource) {
     return (
       <div className="flex justify-center h-full w-full p-4 overflow-auto">

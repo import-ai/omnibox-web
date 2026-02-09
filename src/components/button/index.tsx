@@ -4,16 +4,21 @@ import { Button as BaseButton, ButtonProps } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner.tsx';
 import { cn } from '@/lib/utils.ts';
 
-interface ButtonLoadingProps extends ButtonProps {
+interface ButtonLoadingProps extends Omit<ButtonProps, 'variant'> {
   loading?: boolean;
   children: React.ReactNode;
+  variant?: ButtonProps['variant'] | 'outline-border';
 }
 
-function CustomButton(props: ButtonLoadingProps) {
+const CustomButton = React.forwardRef<
+  React.ElementRef<typeof BaseButton>,
+  ButtonLoadingProps
+>(function CustomButton(props, ref) {
   const { children, variant = 'default', className, ...rest } = props;
   if (variant === 'destructive') {
     return (
       <BaseButton
+        ref={ref}
         variant="outline"
         className={cn(
           'bg-transparent text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground',
@@ -28,6 +33,7 @@ function CustomButton(props: ButtonLoadingProps) {
   if (variant === 'outline') {
     return (
       <BaseButton
+        ref={ref}
         variant={variant}
         className={cn('shadow-none bg-transparent', className)}
         {...rest}
@@ -36,8 +42,23 @@ function CustomButton(props: ButtonLoadingProps) {
       </BaseButton>
     );
   }
+  if (variant === 'outline-border') {
+    return (
+      <BaseButton
+        variant="outline"
+        className={cn(
+          'shadow-none bg-transparent hover:bg-background dark:border-neutral-700',
+          className
+        )}
+        {...rest}
+      >
+        {children}
+      </BaseButton>
+    );
+  }
   return (
     <BaseButton
+      ref={ref}
       variant={variant}
       className={cn('shadow-none', className)}
       {...rest}
@@ -45,18 +66,25 @@ function CustomButton(props: ButtonLoadingProps) {
       {children}
     </BaseButton>
   );
-}
+});
 
-export function Button(props: ButtonLoadingProps) {
+export const Button = React.forwardRef<
+  React.ElementRef<typeof BaseButton>,
+  ButtonLoadingProps
+>(function Button(props, ref) {
   const { loading, children, ...rest } = props;
 
   if (loading) {
     return (
-      <CustomButton disabled {...rest}>
+      <CustomButton ref={ref} disabled {...rest}>
         <Spinner />
         {children}
       </CustomButton>
     );
   }
-  return <CustomButton {...rest}>{children}</CustomButton>;
-}
+  return (
+    <CustomButton ref={ref} {...rest}>
+      {children}
+    </CustomButton>
+  );
+});

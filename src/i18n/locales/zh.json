@@ -142,6 +142,7 @@
   },
   "namespace": {
     "add": "创建空间",
+    "title": "空间名称",
     "name": "空间名称",
     "min": "至少 2 个字符",
     "max": "最多 32 个字符",
@@ -150,6 +151,10 @@
     "member_count": "{{ size }} 名成员",
     "conflict": "已有相同名称的空间",
     "no_special_chars": "空间名不允许使用特殊符号",
+    "quota_exceeded": "已超过额度",
+    "quota_exceeded_desc": "当前空间额度已耗尽,请扩容",
+    "quota_expand_button": "扩容",
+    "usage": "用量",
     "leave": {
       "title": "离开空间",
       "description": "离开此空间。您的私人数据将被删除。",
@@ -676,6 +681,7 @@
     "time_error_minutes": "失败：耗时 {{minutes}} 分钟",
     "time_timeout_seconds": "超时：耗时 {{seconds}} 秒",
     "time_timeout_minutes": "超时：耗时 {{minutes}} 分钟",
+    "time_insufficient_quota": "额度不足：{{time}}",
     "time_canceled": "已取消：{{time}}",
     "functions": {
       "collect": "收藏",
@@ -775,7 +781,7 @@
     "search_placeholder": "搜索被移入回收站的资源",
     "empty": "空空如也",
     "loading": "加载中",
-    "auto_delete_notice": "回收站中超过 7 天的资源将自动删除",
+    "auto_delete_notice": "回收站中超过 {{days}} 天的资源将自动删除",
     "restore": "恢复",
     "delete_permanently": "立即删除",
     "clear_all": "清倒",
@@ -788,5 +794,27 @@
     "restore_success": "已恢复",
     "delete_success": "已永久删除",
     "clear_success": "回收站已清空"
+  },
+  "quota": {
+    "storage_usage": "存储用量",
+    "upload": "上传",
+    "file": "文件",
+    "other_users": "空间内其他用户",
+    "audio_video_parse_usage": "音视频解析额度用量",
+    "audio": "音频",
+    "video": "视频",
+    "doc_parse_usage": "PDF/图片解析额度用量",
+    "pdf": "PDF",
+    "image": "图片",
+    "other": "其他",
+    "expand_button": "扩容",
+    "validity_period": "空间有效期：",
+    "days_remaining": "剩余 {{days}} 天 ({{date}} 到期)",
+    "page_unit": "页",
+    "time": {
+      "seconds": "秒",
+      "minutes": "分钟",
+      "hours": "小时"
+    }
   }
 }

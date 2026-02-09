@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Eye, EyeOff } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ import { GoogleIcon } from '@/assets/icons/google';
 import { SmartphoneIcon } from '@/assets/icons/smartphone';
 import { WeChatIcon } from '@/assets/icons/wechat';
 import { Button } from '@/components/button';
+import { Input } from '@/components/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,7 +40,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import useUser from '@/hooks/use-user';
 import { UserBinding } from '@/interface';
@@ -78,21 +78,23 @@ const passwordChangeSchema = z.object({
 type UsernameFormValues = { username: string };
 type PasswordFormValues = { password: string; password_repeat: string };
 
-function ActionButton({
-  children,
-  onClick,
-  disabled,
-  variant = 'outline',
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  variant?: 'default' | 'outline' | 'destructive';
-}) {
+const ActionButton = React.forwardRef<
+  React.ElementRef<typeof Button>,
+  {
+    children: React.ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+    variant?: 'default' | 'outline' | 'destructive';
+  }
+>(function ActionButton(
+  { children, onClick, disabled, variant = 'outline' },
+  ref
+) {
   const className =
     'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] dark:border-neutral-700 border-neutral-200 text-sm font-semibold';
   return (
     <Button
+      ref={ref}
       onClick={onClick}
       disabled={disabled}
       variant={variant}
@@ -101,7 +103,7 @@ function ActionButton({
       {children}
     </Button>
   );
-}
+});
 
 function SectionHeader({
   title,
@@ -583,7 +585,7 @@ export default function ProfileForm() {
                           autoComplete="new-password"
                           {...field}
                           disabled={submitting}
-                          className="border-line pr-10"
+                          className="border-line shadow-none pr-10"
                         />
                         <button
                           type="button"
@@ -615,7 +617,7 @@ export default function ProfileForm() {
                           autoComplete="new-password"
                           {...field}
                           disabled={submitting}
-                          className="border-line pr-10"
+                          className="border-line shadow-none pr-10"
                         />
                         <button
                           type="button"

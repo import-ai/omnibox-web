@@ -45,6 +45,7 @@ export function TrashPanel() {
     permanentlyDelete,
     emptyTrash,
     fetchTrash,
+    trashRetentionDays,
   } = useTrash();
 
   // Fetch trash on mount to determine icon state
@@ -197,6 +198,7 @@ export function TrashPanel() {
                     <TrashFooter
                       onClearAll={handleClearAll}
                       hasItems={items.length > 0}
+                      trashRetentionDays={trashRetentionDays}
                     />
                   </div>
                 </PopoverContent>
