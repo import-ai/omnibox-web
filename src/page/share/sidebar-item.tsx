@@ -157,7 +157,7 @@ export default function SidebarItem(props: SidebarItemProps) {
               </SidebarMenuButton>
               {showChat && (
                 <SidebarMenuAction
-                  className="group-hover/sidebar-item:opacity-100 opacity-0 group-hover/sidebar-item:pointer-events-auto pointer-events-none size-4 right-2 !text-neutral-400 hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent cursor-pointer"
+                  className="group-hover/sidebar-item:opacity-100 opacity-0 group-hover/sidebar-item:pointer-events-auto pointer-events-none size-4 right-2 !text-neutral-400 hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent cursor-pointer peer-data-[size=default]/menu-button:top-[8px]"
                   onClick={handleContextMenuTrigger}
                 >
                   <MoreHorizontal />
