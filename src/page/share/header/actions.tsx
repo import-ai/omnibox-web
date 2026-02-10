@@ -26,9 +26,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
-import { http } from '@/lib/request';
 
 interface ShareActionsProps {
   resource: {
@@ -40,18 +38,15 @@ interface ShareActionsProps {
   };
   wide?: boolean;
   onWide?: (wide: boolean) => void;
-  shareId?: string;
 }
 
 export default function ShareActions({
   resource,
   wide,
   onWide,
-  shareId,
 }: ShareActionsProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState('');
   const [downloadAsOpen, setDownloadAsOpen] = useState(false);
 
   const handleAction = (id: string) => {
@@ -72,29 +67,6 @@ export default function ShareActions({
         position: 'bottom-right',
       });
       setOpen(false);
-      return;
-    }
-
-    if (id === 'download' && resource.resource_type === 'file') {
-      if (!shareId) return;
-      setLoading('download');
-      http
-        .get(`/shares/${shareId}/resources/${resource.id}/file`, { mute: true })
-        .then((fileInfo: { url: string }) => {
-          const link = document.createElement('a');
-          link.href = fileInfo.url;
-          link.style.display = 'none';
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-          setOpen(false);
-        })
-        .catch(() => {
-          toast(t('download.failed'), { position: 'bottom-right' });
-        })
-        .finally(() => {
-          setLoading('');
-        });
       return;
     }
 
@@ -167,16 +139,6 @@ export default function ShareActions({
                       >
                         <Files />
                         <span>{t('actions.copy_content')}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
-                  {resource.resource_type === 'file' && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => handleAction('download')}
-                      >
-                        {loading === 'download' ? <Spinner /> : <Download />}
-                        <span>{t('actions.download')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}

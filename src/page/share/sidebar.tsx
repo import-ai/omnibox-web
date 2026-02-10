@@ -73,8 +73,8 @@ export default function ShareSidebar(props: SharedSidebarProps) {
           </SidebarMenu>
         )}
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
+      <SidebarContent className="no-scrollbar">
+        <SidebarGroup className="pr-0">
           <SidebarGroupLabel className="h-8 font-normal leading-8 text-neutral-400">
             {t('share.share.title')}
           </SidebarGroupLabel>

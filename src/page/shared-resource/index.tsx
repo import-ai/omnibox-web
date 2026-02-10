@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import Loading from '@/components/loading';
 import { cn, setDocumentTitle } from '@/lib/utils';
@@ -8,6 +9,7 @@ import Render from '../resource/render';
 import { useShareContext } from '../share';
 
 export default function SharedResourcePage() {
+  const { t } = useTranslation();
   const { shareInfo, resource, wide } = useShareContext();
 
   useEffect(() => {
@@ -30,6 +32,9 @@ export default function SharedResourcePage() {
             'max-w-3xl': !wide,
           })}
         >
+          <h1 className="text-4xl font-bold mb-4 break-words">
+            {resource.name || t('untitled')}
+          </h1>
           {resource.resource_type === 'folder' ? (
             <Folder
               resourceId={resource.id}
