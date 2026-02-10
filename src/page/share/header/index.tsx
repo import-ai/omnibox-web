@@ -23,14 +23,12 @@ interface ShareHeaderProps {
   } | null;
   wide?: boolean;
   onWide?: (wide: boolean) => void;
-  shareId?: string;
 }
 
 export default function ShareHeader({
   resource,
   wide,
   onWide,
-  shareId,
 }: ShareHeaderProps) {
   const { t, i18n } = useTranslation();
   const { open, isMobile } = useSidebar();
@@ -66,12 +64,7 @@ export default function ShareHeader({
         <LanguageToggle />
         <ThemeToggle />
         {resource && (
-          <Actions
-            resource={resource}
-            wide={wide}
-            onWide={onWide}
-            shareId={shareId}
-          />
+          <Actions resource={resource} wide={wide} onWide={onWide} />
         )}
       </div>
     </header>
