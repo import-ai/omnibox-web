@@ -1,4 +1,4 @@
-import { ChevronRight, MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
+import { Arrow } from '@/page/sidebar/content/arrow';
 import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 interface SidebarItemProps {
@@ -139,9 +140,9 @@ export default function SidebarItem(props: SidebarItemProps) {
                       {loading ? (
                         <Spinner className="w-3 h-3" />
                       ) : (
-                        <ChevronRight
+                        <Arrow
                           className={cn(
-                            'w-3 h-3 transition-transform',
+                            'transition-transform text-neutral-400 hover:text-accent-foreground',
                             isExpanded && 'rotate-90'
                           )}
                         />
