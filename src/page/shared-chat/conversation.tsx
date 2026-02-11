@@ -201,7 +201,7 @@ export default function SharedChatConversationPage() {
   }, [shareId, conversationId]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-1 flex-col min-h-0">
       <Scrollbar>
         <Messages
           messages={normalizeChatData(messages)}

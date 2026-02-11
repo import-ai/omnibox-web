@@ -38,6 +38,8 @@ interface ShareContextValue {
   tools: Array<ToolType>;
   setTools: (tools: Array<ToolType>) => void;
   password: string | null;
+  wide: boolean;
+  onWide: (wide: boolean) => void;
 }
 
 const ShareContext = createContext<ShareContextValue | null>(null);
@@ -72,6 +74,7 @@ export default function SharePage() {
   const [password, setPassword] = useState<string | null>(
     Cookies.get(SHARE_PASSWORD_COOKIE) ?? null
   );
+  const [wide, setWide] = useState(false);
   const shareId = params.share_id;
   const currentResourceId = params.resource_id || shareInfo?.resource?.id;
   const isChatActive = location.pathname.includes('/chat');
@@ -165,7 +168,7 @@ export default function SharePage() {
   // Get resource info
   useEffect(() => {
     setResource(null);
-    if (!shareInfo) {
+    if (!shareInfo || !currentResourceId) {
       return;
     }
     const source = axios.CancelToken.source();
@@ -187,7 +190,7 @@ export default function SharePage() {
         }
       });
     return () => source.cancel();
-  }, [shareInfo, currentResourceId]);
+  }, [shareInfo, currentResourceId, shareId, navigate]);
 
   if (requirePassword) {
     return (
@@ -237,6 +240,8 @@ export default function SharePage() {
           tools,
           setTools,
           password,
+          wide,
+          onWide: setWide,
         }}
       >
         {!showSidebar && <Outlet />}
@@ -248,6 +253,9 @@ export default function SharePage() {
               showChat={showChat}
               currentResourceId={currentResourceId}
               handleAddToContext={handleAddToContext}
+              resource={resource}
+              wide={wide}
+              onWide={setWide}
             />
           </SidebarProvider>
         )}

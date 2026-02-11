@@ -1,4 +1,4 @@
-import { ChevronRight, MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
+import { Arrow } from '@/page/sidebar/content/arrow';
+import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 interface SidebarItemProps {
   shareId: string;
@@ -110,48 +112,56 @@ export default function SidebarItem(props: SidebarItemProps) {
       <Collapsible open={isExpanded}>
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <div className="relative group/sidebar-header" ref={contextMenuRef}>
+            <div
+              className="group/sidebar-item my-[1px] rounded-[6px] hover:bg-sidebar-accent"
+              ref={contextMenuRef}
+            >
               <SidebarMenuButton
                 asChild
-                className="gap-1 py-1.5 h-auto"
+                className="gap-1 py-1.5 h-auto data-[active=true]:font-normal group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637] transition-none"
                 isActive={isActive}
               >
                 <div
-                  className="flex cursor-pointer items-center"
+                  className={cn('flex cursor-pointer items-center', {
+                    'pl-1': hasChildren,
+                    'pl-[28px]': !hasChildren,
+                  })}
                   onClick={handleClick}
                 >
-                  <div
-                    onClick={e => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleToggle();
-                    }}
-                    className="flex items-center justify-center w-4 h-4"
-                  >
-                    {loading ? (
-                      <Spinner className="w-3 h-3" />
-                    ) : (
-                      hasChildren && (
-                        <ChevronRight
+                  {hasChildren && (
+                    <div
+                      onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleToggle();
+                      }}
+                      className="flex items-center justify-center w-4 h-4"
+                    >
+                      {loading ? (
+                        <Spinner className="w-3 h-3" />
+                      ) : (
+                        <Arrow
                           className={cn(
-                            'w-3 h-3 transition-transform',
+                            'transition-transform text-neutral-400 hover:text-accent-foreground',
                             isExpanded && 'rotate-90'
                           )}
                         />
-                      )
-                    )}
-                  </div>
-                  <span className="truncate ml-1">
+                      )}
+                    </div>
+                  )}
+
+                  <ResourceIcon expand={isExpanded} resource={resource} />
+                  <span className="truncate flex-1 text-sm">
                     {resource.name || t('untitled')}
                   </span>
                 </div>
               </SidebarMenuButton>
               {showChat && (
                 <SidebarMenuAction
-                  className="group-hover/sidebar-header:opacity-100 opacity-0"
+                  className="group-hover/sidebar-item:opacity-100 opacity-0 group-hover/sidebar-item:pointer-events-auto pointer-events-none size-4 right-2 !text-neutral-400 hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent cursor-pointer peer-data-[size=default]/menu-button:top-[8px]"
                   onClick={handleContextMenuTrigger}
                 >
-                  <MoreHorizontal className="w-4 h-4" />
+                  <MoreHorizontal />
                 </SidebarMenuAction>
               )}
             </div>

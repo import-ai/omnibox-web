@@ -37,7 +37,7 @@ export default function SharedChatHomePage() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen p-4">
+    <div className="flex flex-1 flex-col items-center justify-center min-h-0 w-full p-4">
       <div className="max-w-3xl w-full">
         <h1 className="text-[28px] text-center mb-[32px] font-medium">
           <Typewriter text={t(i18n)} typeSpeed={32} />
