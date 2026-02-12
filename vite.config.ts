@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => {
             'https://test.omnibox.pro',
           changeOrigin: true,
         },
-        '/docs': {
+        '^/(docs|community|zh-cn|product|en|_next|static)': {
           target:
             process.env.VITE_API_PATH ??
             env.VITE_API_PATH ??
