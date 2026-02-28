@@ -6,11 +6,11 @@ import { http } from '@/lib/request';
 
 import useApp from './use-app';
 
-interface UseNamespacesOptions {
+interface UseProNamespacesOptions {
   disabled?: boolean;
 }
 
-export default function useNamespaces(options?: UseNamespacesOptions) {
+export default function useProNamespaces(options?: UseProNamespacesOptions) {
   const { disabled = false } = options || {};
   const app = useApp();
   const [loading, onLoading] = useState(false);
@@ -26,7 +26,7 @@ export default function useNamespaces(options?: UseNamespacesOptions) {
     onLoading(true);
     const source = axios.CancelToken.source();
     http
-      .get('namespaces', { cancelToken: source.token })
+      .get('pro-namespaces', { cancelToken: source.token })
       .then(onData)
       .finally(() => {
         onLoading(false);

@@ -7,7 +7,7 @@ export interface IPropsConfig {
 }
 
 export default function useConfig() {
-  const [config, setConfig] = useState<IPropsConfig>({ commercial: true });
+  const [config, setConfig] = useState<IPropsConfig>({ commercial: false });
 
   useEffect(() => {
     http.get('/config').then(setConfig);

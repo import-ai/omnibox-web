@@ -10,7 +10,10 @@ import { useTranslation } from 'react-i18next';
 
 import { AppManagerIcon } from '@/assets/icons/appManager';
 import logoUrl from '@/assets/logo.svg';
+import useConfig from '@/hooks/use-config';
 import { cn } from '@/lib/utils';
+
+import { UpgradeButton } from './upgrade-button';
 
 interface SettingsSidebarProps {
   value: string;
@@ -33,6 +36,7 @@ export function SettingsSidebar({
   userIsOwnerOrAdmin,
 }: SettingsSidebarProps) {
   const { t } = useTranslation();
+  const { config } = useConfig();
 
   // Account section items - icons match Figma design
   const accountItems: MenuItem[] = [
@@ -211,7 +215,6 @@ export function SettingsSidebar({
           </div>
         </div>
 
-        {/* About Section */}
         <div className="flex w-full flex-col gap-2 lg:gap-2">
           <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5">
             <button
@@ -244,6 +247,7 @@ export function SettingsSidebar({
                 {aboutItem.label}
               </span>
             </button>
+            {config.commercial && <UpgradeButton />}
           </div>
         </div>
       </div>

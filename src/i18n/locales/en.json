@@ -143,6 +143,11 @@
     "add": "Add Namespace",
     "title": "Namespace Name",
     "name": "Namespace Name",
+    "tier": {
+      "basic": "Basic",
+      "premium": "Premium"
+    },
+    "upgrade": "Upgrade",
     "min": "At least 2 characters",
     "max": "At most 64 characters",
     "submit": "Save",

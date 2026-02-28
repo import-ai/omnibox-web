@@ -46,11 +46,20 @@ export interface UserBinding extends IBase {
   };
 }
 
+export enum NamespaceTier {
+  BASIC = 'basic',
+  PREMIUM = 'premium',
+}
+
 export interface Namespace extends IBase {
   id: string;
   name: string;
   collaborators?: string[];
   owner_id?: string[];
+  tier?: NamespaceTier;
+  upgradable?: boolean;
+  is_purchased?: boolean;
+  expires_at?: string;
 }
 
 export interface Tag extends IBase {
