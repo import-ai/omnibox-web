@@ -217,6 +217,7 @@ export function SettingsSidebar({
 
         <div className="flex w-full flex-col gap-2 lg:gap-2">
           <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5">
+            {config.commercial && <UpgradeButton />}
             <button
               onClick={() => onChange(aboutItem.value)}
               className={cn(
@@ -247,7 +248,6 @@ export function SettingsSidebar({
                 {aboutItem.label}
               </span>
             </button>
-            {config.commercial && <UpgradeButton />}
           </div>
         </div>
       </div>

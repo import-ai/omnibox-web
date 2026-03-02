@@ -20,7 +20,7 @@ export function UpgradeButton() {
   const handleClick = () => {
     const rawLang = i18n.language || 'zh-cn';
     const lang = rawLang.startsWith('zh') ? 'zh-cn' : 'en';
-    window.location.href = `/${lang}/pricing?namespaceId=${namespaceId}`;
+    window.open(`/${lang}/pricing?namespace=${namespaceId}`, '_blank');
   };
 
   return (
