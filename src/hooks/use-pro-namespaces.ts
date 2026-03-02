@@ -6,12 +6,12 @@ import { http } from '@/lib/request';
 
 import useApp from './use-app';
 
-interface UseProNamespacesOptions {
+interface IProps {
   disabled?: boolean;
 }
 
-export default function useProNamespaces(options?: UseProNamespacesOptions) {
-  const { disabled = false } = options || {};
+export default function useProNamespaces(props?: IProps) {
+  const { disabled = false } = props || {};
   const app = useApp();
   const [loading, onLoading] = useState(false);
   const [data, onData] = useState<Array<Namespace>>([]);
