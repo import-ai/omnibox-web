@@ -1,3 +1,5 @@
+import type { Citation } from '@omnibox/react-common';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -6,7 +8,6 @@ import {
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
 import { formatCitation } from '@/page/chat/messages/citations/utils.tsx';
-import type { Citation } from '@/page/chat/types/chat-response';
 
 export interface CitationIconProps {
   index: number;
