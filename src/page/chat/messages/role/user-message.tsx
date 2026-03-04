@@ -13,7 +13,7 @@ import {
 import { cn } from '@/lib/utils';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
-import { MessageDetail } from '@/page/chat/types/conversation';
+import type { MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {
   message: MessageDetail;
