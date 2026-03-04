@@ -7,7 +7,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
-import { formatCitation } from '@/page/chat/messages/citations/utils.tsx';
+import { formatCitation } from '@/page/chat/messages/citations/utils';
 
 export interface CitationIconProps {
   index: number;

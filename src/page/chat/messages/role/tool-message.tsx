@@ -1,7 +1,7 @@
 import { type Citation } from '@omnibox/react-common';
 
 import { CitationsSheet } from '@/page/chat/messages/citations/citations-sheet';
-import { type MessageDetail } from '@/page/chat/types/conversation';
+import type { MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {
   citations: Citation[];
