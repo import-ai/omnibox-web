@@ -1,24 +1,27 @@
 import { io, Socket } from 'socket.io-client';
 
-let socket: Socket | null = null;
+let globalSocket: Socket | null = null;
 
+/**
+ * @deprecated Use socket.io-client directly or hooks from @omnibox/react-common
+ */
 export function getWebSocketConnection(): Socket {
   const token = localStorage.getItem('token') || '';
 
   // If socket exists but token changed, disconnect and recreate
-  if (socket) {
-    const currentAuth = (socket.auth as any)?.token;
+  if (globalSocket) {
+    const currentAuth = (globalSocket.auth as any)?.token;
     if (currentAuth !== `Bearer ${token}`) {
-      socket.disconnect();
-      socket = null;
-    } else if (socket.connected) {
-      return socket;
+      globalSocket.disconnect();
+      globalSocket = null;
+    } else if (globalSocket.connected) {
+      return globalSocket;
     }
   }
 
   const apiBaseUrl = window.location.origin;
 
-  socket = io(`${apiBaseUrl}/wizard`, {
+  globalSocket = io(`${apiBaseUrl}/wizard`, {
     path: '/api/v1/socket.io',
     transports: ['websocket', 'polling'],
     auth: { token: `Bearer ${token}` },
@@ -27,28 +30,15 @@ export function getWebSocketConnection(): Socket {
     reconnectionDelay: 1000,
   });
 
-  socket.on('connect', () => {});
-
-  socket.on('disconnect', () => {});
-
-  socket.on('connect_error', error => {
-    console.error('WebSocket connect_error:', error);
-  });
-
-  socket.on('error', error => {
-    console.error('WebSocket error:', error);
-  });
-
-  socket.on('exception', exception => {
-    console.error('WebSocket exception:', exception);
-  });
-
-  return socket;
+  return globalSocket;
 }
 
-export function disconnectWebSocket() {
-  if (socket) {
-    socket.disconnect();
-    socket = null;
+/**
+ * @deprecated Use socket.io-client directly or hooks from @omnibox/react-common
+ */
+export function disconnectWebSocket(): void {
+  if (globalSocket) {
+    globalSocket.disconnect();
+    globalSocket = null;
   }
 }

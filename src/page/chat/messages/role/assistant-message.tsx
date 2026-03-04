@@ -1,3 +1,5 @@
+import type { Citation } from '@omnibox/react-common';
+import { MessageStatus, OpenAIMessageRole } from '@omnibox/react-common';
 import { Loader2Icon } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,11 +14,6 @@ import { Button } from '@/components/ui/button';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
-import type { Citation } from '@/page/chat/types/chat-response';
-import {
-  MessageStatus,
-  OpenAIMessageRole,
-} from '@/page/chat/types/chat-response';
 import type {
   ConversationDetail,
   MessageDetail,

@@ -1,7 +1,6 @@
+import { createStreamTransport } from '@omnibox/react-common';
 import { toast } from 'sonner';
 
-import { createStreamTransport } from '@/lib/stream-transport';
-import { WizardLang } from '@/lib/wizard-lang';
 import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import type {
@@ -45,6 +44,8 @@ export function extractToolsAndContext(chatTools: ChatTool[]): {
             resource: {
               id: res.id,
               name: res.name,
+              parent_id: null,
+              resource_type: 'doc' as const,
             },
           });
         }
@@ -67,13 +68,13 @@ export function extractOriginalMessageSettings(
   fallbacks: {
     tools: ToolType[];
     context: IResTypeContext[];
-    lang: WizardLang;
+    lang: string | undefined;
     enableThinking?: boolean;
   }
 ): {
   originalTools: ToolType[];
   originalContext: IResTypeContext[];
-  originalLang: WizardLang;
+  originalLang: string | undefined;
   originalEnableThinking: boolean | undefined;
 } {
   let originalTools = fallbacks.tools;
@@ -107,14 +108,14 @@ export function prepareBody(
   tools: ToolType[],
   context: IResTypeContext[],
   parent_message_id: string | undefined,
-  lang: WizardLang | undefined,
+  lang: string | undefined,
   enable_thinking?: boolean
 ): ChatRequestBody {
   const body: ChatRequestBody = {
     conversation_id: conversationId,
     query,
     enable_thinking: enable_thinking ?? false,
-    lang,
+    lang: lang as '简体中文' | 'English' | undefined,
   };
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
@@ -151,7 +152,7 @@ export function ask(
   parent_message_id: string | undefined,
   messageOperator: MessageOperator,
   url: string,
-  lang: WizardLang | undefined,
+  lang: string | undefined,
   namespaceId: string | undefined,
   shareId: string | undefined,
   sharePassword: string | undefined,
@@ -169,23 +170,33 @@ export function ask(
   chatReq.namespace_id = namespaceId;
   chatReq.share_id = shareId;
   chatReq.share_password = sharePassword;
-  return createStreamTransport(url, chatReq, async data => {
-    const chatResponse: ChatResponse = JSON.parse(data);
-    if (chatResponse.response_type === 'bos') {
-      messageOperator.add(chatResponse);
-    } else if (chatResponse.response_type === 'delta') {
-      messageOperator.update(chatResponse);
-    } else if (chatResponse.response_type === 'eos') {
-      messageOperator.done();
-    } else if (chatResponse.response_type === 'done') {
-    } else if (chatResponse.response_type === 'error') {
-      toast('Chat Error', {
-        description: chatResponse.error,
-      });
-      console.error(chatResponse);
-    } else {
-      console.error({ message: 'Unknown response type', chatResponse });
-    }
+
+  return createStreamTransport({
+    url,
+    body: chatReq as unknown as Record<string, unknown>,
+    callback: async data => {
+      const chatResponse: ChatResponse = JSON.parse(data);
+      if (chatResponse.response_type === 'bos') {
+        messageOperator.add(chatResponse);
+      } else if (chatResponse.response_type === 'delta') {
+        messageOperator.update(chatResponse);
+      } else if (chatResponse.response_type === 'eos') {
+        messageOperator.done();
+      } else if (chatResponse.response_type === 'done') {
+        // Stream complete
+      } else if (chatResponse.response_type === 'error') {
+        toast('Chat Error', {
+          description: chatResponse.error,
+        });
+        console.error(chatResponse);
+      } else {
+        console.error({ message: 'Unknown response type', chatResponse });
+      }
+    },
+    token: localStorage.getItem('token') ?? undefined,
+    useWebSocket: true,
+    webSocketUrl: window.location.origin + '/wizard',
+    webSocketPath: '/api/v1/socket.io',
   });
 }
 

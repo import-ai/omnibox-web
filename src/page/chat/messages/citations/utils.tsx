@@ -1,4 +1,4 @@
-import { Citation } from '@/page/chat/types/chat-response.tsx';
+import { Citation } from '@omnibox/react-common';
 
 export function formatCitation(citation: Citation): {
   name: string;

@@ -1,3 +1,4 @@
+import { type Citation } from '@omnibox/react-common';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +14,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { CitationCard } from '@/page/chat/messages/citations/citation-card';
-import { type Citation } from '@/page/chat/types/chat-response';
 
 interface IProps {
   index: number;

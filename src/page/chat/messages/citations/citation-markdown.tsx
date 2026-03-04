@@ -1,6 +1,7 @@
 import '@/styles/github-markdown.css';
 import 'katex/dist/katex.min.css';
 
+import { Citation, MessageStatus } from '@omnibox/react-common';
 import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +26,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import useTheme from '@/hooks/use-theme.ts';
 import Save from '@/page/chat/components/save';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
-import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
 import type { ConversationDetail } from '@/page/chat/types/conversation';
 
 const citeLinkRegex = /^#cite-(\d+)$/;

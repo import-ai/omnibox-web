@@ -1,13 +1,10 @@
+import { type Citation, OpenAIMessageRole } from '@omnibox/react-common';
 import React from 'react';
 
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { AssistantMessage } from '@/page/chat/messages/role/assistant-message';
 import { ToolMessage } from '@/page/chat/messages/role/tool-message';
 import { UserMessage } from '@/page/chat/messages/role/user-message';
-import {
-  type Citation,
-  OpenAIMessageRole,
-} from '@/page/chat/types/chat-response';
 import type {
   ConversationDetail,
   MessageDetail,

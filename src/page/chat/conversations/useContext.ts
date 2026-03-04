@@ -1,9 +1,9 @@
+import { ConversationSummary } from '@omnibox/react-common';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { http } from '@/lib/request';
-import { ConversationSummary } from '@/page/chat/types/conversation';
 
 export default function useContext() {
   const params = useParams();
