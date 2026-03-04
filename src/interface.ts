@@ -51,15 +51,25 @@ export enum NamespaceTier {
   PREMIUM = 'premium',
 }
 
+export interface BasicSubscription {
+  purchased: boolean;
+  expires_at: string | null;
+}
+
+export interface PremiumSubscription {
+  expires_at: string;
+}
+
 export interface Namespace extends IBase {
   id: string;
   name: string;
   collaborators?: string[];
   owner_id?: string[];
+  root_resource_id?: string;
   tier?: NamespaceTier;
-  upgradable?: boolean;
-  is_purchased?: boolean;
-  expires_at?: string;
+  basic?: BasicSubscription | null;
+  premium?: PremiumSubscription | null;
+  is_owner?: boolean;
 }
 
 export interface Tag extends IBase {
