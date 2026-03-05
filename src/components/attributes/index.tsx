@@ -1,5 +1,7 @@
 import { CreatedTimeAttribute } from '@/components/attributes/created';
 import { Metadata } from '@/components/attributes/metadata';
+import { FilenameAttribute } from '@/components/attributes/name';
+import { UrlAttribute } from '@/components/attributes/url';
 import ResourceTasks from '@/components/resource-tasks';
 import Tag from '@/components/tags';
 import { Resource } from '@/interface';
@@ -19,12 +21,13 @@ export default function Attributes(props: IProps) {
     resource.attrs.url
   ) {
     return (
-      <div className="space-y-2 mb-6 text-sm">
+      <div className="space-y-1 mb-6 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
         />
+        <UrlAttribute url={resource.attrs.url} />
         {resource.created_at && (
           <CreatedTimeAttribute createdAt={resource.created_at} />
         )}
@@ -44,11 +47,16 @@ export default function Attributes(props: IProps) {
 
   if (resource.resource_type === 'file' && resource.attrs?.original_name) {
     return (
-      <div className="space-y-2 mb-6 text-sm">
+      <div className="space-y-1 mb-6 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
+        />
+        <FilenameAttribute
+          filename={resource.attrs.original_name}
+          namespaceId={namespaceId}
+          resourceId={resource.id}
         />
         {resource.created_at && (
           <CreatedTimeAttribute createdAt={resource.created_at} />
@@ -68,7 +76,7 @@ export default function Attributes(props: IProps) {
   }
 
   return (
-    <div className="space-y-2 mb-6 text-sm">
+    <div className="space-y-1 mb-6 text-sm">
       <Tag
         data={resource.tags}
         resourceId={resource.id}
