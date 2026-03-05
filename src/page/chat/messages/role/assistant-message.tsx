@@ -1,5 +1,11 @@
 import type { Citation } from '@omnibox/react-common';
-import { MessageStatus, OpenAIMessageRole } from '@omnibox/react-common';
+import {
+  ConversationDetail,
+  MessageDetail,
+  MessageOperator,
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@omnibox/react-common';
 import { Loader2Icon } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,13 +17,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
-import type {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/types/conversation';
 
 interface IProps {
   conversation: ConversationDetail;

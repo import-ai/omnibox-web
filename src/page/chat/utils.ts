@@ -1,10 +1,10 @@
+import {
+  type ConversationDetail,
+  type ConversationSummary,
+} from '@omnibox/react-common';
 import type { i18n as I18nType } from 'i18next';
 
 import { getLangOnly } from '@/lib/lang';
-import {
-  ConversationDetail,
-  ConversationSummary,
-} from '@/page/chat/types/conversation';
 
 interface GroupedItems {
   [key: string]: Array<ConversationSummary>;

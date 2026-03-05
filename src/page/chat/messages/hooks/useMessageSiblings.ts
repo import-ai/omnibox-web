@@ -1,6 +1,5 @@
+import type { MessageOperator } from '@omnibox/react-common';
 import { useMemo } from 'react';
-
-import { MessageOperator } from '@/page/chat/conversation/message-operator';
 
 /**
  * Custom hook to manage sibling message navigation

@@ -1,3 +1,8 @@
+import {
+  type ConversationDetail,
+  createMessageOperator,
+  type MessageDetail,
+} from '@omnibox/react-common';
 import { isFunction } from 'lodash-es';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +13,6 @@ import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
 import { type ChatActionType } from '@/page/chat/chat-input/types';
-import { createMessageOperator } from '@/page/chat/conversation/message-operator';
 import Scrollbar from '@/page/chat/conversation/scrollbar';
 import {
   ask,
@@ -16,10 +20,6 @@ import {
 } from '@/page/chat/conversation/utils';
 import { Messages } from '@/page/chat/messages';
 import { normalizeChatData } from '@/page/chat/normalize-chat';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/types/conversation';
 import { useShareContext } from '@/page/share';
 
 export default function SharedChatConversationPage() {
@@ -45,7 +45,7 @@ export default function SharedChatConversationPage() {
     mapping: {},
   });
   const messageOperator = useMemo(
-    () => createMessageOperator(conversation, setConversation),
+    () => createMessageOperator({ conversation, setConversation }),
     [conversation, setConversation]
   );
 

@@ -1,3 +1,9 @@
+import {
+  type ConversationDetail,
+  createMessageOperator,
+  type MessageDetail,
+  type MessageOperator,
+} from '@omnibox/react-common';
 import { isFunction } from 'lodash-es';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,18 +18,10 @@ import {
   ToolType,
 } from '@/page/chat/chat-input/types';
 import {
-  createMessageOperator,
-  MessageOperator,
-} from '@/page/chat/conversation/message-operator';
-import {
   ask,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
 } from '@/page/chat/conversation/utils';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/types/conversation';
 import useGlobalContext from '@/page/chat/useContext';
 
 import { getTitleFromConversationDetail } from '../utils';
@@ -74,7 +72,7 @@ export default function useContext() {
     return result;
   }, [conversation]);
   const messageOperator = useMemo((): MessageOperator => {
-    return createMessageOperator(conversation, setConversation);
+    return createMessageOperator({ conversation, setConversation });
   }, [conversation, setConversation]);
   const onAction = async (action?: ChatActionType) => {
     if (action === 'stop') {

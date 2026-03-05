@@ -1,3 +1,4 @@
+import type { ConversationDetail } from '@omnibox/react-common';
 import { Loader2, Save } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +12,6 @@ import {
 } from '@/components/ui/tooltip';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import type { ConversationDetail } from '@/page/chat/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
 
 interface IProps {

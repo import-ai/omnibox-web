@@ -1,3 +1,7 @@
+import {
+  type MessageDetail,
+  type MessageOperator,
+} from '@omnibox/react-common';
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,9 +15,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
-import type { MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {
   message: MessageDetail;
