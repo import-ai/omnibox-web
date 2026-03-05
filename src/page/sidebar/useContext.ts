@@ -589,10 +589,20 @@ export default function useContext() {
     }
   }, [chatPage, namespaceId, resourceId, data]);
 
+  const [autoExpandedKeys, setAutoExpandedKeys] = useState<
+    Record<string, boolean>
+  >({});
+
   useEffect(() => {
     if (!namespaceId || !resourceId || Object.keys(data).length <= 0) {
       return;
     }
+
+    const autoExpandKey = `${namespaceId}:${resourceId}`;
+    if (autoExpandedKeys[autoExpandKey]) {
+      return;
+    }
+
     const target = getResourceByField(resourceId);
     if (target) {
       if (target.has_children && !expands.includes(target.id)) {
@@ -609,6 +619,10 @@ export default function useContext() {
       }
 
       onExpands([...expands]);
+      setAutoExpandedKeys(prev => ({
+        ...prev,
+        [autoExpandKey]: true,
+      }));
       requestAnimationFrame(() => {
         scrollToResource(resourceId);
       });
@@ -661,6 +675,10 @@ export default function useContext() {
               }
             });
             onExpands([...expands]);
+            setAutoExpandedKeys(prev => ({
+              ...prev,
+              [autoExpandKey]: true,
+            }));
             const treeToExpand: Array<string> = [];
             const index = path.findIndex(
               item => item.id === resourceIdsToLoad[0]
@@ -701,7 +719,7 @@ export default function useContext() {
     return () => {
       source.cancel();
     };
-  }, [namespaceId, resourceId, chatPage, data]);
+  }, [namespaceId, resourceId, chatPage, data, autoExpandedKeys]);
 
   useEffect(() => {
     if (!localStorage.getItem('uid')) {

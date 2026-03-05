@@ -7,20 +7,37 @@ import { http } from '@/lib/request';
 
 export default function AutoTag() {
   const { t } = useTranslation();
-  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
-  const [submitting] = useState(false);
+  // Default to true (enabled) to match backend default behavior
+  const [isEnabled, setIsEnabled] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadPreference = async () => {
+      let enabled = true;
       try {
         const response = await http.get(
           '/user/option/enable_ai_tag_extraction'
         );
-        setIsEnabled(response.value === 'true');
+        // Use backend value if valid, otherwise keep default (enabled)
+        if (response?.value != null && response.value !== '') {
+          enabled = response.value === 'true' || response.value === true;
+        }
       } catch {
-        // If option doesn't exist, default is enabled
-        setIsEnabled(true);
+        // Option doesn't exist (404) or other error, use default
       }
+      setIsEnabled(enabled);
+      // Save default to backend if not exists
+      if (enabled) {
+        try {
+          await http.post('/user/option', {
+            name: 'enable_ai_tag_extraction',
+            value: 'true',
+          });
+        } catch {
+          // Ignore save error
+        }
+      }
+      setLoading(false);
     };
     loadPreference();
   }, []);
@@ -33,6 +50,7 @@ export default function AutoTag() {
         value: checked ? 'true' : 'false',
       });
     } catch {
+      // Revert on error
       setIsEnabled(!checked);
     }
   };
@@ -50,14 +68,12 @@ export default function AutoTag() {
           </span>
         </div>
       </div>
-      {isEnabled !== null && (
-        <Switch
-          checked={isEnabled}
-          onCheckedChange={handleToggle}
-          disabled={submitting}
-          className="shrink-0"
-        />
-      )}
+      <Switch
+        checked={isEnabled}
+        onCheckedChange={handleToggle}
+        disabled={loading}
+        className="shrink-0"
+      />
     </div>
   );
 }
