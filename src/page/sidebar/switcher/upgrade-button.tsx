@@ -1,7 +1,7 @@
-import { CircleArrowUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { UpgradeIcon } from '@/assets/icons/upgrade';
 import useProNamespaces from '@/hooks/use-pro-namespaces';
 import { NamespaceTier } from '@/interface';
 import { cn } from '@/lib/utils';
@@ -31,7 +31,7 @@ export function UpgradeButton() {
         'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
       )}
     >
-      <CircleArrowUp className="size-4 shrink-0 text-blue-500" />
+      <UpgradeIcon className="size-4 shrink-0 text-blue-500" />
       <span className="whitespace-nowrap text-sm font-medium text-blue-500">
         {t('namespace.upgrade')}
       </span>

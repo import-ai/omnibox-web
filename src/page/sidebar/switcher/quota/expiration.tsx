@@ -20,9 +20,18 @@ export function Expiration({ expireDate }: IProps) {
   const expirationInfo = calculateDaysRemaining(expireDate);
 
   return (
-    <div className="text-right space-x-0.5 text-xs pt-2">
+    <div className="text-right text-xs pt-2">
       <span className="font-semibold text-foreground">
-        {t('quota.validity_period')}
+        {t('quota.premium_period')}
+      </span>
+      <span className="text-muted-foreground mr-4">
+        {t('quota.days_remaining', {
+          days: expirationInfo.days,
+          date: expirationInfo.date,
+        })}
+      </span>
+      <span className="font-semibold text-foreground">
+        {t('quota.basic_period')}
       </span>
       <span className="text-muted-foreground">
         {t('quota.days_remaining', {

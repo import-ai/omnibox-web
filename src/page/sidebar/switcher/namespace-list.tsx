@@ -34,9 +34,15 @@ export function NamespaceList({
           {item.tier ? (
             <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
               <span className="truncate">{item.name}</span>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {t(`namespace.tier.${item.tier}`)}
-              </span>
+              {item.expired ? (
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  {t('namespace.tier.expired')}
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  {t(`namespace.tier.${item.tier}`)}
+                </span>
+              )}
             </div>
           ) : (
             <span className="truncate">{item.name}</span>

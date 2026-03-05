@@ -70,6 +70,7 @@ export interface Namespace extends IBase {
   basic?: BasicSubscription | null;
   premium?: PremiumSubscription | null;
   is_owner?: boolean;
+  expired?: boolean;
 }
 
 export interface Tag extends IBase {

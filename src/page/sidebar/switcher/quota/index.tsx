@@ -14,7 +14,6 @@ interface RemainQuotaProps {
 export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const { t, i18n } = useTranslation();
   const { data } = useQuota(namespaceId);
-
   const sections = [
     {
       title: t('quota.storage_usage'),

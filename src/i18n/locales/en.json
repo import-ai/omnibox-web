@@ -145,7 +145,8 @@
     "name": "Namespace Name",
     "tier": {
       "basic": "Basic",
-      "premium": "Premium"
+      "premium": "Premium",
+      "expired": "Expired"
     },
     "upgrade": "Upgrade",
     "min": "At least 2 characters",
@@ -812,7 +813,8 @@
     "image": "Image",
     "other": "Other",
     "expand_button": "Expand",
-    "validity_period": "Space Validity Period:",
+    "basic_period": "Space validity period:",
+    "premium_period": "Premium validity period:",
     "days_remaining": "{{days}} days remaining (expires {{date}})",
     "page_unit": "pages",
     "time": {
