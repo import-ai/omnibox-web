@@ -19,7 +19,7 @@ export default function Attributes(props: IProps) {
     resource.attrs.url
   ) {
     return (
-      <div className="space-y-3 mb-6 text-sm">
+      <div className="space-y-2 mb-6 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
@@ -44,7 +44,7 @@ export default function Attributes(props: IProps) {
 
   if (resource.resource_type === 'file' && resource.attrs?.original_name) {
     return (
-      <div className="space-y-3 mb-6 text-sm">
+      <div className="space-y-2 mb-6 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
@@ -68,7 +68,7 @@ export default function Attributes(props: IProps) {
   }
 
   return (
-    <div className="space-y-3 mb-6 text-sm">
+    <div className="space-y-2 mb-6 text-sm">
       <Tag
         data={resource.tags}
         resourceId={resource.id}
