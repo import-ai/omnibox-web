@@ -15,7 +15,7 @@
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.6.2",
     "@hookform/resolvers": "^5.2.2",
-    "@omnibox/react-common": "github:import-ai/omnibox-react-common#main",
+    "@omnibox/react-common": "github:import-ai/omnibox-react-common#415e5b0e5ead384dba9e2f22adcb38c866a3f1b7",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.11",

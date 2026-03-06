@@ -15,8 +15,8 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.68.0(react@18.3.1))
       '@omnibox/react-common':
-        specifier: github:import-ai/omnibox-react-common#main
-        version: https://codeload.github.com/import-ai/omnibox-react-common/tar.gz/01def488968a578862ce78c7988baf294ad14fb1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socket.io-client@4.8.1)
+        specifier: github:import-ai/omnibox-react-common#415e5b0e5ead384dba9e2f22adcb38c866a3f1b7
+        version: https://codeload.github.com/import-ai/omnibox-react-common/tar.gz/415e5b0e5ead384dba9e2f22adcb38c866a3f1b7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socket.io-client@4.8.1)
       '@radix-ui/react-accordion':
         specifier: ^1.2.12
         version: 1.2.12(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1334,8 +1334,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@omnibox/react-common@https://codeload.github.com/import-ai/omnibox-react-common/tar.gz/01def488968a578862ce78c7988baf294ad14fb1':
-    resolution: {tarball: https://codeload.github.com/import-ai/omnibox-react-common/tar.gz/01def488968a578862ce78c7988baf294ad14fb1}
+  '@omnibox/react-common@https://codeload.github.com/import-ai/omnibox-react-common/tar.gz/415e5b0e5ead384dba9e2f22adcb38c866a3f1b7':
+    resolution: {tarball: https://codeload.github.com/import-ai/omnibox-react-common/tar.gz/415e5b0e5ead384dba9e2f22adcb38c866a3f1b7}
     version: 0.1.0
     peerDependencies:
       react: ^18.0.0
@@ -7083,7 +7083,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@omnibox/react-common@https://codeload.github.com/import-ai/omnibox-react-common/tar.gz/01def488968a578862ce78c7988baf294ad14fb1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socket.io-client@4.8.1)':
+  '@omnibox/react-common@https://codeload.github.com/import-ai/omnibox-react-common/tar.gz/415e5b0e5ead384dba9e2f22adcb38c866a3f1b7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socket.io-client@4.8.1)':
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
