@@ -1,10 +1,9 @@
+import { ChatMode, ToolType } from '@omnibox/react-common';
 import { useMemo } from 'react';
 
 import {
   type ChatActionType,
-  ChatMode,
   IResTypeContext,
-  ToolType,
 } from '@/page/chat/chat-input/types';
 
 import ChatAction from './action';

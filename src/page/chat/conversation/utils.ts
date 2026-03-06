@@ -1,16 +1,17 @@
-import type {
-  ChatRequestBody,
-  ChatResponse,
-  ChatTool,
-  MessageDetail,
-  MessageOperator,
-  PrivateSearch,
-  PrivateSearchResource,
+import {
+  type ChatRequestBody,
+  type ChatResponse,
+  type ChatTool,
+  type MessageDetail,
+  type MessageOperator,
+  type PrivateSearch,
+  type PrivateSearchResource,
+  ToolType,
 } from '@omnibox/react-common';
 import { createStreamTransport } from '@omnibox/react-common';
 import { toast } from 'sonner';
 
-import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
+import { IResTypeContext } from '@/page/chat/chat-input/types';
 
 function getPrivateSearchResources(
   context: IResTypeContext[]

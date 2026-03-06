@@ -1,3 +1,4 @@
+import { ChatMode } from '@omnibox/react-common';
 import { ArrowUp, ChevronDown, CircleStop } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,7 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
+import { type ChatActionType } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
   disabled: boolean;

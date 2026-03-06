@@ -1,3 +1,4 @@
+import { ChatMode, ToolType } from '@omnibox/react-common';
 import axios, { AxiosError, CancelTokenSource } from 'axios';
 import { t } from 'i18next';
 import Cookies from 'js-cookie';
@@ -15,11 +16,7 @@ import {
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { http } from '@/lib/request';
-import {
-  ChatMode,
-  IResTypeContext,
-  ToolType,
-} from '@/page/chat/chat-input/types';
+import { IResTypeContext } from '@/page/chat/chat-input/types';
 
 import { ShareLayout } from './layout';
 import { Password } from './password';

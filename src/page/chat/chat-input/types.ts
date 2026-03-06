@@ -1,7 +1,4 @@
-import { ResourceMeta } from '@/interface.ts';
-
-// Re-export from SDK
-export { ChatMode, ToolType } from '@omnibox/react-common';
+import { ResourceMeta } from '@/interface';
 
 export type ChatActionType = 'stop' | 'disabled';
 
