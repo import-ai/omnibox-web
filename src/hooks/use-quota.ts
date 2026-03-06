@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { http } from '@/lib/request';
 
 export interface UsageData {
-  storage: {
+  storage_bytes: {
     upload: number;
     file: number;
     other_users: number;
@@ -34,7 +34,7 @@ export interface UsageData {
 
 export default function useQuota(namespaceId: string) {
   const [data, setData] = useState<UsageData>({
-    storage: {
+    storage_bytes: {
       upload: 0,
       file: 0,
       other_users: 0,

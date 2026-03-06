@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -53,11 +53,17 @@ export function Switcher(props: IProps) {
   const commercial = config.commercial;
   const openSourceNamespace = useNamespace({ disabled: commercial });
   const proNamespace = useProNamespaces({ disabled: !commercial });
-  const { app, data } = commercial ? proNamespace : openSourceNamespace;
-  const current = data.find(item => item.id === namespaceId) || {
-    name: '--',
-  };
-
+  const { app, data } = useMemo(
+    () => (commercial ? proNamespace : openSourceNamespace),
+    [proNamespace, openSourceNamespace]
+  );
+  const current = useMemo(
+    () =>
+      data.find(item => item.id === namespaceId) || {
+        name: '--',
+      },
+    [data, namespaceId]
+  );
   const handleNamespaceSelect = (item: Namespace) => {
     if (item.id === namespaceId) {
       return;

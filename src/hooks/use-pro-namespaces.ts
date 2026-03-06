@@ -36,11 +36,13 @@ export default function useProNamespaces(props?: IProps) {
     };
   };
 
-  useEffect(refetch, [disabled]);
-
   useEffect(() => {
+    if (disabled) {
+      return;
+    }
+    refetch();
     return app.on('namespaces_refetch', refetch);
-  }, []);
+  }, [disabled]);
 
   return { app, data, loading };
 }

@@ -19,7 +19,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const sections = [
     {
       title: t('quota.storage_usage'),
-      current: `${formatStorage((data.storage.upload + data.storage.file + data.storage.other_users) * 1024 * 1024)}/${formatStorage(data.storage.total * 1024 * 1024)}`,
+      current: `${formatStorage(data.storage_bytes.upload + data.storage_bytes.file + data.storage_bytes.other_users)}/${formatStorage(data.storage_bytes.total)}`,
       items: showOtherMembersUsage
         ? [
             { label: t('quota.upload'), color: 'bg-blue-400' },
@@ -36,24 +36,26 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
               label: t('quota.upload'),
               color: 'bg-blue-400',
               percentage:
-                data.storage.total > 0
-                  ? (data.storage.upload / data.storage.total) * 100
+                data.storage_bytes.total > 0
+                  ? (data.storage_bytes.upload / data.storage_bytes.total) * 100
                   : 0,
             },
             {
               label: t('quota.file'),
               color: 'bg-blue-500',
               percentage:
-                data.storage.total > 0
-                  ? (data.storage.file / data.storage.total) * 100
+                data.storage_bytes.total > 0
+                  ? (data.storage_bytes.file / data.storage_bytes.total) * 100
                   : 0,
             },
             {
               label: t('quota.other'),
               color: 'bg-gray-300',
               percentage:
-                data.storage.total > 0
-                  ? (data.storage.other_users / data.storage.total) * 100
+                data.storage_bytes.total > 0
+                  ? (data.storage_bytes.other_users /
+                      data.storage_bytes.total) *
+                    100
                   : 0,
             },
           ]
@@ -62,16 +64,16 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
               label: t('quota.upload'),
               color: 'bg-blue-400',
               percentage:
-                data.storage.total > 0
-                  ? (data.storage.upload / data.storage.total) * 100
+                data.storage_bytes.total > 0
+                  ? (data.storage_bytes.upload / data.storage_bytes.total) * 100
                   : 0,
             },
             {
               label: t('quota.file'),
               color: 'bg-blue-500',
               percentage:
-                data.storage.total > 0
-                  ? (data.storage.file / data.storage.total) * 100
+                data.storage_bytes.total > 0
+                  ? (data.storage_bytes.file / data.storage_bytes.total) * 100
                   : 0,
             },
           ],
