@@ -8,10 +8,14 @@ export interface IPropsConfig {
 
 export default function useConfig() {
   const [config, setConfig] = useState<IPropsConfig>({ commercial: false });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    http.get('/config').then(setConfig);
+    http.get('/config').then(data => {
+      setConfig(data);
+      setLoading(false);
+    });
   }, []);
 
-  return { config };
+  return { config, loading };
 }
