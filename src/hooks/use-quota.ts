@@ -21,7 +21,15 @@ export interface UsageData {
     other_users: number;
     total: number;
   };
-  expire_date?: Date | null;
+  basic: {
+    expired: boolean;
+    expire_date: Date | null;
+  };
+  premium?: {
+    expired: boolean;
+    expire_date: Date | null;
+  };
+  show_members_usage: boolean;
 }
 
 export default function useQuota(namespaceId: string) {
@@ -44,6 +52,15 @@ export default function useQuota(namespaceId: string) {
       other_users: 0,
       total: 0,
     },
+    basic: {
+      expired: false,
+      expire_date: null,
+    },
+    premium: {
+      expired: false,
+      expire_date: null,
+    },
+    show_members_usage: false,
   });
 
   useEffect(() => {

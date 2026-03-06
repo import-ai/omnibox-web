@@ -146,6 +146,7 @@
     "tier": {
       "basic": "Basic",
       "premium": "Premium",
+      "forever": "Forever",
       "expired": "Expired"
     },
     "upgrade": "Upgrade",

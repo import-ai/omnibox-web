@@ -147,6 +147,7 @@
     "tier": {
       "basic": "基础版",
       "premium": "高级版",
+      "forever": "永久",
       "expired": "已过期"
     },
     "upgrade": "升级",

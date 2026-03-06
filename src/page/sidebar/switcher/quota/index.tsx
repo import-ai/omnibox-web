@@ -14,115 +14,195 @@ interface RemainQuotaProps {
 export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const { t, i18n } = useTranslation();
   const { data } = useQuota(namespaceId);
+  const showOtherMembersUsage = data.show_members_usage;
+
   const sections = [
     {
       title: t('quota.storage_usage'),
       current: `${formatStorage((data.storage.upload + data.storage.file + data.storage.other_users) * 1024 * 1024)}/${formatStorage(data.storage.total * 1024 * 1024)}`,
-      items: [
-        { label: t('quota.upload'), color: 'bg-blue-400' },
-        { label: t('quota.file'), color: 'bg-blue-500' },
-        { label: t('quota.other_users'), color: 'bg-gray-300' },
-      ],
-      segments: [
-        {
-          label: t('quota.upload'),
-          color: 'bg-blue-400',
-          percentage:
-            data.storage.total > 0
-              ? (data.storage.upload / data.storage.total) * 100
-              : 0,
-        },
-        {
-          label: t('quota.file'),
-          color: 'bg-blue-500',
-          percentage:
-            data.storage.total > 0
-              ? (data.storage.file / data.storage.total) * 100
-              : 0,
-        },
-        {
-          label: t('quota.other'),
-          color: 'bg-gray-300',
-          percentage:
-            data.storage.total > 0
-              ? (data.storage.other_users / data.storage.total) * 100
-              : 0,
-        },
-      ],
+      items: showOtherMembersUsage
+        ? [
+            { label: t('quota.upload'), color: 'bg-blue-400' },
+            { label: t('quota.file'), color: 'bg-blue-500' },
+            { label: t('quota.other_users'), color: 'bg-gray-300' },
+          ]
+        : [
+            { label: t('quota.upload'), color: 'bg-blue-400' },
+            { label: t('quota.file'), color: 'bg-blue-500' },
+          ],
+      segments: showOtherMembersUsage
+        ? [
+            {
+              label: t('quota.upload'),
+              color: 'bg-blue-400',
+              percentage:
+                data.storage.total > 0
+                  ? (data.storage.upload / data.storage.total) * 100
+                  : 0,
+            },
+            {
+              label: t('quota.file'),
+              color: 'bg-blue-500',
+              percentage:
+                data.storage.total > 0
+                  ? (data.storage.file / data.storage.total) * 100
+                  : 0,
+            },
+            {
+              label: t('quota.other'),
+              color: 'bg-gray-300',
+              percentage:
+                data.storage.total > 0
+                  ? (data.storage.other_users / data.storage.total) * 100
+                  : 0,
+            },
+          ]
+        : [
+            {
+              label: t('quota.upload'),
+              color: 'bg-blue-400',
+              percentage:
+                data.storage.total > 0
+                  ? (data.storage.upload / data.storage.total) * 100
+                  : 0,
+            },
+            {
+              label: t('quota.file'),
+              color: 'bg-blue-500',
+              percentage:
+                data.storage.total > 0
+                  ? (data.storage.file / data.storage.total) * 100
+                  : 0,
+            },
+          ],
     },
     {
       title: t('quota.audio_video_parse_usage'),
       current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)}/${formatTimeAsMinutes(data.video_audio_parse.total)}`,
-      items: [
-        { label: t('quota.audio'), color: 'bg-blue-400' },
-        { label: t('quota.video'), color: 'bg-blue-500' },
-        { label: t('quota.other_users'), color: 'bg-gray-300' },
-      ],
-      segments: [
-        {
-          label: t('quota.audio'),
-          color: 'bg-blue-400',
-          percentage:
-            data.video_audio_parse.total > 0
-              ? (data.video_audio_parse.audio / data.video_audio_parse.total) *
-                100
-              : 0,
-        },
-        {
-          label: t('quota.video'),
-          color: 'bg-blue-500',
-          percentage:
-            data.video_audio_parse.total > 0
-              ? (data.video_audio_parse.video / data.video_audio_parse.total) *
-                100
-              : 0,
-        },
-        {
-          label: t('quota.other'),
-          color: 'bg-gray-300',
-          percentage:
-            data.video_audio_parse.total > 0
-              ? (data.video_audio_parse.other_users /
-                  data.video_audio_parse.total) *
-                100
-              : 0,
-        },
-      ],
+      items: showOtherMembersUsage
+        ? [
+            { label: t('quota.audio'), color: 'bg-blue-400' },
+            { label: t('quota.video'), color: 'bg-blue-500' },
+            { label: t('quota.other_users'), color: 'bg-gray-300' },
+          ]
+        : [
+            { label: t('quota.audio'), color: 'bg-blue-400' },
+            { label: t('quota.video'), color: 'bg-blue-500' },
+          ],
+      segments: showOtherMembersUsage
+        ? [
+            {
+              label: t('quota.audio'),
+              color: 'bg-blue-400',
+              percentage:
+                data.video_audio_parse.total > 0
+                  ? (data.video_audio_parse.audio /
+                      data.video_audio_parse.total) *
+                    100
+                  : 0,
+            },
+            {
+              label: t('quota.video'),
+              color: 'bg-blue-500',
+              percentage:
+                data.video_audio_parse.total > 0
+                  ? (data.video_audio_parse.video /
+                      data.video_audio_parse.total) *
+                    100
+                  : 0,
+            },
+            {
+              label: t('quota.other'),
+              color: 'bg-gray-300',
+              percentage:
+                data.video_audio_parse.total > 0
+                  ? (data.video_audio_parse.other_users /
+                      data.video_audio_parse.total) *
+                    100
+                  : 0,
+            },
+          ]
+        : [
+            {
+              label: t('quota.audio'),
+              color: 'bg-blue-400',
+              percentage:
+                data.video_audio_parse.total > 0
+                  ? (data.video_audio_parse.audio /
+                      data.video_audio_parse.total) *
+                    100
+                  : 0,
+            },
+            {
+              label: t('quota.video'),
+              color: 'bg-blue-500',
+              percentage:
+                data.video_audio_parse.total > 0
+                  ? (data.video_audio_parse.video /
+                      data.video_audio_parse.total) *
+                    100
+                  : 0,
+            },
+          ],
     },
     {
       title: t('quota.doc_parse_usage'),
       current: `${data.doc_parse.pdf + data.doc_parse.image + data.doc_parse.other_users}${t('quota.page_unit')}/${data.doc_parse.total}${t('quota.page_unit')}`,
-      items: [
-        { label: t('quota.pdf'), color: 'bg-blue-400' },
-        { label: t('quota.image'), color: 'bg-blue-500' },
-        { label: t('quota.other_users'), color: 'bg-gray-300' },
-      ],
-      segments: [
-        {
-          label: t('quota.pdf'),
-          color: 'bg-blue-400',
-          percentage:
-            data.doc_parse.total > 0
-              ? (data.doc_parse.pdf / data.doc_parse.total) * 100
-              : 0,
-        },
-        {
-          label: t('quota.image'),
-          color: 'bg-blue-500',
-          percentage:
-            data.doc_parse.total > 0
-              ? (data.doc_parse.image / data.doc_parse.total) * 100
-              : 0,
-        },
-        {
-          label: t('quota.other'),
-          color: 'bg-gray-300',
-          percentage:
-            data.doc_parse.total > 0
-              ? (data.doc_parse.other_users / data.doc_parse.total) * 100
-              : 0,
-        },
-      ],
+      items: showOtherMembersUsage
+        ? [
+            { label: t('quota.pdf'), color: 'bg-blue-400' },
+            { label: t('quota.image'), color: 'bg-blue-500' },
+            { label: t('quota.other_users'), color: 'bg-gray-300' },
+          ]
+        : [
+            { label: t('quota.pdf'), color: 'bg-blue-400' },
+            { label: t('quota.image'), color: 'bg-blue-500' },
+          ],
+      segments: showOtherMembersUsage
+        ? [
+            {
+              label: t('quota.pdf'),
+              color: 'bg-blue-400',
+              percentage:
+                data.doc_parse.total > 0
+                  ? (data.doc_parse.pdf / data.doc_parse.total) * 100
+                  : 0,
+            },
+            {
+              label: t('quota.image'),
+              color: 'bg-blue-500',
+              percentage:
+                data.doc_parse.total > 0
+                  ? (data.doc_parse.image / data.doc_parse.total) * 100
+                  : 0,
+            },
+            {
+              label: t('quota.other'),
+              color: 'bg-gray-300',
+              percentage:
+                data.doc_parse.total > 0
+                  ? (data.doc_parse.other_users / data.doc_parse.total) * 100
+                  : 0,
+            },
+          ]
+        : [
+            {
+              label: t('quota.pdf'),
+              color: 'bg-blue-400',
+              percentage:
+                data.doc_parse.total > 0
+                  ? (data.doc_parse.pdf / data.doc_parse.total) * 100
+                  : 0,
+            },
+            {
+              label: t('quota.image'),
+              color: 'bg-blue-500',
+              percentage:
+                data.doc_parse.total > 0
+                  ? (data.doc_parse.image / data.doc_parse.total) * 100
+                  : 0,
+            },
+          ],
     },
   ];
 
@@ -150,7 +230,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
           </a>
         </div>
       </div>
-      {data.expire_date && <Expiration expireDate={data.expire_date} />}
+      <Expiration basic={data.basic} premium={data.premium} />
     </div>
   );
 }
