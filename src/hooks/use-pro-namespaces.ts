@@ -10,7 +10,7 @@ interface IProps {
   disabled?: boolean;
 }
 
-export default function useNamespaces(props?: IProps) {
+export default function useProNamespaces(props?: IProps) {
   const { disabled = false } = props || {};
   const app = useApp();
   const [loading, onLoading] = useState(false);
@@ -26,7 +26,7 @@ export default function useNamespaces(props?: IProps) {
     onLoading(true);
     const source = axios.CancelToken.source();
     http
-      .get('namespaces', { cancelToken: source.token })
+      .get('pro-namespaces', { cancelToken: source.token })
       .then(onData)
       .finally(() => {
         onLoading(false);
