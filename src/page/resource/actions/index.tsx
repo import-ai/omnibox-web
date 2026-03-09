@@ -395,7 +395,7 @@ export default function Actions(props: IActionProps) {
                         <span>{t('actions.duplicate')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    {/* Download as */}
+                    {/* Download */}
                     <SidebarMenuItem>
                       <Popover
                         open={downloadAsOpen}
@@ -419,6 +419,17 @@ export default function Actions(props: IActionProps) {
                           onMouseLeave={() => setDownloadAsOpen(false)}
                         >
                           <div className="flex flex-col gap-1">
+                            {resource && resource.resource_type === 'file' && (
+                              <button
+                                className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-left"
+                                onClick={() => {
+                                  handleAction('download');
+                                  setDownloadAsOpen(false);
+                                }}
+                              >
+                                {t('actions.download')}
+                              </button>
+                            )}
                             <button
                               className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-left"
                               onClick={() => {
@@ -434,17 +445,6 @@ export default function Actions(props: IActionProps) {
                         </PopoverContent>
                       </Popover>
                     </SidebarMenuItem>
-
-                    {resource && resource.resource_type === 'file' && (
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          onClick={() => handleAction('download')}
-                        >
-                          {loading === 'download' ? <Spinner /> : <Download />}
-                          <span>{t('actions.download')}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    )}
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         onClick={() => handleAction('move_to')}

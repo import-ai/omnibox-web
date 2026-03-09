@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import CoreApp from '@/hooks/app.class';
 import AppContext from '@/hooks/app-context';
+import { AuthConfigProvider } from '@/hooks/auth-config-context';
 import Layout from '@/layout';
 import Error from '@/layout/error';
 
@@ -151,9 +152,11 @@ const router = createBrowserRouter([
 export default function Main() {
   return (
     <AppContext.Provider value={app}>
-      <Suspense>
-        <RouterProvider router={router} />
-      </Suspense>
+      <AuthConfigProvider>
+        <Suspense>
+          <RouterProvider router={router} />
+        </Suspense>
+      </AuthConfigProvider>
     </AppContext.Provider>
   );
 }

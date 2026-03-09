@@ -433,9 +433,18 @@ export default function ProfileForm() {
           </p>
         </div>
         <div className="flex-shrink-0 ml-2">
-          <ActionButton onClick={() => setPhoneDialogOpen(true)}>
-            {phoneBinding?.id ? t('setting.change') : t('setting.bind_btn')}
-          </ActionButton>
+          {phoneBinding?.id ? (
+            <ActionButton onClick={() => setPhoneDialogOpen(true)}>
+              {t('setting.change')}
+            </ActionButton>
+          ) : (
+            <ActionButton
+              variant="default"
+              onClick={() => setPhoneDialogOpen(true)}
+            >
+              {t('setting.bind_btn')}
+            </ActionButton>
+          )}
         </div>
       </div>
 

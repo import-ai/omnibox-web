@@ -21,7 +21,7 @@ export function UrlAttribute({ url }: UrlAttributeProps) {
       <a
         target="_blank"
         href={url}
-        className={`max-w-[200px] sm:max-w-full break-all ${ATTRIBUTE_STYLES.value} truncate`}
+        className={`max-w-[200px] sm:max-w-full break-all ${ATTRIBUTE_STYLES.value} truncate hover:underline`}
       >
         {url}
       </a>

@@ -20,7 +20,7 @@ export default function MoveTo(props: IProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[480px] max-w-[90%] px-4 pt-6 pb-5">
+      <DialogContent className="w-[480px] max-w-[90%] px-4 pt-6 pb-5 overflow-hidden">
         <DialogHeader>
           <VisuallyHidden>
             <DialogTitle></DialogTitle>

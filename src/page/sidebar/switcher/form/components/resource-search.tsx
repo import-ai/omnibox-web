@@ -40,7 +40,7 @@ function ResourceItem({
         ) : (
           <File className="w-4 h-4 shrink-0" />
         )}
-        <div className="text-left">{name}</div>
+        <div className="text-left break-all">{name}</div>
       </div>
       {selected && <Check className="w-4 h-4 shrink-0 text-primary" />}
     </Button>
@@ -129,7 +129,7 @@ export default function ResourceSearch({
         />
       </div>
 
-      <div className="max-h-60 overflow-y-auto border rounded-md">
+      <div className="max-h-60 overflow-y-auto overflow-x-hidden border rounded-md">
         {data.root.length > 0 && (
           <>
             <div className="px-2 py-1 text-xs font-medium text-muted-foreground border-b bg-muted/30">
