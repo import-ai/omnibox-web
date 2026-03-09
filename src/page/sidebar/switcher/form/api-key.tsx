@@ -268,7 +268,7 @@ export function APIKeyForm() {
               {t('create')}
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="overflow-hidden">
             <DialogHeader>
               <DialogTitle>{t('api_key.create.title')}</DialogTitle>
               <DialogDescription>
@@ -387,7 +387,7 @@ export function APIKeyForm() {
         </Dialog>
 
         <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
-          <DialogContent>
+          <DialogContent className="overflow-hidden">
             <DialogHeader>
               <DialogTitle>{t('api_key.update.title')}</DialogTitle>
               <DialogDescription>

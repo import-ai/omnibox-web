@@ -106,7 +106,7 @@ export default function MoveToForm(props: IFormProps) {
           placeholder={t('actions.move_page_to')}
         />
       </div>
-      <div className="pb-2 min-h-60 max-h-80 overflow-y-auto">
+      <div className="pb-2 min-h-60 max-h-80 overflow-y-auto overflow-x-hidden">
         {data.root.length > 0 && (
           <>
             <Button
