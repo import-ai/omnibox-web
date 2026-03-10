@@ -118,11 +118,16 @@ export function Switcher(props: IProps) {
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               {t('namespace.name')}
             </DropdownMenuLabel>
-            <NamespaceList
-              namespaces={data}
-              currentId={namespaceId}
-              onSelect={handleNamespaceSelect}
-            />
+            <div
+              className="max-h-[35vh] overflow-y-auto overflow-x-hidden pr-1"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              <NamespaceList
+                namespaces={data}
+                currentId={namespaceId}
+                onSelect={handleNamespaceSelect}
+              />
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="p-0">
               <Generate onCloseDropdown={() => setDropdownOpen(false)} />
