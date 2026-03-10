@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Sidebar,
@@ -26,6 +26,7 @@ interface SharedSidebarProps {
   username: string;
   showChat: boolean;
   isChatActive: boolean;
+  currentResourceId?: string;
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
 }
@@ -37,138 +38,184 @@ export default function ShareSidebar(props: SharedSidebarProps) {
     username,
     showChat,
     isChatActive,
+    currentResourceId,
     isResourceActive,
     onAddToContext,
   } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const params = useParams();
-  const currentResourceId = params.resource_id;
 
-  // Manage expanded folders state and loaded children data
+  const [autoExpandedKeys, setAutoExpandedKeys] = useState<
+    Record<string, boolean>
+  >({});
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set()
   );
-  const [loadedChildren, setLoadedChildren] = useState<
-    Record<string, ResourceMeta[]>
-  >({});
-  const [autoExpanded, setAutoExpanded] = useState(false);
-  const [isExpanding, setIsExpanding] = useState(false);
+  const [childrenVersion, setChildrenVersion] = useState(0);
+  const loadedChildrenRef = useRef<Record<string, ResourceMeta[]>>({});
+  const expandedFoldersRef = useRef(expandedFolders);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    expandedFoldersRef.current = expandedFolders;
+  }, [expandedFolders]);
 
   const handleChatClick = () => {
     navigate(`/s/${shareId}/chat`);
   };
 
   const scrollToResource = useCallback((resourceId: string) => {
-    // Multiple attempts to scroll since rendering might be delayed
-    const attempts = [0, 100, 300, 500];
-    attempts.forEach(delay => {
-      setTimeout(() => {
-        const element = document.querySelector(
-          `[data-resource-id="${resourceId}"]`
-        );
-        if (element) {
-          element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-          });
-        }
-      }, delay);
+    requestAnimationFrame(() => {
+      const element = document.querySelector(
+        `[data-resource-id="${resourceId}"]`
+      );
+      if (element) {
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }
     });
   }, []);
 
-  // Fetch children for a folder
   const fetchFolderChildren = useCallback(
     async (folderId: string): Promise<ResourceMeta[]> => {
-      if (loadedChildren[folderId]) {
-        return loadedChildren[folderId];
-      }
+      const cached = loadedChildrenRef.current[folderId];
+      if (cached) return cached;
+
       try {
         const data = await http.get(
           `/shares/${shareId}/resources/${folderId}/children`
         );
         const children = data || [];
-        setLoadedChildren(prev => ({ ...prev, [folderId]: children }));
+        loadedChildrenRef.current[folderId] = children;
+        setChildrenVersion(v => v + 1);
         return children;
-      } catch (error) {
-        console.error(`Failed to fetch children for ${folderId}:`, error);
+      } catch {
         return [];
       }
     },
-    [shareId, loadedChildren]
+    [shareId]
   );
 
-  // Auto-expand folders and scroll to selected resource
+  const loadedChildren = useMemo(
+    () => loadedChildrenRef.current,
+    [childrenVersion]
+  );
+
   useEffect(() => {
-    if (!currentResourceId || autoExpanded || isExpanding || !rootResource) {
+    if (!currentResourceId || !rootResource) {
       return;
     }
 
-    const fetchAndExpand = async () => {
-      setIsExpanding(true);
-      try {
-        console.log('[ShareSidebar] Fetching resource:', currentResourceId);
+    const autoExpandKey = `${shareId}:${currentResourceId}`;
+    if (autoExpandedKeys[autoExpandKey]) {
+      return;
+    }
 
-        // Fetch the resource details to get the path
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+
+    (async () => {
+      try {
+        if (rootResource.id === currentResourceId) {
+          setAutoExpandedKeys(prev => ({ ...prev, [autoExpandKey]: true }));
+          return;
+        }
+
         const resource = await http.get(
-          `/shares/${shareId}/resources/${currentResourceId}`
+          `/shares/${shareId}/resources/${currentResourceId}`,
+          { signal }
         );
 
-        console.log('[ShareSidebar] Resource data:', resource);
+        let parentIds: string[] = [];
 
-        if (resource && resource.path && Array.isArray(resource.path)) {
-          console.log('[ShareSidebar] Resource path:', resource.path);
-
-          // Collect all parent folder IDs from path (excluding the target itself)
-          const parentIds = resource.path
+        if (resource?.path && Array.isArray(resource.path)) {
+          parentIds = resource.path
             .slice(0, resource.path.length - 1)
-            .map(p => p.id);
+            .map((p: { id: string }) => p.id);
+        } else if (
+          rootResource.id !== currentResourceId &&
+          rootResource.has_children
+        ) {
+          const searchedFolderIds = new Set<string>();
 
-          console.log('[ShareSidebar] Parent IDs to expand:', parentIds);
+          const findPathToResource = async (
+            folderId: string,
+            targetId: string,
+            currentPath: string[] = []
+          ): Promise<string[] | null> => {
+            if (searchedFolderIds.has(folderId) || signal.aborted) {
+              return null;
+            }
+            searchedFolderIds.add(folderId);
 
-          // Load children for all parent folders
-          const loadPromises = parentIds.map(parentId =>
-            fetchFolderChildren(parentId)
+            const children = await fetchFolderChildren(folderId);
+
+            for (const child of children) {
+              if (child.id === targetId) {
+                return currentPath;
+              }
+              if (child.has_children) {
+                const result = await findPathToResource(child.id, targetId, [
+                  ...currentPath,
+                  child.id,
+                ]);
+                if (result) {
+                  return result;
+                }
+              }
+            }
+            return null;
+          };
+
+          const path = await findPathToResource(
+            rootResource.id,
+            currentResourceId
           );
-
-          await Promise.all(loadPromises);
-
-          console.log('[ShareSidebar] All parent children loaded');
-
-          // Set expanded folders
-          setExpandedFolders(new Set(parentIds));
-          setAutoExpanded(true);
-
-          // Scroll after state updates and DOM re-renders
-          setTimeout(() => {
-            console.log(
-              '[ShareSidebar] Attempting to scroll to:',
-              currentResourceId
-            );
-            scrollToResource(currentResourceId);
-          }, 300);
-        } else {
-          console.log('[ShareSidebar] No path in resource or root resource');
-          // If current resource is the root resource itself
-          if (rootResource.id === currentResourceId) {
-            setAutoExpanded(true);
-            scrollToResource(currentResourceId);
+          if (path) {
+            parentIds = path;
           }
         }
-      } catch (error) {
-        console.error('[ShareSidebar] Failed to fetch resource path:', error);
-      } finally {
-        setIsExpanding(false);
-      }
-    };
 
-    fetchAndExpand();
+        if (
+          rootResource.id !== currentResourceId &&
+          rootResource.has_children &&
+          !parentIds.includes(rootResource.id)
+        ) {
+          parentIds = [rootResource.id, ...parentIds];
+        }
+
+        if (parentIds.length === 0) {
+          parentIds = [rootResource.id];
+        }
+
+        await Promise.all(parentIds.map(id => fetchFolderChildren(id)));
+
+        const addedNewFolders = parentIds.some(
+          id => !expandedFoldersRef.current.has(id)
+        );
+
+        setExpandedFolders(prev => {
+          const newSet = new Set(prev);
+          parentIds.forEach(id => newSet.add(id));
+          return newSet;
+        });
+        setAutoExpandedKeys(prev => ({ ...prev, [autoExpandKey]: true }));
+
+        if (addedNewFolders) {
+          queueMicrotask(() => scrollToResource(currentResourceId));
+        }
+      } catch {
+        setAutoExpandedKeys(prev => ({ ...prev, [autoExpandKey]: true }));
+      }
+    })();
+
+    return () => abortController.abort();
   }, [
     currentResourceId,
     rootResource,
     shareId,
-    autoExpanded,
-    isExpanding,
     fetchFolderChildren,
     scrollToResource,
   ]);
@@ -180,10 +227,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
         newSet.delete(folderId);
       } else {
         newSet.add(folderId);
-        // Fetch children if not already loaded
-        if (!loadedChildren[folderId]) {
-          fetchFolderChildren(folderId);
-        }
+        fetchFolderChildren(folderId);
       }
       return newSet;
     });
