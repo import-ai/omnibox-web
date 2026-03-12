@@ -6,12 +6,14 @@ import AppContext from '@/hooks/app-context';
 import { AuthConfigProvider } from '@/hooks/auth-config-context';
 import Layout from '@/layout';
 import Error from '@/layout/error';
-import ChatPage from '@/page/chat';
-import ChatConversationPage from '@/page/chat/conversation';
-import ChatConversationsPage from '@/page/chat/conversations';
-import ChatHomePage from '@/page/chat/home';
 // 同步导入首屏关键页面（减少首次请求数）
 // 主布局 + 聊天界面是首屏核心
+import ChatPage from '@/page/chat';
+import ChatHomePage from '@/page/chat/home';
+
+// 懒加载聊天子页面（点击后才需要）
+const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
+const ChatConversationsPage = lazy(() => import('@/page/chat/conversations'));
 import NamespacePage from '@/page/namespace';
 import ResourcePage from '@/page/resource';
 
