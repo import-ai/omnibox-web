@@ -46,9 +46,11 @@ export function ConfirmPermanentDeleteDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogCancel className="cancel-btn-outline">
+            {t('cancel')}
+          </AlertDialogCancel>
           <AlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
             onClick={handleConfirm}
           >
             {t('delete')}
