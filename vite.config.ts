@@ -42,7 +42,33 @@ export default defineConfig(({ mode }) => {
           experimentalMinChunkSize: 50000,
           // 控制代码分割策略
           manualChunks(id) {
-            if (!id.includes('node_modules')) return;
+            // 合并源码中的懒加载组件
+            if (!id.includes('node_modules')) {
+              // 用户认证相关页面合并
+              if (id.includes('/page/user/') || id.includes('/page/oauth/')) {
+                return 'auth';
+              }
+              // 分享相关页面合并
+              if (id.includes('/page/share') || id.includes('/page/shared')) {
+                return 'share';
+              }
+              // 聊天子页面合并
+              if (
+                id.includes('/page/chat/conversation') ||
+                id.includes('/page/chat/conversations')
+              ) {
+                return 'chat-children';
+              }
+              // 其他次要页面合并
+              if (
+                id.includes('/page/invite') ||
+                id.includes('/page/welcome') ||
+                id.includes('/page/resource')
+              ) {
+                return 'misc';
+              }
+              return;
+            }
 
             // 1. React 核心（最底层）
             if (
