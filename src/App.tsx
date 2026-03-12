@@ -15,7 +15,9 @@ import ChatHomePage from '@/page/chat/home';
 const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
 const ChatConversationsPage = lazy(() => import('@/page/chat/conversations'));
 import NamespacePage from '@/page/namespace';
-import ResourcePage from '@/page/resource';
+
+// 资源页面在聊天路径下不需要，懒加载
+const ResourcePage = lazy(() => import('@/page/resource'));
 
 // 懒加载非首屏页面（认证、分享等次要功能）
 
