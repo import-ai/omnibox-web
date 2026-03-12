@@ -6,23 +6,16 @@ import AppContext from '@/hooks/app-context';
 import { AuthConfigProvider } from '@/hooks/auth-config-context';
 import Layout from '@/layout';
 import Error from '@/layout/error';
-// 同步导入首屏关键页面（减少首次请求数）
-// 主布局 + 聊天界面是首屏核心
 import ChatPage from '@/page/chat';
 import ChatHomePage from '@/page/chat/home';
-
-// 懒加载聊天子页面（点击后才需要）
-const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
-const ChatConversationsPage = lazy(() => import('@/page/chat/conversations'));
 import NamespacePage from '@/page/namespace';
 
-// 资源页面在聊天路径下不需要，懒加载
-const ResourcePage = lazy(() => import('@/page/resource'));
-
-// 懒加载非首屏页面（认证、分享等次要功能）
+const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
+const ChatConversationsPage = lazy(() => import('@/page/chat/conversations'));
 
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/invite'));
+const ResourcePage = lazy(() => import('@/page/resource'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const VerifyOtpPage = lazy(() => import('@/page/user/verify-otp'));
 const AcceptInvitePage = lazy(() => import('@/page/user/accept-invite'));
