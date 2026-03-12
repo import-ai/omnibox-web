@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
         injectRegister: false,
         manifest: false,
         workbox: {
-          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         },
       }),
     ],
@@ -35,28 +35,115 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      chunkSizeWarningLimit: 2000,
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
-          experimentalMinChunkSize: 30000,
-          manualChunks: id => {
-            if (id.includes('node_modules')) {
-              // 只分离明确的大包，避免复杂的依赖关系
-              if (id.includes('vditor')) {
-                return 'vditor-vendor';
-              }
+          // 提高最小 chunk 大小，合并小文件
+          experimentalMinChunkSize: 50000,
+          // 控制代码分割策略
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return;
 
-              if (id.includes('katex')) {
-                return 'katex-vendor';
-              }
-
-              // 所有其他 node_modules 包（包括 React、UI组件等）放一起
-              return 'vendor';
+            // 1. React 核心（最底层）
+            if (
+              id.includes('/react/') ||
+              id.includes('/react-dom/') ||
+              id.includes('/react-is/') ||
+              id.includes('/scheduler/') ||
+              id.includes('/use-sync-external-store/')
+            ) {
+              return 'react';
             }
 
-            return;
+            // 2. React Router（依赖 React）
+            if (id.includes('react-router') || id.includes('@remix-run')) {
+              return 'router';
+            }
+
+            // 3. UI 组件库（Radix 等，依赖 React）
+            if (
+              id.includes('@radix-ui') ||
+              id.includes('@floating-ui') ||
+              id.includes('react-remove-scroll') ||
+              id.includes('react-focus-lock') ||
+              id.includes('aria-hidden') ||
+              id.includes('cmdk')
+            ) {
+              return 'ui';
+            }
+
+            // 4. 图标库（全部合并）
+            if (
+              id.includes('lucide-react') ||
+              id.includes('@remixicon') ||
+              id.includes('seti-icons') ||
+              id.includes('simple-icons')
+            ) {
+              return 'icons';
+            }
+
+            // 5. 表单相关
+            if (
+              id.includes('react-hook-form') ||
+              id.includes('@hookform') ||
+              id.includes('zod') ||
+              id.includes('libphonenumber')
+            ) {
+              return 'form';
+            }
+
+            // 6. 国际化
+            if (
+              id.includes('i18next') ||
+              id.includes('react-i18next') ||
+              id.includes('i18next-browser-languagedetector')
+            ) {
+              return 'i18n';
+            }
+
+            // 7. 工具库
+            if (
+              id.includes('lodash') ||
+              id.includes('date-fns') ||
+              id.includes('axios')
+            ) {
+              return 'utils';
+            }
+
+            // 8. Markdown 处理
+            if (
+              id.includes('react-markdown') ||
+              id.includes('react-syntax-highlighter') ||
+              id.includes('rehype') ||
+              id.includes('remark') ||
+              id.includes('unified') ||
+              id.includes('micromark') ||
+              id.includes('mdast') ||
+              id.includes('hast') ||
+              id.includes('vfile')
+            ) {
+              return 'markdown';
+            }
+
+            // 9. 大体积独立包（按需加载）
+            if (id.includes('vditor')) {
+              return 'vditor';
+            }
+
+            if (id.includes('katex')) {
+              return 'katex';
+            }
+
+            // 10. 其他所有包
+            return 'vendor';
           },
+          // 合并小 chunk 到主入口
+          inlineDynamicImports: false,
         },
+      },
+      // 优化依赖预打包
+      commonjsOptions: {
+        transformMixedEsModules: true,
       },
     },
     server: {
@@ -82,7 +169,6 @@ export default defineConfig(({ mode }) => {
             'http://127.0.0.1:8000',
           changeOrigin: true,
         },
-        // Proxy attachment routes to API
         '^/[^/]+/[^/]+/attachments/[^/]+$': {
           target:
             process.env.VITE_API_PATH ??
