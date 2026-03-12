@@ -38,16 +38,16 @@ export default defineConfig(({ mode }) => {
           experimentalMinChunkSize: 30000,
           manualChunks: id => {
             if (id.includes('node_modules')) {
+              // React 核心（最底层）
               if (
-                id.includes('react') &&
-                (id.includes('react/') ||
-                  id.includes('react-dom') ||
-                  id.includes('react-router') ||
-                  id.includes('react-is'))
+                id.includes('react') ||
+                id.includes('scheduler') ||
+                id.includes('use-sync-external-store')
               ) {
                 return 'react-vendor';
               }
 
+              // UI 组件库（依赖 React）
               if (
                 id.includes('@radix-ui') ||
                 id.includes('aria-hidden') ||
@@ -60,6 +60,7 @@ export default defineConfig(({ mode }) => {
                 return 'ui-vendor';
               }
 
+              // 图标库
               if (
                 id.includes('lucide-react') ||
                 id.includes('@remixicon') ||
@@ -69,99 +70,18 @@ export default defineConfig(({ mode }) => {
                 return 'icons';
               }
 
-              if (
-                id.includes('react-markdown') ||
-                id.includes('react-syntax-highlighter') ||
-                id.includes('rehype') ||
-                id.includes('remark') ||
-                id.includes('unified') ||
-                id.includes('markdown') ||
-                id.includes('micromark') ||
-                id.includes('mdast') ||
-                id.includes('hast') ||
-                id.includes('vfile')
-              ) {
-                return 'markdown-vendor';
-              }
-
+              // Vditor 编辑器
               if (id.includes('vditor')) {
                 return 'vditor-vendor';
               }
 
-              if (
-                id.includes('react-hook-form') ||
-                id.includes('@hookform') ||
-                id.includes('zod')
-              ) {
-                return 'form-vendor';
-              }
-
-              if (
-                id.includes('i18next') ||
-                id.includes('react-i18next') ||
-                id.includes('i18next-browser-languagedetector') ||
-                id.includes('intl-messageformat')
-              ) {
-                return 'i18n-vendor';
-              }
-
-              if (
-                id.includes('lodash') ||
-                id.includes('axios') ||
-                id.includes('date-fns')
-              ) {
-                return 'utils-vendor';
-              }
-
-              if (
-                id.includes('katex') ||
-                id.includes('rehype-katex') ||
-                id.includes('remark-math')
-              ) {
+              // KaTeX 数学公式
+              if (id.includes('katex')) {
                 return 'katex-vendor';
               }
 
-              if (
-                id.includes('react-dnd') ||
-                id.includes('dnd-core') ||
-                id.includes('react-dnd-html5-backend') ||
-                id.includes('react-dnd-touch-backend')
-              ) {
-                return 'dnd-vendor';
-              }
-
-              if (id.includes('socket.io') || id.includes('engine.io')) {
-                return 'socket-vendor';
-              }
-
-              if (id.includes('fingerprintjs')) {
-                return 'fingerprint-vendor';
-              }
-
-              if (
-                id.includes('jszip') ||
-                id.includes('pako') ||
-                id.includes('fflate')
-              ) {
-                return 'zip-vendor';
-              }
-
-              if (
-                id.includes('html-react-parser') ||
-                id.includes('html-dom-parser')
-              ) {
-                return 'html-parser-vendor';
-              }
-
-              if (id.includes('libphonenumber')) {
-                return 'phone-vendor';
-              }
-
-              if (id.includes('qrcode')) {
-                return 'qrcode-vendor';
-              }
-
-              return 'common-vendor';
+              // 其他所有 node_modules 包
+              return 'vendor';
             }
 
             return;
