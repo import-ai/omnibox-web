@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         injectRegister: false,
         manifest: false,
+        workbox: {
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB
+        },
       }),
     ],
     resolve: {
@@ -32,55 +35,22 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      chunkSizeWarningLimit: 1600,
+      chunkSizeWarningLimit: 2000,
       rollupOptions: {
         output: {
           experimentalMinChunkSize: 30000,
           manualChunks: id => {
             if (id.includes('node_modules')) {
-              // React 核心（最底层）
-              if (
-                id.includes('react') ||
-                id.includes('scheduler') ||
-                id.includes('use-sync-external-store')
-              ) {
-                return 'react-vendor';
-              }
-
-              // UI 组件库（依赖 React）
-              if (
-                id.includes('@radix-ui') ||
-                id.includes('aria-hidden') ||
-                id.includes('react-remove-scroll') ||
-                id.includes('@floating-ui') ||
-                id.includes('react-focus-lock') ||
-                id.includes('@react-aria') ||
-                id.includes('cmdk')
-              ) {
-                return 'ui-vendor';
-              }
-
-              // 图标库
-              if (
-                id.includes('lucide-react') ||
-                id.includes('@remixicon') ||
-                id.includes('seti-icons') ||
-                id.includes('simple-icons')
-              ) {
-                return 'icons';
-              }
-
-              // Vditor 编辑器
+              // 只分离明确的大包，避免复杂的依赖关系
               if (id.includes('vditor')) {
                 return 'vditor-vendor';
               }
 
-              // KaTeX 数学公式
               if (id.includes('katex')) {
                 return 'katex-vendor';
               }
 
-              // 其他所有 node_modules 包
+              // 所有其他 node_modules 包（包括 React、UI组件等）放一起
               return 'vendor';
             }
 
