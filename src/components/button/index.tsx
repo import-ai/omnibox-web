@@ -47,7 +47,7 @@ const CustomButton = React.forwardRef<
       <BaseButton
         variant="outline"
         className={cn(
-          'shadow-none bg-transparent hover:bg-background dark:border-neutral-700',
+          'shadow-none bg-transparent border border-neutral-300/60 dark:border-neutral-600 hover:bg-neutral-200/65 dark:hover:bg-neutral-600',
           className
         )}
         {...rest}

@@ -307,10 +307,12 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                        <AlertDialogCancel className="cancel-btn-outline">
+                          {t('cancel')}
+                        </AlertDialogCancel>
                         <AlertDialogAction
                           disabled={unbindingLoading}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
                           onClick={() => handleUnbind(application)}
                         >
                           {unbindingLoading && <Spinner className="mr-2" />}
@@ -357,12 +359,12 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel className="border-line">
+                          <AlertDialogCancel className="cancel-btn-outline">
                             {t('cancel')}
                           </AlertDialogCancel>
                           <AlertDialogAction
                             disabled={cancelingLoading}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
                             onClick={() => handleCancelBind(application)}
                           >
                             {cancelingLoading && <Spinner className="mr-2" />}

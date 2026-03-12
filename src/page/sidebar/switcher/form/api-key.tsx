@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +16,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -374,7 +374,8 @@ export function APIKeyForm() {
 
             <DialogFooter>
               <Button
-                variant="outline"
+                type="button"
+                variant="outline-border"
                 onClick={() => setCreateDialogOpen(false)}
               >
                 {t('cancel')}
@@ -493,7 +494,8 @@ export function APIKeyForm() {
 
             <DialogFooter>
               <Button
-                variant="outline"
+                type="button"
+                variant="outline-border"
                 onClick={() => setUpdateDialogOpen(false)}
               >
                 {t('cancel')}
@@ -601,7 +603,9 @@ export function APIKeyForm() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                        <AlertDialogCancel className="cancel-btn-outline">
+                          {t('cancel')}
+                        </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => handleDeleteAPIKey(key)}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

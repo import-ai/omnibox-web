@@ -188,7 +188,9 @@ export default function GroupData(props: GroupProps) {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                <AlertDialogCancel className="cancel-btn-outline">
+                  {t('cancel')}
+                </AlertDialogCancel>
                 <AlertDialogAction
                   disabled={deleting}
                   onClick={handleDelete}

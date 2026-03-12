@@ -89,6 +89,10 @@
   .border-line {
     @apply rounded-md border dark:border-neutral-700 border-neutral-200  bg-transparent dark:bg-transparent;
   }
+
+  .cancel-btn-outline {
+    @apply rounded-md border border-neutral-300/60 dark:border-neutral-600 bg-transparent shadow-none hover:!bg-neutral-200/65 dark:hover:!bg-neutral-600;
+  }
 }
 
 @layer utilities {

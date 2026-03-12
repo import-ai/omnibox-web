@@ -126,7 +126,9 @@ export function TaskActions({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('tasks.continue_running')}</AlertDialogCancel>
+            <AlertDialogCancel className="cancel-btn-outline">
+              {t('tasks.continue_running')}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={isLoading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
