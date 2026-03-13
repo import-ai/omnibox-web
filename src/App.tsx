@@ -6,16 +6,16 @@ import AppContext from '@/hooks/app-context';
 import { AuthConfigProvider } from '@/hooks/auth-config-context';
 import Layout from '@/layout';
 import Error from '@/layout/error';
+import ChatPage from '@/page/chat';
+import ChatHomePage from '@/page/chat/home';
+import NamespacePage from '@/page/namespace';
 
-const ChatPage = lazy(() => import('@/page/chat'));
-const ChatHomePage = lazy(() => import('@/page/chat/home'));
 const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
 const ChatConversationsPage = lazy(() => import('@/page/chat/conversations'));
 
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/invite'));
 const ResourcePage = lazy(() => import('@/page/resource'));
-const NamespacePage = lazy(() => import('@/page/namespace'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const VerifyOtpPage = lazy(() => import('@/page/user/verify-otp'));
 const AcceptInvitePage = lazy(() => import('@/page/user/accept-invite'));

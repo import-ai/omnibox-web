@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouteError } from 'react-router-dom';
 
@@ -8,29 +7,6 @@ export default function ErrorPage() {
     statusText?: string;
     message: string;
   };
-
-  useEffect(() => {
-    const errorMessage = (
-      error?.message ||
-      error?.statusText ||
-      ''
-    ).toLowerCase();
-
-    const isJS404Error =
-      errorMessage.includes('404') || errorMessage.includes('not found');
-
-    if (!isJS404Error) {
-      return;
-    }
-
-    const now = Date.now();
-    const JS_404_REFRESH_KEY = 'js_404_refreshed';
-    const lastRefreshTime = sessionStorage.getItem(JS_404_REFRESH_KEY);
-    if (!lastRefreshTime || now - parseInt(lastRefreshTime) > 10000) {
-      sessionStorage.setItem(JS_404_REFRESH_KEY, now.toString());
-      window.location.reload();
-    }
-  }, [error]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
