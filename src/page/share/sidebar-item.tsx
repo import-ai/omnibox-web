@@ -1,5 +1,5 @@
 import { MoreHorizontal } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,6 +30,9 @@ interface SidebarItemProps {
   showChat: boolean;
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
+  expandedFolders?: Set<string>;
+  loadedChildren?: Record<string, ResourceMeta[]>;
+  onToggleFolder?: (folderId: string) => void;
 }
 
 export default function SidebarItem(props: SidebarItemProps) {
@@ -40,6 +43,9 @@ export default function SidebarItem(props: SidebarItemProps) {
     showChat,
     isResourceActive,
     onAddToContext,
+    expandedFolders = new Set(),
+    loadedChildren = {},
+    onToggleFolder,
   } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -50,8 +56,14 @@ export default function SidebarItem(props: SidebarItemProps) {
   const isActive = isResourceActive(resource.id);
   const hasChildren = !!resource.has_children;
 
+  // Use external expandedFolders state if provided
+  const isControlledExpanded = expandedFolders.has(resource.id);
+
+  // Use pre-loaded children if available
+  const displayChildren = loadedChildren[resource.id] || children;
+
   const fetchChildren = async () => {
-    if (loading) {
+    if (loading || loadedChildren[resource.id]) {
       return;
     }
     setLoading(true);
@@ -68,11 +80,28 @@ export default function SidebarItem(props: SidebarItemProps) {
   };
 
   const handleToggle = () => {
-    if (!isExpanded && children.length === 0) {
+    if (onToggleFolder) {
+      onToggleFolder(resource.id);
+    } else {
+      // Fallback to local state
+      if (!isExpanded && displayChildren.length === 0) {
+        fetchChildren();
+      }
+      setIsExpanded(!isExpanded);
+    }
+  };
+
+  // Fetch children when folder is expanded externally and no pre-loaded data
+  useEffect(() => {
+    if (
+      isControlledExpanded &&
+      displayChildren.length === 0 &&
+      hasChildren &&
+      !loadedChildren[resource.id]
+    ) {
       fetchChildren();
     }
-    setIsExpanded(!isExpanded);
-  };
+  }, [isControlledExpanded]);
 
   const handleClick = () => {
     navigate(`/s/${shareId}/${resource.id}`);
@@ -109,12 +138,13 @@ export default function SidebarItem(props: SidebarItemProps) {
 
   return (
     <SidebarMenuItem>
-      <Collapsible open={isExpanded}>
+      <Collapsible open={isControlledExpanded || isExpanded}>
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <div
               className="group/sidebar-item my-[1px] rounded-[6px] hover:bg-sidebar-accent"
               ref={contextMenuRef}
+              data-resource-id={resource.id}
             >
               <SidebarMenuButton
                 asChild
@@ -143,14 +173,17 @@ export default function SidebarItem(props: SidebarItemProps) {
                         <Arrow
                           className={cn(
                             'transition-transform text-neutral-400 hover:text-accent-foreground',
-                            isExpanded && 'rotate-90'
+                            (isControlledExpanded || isExpanded) && 'rotate-90'
                           )}
                         />
                       )}
                     </div>
                   )}
 
-                  <ResourceIcon expand={isExpanded} resource={resource} />
+                  <ResourceIcon
+                    expand={isControlledExpanded || isExpanded}
+                    resource={resource}
+                  />
                   <span className="truncate flex-1 text-sm">
                     {resource.name || t('untitled')}
                   </span>
@@ -188,7 +221,7 @@ export default function SidebarItem(props: SidebarItemProps) {
         {hasChildren && (
           <CollapsibleContent>
             <SidebarMenuSub className="pr-0 mr-0 pl-2">
-              {children.map(child => (
+              {displayChildren.map(child => (
                 <SidebarItem
                   key={child.id}
                   shareId={shareId}
@@ -197,6 +230,9 @@ export default function SidebarItem(props: SidebarItemProps) {
                   isChatActive={isChatActive}
                   showChat={showChat}
                   onAddToContext={onAddToContext}
+                  expandedFolders={expandedFolders}
+                  loadedChildren={loadedChildren}
+                  onToggleFolder={onToggleFolder}
                 />
               ))}
             </SidebarMenuSub>

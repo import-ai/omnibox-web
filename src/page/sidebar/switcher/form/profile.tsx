@@ -205,12 +205,12 @@ function BindingRow({
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel className="border-line">
+                <AlertDialogCancel className="cancel-btn-outline">
                   {t('cancel')}
                 </AlertDialogCancel>
                 <AlertDialogAction
                   disabled={unbinding}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
                   onClick={onUnbind}
                 >
                   {unbinding && <Spinner className="mr-2" />}
@@ -541,8 +541,7 @@ export default function ProfileForm() {
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"
-                  variant="outline"
-                  className="dark:border-neutral-700 border-neutral-200"
+                  variant="outline-border"
                   onClick={() => setUsernameDialogOpen(false)}
                 >
                   {t('cancel')}
@@ -650,8 +649,7 @@ export default function ProfileForm() {
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"
-                  variant="outline"
-                  className="dark:border-neutral-700 border-neutral-200"
+                  variant="outline-border"
                   onClick={() => {
                     setPasswordDialogOpen(false);
                     passwordForm.reset();

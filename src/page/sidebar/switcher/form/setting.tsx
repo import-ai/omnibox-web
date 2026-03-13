@@ -265,7 +265,10 @@ export default function SettingForm({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={leaving}>
+            <AlertDialogCancel
+              className="cancel-btn-outline"
+              disabled={leaving}
+            >
               {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction

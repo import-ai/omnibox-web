@@ -6,19 +6,12 @@ import { useNavigate } from 'react-router-dom';
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { Button } from '@/components/ui/button';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Tooltip,
   TooltipContent,
@@ -107,60 +100,48 @@ export default function Actions(props: IProps) {
         </Tooltip>
       )}
       {conversationId && (
-        <Popover>
-          <PopoverTrigger asChild>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7 data-[state=open]:bg-accent"
             >
-              <MoreHorizontal />
+              <MoreHorizontal className="size-4" />
             </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-56 overflow-hidden rounded-lg p-0"
-            align="end"
-          >
-            <Sidebar collapsible="none" className="bg-transparent">
-              <SidebarContent className="gap-0">
-                <SidebarGroup className="border-b">
-                  <SidebarGroupContent className="gap-0">
-                    <SidebarMenu>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton onClick={onChatCreate}>
-                          <Plus />
-                          <span>{t('chat.conversations.new_chat')}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton onClick={onChatHistory}>
-                          <History />
-                          <span>{t('chat.conversations.history')}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          onClick={() => handleAction('rename')}
-                        >
-                          <Edit2 />
-                          <span>{t('chat.conversations.rename.option')}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          onClick={() => handleAction('delete')}
-                        >
-                          <Trash2 />
-                          <span>{t('chat.conversations.delete.option')}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              </SidebarContent>
-            </Sidebar>
-          </PopoverContent>
-        </Popover>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={onChatCreate}
+            >
+              <Plus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <span>{t('chat.conversations.new_chat')}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={onChatHistory}
+            >
+              <History className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <span>{t('chat.conversations.history')}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={() => handleAction('rename')}
+            >
+              <Edit2 className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <span>{t('chat.conversations.rename.option')}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={() => handleAction('delete')}
+            >
+              <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <span>{t('chat.conversations.delete.option')}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
       <ConfirmDeleteDialog
         open={remove}

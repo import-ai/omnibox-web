@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { showActionToast } from '@/components/sonner';
 import { useSidebar } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
 import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
@@ -228,17 +229,15 @@ export default function useContext() {
       // Notify trash panel to update icon
       app.fire('trash_updated');
 
-      toast(t('resource.moved_to_trash'), {
-        action: {
-          label: t('undo'),
-          onClick: () => {
-            http
-              .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
-              .then(response => {
-                activeRoute(spaceType, parentId, response);
-                app.fire('trash_updated');
-              });
-          },
+      showActionToast(t('resource.moved_to_trash'), {
+        actionLabel: t('undo'),
+        onAction: () => {
+          http
+            .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
+            .then(response => {
+              activeRoute(spaceType, parentId, response);
+              app.fire('trash_updated');
+            });
         },
       });
     });
@@ -418,7 +417,20 @@ export default function useContext() {
     );
     hooks.push(
       app.on('update_resource', (delta: Resource) => {
+        let updated = false;
+        const newData = { ...data };
         each(data, (resource, key) => {
+          // 1. Check if it's the root resource itself
+          if (resource.id === delta.id) {
+            newData[key] = {
+              ...resource,
+              name: delta.name,
+              content: delta.content,
+            };
+            updated = true;
+            return true;
+          }
+          // 2. Check if it's in children
           if (
             Array.isArray(resource.children) &&
             resource.children.length > 0
@@ -427,13 +439,22 @@ export default function useContext() {
               (node: Resource) => node.id === delta.id
             );
             if (index >= 0) {
-              data[key].children[index].name = delta.name;
-              data[key].children[index].content = delta.content;
+              newData[key] = {
+                ...resource,
+                children: resource.children.map((child: Resource, i: number) =>
+                  i === index
+                    ? { ...child, name: delta.name, content: delta.content }
+                    : child
+                ),
+              };
+              updated = true;
               return true;
             }
           }
         });
-        onData({ ...data });
+        if (updated) {
+          onData(newData);
+        }
       })
     );
     hooks.push(
