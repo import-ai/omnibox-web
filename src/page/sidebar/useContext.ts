@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { showActionToast } from '@/components/sonner';
 import { useSidebar } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
 import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
@@ -228,17 +229,15 @@ export default function useContext() {
       // Notify trash panel to update icon
       app.fire('trash_updated');
 
-      toast(t('resource.moved_to_trash'), {
-        action: {
-          label: t('undo'),
-          onClick: () => {
-            http
-              .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
-              .then(response => {
-                activeRoute(spaceType, parentId, response);
-                app.fire('trash_updated');
-              });
-          },
+      showActionToast(t('resource.moved_to_trash'), {
+        actionLabel: t('undo'),
+        onAction: () => {
+          http
+            .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
+            .then(response => {
+              activeRoute(spaceType, parentId, response);
+              app.fire('trash_updated');
+            });
         },
       });
     });

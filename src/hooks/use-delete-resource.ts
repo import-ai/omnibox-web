@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
+import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 
@@ -41,17 +41,15 @@ export function useDeleteResource() {
       }
     }
 
-    toast(t('resource.moved_to_trash'), {
-      action: {
-        label: t('undo'),
-        onClick: () => {
-          http
-            .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
-            .then(response => {
-              app.fire('generate_resource', parentId, response);
-              app.fire('trash_updated');
-            });
-        },
+    showActionToast(t('resource.moved_to_trash'), {
+      actionLabel: t('undo'),
+      onAction: () => {
+        http
+          .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
+          .then(response => {
+            app.fire('generate_resource', parentId, response);
+            app.fire('trash_updated');
+          });
       },
     });
 

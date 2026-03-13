@@ -3,11 +3,11 @@ import JSZip from 'jszip';
 import {
   ArrowUp,
   Copy,
-  CornerUpRight,
   Download,
   Files,
   Link,
   MoreHorizontal,
+  Move,
   MoveHorizontal,
   Pencil,
   PencilOff,
@@ -416,7 +416,7 @@ export default function Actions(props: IActionProps) {
             {loading === 'move_to' ? (
               <Spinner />
             ) : (
-              <CornerUpRight className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             )}
             <span>{t('actions.move_to')}</span>
           </DropdownMenuItem>
