@@ -308,9 +308,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel asChild>
-                          <Button variant="outline-border">
-                            {t('cancel')}
-                          </Button>
+                          <Button variant="outline">{t('cancel')}</Button>
                         </AlertDialogCancel>
                         <AlertDialogAction
                           disabled={unbindingLoading}
@@ -330,7 +328,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                       disabled={
                         bindingLoading && currentAppId === application.app_id
                       }
-                      variant="bind"
+                      variant="default"
+                      className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
                     >
                       {bindingLoading &&
                         currentAppId === application.app_id && (
@@ -361,9 +360,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel asChild>
-                            <Button variant="outline-border">
-                              {t('cancel')}
-                            </Button>
+                            <Button variant="outline">{t('cancel')}</Button>
                           </AlertDialogCancel>
                           <AlertDialogAction
                             disabled={cancelingLoading}
@@ -383,7 +380,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                     disabled={
                       bindingLoading && currentAppId === application.app_id
                     }
-                    variant="bind"
+                    variant="default"
+                    className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
                   >
                     {bindingLoading && currentAppId === application.app_id && (
                       <Spinner className="mr-2" />

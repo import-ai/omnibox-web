@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils.ts';
 interface ButtonLoadingProps extends Omit<ButtonProps, 'variant'> {
   loading?: boolean;
   children: React.ReactNode;
-  variant?: ButtonProps['variant'] | 'outline-border' | 'bind';
+  variant?: ButtonProps['variant'];
 }
 
 const CustomButton = React.forwardRef<
@@ -36,7 +36,7 @@ const CustomButton = React.forwardRef<
         ref={ref}
         variant={variant}
         className={cn(
-          'shadow-none bg-white dark:bg-transparent border-neutral-200 active:border-neutral-300 dark:!border-neutral-600   hover:bg-neutral-100 dark:hover:bg-neutral-600 active:bg-neutral-200 dark:active:bg-neutral-700',
+          'shadow-none bg-white  border-neutral-200 hover:bg-neutral-100 active:border-neutral-300 dark:bg-transparent dark:!border-neutral-700 dark:hover:bg-neutral-600 active:bg-neutral-200 dark:active:bg-neutral-700',
           className
         )}
         {...rest}
@@ -45,27 +45,13 @@ const CustomButton = React.forwardRef<
       </BaseButton>
     );
   }
-  if (variant === 'outline-border') {
-    return (
-      <BaseButton
-        variant="outline"
-        className={cn(
-          'shadow-none border-neutral-200 active:border-neutral-300 dark:border-neutral-600 hover:bg-neutral-200/65 dark:hover:bg-neutral-600 active:bg-neutral-200 dark:active:bg-neutral-700',
-          className
-        )}
-        {...rest}
-      >
-        {children}
-      </BaseButton>
-    );
-  }
-  if (variant === 'bind') {
+  if (variant === 'default') {
     return (
       <BaseButton
         ref={ref}
         variant="default"
         className={cn(
-          'h-[30px] w-[71px] shrink-0 text-xs font-medium dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100',
+          'shadow-none dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100',
           className
         )}
         {...rest}

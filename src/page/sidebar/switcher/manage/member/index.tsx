@@ -63,7 +63,12 @@ export default function MemberMain(props: MemberProps) {
           className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground bg-transparent dark:bg-transparent"
         />
         <Invite onFinish={refetch}>
-          <Button variant="bind">{t('manage.add')}</Button>
+          <Button
+            variant="default"
+            className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+          >
+            {t('manage.add')}
+          </Button>
         </Invite>
       </div>
       <div className="overflow-auto max-w-[83vw] sm:max-w-full">

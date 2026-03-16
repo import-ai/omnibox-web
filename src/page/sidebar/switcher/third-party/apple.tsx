@@ -187,9 +187,10 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
 
   return (
     <Button
-      variant="bind"
+      variant="default"
       onClick={loginWithApple}
       disabled={!sdkLoaded || loading}
+      className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
     >
       {t('setting.bind_btn')}
     </Button>

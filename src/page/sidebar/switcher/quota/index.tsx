@@ -226,7 +226,11 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button size="sm" variant="bind">
+            <Button
+              size="sm"
+              variant="default"
+              className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+            >
               {t('quota.expand_button')}
             </Button>
           </a>

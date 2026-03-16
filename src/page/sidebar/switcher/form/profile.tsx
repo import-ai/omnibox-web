@@ -84,7 +84,7 @@ const ActionButton = React.forwardRef<
     children: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
-    variant?: 'default' | 'outline' | 'destructive' | 'bind';
+    variant?: 'default' | 'outline' | 'destructive';
   }
 >(function ActionButton(
   { children, onClick, disabled, variant = 'outline' },
@@ -220,9 +220,7 @@ function BindingRow({
             </AlertDialogContent>
           </AlertDialog>
         ) : (
-          onBind || (
-            <ActionButton variant="bind">{t('setting.bind_btn')}</ActionButton>
-          )
+          onBind || <ActionButton>{t('setting.bind_btn')}</ActionButton>
         )}
       </div>
     </div>
@@ -436,10 +434,7 @@ export default function ProfileForm() {
               {t('setting.change')}
             </ActionButton>
           ) : (
-            <ActionButton
-              variant="bind"
-              onClick={() => setPhoneDialogOpen(true)}
-            >
+            <ActionButton onClick={() => setPhoneDialogOpen(true)}>
               {t('setting.bind_btn')}
             </ActionButton>
           )}
@@ -539,7 +534,7 @@ export default function ProfileForm() {
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"
-                  variant="outline-border"
+                  variant="outline"
                   onClick={() => setUsernameDialogOpen(false)}
                 >
                   {t('cancel')}
@@ -647,7 +642,7 @@ export default function ProfileForm() {
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"
-                  variant="outline-border"
+                  variant="outline"
                   onClick={() => {
                     setPasswordDialogOpen(false);
                     passwordForm.reset();

@@ -18,7 +18,11 @@ export function GoogleLogin() {
   };
 
   return (
-    <Button variant="bind" onClick={loginWithGoogle}>
+    <Button
+      variant="default"
+      onClick={loginWithGoogle}
+      className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+    >
       {t('setting.bind_btn')}
     </Button>
   );

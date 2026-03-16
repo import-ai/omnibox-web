@@ -264,7 +264,12 @@ export function APIKeyForm() {
 
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="bind">{t('create')}</Button>
+            <Button
+              variant="default"
+              className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+            >
+              {t('create')}
+            </Button>
           </DialogTrigger>
           <DialogContent className="overflow-hidden">
             <DialogHeader>
@@ -373,7 +378,7 @@ export function APIKeyForm() {
             <DialogFooter>
               <Button
                 type="button"
-                variant="outline-border"
+                variant="outline"
                 onClick={() => setCreateDialogOpen(false)}
               >
                 {t('cancel')}
@@ -497,7 +502,7 @@ export function APIKeyForm() {
             <DialogFooter>
               <Button
                 type="button"
-                variant="outline-border"
+                variant="outline"
                 onClick={() => setUpdateDialogOpen(false)}
               >
                 {t('cancel')}
@@ -610,9 +615,7 @@ export function APIKeyForm() {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel asChild>
-                          <Button variant="outline-border">
-                            {t('cancel')}
-                          </Button>
+                          <Button variant="outline">{t('cancel')}</Button>
                         </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => handleDeleteAPIKey(key)}

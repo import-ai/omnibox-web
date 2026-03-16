@@ -191,7 +191,8 @@ export default function SettingForm({
                 type="submit"
                 disabled={submiting}
                 loading={submiting}
-                variant="bind"
+                variant="default"
+                className="shrink-0 text-xs font-medium w-[71px] h-[30px]"
               >
                 {t('namespace.submit')}
               </Button>

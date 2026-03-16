@@ -96,7 +96,10 @@ export default function AddMember(props: AddMemberProps) {
   return (
     <Popover open={open} onOpenChange={onOpen}>
       <PopoverTrigger asChild>
-        <Button variant="bind" className="mt-2">
+        <Button
+          variant="default"
+          className="mt-2 h-[30px] w-[71px] shrink-0 text-xs font-medium"
+        >
           <Plus />
           {t('manage.add_member')}
         </Button>

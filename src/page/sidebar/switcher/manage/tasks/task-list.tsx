@@ -238,7 +238,11 @@ export function TaskList({ namespaceId }: TaskListProps) {
             </Select>
           )}
         </div>
-        <Button variant="bind" onClick={handleRefresh}>
+        <Button
+          variant="default"
+          onClick={handleRefresh}
+          className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+        >
           {t('common.refresh')}
         </Button>
       </div>

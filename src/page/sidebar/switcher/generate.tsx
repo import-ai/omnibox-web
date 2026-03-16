@@ -56,7 +56,10 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
                 toast.dismiss(toastId);
               }}
             >
-              <Button variant="bind">
+              <Button
+                variant="default"
+                className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+              >
                 {t('namespace.quota_expand_button')}
                 <SquareArrowOutUpRight />
               </Button>
