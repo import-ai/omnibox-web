@@ -91,7 +91,7 @@ const ActionButton = React.forwardRef<
   ref
 ) {
   const className =
-    'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] dark:border-neutral-700  border-neutral-200 active:border-neutral-300 text-xs font-medium';
+    'w-[71px] h-[30px] rounded-[5px] dark:border-neutral-700  border-neutral-200 active:border-neutral-300 text-xs font-medium';
   return (
     <Button
       ref={ref}
