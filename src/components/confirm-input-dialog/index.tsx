@@ -92,7 +92,7 @@ export function ConfirmInputDialog({
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel disabled={loading} className="border-line">
+        <AlertDialogCancel disabled={loading} className="cancel-btn-outline">
           {cancelButtonText}
         </AlertDialogCancel>
         <AlertDialogAction

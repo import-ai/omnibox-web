@@ -264,9 +264,7 @@ export function APIKeyForm() {
 
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="text-sm font-semibold">
-              {t('create')}
-            </Button>
+            <Button variant="bind">{t('create')}</Button>
           </DialogTrigger>
           <DialogContent className="overflow-hidden">
             <DialogHeader>
@@ -380,7 +378,11 @@ export function APIKeyForm() {
               >
                 {t('cancel')}
               </Button>
-              <Button onClick={handleCreateAPIKey} disabled={creating}>
+              <Button
+                onClick={handleCreateAPIKey}
+                disabled={creating}
+                className="bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100"
+              >
                 {creating ? t('creating') : t('create')}
               </Button>
             </DialogFooter>
@@ -500,7 +502,11 @@ export function APIKeyForm() {
               >
                 {t('cancel')}
               </Button>
-              <Button onClick={handleUpdateAPIKey} disabled={updating}>
+              <Button
+                onClick={handleUpdateAPIKey}
+                disabled={updating}
+                className="bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100"
+              >
                 {updating ? t('updating') : t('update')}
               </Button>
             </DialogFooter>
@@ -603,8 +609,10 @@ export function APIKeyForm() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel className="cancel-btn-outline">
-                          {t('cancel')}
+                        <AlertDialogCancel asChild>
+                          <Button variant="outline-border">
+                            {t('cancel')}
+                          </Button>
                         </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => handleDeleteAPIKey(key)}

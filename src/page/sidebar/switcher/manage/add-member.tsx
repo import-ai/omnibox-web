@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/button';
 import MultipleSelector, { Option } from '@/components/multiple-selector';
-import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
@@ -96,7 +96,7 @@ export default function AddMember(props: AddMemberProps) {
   return (
     <Popover open={open} onOpenChange={onOpen}>
       <PopoverTrigger asChild>
-        <Button size="sm" variant="secondary" className="mt-2">
+        <Button variant="bind" className="mt-2">
           <Plus />
           {t('manage.add_member')}
         </Button>

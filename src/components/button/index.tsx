@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils.ts';
 interface ButtonLoadingProps extends Omit<ButtonProps, 'variant'> {
   loading?: boolean;
   children: React.ReactNode;
-  variant?: ButtonProps['variant'] | 'outline-border';
+  variant?: ButtonProps['variant'] | 'outline-border' | 'bind';
 }
 
 const CustomButton = React.forwardRef<
@@ -21,7 +21,7 @@ const CustomButton = React.forwardRef<
         ref={ref}
         variant="outline"
         className={cn(
-          'bg-transparent text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground',
+          'bg-transparent text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground active:bg-[#D95E52] text-xs font-medium',
           className
         )}
         {...rest}
@@ -35,7 +35,10 @@ const CustomButton = React.forwardRef<
       <BaseButton
         ref={ref}
         variant={variant}
-        className={cn('shadow-none bg-transparent', className)}
+        className={cn(
+          'shadow-none bg-white dark:bg-transparent border-neutral-200 active:border-neutral-300 dark:!border-neutral-600   hover:bg-neutral-100 dark:hover:bg-neutral-600 active:bg-neutral-200 dark:active:bg-neutral-700',
+          className
+        )}
         {...rest}
       >
         {children}
@@ -47,7 +50,22 @@ const CustomButton = React.forwardRef<
       <BaseButton
         variant="outline"
         className={cn(
-          'shadow-none bg-transparent border border-neutral-300/60 dark:border-neutral-600 hover:bg-neutral-200/65 dark:hover:bg-neutral-600',
+          'shadow-none border-neutral-200 active:border-neutral-300 dark:border-neutral-600 hover:bg-neutral-200/65 dark:hover:bg-neutral-600 active:bg-neutral-200 dark:active:bg-neutral-700',
+          className
+        )}
+        {...rest}
+      >
+        {children}
+      </BaseButton>
+    );
+  }
+  if (variant === 'bind') {
+    return (
+      <BaseButton
+        ref={ref}
+        variant="default"
+        className={cn(
+          'h-[30px] w-[71px] shrink-0 text-xs font-medium dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100',
           className
         )}
         {...rest}

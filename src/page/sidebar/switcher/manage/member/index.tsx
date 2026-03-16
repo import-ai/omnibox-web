@@ -2,9 +2,9 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import PermissionAction from '@/components/permission-action';
-import { Button } from '@/components/ui/button';
 import UserCard from '@/components/user-card';
 import { Member, Role } from '@/interface';
 import { http } from '@/lib/request';
@@ -63,21 +63,19 @@ export default function MemberMain(props: MemberProps) {
           className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground bg-transparent dark:bg-transparent"
         />
         <Invite onFinish={refetch}>
-          <Button size="sm" className="h-[30px] w-[71px] text-sm font-semibold">
-            {t('manage.add')}
-          </Button>
+          <Button variant="bind">{t('manage.add')}</Button>
         </Invite>
       </div>
       <div className="overflow-auto max-w-[83vw] sm:max-w-full">
         <div className="min-w-[320px]">
           <div className="flex w-full border-b border-border sticky top-0 bg-background z-10">
-            <div className="flex h-8 lg:h-10 w-[120px] lg:w-[210px] items-center px-2 text-sm font-medium text-foreground whitespace-nowrap">
+            <div className="flex h-8 lg:h-10 w-[120px] lg:w-[210px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
               {t('manage.user')}
             </div>
-            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[124px] items-center px-2 text-sm font-medium text-foreground whitespace-nowrap">
+            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[124px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
               {t('manage.permission')}
             </div>
-            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[127px] items-center px-2 text-sm font-medium text-foreground whitespace-nowrap">
+            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[127px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
               {t('manage.role')}
             </div>
           </div>

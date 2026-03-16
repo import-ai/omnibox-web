@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/button';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 
@@ -187,10 +187,9 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
 
   return (
     <Button
-      variant="default"
+      variant="bind"
       onClick={loginWithApple}
       disabled={!sdkLoaded || loading}
-      className="h-[30px] w-[71px] shrink-0 text-sm font-semibold hover:opacity-90"
     >
       {t('setting.bind_btn')}
     </Button>
