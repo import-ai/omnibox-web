@@ -120,7 +120,7 @@ export default function InviteForm(props: IProps) {
           name="role"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Role</FormLabel>
+              <FormLabel>{t('manage.role')}</FormLabel>
               <FormControl>
                 <Select
                   defaultValue={field.value}

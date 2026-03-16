@@ -505,7 +505,7 @@ export function APIKeyForm() {
               <Button
                 onClick={handleUpdateAPIKey}
                 disabled={updating}
-                className="bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100"
+                className="dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100"
               >
                 {updating ? t('updating') : t('update')}
               </Button>
