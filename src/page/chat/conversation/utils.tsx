@@ -1,5 +1,3 @@
-import { toast } from 'sonner';
-
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
 import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
@@ -10,7 +8,10 @@ import type {
   PrivateSearch,
   PrivateSearchResource,
 } from '@/page/chat/conversation/types';
-import { ChatResponse } from '@/page/chat/types/chat-response';
+import {
+  ChatErrorResponse,
+  ChatResponse,
+} from '@/page/chat/types/chat-response';
 import { MessageDetail } from '@/page/chat/types/conversation';
 
 function getPrivateSearchResources(
@@ -179,9 +180,7 @@ export function ask(
       messageOperator.done();
     } else if (chatResponse.response_type === 'done') {
     } else if (chatResponse.response_type === 'error') {
-      toast('Chat Error', {
-        description: chatResponse.error,
-      });
+      messageOperator.error(chatResponse as ChatErrorResponse);
       console.error(chatResponse);
     } else {
       console.error({ message: 'Unknown response type', chatResponse });

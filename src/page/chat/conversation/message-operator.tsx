@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction } from 'react';
 import {
   ChatBOSResponse,
   ChatDeltaResponse,
+  ChatErrorResponse,
   MessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/types/chat-response';
@@ -19,6 +20,7 @@ export interface MessageOperator {
   update: (delta: ChatDeltaResponse, id?: string) => void;
   add: (chatResponse: ChatBOSResponse) => string;
   done: (id?: string) => void;
+  error: (errorResponse: ChatErrorResponse, id?: string) => void;
   activate: (id: string) => void;
   getSiblings: (id: string) => string[];
   getParent: (id: string) => string;
@@ -152,6 +154,27 @@ export function createMessageOperator(
         const message = prev.mapping[id];
         if (message) {
           message.status = MessageStatus.SUCCESS;
+          return {
+            ...prev,
+            mapping: { ...prev.mapping, [id]: message },
+          };
+        }
+        return prev;
+      });
+    },
+
+    error: (errorResponse: ChatErrorResponse, id?: string) => {
+      setConversation(prev => {
+        if (!id) {
+          id = prev.current_node!;
+        }
+        const message = prev.mapping[id];
+        if (message) {
+          message.status = MessageStatus.FAILED;
+          message.attrs = {
+            ...(message.attrs || {}),
+            error_message: errorResponse.message,
+          };
           return {
             ...prev,
             mapping: { ...prev.mapping, [id]: message },
