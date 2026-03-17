@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Spinner } from '@/components/ui/spinner';
 import { RESOURCE_TASKS_INTERVAL } from '@/const.ts';
+import useApp from '@/hooks/use-app';
 import { Resource, Task } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -33,6 +34,7 @@ export default function ResourceTasks({
   onResource,
 }: ResourceTasksProps) {
   const { t } = useTranslation();
+  const app = useApp();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,6 +102,8 @@ export default function ResourceTasks({
             );
             if (resourceResponse) {
               onResource(resourceResponse);
+              // Fire event to update sidebar
+              app.fire('update_resource', resourceResponse);
             }
           } catch (err) {
             console.error('Failed to refresh resource:', err);
@@ -111,7 +115,7 @@ export default function ResourceTasks({
     }, RESOURCE_TASKS_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [tasks, resource.id, namespaceId, onResource]);
+  }, [tasks, resource.id, namespaceId, onResource, app]);
 
   if (loading) {
     return (

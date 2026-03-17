@@ -91,7 +91,7 @@ const ActionButton = React.forwardRef<
   ref
 ) {
   const className =
-    'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] dark:border-neutral-700 border-neutral-200 text-sm font-semibold';
+    'w-[71px] h-[30px] rounded-[5px] dark:border-neutral-700  border-neutral-200 active:border-neutral-300 text-xs font-medium';
   return (
     <Button
       ref={ref}
@@ -205,12 +205,12 @@ function BindingRow({
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel className="border-line">
+                <AlertDialogCancel className="cancel-btn-outline">
                   {t('cancel')}
                 </AlertDialogCancel>
                 <AlertDialogAction
                   disabled={unbinding}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
                   onClick={onUnbind}
                 >
                   {unbinding && <Spinner className="mr-2" />}
@@ -220,11 +220,7 @@ function BindingRow({
             </AlertDialogContent>
           </AlertDialog>
         ) : (
-          onBind || (
-            <ActionButton variant="outline">
-              {t('setting.bind_btn')}
-            </ActionButton>
-          )
+          onBind || <ActionButton>{t('setting.bind_btn')}</ActionButton>
         )}
       </div>
     </div>
@@ -438,10 +434,7 @@ export default function ProfileForm() {
               {t('setting.change')}
             </ActionButton>
           ) : (
-            <ActionButton
-              variant="default"
-              onClick={() => setPhoneDialogOpen(true)}
-            >
+            <ActionButton onClick={() => setPhoneDialogOpen(true)}>
               {t('setting.bind_btn')}
             </ActionButton>
           )}
@@ -542,7 +535,6 @@ export default function ProfileForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="dark:border-neutral-700 border-neutral-200"
                   onClick={() => setUsernameDialogOpen(false)}
                 >
                   {t('cancel')}
@@ -651,7 +643,6 @@ export default function ProfileForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="dark:border-neutral-700 border-neutral-200"
                   onClick={() => {
                     setPasswordDialogOpen(false);
                     passwordForm.reset();

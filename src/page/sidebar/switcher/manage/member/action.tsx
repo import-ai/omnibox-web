@@ -175,7 +175,10 @@ export default function Action(props: ActionProps) {
       <DropdownMenu>
         <DropdownMenuTrigger
           disabled={isDisabled}
-          className={cn(className, { 'opacity-40': isDisabled })}
+          className={cn(
+            className,
+            isDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'
+          )}
         >
           <div className="flex items-center text-gray-600 dark:text-white">
             <span>{allRoles.find(item => item.value === value)?.label}</span>
@@ -260,7 +263,10 @@ export default function Action(props: ActionProps) {
             <AlertDialogTitle>{t('manage.sure_to_remove')}</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleRemoveCancel}>
+            <AlertDialogCancel
+              className="cancel-btn-outline"
+              onClick={handleRemoveCancel}
+            >
               {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleRemoveOk}>

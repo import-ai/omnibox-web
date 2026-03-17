@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils.ts';
 interface ButtonLoadingProps extends Omit<ButtonProps, 'variant'> {
   loading?: boolean;
   children: React.ReactNode;
-  variant?: ButtonProps['variant'] | 'outline-border';
+  variant?: ButtonProps['variant'];
 }
 
 const CustomButton = React.forwardRef<
@@ -21,7 +21,7 @@ const CustomButton = React.forwardRef<
         ref={ref}
         variant="outline"
         className={cn(
-          'bg-transparent text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground',
+          'bg-transparent text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground active:bg-[#D95E52] text-xs font-medium',
           className
         )}
         {...rest}
@@ -35,19 +35,23 @@ const CustomButton = React.forwardRef<
       <BaseButton
         ref={ref}
         variant={variant}
-        className={cn('shadow-none bg-transparent', className)}
+        className={cn(
+          'shadow-none bg-white  border-neutral-200 hover:bg-neutral-100 active:border-neutral-300 dark:bg-transparent dark:!border-neutral-700 dark:hover:bg-neutral-600 active:bg-neutral-200 dark:active:bg-neutral-700',
+          className
+        )}
         {...rest}
       >
         {children}
       </BaseButton>
     );
   }
-  if (variant === 'outline-border') {
+  if (variant === 'default') {
     return (
       <BaseButton
-        variant="outline"
+        ref={ref}
+        variant="default"
         className={cn(
-          'shadow-none bg-transparent hover:bg-background dark:border-neutral-700',
+          'shadow-none dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100',
           className
         )}
         {...rest}

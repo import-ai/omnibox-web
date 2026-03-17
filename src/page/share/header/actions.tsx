@@ -1,6 +1,5 @@
 import copy from 'copy-to-clipboard';
 import {
-  ChevronRight,
   Download,
   Files,
   Link,
@@ -13,19 +12,15 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 
 interface ShareActionsProps {
@@ -47,7 +42,6 @@ export default function ShareActions({
 }: ShareActionsProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [downloadAsOpen, setDownloadAsOpen] = useState(false);
 
   const handleAction = (id: string) => {
     if (id === 'copy_link') {
@@ -105,110 +99,67 @@ export default function ShareActions({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
           className="h-7 w-7 data-[state=open]:bg-accent"
         >
-          <MoreHorizontal />
+          <MoreHorizontal className="size-4" />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="w-56 overflow-hidden rounded-lg p-0"
-      >
-        <Sidebar collapsible="none" className="bg-transparent">
-          <SidebarContent className="gap-0">
-            <SidebarGroup className="border-b">
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => handleAction('copy_link')}
-                    >
-                      <Link />
-                      <span>{t('actions.copy_link')}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  {resource.content && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => handleAction('copy_content')}
-                      >
-                        <Files />
-                        <span>{t('actions.copy_content')}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
-                  {/* Download as */}
-                  <SidebarMenuItem>
-                    <Popover
-                      open={downloadAsOpen}
-                      onOpenChange={setDownloadAsOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <SidebarMenuButton
-                          onMouseEnter={() => setDownloadAsOpen(true)}
-                          onMouseLeave={() => setDownloadAsOpen(false)}
-                        >
-                          <Download />
-                          <span>{t('actions.download_as')}</span>
-                          <ChevronRight className="ml-auto" />
-                        </SidebarMenuButton>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        side="right"
-                        align="start"
-                        className="w-48 p-1"
-                        onMouseEnter={() => setDownloadAsOpen(true)}
-                        onMouseLeave={() => setDownloadAsOpen(false)}
-                      >
-                        <div className="flex flex-col gap-1">
-                          <button
-                            className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-left"
-                            onClick={() => {
-                              handleAction('download_as_markdown');
-                              setDownloadAsOpen(false);
-                            }}
-                          >
-                            {t('actions.download_as_tooltip', {
-                              format: 'Markdown',
-                            })}
-                          </button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            {onWide && (
-              <SidebarGroup className="border-b border-t">
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        asChild
-                        onClick={() => handleAction('wide')}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex gap-2 items-center">
-                            <MoveHorizontal className="size-4" />
-                            <span>{t('actions.wide')}</span>
-                          </div>
-                          <Switch checked={wide} />
-                        </div>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )}
-          </SidebarContent>
-        </Sidebar>
-      </PopoverContent>
-    </Popover>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem
+          className="cursor-pointer gap-2"
+          onClick={() => handleAction('copy_link')}
+        >
+          <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <span>{t('actions.copy_link')}</span>
+        </DropdownMenuItem>
+        {resource.content && (
+          <DropdownMenuItem
+            className="cursor-pointer gap-2"
+            onClick={() => handleAction('copy_content')}
+          >
+            <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <span>{t('actions.copy_content')}</span>
+          </DropdownMenuItem>
+        )}
+        {/* Download as */}
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger className="cursor-pointer gap-2">
+            <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <span>{t('actions.download_as')}</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent className="w-48">
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => handleAction('download_as_markdown')}
+            >
+              {t('actions.download_as_tooltip', { format: 'Markdown' })}
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+
+        {onWide && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={() => handleAction('wide')}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <MoveHorizontal className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                  <span>{t('actions.wide')}</span>
+                </div>
+                <Switch checked={wide} />
+              </div>
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

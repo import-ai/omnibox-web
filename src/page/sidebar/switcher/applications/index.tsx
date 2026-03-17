@@ -71,7 +71,7 @@ interface ApplicationsFormProps {
   };
 }
 
-const BUTTON_CLASS: string = 'text-sm font-semibold w-20';
+const BUTTON_CLASS: string = 'text-xs font-medium w-[71px]';
 
 export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const { t, i18n } = useTranslation();
@@ -307,10 +307,12 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                        <AlertDialogCancel asChild>
+                          <Button variant="outline">{t('cancel')}</Button>
+                        </AlertDialogCancel>
                         <AlertDialogAction
                           disabled={unbindingLoading}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
                           onClick={() => handleUnbind(application)}
                         >
                           {unbindingLoading && <Spinner className="mr-2" />}
@@ -326,8 +328,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                       disabled={
                         bindingLoading && currentAppId === application.app_id
                       }
-                      size="sm"
-                      className={BUTTON_CLASS}
+                      variant="default"
+                      className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
                     >
                       {bindingLoading &&
                         currentAppId === application.app_id && (
@@ -357,12 +359,12 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel className="border-line">
-                            {t('cancel')}
+                          <AlertDialogCancel asChild>
+                            <Button variant="outline">{t('cancel')}</Button>
                           </AlertDialogCancel>
                           <AlertDialogAction
                             disabled={cancelingLoading}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
                             onClick={() => handleCancelBind(application)}
                           >
                             {cancelingLoading && <Spinner className="mr-2" />}
@@ -378,8 +380,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                     disabled={
                       bindingLoading && currentAppId === application.app_id
                     }
-                    size="sm"
-                    className={BUTTON_CLASS}
+                    variant="default"
+                    className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
                   >
                     {bindingLoading && currentAppId === application.app_id && (
                       <Spinner className="mr-2" />

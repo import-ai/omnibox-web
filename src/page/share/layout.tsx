@@ -47,6 +47,7 @@ export function ShareLayout(props: IProps) {
         username={shareInfo.username}
         showChat={!!showChat}
         isChatActive={isChatActive}
+        currentResourceId={currentResourceId}
         isResourceActive={resourceId =>
           !isChatActive && resourceId === currentResourceId
         }

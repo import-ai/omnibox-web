@@ -2,7 +2,7 @@ import isMobile from 'ismobilejs';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 
 interface IProps {
@@ -20,7 +20,7 @@ function ActionButton({
     <Button
       variant="default"
       onClick={onClick}
-      className="h-[30px] w-[71px] shrink-0 text-sm font-semibold hover:opacity-90"
+      className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
     >
       {children}
     </Button>

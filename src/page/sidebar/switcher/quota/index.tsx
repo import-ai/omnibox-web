@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/button';
 import useQuota from '@/hooks/use-quota';
 
 import { Expiration } from './expiration';
@@ -226,7 +226,11 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button size="sm" variant="default" className="h-[30px] w-[71px]">
+            <Button
+              size="sm"
+              variant="default"
+              className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+            >
               {t('quota.expand_button')}
             </Button>
           </a>

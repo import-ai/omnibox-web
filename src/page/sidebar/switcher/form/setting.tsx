@@ -191,7 +191,8 @@ export default function SettingForm({
                 type="submit"
                 disabled={submiting}
                 loading={submiting}
-                className="h-[30px] w-[71px]"
+                variant="default"
+                className="shrink-0 text-xs font-medium w-[71px] h-[30px]"
               >
                 {t('namespace.submit')}
               </Button>
@@ -243,8 +244,7 @@ export default function SettingForm({
                 </p>
               </div>
               <Button
-                variant="outline"
-                className="shrink-0 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                variant="destructive"
                 onClick={() => setDeleteDialogOpen(true)}
               >
                 {t('namespace.delete.button')}
@@ -265,12 +265,15 @@ export default function SettingForm({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={leaving}>
+            <AlertDialogCancel
+              className="cancel-btn-outline"
+              disabled={leaving}
+            >
               {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={leaving}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-[#D95E52]"
               onClick={e => {
                 e.preventDefault();
                 handleLeave();

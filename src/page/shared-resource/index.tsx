@@ -22,8 +22,9 @@ export default function SharedResourcePage() {
     return (
       <div className="flex justify-center h-full w-full p-4 overflow-auto">
         <div
-          className={cn('flex flex-col w-full', {
+          className={cn('flex flex-col w-full max-w-full', {
             'max-w-3xl': !wide,
+            'max-w-7xl': wide,
           })}
         >
           <h1 className="text-4xl font-bold mb-4 break-words">

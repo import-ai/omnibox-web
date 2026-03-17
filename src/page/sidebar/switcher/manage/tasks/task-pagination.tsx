@@ -51,7 +51,7 @@ export function TaskPagination({
   };
 
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-2 mt-1">
       <Button
         variant="outline"
         size="sm"

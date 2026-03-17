@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +16,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -264,7 +264,10 @@ export function APIKeyForm() {
 
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="text-sm font-semibold">
+            <Button
+              variant="default"
+              className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+            >
               {t('create')}
             </Button>
           </DialogTrigger>
@@ -374,12 +377,17 @@ export function APIKeyForm() {
 
             <DialogFooter>
               <Button
+                type="button"
                 variant="outline"
                 onClick={() => setCreateDialogOpen(false)}
               >
                 {t('cancel')}
               </Button>
-              <Button onClick={handleCreateAPIKey} disabled={creating}>
+              <Button
+                onClick={handleCreateAPIKey}
+                disabled={creating}
+                className="bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100"
+              >
                 {creating ? t('creating') : t('create')}
               </Button>
             </DialogFooter>
@@ -493,12 +501,17 @@ export function APIKeyForm() {
 
             <DialogFooter>
               <Button
+                type="button"
                 variant="outline"
                 onClick={() => setUpdateDialogOpen(false)}
               >
                 {t('cancel')}
               </Button>
-              <Button onClick={handleUpdateAPIKey} disabled={updating}>
+              <Button
+                onClick={handleUpdateAPIKey}
+                disabled={updating}
+                className="dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100"
+              >
                 {updating ? t('updating') : t('update')}
               </Button>
             </DialogFooter>
@@ -601,7 +614,9 @@ export function APIKeyForm() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                        <AlertDialogCancel asChild>
+                          <Button variant="outline">{t('cancel')}</Button>
+                        </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => handleDeleteAPIKey(key)}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

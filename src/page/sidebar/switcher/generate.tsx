@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/button';
 import {
   Dialog,
   DialogContent,
@@ -57,8 +57,8 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
               }}
             >
               <Button
-                size="sm"
-                className="text-white bg-blue-500 hover:bg-blue-600"
+                variant="default"
+                className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
               >
                 {t('namespace.quota_expand_button')}
                 <SquareArrowOutUpRight />
