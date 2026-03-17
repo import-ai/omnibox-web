@@ -5,6 +5,7 @@ import {
   Globe,
   MessageCircleX,
   SearchX,
+  Split,
   Star,
   Tag,
   TvMinimalPlay,
@@ -68,6 +69,10 @@ export const taskTypeConfig: Record<
   collect_url: {
     icon: Globe,
     labelKey: 'tasks.functions.collect_url',
+  },
+  web_analysis: {
+    icon: Split,
+    labelKey: 'tasks.functions.web_analysis',
   },
 };
 

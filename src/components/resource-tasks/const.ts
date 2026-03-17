@@ -1,8 +1,9 @@
-import { TaskType } from '@/page/sidebar/switcher/manage/tasks/task-type-badge.tsx';
+import { TaskType } from '@/interface.ts';
 
 export const CONTENT_MODIFYING_FUNCTIONS: TaskType[] = [
   'collect',
   'collect_url',
+  'web_analysis',
   'upsert_index',
   'delete_index',
   'file_reader',
