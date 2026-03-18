@@ -44,6 +44,7 @@ import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 
+import { downloadHtml } from './action';
 import MoveTo from './move';
 import ShareAction from './share';
 
@@ -266,6 +267,10 @@ export default function Actions(props: IActionProps) {
 
       return;
     }
+    if (id === 'download_as_html') {
+      downloadHtml(resource, setOpen, t, namespaceId);
+      return;
+    }
   };
   const handleMoveFinished = (resourceId: string, targetId: string) => {
     setMoveTo(false);
@@ -406,6 +411,12 @@ export default function Actions(props: IActionProps) {
                 onClick={() => handleAction('download_as_markdown')}
               >
                 {t('actions.download_as_tooltip', { format: 'Markdown' })}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => handleAction('download_as_html')}
+              >
+                {t('actions.download_as_tooltip', { format: 'Html' })}
               </DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuSub>

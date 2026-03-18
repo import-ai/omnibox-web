@@ -53,6 +53,7 @@
     "libphonenumber-js": "^1.12.34",
     "lodash-es": "^4.17.22",
     "lucide-react": "^0.468.0",
+    "marked": "^17.0.4",
     "next-themes": "^0.4.6",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
