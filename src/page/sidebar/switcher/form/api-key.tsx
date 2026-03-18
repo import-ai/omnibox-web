@@ -386,7 +386,7 @@ export function APIKeyForm() {
               <Button
                 onClick={handleCreateAPIKey}
                 disabled={creating}
-                className="bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100"
+                variant="default"
               >
                 {creating ? t('creating') : t('create')}
               </Button>
@@ -510,7 +510,7 @@ export function APIKeyForm() {
               <Button
                 onClick={handleUpdateAPIKey}
                 disabled={updating}
-                className="dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100"
+                variant="default"
               >
                 {updating ? t('updating') : t('update')}
               </Button>
