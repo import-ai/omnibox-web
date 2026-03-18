@@ -300,6 +300,7 @@ export interface TaskAttrs {
 export type TaskType =
   | 'collect'
   | 'collect_url'
+  | 'web_analysis'
   | 'upsert_index'
   | 'delete_index'
   | 'file_reader'

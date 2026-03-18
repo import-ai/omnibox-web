@@ -701,7 +701,8 @@
       "extract_tags": "Gen Tags",
       "generate_title": "Gen Title",
       "generate_video_note": "Video Parsing",
-      "collect_url": "Visit URL"
+      "collect_url": "Visit URL",
+      "web_analysis": "Web Analysis"
     }
   },
   "common": {
