@@ -15,6 +15,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { http } from '@/lib/request';
 
+const MAX_TITLE_LENGTH = 128;
+
 const FormSchema = z.object({
   title: z.string(),
 });
@@ -74,7 +76,14 @@ export default function EditForm(props: IProps) {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input {...field} disabled={loading} />
+                <Input
+                  {...field}
+                  disabled={loading}
+                  onChange={e => {
+                    const truncated = e.target.value.slice(0, MAX_TITLE_LENGTH);
+                    field.onChange(truncated);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

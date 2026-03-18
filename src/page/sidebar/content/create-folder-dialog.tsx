@@ -12,6 +12,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+const MAX_NAME_LENGTH = 128;
+
 interface CreateFolderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -60,7 +62,9 @@ export function CreateFolderDialog({
             <Input
               id="folder-name"
               value={folderName}
-              onChange={e => setFolderName(e.target.value)}
+              onChange={e =>
+                setFolderName(e.target.value.slice(0, MAX_NAME_LENGTH))
+              }
               onKeyDown={handleKeyDown}
               placeholder={t('folder.create_dialog.placeholder')}
               autoFocus

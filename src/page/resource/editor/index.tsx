@@ -67,8 +67,10 @@ export default function Editor(props: IEditorProps) {
   const [vd, setVd] = useState<Vditor>();
   const [title, onTitle] = useState('');
 
+  const MAX_TITLE_LENGTH = 128;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value;
+    const newTitle = e.target.value.slice(0, MAX_TITLE_LENGTH);
     onTitle(newTitle);
     updateCacheTitle(resource.id, newTitle);
   };

@@ -310,9 +310,9 @@ export default function useContext() {
       namespaceId: namespaceId,
       resourceType: resourceType,
     };
-    // If an initial name is provided, include it in the creation request
+    // If an initial name is provided, include it in the creation request (max 128 chars)
     if (initialName && initialName.trim()) {
-      payload.name = initialName.trim();
+      payload.name = initialName.trim().slice(0, 128);
     }
     http
       .post(`/namespaces/${namespaceId}/resources`, payload)
@@ -362,9 +362,10 @@ export default function useContext() {
   };
 
   const handleRename = async (id: string, newName: string) => {
+    const truncatedName = newName.slice(0, 128);
     const response = await http.patch(
       `/namespaces/${namespaceId}/resources/${id}`,
-      { name: newName, namespaceId }
+      { name: truncatedName, namespaceId }
     );
     app.fire('update_resource', response);
   };
