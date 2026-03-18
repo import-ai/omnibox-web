@@ -228,12 +228,7 @@ export default function Tree(props: ITreeProps) {
     if (trimmedName && trimmedName !== data.name) {
       try {
         await onRename(data.id, trimmedName);
-      } catch (error: any) {
-        const errorMessage =
-          error?.message ||
-          error?.response?.data?.message ||
-          t('rename.failed');
-        toast.error(errorMessage, { position: 'bottom-right' });
+      } catch {
         setEditName(data.name || '');
       }
     } else {

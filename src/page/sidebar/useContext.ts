@@ -319,11 +319,6 @@ export default function useContext() {
       .then((response: Resource) => {
         activeRoute(spaceType, parentId, response, resourceType !== 'folder');
       })
-      .catch((err: any) => {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || t('create.failed');
-        toast.error(errorMessage, { position: 'bottom-right' });
-      })
       .finally(() => {
         onEditingKey('');
       });
@@ -369,8 +364,7 @@ export default function useContext() {
   const handleRename = async (id: string, newName: string) => {
     const response = await http.patch(
       `/namespaces/${namespaceId}/resources/${id}`,
-      { name: newName, namespaceId },
-      { mute: true }
+      { name: newName, namespaceId }
     );
     app.fire('update_resource', response);
   };
