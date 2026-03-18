@@ -37,7 +37,6 @@ import ResourceIcon from './resourceIcon.tsx';
 const FOCUS_DELAY = 50;
 const BLUR_ENABLE_DELAY = 200;
 const CLICK_DEBOUNCE_DELAY = 200;
-const MAX_NAME_LENGTH = 128;
 
 // Helper function to validate file extensions
 const isValidFileType = (fileName: string): boolean => {
@@ -229,7 +228,12 @@ export default function Tree(props: ITreeProps) {
     if (trimmedName && trimmedName !== data.name) {
       try {
         await onRename(data.id, trimmedName);
-      } catch {
+      } catch (error: any) {
+        const errorMessage =
+          error?.message ||
+          error?.response?.data?.message ||
+          t('rename.failed');
+        toast.error(errorMessage, { position: 'bottom-right' });
         setEditName(data.name || '');
       }
     } else {
@@ -361,9 +365,7 @@ export default function Tree(props: ITreeProps) {
                       ref={inputRef}
                       type="text"
                       value={editName}
-                      onChange={e =>
-                        setEditName(e.target.value.slice(0, MAX_NAME_LENGTH))
-                      }
+                      onChange={e => setEditName(e.target.value)}
                       onBlur={handleBlur}
                       onKeyDown={handleKeyDown}
                       onClick={e => e.stopPropagation()}

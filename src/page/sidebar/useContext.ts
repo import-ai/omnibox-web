@@ -310,14 +310,19 @@ export default function useContext() {
       namespaceId: namespaceId,
       resourceType: resourceType,
     };
-    // If an initial name is provided, include it in the creation request (max 128 chars)
+    // If an initial name is provided, include it in the creation request
     if (initialName && initialName.trim()) {
-      payload.name = initialName.trim().slice(0, 128);
+      payload.name = initialName.trim();
     }
     http
       .post(`/namespaces/${namespaceId}/resources`, payload)
       .then((response: Resource) => {
         activeRoute(spaceType, parentId, response, resourceType !== 'folder');
+      })
+      .catch((err: any) => {
+        const errorMessage =
+          err?.response?.data?.message || err?.message || t('create.failed');
+        toast.error(errorMessage, { position: 'bottom-right' });
       })
       .finally(() => {
         onEditingKey('');
@@ -362,10 +367,9 @@ export default function useContext() {
   };
 
   const handleRename = async (id: string, newName: string) => {
-    const truncatedName = newName.slice(0, 128);
     const response = await http.patch(
       `/namespaces/${namespaceId}/resources/${id}`,
-      { name: truncatedName, namespaceId }
+      { name: newName, namespaceId }
     );
     app.fire('update_resource', response);
   };
