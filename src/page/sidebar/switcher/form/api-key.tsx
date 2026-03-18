@@ -386,7 +386,7 @@ export function APIKeyForm() {
               <Button
                 onClick={handleCreateAPIKey}
                 disabled={creating}
-                className="bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100"
+                className="dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100"
               >
                 {creating ? t('creating') : t('create')}
               </Button>
