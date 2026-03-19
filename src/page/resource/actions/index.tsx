@@ -2,13 +2,12 @@ import copy from 'copy-to-clipboard';
 import JSZip from 'jszip';
 import {
   ArrowUp,
-  ChevronRight,
   Copy,
-  CornerUpRight,
   Download,
   Files,
   Link,
   MoreHorizontal,
+  Move,
   MoveHorizontal,
   Pencil,
   PencilOff,
@@ -21,27 +20,23 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { Input } from '@/components/input';
 import PermissionWrapper from '@/components/permission-action/wrapper';
 import { Button } from '@/components/ui/button';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import { useDeleteResource } from '@/hooks/use-delete-resource';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { IUseResource } from '@/hooks/user-resource';
 import { downloadFile } from '@/lib/download-file';
@@ -63,12 +58,11 @@ export default function Actions(props: IActionProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { deleteResource } = useDeleteResource();
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);
   const [progress, setProgress] = useState('');
-  const [downloadAsOpen, setDownloadAsOpen] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEdit = () => {
@@ -147,7 +141,23 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'move_to_trash') {
-      setShowDeleteDialog(true);
+      if (!resource) {
+        setOpen(false);
+        return;
+      }
+      onLoading('move_to_trash');
+      const isCurrentResource = location.pathname.includes(
+        `/${namespaceId}/${resource.id}`
+      );
+      deleteResource({
+        id: resource.id,
+        parentId: resource.parent_id,
+        namespaceId,
+        isCurrentResource,
+        onSuccess: () => setOpen(false),
+      }).finally(() => {
+        onLoading('');
+      });
       return;
     }
     if (id === 'import') {
@@ -263,17 +273,6 @@ export default function Actions(props: IActionProps) {
     app.fire('move_resource', resourceId, targetId);
   };
 
-  const handleDeleteSuccess = () => {
-    if (!resource) return;
-    setOpen(false);
-    app.fire('delete_resource', resource.id, resource.parent_id);
-  };
-
-  const handleRestoreSuccess = (response: any) => {
-    if (!resource) return;
-    app.fire('generate_resource', response.parent_id, response);
-  };
-
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!resource || !e.target.files) {
       return;
@@ -351,205 +350,145 @@ export default function Actions(props: IActionProps) {
           )}
         </PermissionWrapper>
       )}
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
             className="h-7 w-7 data-[state=open]:bg-accent"
           >
-            <MoreHorizontal />
+            <MoreHorizontal className="size-4" />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="end"
-          className="w-56 overflow-hidden rounded-lg p-0"
-        >
-          <Sidebar collapsible="none" className="bg-transparent">
-            <SidebarContent className="gap-0">
-              <SidebarGroup className="border-b">
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => handleAction('copy_link')}
-                      >
-                        <Link />
-                        <span>{t('actions.copy_link')}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => handleAction('copy_content')}
-                      >
-                        <Files />
-                        <span>{t('actions.copy_content')}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem
+            className="cursor-pointer gap-2"
+            onClick={() => handleAction('copy_link')}
+          >
+            <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <span>{t('actions.copy_link')}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="cursor-pointer gap-2"
+            onClick={() => handleAction('copy_content')}
+          >
+            <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <span>{t('actions.copy_content')}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="cursor-pointer gap-2"
+            onClick={() => handleAction('duplicate')}
+          >
+            {loading === 'duplicate' ? (
+              <Spinner />
+            ) : (
+              <Copy className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            )}
+            <span>{t('actions.duplicate')}</span>
+          </DropdownMenuItem>
+          {/* Download Submenu */}
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger className="cursor-pointer gap-2">
+              <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <span>{t('actions.download_as')}</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="w-48">
+              {resource && resource.resource_type === 'file' && (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => handleAction('download')}
+                >
+                  {t('actions.download')}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => handleAction('download_as_markdown')}
+              >
+                {t('actions.download_as_tooltip', { format: 'Markdown' })}
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuItem
+            className="cursor-pointer gap-2"
+            onClick={() => handleAction('move_to')}
+          >
+            {loading === 'move_to' ? (
+              <Spinner />
+            ) : (
+              <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            )}
+            <span>{t('actions.move_to')}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
+            onClick={() => handleAction('move_to_trash')}
+          >
+            {loading === 'move_to_trash' ? (
+              <Spinner />
+            ) : (
+              <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
+            )}
+            <span>{t('actions.move_to_trash')}</span>
+          </DropdownMenuItem>
 
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => handleAction('duplicate')}
-                      >
-                        {loading === 'duplicate' ? <Spinner /> : <Copy />}
-                        <span>{t('actions.duplicate')}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    {/* Download as */}
-                    <SidebarMenuItem>
-                      <Popover
-                        open={downloadAsOpen}
-                        onOpenChange={setDownloadAsOpen}
-                      >
-                        <PopoverTrigger asChild>
-                          <SidebarMenuButton
-                            onMouseEnter={() => setDownloadAsOpen(true)}
-                            onMouseLeave={() => setDownloadAsOpen(false)}
-                          >
-                            <Download />
-                            <span>{t('actions.download_as')}</span>
-                            <ChevronRight className="ml-auto" />
-                          </SidebarMenuButton>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          side="right"
-                          align="start"
-                          className="w-48 p-1"
-                          onMouseEnter={() => setDownloadAsOpen(true)}
-                          onMouseLeave={() => setDownloadAsOpen(false)}
-                        >
-                          <div className="flex flex-col gap-1">
-                            <button
-                              className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors text-left"
-                              onClick={() => {
-                                handleAction('download_as_markdown');
-                                setDownloadAsOpen(false);
-                              }}
-                            >
-                              {t('actions.download_as_tooltip', {
-                                format: 'Markdown',
-                              })}
-                            </button>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </SidebarMenuItem>
+          <DropdownMenuSeparator />
 
-                    {resource && resource.resource_type === 'file' && (
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          onClick={() => handleAction('download')}
-                        >
-                          {loading === 'download' ? <Spinner /> : <Download />}
-                          <span>{t('actions.download')}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
+          {!isMobile && (
+            <>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2"
+                onClick={() => handleAction('wide')}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    {loading === 'wide' ? (
+                      <Spinner />
+                    ) : (
+                      <MoveHorizontal className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
                     )}
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => handleAction('move_to')}
-                      >
-                        {loading === 'move_to' ? (
-                          <Spinner />
-                        ) : (
-                          <CornerUpRight />
-                        )}
-                        <span>{t('actions.move_to')}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => handleAction('move_to_trash')}
-                      >
-                        {loading === 'move_to_trash' ? <Spinner /> : <Trash2 />}
-                        <span>{t('actions.move_to_trash')}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-              {!isMobile && (
-                <SidebarGroup className="border-b">
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          asChild
-                          onClick={() => handleAction('wide')}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex gap-2 items-center">
-                              {loading === 'wide' ? (
-                                <Spinner />
-                              ) : (
-                                <MoveHorizontal className="size-4" />
-                              )}
-                              <span>{t('actions.wide')}</span>
-                            </div>
-                            <Switch checked={wide} />
-                          </div>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              )}
-              <SidebarGroup className="border-b">
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      {loading === 'import' ? (
-                        <SidebarMenuButton>
-                          <Spinner />
-                          <span>
-                            {t('actions.import')} {progress}
-                          </span>
-                        </SidebarMenuButton>
-                      ) : (
-                        <SidebarMenuButton
-                          onClick={() => handleAction('import')}
-                        >
-                          <ArrowUp />
-                          <span>{t('actions.import')}</span>
-                        </SidebarMenuButton>
-                      )}
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-              <Input
-                multiple
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                onChange={handleUpload}
-                accept={ALLOW_FILE_EXTENSIONS}
-              />
-              {resource && (
-                <MoveTo
-                  open={moveTo}
-                  namespaceId={namespaceId}
-                  onOpenChange={setMoveTo}
-                  resourceId={resource.id}
-                  onFinished={handleMoveFinished}
-                />
-              )}
-            </SidebarContent>
-          </Sidebar>
-        </PopoverContent>
-      </Popover>
+                    <span>{t('actions.wide')}</span>
+                  </div>
+                  <Switch checked={wide} />
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+
+          <DropdownMenuItem
+            className="cursor-pointer gap-2"
+            onClick={() => handleAction('import')}
+          >
+            {loading === 'import' ? (
+              <Spinner />
+            ) : (
+              <ArrowUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            )}
+            <span>
+              {loading === 'import'
+                ? `${t('actions.import')} ${progress}`
+                : t('actions.import')}
+            </span>
+          </DropdownMenuItem>
+
+          <Input
+            multiple
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleUpload}
+            accept={ALLOW_FILE_EXTENSIONS}
+          />
+        </DropdownMenuContent>
+      </DropdownMenu>
       {resource && (
-        <ConfirmDeleteDialog
-          open={showDeleteDialog}
-          targetName={t('resource.name')}
-          itemTitle={resource.name || t('resource.untitled')}
-          deleteUrl={`/namespaces/${namespaceId}/resources/${resource.id}`}
-          restoreUrl={`/namespaces/${namespaceId}/resources/${resource.id}/restore`}
-          successMessage={t('resource.deleted')}
-          successDescription={t('resource.deleted_description')}
-          onOpenChange={setShowDeleteDialog}
-          onSuccess={handleDeleteSuccess}
-          onRestoreSuccess={handleRestoreSuccess}
+        <MoveTo
+          open={moveTo}
+          namespaceId={namespaceId}
+          onOpenChange={setMoveTo}
+          resourceId={resource.id}
+          onFinished={handleMoveFinished}
         />
       )}
     </div>

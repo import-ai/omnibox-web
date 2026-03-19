@@ -1,5 +1,4 @@
-import QRCode from 'qrcode';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logoUrl from '@/assets/logo.svg';
@@ -10,13 +9,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { BIND_CHECK_INTERVAL, WECHAT_BOT_QRCODE_URL } from '@/const';
+import { BIND_CHECK_INTERVAL } from '@/const';
+
+import { getQrCodeUrl } from './get-qr-code-url';
+import { useQrCode } from './use-qr-code';
 
 interface BindDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bindingCode: string;
   applicationId: string;
+  appId: string;
   checkApplicationStatus: (applicationId: string) => Promise<any>;
   onBindingComplete: () => void;
 }
@@ -26,34 +29,21 @@ export function BindDialog({
   onOpenChange,
   bindingCode,
   applicationId,
+  appId,
   checkApplicationStatus,
   onBindingComplete,
 }: BindDialogProps) {
   const { t } = useTranslation();
-  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollingStartTimeRef = useRef<number>(0);
 
   const POLLING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
-  useEffect(() => {
-    if (open && WECHAT_BOT_QRCODE_URL) {
-      QRCode.toDataURL(WECHAT_BOT_QRCODE_URL, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF',
-        },
-      })
-        .then(url => {
-          setQrCodeDataUrl(url);
-        })
-        .catch(err => {
-          console.error('Error generating QR code:', err);
-        });
-    }
-  }, [open]);
+  const qrCodeUrl = getQrCodeUrl(appId);
+  const platformName = t(`applications.app_names.${appId}`, {
+    defaultValue: appId,
+  });
+  const qrCodeDataUrl = useQrCode(qrCodeUrl, open);
 
   const stopPolling = useCallback(() => {
     if (pollingIntervalRef.current) {
@@ -125,13 +115,13 @@ export function BindDialog({
           {/* QR Code Section */}
           <div className="flex flex-col items-center space-y-4">
             <h3 className="text-lg font-medium">
-              {t('applications.bind.step1')}
+              {t('applications.bind.step1', { platform_name: platformName })}
             </h3>
             {qrCodeDataUrl ? (
               <div className="relative">
                 <img
                   src={qrCodeDataUrl}
-                  alt="WeChat Bot QR Code"
+                  alt="Bot QR Code"
                   className="w-48 h-48 border border-border rounded-lg"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -154,7 +144,7 @@ export function BindDialog({
           {/* Code Section */}
           <div className="flex flex-col space-y-4">
             <h3 className="text-lg font-medium">
-              {t('applications.bind.step2')}
+              {t('applications.bind.step2', { platform_name: platformName })}
             </h3>
             <div className="p-4">
               <p className="text-sm text-muted-foreground mb-2">
@@ -165,7 +155,9 @@ export function BindDialog({
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              {t('applications.bind.code_instruction')}
+              {t('applications.bind.code_instruction', {
+                platform_name: platformName,
+              })}
             </p>
           </div>
         </div>

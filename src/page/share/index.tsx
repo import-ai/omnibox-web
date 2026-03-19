@@ -1,10 +1,17 @@
-import axios, { CancelTokenSource } from 'axios';
+import axios, { AxiosError, CancelTokenSource } from 'axios';
 import { t } from 'i18next';
 import Cookies from 'js-cookie';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import DeleteIcon from '@/assets/deleteIcon.png';
 import Loading from '@/components/loading';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+} from '@/components/ui/empty';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { http } from '@/lib/request';
@@ -31,6 +38,8 @@ interface ShareContextValue {
   tools: Array<ToolType>;
   setTools: (tools: Array<ToolType>) => void;
   password: string | null;
+  wide: boolean;
+  onWide: (wide: boolean) => void;
 }
 
 const ShareContext = createContext<ShareContextValue | null>(null);
@@ -61,9 +70,11 @@ export default function SharePage() {
   const [requirePassword, setRequirePassword] = useState<boolean>(false);
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [password, setPassword] = useState<string | null>(
     Cookies.get(SHARE_PASSWORD_COOKIE) ?? null
   );
+  const [wide, setWide] = useState(false);
   const shareId = params.share_id;
   const currentResourceId = params.resource_id || shareInfo?.resource?.id;
   const isChatActive = location.pathname.includes('/chat');
@@ -125,22 +136,30 @@ export default function SharePage() {
   // Get share info
   useEffect(() => {
     setShareInfo(null);
+    setErrorMessage(null);
     const source = axios.CancelToken.source();
     http
       .get(`/shares/${shareId}`, {
         cancelToken: source.token,
+        mute: true,
       })
       .then(data => {
         setShareInfo(data);
       })
-      .catch(err => {
-        if (err && err.status && err.status === 401) {
+      .catch((err: AxiosError) => {
+        if (axios.isCancel(err)) return;
+        const status = err.response?.status;
+        const message = (err.response?.data as { message?: string })?.message;
+        if (status === 401) {
           // Redirect to login page
           const currentUrl = encodeURIComponent(window.location.pathname);
           navigate(`/user/login?redirect=${currentUrl}`);
-        }
-        if (err && err.status && err.status === 403) {
+        } else if (status === 403) {
           setRequirePassword(true);
+        } else if (message) {
+          setErrorMessage(message);
+        } else {
+          setErrorMessage(t('request.unknown_error'));
         }
       });
     return () => source.cancel();
@@ -149,7 +168,7 @@ export default function SharePage() {
   // Get resource info
   useEffect(() => {
     setResource(null);
-    if (!shareInfo) {
+    if (!shareInfo || !currentResourceId) {
       return;
     }
     const source = axios.CancelToken.source();
@@ -171,7 +190,7 @@ export default function SharePage() {
         }
       });
     return () => source.cancel();
-  }, [shareInfo, currentResourceId]);
+  }, [shareInfo, currentResourceId, shareId, navigate]);
 
   if (requirePassword) {
     return (
@@ -187,6 +206,22 @@ export default function SharePage() {
           />
         </div>
       </div>
+    );
+  }
+  if (errorMessage) {
+    return (
+      <Empty className="h-full bg-white dark:bg-background">
+        <EmptyHeader>
+          <EmptyMedia>
+            <img
+              src={DeleteIcon}
+              alt="error"
+              className="size-[clamp(120px,18vw,200px)]"
+            />
+          </EmptyMedia>
+          <EmptyDescription>{errorMessage}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
   if (shareInfo) {
@@ -205,6 +240,8 @@ export default function SharePage() {
           tools,
           setTools,
           password,
+          wide,
+          onWide: setWide,
         }}
       >
         {!showSidebar && <Outlet />}
@@ -216,6 +253,9 @@ export default function SharePage() {
               showChat={showChat}
               currentResourceId={currentResourceId}
               handleAddToContext={handleAddToContext}
+              resource={resource}
+              wide={wide}
+              onWide={setWide}
             />
           </SidebarProvider>
         )}

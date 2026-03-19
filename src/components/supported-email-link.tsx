@@ -16,7 +16,7 @@ export function SupportedEmailLink({ className }: SupportedEmailLinkProps) {
       href={getDocsLink(SUPPORTED_EMAIL_DOCS_LINK, i18n.language)}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn('text-primary hover:underline', className)}
+      className={cn('hover:underline', className)}
     >
       {t('form.supported_email_providers')}
     </a>

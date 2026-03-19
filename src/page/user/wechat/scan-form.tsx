@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Spinner } from '@/components/ui/spinner';
@@ -9,6 +10,8 @@ import { cn } from '@/lib/utils';
 
 export function ScanForm() {
   const { i18n } = useTranslation();
+  const [params] = useSearchParams();
+  const redirect = params.get('redirect');
   const [opacity, setOpacity] = useState(true);
   const [loading, setLoading] = useState(true);
 
@@ -32,43 +35,47 @@ export function ScanForm() {
         })
     )
       .then(WxLogin => {
-        return http.get('/wechat/qrcode').then(response => {
-          let colorScheme = 'light';
-          const themeStorage = localStorage.getItem('theme');
-          if (themeStorage) {
-            const theme = JSON.parse(themeStorage);
-            colorScheme = theme.content || 'light';
-          }
-          // @ts-ignore
-          new WxLogin({
-            scope: response.scope,
-            self_redirect: false,
-            state: response.state,
-            id: 'wx-login-container',
-            appid: response.app_id,
-            color_scheme: colorScheme,
-            redirect_uri: response.redirect_uri,
-            lang: getLangOnly(i18n),
-            href: 'data:text/css;base64,LndlYl9xcmNvZGVfcGFuZWxfYXJlYSAud2ViX3FyY29kZV9wYW5lbF9ub3JtYWxfbG9naW57DQogIHBhZGRpbmctdG9wOiAxMHB4Ow0KfQ0KDQoud2ViX3FyY29kZV9wYW5lbF9hcmVhIC53ZWJfcXJjb2RlX3BhbmVsX3F1aWNrX2xvZ2luew0KICBwYWRkaW5nLXRvcDogMTAwcHg7DQp9',
-            onReady: function (isReady: boolean) {
-              if (!isReady) {
-                return;
-              }
-              setLoading(false);
-              const iframe = document.querySelector(
-                '#wx-login-container iframe'
-              ) as HTMLIFrameElement;
-              if (iframe) {
-                iframe.width = '100%';
-                iframe.setAttribute(
-                  'sandbox',
-                  'allow-scripts allow-top-navigation allow-same-origin'
-                );
-              }
-              setOpacity(false);
-            },
+        return http
+          .get('/wechat/qrcode', {
+            params: redirect ? { redirect } : undefined,
+          })
+          .then(response => {
+            let colorScheme = 'light';
+            const themeStorage = localStorage.getItem('theme');
+            if (themeStorage) {
+              const theme = JSON.parse(themeStorage);
+              colorScheme = theme.content || 'light';
+            }
+            // @ts-ignore
+            new WxLogin({
+              scope: response.scope,
+              self_redirect: false,
+              state: response.state,
+              id: 'wx-login-container',
+              appid: response.app_id,
+              color_scheme: colorScheme,
+              redirect_uri: response.redirect_uri,
+              lang: getLangOnly(i18n),
+              href: 'data:text/css;base64,LndlYl9xcmNvZGVfcGFuZWxfYXJlYSAud2ViX3FyY29kZV9wYW5lbF9ub3JtYWxfbG9naW57DQogIHBhZGRpbmctdG9wOiAxMHB4Ow0KfQ0KDQoud2ViX3FyY29kZV9wYW5lbF9hcmVhIC53ZWJfcXJjb2RlX3BhbmVsX3F1aWNrX2xvZ2luew0KICBwYWRkaW5nLXRvcDogMTAwcHg7DQp9',
+              onReady: function (isReady: boolean) {
+                if (!isReady) {
+                  return;
+                }
+                setLoading(false);
+                const iframe = document.querySelector(
+                  '#wx-login-container iframe'
+                ) as HTMLIFrameElement;
+                if (iframe) {
+                  iframe.width = '100%';
+                  iframe.setAttribute(
+                    'sandbox',
+                    'allow-scripts allow-top-navigation allow-same-origin'
+                  );
+                }
+                setOpacity(false);
+              },
+            });
           });
-        });
       })
       .catch(error => {
         toast.error(error && error.message ? error.message : error, {
@@ -78,7 +85,7 @@ export function ScanForm() {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [redirect]);
 
   return (
     <div className="h-[400px] relative overflow-hidden rounded-sm mx-[-24px]">

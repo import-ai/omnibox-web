@@ -41,7 +41,7 @@ export default function useNamespace() {
     }
     onLoading(true);
     return http
-      .patch(`namespaces/${namespace_id}`, val)
+      .patch(`namespaces/${namespace_id}`, val, { mute: true })
       .then(() => {
         onData({ ...data, ...val });
         return Promise.resolve();

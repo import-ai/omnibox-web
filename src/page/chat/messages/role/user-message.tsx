@@ -108,7 +108,10 @@ export function UserMessage(props: IProps) {
             </TooltipContent>
           </Tooltip>
         )}
-        <Copy content={openAIMessage.content || ''} />
+        <Copy
+          content={openAIMessage.content || ''}
+          tooltip={t('chat.messages.actions.copy_simple')}
+        />
         {hasSiblings && (
           <>
             <Button

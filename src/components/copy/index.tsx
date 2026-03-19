@@ -12,10 +12,11 @@ import {
 
 interface IProps {
   content: string;
+  tooltip?: string;
 }
 
 export default function CopyMain(props: IProps) {
-  const { content } = props;
+  const { content, tooltip } = props;
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const handleCopy = () => {
@@ -50,7 +51,7 @@ export default function CopyMain(props: IProps) {
         )}
       </TooltipTrigger>
       <TooltipContent>
-        <p>{t('chat.messages.actions.copy')}</p>
+        <p>{tooltip || t('chat.messages.actions.copy')}</p>
       </TooltipContent>
     </Tooltip>
   );

@@ -91,7 +91,7 @@ export default function Folder(props: IProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-[30vh]">
       {data.length > 0 ? (
         <>
           {groupItemsByTimestamp(data, i18n).map(([key, items]) => (

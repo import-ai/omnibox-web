@@ -11,16 +11,25 @@ import {
 interface TrashFooterProps {
   onClearAll: () => void;
   hasItems: boolean;
+  trashRetentionDays: number | null;
 }
 
-export function TrashFooter({ onClearAll, hasItems }: TrashFooterProps) {
+export function TrashFooter({
+  onClearAll,
+  hasItems,
+  trashRetentionDays,
+}: TrashFooterProps) {
   const { t } = useTranslation();
 
   return (
     <div className="flex items-center justify-between pt-3 border-t">
-      <span className="text-sm text-muted-foreground leading-4">
-        {t('trash.auto_delete_notice')}
-      </span>
+      {trashRetentionDays !== null && (
+        <span className="text-sm text-muted-foreground leading-4">
+          {t('trash.auto_delete_notice', {
+            days: trashRetentionDays,
+          })}
+        </span>
+      )}
       {hasItems && (
         <Tooltip>
           <TooltipTrigger asChild>

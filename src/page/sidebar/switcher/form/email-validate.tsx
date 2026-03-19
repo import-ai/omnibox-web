@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { Input } from '@/components/input';
 import { SupportedEmailLink } from '@/components/supported-email-link';
 import {
   Form,
@@ -14,7 +15,6 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import useUser from '@/hooks/use-user';
 import {
   getOtpErrorMessage,

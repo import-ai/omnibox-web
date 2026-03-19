@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { GoogleIcon } from '@/assets/icons/google';
@@ -12,10 +13,14 @@ interface IProps {
 export default function Google(props: IProps) {
   const { mode = 'login' } = props;
   const { t } = useTranslation();
+  const [params] = useSearchParams();
+  const redirect = params.get('redirect');
 
   const loginWithGoogle = () => {
     http
-      .get('/google/auth-url')
+      .get('/google/auth-url', {
+        params: redirect ? { redirect } : undefined,
+      })
       .then(authUrl => {
         window.location.href = authUrl;
       })

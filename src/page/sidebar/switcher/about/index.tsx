@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 export default function About() {
   const { t } = useTranslation();
+  const currentYear = new Date().getFullYear();
 
   return (
     <div className="space-y-6">
@@ -10,7 +11,7 @@ export default function About() {
       </div>
       <div className="space-y-4">
         <div className="text-sm text-muted-foreground">
-          {t('setting.copyright')}
+          {t('setting.copyright', { year: currentYear })}
         </div>
         <div>
           <a

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Eye, EyeOff } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ import { GoogleIcon } from '@/assets/icons/google';
 import { SmartphoneIcon } from '@/assets/icons/smartphone';
 import { WeChatIcon } from '@/assets/icons/wechat';
 import { Button } from '@/components/button';
+import { Input } from '@/components/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,7 +40,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import useUser from '@/hooks/use-user';
 import { UserBinding } from '@/interface';
@@ -78,21 +78,23 @@ const passwordChangeSchema = z.object({
 type UsernameFormValues = { username: string };
 type PasswordFormValues = { password: string; password_repeat: string };
 
-function ActionButton({
-  children,
-  onClick,
-  disabled,
-  variant = 'outline',
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  variant?: 'default' | 'outline' | 'destructive';
-}) {
+const ActionButton = React.forwardRef<
+  React.ElementRef<typeof Button>,
+  {
+    children: React.ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+    variant?: 'default' | 'outline' | 'destructive';
+  }
+>(function ActionButton(
+  { children, onClick, disabled, variant = 'outline' },
+  ref
+) {
   const className =
-    'w-[71px] h-[30px] px-[21px] py-[5px] rounded-[5px] text-sm font-semibold';
+    'w-[71px] h-[30px] rounded-[5px] dark:border-neutral-700  border-neutral-200 active:border-neutral-300 text-xs font-medium';
   return (
     <Button
+      ref={ref}
       onClick={onClick}
       disabled={disabled}
       variant={variant}
@@ -101,7 +103,7 @@ function ActionButton({
       {children}
     </Button>
   );
-}
+});
 
 function SectionHeader({
   title,
@@ -203,10 +205,12 @@ function BindingRow({
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                <AlertDialogCancel className="cancel-btn-outline">
+                  {t('cancel')}
+                </AlertDialogCancel>
                 <AlertDialogAction
                   disabled={unbinding}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
                   onClick={onUnbind}
                 >
                   {unbinding && <Spinner className="mr-2" />}
@@ -216,11 +220,7 @@ function BindingRow({
             </AlertDialogContent>
           </AlertDialog>
         ) : (
-          onBind || (
-            <ActionButton variant="outline">
-              {t('setting.bind_btn')}
-            </ActionButton>
-          )
+          onBind || <ActionButton>{t('setting.bind_btn')}</ActionButton>
         )}
       </div>
     </div>
@@ -429,9 +429,15 @@ export default function ProfileForm() {
           </p>
         </div>
         <div className="flex-shrink-0 ml-2">
-          <ActionButton onClick={() => setPhoneDialogOpen(true)}>
-            {phoneBinding?.id ? t('setting.change') : t('setting.bind_btn')}
-          </ActionButton>
+          {phoneBinding?.id ? (
+            <ActionButton onClick={() => setPhoneDialogOpen(true)}>
+              {t('setting.change')}
+            </ActionButton>
+          ) : (
+            <ActionButton onClick={() => setPhoneDialogOpen(true)}>
+              {t('setting.bind_btn')}
+            </ActionButton>
+          )}
         </div>
       </div>
 
@@ -515,7 +521,11 @@ export default function ProfileForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input {...field} disabled={submitting} />
+                      <Input
+                        {...field}
+                        disabled={submitting}
+                        className="border-line"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -576,7 +586,7 @@ export default function ProfileForm() {
                           autoComplete="new-password"
                           {...field}
                           disabled={submitting}
-                          className="pr-10"
+                          className="border-line shadow-none pr-10"
                         />
                         <button
                           type="button"
@@ -608,7 +618,7 @@ export default function ProfileForm() {
                           autoComplete="new-password"
                           {...field}
                           disabled={submitting}
-                          className="pr-10"
+                          className="border-line shadow-none pr-10"
                         />
                         <button
                           type="button"
@@ -660,7 +670,7 @@ export default function ProfileForm() {
               <DialogDescription>{t('email.description')}</DialogDescription>
             </DialogHeader>
           </VisuallyHidden>
-          <div className="bg-card rounded-[12px] flex items-center justify-center w-full min-h-[280px] lg:min-h-[303px] p-6 lg:p-[48px_30px_32px_30px]">
+          <div className="bg-background rounded-[12px] flex items-center justify-center w-full min-h-[280px] lg:min-h-[303px] p-6 lg:p-[48px_30px_32px_30px]">
             <EmailValidate onFinish={handleEmailValidateFinish} />
           </div>
         </DialogContent>
@@ -668,7 +678,7 @@ export default function ProfileForm() {
 
       {/* Phone Binding Dialog */}
       <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
-        <DialogContent className="p-0 border-none bg-transparent shadow-none w-[90%] lg:w-[445px] max-w-[445px]">
+        <DialogContent className="p-0 border-none bg-transparent shadow-none w-[90%] lg:w-[445px] max-w-[445px] dark:bg-transparent">
           <VisuallyHidden>
             <DialogHeader>
               <DialogTitle>{t('phone.input_phone')}</DialogTitle>
@@ -677,7 +687,7 @@ export default function ProfileForm() {
               </DialogDescription>
             </DialogHeader>
           </VisuallyHidden>
-          <div className="bg-card rounded-[12px] flex items-center justify-center w-full min-h-[280px] lg:min-h-[303px] p-6 lg:p-[48px_30px_32px_30px]">
+          <div className="bg-background rounded-[12px] flex items-center justify-center w-full min-h-[280px] lg:min-h-[303px] p-6 lg:p-[48px_30px_32px_30px]">
             <PhoneValidate
               currentPhone={user?.phone}
               onFinish={() => {

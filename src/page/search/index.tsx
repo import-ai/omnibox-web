@@ -99,10 +99,13 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
 
     const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/resources/recent?limit=10`, {
-        cancelToken: source.token,
-        mute: true,
-      })
+      .get(
+        `/namespaces/${namespaceId}/resources/recent?limit=10&summary=true`,
+        {
+          cancelToken: source.token,
+          mute: true,
+        }
+      )
       .then((items: ResourceMeta[] = []) => setRecents(items || []))
       .catch(() => void 0);
 
@@ -172,13 +175,23 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                       onOpenChange(false);
                     }}
                   >
-                    <div className="flex items-center gap-2">
-                      <div className="[&>svg]:w-4 [&>svg]:h-4 text-muted-foreground">
-                        <ResourceIcon expand={false} resource={iconResource} />
+                    <div className="flex flex-col items-start w-full">
+                      <div className="flex items-center gap-2">
+                        <div className="[&>svg]:w-4 [&>svg]:h-4 text-muted-foreground">
+                          <ResourceIcon
+                            expand={false}
+                            resource={iconResource}
+                          />
+                        </div>
+                        <div className="font-medium">
+                          {item.name || t('untitled')}
+                        </div>
                       </div>
-                      <div className="font-medium truncate max-w-[500px]">
-                        {item.name || t('untitled')}
-                      </div>
+                      {(item as any).content && (
+                        <div className="text-sm text-muted-foreground ml-6">
+                          {(item as any).content}
+                        </div>
+                      )}
                     </div>
                   </CommandItem>
                 );
@@ -192,10 +205,10 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
               const iconResource = {
                 id: resourceItem.resource_id || resourceItem.id,
                 name: resourceItem.title,
-                resource_type: (resourceItem as any).resource_type || 'doc',
+                resource_type: (resourceItem as any).resource_type,
                 parent_id: '',
                 space_type: 'private',
-                has_children: false,
+                has_children: !!(resourceItem as any).has_children,
                 attrs: (resourceItem as any).attrs || {},
               } as unknown as Resource;
               return (

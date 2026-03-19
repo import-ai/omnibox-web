@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { http } from '@/lib/request';
+import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
 import { type ChatActionType } from '@/page/chat/chat-input/types';
@@ -183,6 +184,10 @@ export default function SharedChatConversationPage() {
   };
 
   useEffect(() => {
+    setDocumentTitle(t('chat.title'));
+  }, [t]);
+
+  useEffect(() => {
     if (!conversationId) return;
     http
       .get(`/shares/${shareId}/conversations/${conversationId}`)
@@ -196,7 +201,7 @@ export default function SharedChatConversationPage() {
   }, [shareId, conversationId]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-1 flex-col min-h-0">
       <Scrollbar>
         <Messages
           messages={normalizeChatData(messages)}

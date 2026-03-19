@@ -229,7 +229,7 @@ export function LoginForm({
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    if (searchParams.get('from') === 'extension') {
+    if (searchParams.get('from') === 'extension_login') {
       localStorage.setItem('extension_login', 'true');
     }
   }, []);

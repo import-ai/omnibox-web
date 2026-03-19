@@ -6,6 +6,7 @@ import { ToolMessage } from '@/page/chat/messages/role/tool-message';
 import { UserMessage } from '@/page/chat/messages/role/user-message';
 import {
   type Citation,
+  MessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/types/chat-response';
 import type {
@@ -104,6 +105,12 @@ export function Messages(props: IProps) {
               onEdit,
               isLastAssistantMessage
             )}
+            {message.status === MessageStatus.FAILED &&
+              message.attrs?.error_message && (
+                <div className="text-destructive mt-2">
+                  {message.attrs.error_message}
+                </div>
+              )}
             {index < filteredMessages.length - 1 &&
               ![OpenAIMessageRole.TOOL, OpenAIMessageRole.USER].includes(
                 message.message.role

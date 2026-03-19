@@ -149,6 +149,7 @@ export function Expire(props: ExpireProps) {
               selected={selectedDate}
               onSelect={setSelectedDate}
               className="rounded-md border shadow-sm w-full"
+              disabled={{ before: new Date() }}
             />
             <Button className="w-full" onClick={handleSaveDate}>
               {t('share.share.save')}

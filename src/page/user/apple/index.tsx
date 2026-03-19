@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { AppleIcon } from '@/assets/icons/apple';
@@ -43,6 +43,8 @@ export default function Apple(props: IProps) {
   const { mode = 'login' } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [authConfig, setAuthConfig] = useState<any>(null);
@@ -109,7 +111,11 @@ export default function Apple(props: IProps) {
         })
         .then(res => {
           setGlobalCredential(res.id, res.access_token);
-          navigate('/', { replace: true });
+          if (redirect) {
+            location.href = decodeURIComponent(redirect);
+          } else {
+            navigate('/', { replace: true });
+          }
         });
     };
     const handleFailure = (event: CustomEvent) => {
@@ -141,7 +147,7 @@ export default function Apple(props: IProps) {
         handleFailure as EventListener
       );
     };
-  }, [t, i18n.language]);
+  }, [t, i18n.language, redirect]);
 
   const loginWithApple = async () => {
     if (!sdkLoaded) {

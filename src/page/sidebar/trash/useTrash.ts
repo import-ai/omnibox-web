@@ -20,6 +20,9 @@ export function useTrash() {
   const [total, setTotal] = useState(0);
   const [searchValue, setSearchValue] = useState('');
   const [hasMore, setHasMore] = useState(false);
+  const [trashRetentionDays, setTrashRetentionDays] = useState<number | null>(
+    null
+  );
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -47,6 +50,7 @@ export function useTrash() {
         }
         setTotal(response.total);
         setHasMore(offset + response.items.length < response.total);
+        setTrashRetentionDays(response.trash_retention_days ?? null);
       } catch {
         // Error is automatically toasted by http client
       } finally {
@@ -161,5 +165,6 @@ export function useTrash() {
     emptyTrash,
     refresh,
     fetchTrash,
+    trashRetentionDays,
   };
 }

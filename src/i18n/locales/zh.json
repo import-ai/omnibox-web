@@ -75,7 +75,7 @@
     "copy_link_failed": "您的链接复制失败",
     "copy_content": "复制正文",
     "duplicate": "创建副本",
-    "download": "下载源文件",
+    "download": "源文件",
     "move_to": "移动到",
     "move_page_to": "将页面移至...",
     "move_to_trash": "移动到回收站",
@@ -83,7 +83,7 @@
     "create_file": "创建文件",
     "create_folder": "创建文件夹",
     "upload_file": "上传文件",
-    "download_as": "下载为",
+    "download_as": "下载",
     "download_as_tooltip": "{{ format }} 格式",
     "add_all_to_context": "添加全部文件到对话框",
     "add_it_to_context": "添加该文件到对话框",
@@ -142,14 +142,26 @@
   },
   "namespace": {
     "add": "创建空间",
+    "title": "空间名称",
     "name": "空间名称",
+    "tier": {
+      "basic": "基础版",
+      "premium": "高级版",
+      "forever": "永久",
+      "expired": "已过期"
+    },
+    "upgrade": "升级",
     "min": "至少 2 个字符",
-    "max": "最多 32 个字符",
+    "max": "最多 64 个字符",
     "submit": "保存",
     "success": "已更新",
     "member_count": "{{ size }} 名成员",
     "conflict": "已有相同名称的空间",
     "no_special_chars": "空间名不允许使用特殊符号",
+    "quota_exceeded": "已超过额度",
+    "quota_exceeded_desc": "当前空间额度已耗尽,请扩容",
+    "quota_expand_button": "扩容",
+    "usage": "用量",
     "leave": {
       "title": "离开空间",
       "description": "离开此空间。您的私人数据将被删除。",
@@ -318,7 +330,7 @@
     "not_bound": "未绑定",
     "about": "关于",
     "about_title": "关于小黑",
-    "copyright": "© 2025 杭州小黑智能科技有限公司 保留所有权利",
+    "copyright": "© 2025 - {{year}} 杭州小黑智能科技有限公司 保留所有权利",
     "third_party_account": {
       "manage": "三方账号管理",
       "title": "第三方账号管理",
@@ -365,7 +377,8 @@
     "description": "管理你的应用集成和绑定",
     "empty": "暂无应用",
     "app_names": {
-      "wechat_bot": "微信助手"
+      "wechat_bot": "微信助手",
+      "qq_bot": " QQ 助手"
     },
     "unsupported_app": "不支持的应用类型：{{ app_id }}",
     "status": {
@@ -375,17 +388,17 @@
     },
     "already_bound": {
       "title": "已绑定",
-      "description": "您已成功绑定微信助手，您可以扫描下方二维码将微信助手添加为微信好友。"
+      "description": "您已成功绑定{{ platform_name }}，您可以扫描下方二维码添加助手。"
     },
     "bind": {
       "button": "绑定",
       "continue_button": "继续绑定",
       "title": "绑定应用",
       "description": "按照以下步骤连接你的应用",
-      "step1": "第 1 步：添加微信助手",
-      "step2": "第 2 步：发送代码给微信助手",
+      "step1": "第 1 步：添加{{ platform_name }}",
+      "step2": "第 2 步：发送代码给{{ platform_name }}",
       "code_label": "绑定代码：",
-      "code_instruction": "将此代码发送给微信助手以完成绑定",
+      "code_instruction": "将此代码发送给{{ platform_name }}以完成绑定",
       "initiated": "绑定流程已启动",
       "continue": "继续绑定流程",
       "error": "启动绑定失败",
@@ -467,6 +480,11 @@
     "reason2": "您的会话可能已过期",
     "reason3": "您可能需要特定的角色或权限级别"
   },
+  "deleted_resource": {
+    "title": "无法访问该链接",
+    "desc": "您可能没有访问权限，或者该资源已被删除。",
+    "hint": "请检查您的链接。"
+  },
   "permission": {
     "full_access": "全部权限",
     "full_access_desc": "编辑、建议、评论以及与他人分享",
@@ -492,7 +510,7 @@
     "tips": "请输入消息",
     "title": "小黑",
     "page_title": "小黑",
-    "citations": "资料",
+    "citations": "段落",
     "citations_results": "搜索结果",
     "searching": "搜索中...",
     "disclaimer": "内容由小黑 AI 生成，仅供参考",
@@ -501,6 +519,7 @@
         "regenerate": "重新生成",
         "save": "保存至个人空间",
         "copy": "复制 Markdown",
+        "copy_simple": "复制",
         "edit": "编辑消息",
         "save_edit": "保存",
         "cancel_edit": "取消"
@@ -669,6 +688,7 @@
     "time_error_minutes": "失败：耗时 {{minutes}} 分钟",
     "time_timeout_seconds": "超时：耗时 {{seconds}} 秒",
     "time_timeout_minutes": "超时：耗时 {{minutes}} 分钟",
+    "time_insufficient_quota": "额度不足：{{time}}",
     "time_canceled": "已取消：{{time}}",
     "functions": {
       "collect": "收藏",
@@ -681,7 +701,9 @@
       "delete_conversation": "删除对话",
       "extract_tags": "生成标签",
       "generate_title": "生成标题",
-      "generate_video_note": "视频解析"
+      "generate_video_note": "视频解析",
+      "collect_url": "访问网页",
+      "web_analysis": "网页分析"
     }
   },
   "common": {
@@ -767,7 +789,7 @@
     "search_placeholder": "搜索被移入回收站的资源",
     "empty": "空空如也",
     "loading": "加载中",
-    "auto_delete_notice": "回收站中超过 7 天的资源将自动删除",
+    "auto_delete_notice": "回收站中超过 {{days}} 天的资源将自动删除",
     "restore": "恢复",
     "delete_permanently": "立即删除",
     "clear_all": "清倒",
@@ -794,5 +816,28 @@
     "error": "导出失败",
     "timeout": "导出超时",
     "canceled": "导出已取消"
+  },
+  "quota": {
+    "storage_usage": "存储用量",
+    "upload": "上传",
+    "file": "文件",
+    "other_users": "空间内其他用户",
+    "audio_video_parse_usage": "音视频解析额度用量",
+    "audio": "音频",
+    "video": "视频",
+    "doc_parse_usage": "PDF/图片解析额度用量",
+    "pdf": "PDF",
+    "image": "图片",
+    "other": "其他",
+    "expand_button": "扩容",
+    "basic_period": "空间有效期：",
+    "premium_period": "高级版有效期：",
+    "days_remaining": "剩余 {{days}} 天 ({{date}} 到期)",
+    "page_unit": "页",
+    "time": {
+      "seconds": "秒",
+      "minutes": "分钟",
+      "hours": "小时"
+    }
   }
 }

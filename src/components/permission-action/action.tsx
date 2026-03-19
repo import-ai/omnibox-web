@@ -32,7 +32,10 @@ export default function Action(props: ActionProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         disabled={disabled}
-        className={cn(className, { 'opacity-40': disabled })}
+        className={cn(
+          className,
+          disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'
+        )}
       >
         <div className="flex items-center text-gray-600 dark:text-white">
           <span>

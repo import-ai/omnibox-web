@@ -65,7 +65,7 @@ export default function Layout() {
     const searchParams = new URLSearchParams(loc.search);
     if (
       loc.pathname === '/user/login' &&
-      searchParams.get('from') === 'extension' &&
+      searchParams.get('from') === 'extension_login' &&
       uid
     ) {
       localStorage.removeItem('uid');

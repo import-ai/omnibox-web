@@ -65,7 +65,7 @@ export default function Resource(props: IProps) {
       ) : (
         <File />
       )}
-      <div className="text-left">{name}</div>
+      <div className="text-left break-all flex-1">{name}</div>
     </Button>
   );
 }

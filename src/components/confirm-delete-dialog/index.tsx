@@ -50,16 +50,11 @@ export default function ConfirmDeleteDialog(props: IProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
-  const handleCancel = () => {
-    onOpenChange(false);
-  };
-
   const handleConfirm = () => {
     setLoading(true);
     http
       .delete(deleteUrl)
       .then(() => {
-        onOpenChange(false);
         onSuccess?.();
 
         // show success message
@@ -121,13 +116,13 @@ export default function ConfirmDeleteDialog(props: IProps) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleCancel}>
+          <AlertDialogCancel className="cancel-btn-outline">
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             disabled={loading}
             onClick={handleConfirm}
-            className="bg-red-500 text-white hover:bg-red-600"
+            className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
           >
             {loading && <Spinner className="mr-2" />}
             {t('delete')}

@@ -3,18 +3,19 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import CoreApp from '@/hooks/app.class';
 import AppContext from '@/hooks/app-context';
+import { AuthConfigProvider } from '@/hooks/auth-config-context';
 import Layout from '@/layout';
 import Error from '@/layout/error';
+import ChatPage from '@/page/chat';
+import ChatHomePage from '@/page/chat/home';
+import NamespacePage from '@/page/namespace';
 
-const ChatPage = lazy(() => import('@/page/chat'));
-const ChatHomePage = lazy(() => import('@/page/chat/home'));
 const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
 const ChatConversationsPage = lazy(() => import('@/page/chat/conversations'));
 
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/invite'));
 const ResourcePage = lazy(() => import('@/page/resource'));
-const NamespacePage = lazy(() => import('@/page/namespace'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const VerifyOtpPage = lazy(() => import('@/page/user/verify-otp'));
 const AcceptInvitePage = lazy(() => import('@/page/user/accept-invite'));
@@ -28,6 +29,7 @@ const WechatAuthConfirmPage = lazy(
 const GoogleAuthConfirmPage = lazy(
   () => import('@/page/user/google/auth-confirm')
 );
+const OAuthAuthorizePage = lazy(() => import('@/page/oauth/authorize'));
 
 const SharePage = lazy(() => import('@/page/share'));
 const SharedResourcePage = lazy(() => import('@/page/shared-resource'));
@@ -56,6 +58,10 @@ const router = createBrowserRouter([
       {
         path: 'user/auth/confirm/google',
         element: <GoogleAuthConfirmPage />,
+      },
+      {
+        path: 'oauth/authorize',
+        element: <OAuthAuthorizePage />,
       },
       {
         path: 'welcome',
@@ -146,9 +152,11 @@ const router = createBrowserRouter([
 export default function Main() {
   return (
     <AppContext.Provider value={app}>
-      <Suspense>
-        <RouterProvider router={router} />
-      </Suspense>
+      <AuthConfigProvider>
+        <Suspense>
+          <RouterProvider router={router} />
+        </Suspense>
+      </AuthConfigProvider>
     </AppContext.Provider>
   );
 }

@@ -46,11 +46,31 @@ export interface UserBinding extends IBase {
   };
 }
 
+export enum NamespaceTier {
+  BASIC = 'basic',
+  PREMIUM = 'premium',
+}
+
+export interface BasicSubscription {
+  purchased: boolean;
+  expires_at: string | null;
+}
+
+export interface PremiumSubscription {
+  expires_at: string;
+}
+
 export interface Namespace extends IBase {
   id: string;
   name: string;
   collaborators?: string[];
   owner_id?: string[];
+  root_resource_id?: string;
+  tier?: NamespaceTier;
+  basic?: BasicSubscription | null;
+  premium?: PremiumSubscription | null;
+  is_owner?: boolean;
+  expired?: boolean;
 }
 
 export interface Tag extends IBase {
@@ -268,7 +288,8 @@ export type TaskStatus =
   | 'finished'
   | 'canceled'
   | 'error'
-  | 'timeout';
+  | 'timeout'
+  | 'insufficient_quota';
 
 export interface TaskAttrs {
   resource_id?: string;
@@ -276,10 +297,23 @@ export interface TaskAttrs {
   conversation_id?: string;
 }
 
+export type TaskType =
+  | 'collect'
+  | 'collect_url'
+  | 'web_analysis'
+  | 'upsert_index'
+  | 'delete_index'
+  | 'file_reader'
+  | 'delete_conversation'
+  | 'extract_tags'
+  | 'generate_title'
+  | 'generate_video_note'
+  | 'upsert_message_index';
+
 export interface Task {
   id: string;
   status: TaskStatus;
-  function: string;
+  function: TaskType;
   created_at: string;
   attrs: TaskAttrs | null;
   started_at: string | null;

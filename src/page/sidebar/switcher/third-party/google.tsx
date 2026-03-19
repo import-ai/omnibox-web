@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 
 export function GoogleLogin() {
@@ -17,11 +18,12 @@ export function GoogleLogin() {
   };
 
   return (
-    <button
+    <Button
+      variant="default"
       onClick={loginWithGoogle}
-      className="flex h-[30px] w-[71px] shrink-0 items-center justify-center rounded-md bg-foreground text-sm font-semibold text-background hover:opacity-90"
+      className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
     >
       {t('setting.bind_btn')}
-    </button>
+    </Button>
   );
 }
