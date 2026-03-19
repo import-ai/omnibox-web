@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/button';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 interface CreateFolderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (folderName: string) => void;
+  onConfirm: (folderName: string) => Promise<void>;
 }
 
 export function CreateFolderDialog({
@@ -26,11 +26,16 @@ export function CreateFolderDialog({
   const { t } = useTranslation();
   const [folderName, setFolderName] = useState('');
 
-  const handleConfirm = () => {
-    if (folderName.trim()) {
-      onConfirm(folderName.trim());
+  const handleConfirm = async () => {
+    if (!folderName.trim()) {
+      return;
+    }
+    try {
+      await onConfirm(folderName.trim());
       setFolderName('');
       onOpenChange(false);
+    } catch {
+      // Keep dialog open when request fails.
     }
   };
 
@@ -63,6 +68,7 @@ export function CreateFolderDialog({
               onChange={e => setFolderName(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={t('folder.create_dialog.placeholder')}
+              className="border-line"
               autoFocus
             />
           </div>

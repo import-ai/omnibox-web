@@ -314,7 +314,7 @@ export default function useContext() {
     if (initialName && initialName.trim()) {
       payload.name = initialName.trim();
     }
-    http
+    return http
       .post(`/namespaces/${namespaceId}/resources`, payload)
       .then((response: Resource) => {
         activeRoute(spaceType, parentId, response, resourceType !== 'folder');

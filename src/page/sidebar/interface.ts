@@ -24,7 +24,7 @@ export interface ISidebarProps {
     parentId: string,
     resourceType: ResourceType,
     initialName?: string
-  ) => void;
+  ) => Promise<void>;
   onRename: (id: string, newName: string) => Promise<void>;
   onSpaceToggle: (spaceType: string, open?: boolean) => void;
 }
