@@ -92,7 +92,7 @@ export default function Space(props: ITreeProps) {
     setCreateFolderOpen(true);
   };
   const handleConfirmCreateFolder = (folderName: string) => {
-    onCreate(spaceType, data.id, 'folder', folderName);
+    return onCreate(spaceType, data.id, 'folder', folderName);
   };
 
   // File and resource drop handling
