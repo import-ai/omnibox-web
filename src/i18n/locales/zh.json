@@ -820,6 +820,7 @@
     "premium_period": "高级版有效期：",
     "days_remaining": "剩余 {{days}} 天 ({{date}} 到期)",
     "page_unit": "页",
+    "tooltip_format": "{{label}}：{{value}}",
     "time": {
       "seconds": "秒",
       "minutes": "分钟",

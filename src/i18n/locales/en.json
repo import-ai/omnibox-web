@@ -815,10 +815,11 @@
     "image": "Image",
     "other": "Other",
     "expand_button": "Expand",
-    "basic_period": "Space validity period:",
-    "premium_period": "Premium validity period:",
+    "basic_period": "Space validity period: ",
+    "premium_period": "Premium validity period: ",
     "days_remaining": "{{days}} days remaining (expires {{date}})",
     "page_unit": "pages",
+    "tooltip_format": "{{label}}: {{value}}",
     "time": {
       "seconds": "sec",
       "minutes": "min",

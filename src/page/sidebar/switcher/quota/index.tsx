@@ -16,13 +16,14 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const { data } = useQuota(namespaceId);
   const showOtherMembersUsage = data.show_members_usage;
 
-  const segTooltip = (label: string, value: string) => `${label}: ${value}`;
+  const segTooltip = (label: string, value: string) =>
+    t('quota.tooltip_format', { label, value });
   const pageVal = (n: number) => `${n} ${t('quota.page_unit')}`;
 
   const sections = [
     {
       title: t('quota.storage_usage'),
-      current: `${formatStorage(data.storage_bytes.upload + data.storage_bytes.file + data.storage_bytes.other_users)}/${formatStorage(data.storage_bytes.total)}`,
+      current: `${formatStorage(data.storage_bytes.upload + data.storage_bytes.file + data.storage_bytes.other_users)} / ${formatStorage(data.storage_bytes.total)}`,
       items: showOtherMembersUsage
         ? [
             {
@@ -138,7 +139,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
     },
     {
       title: t('quota.audio_video_parse_usage'),
-      current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)}/${formatTimeAsMinutes(data.video_audio_parse.total)}`,
+      current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)} / ${formatTimeAsMinutes(data.video_audio_parse.total)}`,
       items: showOtherMembersUsage
         ? [
             {
@@ -262,7 +263,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
     },
     {
       title: t('quota.doc_parse_usage'),
-      current: `${data.doc_parse.pdf + data.doc_parse.image + data.doc_parse.other_users}${t('quota.page_unit')}/${data.doc_parse.total}${t('quota.page_unit')}`,
+      current: `${pageVal(data.doc_parse.pdf + data.doc_parse.image + data.doc_parse.other_users)} / ${pageVal(data.doc_parse.total)}`,
       items: showOtherMembersUsage
         ? [
             {
