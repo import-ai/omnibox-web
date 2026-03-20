@@ -6,7 +6,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-import { SegmentedProgressBar } from './segmented-progress-bar';
+import {
+  type QuotaProgressSegment,
+  SegmentedProgressBar,
+} from './segmented-progress-bar';
 
 export interface StorageItem {
   label: string;
@@ -18,7 +21,7 @@ export interface StorageSectionProps {
   title: string;
   current: string;
   items: StorageItem[];
-  segments: Array<{ label: string; color: string; percentage: number }>;
+  segments: QuotaProgressSegment[];
 }
 
 export function StorageSection({
