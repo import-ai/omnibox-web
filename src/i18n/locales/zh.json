@@ -818,7 +818,7 @@
     "expand_button": "扩容",
     "basic_period": "空间有效期：",
     "premium_period": "高级版有效期：",
-    "days_remaining": "剩余 {{days}} 天 （{{date}} 到期）",
+    "days_remaining": "剩余 {{days}} 天（{{date}} 到期）",
     "page_unit": "页",
     "tooltip_format": "{{label}}：{{value}}",
     "time": {
