@@ -23,17 +23,17 @@ export function formatStorage(bytes: number) {
 // Helper function to format time (seconds to minutes)
 export function formatTime(seconds: number) {
   if (seconds < 60) {
-    return `${seconds}${i18next.t('quota.time.seconds')}`;
+    return `${seconds} ${i18next.t('quota.time.seconds')}`;
   }
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return secs > 0
-    ? `${minutes}${i18next.t('quota.time.minutes')}${secs}${i18next.t('quota.time.seconds')}`
-    : `${minutes}${i18next.t('quota.time.minutes')}`;
+    ? `${minutes} ${i18next.t('quota.time.minutes')} ${secs} ${i18next.t('quota.time.seconds')}`
+    : `${minutes} ${i18next.t('quota.time.minutes')}`;
 }
 
 // Helper function to format time as minutes (for total quota display)
 export function formatTimeAsMinutes(seconds: number) {
   const minutes = Math.ceil(seconds / 60);
-  return `${minutes}${i18next.t('quota.time.minutes')}`;
+  return `${minutes} ${i18next.t('quota.time.minutes')}`;
 }

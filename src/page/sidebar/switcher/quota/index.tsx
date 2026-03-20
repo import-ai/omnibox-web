@@ -17,7 +17,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const showOtherMembersUsage = data.show_members_usage;
 
   const segTooltip = (label: string, value: string) => `${label}: ${value}`;
-  const pageVal = (n: number) => `${n}${t('quota.page_unit')}`;
+  const pageVal = (n: number) => `${n} ${t('quota.page_unit')}`;
 
   const sections = [
     {
@@ -25,13 +25,48 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
       current: `${formatStorage(data.storage_bytes.upload + data.storage_bytes.file + data.storage_bytes.other_users)}/${formatStorage(data.storage_bytes.total)}`,
       items: showOtherMembersUsage
         ? [
-            { label: t('quota.upload'), color: 'bg-blue-400' },
-            { label: t('quota.file'), color: 'bg-blue-500' },
-            { label: t('quota.other_users'), color: 'bg-gray-300' },
+            {
+              label: t('quota.upload'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(
+                t('quota.upload'),
+                formatStorage(data.storage_bytes.upload)
+              ),
+            },
+            {
+              label: t('quota.file'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.file'),
+                formatStorage(data.storage_bytes.file)
+              ),
+            },
+            {
+              label: t('quota.other_users'),
+              color: 'bg-gray-300',
+              tooltip: segTooltip(
+                t('quota.other_users'),
+                formatStorage(data.storage_bytes.other_users)
+              ),
+            },
           ]
         : [
-            { label: t('quota.upload'), color: 'bg-blue-400' },
-            { label: t('quota.file'), color: 'bg-blue-500' },
+            {
+              label: t('quota.upload'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(
+                t('quota.upload'),
+                formatStorage(data.storage_bytes.upload)
+              ),
+            },
+            {
+              label: t('quota.file'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.file'),
+                formatStorage(data.storage_bytes.file)
+              ),
+            },
           ],
       segments: showOtherMembersUsage
         ? [
@@ -106,13 +141,48 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
       current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)}/${formatTimeAsMinutes(data.video_audio_parse.total)}`,
       items: showOtherMembersUsage
         ? [
-            { label: t('quota.audio'), color: 'bg-blue-400' },
-            { label: t('quota.video'), color: 'bg-blue-500' },
-            { label: t('quota.other_users'), color: 'bg-gray-300' },
+            {
+              label: t('quota.audio'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(
+                t('quota.audio'),
+                formatTime(data.video_audio_parse.audio)
+              ),
+            },
+            {
+              label: t('quota.video'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.video'),
+                formatTime(data.video_audio_parse.video)
+              ),
+            },
+            {
+              label: t('quota.other_users'),
+              color: 'bg-gray-300',
+              tooltip: segTooltip(
+                t('quota.other_users'),
+                formatTime(data.video_audio_parse.other_users)
+              ),
+            },
           ]
         : [
-            { label: t('quota.audio'), color: 'bg-blue-400' },
-            { label: t('quota.video'), color: 'bg-blue-500' },
+            {
+              label: t('quota.audio'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(
+                t('quota.audio'),
+                formatTime(data.video_audio_parse.audio)
+              ),
+            },
+            {
+              label: t('quota.video'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.video'),
+                formatTime(data.video_audio_parse.video)
+              ),
+            },
           ],
       segments: showOtherMembersUsage
         ? [
@@ -195,13 +265,42 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
       current: `${data.doc_parse.pdf + data.doc_parse.image + data.doc_parse.other_users}${t('quota.page_unit')}/${data.doc_parse.total}${t('quota.page_unit')}`,
       items: showOtherMembersUsage
         ? [
-            { label: t('quota.pdf'), color: 'bg-blue-400' },
-            { label: t('quota.image'), color: 'bg-blue-500' },
-            { label: t('quota.other_users'), color: 'bg-gray-300' },
+            {
+              label: t('quota.pdf'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(t('quota.pdf'), pageVal(data.doc_parse.pdf)),
+            },
+            {
+              label: t('quota.image'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.image'),
+                pageVal(data.doc_parse.image)
+              ),
+            },
+            {
+              label: t('quota.other_users'),
+              color: 'bg-gray-300',
+              tooltip: segTooltip(
+                t('quota.other_users'),
+                pageVal(data.doc_parse.other_users)
+              ),
+            },
           ]
         : [
-            { label: t('quota.pdf'), color: 'bg-blue-400' },
-            { label: t('quota.image'), color: 'bg-blue-500' },
+            {
+              label: t('quota.pdf'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(t('quota.pdf'), pageVal(data.doc_parse.pdf)),
+            },
+            {
+              label: t('quota.image'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.image'),
+                pageVal(data.doc_parse.image)
+              ),
+            },
           ],
       segments: showOtherMembersUsage
         ? [
