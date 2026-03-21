@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import { setGlobalCredential } from '@/page/user/util';
+import { setGlobalCredential, setLastLoginMethod } from '@/page/user/util';
 
 import WrapperPage from '../wrapper';
 
@@ -52,6 +52,7 @@ export default function AuthConfirmPage() {
           }
         } else {
           setGlobalCredential(res.id, res.access_token);
+          setLastLoginMethod('google');
           // Use redirectUrl from response first, fallback to URL param
           const finalRedirect = res.redirectUrl
             ? decodeURIComponent(res.redirectUrl)

@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { formatPhone } from '@/components/phone-input/utils.ts';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
-import { setGlobalCredential } from '@/page/user/util';
+import { setGlobalCredential, setLastLoginMethod } from '@/page/user/util';
 
 import { OtpInput } from './components/otp-input';
 import MetaPage from './meta';
@@ -79,6 +79,7 @@ export default function VerifyOtpPage() {
         }
       );
       setGlobalCredential(response.id, response.access_token);
+      setLastLoginMethod('email');
 
       if (redirect) {
         location.href = decodeURIComponent(redirect);
@@ -124,6 +125,7 @@ export default function VerifyOtpPage() {
       }
 
       setGlobalCredential(response.id, response.access_token);
+      setLastLoginMethod(isPhoneVerification ? 'phone' : 'email');
 
       if (redirect) {
         location.href = decodeURIComponent(redirect);

@@ -25,7 +25,7 @@ import isEmail from '@/lib/is-email';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
 import { passwordSchema, phoneSchema } from '@/lib/validation-schemas';
-import { setGlobalCredential } from '@/page/user/util';
+import { setGlobalCredential, setLastLoginMethod } from '@/page/user/util';
 
 import type { AuthMethod, ContactMethod } from './index';
 
@@ -144,6 +144,7 @@ export function LoginForm({
       })
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
+        setLastLoginMethod('email');
         if (redirect) {
           location.href = decodeURIComponent(redirect);
         } else {
@@ -204,6 +205,7 @@ export function LoginForm({
       })
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
+        setLastLoginMethod('phone');
         if (redirect) {
           location.href = decodeURIComponent(redirect);
         } else {
