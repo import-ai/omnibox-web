@@ -22,10 +22,11 @@ const DefaultIcon = {
 };
 
 function getIconForLink(resource: ResourceMeta) {
-  if (!resource.attrs?.url) {
+  const urlString = (resource as any).url || resource.attrs?.url;
+  if (!urlString) {
     return DefaultIcon.link;
   }
-  const url: URL = new URL(resource.attrs.url);
+  const url: URL = new URL(urlString);
   const hostname = url.hostname;
   for (const [suffix, icon] of Object.entries(DOMAIN_SUFFIX_TO_ICON)) {
     if (hostname.endsWith(suffix)) {

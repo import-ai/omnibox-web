@@ -38,7 +38,7 @@ export function FooterSidebar() {
         {
           icon: <MessageCircleWarning />,
           label: t('footer.feedback'),
-          value: '/feedback',
+          value: 'https://www.omnibox.pro/community/',
         },
       ].map(item =>
         item.value === '/wechat' ? (

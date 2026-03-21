@@ -75,7 +75,7 @@ export default function Tags(props: IProps) {
 
   return (
     <div className={ATTRIBUTE_STYLES.containerStart}>
-      <div className={`min-h-7 ${ATTRIBUTE_STYLES.containerLabel}`}>
+      <div className={`min-h-5 ${ATTRIBUTE_STYLES.containerLabel}`}>
         <TagsIcon className={`flex-shrink-0 ${ATTRIBUTE_STYLES.icon}`} />
         <span className={ATTRIBUTE_STYLES.label}>
           {t('resource.attrs.tag')}
@@ -86,7 +86,7 @@ export default function Tags(props: IProps) {
           <Spinner />
         </span>
       ) : (
-        <span className="flex flex-wrap items-center text-foreground min-h-7">
+        <span className="flex flex-wrap items-center text-foreground min-h-5">
           {editing ? (
             <MultipleSelector
               creatable

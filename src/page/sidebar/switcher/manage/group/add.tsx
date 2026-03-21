@@ -1,7 +1,7 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/button';
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,10 @@ export default function CreateGroup(props: IProps) {
   return (
     <Dialog open={data.open} onOpenChange={onToggle}>
       <DialogTrigger asChild>
-        <Button size="sm" className="h-[30px] w-[71px] text-sm font-semibold">
+        <Button
+          variant="default"
+          className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+        >
           {t('manage.add')}
         </Button>
       </DialogTrigger>

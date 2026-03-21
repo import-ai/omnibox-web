@@ -3,7 +3,7 @@ import { enUS, zhCN } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/button';
 import {
   Select,
   SelectContent,
@@ -111,6 +111,13 @@ export function TaskList({ namespaceId }: TaskListProps) {
       const canceledAt = new Date(task.canceled_at);
       return t('tasks.time_canceled', {
         time: formatDistanceToNow(canceledAt, { locale, addSuffix: true }),
+      });
+    }
+
+    if (task.status === 'insufficient_quota' && task.ended_at) {
+      const endedAt = new Date(task.ended_at);
+      return t('tasks.time_insufficient_quota', {
+        time: formatDistanceToNow(endedAt, { locale, addSuffix: true }),
       });
     }
 
@@ -232,9 +239,9 @@ export function TaskList({ namespaceId }: TaskListProps) {
           )}
         </div>
         <Button
-          size="sm"
-          className="h-7 lg:h-[30px] px-2 lg:px-3 text-xs lg:text-sm font-semibold shrink-0"
+          variant="default"
           onClick={handleRefresh}
+          className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
         >
           {t('common.refresh')}
         </Button>

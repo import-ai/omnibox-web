@@ -18,6 +18,7 @@ export interface MessageAttrs {
   tools?: ChatTool[];
   enable_thinking?: boolean;
   lang?: '简体中文' | 'English';
+  error_message?: string;
 }
 
 export interface MessageDetail extends IBase {

@@ -4,6 +4,7 @@ import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
@@ -362,9 +363,21 @@ export default function Tree(props: ITreeProps) {
                       className="flex-1 min-w-0 bg-transparent outline-none text-sm caret-blue-500"
                     />
                   ) : (
-                    <span className="truncate flex-1">
-                      {data.name || t('untitled')}
-                    </span>
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <span className="truncate flex-1">
+                          {data.name || t('untitled')}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="right"
+                        sideOffset={38}
+                        className="max-w-xs break-all"
+                        showArrow
+                      >
+                        {data.name || t('untitled')}
+                      </TooltipContent>
+                    </Tooltip>
                   )}
                 </div>
               </SidebarMenuButton>

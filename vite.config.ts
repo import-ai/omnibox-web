@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         injectRegister: false,
         manifest: false,
+        workbox: {
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        },
       }),
     ],
     resolve: {
@@ -32,7 +35,12 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      chunkSizeWarningLimit: 1600,
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          experimentalMinChunkSize: 50000,
+        },
+      },
     },
     server: {
       proxy: {
@@ -50,14 +58,13 @@ export default defineConfig(({ mode }) => {
             'https://test.omnibox.pro',
           changeOrigin: true,
         },
-        '/docs': {
+        '^/(docs|community|zh-cn|product|en|_next|static)': {
           target:
             process.env.VITE_API_PATH ??
             env.VITE_API_PATH ??
             'http://127.0.0.1:8000',
           changeOrigin: true,
         },
-        // Proxy attachment routes to API
         '^/[^/]+/[^/]+/attachments/[^/]+$': {
           target:
             process.env.VITE_API_PATH ??

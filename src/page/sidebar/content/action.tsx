@@ -66,7 +66,7 @@ export default function Action(props: ISidebarProps) {
     setCreateFolderOpen(true);
   };
   const handleConfirmCreateFolder = (folderName: string) => {
-    onCreate(spaceType, data.id, 'folder', folderName);
+    return onCreate(spaceType, data.id, 'folder', folderName);
   };
   const handleEdit = () => {
     onActiveKey(data.id, true);

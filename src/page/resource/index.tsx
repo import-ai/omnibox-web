@@ -57,9 +57,10 @@ export default function ResourcePage() {
         className="flex flex-1 justify-center p-4 overflow-auto"
       >
         <div
-          className={cn('flex flex-col w-full', {
+          className={cn('flex flex-col w-full max-w-full', {
             'max-w-[680px]': !wide && (open || !large),
             'max-w-[800px]': !wide && (!open || large),
+            'max-w-7xl': wide,
           })}
         >
           <Wrapper {...props} />

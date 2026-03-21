@@ -20,7 +20,7 @@ export function TagsDisplay(props: IProps) {
     return (
       <Space
         onClick={onEdit}
-        className="flex-wrap min-h-6 cursor-pointer gap-y-4 mb-1"
+        className="flex-wrap min-h-6 cursor-pointer gap-y-4"
       >
         <Badge
           variant="outline"
@@ -39,7 +39,7 @@ export function TagsDisplay(props: IProps) {
   return (
     <Space
       onClick={onEdit}
-      className="flex-wrap min-h-6 cursor-pointer gap-y-4 mb-1"
+      className="flex-wrap min-h-6 cursor-pointer gap-y-4"
     >
       {displayedTags.map(tag => (
         <Badge
