@@ -1,12 +1,14 @@
-import { Info } from 'lucide-react';
-
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '@/components/tooltip';
 
-import { SegmentedProgressBar } from './segmented-progress-bar';
+import {
+  type QuotaProgressSegment,
+  SegmentedProgressBar,
+} from './segmented-progress-bar';
 
 export interface StorageItem {
   label: string;
@@ -18,7 +20,7 @@ export interface StorageSectionProps {
   title: string;
   current: string;
   items: StorageItem[];
-  segments: Array<{ label: string; color: string; percentage: number }>;
+  segments: QuotaProgressSegment[];
 }
 
 export function StorageSection({
@@ -36,24 +38,31 @@ export function StorageSection({
         </span>
       </div>
       <SegmentedProgressBar segments={segments} />
-      <div className="flex flex-wrap gap-7">
-        {items.map((item, idx) => (
-          <div key={idx} className="flex items-center gap-1 min-w-14">
-            <div className={`size-2 rounded-full ${item.color}`} />
-            <span className="text-sm font-medium text-muted-foreground">
-              {item.label}
-            </span>
-            {item.tooltip && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="size-3 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>{item.tooltip}</TooltipContent>
-              </Tooltip>
-            )}
-          </div>
-        ))}
-      </div>
+      <TooltipProvider delayDuration={200}>
+        <div className="flex flex-wrap gap-7">
+          {items.map((item, idx) => (
+            <div key={idx} className="flex items-center gap-1 min-w-14">
+              <div className={`size-2 rounded-full ${item.color}`} />
+              {item.tooltip ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm font-medium text-muted-foreground cursor-pointer">
+                      {item.label}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" showArrow>
+                    {item.tooltip}
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <span className="text-sm font-medium text-muted-foreground">
+                  {item.label}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </TooltipProvider>
     </div>
   );
 }

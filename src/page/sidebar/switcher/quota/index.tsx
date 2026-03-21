@@ -16,19 +16,58 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const { data } = useQuota(namespaceId);
   const showOtherMembersUsage = data.show_members_usage;
 
+  const segTooltip = (label: string, value: string) =>
+    t('quota.tooltip_format', { label, value });
+  const pageVal = (n: number) => `${n} ${t('quota.page_unit')}`;
+
   const sections = [
     {
       title: t('quota.storage_usage'),
-      current: `${formatStorage(data.storage_bytes.upload + data.storage_bytes.file + data.storage_bytes.other_users)}/${formatStorage(data.storage_bytes.total)}`,
+      current: `${formatStorage(data.storage_bytes.upload + data.storage_bytes.file + data.storage_bytes.other_users)} / ${formatStorage(data.storage_bytes.total)}`,
       items: showOtherMembersUsage
         ? [
-            { label: t('quota.upload'), color: 'bg-blue-400' },
-            { label: t('quota.file'), color: 'bg-blue-500' },
-            { label: t('quota.other_users'), color: 'bg-gray-300' },
+            {
+              label: t('quota.upload'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(
+                t('quota.upload'),
+                formatStorage(data.storage_bytes.upload)
+              ),
+            },
+            {
+              label: t('quota.file'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.file'),
+                formatStorage(data.storage_bytes.file)
+              ),
+            },
+            {
+              label: t('quota.other_users'),
+              color: 'bg-gray-300',
+              tooltip: segTooltip(
+                t('quota.other_users'),
+                formatStorage(data.storage_bytes.other_users)
+              ),
+            },
           ]
         : [
-            { label: t('quota.upload'), color: 'bg-blue-400' },
-            { label: t('quota.file'), color: 'bg-blue-500' },
+            {
+              label: t('quota.upload'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(
+                t('quota.upload'),
+                formatStorage(data.storage_bytes.upload)
+              ),
+            },
+            {
+              label: t('quota.file'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.file'),
+                formatStorage(data.storage_bytes.file)
+              ),
+            },
           ],
       segments: showOtherMembersUsage
         ? [
@@ -39,6 +78,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                 data.storage_bytes.total > 0
                   ? (data.storage_bytes.upload / data.storage_bytes.total) * 100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.upload'),
+                formatStorage(data.storage_bytes.upload)
+              ),
             },
             {
               label: t('quota.file'),
@@ -47,6 +90,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                 data.storage_bytes.total > 0
                   ? (data.storage_bytes.file / data.storage_bytes.total) * 100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.file'),
+                formatStorage(data.storage_bytes.file)
+              ),
             },
             {
               label: t('quota.other'),
@@ -57,6 +104,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                       data.storage_bytes.total) *
                     100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.other'),
+                formatStorage(data.storage_bytes.other_users)
+              ),
             },
           ]
         : [
@@ -67,6 +118,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                 data.storage_bytes.total > 0
                   ? (data.storage_bytes.upload / data.storage_bytes.total) * 100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.upload'),
+                formatStorage(data.storage_bytes.upload)
+              ),
             },
             {
               label: t('quota.file'),
@@ -75,21 +130,60 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                 data.storage_bytes.total > 0
                   ? (data.storage_bytes.file / data.storage_bytes.total) * 100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.file'),
+                formatStorage(data.storage_bytes.file)
+              ),
             },
           ],
     },
     {
       title: t('quota.audio_video_parse_usage'),
-      current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)}/${formatTimeAsMinutes(data.video_audio_parse.total)}`,
+      current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)} / ${formatTimeAsMinutes(data.video_audio_parse.total)}`,
       items: showOtherMembersUsage
         ? [
-            { label: t('quota.audio'), color: 'bg-blue-400' },
-            { label: t('quota.video'), color: 'bg-blue-500' },
-            { label: t('quota.other_users'), color: 'bg-gray-300' },
+            {
+              label: t('quota.audio'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(
+                t('quota.audio'),
+                formatTime(data.video_audio_parse.audio)
+              ),
+            },
+            {
+              label: t('quota.video'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.video'),
+                formatTime(data.video_audio_parse.video)
+              ),
+            },
+            {
+              label: t('quota.other_users'),
+              color: 'bg-gray-300',
+              tooltip: segTooltip(
+                t('quota.other_users'),
+                formatTime(data.video_audio_parse.other_users)
+              ),
+            },
           ]
         : [
-            { label: t('quota.audio'), color: 'bg-blue-400' },
-            { label: t('quota.video'), color: 'bg-blue-500' },
+            {
+              label: t('quota.audio'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(
+                t('quota.audio'),
+                formatTime(data.video_audio_parse.audio)
+              ),
+            },
+            {
+              label: t('quota.video'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.video'),
+                formatTime(data.video_audio_parse.video)
+              ),
+            },
           ],
       segments: showOtherMembersUsage
         ? [
@@ -102,6 +196,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                       data.video_audio_parse.total) *
                     100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.audio'),
+                formatTime(data.video_audio_parse.audio)
+              ),
             },
             {
               label: t('quota.video'),
@@ -112,6 +210,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                       data.video_audio_parse.total) *
                     100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.video'),
+                formatTime(data.video_audio_parse.video)
+              ),
             },
             {
               label: t('quota.other'),
@@ -122,6 +224,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                       data.video_audio_parse.total) *
                     100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.other'),
+                formatTime(data.video_audio_parse.other_users)
+              ),
             },
           ]
         : [
@@ -134,6 +240,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                       data.video_audio_parse.total) *
                     100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.audio'),
+                formatTime(data.video_audio_parse.audio)
+              ),
             },
             {
               label: t('quota.video'),
@@ -144,21 +254,54 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                       data.video_audio_parse.total) *
                     100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.video'),
+                formatTime(data.video_audio_parse.video)
+              ),
             },
           ],
     },
     {
       title: t('quota.doc_parse_usage'),
-      current: `${data.doc_parse.pdf + data.doc_parse.image + data.doc_parse.other_users}${t('quota.page_unit')}/${data.doc_parse.total}${t('quota.page_unit')}`,
+      current: `${pageVal(data.doc_parse.pdf + data.doc_parse.image + data.doc_parse.other_users)} / ${pageVal(data.doc_parse.total)}`,
       items: showOtherMembersUsage
         ? [
-            { label: t('quota.pdf'), color: 'bg-blue-400' },
-            { label: t('quota.image'), color: 'bg-blue-500' },
-            { label: t('quota.other_users'), color: 'bg-gray-300' },
+            {
+              label: t('quota.pdf'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(t('quota.pdf'), pageVal(data.doc_parse.pdf)),
+            },
+            {
+              label: t('quota.image'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.image'),
+                pageVal(data.doc_parse.image)
+              ),
+            },
+            {
+              label: t('quota.other_users'),
+              color: 'bg-gray-300',
+              tooltip: segTooltip(
+                t('quota.other_users'),
+                pageVal(data.doc_parse.other_users)
+              ),
+            },
           ]
         : [
-            { label: t('quota.pdf'), color: 'bg-blue-400' },
-            { label: t('quota.image'), color: 'bg-blue-500' },
+            {
+              label: t('quota.pdf'),
+              color: 'bg-blue-400',
+              tooltip: segTooltip(t('quota.pdf'), pageVal(data.doc_parse.pdf)),
+            },
+            {
+              label: t('quota.image'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.image'),
+                pageVal(data.doc_parse.image)
+              ),
+            },
           ],
       segments: showOtherMembersUsage
         ? [
@@ -169,6 +312,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                 data.doc_parse.total > 0
                   ? (data.doc_parse.pdf / data.doc_parse.total) * 100
                   : 0,
+              tooltip: segTooltip(t('quota.pdf'), pageVal(data.doc_parse.pdf)),
             },
             {
               label: t('quota.image'),
@@ -177,6 +321,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                 data.doc_parse.total > 0
                   ? (data.doc_parse.image / data.doc_parse.total) * 100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.image'),
+                pageVal(data.doc_parse.image)
+              ),
             },
             {
               label: t('quota.other'),
@@ -185,6 +333,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                 data.doc_parse.total > 0
                   ? (data.doc_parse.other_users / data.doc_parse.total) * 100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.other'),
+                pageVal(data.doc_parse.other_users)
+              ),
             },
           ]
         : [
@@ -195,6 +347,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                 data.doc_parse.total > 0
                   ? (data.doc_parse.pdf / data.doc_parse.total) * 100
                   : 0,
+              tooltip: segTooltip(t('quota.pdf'), pageVal(data.doc_parse.pdf)),
             },
             {
               label: t('quota.image'),
@@ -203,6 +356,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                 data.doc_parse.total > 0
                   ? (data.doc_parse.image / data.doc_parse.total) * 100
                   : 0,
+              tooltip: segTooltip(
+                t('quota.image'),
+                pageVal(data.doc_parse.image)
+              ),
             },
           ],
     },

@@ -4,12 +4,7 @@ import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import {
-  Tooltip,
-  TooltipArrow,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
@@ -377,10 +372,10 @@ export default function Tree(props: ITreeProps) {
                       <TooltipContent
                         side="right"
                         sideOffset={38}
-                        className="bg-neutral-800 text-white border-none dark:bg-neutral-700 max-w-xs break-all [&[data-state]]:animate-none"
+                        className="max-w-xs break-all"
+                        showArrow
                       >
                         {data.name || t('untitled')}
-                        <TooltipArrow className="fill-neutral-800 dark:fill-neutral-700" />
                       </TooltipContent>
                     </Tooltip>
                   )}
