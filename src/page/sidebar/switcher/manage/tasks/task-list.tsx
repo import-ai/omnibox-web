@@ -5,6 +5,12 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -12,12 +18,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { Task } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -286,11 +286,11 @@ export function TaskList({ namespaceId }: TaskListProps) {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 cursor-default text-xs font-medium text-muted-foreground md:whitespace-nowrap">
+                        <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 cursor-pointer text-xs font-medium text-muted-foreground md:whitespace-nowrap">
                           {getTimeDescription(task)}
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent side="top" className="p-2.5">
+                      <TooltipContent side="top" className="p-2.5" showArrow>
                         <div className="text-xs">
                           <div>
                             {t('tasks.task_id')}：{task.id}
