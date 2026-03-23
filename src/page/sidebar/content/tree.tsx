@@ -308,79 +308,81 @@ export default function Tree(props: ITreeProps) {
         <CollapsibleTrigger asChild>
           <ContextMenuMain {...props}>
             <div className="group/sidebar-item my-[1px] rounded-[6px] hover:bg-sidebar-accent">
-              <SidebarMenuButton
-                asChild
-                className="gap-1 py-1.5 h-auto data-[active=true]:font-normal group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637] transition-none"
-                onClick={handleClick}
-                onDoubleClick={handleDoubleClick}
-                isActive={data.id == activeKey || isEditing}
-              >
-                <div
-                  ref={ref}
-                  data-resource-id={data.id}
-                  style={dragStyle}
-                  className={cn('flex list cursor-pointer', {
-                    'pl-1': data.has_children,
-                    'pl-[28px]': !data.has_children,
-                    'bg-sidebar-accent text-sidebar-accent-foreground':
-                      (target && target.id === data.id) || isFileDragOver,
-                  })}
-                >
-                  {data.has_children &&
-                    (expanding === data.id ? (
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="size-[20px] bg-transparent shadow-none border-none hover:bg-transparent"
-                      >
-                        <Spinner />
-                      </Button>
-                    ) : (
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="size-[20px] bg-transparent shadow-none border-none text-neutral-400 hover:bg-transparent"
-                        onClick={event => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          handleExpand();
-                        }}
-                      >
-                        <Arrow className="transition-transform" />
-                      </Button>
-                    ))}
-                  <ResourceIcon expand={expand} resource={data} />
-                  {isEditing ? (
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={editName}
-                      onChange={e => setEditName(e.target.value)}
-                      onBlur={handleBlur}
-                      onKeyDown={handleKeyDown}
-                      onClick={e => e.stopPropagation()}
-                      onDoubleClick={e => e.stopPropagation()}
-                      className="flex-1 min-w-0 bg-transparent outline-none text-sm caret-blue-500"
-                    />
-                  ) : (
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger asChild>
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton
+                    asChild
+                    className="gap-1 py-1.5 h-auto data-[active=true]:font-normal group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637] transition-none"
+                    onClick={handleClick}
+                    onDoubleClick={handleDoubleClick}
+                    isActive={data.id == activeKey || isEditing}
+                  >
+                    <div
+                      ref={ref}
+                      data-resource-id={data.id}
+                      style={dragStyle}
+                      className={cn('flex list cursor-pointer', {
+                        'pl-1': data.has_children,
+                        'pl-[28px]': !data.has_children,
+                        'bg-sidebar-accent text-sidebar-accent-foreground':
+                          (target && target.id === data.id) || isFileDragOver,
+                      })}
+                    >
+                      {data.has_children &&
+                        (expanding === data.id ? (
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="size-[20px] bg-transparent shadow-none border-none hover:bg-transparent"
+                          >
+                            <Spinner />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="size-[20px] bg-transparent shadow-none border-none text-neutral-400 hover:bg-transparent"
+                            onClick={event => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              handleExpand();
+                            }}
+                          >
+                            <Arrow className="transition-transform" />
+                          </Button>
+                        ))}
+                      <ResourceIcon expand={expand} resource={data} />
+                      {isEditing ? (
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          value={editName}
+                          onChange={e => setEditName(e.target.value)}
+                          onBlur={handleBlur}
+                          onKeyDown={handleKeyDown}
+                          onClick={e => e.stopPropagation()}
+                          onDoubleClick={e => e.stopPropagation()}
+                          className="flex-1 min-w-0 bg-transparent outline-none text-sm caret-blue-500"
+                        />
+                      ) : (
                         <span className="truncate flex-1">
                           {data.name || t('untitled')}
                         </span>
-                      </TooltipTrigger>
-                      <TooltipContent
-                        side="right"
-                        sideOffset={38}
-                        className="max-w-xs break-all"
-                        showArrow
-                      >
-                        {data.name || t('untitled')}
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-              </SidebarMenuButton>
+                      )}
+                    </div>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                {!isEditing && (
+                  <TooltipContent
+                    side="right"
+                    sideOffset={8}
+                    className="max-w-xs break-all"
+                    showArrow
+                  >
+                    {data.name || t('untitled')}
+                  </TooltipContent>
+                )}
+              </Tooltip>
               <Action {...props} />
             </div>
           </ContextMenuMain>
