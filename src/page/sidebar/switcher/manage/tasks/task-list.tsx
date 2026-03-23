@@ -286,7 +286,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 cursor-default text-xs font-medium text-muted-foreground md:whitespace-nowrap">
+                        <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 cursor-pointer text-xs font-medium text-muted-foreground md:whitespace-nowrap">
                           {getTimeDescription(task)}
                         </div>
                       </TooltipTrigger>
