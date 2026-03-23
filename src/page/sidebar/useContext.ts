@@ -213,17 +213,23 @@ export default function useContext() {
       const parentIndex = data[spaceType].children.findIndex(
         item => item.id === parentId
       );
+      let parentBecameEmpty = false;
       if (parentIndex >= 0) {
         const remainingChildren = data[spaceType].children.filter(
           item => item.parent_id === parentId
         );
         data[spaceType].children[parentIndex].has_children =
           remainingChildren.length > 0;
+        parentBecameEmpty = remainingChildren.length === 0;
       }
       if (routeToActive) {
         navigate(`/${namespaceId}/${routeToActive}`);
       }
-      onExpands(expands => expands.filter(expand => expand !== id));
+      onExpands(expands =>
+        expands.filter(
+          expand => expand !== id && !(parentBecameEmpty && expand === parentId)
+        )
+      );
       onData({ ...data });
 
       // Notify trash panel to update icon
@@ -401,15 +407,21 @@ export default function useContext() {
         const parentIndex = data[spaceType].children.findIndex(
           item => item.id === parentId
         );
+        let parentBecameEmpty = false;
         if (parentIndex >= 0) {
           const remainingChildren = data[spaceType].children.filter(
             item => item.parent_id === parentId
           );
           data[spaceType].children[parentIndex].has_children =
             remainingChildren.length > 0;
+          parentBecameEmpty = remainingChildren.length === 0;
         }
 
         onData({ ...data });
+
+        if (parentBecameEmpty) {
+          onExpands(expands => expands.filter(expand => expand !== parentId));
+        }
         if (routeToActive) {
           navigate(`/${namespaceId}/${routeToActive}`);
         }
@@ -532,6 +544,7 @@ export default function useContext() {
         }
 
         // Update original parent's has_children field
+        let parentBecameEmpty = false;
         if (oldParentId) {
           if (oldParentId === data[resourceKey].id) {
             // Dragged from root, update root's has_children
@@ -539,6 +552,7 @@ export default function useContext() {
               item => item.parent_id === oldParentId && item.id !== resourceId
             );
             data[resourceKey].has_children = remainingChildren.length > 0;
+            parentBecameEmpty = remainingChildren.length === 0;
           } else {
             // Dragged from subfolder, update subfolder's has_children
             const oldParentIndex = data[resourceKey].children.findIndex(
@@ -550,6 +564,7 @@ export default function useContext() {
               );
               data[resourceKey].children[oldParentIndex].has_children =
                 remainingChildren.length > 0;
+              parentBecameEmpty = remainingChildren.length === 0;
             }
           }
         }
@@ -568,7 +583,13 @@ export default function useContext() {
           }
         }
         onData({ ...data });
-        onExpands(expands => expands.filter(expand => expand !== resourceId));
+        onExpands(expands =>
+          expands.filter(
+            expand =>
+              expand !== resourceId &&
+              !(parentBecameEmpty && expand === oldParentId)
+          )
+        );
         expandedRef.current = false;
       })
     );
