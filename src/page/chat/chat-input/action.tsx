@@ -80,13 +80,16 @@ export default function ChatAction(props: IActionProps) {
         <TooltipProvider>
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant="default"
-                className="rounded-lg size-8 bg-neutral-400 hover:bg-neutral-800"
-              >
-                <ArrowUp />
-              </Button>
+              <span className="inline-flex cursor-pointer">
+                <Button
+                  size="icon"
+                  variant="default"
+                  disabled
+                  className="rounded-lg size-8"
+                >
+                  <ArrowUp />
+                </Button>
+              </span>
             </TooltipTrigger>
             <TooltipContent>{t('chat.tips')}</TooltipContent>
           </Tooltip>

@@ -36,7 +36,7 @@ const CustomButton = React.forwardRef<
         ref={ref}
         variant={variant}
         className={cn(
-          'shadow-none bg-white  border-neutral-200 hover:bg-neutral-100 active:border-neutral-300 dark:bg-transparent dark:!border-neutral-700 dark:hover:bg-neutral-600 active:bg-neutral-200 dark:active:bg-neutral-700',
+          'shadow-none bg-white border-neutral-200 hover:bg-neutral-100 active:border-neutral-300 dark:bg-transparent dark:!border-neutral-700 dark:hover:bg-neutral-600 active:bg-neutral-200 dark:active:bg-neutral-700 disabled:opacity-100 disabled:bg-neutral-400 disabled:text-neutral-200 disabled:border-neutral-400 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-500 dark:disabled:border-neutral-700 dark:disabled:hover:bg-neutral-700',
           className
         )}
         {...rest}
@@ -51,7 +51,7 @@ const CustomButton = React.forwardRef<
         ref={ref}
         variant="default"
         className={cn(
-          'shadow-none dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100',
+          'shadow-none dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100 disabled:opacity-100 disabled:bg-neutral-400 disabled:text-neutral-200 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-500 dark:disabled:hover:bg-neutral-700',
           className
         )}
         {...rest}
