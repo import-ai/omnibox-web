@@ -15,12 +15,8 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 import Copy from '@/components/copy';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useTheme from '@/hooks/use-theme.ts';
 import Save from '@/page/chat/components/save';

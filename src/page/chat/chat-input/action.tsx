@@ -1,6 +1,12 @@
 import { ArrowUp, ChevronDown, CircleStop } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,12 +15,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {

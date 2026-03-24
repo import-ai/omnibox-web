@@ -42,9 +42,7 @@ export function SegmentedProgressBar({ segments }: SegmentedProgressBarProps) {
                   style={{ width }}
                 />
               </TooltipTrigger>
-              <TooltipContent side="top" showArrow>
-                {segment.tooltip}
-              </TooltipContent>
+              <TooltipContent side="top">{segment.tooltip}</TooltipContent>
             </Tooltip>
           );
         })}

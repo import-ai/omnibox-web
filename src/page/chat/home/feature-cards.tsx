@@ -6,6 +6,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ExtensionIcon } from '@/assets/icons/extensionIcon';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,12 +21,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
 import { IResourceData, Resource, ResourceMeta } from '@/interface';

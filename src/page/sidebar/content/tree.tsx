@@ -377,7 +377,6 @@ export default function Tree(props: ITreeProps) {
                     side="right"
                     sideOffset={8}
                     className="max-w-xs break-all"
-                    showArrow
                   >
                     {data.name || t('untitled')}
                   </TooltipContent>

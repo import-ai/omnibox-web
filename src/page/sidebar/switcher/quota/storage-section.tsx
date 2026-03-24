@@ -50,9 +50,7 @@ export function StorageSection({
                       {item.label}
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="top" showArrow>
-                    {item.tooltip}
-                  </TooltipContent>
+                  <TooltipContent side="top">{item.tooltip}</TooltipContent>
                 </Tooltip>
               ) : (
                 <span className="text-sm font-medium text-muted-foreground">

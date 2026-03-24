@@ -1,12 +1,8 @@
 import { Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 interface TrashFooterProps {
   onClearAll: () => void;

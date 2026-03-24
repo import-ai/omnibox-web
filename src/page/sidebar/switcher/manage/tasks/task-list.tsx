@@ -290,7 +290,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
                           {getTimeDescription(task)}
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent side="top" className="p-2.5" showArrow>
+                      <TooltipContent side="top" className="p-2.5">
                         <div className="text-xs">
                           <div>
                             {t('tasks.task_id')}：{task.id}

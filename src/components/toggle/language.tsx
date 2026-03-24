@@ -1,13 +1,13 @@
 import { Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '@/components/tooltip';
+import { Button } from '@/components/ui/button';
 import { http } from '@/lib/request';
 
 export function LanguageToggle() {

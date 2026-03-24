@@ -4,6 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import Space from '@/components/space';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
 import { Avatar } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -20,12 +26,6 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import useConfig from '@/hooks/use-config';
 import useNamespaces from '@/hooks/use-namespaces';
 import useProNamespaces from '@/hooks/use-pro-namespaces';

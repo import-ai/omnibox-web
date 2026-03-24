@@ -1,16 +1,16 @@
 import { CircleHelp } from 'lucide-react';
 
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '@/components/tooltip';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { useIsTouch } from '@/hooks/use-is-touch';
 import { cn } from '@/lib/utils.ts';
 

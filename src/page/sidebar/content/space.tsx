@@ -7,6 +7,12 @@ import { toast } from 'sonner';
 
 import { Input } from '@/components/input';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
+import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
@@ -27,12 +33,6 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useIsTouch } from '@/hooks/use-is-touch';
 import { IResourceData } from '@/interface';

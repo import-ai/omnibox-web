@@ -2,13 +2,9 @@ import { RiDiscordLine } from '@remixicon/react';
 import { CircleHelp, MessageCircleWarning } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import { SidebarFooter } from '@/components/ui/sidebar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { DISCORD_LINK } from '@/const';
 
 import { WechatGroupQrCode } from './QrCode';

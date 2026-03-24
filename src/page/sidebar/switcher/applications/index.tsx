@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,11 +20,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import useApplications from '@/hooks/use-applications';
 import { Application } from '@/interface';
 import { getDocsLink } from '@/lib/get-docs-link.ts';
