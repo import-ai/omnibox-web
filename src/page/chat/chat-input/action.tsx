@@ -1,13 +1,13 @@
 import { ArrowUp, ChevronDown, CircleStop } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -80,8 +80,12 @@ export default function ChatAction(props: IActionProps) {
         <TooltipProvider>
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <Button size="icon" className="rounded-lg size-8 bg-[#edeff2]">
-                <ArrowUp className="text-[#999999]" />
+              <Button
+                size="icon"
+                variant="default"
+                className="rounded-lg size-8"
+              >
+                <ArrowUp />
               </Button>
             </TooltipTrigger>
             <TooltipContent>{t('chat.tips')}</TooltipContent>
