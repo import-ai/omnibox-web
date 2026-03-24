@@ -83,7 +83,7 @@ export default function ChatAction(props: IActionProps) {
               <Button
                 size="icon"
                 variant="default"
-                className="rounded-lg size-8"
+                className="rounded-lg size-8 bg-neutral-400 hover:bg-neutral-800"
               >
                 <ArrowUp />
               </Button>
