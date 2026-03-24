@@ -15,7 +15,6 @@ import {
   SimpleIcon,
   siQuora,
   siReddit,
-  siTiktok,
   siYoutube,
   siZhihu,
 } from 'simple-icons';
@@ -23,6 +22,7 @@ import {
 import { ITHomeIcon } from '@/assets/icons/itHomeIcon.tsx';
 import { OKJikeIcon } from '@/assets/icons/okJikeIcon.tsx';
 import { RedNoteIcon } from '@/assets/icons/redNoteIcon';
+import { Tiktok } from '@/assets/icons/tiktok.tsx';
 import { WeChatIcon } from '@/assets/icons/wechatIcon';
 
 function siParser(icon: SimpleIcon) {
@@ -53,8 +53,8 @@ export const DOMAIN_SUFFIX_TO_ICON: Record<string, JSX.Element> = {
   'ithome.com': <ITHomeIcon />,
   'reddit.com': siParser(siReddit),
   'github.com': siParser(siGithub),
-  'douyin.com': siParser(siTiktok),
-  'tiktok.com': siParser(siTiktok),
+  'douyin.com': <Tiktok />,
+  'tiktok.com': <Tiktok />,
   'douban.com': siParser(siDouban),
   'youtube.com': siParser(siYoutube),
   'youtu.be': siParser(siYoutube),
