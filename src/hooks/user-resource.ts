@@ -90,7 +90,11 @@ export default function useResource() {
 
       onResource({
         ...resource,
-        ...(isCurrentResource && { name: delta.name, content: delta.content }),
+        ...(isCurrentResource && {
+          name: delta.name,
+          content: delta.content,
+          tags: delta.tags,
+        }),
         path: updatedPath,
       });
     });
