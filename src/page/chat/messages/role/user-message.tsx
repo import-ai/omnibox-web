@@ -3,13 +3,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Copy from '@/components/copy';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';

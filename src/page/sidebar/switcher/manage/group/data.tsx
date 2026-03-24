@@ -3,6 +3,7 @@ import { ChevronRight, Copy, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,11 +22,6 @@ import {
 } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { Group, Member } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';

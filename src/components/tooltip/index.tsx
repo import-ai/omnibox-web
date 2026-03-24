@@ -23,7 +23,7 @@ const TooltipContent = React.forwardRef<
     {
       className,
       sideOffset = 4,
-      showArrow = false,
+      showArrow = true,
       arrowClassName,
       children,
       ...props

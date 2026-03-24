@@ -1,7 +1,13 @@
 import { ArrowUp, ChevronDown, CircleStop } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -9,12 +15,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
@@ -80,9 +80,16 @@ export default function ChatAction(props: IActionProps) {
         <TooltipProvider>
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <Button size="icon" className="rounded-lg size-8 bg-[#edeff2]">
-                <ArrowUp className="text-[#999999]" />
-              </Button>
+              <span className="inline-flex cursor-pointer">
+                <Button
+                  size="icon"
+                  variant="default"
+                  disabled
+                  className="rounded-lg size-8"
+                >
+                  <ArrowUp />
+                </Button>
+              </span>
             </TooltipTrigger>
             <TooltipContent>{t('chat.tips')}</TooltipContent>
           </Tooltip>

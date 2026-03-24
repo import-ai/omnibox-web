@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '@/components/tooltip';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
 import Actions, { IActionProps } from '../actions';

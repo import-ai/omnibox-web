@@ -105,7 +105,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                     100
                   : 0,
               tooltip: segTooltip(
-                t('quota.other'),
+                t('quota.other_users'),
                 formatStorage(data.storage_bytes.other_users)
               ),
             },
@@ -225,7 +225,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                     100
                   : 0,
               tooltip: segTooltip(
-                t('quota.other'),
+                t('quota.other_users'),
                 formatTime(data.video_audio_parse.other_users)
               ),
             },
@@ -334,7 +334,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                   ? (data.doc_parse.other_users / data.doc_parse.total) * 100
                   : 0,
               tooltip: segTooltip(
-                t('quota.other'),
+                t('quota.other_users'),
                 pageVal(data.doc_parse.other_users)
               ),
             },

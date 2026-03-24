@@ -6,6 +6,12 @@ import { toast } from 'sonner';
 
 import { StopIcon } from '@/assets/icons/stop';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -17,12 +23,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { Task } from '@/interface.ts';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
