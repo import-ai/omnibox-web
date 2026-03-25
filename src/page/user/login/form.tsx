@@ -380,7 +380,7 @@ export function LoginForm({
                       autoComplete="email"
                       disabled={isLoading}
                       placeholder={t('form.email')}
-                      className="text-base md:text-sm"
+                      className="border-input text-base md:text-sm"
                       {...field}
                     />
                   </FormControl>
@@ -423,7 +423,7 @@ export function LoginForm({
                       autoComplete="email"
                       disabled={isLoading}
                       placeholder={t('form.email_or_username')}
-                      className="text-base md:text-sm"
+                      className="border-input text-base md:text-sm"
                       {...field}
                     />
                   </FormControl>
@@ -446,7 +446,7 @@ export function LoginForm({
                       startIcon={Lock}
                       disabled={isLoading}
                       placeholder={t('form.password')}
-                      className="text-base md:text-sm"
+                      className="border-input text-base md:text-sm"
                       {...field}
                     />
                   </FormControl>
@@ -542,7 +542,7 @@ export function LoginForm({
                       startIcon={Lock}
                       disabled={isLoading}
                       placeholder={t('form.password')}
-                      className="text-base md:text-sm"
+                      className="border-input text-base md:text-sm"
                       {...field}
                     />
                   </FormControl>

@@ -4,8 +4,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { HelpTooltip } from '@/components/help-tooltip';
+import { Input } from '@/components/input';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import {
   parseShareInfo,
@@ -99,6 +99,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
           value={shareUrl}
           placeholder={t('share.share.url_placeholder')}
           disabled={!shareUrl}
+          className="bg-popover"
         />
         <Button
           variant="outline"

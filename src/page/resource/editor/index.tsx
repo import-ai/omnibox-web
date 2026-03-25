@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import Vditor from 'vditor';
 
+import { Input } from '@/components/input';
 import { markdownPreviewConfig } from '@/components/markdown';
-import { Input } from '@/components/ui/input';
 import { VDITOR_CDN } from '@/const';
 import useTheme from '@/hooks/use-theme';
 import { Resource } from '@/interface';
@@ -204,7 +204,7 @@ export default function Editor(props: IEditorProps) {
         value={title}
         onChange={handleChange}
         placeholder="Enter title"
-        className="mb-4 p-2 border rounded"
+        className="mb-4 p-2 border rounded bg-popover"
       />
       <div ref={root} className="vditor reset-list" />
     </div>
