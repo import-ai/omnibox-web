@@ -20,14 +20,14 @@ export default function SharedResourcePage() {
 
   if (shareInfo && resource) {
     return (
-      <div className="flex justify-center h-full w-full p-4 overflow-auto">
+      <div className="flex h-full w-full min-w-0 justify-center overflow-auto p-4">
         <div
-          className={cn('flex flex-col w-full max-w-full', {
+          className={cn('flex min-w-0 w-full max-w-full flex-col', {
             'max-w-3xl': !wide,
             'max-w-7xl': wide,
           })}
         >
-          <h1 className="text-4xl font-bold mb-4 break-words">
+          <h1 className="mb-4 min-w-0 max-w-full text-4xl font-bold break-all">
             {resource.name || t('untitled')}
           </h1>
           {resource.resource_type === 'folder' ? (

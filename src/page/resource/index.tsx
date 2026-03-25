@@ -54,10 +54,10 @@ export default function ResourcePage() {
       <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
       <div
         ref={scrollContainerRef}
-        className="flex flex-1 justify-center p-4 overflow-auto"
+        className="flex min-w-0 flex-1 justify-center overflow-auto p-4"
       >
         <div
-          className={cn('flex flex-col w-full max-w-full', {
+          className={cn('flex min-w-0 w-full max-w-full flex-col', {
             'max-w-[680px]': !wide && (open || !large),
             'max-w-[800px]': !wide && (!open || large),
             'max-w-7xl': wide,
