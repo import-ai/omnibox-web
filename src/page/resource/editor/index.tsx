@@ -204,7 +204,7 @@ export default function Editor(props: IEditorProps) {
         value={title}
         onChange={handleChange}
         placeholder="Enter title"
-        className="mb-4 p-2 border rounded bg-popover"
+        className="mb-4 p-2 border rounded"
       />
       <div ref={root} className="vditor reset-list" />
     </div>

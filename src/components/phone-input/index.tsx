@@ -137,7 +137,7 @@ function PhoneNumberInput({
   return (
     <div
       className={cn(
-        'flex h-10 w-full items-center rounded-md border border-input bg-transparent transition-[color,box-shadow] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring',
+        'flex h-10 w-full items-center rounded-md border border-line bg-transparent transition-[color,box-shadow] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring',
         disabled && 'cursor-not-allowed opacity-50',
         className
       )}
@@ -155,7 +155,7 @@ function PhoneNumberInput({
             <Button
               type="button"
               variant="ghost"
-              className="h-full shrink-0 gap-1 rounded-l-md rounded-r-none border-r border-input px-2 text-sm hover:bg-accent focus-visible:ring-0"
+              className="h-full shrink-0 gap-1 rounded-l-md rounded-r-none border-r border-line px-2 text-sm hover:bg-accent focus-visible:ring-0"
             >
               <span className="text-base">{selectedCountryData.flag}</span>
               <span className="text-muted-foreground">

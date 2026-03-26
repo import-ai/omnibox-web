@@ -162,7 +162,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
                       startIcon={Mail}
                       placeholder={t('form.email')}
                       autoComplete="email"
-                      className="border-input text-base md:text-sm"
+                      className="text-base md:text-sm"
                       disabled={isLoading}
                       {...field}
                     />
