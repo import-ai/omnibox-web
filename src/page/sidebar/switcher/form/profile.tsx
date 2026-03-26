@@ -521,11 +521,7 @@ export default function ProfileForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input
-                        {...field}
-                        disabled={submitting}
-                        className="border-line"
-                      />
+                      <Input {...field} disabled={submitting} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

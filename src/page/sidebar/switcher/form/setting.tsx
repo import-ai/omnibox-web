@@ -9,6 +9,7 @@ import * as z from 'zod';
 
 import { Button } from '@/components/button';
 import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
+import { Input } from '@/components/input';
 import Loading from '@/components/loading';
 import {
   AlertDialog,
@@ -28,7 +29,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import useConfig from '@/hooks/use-config';
