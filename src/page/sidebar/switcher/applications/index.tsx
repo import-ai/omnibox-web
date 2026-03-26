@@ -40,7 +40,11 @@ function getLocalizedAppName(appId: string, t: any): string {
 }
 
 function validateAppId(appId: string): void {
-  if (appId !== 'wechat_bot' && appId !== 'qq_bot' && appId !== 'wechat_claw') {
+  if (
+    appId !== 'wechat_bot' &&
+    appId !== 'qq_bot' &&
+    appId !== 'wechat_clawbot'
+  ) {
     throw new Error(`Unsupported application type: ${appId}`);
   }
 }
@@ -50,7 +54,7 @@ function getApplicationState(application: Application): ApplicationState {
     return 'unbound';
   }
 
-  // wechat_claw uses session_key instead of verify_code
+  // wechat_clawbot uses session_key instead of verify_code
   if (
     (application.attrs?.verify_code || application.attrs?.session_key) &&
     !application.api_key_id
@@ -65,9 +69,9 @@ function getApplicationState(application: Application): ApplicationState {
   return 'unbound';
 }
 
-// Check if app uses QR code binding (wechat_claw)
+// Check if app uses QR code binding (wechat_clawbot)
 function isQRCodeBinding(appId: string): boolean {
-  return appId === 'wechat_claw';
+  return appId === 'wechat_clawbot';
 }
 
 interface ApplicationsFormProps {
@@ -120,7 +124,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         return;
       }
 
-      // Handle QR code binding (wechat_claw)
+      // Handle QR code binding (wechat_clawbot)
       if (isQRCodeBinding(application.app_id)) {
         // Check if there's already a session_key in progress
         if (application.attrs?.session_key && application.attrs?.liteapp_url) {

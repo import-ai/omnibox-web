@@ -379,7 +379,7 @@
     "app_names": {
       "wechat_bot": "WeChat Assistant",
       "qq_bot": "QQ Assistant",
-      "wechat_claw": "WeChat ClawBot"
+      "wechat_clawbot": "WeChat ClawBot"
     },
     "unsupported_app": "Unsupported application type: {{ app_id }}",
     "status": {
