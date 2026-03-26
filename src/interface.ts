@@ -94,6 +94,7 @@ export interface PathItem {
 export interface SharedResource extends ResourceMeta {
   content: string;
   attrs?: Record<string, any>;
+  tags?: TagDto[];
 }
 
 export interface Resource extends IBase {

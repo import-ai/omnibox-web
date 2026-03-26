@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import Attributes from '@/components/attributes';
 import Loading from '@/components/loading';
 import { cn, setDocumentTitle } from '@/lib/utils';
 
@@ -30,6 +31,11 @@ export default function SharedResourcePage() {
           <h1 className="mb-4 min-w-0 max-w-full text-4xl font-bold break-all">
             {resource.name || t('untitled')}
           </h1>
+          <Attributes
+            resource={resource as any}
+            namespaceId={shareInfo.id}
+            readOnly
+          />
           {resource.resource_type === 'folder' ? (
             <Folder
               resourceId={resource.id}

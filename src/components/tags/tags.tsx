@@ -15,13 +15,14 @@ interface IProps {
   data: Array<Option>;
   namespaceId: string;
   resourceId: string;
+  readOnly?: boolean;
 }
 
 const MAX_TAG_LENGTH = 20;
 const MAX_TAGS = 10;
 
 export default function Tags(props: IProps) {
-  const { data, loading, resourceId, namespaceId } = props;
+  const { data, loading, resourceId, namespaceId, readOnly } = props;
   const inputRef = useRef<any>(null);
   const { t } = useTranslation();
   const [value, onChange] = useState('');
@@ -35,6 +36,7 @@ export default function Tags(props: IProps) {
     });
   };
   const enterEdit = () => {
+    if (readOnly) return;
     onEditing(true);
     setTimeout(() => {
       inputRef.current && inputRef.current.focus();
@@ -87,7 +89,7 @@ export default function Tags(props: IProps) {
         </span>
       ) : (
         <span className="flex flex-wrap items-center text-foreground min-h-5">
-          {editing ? (
+          {editing && !readOnly ? (
             <MultipleSelector
               creatable
               ref={inputRef}

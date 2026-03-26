@@ -10,10 +10,11 @@ interface IProps {
   resource: Resource;
   namespaceId: string;
   onResource?: (resource: Resource) => void;
+  readOnly?: boolean;
 }
 
 export default function Attributes(props: IProps) {
-  const { resource, namespaceId, onResource } = props;
+  const { resource, namespaceId, onResource, readOnly } = props;
 
   if (
     resource.resource_type === 'link' &&
@@ -26,6 +27,7 @@ export default function Attributes(props: IProps) {
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
+          readOnly={readOnly}
         />
         <UrlAttribute url={resource.attrs.url} />
         {resource.created_at && (
@@ -52,6 +54,7 @@ export default function Attributes(props: IProps) {
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
+          readOnly={readOnly}
         />
         <FilenameAttribute
           filename={resource.attrs.original_name}
@@ -81,6 +84,7 @@ export default function Attributes(props: IProps) {
         data={resource.tags}
         resourceId={resource.id}
         namespaceId={namespaceId}
+        readOnly={readOnly}
       />
       {resource.created_at && (
         <CreatedTimeAttribute createdAt={resource.created_at} />
