@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 
 import { AlreadyBoundDialog } from './already-bound-dialog';
 import { BindDialog } from './bind-dialog';
+import { QRCodeBindDialog } from './qr-bind-dialog';
 
 type ApplicationState = 'unbound' | 'binding_in_progress' | 'bound';
 
@@ -39,7 +40,7 @@ function getLocalizedAppName(appId: string, t: any): string {
 }
 
 function validateAppId(appId: string): void {
-  if (appId !== 'wechat_bot' && appId !== 'qq_bot') {
+  if (appId !== 'wechat_bot' && appId !== 'qq_bot' && appId !== 'wechat_claw') {
     throw new Error(`Unsupported application type: ${appId}`);
   }
 }
@@ -49,7 +50,11 @@ function getApplicationState(application: Application): ApplicationState {
     return 'unbound';
   }
 
-  if (application.attrs?.verify_code && !application.api_key_id) {
+  // wechat_claw uses session_key instead of verify_code
+  if (
+    (application.attrs?.verify_code || application.attrs?.session_key) &&
+    !application.api_key_id
+  ) {
     return 'binding_in_progress';
   }
 
@@ -58,6 +63,11 @@ function getApplicationState(application: Application): ApplicationState {
   }
 
   return 'unbound';
+}
+
+// Check if app uses QR code binding (wechat_claw)
+function isQRCodeBinding(appId: string): boolean {
+  return appId === 'wechat_claw';
 }
 
 interface ApplicationsFormProps {
@@ -87,8 +97,10 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const [unbindingLoading, setUnbindingLoading] = useState(false);
   const [cancelingLoading, setCancelingLoading] = useState(false);
   const [bindDialogOpen, setBindDialogOpen] = useState(false);
+  const [qrBindDialogOpen, setQrBindDialogOpen] = useState(false);
   const [alreadyBoundDialogOpen, setAlreadyBoundDialogOpen] = useState(false);
   const [bindingCode, setBindingCode] = useState('');
+  const [liteappUrl, setLiteappUrl] = useState('');
   const [currentAppId, setCurrentAppId] = useState<string>('');
   const [currentBindingApplication, setCurrentBindingApplication] =
     useState<Application | null>(null);
@@ -108,6 +120,27 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         return;
       }
 
+      // Handle QR code binding (wechat_claw)
+      if (isQRCodeBinding(application.app_id)) {
+        // Check if there's already a session_key in progress
+        if (application.attrs?.session_key && application.attrs?.liteapp_url) {
+          // Use existing liteapp_url
+          setLiteappUrl(application.attrs.liteapp_url);
+          setCurrentBindingApplication(application);
+          setQrBindDialogOpen(true);
+          toast.success(t('applications.bind.continue'));
+        } else {
+          // Start new binding process
+          const response = await bindApplication(application.app_id);
+          setLiteappUrl(response.attrs?.liteapp_url || '');
+          setCurrentBindingApplication(response);
+          setQrBindDialogOpen(true);
+          toast.success(t('applications.bind.initiated'));
+        }
+        return;
+      }
+
+      // Handle code-based binding (wechat_bot, qq_bot)
       // Check if there's already a verify_code in progress
       if (application.attrs?.verify_code) {
         // Use existing verify_code
@@ -144,8 +177,10 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
 
   const handleBindingComplete = async () => {
     setBindDialogOpen(false);
+    setQrBindDialogOpen(false);
     setCurrentBindingApplication(null);
     setBindingCode('');
+    setLiteappUrl('');
     setCurrentAppId('');
     await refetch();
     toast.success(t('applications.bind.success'));
@@ -395,6 +430,16 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         open={bindDialogOpen}
         onOpenChange={setBindDialogOpen}
         bindingCode={bindingCode}
+        applicationId={currentBindingApplication?.id || ''}
+        appId={currentAppId}
+        checkApplicationStatus={checkApplicationStatus}
+        onBindingComplete={handleBindingComplete}
+      />
+
+      <QRCodeBindDialog
+        open={qrBindDialogOpen}
+        onOpenChange={setQrBindDialogOpen}
+        liteappUrl={liteappUrl}
         applicationId={currentBindingApplication?.id || ''}
         appId={currentAppId}
         checkApplicationStatus={checkApplicationStatus}
