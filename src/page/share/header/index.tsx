@@ -9,9 +9,11 @@ import {
   TooltipTrigger,
 } from '@/components/tooltip';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import { PathItem } from '@/interface';
 import { getTime } from '@/page/resource/utils';
 
 import Actions from './actions';
+import ShareBreadcrumb from './breadcrumb';
 
 interface ShareHeaderProps {
   resource?: {
@@ -20,6 +22,7 @@ interface ShareHeaderProps {
     resource_type: string;
     updated_at?: string;
     created_at?: string;
+    path?: PathItem[];
   } | null;
   wide?: boolean;
   onWide?: (wide: boolean) => void;
@@ -48,12 +51,16 @@ export default function ShareHeader({
             </Tooltip>
           </TooltipProvider>
         )}
-        <span
-          className="truncate font-normal text-sm max-w-[240px] pl-4"
-          title={resource?.name || t('untitled')}
-        >
-          {resource?.name || t('untitled')}
-        </span>
+        {resource?.path && resource.path.length > 1 ? (
+          <ShareBreadcrumb path={resource.path} />
+        ) : (
+          <span
+            className="truncate font-normal text-sm max-w-[240px] pl-4"
+            title={resource?.name || t('untitled')}
+          >
+            {resource?.name || t('untitled')}
+          </span>
+        )}
       </div>
       <div className="ml-auto pr-3 flex items-center gap-2 text-sm">
         {timeText && (
