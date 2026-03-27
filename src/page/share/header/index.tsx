@@ -10,6 +10,7 @@ import {
 } from '@/components/tooltip';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { PathItem } from '@/interface';
+import { cn } from '@/lib/utils';
 import { getTime } from '@/page/resource/utils';
 
 import Actions from './actions';
@@ -52,10 +53,17 @@ export default function ShareHeader({
           </TooltipProvider>
         )}
         {resource?.path && resource.path.length > 1 ? (
-          <ShareBreadcrumb path={resource.path} className="pl-4" />
+          <ShareBreadcrumb
+            path={resource.path}
+            className={cn({
+              'ml-2': open,
+            })}
+          />
         ) : (
           <span
-            className="truncate font-normal text-sm max-w-[240px] pl-4"
+            className={cn('truncate font-normal text-sm max-w-[240px]', {
+              'ml-2': open,
+            })}
             title={resource?.name || t('untitled')}
           >
             {resource?.name || t('untitled')}

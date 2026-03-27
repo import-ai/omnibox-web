@@ -3,6 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
+import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -13,9 +19,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 import { ChatIcon } from '@/page/sidebar/header/Chat';
 
 import SidebarItem from './sidebar-item';
@@ -44,6 +53,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
   } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { open, isMobile } = useSidebar();
 
   const [autoExpandedKeys, setAutoExpandedKeys] = useState<
     Record<string, boolean>
@@ -237,7 +247,11 @@ export default function ShareSidebar(props: SharedSidebarProps) {
     <Sidebar className="border-none">
       <SidebarHeader className="pt-[16px] gap-[10px] pr-0">
         <SidebarMenu>
-          <SidebarMenuItem>
+          <SidebarMenuItem
+            className={cn({
+              'flex justify-between items-center': open,
+            })}
+          >
             <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
               <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
                 {username.charAt(0).toUpperCase()}
@@ -246,6 +260,16 @@ export default function ShareSidebar(props: SharedSidebarProps) {
                 {t('share.share.user_share', { username })}
               </span>
             </SidebarMenuButton>
+            {open && !isMobile && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarTrigger className="text-neutral-400 hover:text-neutral-400 hover:bg-[#E6E6EC] dark:hover:bg-accent" />
+                  </TooltipTrigger>
+                  <TooltipContent>{t('sidebar.collapse')}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </SidebarMenuItem>
         </SidebarMenu>
         {showChat && (

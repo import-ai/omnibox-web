@@ -88,7 +88,7 @@ export default function Tags(props: IProps) {
           <Spinner />
         </span>
       ) : (
-        <span className="flex flex-wrap items-center text-foreground min-h-5">
+        <span className="flex flex-wrap items-center text-foreground min-h-6">
           {editing && !readOnly ? (
             <MultipleSelector
               creatable

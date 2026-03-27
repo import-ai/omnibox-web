@@ -42,7 +42,7 @@ export default function ShareBreadcrumb(props: IProps) {
   if (data.length <= 3) {
     const size = data.length - 1;
     return (
-      <Breadcrumb className={cn(className)}>
+      <Breadcrumb className={cn('ml-[-10px]', className)}>
         <BreadcrumbList className="gap-0 sm:gap-0">
           {data.map((item, index) => (
             <React.Fragment key={item.id}>
@@ -84,7 +84,7 @@ export default function ShareBreadcrumb(props: IProps) {
   const middleItems = data.slice(1, -1); // Items between root and current
 
   return (
-    <Breadcrumb className={cn(className)}>
+    <Breadcrumb className={cn('ml-[-10px]', className)}>
       <BreadcrumbList className="gap-0 sm:gap-0">
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
