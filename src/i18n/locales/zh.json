@@ -41,6 +41,7 @@
     "attrs": {
       "tag": "标签",
       "add_tag": "点击添加标签",
+      "no_tag": "无标签",
       "create_tag": "创建",
       "tag_too_long": "标签名称不能超过 {{max}} 个字符",
       "tag_limit": "标签数量不能超过 {{max}} 个",

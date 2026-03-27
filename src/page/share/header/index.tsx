@@ -52,7 +52,7 @@ export default function ShareHeader({
           </TooltipProvider>
         )}
         {resource?.path && resource.path.length > 1 ? (
-          <ShareBreadcrumb path={resource.path} />
+          <ShareBreadcrumb path={resource.path} className="pl-4" />
         ) : (
           <span
             className="truncate font-normal text-sm max-w-[240px] pl-4"

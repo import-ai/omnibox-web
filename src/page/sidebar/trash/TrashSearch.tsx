@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/input';
 
 interface TrashSearchProps {
   value: string;
@@ -19,7 +19,7 @@ export function TrashSearch({ value, onChange }: TrashSearchProps) {
         placeholder={t('trash.search_placeholder')}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="pl-9 h-9 text-sm rounded-md border-border placeholder:text-muted-foreground bg-transparent"
+        className="pl-9 h-9 text-sm rounded-md placeholder:text-muted-foreground"
       />
     </div>
   );

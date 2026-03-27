@@ -48,6 +48,25 @@ export default function Attributes(props: IProps) {
   }
 
   if (resource.resource_type === 'file' && resource.attrs?.original_name) {
+    // On the sharing page (in read-only mode), file attributes are not displayed, only tags and creation time are shown
+    if (readOnly) {
+      return (
+        <div className="space-y-2 mb-6 text-sm">
+          <Tag
+            data={resource.tags}
+            resourceId={resource.id}
+            namespaceId={namespaceId}
+            readOnly={readOnly}
+          />
+          {resource.created_at && (
+            <CreatedTimeAttribute createdAt={resource.created_at} />
+          )}
+          {resource.attrs?.metadata && (
+            <Metadata metadata={resource.attrs.metadata} />
+          )}
+        </div>
+      );
+    }
     return (
       <div className="space-y-2 mb-6 text-sm">
         <Tag

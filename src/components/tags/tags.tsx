@@ -112,7 +112,7 @@ export default function Tags(props: IProps) {
               }}
             />
           ) : (
-            <TagsDisplay data={tags} onEdit={enterEdit} />
+            <TagsDisplay data={tags} onEdit={enterEdit} readOnly={readOnly} />
           )}
         </span>
       )}
