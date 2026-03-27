@@ -7,6 +7,21 @@
   margin-left: -20px;
 }
 
+.vditor-reset table,
+.markdown-body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.vditor-reset table th,
+.vditor-reset table td,
+.markdown-body table th,
+.markdown-body table td {
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .vditor-reset pre {
     width: calc(100vw - 2rem);
