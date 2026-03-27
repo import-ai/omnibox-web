@@ -24,25 +24,40 @@ import { cn } from '@/lib/utils';
 interface IProps {
   className?: string;
   path?: PathItem[];
+  fallbackName?: string;
 }
 
 export default function ShareBreadcrumb(props: IProps) {
-  const { className, path = [] } = props;
+  const { className, path = [], fallbackName } = props;
   const navigate = useNavigate();
   const params = useParams();
   const { t } = useTranslation();
   const shareId = params.share_id;
 
-  if (path.length <= 1) {
-    return null;
-  }
   const data = path;
+
+  if (data.length <= 0) {
+    return (
+      <Breadcrumb className={cn(className)}>
+        <BreadcrumbList className="gap-0 sm:gap-0">
+          <BreadcrumbItem>
+            <BreadcrumbPage
+              title={fallbackName || t('untitled')}
+              className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+            >
+              {fallbackName || t('untitled')}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
 
   // If 3 or fewer items, display all normally
   if (data.length <= 3) {
     const size = data.length - 1;
     return (
-      <Breadcrumb className={cn('ml-[-10px]', className)}>
+      <Breadcrumb className={cn(className)}>
         <BreadcrumbList className="gap-0 sm:gap-0">
           {data.map((item, index) => (
             <React.Fragment key={item.id}>
@@ -84,7 +99,7 @@ export default function ShareBreadcrumb(props: IProps) {
   const middleItems = data.slice(1, -1); // Items between root and current
 
   return (
-    <Breadcrumb className={cn('ml-[-10px]', className)}>
+    <Breadcrumb className={cn(className)}>
       <BreadcrumbList className="gap-0 sm:gap-0">
         <BreadcrumbItem>
           <BreadcrumbLink asChild>

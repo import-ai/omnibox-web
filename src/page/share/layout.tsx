@@ -13,6 +13,7 @@ interface IProps {
     type: 'resource' | 'folder'
   ) => void;
   currentResourceId?: string;
+  currentResourcePath?: Array<{ id: string }>;
   showChat: boolean | null;
   isChatActive: boolean;
   shareInfo: PublicShareInfo;
@@ -27,6 +28,7 @@ export function ShareLayout(props: IProps) {
     isChatActive,
     showChat,
     currentResourceId,
+    currentResourcePath,
     handleAddToContext,
     resource,
     wide,
@@ -42,6 +44,7 @@ export function ShareLayout(props: IProps) {
         showChat={!!showChat}
         isChatActive={isChatActive}
         currentResourceId={currentResourceId}
+        currentResourcePath={currentResourcePath}
         isResourceActive={resourceId =>
           !isChatActive && resourceId === currentResourceId
         }

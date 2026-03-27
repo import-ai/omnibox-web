@@ -36,6 +36,7 @@ interface SharedSidebarProps {
   showChat: boolean;
   isChatActive: boolean;
   currentResourceId?: string;
+  currentResourcePath?: Array<{ id: string }>;
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
 }
@@ -48,6 +49,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
     showChat,
     isChatActive,
     currentResourceId,
+    currentResourcePath,
     isResourceActive,
     onAddToContext,
   } = props;
@@ -133,16 +135,17 @@ export default function ShareSidebar(props: SharedSidebarProps) {
           return;
         }
 
-        const resource = await http.get(
-          `/shares/${shareId}/resources/${currentResourceId}`,
-          { signal }
-        );
-
         let parentIds: string[] = [];
 
-        if (resource?.path && Array.isArray(resource.path)) {
-          parentIds = resource.path
-            .slice(0, resource.path.length - 1)
+        const hasCurrentPath =
+          Array.isArray(currentResourcePath) &&
+          currentResourcePath.length > 0 &&
+          currentResourcePath[currentResourcePath.length - 1]?.id ===
+            currentResourceId;
+
+        if (hasCurrentPath) {
+          parentIds = currentResourcePath
+            .slice(0, currentResourcePath.length - 1)
             .map((p: { id: string }) => p.id);
         } else if (
           rootResource.id !== currentResourceId &&
@@ -224,6 +227,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
     return () => abortController.abort();
   }, [
     currentResourceId,
+    currentResourcePath,
     rootResource,
     shareId,
     fetchFolderChildren,

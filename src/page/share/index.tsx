@@ -252,6 +252,7 @@ export default function SharePage() {
               isChatActive={isChatActive}
               showChat={showChat}
               currentResourceId={currentResourceId}
+              currentResourcePath={resource?.path}
               handleAddToContext={handleAddToContext}
               resource={resource}
               wide={wide}

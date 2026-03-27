@@ -52,23 +52,13 @@ export default function ShareHeader({
             </Tooltip>
           </TooltipProvider>
         )}
-        {resource?.path && resource.path.length > 1 ? (
-          <ShareBreadcrumb
-            path={resource.path}
-            className={cn({
-              'ml-2': open,
-            })}
-          />
-        ) : (
-          <span
-            className={cn('truncate font-normal text-sm max-w-[240px]', {
-              'ml-2': open,
-            })}
-            title={resource?.name || t('untitled')}
-          >
-            {resource?.name || t('untitled')}
-          </span>
-        )}
+        <ShareBreadcrumb
+          path={resource?.path}
+          fallbackName={resource?.name}
+          className={cn({
+            'ml-2': open,
+          })}
+        />
       </div>
       <div className="ml-auto pr-3 flex items-center gap-2 text-sm">
         {timeText && (
