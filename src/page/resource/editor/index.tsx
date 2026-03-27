@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import Vditor from 'vditor';
 
+import { Input } from '@/components/input';
 import { markdownPreviewConfig } from '@/components/markdown';
-import { Input } from '@/components/ui/input';
 import { VDITOR_CDN } from '@/const';
 import useTheme from '@/hooks/use-theme';
 import { Resource } from '@/interface';

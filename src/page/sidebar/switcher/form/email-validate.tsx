@@ -86,7 +86,7 @@ function EmailInputStep({
                         {...field}
                         disabled={submitting}
                         placeholder={t('email.enter_new_email')}
-                        className="h-10 w-full rounded-md border-border pr-10 text-sm font-medium"
+                        className="h-10 w-full rounded-md pr-10 text-sm font-medium"
                       />
                       {field.value && (
                         <button

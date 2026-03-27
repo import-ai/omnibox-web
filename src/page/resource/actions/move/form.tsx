@@ -95,9 +95,9 @@ export default function MoveToForm(props: IFormProps) {
     <div>
       <div className="relative mb-2">
         {loading ? (
-          <Spinner className="absolute left-3 top-[10px] opacity-50" />
+          <Spinner className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 z-10" />
         ) : (
-          <Search className="absolute left-3 top-[10px] size-4 opacity-50" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 opacity-50 z-10" />
         )}
         <LazyInput
           value={search}
