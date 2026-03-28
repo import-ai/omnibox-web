@@ -381,6 +381,11 @@
       "qq_bot": "QQ Assistant",
       "wechat_clawbot": "WeChat ClawBot"
     },
+    "scan_via": {
+      "wechat_bot": "WeChat",
+      "qq_bot": "QQ",
+      "wechat_clawbot": "WeChat"
+    },
     "unsupported_app": "Unsupported application type: {{ app_id }}",
     "status": {
       "bound": "Connected",

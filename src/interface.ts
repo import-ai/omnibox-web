@@ -327,11 +327,10 @@ export interface Task {
 }
 
 export interface ApplicationAttrs {
-  verify_code?: string;
+  key?: string;
   session_key?: string;
-  liteapp_url?: string;
+  qrcode_content?: string;
   account_id?: string;
-  binding_complete?: boolean;
 }
 
 export interface Application extends IBase {

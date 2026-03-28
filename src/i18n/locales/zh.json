@@ -382,6 +382,11 @@
       "qq_bot": " QQ 助手",
       "wechat_clawbot": "微信 ClawBot"
     },
+    "scan_via": {
+      "wechat_bot": "微信",
+      "qq_bot": "QQ",
+      "wechat_clawbot": "微信"
+    },
     "unsupported_app": "不支持的应用类型：{{ app_id }}",
     "status": {
       "bound": "已连接",

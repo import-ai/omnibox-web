@@ -54,11 +54,7 @@ function getApplicationState(application: Application): ApplicationState {
     return 'unbound';
   }
 
-  // wechat_clawbot uses session_key instead of verify_code
-  if (
-    (application.attrs?.verify_code || application.attrs?.session_key) &&
-    !application.api_key_id
-  ) {
+  if (application.attrs?.key && !application.api_key_id) {
     return 'binding_in_progress';
   }
 
@@ -104,7 +100,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const [qrBindDialogOpen, setQrBindDialogOpen] = useState(false);
   const [alreadyBoundDialogOpen, setAlreadyBoundDialogOpen] = useState(false);
   const [bindingCode, setBindingCode] = useState('');
-  const [liteappUrl, setLiteappUrl] = useState('');
+  const [qrcodeContent, setQrcodeContent] = useState('');
   const [currentAppId, setCurrentAppId] = useState<string>('');
   const [currentBindingApplication, setCurrentBindingApplication] =
     useState<Application | null>(null);
@@ -127,16 +123,19 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
       // Handle QR code binding (wechat_clawbot)
       if (isQRCodeBinding(application.app_id)) {
         // Check if there's already a session_key in progress
-        if (application.attrs?.session_key && application.attrs?.liteapp_url) {
-          // Use existing liteapp_url
-          setLiteappUrl(application.attrs.liteapp_url);
+        if (
+          application.attrs?.session_key &&
+          application.attrs?.qrcode_content
+        ) {
+          // Use existing qrcode content
+          setQrcodeContent(application.attrs.qrcode_content);
           setCurrentBindingApplication(application);
           setQrBindDialogOpen(true);
           toast.success(t('applications.bind.continue'));
         } else {
           // Start new binding process
           const response = await bindApplication(application.app_id);
-          setLiteappUrl(response.attrs?.liteapp_url || '');
+          setQrcodeContent(response.attrs?.qrcode_content || '');
           setCurrentBindingApplication(response);
           setQrBindDialogOpen(true);
           toast.success(t('applications.bind.initiated'));
@@ -146,16 +145,16 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
 
       // Handle code-based binding (wechat_bot, qq_bot)
       // Check if there's already a verify_code in progress
-      if (application.attrs?.verify_code) {
+      if (application.attrs?.key) {
         // Use existing verify_code
-        setBindingCode(application.attrs.verify_code);
+        setBindingCode(application.attrs.key);
         setCurrentBindingApplication(application);
         setBindDialogOpen(true);
         toast.success(t('applications.bind.continue'));
       } else {
         // Start new binding process
         const response = await bindApplication(application.app_id);
-        setBindingCode(response.attrs?.verify_code!);
+        setBindingCode(response.attrs?.key!);
         setCurrentBindingApplication(response);
         setBindDialogOpen(true);
         toast.success(t('applications.bind.initiated'));
@@ -184,7 +183,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     setQrBindDialogOpen(false);
     setCurrentBindingApplication(null);
     setBindingCode('');
-    setLiteappUrl('');
+    setQrcodeContent('');
     setCurrentAppId('');
     await refetch();
     toast.success(t('applications.bind.success'));
@@ -443,7 +442,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
       <QRCodeBindDialog
         open={qrBindDialogOpen}
         onOpenChange={setQrBindDialogOpen}
-        liteappUrl={liteappUrl}
+        qrcodeContent={qrcodeContent}
         applicationId={currentBindingApplication?.id || ''}
         appId={currentAppId}
         checkApplicationStatus={checkApplicationStatus}

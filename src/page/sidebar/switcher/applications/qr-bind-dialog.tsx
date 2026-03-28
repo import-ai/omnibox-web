@@ -16,7 +16,7 @@ import { useQrCode } from './use-qr-code';
 interface QRCodeBindDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  liteappUrl: string;
+  qrcodeContent: string;
   applicationId: string;
   appId: string;
   checkApplicationStatus: (applicationId: string) => Promise<any>;
@@ -26,7 +26,7 @@ interface QRCodeBindDialogProps {
 export function QRCodeBindDialog({
   open,
   onOpenChange,
-  liteappUrl,
+  qrcodeContent,
   applicationId,
   appId,
   checkApplicationStatus,
@@ -38,10 +38,10 @@ export function QRCodeBindDialog({
 
   const POLLING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
-  const platformName = t(`applications.app_names.${appId}`, {
+  const platformName = t(`applications.scan_via.${appId}`, {
     defaultValue: appId,
   });
-  const qrCodeDataUrl = useQrCode(liteappUrl, open);
+  const qrCodeDataUrl = useQrCode(qrcodeContent, open);
 
   const stopPolling = useCallback(() => {
     if (pollingIntervalRef.current) {
