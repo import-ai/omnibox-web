@@ -93,10 +93,7 @@ export default function Render(props: IProps) {
   }, [search]);
 
   return (
-    <div
-      ref={containerRef}
-      className="pb-[30vh] min-w-0 max-w-full overflow-x-auto"
-    >
+    <div ref={containerRef} className="pb-[30vh]">
       <Markdown
         style={style}
         content={embedImage(resource)}

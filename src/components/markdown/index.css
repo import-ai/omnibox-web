@@ -9,17 +9,26 @@
 
 .vditor-reset table,
 .markdown-body table {
-  display: block;
-  max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .vditor-reset table th,
 .vditor-reset table td,
 .markdown-body table th,
 .markdown-body table td {
-  white-space: nowrap;
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.vditor-reset table a,
+.vditor-reset table code,
+.markdown-body table a,
+.markdown-body table code {
+  word-break: break-all;
+  white-space: normal;
 }
 
 @media (max-width: 768px) {
