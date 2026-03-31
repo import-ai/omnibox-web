@@ -327,7 +327,10 @@ export interface Task {
 }
 
 export interface ApplicationAttrs {
-  verify_code?: string;
+  key?: string;
+  session_key?: string;
+  qrcode_content?: string;
+  account_id?: string;
 }
 
 export interface Application extends IBase {

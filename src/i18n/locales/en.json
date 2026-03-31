@@ -378,7 +378,13 @@
     "empty": "No applications found",
     "app_names": {
       "wechat_bot": "WeChat Assistant",
-      "qq_bot": "QQ Assistant"
+      "qq_bot": "QQ Assistant",
+      "wechat_clawbot": "WeChat ClawBot"
+    },
+    "scan_via": {
+      "wechat_bot": "WeChat",
+      "qq_bot": "QQ",
+      "wechat_clawbot": "WeChat"
     },
     "unsupported_app": "Unsupported application type: {{ app_id }}",
     "status": {
@@ -412,6 +418,11 @@
         },
         "success": "Binding cancelled successfully"
       }
+    },
+    "qr_bind": {
+      "description": "Scan the QR code with {{ platform_name }} to complete the binding",
+      "step1": "Scan QR Code with {{ platform_name }}",
+      "instruction": "Open {{ platform_name }} and scan the QR code above to bind your account"
     },
     "unbind": {
       "button": "Unbind",

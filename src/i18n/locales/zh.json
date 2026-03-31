@@ -379,7 +379,13 @@
     "empty": "暂无应用",
     "app_names": {
       "wechat_bot": "微信助手",
-      "qq_bot": " QQ 助手"
+      "qq_bot": " QQ 助手",
+      "wechat_clawbot": "微信 ClawBot"
+    },
+    "scan_via": {
+      "wechat_bot": "微信",
+      "qq_bot": "QQ",
+      "wechat_clawbot": "微信"
     },
     "unsupported_app": "不支持的应用类型：{{ app_id }}",
     "status": {
@@ -413,6 +419,11 @@
         },
         "success": "已成功取消绑定"
       }
+    },
+    "qr_bind": {
+      "description": "使用{{ platform_name }}扫描二维码完成绑定",
+      "step1": "使用{{ platform_name }}扫描二维码",
+      "instruction": "打开{{ platform_name }}并扫描上方二维码以绑定您的账户"
     },
     "unbind": {
       "button": "解绑",
