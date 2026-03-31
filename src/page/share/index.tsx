@@ -244,9 +244,10 @@ export default function SharePage() {
           onWide: setWide,
         }}
       >
-        {!showSidebar && <Outlet />}
-        {showSidebar && (
-          <SidebarProvider>
+        <SidebarProvider>
+          {!showSidebar ? (
+            <Outlet />
+          ) : (
             <ShareLayout
               shareInfo={shareInfo}
               isChatActive={isChatActive}
@@ -258,8 +259,8 @@ export default function SharePage() {
               wide={wide}
               onWide={setWide}
             />
-          </SidebarProvider>
-        )}
+          )}
+        </SidebarProvider>
       </ShareContext.Provider>
     );
   }
