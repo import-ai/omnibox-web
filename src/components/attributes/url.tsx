@@ -11,7 +11,7 @@ export function UrlAttribute({ url }: UrlAttributeProps) {
   const { t } = useTranslation();
 
   return (
-    <div className={ATTRIBUTE_STYLES.containerStart}>
+    <div className="grid min-w-0 grid-cols-[auto,minmax(0,1fr)] items-start gap-4">
       <div className={ATTRIBUTE_STYLES.containerLabel}>
         <Link className={`shrink-0 ${ATTRIBUTE_STYLES.icon}`} />
         <span className={ATTRIBUTE_STYLES.label}>
@@ -21,7 +21,7 @@ export function UrlAttribute({ url }: UrlAttributeProps) {
       <a
         target="_blank"
         href={url}
-        className={`max-w-[200px] sm:max-w-full break-all ${ATTRIBUTE_STYLES.value} truncate hover:underline`}
+        className={`block min-w-0 w-full truncate overflow-hidden ${ATTRIBUTE_STYLES.value} hover:underline`}
       >
         {url}
       </a>

@@ -244,21 +244,23 @@ export default function SharePage() {
           onWide: setWide,
         }}
       >
-        {!showSidebar && <Outlet />}
-        {showSidebar && (
-          <SidebarProvider>
+        <SidebarProvider>
+          {!showSidebar ? (
+            <Outlet />
+          ) : (
             <ShareLayout
               shareInfo={shareInfo}
               isChatActive={isChatActive}
               showChat={showChat}
               currentResourceId={currentResourceId}
+              currentResourcePath={resource?.path}
               handleAddToContext={handleAddToContext}
               resource={resource}
               wide={wide}
               onWide={setWide}
             />
-          </SidebarProvider>
-        )}
+          )}
+        </SidebarProvider>
       </ShareContext.Provider>
     );
   }

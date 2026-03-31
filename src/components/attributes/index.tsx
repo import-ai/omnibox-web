@@ -10,10 +10,11 @@ interface IProps {
   resource: Resource;
   namespaceId: string;
   onResource?: (resource: Resource) => void;
+  readOnly?: boolean;
 }
 
 export default function Attributes(props: IProps) {
-  const { resource, namespaceId, onResource } = props;
+  const { resource, namespaceId, onResource, readOnly } = props;
 
   if (
     resource.resource_type === 'link' &&
@@ -26,6 +27,7 @@ export default function Attributes(props: IProps) {
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
+          readOnly={readOnly}
         />
         <UrlAttribute url={resource.attrs.url} />
         {resource.created_at && (
@@ -46,12 +48,32 @@ export default function Attributes(props: IProps) {
   }
 
   if (resource.resource_type === 'file' && resource.attrs?.original_name) {
+    // On the sharing page (in read-only mode), file attributes are not displayed, only tags and creation time are shown
+    if (readOnly) {
+      return (
+        <div className="space-y-2 mb-6 text-sm">
+          <Tag
+            data={resource.tags}
+            resourceId={resource.id}
+            namespaceId={namespaceId}
+            readOnly={readOnly}
+          />
+          {resource.created_at && (
+            <CreatedTimeAttribute createdAt={resource.created_at} />
+          )}
+          {resource.attrs?.metadata && (
+            <Metadata metadata={resource.attrs.metadata} />
+          )}
+        </div>
+      );
+    }
     return (
       <div className="space-y-2 mb-6 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
+          readOnly={readOnly}
         />
         <FilenameAttribute
           filename={resource.attrs.original_name}
@@ -81,6 +103,7 @@ export default function Attributes(props: IProps) {
         data={resource.tags}
         resourceId={resource.id}
         namespaceId={namespaceId}
+        readOnly={readOnly}
       />
       {resource.created_at && (
         <CreatedTimeAttribute createdAt={resource.created_at} />

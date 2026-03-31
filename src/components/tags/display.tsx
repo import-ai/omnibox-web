@@ -9,14 +9,22 @@ import { Badge } from '@/components/ui/badge';
 interface IProps {
   data: Array<Option>;
   onEdit: () => void;
+  readOnly?: boolean;
 }
 
 export function TagsDisplay(props: IProps) {
-  const { data, onEdit } = props;
+  const { data, onEdit, readOnly } = props;
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (data.length <= 0) {
+    if (readOnly) {
+      return (
+        <span className="text-sm text-neutral-500 dark:text-neutral-400">
+          {t('resource.attrs.no_tag')}
+        </span>
+      );
+    }
     return (
       <Space
         onClick={onEdit}
@@ -38,8 +46,8 @@ export function TagsDisplay(props: IProps) {
 
   return (
     <Space
-      onClick={onEdit}
-      className="flex-wrap min-h-6 cursor-pointer gap-y-4"
+      onClick={readOnly ? undefined : onEdit}
+      className={`flex-wrap min-h-6 gap-y-4 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
     >
       {displayedTags.map(tag => (
         <Badge

@@ -9,10 +9,11 @@ interface IProps {
   data?: Array<TagDto>;
   namespaceId: string;
   resourceId: string;
+  readOnly?: boolean;
 }
 
 export default function TagsWrapper(props: IProps) {
-  const { data, resourceId, namespaceId } = props;
+  const { data, resourceId, namespaceId, readOnly } = props;
   const [tags, onTags] = useState<Array<Option>>([]);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function TagsWrapper(props: IProps) {
       loading={false}
       resourceId={resourceId}
       namespaceId={namespaceId}
+      readOnly={readOnly}
     />
   );
 }

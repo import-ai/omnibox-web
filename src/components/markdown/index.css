@@ -7,6 +7,30 @@
   margin-left: -20px;
 }
 
+.vditor-reset table,
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.vditor-reset table th,
+.vditor-reset table td,
+.markdown-body table th,
+.markdown-body table td {
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.vditor-reset table a,
+.vditor-reset table code,
+.markdown-body table a,
+.markdown-body table code {
+  word-break: break-all;
+  white-space: normal;
+}
+
 @media (max-width: 768px) {
   .vditor-reset pre {
     width: calc(100vw - 2rem);

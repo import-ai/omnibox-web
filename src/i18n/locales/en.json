@@ -41,6 +41,7 @@
     "attrs": {
       "tag": "Tag",
       "add_tag": "Add tag",
+      "no_tag": "No tags",
       "create_tag": "Create",
       "tag_too_long": "Tag name cannot exceed {{max}} characters",
       "tag_limit": "Cannot exceed {{max}} tags",

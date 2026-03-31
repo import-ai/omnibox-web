@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   Breadcrumb,
@@ -23,19 +23,35 @@ import { cn } from '@/lib/utils';
 
 interface IProps {
   className?: string;
-  namespaceId: string;
   path?: PathItem[];
+  fallbackName?: string;
 }
 
-export default function BreadcrumbMain(props: IProps) {
-  const { className, namespaceId, path = [] } = props;
+export default function ShareBreadcrumb(props: IProps) {
+  const { className, path = [], fallbackName } = props;
   const navigate = useNavigate();
+  const params = useParams();
   const { t } = useTranslation();
+  const shareId = params.share_id;
 
-  if (path.length <= 1) {
-    return null;
+  const data = path;
+
+  if (data.length <= 0) {
+    return (
+      <Breadcrumb className={cn(className)}>
+        <BreadcrumbList className="gap-0 sm:gap-0">
+          <BreadcrumbItem>
+            <BreadcrumbPage
+              title={fallbackName || t('untitled')}
+              className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+            >
+              {fallbackName || t('untitled')}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
   }
-  const data = path.slice(1); // Remove first item (root)
 
   // If 3 or fewer items, display all normally
   if (data.length <= 3) {
@@ -62,7 +78,7 @@ export default function BreadcrumbMain(props: IProps) {
                       variant="ghost"
                       className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
                       onClick={() => {
-                        navigate(`/${namespaceId}/${item.id}`);
+                        navigate(`/s/${shareId}/${item.id}`);
                       }}
                     >
                       {item.name || t('untitled')}
@@ -91,7 +107,7 @@ export default function BreadcrumbMain(props: IProps) {
               variant="ghost"
               className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
               onClick={() => {
-                navigate(`/${namespaceId}/${rootItem.id}`);
+                navigate(`/s/${shareId}/${rootItem.id}`);
               }}
             >
               {rootItem.name || t('untitled')}
@@ -110,7 +126,7 @@ export default function BreadcrumbMain(props: IProps) {
                 <DropdownMenuItem
                   key={item.id}
                   onClick={() => {
-                    navigate(`/${namespaceId}/${item.id}`);
+                    navigate(`/s/${shareId}/${item.id}`);
                   }}
                   className="cursor-pointer"
                 >
