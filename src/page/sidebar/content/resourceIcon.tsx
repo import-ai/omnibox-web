@@ -3,6 +3,7 @@ import { File, FileText, Folder, FolderOpen, Globe } from 'lucide-react';
 import { themeIcons } from 'seti-icons';
 
 import { ResourceMeta } from '@/interface';
+import { safeParseURL } from '@/lib/utils';
 import {
   DOMAIN_SUFFIX_TO_ICON,
   FILE_ICON_CONDITIONS,
@@ -26,7 +27,12 @@ function getIconForLink(resource: ResourceMeta) {
   if (!urlString) {
     return DefaultIcon.link;
   }
-  const url: URL = new URL(urlString);
+
+  const url = safeParseURL(urlString);
+  if (!url) {
+    return DefaultIcon.link;
+  }
+
   const hostname = url.hostname;
   for (const [suffix, icon] of Object.entries(DOMAIN_SUFFIX_TO_ICON)) {
     if (hostname.endsWith(suffix)) {
