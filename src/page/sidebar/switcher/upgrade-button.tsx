@@ -13,7 +13,12 @@ export function UpgradeButton() {
   const { data } = useProNamespaces();
 
   const currentNamespace = data.find(item => item.id === namespaceId);
-  if (!currentNamespace || currentNamespace.tier !== NamespaceTier.BASIC) {
+
+  if (
+    !currentNamespace ||
+    currentNamespace.tier !== NamespaceTier.BASIC ||
+    !currentNamespace.is_owner
+  ) {
     return null;
   }
 
