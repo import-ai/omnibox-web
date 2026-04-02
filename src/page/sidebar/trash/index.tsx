@@ -21,6 +21,7 @@ import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
 import { IResourceData } from '@/interface';
 import { deleteResource } from '@/lib/delete-resource';
+import { cn } from '@/lib/utils';
 
 import { ConfirmPermanentDeleteDialog } from './ConfirmPermanentDeleteDialog';
 import { TrashEmpty } from './TrashEmpty';
@@ -39,7 +40,7 @@ export function TrashPanel() {
   const [isClearAll, setIsClearAll] = useState(false);
 
   // Drag and drop to the trash can location
-  const [, drop] = useDrop(() => ({
+  const [{ isOver }, drop] = useDrop(() => ({
     accept: 'card',
     drop: async (item: IResourceData) => {
       if (!item?.id || !namespace_id) return;
@@ -55,6 +56,9 @@ export function TrashPanel() {
         // Error handling is done by http interceptor
       }
     },
+    collect: monitor => ({
+      isOver: monitor.isOver({ shallow: true }),
+    }),
   }));
 
   const {
@@ -153,16 +157,21 @@ export function TrashPanel() {
 
   return (
     <>
-      <SidebarGroup ref={drop}>
+      <SidebarGroup>
         <SidebarGroupLabel className="h-8 font-normal leading-8 text-neutral-400 pl-4">
           {t('trash.system')}
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem ref={drop}>
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
-                  <SidebarMenuButton>
+                  <SidebarMenuButton
+                    className={cn({
+                      'bg-sidebar-accent text-sidebar-accent-foreground':
+                        isOver,
+                    })}
+                  >
                     {total > 0 ? (
                       <Trash2 className="size-4 text-neutral-400" />
                     ) : (
