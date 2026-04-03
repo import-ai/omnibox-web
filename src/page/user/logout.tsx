@@ -1,3 +1,4 @@
+import { SquareArrowRightExit } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -30,8 +31,9 @@ export function Logout() {
       variant="ghost"
       loading={loading}
       onClick={handleLogout}
-      className="w-full justify-start text-muted-foreground"
+      className="w-full gap-1 justify-start text-muted-foreground px-2"
     >
+      <SquareArrowRightExit className="size-4" />
       {t('login.logout')}
     </Button>
   );

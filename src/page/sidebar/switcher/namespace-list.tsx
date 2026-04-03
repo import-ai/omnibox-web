@@ -23,7 +23,7 @@ export function NamespaceList({
         <DropdownMenuItem
           key={item.id}
           disabled={item.id === currentId}
-          className={cn('gap-2 p-2', {
+          className={cn('gap-2 px-2 py-2 rounded-[8px]', {
             'cursor-pointer': item.id !== currentId,
           })}
           onClick={() => onSelect(item)}
