@@ -27,12 +27,14 @@ interface ShareHeaderProps {
   } | null;
   wide?: boolean;
   onWide?: (wide: boolean) => void;
+  showSidebarTrigger?: boolean;
 }
 
 export default function ShareHeader({
   resource,
   wide,
   onWide,
+  showSidebarTrigger = true,
 }: ShareHeaderProps) {
   const { t, i18n } = useTranslation();
   const { open, isMobile } = useSidebar();
@@ -42,7 +44,7 @@ export default function ShareHeader({
   return (
     <header className="rounded-[16px] bg-white flex flex-wrap min-h-[48px] shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-1 sm:gap-2 px-3">
-        {(!open || isMobile) && (
+        {showSidebarTrigger && (!open || isMobile) && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
