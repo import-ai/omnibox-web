@@ -1,6 +1,8 @@
 import { Trash, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import {
   Popover,
@@ -17,6 +19,9 @@ import {
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
+import { IResourceData } from '@/interface';
+import { deleteResource } from '@/lib/delete-resource';
+import { cn } from '@/lib/utils';
 
 import { ConfirmPermanentDeleteDialog } from './ConfirmPermanentDeleteDialog';
 import { TrashEmpty } from './TrashEmpty';
@@ -28,10 +33,33 @@ import { useTrash } from './useTrash';
 export function TrashPanel() {
   const { t } = useTranslation();
   const app = useApp();
+  const { namespace_id } = useParams();
   const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [isClearAll, setIsClearAll] = useState(false);
+
+  // Drag and drop to the trash can location
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: 'card',
+    drop: async (item: IResourceData) => {
+      if (!item?.id || !namespace_id) return;
+
+      try {
+        await deleteResource({
+          id: item.id,
+          parentId: item.parent_id,
+          namespaceId: namespace_id,
+          app,
+        });
+      } catch {
+        // Error handling is done by http interceptor
+      }
+    },
+    collect: monitor => ({
+      isOver: monitor.isOver({ shallow: true }),
+    }),
+  }));
 
   const {
     items,
@@ -135,10 +163,15 @@ export function TrashPanel() {
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem ref={drop}>
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
-                  <SidebarMenuButton>
+                  <SidebarMenuButton
+                    className={cn({
+                      'bg-sidebar-accent text-sidebar-accent-foreground':
+                        isOver,
+                    })}
+                  >
                     {total > 0 ? (
                       <Trash2 className="size-4 text-neutral-400" />
                     ) : (

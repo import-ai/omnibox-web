@@ -1,18 +1,18 @@
 import axios from 'axios';
-import { ChevronRight, FileUp, MessageCircle } from 'lucide-react';
+import { ChevronRight, File, MessageCircle } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ExtensionIcon } from '@/assets/icons/extensionIcon';
+import { Button } from '@/components/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -182,7 +182,7 @@ export default function FeatureCards() {
                       className="w-24"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <FileUp className="w-4 h-4 text-red-500" />
+                      <File className="w-4 h-4 text-red-500" />
                       {t('chat.home.upload.local')}
                     </Button>
                   </TooltipTrigger>

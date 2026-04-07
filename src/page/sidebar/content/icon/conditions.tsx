@@ -11,7 +11,6 @@ import { JSX } from 'react';
 import {
   siBilibili,
   siDouban,
-  siGithub,
   SimpleIcon,
   siQuora,
   siReddit,
@@ -19,6 +18,7 @@ import {
   siZhihu,
 } from 'simple-icons';
 
+import { GithubIcon } from '@/assets/icons/githubIcon';
 import { ITHomeIcon } from '@/assets/icons/itHomeIcon.tsx';
 import { OKJikeIcon } from '@/assets/icons/okJikeIcon.tsx';
 import { RedNoteIcon } from '@/assets/icons/redNoteIcon';
@@ -52,7 +52,7 @@ export const DOMAIN_SUFFIX_TO_ICON: Record<string, JSX.Element> = {
   'okjike.com': <OKJikeIcon />,
   'ithome.com': <ITHomeIcon />,
   'reddit.com': siParser(siReddit),
-  'github.com': siParser(siGithub),
+  'github.com': <GithubIcon />,
   'douyin.com': <Tiktok />,
   'tiktok.com': <Tiktok />,
   'douban.com': siParser(siDouban),

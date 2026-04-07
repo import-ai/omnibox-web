@@ -14,7 +14,6 @@ import { Avatar } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -98,7 +97,7 @@ export function Switcher(props: IProps) {
             className="w-64 rounded-lg"
           >
             <DropdownMenuLabel>
-              <div className="flex items-center gap-2 px-1 text-left text-sm">
+              <div className="flex items-center gap-1 text-left text-sm pt-1">
                 <Avatar className="size-8 font-normal rounded-lg flex items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
                   {current.name?.charAt(0)?.toUpperCase() || '?'}
                 </Avatar>
@@ -108,18 +107,18 @@ export function Switcher(props: IProps) {
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuLabel className="pt-1 pb-0">
-              <Space>
+            <DropdownMenuLabel className="pt-0 pb-0 px-0">
+              <Space className="flex-col items-stretch gap-1">
                 <SettingButton />
                 <InviteButton namespaceId={namespaceId} />
               </Space>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="my-2" />
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
+            <DropdownMenuSeparator className="mx-0" />
+            <DropdownMenuLabel className="text-xs text-muted-foreground py-2 font-medium">
               {t('namespace.name')}
             </DropdownMenuLabel>
             <div
-              className="max-h-[35vh] overflow-y-auto overflow-x-hidden pr-1"
+              className="max-h-[35vh] overflow-y-auto overflow-x-hidden"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <NamespaceList
@@ -128,14 +127,13 @@ export function Switcher(props: IProps) {
                 onSelect={handleNamespaceSelect}
               />
             </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel className="p-0">
+            <DropdownMenuSeparator className="mx-0" />
+            <DropdownMenuLabel className="px-0 py-0">
               <Generate onCloseDropdown={() => setDropdownOpen(false)} />
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="p-0">
+            <DropdownMenuLabel className="px-0 py-0">
               <Logout />
-            </DropdownMenuItem>
+            </DropdownMenuLabel>
           </DropdownMenuContent>
         </DropdownMenu>
         {open && !isMobile && (
