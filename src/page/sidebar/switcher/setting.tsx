@@ -80,8 +80,8 @@ export function SettingButton() {
   return (
     <Button
       size="sm"
-      variant="outline"
-      className="text-muted-foreground h-7 gap-1 px-2"
+      variant="ghost"
+      className="text-muted-foreground font-medium px-2 h-8 gap-1 justify-start w-full"
       onClick={handleClick}
     >
       <Settings />
