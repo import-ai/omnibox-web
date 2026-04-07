@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -108,7 +109,15 @@ export function AssistantMessage(props: IProps) {
         className="mb-3"
       >
         <AccordionItem value={'tool_calls_' + message.id}>
-          <AccordionTrigger>{t('chat.tools.tool_calls')}</AccordionTrigger>
+          <AccordionTrigger>
+            <span>
+              {message.status !== MessageStatus.SUCCESS && (
+                <Spinner className="inline-block size-4" />
+              )}
+              &nbsp;
+              {t('chat.tools.tool_calls')}
+            </span>
+          </AccordionTrigger>
           <AccordionContent className="text-gray-500 dark:text-gray-400">
             <ul>
               {openAIMessage.tool_calls.map((toolCall, index) => {
@@ -126,7 +135,12 @@ export function AssistantMessage(props: IProps) {
                 return (
                   <li key={'tool_call_' + toolCall.id + '_' + index}>
                     <pre>
-                      {toolMessage === undefined && <Spinner />}
+                      {toolMessage === undefined ? (
+                        <Spinner className="inline-block size-4" />
+                      ) : (
+                        <Check className="inline-block size-4" />
+                      )}
+                      &nbsp;
                       <b>{toolCall.function.name}</b> {args}
                     </pre>
                   </li>

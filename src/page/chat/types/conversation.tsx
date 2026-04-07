@@ -13,19 +13,12 @@ export interface ConversationSummary extends IBase {
   assistant_content?: string;
 }
 
-export interface ToolCallMeta {
-  tool_call_id: string;
-  tool_name: string;
-  tool_call_args: Record<string, any>;
-}
-
 export interface MessageAttrs {
   citations?: Citation[];
   tools?: ChatTool[];
   enable_thinking?: boolean;
   lang?: '简体中文' | 'English';
   error_message?: string;
-  tool_call_meta?: ToolCallMeta;
 }
 
 export interface MessageDetail extends IBase {
