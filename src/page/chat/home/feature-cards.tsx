@@ -6,13 +6,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ExtensionIcon } from '@/assets/icons/extensionIcon';
+import { Button } from '@/components/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -163,7 +163,7 @@ export default function FeatureCards() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="opacity-50 w-24 bg-white border-neutral-200 shadow-none dark:bg-background dark:border-input"
+                      className="opacity-50 w-24"
                     >
                       <Spinner className="text-red-500" />
                       {t('chat.home.upload.local')}
@@ -179,7 +179,7 @@ export default function FeatureCards() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-24 bg-white border-neutral-200 shadow-none dark:bg-background dark:border-input"
+                      className="w-24"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <File className="w-4 h-4 text-red-500" />
@@ -196,7 +196,7 @@ export default function FeatureCards() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-24 bg-white border-neutral-200 shadow-none dark:bg-background dark:border-input"
+                    className="w-24"
                     onClick={handleWeChatClick}
                   >
                     <MessageCircle className="w-4 h-4 text-green-500" />
@@ -212,7 +212,7 @@ export default function FeatureCards() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-24 bg-white border-neutral-200 shadow-none dark:bg-background dark:border-input"
+                    className="w-24"
                     onClick={handleBrowserClick}
                   >
                     <ExtensionIcon />
