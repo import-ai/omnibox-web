@@ -1,4 +1,3 @@
-import { Loader2Icon } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
@@ -30,6 +29,19 @@ interface IProps {
   messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
   isLastMessage: boolean;
+}
+
+function trimMiddle(str: string, maxLength: number = 20): string {
+  if (str.length <= maxLength) return str;
+
+  const ellipsis = '...';
+  const charsToShow = maxLength - ellipsis.length;
+
+  const front = Math.ceil(charsToShow / 2);
+  const back = Math.floor(charsToShow / 2);
+
+  const trimmed = str.slice(0, front) + ellipsis + str.slice(str.length - back);
+  return trimmed.replaceAll('\n', ' ');
 }
 
 export function AssistantMessage(props: IProps) {
@@ -54,11 +66,11 @@ export function AssistantMessage(props: IProps) {
       <Accordion
         type="single"
         collapsible
-        key="reasoning"
-        defaultValue={message.id}
+        key={'reasoning_' + message.id}
+        defaultValue={'reasoning_' + message.id}
         className="mb-3"
       >
-        <AccordionItem value={message.id}>
+        <AccordionItem value={'reasoning_' + message.id}>
           <AccordionTrigger>{t('chat.tools.reasoning')}</AccordionTrigger>
           <AccordionContent className="text-gray-500 dark:text-gray-400">
             {openAIMessage.reasoning_content?.trim()}
@@ -87,23 +99,43 @@ export function AssistantMessage(props: IProps) {
     );
   }
   if (openAIMessage.tool_calls) {
-    const lastMessage = messages[messages.length - 1];
     domList.push(
-      <div
-        key="tool-calls"
-        hidden={
-          lastMessage.id !== message.id &&
-          !(
-            lastMessage.message.role === OpenAIMessageRole.TOOL &&
-            lastMessage.status === MessageStatus.PENDING
-          )
-        }
+      <Accordion
+        type="single"
+        collapsible
+        key={'tool_calls' + message.id}
+        defaultValue={'tool_calls_' + message.id}
+        className="mb-3"
       >
-        <Button disabled size="sm" variant="secondary">
-          <Loader2Icon className="animate-spin" />
-          {t('chat.searching')}
-        </Button>
-      </div>
+        <AccordionItem value={'tool_calls_' + message.id}>
+          <AccordionTrigger>{t('chat.tools.tool_calls')}</AccordionTrigger>
+          <AccordionContent className="text-gray-500 dark:text-gray-400">
+            <ul>
+              {openAIMessage.tool_calls.map((toolCall, index) => {
+                const args: string = Object.values(
+                  JSON.parse(toolCall.function.arguments)
+                )
+                  .map(v => `"${trimMiddle(v as string)}"`)
+                  .join(' ');
+                const toolMessage = messages.find(
+                  m =>
+                    m.message.role === OpenAIMessageRole.TOOL &&
+                    m.message.tool_call_id === toolCall.id &&
+                    m.status === MessageStatus.SUCCESS
+                );
+                return (
+                  <li key={'tool_call_' + toolCall.id + '_' + index}>
+                    <pre>
+                      {toolMessage === undefined && <Spinner />}
+                      <b>{toolCall.function.name}</b> {args}
+                    </pre>
+                  </li>
+                );
+              })}
+            </ul>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     );
   }
   return domList.length === 1 ? domList[0] : domList;

@@ -584,7 +584,8 @@
     "tools": {
       "web_search": "Web Search",
       "private_search": "OmniBox",
-      "reasoning": "Reasoning"
+      "reasoning": "Reasoning",
+      "tool_calls": "Tool Calls"
     },
     "textarea": {
       "placeholder": "Ask anything"

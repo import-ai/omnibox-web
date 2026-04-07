@@ -585,7 +585,8 @@
     "tools": {
       "web_search": "联网搜索",
       "private_search": "本地搜索",
-      "reasoning": "深度思考"
+      "reasoning": "深度思考",
+      "tool_calls": "工具调用"
     },
     "textarea": {
       "placeholder": "随便问点什么吧"
