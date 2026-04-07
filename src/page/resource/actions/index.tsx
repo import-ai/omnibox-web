@@ -146,14 +146,10 @@ export default function Actions(props: IActionProps) {
         return;
       }
       onLoading('move_to_trash');
-      const isCurrentResource = location.pathname.includes(
-        `/${namespaceId}/${resource.id}`
-      );
       deleteResource({
         id: resource.id,
         parentId: resource.parent_id,
         namespaceId,
-        isCurrentResource,
         onSuccess: () => setOpen(false),
       }).finally(() => {
         onLoading('');

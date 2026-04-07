@@ -9,6 +9,7 @@ import { showActionToast } from '@/components/sonner';
 import { useSidebar } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
 import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
+import { deleteResource } from '@/lib/delete-resource';
 import each from '@/lib/each';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
@@ -202,51 +203,8 @@ export default function useContext() {
   };
 
   const handleDelete = (spaceType: SpaceType, id: string, parentId: string) => {
-    http.delete(`/namespaces/${namespaceId}/resources/${id}`).then(() => {
-      const routeToActive =
-        id === resourceId ? getRouteToActive(spaceType, id, parentId) : '';
-      data[spaceType].children = data[spaceType].children.filter(
-        node => ![node.id, node.parent_id].includes(id)
-      );
-
-      // Update parent's has_children field
-      const parentIndex = data[spaceType].children.findIndex(
-        item => item.id === parentId
-      );
-      let parentBecameEmpty = false;
-      if (parentIndex >= 0) {
-        const remainingChildren = data[spaceType].children.filter(
-          item => item.parent_id === parentId
-        );
-        data[spaceType].children[parentIndex].has_children =
-          remainingChildren.length > 0;
-        parentBecameEmpty = remainingChildren.length === 0;
-      }
-      if (routeToActive) {
-        navigate(`/${namespaceId}/${routeToActive}`);
-      }
-      onExpands(expands =>
-        expands.filter(
-          expand => expand !== id && !(parentBecameEmpty && expand === parentId)
-        )
-      );
-      onData({ ...data });
-
-      // Notify trash panel to update icon
-      app.fire('trash_updated');
-
-      showActionToast(t('resource.moved_to_trash'), {
-        actionLabel: t('undo'),
-        onAction: () => {
-          http
-            .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
-            .then(response => {
-              activeRoute(spaceType, parentId, response);
-              app.fire('trash_updated');
-            });
-        },
-      });
-    });
+    // Navigation is handled by delete_resource event handler
+    deleteResource({ id, parentId, namespaceId, app });
   };
 
   const activeRoute = (
@@ -422,9 +380,23 @@ export default function useContext() {
         if (parentBecameEmpty) {
           onExpands(expands => expands.filter(expand => expand !== parentId));
         }
+
         if (routeToActive) {
           navigate(`/${namespaceId}/${routeToActive}`);
         }
+
+        // Show toast notification for all delete operations
+        showActionToast(t('resource.moved_to_trash'), {
+          actionLabel: t('undo'),
+          onAction: () => {
+            http
+              .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
+              .then(response => {
+                activeRoute(spaceType, parentId, response);
+                app.fire('trash_updated');
+              });
+          },
+        });
       })
     );
     hooks.push(
@@ -606,7 +578,7 @@ export default function useContext() {
         destroy();
       });
     };
-  }, [data]);
+  }, [data, resourceId]);
 
   useEffect(() => {
     return app.on('move_resource_start', () => {
