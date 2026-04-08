@@ -2,7 +2,7 @@ import axios, { AxiosError, CancelTokenSource } from 'axios';
 import { t } from 'i18next';
 import Cookies from 'js-cookie';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import DeleteIcon from '@/assets/deleteIcon.png';
 import Loading from '@/components/loading';
@@ -245,21 +245,18 @@ export default function SharePage() {
         }}
       >
         <SidebarProvider>
-          {!showSidebar ? (
-            <Outlet />
-          ) : (
-            <ShareLayout
-              shareInfo={shareInfo}
-              isChatActive={isChatActive}
-              showChat={showChat}
-              currentResourceId={currentResourceId}
-              currentResourcePath={resource?.path}
-              handleAddToContext={handleAddToContext}
-              resource={resource}
-              wide={wide}
-              onWide={setWide}
-            />
-          )}
+          <ShareLayout
+            shareInfo={shareInfo}
+            isChatActive={isChatActive}
+            showChat={showChat}
+            currentResourceId={currentResourceId}
+            currentResourcePath={resource?.path}
+            handleAddToContext={handleAddToContext}
+            resource={resource}
+            wide={wide}
+            onWide={setWide}
+            showSidebar={showSidebar}
+          />
         </SidebarProvider>
       </ShareContext.Provider>
     );

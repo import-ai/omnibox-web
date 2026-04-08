@@ -20,6 +20,7 @@ interface IProps {
   resource?: SharedResource | null;
   wide?: boolean;
   onWide?: (wide: boolean) => void;
+  showSidebar?: boolean;
 }
 
 export function ShareLayout(props: IProps) {
@@ -33,27 +34,35 @@ export function ShareLayout(props: IProps) {
     resource,
     wide,
     onWide,
+    showSidebar = true,
   } = props;
 
   return (
     <>
-      <ShareSidebar
-        shareId={shareInfo.id}
-        rootResource={shareInfo.resource}
-        username={shareInfo.username}
-        showChat={!!showChat}
-        isChatActive={isChatActive}
-        currentResourceId={currentResourceId}
-        currentResourcePath={currentResourcePath}
-        isResourceActive={resourceId =>
-          !isChatActive && resourceId === currentResourceId
-        }
-        onAddToContext={handleAddToContext}
-      />
+      {showSidebar && (
+        <ShareSidebar
+          shareId={shareInfo.id}
+          rootResource={shareInfo.resource}
+          username={shareInfo.username}
+          showChat={!!showChat}
+          isChatActive={isChatActive}
+          currentResourceId={currentResourceId}
+          currentResourcePath={currentResourcePath}
+          isResourceActive={resourceId =>
+            !isChatActive && resourceId === currentResourceId
+          }
+          onAddToContext={handleAddToContext}
+        />
+      )}
       <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)]">
         {!isChatActive && (
           <>
-            <Header resource={resource} wide={wide} onWide={onWide} />
+            <Header
+              resource={resource}
+              wide={wide}
+              onWide={onWide}
+              showSidebarTrigger={showSidebar}
+            />
             <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
           </>
         )}

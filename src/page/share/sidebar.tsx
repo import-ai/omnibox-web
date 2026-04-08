@@ -36,7 +36,6 @@ interface SharedSidebarProps {
   showChat: boolean;
   isChatActive: boolean;
   currentResourceId?: string;
-  currentResourcePath?: Array<{ id: string }>;
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
 }
@@ -49,7 +48,6 @@ export default function ShareSidebar(props: SharedSidebarProps) {
     showChat,
     isChatActive,
     currentResourceId,
-    currentResourcePath,
     isResourceActive,
     onAddToContext,
   } = props;
@@ -66,6 +64,10 @@ export default function ShareSidebar(props: SharedSidebarProps) {
   const [childrenVersion, setChildrenVersion] = useState(0);
   const loadedChildrenRef = useRef<Record<string, ResourceMeta[]>>({});
   const expandedFoldersRef = useRef(expandedFolders);
+  const pendingRequests = useRef<Map<string, Promise<ResourceMeta[]>>>(
+    new Map()
+  );
+  const hasAutoExpandedRef = useRef<Record<string, boolean>>({});
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -95,17 +97,25 @@ export default function ShareSidebar(props: SharedSidebarProps) {
       const cached = loadedChildrenRef.current[folderId];
       if (cached) return cached;
 
-      try {
-        const data = await http.get(
-          `/shares/${shareId}/resources/${folderId}/children`
-        );
-        const children = data || [];
-        loadedChildrenRef.current[folderId] = children;
-        setChildrenVersion(v => v + 1);
-        return children;
-      } catch {
-        return [];
-      }
+      const pending = pendingRequests.current.get(folderId);
+      if (pending) return pending;
+
+      const promise = http
+        .get(`/shares/${shareId}/resources/${folderId}/children`)
+        .then(data => {
+          const children = data || [];
+          loadedChildrenRef.current[folderId] = children;
+          setChildrenVersion(v => v + 1);
+          pendingRequests.current.delete(folderId);
+          return children;
+        })
+        .catch(() => {
+          pendingRequests.current.delete(folderId);
+          return [];
+        });
+
+      pendingRequests.current.set(folderId, promise);
+      return promise;
     },
     [shareId]
   );
@@ -116,122 +126,72 @@ export default function ShareSidebar(props: SharedSidebarProps) {
   );
 
   useEffect(() => {
-    if (!currentResourceId || !rootResource) {
+    if (!rootResource.has_children) {
       return;
     }
 
-    const autoExpandKey = `${shareId}:${currentResourceId}`;
-    if (autoExpandedKeys[autoExpandKey]) {
+    if (hasAutoExpandedRef.current[shareId]) {
       return;
     }
 
     const abortController = new AbortController();
-    const signal = abortController.signal;
+    const { signal } = abortController;
 
     (async () => {
-      try {
-        if (rootResource.id === currentResourceId) {
-          setAutoExpandedKeys(prev => ({ ...prev, [autoExpandKey]: true }));
-          return;
-        }
+      hasAutoExpandedRef.current[shareId] = true;
 
-        let parentIds: string[] = [];
+      const allFolderIds = new Set<string>();
+      let currentLevel: string[] = [rootResource.id];
 
-        const hasCurrentPath =
-          Array.isArray(currentResourcePath) &&
-          currentResourcePath.length > 0 &&
-          currentResourcePath[currentResourcePath.length - 1]?.id ===
-            currentResourceId;
-
-        if (hasCurrentPath) {
-          parentIds = currentResourcePath
-            .slice(0, currentResourcePath.length - 1)
-            .map((p: { id: string }) => p.id);
-        } else if (
-          rootResource.id !== currentResourceId &&
-          rootResource.has_children
-        ) {
-          const searchedFolderIds = new Set<string>();
-
-          const findPathToResource = async (
-            folderId: string,
-            targetId: string,
-            currentPath: string[] = []
-          ): Promise<string[] | null> => {
-            if (searchedFolderIds.has(folderId) || signal.aborted) {
-              return null;
-            }
-            searchedFolderIds.add(folderId);
-
-            const children = await fetchFolderChildren(folderId);
-
-            for (const child of children) {
-              if (child.id === targetId) {
-                return currentPath;
-              }
-              if (child.has_children) {
-                const result = await findPathToResource(child.id, targetId, [
-                  ...currentPath,
-                  child.id,
-                ]);
-                if (result) {
-                  return result;
-                }
-              }
-            }
-            return null;
-          };
-
-          const path = await findPathToResource(
-            rootResource.id,
-            currentResourceId
-          );
-          if (path) {
-            parentIds = path;
-          }
-        }
-
-        if (
-          rootResource.id !== currentResourceId &&
-          rootResource.has_children &&
-          !parentIds.includes(rootResource.id)
-        ) {
-          parentIds = [rootResource.id, ...parentIds];
-        }
-
-        if (parentIds.length === 0) {
-          parentIds = [rootResource.id];
-        }
-
-        await Promise.all(parentIds.map(id => fetchFolderChildren(id)));
-
-        const addedNewFolders = parentIds.some(
-          id => !expandedFoldersRef.current.has(id)
+      while (currentLevel.length > 0 && !signal.aborted) {
+        const results = await Promise.all(
+          currentLevel.map(id => fetchFolderChildren(id))
         );
 
-        setExpandedFolders(prev => {
-          const newSet = new Set(prev);
-          parentIds.forEach(id => newSet.add(id));
-          return newSet;
-        });
-        setAutoExpandedKeys(prev => ({ ...prev, [autoExpandKey]: true }));
+        const nextLevel: string[] = [];
 
-        if (addedNewFolders) {
-          queueMicrotask(() => scrollToResource(currentResourceId));
-        }
-      } catch {
-        setAutoExpandedKeys(prev => ({ ...prev, [autoExpandKey]: true }));
+        results.forEach((children, index) => {
+          const folderId = currentLevel[index];
+          allFolderIds.add(folderId);
+
+          for (const child of children) {
+            if (child.has_children && !allFolderIds.has(child.id)) {
+              nextLevel.push(child.id);
+            }
+          }
+        });
+
+        currentLevel = nextLevel;
       }
+
+      if (signal.aborted) return;
+
+      setExpandedFolders(prev => {
+        const next = new Set(prev);
+        allFolderIds.forEach(id => next.add(id));
+        return next;
+      });
+
+      if (!currentResourceId) return;
+
+      const autoExpandKey = `${shareId}:${currentResourceId}`;
+      if (autoExpandedKeys[autoExpandKey]) return;
+
+      setAutoExpandedKeys(prev => ({ ...prev, [autoExpandKey]: true }));
+
+      // Wait for DOM update then scroll
+      queueMicrotask(() => scrollToResource(currentResourceId));
     })();
 
     return () => abortController.abort();
   }, [
-    currentResourceId,
-    currentResourcePath,
-    rootResource,
     shareId,
+    rootResource.id,
+    rootResource.has_children,
+    currentResourceId,
     fetchFolderChildren,
     scrollToResource,
+    autoExpandedKeys,
   ]);
 
   const handleToggleFolder = (folderId: string) => {
