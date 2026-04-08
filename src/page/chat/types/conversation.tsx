@@ -19,6 +19,11 @@ export interface MessageAttrs {
   enable_thinking?: boolean;
   lang?: '简体中文' | 'English';
   error_message?: string;
+  context?: Record<string, any>;
+  tool_call?: {
+    success: boolean;
+    error?: string;
+  };
 }
 
 export interface MessageDetail extends IBase {

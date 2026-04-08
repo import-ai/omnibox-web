@@ -147,7 +147,7 @@ export default function useContext() {
     } = extractOriginalMessageSettings(parentMessage, {
       tools,
       context,
-      lang: getWizardLang(i18n),
+      lang: getWizardLang(i18n) || '简体中文',
     });
 
     setLoading(true);
@@ -185,7 +185,7 @@ export default function useContext() {
     } = extractOriginalMessageSettings(editedMessage, {
       tools,
       context,
-      lang: getWizardLang(i18n),
+      lang: getWizardLang(i18n) || '简体中文',
     });
 
     setLoading(true);

@@ -535,6 +535,25 @@
         "edit": "Edit message",
         "save_edit": "Save",
         "cancel_edit": "Cancel"
+      },
+      "tool_calls": {
+        "function_name": {
+          "write_todos": "TODO",
+          "ls": "List files",
+          "read_file": "Read file",
+          "edit_file": "Edit file",
+          "write_file": "Create file",
+          "glob": "Glob",
+          "grep": "Grep",
+          "task": "Task",
+          "resource_filter": "Resource Filter",
+          "resource_search": "Resource Search",
+          "web_search": "Web Search"
+        },
+        "function_args": {
+          "private": "private",
+          "teamspace": "teamspace"
+        }
       }
     },
     "conversations": {

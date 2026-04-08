@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -30,6 +30,18 @@ interface IProps {
   messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
   isLastMessage: boolean;
+}
+
+function pathI18n(
+  path: string,
+  mapping: { private: string; teamspace: string }
+): string {
+  for (const [key, value] of Object.entries(mapping)) {
+    if (path.startsWith('/' + key)) {
+      return '/' + value + path.slice(key.length + 1);
+    }
+  }
+  return path;
 }
 
 function trimMiddle(str: string, maxLength: number = 20): string {
@@ -124,7 +136,20 @@ export function AssistantMessage(props: IProps) {
                 const args: string = Object.values(
                   JSON.parse(toolCall.function.arguments)
                 )
-                  .map(v => `"${trimMiddle(v as string)}"`)
+                  .map(v => {
+                    const vStr = `${v}`;
+                    const processedV = trimMiddle(
+                      pathI18n(vStr, {
+                        private: t(
+                          'chat.messages.tool_calls.function_args.private'
+                        ),
+                        teamspace: t(
+                          'chat.messages.tool_calls.function_args.teamspace'
+                        ),
+                      })
+                    );
+                    return `"${processedV}"`;
+                  })
                   .join(' ');
                 const toolMessage = messages.find(
                   m =>
@@ -132,16 +157,22 @@ export function AssistantMessage(props: IProps) {
                     m.message.tool_call_id === toolCall.id &&
                     m.status === MessageStatus.SUCCESS
                 );
+                const functionName = t(
+                  `chat.messages.tool_calls.function_name.${toolCall.function.name}`
+                );
+                const toolCallMeta = toolMessage?.attrs?.tool_call;
                 return (
                   <li key={'tool_call_' + toolCall.id + '_' + index}>
                     <pre>
                       {toolMessage === undefined ? (
                         <Spinner className="inline-block size-4" />
+                      ) : toolCallMeta?.success ? (
+                        <Check className="inline-block size-4 text-green-600" />
                       ) : (
-                        <Check className="inline-block size-4" />
+                        <X className="inline-block size-4 text-red-600" />
                       )}
                       &nbsp;
-                      <b>{toolCall.function.name}</b> {args}
+                      <b>{t(functionName)}</b> {args}
                     </pre>
                   </li>
                 );
