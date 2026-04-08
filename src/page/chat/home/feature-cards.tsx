@@ -118,7 +118,7 @@ export default function FeatureCards() {
       tab: 'applications',
       autoAction: {
         type: 'bind' as const,
-        appId: 'wechat_bot',
+        appId: 'wechat_clawbot',
       },
     });
   };
