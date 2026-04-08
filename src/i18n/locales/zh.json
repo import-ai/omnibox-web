@@ -833,6 +833,9 @@
     "days_remaining": "剩余 {{days}} 天（{{date}} 到期）",
     "page_unit": "页",
     "tooltip_format": "{{label}}：{{value}}",
+    "basic_plan": "基础版：",
+    "premium_plan": "高级版：",
+    "onetime_pack": "加油包：",
     "time": {
       "seconds": "秒",
       "minutes": "分钟",

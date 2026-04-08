@@ -19,6 +19,7 @@ export interface StorageItem {
 export interface StorageSectionProps {
   title: string;
   current: string;
+  currentTooltip?: React.ReactNode;
   items: StorageItem[];
   segments: QuotaProgressSegment[];
 }
@@ -26,6 +27,7 @@ export interface StorageSectionProps {
 export function StorageSection({
   title,
   current,
+  currentTooltip,
   items,
   segments,
 }: StorageSectionProps) {
@@ -33,9 +35,22 @@ export function StorageSection({
     <div className="space-y-1">
       <div className="flex justify-between items-center">
         <h2 className="text-sm font-medium text-foreground">{title}</h2>
-        <span className="text-sm font-medium text-muted-foreground">
-          {current}
-        </span>
+        {currentTooltip ? (
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-sm font-medium text-muted-foreground cursor-pointer">
+                  {current}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">{currentTooltip}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <span className="text-sm font-medium text-muted-foreground">
+            {current}
+          </span>
+        )}
       </div>
       <SegmentedProgressBar segments={segments} />
       <TooltipProvider delayDuration={200}>
