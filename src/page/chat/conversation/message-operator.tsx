@@ -96,11 +96,9 @@ export function createMessageOperator(
         }
 
         message.status = MessageStatus.STREAMING;
-        if (delta.attrs && delta.attrs.citations) {
-          message.attrs = {
-            ...(message.attrs || {}),
-            citations: delta.attrs.citations,
-          };
+        if (delta.attrs) {
+          message.attrs = message.attrs || {};
+          Object.assign(message.attrs, delta.attrs);
         }
 
         const newMapping = { ...prev.mapping, [id]: message };
