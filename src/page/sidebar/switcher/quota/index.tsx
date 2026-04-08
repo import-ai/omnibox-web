@@ -20,10 +20,42 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
     t('quota.tooltip_format', { label, value });
   const pageVal = (n: number) => `${n} ${t('quota.page_unit')}`;
 
+  const isPremium = !!data.basic.expire_date;
+  const subscriptionLabel = isPremium
+    ? t('quota.premium_plan')
+    : t('quota.basic_plan');
+
+  const buildTotalTooltip = (
+    subscriptionTotal: number,
+    onetimeTotal: number,
+    formatFn: (n: number) => string
+  ) => {
+    if (subscriptionTotal === 0 && onetimeTotal === 0) return undefined;
+    return (
+      <div className="flex flex-col gap-0.5 text-xs">
+        <div>
+          {subscriptionLabel}
+          {formatFn(subscriptionTotal)}
+        </div>
+        {onetimeTotal > 0 && (
+          <div>
+            {t('quota.onetime_pack')}
+            {formatFn(onetimeTotal)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const sections = [
     {
       title: t('quota.storage_usage'),
       current: `${formatStorage(data.storage_bytes.upload + data.storage_bytes.file + data.storage_bytes.other_users)} / ${formatStorage(data.storage_bytes.total)}`,
+      currentTooltip: buildTotalTooltip(
+        data.storage_bytes.subscription_total,
+        data.storage_bytes.onetime_total,
+        formatStorage
+      ),
       items: showOtherMembersUsage
         ? [
             {
@@ -140,6 +172,11 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
     {
       title: t('quota.audio_video_parse_usage'),
       current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)} / ${formatTimeAsMinutes(data.video_audio_parse.total)}`,
+      currentTooltip: buildTotalTooltip(
+        data.video_audio_parse.subscription_total,
+        data.video_audio_parse.onetime_total,
+        formatTimeAsMinutes
+      ),
       items: showOtherMembersUsage
         ? [
             {
@@ -264,6 +301,11 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
     {
       title: t('quota.doc_parse_usage'),
       current: `${pageVal(data.doc_parse.pdf + data.doc_parse.image + data.doc_parse.other_users)} / ${pageVal(data.doc_parse.total)}`,
+      currentTooltip: buildTotalTooltip(
+        data.doc_parse.subscription_total,
+        data.doc_parse.onetime_total,
+        pageVal
+      ),
       items: showOtherMembersUsage
         ? [
             {
@@ -373,6 +415,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
             key={idx}
             title={section.title}
             current={section.current}
+            currentTooltip={section.currentTooltip}
             items={section.items}
             segments={section.segments}
           />

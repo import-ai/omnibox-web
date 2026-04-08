@@ -202,10 +202,9 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   };
 
   const handleDocsClick = (appId: string) => {
-    const url = getDocsLink(`/applications/${appId}`, i18n.language).replace(
-      '_bot',
-      '-assistant'
-    );
+    const url = getDocsLink(`/applications/${appId}`, i18n.language)
+      .replace('_bot', '-assistant')
+      .replace('_clawbot', '-clawbot');
     window.open(url, '_blank');
   };
 

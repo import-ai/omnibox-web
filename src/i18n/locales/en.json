@@ -832,6 +832,9 @@
     "days_remaining": "{{days}} days remaining (expires {{date}})",
     "page_unit": "pages",
     "tooltip_format": "{{label}}: {{value}}",
+    "basic_plan": "Basic: ",
+    "premium_plan": "Premium: ",
+    "onetime_pack": "Add-on Pack: ",
     "time": {
       "seconds": "sec",
       "minutes": "min",

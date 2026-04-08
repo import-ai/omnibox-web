@@ -8,18 +8,24 @@ export interface UsageData {
     file: number;
     other_users: number;
     total: number;
+    subscription_total: number;
+    onetime_total: number;
   };
   video_audio_parse: {
     video: number;
     audio: number;
     other_users: number;
     total: number;
+    subscription_total: number;
+    onetime_total: number;
   };
   doc_parse: {
     pdf: number;
     image: number;
     other_users: number;
     total: number;
+    subscription_total: number;
+    onetime_total: number;
   };
   basic: {
     expired: boolean;
@@ -39,18 +45,24 @@ export default function useQuota(namespaceId: string) {
       file: 0,
       other_users: 0,
       total: 0,
+      subscription_total: 0,
+      onetime_total: 0,
     },
     video_audio_parse: {
       video: 0,
       audio: 0,
       other_users: 0,
       total: 0,
+      subscription_total: 0,
+      onetime_total: 0,
     },
     doc_parse: {
       pdf: 0,
       image: 0,
       other_users: 0,
       total: 0,
+      subscription_total: 0,
+      onetime_total: 0,
     },
     basic: {
       expired: false,
