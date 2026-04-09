@@ -161,12 +161,14 @@ export function AssistantMessage(props: IProps) {
                   `chat.messages.tool_calls.function_name.${toolCall.function.name}`
                 );
                 const toolCallMeta = toolMessage?.attrs?.tool_call;
+                const toolCallSuccess: boolean | undefined =
+                  toolCallMeta?.success;
                 return (
                   <li key={'tool_call_' + toolCall.id + '_' + index}>
                     <pre>
                       {toolMessage === undefined ? (
                         <Spinner className="inline-block size-4" />
-                      ) : toolCallMeta?.success ? (
+                      ) : toolCallSuccess ? (
                         <Check className="inline-block size-4 text-green-600" />
                       ) : (
                         <X className="inline-block size-4 text-red-600" />
