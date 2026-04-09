@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import {
   ContextMenu,
@@ -17,11 +18,6 @@ import {
   SidebarMenuSub,
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';

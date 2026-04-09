@@ -169,7 +169,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                   <CommandItem
                     key={item.id}
                     value={item.id}
-                    className="cursor-pointer"
+                    className="cursor-pointer my-0.5"
                     onSelect={() => {
                       navigate(`/${params.namespace_id}/${item.id}`);
                       onOpenChange(false);
@@ -215,7 +215,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                 <CommandItem
                   key={resourceItem.id}
                   value={resourceItem.id}
-                  className="cursor-pointer"
+                  className="cursor-pointer my-1"
                   onSelect={() => {
                     navigate(
                       `/${params.namespace_id}/${resourceItem.resource_id}?query=${encodeURIComponent(keywords)}`
@@ -247,7 +247,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
               <CommandItem
                 key={message.id}
                 value={message.id}
-                className="cursor-pointer"
+                className="cursor-pointer my-1"
                 onSelect={() => {
                   navigate(
                     `/${params.namespace_id}/chat/${message.conversation_id}`
