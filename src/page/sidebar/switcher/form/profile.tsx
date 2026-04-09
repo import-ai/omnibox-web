@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { Eye, EyeOff } from 'lucide-react';
+import { CircleHelp, Eye, EyeOff } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,12 @@ import { SmartphoneIcon } from '@/assets/icons/smartphone';
 import { WeChatIcon } from '@/assets/icons/wechat';
 import { Button } from '@/components/button';
 import { Input } from '@/components/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -108,18 +114,40 @@ const ActionButton = React.forwardRef<
 function SectionHeader({
   title,
   className,
+  tooltip,
 }: {
   title: string;
   className?: string;
+  tooltip?: string;
 }) {
   return (
     <div
       className={cn(
         'w-full pb-2 border-b text-foreground whitespace-nowrap lg:text-xl font-semibold',
+        tooltip && 'flex items-center gap-1',
         className
       )}
     >
       {title}
+      {tooltip && (
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 w-5 p-0 hover:bg-transparent"
+                type="button"
+              >
+                <CircleHelp className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{tooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </div>
   );
 }
@@ -409,7 +437,11 @@ export default function ProfileForm() {
       />
 
       {/* Binding Section Header */}
-      <SectionHeader title={t('setting.binding')} className="mt-4" />
+      <SectionHeader
+        title={t('setting.binding')}
+        className="mt-4"
+        tooltip={t('setting.binding_tooltip')}
+      />
 
       {/* Phone Row */}
       <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
