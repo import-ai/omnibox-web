@@ -19,3 +19,8 @@ export enum ChatMode {
   ASK = 'ask',
   WRITE = 'write',
 }
+
+export enum InputMode {
+  TEXT = 'text',
+  DECISION = 'decision',
+}

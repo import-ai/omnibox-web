@@ -6,9 +6,11 @@ import { useParams } from 'react-router-dom';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang';
+import { PendingInterrupt } from '@/page/chat/chat-input/decision-input';
 import {
   type ChatActionType,
   ChatMode,
+  InputMode,
   ToolType,
 } from '@/page/chat/chat-input/types';
 import {
@@ -211,6 +213,69 @@ export default function useContext() {
     }
   };
 
+  // Check if there are pending tool call interrupts that need user decision
+  const pendingInterrupts = useMemo((): PendingInterrupt[] => {
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) return [];
+
+    const interrupts = lastMessage.attrs?.tool_call?.interrupts;
+    if (!interrupts || interrupts.length === 0) return [];
+
+    // Check which interrupts have been decided
+    const decisions = lastMessage.attrs?.tool_call?.decisions;
+    const decidedIndexes = new Set(decisions?.map((d: any) => d.index) ?? []);
+
+    // Return all undecided interrupts
+    const pending: PendingInterrupt[] = [];
+    for (let i = 0; i < interrupts.length; i++) {
+      if (!decidedIndexes.has(i)) {
+        pending.push({ ...interrupts[i], index: i });
+      }
+    }
+    return pending;
+  }, [messages]);
+
+  // Determine the input mode based on whether there are pending interrupts
+  const inputMode = useMemo(() => {
+    return pendingInterrupts.length > 0 ? InputMode.DECISION : InputMode.TEXT;
+  }, [pendingInterrupts]);
+
+  // Handle tool call decisions
+  const onToolDecision = async (
+    decisions: { index: number; type: string }[]
+  ) => {
+    if (decisions.length === 0) return;
+
+    setLoading(true);
+    try {
+      const lastMessage = messages[messages.length - 1];
+      const askFN = ask(
+        conversationId,
+        '', // Empty query for decision requests
+        [], // No tools for decision requests
+        [], // No context for decision requests
+        lastMessage.id,
+        messageOperator,
+        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        getWizardLang(i18n),
+        namespaceId,
+        undefined,
+        undefined,
+        undefined,
+        {
+          decisions: decisions.map(d => ({
+            index: d.index,
+            type: d.type,
+          })),
+        }
+      );
+      askAbortRef.current = askFN.destroy;
+      await askFN.start();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const firstUserMessage = findFirstMessageWithMissingParent(messages);
 
   useEffect(() => {
@@ -236,5 +301,8 @@ export default function useContext() {
     messageOperator,
     onRegenerate,
     onEdit,
+    inputMode,
+    pendingInterrupts,
+    onToolDecision,
   };
 }

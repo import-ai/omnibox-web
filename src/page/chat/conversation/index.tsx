@@ -28,6 +28,9 @@ export default function ChatConversationPage() {
     messageOperator,
     onRegenerate,
     onEdit,
+    inputMode,
+    pendingInterrupts,
+    onToolDecision,
   } = useContext();
 
   return (
@@ -58,10 +61,13 @@ export default function ChatConversationPage() {
             setMode={setMode}
             loading={loading}
             context={context}
+            inputMode={inputMode}
+            pendingInterrupts={pendingInterrupts}
             onChange={onChange}
             onAction={onAction}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}
+            onDecision={onToolDecision}
             navigatePrefix={`/${namespaceId}`}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">

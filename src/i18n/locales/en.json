@@ -614,6 +614,12 @@
         "ask": "Ask",
         "write": "Write"
       }
+    },
+    "decision": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "selected": "Selected",
+      "submit": "Submit Decisions"
     }
   },
   "date": {

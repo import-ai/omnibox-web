@@ -38,4 +38,10 @@ export interface ChatRequestBody {
   namespace_id?: string;
   share_id?: string;
   share_password?: string;
+  tool_call?: {
+    decisions: {
+      index: number;
+      type: 'approve' | 'reject';
+    }[];
+  };
 }
