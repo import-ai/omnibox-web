@@ -23,6 +23,11 @@ export interface MessageAttrs {
   tool_call?: {
     success: boolean;
     error?: string;
+    interrupts?: {
+      args: Record<string, any>;
+      name: string;
+      decisions: string[];
+    }[];
   };
 }
 
