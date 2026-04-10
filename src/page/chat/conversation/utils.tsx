@@ -156,7 +156,8 @@ export function ask(
   namespaceId: string | undefined,
   shareId: string | undefined,
   sharePassword: string | undefined,
-  enable_thinking?: boolean
+  enable_thinking?: boolean,
+  tool_call?: ChatRequestBody['tool_call']
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -170,6 +171,9 @@ export function ask(
   chatReq.namespace_id = namespaceId;
   chatReq.share_id = shareId;
   chatReq.share_password = sharePassword;
+  if (tool_call) {
+    chatReq.tool_call = tool_call;
+  }
   return createStreamTransport(url, chatReq, async data => {
     const chatResponse: ChatResponse = JSON.parse(data);
     if (chatResponse.response_type === 'bos') {

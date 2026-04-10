@@ -27,10 +27,11 @@ interface IProps {
   tools: Array<ToolType>;
   context: IResTypeContext[];
   onToolsChange: (tool: Array<ToolType>) => void;
+  disabled?: boolean;
 }
 
 export default function ChatTool(props: IProps) {
-  const { tools, context, onToolsChange } = props;
+  const { tools, context, onToolsChange, disabled } = props;
   const { t } = useTranslation();
 
   return (
@@ -40,6 +41,7 @@ export default function ChatTool(props: IProps) {
           size="sm"
           key={item.value}
           variant="outline"
+          disabled={disabled}
           onClick={() => {
             if (tools.includes(item.value)) {
               onToolsChange(tools.filter(target => target !== item.value));

@@ -615,6 +615,12 @@
         "ask": "问答",
         "write": "写作"
       }
+    },
+    "decision": {
+      "approve": "同意",
+      "reject": "拒绝",
+      "selected": "已选择",
+      "submit": "提交决定"
     }
   },
   "date": {

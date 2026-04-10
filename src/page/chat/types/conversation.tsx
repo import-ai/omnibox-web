@@ -28,6 +28,10 @@ export interface MessageAttrs {
       name: string;
       decisions: string[];
     }[];
+    decisions?: {
+      index: number;
+      type: 'approve' | 'reject';
+    }[];
   };
 }
 

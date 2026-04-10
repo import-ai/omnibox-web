@@ -34,7 +34,10 @@ function renderMessage(
 ) {
   const openAIMessage = message.message;
 
-  if (openAIMessage.role === OpenAIMessageRole.USER) {
+  if (
+    openAIMessage.role === OpenAIMessageRole.USER &&
+    message.attrs?.tool_call?.decisions === undefined
+  ) {
     return (
       <UserMessage
         message={message}
