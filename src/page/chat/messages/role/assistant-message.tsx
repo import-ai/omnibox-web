@@ -1,4 +1,4 @@
-import { Check, X } from 'lucide-react';
+import { Check, MessageCircleWarning, X } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,8 +12,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
-import type { Citation } from '@/page/chat/types/chat-response';
 import {
+  Citation,
   MessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/types/chat-response';
@@ -32,6 +32,29 @@ interface IProps {
   isLastMessage: boolean;
 }
 
+interface IToolCall {
+  name: string;
+  args: string;
+  status: MessageStatus;
+}
+
+function toolStateIcon(status: MessageStatus) {
+  switch (status) {
+    case MessageStatus.PENDING:
+      return <Spinner className="inline-block size-4" />;
+    case MessageStatus.INTERRUPTED:
+      return <MessageCircleWarning className="inline-block size-4" />;
+    case MessageStatus.STREAMING:
+      return <Spinner className="inline-block size-4" />;
+    case MessageStatus.SUCCESS:
+      return <Check className="inline-block size-4 text-green-600" />;
+    case MessageStatus.FAILED:
+      return <X className="inline-block size-4 text-red-600" />;
+    default:
+      return null;
+  }
+}
+
 function pathI18n(
   path: string,
   mapping: { private: string; teamspace: string }
@@ -42,6 +65,19 @@ function pathI18n(
     }
   }
   return path;
+}
+
+function parseArgs(
+  args: Record<string, any>,
+  mapping: { private: string; teamspace: string }
+): string {
+  return Object.values(args)
+    .map(v => {
+      const vStr = `${v}`;
+      const processedV = trimMiddle(pathI18n(vStr, mapping));
+      return `"${processedV}"`;
+    })
+    .join(' ');
 }
 
 function trimMiddle(str: string, maxLength: number = 20): string {
@@ -111,7 +147,65 @@ export function AssistantMessage(props: IProps) {
       />
     );
   }
+
+  const toolCalls: IToolCall[] = [];
+
   if (openAIMessage.tool_calls) {
+    for (const toolCall of openAIMessage.tool_calls) {
+      const functionName = t(
+        `chat.messages.tool_calls.function_name.${toolCall.function.name}`
+      );
+      const args: string = parseArgs(JSON.parse(toolCall.function.arguments), {
+        private: t('chat.messages.tool_calls.function_args.private'),
+        teamspace: t('chat.messages.tool_calls.function_args.teamspace'),
+      });
+      let functionStatus: MessageStatus = MessageStatus.PENDING;
+      const toolMessage = messages.find(
+        m =>
+          m.message.role === OpenAIMessageRole.TOOL &&
+          m.message.tool_call_id === toolCall.id &&
+          m.status === MessageStatus.SUCCESS
+      );
+      if (toolMessage) {
+        functionStatus = MessageStatus.STREAMING;
+      }
+      const toolCallMeta = toolMessage?.attrs?.tool_call;
+      const toolCallSuccess: boolean | undefined = toolCallMeta?.success;
+      if (toolCallSuccess === true) {
+        functionStatus = MessageStatus.SUCCESS;
+      } else if (toolCallSuccess === false) {
+        functionStatus = MessageStatus.FAILED;
+      }
+      toolCalls.push({
+        name: functionName,
+        args,
+        status: functionStatus,
+      });
+    }
+  }
+  if (message.attrs?.tool_call?.interrupts) {
+    for (const interrupt of message.attrs.tool_call.interrupts) {
+      const args: string = parseArgs(interrupt.args, {
+        private: t('chat.messages.tool_calls.function_args.private'),
+        teamspace: t('chat.messages.tool_calls.function_args.teamspace'),
+      });
+      const functionName = t(
+        `chat.messages.tool_calls.function_name.${interrupt.name}`
+      );
+
+      for (const toolCall of toolCalls) {
+        if (
+          toolCall.name === functionName &&
+          toolCall.args === args &&
+          toolCall.status === MessageStatus.PENDING
+        ) {
+          toolCall.status = MessageStatus.INTERRUPTED;
+        }
+      }
+    }
+  }
+
+  if (toolCalls.length > 0) {
     domList.push(
       <Accordion
         type="single"
@@ -123,58 +217,25 @@ export function AssistantMessage(props: IProps) {
         <AccordionItem value={'tool_calls_' + message.id}>
           <AccordionTrigger>
             <span>
-              {message.status !== MessageStatus.SUCCESS && (
-                <Spinner className="inline-block size-4" />
-              )}
+              {toolCalls.filter(
+                t =>
+                  ![MessageStatus.SUCCESS, MessageStatus.FAILED].includes(
+                    t.status
+                  )
+              ).length > 0 && <Spinner className="inline-block size-4" />}
               &nbsp;
               {t('chat.tools.tool_calls')}
             </span>
           </AccordionTrigger>
           <AccordionContent className="text-gray-500 dark:text-gray-400">
             <ul>
-              {openAIMessage.tool_calls.map((toolCall, index) => {
-                const args: string = Object.values(
-                  JSON.parse(toolCall.function.arguments)
-                )
-                  .map(v => {
-                    const vStr = `${v}`;
-                    const processedV = trimMiddle(
-                      pathI18n(vStr, {
-                        private: t(
-                          'chat.messages.tool_calls.function_args.private'
-                        ),
-                        teamspace: t(
-                          'chat.messages.tool_calls.function_args.teamspace'
-                        ),
-                      })
-                    );
-                    return `"${processedV}"`;
-                  })
-                  .join(' ');
-                const toolMessage = messages.find(
-                  m =>
-                    m.message.role === OpenAIMessageRole.TOOL &&
-                    m.message.tool_call_id === toolCall.id &&
-                    m.status === MessageStatus.SUCCESS
-                );
-                const functionName = t(
-                  `chat.messages.tool_calls.function_name.${toolCall.function.name}`
-                );
-                const toolCallMeta = toolMessage?.attrs?.tool_call;
-                const toolCallSuccess: boolean | undefined =
-                  toolCallMeta?.success;
+              {toolCalls.map((toolCall, index) => {
                 return (
-                  <li key={'tool_call_' + toolCall.id + '_' + index}>
+                  <li key={'tool_call_' + toolCall.name + '_' + index}>
                     <pre>
-                      {toolMessage === undefined ? (
-                        <Spinner className="inline-block size-4" />
-                      ) : toolCallSuccess ? (
-                        <Check className="inline-block size-4 text-green-600" />
-                      ) : (
-                        <X className="inline-block size-4 text-red-600" />
-                      )}
+                      {toolStateIcon(toolCall.status)}
                       &nbsp;
-                      <b>{t(functionName)}</b> {args}
+                      <b>{toolCall.name}</b> {toolCall.args}
                     </pre>
                   </li>
                 );
