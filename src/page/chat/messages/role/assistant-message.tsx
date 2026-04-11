@@ -1,4 +1,4 @@
-import { Check, MessageCircleWarning, X } from 'lucide-react';
+import { Ban, Check, MessageCircleWarning, X } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -9,6 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Spinner } from '@/components/ui/spinner';
+import { parseArgs } from '@/lib/tool-args';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
@@ -32,65 +33,38 @@ interface IProps {
   isLastMessage: boolean;
 }
 
+export enum ToolCallStatus {
+  PENDING = 'pending',
+  INTERRUPTED = 'interrupted',
+  RUNNING = 'running',
+  SUCCESS = 'success',
+  FAILED = 'failed',
+  REJECTED = 'rejected',
+}
+
 interface IToolCall {
   name: string;
   args: string;
-  status: MessageStatus;
+  status: ToolCallStatus;
 }
 
-function toolStateIcon(status: MessageStatus) {
+function toolStateIcon(status: ToolCallStatus) {
   switch (status) {
-    case MessageStatus.PENDING:
+    case ToolCallStatus.PENDING:
       return <Spinner className="inline-block size-4" />;
-    case MessageStatus.INTERRUPTED:
+    case ToolCallStatus.INTERRUPTED:
       return <MessageCircleWarning className="inline-block size-4" />;
-    case MessageStatus.STREAMING:
+    case ToolCallStatus.RUNNING:
       return <Spinner className="inline-block size-4" />;
-    case MessageStatus.SUCCESS:
+    case ToolCallStatus.SUCCESS:
       return <Check className="inline-block size-4 text-green-600" />;
-    case MessageStatus.FAILED:
+    case ToolCallStatus.FAILED:
       return <X className="inline-block size-4 text-red-600" />;
+    case ToolCallStatus.REJECTED:
+      return <Ban className="inline-block size-4 text-red-600" />;
     default:
       return null;
   }
-}
-
-function pathI18n(
-  path: string,
-  mapping: { private: string; teamspace: string }
-): string {
-  for (const [key, value] of Object.entries(mapping)) {
-    if (path.startsWith('/' + key)) {
-      return '/' + value + path.slice(key.length + 1);
-    }
-  }
-  return path;
-}
-
-function parseArgs(
-  args: Record<string, any>,
-  mapping: { private: string; teamspace: string }
-): string {
-  return Object.values(args)
-    .map(v => {
-      const vStr = `${v}`;
-      const processedV = trimMiddle(pathI18n(vStr, mapping));
-      return `"${processedV}"`;
-    })
-    .join(' ');
-}
-
-function trimMiddle(str: string, maxLength: number = 20): string {
-  if (str.length <= maxLength) return str;
-
-  const ellipsis = '...';
-  const charsToShow = maxLength - ellipsis.length;
-
-  const front = Math.ceil(charsToShow / 2);
-  const back = Math.floor(charsToShow / 2);
-
-  const trimmed = str.slice(0, front) + ellipsis + str.slice(str.length - back);
-  return trimmed.replaceAll('\n', ' ');
 }
 
 export function AssistantMessage(props: IProps) {
@@ -159,7 +133,7 @@ export function AssistantMessage(props: IProps) {
         private: t('chat.messages.tool_calls.function_args.private'),
         teamspace: t('chat.messages.tool_calls.function_args.teamspace'),
       });
-      let functionStatus: MessageStatus = MessageStatus.PENDING;
+      let functionStatus: ToolCallStatus = ToolCallStatus.PENDING;
       const toolMessage = messages.find(
         m =>
           m.message.role === OpenAIMessageRole.TOOL &&
@@ -167,14 +141,16 @@ export function AssistantMessage(props: IProps) {
           m.status === MessageStatus.SUCCESS
       );
       if (toolMessage) {
-        functionStatus = MessageStatus.STREAMING;
+        functionStatus = ToolCallStatus.RUNNING;
       }
       const toolCallMeta = toolMessage?.attrs?.tool_call;
-      const toolCallSuccess: boolean | undefined = toolCallMeta?.success;
-      if (toolCallSuccess === true) {
-        functionStatus = MessageStatus.SUCCESS;
-      } else if (toolCallSuccess === false) {
-        functionStatus = MessageStatus.FAILED;
+      const toolCallStatus: string | undefined = toolCallMeta?.status;
+      if (toolCallStatus === ToolCallStatus.SUCCESS) {
+        functionStatus = ToolCallStatus.SUCCESS;
+      } else if (toolCallStatus === ToolCallStatus.FAILED) {
+        functionStatus = ToolCallStatus.FAILED;
+      } else if (toolCallStatus === ToolCallStatus.REJECTED) {
+        functionStatus = ToolCallStatus.REJECTED;
       }
       toolCalls.push({
         name: functionName,
@@ -197,15 +173,24 @@ export function AssistantMessage(props: IProps) {
         if (
           toolCall.name === functionName &&
           toolCall.args === args &&
-          toolCall.status === MessageStatus.PENDING
+          toolCall.status === ToolCallStatus.PENDING
         ) {
-          toolCall.status = MessageStatus.INTERRUPTED;
+          toolCall.status = ToolCallStatus.INTERRUPTED;
         }
       }
     }
   }
 
   if (toolCalls.length > 0) {
+    const allToolCallsIsFinished: boolean =
+      toolCalls.filter(
+        t =>
+          ![
+            ToolCallStatus.SUCCESS,
+            ToolCallStatus.FAILED,
+            ToolCallStatus.REJECTED,
+          ].includes(t.status)
+      ).length > 0; // TODO Trigger resources refresh.
     domList.push(
       <Accordion
         type="single"
@@ -217,13 +202,12 @@ export function AssistantMessage(props: IProps) {
         <AccordionItem value={'tool_calls_' + message.id}>
           <AccordionTrigger>
             <span>
-              {toolCalls.filter(
-                t =>
-                  ![MessageStatus.SUCCESS, MessageStatus.FAILED].includes(
-                    t.status
-                  )
-              ).length > 0 && <Spinner className="inline-block size-4" />}
-              &nbsp;
+              {allToolCallsIsFinished && (
+                <span>
+                  <Spinner className="inline-block size-4" />
+                  &nbsp;
+                </span>
+              )}
               {t('chat.tools.tool_calls')}
             </span>
           </AccordionTrigger>

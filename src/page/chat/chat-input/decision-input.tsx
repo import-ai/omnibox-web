@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { parseArgs } from '@/lib/tool-args';
 
 export interface PendingInterrupt {
   name: string;
@@ -204,14 +205,14 @@ export default function DecisionInput(props: IDecisionInputProps) {
             )}
           </CardTitle>
           <CardDescription className="text-xs flex flex-wrap gap-x-2 gap-y-1">
-            {Object.values(activeInterrupt.args).map((value, idx) => (
-              <code
-                key={idx}
-                className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
-              >
-                {typeof value === 'string' ? value : JSON.stringify(value)}
-              </code>
-            ))}
+            <code className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono">
+              {parseArgs(activeInterrupt.args, {
+                private: t('chat.messages.tool_calls.function_args.private'),
+                teamspace: t(
+                  'chat.messages.tool_calls.function_args.teamspace'
+                ),
+              })}
+            </code>
           </CardDescription>
         </CardHeader>
 

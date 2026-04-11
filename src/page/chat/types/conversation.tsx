@@ -21,7 +21,7 @@ export interface MessageAttrs {
   error_message?: string;
   context?: Record<string, any>;
   tool_call?: {
-    success: boolean;
+    status: string;
     error?: string;
     interrupts?: {
       args: Record<string, any>;
