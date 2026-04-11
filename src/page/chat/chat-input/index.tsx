@@ -57,27 +57,25 @@ export default function ChatArea(props: IProps) {
 
   const isDecisionMode = inputMode === InputMode.DECISION;
 
-  return (
+  return isDecisionMode && pendingInterrupts.length > 0 ? (
+    <DecisionInput
+      interrupts={pendingInterrupts}
+      onDecision={onDecision}
+      disabled={loading}
+    />
+  ) : (
     <div className="max-w-[766px] w-full mx-auto rounded-[12px] p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]">
       <ChatContext
         value={context}
         onChange={onContextChange}
         navigatePrefix={navigatePrefix}
       />
-      {isDecisionMode && pendingInterrupts.length > 0 ? (
-        <DecisionInput
-          interrupts={pendingInterrupts}
-          onDecision={onDecision}
-          disabled={loading}
-        />
-      ) : (
-        <ChatInput
-          value={value}
-          onChange={onChange}
-          onAction={onAction}
-          disabled={disabled}
-        />
-      )}
+      <ChatInput
+        value={value}
+        onChange={onChange}
+        onAction={onAction}
+        disabled={disabled}
+      />
       <div className="flex items-center justify-between">
         <ChatTool
           tools={tools}
