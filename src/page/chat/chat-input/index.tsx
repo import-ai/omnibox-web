@@ -28,7 +28,7 @@ interface IProps {
   onAction: (action?: ChatActionType) => void;
   onToolsChange: (tool: Array<ToolType>) => void;
   onContextChange: (context: IResTypeContext[]) => void;
-  onDecision: (decisions: { index: number; type: string }[]) => void;
+  onDecision: (decisions: { type: string }[]) => void;
 }
 
 export default function ChatArea(props: IProps) {
