@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import ChatArea from '@/page/chat/chat-input';
 import useContext from '@/page/chat/conversation/useContext';
 import { Messages } from '@/page/chat/messages';
-import { normalizeChatData } from '@/page/chat/normalize-chat';
 
 import Scrollbar from './scrollbar';
 
@@ -45,7 +44,7 @@ export default function ChatConversationPage() {
         ) : (
           <Messages
             conversation={conversation}
-            messages={normalizeChatData(messages)}
+            messages={messages}
             messageOperator={messageOperator}
             onRegenerate={onRegenerate}
             onEdit={onEdit}

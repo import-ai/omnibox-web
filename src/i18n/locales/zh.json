@@ -549,7 +549,11 @@
           "task": "子任务",
           "resource_filter": "筛选资源",
           "resource_search": "搜索资源",
-          "web_search": "网络搜索"
+          "web_search": "网络搜索",
+          "delete_resource": "删除资源",
+          "rename_resource": "重命名资源",
+          "move_resource": "移动资源",
+          "mkdir": "创建文件夹"
         },
         "function_args": {
           "private": "个人",

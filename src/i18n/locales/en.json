@@ -548,7 +548,11 @@
           "task": "Task",
           "resource_filter": "Resource Filter",
           "resource_search": "Resource Search",
-          "web_search": "Web Search"
+          "web_search": "Web Search",
+          "delete_resource": "Delete Resource",
+          "rename_resource": "Rename Resource",
+          "move_resource": "Move Resource",
+          "mkdir": "Create Folder"
         },
         "function_args": {
           "private": "private",
