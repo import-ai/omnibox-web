@@ -242,7 +242,7 @@ export default function useContext() {
 
   // Handle tool call decisions
   const onToolDecision = async (
-    decisions: { index: number; type: string }[]
+    decisions: { index: number; type: 'approve' | 'reject' }[]
   ) => {
     if (decisions.length === 0) return;
 

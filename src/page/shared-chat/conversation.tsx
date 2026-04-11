@@ -15,7 +15,6 @@ import {
   extractOriginalMessageSettings,
 } from '@/page/chat/conversation/utils';
 import { Messages } from '@/page/chat/messages';
-import { normalizeChatData } from '@/page/chat/normalize-chat';
 import {
   ConversationDetail,
   MessageDetail,
@@ -204,7 +203,7 @@ export default function SharedChatConversationPage() {
     <div className="flex flex-1 flex-col min-h-0">
       <Scrollbar>
         <Messages
-          messages={normalizeChatData(messages)}
+          messages={messages}
           conversation={conversation}
           messageOperator={messageOperator}
           onRegenerate={onRegenerate}
