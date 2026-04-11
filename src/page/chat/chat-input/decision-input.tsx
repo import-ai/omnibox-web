@@ -2,7 +2,7 @@ import { Check, ChevronLeft, ChevronRight, Circle, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/button';
 import {
   Card,
   CardContent,
@@ -38,76 +38,25 @@ function getDecisionIcon(decisionType: string) {
   return <Circle className="size-4 mr-2" />;
 }
 
-// Get decision color theme based on type
-function getDecisionTheme(decisionType: string): {
-  border: string;
-  text: string;
-  bg: string;
-  hoverBg: string;
-  selectedBg: string;
-  selectedBorder: string;
-  selectedText: string;
-  darkBorder: string;
-  darkText: string;
-  darkHoverBg: string;
-  darkHoverText: string;
-  darkSelectedBg: string;
-  darkSelectedBorder: string;
-  darkSelectedText: string;
-} {
+// Get decision style classes based on type and selection state
+function getDecisionStyle(decisionType: string, isSelected: boolean): string {
   const lowerType = decisionType.toLowerCase();
+
   if (lowerType === 'approve' || lowerType === 'accept') {
-    return {
-      border: 'border-green-300',
-      text: 'text-green-600',
-      bg: 'bg-white',
-      hoverBg: 'hover:bg-green-50',
-      selectedBg: 'bg-green-50',
-      selectedBorder: 'border-green-400',
-      selectedText: 'text-green-700',
-      darkBorder: 'dark:border-green-700',
-      darkText: 'dark:text-green-400',
-      darkHoverBg: 'dark:hover:bg-green-950',
-      darkHoverText: 'dark:hover:text-green-300',
-      darkSelectedBg: 'dark:bg-green-950/50',
-      darkSelectedBorder: 'dark:border-green-600',
-      darkSelectedText: 'dark:text-green-300',
-    };
+    return isSelected
+      ? 'bg-green-50 border-green-400 text-green-700 dark:bg-green-950/50 dark:border-green-600 dark:text-green-300'
+      : 'border-green-300 text-green-600 hover:bg-green-50 hover:text-green-700 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-950 dark:hover:text-green-300';
   }
+
   if (lowerType === 'reject' || lowerType === 'decline') {
-    return {
-      border: 'border-red-300',
-      text: 'text-red-600',
-      bg: 'bg-white',
-      hoverBg: 'hover:bg-red-50',
-      selectedBg: 'bg-red-50',
-      selectedBorder: 'border-red-400',
-      selectedText: 'text-red-700',
-      darkBorder: 'dark:border-red-700',
-      darkText: 'dark:text-red-400',
-      darkHoverBg: 'dark:hover:bg-red-950',
-      darkHoverText: 'dark:hover:text-red-300',
-      darkSelectedBg: 'dark:bg-red-950/50',
-      darkSelectedBorder: 'dark:border-red-600',
-      darkSelectedText: 'dark:text-red-300',
-    };
+    return isSelected
+      ? 'bg-red-50 border-red-400 text-red-700 dark:bg-red-950/50 dark:border-red-600 dark:text-red-300'
+      : 'border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950 dark:hover:text-red-300';
   }
-  return {
-    border: 'border-gray-300',
-    text: 'text-gray-600',
-    bg: 'bg-white',
-    hoverBg: 'hover:bg-gray-50',
-    selectedBg: 'bg-gray-50',
-    selectedBorder: 'border-gray-400',
-    selectedText: 'text-gray-700',
-    darkBorder: 'dark:border-gray-700',
-    darkText: 'dark:text-gray-400',
-    darkHoverBg: 'dark:hover:bg-gray-950',
-    darkHoverText: 'dark:hover:text-gray-300',
-    darkSelectedBg: 'dark:bg-gray-800',
-    darkSelectedBorder: 'dark:border-gray-500',
-    darkSelectedText: 'dark:text-gray-300',
-  };
+
+  return isSelected
+    ? 'bg-gray-50 border-gray-400 text-gray-700 dark:bg-gray-800 dark:border-gray-500 dark:text-gray-300'
+    : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-950 dark:hover:text-gray-300';
 }
 
 export default function DecisionInput(props: IDecisionInputProps) {
@@ -158,13 +107,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
       type: selectedDecisions[interrupt.index],
     }));
     onDecision(decisions);
-  };
-
-  // Format args for display
-  const formatArgs = (args: Record<string, any>) => {
-    return Object.entries(args)
-      .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
-      .join(', ');
   };
 
   // Current active interrupt
@@ -257,10 +199,19 @@ export default function DecisionInput(props: IDecisionInputProps) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold">
-            {activeInterrupt.name}
+            {t(
+              `chat.messages.tool_calls.function_name.${activeInterrupt.name}`
+            )}
           </CardTitle>
-          <CardDescription className="text-xs">
-            {formatArgs(activeInterrupt.args)}
+          <CardDescription className="text-xs flex flex-wrap gap-x-2 gap-y-1">
+            {Object.values(activeInterrupt.args).map((value, idx) => (
+              <code
+                key={idx}
+                className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
+              >
+                {typeof value === 'string' ? value : JSON.stringify(value)}
+              </code>
+            ))}
           </CardDescription>
         </CardHeader>
 
@@ -269,7 +220,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
             const isSelected =
               selectedDecisions[activeInterrupt.index] === decisionType;
             const isActive = idx === activeOptionIndex;
-            const theme = getDecisionTheme(decisionType);
 
             return (
               <Button
@@ -277,13 +227,8 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 variant="outline"
                 className={`
                   w-full justify-start text-sm font-medium
-                  border ${theme.border} ${theme.darkBorder}
-                  ${theme.text} ${theme.darkText}
-                  ${theme.bg}
-                  ${theme.hoverBg} ${theme.darkHoverBg}
-                  ${theme.darkHoverText}
-                  ${isSelected ? `${theme.selectedBg} ${theme.selectedBorder} ${theme.selectedText} ${theme.darkSelectedBg} ${theme.darkSelectedBorder} ${theme.darkSelectedText}` : ''}
-                  ${isActive && !isSelected ? 'ring-2 ring-ring ring-offset-2' : ''}
+                  ${getDecisionStyle(decisionType, isSelected)}
+                  ${isActive && !isSelected ? 'ring-2 ring-ring ring-offset-2 dark:ring-offset-gray-900' : ''}
                 `}
                 onClick={() =>
                   !disabled &&
@@ -293,7 +238,13 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 onMouseEnter={() => !disabled && setActiveOptionIndex(idx)}
               >
                 {getDecisionIcon(decisionType)}
-                <span>{decisionType}</span>
+                <span>
+                  {decisionType.toLowerCase() === 'approve'
+                    ? t('chat.decision.approve')
+                    : decisionType.toLowerCase() === 'reject'
+                      ? t('chat.decision.reject')
+                      : decisionType}
+                </span>
                 {isSelected && (
                   <Check className="size-4 ml-auto text-green-500" />
                 )}
