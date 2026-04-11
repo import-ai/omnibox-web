@@ -1,5 +1,5 @@
 import { IBase } from '@/interface';
-import type { ChatTool } from '@/page/chat/conversation/types';
+import type { ChatTool, DecisionType } from '@/page/chat/conversation/types';
 import type {
   Citation,
   MessageStatus,
@@ -29,8 +29,7 @@ export interface MessageAttrs {
       decisions: string[];
     }[];
     decisions?: {
-      index: number;
-      type: 'approve' | 'reject';
+      type: DecisionType;
     }[];
   };
 }

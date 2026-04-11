@@ -28,6 +28,8 @@ export interface Reasoning extends IChatTool {
 
 export type ChatTool = WebSearch | PrivateSearch | Reasoning;
 
+export type DecisionType = 'approve' | 'reject';
+
 export interface ChatRequestBody {
   conversation_id: string;
   query: string;
@@ -40,8 +42,7 @@ export interface ChatRequestBody {
   share_password?: string;
   tool_call?: {
     decisions: {
-      index: number;
-      type: 'approve' | 'reject';
+      type: DecisionType;
     }[];
   };
 }

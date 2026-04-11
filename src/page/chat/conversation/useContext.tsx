@@ -17,6 +17,7 @@ import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/conversation/message-operator';
+import { DecisionType } from '@/page/chat/conversation/types';
 import {
   ask,
   extractOriginalMessageSettings,
@@ -149,7 +150,7 @@ export default function useContext() {
     } = extractOriginalMessageSettings(parentMessage, {
       tools,
       context,
-      lang: getWizardLang(i18n) || '简体中文',
+      lang: getWizardLang(i18n),
     });
 
     setLoading(true);
@@ -187,7 +188,7 @@ export default function useContext() {
     } = extractOriginalMessageSettings(editedMessage, {
       tools,
       context,
-      lang: getWizardLang(i18n) || '简体中文',
+      lang: getWizardLang(i18n),
     });
 
     setLoading(true);
@@ -241,9 +242,7 @@ export default function useContext() {
   }, [pendingInterrupts]);
 
   // Handle tool call decisions
-  const onToolDecision = async (
-    decisions: { index: number; type: 'approve' | 'reject' }[]
-  ) => {
+  const onToolDecision = async (decisions: { type: DecisionType }[]) => {
     if (decisions.length === 0) return;
 
     setLoading(true);
@@ -264,7 +263,6 @@ export default function useContext() {
         undefined,
         {
           decisions: decisions.map(d => ({
-            index: d.index,
             type: d.type,
           })),
         }
