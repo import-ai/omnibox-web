@@ -7,7 +7,7 @@ import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
-import { type ChatActionType } from '@/page/chat/chat-input/types';
+import { type ChatActionType, InputMode } from '@/page/chat/chat-input/types';
 import { createMessageOperator } from '@/page/chat/conversation/message-operator';
 import Scrollbar from '@/page/chat/conversation/scrollbar';
 import {
@@ -219,10 +219,13 @@ export default function SharedChatConversationPage() {
             setMode={setMode}
             loading={loading}
             context={selectedResources}
+            inputMode={InputMode.TEXT}
+            pendingInterrupts={[]}
             onChange={setChatInput}
             onAction={onAction}
             onToolsChange={setTools}
             onContextChange={setSelectedResources}
+            onDecision={() => {}}
             navigatePrefix={`/s/${shareId}`}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">
