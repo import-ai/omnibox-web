@@ -145,6 +145,11 @@ export default function DecisionInput(props: IDecisionInputProps) {
       ...prev,
       [index]: decisionType,
     }));
+    // Auto-advance to next card (but user can manually go back)
+    const currentCardIdx = interrupts.findIndex(i => i.index === index);
+    if (currentCardIdx >= 0 && currentCardIdx < interrupts.length - 1) {
+      setActiveCardIndex(currentCardIdx + 1);
+    }
   };
 
   // Handle submit all decisions
@@ -204,7 +209,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
             Math.min(currentOptions.length - 1, prev + 1)
           );
           break;
-        case 'Enter':
+        case ' ':
           e.preventDefault();
           if (currentOptions[activeOptionIndex]) {
             handleSelectDecision(
@@ -228,7 +233,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
   const canGoLeft = activeCardIndex > 0;
   const canGoRight = activeCardIndex < interrupts.length - 1;
-  const isLastCard = activeCardIndex === interrupts.length - 1;
 
   // Auto-scroll indicator into view when active card changes
   useEffect(() => {
@@ -299,31 +303,15 @@ export default function DecisionInput(props: IDecisionInputProps) {
         </CardContent>
 
         <CardFooter className="flex-col gap-3 pt-0">
-          {/* Submit / Next button */}
-          {isLastCard && allDecided ? (
-            <Button
-              className="w-full"
-              onClick={handleSubmit}
-              disabled={disabled}
-            >
-              <Check className="size-4 mr-1" />
-              {t('chat.decision.submit')}
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() =>
-                setActiveCardIndex(prev =>
-                  Math.min(interrupts.length - 1, prev + 1)
-                )
-              }
-              disabled={!canGoRight || disabled}
-            >
-              {t('chat.decision.next') || 'Next'}
-              <ChevronRight className="size-4 ml-1" />
-            </Button>
-          )}
+          {/* Submit button — always visible, disabled until all decided */}
+          <Button
+            className="w-full"
+            onClick={handleSubmit}
+            disabled={!allDecided || disabled}
+          >
+            <Check className="size-4 mr-1" />
+            {t('chat.decision.submit')}
+          </Button>
 
           {/* Indicators — scrollable when many */}
           {interrupts.length > 1 && (
@@ -344,8 +332,24 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 <div className="flex items-center justify-center gap-1.5 py-1">
                   {interrupts.map((interrupt, idx) => {
                     const isCurrent = idx === activeCardIndex;
-                    const hasDecision =
-                      selectedDecisions[interrupt.index] !== undefined;
+                    const selectedType = selectedDecisions[interrupt.index];
+                    const lowerType = selectedType?.toLowerCase() ?? '';
+                    const isApprove =
+                      lowerType === 'approve' || lowerType === 'accept';
+                    const isReject =
+                      lowerType === 'reject' || lowerType === 'decline';
+
+                    const dotColor = isCurrent
+                      ? isApprove
+                        ? 'bg-green-500'
+                        : isReject
+                          ? 'bg-red-500'
+                          : 'bg-primary'
+                      : isApprove
+                        ? 'bg-green-400'
+                        : isReject
+                          ? 'bg-red-400'
+                          : 'bg-muted-foreground/30';
 
                     return (
                       <button
@@ -353,9 +357,8 @@ export default function DecisionInput(props: IDecisionInputProps) {
                         data-dot-index={idx}
                         className={`
                           shrink-0 rounded-full transition-all duration-200
-                          ${isCurrent ? 'w-5 h-2 bg-primary' : 'w-2 h-2'}
-                          ${hasDecision && !isCurrent ? 'bg-green-400' : ''}
-                          ${!hasDecision && !isCurrent ? 'bg-muted-foreground/30' : ''}
+                          ${isCurrent ? 'w-5 h-2' : 'w-2 h-2'}
+                          ${dotColor}
                         `}
                         onClick={() => !disabled && setActiveCardIndex(idx)}
                         disabled={disabled}
