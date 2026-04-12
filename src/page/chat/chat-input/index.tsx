@@ -7,6 +7,7 @@ import {
   IResTypeContext,
   ToolType,
 } from '@/page/chat/chat-input/types';
+import { DecisionType } from '@/page/chat/conversation/types';
 
 import ChatAction from './action';
 import ChatTool from './chat-tool';
@@ -28,7 +29,7 @@ interface IProps {
   onAction: (action?: ChatActionType) => void;
   onToolsChange: (tool: Array<ToolType>) => void;
   onContextChange: (context: IResTypeContext[]) => void;
-  onDecision: (decisions: { type: string }[]) => void;
+  onDecision: (decisions: { type: DecisionType }[]) => void;
 }
 
 export default function ChatArea(props: IProps) {
