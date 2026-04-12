@@ -548,6 +548,7 @@
           "task": "Task",
           "resource_filter": "Resource Filter",
           "resource_search": "Resource Search",
+          "private_search": "Resource Search",
           "web_search": "Web Search",
           "delete_resource": "Delete Resource",
           "rename_resource": "Rename Resource",
