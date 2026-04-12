@@ -552,7 +552,12 @@
           "delete_resource": "Delete Resource",
           "rename_resource": "Rename Resource",
           "move_resource": "Move Resource",
-          "mkdir": "Create Folder"
+          "mkdir": "Create Folder",
+          "list_tags": "List Tags",
+          "rename_tag": "Rename Tag",
+          "remove_tag_from_resource": "Remove Tag from Resource",
+          "add_tag_to_resource": "Add Tag to Resource",
+          "tag_filter": "Tag Filter"
         },
         "function_args": {
           "private": "private",
