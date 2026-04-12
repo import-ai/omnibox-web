@@ -17,13 +17,15 @@ import { processArgs } from '@/lib/tool-args';
 export interface PendingInterrupt {
   name: string;
   args: Record<string, any>;
-  decisions: string[];
+  decisions: DecisionType[];
   index: number;
 }
 
+import { DecisionType } from '@/page/chat/conversation/types';
+
 interface IDecisionInputProps {
   interrupts: PendingInterrupt[];
-  onDecision: (decisions: { type: string }[]) => void;
+  onDecision: (decisions: { type: DecisionType }[]) => void;
   disabled?: boolean;
 }
 
@@ -70,7 +72,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
   // Track selected decisions: index -> decision type
   const [selectedDecisions, setSelectedDecisions] = useState<
-    Record<number, string>
+    Record<number, DecisionType>
   >({});
 
   // Current active card index
@@ -90,7 +92,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
   }, [interrupts, selectedDecisions]);
 
   // Handle individual decision selection
-  const handleSelectDecision = (index: number, decisionType: string) => {
+  const handleSelectDecision = (index: number, decisionType: DecisionType) => {
     setSelectedDecisions(prev => ({
       ...prev,
       [index]: decisionType,
