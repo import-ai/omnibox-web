@@ -9,7 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Spinner } from '@/components/ui/spinner';
-import { parseArgs } from '@/lib/tool-args';
+import { joinArgs, processArgs } from '@/lib/tool-args';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
@@ -22,6 +22,7 @@ import type {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/types/conversation';
+import { ToolCallStatus } from '@/page/chat/types/tool-call.ts';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -33,35 +34,27 @@ interface IProps {
   isLastMessage: boolean;
 }
 
-export enum ToolCallStatus {
-  PENDING = 'pending',
-  INTERRUPTED = 'interrupted',
-  RUNNING = 'running',
-  SUCCESS = 'success',
-  FAILED = 'failed',
-  REJECTED = 'rejected',
-}
-
 interface IToolCall {
   name: string;
-  args: string;
+  args: string[];
   status: ToolCallStatus;
+  joinedArgs: string;
 }
 
 function toolStateIcon(status: ToolCallStatus) {
   switch (status) {
     case ToolCallStatus.PENDING:
-      return <Spinner className="inline-block size-4" />;
+      return <Spinner className="size-4" />;
     case ToolCallStatus.INTERRUPTED:
-      return <MessageCircleWarning className="inline-block size-4" />;
+      return <MessageCircleWarning className="size-4" />;
     case ToolCallStatus.RUNNING:
-      return <Spinner className="inline-block size-4" />;
+      return <Spinner className="size-4" />;
     case ToolCallStatus.SUCCESS:
-      return <Check className="inline-block size-4 text-green-600" />;
+      return <Check className="size-4 text-green-600" />;
     case ToolCallStatus.FAILED:
-      return <X className="inline-block size-4 text-red-600" />;
+      return <X className="size-4 text-red-600" />;
     case ToolCallStatus.REJECTED:
-      return <Ban className="inline-block size-4 text-red-600" />;
+      return <Ban className="size-4 text-red-600" />;
     default:
       return null;
   }
@@ -129,10 +122,13 @@ export function AssistantMessage(props: IProps) {
       const functionName = t(
         `chat.messages.tool_calls.function_name.${toolCall.function.name}`
       );
-      const args: string = parseArgs(JSON.parse(toolCall.function.arguments), {
-        private: t('chat.messages.tool_calls.function_args.private'),
-        teamspace: t('chat.messages.tool_calls.function_args.teamspace'),
-      });
+      const args: string[] = processArgs(
+        JSON.parse(toolCall.function.arguments),
+        {
+          private: t('chat.messages.tool_calls.function_args.private'),
+          teamspace: t('chat.messages.tool_calls.function_args.teamspace'),
+        }
+      );
       let functionStatus: ToolCallStatus = ToolCallStatus.PENDING;
       const toolMessage = messages.find(
         m =>
@@ -156,12 +152,13 @@ export function AssistantMessage(props: IProps) {
         name: functionName,
         args,
         status: functionStatus,
+        joinedArgs: joinArgs(args),
       });
     }
   }
   if (message.attrs?.tool_call?.interrupts) {
     for (const interrupt of message.attrs.tool_call.interrupts) {
-      const args: string = parseArgs(interrupt.args, {
+      const args: string[] = processArgs(interrupt.args, {
         private: t('chat.messages.tool_calls.function_args.private'),
         teamspace: t('chat.messages.tool_calls.function_args.teamspace'),
       });
@@ -172,7 +169,7 @@ export function AssistantMessage(props: IProps) {
       for (const toolCall of toolCalls) {
         if (
           toolCall.name === functionName &&
-          toolCall.args === args &&
+          toolCall.joinedArgs === joinArgs(args) &&
           toolCall.status === ToolCallStatus.PENDING
         ) {
           toolCall.status = ToolCallStatus.INTERRUPTED;
@@ -213,17 +210,20 @@ export function AssistantMessage(props: IProps) {
           </AccordionTrigger>
           <AccordionContent className="text-gray-500 dark:text-gray-400">
             <ul>
-              {toolCalls.map((toolCall, index) => {
-                return (
-                  <li key={'tool_call_' + toolCall.name + '_' + index}>
-                    <pre>
-                      {toolStateIcon(toolCall.status)}
-                      &nbsp;
-                      <b>{toolCall.name}</b> {toolCall.args}
-                    </pre>
-                  </li>
-                );
-              })}
+              {toolCalls.map((toolCall, index) => (
+                <li
+                  key={'tool_call_' + toolCall.name + '_' + index}
+                  className="flex items-center gap-2"
+                >
+                  {toolStateIcon(toolCall.status)}
+                  <b>{toolCall.name}</b>
+                  {toolCall.args.map(arg => (
+                    <code className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono">
+                      {arg}
+                    </code>
+                  ))}
+                </li>
+              ))}
             </ul>
           </AccordionContent>
         </AccordionItem>

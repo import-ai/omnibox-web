@@ -23,15 +23,13 @@ export function trimMiddle(str: string, maxLength: number = 20): string {
   return trimmed.replaceAll('\n', ' ');
 }
 
-export function parseArgs(
+export function processArgs(
   args: Record<string, unknown>,
   mapping: { private: string; teamspace: string }
-): string {
-  return Object.values(args)
-    .map(v => {
-      const vStr = `${v}`;
-      const processedV = trimMiddle(pathI18n(vStr, mapping));
-      return `"${processedV}"`;
-    })
-    .join(' ');
+): string[] {
+  return Object.values(args).map(v => trimMiddle(pathI18n(`${v}`, mapping)));
+}
+
+export function joinArgs(args: string[]): string {
+  return args.map(arg => `"${arg}"`).join(' ');
 }
