@@ -98,7 +98,7 @@ export function AssistantMessage(props: IProps) {
   if (openAIMessage.content?.trim()) {
     domList.push(
       <CitationMarkdown
-        key="content"
+        key={'content_' + message.id}
         status={message.status}
         content={openAIMessage.content?.trim()}
         citations={citations}
@@ -120,7 +120,8 @@ export function AssistantMessage(props: IProps) {
   if (openAIMessage.tool_calls) {
     for (const toolCall of openAIMessage.tool_calls) {
       const functionName = t(
-        `chat.messages.tool_calls.function_name.${toolCall.function.name}`
+        `chat.messages.tool_calls.function_name.${toolCall.function.name}`,
+        t('chat.messages.tool_calls.function_name.unknown')
       );
       const args: string[] = processArgs(
         JSON.parse(toolCall.function.arguments),
@@ -217,8 +218,11 @@ export function AssistantMessage(props: IProps) {
                 >
                   {toolStateIcon(toolCall.status)}
                   <b>{toolCall.name}</b>
-                  {toolCall.args.map(arg => (
-                    <code className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono">
+                  {toolCall.args.map((arg, argIndex) => (
+                    <code
+                      key={'arg_' + argIndex}
+                      className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
+                    >
                       {arg}
                     </code>
                   ))}

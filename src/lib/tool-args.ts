@@ -23,11 +23,24 @@ export function trimMiddle(str: string, maxLength: number = 20): string {
   return trimmed.replaceAll('\n', ' ');
 }
 
+function convertToString(arg: any): string {
+  if (typeof arg === 'object') {
+    try {
+      return JSON.stringify(arg);
+    } catch {
+      // pass
+    }
+  }
+  return `${arg}`;
+}
+
 export function processArgs(
   args: Record<string, unknown>,
   mapping: { private: string; teamspace: string }
 ): string[] {
-  return Object.values(args).map(v => trimMiddle(pathI18n(`${v}`, mapping)));
+  return Object.values(args).map(v =>
+    trimMiddle(pathI18n(convertToString(v), mapping))
+  );
 }
 
 export function joinArgs(args: string[]): string {
