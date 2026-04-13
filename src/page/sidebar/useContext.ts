@@ -566,6 +566,27 @@ export default function useContext() {
       })
     );
     hooks.push(
+      app.on('refresh_by_parent_id', (parentId: string) => {
+        const spaceType = getSpaceType(parentId);
+        if (!spaceType || !data[spaceType]) return;
+
+        if (!expands.includes(parentId)) {
+          handleExpand(spaceType, parentId);
+          return;
+        }
+
+        http
+          .get(`/namespaces/${namespaceId}/resources/${parentId}/children`)
+          .then(response => {
+            data[spaceType].children = data[spaceType].children.filter(
+              item => item.parent_id !== parentId
+            );
+            data[spaceType].children.push(...response);
+            onData({ ...data });
+          });
+      })
+    );
+    hooks.push(
       app.on('clean_resource', () => {
         each(data, (_resource, key) => {
           data[key].children = [];
