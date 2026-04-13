@@ -210,8 +210,11 @@ export default function DecisionInput(props: IDecisionInputProps) {
             {processArgs(activeInterrupt.args, {
               private: t('chat.messages.tool_calls.function_args.private'),
               teamspace: t('chat.messages.tool_calls.function_args.teamspace'),
-            }).map(arg => (
-              <code className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono">
+            }).map((arg, i) => (
+              <code
+                key={i}
+                className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
+              >
                 {arg}
               </code>
             ))}

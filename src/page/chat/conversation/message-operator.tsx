@@ -218,7 +218,10 @@ export function createMessageOperator(
           currentNode.message.role === OpenAIMessageRole.ASSISTANT
             ? [OpenAIMessageRole.USER]
             : [OpenAIMessageRole.ASSISTANT, OpenAIMessageRole.SYSTEM];
-        while (!targetRoles.includes(currentNode.message.role)) {
+        while (
+          !targetRoles.includes(currentNode.message.role) ||
+          currentNode.attrs?.tool_call?.decisions
+        ) {
           currentNode = conversation.mapping[currentNode.parent_id];
         }
         return currentNode.id;
