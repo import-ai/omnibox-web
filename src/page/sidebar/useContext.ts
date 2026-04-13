@@ -570,11 +570,6 @@ export default function useContext() {
         const spaceType = getSpaceType(parentId);
         if (!spaceType || !data[spaceType]) return;
 
-        if (!expands.includes(parentId)) {
-          handleExpand(spaceType, parentId);
-          return;
-        }
-
         http
           .get(`/namespaces/${namespaceId}/resources/${parentId}/children`)
           .then(response => {
@@ -582,8 +577,48 @@ export default function useContext() {
               item => item.parent_id !== parentId
             );
             data[spaceType].children.push(...response);
+            if (!expands.includes(parentId)) {
+              expands.push(parentId);
+              onExpands([...expands]);
+            }
             onData({ ...data });
           });
+      })
+    );
+    hooks.push(
+      app.on('scroll_to_resource', (targetId: string, parentId?: string) => {
+        const target = getResourceByField(targetId);
+        if (target) {
+          for (let current: string | undefined = target.parent_id; current; ) {
+            if (!expands.includes(current)) {
+              expands.push(current);
+            }
+            current = getResourceByField(current)?.parent_id;
+          }
+          onExpands([...expands]);
+          requestAnimationFrame(() => {
+            scrollToResource(targetId);
+          });
+        } else if (parentId) {
+          const spaceType = getSpaceType(parentId);
+          if (!spaceType || !data[spaceType]) return;
+          http
+            .get(`/namespaces/${namespaceId}/resources/${parentId}/children`)
+            .then(response => {
+              data[spaceType].children = data[spaceType].children.filter(
+                item => item.parent_id !== parentId
+              );
+              data[spaceType].children.push(...response);
+              if (!expands.includes(parentId)) {
+                expands.push(parentId);
+              }
+              onExpands([...expands]);
+              onData({ ...data });
+              requestAnimationFrame(() => {
+                scrollToResource(targetId);
+              });
+            });
+        }
       })
     );
     hooks.push(
