@@ -467,17 +467,17 @@ export default function Actions(props: IActionProps) {
                 : t('actions.import')}
             </span>
           </DropdownMenuItem>
-
-          <Input
-            multiple
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            onChange={handleUpload}
-            accept={ALLOW_FILE_EXTENSIONS}
-          />
         </DropdownMenuContent>
       </DropdownMenu>
+      <div className="hidden">
+        <Input
+          multiple
+          type="file"
+          ref={fileInputRef}
+          onChange={handleUpload}
+          accept={ALLOW_FILE_EXTENSIONS}
+        />
+      </div>
       {resource && (
         <MoveTo
           open={moveTo}
