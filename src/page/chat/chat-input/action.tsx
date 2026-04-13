@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import { FORCE_ASK } from '@/const';
 import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
@@ -28,6 +29,7 @@ interface IActionProps {
 export default function ChatAction(props: IActionProps) {
   const { t } = useTranslation();
   const { disabled, onAction, loading, mode, setMode } = props;
+  const forceAsk = FORCE_ASK;
   const onStop = () => {
     onAction('stop');
   };
@@ -40,33 +42,37 @@ export default function ChatAction(props: IActionProps) {
 
   return (
     <div className="flex items-center">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="font-normal pl-2 pr-1 mr-1"
-          >
-            {t('chat.action.mode.' + mode)}
-            <ChevronDown />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent side="bottom" align="end">
-          <DropdownMenuCheckboxItem
-            checked={mode === ChatMode.ASK}
-            onCheckedChange={() => setMode(ChatMode.ASK)}
-          >
-            {t('chat.action.mode.ask')}
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem
-            checked={mode === ChatMode.WRITE}
-            onCheckedChange={() => setMode(ChatMode.WRITE)}
-          >
-            {t('chat.action.mode.write')}
-          </DropdownMenuCheckboxItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Separator orientation="vertical" className="h-4 ml-0 mr-3" />
+      {!forceAsk && (
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="font-normal pl-2 pr-1 mr-1"
+              >
+                {t('chat.action.mode.' + mode)}
+                <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="bottom" align="end">
+              <DropdownMenuCheckboxItem
+                checked={mode === ChatMode.ASK}
+                onCheckedChange={() => setMode(ChatMode.ASK)}
+              >
+                {t('chat.action.mode.ask')}
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={mode === ChatMode.WRITE}
+                onCheckedChange={() => setMode(ChatMode.WRITE)}
+              >
+                {t('chat.action.mode.write')}
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Separator orientation="vertical" className="h-4 ml-0 mr-3" />
+        </>
+      )}
       {loading ? (
         <Button
           size="icon"

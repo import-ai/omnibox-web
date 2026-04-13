@@ -1,3 +1,4 @@
+import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
 import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
@@ -118,6 +119,9 @@ export function prepareBody(
     lang,
   };
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
+    tools = [ToolType.PRIVATE_SEARCH, ...tools];
+  }
+  if (FORCE_PRIVATE_SEARCH && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
   }
   for (const tool of tools) {

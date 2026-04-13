@@ -2,6 +2,7 @@ import { Globe, Lightbulb, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
+import { FORCE_PRIVATE_SEARCH } from '@/const.ts';
 import { cn } from '@/lib/utils';
 import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 
@@ -21,7 +22,9 @@ const datasource = [
     value: ToolType.REASONING,
     icon: <Lightbulb />,
   },
-];
+].filter(
+  item => !(FORCE_PRIVATE_SEARCH && item.value === ToolType.PRIVATE_SEARCH)
+);
 
 interface IProps {
   tools: Array<ToolType>;

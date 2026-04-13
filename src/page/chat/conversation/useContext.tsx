@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang';
@@ -105,7 +106,7 @@ export default function useContext() {
         context,
         messages[messages.length - 1]?.id,
         messageOperator,
-        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`,
         getWizardLang(i18n),
         namespaceId,
         undefined,
