@@ -561,6 +561,7 @@
           "remove_tag_from_resource": "将标签从资源中移除",
           "add_tag_to_resource": "将标签添加至资源",
           "tag_filter": "筛选标签",
+          "collect_url": "收藏网页",
           "unknown": "未知工具"
         },
         "function_args": {
