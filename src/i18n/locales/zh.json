@@ -541,7 +541,7 @@
         "function_name": {
           "write_todos": "待办",
           "ls": "浏览资源",
-          "read_file": "查看资源",
+          "read_file": "读取资源",
           "edit_file": "编辑资源",
           "write_file": "创建资源",
           "glob": "Glob",
@@ -550,6 +550,7 @@
           "resource_filter": "筛选资源",
           "resource_search": "搜索资源",
           "private_search": "搜索资源",
+          "describe_resource": "速览资源",
           "web_search": "网络搜索",
           "delete_resource": "删除资源",
           "rename_resource": "重命名资源",
