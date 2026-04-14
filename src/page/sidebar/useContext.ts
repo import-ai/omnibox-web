@@ -442,6 +442,76 @@ export default function useContext() {
       })
     );
     hooks.push(
+      app.on('refresh_resource', (resourceId: string) => {
+        http
+          .get(`/namespaces/${namespaceId}/resources/${resourceId}`)
+          .then((response: Resource) => {
+            let updated = false;
+            const newData = { ...data };
+            each(data, (resource, key) => {
+              if (
+                Array.isArray(resource.children) &&
+                resource.children.length > 0
+              ) {
+                const index = resource.children.findIndex(
+                  (node: Resource) => node.id === resourceId
+                );
+                if (index >= 0) {
+                  newData[key] = {
+                    ...resource,
+                    children: resource.children.map(
+                      (child: Resource, i: number) =>
+                        i === index
+                          ? {
+                              ...child,
+                              name: response.name,
+                              has_children: response.has_children,
+                            }
+                          : child
+                    ),
+                  };
+                  updated = true;
+                  return true;
+                }
+              }
+            });
+            if (updated) {
+              onData(newData);
+            }
+          });
+      })
+    );
+    hooks.push(
+      app.on('expand_resource', (resourceId: string) => {
+        if (expands.includes(resourceId)) {
+          return;
+        }
+        const spaceType = getSpaceType(resourceId);
+        if (!spaceType || !data[spaceType]) return;
+
+        onExpanding(resourceId);
+        http
+          .get(`/namespaces/${namespaceId}/resources/${resourceId}/children`)
+          .then(response => {
+            data[spaceType].children = data[spaceType].children.filter(
+              item => item.parent_id !== resourceId
+            );
+            data[spaceType].children.push(...response);
+            expands.push(resourceId);
+            onExpands([...expands]);
+            onData({ ...data });
+          })
+          .finally(() => {
+            onExpanding('');
+          });
+      })
+    );
+    hooks.push(
+      app.on('collapse_resource', (resourceId: string) => {
+        onExpands(expands.filter(item => item !== resourceId));
+      })
+    );
+    hooks.push(
       app.on('restore_resource', (resource: Resource) => {
         if (
           !resource ||
