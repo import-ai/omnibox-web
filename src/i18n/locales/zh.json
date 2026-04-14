@@ -544,6 +544,7 @@
         "function_name": {
           "write_todos": "待办",
           "ls": "浏览资源",
+          "list_resources": "浏览资源",
           "read_file": "读取资源",
           "edit_file": "编辑资源",
           "write_file": "创建资源",

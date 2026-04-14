@@ -542,10 +542,11 @@
       "tool_calls": {
         "function_name": {
           "write_todos": "TODO",
-          "ls": "List files",
-          "read_file": "Read file",
-          "edit_file": "Edit file",
-          "write_file": "Create file",
+          "ls": "List Resources",
+          "list_resources": "List Resources",
+          "read_file": "Read Resource",
+          "edit_file": "Edit Resource",
+          "write_file": "Create Resource",
           "glob": "Glob",
           "grep": "Grep",
           "task": "Task",
