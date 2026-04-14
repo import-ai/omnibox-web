@@ -89,6 +89,7 @@ export default function useContext() {
       const v = value.trim();
       if (v) {
         onChange('');
+        onContextChange([]);
         await submit(v);
       }
     }
@@ -132,6 +133,7 @@ export default function useContext() {
     }
     setConversation(state.conversation);
     sessionStorage.removeItem('state');
+    onContextChange([]); // Before sending chat request in home page
     submit(routeQuery);
   }, []);
 
