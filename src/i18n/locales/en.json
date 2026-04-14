@@ -536,6 +536,9 @@
         "save_edit": "Save",
         "cancel_edit": "Cancel"
       },
+      "user_context": {
+        "selected_resources": "{{count}} Resources Selected"
+      },
       "tool_calls": {
         "function_name": {
           "write_todos": "TODO",

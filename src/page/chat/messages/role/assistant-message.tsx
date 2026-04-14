@@ -125,10 +125,7 @@ export function AssistantMessage(props: IProps) {
       );
       const args: string[] = processArgs(
         JSON.parse(toolCall.function.arguments),
-        {
-          private: t('chat.messages.tool_calls.function_args.private'),
-          teamspace: t('chat.messages.tool_calls.function_args.teamspace'),
-        }
+        t
       );
       let functionStatus: ToolCallStatus = ToolCallStatus.PENDING;
       const toolMessage = messages.find(
@@ -159,10 +156,7 @@ export function AssistantMessage(props: IProps) {
   }
   if (message.attrs?.tool_call?.interrupts) {
     for (const interrupt of message.attrs.tool_call.interrupts) {
-      const args: string[] = processArgs(interrupt.args, {
-        private: t('chat.messages.tool_calls.function_args.private'),
-        teamspace: t('chat.messages.tool_calls.function_args.teamspace'),
-      });
+      const args: string[] = processArgs(interrupt.args, t);
       const functionName = t(
         `chat.messages.tool_calls.function_name.${interrupt.name}`
       );

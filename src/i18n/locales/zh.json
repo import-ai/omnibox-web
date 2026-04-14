@@ -537,6 +537,9 @@
         "save_edit": "保存",
         "cancel_edit": "取消"
       },
+      "user_context": {
+        "selected_resources": "选择了 {{count}} 个资源"
+      },
       "tool_calls": {
         "function_name": {
           "write_todos": "待办",

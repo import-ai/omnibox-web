@@ -1,10 +1,13 @@
-export function pathI18n(
-  path: string,
-  mapping: { private: string; teamspace: string }
-): string {
-  for (const [key, value] of Object.entries(mapping)) {
+import { TFunction } from 'i18next';
+
+export function pathI18n(path: string, t: TFunction): string {
+  for (const key of ['private', 'teamspace']) {
     if (path.startsWith('/' + key)) {
-      return '/' + value + path.slice(key.length + 1);
+      return (
+        '/' +
+        t(`chat.messages.tool_calls.function_args.${key}`) +
+        path.slice(key.length + 1)
+      );
     }
   }
   return path;
@@ -36,10 +39,10 @@ function convertToString(arg: any): string {
 
 export function processArgs(
   args: Record<string, unknown>,
-  mapping: { private: string; teamspace: string }
+  t: TFunction
 ): string[] {
   return Object.values(args).map(v =>
-    trimMiddle(pathI18n(convertToString(v), mapping))
+    trimMiddle(pathI18n(convertToString(v), t))
   );
 }
 

@@ -207,10 +207,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
             )}
           </CardTitle>
           <CardDescription className="text-xs flex flex-wrap gap-x-2 gap-y-1">
-            {processArgs(activeInterrupt.args, {
-              private: t('chat.messages.tool_calls.function_args.private'),
-              teamspace: t('chat.messages.tool_calls.function_args.teamspace'),
-            }).map((arg, i) => (
+            {processArgs(activeInterrupt.args, t).map((arg, i) => (
               <code
                 key={i}
                 className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
