@@ -637,21 +637,67 @@ export default function useContext() {
     );
     hooks.push(
       app.on('refresh_resource_children', (parentId: string) => {
-        const spaceType = getSpaceType(parentId);
-        if (!spaceType || !data[spaceType]) return;
+        const syncParentHasChildrenInFlat = (
+          root: IResourceData,
+          id: string,
+          directChildCount: number
+        ) => {
+          const hasChildren = directChildCount > 0;
+          if (root.id === id) {
+            root.has_children = hasChildren;
+            return;
+          }
+          const idx = root.children.findIndex(item => item.id === id);
+          if (idx >= 0) {
+            root.children[idx].has_children = hasChildren;
+          }
+        };
 
+        const mergeChildrenAndRefresh = (
+          spaceType: SpaceType,
+          response: unknown
+        ) => {
+          const list = Array.isArray(response) ? response : [];
+          const root = data[spaceType];
+          root.children = root.children.filter(
+            item => item.parent_id !== parentId
+          );
+          root.children.push(...list);
+          syncParentHasChildrenInFlat(root, parentId, list.length);
+          onData({ ...data });
+        };
+
+        const target = getResourceByField(parentId);
+        if (target) {
+          const spaceType = getSpaceType(parentId);
+          http
+            .get(`/namespaces/${namespaceId}/resources/${parentId}/children`)
+            .then(response => mergeChildrenAndRefresh(spaceType, response));
+          return;
+        }
         http
-          .get(`/namespaces/${namespaceId}/resources/${parentId}/children`)
-          .then(response => {
-            data[spaceType].children = data[spaceType].children.filter(
-              item => item.parent_id !== parentId
+          .get(`/namespaces/${namespaceId}/resources/${parentId}`, {
+            mute: true,
+          })
+          .then(resource => {
+            if (!resource) return;
+            const path = resource.path;
+            if (!Array.isArray(path) || path.length <= 0) return;
+            const resolvedSpaceType = getSpaceType(path[0].id);
+            if (!resolvedSpaceType || !data[resolvedSpaceType]) return;
+
+            const parentExists = data[resolvedSpaceType].children.some(
+              item => item.id === parentId
             );
-            data[spaceType].children.push(...response);
-            if (!expands.includes(parentId)) {
-              expands.push(parentId);
-              onExpands([...expands]);
+            if (!parentExists) {
+              data[resolvedSpaceType].children.push(resource);
             }
-            onData({ ...data });
+
+            http
+              .get(`/namespaces/${namespaceId}/resources/${parentId}/children`)
+              .then(response =>
+                mergeChildrenAndRefresh(resolvedSpaceType, response)
+              );
           });
       })
     );
