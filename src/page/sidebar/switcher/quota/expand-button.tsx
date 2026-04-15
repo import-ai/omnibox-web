@@ -19,7 +19,7 @@ export function ExpandButton({ namespaceId }: ExpandButtonProps) {
     currentNamespace.tier !== NamespaceTier.BASIC ||
     !currentNamespace.is_owner
   ) {
-    return null;
+    return <div className="h-1" />;
   }
 
   return (
