@@ -9,6 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Spinner } from '@/components/ui/spinner';
+import useApp from '@/hooks/use-app';
 import { joinArgs, processArgs } from '@/lib/tool-args';
 import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
@@ -76,6 +77,7 @@ export function AssistantMessage(props: IProps) {
     isLastMessage,
   } = props;
   const { t } = useTranslation();
+  const app = useApp();
   const openAIMessage = message.message;
 
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
@@ -219,11 +221,14 @@ export function AssistantMessage(props: IProps) {
       if (
         !deduplicatedOperations.some(
           o =>
-            o.name === operation.name && o.resourceId === operation.resourceId
+            o.name === operation.name && o.resource_id === operation.resource_id
         )
       ) {
         deduplicatedOperations.push(operation);
       }
+    }
+    for (const operation of deduplicatedOperations) {
+      app.fire(operation.name, operation.resource_id);
     }
   }, [toolCalls, hasPendingToolCalls]);
 
