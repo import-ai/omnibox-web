@@ -636,7 +636,7 @@ export default function useContext() {
       })
     );
     hooks.push(
-      app.on('refresh_by_parent_id', (parentId: string) => {
+      app.on('refresh_resource_children', (parentId: string) => {
         const spaceType = getSpaceType(parentId);
         if (!spaceType || !data[spaceType]) return;
 

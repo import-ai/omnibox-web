@@ -566,6 +566,7 @@
           "add_tag_to_resource": "将标签添加至资源",
           "tag_filter": "筛选标签",
           "collect_url": "收藏网页",
+          "frontend_operations": "前端操作",
           "unknown": "未知工具"
         },
         "function_args": {

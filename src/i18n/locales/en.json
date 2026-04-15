@@ -565,6 +565,7 @@
           "add_tag_to_resource": "Add Tag to Resource",
           "tag_filter": "Tag Filter",
           "collect_url": "Collect URL",
+          "frontend_operations": "Frontend Operating",
           "unknown": "Unknown"
         },
         "function_args": {

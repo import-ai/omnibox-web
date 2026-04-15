@@ -15,7 +15,9 @@ export interface ConversationSummary extends IBase {
 
 export interface ToolCallFrontendOperation {
   name: string;
-  resource_id: string;
+  args?: {
+    resource_id?: string;
+  };
 }
 
 export interface MessageAttrs {

@@ -221,14 +221,15 @@ export function AssistantMessage(props: IProps) {
       if (
         !deduplicatedOperations.some(
           o =>
-            o.name === operation.name && o.resource_id === operation.resource_id
+            o.name === operation.name &&
+            o.args?.resource_id === operation.args?.resource_id
         )
       ) {
         deduplicatedOperations.push(operation);
       }
     }
     for (const operation of deduplicatedOperations) {
-      app.fire(operation.name, operation.resource_id);
+      app.fire(operation.name, operation.args?.resource_id);
     }
   }, [toolCalls, hasPendingToolCalls]);
 
@@ -276,6 +277,13 @@ export function AssistantMessage(props: IProps) {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+    );
+  }
+  if (
+    [MessageStatus.PENDING, MessageStatus.STREAMING].includes(message.status)
+  ) {
+    domList.push(
+      <Spinner key={'response_loading_' + message.id} className="size-4" />
     );
   }
   return domList.length === 1 ? domList[0] : domList;
