@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { pathI18n, trimMiddle } from '@/lib/tool-args.ts';
 import { cn } from '@/lib/utils';
-import { MessageOperator } from '@/page/chat/conversation/message-operator.ts';
+import { MessageOperator } from '@/page/chat/core/message-operator.ts';
+import { MessageDetail } from '@/page/chat/core/types/conversation';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
-import { MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {
   message: MessageDetail;

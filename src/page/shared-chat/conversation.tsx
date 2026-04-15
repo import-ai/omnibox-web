@@ -8,17 +8,17 @@ import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
 import { type ChatActionType, InputMode } from '@/page/chat/chat-input/types';
-import { createMessageOperator } from '@/page/chat/conversation/message-operator.ts';
 import Scrollbar from '@/page/chat/conversation/scrollbar';
 import {
   ask,
   extractOriginalMessageSettings,
 } from '@/page/chat/conversation/utils.ts';
-import { Messages } from '@/page/chat/messages';
+import { createMessageOperator } from '@/page/chat/core/message-operator.ts';
 import {
   ConversationDetail,
   MessageDetail,
-} from '@/page/chat/types/conversation';
+} from '@/page/chat/core/types/conversation';
+import { Messages } from '@/page/chat/messages';
 import { useShareContext } from '@/page/share';
 
 export default function SharedChatConversationPage() {

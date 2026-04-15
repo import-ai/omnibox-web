@@ -14,10 +14,6 @@ import {
   InputMode,
   ToolType,
 } from '@/page/chat/chat-input/types';
-import {
-  createMessageOperator,
-  MessageOperator,
-} from '@/page/chat/conversation/message-operator.ts';
 import { DecisionType } from '@/page/chat/conversation/types.ts';
 import {
   ask,
@@ -25,9 +21,13 @@ import {
   findFirstMessageWithMissingParent,
 } from '@/page/chat/conversation/utils.ts';
 import {
+  createMessageOperator,
+  MessageOperator,
+} from '@/page/chat/core/message-operator.ts';
+import {
   ConversationDetail,
   MessageDetail,
-} from '@/page/chat/types/conversation';
+} from '@/page/chat/core/types/conversation';
 import useGlobalContext from '@/page/chat/useContext';
 
 import { getTitleFromConversationDetail } from '../utils';

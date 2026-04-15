@@ -20,9 +20,9 @@ import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useTheme from '@/hooks/use-theme.ts';
 import Save from '@/page/chat/components/save';
+import { Citation, MessageStatus } from '@/page/chat/core/types/chat-response';
+import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
-import { Citation, MessageStatus } from '@/page/chat/types/chat-response';
-import type { ConversationDetail } from '@/page/chat/types/conversation';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const citePattern = / *\[\[(\d+)]]/g;

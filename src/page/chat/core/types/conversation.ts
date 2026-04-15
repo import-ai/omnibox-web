@@ -1,10 +1,10 @@
-import { IBase } from '@/interface';
+import { IBase } from '@/interface.ts';
 import type { ChatTool, DecisionType } from '@/page/chat/conversation/types.ts';
 import type {
   Citation,
   MessageStatus,
   OpenAIMessage,
-} from '@/page/chat/types/chat-response';
+} from '@/page/chat/core/types/chat-response.ts';
 
 export interface ConversationSummary extends IBase {
   id: string;

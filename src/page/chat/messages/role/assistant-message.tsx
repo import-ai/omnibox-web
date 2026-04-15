@@ -11,20 +11,20 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
 import { joinArgs, processArgs } from '@/lib/tool-args';
-import { MessageOperator } from '@/page/chat/conversation/message-operator.ts';
-import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
-import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
+import { MessageOperator } from '@/page/chat/core/message-operator.ts';
 import {
   Citation,
   MessageStatus,
   OpenAIMessageRole,
-} from '@/page/chat/types/chat-response';
+} from '@/page/chat/core/types/chat-response';
 import {
   ConversationDetail,
   MessageDetail,
   ToolCallFrontendOperation,
-} from '@/page/chat/types/conversation';
-import { ToolCallStatus } from '@/page/chat/types/tool-call.ts';
+} from '@/page/chat/core/types/conversation';
+import { ToolCallStatus } from '@/page/chat/core/types/tool-call.ts';
+import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
+import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
 
 interface IProps {
   conversation: ConversationDetail;

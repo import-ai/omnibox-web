@@ -4,7 +4,7 @@ import { getLangOnly } from '@/lib/lang';
 import {
   ConversationDetail,
   ConversationSummary,
-} from '@/page/chat/types/conversation';
+} from '@/page/chat/core/types/conversation';
 
 interface GroupedItems {
   [key: string]: Array<ConversationSummary>;

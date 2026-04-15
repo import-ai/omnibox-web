@@ -6,11 +6,11 @@ import {
   ChatErrorResponse,
   MessageStatus,
   OpenAIMessageRole,
-} from '@/page/chat/types/chat-response';
+} from '@/page/chat/core/types/chat-response.ts';
 import {
   ConversationDetail,
   MessageDetail,
-} from '@/page/chat/types/conversation';
+} from '@/page/chat/core/types/conversation.ts';
 
 function add(source?: string, delta?: string): string | undefined {
   return delta ? (source || '') + delta : source;
