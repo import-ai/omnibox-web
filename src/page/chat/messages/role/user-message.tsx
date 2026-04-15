@@ -10,7 +10,7 @@ import { pathI18n, trimMiddle } from '@/lib/tool-args.ts';
 import { cn } from '@/lib/utils';
 import { MessageOperator } from '@/page/chat/core/message-operator.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
-import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
+import { useMessageSiblings } from '@/page/chat/core/use-message-siblings.ts';
 
 interface IProps {
   message: MessageDetail;

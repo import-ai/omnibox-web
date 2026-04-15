@@ -23,8 +23,8 @@ import {
   ToolCallFrontendOperation,
 } from '@/page/chat/core/types/conversation';
 import { ToolCallStatus } from '@/page/chat/core/types/tool-call.ts';
+import { useMessageSiblings } from '@/page/chat/core/use-message-siblings.ts';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
-import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
 
 interface IProps {
   conversation: ConversationDetail;
