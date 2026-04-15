@@ -442,6 +442,76 @@ export default function useContext() {
       })
     );
     hooks.push(
+      app.on('refresh_resource', (resourceId: string) => {
+        http
+          .get(`/namespaces/${namespaceId}/resources/${resourceId}`)
+          .then((response: Resource) => {
+            let updated = false;
+            const newData = { ...data };
+            each(data, (resource, key) => {
+              if (
+                Array.isArray(resource.children) &&
+                resource.children.length > 0
+              ) {
+                const index = resource.children.findIndex(
+                  (node: Resource) => node.id === resourceId
+                );
+                if (index >= 0) {
+                  newData[key] = {
+                    ...resource,
+                    children: resource.children.map(
+                      (child: Resource, i: number) =>
+                        i === index
+                          ? {
+                              ...child,
+                              name: response.name,
+                              has_children: response.has_children,
+                            }
+                          : child
+                    ),
+                  };
+                  updated = true;
+                  return true;
+                }
+              }
+            });
+            if (updated) {
+              onData(newData);
+            }
+          });
+      })
+    );
+    hooks.push(
+      app.on('expand_resource', (resourceId: string) => {
+        if (expands.includes(resourceId)) {
+          return;
+        }
+        const spaceType = getSpaceType(resourceId);
+        if (!spaceType || !data[spaceType]) return;
+
+        onExpanding(resourceId);
+        http
+          .get(`/namespaces/${namespaceId}/resources/${resourceId}/children`)
+          .then(response => {
+            data[spaceType].children = data[spaceType].children.filter(
+              item => item.parent_id !== resourceId
+            );
+            data[spaceType].children.push(...response);
+            expands.push(resourceId);
+            onExpands([...expands]);
+            onData({ ...data });
+          })
+          .finally(() => {
+            onExpanding('');
+          });
+      })
+    );
+    hooks.push(
+      app.on('collapse_resource', (resourceId: string) => {
+        onExpands(expands.filter(item => item !== resourceId));
+      })
+    );
+    hooks.push(
       app.on('restore_resource', (resource: Resource) => {
         if (
           !resource ||
@@ -563,6 +633,62 @@ export default function useContext() {
           )
         );
         expandedRef.current = false;
+      })
+    );
+    hooks.push(
+      app.on('refresh_by_parent_id', (parentId: string) => {
+        const spaceType = getSpaceType(parentId);
+        if (!spaceType || !data[spaceType]) return;
+
+        http
+          .get(`/namespaces/${namespaceId}/resources/${parentId}/children`)
+          .then(response => {
+            data[spaceType].children = data[spaceType].children.filter(
+              item => item.parent_id !== parentId
+            );
+            data[spaceType].children.push(...response);
+            if (!expands.includes(parentId)) {
+              expands.push(parentId);
+              onExpands([...expands]);
+            }
+            onData({ ...data });
+          });
+      })
+    );
+    hooks.push(
+      app.on('scroll_to_resource', (targetId: string, parentId?: string) => {
+        const target = getResourceByField(targetId);
+        if (target) {
+          for (let current: string | undefined = target.parent_id; current; ) {
+            if (!expands.includes(current)) {
+              expands.push(current);
+            }
+            current = getResourceByField(current)?.parent_id;
+          }
+          onExpands([...expands]);
+          requestAnimationFrame(() => {
+            scrollToResource(targetId);
+          });
+        } else if (parentId) {
+          const spaceType = getSpaceType(parentId);
+          if (!spaceType || !data[spaceType]) return;
+          http
+            .get(`/namespaces/${namespaceId}/resources/${parentId}/children`)
+            .then(response => {
+              data[spaceType].children = data[spaceType].children.filter(
+                item => item.parent_id !== parentId
+              );
+              data[spaceType].children.push(...response);
+              if (!expands.includes(parentId)) {
+                expands.push(parentId);
+              }
+              onExpands([...expands]);
+              onData({ ...data });
+              requestAnimationFrame(() => {
+                scrollToResource(targetId);
+              });
+            });
+        }
       })
     );
     hooks.push(
