@@ -13,6 +13,11 @@ export interface ConversationSummary extends IBase {
   assistant_content?: string;
 }
 
+export interface ToolCallFrontendOperation {
+  name: string;
+  resourceId: string;
+}
+
 export interface MessageAttrs {
   citations?: Citation[];
   tools?: ChatTool[];
@@ -33,6 +38,8 @@ export interface MessageAttrs {
     decisions?: {
       type: DecisionType;
     }[];
+    operations?: ToolCallFrontendOperation[];
+    in_streaming?: boolean; // if the message is ended in streaming
   };
 }
 

@@ -159,6 +159,11 @@ export function createMessageOperator(
           return prev;
         }
         message.status = MessageStatus.SUCCESS;
+        if (message.message.role === OpenAIMessageRole.TOOL) {
+          if (message.attrs?.tool_call) {
+            message.attrs.tool_call.in_streaming = true;
+          }
+        }
         return {
           ...prev,
           mapping: { ...prev.mapping, [message.id]: message },

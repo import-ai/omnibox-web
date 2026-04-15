@@ -1,5 +1,5 @@
 import { Ban, Check, MessageCircleWarning, X } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -18,9 +18,10 @@ import {
   MessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/types/chat-response';
-import type {
+import {
   ConversationDetail,
   MessageDetail,
+  ToolCallFrontendOperation,
 } from '@/page/chat/types/conversation';
 import { ToolCallStatus } from '@/page/chat/types/tool-call.ts';
 
@@ -35,10 +36,14 @@ interface IProps {
 }
 
 interface IToolCall {
+  toolCallId: string;
+  toolMessageId?: string;
+  inStreaming?: boolean;
   name: string;
   args: string[];
   status: ToolCallStatus;
   joinedArgs: string;
+  operations?: ToolCallFrontendOperation[];
 }
 
 function toolStateIcon(status: ToolCallStatus) {
@@ -146,7 +151,12 @@ export function AssistantMessage(props: IProps) {
       } else if (toolCallStatus === ToolCallStatus.REJECTED) {
         functionStatus = ToolCallStatus.REJECTED;
       }
+
       toolCalls.push({
+        toolCallId: toolCall.id,
+        toolMessageId: toolMessage?.id,
+        inStreaming: toolMessage?.attrs?.tool_call?.in_streaming,
+        operations: toolMessage?.attrs?.tool_call?.operations,
         name: functionName,
         args,
         status: functionStatus,
@@ -173,16 +183,51 @@ export function AssistantMessage(props: IProps) {
     }
   }
 
+  const processedToolMessageIds = useRef<Set<string>>(new Set());
+
+  const hasPendingToolCalls =
+    toolCalls.length > 0 &&
+    toolCalls.filter(
+      t =>
+        ![
+          ToolCallStatus.SUCCESS,
+          ToolCallStatus.FAILED,
+          ToolCallStatus.REJECTED,
+        ].includes(t.status)
+    ).length > 0;
+
+  useEffect(() => {
+    if (toolCalls.length === 0 || hasPendingToolCalls) return;
+    const operations: ToolCallFrontendOperation[] = [];
+    for (const toolCall of toolCalls) {
+      if (
+        toolCall.inStreaming &&
+        toolCall.toolMessageId &&
+        toolCall.operations &&
+        toolCall.operations.length > 0 &&
+        !processedToolMessageIds.current.has(toolCall.toolMessageId)
+      ) {
+        for (const operation of toolCall.operations) {
+          operations.push(operation);
+          processedToolMessageIds.current.add(toolCall.toolMessageId);
+        }
+      }
+    }
+    if (operations.length === 0) return;
+    const deduplicatedOperations: ToolCallFrontendOperation[] = [];
+    for (const operation of operations) {
+      if (
+        !deduplicatedOperations.some(
+          o =>
+            o.name === operation.name && o.resourceId === operation.resourceId
+        )
+      ) {
+        deduplicatedOperations.push(operation);
+      }
+    }
+  }, [toolCalls, hasPendingToolCalls]);
+
   if (toolCalls.length > 0) {
-    const allToolCallsIsFinished: boolean =
-      toolCalls.filter(
-        t =>
-          ![
-            ToolCallStatus.SUCCESS,
-            ToolCallStatus.FAILED,
-            ToolCallStatus.REJECTED,
-          ].includes(t.status)
-      ).length > 0; // TODO Trigger resources refresh.
     domList.push(
       <Accordion
         type="single"
@@ -194,7 +239,7 @@ export function AssistantMessage(props: IProps) {
         <AccordionItem value={'tool_calls_' + message.id}>
           <AccordionTrigger>
             <span>
-              {allToolCallsIsFinished && (
+              {hasPendingToolCalls && (
                 <span>
                   <Spinner className="inline-block size-4" />
                   &nbsp;
