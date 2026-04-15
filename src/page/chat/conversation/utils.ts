@@ -2,13 +2,13 @@ import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
 import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
-import { MessageOperator } from '@/page/chat/conversation/message-operator';
+import { MessageOperator } from '@/page/chat/conversation/message-operator.ts';
 import type {
   ChatRequestBody,
   ChatTool,
   PrivateSearch,
   PrivateSearchResource,
-} from '@/page/chat/conversation/types';
+} from '@/page/chat/conversation/types.ts';
 import {
   ChatErrorResponse,
   ChatResponse,

@@ -17,13 +17,13 @@ import {
 import {
   createMessageOperator,
   MessageOperator,
-} from '@/page/chat/conversation/message-operator';
-import { DecisionType } from '@/page/chat/conversation/types';
+} from '@/page/chat/conversation/message-operator.ts';
+import { DecisionType } from '@/page/chat/conversation/types.ts';
 import {
   ask,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
-} from '@/page/chat/conversation/utils';
+} from '@/page/chat/conversation/utils.ts';
 import {
   ConversationDetail,
   MessageDetail,

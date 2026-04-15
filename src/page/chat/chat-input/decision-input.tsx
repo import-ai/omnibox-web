@@ -21,7 +21,7 @@ export interface PendingInterrupt {
   index: number;
 }
 
-import { DecisionType } from '@/page/chat/conversation/types';
+import { DecisionType } from '@/page/chat/conversation/types.ts';
 
 interface IDecisionInputProps {
   interrupts: PendingInterrupt[];

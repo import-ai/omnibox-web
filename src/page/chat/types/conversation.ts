@@ -1,5 +1,5 @@
 import { IBase } from '@/interface';
-import type { ChatTool, DecisionType } from '@/page/chat/conversation/types';
+import type { ChatTool, DecisionType } from '@/page/chat/conversation/types.ts';
 import type {
   Citation,
   MessageStatus,

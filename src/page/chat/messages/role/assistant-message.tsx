@@ -11,7 +11,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
 import { joinArgs, processArgs } from '@/lib/tool-args';
-import { MessageOperator } from '@/page/chat/conversation/message-operator';
+import { MessageOperator } from '@/page/chat/conversation/message-operator.ts';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
 import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
 import {

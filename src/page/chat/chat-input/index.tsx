@@ -7,7 +7,7 @@ import {
   IResTypeContext,
   ToolType,
 } from '@/page/chat/chat-input/types';
-import { DecisionType } from '@/page/chat/conversation/types';
+import { DecisionType } from '@/page/chat/conversation/types.ts';
 
 import ChatAction from './action';
 import ChatTool from './chat-tool';

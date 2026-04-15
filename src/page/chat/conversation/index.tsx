@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import ChatArea from '@/page/chat/chat-input';
-import useContext from '@/page/chat/conversation/useContext';
+import useContext from '@/page/chat/conversation/useContext.ts';
 import { Messages } from '@/page/chat/messages';
 
 import Scrollbar from './scrollbar';

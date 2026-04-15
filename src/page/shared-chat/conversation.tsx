@@ -8,12 +8,12 @@ import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
 import { type ChatActionType, InputMode } from '@/page/chat/chat-input/types';
-import { createMessageOperator } from '@/page/chat/conversation/message-operator';
+import { createMessageOperator } from '@/page/chat/conversation/message-operator.ts';
 import Scrollbar from '@/page/chat/conversation/scrollbar';
 import {
   ask,
   extractOriginalMessageSettings,
-} from '@/page/chat/conversation/utils';
+} from '@/page/chat/conversation/utils.ts';
 import { Messages } from '@/page/chat/messages';
 import {
   ConversationDetail,
