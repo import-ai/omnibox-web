@@ -14,6 +14,17 @@
   "teamspace": "Teamspace",
   "toggle_language": "Toggle Language",
   "toggle_theme": "Toggle Theme",
+  "notification": "Notification Center",
+  "notification_modal": {
+    "title": "Notification Center",
+    "all": "All",
+    "unread": "Unread",
+    "read": "Read",
+    "mark_all_read": "Mark all as read",
+    "empty": "Nothing here",
+    "loading_more": "Loading...",
+    "no_more": "Showing all messages from the last 30 days"
+  },
   "welcome": {
     "title": "Create Your Space",
     "description": "Get started by creating your first workspace to organize your content and collaborate with others."

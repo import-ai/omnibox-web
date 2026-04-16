@@ -14,6 +14,17 @@
   "teamspace": "团队",
   "toggle_language": "切换语言",
   "toggle_theme": "切换外观",
+  "notification": "通知中心",
+  "notification_modal": {
+    "title": "通知中心",
+    "all": "全部",
+    "unread": "未读",
+    "read": "已读",
+    "mark_all_read": "一键已读",
+    "empty": "空空如也",
+    "loading_more": "正在加载...",
+    "no_more": "已展示近 30 天的全部消息"
+  },
   "welcome": {
     "title": "创建您的空间",
     "description": "创建您的第一个工作空间，开始整理内容并与他人协作。"
