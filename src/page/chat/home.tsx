@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Typewriter } from '@/components/typewriter';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
+import { ChatMode, InputMode, ToolType } from '@/page/chat/chat-input/types';
 
 import ChatArea from './chat-input';
 import FeatureCards from './home/feature-cards';
@@ -58,6 +58,9 @@ export default function ChatHomePage() {
             value={value}
             loading={false}
             context={context}
+            inputMode={InputMode.TEXT}
+            pendingInterrupts={[]}
+            onDecision={() => {}}
             setMode={setMode}
             onChange={onChange}
             onAction={handleAction}

@@ -15,3 +15,9 @@ export const SUPPORTED_EMAIL_DOCS_LINK: string = '/login#supported-email';
 
 // Allowed country codes for phone login/signup
 export const ALLOWED_PHONE_COUNTRIES = ['CN'] as const;
+
+export const FORCE_ASK =
+  import.meta.env.VITE_FORCE_ASK?.toLowerCase() !== 'false';
+
+export const FORCE_PRIVATE_SEARCH =
+  import.meta.env.VITE_FORCE_PRIVATE_SEARCH?.toLowerCase() !== 'false';

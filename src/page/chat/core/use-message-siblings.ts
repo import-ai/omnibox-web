@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { MessageOperator } from '@/page/chat/conversation/message-operator';
+import { MessageOperator } from '@/page/chat/core/message-operator.ts';
 
 /**
  * Custom hook to manage sibling message navigation

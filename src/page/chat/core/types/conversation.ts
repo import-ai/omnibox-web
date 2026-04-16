@@ -1,10 +1,10 @@
-import { IBase } from '@/interface';
-import type { ChatTool } from '@/page/chat/conversation/types';
+import { IBase } from '@/interface.ts';
+import type { ChatTool, DecisionType } from '@/page/chat/conversation/types.ts';
 import type {
   Citation,
   MessageStatus,
   OpenAIMessage,
-} from '@/page/chat/types/chat-response';
+} from '@/page/chat/core/types/chat-response.ts';
 
 export interface ConversationSummary extends IBase {
   id: string;
@@ -13,12 +13,36 @@ export interface ConversationSummary extends IBase {
   assistant_content?: string;
 }
 
+export interface ToolCallFrontendOperation {
+  name: string;
+  args?: {
+    resource_id?: string;
+  };
+}
+
 export interface MessageAttrs {
   citations?: Citation[];
   tools?: ChatTool[];
   enable_thinking?: boolean;
   lang?: '简体中文' | 'English';
   error_message?: string;
+  user_context?: {
+    selected_resources?: string[];
+  };
+  tool_call?: {
+    status: string;
+    error?: string;
+    interrupts?: {
+      args: Record<string, any>;
+      name: string;
+      decisions: string[];
+    }[];
+    decisions?: {
+      type: DecisionType;
+    }[];
+    operations?: ToolCallFrontendOperation[];
+    in_streaming?: boolean; // if the message is ended in streaming
+  };
 }
 
 export interface MessageDetail extends IBase {

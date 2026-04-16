@@ -3,9 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import ChatArea from '@/page/chat/chat-input';
-import useContext from '@/page/chat/conversation/useContext';
+import useContext from '@/page/chat/conversation/useContext.ts';
 import { Messages } from '@/page/chat/messages';
-import { normalizeChatData } from '@/page/chat/normalize-chat';
 
 import Scrollbar from './scrollbar';
 
@@ -28,6 +27,9 @@ export default function ChatConversationPage() {
     messageOperator,
     onRegenerate,
     onEdit,
+    inputMode,
+    pendingInterrupts,
+    onToolDecision,
   } = useContext();
 
   return (
@@ -42,7 +44,7 @@ export default function ChatConversationPage() {
         ) : (
           <Messages
             conversation={conversation}
-            messages={normalizeChatData(messages)}
+            messages={messages}
             messageOperator={messageOperator}
             onRegenerate={onRegenerate}
             onEdit={onEdit}
@@ -58,10 +60,13 @@ export default function ChatConversationPage() {
             setMode={setMode}
             loading={loading}
             context={context}
+            inputMode={inputMode}
+            pendingInterrupts={pendingInterrupts}
             onChange={onChange}
             onAction={onAction}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}
+            onDecision={onToolDecision}
             navigatePrefix={`/${namespaceId}`}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">

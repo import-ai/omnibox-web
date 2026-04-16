@@ -1,6 +1,6 @@
+import { type Citation } from '@/page/chat/core/types/chat-response';
+import { type MessageDetail } from '@/page/chat/core/types/conversation';
 import { CitationsSheet } from '@/page/chat/messages/citations/citations-sheet';
-import { type Citation } from '@/page/chat/types/chat-response';
-import { type MessageDetail } from '@/page/chat/types/conversation';
 
 interface IProps {
   citations: Citation[];

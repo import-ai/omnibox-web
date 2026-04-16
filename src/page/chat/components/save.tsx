@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import type { ConversationDetail } from '@/page/chat/types/conversation';
+import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
 
 interface IProps {

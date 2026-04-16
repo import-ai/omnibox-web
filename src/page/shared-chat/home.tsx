@@ -6,6 +6,7 @@ import { Typewriter } from '@/components/typewriter';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import ChatArea from '@/page/chat/chat-input';
+import { InputMode } from '@/page/chat/chat-input/types.tsx';
 import { getGreeting } from '@/page/chat/utils';
 import { useShareContext } from '@/page/share';
 
@@ -48,6 +49,9 @@ export default function SharedChatHomePage() {
           value={chatInput}
           loading={false}
           context={selectedResources}
+          inputMode={InputMode.TEXT}
+          pendingInterrupts={[]}
+          onDecision={() => {}}
           setMode={setMode}
           onChange={setChatInput}
           onAction={handleAction}
