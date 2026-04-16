@@ -282,8 +282,11 @@ export function AssistantMessage(props: IProps) {
   if (
     [MessageStatus.PENDING, MessageStatus.STREAMING].includes(message.status)
   ) {
+    // Keep position with action button in citation markdown
     domList.push(
-      <Spinner key={'response_loading_' + message.id} className="size-4" />
+      <div className="flex items-center mt-3 mb-1.5">
+        <Spinner key={'response_loading_' + message.id} className="size-4" />
+      </div>
     );
   }
   return domList.length === 1 ? domList[0] : domList;

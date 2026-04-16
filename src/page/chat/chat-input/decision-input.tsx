@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
+import { Button as BaseButton } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -13,6 +14,8 @@ import {
 } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { processArgs } from '@/lib/tool-args';
+import { cn } from '@/lib/utils.ts';
+import { DecisionType } from '@/page/chat/conversation/types.ts';
 
 export interface PendingInterrupt {
   name: string;
@@ -20,9 +23,6 @@ export interface PendingInterrupt {
   decisions: DecisionType[];
   index: number;
 }
-
-import { DecisionType } from '@/page/chat/conversation/types.ts';
-
 interface IDecisionInputProps {
   interrupts: PendingInterrupt[];
   onDecision: (decisions: { type: DecisionType }[]) => void;
@@ -42,24 +42,54 @@ function getDecisionIcon(decisionType: string) {
 }
 
 // Get decision style classes based on type and selection state
-function getDecisionStyle(decisionType: string, isSelected: boolean): string {
-  const lowerType = decisionType.toLowerCase();
+function getDecisionStyle(
+  decisionType: string,
+  isSelected: boolean,
+  isActive: boolean
+): string {
+  const decision = decisionType.toLowerCase();
+  let borderStyle = '';
 
-  if (lowerType === 'approve' || lowerType === 'accept') {
-    return isSelected
-      ? 'bg-green-50 border-green-400 text-green-700 dark:bg-green-950/50 dark:border-green-600 dark:text-green-300'
-      : 'border-green-300 text-green-600 hover:bg-green-50 hover:text-green-700 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-950 dark:hover:text-green-300';
+  if (!isActive) {
+    if (decision === 'approve') {
+      borderStyle = 'border-green-50 dark:!border-green-900/50';
+    } else {
+      borderStyle = 'border-red-50 dark:!border-red-900/50';
+    }
+  } else {
+    borderStyle = 'dark:!border-neutral-500';
   }
 
-  if (lowerType === 'reject' || lowerType === 'decline') {
-    return isSelected
-      ? 'bg-red-50 border-red-400 text-red-700 dark:bg-red-950/50 dark:border-red-600 dark:text-red-300'
-      : 'border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950 dark:hover:text-red-300';
+  let bgStyle: string;
+
+  if (isSelected) {
+    if (decision === 'approve') {
+      bgStyle =
+        'bg-green-100 dark:bg-green-900/50 hover:bg-green-100 dark:hover:bg-green-900/50';
+    } else {
+      bgStyle =
+        'bg-red-100 dark:bg-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/50';
+    }
+  } else {
+    if (decision === 'approve') {
+      bgStyle =
+        'bg-green-50 dark:bg-green-950/50 hover:bg-green-100 dark:hover:bg-green-900/50';
+    } else {
+      bgStyle =
+        'bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50';
+    }
   }
 
-  return isSelected
-    ? 'bg-gray-50 border-gray-400 text-gray-700 dark:bg-gray-800 dark:border-gray-500 dark:text-gray-300'
-    : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-950 dark:hover:text-gray-300';
+  let textStyle = '';
+
+  if (decision === 'approve') {
+    textStyle =
+      'text-green-700 dark:text-green-300 hover:text-green-700 dark:hover:text-green-300';
+  } else {
+    textStyle =
+      'text-red-700 dark:text-red-300 hover:text-red-700 dark:hover:text-red-300';
+  }
+  return cn('focus-visible:ring-0', bgStyle, borderStyle, textStyle);
 }
 
 export default function DecisionInput(props: IDecisionInputProps) {
@@ -199,11 +229,18 @@ export default function DecisionInput(props: IDecisionInputProps) {
   return (
     <div className="py-3">
       {/* Card */}
-      <Card>
+      <Card className="border-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">
-            {t(
-              `chat.messages.tool_calls.function_name.${activeInterrupt.name}`
+          <CardTitle className="flex items-center gap-2">
+            <div className="text-base font-normal">
+              {t(
+                `chat.messages.tool_calls.function_name.${activeInterrupt.name}`
+              )}
+            </div>
+            {interrupts.length > 1 && (
+              <div className="text-xs text-muted-foreground font-normal">
+                {activeCardIndex + 1} / {interrupts.length}
+              </div>
             )}
           </CardTitle>
           <CardDescription className="text-xs flex flex-wrap gap-x-2 gap-y-1">
@@ -225,14 +262,13 @@ export default function DecisionInput(props: IDecisionInputProps) {
             const isActive = idx === activeOptionIndex;
 
             return (
-              <Button
+              <BaseButton
                 key={decisionType}
                 variant="outline"
-                className={`
-                  w-full justify-start text-sm font-medium
-                  ${getDecisionStyle(decisionType, isSelected)}
-                  ${isActive && !isSelected ? 'ring-2 ring-ring ring-offset-2 dark:ring-offset-gray-900' : ''}
-                `}
+                className={cn(
+                  'w-full justify-start text-sm font-normal',
+                  getDecisionStyle(decisionType, isSelected, isActive)
+                )}
                 onClick={() =>
                   !disabled &&
                   handleSelectDecision(activeInterrupt.index, decisionType)
@@ -241,29 +277,18 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 onMouseEnter={() => !disabled && setActiveOptionIndex(idx)}
               >
                 {getDecisionIcon(decisionType)}
-                <span>
-                  {decisionType.toLowerCase() === 'approve'
-                    ? t('chat.decision.approve')
-                    : decisionType.toLowerCase() === 'reject'
-                      ? t('chat.decision.reject')
-                      : decisionType}
-                </span>
-                {isSelected && (
-                  <Check className="size-4 ml-auto text-green-500" />
-                )}
-              </Button>
+                <span>{t(`chat.decision.${decisionType.toLowerCase()}`)}</span>
+                {/*{isSelected && (*/}
+                {/*  <Check className="size-4 ml-auto text-green-500" />*/}
+                {/*)}*/}
+              </BaseButton>
             );
           })}
         </CardContent>
 
-        <CardFooter className="flex-col gap-3 pt-0">
+        <CardFooter className="flex-col gap-3 pt-0 items-end">
           {/* Submit button — always visible, disabled until all decided */}
-          <Button
-            className="w-full"
-            onClick={handleSubmit}
-            disabled={!allDecided || disabled}
-          >
-            <Check className="size-4 mr-1" />
+          <Button onClick={handleSubmit} disabled={!allDecided || disabled}>
             {t('chat.decision.submit')}
           </Button>
 
@@ -309,11 +334,11 @@ export default function DecisionInput(props: IDecisionInputProps) {
                       <button
                         key={idx}
                         data-dot-index={idx}
-                        className={`
-                          shrink-0 rounded-full transition-all duration-200
-                          ${isCurrent ? 'w-5 h-2' : 'w-2 h-2'}
-                          ${dotColor}
-                        `}
+                        className={cn(
+                          'shrink-0 rounded-full transition-all duration-200',
+                          isCurrent ? 'w-5 h-2' : 'w-2 h-2',
+                          dotColor
+                        )}
                         onClick={() => !disabled && setActiveCardIndex(idx)}
                         disabled={disabled}
                         aria-label={`Go to decision ${idx + 1}`}
@@ -337,13 +362,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
               >
                 <ChevronRight className="size-4" />
               </Button>
-            </div>
-          )}
-
-          {/* Progress text */}
-          {interrupts.length > 1 && (
-            <div className="text-center text-xs text-muted-foreground">
-              {activeCardIndex + 1} / {interrupts.length}
             </div>
           )}
         </CardFooter>
