@@ -185,6 +185,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
           );
           break;
         case ' ':
+        case 'Enter':
           e.preventDefault();
           if (currentOptions[activeOptionIndex]) {
             handleSelectDecision(
