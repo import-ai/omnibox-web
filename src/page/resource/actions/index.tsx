@@ -273,16 +273,16 @@ export default function Actions(props: IActionProps) {
     if (!resource || !e.target.files) {
       return;
     }
-    onLoading('import');
+    onLoading('upload_to_folder');
     uploadFiles(e.target.files, {
       namespaceId: namespaceId,
-      parentId: resource.parent_id,
+      parentId: resource.id,
       onProgress: ({ done, total }) => {
         setProgress(`${done}/${total}`);
       },
     })
       .then(responses => {
-        app.fire('generate_resource', resource.parent_id, responses);
+        app.fire('generate_resource', resource.id, responses);
         toast.success(
           t('upload.success', { count: e.target.files?.length || 1 })
         );
@@ -448,36 +448,40 @@ export default function Actions(props: IActionProps) {
                   <Switch checked={wide} />
                 </div>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {resource && resource.resource_type === 'folder' && (
+                <DropdownMenuSeparator />
+              )}
             </>
           )}
 
-          <DropdownMenuItem
-            className="cursor-pointer gap-2"
-            onClick={() => handleAction('import')}
-          >
-            {loading === 'import' ? (
-              <Spinner />
-            ) : (
-              <ArrowUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-            )}
-            <span>
-              {loading === 'import'
-                ? `${t('actions.import')} ${progress}`
-                : t('actions.import')}
-            </span>
-          </DropdownMenuItem>
-
-          <Input
-            multiple
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            onChange={handleUpload}
-            accept={ALLOW_FILE_EXTENSIONS}
-          />
+          {resource && resource.resource_type === 'folder' && (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={() => handleAction('import')}
+            >
+              {loading === 'upload_to_folder' ? (
+                <Spinner />
+              ) : (
+                <ArrowUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              )}
+              <span>
+                {loading === 'upload_to_folder'
+                  ? `${t('actions.upload_to_folder')} ${progress}`
+                  : t('actions.upload_to_folder')}
+              </span>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
+      <div className="hidden">
+        <Input
+          multiple
+          type="file"
+          ref={fileInputRef}
+          onChange={handleUpload}
+          accept={ALLOW_FILE_EXTENSIONS}
+        />
+      </div>
       {resource && (
         <MoveTo
           open={moveTo}
