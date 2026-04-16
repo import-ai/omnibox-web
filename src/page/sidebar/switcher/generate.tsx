@@ -43,8 +43,9 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
           duration: 10000,
           className: 'justify-between',
           style: {
-            width: '90%',
-            minWidth: '48vw',
+            left: '50%',
+            width: 'min(90vw, 488px)',
+            marginLeft: 'calc(min(90vw, 488px) * -0.5)',
           },
           action: (
             <a

@@ -160,7 +160,7 @@
     "conflict": "已有相同名称的空间",
     "no_special_chars": "空间名不允许使用特殊符号",
     "quota_exceeded": "已超过额度",
-    "quota_exceeded_desc": "当前空间额度已耗尽,请扩容",
+    "quota_exceeded_desc": "当前空间额度已耗尽，请扩容",
     "quota_expand_button": "扩容",
     "usage": "用量",
     "leave": {
