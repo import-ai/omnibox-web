@@ -352,18 +352,19 @@ export default function useContext() {
     return keys;
   };
 
-  // Batch add expand keys (deduplicated)
+  // Batch add expand keys (deduplicated), uses functional update to avoid stale closure
   const addExpandKeys = (ids: string[]) => {
-    let changed = false;
-    each(ids, id => {
-      if (id && !expands.includes(id)) {
-        expands.push(id);
-        changed = true;
-      }
+    onExpands(prev => {
+      let changed = false;
+      const next = [...prev];
+      each(ids, id => {
+        if (id && !next.includes(id)) {
+          next.push(id);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
     });
-    if (changed) {
-      onExpands([...expands]);
-    }
   };
 
   // Batch upsert nodes into the specified space (deduplicated)
@@ -632,7 +633,7 @@ export default function useContext() {
             }
           });
         }
-        onExpands(expands.filter(item => !toRemove.has(item)));
+        onExpands(prev => prev.filter(item => !toRemove.has(item)));
       })
     );
     hooks.push(
