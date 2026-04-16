@@ -28,6 +28,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
     loadingMore,
     fetchNotificationDetail,
     loadMore,
+    refresh,
     markNotificationRead,
     clearUnread,
     clearingUnread,
@@ -123,6 +124,8 @@ function Notification({ onClose }: { onClose?: () => void }) {
           filter={filter}
           onChange={setFilter}
           labels={labels}
+          refreshing={loading}
+          onRefresh={refresh}
           onMarkAllRead={clearUnread}
         />
 

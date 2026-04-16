@@ -20,6 +20,7 @@
     "all": "All",
     "unread": "Unread",
     "read": "Read",
+    "refresh": "Refresh",
     "mark_all_read": "Mark all as read",
     "empty": "Nothing here",
     "loading_more": "Loading...",

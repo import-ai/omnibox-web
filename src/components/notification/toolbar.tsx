@@ -1,10 +1,9 @@
-import { BrushCleaning } from 'lucide-react';
+import { BrushCleaning, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 
 import type { NotificationFilter } from './types';
-import { notificationMetaWidthClassName } from './utils';
 
 interface FilterTabsProps {
   value: NotificationFilter;
@@ -16,9 +15,11 @@ interface FilterTabsProps {
 interface NotificationToolbarProps {
   unreadCount: number;
   clearingUnread?: boolean;
+  refreshing?: boolean;
   filter: NotificationFilter;
   labels: Record<NotificationFilter, string>;
   onMarkAllRead?: () => void;
+  onRefresh?: () => void;
   onChange: (filter: NotificationFilter) => void;
 }
 
@@ -60,13 +61,23 @@ function FilterTabs({ value, unreadCount, onChange, labels }: FilterTabsProps) {
 export function NotificationToolbar({
   unreadCount,
   clearingUnread = false,
+  refreshing = false,
   filter,
   onChange,
   labels,
   onMarkAllRead,
+  onRefresh,
 }: NotificationToolbarProps) {
   const { t } = useTranslation();
-  const isDisabled = unreadCount === 0 || clearingUnread;
+  const isMarkAllReadDisabled = unreadCount === 0 || clearingUnread;
+  const isRefreshDisabled = refreshing;
+  const getActionClassName = (disabled: boolean) =>
+    cn(
+      'inline-flex items-center gap-1 transition-colors',
+      disabled
+        ? 'cursor-not-allowed text-muted-foreground/50'
+        : 'cursor-pointer hover:cursor-pointer hover:text-foreground'
+    );
 
   return (
     <div className="mb-2 flex items-end justify-between pr-2">
@@ -77,25 +88,27 @@ export function NotificationToolbar({
         labels={labels}
       />
 
-      <div
-        className={cn(
-          notificationMetaWidthClassName,
-          'flex shrink-0 items-center justify-end text-sm leading-6 text-muted-foreground'
-        )}
-      >
+      <div className="flex min-w-max shrink-0 items-center justify-end gap-3 text-sm leading-6 text-muted-foreground">
         <button
           type="button"
-          disabled={isDisabled}
+          disabled={isMarkAllReadDisabled}
           onClick={onMarkAllRead}
-          className={cn(
-            'inline-flex items-center gap-1 transition-colors',
-            isDisabled
-              ? 'cursor-not-allowed text-muted-foreground/50'
-              : 'cursor-pointer hover:cursor-pointer hover:text-foreground'
-          )}
+          className={getActionClassName(isMarkAllReadDisabled)}
         >
           <BrushCleaning className="size-4 stroke-2" />
           <span>{t('notification_modal.mark_all_read')}</span>
+        </button>
+
+        <button
+          type="button"
+          disabled={isRefreshDisabled}
+          onClick={onRefresh}
+          className={getActionClassName(isRefreshDisabled)}
+        >
+          <RefreshCw
+            className={cn('size-4 stroke-2', refreshing && 'animate-spin')}
+          />
+          <span>{t('notification_modal.refresh')}</span>
         </button>
       </div>
     </div>

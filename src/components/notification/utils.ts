@@ -6,6 +6,19 @@ export const notificationMetaWidthClassName = 'w-[112px] sm:w-[140px]';
 export const notificationMetaColumnClassName =
   'flex min-w-0 flex-col items-end gap-1 text-right';
 
+export const NOTIFICATION_POLL_INTERVAL_MS = 10_000;
+
+export function startNotificationPolling(
+  refresh: () => Promise<void> | void,
+  intervalMs: number = NOTIFICATION_POLL_INTERVAL_MS
+) {
+  const timer = setInterval(refresh, intervalMs);
+
+  return () => {
+    clearInterval(timer);
+  };
+}
+
 export function filterUnexpiredNotifications<
   T extends { expire_at: string | null },
 >(items: T[], now: number = Date.now()) {

@@ -11,6 +11,10 @@ import type {
   NotificationItem,
   NotificationUnreadCountResponse,
 } from '../types';
+import {
+  NOTIFICATION_POLL_INTERVAL_MS,
+  startNotificationPolling,
+} from '../utils';
 
 const DEFAULT_LIMIT = 20;
 const NOTIFICATION_UNREAD_COUNT_UPDATED = 'notification-unread-count-updated';
@@ -36,6 +40,15 @@ function dispatchUnreadCountUpdated(namespaceId: string, count: number) {
       )
     );
   });
+}
+
+export function startUnreadCountPolling(
+  fetchUnreadCount: () => Promise<void> | void
+) {
+  return startNotificationPolling(
+    fetchUnreadCount,
+    NOTIFICATION_POLL_INTERVAL_MS
+  );
 }
 
 export function useNotifications(filter: NotificationFilter) {
@@ -184,6 +197,8 @@ export function useNotifications(filter: NotificationFilter) {
     refresh();
   }, [refresh]);
 
+  useEffect(() => startNotificationPolling(refresh), [refresh]);
+
   useEffect(() => {
     setUnreadCount(unreadCountCache.get(namespaceId) ?? 0);
   }, [namespaceId]);
@@ -195,6 +210,7 @@ export function useNotifications(filter: NotificationFilter) {
     loadingMore,
     fetchNotificationDetail,
     loadMore,
+    refresh,
     markNotificationRead,
     clearUnread,
     clearingUnread,
@@ -223,6 +239,11 @@ export function useNotificationUnreadCount() {
   useEffect(() => {
     fetchUnreadCount();
   }, [fetchUnreadCount]);
+
+  useEffect(
+    () => startUnreadCountPolling(fetchUnreadCount),
+    [fetchUnreadCount]
+  );
 
   useEffect(() => {
     const handleUnreadCountUpdated = (event: Event) => {

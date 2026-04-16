@@ -20,6 +20,7 @@
     "all": "全部",
     "unread": "未读",
     "read": "已读",
+    "refresh": "刷新",
     "mark_all_read": "一键已读",
     "empty": "空空如也",
     "loading_more": "正在加载...",

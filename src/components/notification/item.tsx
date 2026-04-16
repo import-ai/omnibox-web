@@ -60,10 +60,10 @@ export function NotificationListItem({
             </div>
           ) : null}
           <div className="flex max-w-full items-center justify-center gap-2 text-sm text-muted-foreground">
-            <span className="truncate text-xs text-muted-foreground">
+            <span className="truncate text-xs text-muted-foreground/35 font-normal">
               {formatDistanceToNow(item.created_at, {
                 locale,
-                addSuffix: false,
+                addSuffix: true,
               })}
             </span>
             {item.status === 'unread' ? (
