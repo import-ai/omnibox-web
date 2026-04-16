@@ -8,7 +8,13 @@ import { toast } from 'sonner';
 import { showActionToast } from '@/components/sonner';
 import { useSidebar } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
-import { IResourceData, Resource, ResourceType, SpaceType } from '@/interface';
+import {
+  IResourceData,
+  PathItem,
+  Resource,
+  ResourceType,
+  SpaceType,
+} from '@/interface';
 import { deleteResource } from '@/lib/delete-resource';
 import each from '@/lib/each';
 import { http } from '@/lib/request';
@@ -333,6 +339,77 @@ export default function useContext() {
     app.fire('update_resource', response);
   };
 
+  // Collect parent IDs from target upwards
+  const collectParentKeys = (target: Resource): string[] => {
+    const keys: string[] = [];
+    for (
+      let current: string | undefined = target.parent_id;
+      current;
+      current = getResourceByField(current)?.parent_id
+    ) {
+      keys.push(current);
+    }
+    return keys;
+  };
+
+  // Batch add expand keys (deduplicated)
+  const addExpandKeys = (ids: string[]) => {
+    let changed = false;
+    each(ids, id => {
+      if (id && !expands.includes(id)) {
+        expands.push(id);
+        changed = true;
+      }
+    });
+    if (changed) {
+      onExpands([...expands]);
+    }
+  };
+
+  // Batch upsert nodes into the specified space (deduplicated)
+  const upsertNodes = (spaceType: SpaceType, list: Resource[]) => {
+    let changed = false;
+    each(list, node => {
+      const exists = data[spaceType].children.find(
+        child => child.id === node.id
+      );
+      if (!exists) {
+        data[spaceType].children.push(node);
+        changed = true;
+      }
+    });
+    if (changed) {
+      onData({ ...data });
+    }
+  };
+
+  // Resolve spaceType from the first node of a path
+  const resolveSpaceTypeByPath = (path: PathItem[]): SpaceType => {
+    return (
+      ((Object.keys(data) as SpaceType[]).find(
+        key => data[key].id === path[0].id
+      ) as SpaceType) || getSpaceType(path[0].id)
+    );
+  };
+
+  // Load children of a folder and expand it
+  const loadChildren = (spaceType: SpaceType, id: string) => {
+    onExpanding(id);
+    return http
+      .get(`/namespaces/${namespaceId}/resources/${id}/children`)
+      .then(response => {
+        data[spaceType].children = data[spaceType].children.filter(
+          item => item.parent_id !== id
+        );
+        data[spaceType].children.push(...response);
+        addExpandKeys([id]);
+        onData({ ...data });
+      })
+      .finally(() => {
+        onExpanding('');
+      });
+  };
+
   useEffect(() => {
     const hooks: Array<() => void> = [];
     hooks.push(
@@ -483,32 +560,79 @@ export default function useContext() {
     );
     hooks.push(
       app.on('expand_resource', (resourceId: string) => {
-        if (expands.includes(resourceId)) {
+        const target = getResourceByField(resourceId);
+        if (target) {
+          addExpandKeys(collectParentKeys(target));
+          const spaceType = getSpaceType(resourceId);
+          if (!spaceType || !data[spaceType]) return;
+          loadChildren(spaceType, resourceId);
           return;
         }
-        const spaceType = getSpaceType(resourceId);
-        if (!spaceType || !data[spaceType]) return;
 
-        onExpanding(resourceId);
+        // target not in local state → fetch from API → load missing nodes → expand
         http
-          .get(`/namespaces/${namespaceId}/resources/${resourceId}/children`)
-          .then(response => {
-            data[spaceType].children = data[spaceType].children.filter(
-              item => item.parent_id !== resourceId
-            );
-            data[spaceType].children.push(...response);
-            expands.push(resourceId);
-            onExpands([...expands]);
-            onData({ ...data });
+          .get(`/namespaces/${namespaceId}/resources/${resourceId}`, {
+            mute: true,
           })
-          .finally(() => {
-            onExpanding('');
+          .then((resource: Resource) => {
+            if (
+              !resource ||
+              !Array.isArray(resource.path) ||
+              resource.path.length <= 0
+            )
+              return;
+            const path = resource.path;
+            const spaceType = resolveSpaceTypeByPath(path);
+            if (!spaceType || !data[spaceType]) return;
+
+            const missingIds: string[] = [];
+            each(path, item => {
+              if (!getResourceByField(item.id)) missingIds.push(item.id);
+            });
+            if (
+              !getResourceByField(resourceId) &&
+              !missingIds.includes(resourceId)
+            ) {
+              missingIds.push(resourceId);
+            }
+
+            const fetchMissing =
+              missingIds.length > 0
+                ? http.get(
+                    `/namespaces/${namespaceId}/resources?id=${missingIds.join(',')}`
+                  )
+                : Promise.resolve([]);
+
+            fetchMissing.then(response => {
+              const resources = Array.isArray(response)
+                ? (response as Resource[])
+                : [];
+              upsertNodes(spaceType, resources);
+              addExpandKeys(path.slice(0, -1).map((item: PathItem) => item.id));
+              loadChildren(spaceType, resourceId);
+            });
           });
       })
     );
     hooks.push(
       app.on('collapse_resource', (resourceId: string) => {
-        onExpands(expands.filter(item => item !== resourceId));
+        // Collect the target and all its descendants
+        const toRemove = new Set<string>([resourceId]);
+        let found = true;
+        while (found) {
+          found = false;
+          each(data, spaceData => {
+            if (Array.isArray(spaceData.children)) {
+              each(spaceData.children, (child: Resource) => {
+                if (toRemove.has(child.parent_id) && !toRemove.has(child.id)) {
+                  toRemove.add(child.id);
+                  found = true;
+                }
+              });
+            }
+          });
+        }
+        onExpands(expands.filter(item => !toRemove.has(item)));
       })
     );
     hooks.push(
@@ -703,38 +827,93 @@ export default function useContext() {
     );
     hooks.push(
       app.on('scroll_to_resource', (targetId: string, parentId?: string) => {
+        const finalizeScroll = (id: string) => {
+          requestAnimationFrame(() => scrollToResource(id));
+        };
+
         const target = getResourceByField(targetId);
         if (target) {
-          for (let current: string | undefined = target.parent_id; current; ) {
-            if (!expands.includes(current)) {
-              expands.push(current);
-            }
-            current = getResourceByField(current)?.parent_id;
-          }
-          onExpands([...expands]);
-          requestAnimationFrame(() => {
-            scrollToResource(targetId);
-          });
-        } else if (parentId) {
-          const spaceType = getSpaceType(parentId);
-          if (!spaceType || !data[spaceType]) return;
-          http
-            .get(`/namespaces/${namespaceId}/resources/${parentId}/children`)
-            .then(response => {
-              data[spaceType].children = data[spaceType].children.filter(
-                item => item.parent_id !== parentId
-              );
-              data[spaceType].children.push(...response);
-              if (!expands.includes(parentId)) {
-                expands.push(parentId);
-              }
-              onExpands([...expands]);
-              onData({ ...data });
-              requestAnimationFrame(() => {
-                scrollToResource(targetId);
-              });
-            });
+          const spaceType = getSpaceType(targetId);
+          handleSpaceToggle(spaceType, true);
+          addExpandKeys(collectParentKeys(target));
+          finalizeScroll(targetId);
+          return;
         }
+
+        http
+          .get(`/namespaces/${namespaceId}/resources/${targetId}`, {
+            mute: true,
+          })
+          .then((resource: Resource) => {
+            if (!resource) return;
+            const path = Array.isArray(resource.path) ? resource.path : [];
+            const spaceType =
+              path.length > 0
+                ? resolveSpaceTypeByPath(path)
+                : getSpaceType(resource.id);
+            if (!spaceType || !data[spaceType]) {
+              finalizeScroll(targetId);
+              return;
+            }
+            handleSpaceToggle(spaceType, true);
+
+            const missingIds: string[] = [];
+            each(path, item => {
+              if (!getResourceByField(item.id)) missingIds.push(item.id);
+            });
+            if (
+              !getResourceByField(targetId) &&
+              !missingIds.includes(targetId)
+            ) {
+              missingIds.push(targetId);
+            }
+
+            const fetchMissing =
+              missingIds.length > 0
+                ? http.get(
+                    `/namespaces/${namespaceId}/resources?id=${missingIds.join(',')}`
+                  )
+                : Promise.resolve([]);
+
+            fetchMissing.then(response => {
+              const resources = Array.isArray(response)
+                ? (response as Resource[])
+                : [];
+              upsertNodes(spaceType, resources);
+
+              // Collect expand keys (prefer parent chain, fallback to path)
+              const targetNode = getResourceByField(targetId) || resource;
+              let parentIds = collectParentKeys(targetNode);
+              if (parentIds.length <= 0) {
+                parentIds = path.map(item => item.id);
+                if (
+                  targetNode.parent_id &&
+                  !parentIds.includes(targetNode.parent_id)
+                ) {
+                  parentIds.push(targetNode.parent_id);
+                }
+              }
+              addExpandKeys(parentIds);
+              finalizeScroll(targetId);
+            });
+          })
+          .catch(() => {
+            if (!parentId) return;
+            const spaceType = getSpaceType(parentId);
+            if (!spaceType || !data[spaceType]) return;
+            handleSpaceToggle(spaceType, true);
+            http
+              .get(`/namespaces/${namespaceId}/resources/${parentId}/children`)
+              .then(response => {
+                data[spaceType].children = data[spaceType].children.filter(
+                  item => item.parent_id !== parentId
+                );
+                data[spaceType].children.push(...response);
+                addExpandKeys([parentId]);
+                onData({ ...data });
+                finalizeScroll(targetId);
+              });
+          });
       })
     );
     hooks.push(
