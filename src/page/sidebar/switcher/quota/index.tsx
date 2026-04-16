@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
 import useQuota from '@/hooks/use-quota';
 
+import { ExpandButton } from './expand-button';
 import { Expiration } from './expiration';
 import { StorageSection } from './storage-section';
 import { formatStorage, formatTime, formatTimeAsMinutes } from './utils';
@@ -12,7 +12,7 @@ interface RemainQuotaProps {
 }
 
 export function RemainQuota({ namespaceId }: RemainQuotaProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { data } = useQuota(namespaceId);
   const showOtherMembersUsage = data.show_members_usage;
 
@@ -420,21 +420,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
             segments={section.segments}
           />
         ))}
-        <div className="flex justify-end">
-          <a
-            href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button
-              size="sm"
-              variant="default"
-              className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-            >
-              {t('quota.expand_button')}
-            </Button>
-          </a>
-        </div>
+        <ExpandButton namespaceId={namespaceId} />
       </div>
       <Expiration basic={data.basic} premium={data.premium} />
     </div>
