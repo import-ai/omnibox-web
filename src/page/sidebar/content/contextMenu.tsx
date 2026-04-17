@@ -46,6 +46,7 @@ export default function ContextMenuMain(props: IProps) {
   const app = useApp();
   const { t } = useTranslation();
   const [moveTo, setMoveTo] = useState(false);
+  const [contextOpen, setContextOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   //Check whether to drag from the initial position
@@ -62,14 +63,10 @@ export default function ContextMenuMain(props: IProps) {
 
   // Close the menu when dragging actually starts
   useEffect(() => {
-    if (isActuallyDragging) {
-      document.dispatchEvent(
-        new PointerEvent('pointerdown', {
-          bubbles: true,
-        })
-      );
+    if (isActuallyDragging && contextOpen) {
+      setContextOpen(false);
     }
-  }, [isActuallyDragging]);
+  }, [isActuallyDragging, contextOpen]);
 
   const handleCreateFile = () => {
     onCreate(spaceType, data.id, 'doc');
@@ -121,7 +118,7 @@ export default function ContextMenuMain(props: IProps) {
 
   return (
     <>
-      <ContextMenu>
+      <ContextMenu open={contextOpen} onOpenChange={setContextOpen}>
         <ContextMenuTrigger disabled={isActuallyDragging}>
           {children}
         </ContextMenuTrigger>
