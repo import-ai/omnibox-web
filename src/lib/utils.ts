@@ -40,9 +40,6 @@ export function buildUrl(
   return `${url}?${filteredParams}`;
 }
 
-/**
- * 安全解析 URL，无效时返回 null
- */
 export function safeParseURL(url: string): URL | null {
   try {
     return new URL(url);

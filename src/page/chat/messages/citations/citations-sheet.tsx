@@ -12,8 +12,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { type Citation } from '@/page/chat/core/types/chat-response';
 import { CitationCard } from '@/page/chat/messages/citations/citation-card';
-import { type Citation } from '@/page/chat/types/chat-response';
 
 interface IProps {
   index: number;

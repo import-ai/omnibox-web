@@ -6,10 +6,11 @@ import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { pathI18n, trimMiddle } from '@/lib/tool-args.ts';
 import { cn } from '@/lib/utils';
-import { MessageOperator } from '@/page/chat/conversation/message-operator';
-import { useMessageSiblings } from '@/page/chat/messages/hooks/useMessageSiblings';
-import { MessageDetail } from '@/page/chat/types/conversation';
+import { MessageOperator } from '@/page/chat/core/message-operator.ts';
+import { MessageDetail } from '@/page/chat/core/types/conversation';
+import { useMessageSiblings } from '@/page/chat/core/use-message-siblings.ts';
 
 interface IProps {
   message: MessageDetail;
@@ -47,6 +48,8 @@ export function UserMessage(props: IProps) {
     setEditedContent(openAIMessage.content || '');
     setIsEditing(false);
   };
+
+  const selectedResources = message.attrs?.user_context?.selected_resources;
 
   return (
     <div className="group flex flex-col items-end">
@@ -86,6 +89,23 @@ export function UserMessage(props: IProps) {
           ))
         )}
       </div>
+      {selectedResources && selectedResources.length > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="text-muted-foreground text-xs my-0.5 cursor-default">
+              {t('chat.messages.user_context.selected_resources', {
+                count: selectedResources.length,
+              })}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            {selectedResources.slice(0, 3).map((path, idx) => (
+              <p key={idx}>{trimMiddle(pathI18n(path, t))}</p> // TODO Scrollable
+            ))}
+            {selectedResources.length > 3 && <p>...</p>}
+          </TooltipContent>
+        </Tooltip>
+      )}
       <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
         {!isEditing && (
           <Tooltip>

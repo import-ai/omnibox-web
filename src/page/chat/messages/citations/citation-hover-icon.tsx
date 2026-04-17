@@ -5,8 +5,8 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
-import { formatCitation } from '@/page/chat/messages/citations/utils.tsx';
-import type { Citation } from '@/page/chat/types/chat-response';
+import type { Citation } from '@/page/chat/core/types/chat-response';
+import { formatCitation } from '@/page/chat/messages/citations/utils';
 
 export interface CitationIconProps {
   index: number;
@@ -30,7 +30,7 @@ export function CitationHoverIcon(props: CitationIconProps) {
         >
           <Badge
             variant="secondary"
-            className="rounded-full px-1 hover:text-primary-foreground hover:bg-primary hover:dark:bg-primary dark:bg-[#303030]"
+            className="rounded-full px-1 hover:text-primary-foreground hover:bg-primary dark:hover:bg-primary dark:bg-[#303030]"
           >
             {index + 1}
           </Badge>

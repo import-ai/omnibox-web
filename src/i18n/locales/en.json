@@ -96,7 +96,7 @@
     "move_to": "Move to",
     "move_page_to": "Move page to...",
     "move_to_trash": "Move to Trash",
-    "import": "Import",
+    "upload_to_folder": "Upload to this folder",
     "create_file": "Create File",
     "create_folder": "Create Folder",
     "upload_file": "Upload File",
@@ -551,6 +551,46 @@
         "edit": "Edit message",
         "save_edit": "Save",
         "cancel_edit": "Cancel"
+      },
+      "metrics": {
+        "tps": "{{tokens}} tokens ({{tps}} tokens/s)"
+      },
+      "user_context": {
+        "selected_resources": "{{count}} Resources Selected"
+      },
+      "tool_calls": {
+        "function_name": {
+          "write_todos": "TODO",
+          "ls": "List Resources",
+          "list_resources": "List Resources",
+          "read_file": "Read Resource",
+          "edit_file": "Edit Resource",
+          "write_file": "Create Resource",
+          "glob": "Glob",
+          "grep": "Grep",
+          "task": "Task",
+          "resource_filter": "Resource Filter",
+          "resource_search": "Resource Search",
+          "describe_resource": "Describe Resource",
+          "private_search": "Resource Search",
+          "web_search": "Web Search",
+          "delete_resource": "Delete Resource",
+          "rename_resource": "Rename Resource",
+          "move_resource": "Move Resource",
+          "mkdir": "Create Folder",
+          "list_tags": "List Tags",
+          "rename_tag": "Rename Tag",
+          "remove_tag_from_resource": "Remove Tag from Resource",
+          "add_tag_to_resource": "Add Tag to Resource",
+          "tag_filter": "Tag Filter",
+          "collect_url": "Collect URL",
+          "frontend_operations": "Frontend Operating",
+          "unknown": "Unknown"
+        },
+        "function_args": {
+          "private": "private",
+          "teamspace": "teamspace"
+        }
       }
     },
     "conversations": {
@@ -600,7 +640,8 @@
     "tools": {
       "web_search": "Web Search",
       "private_search": "OmniBox",
-      "reasoning": "Reasoning"
+      "reasoning": "Reasoning",
+      "tool_calls": "Tool Calls"
     },
     "textarea": {
       "placeholder": "Ask anything"
@@ -610,6 +651,12 @@
         "ask": "Ask",
         "write": "Write"
       }
+    },
+    "decision": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "selected": "Selected",
+      "submit": "Submit Decisions"
     }
   },
   "date": {

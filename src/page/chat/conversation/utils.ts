@@ -1,18 +1,16 @@
+import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
 import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
-import { MessageOperator } from '@/page/chat/conversation/message-operator';
 import type {
   ChatRequestBody,
   ChatTool,
   PrivateSearch,
   PrivateSearchResource,
-} from '@/page/chat/conversation/types';
-import {
-  ChatErrorResponse,
-  ChatResponse,
-} from '@/page/chat/types/chat-response';
-import { MessageDetail } from '@/page/chat/types/conversation';
+} from '@/page/chat/conversation/types.ts';
+import { MessageOperator } from '@/page/chat/core/message-operator.ts';
+import { messageProcessor } from '@/page/chat/core/message-processor.ts';
+import { MessageDetail } from '@/page/chat/core/types/conversation';
 
 function getPrivateSearchResources(
   context: IResTypeContext[]
@@ -120,6 +118,9 @@ export function prepareBody(
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
   }
+  if (FORCE_PRIVATE_SEARCH && !tools.includes(ToolType.PRIVATE_SEARCH)) {
+    tools = [ToolType.PRIVATE_SEARCH, ...tools];
+  }
   for (const tool of tools) {
     if (tool === ToolType.REASONING) {
       body.enable_thinking = true;
@@ -156,7 +157,8 @@ export function ask(
   namespaceId: string | undefined,
   shareId: string | undefined,
   sharePassword: string | undefined,
-  enable_thinking?: boolean
+  enable_thinking?: boolean,
+  tool_call?: ChatRequestBody['tool_call']
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -170,22 +172,12 @@ export function ask(
   chatReq.namespace_id = namespaceId;
   chatReq.share_id = shareId;
   chatReq.share_password = sharePassword;
-  return createStreamTransport(url, chatReq, async data => {
-    const chatResponse: ChatResponse = JSON.parse(data);
-    if (chatResponse.response_type === 'bos') {
-      messageOperator.add(chatResponse);
-    } else if (chatResponse.response_type === 'delta') {
-      messageOperator.update(chatResponse);
-    } else if (chatResponse.response_type === 'eos') {
-      messageOperator.done();
-    } else if (chatResponse.response_type === 'done') {
-    } else if (chatResponse.response_type === 'error') {
-      messageOperator.error(chatResponse as ChatErrorResponse);
-      console.error(chatResponse);
-    } else {
-      console.error({ message: 'Unknown response type', chatResponse });
-    }
-  });
+  if (tool_call) {
+    chatReq.tool_call = tool_call;
+  }
+  return createStreamTransport(url, chatReq, async data =>
+    messageProcessor(messageOperator, data)
+  );
 }
 
 /**

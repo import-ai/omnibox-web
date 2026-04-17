@@ -7,19 +7,18 @@ import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
-import { type ChatActionType } from '@/page/chat/chat-input/types';
-import { createMessageOperator } from '@/page/chat/conversation/message-operator';
+import { type ChatActionType, InputMode } from '@/page/chat/chat-input/types';
 import Scrollbar from '@/page/chat/conversation/scrollbar';
 import {
   ask,
   extractOriginalMessageSettings,
-} from '@/page/chat/conversation/utils';
-import { Messages } from '@/page/chat/messages';
-import { normalizeChatData } from '@/page/chat/normalize-chat';
+} from '@/page/chat/conversation/utils.ts';
+import { createMessageOperator } from '@/page/chat/core/message-operator.ts';
 import {
   ConversationDetail,
   MessageDetail,
-} from '@/page/chat/types/conversation';
+} from '@/page/chat/core/types/conversation';
+import { Messages } from '@/page/chat/messages';
 import { useShareContext } from '@/page/share';
 
 export default function SharedChatConversationPage() {
@@ -204,7 +203,7 @@ export default function SharedChatConversationPage() {
     <div className="flex flex-1 flex-col min-h-0">
       <Scrollbar>
         <Messages
-          messages={normalizeChatData(messages)}
+          messages={messages}
           conversation={conversation}
           messageOperator={messageOperator}
           onRegenerate={onRegenerate}
@@ -220,10 +219,13 @@ export default function SharedChatConversationPage() {
             setMode={setMode}
             loading={loading}
             context={selectedResources}
+            inputMode={InputMode.TEXT}
+            pendingInterrupts={[]}
             onChange={setChatInput}
             onAction={onAction}
             onToolsChange={setTools}
             onContextChange={setSelectedResources}
+            onDecision={() => {}}
             navigatePrefix={`/s/${shareId}`}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">

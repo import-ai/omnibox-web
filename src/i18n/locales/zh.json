@@ -96,7 +96,7 @@
     "move_to": "移动到",
     "move_page_to": "将页面移至...",
     "move_to_trash": "移动到回收站",
-    "import": "导入",
+    "upload_to_folder": "上传到该文件夹",
     "create_file": "创建文件",
     "create_folder": "创建文件夹",
     "upload_file": "上传文件",
@@ -176,7 +176,7 @@
     "conflict": "已有相同名称的空间",
     "no_special_chars": "空间名不允许使用特殊符号",
     "quota_exceeded": "已超过额度",
-    "quota_exceeded_desc": "当前空间额度已耗尽,请扩容",
+    "quota_exceeded_desc": "当前空间额度已耗尽，请扩容",
     "quota_expand_button": "扩容",
     "usage": "用量",
     "leave": {
@@ -552,6 +552,46 @@
         "edit": "编辑消息",
         "save_edit": "保存",
         "cancel_edit": "取消"
+      },
+      "metrics": {
+        "tps": "{{tokens}} 词元（{{tps}} 词元 / 秒）"
+      },
+      "user_context": {
+        "selected_resources": "选择了 {{count}} 个资源"
+      },
+      "tool_calls": {
+        "function_name": {
+          "write_todos": "待办",
+          "ls": "浏览资源",
+          "list_resources": "浏览资源",
+          "read_file": "读取资源",
+          "edit_file": "编辑资源",
+          "write_file": "创建资源",
+          "glob": "Glob",
+          "grep": "Grep",
+          "task": "子任务",
+          "resource_filter": "筛选资源",
+          "resource_search": "搜索资源",
+          "private_search": "搜索资源",
+          "describe_resource": "速览资源",
+          "web_search": "网络搜索",
+          "delete_resource": "删除资源",
+          "rename_resource": "重命名资源",
+          "move_resource": "移动资源",
+          "mkdir": "创建文件夹",
+          "list_tags": "浏览标签",
+          "rename_tag": "重命名标签",
+          "remove_tag_from_resource": "将标签从资源中移除",
+          "add_tag_to_resource": "将标签添加至资源",
+          "tag_filter": "筛选标签",
+          "collect_url": "收藏网页",
+          "frontend_operations": "前端操作",
+          "unknown": "未知工具"
+        },
+        "function_args": {
+          "private": "个人",
+          "teamspace": "团队"
+        }
       }
     },
     "conversations": {
@@ -601,7 +641,8 @@
     "tools": {
       "web_search": "联网搜索",
       "private_search": "本地搜索",
-      "reasoning": "深度思考"
+      "reasoning": "深度思考",
+      "tool_calls": "工具调用"
     },
     "textarea": {
       "placeholder": "随便问点什么吧"
@@ -611,6 +652,12 @@
         "ask": "问答",
         "write": "写作"
       }
+    },
+    "decision": {
+      "approve": "同意",
+      "reject": "拒绝",
+      "selected": "已选择",
+      "submit": "提交决定"
     }
   },
   "date": {

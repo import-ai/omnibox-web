@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { http } from '@/lib/request';
-import { ConversationSummary } from '@/page/chat/types/conversation';
+import { ConversationSummary } from '@/page/chat/core/types/conversation';
 
 export default function useContext() {
   const params = useParams();

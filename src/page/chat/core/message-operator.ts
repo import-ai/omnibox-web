@@ -6,11 +6,11 @@ import {
   ChatErrorResponse,
   MessageStatus,
   OpenAIMessageRole,
-} from '@/page/chat/types/chat-response';
+} from '@/page/chat/core/types/chat-response.ts';
 import {
   ConversationDetail,
   MessageDetail,
-} from '@/page/chat/types/conversation';
+} from '@/page/chat/core/types/conversation.ts';
 
 function add(source?: string, delta?: string): string | undefined {
   return delta ? (source || '') + delta : source;
@@ -62,6 +62,17 @@ function getChildren(
   return [];
 }
 
+function getMessage(
+  conversation: ConversationDetail,
+  id?: string
+): MessageDetail | undefined {
+  id = id || conversation.current_node;
+  if (!id || !(id in conversation.mapping)) {
+    return undefined;
+  }
+  return conversation.mapping[id];
+}
+
 export function createMessageOperator(
   conversation: ConversationDetail,
   setConversation: Dispatch<SetStateAction<ConversationDetail>>
@@ -69,10 +80,7 @@ export function createMessageOperator(
   return {
     update: (delta: ChatDeltaResponse, id?: string) => {
       setConversation(prev => {
-        if (!id) {
-          id = prev.current_node!;
-        }
-        const message = prev.mapping[id];
+        const message = getMessage(prev, id);
         if (!message) {
           return prev;
         }
@@ -96,14 +104,12 @@ export function createMessageOperator(
         }
 
         message.status = MessageStatus.STREAMING;
-        if (delta.attrs && delta.attrs.citations) {
-          message.attrs = {
-            ...(message.attrs || {}),
-            citations: delta.attrs.citations,
-          };
+        if (delta.attrs) {
+          message.attrs = message.attrs || {};
+          Object.assign(message.attrs, delta.attrs);
         }
 
-        const newMapping = { ...prev.mapping, [id]: message };
+        const newMapping = { ...prev.mapping, [message.id]: message };
         return {
           ...prev,
           mapping: newMapping,
@@ -148,39 +154,38 @@ export function createMessageOperator(
 
     done: (id?: string) => {
       setConversation(prev => {
-        if (!id) {
-          id = prev.current_node!;
+        const message = getMessage(prev, id);
+        if (!message) {
+          return prev;
         }
-        const message = prev.mapping[id];
-        if (message) {
-          message.status = MessageStatus.SUCCESS;
-          return {
-            ...prev,
-            mapping: { ...prev.mapping, [id]: message },
-          };
+        message.status = MessageStatus.SUCCESS;
+        if (message.message.role === OpenAIMessageRole.TOOL) {
+          if (message.attrs?.tool_call) {
+            message.attrs.tool_call.in_streaming = true;
+          }
         }
-        return prev;
+        return {
+          ...prev,
+          mapping: { ...prev.mapping, [message.id]: message },
+        };
       });
     },
 
     error: (errorResponse: ChatErrorResponse, id?: string) => {
       setConversation(prev => {
-        if (!id) {
-          id = prev.current_node!;
+        const message = getMessage(prev, id);
+        if (!message) {
+          return prev;
         }
-        const message = prev.mapping[id];
-        if (message) {
-          message.status = MessageStatus.FAILED;
-          message.attrs = {
-            ...(message.attrs || {}),
-            error_message: errorResponse.message,
-          };
-          return {
-            ...prev,
-            mapping: { ...prev.mapping, [id]: message },
-          };
-        }
-        return prev;
+        message.status = MessageStatus.FAILED;
+        message.attrs = {
+          ...(message.attrs || {}),
+          error_message: errorResponse.message,
+        };
+        return {
+          ...prev,
+          mapping: { ...prev.mapping, [message.id]: message },
+        };
       });
     },
 
@@ -218,7 +223,10 @@ export function createMessageOperator(
           currentNode.message.role === OpenAIMessageRole.ASSISTANT
             ? [OpenAIMessageRole.USER]
             : [OpenAIMessageRole.ASSISTANT, OpenAIMessageRole.SYSTEM];
-        while (!targetRoles.includes(currentNode.message.role)) {
+        while (
+          !targetRoles.includes(currentNode.message.role) ||
+          currentNode.attrs?.tool_call?.decisions
+        ) {
           currentNode = conversation.mapping[currentNode.parent_id];
         }
         return currentNode.id;

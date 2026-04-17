@@ -12,6 +12,10 @@ import { TrashPanel } from '@/page/sidebar/trash';
 
 import Space from './space';
 
+// Auto-scroll trigger zone
+const EDGE_SIZE = 60;
+const MAX_SCROLL_SPEED = 600; // px per second
+
 export interface IProps extends Omit<
   ISidebarProps,
   'spaceType' | 'data' | 'open'
@@ -38,15 +42,68 @@ export default function Content(props: IProps) {
   // Fallback cleanup: Ensure fileDragTarget is cleared when drag ends, focus is lost, page is hidden, or when leaving the sidebar
   useEffect(() => {
     const sidebarElement = sidebarRef.current;
+    let scrollAnimId: number | null = null;
+    let scrollStep = 0;
+    let lastFrameTime = 0;
+
+    const stopAutoScroll = () => {
+      if (scrollAnimId !== null) {
+        cancelAnimationFrame(scrollAnimId);
+        scrollAnimId = null;
+      }
+      scrollStep = 0;
+    };
+
+    const tick = () => {
+      if (!sidebarElement || scrollStep === 0) return;
+      const now = performance.now();
+      const dt = lastFrameTime
+        ? Math.min((now - lastFrameTime) / 1000, 0.1)
+        : 0;
+      lastFrameTime = now;
+      sidebarElement.scrollTop += scrollStep * MAX_SCROLL_SPEED * dt;
+      scrollAnimId = requestAnimationFrame(tick);
+    };
 
     const clear = () => setFileDragTarget(null);
-
-    const handleDragEnd = () => clear();
-    const handleDrop = () => clear(); // In some environments, dragend may not trigger
+    const handleDragEnd = () => {
+      clear();
+      stopAutoScroll();
+    };
+    const handleDrop = () => {
+      clear(); // In some environments, dragend may not trigger
+      stopAutoScroll();
+    };
     const handleWindowBlur = () => clear();
     const handleVisibilityChange = () => {
       if (document.hidden) clear();
     };
+
+    const handleDragOver = (e: DragEvent) => {
+      if (!sidebarElement) return;
+      const rect = sidebarElement.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      let nextScrollStep = 0;
+
+      if (y >= 0 && y < EDGE_SIZE) {
+        nextScrollStep = -1;
+      } else if (y > rect.height - EDGE_SIZE && y <= rect.height) {
+        nextScrollStep = 1;
+      }
+
+      if (nextScrollStep !== 0) {
+        const changed = scrollStep !== nextScrollStep;
+        scrollStep = nextScrollStep;
+        if (changed || scrollAnimId === null) {
+          if (scrollAnimId !== null) cancelAnimationFrame(scrollAnimId);
+          lastFrameTime = performance.now();
+          scrollAnimId = requestAnimationFrame(tick);
+        }
+      } else {
+        stopAutoScroll();
+      }
+    };
+
     const handleDragLeave = (e: DragEvent) => {
       // Only clear when completely leaving the sidebar (not just switching between child elements)
       if (
@@ -54,6 +111,7 @@ export default function Content(props: IProps) {
         !sidebarElement?.contains(e.relatedTarget as Node)
       ) {
         clear();
+        stopAutoScroll();
       }
     };
 
@@ -62,6 +120,7 @@ export default function Content(props: IProps) {
     window.addEventListener('blur', handleWindowBlur);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     if (sidebarElement) {
+      sidebarElement.addEventListener('dragover', handleDragOver);
       sidebarElement.addEventListener('dragleave', handleDragLeave);
     }
 
@@ -71,8 +130,10 @@ export default function Content(props: IProps) {
       window.removeEventListener('blur', handleWindowBlur);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (sidebarElement) {
+        sidebarElement.removeEventListener('dragover', handleDragOver);
         sidebarElement.removeEventListener('dragleave', handleDragLeave);
       }
+      stopAutoScroll();
     };
   }, []);
 

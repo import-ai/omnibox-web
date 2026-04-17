@@ -3,27 +3,31 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang';
+import { PendingInterrupt } from '@/page/chat/chat-input/decision-input';
 import {
   type ChatActionType,
   ChatMode,
+  InputMode,
   ToolType,
 } from '@/page/chat/chat-input/types';
-import {
-  createMessageOperator,
-  MessageOperator,
-} from '@/page/chat/conversation/message-operator';
+import { DecisionType } from '@/page/chat/conversation/types.ts';
 import {
   ask,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
-} from '@/page/chat/conversation/utils';
+} from '@/page/chat/conversation/utils.ts';
+import {
+  createMessageOperator,
+  MessageOperator,
+} from '@/page/chat/core/message-operator.ts';
 import {
   ConversationDetail,
   MessageDetail,
-} from '@/page/chat/types/conversation';
+} from '@/page/chat/core/types/conversation';
 import useGlobalContext from '@/page/chat/useContext';
 
 import { getTitleFromConversationDetail } from '../utils';
@@ -85,6 +89,7 @@ export default function useContext() {
       const v = value.trim();
       if (v) {
         onChange('');
+        onContextChange([]);
         await submit(v);
       }
     }
@@ -102,7 +107,7 @@ export default function useContext() {
         context,
         messages[messages.length - 1]?.id,
         messageOperator,
-        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`,
         getWizardLang(i18n),
         namespaceId,
         undefined,
@@ -128,6 +133,7 @@ export default function useContext() {
     }
     setConversation(state.conversation);
     sessionStorage.removeItem('state');
+    onContextChange([]); // Before sending chat request in home page
     submit(routeQuery);
   }, []);
 
@@ -211,6 +217,66 @@ export default function useContext() {
     }
   };
 
+  // Check if there are pending tool call interrupts that need user decision
+  const pendingInterrupts = useMemo((): PendingInterrupt[] => {
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) return [];
+
+    const interrupts = lastMessage.attrs?.tool_call?.interrupts;
+    if (!interrupts || interrupts.length === 0) return [];
+
+    // Check which interrupts have been decided
+    const decisions = lastMessage.attrs?.tool_call?.decisions;
+    const decidedIndexes = new Set(decisions?.map((d: any) => d.index) ?? []);
+
+    // Return all undecided interrupts
+    const pending: PendingInterrupt[] = [];
+    for (let i = 0; i < interrupts.length; i++) {
+      if (!decidedIndexes.has(i)) {
+        pending.push({ ...interrupts[i], index: i });
+      }
+    }
+    return pending;
+  }, [messages]);
+
+  // Determine the input mode based on whether there are pending interrupts
+  const inputMode = useMemo(() => {
+    return pendingInterrupts.length > 0 ? InputMode.DECISION : InputMode.TEXT;
+  }, [pendingInterrupts]);
+
+  // Handle tool call decisions
+  const onToolDecision = async (decisions: { type: DecisionType }[]) => {
+    if (decisions.length === 0) return;
+
+    setLoading(true);
+    try {
+      const lastMessage = messages[messages.length - 1];
+      const askFN = ask(
+        conversationId,
+        '', // Empty query for decision requests
+        [], // No tools for decision requests
+        [], // No context for decision requests
+        lastMessage.id,
+        messageOperator,
+        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        getWizardLang(i18n),
+        namespaceId,
+        undefined,
+        undefined,
+        undefined,
+        {
+          decisions: decisions.map(d => ({
+            type: d.type,
+          })),
+        }
+      );
+      askAbortRef.current = askFN.destroy;
+      await askFN.start();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const firstUserMessage = findFirstMessageWithMissingParent(messages);
 
   useEffect(() => {
@@ -236,5 +302,8 @@ export default function useContext() {
     messageOperator,
     onRegenerate,
     onEdit,
+    inputMode,
+    pendingInterrupts,
+    onToolDecision,
   };
 }
