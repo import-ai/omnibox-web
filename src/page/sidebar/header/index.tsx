@@ -1,4 +1,4 @@
-import { Bell, History, Search } from 'lucide-react';
+import { Bell, BellDot, History, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -105,7 +105,11 @@ export function Header(props: IProps) {
             trigger={
               <SidebarMenuButton asChild>
                 <div className="flex items-center gap-2 cursor-pointer">
-                  <Bell className="size-4 text-neutral-400" />
+                  {unreadCount > 0 ? (
+                    <BellDot className="size-4 text-neutral-400" />
+                  ) : (
+                    <Bell className="size-4 text-neutral-400" />
+                  )}
                   <span>{t('notification')}</span>
                   {unreadCount > 0 ? (
                     <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-medium leading-none text-white">
