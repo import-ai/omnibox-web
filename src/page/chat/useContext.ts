@@ -40,5 +40,14 @@ export default function useContext() {
     );
   }, [context]);
 
+  useEffect(() => {
+    return app.on('delete_resource', (id: string) => {
+      const filtered = context.filter(item => item.resource.id !== id);
+      if (filtered.length !== context.length) {
+        onContextChange(filtered);
+      }
+    });
+  }, [context]);
+
   return { context, onContextChange };
 }
