@@ -35,7 +35,6 @@ export function Header(props: IProps) {
   const { t } = useTranslation();
   const isTouch = useIsTouch();
   const unreadCount = useNotificationUnreadCount();
-  console.log('props', props);
   const onChat = () => {
     onActiveKey('chat');
   };
