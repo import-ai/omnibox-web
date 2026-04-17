@@ -14,9 +14,9 @@
   "teamspace": "团队",
   "toggle_language": "切换语言",
   "toggle_theme": "切换外观",
-  "notification": "通知中心",
+  "notification": "通知",
   "notification_modal": {
-    "title": "通知中心",
+    "title": "通知",
     "all": "全部",
     "unread": "未读",
     "read": "已读",

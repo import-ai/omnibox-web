@@ -14,9 +14,9 @@
   "teamspace": "Teamspace",
   "toggle_language": "Toggle Language",
   "toggle_theme": "Toggle Theme",
-  "notification": "Notification Center",
+  "notification": "Notification",
   "notification_modal": {
-    "title": "Notification Center",
+    "title": "Notification",
     "all": "All",
     "unread": "Unread",
     "read": "Read",
