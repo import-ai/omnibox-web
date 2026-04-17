@@ -33,7 +33,9 @@ export function NotificationListItem({
             <div
               className={cn(
                 'w-full truncate text-base leading-6 text-card-foreground',
-                item.status === 'unread' ? 'font-semibold' : 'font-medium'
+                item.status === 'unread'
+                  ? 'font-semibold'
+                  : 'font-medium text-muted-foreground'
               )}
             >
               {item.title}
@@ -54,7 +56,11 @@ export function NotificationListItem({
             <div className="flex max-w-full flex-wrap items-center justify-end gap-2 overflow-hidden">
               {item.tags.map(tag => {
                 return (
-                  <NotificationTag key={`${item.id}`} item={item} tag={tag} />
+                  <NotificationTag
+                    key={`${item.id}-${tag}`}
+                    item={item}
+                    tag={tag}
+                  />
                 );
               })}
             </div>

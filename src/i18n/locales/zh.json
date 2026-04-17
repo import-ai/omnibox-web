@@ -24,7 +24,11 @@
     "mark_all_read": "一键已读",
     "empty": "空空如也",
     "loading_more": "正在加载...",
-    "no_more": "已展示近 30 天的全部消息"
+    "no_more": "已展示近 30 天的全部消息",
+    "tags": {
+      "wechat_bot": "微信助手",
+      "community": "黑友社区"
+    }
   },
   "welcome": {
     "title": "创建您的空间",

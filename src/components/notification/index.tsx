@@ -63,15 +63,14 @@ function Notification({ onClose }: { onClose?: () => void }) {
     async (item: NotificationItem) => {
       const shouldMarkRead = item.status === 'unread';
       const { url, target } = item?.target || {};
-      const source = item?.attrs.source;
+      const source = item?.target?.type;
 
       if (shouldMarkRead) {
         await markNotificationRead(item.id);
       }
 
       switch (source) {
-        case 'wechat_bot':
-        case 'qq_bot': {
+        case 'resource': {
           const resourceId = item.target?.resource_id;
 
           if (namespaceId && resourceId) {
@@ -81,7 +80,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
 
           return;
         }
-        case 'community':
+        case 'link':
           if (url) {
             window.open(url, target);
             return;

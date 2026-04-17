@@ -24,7 +24,11 @@
     "mark_all_read": "Mark all as read",
     "empty": "Nothing here",
     "loading_more": "Loading...",
-    "no_more": "Showing all messages from the last 30 days"
+    "no_more": "Showing all messages from the last 30 days",
+    "tags": {
+      "wechat_bot": "WeChat Assistant",
+      "community": "Community"
+    }
   },
   "welcome": {
     "title": "Create Your Space",
