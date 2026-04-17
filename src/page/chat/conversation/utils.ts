@@ -9,10 +9,7 @@ import type {
   PrivateSearchResource,
 } from '@/page/chat/conversation/types.ts';
 import { MessageOperator } from '@/page/chat/core/message-operator.ts';
-import {
-  ChatErrorResponse,
-  ChatResponse,
-} from '@/page/chat/core/types/chat-response';
+import { messageProcessor } from '@/page/chat/core/message-processor.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 
 function getPrivateSearchResources(
@@ -178,22 +175,9 @@ export function ask(
   if (tool_call) {
     chatReq.tool_call = tool_call;
   }
-  return createStreamTransport(url, chatReq, async data => {
-    const chatResponse: ChatResponse = JSON.parse(data);
-    if (chatResponse.response_type === 'bos') {
-      messageOperator.add(chatResponse);
-    } else if (chatResponse.response_type === 'delta') {
-      messageOperator.update(chatResponse);
-    } else if (chatResponse.response_type === 'eos') {
-      messageOperator.done();
-    } else if (chatResponse.response_type === 'done') {
-    } else if (chatResponse.response_type === 'error') {
-      messageOperator.error(chatResponse as ChatErrorResponse);
-      console.error(chatResponse);
-    } else {
-      console.error({ message: 'Unknown response type', chatResponse });
-    }
-  });
+  return createStreamTransport(url, chatReq, async data =>
+    messageProcessor(messageOperator, data)
+  );
 }
 
 /**
