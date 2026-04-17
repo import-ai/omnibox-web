@@ -1,3 +1,5 @@
+import { MessageAttrs } from '@/page/chat/core/types/conversation.ts';
+
 export enum MessageStatus {
   PENDING = 'pending',
   STREAMING = 'streaming',
@@ -40,11 +42,13 @@ export interface OpenAIMessage {
   tool_call_id?: string;
 }
 
-export interface MessageAttrs {
-  citations?: Citation[];
-}
-
-export type ChatResponseType = 'bos' | 'delta' | 'eos' | 'done' | 'error';
+export type ChatResponseType =
+  | 'bos'
+  | 'delta'
+  | 'eos'
+  | 'done'
+  | 'error'
+  | 'metrics';
 
 export interface ChatBaseResponse {
   response_type: ChatResponseType;
@@ -67,6 +71,12 @@ export interface ChatDeltaResponse extends ChatBaseResponse {
   attrs?: MessageAttrs;
 }
 
+export interface ChatMetricsResponse extends ChatBaseResponse {
+  response_type: 'metrics';
+  tps: number;
+  tokens: number;
+}
+
 export interface ChatDoneResponse extends ChatBaseResponse {
   response_type: 'done';
 }
@@ -80,5 +90,6 @@ export type ChatResponse =
   | ChatBOSResponse
   | ChatDeltaResponse
   | ChatEOSResponse
+  | ChatMetricsResponse
   | ChatDoneResponse
   | ChatErrorResponse;

@@ -536,6 +536,9 @@
         "save_edit": "Save",
         "cancel_edit": "Cancel"
       },
+      "metrics": {
+        "tps": "{{tokens}} tokens ({{tps}} tokens/s)"
+      },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected"
       },

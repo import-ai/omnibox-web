@@ -41,7 +41,12 @@ export interface MessageAttrs {
       type: DecisionType;
     }[];
     operations?: ToolCallFrontendOperation[];
-    in_streaming?: boolean; // if the message is ended in streaming
+    in_streaming?: boolean; // frontend only
+  };
+  // frontend only
+  metrics?: {
+    tps?: number;
+    tokens?: number;
   };
 }
 

@@ -537,6 +537,9 @@
         "save_edit": "保存",
         "cancel_edit": "取消"
       },
+      "metrics": {
+        "tps": "{{tokens}} 词元（{{tps}} 词元 / 秒）"
+      },
       "user_context": {
         "selected_resources": "选择了 {{count}} 个资源"
       },
