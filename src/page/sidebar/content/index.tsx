@@ -39,12 +39,14 @@ export default function Content(props: IProps) {
     onTarget(null);
   };
 
-  // Fallback cleanup: Ensure fileDragTarget is cleared when drag ends, focus is lost, page is hidden, or when leaving the sidebar
+  // Auto-scroll during drag: extends to sidebar header/footer and outside browser window
   useEffect(() => {
     const sidebarElement = sidebarRef.current;
     let scrollAnimId: number | null = null;
     let scrollStep = 0;
     let lastFrameTime = 0;
+    let lastScrollDirection: number = 0; // -1 up, 0 none, 1 down
+    let prevClientY: number | null = null;
 
     const stopAutoScroll = () => {
       if (scrollAnimId !== null) {
@@ -69,31 +71,51 @@ export default function Content(props: IProps) {
     const handleDragEnd = () => {
       clear();
       stopAutoScroll();
+      lastScrollDirection = 0;
+      prevClientY = null;
     };
     const handleDrop = () => {
       clear(); // In some environments, dragend may not trigger
       stopAutoScroll();
+      lastScrollDirection = 0;
+      prevClientY = null;
     };
-    const handleWindowBlur = () => clear();
+    const handleWindowBlur = () => {
+      clear();
+      stopAutoScroll();
+    };
     const handleVisibilityChange = () => {
-      if (document.hidden) clear();
+      if (document.hidden) {
+        clear();
+        stopAutoScroll();
+      }
     };
 
     const handleDragOver = (e: DragEvent) => {
       if (!sidebarElement) return;
       const rect = sidebarElement.getBoundingClientRect();
-      const y = e.clientY - rect.top;
-      let nextScrollStep = 0;
+      const clientY = e.clientY;
 
-      if (y >= 0 && y < EDGE_SIZE) {
-        nextScrollStep = -1;
-      } else if (y > rect.height - EDGE_SIZE && y <= rect.height) {
-        nextScrollStep = 1;
+      const isAboveTop = clientY < rect.top + EDGE_SIZE;
+      const isBelowBottom = clientY > rect.bottom - EDGE_SIZE;
+      const isInsideRect = clientY >= rect.top && clientY <= rect.bottom;
+
+      let nextScrollStep = 0;
+      if (isAboveTop) nextScrollStep = -1;
+      else if (isBelowBottom) nextScrollStep = 1;
+
+      // When outside the sidebar content rect, only scroll if there is vertical movement
+      if (nextScrollStep !== 0 && !isInsideRect) {
+        if (prevClientY !== null && Math.abs(clientY - prevClientY) === 0) {
+          // No vertical movement — keep scrolling if already active, but don't start
+          if (scrollStep === 0) nextScrollStep = 0;
+        }
       }
 
       if (nextScrollStep !== 0) {
         const changed = scrollStep !== nextScrollStep;
         scrollStep = nextScrollStep;
+        lastScrollDirection = nextScrollStep;
         if (changed || scrollAnimId === null) {
           if (scrollAnimId !== null) cancelAnimationFrame(scrollAnimId);
           lastFrameTime = performance.now();
@@ -102,37 +124,33 @@ export default function Content(props: IProps) {
       } else {
         stopAutoScroll();
       }
+
+      prevClientY = clientY;
     };
 
     const handleDragLeave = (e: DragEvent) => {
-      // Only clear when completely leaving the sidebar (not just switching between child elements)
-      if (
-        !e.relatedTarget ||
-        !sidebarElement?.contains(e.relatedTarget as Node)
-      ) {
-        clear();
-        stopAutoScroll();
+      // Cursor left the browser window — keep scrolling in last known direction
+      if (!e.relatedTarget && lastScrollDirection !== 0 && scrollStep === 0) {
+        scrollStep = lastScrollDirection;
+        lastFrameTime = performance.now();
+        scrollAnimId = requestAnimationFrame(tick);
       }
     };
 
+    document.addEventListener('dragover', handleDragOver);
+    document.addEventListener('dragleave', handleDragLeave);
     document.addEventListener('dragend', handleDragEnd);
     document.addEventListener('drop', handleDrop);
     window.addEventListener('blur', handleWindowBlur);
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    if (sidebarElement) {
-      sidebarElement.addEventListener('dragover', handleDragOver);
-      sidebarElement.addEventListener('dragleave', handleDragLeave);
-    }
 
     return () => {
+      document.removeEventListener('dragover', handleDragOver);
+      document.removeEventListener('dragleave', handleDragLeave);
       document.removeEventListener('dragend', handleDragEnd);
       document.removeEventListener('drop', handleDrop);
       window.removeEventListener('blur', handleWindowBlur);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (sidebarElement) {
-        sidebarElement.removeEventListener('dragover', handleDragOver);
-        sidebarElement.removeEventListener('dragleave', handleDragLeave);
-      }
       stopAutoScroll();
     };
   }, []);
