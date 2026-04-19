@@ -23,8 +23,6 @@ export default function ChatConversationPage() {
     sendMessage,
   } = useContext();
 
-  console.log({ method: 'conversationPage', messages });
-
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <Scrollbar>

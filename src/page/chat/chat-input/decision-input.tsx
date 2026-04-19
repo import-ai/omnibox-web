@@ -111,35 +111,35 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
   // Check if all interrupts have been decided
   const allDecided = useMemo(() => {
-    return interrupts.every(
-      interrupt => selectedDecisions[interrupt.index] !== undefined
-    );
+    return interrupts.every((_, idx) => selectedDecisions[idx] !== undefined);
   }, [interrupts, selectedDecisions]);
 
   // Handle individual decision selection
-  const handleSelectDecision = (index: number, decisionType: DecisionType) => {
+  const handleSelectDecision = (
+    cardIndex: number,
+    decisionType: DecisionType
+  ) => {
     setSelectedDecisions(prev => ({
       ...prev,
-      [index]: decisionType,
+      [cardIndex]: decisionType,
     }));
     // Auto-advance to next card (but user can manually go back)
-    const currentCardIdx = interrupts.findIndex(i => i.index === index);
-    if (currentCardIdx >= 0 && currentCardIdx < interrupts.length - 1) {
-      setActiveCardIndex(currentCardIdx + 1);
+    if (cardIndex >= 0 && cardIndex < interrupts.length - 1) {
+      setActiveCardIndex(cardIndex + 1);
     }
   };
 
   // Handle submit all decisions
   const handleSubmit = () => {
-    const decisions = interrupts.map(interrupt => ({
-      type: selectedDecisions[interrupt.index],
+    const decisions = interrupts.map((_, idx) => ({
+      type: selectedDecisions[idx],
     }));
     onDecision(decisions);
   };
 
   // Current active interrupt
   const activeInterrupt = interrupts[activeCardIndex];
-  const activeSelectedDecision = selectedDecisions[activeInterrupt.index];
+  const activeSelectedDecision = selectedDecisions[activeCardIndex];
 
   // Sync activeOptionIndex when card changes
   useEffect(() => {
@@ -184,8 +184,8 @@ export default function DecisionInput(props: IDecisionInputProps) {
           e.preventDefault();
           if (currentOptions[activeOptionIndex]) {
             handleSelectDecision(
-              activeInterrupt.index,
-              currentOptions[activeOptionIndex]
+              activeCardIndex,
+              currentOptions[activeOptionIndex] as DecisionType
             );
           }
           break;
@@ -254,7 +254,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
         <CardContent className="space-y-2 pb-3">
           {activeInterrupt.decisions.map((decisionType, idx) => {
             const isSelected =
-              selectedDecisions[activeInterrupt.index] === decisionType;
+              selectedDecisions[activeCardIndex] === decisionType;
             const isActive = idx === activeOptionIndex;
 
             return (
@@ -267,7 +267,10 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 )}
                 onClick={() =>
                   !disabled &&
-                  handleSelectDecision(activeInterrupt.index, decisionType)
+                  handleSelectDecision(
+                    activeCardIndex,
+                    decisionType as DecisionType
+                  )
                 }
                 disabled={disabled}
                 onMouseEnter={() => !disabled && setActiveOptionIndex(idx)}
@@ -305,9 +308,9 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
               <ScrollArea className="flex-1" ref={scrollAreaRef}>
                 <div className="flex items-center justify-center gap-1.5 py-1">
-                  {interrupts.map((interrupt, idx) => {
+                  {interrupts.map((_, idx) => {
                     const isCurrent = idx === activeCardIndex;
-                    const selectedType = selectedDecisions[interrupt.index];
+                    const selectedType = selectedDecisions[idx];
                     const lowerType = selectedType?.toLowerCase() ?? '';
                     const isApprove =
                       lowerType === 'approve' || lowerType === 'accept';

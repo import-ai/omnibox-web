@@ -135,7 +135,6 @@ export function prepareBody(
   if (parent_message_id) {
     body.parent_message_id = parent_message_id;
   }
-  console.log({ method: 'prepareBody', context, body });
   return body;
 }
 

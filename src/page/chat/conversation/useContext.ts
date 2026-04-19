@@ -23,6 +23,7 @@ import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/core/message-operator.ts';
+import { MessageStatus } from '@/page/chat/core/types/chat-response.ts';
 import {
   ConversationDetail,
   MessageDetail,
@@ -126,7 +127,6 @@ export default function useContext() {
       mode,
       decisions,
     }: SendMessageParams) => {
-      console.log({ method: 'sendMessage' });
       const v = query.trim();
       if (v) {
         await submit({
@@ -195,6 +195,14 @@ export default function useContext() {
     //   });
     // }
   }, [namespaceId, conversationId]);
+
+  const mergedLoading = useMemo<boolean>(() => {
+    return (
+      [MessageStatus.FAILED, MessageStatus.SUCCESS].includes(
+        messages.at(-1)?.status ?? MessageStatus.PENDING
+      ) || loading
+    );
+  }, [messages]);
 
   const onRegenerate = async (messageId: string) => {
     const parentId = messageOperator.getParent(messageId);
@@ -277,7 +285,7 @@ export default function useContext() {
   }, [firstUserMessage?.message.content, app]);
 
   return {
-    loading,
+    loading: mergedLoading,
     sendMessage,
     messages,
     selectedResources,
