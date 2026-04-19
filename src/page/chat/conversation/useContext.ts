@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
@@ -9,10 +9,7 @@ import { getWizardLang } from '@/lib/wizard-lang';
 import {
   ChatCreatePayload,
   ChatMode,
-  Decision,
-  type IResTypeContext,
   SendMessageParams,
-  ToolType,
 } from '@/page/chat/chat-input/types';
 import {
   ask,
@@ -31,60 +28,6 @@ import {
 import useGlobalContext from '@/page/chat/useSelectedResources.ts';
 
 import { getTitleFromConversationDetail } from '../utils';
-
-type SubmitRequest = {
-  namespaceId: string;
-  conversationId: string;
-  selectedResources: IResTypeContext[];
-  query: string;
-  tools: ToolType[];
-  messages: MessageDetail[];
-  messageOperator: MessageOperator;
-  mode: ChatMode;
-  i18n: any;
-  setLoading: (loading: boolean) => void;
-  askAbortRef: any;
-  decisions?: Decision[];
-};
-
-async function submit({
-  namespaceId,
-  conversationId,
-  selectedResources,
-  query,
-  tools,
-  messages,
-  messageOperator,
-  mode,
-  i18n,
-  setLoading,
-  askAbortRef,
-  decisions,
-}: SubmitRequest) {
-  setLoading(true);
-  const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
-  try {
-    const askFN = ask(
-      conversationId,
-      query,
-      tools,
-      selectedResources,
-      messages.at(-1)?.id,
-      messageOperator,
-      url,
-      getWizardLang(i18n),
-      namespaceId,
-      undefined,
-      undefined,
-      undefined,
-      decisions ? { decisions } : undefined
-    );
-    askAbortRef.current = askFN.destroy;
-    await askFN.start();
-  } finally {
-    setLoading(false);
-  }
-}
 
 export default function useContext() {
   const app = useApp();
@@ -116,42 +59,40 @@ export default function useContext() {
     return createMessageOperator(conversation, setConversation);
   }, [conversation, setConversation]);
 
-  const sendMessage = useCallback(
-    async ({
-      query,
-      tools,
-      selectedResources,
-      mode,
-      decisions,
-    }: SendMessageParams) => {
-      const v = query.trim();
-      if (v || (decisions && decisions.length > 0)) {
-        await submit({
-          namespaceId,
+  const sendMessage = async ({
+    query,
+    tools,
+    selectedResources,
+    mode,
+    decisions,
+  }: SendMessageParams) => {
+    const v = query.trim();
+    if (v || (decisions && decisions.length > 0)) {
+      try {
+        setLoading(true);
+        const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
+        const askFN = ask(
           conversationId,
-          selectedResources,
-          query: v,
+          v,
           tools,
-          messages,
+          selectedResources,
+          messages.at(-1)?.id,
           messageOperator,
-          mode,
-          i18n,
-          setLoading,
-          askAbortRef,
-          decisions,
-        });
+          url,
+          getWizardLang(i18n),
+          namespaceId,
+          undefined,
+          undefined,
+          undefined,
+          decisions ? { decisions } : undefined
+        );
+        askAbortRef.current = askFN.destroy;
+        await askFN.start();
+      } finally {
+        setLoading(false);
       }
-    },
-    [
-      namespaceId,
-      conversationId,
-      messages,
-      messageOperator,
-      i18n,
-      setLoading,
-      askAbortRef,
-    ]
-  );
+    }
+  };
 
   useEffect(() => {
     if (!conversationId) return;
