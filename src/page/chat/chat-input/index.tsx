@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState } from 'react';
 import DecisionInput from '@/page/chat/chat-input/decision-input.tsx';
 import {
   ChatMode,
-  Decision,
   InputMode,
   IResTypeContext,
   SendMessageParams,
@@ -44,7 +43,6 @@ export default function ChatArea(props: IProps) {
     sendMessage,
   } = props;
 
-  const [decisions, setDecisions] = useState<Decision[]>([]);
   const [tools, setTools] = useState<ToolType[]>([]);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [query, setQuery] = useState('');
@@ -55,7 +53,7 @@ export default function ChatArea(props: IProps) {
 
   const interrupts = useMemo<Interrupt[]>((): Interrupt[] => {
     return lastMessage?.attrs?.tool_call?.interrupts ?? [];
-  }, [lastMessage]);
+  }, [lastMessage?.attrs?.tool_call?.interrupts]);
 
   const inputMode = useMemo(() => {
     return interrupts.length > 0 ? InputMode.DECISION : InputMode.TEXT;
@@ -78,7 +76,6 @@ export default function ChatArea(props: IProps) {
         selectedResources: localContext,
         tools,
         mode,
-        decisions,
       });
     }
   }, [
@@ -87,14 +84,11 @@ export default function ChatArea(props: IProps) {
     setSelectedResources,
     tools,
     mode,
-    decisions,
     sendMessage,
   ]);
 
-  const isDecisionMode = inputMode === InputMode.DECISION;
-
   return interrupts.length > 0 ? (
-    <DecisionInput interrupts={interrupts} onDecision={setDecisions} />
+    <DecisionInput interrupts={interrupts} sendMessage={sendMessage} />
   ) : (
     <div className="max-w-[766px] w-full mx-auto rounded-[12px] p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]">
       <ChatContext
@@ -113,7 +107,6 @@ export default function ChatArea(props: IProps) {
           tools={tools}
           context={selectedResources}
           onToolsChange={setTools}
-          disabled={isDecisionMode}
         />
         <ChatAction
           onSend={handleSend}

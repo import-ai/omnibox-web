@@ -15,13 +15,23 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { processArgs } from '@/lib/tool-args';
 import { cn } from '@/lib/utils.ts';
-import { DecisionType } from '@/page/chat/chat-input/types';
-import { Interrupt } from '@/page/chat/core/types/conversation.ts';
+import {
+  ChatMode,
+  DecisionType,
+  SendMessageParams,
+} from '@/page/chat/chat-input/types';
+import { Interrupt } from '@/page/chat/core/types/conversation';
 
 interface IDecisionInputProps {
   interrupts: Interrupt[];
-  onDecision: (decisions: { type: DecisionType }[]) => void;
   disabled?: boolean;
+  sendMessage: ({
+    query,
+    tools,
+    selectedResources,
+    mode,
+    decisions,
+  }: SendMessageParams) => void;
 }
 
 // Get icon for decision type
@@ -88,8 +98,18 @@ function getDecisionStyle(
 }
 
 export default function DecisionInput(props: IDecisionInputProps) {
-  const { interrupts, onDecision, disabled } = props;
+  const { interrupts, sendMessage } = props;
   const { t } = useTranslation();
+
+  const onSubmit = (decisions: { type: DecisionType }[]) => {
+    sendMessage({
+      query: '',
+      tools: [],
+      selectedResources: [],
+      mode: ChatMode.ASK,
+      decisions,
+    });
+  };
 
   if (interrupts.length === 0) {
     return null;
@@ -134,7 +154,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
     const decisions = interrupts.map((_, idx) => ({
       type: selectedDecisions[idx],
     }));
-    onDecision(decisions);
+    onSubmit(decisions);
   };
 
   // Current active interrupt
@@ -155,8 +175,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
   // Keyboard navigation — global listener
   useEffect(() => {
-    if (disabled) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       const currentOptions = activeInterrupt.decisions;
 
@@ -194,13 +212,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
-    disabled,
-    activeCardIndex,
-    activeOptionIndex,
-    activeInterrupt,
-    interrupts.length,
-  ]);
+  }, [activeCardIndex, activeOptionIndex, activeInterrupt, interrupts.length]);
 
   const canGoLeft = activeCardIndex > 0;
   const canGoRight = activeCardIndex < interrupts.length - 1;
@@ -266,14 +278,12 @@ export default function DecisionInput(props: IDecisionInputProps) {
                   getDecisionStyle(decisionType, isSelected, isActive)
                 )}
                 onClick={() =>
-                  !disabled &&
                   handleSelectDecision(
                     activeCardIndex,
                     decisionType as DecisionType
                   )
                 }
-                disabled={disabled}
-                onMouseEnter={() => !disabled && setActiveOptionIndex(idx)}
+                onMouseEnter={() => setActiveOptionIndex(idx)}
               >
                 {getDecisionIcon(decisionType)}
                 <span>{t(`chat.decision.${decisionType.toLowerCase()}`)}</span>
@@ -287,7 +297,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
         <CardFooter className="flex-col gap-3 pt-0 items-end">
           {/* Submit button — always visible, disabled until all decided */}
-          <Button onClick={handleSubmit} disabled={!allDecided || disabled}>
+          <Button onClick={handleSubmit} disabled={!allDecided}>
             {t('chat.decision.submit')}
           </Button>
 
@@ -301,7 +311,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 onClick={() =>
                   setActiveCardIndex(prev => Math.max(0, prev - 1))
                 }
-                disabled={!canGoLeft || disabled}
+                disabled={!canGoLeft}
               >
                 <ChevronLeft className="size-4" />
               </Button>
@@ -338,8 +348,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                           isCurrent ? 'w-5 h-2' : 'w-2 h-2',
                           dotColor
                         )}
-                        onClick={() => !disabled && setActiveCardIndex(idx)}
-                        disabled={disabled}
+                        onClick={() => setActiveCardIndex(idx)}
                         aria-label={`Go to decision ${idx + 1}`}
                       />
                     );
@@ -357,7 +366,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                     Math.min(interrupts.length - 1, prev + 1)
                   )
                 }
-                disabled={!canGoRight || disabled}
+                disabled={!canGoRight}
               >
                 <ChevronRight className="size-4" />
               </Button>

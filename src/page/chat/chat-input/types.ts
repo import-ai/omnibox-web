@@ -77,7 +77,7 @@ export interface SendMessageParams {
   tools: ToolType[];
   selectedResources: IResTypeContext[];
   mode: ChatMode;
-  decisions: Decision[];
+  decisions?: Decision[];
 }
 
 export interface ChatCreatePayload extends SendMessageParams {

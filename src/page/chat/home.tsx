@@ -27,7 +27,6 @@ export default function ChatHomePage() {
     tools,
     selectedResources,
     mode,
-    decisions,
   }: SendMessageParams) => {
     http
       .post(`/namespaces/${namespaceId}/conversations`)
@@ -39,7 +38,6 @@ export default function ChatHomePage() {
             query,
             tools,
             selectedResources,
-            decisions,
             conversation: {
               id: conversation.id,
             } as ConversationDetail,

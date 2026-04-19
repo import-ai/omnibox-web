@@ -44,7 +44,7 @@ type SubmitRequest = {
   i18n: any;
   setLoading: (loading: boolean) => void;
   askAbortRef: any;
-  decisions: Decision[];
+  decisions?: Decision[];
 };
 
 async function submit({
@@ -61,9 +61,6 @@ async function submit({
   askAbortRef,
   decisions,
 }: SubmitRequest) {
-  if (!query || query.trim().length === 0) {
-    return;
-  }
   setLoading(true);
   const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
   try {
@@ -80,7 +77,7 @@ async function submit({
       undefined,
       undefined,
       undefined,
-      { decisions }
+      decisions ? { decisions } : undefined
     );
     askAbortRef.current = askFN.destroy;
     await askFN.start();
@@ -128,7 +125,7 @@ export default function useContext() {
       decisions,
     }: SendMessageParams) => {
       const v = query.trim();
-      if (v) {
+      if (v || (decisions && decisions.length > 0)) {
         await submit({
           namespaceId,
           conversationId,
@@ -176,29 +173,11 @@ export default function useContext() {
     }
     sessionStorage.removeItem('chat-create-payload');
     void sendMessage(chatCreatePayload);
-    // const query = conversationPayload.query.trim();
-    // if (query && query.length > 0) {
-    //   setSelectedResources([]); // Before sending chat request in home page
-    //   void submit({
-    //     namespaceId,
-    //     conversationId,
-    //     selectedResources: conversationPayload.selectedResources,
-    //     query,
-    //     tools: conversationPayload.tools,
-    //     messages,
-    //     messageOperator,
-    //     mode: conversationPayload.mode,
-    //     i18n,
-    //     setLoading,
-    //     askAbortRef,
-    //     decisions: conversationPayload.decisions,
-    //   });
-    // }
   }, [namespaceId, conversationId]);
 
   const mergedLoading = useMemo<boolean>(() => {
     return (
-      [MessageStatus.FAILED, MessageStatus.SUCCESS].includes(
+      ![MessageStatus.FAILED, MessageStatus.SUCCESS].includes(
         messages.at(-1)?.status ?? MessageStatus.PENDING
       ) || loading
     );

@@ -32,7 +32,6 @@ export default function SharedChatHomePage() {
     tools,
     selectedResources,
     mode,
-    decisions,
   }: SendMessageParams) => {
     http
       .post(`/shares/${shareId}/conversations`)
@@ -44,7 +43,6 @@ export default function SharedChatHomePage() {
             query,
             tools,
             selectedResources,
-            decisions,
             conversation: {
               id: conversation.id,
             } as ConversationDetail,
