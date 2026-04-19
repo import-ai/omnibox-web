@@ -19,8 +19,6 @@ export default function SharedChatHomePage() {
   const {
     selectedResources,
     setSelectedResources,
-    chatInput,
-    setChatInput,
     mode,
     setMode,
     tools,
@@ -31,10 +29,22 @@ export default function SharedChatHomePage() {
     setDocumentTitle(t('chat.title'));
   }, [t]);
 
-  const handleAction = () => {
-    http.post(`/shares/${shareId}/conversations`).then(conversation => {
-      navigate(`/s/${shareId}/chat/${conversation.id}`);
-    });
+  const callbacks = {
+    sendMessage: (query: string) => {
+      http.post(`/shares/${shareId}/conversations`).then(conversation => {
+        sessionStorage.setItem(
+          'shared-chat-state',
+          JSON.stringify({
+            mode,
+            query,
+            tools,
+            context: selectedResources,
+          })
+        );
+        navigate(`/s/${shareId}/chat/${conversation.id}`);
+      });
+    },
+    stopStreaming: () => {},
   };
 
   return (
@@ -46,15 +56,13 @@ export default function SharedChatHomePage() {
         <ChatArea
           mode={mode}
           tools={tools}
-          value={chatInput}
           loading={false}
           context={selectedResources}
           inputMode={InputMode.TEXT}
           pendingInterrupts={[]}
           onDecision={() => {}}
           setMode={setMode}
-          onChange={setChatInput}
-          onAction={handleAction}
+          callbacks={callbacks}
           onToolsChange={setTools}
           onContextChange={setSelectedResources}
           navigatePrefix={`/s/${shareId}`}

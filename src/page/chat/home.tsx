@@ -17,7 +17,6 @@ export default function ChatHomePage() {
   const params = useParams();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [value, onChange] = useState('');
   const namespaceId = params.namespace_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
   const { context, onContextChange } = useContext();
@@ -25,20 +24,25 @@ export default function ChatHomePage() {
   const [tools, onToolsChange] = useState<Array<ToolType>>([
     ToolType.PRIVATE_SEARCH,
   ]);
-  const handleAction = () => {
-    http.post(`/namespaces/${namespaceId}/conversations`).then(conversation => {
-      sessionStorage.setItem(
-        'state',
-        JSON.stringify({
-          mode,
-          value,
-          tools,
-          context,
-          conversation,
-        })
-      );
-      navigate(`/${namespaceId}/chat/${conversation.id}`);
-    });
+  const callbacks = {
+    sendMessage: (query: string) => {
+      http
+        .post(`/namespaces/${namespaceId}/conversations`)
+        .then(conversation => {
+          sessionStorage.setItem(
+            'state',
+            JSON.stringify({
+              mode,
+              value: query,
+              tools,
+              context,
+              conversation,
+            })
+          );
+          navigate(`/${namespaceId}/chat/${conversation.id}`);
+        });
+    },
+    stopStreaming: () => {},
   };
 
   useEffect(() => {
@@ -55,15 +59,13 @@ export default function ChatHomePage() {
           <ChatArea
             mode={mode}
             tools={tools}
-            value={value}
             loading={false}
             context={context}
             inputMode={InputMode.TEXT}
             pendingInterrupts={[]}
             onDecision={() => {}}
             setMode={setMode}
-            onChange={onChange}
-            onAction={handleAction}
+            callbacks={callbacks}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}
             navigatePrefix={`/${namespaceId}`}

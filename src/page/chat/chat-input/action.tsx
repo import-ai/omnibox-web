@@ -16,11 +16,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { FORCE_ASK } from '@/const';
-import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
+import { ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
   disabled: boolean;
-  onAction: (action?: ChatActionType) => void;
+  onSend: () => void;
+  onStop: () => void;
   loading: boolean;
   mode: ChatMode;
   setMode: (mode: ChatMode) => void;
@@ -28,17 +29,8 @@ interface IActionProps {
 
 export default function ChatAction(props: IActionProps) {
   const { t } = useTranslation();
-  const { disabled, onAction, loading, mode, setMode } = props;
+  const { disabled, onSend, onStop, loading, mode, setMode } = props;
   const forceAsk = FORCE_ASK;
-  const onStop = () => {
-    onAction('stop');
-  };
-  const onSubmit = () => {
-    if (disabled || loading) {
-      return;
-    }
-    onAction();
-  };
 
   return (
     <div className="flex items-center">
@@ -103,7 +95,7 @@ export default function ChatAction(props: IActionProps) {
       ) : (
         <Button
           size="icon"
-          onClick={onSubmit}
+          onClick={onSend}
           className="rounded-lg size-8 bg-black dark:bg-white"
         >
           <ArrowUp />

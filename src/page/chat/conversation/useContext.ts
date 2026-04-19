@@ -8,12 +8,7 @@ import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang';
 import { PendingInterrupt } from '@/page/chat/chat-input/decision-input';
-import {
-  type ChatActionType,
-  ChatMode,
-  InputMode,
-  ToolType,
-} from '@/page/chat/chat-input/types';
+import { ChatMode, InputMode, ToolType } from '@/page/chat/chat-input/types';
 import { DecisionType } from '@/page/chat/conversation/types.ts';
 import {
   ask,
@@ -36,7 +31,6 @@ export default function useContext() {
   const app = useApp();
   const params = useParams();
   const { i18n } = useTranslation();
-  const [value, onChange] = useState<string>('');
   const askAbortRef = useRef<() => void>(null);
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
@@ -80,18 +74,16 @@ export default function useContext() {
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(conversation, setConversation);
   }, [conversation, setConversation]);
-  const onAction = async (action?: ChatActionType) => {
-    if (action === 'stop') {
-      isFunction(askAbortRef.current) && askAbortRef.current();
-      setLoading(false);
-      return;
-    } else {
-      const v = value.trim();
-      if (v) {
-        onChange('');
-        onContextChange([]);
-        await submit(v);
-      }
+  const stopStreaming = () => {
+    isFunction(askAbortRef.current) && askAbortRef.current();
+    setLoading(false);
+  };
+
+  const sendMessage = async (query: string) => {
+    const v = query.trim();
+    if (v) {
+      onContextChange([]);
+      await submit(v);
     }
   };
   const submit = async (query?: string) => {
@@ -287,13 +279,11 @@ export default function useContext() {
 
   return {
     mode,
-    value,
     tools,
     setMode,
     loading,
     context,
-    onChange,
-    onAction,
+    callbacks: { sendMessage, stopStreaming },
     messages,
     onToolsChange,
     onContextChange,

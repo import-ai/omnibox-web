@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import {
-  type ChatActionType,
+  ChatAreaCallbacks,
   ChatMode,
   InputMode,
   IResTypeContext,
@@ -16,7 +16,6 @@ import DecisionInput, { PendingInterrupt } from './decision-input';
 import ChatInput from './input';
 
 interface IProps {
-  value: string;
   mode: ChatMode;
   loading: boolean;
   tools: Array<ToolType>;
@@ -25,16 +24,16 @@ interface IProps {
   inputMode: InputMode;
   pendingInterrupts: PendingInterrupt[];
   setMode: (mode: ChatMode) => void;
-  onChange: (value: string) => void;
-  onAction: (action?: ChatActionType) => void;
+  callbacks: ChatAreaCallbacks;
   onToolsChange: (tool: Array<ToolType>) => void;
   onContextChange: (context: IResTypeContext[]) => void;
   onDecision: (decisions: { type: DecisionType }[]) => void;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
 export default function ChatArea(props: IProps) {
   const {
-    value,
     mode,
     loading,
     tools,
@@ -43,18 +42,50 @@ export default function ChatArea(props: IProps) {
     inputMode,
     pendingInterrupts,
     setMode,
-    onChange,
-    onAction,
+    callbacks,
     onToolsChange,
     onContextChange,
     onDecision,
+    value: controlledValue,
+    onChange: controlledOnChange,
   } = props;
+
+  const [internalValue, setInternalValue] = useState('');
+  const isControlled =
+    controlledValue !== undefined && controlledOnChange !== undefined;
+  const value = isControlled ? controlledValue : internalValue;
 
   const disabled = useMemo(() => {
     return (
       inputMode === InputMode.TEXT && (!value || value.trim().length === 0)
     );
   }, [value, inputMode]);
+
+  const handleSetValue = useCallback(
+    (newValue: string) => {
+      if (isControlled) {
+        controlledOnChange!(newValue);
+      } else {
+        setInternalValue(newValue);
+      }
+    },
+    [isControlled, controlledOnChange]
+  );
+
+  const handleSend = useCallback(() => {
+    const v = value.trim();
+    if (v) {
+      onContextChange([]);
+      callbacks.sendMessage(v);
+      if (!isControlled) {
+        setInternalValue('');
+      }
+    }
+  }, [value, callbacks, onContextChange, isControlled]);
+
+  const handleStop = useCallback(() => {
+    callbacks.stopStreaming();
+  }, [callbacks]);
 
   const isDecisionMode = inputMode === InputMode.DECISION;
 
@@ -73,8 +104,8 @@ export default function ChatArea(props: IProps) {
       />
       <ChatInput
         value={value}
-        onChange={onChange}
-        onAction={onAction}
+        onChange={handleSetValue}
+        onSend={handleSend}
         disabled={disabled}
       />
       <div className="flex items-center justify-between">
@@ -85,7 +116,8 @@ export default function ChatArea(props: IProps) {
           disabled={isDecisionMode}
         />
         <ChatAction
-          onAction={onAction}
+          onSend={handleSend}
+          onStop={handleStop}
           disabled={disabled}
           loading={loading}
           mode={mode}

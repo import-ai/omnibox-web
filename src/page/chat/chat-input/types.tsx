@@ -6,7 +6,10 @@ export enum ToolType {
   REASONING = 'reasoning',
 }
 
-export type ChatActionType = 'stop' | 'disabled';
+export interface ChatAreaCallbacks {
+  sendMessage: (query: string) => void;
+  stopStreaming: () => void;
+}
 
 export type PrivateSearchResourceType = 'resource' | 'folder';
 

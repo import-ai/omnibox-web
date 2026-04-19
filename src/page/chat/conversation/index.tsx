@@ -12,13 +12,11 @@ export default function ChatConversationPage() {
   const { t } = useTranslation();
   const {
     mode,
-    value,
     tools,
     setMode,
     loading,
     context,
-    onChange,
-    onAction,
+    callbacks,
     messages,
     onToolsChange,
     onContextChange,
@@ -56,14 +54,12 @@ export default function ChatConversationPage() {
           <ChatArea
             mode={mode}
             tools={tools}
-            value={value}
             setMode={setMode}
             loading={loading}
             context={context}
             inputMode={inputMode}
             pendingInterrupts={pendingInterrupts}
-            onChange={onChange}
-            onAction={onAction}
+            callbacks={callbacks}
             onToolsChange={onToolsChange}
             onContextChange={onContextChange}
             onDecision={onToolDecision}

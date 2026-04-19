@@ -7,7 +7,7 @@ import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
-import { type ChatActionType, InputMode } from '@/page/chat/chat-input/types';
+import { InputMode } from '@/page/chat/chat-input/types';
 import Scrollbar from '@/page/chat/conversation/scrollbar';
 import {
   ask,
@@ -29,8 +29,6 @@ export default function SharedChatConversationPage() {
   const {
     selectedResources,
     setSelectedResources,
-    chatInput,
-    setChatInput,
     mode,
     setMode,
     tools,
@@ -62,18 +60,17 @@ export default function SharedChatConversationPage() {
     return result;
   }, [conversation]);
 
-  const onAction = async (action?: ChatActionType) => {
-    if (action === 'stop') {
-      isFunction(askAbortRef.current) && askAbortRef.current();
-      setLoading(false);
-      return;
-    } else {
-      const v = chatInput.trim();
+  const callbacks = {
+    sendMessage: async (query: string) => {
+      const v = query.trim();
       if (v) {
-        setChatInput('');
         await submit(v);
       }
-    }
+    },
+    stopStreaming: () => {
+      isFunction(askAbortRef.current) && askAbortRef.current();
+      setLoading(false);
+    },
   };
 
   const submit = async (query?: string) => {
@@ -188,13 +185,16 @@ export default function SharedChatConversationPage() {
 
   useEffect(() => {
     if (!conversationId) return;
+    const state = sessionStorage.getItem('shared-chat-state');
+    const parsed = state ? JSON.parse(state) : null;
+    const query = parsed?.query;
+    sessionStorage.removeItem('shared-chat-state');
     http
       .get(`/shares/${shareId}/conversations/${conversationId}`)
       .then(response => {
         setConversation(response);
-        if (chatInput) {
-          setChatInput('');
-          submit(chatInput);
+        if (query) {
+          submit(query);
         }
       });
   }, [shareId, conversationId]);
@@ -215,14 +215,12 @@ export default function SharedChatConversationPage() {
           <ChatArea
             mode={mode}
             tools={tools}
-            value={chatInput}
             setMode={setMode}
             loading={loading}
             context={selectedResources}
             inputMode={InputMode.TEXT}
             pendingInterrupts={[]}
-            onChange={setChatInput}
-            onAction={onAction}
+            callbacks={callbacks}
             onToolsChange={setTools}
             onContextChange={setSelectedResources}
             onDecision={() => {}}
