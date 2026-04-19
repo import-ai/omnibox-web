@@ -175,13 +175,10 @@ export default function useContext() {
     void sendMessage(chatCreatePayload);
   }, [namespaceId, conversationId]);
 
-  const mergedLoading = useMemo<boolean>(() => {
-    return (
-      ![MessageStatus.FAILED, MessageStatus.SUCCESS].includes(
-        messages.at(-1)?.status ?? MessageStatus.PENDING
-      ) || loading
-    );
-  }, [messages]);
+  const mergedLoading =
+    ![MessageStatus.FAILED, MessageStatus.SUCCESS].includes(
+      messages.at(-1)?.status ?? MessageStatus.PENDING
+    ) || loading;
 
   const onRegenerate = async (messageId: string) => {
     const parentId = messageOperator.getParent(messageId);

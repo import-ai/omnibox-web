@@ -77,10 +77,10 @@ function getDecisionStyle(
   if (isSelected) {
     if (decision === 'approve') {
       bgStyle =
-        'bg-green-100 dark:bg-green-900/50 hover:bg-green-100 dark:hover:bg-green-900/50';
+        'bg-green-100 dark:bg-green-800/25 hover:bg-green-100 dark:hover:bg-green-800/25';
     } else {
       bgStyle =
-        'bg-red-100 dark:bg-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/50';
+        'bg-red-100 dark:bg-red-800/25 hover:bg-red-100 dark:hover:bg-red-800/25';
     }
   } else {
     if (decision === 'approve') {
@@ -310,7 +310,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
         })}
       </CardContent>
 
-      <CardFooter className="flex gap-3 p-3 items-center">
+      <CardFooter className="flex gap-3 p-3 items-center justify-end">
         {interrupts.length > 1 && (
           <div className="w-full flex items-center gap-2">
             <Button
@@ -367,7 +367,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 shrink-0"
+              className="size-8 shrink-0"
               onClick={() =>
                 setActiveCardIndex(prev =>
                   Math.min(interrupts.length - 1, prev + 1)
@@ -379,14 +379,21 @@ export default function DecisionInput(props: IDecisionInputProps) {
             </Button>
           </div>
         )}
-        <Button
-          onClick={handleSubmit}
-          size="sm"
-          className="rounded-lg size-8"
-          disabled={!allDecided}
-        >
-          <ArrowUp />
-        </Button>
+        {allDecided ? (
+          <Button
+            onClick={handleSubmit}
+            size="sm"
+            className="rounded-lg size-8"
+          >
+            <ArrowUp />
+          </Button>
+        ) : (
+          <span className="cursor-not-allowed">
+            <Button size="sm" className="rounded-lg size-8" disabled>
+              <ArrowUp />
+            </Button>
+          </span>
+        )}
       </CardFooter>
     </Card>
   );

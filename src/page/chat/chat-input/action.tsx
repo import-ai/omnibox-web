@@ -65,24 +65,26 @@ export default function ChatAction(props: IActionProps) {
         </>
       )}
       {loading ? (
-        <Button
-          size="icon"
-          variant="ghost"
-          disabled={true}
-          className="rounded-full size-8 [&_svg]:size-6 text-black dark:text-white"
-        >
-          <Spinner />
-        </Button>
+        <span className="cursor-not-allowed">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="rounded-full size-8"
+            disabled
+          >
+            <Spinner />
+          </Button>
+        </span>
       ) : disabled ? (
         <TooltipProvider>
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <span className="inline-flex cursor-pointer">
+              <span className="cursor-not-allowed">
                 <Button
                   size="icon"
                   variant="default"
-                  disabled
                   className="rounded-lg size-8"
+                  disabled
                 >
                   <ArrowUp />
                 </Button>
