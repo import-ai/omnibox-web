@@ -1,9 +1,9 @@
-import { Loader2Icon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import ChatArea from '@/page/chat/chat-input';
-import useContext from '@/page/chat/conversation/useContext.ts';
+import useContext from '@/page/chat/conversation/useContext';
 import { Messages } from '@/page/chat/messages';
 
 import Scrollbar from './scrollbar';
@@ -11,24 +11,19 @@ import Scrollbar from './scrollbar';
 export default function ChatConversationPage() {
   const { t } = useTranslation();
   const {
-    mode,
-    tools,
-    setMode,
     loading,
-    context,
-    callbacks,
     messages,
-    onToolsChange,
-    onContextChange,
     namespaceId,
     conversation,
     messageOperator,
+    selectedResources,
+    setSelectedResources,
     onRegenerate,
     onEdit,
-    inputMode,
-    pendingInterrupts,
-    onToolDecision,
+    sendMessage,
   } = useContext();
+
+  console.log({ method: 'conversationPage', messages });
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -36,7 +31,7 @@ export default function ChatConversationPage() {
         {messages.length <= 0 ? (
           <div className="space-y-4 flex justify-end items-center">
             <Button disabled size="sm" variant="secondary">
-              <Loader2Icon className="animate-spin" />
+              <Spinner />
             </Button>
           </div>
         ) : (
@@ -52,18 +47,12 @@ export default function ChatConversationPage() {
       <div className="flex justify-center px-4">
         <div className="max-w-3xl w-full">
           <ChatArea
-            mode={mode}
-            tools={tools}
-            setMode={setMode}
-            loading={loading}
-            context={context}
-            inputMode={inputMode}
-            pendingInterrupts={pendingInterrupts}
-            callbacks={callbacks}
-            onToolsChange={onToolsChange}
-            onContextChange={onContextChange}
-            onDecision={onToolDecision}
+            selectedResources={selectedResources}
+            setSelectedResources={setSelectedResources}
+            messages={messages}
             navigatePrefix={`/${namespaceId}`}
+            sendMessage={sendMessage}
+            loading={loading}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">
             {t('chat.disclaimer')}

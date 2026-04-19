@@ -1,4 +1,4 @@
-import { ArrowUp, ChevronDown, CircleStop } from 'lucide-react';
+import { ArrowUp, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
@@ -15,13 +15,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 import { FORCE_ASK } from '@/const';
 import { ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
   disabled: boolean;
   onSend: () => void;
-  onStop: () => void;
   loading: boolean;
   mode: ChatMode;
   setMode: (mode: ChatMode) => void;
@@ -29,12 +29,11 @@ interface IActionProps {
 
 export default function ChatAction(props: IActionProps) {
   const { t } = useTranslation();
-  const { disabled, onSend, onStop, loading, mode, setMode } = props;
-  const forceAsk = FORCE_ASK;
+  const { disabled, onSend, loading, mode, setMode } = props;
 
   return (
     <div className="flex items-center">
-      {!forceAsk && (
+      {!FORCE_ASK && (
         <>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -69,10 +68,10 @@ export default function ChatAction(props: IActionProps) {
         <Button
           size="icon"
           variant="ghost"
-          onClick={onStop}
+          disabled={true}
           className="rounded-full size-8 [&_svg]:size-6 text-black dark:text-white"
         >
-          <CircleStop />
+          <Spinner />
         </Button>
       ) : disabled ? (
         <TooltipProvider>

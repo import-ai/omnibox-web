@@ -15,16 +15,11 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { processArgs } from '@/lib/tool-args';
 import { cn } from '@/lib/utils.ts';
-import { DecisionType } from '@/page/chat/conversation/types.ts';
+import { DecisionType } from '@/page/chat/chat-input/types';
+import { Interrupt } from '@/page/chat/core/types/conversation.ts';
 
-export interface PendingInterrupt {
-  name: string;
-  args: Record<string, any>;
-  decisions: DecisionType[];
-  index: number;
-}
 interface IDecisionInputProps {
-  interrupts: PendingInterrupt[];
+  interrupts: Interrupt[];
   onDecision: (decisions: { type: DecisionType }[]) => void;
   disabled?: boolean;
 }

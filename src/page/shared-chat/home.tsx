@@ -6,7 +6,12 @@ import { Typewriter } from '@/components/typewriter';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import ChatArea from '@/page/chat/chat-input';
-import { InputMode } from '@/page/chat/chat-input/types.tsx';
+import {
+  ChatCreatePayload,
+  ConversationEntity,
+  SendMessageParams,
+} from '@/page/chat/chat-input/types.ts';
+import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 import { getGreeting } from '@/page/chat/utils';
 import { useShareContext } from '@/page/share';
 
@@ -16,35 +21,37 @@ export default function SharedChatHomePage() {
   const { t } = useTranslation();
   const shareId = params.share_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
-  const {
-    selectedResources,
-    setSelectedResources,
-    mode,
-    setMode,
-    tools,
-    setTools,
-  } = useShareContext();
+  const { selectedResources, setSelectedResources } = useShareContext();
 
   useEffect(() => {
     setDocumentTitle(t('chat.title'));
   }, [t]);
 
-  const callbacks = {
-    sendMessage: (query: string) => {
-      http.post(`/shares/${shareId}/conversations`).then(conversation => {
+  const sendMessage = ({
+    query,
+    tools,
+    selectedResources,
+    mode,
+    decisions,
+  }: SendMessageParams) => {
+    http
+      .post(`/shares/${shareId}/conversations`)
+      .then((conversation: ConversationEntity) => {
         sessionStorage.setItem(
-          'shared-chat-state',
+          'shared-chat-create-payload',
           JSON.stringify({
             mode,
             query,
             tools,
-            context: selectedResources,
-          })
+            selectedResources,
+            decisions,
+            conversation: {
+              id: conversation.id,
+            } as ConversationDetail,
+          } as ChatCreatePayload)
         );
         navigate(`/s/${shareId}/chat/${conversation.id}`);
       });
-    },
-    stopStreaming: () => {},
   };
 
   return (
@@ -54,18 +61,12 @@ export default function SharedChatHomePage() {
           <Typewriter text={t(i18n)} typeSpeed={32} />
         </h1>
         <ChatArea
-          mode={mode}
-          tools={tools}
-          loading={false}
-          context={selectedResources}
-          inputMode={InputMode.TEXT}
-          pendingInterrupts={[]}
-          onDecision={() => {}}
-          setMode={setMode}
-          callbacks={callbacks}
-          onToolsChange={setTools}
-          onContextChange={setSelectedResources}
+          messages={[]}
           navigatePrefix={`/s/${shareId}`}
+          selectedResources={selectedResources}
+          setSelectedResources={setSelectedResources}
+          loading={false}
+          sendMessage={sendMessage}
         />
       </div>
     </div>

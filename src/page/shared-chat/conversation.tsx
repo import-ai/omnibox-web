@@ -1,4 +1,3 @@
-import { isFunction } from 'lodash-es';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -7,7 +6,10 @@ import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
-import { InputMode } from '@/page/chat/chat-input/types';
+import {
+  ChatCreatePayload,
+  SendMessageParams,
+} from '@/page/chat/chat-input/types';
 import Scrollbar from '@/page/chat/conversation/scrollbar';
 import {
   ask,
@@ -26,15 +28,8 @@ export default function SharedChatConversationPage() {
   const shareId = params.share_id || '';
   const conversationId = params.conversation_id || '';
   const askAbortRef = useRef<() => void>(null);
-  const {
-    selectedResources,
-    setSelectedResources,
-    mode,
-    setMode,
-    tools,
-    setTools,
-    password,
-  } = useShareContext();
+  const { selectedResources, setSelectedResources, mode, password } =
+    useShareContext();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
   const [conversation, setConversation] = useState<ConversationDetail>({
@@ -60,42 +55,36 @@ export default function SharedChatConversationPage() {
     return result;
   }, [conversation]);
 
-  const callbacks = {
-    sendMessage: async (query: string) => {
-      const v = query.trim();
-      if (v) {
-        await submit(v);
+  const sendMessage = async ({
+    query,
+    tools,
+    selectedResources,
+    mode,
+    decisions,
+  }: SendMessageParams) => {
+    if (query && query.trim().length > 0) {
+      try {
+        setLoading(true);
+        const askFN = ask(
+          conversationId,
+          query,
+          tools,
+          selectedResources,
+          messages[messages.length - 1]?.id,
+          messageOperator,
+          `/api/v1/shares/${shareId}/wizard/${mode}`,
+          getWizardLang(i18n),
+          undefined,
+          shareId,
+          password || undefined,
+          undefined,
+          { decisions }
+        );
+        askAbortRef.current = askFN.destroy;
+        await askFN.start();
+      } finally {
+        setLoading(false);
       }
-    },
-    stopStreaming: () => {
-      isFunction(askAbortRef.current) && askAbortRef.current();
-      setLoading(false);
-    },
-  };
-
-  const submit = async (query?: string) => {
-    if (!query || query.trim().length === 0) {
-      return;
-    }
-    setLoading(true);
-    try {
-      const askFN = ask(
-        conversationId,
-        query,
-        tools,
-        selectedResources,
-        messages[messages.length - 1]?.id,
-        messageOperator,
-        `/api/v1/shares/${shareId}/wizard/${mode}`,
-        getWizardLang(i18n),
-        undefined,
-        shareId,
-        password || undefined
-      );
-      askAbortRef.current = askFN.destroy;
-      await askFN.start();
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -108,11 +97,7 @@ export default function SharedChatConversationPage() {
       originalContext,
       originalLang,
       originalEnableThinking,
-    } = extractOriginalMessageSettings(editedMessage, {
-      tools,
-      context: selectedResources,
-      lang: getWizardLang(i18n),
-    });
+    } = extractOriginalMessageSettings(editedMessage);
 
     setLoading(true);
     try {
@@ -150,11 +135,7 @@ export default function SharedChatConversationPage() {
       originalContext,
       originalLang,
       originalEnableThinking,
-    } = extractOriginalMessageSettings(parentMessage, {
-      tools,
-      context: selectedResources,
-      lang: getWizardLang(i18n),
-    });
+    } = extractOriginalMessageSettings(parentMessage);
 
     setLoading(true);
     try {
@@ -185,18 +166,20 @@ export default function SharedChatConversationPage() {
 
   useEffect(() => {
     if (!conversationId) return;
-    const state = sessionStorage.getItem('shared-chat-state');
-    const parsed = state ? JSON.parse(state) : null;
-    const query = parsed?.query;
-    sessionStorage.removeItem('shared-chat-state');
-    http
-      .get(`/shares/${shareId}/conversations/${conversationId}`)
-      .then(response => {
-        setConversation(response);
-        if (query) {
-          submit(query);
-        }
-      });
+    const state = sessionStorage.getItem('shared-chat-create-payload');
+    const chatCreatePayload: ChatCreatePayload = state
+      ? JSON.parse(state)
+      : null;
+    if (!chatCreatePayload) {
+      http
+        .get(`/shares/${shareId}/conversations/${conversationId}`)
+        .then(response => {
+          setConversation(response);
+        });
+      return;
+    }
+    sessionStorage.removeItem('shared-chat-create-payload');
+    void sendMessage(chatCreatePayload);
   }, [shareId, conversationId]);
 
   return (
@@ -213,18 +196,12 @@ export default function SharedChatConversationPage() {
       <div className="flex justify-center px-4">
         <div className="flex-1 max-w-3xl w-full">
           <ChatArea
-            mode={mode}
-            tools={tools}
-            setMode={setMode}
-            loading={loading}
-            context={selectedResources}
-            inputMode={InputMode.TEXT}
-            pendingInterrupts={[]}
-            callbacks={callbacks}
-            onToolsChange={setTools}
-            onContextChange={setSelectedResources}
-            onDecision={() => {}}
+            messages={messages}
             navigatePrefix={`/s/${shareId}`}
+            selectedResources={selectedResources}
+            setSelectedResources={setSelectedResources}
+            loading={loading}
+            sendMessage={sendMessage}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">
             {t('chat.disclaimer')}

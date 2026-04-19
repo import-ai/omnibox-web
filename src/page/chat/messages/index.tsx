@@ -36,7 +36,7 @@ function renderMessage(
 
   if (
     openAIMessage.role === OpenAIMessageRole.USER &&
-    message.attrs?.tool_call?.decisions === undefined
+    (message.attrs?.tool_call?.decisions ?? []).length === 0
   ) {
     return (
       <UserMessage

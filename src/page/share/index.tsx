@@ -222,7 +222,7 @@ export default function SharePage() {
     );
   }
   if (shareInfo) {
-    const showSidebar = shareInfo.all_resources || showChat;
+    const showSidebar = (shareInfo.all_resources || showChat) ?? true;
     return (
       <ShareContext.Provider
         value={{

@@ -1,123 +1,122 @@
 import { useCallback, useMemo, useState } from 'react';
 
+import DecisionInput from '@/page/chat/chat-input/decision-input.tsx';
 import {
-  ChatAreaCallbacks,
   ChatMode,
+  Decision,
   InputMode,
   IResTypeContext,
+  SendMessageParams,
   ToolType,
 } from '@/page/chat/chat-input/types';
-import { DecisionType } from '@/page/chat/conversation/types.ts';
+import {
+  Interrupt,
+  MessageDetail,
+} from '@/page/chat/core/types/conversation.ts';
 
 import ChatAction from './action';
 import ChatTool from './chat-tool';
 import ChatContext from './context';
-import DecisionInput, { PendingInterrupt } from './decision-input';
 import ChatInput from './input';
 
 interface IProps {
-  mode: ChatMode;
-  loading: boolean;
-  tools: Array<ToolType>;
-  context: IResTypeContext[];
+  messages: MessageDetail[];
   navigatePrefix: string;
-  inputMode: InputMode;
-  pendingInterrupts: PendingInterrupt[];
-  setMode: (mode: ChatMode) => void;
-  callbacks: ChatAreaCallbacks;
-  onToolsChange: (tool: Array<ToolType>) => void;
-  onContextChange: (context: IResTypeContext[]) => void;
-  onDecision: (decisions: { type: DecisionType }[]) => void;
-  value?: string;
-  onChange?: (value: string) => void;
+  selectedResources: IResTypeContext[];
+  setSelectedResources: any;
+  loading: boolean;
+  sendMessage: ({
+    query,
+    tools,
+    selectedResources,
+    mode,
+    decisions,
+  }: SendMessageParams) => void;
 }
 
 export default function ChatArea(props: IProps) {
   const {
-    mode,
-    loading,
-    tools,
-    context,
+    messages,
     navigatePrefix,
-    inputMode,
-    pendingInterrupts,
-    setMode,
-    callbacks,
-    onToolsChange,
-    onContextChange,
-    onDecision,
-    value: controlledValue,
-    onChange: controlledOnChange,
+    selectedResources,
+    setSelectedResources,
+    loading,
+    sendMessage,
   } = props;
 
-  const [internalValue, setInternalValue] = useState('');
-  const isControlled =
-    controlledValue !== undefined && controlledOnChange !== undefined;
-  const value = isControlled ? controlledValue : internalValue;
+  const [decisions, setDecisions] = useState<Decision[]>([]);
+  const [tools, setTools] = useState<ToolType[]>([]);
+  const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
+  const [query, setQuery] = useState('');
+
+  const lastMessage = useMemo<MessageDetail | undefined>(() => {
+    return messages.at(-1);
+  }, [messages]);
+
+  const interrupts = useMemo<Interrupt[]>((): Interrupt[] => {
+    return lastMessage?.attrs?.tool_call?.interrupts ?? [];
+  }, [lastMessage]);
+
+  const inputMode = useMemo(() => {
+    return interrupts.length > 0 ? InputMode.DECISION : InputMode.TEXT;
+  }, [interrupts]);
 
   const disabled = useMemo(() => {
     return (
-      inputMode === InputMode.TEXT && (!value || value.trim().length === 0)
+      inputMode === InputMode.TEXT && (!query || query.trim().length === 0)
     );
-  }, [value, inputMode]);
-
-  const handleSetValue = useCallback(
-    (newValue: string) => {
-      if (isControlled) {
-        controlledOnChange!(newValue);
-      } else {
-        setInternalValue(newValue);
-      }
-    },
-    [isControlled, controlledOnChange]
-  );
+  }, [query, inputMode]);
 
   const handleSend = useCallback(() => {
-    const v = value.trim();
+    const v = query.trim();
     if (v) {
-      onContextChange([]);
-      callbacks.sendMessage(v);
-      if (!isControlled) {
-        setInternalValue('');
-      }
+      setQuery('');
+      const localContext = structuredClone(selectedResources);
+      setSelectedResources([]);
+      sendMessage({
+        query: v,
+        selectedResources: localContext,
+        tools,
+        mode,
+        decisions,
+      });
     }
-  }, [value, callbacks, onContextChange, isControlled]);
-
-  const handleStop = useCallback(() => {
-    callbacks.stopStreaming();
-  }, [callbacks]);
+  }, [
+    query,
+    selectedResources,
+    setSelectedResources,
+    tools,
+    mode,
+    decisions,
+    sendMessage,
+  ]);
 
   const isDecisionMode = inputMode === InputMode.DECISION;
 
-  return isDecisionMode && pendingInterrupts.length > 0 ? (
-    <DecisionInput
-      interrupts={pendingInterrupts}
-      onDecision={onDecision}
-      disabled={loading}
-    />
+  return interrupts.length > 0 ? (
+    <DecisionInput interrupts={interrupts} onDecision={setDecisions} />
   ) : (
     <div className="max-w-[766px] w-full mx-auto rounded-[12px] p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]">
       <ChatContext
-        value={context}
-        onChange={onContextChange}
+        value={selectedResources}
+        onChange={setSelectedResources}
         navigatePrefix={navigatePrefix}
       />
       <ChatInput
-        value={value}
-        onChange={handleSetValue}
+        value={query}
+        onChange={setQuery}
         onSend={handleSend}
         disabled={disabled}
       />
       <div className="flex items-center justify-between">
         <ChatTool
           tools={tools}
-          context={context}
-          onToolsChange={onToolsChange}
+          context={selectedResources}
+          onToolsChange={setTools}
           disabled={isDecisionMode}
         />
         <ChatAction
           onSend={handleSend}
-          onStop={handleStop}
           disabled={disabled}
           loading={loading}
           mode={mode}

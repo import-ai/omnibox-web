@@ -1,5 +1,5 @@
 import { IBase } from '@/interface.ts';
-import type { ChatTool, DecisionType } from '@/page/chat/conversation/types.ts';
+import type { ChatTool, DecisionType } from '@/page/chat/chat-input/types';
 import type {
   Citation,
   MessageStatus,
@@ -20,6 +20,12 @@ export interface ToolCallFrontendOperation {
   };
 }
 
+export type Interrupt = {
+  args: Record<string, any>;
+  name: string;
+  decisions: string[];
+};
+
 export interface MessageAttrs {
   citations?: Citation[];
   tools?: ChatTool[];
@@ -32,11 +38,7 @@ export interface MessageAttrs {
   tool_call?: {
     status: string;
     error?: string;
-    interrupts?: {
-      args: Record<string, any>;
-      name: string;
-      decisions: string[];
-    }[];
+    interrupts?: Interrupt[];
     decisions?: {
       type: DecisionType;
     }[];

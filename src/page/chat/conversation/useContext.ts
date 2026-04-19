@@ -1,5 +1,4 @@
-import { isFunction } from 'lodash-es';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
@@ -7,14 +6,14 @@ import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang';
-import { PendingInterrupt } from '@/page/chat/chat-input/decision-input';
 import {
+  ChatCreatePayload,
   ChatMode,
-  InputMode,
+  Decision,
   type IResTypeContext,
+  SendMessageParams,
   ToolType,
 } from '@/page/chat/chat-input/types';
-import { DecisionType } from '@/page/chat/conversation/types.ts';
 import {
   ask,
   extractOriginalMessageSettings,
@@ -24,60 +23,63 @@ import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/core/message-operator.ts';
-import { ChatCreatePayload } from '@/page/chat/core/types/chat-create-payload.ts';
 import {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
-import useGlobalContext from '@/page/chat/useContext';
+import useGlobalContext from '@/page/chat/useSelectedResources.ts';
 
 import { getTitleFromConversationDetail } from '../utils';
 
 type SubmitRequest = {
   namespaceId: string;
   conversationId: string;
-  context: IResTypeContext[];
+  selectedResources: IResTypeContext[];
   query: string;
   tools: ToolType[];
-  mode: ChatMode;
   messages: MessageDetail[];
   messageOperator: MessageOperator;
+  mode: ChatMode;
   i18n: any;
   setLoading: (loading: boolean) => void;
   askAbortRef: any;
+  decisions: Decision[];
 };
 
-async function submit(request: SubmitRequest) {
-  const {
-    namespaceId,
-    conversationId,
-    context,
-    query,
-    tools,
-    mode,
-    messages,
-    messageOperator,
-    i18n,
-    setLoading,
-    askAbortRef,
-  } = request;
+async function submit({
+  namespaceId,
+  conversationId,
+  selectedResources,
+  query,
+  tools,
+  messages,
+  messageOperator,
+  mode,
+  i18n,
+  setLoading,
+  askAbortRef,
+  decisions,
+}: SubmitRequest) {
   if (!query || query.trim().length === 0) {
     return;
   }
   setLoading(true);
+  const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
   try {
     const askFN = ask(
       conversationId,
       query,
       tools,
-      context,
-      messages[messages.length - 1]?.id,
+      selectedResources,
+      messages.at(-1)?.id,
       messageOperator,
-      `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`,
+      url,
       getWizardLang(i18n),
       namespaceId,
       undefined,
-      undefined
+      undefined,
+      undefined,
+      { decisions }
     );
     askAbortRef.current = askFN.destroy;
     await askFN.start();
@@ -93,21 +95,8 @@ export default function useContext() {
   const askAbortRef = useRef<() => void>(null);
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
-  const sessionState = sessionStorage.getItem('chatConversationPayload');
-  const conversationPayload: ChatCreatePayload | undefined = sessionState
-    ? JSON.parse(sessionState)
-    : undefined;
-  const routeQuery: string | undefined = conversationPayload?.query;
-  const [tools, onToolsChange] = useState<Array<ToolType>>(
-    conversationPayload?.tools || []
-  );
-  const [loading, setLoading] = useState<boolean>(
-    routeQuery !== undefined && routeQuery.trim().length > 0
-  );
-  const [mode, setMode] = useState<ChatMode>(
-    conversationPayload?.mode || ChatMode.ASK
-  );
-  const { context, onContextChange } = useGlobalContext();
+  const [loading, setLoading] = useState<boolean>(false);
+  const { selectedResources, setSelectedResources } = useGlobalContext();
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
     mapping: {},
@@ -128,34 +117,52 @@ export default function useContext() {
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(conversation, setConversation);
   }, [conversation, setConversation]);
-  const stopStreaming = () => {
-    isFunction(askAbortRef.current) && askAbortRef.current();
-    setLoading(false);
-  };
 
-  const sendMessage = async (query: string) => {
-    const v = query.trim();
-    if (v) {
-      const localContext = structuredClone(context);
-      onContextChange([]);
-      await submit({
-        namespaceId,
-        conversationId,
-        context: localContext,
-        query: v,
-        tools,
-        mode,
-        messages,
-        messageOperator,
-        i18n,
-        setLoading,
-        askAbortRef,
-      });
-    }
-  };
+  const sendMessage = useCallback(
+    async ({
+      query,
+      tools,
+      selectedResources,
+      mode,
+      decisions,
+    }: SendMessageParams) => {
+      console.log({ method: 'sendMessage' });
+      const v = query.trim();
+      if (v) {
+        await submit({
+          namespaceId,
+          conversationId,
+          selectedResources,
+          query: v,
+          tools,
+          messages,
+          messageOperator,
+          mode,
+          i18n,
+          setLoading,
+          askAbortRef,
+          decisions,
+        });
+      }
+    },
+    [
+      namespaceId,
+      conversationId,
+      messages,
+      messageOperator,
+      i18n,
+      setLoading,
+      askAbortRef,
+    ]
+  );
 
   useEffect(() => {
-    if (!conversationPayload?.conversation) {
+    if (!conversationId) return;
+    const state = sessionStorage.getItem('chat-create-payload');
+    const chatCreatePayload: ChatCreatePayload | undefined = state
+      ? JSON.parse(state)
+      : undefined;
+    if (!chatCreatePayload) {
       http
         .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
         .then(response => {
@@ -167,24 +174,27 @@ export default function useContext() {
         });
       return;
     }
-    sessionStorage.removeItem('chatConversationPayload');
-    if (routeQuery && routeQuery.trim().length > 0) {
-      onContextChange([]); // Before sending chat request in home page
-      void submit({
-        namespaceId,
-        conversationId,
-        context: conversationPayload.context,
-        query: routeQuery,
-        tools,
-        mode,
-        messages,
-        messageOperator,
-        i18n,
-        setLoading,
-        askAbortRef,
-      });
-    }
-  }, []);
+    sessionStorage.removeItem('chat-create-payload');
+    void sendMessage(chatCreatePayload);
+    // const query = conversationPayload.query.trim();
+    // if (query && query.length > 0) {
+    //   setSelectedResources([]); // Before sending chat request in home page
+    //   void submit({
+    //     namespaceId,
+    //     conversationId,
+    //     selectedResources: conversationPayload.selectedResources,
+    //     query,
+    //     tools: conversationPayload.tools,
+    //     messages,
+    //     messageOperator,
+    //     mode: conversationPayload.mode,
+    //     i18n,
+    //     setLoading,
+    //     askAbortRef,
+    //     decisions: conversationPayload.decisions,
+    //   });
+    // }
+  }, [namespaceId, conversationId]);
 
   const onRegenerate = async (messageId: string) => {
     const parentId = messageOperator.getParent(messageId);
@@ -199,11 +209,7 @@ export default function useContext() {
       originalContext,
       originalLang,
       originalEnableThinking,
-    } = extractOriginalMessageSettings(parentMessage, {
-      tools,
-      context,
-      lang: getWizardLang(i18n),
-    });
+    } = extractOriginalMessageSettings(parentMessage);
 
     setLoading(true);
     try {
@@ -214,7 +220,7 @@ export default function useContext() {
         originalContext,
         parentId,
         messageOperator,
-        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        `/api/v1/namespaces/${namespaceId}/wizard/${ChatMode.ASK}`,
         originalLang,
         namespaceId,
         undefined,
@@ -237,11 +243,7 @@ export default function useContext() {
       originalContext,
       originalLang,
       originalEnableThinking,
-    } = extractOriginalMessageSettings(editedMessage, {
-      tools,
-      context,
-      lang: getWizardLang(i18n),
-    });
+    } = extractOriginalMessageSettings(editedMessage);
 
     setLoading(true);
     try {
@@ -252,72 +254,12 @@ export default function useContext() {
         originalContext,
         parentId,
         messageOperator,
-        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
+        `/api/v1/namespaces/${namespaceId}/wizard/${ChatMode.ASK}`,
         originalLang,
         namespaceId,
         undefined,
         undefined,
         originalEnableThinking
-      );
-      askAbortRef.current = askFN.destroy;
-      await askFN.start();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Check if there are pending tool call interrupts that need user decision
-  const pendingInterrupts = useMemo((): PendingInterrupt[] => {
-    const lastMessage = messages[messages.length - 1];
-    if (!lastMessage) return [];
-
-    const interrupts = lastMessage.attrs?.tool_call?.interrupts;
-    if (!interrupts || interrupts.length === 0) return [];
-
-    // Check which interrupts have been decided
-    const decisions = lastMessage.attrs?.tool_call?.decisions;
-    const decidedIndexes = new Set(decisions?.map((d: any) => d.index) ?? []);
-
-    // Return all undecided interrupts
-    const pending: PendingInterrupt[] = [];
-    for (let i = 0; i < interrupts.length; i++) {
-      if (!decidedIndexes.has(i)) {
-        pending.push({ ...interrupts[i], index: i });
-      }
-    }
-    return pending;
-  }, [messages]);
-
-  // Determine the input mode based on whether there are pending interrupts
-  const inputMode = useMemo(() => {
-    return pendingInterrupts.length > 0 ? InputMode.DECISION : InputMode.TEXT;
-  }, [pendingInterrupts]);
-
-  // Handle tool call decisions
-  const onToolDecision = async (decisions: { type: DecisionType }[]) => {
-    if (decisions.length === 0) return;
-
-    setLoading(true);
-    try {
-      const lastMessage = messages[messages.length - 1];
-      const askFN = ask(
-        conversationId,
-        '', // Empty query for decision requests
-        [], // No tools for decision requests
-        [], // No context for decision requests
-        lastMessage.id,
-        messageOperator,
-        `/api/v1/namespaces/${namespaceId}/wizard/${mode}`,
-        getWizardLang(i18n),
-        namespaceId,
-        undefined,
-        undefined,
-        undefined,
-        {
-          decisions: decisions.map(d => ({
-            type: d.type,
-          })),
-        }
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
@@ -335,22 +277,15 @@ export default function useContext() {
   }, [firstUserMessage?.message.content, app]);
 
   return {
-    mode,
-    tools,
-    setMode,
     loading,
-    context,
-    callbacks: { sendMessage, stopStreaming },
+    sendMessage,
     messages,
-    onToolsChange,
-    onContextChange,
+    selectedResources,
+    setSelectedResources,
     namespaceId,
     conversation,
     messageOperator,
     onRegenerate,
     onEdit,
-    inputMode,
-    pendingInterrupts,
-    onToolDecision,
   };
 }
