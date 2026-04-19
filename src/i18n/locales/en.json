@@ -639,8 +639,7 @@
     "decision": {
       "approve": "Approve",
       "reject": "Reject",
-      "selected": "Selected",
-      "submit": "Submit Decisions"
+      "selected": "Selected"
     }
   },
   "date": {

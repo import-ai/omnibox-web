@@ -92,11 +92,7 @@ export default function ChatAction(props: IActionProps) {
           </Tooltip>
         </TooltipProvider>
       ) : (
-        <Button
-          size="icon"
-          onClick={onSend}
-          className="rounded-lg size-8 bg-black dark:bg-white"
-        >
+        <Button size="icon" onClick={onSend} className="rounded-lg size-8">
           <ArrowUp />
         </Button>
       )}
