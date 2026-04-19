@@ -8,7 +8,12 @@ import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang';
 import { PendingInterrupt } from '@/page/chat/chat-input/decision-input';
-import { ChatMode, InputMode, ToolType } from '@/page/chat/chat-input/types';
+import {
+  ChatMode,
+  InputMode,
+  type IResTypeContext,
+  ToolType,
+} from '@/page/chat/chat-input/types';
 import { DecisionType } from '@/page/chat/conversation/types.ts';
 import {
   ask,
@@ -19,6 +24,7 @@ import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/core/message-operator.ts';
+import { ChatCreatePayload } from '@/page/chat/core/types/chat-create-payload.ts';
 import {
   ConversationDetail,
   MessageDetail,
@@ -27,6 +33,59 @@ import useGlobalContext from '@/page/chat/useContext';
 
 import { getTitleFromConversationDetail } from '../utils';
 
+type SubmitRequest = {
+  namespaceId: string;
+  conversationId: string;
+  context: IResTypeContext[];
+  query: string;
+  tools: ToolType[];
+  mode: ChatMode;
+  messages: MessageDetail[];
+  messageOperator: MessageOperator;
+  i18n: any;
+  setLoading: (loading: boolean) => void;
+  askAbortRef: any;
+};
+
+async function submit(request: SubmitRequest) {
+  const {
+    namespaceId,
+    conversationId,
+    context,
+    query,
+    tools,
+    mode,
+    messages,
+    messageOperator,
+    i18n,
+    setLoading,
+    askAbortRef,
+  } = request;
+  if (!query || query.trim().length === 0) {
+    return;
+  }
+  setLoading(true);
+  try {
+    const askFN = ask(
+      conversationId,
+      query,
+      tools,
+      context,
+      messages[messages.length - 1]?.id,
+      messageOperator,
+      `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`,
+      getWizardLang(i18n),
+      namespaceId,
+      undefined,
+      undefined
+    );
+    askAbortRef.current = askFN.destroy;
+    await askFN.start();
+  } finally {
+    setLoading(false);
+  }
+}
+
 export default function useContext() {
   const app = useApp();
   const params = useParams();
@@ -34,30 +93,25 @@ export default function useContext() {
   const askAbortRef = useRef<() => void>(null);
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
-  const sessionState = sessionStorage.getItem('state');
-  const state = sessionState ? JSON.parse(sessionState) : {};
-  const routeQuery: string | undefined = state?.value;
-  const [tools, onToolsChange] = useState<Array<ToolType>>(state?.tools || []);
+  const sessionState = sessionStorage.getItem('chatConversationPayload');
+  const conversationPayload: ChatCreatePayload | undefined = sessionState
+    ? JSON.parse(sessionState)
+    : undefined;
+  const routeQuery: string | undefined = conversationPayload?.query;
+  const [tools, onToolsChange] = useState<Array<ToolType>>(
+    conversationPayload?.tools || []
+  );
   const [loading, setLoading] = useState<boolean>(
     routeQuery !== undefined && routeQuery.trim().length > 0
   );
-  const [mode, setMode] = useState<ChatMode>(state?.mode || ChatMode.ASK);
+  const [mode, setMode] = useState<ChatMode>(
+    conversationPayload?.mode || ChatMode.ASK
+  );
   const { context, onContextChange } = useGlobalContext();
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
     mapping: {},
   });
-  const refetch = () => {
-    return http
-      .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
-      .then(response => {
-        const conversationTitle = getTitleFromConversationDetail(response);
-        if (conversationTitle) {
-          app.fire('chat:title:update', conversationTitle);
-        }
-        setConversation(response);
-      });
-  };
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
     let currentNode: string | undefined = conversation.current_node;
@@ -82,51 +136,54 @@ export default function useContext() {
   const sendMessage = async (query: string) => {
     const v = query.trim();
     if (v) {
+      const localContext = structuredClone(context);
       onContextChange([]);
-      await submit(v);
-    }
-  };
-  const submit = async (query?: string) => {
-    if (!query || query.trim().length === 0) {
-      return;
-    }
-    setLoading(true);
-    try {
-      const askFN = ask(
-        conversationId,
-        query,
-        tools,
-        context,
-        messages[messages.length - 1]?.id,
-        messageOperator,
-        `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`,
-        getWizardLang(i18n),
+      await submit({
         namespaceId,
-        undefined,
-        undefined
-      );
-      askAbortRef.current = askFN.destroy;
-      await askFN.start();
-    } finally {
-      setLoading(false);
+        conversationId,
+        context: localContext,
+        query: v,
+        tools,
+        mode,
+        messages,
+        messageOperator,
+        i18n,
+        setLoading,
+        askAbortRef,
+      });
     }
   };
 
   useEffect(() => {
-    if (!state.conversation) {
-      refetch();
+    if (!conversationPayload?.conversation) {
+      http
+        .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
+        .then(response => {
+          const conversationTitle = getTitleFromConversationDetail(response);
+          if (conversationTitle) {
+            app.fire('chat:title:update', conversationTitle);
+          }
+          setConversation(response);
+        });
       return;
     }
-    const conversationTitle = getTitleFromConversationDetail(
-      state.conversation
-    );
-    if (conversationTitle) {
-      app.fire('chat:title:update', conversationTitle);
+    sessionStorage.removeItem('chatConversationPayload');
+    if (routeQuery && routeQuery.trim().length > 0) {
+      onContextChange([]); // Before sending chat request in home page
+      void submit({
+        namespaceId,
+        conversationId,
+        context: conversationPayload.context,
+        query: routeQuery,
+        tools,
+        mode,
+        messages,
+        messageOperator,
+        i18n,
+        setLoading,
+        askAbortRef,
+      });
     }
-    setConversation(state.conversation);
-    sessionStorage.removeItem('state');
-    onContextChange([]); // Before sending chat request in home page
-    submit(routeQuery);
   }, []);
 
   const onRegenerate = async (messageId: string) => {

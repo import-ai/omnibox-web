@@ -284,11 +284,11 @@ export function AssistantMessage(props: IProps) {
   ) {
     // Keep position with action button in citation markdown
     domList.push(
-      <div className="flex items-center mt-3 mb-1.5 gap-x-2">
-        <Spinner
-          key={'response_loading_' + message.id}
-          className="text-muted-foreground size-4"
-        />
+      <div
+        key={'response_loading_' + message.id}
+        className="flex items-center mt-3 mb-1.5 gap-x-2"
+      >
+        <Spinner className="text-muted-foreground size-4" />
         {message.attrs?.metrics?.tokens && (
           <div className="text-muted-foreground text-sm">
             {t('chat.messages.metrics.tps', {

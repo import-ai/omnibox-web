@@ -6,6 +6,11 @@ import { Typewriter } from '@/components/typewriter';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { ChatMode, InputMode, ToolType } from '@/page/chat/chat-input/types';
+import {
+  ChatCreatePayload,
+  ConversationEntity,
+} from '@/page/chat/core/types/chat-create-payload.ts';
+import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 
 import ChatArea from './chat-input';
 import FeatureCards from './home/feature-cards';
@@ -28,16 +33,19 @@ export default function ChatHomePage() {
     sendMessage: (query: string) => {
       http
         .post(`/namespaces/${namespaceId}/conversations`)
-        .then(conversation => {
+        .then((conversation: ConversationEntity) => {
           sessionStorage.setItem(
-            'state',
+            'chatConversationPayload',
             JSON.stringify({
               mode,
-              value: query,
+              query,
               tools,
               context,
-              conversation,
-            })
+              conversation: {
+                id: conversation.id,
+                title: conversation.title,
+              } as ConversationDetail,
+            } as ChatCreatePayload)
           );
           navigate(`/${namespaceId}/chat/${conversation.id}`);
         });
