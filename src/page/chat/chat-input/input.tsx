@@ -2,17 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Textarea } from '@/components/ui/textarea';
-import type { ChatActionType } from '@/page/chat/chat-input/types';
 
 interface IProps {
   value: string;
   disabled: boolean;
   onChange: (value: string) => void;
-  onAction: (action?: ChatActionType) => void;
+  onSend: () => void;
 }
 
 export default function ChatInput(props: IProps) {
-  const { value, disabled, onChange, onAction } = props;
+  const { value, disabled, onChange, onSend } = props;
   const { t } = useTranslation();
   const [isComposing, setIsComposing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -50,7 +49,7 @@ export default function ChatInput(props: IProps) {
         }, 0);
         adjustHeight();
       } else {
-        onAction();
+        onSend();
       }
     }
   };

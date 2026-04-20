@@ -656,8 +656,7 @@
     "decision": {
       "approve": "同意",
       "reject": "拒绝",
-      "selected": "已选择",
-      "submit": "提交决定"
+      "selected": "已选择"
     }
   },
   "date": {

@@ -1,4 +1,4 @@
-import { ArrowUp, ChevronDown, CircleStop } from 'lucide-react';
+import { ArrowUp, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
@@ -15,12 +15,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 import { FORCE_ASK } from '@/const';
-import { type ChatActionType, ChatMode } from '@/page/chat/chat-input/types';
+import { ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
   disabled: boolean;
-  onAction: (action?: ChatActionType) => void;
+  onSend: () => void;
   loading: boolean;
   mode: ChatMode;
   setMode: (mode: ChatMode) => void;
@@ -28,21 +29,11 @@ interface IActionProps {
 
 export default function ChatAction(props: IActionProps) {
   const { t } = useTranslation();
-  const { disabled, onAction, loading, mode, setMode } = props;
-  const forceAsk = FORCE_ASK;
-  const onStop = () => {
-    onAction('stop');
-  };
-  const onSubmit = () => {
-    if (disabled || loading) {
-      return;
-    }
-    onAction();
-  };
+  const { disabled, onSend, loading, mode, setMode } = props;
 
   return (
     <div className="flex items-center">
-      {!forceAsk && (
+      {!FORCE_ASK && (
         <>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -74,24 +65,26 @@ export default function ChatAction(props: IActionProps) {
         </>
       )}
       {loading ? (
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={onStop}
-          className="rounded-full size-8 [&_svg]:size-6 text-black dark:text-white"
-        >
-          <CircleStop />
-        </Button>
+        <span className="cursor-not-allowed">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="rounded-full size-8"
+            disabled
+          >
+            <Spinner />
+          </Button>
+        </span>
       ) : disabled ? (
         <TooltipProvider>
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <span className="inline-flex cursor-pointer">
+              <span className="cursor-not-allowed">
                 <Button
                   size="icon"
                   variant="default"
-                  disabled
                   className="rounded-lg size-8"
+                  disabled
                 >
                   <ArrowUp />
                 </Button>
@@ -101,11 +94,7 @@ export default function ChatAction(props: IActionProps) {
           </Tooltip>
         </TooltipProvider>
       ) : (
-        <Button
-          size="icon"
-          onClick={onSubmit}
-          className="rounded-lg size-8 bg-black dark:bg-white"
-        >
+        <Button size="icon" onClick={onSend} className="rounded-lg size-8">
           <ArrowUp />
         </Button>
       )}
