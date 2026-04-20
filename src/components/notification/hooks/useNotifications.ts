@@ -125,10 +125,10 @@ export function useNotifications(filter: NotificationFilter) {
       );
 
       if (item.status === 'unread') {
-        setUnreadCount(previousCount => Math.max(previousCount - 1, 0));
+        setUnreadCount(Math.max(unreadCount - 1, 0));
       }
     },
-    [namespaceQuery, setUnreadCount]
+    [namespaceQuery, setUnreadCount, unreadCount]
   );
 
   const clearUnread = useCallback(async () => {
@@ -187,6 +187,10 @@ export function useNotificationUnreadCount() {
     );
     setUnreadCount(response.unread_count);
   }, [namespaceQuery, setUnreadCount]);
+
+  useEffect(() => {
+    setUnreadCount(0);
+  }, [namespaceId, setUnreadCount]);
 
   useEffect(() => {
     fetchUnreadCount();

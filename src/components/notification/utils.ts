@@ -7,9 +7,6 @@ export const notificationMetaColumnClassName =
   'flex min-w-0 flex-col items-end gap-1 text-right';
 
 export const NOTIFICATION_POLL_INTERVAL_MS = 10_000;
-export const NOTIFICATION_RETENTION_DAYS = 30;
-const NOTIFICATION_RETENTION_MS =
-  NOTIFICATION_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
 export function getNotificationHasMore(pagination: {
   offset: number;
@@ -57,17 +54,4 @@ export function startNotificationPolling(
   return () => {
     clearInterval(timer);
   };
-}
-
-export function filterUnexpiredNotifications<T extends { created_at: string }>(
-  items: T[],
-  now: number = Date.now()
-) {
-  return items.filter(item => {
-    const createdAt = new Date(item.created_at).getTime();
-
-    return (
-      Number.isNaN(createdAt) || createdAt + NOTIFICATION_RETENTION_MS > now
-    );
-  });
 }

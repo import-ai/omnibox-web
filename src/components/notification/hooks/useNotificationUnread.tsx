@@ -1,39 +1,36 @@
-import {
-  createContext,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
-  useContext,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-interface NotificationUnreadContextValue {
-  unreadCount: number;
-  setUnreadCount: Dispatch<SetStateAction<number>>;
-}
+import useApp from '@/hooks/use-app';
 
-const NotificationUnreadContext =
-  createContext<NotificationUnreadContextValue | null>(null);
+const notificationUnreadUpdatedEvent = 'notification:unread:updated';
 
-export function NotificationUnreadProvider(props: { children: ReactNode }) {
-  const { children } = props;
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  return (
-    <NotificationUnreadContext.Provider value={{ unreadCount, setUnreadCount }}>
-      {children}
-    </NotificationUnreadContext.Provider>
-  );
-}
+let notificationUnreadCount = 0;
 
 export function useNotificationUnread() {
-  const context = useContext(NotificationUnreadContext);
+  const app = useApp();
+  const [unreadCount, setLocalUnreadCount] = useState(notificationUnreadCount);
 
-  if (!context) {
-    throw new Error(
-      'useNotificationUnread must be used within NotificationUnreadProvider'
-    );
-  }
+  const setUnreadCount = useCallback(
+    (nextCount: number) => {
+      if (nextCount === notificationUnreadCount) {
+        return;
+      }
 
-  return context;
+      notificationUnreadCount = nextCount;
+      app.fire(notificationUnreadUpdatedEvent, nextCount);
+    },
+    [app]
+  );
+
+  useEffect(() => {
+    return app.on(notificationUnreadUpdatedEvent, (nextCount: number) => {
+      notificationUnreadCount = nextCount;
+      setLocalUnreadCount(nextCount);
+    });
+  }, [app]);
+
+  return {
+    unreadCount,
+    setUnreadCount,
+  };
 }

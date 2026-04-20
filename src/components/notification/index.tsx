@@ -12,7 +12,6 @@ import type {
   NotificationFilter,
   NotificationItem,
 } from './types';
-import { filterUnexpiredNotifications } from './utils';
 
 function Notification({ onClose }: { onClose?: () => void }) {
   const { t } = useTranslation();
@@ -35,7 +34,6 @@ function Notification({ onClose }: { onClose?: () => void }) {
     unreadCount,
     hasMore,
   } = useNotifications(filter);
-  const visibleItems = filterUnexpiredNotifications(items);
 
   const labels: Record<NotificationFilter, string> = {
     all: t('notification_modal.all'),
@@ -128,10 +126,10 @@ function Notification({ onClose }: { onClose?: () => void }) {
           onMarkAllRead={clearUnread}
         />
 
-        {visibleItems.length > 0 ? (
+        {items.length > 0 ? (
           <div className="flex-1 overflow-y-auto" onScroll={handleScroll}>
             <div className="space-y-2">
-              {visibleItems.map(item => (
+              {items.map(item => (
                 <NotificationListItem
                   key={item.id}
                   item={item}

@@ -31,4 +31,5 @@ dist-ssr
 .env
 CLAUDE.md
 AGENTS.md
+.helloagents/
 .playwright*
