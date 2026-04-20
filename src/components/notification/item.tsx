@@ -41,7 +41,7 @@ export function NotificationListItem({
               {item.title}
             </div>
           </div>
-          <p className="w-full truncate text-sm font-normal leading-5 text-muted-foreground/50">
+          <p className="w-full truncate text-sm font-normal leading-5 text-muted-foreground/75">
             {item.summary}
           </p>
         </div>
