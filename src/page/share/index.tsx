@@ -31,8 +31,6 @@ interface ShareContextValue {
   resource: SharedResource | null;
   selectedResources: IResTypeContext[];
   setSelectedResources: (resources: IResTypeContext[]) => void;
-  chatInput: string;
-  setChatInput: (input: string) => void;
   mode: ChatMode;
   setMode: (mode: ChatMode) => void;
   tools: Array<ToolType>;
@@ -62,7 +60,6 @@ export default function SharePage() {
   const [selectedResources, setSelectedResources] = useState<IResTypeContext[]>(
     []
   );
-  const [chatInput, setChatInput] = useState<string>('');
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [tools, setTools] = useState<Array<ToolType>>([
     ToolType.PRIVATE_SEARCH,
@@ -225,7 +222,7 @@ export default function SharePage() {
     );
   }
   if (shareInfo) {
-    const showSidebar = shareInfo.all_resources || showChat;
+    const showSidebar = (shareInfo.all_resources || showChat) ?? true;
     return (
       <ShareContext.Provider
         value={{
@@ -233,8 +230,6 @@ export default function SharePage() {
           resource,
           selectedResources,
           setSelectedResources,
-          chatInput,
-          setChatInput,
           mode,
           setMode,
           tools,

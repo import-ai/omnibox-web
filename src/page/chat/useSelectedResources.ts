@@ -12,42 +12,47 @@ import type {
   PrivateSearchResourceType,
 } from '@/page/chat/chat-input/types';
 
-export default function useContext() {
+export default function useSelectedResources() {
   const app = useApp();
-  const [context, onContextChange] =
+  const [selectedResources, setSelectedResources] =
     useState<IResTypeContext[]>(getChatContext());
 
   useEffect(() => {
     return app.on('context_clear', () => {
-      onContextChange([]);
+      setSelectedResources([]);
       removeChatContext();
     });
   }, []);
 
   useEffect(() => {
-    setChatContext(context);
+    setChatContext(selectedResources);
     return app.on(
       'context',
       (resource: Resource, type: PrivateSearchResourceType) => {
-        const target = context.find(
+        const target = selectedResources.find(
           item => item.resource.id === resource.id && item.type === type
         );
         if (target) {
           return;
         }
-        onContextChange([...context, { type, resource }]);
+        setSelectedResources([...selectedResources, { type, resource }]);
       }
     );
-  }, [context]);
+  }, [selectedResources]);
 
   useEffect(() => {
     return app.on('delete_resource', (id: string) => {
-      const filtered = context.filter(item => item.resource.id !== id);
-      if (filtered.length !== context.length) {
-        onContextChange(filtered);
+      const filtered = selectedResources.filter(
+        item => item.resource.id !== id
+      );
+      if (filtered.length !== selectedResources.length) {
+        setSelectedResources(filtered);
       }
     });
-  }, [context]);
+  }, [selectedResources]);
 
-  return { context, onContextChange };
+  return {
+    selectedResources,
+    setSelectedResources,
+  };
 }

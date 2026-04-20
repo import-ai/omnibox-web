@@ -1,13 +1,14 @@
 import { FORCE_PRIVATE_SEARCH } from '@/const';
+import { ResourceMeta } from '@/interface.ts';
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
-import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 import type {
   ChatRequestBody,
   ChatTool,
   PrivateSearch,
   PrivateSearchResource,
-} from '@/page/chat/conversation/types.ts';
+} from '@/page/chat/chat-input/types';
+import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/core/message-operator.ts';
 import { messageProcessor } from '@/page/chat/core/message-processor.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
@@ -44,7 +45,7 @@ export function extractToolsAndContext(chatTools: ChatTool[]): {
             resource: {
               id: res.id,
               name: res.name,
-            },
+            } as ResourceMeta,
           });
         }
       }
@@ -61,24 +62,16 @@ export function extractToolsAndContext(chatTools: ChatTool[]): {
 /**
  * Extract original tools/settings from a message's attributes with fallback to current state
  */
-export function extractOriginalMessageSettings(
-  message: MessageDetail | undefined,
-  fallbacks: {
-    tools: ToolType[];
-    context: IResTypeContext[];
-    lang: WizardLang;
-    enableThinking?: boolean;
-  }
-): {
+export function extractOriginalMessageSettings(message: MessageDetail): {
   originalTools: ToolType[];
   originalContext: IResTypeContext[];
   originalLang: WizardLang;
   originalEnableThinking: boolean | undefined;
 } {
-  let originalTools = fallbacks.tools;
-  let originalContext = fallbacks.context;
-  let originalLang = fallbacks.lang;
-  let originalEnableThinking: boolean | undefined = fallbacks.enableThinking;
+  let originalTools: ToolType[] = [];
+  let originalContext: IResTypeContext[] = [];
+  let originalLang: WizardLang = '简体中文';
+  let originalEnableThinking: boolean | undefined = false;
 
   if (message?.attrs?.tools) {
     const extracted = extractToolsAndContext(message.attrs.tools);

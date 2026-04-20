@@ -1,49 +1,51 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Typewriter } from '@/components/typewriter';
-import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
-import { ChatMode, InputMode, ToolType } from '@/page/chat/chat-input/types';
+import {
+  ChatCreatePayload,
+  ConversationEntity,
+  SendMessageParams,
+} from '@/page/chat/chat-input/types';
+import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 
 import ChatArea from './chat-input';
 import FeatureCards from './home/feature-cards';
-import useContext from './useContext';
+import useSelectedResources from './useSelectedResources.ts';
 import { getGreeting } from './utils';
 
 export default function ChatHomePage() {
-  const app = useApp();
   const params = useParams();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [value, onChange] = useState('');
   const namespaceId = params.namespace_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
-  const { context, onContextChange } = useContext();
-  const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const [tools, onToolsChange] = useState<Array<ToolType>>([
-    ToolType.PRIVATE_SEARCH,
-  ]);
-  const handleAction = () => {
-    http.post(`/namespaces/${namespaceId}/conversations`).then(conversation => {
-      sessionStorage.setItem(
-        'state',
-        JSON.stringify({
-          mode,
-          value,
-          tools,
-          context,
-          conversation,
-        })
-      );
-      navigate(`/${namespaceId}/chat/${conversation.id}`);
-    });
+  const { selectedResources, setSelectedResources } = useSelectedResources();
+  const sendMessage = ({
+    query,
+    tools,
+    selectedResources,
+    mode,
+  }: SendMessageParams) => {
+    http
+      .post(`/namespaces/${namespaceId}/conversations`)
+      .then((conversation: ConversationEntity) => {
+        sessionStorage.setItem(
+          'chat-create-payload',
+          JSON.stringify({
+            mode,
+            query,
+            tools,
+            selectedResources,
+            conversation: {
+              id: conversation.id,
+            } as ConversationDetail,
+          } as ChatCreatePayload)
+        );
+        navigate(`/${namespaceId}/chat/${conversation.id}`);
+      });
   };
-
-  useEffect(() => {
-    app.fire('chat:title');
-  }, []);
 
   return (
     <div className="flex justify-center flex-1 p-4 overflow-auto">
@@ -53,20 +55,12 @@ export default function ChatHomePage() {
             <Typewriter text={t(i18n)} typeSpeed={32} />
           </h1>
           <ChatArea
-            mode={mode}
-            tools={tools}
-            value={value}
-            loading={false}
-            context={context}
-            inputMode={InputMode.TEXT}
-            pendingInterrupts={[]}
-            onDecision={() => {}}
-            setMode={setMode}
-            onChange={onChange}
-            onAction={handleAction}
-            onToolsChange={onToolsChange}
-            onContextChange={onContextChange}
+            messages={[]}
             navigatePrefix={`/${namespaceId}`}
+            selectedResources={selectedResources}
+            setSelectedResources={setSelectedResources}
+            loading={false}
+            sendMessage={sendMessage}
           />
         </div>
         <FeatureCards />
