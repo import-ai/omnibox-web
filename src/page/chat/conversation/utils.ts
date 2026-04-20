@@ -100,6 +100,7 @@ export function prepareBody(
   query: string,
   tools: ToolType[],
   context: IResTypeContext[],
+  channel: AgentRequestChannel,
   parent_message_id: string | undefined,
   lang: WizardLang | undefined,
   enable_thinking?: boolean
@@ -109,7 +110,7 @@ export function prepareBody(
     query,
     enable_thinking: enable_thinking ?? false,
     lang,
-    channel: AgentRequestChannel.WEB,
+    channel,
   };
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
@@ -146,6 +147,7 @@ export function ask(
   query: string,
   tools: ToolType[],
   context: IResTypeContext[],
+  channel: AgentRequestChannel,
   parent_message_id: string | undefined,
   messageOperator: MessageOperator,
   url: string,
@@ -161,6 +163,7 @@ export function ask(
     query,
     tools,
     context,
+    channel,
     parent_message_id,
     lang,
     enable_thinking
