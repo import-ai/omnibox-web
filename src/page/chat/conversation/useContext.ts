@@ -7,6 +7,7 @@ import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang';
 import {
+  AgentRequestChannel,
   ChatCreatePayload,
   ChatMode,
   SendMessageParams,
@@ -42,6 +43,7 @@ export default function useContext() {
     id: conversationId,
     mapping: {},
   });
+  const channel = AgentRequestChannel.WEB;
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
     let currentNode: string | undefined = conversation.current_node;
@@ -76,6 +78,7 @@ export default function useContext() {
           v,
           tools,
           selectedResources,
+          channel,
           messages.at(-1)?.id,
           messageOperator,
           url,
@@ -143,6 +146,7 @@ export default function useContext() {
         parentMessage.message.content,
         originalTools,
         originalContext,
+        channel,
         parentId,
         messageOperator,
         `/api/v1/namespaces/${namespaceId}/wizard/${ChatMode.ASK}`,
@@ -177,6 +181,7 @@ export default function useContext() {
         newContent,
         originalTools,
         originalContext,
+        channel,
         parentId,
         messageOperator,
         `/api/v1/namespaces/${namespaceId}/wizard/${ChatMode.ASK}`,

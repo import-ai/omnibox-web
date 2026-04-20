@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { UpgradeIcon } from '@/assets/icons/upgrade';
 import useProNamespaces from '@/hooks/use-pro-namespaces';
 import { NamespaceTier } from '@/interface';
+import { getUpgradeLink } from '@/lib/upgrade-link.ts';
 import { cn } from '@/lib/utils';
 
 export function UpgradeButton() {
@@ -23,9 +24,7 @@ export function UpgradeButton() {
   }
 
   const handleClick = () => {
-    const rawLang = i18n.language || 'zh-cn';
-    const lang = rawLang.startsWith('zh') ? 'zh-cn' : 'en';
-    window.open(`/${lang}/pricing?namespace=${namespaceId}`, '_blank');
+    window.open(getUpgradeLink(i18n, namespaceId), '_blank');
   };
 
   return (

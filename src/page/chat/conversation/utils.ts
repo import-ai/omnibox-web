@@ -2,13 +2,15 @@ import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { ResourceMeta } from '@/interface.ts';
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
-import type {
+import {
+  AgentRequestChannel,
   ChatRequestBody,
   ChatTool,
+  IResTypeContext,
   PrivateSearch,
   PrivateSearchResource,
+  ToolType,
 } from '@/page/chat/chat-input/types';
-import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/core/message-operator.ts';
 import { messageProcessor } from '@/page/chat/core/message-processor.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
@@ -98,6 +100,7 @@ export function prepareBody(
   query: string,
   tools: ToolType[],
   context: IResTypeContext[],
+  channel: AgentRequestChannel,
   parent_message_id: string | undefined,
   lang: WizardLang | undefined,
   enable_thinking?: boolean
@@ -107,6 +110,7 @@ export function prepareBody(
     query,
     enable_thinking: enable_thinking ?? false,
     lang,
+    channel,
   };
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
@@ -143,6 +147,7 @@ export function ask(
   query: string,
   tools: ToolType[],
   context: IResTypeContext[],
+  channel: AgentRequestChannel,
   parent_message_id: string | undefined,
   messageOperator: MessageOperator,
   url: string,
@@ -158,6 +163,7 @@ export function ask(
     query,
     tools,
     context,
+    channel,
     parent_message_id,
     lang,
     enable_thinking

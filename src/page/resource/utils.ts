@@ -1,33 +1,25 @@
-import { formatDistanceToNow } from 'date-fns';
-import { enUS, zhCN } from 'date-fns/locale';
 import type { i18n as I18nType } from 'i18next';
 
 import { Resource, ResourceMeta, SharedResource } from '@/interface';
 import { getLangOnly } from '@/lib/lang';
+import { getRelatedTime } from '@/lib/time.ts';
 
 export function getTime(resource: Resource | null, i18next: I18nType) {
   if (!resource) {
     return '';
   }
-  if (resource.updated_at) {
-    return i18next.t('updated', {
-      related_updated_at: formatDistanceToNow(new Date(resource.updated_at), {
-        addSuffix: true,
-        locale: getLangOnly(i18next) === 'zh' ? zhCN : enUS,
-      }),
-    });
+  let date: Date;
+  let key: string;
+  if (resource.updated_at !== resource.created_at) {
+    date = new Date(resource.updated_at ?? '');
+    key = 'updated';
+  } else {
+    date = new Date(resource.created_at ?? '');
+    key = 'created';
   }
-  if (resource.created_at) {
-    return (
-      i18next.t('created') +
-      ' ' +
-      formatDistanceToNow(new Date(resource.created_at), {
-        addSuffix: true,
-        locale: getLangOnly(i18next) === 'zh' ? zhCN : enUS,
-      })
-    );
-  }
-  return '';
+  return i18next.t(`resource_header.${key}`, {
+    related_time: getRelatedTime(date, i18next, true),
+  });
 }
 
 interface GroupedItems {

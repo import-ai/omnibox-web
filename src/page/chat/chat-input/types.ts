@@ -49,6 +49,18 @@ export interface Reasoning extends IChatTool {
 
 export type ChatTool = WebSearch | PrivateSearch | Reasoning;
 
+export enum AgentRequestChannel {
+  WEB = 'web',
+  MOBILE = 'mobile',
+  MINI_PROGRAM = 'mini_program',
+
+  OPEN_API = 'open_api',
+
+  WEB_SHARE = 'web_share',
+  MOBILE_SHARE = 'mobile_share',
+  MINI_PROGRAM_SHARE = 'mini_program_share',
+}
+
 export interface ChatRequestBody {
   conversation_id: string;
   query: string;
@@ -64,6 +76,7 @@ export interface ChatRequestBody {
       type: DecisionType;
     }[];
   };
+  channel: AgentRequestChannel;
 }
 
 export type DecisionType = 'approve' | 'reject';
