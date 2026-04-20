@@ -78,7 +78,7 @@ export default function SharedChatConversationPage() {
           shareId,
           password || undefined,
           undefined,
-          { decisions }
+          decisions ? { decisions } : undefined
         );
         askAbortRef.current = askFN.destroy;
         await askFN.start();
