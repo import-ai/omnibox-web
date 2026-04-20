@@ -641,12 +641,13 @@
         "write": "写作"
       }
     },
-    "trail": {
+    "trial": {
       "text": "Agent 2.1 可用次数：{{agent_trial_remain}} / {{agent_trial_limit}} 次",
       "tooltip": {
         "base": "系统会统计过去 24 小时内的使用次数",
-        "in-use": "{{base_text}}，{{related_time}}后可用次数将恢复至 {{quota}} 次"
-      }
+        "related_time": "{{related_time}}后可用次数将恢复至 {{quota}} 次"
+      },
+      "not_owner": "请联系空间所有者进行升级"
     },
     "decision": {
       "approve": "同意",

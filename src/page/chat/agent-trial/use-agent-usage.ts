@@ -7,6 +7,7 @@ export interface AgentUsageResponseDto {
   agent_trial_limit: number;
   agent_trial_remain: number;
   first_message_date: string;
+  last_message_date: string;
 }
 
 export function useAgentUsage(

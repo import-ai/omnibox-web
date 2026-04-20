@@ -2,13 +2,15 @@ import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { ResourceMeta } from '@/interface.ts';
 import { createStreamTransport } from '@/lib/stream-transport';
 import { WizardLang } from '@/lib/wizard-lang';
-import type {
+import {
+  AgentRequestChannel,
   ChatRequestBody,
   ChatTool,
+  IResTypeContext,
   PrivateSearch,
   PrivateSearchResource,
+  ToolType,
 } from '@/page/chat/chat-input/types';
-import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/core/message-operator.ts';
 import { messageProcessor } from '@/page/chat/core/message-processor.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
@@ -107,6 +109,7 @@ export function prepareBody(
     query,
     enable_thinking: enable_thinking ?? false,
     lang,
+    channel: AgentRequestChannel.WEB,
   };
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
