@@ -7,6 +7,7 @@ import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
 import {
+  AgentRequestChannel,
   ChatCreatePayload,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
@@ -32,6 +33,7 @@ export default function SharedChatConversationPage() {
     useShareContext();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
+  const channel = AgentRequestChannel.WEB_SHARE;
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
     mapping: {},
@@ -70,6 +72,7 @@ export default function SharedChatConversationPage() {
           query,
           tools,
           selectedResources,
+          channel,
           messages[messages.length - 1]?.id,
           messageOperator,
           `/api/v1/shares/${shareId}/wizard/${mode}`,
@@ -106,6 +109,7 @@ export default function SharedChatConversationPage() {
         newContent,
         originalTools,
         originalContext,
+        channel,
         parentId,
         messageOperator,
         `/api/v1/shares/${shareId}/wizard/${mode}`,
@@ -144,6 +148,7 @@ export default function SharedChatConversationPage() {
         parentMessage.message.content,
         originalTools,
         originalContext,
+        channel,
         parentId,
         messageOperator,
         `/api/v1/shares/${shareId}/wizard/${mode}`,

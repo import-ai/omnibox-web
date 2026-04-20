@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Typewriter } from '@/components/typewriter';
 import { http } from '@/lib/request';
+import { AgentTrial } from '@/page/chat/agent-trial/agent-trial.tsx';
 import {
   ChatCreatePayload,
   ConversationEntity,
@@ -54,6 +55,7 @@ export default function ChatHomePage() {
           <h1 className="text-[28px] text-center mb-[32px] font-medium">
             <Typewriter text={t(i18n)} typeSpeed={32} />
           </h1>
+          <AgentTrial namespaceId={namespaceId} />
           <ChatArea
             messages={[]}
             navigatePrefix={`/${namespaceId}`}

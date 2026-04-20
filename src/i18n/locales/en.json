@@ -34,6 +34,10 @@
     "title": "Create Your Space",
     "description": "Get started by creating your first workspace to organize your content and collaborate with others."
   },
+  "resource_header": {
+    "updated": "Updated {{related_time}}",
+    "created": "Created {{related_time}}"
+  },
   "sidebar": {
     "expand": "Expand Sidebar",
     "collapse": "Collapse Sidebar"
@@ -651,6 +655,14 @@
         "ask": "Ask",
         "write": "Write"
       }
+    },
+    "trial": {
+      "text": "Agent 2.1 uses left: {{agent_trial_remain}} / {{agent_trial_limit}}",
+      "tooltip": {
+        "base": "Usage is calculated over a rolling 24-hour window",
+        "related_time": "Available uses will reach {{quota}} in {{related_time}}"
+      },
+      "not_owner": "Please contact space owner to upgrade"
     },
     "decision": {
       "approve": "Approve",

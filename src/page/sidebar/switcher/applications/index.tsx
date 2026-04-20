@@ -77,7 +77,7 @@ interface ApplicationsFormProps {
   };
 }
 
-const BUTTON_CLASS: string = 'text-xs font-medium w-[71px]';
+const BUTTON_CLASS: string = 'text-xs font-medium w-[71px] h-[30px] shrink-0';
 
 export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const { t, i18n } = useTranslation();
