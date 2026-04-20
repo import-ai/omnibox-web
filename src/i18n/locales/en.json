@@ -14,6 +14,22 @@
   "teamspace": "Teamspace",
   "toggle_language": "Toggle Language",
   "toggle_theme": "Toggle Theme",
+  "notification": "Notification",
+  "notification_modal": {
+    "title": "Notification",
+    "all": "All",
+    "unread": "Unread",
+    "read": "Read",
+    "refresh": "Refresh",
+    "mark_all_read": "Mark all as read",
+    "empty": "Nothing here",
+    "loading_more": "Loading...",
+    "no_more": "Showing all messages from the last 30 days",
+    "tags": {
+      "wechat_bot": "WeChat Assistant",
+      "community": "Community"
+    }
+  },
   "welcome": {
     "title": "Create Your Space",
     "description": "Get started by creating your first workspace to organize your content and collaborate with others."
