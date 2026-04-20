@@ -1,5 +1,12 @@
-import { Check, ChevronLeft, ChevronRight, Circle, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ArrowUp,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
+  X,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
@@ -15,18 +22,23 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { processArgs } from '@/lib/tool-args';
 import { cn } from '@/lib/utils.ts';
-import { DecisionType } from '@/page/chat/conversation/types.ts';
+import {
+  ChatMode,
+  DecisionType,
+  SendMessageParams,
+} from '@/page/chat/chat-input/types';
+import { Interrupt } from '@/page/chat/core/types/conversation';
 
-export interface PendingInterrupt {
-  name: string;
-  args: Record<string, any>;
-  decisions: DecisionType[];
-  index: number;
-}
 interface IDecisionInputProps {
-  interrupts: PendingInterrupt[];
-  onDecision: (decisions: { type: DecisionType }[]) => void;
+  interrupts: Interrupt[];
   disabled?: boolean;
+  sendMessage: ({
+    query,
+    tools,
+    selectedResources,
+    mode,
+    decisions,
+  }: SendMessageParams) => void;
 }
 
 // Get icon for decision type
@@ -48,7 +60,7 @@ function getDecisionStyle(
   isActive: boolean
 ): string {
   const decision = decisionType.toLowerCase();
-  let borderStyle = '';
+  let borderStyle;
 
   if (!isActive) {
     if (decision === 'approve') {
@@ -65,36 +77,58 @@ function getDecisionStyle(
   if (isSelected) {
     if (decision === 'approve') {
       bgStyle =
-        'bg-green-100 dark:bg-green-900/50 hover:bg-green-100 dark:hover:bg-green-900/50';
+        'bg-green-100 dark:bg-green-800/25 hover:bg-green-100 dark:hover:bg-green-800/25';
     } else {
       bgStyle =
-        'bg-red-100 dark:bg-red-900/50 hover:bg-red-100 dark:hover:bg-red-900/50';
+        'bg-red-100 dark:bg-red-800/25 hover:bg-red-100 dark:hover:bg-red-800/25';
     }
   } else {
     if (decision === 'approve') {
       bgStyle =
-        'bg-green-50 dark:bg-green-950/50 hover:bg-green-100 dark:hover:bg-green-900/50';
+        'bg-green-50 dark:bg-green-950/25 hover:bg-green-50 dark:hover:bg-green-950/25';
     } else {
       bgStyle =
-        'bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50';
+        'bg-red-50 dark:bg-red-950/25 hover:bg-red-50 dark:hover:bg-red-950/25';
     }
   }
 
-  let textStyle = '';
+  let textHover;
 
   if (decision === 'approve') {
-    textStyle =
-      'text-green-700 dark:text-green-300 hover:text-green-700 dark:hover:text-green-300';
+    textHover = 'hover:text-green-700 dark:hover:text-green-300';
   } else {
-    textStyle =
-      'text-red-700 dark:text-red-300 hover:text-red-700 dark:hover:text-red-300';
+    textHover = 'hover:text-red-700 dark:hover:text-red-300';
   }
-  return cn('focus-visible:ring-0', bgStyle, borderStyle, textStyle);
+
+  let textStyle;
+
+  if (decision === 'approve') {
+    textStyle = 'text-green-700 dark:text-green-300';
+  } else {
+    textStyle = 'text-red-700 dark:text-red-300';
+  }
+  return cn(
+    'focus-visible:ring-0 shadow-none',
+    bgStyle,
+    borderStyle,
+    textStyle,
+    textHover
+  );
 }
 
 export default function DecisionInput(props: IDecisionInputProps) {
-  const { interrupts, onDecision, disabled } = props;
+  const { interrupts, sendMessage } = props;
   const { t } = useTranslation();
+
+  const onSubmit = (decisions: { type: DecisionType }[]) => {
+    sendMessage({
+      query: '',
+      tools: [],
+      selectedResources: [],
+      mode: ChatMode.ASK,
+      decisions,
+    });
+  };
 
   if (interrupts.length === 0) {
     return null;
@@ -115,36 +149,36 @@ export default function DecisionInput(props: IDecisionInputProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Check if all interrupts have been decided
-  const allDecided = useMemo(() => {
-    return interrupts.every(
-      interrupt => selectedDecisions[interrupt.index] !== undefined
-    );
-  }, [interrupts, selectedDecisions]);
+  const allDecided = interrupts.every(
+    (_, idx) => selectedDecisions[idx] !== undefined
+  );
 
   // Handle individual decision selection
-  const handleSelectDecision = (index: number, decisionType: DecisionType) => {
+  const handleSelectDecision = (
+    cardIndex: number,
+    decisionType: DecisionType
+  ) => {
     setSelectedDecisions(prev => ({
       ...prev,
-      [index]: decisionType,
+      [cardIndex]: decisionType,
     }));
     // Auto-advance to next card (but user can manually go back)
-    const currentCardIdx = interrupts.findIndex(i => i.index === index);
-    if (currentCardIdx >= 0 && currentCardIdx < interrupts.length - 1) {
-      setActiveCardIndex(currentCardIdx + 1);
+    if (cardIndex >= 0 && cardIndex < interrupts.length - 1) {
+      setActiveCardIndex(cardIndex + 1);
     }
   };
 
   // Handle submit all decisions
   const handleSubmit = () => {
-    const decisions = interrupts.map(interrupt => ({
-      type: selectedDecisions[interrupt.index],
+    const decisions = interrupts.map((_, idx) => ({
+      type: selectedDecisions[idx],
     }));
-    onDecision(decisions);
+    onSubmit(decisions);
   };
 
   // Current active interrupt
   const activeInterrupt = interrupts[activeCardIndex];
-  const activeSelectedDecision = selectedDecisions[activeInterrupt.index];
+  const activeSelectedDecision = selectedDecisions[activeCardIndex];
 
   // Sync activeOptionIndex when card changes
   useEffect(() => {
@@ -160,8 +194,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
   // Keyboard navigation — global listener
   useEffect(() => {
-    if (disabled) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       const currentOptions = activeInterrupt.decisions;
 
@@ -189,8 +221,8 @@ export default function DecisionInput(props: IDecisionInputProps) {
           e.preventDefault();
           if (currentOptions[activeOptionIndex]) {
             handleSelectDecision(
-              activeInterrupt.index,
-              currentOptions[activeOptionIndex]
+              activeCardIndex,
+              currentOptions[activeOptionIndex] as DecisionType
             );
           }
           break;
@@ -199,13 +231,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
-    disabled,
-    activeCardIndex,
-    activeOptionIndex,
-    activeInterrupt,
-    interrupts.length,
-  ]);
+  }, [activeCardIndex, activeOptionIndex, activeInterrupt, interrupts.length]);
 
   const canGoLeft = activeCardIndex > 0;
   const canGoRight = activeCardIndex < interrupts.length - 1;
@@ -228,145 +254,147 @@ export default function DecisionInput(props: IDecisionInputProps) {
   }, [activeCardIndex]);
 
   return (
-    <div className="py-3">
-      {/* Card */}
-      <Card className="border-none">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <div className="text-base font-normal">
-              {t(
-                `chat.messages.tool_calls.function_name.${activeInterrupt.name}`
-              )}
-            </div>
-            {interrupts.length > 1 && (
-              <div className="text-xs text-muted-foreground font-normal">
-                {activeCardIndex + 1} / {interrupts.length}
-              </div>
+    <Card className="max-w-[766px] w-full mx-auto rounded-2xl border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030] shadow-none">
+      <CardHeader className="p-3">
+        <CardTitle className="flex items-center gap-2">
+          <div className="text-base">
+            {t(
+              `chat.messages.tool_calls.function_name.${activeInterrupt.name}`
             )}
-          </CardTitle>
-          <CardDescription className="text-xs flex flex-wrap gap-x-2 gap-y-1">
-            {processArgs(activeInterrupt.args, t).map((arg, i) => (
-              <code
-                key={i}
-                className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
-              >
-                {arg}
-              </code>
-            ))}
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-2 pb-3">
-          {activeInterrupt.decisions.map((decisionType, idx) => {
-            const isSelected =
-              selectedDecisions[activeInterrupt.index] === decisionType;
-            const isActive = idx === activeOptionIndex;
-
-            return (
-              <BaseButton
-                key={decisionType}
-                variant="outline"
-                className={cn(
-                  'w-full justify-start text-sm font-normal',
-                  getDecisionStyle(decisionType, isSelected, isActive)
-                )}
-                onClick={() =>
-                  !disabled &&
-                  handleSelectDecision(activeInterrupt.index, decisionType)
-                }
-                disabled={disabled}
-                onMouseEnter={() => !disabled && setActiveOptionIndex(idx)}
-              >
-                {getDecisionIcon(decisionType)}
-                <span>{t(`chat.decision.${decisionType.toLowerCase()}`)}</span>
-                {/*{isSelected && (*/}
-                {/*  <Check className="size-4 ml-auto text-green-500" />*/}
-                {/*)}*/}
-              </BaseButton>
-            );
-          })}
-        </CardContent>
-
-        <CardFooter className="flex-col gap-3 pt-0 items-end">
-          {/* Submit button — always visible, disabled until all decided */}
-          <Button onClick={handleSubmit} disabled={!allDecided || disabled}>
-            {t('chat.decision.submit')}
-          </Button>
-
-          {/* Indicators — scrollable when many */}
+          </div>
           {interrupts.length > 1 && (
-            <div className="w-full flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-7 shrink-0"
-                onClick={() =>
-                  setActiveCardIndex(prev => Math.max(0, prev - 1))
-                }
-                disabled={!canGoLeft || disabled}
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-
-              <ScrollArea className="flex-1" ref={scrollAreaRef}>
-                <div className="flex items-center justify-center gap-1.5 py-1">
-                  {interrupts.map((interrupt, idx) => {
-                    const isCurrent = idx === activeCardIndex;
-                    const selectedType = selectedDecisions[interrupt.index];
-                    const lowerType = selectedType?.toLowerCase() ?? '';
-                    const isApprove =
-                      lowerType === 'approve' || lowerType === 'accept';
-                    const isReject =
-                      lowerType === 'reject' || lowerType === 'decline';
-
-                    const dotColor = isCurrent
-                      ? isApprove
-                        ? 'bg-green-500'
-                        : isReject
-                          ? 'bg-red-500'
-                          : 'bg-primary'
-                      : isApprove
-                        ? 'bg-green-400'
-                        : isReject
-                          ? 'bg-red-400'
-                          : 'bg-muted-foreground/30';
-
-                    return (
-                      <button
-                        key={idx}
-                        data-dot-index={idx}
-                        className={cn(
-                          'shrink-0 rounded-full transition-all duration-200',
-                          isCurrent ? 'w-5 h-2' : 'w-2 h-2',
-                          dotColor
-                        )}
-                        onClick={() => !disabled && setActiveCardIndex(idx)}
-                        disabled={disabled}
-                        aria-label={`Go to decision ${idx + 1}`}
-                      />
-                    );
-                  })}
-                </div>
-                <ScrollBar orientation="horizontal" className="invisible" />
-              </ScrollArea>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-7 shrink-0"
-                onClick={() =>
-                  setActiveCardIndex(prev =>
-                    Math.min(interrupts.length - 1, prev + 1)
-                  )
-                }
-                disabled={!canGoRight || disabled}
-              >
-                <ChevronRight className="size-4" />
-              </Button>
+            <div className="text-xs text-muted-foreground font-normal">
+              {activeCardIndex + 1} / {interrupts.length}
             </div>
           )}
-        </CardFooter>
-      </Card>
-    </div>
+        </CardTitle>
+        <CardDescription className="text-xs flex flex-wrap gap-x-2 gap-y-1">
+          {processArgs(activeInterrupt.args, t).map((arg, i) => (
+            <code
+              key={i}
+              className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
+            >
+              {arg}
+            </code>
+          ))}
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="space-y-2 py-0 px-3">
+        {activeInterrupt.decisions.map((decisionType, idx) => {
+          const isSelected =
+            selectedDecisions[activeCardIndex] === decisionType;
+          const isActive = idx === activeOptionIndex;
+
+          return (
+            <BaseButton
+              key={decisionType}
+              variant="outline"
+              size="sm"
+              className={cn(
+                'w-full justify-start text-sm font-normal',
+                getDecisionStyle(decisionType, isSelected, isActive)
+              )}
+              onClick={() =>
+                handleSelectDecision(
+                  activeCardIndex,
+                  decisionType as DecisionType
+                )
+              }
+              onMouseEnter={() => setActiveOptionIndex(idx)}
+            >
+              {getDecisionIcon(decisionType)}
+              <span>{t(`chat.decision.${decisionType.toLowerCase()}`)}</span>
+            </BaseButton>
+          );
+        })}
+      </CardContent>
+
+      <CardFooter className="flex gap-3 p-3 items-center justify-end">
+        {interrupts.length > 1 && (
+          <div className="w-full flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0"
+              onClick={() => setActiveCardIndex(prev => Math.max(0, prev - 1))}
+              disabled={!canGoLeft}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+
+            <ScrollArea className="flex-1" ref={scrollAreaRef}>
+              <div className="flex items-center justify-center gap-1.5 py-1">
+                {interrupts.map((_, idx) => {
+                  const isCurrent = idx === activeCardIndex;
+                  const selectedType = selectedDecisions[idx];
+                  const lowerType = selectedType?.toLowerCase() ?? '';
+                  const isApprove =
+                    lowerType === 'approve' || lowerType === 'accept';
+                  const isReject =
+                    lowerType === 'reject' || lowerType === 'decline';
+
+                  const dotColor = isCurrent
+                    ? isApprove
+                      ? 'bg-green-500'
+                      : isReject
+                        ? 'bg-red-500'
+                        : 'bg-primary'
+                    : isApprove
+                      ? 'bg-green-400'
+                      : isReject
+                        ? 'bg-red-400'
+                        : 'bg-muted-foreground/30';
+
+                  return (
+                    <button
+                      key={idx}
+                      data-dot-index={idx}
+                      className={cn(
+                        'shrink-0 rounded-full transition-all duration-200',
+                        isCurrent ? 'w-5 h-2' : 'w-2 h-2',
+                        dotColor
+                      )}
+                      onClick={() => setActiveCardIndex(idx)}
+                      aria-label={`Go to decision ${idx + 1}`}
+                    />
+                  );
+                })}
+              </div>
+              <ScrollBar orientation="horizontal" className="invisible" />
+            </ScrollArea>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0"
+              onClick={() =>
+                setActiveCardIndex(prev =>
+                  Math.min(interrupts.length - 1, prev + 1)
+                )
+              }
+              disabled={!canGoRight}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        )}
+        {allDecided ? (
+          <Button
+            onClick={handleSubmit}
+            size="sm"
+            className="rounded-lg size-8"
+          >
+            <ArrowUp />
+          </Button>
+        ) : (
+          <span className="cursor-not-allowed">
+            <Button size="sm" className="rounded-lg size-8" disabled>
+              <ArrowUp />
+            </Button>
+          </span>
+        )}
+      </CardFooter>
+    </Card>
   );
 }

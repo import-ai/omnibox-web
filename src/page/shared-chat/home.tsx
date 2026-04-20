@@ -6,7 +6,12 @@ import { Typewriter } from '@/components/typewriter';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import ChatArea from '@/page/chat/chat-input';
-import { InputMode } from '@/page/chat/chat-input/types.tsx';
+import {
+  ChatCreatePayload,
+  ConversationEntity,
+  SendMessageParams,
+} from '@/page/chat/chat-input/types.ts';
+import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 import { getGreeting } from '@/page/chat/utils';
 import { useShareContext } from '@/page/share';
 
@@ -16,25 +21,35 @@ export default function SharedChatHomePage() {
   const { t } = useTranslation();
   const shareId = params.share_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
-  const {
-    selectedResources,
-    setSelectedResources,
-    chatInput,
-    setChatInput,
-    mode,
-    setMode,
-    tools,
-    setTools,
-  } = useShareContext();
+  const { selectedResources, setSelectedResources } = useShareContext();
 
   useEffect(() => {
     setDocumentTitle(t('chat.title'));
   }, [t]);
 
-  const handleAction = () => {
-    http.post(`/shares/${shareId}/conversations`).then(conversation => {
-      navigate(`/s/${shareId}/chat/${conversation.id}`);
-    });
+  const sendMessage = ({
+    query,
+    tools,
+    selectedResources,
+    mode,
+  }: SendMessageParams) => {
+    http
+      .post(`/shares/${shareId}/conversations`)
+      .then((conversation: ConversationEntity) => {
+        sessionStorage.setItem(
+          'shared-chat-create-payload',
+          JSON.stringify({
+            mode,
+            query,
+            tools,
+            selectedResources,
+            conversation: {
+              id: conversation.id,
+            } as ConversationDetail,
+          } as ChatCreatePayload)
+        );
+        navigate(`/s/${shareId}/chat/${conversation.id}`);
+      });
   };
 
   return (
@@ -44,20 +59,12 @@ export default function SharedChatHomePage() {
           <Typewriter text={t(i18n)} typeSpeed={32} />
         </h1>
         <ChatArea
-          mode={mode}
-          tools={tools}
-          value={chatInput}
-          loading={false}
-          context={selectedResources}
-          inputMode={InputMode.TEXT}
-          pendingInterrupts={[]}
-          onDecision={() => {}}
-          setMode={setMode}
-          onChange={setChatInput}
-          onAction={handleAction}
-          onToolsChange={setTools}
-          onContextChange={setSelectedResources}
+          messages={[]}
           navigatePrefix={`/s/${shareId}`}
+          selectedResources={selectedResources}
+          setSelectedResources={setSelectedResources}
+          loading={false}
+          sendMessage={sendMessage}
         />
       </div>
     </div>
