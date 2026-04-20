@@ -2,9 +2,10 @@ import { CreatedTimeAttribute } from '@/components/attributes/created';
 import { Metadata } from '@/components/attributes/metadata';
 import { FilenameAttribute } from '@/components/attributes/name';
 import { UrlAttribute } from '@/components/attributes/url';
-import ResourceTasks from '@/components/resource-tasks';
 import Tag from '@/components/tags';
 import { Resource } from '@/interface';
+
+import ResourceTasks from './resource-tasks';
 
 interface IProps {
   resource: Resource;

@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import ResourceIcon from '@/assets/icons/resourceIcon';
+import { Arrow } from '@/assets/icons/treeArrow';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import {
@@ -21,8 +23,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
-import { Arrow } from '@/page/sidebar/content/arrow';
-import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 interface SidebarItemProps {
   shareId: string;

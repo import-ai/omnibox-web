@@ -2,9 +2,9 @@ import { Folder, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import ResourceIcon from '@/assets/icons/resourceIcon';
 import Badge from '@/components/badge';
 import { Button } from '@/components/ui/button';
-import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 import { IResTypeContext } from './types';
 

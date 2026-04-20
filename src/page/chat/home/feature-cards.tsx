@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ExtensionIcon } from '@/assets/icons/extensionIcon';
+import ResourceIcon from '@/assets/icons/resourceIcon';
 import { Button } from '@/components/button';
 import {
   Tooltip,
@@ -27,7 +28,6 @@ import { IResourceData, Resource, ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 import { getTime } from '@/page/resource/utils';
-import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 export default function FeatureCards() {
   const { t, i18n } = useTranslation();

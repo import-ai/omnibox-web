@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { ChatIcon } from '@/assets/icons/chatIcon';
 import {
   Tooltip,
   TooltipContent,
@@ -25,7 +26,6 @@ import {
 import { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
-import { ChatIcon } from '@/page/sidebar/header/Chat';
 
 import SidebarItem from './sidebar-item';
 

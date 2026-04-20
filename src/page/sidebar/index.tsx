@@ -1,11 +1,11 @@
 import { Sidebar, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
+import Setting from '@/page/settings';
 
-import Content from './content';
-import { FooterSidebar } from './footer';
-import { Header } from './header';
-import { Switcher } from './switcher';
-import Setting from './switcher/setting';
-import useContext from './useContext';
+import { FooterSidebar } from './components/footer';
+import { Header } from './components/header';
+import { Switcher } from './components/namespace-switcher';
+import Content from './components/resource-tree';
+import useContext from './hooks/use-sidebar-context';
 
 export default function MainSidebar() {
   const {
