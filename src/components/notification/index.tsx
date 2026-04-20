@@ -144,7 +144,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
                 </div>
               ) : null}
               {!loading && !loadingMore && !hasMore ? (
-                <div className="py-3 text-center text-sm text-neutral-300">
+                <div className="py-3 text-center text-sm text-muted-foreground">
                   {t('notification_modal.no_more')}
                 </div>
               ) : null}
