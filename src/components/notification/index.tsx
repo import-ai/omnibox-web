@@ -66,7 +66,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
       const source = item?.target?.type;
 
       if (shouldMarkRead) {
-        await markNotificationRead(item.id);
+        await markNotificationRead(item);
       }
 
       switch (source) {
@@ -98,10 +98,10 @@ function Notification({ onClose }: { onClose?: () => void }) {
           shouldMarkRead && notificationDetail.status === 'unread'
             ? 'read'
             : notificationDetail.status,
-        read_at:
-          shouldMarkRead && !notificationDetail.read_at
+        readed_at:
+          shouldMarkRead && !notificationDetail.readed_at
             ? new Date().toISOString()
-            : notificationDetail.read_at,
+            : notificationDetail.readed_at,
       });
       setDetailOpen(true);
     },

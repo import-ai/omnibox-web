@@ -25,44 +25,34 @@ export interface NotificationTarget {
   target?: string;
 }
 
-export interface NotificationItem {
+export interface NotificationItemDto {
   id: string;
   title: string;
   summary: string;
   status: 'unread' | 'read';
   action: NotificationAction;
-  read_at: string | null;
+  readed_at: string | null;
   tags: string[];
   target: NotificationTarget | null;
   attrs: Record<string, unknown>;
-  expire_at: string | null;
   created_at: string;
+}
+
+export interface NotificationItem extends NotificationItemDto {
   highlight?: boolean;
 }
 
-export interface NotificationApiItem {
-  id: string;
-  title: string;
-  summary: string;
-  status: 'unread' | 'read';
-  action: NotificationAction;
-  read_at: string | null;
-  tags: string[];
-  target: NotificationTarget | null;
-  attrs: Record<string, unknown>;
-  expire_at: string | null;
-  created_at: string;
-}
-
-export interface NotificationDetail {
+export interface NotificationDetailDto {
   id: string;
   title: string;
   content: string;
   tags: string[];
   status: 'unread' | 'read';
-  read_at: string | null;
+  readed_at: string | null;
   created_at: string;
 }
+
+export interface NotificationDetail extends NotificationDetailDto {}
 
 export type NotificationStatus = 'all' | 'unread' | 'read';
 
@@ -73,28 +63,17 @@ export interface NotificationQueryParams {
   tags?: string;
 }
 
-export interface NotificationPagination {
+export interface NotificationPaginationDto {
   offset: number;
   limit: number;
   total: number;
-  has_more: boolean;
 }
 
-export interface NotificationApiResponse {
-  list: NotificationApiItem[];
-  pagination: NotificationPagination;
+export interface NotificationListDto {
+  list: NotificationItemDto[];
+  pagination: NotificationPaginationDto;
 }
 
-export interface NotificationUnreadCountResponse {
+export interface NotificationUnreadCountDto {
   unread_count: number;
-}
-
-export interface NotificationDetailResponse {
-  id: string;
-  title: string;
-  content: string;
-  tags: string[];
-  status: 'unread' | 'read';
-  read_at: string | null;
-  created_at: string;
 }

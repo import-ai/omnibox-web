@@ -4,43 +4,22 @@ import { useParams } from 'react-router-dom';
 import { http } from '@/lib/request';
 
 import type {
-  NotificationApiResponse,
   NotificationDetail,
-  NotificationDetailResponse,
+  NotificationDetailDto,
   NotificationFilter,
   NotificationItem,
-  NotificationUnreadCountResponse,
+  NotificationListDto,
+  NotificationUnreadCountDto,
 } from '../types';
 import {
+  getNotificationHasMore,
+  markNotificationItemsAsRead,
   NOTIFICATION_POLL_INTERVAL_MS,
   startNotificationPolling,
 } from '../utils';
+import { useNotificationUnread } from './useNotificationUnread';
 
 const DEFAULT_LIMIT = 20;
-const NOTIFICATION_UNREAD_COUNT_UPDATED = 'notification-unread-count-updated';
-const unreadCountCache = new Map<string, number>();
-
-interface NotificationUnreadCountUpdatedDetail {
-  count: number;
-  namespaceId: string;
-}
-
-function dispatchUnreadCountUpdated(namespaceId: string, count: number) {
-  unreadCountCache.set(namespaceId, count);
-  queueMicrotask(() => {
-    window.dispatchEvent(
-      new CustomEvent<NotificationUnreadCountUpdatedDetail>(
-        NOTIFICATION_UNREAD_COUNT_UPDATED,
-        {
-          detail: {
-            count,
-            namespaceId,
-          },
-        }
-      )
-    );
-  });
-}
 
 export function startUnreadCountPolling(
   fetchUnreadCount: () => Promise<void> | void
@@ -62,38 +41,35 @@ export function useNotifications(filter: NotificationFilter) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [clearingUnread, setClearingUnread] = useState(false);
   const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
-  const [unreadCount, setUnreadCount] = useState(
-    unreadCountCache.get(namespaceId) ?? 0
-  );
+  const [offset, setOffset] = useState(0);
+  const { unreadCount, setUnreadCount } = useNotificationUnread();
 
   // get unread count
   const fetchUnreadCount = useCallback(async () => {
-    const response = await http.get<NotificationUnreadCountResponse>(
+    const response = await http.get<NotificationUnreadCountDto>(
       `/notifications/unread/count${namespaceQuery}`
     );
     setUnreadCount(response.unread_count);
-    dispatchUnreadCountUpdated(namespaceId, response.unread_count);
-  }, [namespaceId, namespaceQuery]);
+  }, [namespaceQuery, setUnreadCount]);
 
   // get notifications
   const fetchNotifications = useCallback(
-    async (nextPage: number, append: boolean) => {
+    async (nextOffset: number, append: boolean) => {
       const query = new URLSearchParams({
         status: filter,
-        offset: nextPage.toString(),
+        offset: nextOffset.toString(),
         limit: DEFAULT_LIMIT.toString(),
       });
       if (namespaceId) {
         query.append('namespaceId', namespaceId);
       }
-      const response = await http.get<NotificationApiResponse>(
+      const response = await http.get<NotificationListDto>(
         `/notifications?${query.toString()}`
       );
       const { list } = response;
       setItems(previousItems => (append ? [...previousItems, ...list] : list));
-      setHasMore(response.pagination.has_more);
-      setPage(response.pagination.offset);
+      setHasMore(getNotificationHasMore(response.pagination));
+      setOffset(response.pagination.offset + response.pagination.limit);
     },
     [filter, namespaceId]
   );
@@ -101,7 +77,7 @@ export function useNotifications(filter: NotificationFilter) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      await Promise.all([fetchNotifications(1, false), fetchUnreadCount()]);
+      await Promise.all([fetchNotifications(0, false), fetchUnreadCount()]);
     } finally {
       setLoading(false);
     }
@@ -115,16 +91,16 @@ export function useNotifications(filter: NotificationFilter) {
 
     setLoadingMore(true);
     try {
-      await fetchNotifications(page + 1, true);
+      await fetchNotifications(offset, true);
     } finally {
       setLoadingMore(false);
     }
-  }, [fetchNotifications, hasMore, loading, loadingMore, page]);
+  }, [fetchNotifications, hasMore, loading, loadingMore, offset]);
 
   // Fetch detail
   const fetchNotificationDetail = useCallback(
     async (id: string) => {
-      return http.get<NotificationDetailResponse>(
+      return http.get<NotificationDetailDto>(
         `/notifications/${id}${namespaceQuery}`,
         {
           mute: true,
@@ -136,41 +112,23 @@ export function useNotifications(filter: NotificationFilter) {
 
   // Mark as read
   const markNotificationRead = useCallback(
-    async (id: string) => {
-      await http.patch(`/notifications/${id}${namespaceQuery}`, {
+    async (item: NotificationItem) => {
+      await http.patch(`/notifications/${item.id}${namespaceQuery}`, {
         status: 'read',
       });
 
-      let wasUnread = false;
       const readAt = new Date().toISOString();
 
-      setItems(previousItems =>
-        previousItems.map(item => {
-          if (item.id !== id) {
-            return item;
-          }
-          wasUnread = item.status === 'unread';
-          return wasUnread
-            ? {
-                ...item,
-                status: 'read',
-                read_at: item.read_at ?? readAt,
-              }
-            : item;
-        })
+      setItems(
+        previousItems =>
+          markNotificationItemsAsRead(previousItems, item.id, readAt).items
       );
 
-      setUnreadCount(previousCount => {
-        if (!wasUnread) {
-          return previousCount;
-        }
-
-        const nextCount = Math.max(previousCount - 1, 0);
-        dispatchUnreadCountUpdated(namespaceId, nextCount);
-        return nextCount;
-      });
+      if (item.status === 'unread') {
+        setUnreadCount(previousCount => Math.max(previousCount - 1, 0));
+      }
     },
-    [namespaceId, namespaceQuery]
+    [namespaceQuery, setUnreadCount]
   );
 
   const clearUnread = useCallback(async () => {
@@ -181,7 +139,7 @@ export function useNotifications(filter: NotificationFilter) {
     setClearingUnread(true);
     try {
       await http.post(`/notifications/unread/clear${namespaceQuery}`, {});
-      await Promise.all([fetchNotifications(1, false), fetchUnreadCount()]);
+      await Promise.all([fetchNotifications(0, false), fetchUnreadCount()]);
     } finally {
       setClearingUnread(false);
     }
@@ -198,10 +156,6 @@ export function useNotifications(filter: NotificationFilter) {
   }, [refresh]);
 
   useEffect(() => startNotificationPolling(refresh), [refresh]);
-
-  useEffect(() => {
-    setUnreadCount(unreadCountCache.get(namespaceId) ?? 0);
-  }, [namespaceId]);
 
   return {
     hasMore,
@@ -224,17 +178,15 @@ export function useNotificationUnreadCount() {
   const namespaceQuery = namespaceId
     ? `?${new URLSearchParams({ namespaceId }).toString()}`
     : '';
-  const [unreadCount, setUnreadCount] = useState(
-    unreadCountCache.get(namespaceId) ?? 0
-  );
+  const { unreadCount, setUnreadCount } = useNotificationUnread();
 
   // Fetch the latest unread notification count from the server.
   const fetchUnreadCount = useCallback(async () => {
-    const response = await http.get<NotificationUnreadCountResponse>(
+    const response = await http.get<NotificationUnreadCountDto>(
       `/notifications/unread/count${namespaceQuery}`
     );
     setUnreadCount(response.unread_count);
-  }, [namespaceQuery]);
+  }, [namespaceQuery, setUnreadCount]);
 
   useEffect(() => {
     fetchUnreadCount();
@@ -244,33 +196,6 @@ export function useNotificationUnreadCount() {
     () => startUnreadCountPolling(fetchUnreadCount),
     [fetchUnreadCount]
   );
-
-  useEffect(() => {
-    const handleUnreadCountUpdated = (event: Event) => {
-      const customEvent =
-        event as CustomEvent<NotificationUnreadCountUpdatedDetail>;
-      if ((customEvent.detail?.namespaceId || '') !== namespaceId) {
-        return;
-      }
-      setUnreadCount(customEvent.detail?.count ?? 0);
-    };
-
-    window.addEventListener(
-      NOTIFICATION_UNREAD_COUNT_UPDATED,
-      handleUnreadCountUpdated as EventListener
-    );
-
-    return () => {
-      window.removeEventListener(
-        NOTIFICATION_UNREAD_COUNT_UPDATED,
-        handleUnreadCountUpdated as EventListener
-      );
-    };
-  }, [namespaceId]);
-
-  useEffect(() => {
-    setUnreadCount(unreadCountCache.get(namespaceId) ?? 0);
-  }, [namespaceId]);
 
   return unreadCount;
 }

@@ -7,6 +7,46 @@ export const notificationMetaColumnClassName =
   'flex min-w-0 flex-col items-end gap-1 text-right';
 
 export const NOTIFICATION_POLL_INTERVAL_MS = 10_000;
+export const NOTIFICATION_RETENTION_DAYS = 30;
+const NOTIFICATION_RETENTION_MS =
+  NOTIFICATION_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+
+export function getNotificationHasMore(pagination: {
+  offset: number;
+  limit: number;
+  total: number;
+}) {
+  return pagination.offset + pagination.limit < pagination.total;
+}
+
+export function markNotificationItemsAsRead<
+  T extends { id: string; status: 'unread' | 'read'; readed_at: string | null },
+>(items: T[], notificationId: string, readAt: string) {
+  let wasUnread = false;
+
+  const nextItems = items.map(item => {
+    if (item.id !== notificationId) {
+      return item;
+    }
+
+    wasUnread = item.status === 'unread';
+
+    if (!wasUnread) {
+      return item;
+    }
+
+    return {
+      ...item,
+      status: 'read',
+      readed_at: item.readed_at ?? readAt,
+    };
+  });
+
+  return {
+    items: nextItems,
+    wasUnread,
+  };
+}
 
 export function startNotificationPolling(
   refresh: () => Promise<void> | void,
@@ -19,16 +59,15 @@ export function startNotificationPolling(
   };
 }
 
-export function filterUnexpiredNotifications<
-  T extends { expire_at: string | null },
->(items: T[], now: number = Date.now()) {
+export function filterUnexpiredNotifications<T extends { created_at: string }>(
+  items: T[],
+  now: number = Date.now()
+) {
   return items.filter(item => {
-    if (!item.expire_at) {
-      return true;
-    }
+    const createdAt = new Date(item.created_at).getTime();
 
-    const expireAt = new Date(item.expire_at).getTime();
-
-    return Number.isNaN(expireAt) || expireAt > now;
+    return (
+      Number.isNaN(createdAt) || createdAt + NOTIFICATION_RETENTION_MS > now
+    );
   });
 }
