@@ -1,62 +1,55 @@
-import { Sidebar, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
-import Setting from '@/page/settings';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarRail,
+  useSidebar,
+} from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
+import SettingModal from '@/page/settings';
 
 import { FooterSidebar } from './components/footer';
 import { Header } from './components/header';
 import { Switcher } from './components/namespace-switcher';
-import Content from './components/resource-tree';
-import useContext from './hooks/use-sidebar-context';
+import ResourceTree from './components/resource-tree';
+import { useSidebarEvents } from './hooks/use-sidebar-events';
+import { useSidebarInit } from './hooks/use-sidebar-init';
 
 export default function MainSidebar() {
-  const {
-    data,
-    expands,
-    progress,
-    chatPage,
-    expanding,
-    editingKey,
-    resourceId,
-    openSpaces,
-    handleDrop,
-    namespaceId,
-    handleExpand,
-    handleDelete,
-    handleCreate,
-    handleUpload,
-    handleRename,
-    handleActiveKey,
-    handleSpaceToggle,
-  } = useContext();
+  const { namespaceId, chatPage } = useSidebarInit();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const { setOpenMobile } = useSidebar();
+
+  useSidebarEvents(namespaceId);
+
+  const handleActiveKey = (id: string, edit?: boolean) => {
+    if (edit) {
+      navigate(`/${namespaceId}/${id}/edit`, { state: { fromSidebar: true } });
+    } else if (id === 'chat') {
+      navigate(`/${namespaceId}/chat`);
+    } else {
+      navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+    }
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
-    <>
+    <React.Fragment>
       <Sidebar className="border-none">
         <SidebarHeader className="pt-[16px] gap-[10px] pr-0">
           <Switcher namespaceId={namespaceId} />
           <Header active={chatPage} onActiveKey={handleActiveKey} />
         </SidebarHeader>
-        <Content
-          data={data}
-          expands={expands}
-          onDrop={handleDrop}
-          progress={progress}
-          expanding={expanding}
-          editingKey={editingKey}
-          resourceId={resourceId}
-          openSpaces={openSpaces}
-          onExpand={handleExpand}
-          onDelete={handleDelete}
-          onCreate={handleCreate}
-          onUpload={handleUpload}
-          onRename={handleRename}
-          namespaceId={namespaceId}
-          onActiveKey={handleActiveKey}
-          onSpaceToggle={handleSpaceToggle}
-        />
+        <ResourceTree namespaceId={namespaceId} />
         <FooterSidebar />
         <SidebarRail className="opacity-0" />
       </Sidebar>
-      <Setting />
-    </>
+      <SettingModal />
+    </React.Fragment>
   );
 }

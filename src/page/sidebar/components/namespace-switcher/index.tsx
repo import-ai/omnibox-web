@@ -30,7 +30,9 @@ import useNamespaces from '@/hooks/use-namespaces';
 import useProNamespaces from '@/hooks/use-pro-namespaces';
 import { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';
+import { useChatStore } from '@/page/chat/chat-store';
 import { SettingButton } from '@/page/settings/settings-trigger';
+import { useSidebarStore } from '@/page/sidebar/store/sidebar-store';
 import { Logout } from '@/page/user/logout';
 
 import Generate from './create-namespace';
@@ -56,7 +58,7 @@ export function Switcher(props: IProps) {
   const proNamespace = useProNamespaces({
     disabled: configLoading || !commercial,
   });
-  const { app, data } = useMemo(
+  const { data } = useMemo(
     () => (commercial ? proNamespace : openSourceNamespace),
     [commercial, proNamespace, openSourceNamespace]
   );
@@ -68,8 +70,8 @@ export function Switcher(props: IProps) {
     if (item.id === namespaceId) {
       return;
     }
-    app.fire('context_clear');
-    app.fire('clean_resource');
+    useChatStore.getState().clearContext();
+    useSidebarStore.getState().clear();
     navigate(`/${item.id}/chat`);
   };
 

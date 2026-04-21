@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Input } from '@/components/input';
@@ -35,14 +36,20 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useIsTouch } from '@/hooks/use-is-touch';
-import { IResourceData } from '@/interface';
+import { SpaceType } from '@/interface';
+import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
+import {
+  useIsSpaceExpanded,
+  useNode,
+  useRootId,
+} from '@/page/sidebar/store/selectors';
+import { useSidebarStore } from '@/page/sidebar/store/sidebar-store';
 
 import { CreateFolderDialog } from './create-folder-dialog';
 import { menuIconClass, menuItemClass } from './node-styles';
-import Tree, { ITreeProps } from './resource-node';
+import ResourceNode from './resource-node';
 
-// Helper function to validate file extensions
 const isValidFileType = (fileName: string): boolean => {
   const allowedExtensions = ALLOW_FILE_EXTENSIONS.split(',').map(ext =>
     ext.trim()
@@ -51,62 +58,40 @@ const isValidFileType = (fileName: string): boolean => {
   return allowedExtensions.includes(fileExtension);
 };
 
-export default function Space(props: ITreeProps) {
-  const {
-    data,
-    editingKey,
-    spaceType,
-    onCreate,
-    onUpload,
-    progress,
-    onDrop,
-    target,
-    onTarget,
-    fileDragTarget,
-    onFileDragTarget,
-    open = true,
-    onSpaceToggle,
-  } = props;
+interface SpaceSectionProps {
+  spaceType: SpaceType;
+  namespaceId: string;
+}
+
+export default function SpaceSection({
+  spaceType,
+  namespaceId,
+}: SpaceSectionProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const isTouch = useIsTouch();
+
+  const rootId = useRootId(spaceType);
+  const rootNode = useNode(rootId);
+  const isOpen = useIsSpaceExpanded(spaceType);
+
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
-  const isDragOver = fileDragTarget === data.id;
-  const isResourceDragOver = target && target.id === data.id;
-  const handleSelect = () => {
-    fileInputRef.current?.click();
-  };
-  const handleHeaderToggle = () => {
-    onSpaceToggle(spaceType);
-  };
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) {
-      return;
-    }
-    onUpload(spaceType, data.id, e.target.files).finally(() => {
-      fileInputRef.current!.value = '';
-    });
-  };
-  const handleCreateFolder = () => {
-    setCreateFolderOpen(true);
-  };
-  const handleConfirmCreateFolder = (folderName: string) => {
-    return onCreate(spaceType, data.id, 'folder', folderName);
-  };
+
+  const isUploading = useSidebarStore(s => rootId in s.uploading);
+  const uploadProgress = useSidebarStore(s => s.uploadProgress[rootId]);
 
   // File and resource drop handling
+  const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
+  const isDragOver = fileDragTarget === rootId;
+
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: [NativeTypes.FILE, 'card'],
     drop: (item, monitor) => {
-      // Debounce: prevent multiple drop triggers
-      if (monitor.didDrop()) {
-        return;
-      }
-
+      if (monitor.didDrop()) return;
       const itemType = monitor.getItemType();
       if (itemType === NativeTypes.FILE) {
-        // Handle file drop
         const fileItem = item as { files: File[] };
         const validFiles = fileItem.files.filter(file =>
           isValidFileType(file.name)
@@ -114,15 +99,40 @@ export default function Space(props: ITreeProps) {
         if (validFiles.length > 0) {
           const fileList = new DataTransfer();
           validFiles.forEach(file => fileList.items.add(file));
-          onUpload(spaceType, data.id, fileList.files);
+          useSidebarStore
+            .getState()
+            .upload(rootId, fileList.files)
+            .then(id => {
+              useSidebarStore.getState().activate(id);
+              navigate(`/${namespaceId}/${id}`, {
+                state: { fromSidebar: true },
+              });
+              toast.success(
+                t('upload.success', { count: fileList.files.length })
+              );
+            })
+            .catch(() => {
+              toast.error(t('upload.failed'));
+            });
         } else {
           toast(t('upload.invalid_ext'), { position: 'bottom-right' });
         }
-        onFileDragTarget(null);
+        setFileDragTarget(null);
       } else if (itemType === 'card') {
-        // Handle resource drop to root directory
-        onDrop(item as IResourceData, data);
-        onTarget(null);
+        const dragItem = item as { id: string };
+        if (dragItem.id !== rootId) {
+          http
+            .post(
+              `/namespaces/${namespaceId}/resources/${dragItem.id}/move/${rootId}`
+            )
+            .then(() => {
+              useSidebarStore.getState().move(dragItem.id, rootId);
+            })
+            .catch(() => {
+              toast.error(t('move.failed'));
+            });
+        }
+        setFileDragTarget(null);
       }
     },
     collect: monitor => ({
@@ -132,56 +142,74 @@ export default function Space(props: ITreeProps) {
     hover: (item, monitor) => {
       const isOverShallow = monitor.isOver({ shallow: true });
       const itemType = monitor.getItemType();
-
       if (itemType === NativeTypes.FILE) {
-        if (isOverShallow) {
-          onFileDragTarget(data.id);
-        }
-        // Do not handle resource target for files
-        onTarget(null);
+        if (isOverShallow) setFileDragTarget(rootId);
       } else if (itemType === 'card') {
-        // Handle resource drag to root directory
-        onFileDragTarget(null);
-        if (!isOverShallow) {
-          onTarget(null);
-          return;
-        }
-        const dragId = (item as IResourceData).id;
-        // Prevent dropping on self (though root directory shouldn't have same id as dragged item)
-        if (dragId === data.id) {
-          onTarget(null);
-          return;
-        }
-        onTarget(data);
+        setFileDragTarget(null);
+        if (!isOverShallow) return;
+        const dragId = (item as { id: string }).id;
+        if (dragId === rootId) return;
+        // Resource drag target is handled elsewhere
       }
     },
   });
 
-  // Bind drop to the actual DOM of the group container
   useEffect(() => {
     if (groupRef.current) {
       drop(groupRef);
     }
   }, [drop]);
 
-  // Cleanup: when drag leaves this group (including its child nodes), ensure to clear highlight target
   useEffect(() => {
-    if (!isOver) {
-      if (fileDragTarget === data.id) {
-        onFileDragTarget(null);
-      }
-      if (target && target.id === data.id) {
-        onTarget(null);
-      }
+    if (!isOver && fileDragTarget === rootId) {
+      setFileDragTarget(null);
     }
-  }, [isOver, fileDragTarget, target, data.id, onFileDragTarget, onTarget]);
+  }, [isOver, fileDragTarget, rootId]);
+
+  if (!rootNode) return null;
+
+  const handleHeaderToggle = () => {
+    useSidebarStore.getState().toggleSpace(spaceType);
+  };
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    useSidebarStore
+      .getState()
+      .upload(rootId, e.target.files)
+      .then(id => {
+        useSidebarStore.getState().activate(id);
+        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        toast.success(t('upload.success', { count: e.target.files.length }));
+      })
+      .finally(() => {
+        fileInputRef.current!.value = '';
+      });
+  };
+
+  const handleCreateFolder = () => {
+    setCreateFolderOpen(true);
+  };
+
+  const handleConfirmCreateFolder = (folderName: string) => {
+    return useSidebarStore
+      .getState()
+      .create(rootId, 'folder', folderName)
+      .then(() => {
+        // Folders don't navigate
+      })
+      .catch(err => {
+        toast.error(err?.message || t('create.failed'));
+        throw err;
+      });
+  };
 
   return (
     <SidebarGroup
       ref={groupRef}
       className={cn('pr-0', {
         'bg-sidebar-border text-sidebar-accent-foreground':
-          isDragOver || isResourceDragOver || (canDrop && isOver),
+          isDragOver || (canDrop && isOver),
       })}
     >
       <ContextMenu>
@@ -196,13 +224,13 @@ export default function Space(props: ITreeProps) {
               </SidebarGroupLabel>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  {data.id === editingKey ? (
+                  {isUploading ? (
                     <SidebarMenuAction
                       asChild
                       className="group-hover/sidebar-header:pointer-events-auto pointer-events-none my-1.5 size-[16px] top-[2px] right-0 text-neutral-400 focus-visible:outline-none focus-visible:ring-transparent"
                     >
                       <span>
-                        {progress ? (
+                        {uploadProgress ? (
                           <TooltipProvider>
                             <Tooltip delayDuration={0}>
                               <TooltipTrigger asChild>
@@ -210,7 +238,7 @@ export default function Space(props: ITreeProps) {
                                   <Spinner />
                                 </span>
                               </TooltipTrigger>
-                              <TooltipContent>{progress}</TooltipContent>
+                              <TooltipContent>{uploadProgress}</TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         ) : (
@@ -238,7 +266,18 @@ export default function Space(props: ITreeProps) {
                   <DropdownMenuItem
                     className={menuItemClass}
                     onClick={() => {
-                      onCreate(spaceType, data.id, 'doc');
+                      useSidebarStore
+                        .getState()
+                        .create(rootId, 'doc')
+                        .then(id => {
+                          useSidebarStore.getState().activate(id);
+                          navigate(`/${namespaceId}/${id}/edit`, {
+                            state: { fromSidebar: true },
+                          });
+                        })
+                        .catch(err => {
+                          toast.error(err?.message || t('create.failed'));
+                        });
                     }}
                   >
                     <FilePlus className={menuIconClass} />
@@ -253,7 +292,7 @@ export default function Space(props: ITreeProps) {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className={menuItemClass}
-                    onClick={handleSelect}
+                    onClick={() => fileInputRef.current?.click()}
                   >
                     <MonitorUp className={menuIconClass} />
                     {t('actions.upload_file')}
@@ -280,7 +319,17 @@ export default function Space(props: ITreeProps) {
           <ContextMenuItem
             className={menuItemClass}
             onClick={() => {
-              onCreate(spaceType, data.id, 'doc');
+              useSidebarStore
+                .getState()
+                .create(rootId, 'doc')
+                .then(id => {
+                  navigate(`/${namespaceId}/${id}/edit`, {
+                    state: { fromSidebar: true },
+                  });
+                })
+                .catch(err => {
+                  toast.error(err?.message || t('create.failed'));
+                });
             }}
           >
             <FilePlus className={menuIconClass} />
@@ -293,20 +342,22 @@ export default function Space(props: ITreeProps) {
             <FolderPlus className={menuIconClass} />
             {t('actions.create_folder')}
           </ContextMenuItem>
-          <ContextMenuItem className={menuItemClass} onClick={handleSelect}>
+          <ContextMenuItem
+            className={menuItemClass}
+            onClick={() => fileInputRef.current?.click()}
+          >
             <MonitorUp className={menuIconClass} />
             {t('actions.upload_file')}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
-      {open && (
+      {isOpen && (
         <SidebarGroupContent>
           <SidebarMenu className="gap-[2px]">
-            {data.has_children &&
-              Array.isArray(data.children) &&
-              data.children.length > 0 &&
-              data.children.map((item: IResourceData) => (
-                <Tree {...props} data={item} key={item.id} />
+            {rootNode.hasChildren &&
+              rootNode.children.length > 0 &&
+              rootNode.children.map(childId => (
+                <ResourceNode nodeId={childId} key={childId} />
               ))}
           </SidebarMenu>
         </SidebarGroupContent>

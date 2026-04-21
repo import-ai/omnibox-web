@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import ResourceIcon from '@/assets/icons/resourceIcon';
@@ -17,23 +18,24 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
-import { IResourceData } from '@/interface';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
-import { ISidebarProps } from '@/page/sidebar/types';
+import { useNode } from '@/page/sidebar/store/selectors';
+import { useSidebarStore } from '@/page/sidebar/store/sidebar-store';
 
 import Action from './node-actions';
 import ContextMenuMain from './node-context-menu';
 
-// Timing constants for rename functionality
 const FOCUS_DELAY = 50;
 const BLUR_ENABLE_DELAY = 200;
-const CLICK_DEBOUNCE_DELAY = 200;
+const CLICK_DEBOUNCE_DELAY = 50;
 
-// Helper function to validate file extensions
 const isValidFileType = (fileName: string): boolean => {
   const allowedExtensions = ALLOW_FILE_EXTENSIONS.split(',').map(ext =>
     ext.trim()
@@ -42,101 +44,79 @@ const isValidFileType = (fileName: string): boolean => {
   return allowedExtensions.includes(fileExtension);
 };
 
-export interface ITreeProps extends ISidebarProps {
-  onDrop: (item: IResourceData, target: IResourceData | null) => void;
-  target: IResourceData | null;
-  onTarget: (target: IResourceData | null) => void;
-  fileDragTarget: string | null;
-  onFileDragTarget: (target: string | null) => void;
+interface ResourceNodeProps {
+  nodeId: string;
 }
 
-export default function Tree(props: ITreeProps) {
-  const {
-    data,
-    onDrop,
-    target,
-    onTarget,
-    spaceType,
-    activeKey,
-    expands,
-    expanding,
-    onExpand,
-    onActiveKey,
-    onUpload,
-    onRename,
-    fileDragTarget,
-    onFileDragTarget,
-  } = props;
+export default function ResourceNode({ nodeId }: ResourceNodeProps) {
   const app = useApp();
-  const ref = useRef(null);
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const params = useParams();
+  const isMobile = useIsMobile();
+  const { setOpenMobile } = useSidebar();
+  const namespaceId = params.namespace_id || '';
+
+  const node = useNode(nodeId);
+  const activeId = useSidebarStore(s => s.activeId);
+  const editingId = useSidebarStore(s => s.editingId);
+
+  const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const clickTimeoutRef = useRef<number | null>(null);
-  const { t } = useTranslation();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState(data.name || '');
   const isBlurEnabledRef = useRef(false);
   const isEditingRef = useRef(false);
 
-  // Sync data.name changes to editName
-  useEffect(() => {
-    setEditName(data.name || '');
-  }, [data.name]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState('');
 
-  const expand = expands.includes(data.id);
-  const isFileDragOver = fileDragTarget === data.id;
-  const [dragStyle, drag] = useDrag({
-    type: 'card',
-    item: data,
-    canDrag: () => !isEditing,
-    collect: monitor => ({
-      opacity: monitor.isDragging() ? 0.5 : 1,
-    }),
-  });
+  if (!node) return null;
+
+  const isActive = nodeId === activeId;
+  // Local file drag target state (not from store)
+  const [localFileDragTarget, setLocalFileDragTarget] = useState<string | null>(
+    null
+  );
+  const isFileDragOverLocal = localFileDragTarget === nodeId;
+
+  // Drag
+  const [dragStyle, drag] = useDrag(
+    {
+      type: 'card',
+      item: () => node,
+      canDrag: () => !isEditing,
+      collect: monitor => ({
+        opacity: monitor.isDragging() ? 0.5 : 1,
+      }),
+    },
+    [isEditing]
+  );
+
+  // Drop
   const [{ isOver: isOverHere }, drop] = useDrop({
     accept: ['card', NativeTypes.FILE],
     collect: monitor => ({
       isOver: monitor.isOver({ shallow: true }),
     }),
     hover: (item, monitor) => {
-      if (!ref.current) {
-        onTarget(null);
-        return;
-      }
-
+      if (!ref.current) return;
       const itemType = monitor.getItemType();
       const isOverShallow = monitor.isOver({ shallow: true });
 
       if (itemType === NativeTypes.FILE) {
-        // Only highlight on shallow hover
-        if (isOverShallow) {
-          onFileDragTarget(data.id);
-        }
-        // Do not handle resource target
-        onTarget(null);
+        if (isOverShallow) setLocalFileDragTarget(nodeId);
       } else {
-        // Handle resource drag
-        onFileDragTarget(null);
-        if (!isOverShallow) {
-          onTarget(null);
-          return;
-        }
-        const dragId = (item as IResourceData).id;
-        if (dragId === data.id) {
-          onTarget(null);
-          return;
-        }
-        onTarget(data);
+        setLocalFileDragTarget(null);
+        if (!isOverShallow) return;
+        const dragId = (item as { id: string }).id;
+        if (dragId === nodeId) return;
+        // Don't set target here; we'll handle in parent or via store
       }
     },
-    drop(item, monitor) {
+    drop: (item, monitor) => {
       const itemType = monitor.getItemType();
       if (itemType === NativeTypes.FILE) {
-        // Debounce: Prevent multiple drop triggers
-        if (monitor.didDrop()) {
-          return;
-        }
-
-        // Handle file drop
+        if (monitor.didDrop()) return;
         const fileItem = item as { files: File[] };
         const validFiles = fileItem.files.filter(file =>
           isValidFileType(file.name)
@@ -144,56 +124,139 @@ export default function Tree(props: ITreeProps) {
         if (validFiles.length > 0) {
           const fileList = new DataTransfer();
           validFiles.forEach(file => fileList.items.add(file));
-          void onUpload(spaceType, data.id, fileList.files);
+          useSidebarStore
+            .getState()
+            .upload(nodeId, fileList.files)
+            .then(id => {
+              useSidebarStore.getState().activate(id);
+              navigate(`/${namespaceId}/${id}`, {
+                state: { fromSidebar: true },
+              });
+              if (isMobile) setOpenMobile(false);
+              toast.success(
+                t('upload.success', { count: fileList.files.length })
+              );
+            });
         } else {
           toast(t('upload.invalid_ext'), { position: 'bottom-right' });
         }
-        onFileDragTarget(null);
+        setLocalFileDragTarget(null);
       } else {
-        // Handle resource drop
-        onDrop(item as IResourceData, target);
+        const dragItem = item as { id: string };
+        if (dragItem.id !== nodeId) {
+          http
+            .post(
+              `/namespaces/${namespaceId}/resources/${dragItem.id}/move/${nodeId}`
+            )
+            .then(() => {
+              useSidebarStore.getState().move(dragItem.id, nodeId);
+            })
+            .catch(() => {
+              toast.error(t('move.failed'));
+            });
+        }
       }
     },
   });
 
-  // Cleanup: When drag leaves this node (including its children), make sure to clear file highlight
   useEffect(() => {
-    if (!isOverHere && isFileDragOver) {
-      onFileDragTarget(null);
+    if (!isOverHere && isFileDragOverLocal) {
+      setLocalFileDragTarget(null);
     }
-  }, [isOverHere, isFileDragOver, onFileDragTarget, data.id]);
+  }, [isOverHere, isFileDragOverLocal]);
 
-  const handleExpand = () => {
-    onExpand(spaceType, data.id);
+  // Sync editing state from store
+  useEffect(() => {
+    if (editingId === nodeId) {
+      setEditName(node.name || '');
+      setIsEditing(true);
+    } else if (isEditing) {
+      isBlurEnabledRef.current = false;
+      setIsEditing(false);
+      setEditName(node.name || '');
+    }
+  }, [editingId, nodeId, node.name]);
+
+  useEffect(() => {
+    drag(ref);
+    drop(ref);
+  }, [drag, drop]);
+
+  useEffect(() => {
+    isEditingRef.current = isEditing;
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (!isEditing) return;
+    isBlurEnabledRef.current = false;
+    const focusTimer = setTimeout(() => {
+      if (inputRef.current && isEditingRef.current) {
+        inputRef.current.focus();
+        inputRef.current.select();
+      }
+    }, FOCUS_DELAY);
+    const blurTimer = setTimeout(() => {
+      if (isEditingRef.current) {
+        isBlurEnabledRef.current = true;
+      }
+    }, BLUR_ENABLE_DELAY);
+    return () => {
+      clearTimeout(focusTimer);
+      clearTimeout(blurTimer);
+      isBlurEnabledRef.current = false;
+    };
+  }, [isEditing]);
+
+  const handleNavigate = (id: string, edit?: boolean) => {
+    if (edit) {
+      navigate(`/${namespaceId}/${id}/edit`, { state: { fromSidebar: true } });
+    } else if (id === 'chat') {
+      navigate(`/${namespaceId}/chat`);
+    } else {
+      navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+    }
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
-  const handleActiveKey = () => {
-    const isActive = data.id === activeKey;
-    if (data.has_children) {
+
+  const handleExpand = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (node.expanded) {
+      useSidebarStore.getState().collapse(nodeId);
+    } else {
+      useSidebarStore.getState().expand(nodeId);
+    }
+  };
+
+  const handleActive = () => {
+    if (node.hasChildren) {
       if (isActive) {
-        onExpand(spaceType, data.id);
+        handleExpand();
       } else {
-        onActiveKey(data.id);
-        if (!expand) {
-          onExpand(spaceType, data.id);
+        handleNavigate(nodeId);
+        useSidebarStore.getState().activate(nodeId);
+        if (!node.expanded) {
+          useSidebarStore.getState().expand(nodeId);
         }
       }
     } else {
-      onActiveKey(data.id);
+      handleNavigate(nodeId);
+      useSidebarStore.getState().activate(nodeId);
     }
   };
 
   const handleClick = () => {
     if (isEditing) return;
-
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
       return;
     }
-
     clickTimeoutRef.current = window.setTimeout(() => {
       clickTimeoutRef.current = null;
-      handleActiveKey();
+      handleActive();
     }, CLICK_DEBOUNCE_DELAY);
   };
 
@@ -204,15 +267,11 @@ export default function Tree(props: ITreeProps) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
     }
-    // Fire event to close other editing items first
-    app.fire('start_rename', data.id);
+    useSidebarStore.getState().setEditingId(nodeId);
   };
 
   const handleBlur = () => {
-    // Skip if blur is not enabled yet (prevents immediate blur when menu closes)
-    if (!isBlurEnabledRef.current || !isEditing) {
-      return;
-    }
+    if (!isBlurEnabledRef.current || !isEditing) return;
     handleSave();
   };
 
@@ -220,14 +279,21 @@ export default function Tree(props: ITreeProps) {
     isBlurEnabledRef.current = false;
     const trimmedName = editName.trim();
     setIsEditing(false);
-    if (trimmedName && trimmedName !== data.name) {
+    useSidebarStore.getState().setEditingId(null);
+    if (trimmedName && trimmedName !== node.name) {
       try {
-        await onRename(data.id, trimmedName);
+        await useSidebarStore.getState().rename(nodeId, trimmedName);
+        app.fire('update_resource', {
+          id: nodeId,
+          name: trimmedName,
+          content: node.content,
+          tags: node.tags,
+        } as unknown as import('@/interface').Resource);
       } catch {
-        setEditName(data.name || '');
+        setEditName(node.name || '');
       }
     } else {
-      setEditName(data.name || '');
+      setEditName(node.name || '');
     }
   };
 
@@ -238,75 +304,25 @@ export default function Tree(props: ITreeProps) {
     } else if (e.key === 'Escape') {
       isBlurEnabledRef.current = false;
       setIsEditing(false);
-      setEditName(data.name || '');
+      useSidebarStore.getState().setEditingId(null);
+      setEditName(node.name || '');
     }
   };
 
-  // Keep isEditingRef in sync with isEditing state
-  useEffect(() => {
-    isEditingRef.current = isEditing;
-  }, [isEditing]);
-
-  useEffect(() => {
-    if (isEditing) {
-      // Reset blur flag
-      isBlurEnabledRef.current = false;
-
-      // Use setTimeout to ensure input is rendered and focused properly
-      const focusTimer = setTimeout(() => {
-        if (inputRef.current && isEditingRef.current) {
-          inputRef.current.focus();
-          inputRef.current.select();
-        }
-      }, FOCUS_DELAY);
-
-      // Enable blur handler after a short delay to prevent immediate blur when menu closes
-      const blurTimer = setTimeout(() => {
-        // Only enable blur if still in editing mode
-        if (isEditingRef.current) {
-          isBlurEnabledRef.current = true;
-        }
-      }, BLUR_ENABLE_DELAY);
-
-      return () => {
-        clearTimeout(focusTimer);
-        clearTimeout(blurTimer);
-        isBlurEnabledRef.current = false;
-      };
-    }
-  }, [isEditing]);
-
-  // Listen for start_rename event to trigger inline editing
-  useEffect(() => {
-    return app.on('start_rename', (resourceId: string) => {
-      if (resourceId === data.id) {
-        setEditName(data.name || '');
-        setIsEditing(true);
-      } else {
-        // Close current editing when another item starts renaming
-        isBlurEnabledRef.current = false;
-        setIsEditing(false);
-        setEditName(data.name || '');
-      }
-    });
-  }, [app, data.id, data.name]);
-
-  useEffect(() => {
-    drag(ref);
-    drop(ref);
-  }, [drag, drop]);
+  const isUploading = useSidebarStore(s => nodeId in s.uploading);
+  const uploadProgress = useSidebarStore(s => s.uploadProgress[nodeId]);
 
   return (
     <SidebarMenuItem>
       <Collapsible
-        open={expand}
+        open={node.expanded}
         className={cn('group/collapsible', {
           '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
-            expand && expanding !== data.id && data.has_children,
+            node.expanded && !node.loading && node.hasChildren,
         })}
       >
         <CollapsibleTrigger asChild>
-          <ContextMenuMain {...props}>
+          <ContextMenuMain nodeId={nodeId} namespaceId={namespaceId}>
             <div className="group/sidebar-item my-[1px] rounded-[6px] hover:bg-sidebar-accent">
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
@@ -315,21 +331,21 @@ export default function Tree(props: ITreeProps) {
                     className="gap-1 py-1.5 h-auto data-[active=true]:font-normal group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637] transition-none"
                     onClick={handleClick}
                     onDoubleClick={handleDoubleClick}
-                    isActive={data.id == activeKey || isEditing}
+                    isActive={isActive || isEditing}
                   >
                     <div
                       ref={ref}
-                      data-resource-id={data.id}
+                      data-resource-id={nodeId}
                       style={dragStyle}
                       className={cn('flex list cursor-pointer', {
-                        'pl-1': data.has_children,
-                        'pl-[28px]': !data.has_children,
+                        'pl-1': node.hasChildren,
+                        'pl-[28px]': !node.hasChildren,
                         'bg-sidebar-accent text-sidebar-accent-foreground':
-                          (target && target.id === data.id) || isFileDragOver,
+                          isFileDragOverLocal || isOverHere,
                       })}
                     >
-                      {data.has_children &&
-                        (expanding === data.id ? (
+                      {node.hasChildren &&
+                        (node.loading ? (
                           <Button
                             size="icon"
                             variant="outline"
@@ -351,7 +367,17 @@ export default function Tree(props: ITreeProps) {
                             <Arrow className="transition-transform" />
                           </Button>
                         ))}
-                      <ResourceIcon expand={expand} resource={data} />
+                      <ResourceIcon
+                        expand={node.expanded}
+                        resource={{
+                          id: node.id,
+                          name: node.name,
+                          resource_type: node.resourceType,
+                          has_children: node.hasChildren,
+                          content: node.content,
+                          attrs: node.attrs,
+                        }}
+                      />
                       {isEditing ? (
                         <input
                           ref={inputRef}
@@ -366,7 +392,7 @@ export default function Tree(props: ITreeProps) {
                         />
                       ) : (
                         <span className="truncate flex-1">
-                          {data.name || t('untitled')}
+                          {node.name || t('untitled')}
                         </span>
                       )}
                     </div>
@@ -378,21 +404,26 @@ export default function Tree(props: ITreeProps) {
                     sideOffset={8}
                     className="max-w-xs break-all"
                   >
-                    {data.name || t('untitled')}
+                    {node.name || t('untitled')}
                   </TooltipContent>
                 )}
               </Tooltip>
-              <Action {...props} />
+              <Action
+                nodeId={nodeId}
+                namespaceId={namespaceId}
+                isUploading={isUploading}
+                uploadProgress={uploadProgress}
+              />
             </div>
           </ContextMenuMain>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub className="pr-0 py-0 mr-0 gap-0">
-            {data.has_children &&
-              Array.isArray(data.children) &&
-              data.children.length > 0 &&
-              data.children.map((item: IResourceData) => (
-                <Tree {...props} data={item} key={item.id} />
+            {node.expanded &&
+              node.hasChildren &&
+              node.children.length > 0 &&
+              node.children.map(childId => (
+                <ResourceNode nodeId={childId} key={childId} />
               ))}
           </SidebarMenuSub>
         </CollapsibleContent>

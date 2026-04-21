@@ -29,7 +29,10 @@ export default [
     rules: {
       'prettier/prettier': ['error', {}, { usePrettierrc: true }],
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error'],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ],
       '@typescript-eslint/explicit-function-return-type': 'off',
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',

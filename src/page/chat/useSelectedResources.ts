@@ -1,47 +1,56 @@
 import { useEffect, useState } from 'react';
 
-import useApp from '@/hooks/use-app';
-import { Resource } from '@/interface';
 import {
   getChatContext,
   removeChatContext,
   setChatContext,
 } from '@/lib/chat-context';
-import type {
-  IResTypeContext,
-  PrivateSearchResourceType,
-} from '@/page/chat/chat-input/types';
+import { useChatStore } from '@/page/chat/chat-store';
 
 export default function useSelectedResources() {
-  const app = useApp();
-  const [selectedResources, setSelectedResources] =
-    useState<IResTypeContext[]>(getChatContext());
+  const selectedResources = useChatStore(state => state.selectedResources);
+  const addContext = useChatStore(state => state.addContext);
+  const removeContext = useChatStore(state => state.removeContext);
+  const clearContext = useChatStore(state => state.clearContext);
 
+  const [hydrated, setHydrated] = useState(false);
+
+  // Hydrate from localStorage on mount
   useEffect(() => {
-    return app.on('context_clear', () => {
-      setSelectedResources([]);
-      removeChatContext();
-    });
+    const cached = getChatContext();
+    if (cached.length > 0) {
+      const store = useChatStore.getState();
+      cached.forEach(item => {
+        if (
+          !store.selectedResources.find(r => r.resource.id === item.resource.id)
+        ) {
+          store.addContext(item.resource, item.type);
+        }
+      });
+    }
+    setHydrated(true);
   }, []);
 
+  // Sync to localStorage
   useEffect(() => {
-    setChatContext(selectedResources);
-    return app.on(
-      'context',
-      (resource: Resource, type: PrivateSearchResourceType) => {
-        const target = selectedResources.find(
-          item => item.resource.id === resource.id && item.type === type
-        );
-        if (target) {
-          return;
-        }
-        setSelectedResources([...selectedResources, { type, resource }]);
+    if (hydrated) {
+      if (selectedResources.length > 0) {
+        setChatContext(selectedResources);
+      } else {
+        removeChatContext();
       }
-    );
-  }, [selectedResources]);
+    }
+  }, [selectedResources, hydrated]);
+
+  const setSelectedResources = (resources: any[]) => {
+    useChatStore.getState().setContext(resources);
+  };
 
   return {
     selectedResources,
     setSelectedResources,
+    addContext,
+    removeContext,
+    clearContext,
   };
 }

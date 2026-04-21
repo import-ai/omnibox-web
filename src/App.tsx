@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-import CoreApp from '@/hooks/app.class';
+import { app } from '@/hooks/app.class';
 import AppContext from '@/hooks/app-context';
 import { AuthConfigProvider } from '@/hooks/auth-config-context';
 import Layout from '@/layout';
@@ -40,7 +40,6 @@ const SharedChatConversationPage = lazy(
 
 const WelcomePage = lazy(() => import('@/page/welcome'));
 
-const app = new CoreApp();
 const router = createBrowserRouter([
   {
     path: '/',

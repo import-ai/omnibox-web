@@ -9,7 +9,7 @@ import {
   SquarePen,
   Trash2,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDragLayer } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 
@@ -22,34 +22,25 @@ import {
 } from '@/components/ui/context-menu';
 import { Input } from '@/components/ui/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import useApp from '@/hooks/use-app';
 import MoveTo from '@/page/resource/actions/move';
-import { ISidebarProps } from '@/page/sidebar/types';
 
+import { useNodeActions } from './hooks/use-node-actions';
 import { menuIconClass, menuItemClass } from './node-styles';
 
-export interface IProps extends ISidebarProps {
+interface NodeContextMenuProps {
+  nodeId: string;
+  namespaceId: string;
   children: React.ReactNode;
 }
 
-export default function ContextMenuMain(props: IProps) {
-  const {
-    data,
-    children,
-    onUpload,
-    onCreate,
-    onDelete,
-    spaceType,
-    onActiveKey,
-    namespaceId,
-  } = props;
-  const app = useApp();
+export default function NodeContextMenu({
+  nodeId,
+  namespaceId,
+  children,
+}: NodeContextMenuProps) {
   const { t } = useTranslation();
-  const [moveTo, setMoveTo] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  //Check whether to drag from the initial position
   const { isActuallyDragging } = useDragLayer(monitor => {
     const isDragging = monitor.isDragging();
     const diff = monitor.getDifferenceFromInitialOffset();
@@ -61,60 +52,16 @@ export default function ContextMenuMain(props: IProps) {
     };
   });
 
-  // Close the menu when dragging actually starts
   useEffect(() => {
     if (isActuallyDragging && contextOpen) {
       setContextOpen(false);
     }
   }, [isActuallyDragging, contextOpen]);
 
-  const handleCreateFile = () => {
-    onCreate(spaceType, data.id, 'doc');
-  };
-  const handleCreateFolder = () => {
-    onCreate(spaceType, data.id, 'folder');
-  };
-  const handleEdit = () => {
-    onActiveKey(data.id, true);
-  };
-  const handleRename = () => {
-    // Delay to ensure context menu is fully closed before triggering rename
-    setTimeout(() => {
-      app.fire('start_rename', data.id);
-    }, 150);
-  };
-  const addToContext = (type: 'resource' | 'folder') => {
-    const fireEvent = () => app.fire('context', data, type);
-    if (location.pathname.includes('/chat')) {
-      fireEvent();
-    } else {
-      onActiveKey('chat');
-      setTimeout(fireEvent, 100);
-    }
-  };
-  const handleAddToChat = () => addToContext('resource');
-  const handleAddAllToChat = () => addToContext('folder');
-  const handleMoveTo = () => {
-    setMoveTo(true);
-  };
-  const handleDelete = () => {
-    onDelete(spaceType, data.id, data.parent_id);
-  };
-  const handleSelect = () => {
-    fileInputRef.current?.click();
-  };
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) {
-      return;
-    }
-    onUpload(spaceType, data.id, e.target.files).finally(() => {
-      fileInputRef.current!.value = '';
-    });
-  };
-  const handleMoveFinished = (resourceId: string, targetId: string) => {
-    setMoveTo(false);
-    app.fire('move_resource', resourceId, targetId);
-  };
+  const actions = useNodeActions(nodeId, namespaceId);
+  const { node } = actions;
+
+  if (!node) return children;
 
   return (
     <>
@@ -123,55 +70,70 @@ export default function ContextMenuMain(props: IProps) {
           {children}
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem className={menuItemClass} onClick={handleCreateFile}>
+          <ContextMenuItem
+            className={menuItemClass}
+            onClick={actions.handleCreateFile}
+          >
             <FilePlus className={menuIconClass} />
             {t('actions.create_file')}
           </ContextMenuItem>
           <ContextMenuItem
             className={menuItemClass}
-            onClick={handleCreateFolder}
+            onClick={actions.handleCreateFolderDirect}
           >
             <FolderPlus className={menuIconClass} />
             {t('actions.create_folder')}
           </ContextMenuItem>
-          <ContextMenuItem className={menuItemClass} onClick={handleSelect}>
+          <ContextMenuItem
+            className={menuItemClass}
+            onClick={() => actions.fileInputRef.current?.click()}
+          >
             <MonitorUp className={menuIconClass} />
             {t('actions.upload_file')}
           </ContextMenuItem>
           <ContextMenuSeparator />
-          <ContextMenuItem className={menuItemClass} onClick={handleRename}>
+          <ContextMenuItem
+            className={menuItemClass}
+            onClick={actions.handleRename}
+          >
             <SquarePen className={menuIconClass} />
             {t('actions.rename')}
           </ContextMenuItem>
-          <ContextMenuItem className={menuItemClass} onClick={handleEdit}>
+          <ContextMenuItem
+            className={menuItemClass}
+            onClick={actions.handleEdit}
+          >
             <Pencil className={menuIconClass} />
             {t('edit')}
           </ContextMenuItem>
-          <ContextMenuItem className={menuItemClass} onClick={handleMoveTo}>
+          <ContextMenuItem
+            className={menuItemClass}
+            onClick={actions.handleMoveTo}
+          >
             <Move className={menuIconClass} />
             {t('actions.move_to')}
           </ContextMenuItem>
           <ContextMenuSeparator />
-          {data.resource_type === 'folder' ? (
+          {node.resourceType === 'folder' ? (
             <ContextMenuItem
               className={menuItemClass}
-              onClick={handleAddAllToChat}
+              onClick={actions.handleAddAllToChat}
             >
               <MessageSquarePlus className={menuIconClass} />
               {t('actions.add_all_to_context')}
             </ContextMenuItem>
-          ) : data.has_children ? (
+          ) : node.hasChildren ? (
             <>
               <ContextMenuItem
                 className={menuItemClass}
-                onClick={handleAddAllToChat}
+                onClick={actions.handleAddAllToChat}
               >
                 <MessageSquarePlus className={menuIconClass} />
                 {t('actions.add_all_to_context')}
               </ContextMenuItem>
               <ContextMenuItem
                 className={menuItemClass}
-                onClick={handleAddToChat}
+                onClick={actions.handleAddToChat}
               >
                 <MessageSquareQuote className={menuIconClass} />
                 {t('actions.add_it_to_context')}
@@ -180,7 +142,7 @@ export default function ContextMenuMain(props: IProps) {
           ) : (
             <ContextMenuItem
               className={menuItemClass}
-              onClick={handleAddToChat}
+              onClick={actions.handleAddToChat}
             >
               <MessageSquareQuote className={menuIconClass} />
               {t('actions.add_it_to_context')}
@@ -189,7 +151,7 @@ export default function ContextMenuMain(props: IProps) {
           <ContextMenuSeparator />
           <ContextMenuItem
             className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
-            onClick={handleDelete}
+            onClick={actions.handleDelete}
           >
             <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
             {t('actions.move_to_trash')}
@@ -197,18 +159,18 @@ export default function ContextMenuMain(props: IProps) {
         </ContextMenuContent>
       </ContextMenu>
       <MoveTo
-        open={moveTo}
-        resourceId={data.id}
-        onOpenChange={setMoveTo}
+        open={actions.moveTo}
+        resourceId={nodeId}
+        onOpenChange={actions.setMoveTo}
         namespaceId={namespaceId}
-        onFinished={handleMoveFinished}
+        onFinished={actions.handleMoveFinished}
       />
       <Input
         multiple
         type="file"
-        ref={fileInputRef}
+        ref={actions.fileInputRef}
         className="hidden"
-        onChange={handleUpload}
+        onChange={actions.handleUpload}
         accept={ALLOW_FILE_EXTENSIONS}
       />
     </>

@@ -10,7 +10,7 @@ import {
   SquarePen,
   Trash2,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -30,97 +30,49 @@ import { Input } from '@/components/ui/input';
 import { SidebarMenuAction } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import useApp from '@/hooks/use-app';
 import { useIsTouch } from '@/hooks/use-is-touch';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
-import { ISidebarProps } from '@/page/sidebar/types';
 
 import { CreateFolderDialog } from './create-folder-dialog';
+import { useNodeActions } from './hooks/use-node-actions';
 import { menuIconClass, menuItemClass } from './node-styles';
 
-export default function Action(props: ISidebarProps) {
-  const {
-    data,
-    onUpload,
-    onCreate,
-    onDelete,
-    progress,
-    spaceType,
-    editingKey,
-    onActiveKey,
-    namespaceId,
-  } = props;
-  const app = useApp();
+interface NodeActionsProps {
+  nodeId: string;
+  namespaceId: string;
+  isUploading?: boolean;
+  uploadProgress?: string;
+}
+
+export default function NodeActions({
+  nodeId,
+  namespaceId,
+  isUploading,
+  uploadProgress,
+}: NodeActionsProps) {
   const { t } = useTranslation();
   const isTouch = useIsTouch();
-  const [moveTo, setMoveTo] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [createFolderOpen, setCreateFolderOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleCreateFile = () => {
-    onCreate(spaceType, data.id, 'doc');
-  };
-  const handleCreateFolder = () => {
-    setCreateFolderOpen(true);
-  };
-  const handleConfirmCreateFolder = (folderName: string) => {
-    return onCreate(spaceType, data.id, 'folder', folderName);
-  };
-  const handleEdit = () => {
-    onActiveKey(data.id, true);
-  };
-  const handleRename = (e: Event) => {
-    // Prevent default menu close behavior
+  const actions = useNodeActions(nodeId, namespaceId);
+  const { node } = actions;
+
+  if (!node) return null;
+
+  const handleRename = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    // Manually close the menu
     setMenuOpen(false);
-    // Delay to ensure dropdown menu is fully closed before triggering rename
-    setTimeout(() => {
-      app.fire('start_rename', data.id);
-    }, 150);
-  };
-  const addToContext = (type: 'resource' | 'folder') => {
-    const fireEvent = () => app.fire('context', data, type);
-    if (location.pathname.includes('/chat')) {
-      fireEvent();
-    } else {
-      onActiveKey('chat');
-      setTimeout(fireEvent, 100);
-    }
-  };
-  const handleAddToChat = () => addToContext('resource');
-  const handleAddAllToChat = () => addToContext('folder');
-  const handleMoveTo = () => {
-    setMoveTo(true);
-  };
-  const handleDelete = () => {
-    onDelete(spaceType, data.id, data.parent_id);
-  };
-  const handleSelect = () => {
-    fileInputRef.current?.click();
-  };
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) {
-      return;
-    }
-    onUpload(spaceType, data.id, e.target.files).finally(() => {
-      fileInputRef.current!.value = '';
-    });
-  };
-  const handleMoveFinished = (resourceId: string, targetId: string) => {
-    setMoveTo(false);
-    app.fire('move_resource', resourceId, targetId);
+    actions.handleRename();
   };
 
   return (
     <>
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
-          {data.id === editingKey ? (
+          {isUploading ? (
             <>
-              {progress ? (
+              {uploadProgress ? (
                 <TooltipProvider>
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
@@ -128,7 +80,7 @@ export default function Action(props: ISidebarProps) {
                         <Spinner />
                       </SidebarMenuAction>
                     </TooltipTrigger>
-                    <TooltipContent>{progress}</TooltipContent>
+                    <TooltipContent>{uploadProgress}</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ) : (
@@ -154,19 +106,22 @@ export default function Action(props: ISidebarProps) {
         <DropdownMenuContent side="right" align="start" sideOffset={10}>
           <DropdownMenuItem
             className={menuItemClass}
-            onClick={handleCreateFile}
+            onClick={actions.handleCreateFile}
           >
             <FilePlus className={menuIconClass} />
             {t('actions.create_file')}
           </DropdownMenuItem>
           <DropdownMenuItem
             className={menuItemClass}
-            onClick={handleCreateFolder}
+            onClick={actions.handleCreateFolderWithDialog}
           >
             <FolderPlus className={menuIconClass} />
             {t('actions.create_folder')}
           </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClass} onClick={handleSelect}>
+          <DropdownMenuItem
+            className={menuItemClass}
+            onClick={() => actions.fileInputRef.current?.click()}
+          >
             <MonitorUp className={menuIconClass} />
             {t('actions.upload_file')}
           </DropdownMenuItem>
@@ -175,36 +130,42 @@ export default function Action(props: ISidebarProps) {
             <SquarePen className={menuIconClass} />
             {t('actions.rename')}
           </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClass} onClick={handleEdit}>
+          <DropdownMenuItem
+            className={menuItemClass}
+            onClick={actions.handleEdit}
+          >
             <Pencil className={menuIconClass} />
             {t('edit')}
           </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClass} onClick={handleMoveTo}>
+          <DropdownMenuItem
+            className={menuItemClass}
+            onClick={actions.handleMoveTo}
+          >
             <Move className={menuIconClass} />
             {t('actions.move_to')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
 
-          {data.resource_type === 'folder' ? (
+          {node.resourceType === 'folder' ? (
             <DropdownMenuItem
               className={menuItemClass}
-              onClick={handleAddAllToChat}
+              onClick={actions.handleAddAllToChat}
             >
               <MessageSquarePlus className={menuIconClass} />
               {t('actions.add_all_to_context')}
             </DropdownMenuItem>
-          ) : data.has_children ? (
+          ) : node.hasChildren ? (
             <>
               <DropdownMenuItem
                 className={menuItemClass}
-                onClick={handleAddAllToChat}
+                onClick={actions.handleAddAllToChat}
               >
                 <MessageSquarePlus className={menuIconClass} />
                 {t('actions.add_all_to_context')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className={menuItemClass}
-                onClick={handleAddToChat}
+                onClick={actions.handleAddToChat}
               >
                 <MessageSquareQuote className={menuIconClass} />
                 {t('actions.add_it_to_context')}
@@ -213,7 +174,7 @@ export default function Action(props: ISidebarProps) {
           ) : (
             <DropdownMenuItem
               className={menuItemClass}
-              onClick={handleAddToChat}
+              onClick={actions.handleAddToChat}
             >
               <MessageSquareQuote className={menuIconClass} />
               {t('actions.add_it_to_context')}
@@ -223,7 +184,7 @@ export default function Action(props: ISidebarProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
-            onClick={handleDelete}
+            onClick={actions.handleDelete}
           >
             <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
             {t('actions.move_to_trash')}
@@ -231,23 +192,23 @@ export default function Action(props: ISidebarProps) {
         </DropdownMenuContent>
       </DropdownMenu>
       <MoveTo
-        open={moveTo}
-        resourceId={data.id}
-        onOpenChange={setMoveTo}
+        open={actions.moveTo}
+        resourceId={nodeId}
+        onOpenChange={actions.setMoveTo}
         namespaceId={namespaceId}
-        onFinished={handleMoveFinished}
+        onFinished={actions.handleMoveFinished}
       />
       <CreateFolderDialog
-        open={createFolderOpen}
-        onOpenChange={setCreateFolderOpen}
-        onConfirm={handleConfirmCreateFolder}
+        open={actions.createFolderOpen}
+        onOpenChange={actions.setCreateFolderOpen}
+        onConfirm={actions.handleConfirmCreateFolder}
       />
       <Input
         multiple
         type="file"
-        ref={fileInputRef}
+        ref={actions.fileInputRef}
         className="hidden"
-        onChange={handleUpload}
+        onChange={actions.handleUpload}
         accept={ALLOW_FILE_EXTENSIONS}
       />
     </>

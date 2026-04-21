@@ -1,51 +1,33 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
 
 import { SidebarContent } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
-import type { IResourceData, SpaceType } from '@/interface';
-import group from '@/lib/group';
-import { ISidebarProps } from '@/page/sidebar/types';
+import { SpaceType } from '@/interface';
 import { TrashPanel } from '@/page/trash';
 
-import Space from './space-section';
+import SpaceSection from './space-section';
 
-// Auto-scroll trigger zone
 const EDGE_SIZE = 60;
-const MAX_SCROLL_SPEED = 600; // px per second
+const MAX_SCROLL_SPEED = 600;
 
-export interface IProps extends Omit<
-  ISidebarProps,
-  'spaceType' | 'data' | 'open'
-> {
-  data: {
-    [index: string]: IResourceData;
-  };
-  openSpaces: Record<string, boolean>;
-  onDrop: (item: IResourceData, target: IResourceData | null) => void;
-  onRename: (id: string, newName: string) => Promise<void>;
+interface ResourceTreeProps {
+  namespaceId: string;
 }
 
-export default function Content(props: IProps) {
-  const { data, resourceId, progress, onDrop, openSpaces } = props;
+export default function ResourceTree({ namespaceId }: ResourceTreeProps) {
   const isMobile = useIsMobile();
-  const [target, onTarget] = useState<IResourceData | null>(null);
-  const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const handleDrop = (resource: IResourceData, item: IResourceData | null) => {
-    onDrop(resource, item);
-    onTarget(null);
-  };
 
-  // Auto-scroll during drag: extends to sidebar header/footer and outside browser window
+  // Auto-scroll during drag
   useEffect(() => {
     const sidebarElement = sidebarRef.current;
     let scrollAnimId: number | null = null;
     let scrollStep = 0;
     let lastFrameTime = 0;
-    let lastScrollDirection: number = 0; // -1 up, 0 none, 1 down
+    let lastScrollDirection = 0;
     let prevClientY: number | null = null;
 
     const stopAutoScroll = () => {
@@ -67,26 +49,21 @@ export default function Content(props: IProps) {
       scrollAnimId = requestAnimationFrame(tick);
     };
 
-    const clear = () => setFileDragTarget(null);
     const handleDragEnd = () => {
-      clear();
       stopAutoScroll();
       lastScrollDirection = 0;
       prevClientY = null;
     };
     const handleDrop = () => {
-      clear(); // In some environments, dragend may not trigger
       stopAutoScroll();
       lastScrollDirection = 0;
       prevClientY = null;
     };
     const handleWindowBlur = () => {
-      clear();
       stopAutoScroll();
     };
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        clear();
         stopAutoScroll();
       }
     };
@@ -104,10 +81,8 @@ export default function Content(props: IProps) {
       if (isAboveTop) nextScrollStep = -1;
       else if (isBelowBottom) nextScrollStep = 1;
 
-      // When outside the sidebar content rect, only scroll if there is vertical movement
       if (nextScrollStep !== 0 && !isInsideRect) {
         if (prevClientY !== null && Math.abs(clientY - prevClientY) === 0) {
-          // No vertical movement — keep scrolling if already active, but don't start
           if (scrollStep === 0) nextScrollStep = 0;
         }
       }
@@ -129,7 +104,6 @@ export default function Content(props: IProps) {
     };
 
     const handleDragLeave = (e: DragEvent) => {
-      // Cursor left the browser window — keep scrolling in last known direction
       if (!e.relatedTarget && lastScrollDirection !== 0 && scrollStep === 0) {
         scrollStep = lastScrollDirection;
         lastFrameTime = performance.now();
@@ -158,24 +132,13 @@ export default function Content(props: IProps) {
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
       <SidebarContent ref={sidebarRef} className="gap-0 no-scrollbar">
-        {Object.keys(data)
-          .sort()
-          .map((spaceType: string) => (
-            <Space
-              {...props}
-              key={spaceType}
-              target={target}
-              progress={progress}
-              onTarget={onTarget}
-              onDrop={handleDrop}
-              activeKey={resourceId}
-              data={group(data[spaceType])}
-              spaceType={spaceType as SpaceType}
-              open={openSpaces[spaceType] !== false}
-              fileDragTarget={fileDragTarget}
-              onFileDragTarget={setFileDragTarget}
-            />
-          ))}
+        {(['private', 'teamspace'] as SpaceType[]).map(spaceType => (
+          <SpaceSection
+            key={spaceType}
+            spaceType={spaceType}
+            namespaceId={namespaceId}
+          />
+        ))}
         <TrashPanel />
       </SidebarContent>
     </DndProvider>

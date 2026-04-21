@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import useApp from '@/hooks/use-app';
+import { useChatStore } from '@/page/chat/chat-store';
 
 import { PlusIcon } from './plus';
 
@@ -33,7 +33,7 @@ export default function Actions(props: IProps) {
     conversationsPage,
     namespaceId,
   } = props;
-  const app = useApp();
+  const clearContext = useChatStore(state => state.clearContext);
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [remove, onRemove] = useState(false);
@@ -49,7 +49,7 @@ export default function Actions(props: IProps) {
     navigate(`/${namespaceId}/chat/conversations`);
   };
   const onChatCreate = () => {
-    app.fire('context_clear');
+    clearContext();
     navigate(`/${namespaceId}/chat`);
   };
   const handleAction = (id: string) => {
