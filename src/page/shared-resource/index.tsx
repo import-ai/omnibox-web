@@ -34,7 +34,7 @@ export default function SharedResourcePage() {
 
   if (shareInfo && resource) {
     return (
-      <div className="flex h-full w-full min-w-0 justify-center overflow-auto p-4">
+      <div className="flex h-full w-full min-w-0 justify-center overflow-y-auto overflow-x-hidden p-4">
         <div
           className={cn('flex min-w-0 w-full max-w-full flex-col', {
             'max-w-[680px]': !wide && (open || !large),
