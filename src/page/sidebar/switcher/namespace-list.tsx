@@ -23,9 +23,12 @@ export function NamespaceList({
         <DropdownMenuItem
           key={item.id}
           disabled={item.id === currentId}
-          className={cn('gap-2 px-2 py-2 rounded-[8px] active:bg-neutral-200', {
-            'cursor-pointer': item.id !== currentId,
-          })}
+          className={cn(
+            'gap-2 px-2 py-2 rounded-[8px] active:bg-neutral-200 dark:active:bg-neutral-600',
+            {
+              'cursor-pointer': item.id !== currentId,
+            }
+          )}
           onClick={() => onSelect(item)}
         >
           <div className="flex rounded-[6px] size-6 text-[11px] font-normal items-center justify-center border">
