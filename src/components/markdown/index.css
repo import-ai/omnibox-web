@@ -7,28 +7,38 @@
   margin-left: -20px;
 }
 
+.vditor-reset,
+.markdown-body {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .vditor-reset table,
 .markdown-body table {
-  width: 100%;
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .vditor-reset table th,
 .vditor-reset table td,
 .markdown-body table th,
 .markdown-body table td {
-  white-space: normal !important;
-  word-break: break-word;
-  overflow-wrap: break-word;
+  white-space: nowrap !important;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .vditor-reset table a,
 .vditor-reset table code,
 .markdown-body table a,
 .markdown-body table code {
-  word-break: break-all;
-  white-space: normal;
+  word-break: normal;
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {
