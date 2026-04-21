@@ -66,7 +66,7 @@ export function NotificationListItem({
             </div>
           ) : null}
           <div className="flex max-w-full items-center justify-center gap-2 text-sm text-muted-foreground">
-            <span className="truncate text-xs text-muted-foreground/50 font-normal">
+            <span className="truncate text-xs text-muted-foreground/75 font-normal">
               {formatDistanceToNow(item.created_at, {
                 locale,
                 addSuffix: true,
