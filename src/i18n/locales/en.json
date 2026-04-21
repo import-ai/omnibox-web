@@ -889,6 +889,20 @@
     "delete_success": "Permanently deleted",
     "clear_success": "Trash emptied"
   },
+  "export": {
+    "export_all": "Export All",
+    "title": "Exporting",
+    "description": "Generating ZIP file with all resources in this folder",
+    "starting": "Starting export...",
+    "fetching": "Preparing resources...",
+    "processing": "Processing resources...",
+    "processing_count": "Processing {{current}}/{{total}} resources",
+    "downloading": "Downloading ZIP file...",
+    "complete": "Export complete",
+    "error": "Export failed",
+    "timeout": "Export timed out",
+    "canceled": "Export canceled"
+  },
   "quota": {
     "storage_usage": "Storage Usage",
     "upload": "Upload",
