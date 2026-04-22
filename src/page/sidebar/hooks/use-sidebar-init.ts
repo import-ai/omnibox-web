@@ -4,8 +4,8 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Resource } from '@/interface';
 import { http } from '@/lib/request';
-import { useNodesSize } from '@/page/sidebar/store/selectors';
-import { useSidebarStore } from '@/page/sidebar/store/sidebar-store';
+import { useNodesSize } from '@/page/sidebar/store';
+import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
 
 export function useSidebarInit() {
   const params = useParams();
@@ -64,48 +64,8 @@ export function useSidebarInit() {
     let cancelled = false;
     const store = useSidebarStore.getState();
 
-    const target = store.nodes[resourceId];
-    if (target) {
-      // Already loaded - expand parents
-      const parentIds: string[] = [];
-      let current = store.nodes[resourceId];
-      while (current?.parentId) {
-        parentIds.unshift(current.parentId);
-        current = store.nodes[current.parentId];
-      }
-      for (const pid of parentIds) {
-        const p = store.nodes[pid];
-        if (p && !p.expanded && p.hasChildren) {
-          store.expand(pid).catch(err => {
-            console.error('[sidebar] auto-expand failed:', err);
-          });
-        }
-      }
-      // If target has children, expand it too
-      if (target.hasChildren && !target.expanded) {
-        store.expand(resourceId).catch(err => {
-          console.error('[sidebar] auto-expand target failed:', err);
-        });
-      }
-      autoExpandedRef.current.add(key);
-      // Scroll to element
-      requestAnimationFrame(() => {
-        if (cancelled) return;
-        const element = document.querySelector(
-          `[data-resource-id="${resourceId}"]`
-        );
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      });
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    // Not loaded - use expandPathTo
     autoExpandedRef.current.add(key);
-    store.expandPathTo(resourceId).then(() => {
+    store.expandPathTo(resourceId, { expandTarget: true }).then(() => {
       if (cancelled) return;
       requestAnimationFrame(() => {
         if (cancelled) return;
@@ -138,7 +98,7 @@ export function useSidebarInit() {
     if (hasAutoNavigatedRef.current) return;
 
     const store = useSidebarStore.getState();
-    let firstNode: Resource | null = null;
+    let firstNode: TreeNode | null = null;
     for (const [, rootId] of Object.entries(store.rootIds)) {
       const root = store.nodes[rootId];
       if (root?.children.length) {

@@ -14,7 +14,7 @@ export function FooterSidebar() {
   const { t, i18n } = useTranslation();
 
   return (
-    <SidebarFooter className="flex-row flex-wrap items-center justify-around px-6 pb-2 gap-6">
+    <SidebarFooter className="flex-row flex-wrap items-center justify-around gap-6 px-6 pb-2">
       {[
         {
           icon: <CircleHelp />,
@@ -43,14 +43,14 @@ export function FooterSidebar() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="px-0 size-8 [&_svg]:size-5 [&_svg]:scale-[1.3] text-neutral-400 hover:text-neutral-400 hover:bg-[#E8E8EE] dark:hover:bg-accent"
+                className="size-8 px-0 text-neutral-400 hover:bg-[#E8E8EE] hover:text-neutral-400 dark:hover:bg-accent [&_svg]:size-5 [&_svg]:scale-[1.3]"
               >
                 {item.icon}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="w-[178px] px-[22px] pt-[22px] pb-[16px] rounded-[12px] shadow-sm border-none">
+            <TooltipContent className="w-[178px] rounded-[12px] border-none px-[22px] pb-[16px] pt-[22px] shadow-sm">
               <WechatGroupQrCode />
-              <p className="text-center p-0 mt-2">{t('footer.join')}</p>
+              <p className="mt-2 p-0 text-center">{t('footer.join')}</p>
             </TooltipContent>
           </Tooltip>
         ) : (
@@ -59,12 +59,13 @@ export function FooterSidebar() {
               <a
                 href={`${item.value}${item.value === '/docs/' && i18n.language.includes('zh') ? 'zh-cn/' : ''}`}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="!text-neutral-400"
               >
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="px-0 size-8 [&_svg]:size-5 hover:text-neutral-400 hover:bg-[#E8E8EE] dark:hover:bg-accent"
+                  className="size-8 px-0 hover:bg-[#E8E8EE] hover:text-neutral-400 dark:hover:bg-accent [&_svg]:size-5"
                 >
                   {item.icon}
                 </Button>

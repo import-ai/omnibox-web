@@ -14,14 +14,14 @@ interface DeleteResourceParams {
  */
 export async function deleteResource({
   id,
-  parentId,
+  parentId: _parentId,
   namespaceId,
   app,
 }: DeleteResourceParams): Promise<void> {
   await http.delete(`/namespaces/${namespaceId}/resources/${id}`);
 
-  // Trigger delete_resource event for data update and toast notification
-  app.fire('delete_resource', id, parentId);
+  // Trigger delete_resource event for sidebar update and toast notification
+  app.fire('delete_resource', id);
 
   // Notify trash panel to update icon
   app.fire('trash_updated');

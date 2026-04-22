@@ -131,7 +131,7 @@ export default function ResourceTree({ namespaceId }: ResourceTreeProps) {
 
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
-      <SidebarContent ref={sidebarRef} className="gap-0 no-scrollbar">
+      <SidebarContent ref={sidebarRef} className="no-scrollbar gap-0">
         {(['private', 'teamspace'] as SpaceType[]).map(spaceType => (
           <SpaceSection
             key={spaceType}

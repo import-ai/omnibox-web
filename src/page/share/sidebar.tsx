@@ -36,6 +36,7 @@ interface SharedSidebarProps {
   showChat: boolean;
   isChatActive: boolean;
   currentResourceId?: string;
+  currentResourcePath?: Array<{ id: string }>;
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
 }
@@ -209,15 +210,15 @@ export default function ShareSidebar(props: SharedSidebarProps) {
 
   return (
     <Sidebar className="border-none">
-      <SidebarHeader className="pt-[16px] gap-[10px] pr-0">
+      <SidebarHeader className="gap-[10px] pr-0 pt-[16px]">
         <SidebarMenu>
           <SidebarMenuItem
             className={cn({
               'flex justify-between items-center': open,
             })}
           >
-            <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
-              <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
+            <SidebarMenuButton className="h-auto w-full gap-[6px] px-1.5">
+              <div className="flex size-[24px] flex-shrink-0 items-center justify-center rounded-[8px] bg-primary text-[12px] text-primary-foreground dark:bg-neutral-700 dark:text-white">
                 {username.charAt(0).toUpperCase()}
               </div>
               <span className="truncate">
@@ -228,7 +229,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <SidebarTrigger className="text-neutral-400 hover:text-neutral-400 hover:bg-[#E6E6EC] dark:hover:bg-accent" />
+                    <SidebarTrigger className="text-neutral-400 hover:bg-[#E6E6EC] hover:text-neutral-400 dark:hover:bg-accent" />
                   </TooltipTrigger>
                   <TooltipContent>{t('sidebar.collapse')}</TooltipContent>
                 </Tooltip>

@@ -1,7 +1,13 @@
-import { ResourceType, SpaceType } from '@/interface';
+import { Resource, SpaceType } from '@/interface';
 
-import { sidebarApi } from './sidebar-api';
-import { RootResource, SidebarActions, SidebarGet, SidebarSet } from './types';
+import { sidebarApi } from './api';
+import type {
+  NodeUI,
+  SidebarActions,
+  SidebarGet,
+  SidebarSet,
+  SidebarState,
+} from './types';
 import {
   collectParentIds,
   createNode,
@@ -9,39 +15,44 @@ import {
   findNextActiveId,
   getDescendantIds,
   isDescendant,
+  patchNodeFromResource,
+  traverseDescendants,
 } from './utils';
 
-export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
-  // In-flight expand promise cache to prevent concurrent requests
-  const expandPromises = new Map<string, Promise<void>>();
+function ensureUI(s: SidebarState, id: string): NodeUI {
+  if (!s.ui[id]) {
+    s.ui[id] = { expanded: false, loading: false, loaded: false };
+  }
+  return s.ui[id];
+}
 
-  // Simple throttle for upload progress (100ms)
-  let lastProgressTime = 0;
+export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
+  const expandPromises = new Map<string, Promise<void>>();
+  const lastProgressTimes = new Map<string, number>();
 
   return {
-    // ─── Namespace ───
     setNamespaceId: id => {
       set(s => {
         s.namespaceId = id;
       });
     },
 
-    // ─── Init ───
-    init: (roots: Record<string, RootResource>) => {
+    init: (roots: Record<string, import('./types').RootResource>) => {
       set(state => {
         state.nodes = {};
         for (const [spaceType, resource] of Object.entries(roots)) {
           const rootNode = createNode(resource, null, spaceType as SpaceType);
-          rootNode.expanded = true;
-          rootNode.loaded = true;
+          state.ui[rootNode.id] = {
+            expanded: true,
+            loading: false,
+            loaded: true,
+          };
 
           state.nodes[rootNode.id] = rootNode;
           state.rootIds[spaceType as SpaceType] = rootNode.id;
 
-          // Process initial children from /root API response
           const children = resource.children || [];
           if (children.length > 0) {
-            // First pass: create all child nodes
             for (const child of children) {
               if (!(child.id in state.nodes)) {
                 const parentId = child.parent_id || rootNode.id;
@@ -52,10 +63,14 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
                 );
                 childNode.hasChildren = child.has_children ?? false;
                 state.nodes[child.id] = childNode;
+                state.ui[child.id] = {
+                  expanded: false,
+                  loading: false,
+                  loaded: false,
+                };
               }
             }
 
-            // Second pass: build children arrays
             for (const child of children) {
               const parentId = child.parent_id || rootNode.id;
               const parent = state.nodes[parentId];
@@ -69,17 +84,17 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       });
     },
 
-    // ─── Expand ───
     expand: async id => {
       if (expandPromises.has(id)) return expandPromises.get(id)!;
 
       const node = get().nodes[id];
-      if (!node || node.loading) return;
+      const nodeUI = get().ui[id];
+      if (!node || nodeUI?.loading) return;
 
       const promise = (async () => {
         set(s => {
-          const n = s.nodes[id];
-          if (n) n.loading = true;
+          const ui = ensureUI(s, id);
+          ui.loading = true;
         });
 
         try {
@@ -89,17 +104,17 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
           );
 
           set(s => {
-            const n = s.nodes[id];
-            if (!n) return;
-            n.loading = false;
-            n.loaded = true;
-            n.expanded = true;
+            const ui = ensureUI(s, id);
+            ui.loading = false;
+            ui.loaded = true;
+            ui.expanded = true;
 
-            const backendIds = new Set(children.map(c => c.id));
+            const n = s.nodes[id];
+            const backendIds = new Set(children.map((c: Resource) => c.id));
             const preserved = n.children.filter(
-              cid => !backendIds.has(cid) && cid in s.nodes
+              (cid: string) => !backendIds.has(cid) && cid in s.nodes
             );
-            n.children = [...children.map(c => c.id), ...preserved];
+            n.children = [...children.map((c: Resource) => c.id), ...preserved];
 
             for (const child of children) {
               if (!(child.id in s.nodes)) {
@@ -107,10 +122,7 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
               } else {
                 const existing = s.nodes[child.id];
                 if (existing) {
-                  existing.name = child.name || '';
-                  existing.hasChildren = child.has_children ?? false;
-                  existing.updatedAt = child.updated_at || '';
-                  existing.resourceType = child.resource_type;
+                  patchNodeFromResource(existing, child);
                 }
               }
             }
@@ -118,8 +130,8 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         } catch (err) {
           console.error('[sidebar] expand failed:', err);
           set(s => {
-            const n = s.nodes[id];
-            if (n) n.loading = false;
+            const ui = s.ui[id];
+            if (ui) ui.loading = false;
           });
         } finally {
           expandPromises.delete(id);
@@ -130,29 +142,26 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       return promise;
     },
 
-    // ─── Collapse ───
     collapse: id => {
       set(s => {
-        const node = s.nodes[id];
-        if (node) node.expanded = false;
+        const ui = s.ui[id];
+        if (ui) ui.expanded = false;
       });
     },
 
-    // ─── Toggle Space ───
     toggleSpace: (spaceType, open) => {
       set(s => {
         s.spaceExpanded[spaceType] = open ?? !s.spaceExpanded[spaceType];
       });
     },
 
-    // ─── Create ───
     create: async (parentId, type, name) => {
       const parent = get().nodes[parentId];
       if (!parent) throw new Error('Parent not found');
 
       const payload: {
         parentId: string;
-        resourceType: ResourceType;
+        resourceType: import('@/interface').ResourceType;
         name?: string;
       } = {
         parentId,
@@ -170,14 +179,14 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         if (p) {
           p.children.unshift(node.id);
           p.hasChildren = true;
-          p.expanded = true;
+          const pui = ensureUI(s, parentId!);
+          pui.expanded = true;
         }
       });
 
       return response.id;
     },
 
-    // ─── Remove ───
     remove: (id, currentResourceId) => {
       const node = get().nodes[id];
       if (!node) return { nextId: null, navigateToChat: false };
@@ -188,7 +197,6 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       const targetId = currentResourceId ?? get().activeId;
 
       set(s => {
-        // Remove from parent's children
         if (parentId) {
           const parent = s.nodes[parentId];
           if (parent) {
@@ -197,20 +205,10 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
           }
         }
 
-        // Recursively delete descendants
         for (const did of [...descendantIds, id]) {
           delete s.nodes[did];
         }
 
-        // Clear editingId if deleted
-        if (
-          s.editingId === id ||
-          (s.editingId && descendantIds.includes(s.editingId))
-        ) {
-          s.editingId = null;
-        }
-
-        // Update activeId if the deleted node (or its descendant) was active
         if (targetId === id || (targetId && descendantIds.includes(targetId))) {
           s.activeId = nextId;
         }
@@ -225,7 +223,6 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       return { nextId: null, navigateToChat: false };
     },
 
-    // ─── Rename ───
     rename: async (id, name) => {
       await sidebarApi.rename(get().namespaceId, id, name);
 
@@ -235,19 +232,18 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       });
     },
 
-    // ─── Move ───
-    move: (dragId, dropId) => {
+    move: async (dragId, dropId) => {
+      await sidebarApi.move(get().namespaceId, dragId, dropId);
+
       const drag = get().nodes[dragId];
       const drop = get().nodes[dropId];
       if (!drag || !drop) return;
 
-      // Prevent moving a node into its own descendant (cycle)
       if (isDescendant(get().nodes, dragId, dropId)) return;
 
       const oldParentId = drag.parentId;
 
       set(s => {
-        // Remove from old parent
         if (oldParentId) {
           const oldParent = s.nodes[oldParentId];
           if (oldParent) {
@@ -258,16 +254,6 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
           }
         }
 
-        // Collapse the moved resource and its descendants
-        const collapseRecursive = (nid: string) => {
-          const n = s.nodes[nid];
-          if (!n) return;
-          n.expanded = false;
-          for (const cid of n.children) collapseRecursive(cid);
-        };
-        collapseRecursive(dragId);
-
-        // Add to new parent
         const newParent = s.nodes[dropId];
         if (!newParent) return;
         newParent.hasChildren = true;
@@ -278,18 +264,17 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         draftDrag.parentId = dropId;
         draftDrag.spaceType = newParent.spaceType;
 
-        // Update all descendants' spaceType
-        const updateDescendants = (nid: string) => {
-          const n = s.nodes[nid];
-          if (!n) return;
+        traverseDescendants(s.nodes, dragId, n => {
+          const ui = s.ui[n.id];
+          if (ui) ui.expanded = false;
+        });
+
+        traverseDescendants(s.nodes, dragId, n => {
           n.spaceType = newParent.spaceType;
-          for (const cid of n.children) updateDescendants(cid);
-        };
-        updateDescendants(dragId);
+        });
       });
     },
 
-    // ─── Upload ───
     upload: async (parentId, files) => {
       const parent = get().nodes[parentId];
       if (!parent) throw new Error('Parent not found');
@@ -304,8 +289,9 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
           namespaceId: get().namespaceId,
           onProgress: ({ done, total }) => {
             const now = Date.now();
-            if (now - lastProgressTime < 100) return;
-            lastProgressTime = now;
+            const last = lastProgressTimes.get(parentId) || 0;
+            if (now - last < 100) return;
+            lastProgressTimes.set(parentId, now);
             set(s => {
               s.uploadProgress[parentId] = `${done}/${total}`;
             });
@@ -322,7 +308,7 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
             if (p) {
               p.children.unshift(node.id);
               p.hasChildren = true;
-              p.expanded = true;
+              ensureUI(s, parentId).expanded = true;
             }
           }
         });
@@ -337,22 +323,13 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       }
     },
 
-    // ─── Activate ───
     activate: id => {
       set(s => {
         s.activeId = id;
       });
     },
 
-    // ─── Set Editing Id ───
-    setEditingId: id => {
-      set(s => {
-        s.editingId = id;
-      });
-    },
-
-    // ─── Expand Path To ───
-    expandPathTo: async targetId => {
+    expandPathTo: async (targetId, options) => {
       const nodes = get().nodes;
       const target = nodes[targetId];
 
@@ -360,15 +337,21 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         const parentIds = collectParentIds(nodes, targetId);
         await Promise.all(
           parentIds.map(async pid => {
-            if (!nodes[pid]?.expanded) {
+            if (!get().ui[pid]?.expanded) {
               await get().expand(pid);
             }
           })
         );
+        if (
+          options?.expandTarget &&
+          target.hasChildren &&
+          !get().ui[targetId]?.expanded
+        ) {
+          await get().expand(targetId);
+        }
         return;
       }
 
-      // Target not loaded yet - fetch from API
       try {
         const resource = await sidebarApi.fetchResource(
           get().namespaceId,
@@ -377,11 +360,10 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         if (!resource?.path?.length) return;
 
         const spaceType =
-          resource.space_type ||
+          (resource.space_type as SpaceType | undefined) ||
           detectSpaceType(nodes, get().rootIds, resource.path[0].id);
         if (!spaceType) return;
 
-        // Collect missing node ids along the path
         const missingIds: string[] = [];
         for (const item of resource.path) {
           if (!(item.id in nodes)) missingIds.push(item.id);
@@ -390,7 +372,6 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
           missingIds.push(targetId);
         }
 
-        // Fetch missing nodes
         if (missingIds.length > 0) {
           const missingResources = await sidebarApi.fetchResourcesByIds(
             get().namespaceId,
@@ -400,14 +381,14 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
           set(s => {
             for (const res of missingResources) {
               if (!(res.id in s.nodes)) {
-                const parentId = res.parent_id || s.rootIds[spaceType];
+                const parentId =
+                  res.parent_id || s.rootIds[spaceType as SpaceType];
                 s.nodes[res.id] = createNode(res, parentId, spaceType);
               }
             }
           });
         }
 
-        // Build parent-child relationships and expand
         set(s => {
           for (let i = 0; i < resource.path.length - 1; i++) {
             const parent = s.nodes[resource.path[i].id];
@@ -427,20 +408,19 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
             }
           }
 
-          // Expand all parents
           const parentIds = collectParentIds(s.nodes, targetId);
           for (const pid of parentIds) {
-            const n = s.nodes[pid];
-            if (n) n.expanded = true;
+            const ui = ensureUI(s, pid);
+            ui.expanded = true;
           }
         });
 
-        // Load children for each parent in the path that hasn't been loaded
         const parentIds = collectParentIds(get().nodes, targetId);
         await Promise.all(
           [...parentIds, targetId].map(async pid => {
+            const ui = get().ui[pid];
             const n = get().nodes[pid];
-            if (n && !n.loaded && n.hasChildren) {
+            if (n && ui && !ui.loaded && n.hasChildren) {
               await get().expand(pid);
             }
           })
@@ -450,7 +430,6 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       }
     },
 
-    // ─── Patch ───
     patch: (id, updates) => {
       set(s => {
         const node = s.nodes[id];
@@ -460,7 +439,6 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       });
     },
 
-    // ─── Refresh Children ───
     refreshChildren: (parentId, resources) => {
       set(s => {
         const parent = s.nodes[parentId];
@@ -469,7 +447,6 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         const newIds = new Set(resources.map(r => r.id));
         const deletedIds = new Set<string>();
 
-        // Remove children that no longer exist (and their descendants)
         for (const cid of parent.children) {
           if (!newIds.has(cid)) {
             const deleteRecursive = (id: string) => {
@@ -483,39 +460,40 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
           }
         }
 
-        // Upsert new children
         for (const res of resources) {
           if (!(res.id in s.nodes)) {
             s.nodes[res.id] = createNode(res, parentId, parent.spaceType);
           } else {
             const n = s.nodes[res.id];
             if (n) {
-              n.name = res.name || '';
-              n.hasChildren = res.has_children ?? false;
-              n.updatedAt = res.updated_at || '';
-              n.resourceType = res.resource_type;
+              patchNodeFromResource(n, res);
             }
           }
         }
 
         parent.children = resources.map(r => r.id);
-        parent.loaded = true;
+        const pui = ensureUI(s, parentId);
+        pui.loaded = true;
 
-        // Clean up activeId/editingId if they were deleted
         if (s.activeId && deletedIds.has(s.activeId)) {
           s.activeId = null;
-        }
-        if (s.editingId && deletedIds.has(s.editingId)) {
-          s.editingId = null;
         }
       });
     },
 
-    // ─── Restore ───
-    restore: resource => {
+    restore: async resourceOrId => {
+      const resource: Resource =
+        typeof resourceOrId === 'string'
+          ? await sidebarApi.restore(get().namespaceId, resourceOrId)
+          : resourceOrId;
+
       const spaceType =
         resource.space_type ||
-        detectSpaceType(get().nodes, get().rootIds, resource.path?.[0]?.id) ||
+        detectSpaceType(
+          get().nodes,
+          get().rootIds,
+          resource.path?.[0]?.id ?? ''
+        ) ||
         'private';
 
       set(s => {
@@ -531,20 +509,23 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         if (parent && !parent.children.includes(node.id)) {
           parent.children.unshift(node.id);
           parent.hasChildren = true;
-          parent.expanded = true;
+          if (parentId) {
+            const pui = ensureUI(s, parentId);
+            pui.expanded = true;
+          }
         }
       });
 
+      get().activate(resource.id);
       return resource.id;
     },
 
-    // ─── Clear ───
     clear: () => {
       set(s => {
         s.nodes = {};
+        s.ui = {};
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
-        s.editingId = null;
         s.uploading = {};
         s.uploadProgress = {};
       });

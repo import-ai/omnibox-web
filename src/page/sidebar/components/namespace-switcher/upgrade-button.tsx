@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { UpgradeIcon } from '@/assets/icons/upgrade';
 import useProNamespaces from '@/hooks/use-pro-namespaces';
 import { NamespaceTier } from '@/interface';
-import { getUpgradeLink } from '@/lib/upgrade-link.ts';
+import { getUpgradeLink } from '@/lib/upgrade-link';
 import { cn } from '@/lib/utils';
 
 export function UpgradeButton() {

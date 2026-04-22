@@ -62,11 +62,6 @@ export const sidebarApi = {
     }
   ) => uploadFiles(files, options),
 
-  // ─── Batch APIs (placeholder — backend endpoints TBD) ───
-  // When backend batch endpoints are ready, switch these in.
-  // Until then, batch actions in the store will use Promise.all
-  // over single-item APIs and perform a single store update.
-
   batchCreate: (
     _namespaceId: string,
     _items: BatchCreateItem[]

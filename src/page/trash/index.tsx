@@ -158,12 +158,12 @@ export function TrashPanel() {
   return (
     <>
       <SidebarGroup>
-        <SidebarGroupLabel className="h-8 font-normal leading-8 text-neutral-400 pl-4">
+        <SidebarGroupLabel className="h-8 pl-4 font-normal leading-8 text-neutral-400">
           {t('trash.system')}
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem ref={drop}>
+            <SidebarMenuItem ref={drop as unknown as React.Ref<HTMLLIElement>}>
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                   <SidebarMenuButton
@@ -195,13 +195,13 @@ export function TrashPanel() {
                     />
 
                     <div
-                      className="max-h-[300px] overflow-y-auto -mr-3 pr-3"
+                      className="-mr-3 max-h-[300px] overflow-y-auto pr-3"
                       onScroll={handleScroll}
                     >
                       {loading && items.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                           <Spinner className="size-6" />
-                          <span className="text-sm mt-2">
+                          <span className="mt-2 text-sm">
                             {t('trash.loading')}
                           </span>
                         </div>

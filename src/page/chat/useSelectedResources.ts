@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import useApp from '@/hooks/use-app';
 import {
   getChatContext,
   removeChatContext,
@@ -8,6 +9,7 @@ import {
 import { useChatStore } from '@/page/chat/chat-store';
 
 export default function useSelectedResources() {
+  const app = useApp();
   const selectedResources = useChatStore(state => state.selectedResources);
   const addContext = useChatStore(state => state.addContext);
   const removeContext = useChatStore(state => state.removeContext);

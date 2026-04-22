@@ -23,20 +23,22 @@ import {
 import { Input } from '@/components/ui/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import MoveTo from '@/page/resource/actions/move';
+import { useNodeActions } from '@/page/sidebar/hooks/use-node-actions';
 
-import { useNodeActions } from './hooks/use-node-actions';
 import { menuIconClass, menuItemClass } from './node-styles';
 
 interface NodeContextMenuProps {
   nodeId: string;
   namespaceId: string;
   children: React.ReactNode;
+  onRename?: () => void;
 }
 
 export default function NodeContextMenu({
   nodeId,
   namespaceId,
   children,
+  onRename,
 }: NodeContextMenuProps) {
   const { t } = useTranslation();
   const [contextOpen, setContextOpen] = useState(false);
@@ -65,7 +67,7 @@ export default function NodeContextMenu({
 
   return (
     <>
-      <ContextMenu open={contextOpen} onOpenChange={setContextOpen}>
+      <ContextMenu onOpenChange={setContextOpen}>
         <ContextMenuTrigger disabled={isActuallyDragging}>
           {children}
         </ContextMenuTrigger>
@@ -92,10 +94,7 @@ export default function NodeContextMenu({
             {t('actions.upload_file')}
           </ContextMenuItem>
           <ContextMenuSeparator />
-          <ContextMenuItem
-            className={menuItemClass}
-            onClick={actions.handleRename}
-          >
+          <ContextMenuItem className={menuItemClass} onClick={onRename}>
             <SquarePen className={menuIconClass} />
             {t('actions.rename')}
           </ContextMenuItem>
@@ -153,7 +152,7 @@ export default function NodeContextMenu({
             className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
             onClick={actions.handleDelete}
           >
-            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
+            <Trash2 className="size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]" />
             {t('actions.move_to_trash')}
           </ContextMenuItem>
         </ContextMenuContent>

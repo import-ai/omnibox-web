@@ -5,14 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
-import { sidebarApi } from '@/page/sidebar/store/sidebar-api';
-import { useSidebarStore } from '@/page/sidebar/store/sidebar-store';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 /**
  * Event adapter: maps app-level events to sidebar store actions.
  *
  * Only genuinely cross-module events are handled here:
- * - delete_resource, move_resource, generate_resource, restore_resource
+ * - delete_resource, generate_resource, restore_resource
  * - update_resource (editor/resource-tasks → sidebar)
  *
  * Sidebar-internal actions (expand, collapse, rename, scroll, etc.)
@@ -31,7 +30,7 @@ export function useSidebarEvents(namespaceId: string) {
     hooks.push(
       app.on(
         'generate_resource',
-        (_parentId: string, resource: Resource | Resource[]) => {
+        async (_parentId: string, resource: Resource | Resource[]) => {
           const resources = Array.isArray(resource) ? resource : [resource];
           if (
             resources.length <= 0 ||
@@ -41,7 +40,7 @@ export function useSidebarEvents(namespaceId: string) {
             return;
           }
           for (const res of resources) {
-            store.restore(res);
+            await store.restore(res);
           }
           const last = resources[resources.length - 1];
           store.activate(last.id);
@@ -72,18 +71,17 @@ export function useSidebarEvents(namespaceId: string) {
         showActionToast(t('resource.moved_to_trash'), {
           actionLabel: t('undo'),
           onAction: () => {
-            sidebarApi
-              .restore(namespaceId, id)
-              .then(response => {
-                const restoredId = store.restore(response);
-                store.activate(restoredId);
+            store
+              .restore(id)
+              .then(restoredId => {
                 app.fire('trash_updated');
+                const currentNs = useSidebarStore.getState().namespaceId;
                 const nowMatch = window.location.pathname.match(
-                  new RegExp(`^/${namespaceId}/([^/]+)`)
+                  new RegExp(`^/${currentNs}/([^/]+)`)
                 );
                 const nowResourceId = nowMatch?.[1];
                 if (!nowResourceId || nowResourceId === id) {
-                  navigate(`/${namespaceId}/${restoredId}`, {
+                  navigate(`/${currentNs}/${restoredId}`, {
                     state: { fromSidebar: true },
                   });
                 }
@@ -108,17 +106,10 @@ export function useSidebarEvents(namespaceId: string) {
 
     // Restore from trash
     hooks.push(
-      app.on('restore_resource', (resource: Resource) => {
-        const id = store.restore(resource);
+      app.on('restore_resource', async (resource: Resource) => {
+        const id = await store.restore(resource);
         store.activate(id);
         navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
-      })
-    );
-
-    // Move a resource (UI update only — caller already made HTTP request)
-    hooks.push(
-      app.on('move_resource', (resourceId: string, targetId: string) => {
-        store.move(resourceId, targetId);
       })
     );
 

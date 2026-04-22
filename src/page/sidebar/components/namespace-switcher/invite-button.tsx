@@ -13,12 +13,18 @@ export function InviteButton({ namespaceId }: InviteButtonProps) {
   const uid = localStorage.getItem('uid');
 
   useEffect(() => {
-    if (namespaceId && uid) {
-      http
-        .get(`namespaces/${namespaceId}/members/${uid}`, { mute: true })
-        .then(res => setCurrentUserRole(res?.role))
-        .catch(() => setCurrentUserRole(null));
-    }
+    if (!namespaceId || !uid) return;
+
+    const controller = new AbortController();
+    http
+      .get(`namespaces/${namespaceId}/members/${uid}`, {
+        mute: true,
+        signal: controller.signal,
+      })
+      .then(res => setCurrentUserRole(res?.role))
+      .catch(() => setCurrentUserRole(null));
+
+    return () => controller.abort();
   }, [namespaceId, uid]);
 
   const isOwnerOrAdmin =

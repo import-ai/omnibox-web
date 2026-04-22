@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { useSidebar } from '@/components/ui/sidebar';
@@ -8,8 +8,8 @@ import useApp from '@/hooks/use-app';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { addToChatContext } from '@/lib/chat-bridge';
 import { deleteResource } from '@/lib/delete-resource';
-import { useNode } from '@/page/sidebar/store/selectors';
-import { useSidebarStore } from '@/page/sidebar/store/sidebar-store';
+import { useNode } from '@/page/sidebar/store';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 export interface UseNodeActionsReturn {
   node: ReturnType<typeof useNode>;
@@ -27,7 +27,6 @@ export interface UseNodeActionsReturn {
   handleCreateFolderWithDialog: () => void;
   handleConfirmCreateFolder: (folderName: string) => Promise<string>;
   handleEdit: () => void;
-  handleRename: () => void;
   handleUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleDelete: () => void;
   handleMoveTo: () => void;
@@ -104,15 +103,10 @@ export function useNodeActions(
     if (isMobile) setOpenMobile(false);
   };
 
-  const handleRename = () => {
-    setTimeout(() => {
-      useSidebarStore.getState().setEditingId(nodeId);
-    }, 150);
-  };
-
+  const loc = useLocation();
   const addToContext = (type: 'resource' | 'folder') => {
     const doAdd = () => addToChatContext(node!, type as 'resource' | 'folder');
-    if (location.pathname.includes('/chat')) {
+    if (loc.pathname.includes('/chat')) {
       doAdd();
     } else {
       navigate(`/${namespaceId}/chat`);
@@ -137,17 +131,18 @@ export function useNodeActions(
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
+    const files = e.target.files;
+    if (!files) return;
     useSidebarStore
       .getState()
-      .upload(nodeId, e.target.files)
+      .upload(nodeId, files)
       .then(id => {
         useSidebarStore.getState().activate(id);
         navigate(`/${namespaceId}/${id}`, {
           state: { fromSidebar: true },
         });
         if (isMobile) setOpenMobile(false);
-        toast.success(t('upload.success', { count: e.target.files.length }));
+        toast.success(t('upload.success', { count: files.length }));
       })
       .catch(err => {
         toast.error(err?.message || t('upload.failed'));
@@ -157,9 +152,9 @@ export function useNodeActions(
       });
   };
 
-  const handleMoveFinished = (resourceId: string, targetId: string) => {
+  const handleMoveFinished = async (resourceId: string, targetId: string) => {
     setMoveTo(false);
-    useSidebarStore.getState().move(resourceId, targetId);
+    await useSidebarStore.getState().move(resourceId, targetId);
   };
 
   return {
@@ -174,7 +169,6 @@ export function useNodeActions(
     handleCreateFolderWithDialog,
     handleConfirmCreateFolder,
     handleEdit,
-    handleRename,
     handleUpload,
     handleDelete,
     handleMoveTo,

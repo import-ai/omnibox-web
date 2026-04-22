@@ -43,6 +43,7 @@ import { downloadFile } from '@/lib/download-file';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 import MoveTo from './move';
 import ShareAction from './share';
@@ -263,10 +264,10 @@ export default function Actions(props: IActionProps) {
       return;
     }
   };
-  const handleMoveFinished = (resourceId: string, targetId: string) => {
+  const handleMoveFinished = async (resourceId: string, targetId: string) => {
     setMoveTo(false);
     setOpen(false);
-    app.fire('move_resource', resourceId, targetId);
+    await useSidebarStore.getState().move(resourceId, targetId);
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -351,7 +352,7 @@ export default function Actions(props: IActionProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 data-[state=open]:bg-accent"
+            className="size-7 data-[state=open]:bg-accent"
           >
             <MoreHorizontal className="size-4" />
           </Button>
@@ -423,7 +424,7 @@ export default function Actions(props: IActionProps) {
             {loading === 'move_to_trash' ? (
               <Spinner />
             ) : (
-              <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
+              <Trash2 className="size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]" />
             )}
             <span>{t('actions.move_to_trash')}</span>
           </DropdownMenuItem>
@@ -436,7 +437,7 @@ export default function Actions(props: IActionProps) {
                 className="cursor-pointer gap-2"
                 onClick={() => handleAction('wide')}
               >
-                <div className="flex items-center justify-between w-full">
+                <div className="flex w-full items-center justify-between">
                   <div className="flex items-center gap-2">
                     {loading === 'wide' ? (
                       <Spinner />

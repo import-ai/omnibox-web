@@ -32,7 +32,7 @@ import { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';
 import { useChatStore } from '@/page/chat/chat-store';
 import { SettingButton } from '@/page/settings/settings-trigger';
-import { useSidebarStore } from '@/page/sidebar/store/sidebar-store';
+import { useSidebarStore } from '@/page/sidebar/store';
 import { Logout } from '@/page/user/logout';
 
 import Generate from './create-namespace';
@@ -84,8 +84,8 @@ export function Switcher(props: IProps) {
       >
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
-              <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
+            <SidebarMenuButton className="h-auto w-full gap-[6px] px-1.5">
+              <div className="flex size-6 flex-shrink-0 items-center justify-center rounded-[8px] bg-primary text-[12px] text-primary-foreground dark:bg-neutral-700 dark:text-white">
                 {current.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <span className="truncate">{current.name}</span>
@@ -99,8 +99,8 @@ export function Switcher(props: IProps) {
             className="w-64 rounded-lg"
           >
             <DropdownMenuLabel>
-              <div className="flex items-center gap-1 text-left text-sm pt-1">
-                <Avatar className="size-8 font-normal rounded-lg flex items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
+              <div className="flex items-center gap-1 pt-1 text-left text-sm">
+                <Avatar className="flex size-8 items-center justify-center rounded-lg bg-primary font-normal text-primary-foreground dark:bg-neutral-700 dark:text-white">
                   {current.name?.charAt(0)?.toUpperCase() || '?'}
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -109,14 +109,14 @@ export function Switcher(props: IProps) {
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuLabel className="pt-0 pb-0 px-0">
+            <DropdownMenuLabel className="p-0">
               <Space className="flex-col items-stretch gap-1">
                 <SettingButton />
                 <InviteButton namespaceId={namespaceId} />
               </Space>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="mx-0" />
-            <DropdownMenuLabel className="text-xs text-muted-foreground py-2 font-medium">
+            <DropdownMenuLabel className="py-2 text-xs font-medium text-muted-foreground">
               {t('namespace.name')}
             </DropdownMenuLabel>
             <div
@@ -130,10 +130,10 @@ export function Switcher(props: IProps) {
               />
             </div>
             <DropdownMenuSeparator className="mx-0" />
-            <DropdownMenuLabel className="px-0 py-0">
+            <DropdownMenuLabel className="p-0">
               <Generate onCloseDropdown={() => setDropdownOpen(false)} />
             </DropdownMenuLabel>
-            <DropdownMenuLabel className="px-0 py-0">
+            <DropdownMenuLabel className="p-0">
               <Logout />
             </DropdownMenuLabel>
           </DropdownMenuContent>
@@ -142,7 +142,7 @@ export function Switcher(props: IProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <SidebarTrigger className="text-neutral-400 hover:text-neutral-400 hover:bg-[#E6E6EC] dark:hover:bg-accent" />
+                <SidebarTrigger className="text-neutral-400 hover:bg-[#E6E6EC] hover:text-neutral-400 dark:hover:bg-accent" />
               </TooltipTrigger>
               <TooltipContent>{t('sidebar.collapse')}</TooltipContent>
             </Tooltip>

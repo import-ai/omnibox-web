@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 interface CreateFolderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (folderName: string) => Promise<void>;
+  onConfirm: (folderName: string) => Promise<unknown>;
 }
 
 export function CreateFolderDialog({
@@ -52,7 +52,13 @@ export function CreateFolderDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={open => {
+        onOpenChange(open);
+        if (!open) setFolderName('');
+      }}
+    >
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{t('folder.create_dialog.title')}</DialogTitle>

@@ -1,11 +1,4 @@
-import {
-  PathItem,
-  Permission,
-  Resource,
-  ResourceType,
-  SpaceType,
-  TagDto,
-} from '@/interface';
+import { Resource, ResourceType, SpaceType } from '@/interface';
 
 export type RootResource = Resource & { children?: Resource[] };
 
@@ -17,27 +10,28 @@ export interface TreeNode {
   resourceType: ResourceType;
   content?: string;
   attrs?: Record<string, unknown>;
-  tags?: TagDto[];
-  path?: PathItem[];
+  tags?: import('@/interface').TagDto[];
+  path?: import('@/interface').PathItem[];
   hasChildren: boolean;
-  currentPermission?: Permission;
-  globalPermission?: Permission;
+  currentPermission?: import('@/interface').Permission;
+  globalPermission?: import('@/interface').Permission;
   createdAt: string;
   updatedAt: string;
+  children: string[];
+}
 
-  // UI state
+export interface NodeUI {
   expanded: boolean;
   loading: boolean;
   loaded: boolean;
-  children: string[];
 }
 
 export interface SidebarState {
   namespaceId: string;
   nodes: Record<string, TreeNode>;
+  ui: Record<string, NodeUI>;
   rootIds: Record<SpaceType, string>;
   activeId: string | null;
-  editingId: string | null;
   spaceExpanded: Record<SpaceType, boolean>;
   uploading: Record<string, boolean>;
   uploadProgress: Record<string, string>;
@@ -62,22 +56,35 @@ export interface SidebarActions {
   ) => Promise<string>;
   remove: (id: string, currentResourceId?: string) => RemoveResult;
   rename: (id: string, name: string) => Promise<void>;
-  move: (dragId: string, dropId: string) => void;
+  move: (dragId: string, dropId: string) => Promise<void>;
   upload: (parentId: string, files: FileList) => Promise<string>;
 
   activate: (id: string | null) => void;
-  setEditingId: (id: string | null) => void;
 
-  expandPathTo: (targetId: string) => Promise<void>;
+  expandPathTo: (
+    targetId: string,
+    options?: { expandTarget?: boolean }
+  ) => Promise<void>;
   patch: (
     id: string,
     updates: Partial<Pick<TreeNode, 'name' | 'content'>>
   ) => void;
   refreshChildren: (parentId: string, resources: Resource[]) => void;
-  restore: (resource: Resource) => void;
+  restore: (resourceOrId: Resource | string) => Promise<string>;
   clear: () => void;
 }
 
 export type SidebarStore = SidebarState & SidebarActions;
 export type SidebarSet = (fn: (draft: SidebarStore) => void) => void;
 export type SidebarGet = () => SidebarStore;
+
+export const initialState: SidebarState = {
+  namespaceId: '',
+  nodes: {},
+  ui: {},
+  rootIds: { private: '', teamspace: '' },
+  activeId: null,
+  spaceExpanded: { private: true, teamspace: true },
+  uploading: {},
+  uploadProgress: {},
+};

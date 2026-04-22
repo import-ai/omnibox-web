@@ -18,13 +18,11 @@ import { useSidebarEvents } from './hooks/use-sidebar-events';
 import { useSidebarInit } from './hooks/use-sidebar-init';
 
 export default function MainSidebar() {
-  const { namespaceId, chatPage } = useSidebarInit();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { setOpenMobile } = useSidebar();
-
+  const { namespaceId, chatPage } = useSidebarInit();
   useSidebarEvents(namespaceId);
-
   const handleActiveKey = (id: string, edit?: boolean) => {
     if (edit) {
       navigate(`/${namespaceId}/${id}/edit`, { state: { fromSidebar: true } });
@@ -41,7 +39,7 @@ export default function MainSidebar() {
   return (
     <React.Fragment>
       <Sidebar className="border-none">
-        <SidebarHeader className="pt-[16px] gap-[10px] pr-0">
+        <SidebarHeader className="gap-2.5 pr-0 pt-4">
           <Switcher namespaceId={namespaceId} />
           <Header active={chatPage} onActiveKey={handleActiveKey} />
         </SidebarHeader>

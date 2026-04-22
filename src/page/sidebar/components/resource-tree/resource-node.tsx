@@ -24,10 +24,10 @@ import { Spinner } from '@/components/ui/spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { http } from '@/lib/request';
+import { Resource } from '@/interface';
 import { cn } from '@/lib/utils';
-import { useNode } from '@/page/sidebar/store/selectors';
-import { useSidebarStore } from '@/page/sidebar/store/sidebar-store';
+import { useNode } from '@/page/sidebar/store';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 import Action from './node-actions';
 import ContextMenuMain from './node-context-menu';
@@ -58,8 +58,8 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
   const namespaceId = params.namespace_id || '';
 
   const node = useNode(nodeId);
+  const nodeUI = useSidebarStore(s => s.ui[nodeId]);
   const activeId = useSidebarStore(s => s.activeId);
-  const editingId = useSidebarStore(s => s.editingId);
 
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -73,6 +73,7 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
   if (!node) return null;
 
   const isActive = nodeId === activeId;
+
   // Local file drag target state (not from store)
   const [localFileDragTarget, setLocalFileDragTarget] = useState<string | null>(
     null
@@ -89,7 +90,7 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
         opacity: monitor.isDragging() ? 0.5 : 1,
       }),
     },
-    [isEditing]
+    [isEditing, node]
   );
 
   // Drop
@@ -136,6 +137,9 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
               toast.success(
                 t('upload.success', { count: fileList.files.length })
               );
+            })
+            .catch(err => {
+              toast.error(err?.message || t('upload.failed'));
             });
         } else {
           toast(t('upload.invalid_ext'), { position: 'bottom-right' });
@@ -144,13 +148,9 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
       } else {
         const dragItem = item as { id: string };
         if (dragItem.id !== nodeId) {
-          http
-            .post(
-              `/namespaces/${namespaceId}/resources/${dragItem.id}/move/${nodeId}`
-            )
-            .then(() => {
-              useSidebarStore.getState().move(dragItem.id, nodeId);
-            })
+          useSidebarStore
+            .getState()
+            .move(dragItem.id, nodeId)
             .catch(() => {
               toast.error(t('move.failed'));
             });
@@ -164,18 +164,6 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
       setLocalFileDragTarget(null);
     }
   }, [isOverHere, isFileDragOverLocal]);
-
-  // Sync editing state from store
-  useEffect(() => {
-    if (editingId === nodeId) {
-      setEditName(node.name || '');
-      setIsEditing(true);
-    } else if (isEditing) {
-      isBlurEnabledRef.current = false;
-      setIsEditing(false);
-      setEditName(node.name || '');
-    }
-  }, [editingId, nodeId, node.name]);
 
   useEffect(() => {
     drag(ref);
@@ -223,7 +211,7 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
   const handleExpand = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-    if (node.expanded) {
+    if (nodeUI?.expanded) {
       useSidebarStore.getState().collapse(nodeId);
     } else {
       useSidebarStore.getState().expand(nodeId);
@@ -237,7 +225,7 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
       } else {
         handleNavigate(nodeId);
         useSidebarStore.getState().activate(nodeId);
-        if (!node.expanded) {
+        if (!nodeUI?.expanded) {
           useSidebarStore.getState().expand(nodeId);
         }
       }
@@ -267,7 +255,8 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
     }
-    useSidebarStore.getState().setEditingId(nodeId);
+    setEditName(node.name || '');
+    setIsEditing(true);
   };
 
   const handleBlur = () => {
@@ -279,7 +268,6 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
     isBlurEnabledRef.current = false;
     const trimmedName = editName.trim();
     setIsEditing(false);
-    useSidebarStore.getState().setEditingId(null);
     if (trimmedName && trimmedName !== node.name) {
       try {
         await useSidebarStore.getState().rename(nodeId, trimmedName);
@@ -288,7 +276,7 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
           name: trimmedName,
           content: node.content,
           tags: node.tags,
-        } as unknown as import('@/interface').Resource);
+        } as unknown as Resource);
       } catch {
         setEditName(node.name || '');
       }
@@ -304,7 +292,6 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
     } else if (e.key === 'Escape') {
       isBlurEnabledRef.current = false;
       setIsEditing(false);
-      useSidebarStore.getState().setEditingId(null);
       setEditName(node.name || '');
     }
   };
@@ -315,20 +302,27 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
   return (
     <SidebarMenuItem>
       <Collapsible
-        open={node.expanded}
+        open={nodeUI?.expanded}
         className={cn('group/collapsible', {
           '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
-            node.expanded && !node.loading && node.hasChildren,
+            nodeUI?.expanded && !nodeUI?.loading && node.hasChildren,
         })}
       >
         <CollapsibleTrigger asChild>
-          <ContextMenuMain nodeId={nodeId} namespaceId={namespaceId}>
-            <div className="group/sidebar-item my-[1px] rounded-[6px] hover:bg-sidebar-accent">
+          <ContextMenuMain
+            nodeId={nodeId}
+            namespaceId={namespaceId}
+            onRename={() => {
+              setEditName(node.name || '');
+              setIsEditing(true);
+            }}
+          >
+            <div className="group/sidebar-item my-px rounded-[6px] hover:bg-sidebar-accent">
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
-                    className="gap-1 py-1.5 h-auto data-[active=true]:font-normal group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637] transition-none"
+                    className="h-auto gap-1 py-1.5 transition-none group-hover/sidebar-item:!pr-[30px] group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:bg-[#E2E2E6] data-[active=true]:font-normal dark:data-[active=true]:bg-[#363637]"
                     onClick={handleClick}
                     onDoubleClick={handleDoubleClick}
                     isActive={isActive || isEditing}
@@ -345,11 +339,11 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
                       })}
                     >
                       {node.hasChildren &&
-                        (node.loading ? (
+                        (nodeUI?.loading ? (
                           <Button
                             size="icon"
                             variant="outline"
-                            className="size-[20px] bg-transparent shadow-none border-none hover:bg-transparent"
+                            className="size-5 border-none bg-transparent shadow-none hover:bg-transparent"
                           >
                             <Spinner />
                           </Button>
@@ -357,7 +351,7 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
                           <Button
                             size="icon"
                             variant="outline"
-                            className="size-[20px] bg-transparent shadow-none border-none text-neutral-400 hover:bg-transparent"
+                            className="size-5 border-none bg-transparent text-neutral-400 shadow-none hover:bg-transparent"
                             onClick={event => {
                               event.preventDefault();
                               event.stopPropagation();
@@ -368,13 +362,13 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
                           </Button>
                         ))}
                       <ResourceIcon
-                        expand={node.expanded}
+                        expand={nodeUI?.expanded}
                         resource={{
                           id: node.id,
                           name: node.name,
+                          parent_id: node.parentId,
                           resource_type: node.resourceType,
                           has_children: node.hasChildren,
-                          content: node.content,
                           attrs: node.attrs,
                         }}
                       />
@@ -388,10 +382,10 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
                           onKeyDown={handleKeyDown}
                           onClick={e => e.stopPropagation()}
                           onDoubleClick={e => e.stopPropagation()}
-                          className="flex-1 min-w-0 bg-transparent outline-none text-sm caret-blue-500"
+                          className="min-w-0 flex-1 bg-transparent text-sm caret-blue-500 outline-none"
                         />
                       ) : (
-                        <span className="truncate flex-1">
+                        <span className="flex-1 truncate">
                           {node.name || t('untitled')}
                         </span>
                       )}
@@ -413,13 +407,17 @@ export default function ResourceNode({ nodeId }: ResourceNodeProps) {
                 namespaceId={namespaceId}
                 isUploading={isUploading}
                 uploadProgress={uploadProgress}
+                onRename={() => {
+                  setEditName(node.name || '');
+                  setIsEditing(true);
+                }}
               />
             </div>
           </ContextMenuMain>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarMenuSub className="pr-0 py-0 mr-0 gap-0">
-            {node.expanded &&
+          <SidebarMenuSub className="mr-0 gap-0 py-0 pr-0">
+            {nodeUI?.expanded &&
               node.hasChildren &&
               node.children.length > 0 &&
               node.children.map(childId => (

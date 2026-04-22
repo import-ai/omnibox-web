@@ -31,18 +31,18 @@ export function NamespaceList({
           )}
           onClick={() => onSelect(item)}
         >
-          <div className="flex rounded-[6px] size-6 text-[11px] font-normal items-center justify-center border">
+          <div className="flex size-6 items-center justify-center rounded-[6px] border text-[11px] font-normal">
             {item.name.charAt(0).toUpperCase()}
           </div>
           {item.tier ? (
-            <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
               <span className="truncate">{item.name}</span>
               {item.expired ? (
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                <span className="whitespace-nowrap text-xs text-muted-foreground">
                   {t('namespace.tier.expired')}
                 </span>
               ) : (
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                <span className="whitespace-nowrap text-xs text-muted-foreground">
                   {t(`namespace.tier.${item.tier}`)}
                 </span>
               )}

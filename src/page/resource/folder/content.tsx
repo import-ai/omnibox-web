@@ -2,11 +2,10 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
 
 interface IProps {
-  resource: ResourceSummary;
+  resource: { id: string };
   apiPrefix: string;
 }
 
@@ -21,7 +20,7 @@ export function FolderContent(props: IProps) {
       .get(`${apiPrefix}/${resource.id}/children?summary=true`, {
         cancelToken: source.token,
       })
-      .then((response: ResourceSummary[]) => {
+      .then((response: { length: number }) => {
         setChildrenCount(response.length);
       });
     return () => {
@@ -30,7 +29,7 @@ export function FolderContent(props: IProps) {
   }, [apiPrefix, resource.id]);
 
   return (
-    <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+    <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
       {t('resource.folder.children_count', {
         count: childrenCount,
       })}

@@ -37,14 +37,9 @@ import { Spinner } from '@/components/ui/spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useIsTouch } from '@/hooks/use-is-touch';
 import { SpaceType } from '@/interface';
-import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
-import {
-  useIsSpaceExpanded,
-  useNode,
-  useRootId,
-} from '@/page/sidebar/store/selectors';
-import { useSidebarStore } from '@/page/sidebar/store/sidebar-store';
+import { useIsSpaceExpanded, useNode, useRootId } from '@/page/sidebar/store';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 import { CreateFolderDialog } from './create-folder-dialog';
 import { menuIconClass, menuItemClass } from './node-styles';
@@ -121,13 +116,9 @@ export default function SpaceSection({
       } else if (itemType === 'card') {
         const dragItem = item as { id: string };
         if (dragItem.id !== rootId) {
-          http
-            .post(
-              `/namespaces/${namespaceId}/resources/${dragItem.id}/move/${rootId}`
-            )
-            .then(() => {
-              useSidebarStore.getState().move(dragItem.id, rootId);
-            })
+          useSidebarStore
+            .getState()
+            .move(dragItem.id, rootId)
             .catch(() => {
               toast.error(t('move.failed'));
             });
@@ -173,14 +164,18 @@ export default function SpaceSection({
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
+    const files = e.target.files;
+    if (!files) return;
     useSidebarStore
       .getState()
-      .upload(rootId, e.target.files)
+      .upload(rootId, files)
       .then(id => {
         useSidebarStore.getState().activate(id);
         navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
-        toast.success(t('upload.success', { count: e.target.files.length }));
+        toast.success(t('upload.success', { count: files.length }));
+      })
+      .catch(err => {
+        toast.error(err?.message || t('upload.failed'));
       })
       .finally(() => {
         fileInputRef.current!.value = '';
@@ -214,11 +209,11 @@ export default function SpaceSection({
     >
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <SidebarMenuButton className="group/sidebar-header pt-0 pb-[1px] h-8">
-            <div className="relative w-full h-full">
+          <SidebarMenuButton className="group/sidebar-header h-8 pb-px pt-0">
+            <div className="relative size-full">
               <SidebarGroupLabel
                 onClick={handleHeaderToggle}
-                className="h-full font-normal block leading-8 mr-4 text-neutral-400"
+                className="mr-4 block h-full font-normal leading-8 text-neutral-400"
               >
                 {spaceType ? t(spaceType) : ''}
               </SidebarGroupLabel>
@@ -227,14 +222,14 @@ export default function SpaceSection({
                   {isUploading ? (
                     <SidebarMenuAction
                       asChild
-                      className="group-hover/sidebar-header:pointer-events-auto pointer-events-none my-1.5 size-[16px] top-[2px] right-0 text-neutral-400 focus-visible:outline-none focus-visible:ring-transparent"
+                      className="pointer-events-none right-0 top-px my-1.5 size-4 text-neutral-400 focus-visible:outline-none focus-visible:ring-transparent group-hover/sidebar-header:pointer-events-auto"
                     >
                       <span>
                         {uploadProgress ? (
                           <TooltipProvider>
                             <Tooltip delayDuration={0}>
                               <TooltipTrigger asChild>
-                                <span className="[&>svg]:size-[16px]">
+                                <span className="[&>svg]:size-4">
                                   <Spinner />
                                 </span>
                               </TooltipTrigger>
@@ -258,7 +253,7 @@ export default function SpaceSection({
                           : 'group-hover/sidebar-header:opacity-100 group-hover/sidebar-header:pointer-events-auto pointer-events-none opacity-0'
                       )}
                     >
-                      <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent rounded-[2px] hover:bg-[#DFDFE3]" />
+                      <MoreHorizontal className="rounded-[2px] hover:bg-[#DFDFE3] focus-visible:outline-none focus-visible:ring-transparent" />
                     </SidebarMenuAction>
                   )}
                 </DropdownMenuTrigger>
@@ -353,7 +348,7 @@ export default function SpaceSection({
       </ContextMenu>
       {isOpen && (
         <SidebarGroupContent>
-          <SidebarMenu className="gap-[2px]">
+          <SidebarMenu className="gap-px">
             {rootNode.hasChildren &&
               rootNode.children.length > 0 &&
               rootNode.children.map(childId => (

@@ -33,9 +33,9 @@ import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useIsTouch } from '@/hooks/use-is-touch';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
+import { useNodeActions } from '@/page/sidebar/hooks/use-node-actions';
 
 import { CreateFolderDialog } from './create-folder-dialog';
-import { useNodeActions } from './hooks/use-node-actions';
 import { menuIconClass, menuItemClass } from './node-styles';
 
 interface NodeActionsProps {
@@ -43,6 +43,7 @@ interface NodeActionsProps {
   namespaceId: string;
   isUploading?: boolean;
   uploadProgress?: string;
+  onRename?: () => void;
 }
 
 export default function NodeActions({
@@ -50,6 +51,7 @@ export default function NodeActions({
   namespaceId,
   isUploading,
   uploadProgress,
+  onRename,
 }: NodeActionsProps) {
   const { t } = useTranslation();
   const isTouch = useIsTouch();
@@ -60,10 +62,10 @@ export default function NodeActions({
 
   if (!node) return null;
 
-  const handleRename = (e: React.SyntheticEvent) => {
+  const handleRename = (e: Event) => {
     e.preventDefault();
     setMenuOpen(false);
-    actions.handleRename();
+    onRename?.();
   };
 
   return (
@@ -76,7 +78,7 @@ export default function NodeActions({
                 <TooltipProvider>
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <SidebarMenuAction className="group-hover/sidebar-item:pointer-events-auto pointer-events-none size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
+                      <SidebarMenuAction className="pointer-events-none right-2 size-4 focus-visible:outline-none focus-visible:ring-transparent group-hover/sidebar-item:pointer-events-auto peer-data-[size=default]/menu-button:top-[8px]">
                         <Spinner />
                       </SidebarMenuAction>
                     </TooltipTrigger>
@@ -84,7 +86,7 @@ export default function NodeActions({
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <SidebarMenuAction className="group-hover/sidebar-item:pointer-events-auto pointer-events-none size-[16px] peer-data-[size=default]/menu-button:top-[8px] right-2 focus-visible:outline-none focus-visible:ring-transparent">
+                <SidebarMenuAction className="pointer-events-none right-2 size-4 focus-visible:outline-none focus-visible:ring-transparent group-hover/sidebar-item:pointer-events-auto peer-data-[size=default]/menu-button:top-[8px]">
                   <Spinner />
                 </SidebarMenuAction>
               )}
@@ -99,7 +101,7 @@ export default function NodeActions({
                   : 'group-hover/sidebar-item:opacity-100 group-hover/sidebar-item:pointer-events-auto pointer-events-none opacity-0'
               )}
             >
-              <MoreHorizontal className="focus-visible:outline-none focus-visible:ring-transparent cursor-pointer" />
+              <MoreHorizontal className="cursor-pointer focus-visible:outline-none focus-visible:ring-transparent" />
             </SidebarMenuAction>
           )}
         </DropdownMenuTrigger>
@@ -186,7 +188,7 @@ export default function NodeActions({
             className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
             onClick={actions.handleDelete}
           >
-            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
+            <Trash2 className="size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]" />
             {t('actions.move_to_trash')}
           </DropdownMenuItem>
         </DropdownMenuContent>

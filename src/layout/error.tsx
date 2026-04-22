@@ -9,18 +9,18 @@ export default function ErrorPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-lg min-w-max">
-        <h1 className="text-4xl font-bold text-black mb-4">404</h1>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100">
+      <div className="min-w-max max-w-lg rounded-lg bg-white p-8 text-center shadow-lg">
+        <h1 className="mb-4 text-4xl font-bold text-black">404</h1>
+        <h2 className="mb-4 text-2xl font-semibold text-gray-800">
           {t('error.title')}
         </h2>
-        <p className="text-gray-600 mb-4">
+        <p className="mb-4 text-gray-600">
           {error.statusText || error.message}
         </p>
         <a
           href="/"
-          className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+          className="inline-block rounded-lg bg-blue-500 px-4 py-2 font-medium text-white transition-colors duration-200 hover:bg-blue-600"
         >
           {t('back_to_front')}
         </a>

@@ -1,6 +1,6 @@
 import { Resource, SpaceType } from '@/interface';
 
-import { TreeNode } from './types';
+import type { TreeNode } from './types';
 
 export function createNode(
   resource: Resource,
@@ -22,9 +22,6 @@ export function createNode(
     globalPermission: resource.global_permission,
     createdAt: resource.created_at || '',
     updatedAt: resource.updated_at || '',
-    expanded: false,
-    loading: false,
-    loaded: false,
     children: [],
   };
 }
@@ -96,7 +93,6 @@ export function findNextActiveId(
   const idx = parent.children.indexOf(deletedId);
   if (idx < 0) return null;
 
-  // Sort siblings by updatedAt desc (matches old behavior)
   const sortedSiblings = [...parent.children].sort((a, b) => {
     const nodeA = nodes[a];
     const nodeB = nodes[b];
@@ -107,7 +103,6 @@ export function findNextActiveId(
   const sortedIdx = sortedSiblings.indexOf(deletedId);
   if (sortedIdx < 0) return null;
 
-  // Prefer previous sibling in sorted order, fallback to next
   const prev = sortedSiblings[sortedIdx - 1];
   if (prev) return prev;
 
@@ -115,6 +110,29 @@ export function findNextActiveId(
   if (next) return next;
 
   return null;
+}
+
+export function patchNodeFromResource(
+  node: TreeNode,
+  resource: Resource
+): void {
+  node.name = resource.name || '';
+  node.hasChildren = resource.has_children ?? false;
+  node.updatedAt = resource.updated_at || '';
+  node.resourceType = resource.resource_type;
+}
+
+export function traverseDescendants(
+  nodes: Record<string, TreeNode>,
+  id: string,
+  callback: (node: TreeNode) => void
+): void {
+  const node = nodes[id];
+  if (!node) return;
+  callback(node);
+  for (const childId of node.children) {
+    traverseDescendants(nodes, childId, callback);
+  }
 }
 
 export function detectSpaceType(

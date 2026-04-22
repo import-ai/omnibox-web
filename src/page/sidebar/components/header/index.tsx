@@ -25,7 +25,7 @@ import SearchMenu from '@/page/search';
 
 interface IProps {
   active: boolean;
-  onActiveKey: (activeKey: string) => void;
+  onActiveKey: (activeKey: string, edit?: boolean) => void;
 }
 
 export function Header(props: IProps) {
@@ -47,7 +47,7 @@ export function Header(props: IProps) {
   return (
     <>
       <SearchMenu open={search} onOpenChange={setSearch} />
-      <SidebarMenu className="mb-[16px]">
+      <SidebarMenu className="mb-4">
         <SidebarMenuItem className="group/chat">
           <SidebarMenuButton
             asChild
@@ -55,7 +55,7 @@ export function Header(props: IProps) {
             className="h-auto py-1.5 pr-1"
           >
             <div
-              className="flex items-center cursor-pointer gap-[8px]"
+              className="flex cursor-pointer items-center gap-2"
               onClick={onChat}
             >
               <ChatIcon className="size-4" />
@@ -86,7 +86,7 @@ export function Header(props: IProps) {
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
             <div
-              className="flex items-center gap-2 cursor-pointer "
+              className="flex cursor-pointer items-center gap-2 "
               onClick={onSearch}
             >
               <Search className="size-4 text-neutral-400" />
@@ -102,7 +102,7 @@ export function Header(props: IProps) {
             title={t('notification_modal.title')}
             trigger={
               <SidebarMenuButton asChild>
-                <div className="flex items-center gap-2 cursor-pointer">
+                <div className="flex cursor-pointer items-center gap-2">
                   {unreadCount > 0 ? (
                     <BellDot className="size-4 text-neutral-400" />
                   ) : (

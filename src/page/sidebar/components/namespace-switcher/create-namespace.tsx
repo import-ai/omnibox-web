@@ -77,13 +77,13 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
       <Button
         size="sm"
         variant="ghost"
-        className="w-full gap-1 justify-start text-muted-foreground px-2"
+        className="w-full justify-start gap-1 px-2 text-muted-foreground"
         onClick={handleClick}
       >
         <Plus className="size-4" />
         {t('namespace.add')}
       </Button>
-      <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl p-4 sm:p-6">
+      <DialogContent className="w-[90%] max-w-7xl p-4 sm:w-1/2 sm:p-6">
         <DialogHeader>
           <DialogTitle>{t('namespace.add')}</DialogTitle>
           <VisuallyHidden>

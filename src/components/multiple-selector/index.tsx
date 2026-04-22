@@ -222,7 +222,7 @@ const MultipleSelector = React.forwardRef<
     const [options, setOptions] = React.useState<GroupOption>(
       transToGroupOption(arrayDefaultOptions, groupBy)
     );
-    const [inputValue, setInputValue] = React.useState(inputPropsValue);
+    const [inputValue, setInputValue] = React.useState(inputPropsValue ?? '');
     const debouncedSearchTerm = useDebounce(inputValue, delay || 500);
 
     React.useImperativeHandle(
@@ -304,7 +304,7 @@ const MultipleSelector = React.forwardRef<
       if (inputPropsValue === inputValue) {
         return;
       }
-      setInputValue(inputPropsValue);
+      setInputValue(inputPropsValue ?? '');
     }, [inputValue, inputPropsValue]);
 
     useEffect(() => {
@@ -512,7 +512,7 @@ const MultipleSelector = React.forwardRef<
                     }}
                     onClick={() => handleUnselect(option)}
                   >
-                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                    <X className="size-3 text-muted-foreground hover:text-foreground" />
                   </button>
                 </Badge>
               );
