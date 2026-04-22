@@ -46,6 +46,17 @@ export default function useSelectedResources() {
     useChatStore.getState().setContext(resources);
   };
 
+  useEffect(() => {
+    return app.on('delete_resource', (id: string) => {
+      const filtered = selectedResources.filter(
+        item => item.resource.id !== id
+      );
+      if (filtered.length !== selectedResources.length) {
+        setSelectedResources(filtered);
+      }
+    });
+  }, [selectedResources]);
+
   return {
     selectedResources,
     setSelectedResources,

@@ -1,8 +1,12 @@
-import { History, Search } from 'lucide-react';
+import { Bell, BellDot, History, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ChatIcon } from '@/assets/icons/chatIcon';
+import ActionDialog from '@/components/invite-dialog/action-dialog';
+import Notification from '@/components/notification';
+import { useNotificationUnreadCount } from '@/components/notification/hooks/useNotifications';
+import { notificationDialogContentClassName } from '@/components/notification/utils';
 import {
   Tooltip,
   TooltipContent,
@@ -29,6 +33,7 @@ export function Header(props: IProps) {
   const [search, setSearch] = useState(false);
   const { t } = useTranslation();
   const isTouch = useIsTouch();
+  const unreadCount = useNotificationUnreadCount();
   const onChat = () => {
     onActiveKey('chat');
   };
@@ -81,13 +86,40 @@ export function Header(props: IProps) {
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
             <div
-              className="flex items-center gap-2 cursor-pointer"
+              className="flex items-center gap-2 cursor-pointer "
               onClick={onSearch}
             >
               <Search className="size-4 text-neutral-400" />
               <span>{t('search.title')}</span>
             </div>
           </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <ActionDialog
+            contentClassName={notificationDialogContentClassName}
+            closeClassName="size-6 mr-2"
+            titleClassName="text-card-foreground pb-2 pl-2"
+            title={t('notification_modal.title')}
+            trigger={
+              <SidebarMenuButton asChild>
+                <div className="flex items-center gap-2 cursor-pointer">
+                  {unreadCount > 0 ? (
+                    <BellDot className="size-4 text-neutral-400" />
+                  ) : (
+                    <Bell className="size-4 text-neutral-400" />
+                  )}
+                  <span>{t('notification')}</span>
+                  {unreadCount > 0 ? (
+                    <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-medium leading-none text-white">
+                      {unreadCount}
+                    </span>
+                  ) : null}
+                </div>
+              </SidebarMenuButton>
+            }
+          >
+            {close => <Notification onClose={close} />}
+          </ActionDialog>
         </SidebarMenuItem>
       </SidebarMenu>
     </>
