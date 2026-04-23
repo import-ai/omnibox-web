@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { http } from '@/lib/request';
 import {
@@ -19,17 +19,36 @@ export function useAgentUsage(namespaceId: string, messages: MessageDetail[]) {
     AgentUsageResponseDto | undefined
   >();
 
-  const userMessageCount: number = useMemo<number>(() => {
-    return messages.filter(
-      message =>
+  const [assistantMessageIds, setAssistantMessageIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    let lastUserMessage: MessageDetail | undefined = undefined;
+    for (const message of messages) {
+      if (
+        message.message.role === OpenAIMessageRole.ASSISTANT &&
+        message.status !== MessageStatus.PENDING &&
+        lastUserMessage !== undefined
+      ) {
+        setAssistantMessageIds(prev => {
+          if (!prev.includes(message.id)) {
+            console.log({ message });
+            return [...prev, message.id];
+          }
+          return prev;
+        });
+      } else if (
         message.message.role === OpenAIMessageRole.USER &&
-        message.status === MessageStatus.SUCCESS
-    ).length;
-  }, [messages.length]);
+        message.status === MessageStatus.SUCCESS &&
+        message.message.content
+      ) {
+        lastUserMessage = message;
+      }
+    }
+  }, [messages, setAssistantMessageIds]);
 
   useEffect(() => {
     http.get(`/namespaces/${namespaceId}/usages/agent`).then(setAgentUsage);
-  }, [namespaceId, userMessageCount]);
+  }, [namespaceId, assistantMessageIds.length]);
 
   return {
     agentUsage,
