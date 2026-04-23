@@ -214,11 +214,11 @@ export default function ShareSidebar(props: SharedSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem
             className={cn({
-              'flex justify-between items-center': open,
+              'flex items-center justify-between': open,
             })}
           >
-            <SidebarMenuButton className="h-auto w-full gap-[6px] px-1.5">
-              <div className="flex size-[24px] flex-shrink-0 items-center justify-center rounded-[8px] bg-primary text-[12px] text-primary-foreground dark:bg-neutral-700 dark:text-white">
+            <SidebarMenuButton className="h-auto w-full gap-1.5 px-1.5">
+              <div className="flex size-6 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground dark:bg-neutral-700 dark:text-white">
                 {username.charAt(0).toUpperCase()}
               </div>
               <span className="truncate">

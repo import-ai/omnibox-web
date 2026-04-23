@@ -31,18 +31,18 @@ function ResourceItem({
   return (
     <Button
       variant={selected ? 'secondary' : 'ghost'}
-      className="w-full flex h-auto whitespace-normal justify-between items-center font-normal rounded-none gap-2"
+      className="flex h-auto w-full items-center justify-between gap-2 whitespace-normal rounded-none font-normal"
       onClick={() => onSelect(resource.id)}
     >
       <div className="flex items-center gap-2">
         {resource.resource_type === 'folder' ? (
-          <Folder className="w-4 h-4 shrink-0" />
+          <Folder className="size-4 shrink-0" />
         ) : (
-          <File className="w-4 h-4 shrink-0" />
+          <File className="size-4 shrink-0" />
         )}
-        <div className="text-left break-all">{name}</div>
+        <div className="break-all text-left">{name}</div>
       </div>
-      {selected && <Check className="w-4 h-4 shrink-0 text-primary" />}
+      {selected && <Check className="size-4 shrink-0 text-primary" />}
     </Button>
   );
 }
@@ -129,10 +129,10 @@ export default function ResourceSearch({
         />
       </div>
 
-      <div className="max-h-60 overflow-y-auto overflow-x-hidden border rounded-md">
+      <div className="max-h-60 overflow-y-auto overflow-x-hidden rounded-md border">
         {data.root.length > 0 && (
           <>
-            <div className="px-2 py-1 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+            <div className="border-b bg-muted/30 px-2 py-1 text-xs font-medium text-muted-foreground">
               Root
             </div>
             {data.root.map(item => (
@@ -149,7 +149,7 @@ export default function ResourceSearch({
 
         {data.resources.length > 0 && (
           <>
-            <div className="px-2 py-1 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+            <div className="border-b bg-muted/30 px-2 py-1 text-xs font-medium text-muted-foreground">
               Resources
             </div>
             {data.resources.map(item => (
@@ -164,7 +164,7 @@ export default function ResourceSearch({
         )}
 
         {!loading && data.root.length === 0 && data.resources.length === 0 && (
-          <div className="p-4 text-center text-muted-foreground text-sm">
+          <div className="p-4 text-center text-sm text-muted-foreground">
             {search ? t('search.no_results') : t('search.resources')}
           </div>
         )}

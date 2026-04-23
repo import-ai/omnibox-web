@@ -237,7 +237,7 @@ export function LoginForm({
   const renderLinks = () => {
     if (contactMethod === 'email' && authMethod === 'otp') {
       return (
-        <Space className="text-sm justify-center">
+        <Space className="justify-center text-sm">
           <button
             type="button"
             onClick={() => {
@@ -265,7 +265,7 @@ export function LoginForm({
 
     if (contactMethod === 'email' && authMethod === 'password') {
       return (
-        <Space className="text-sm justify-center">
+        <Space className="justify-center text-sm">
           <button
             type="button"
             onClick={() => {
@@ -293,7 +293,7 @@ export function LoginForm({
 
     if (contactMethod === 'phone' && authMethod === 'otp') {
       return (
-        <Space className="text-sm justify-center">
+        <Space className="justify-center text-sm">
           <button
             type="button"
             onClick={() => {
@@ -321,7 +321,7 @@ export function LoginForm({
 
     if (contactMethod === 'phone' && authMethod === 'password') {
       return (
-        <Space className="text-sm justify-center">
+        <Space className="justify-center text-sm">
           <button
             type="button"
             onClick={() => {

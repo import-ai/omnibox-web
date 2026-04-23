@@ -1,4 +1,4 @@
-// Shared menu styles for action.tsx and contextMenu.tsx
+// Shared menu styles for node-actions.tsx, node-context-menu.tsx and space-section.tsx
 
 // Menu item base style
 export const menuItemClass = 'cursor-pointer gap-2 text-popover-foreground';

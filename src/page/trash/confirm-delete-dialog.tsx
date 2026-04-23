@@ -50,7 +50,7 @@ export function ConfirmPermanentDeleteDialog({
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
-            className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
+            className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
             onClick={handleConfirm}
           >
             {t('delete')}

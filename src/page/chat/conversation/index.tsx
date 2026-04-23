@@ -25,10 +25,10 @@ export default function ChatConversationPage() {
   } = useContext();
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex min-h-0 flex-1 flex-col">
       <Scrollbar>
         {messages.length <= 0 ? (
-          <div className="space-y-4 flex justify-end items-center">
+          <div className="flex items-center justify-end space-y-4">
             <Button disabled size="sm" variant="secondary">
               <Spinner />
             </Button>
@@ -44,7 +44,7 @@ export default function ChatConversationPage() {
         )}
       </Scrollbar>
       <div className="flex justify-center px-4">
-        <div className="max-w-3xl w-full">
+        <div className="w-full max-w-3xl">
           <AgentTrial namespaceId={namespaceId} messages={messages} />
           <ChatArea
             selectedResources={selectedResources}
@@ -54,7 +54,7 @@ export default function ChatConversationPage() {
             sendMessage={sendMessage}
             loading={loading}
           />
-          <div className="text-center text-xs pt-2 text-muted-foreground truncate">
+          <div className="truncate pt-2 text-center text-xs text-muted-foreground">
             {t('chat.disclaimer')}
           </div>
         </div>

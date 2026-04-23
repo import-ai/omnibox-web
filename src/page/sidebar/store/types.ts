@@ -1,4 +1,11 @@
-import { Resource, ResourceType, SpaceType } from '@/interface';
+import type { PathItem } from '@/interface';
+import {
+  Permission,
+  Resource,
+  ResourceType,
+  SpaceType,
+  TagDto,
+} from '@/interface';
 
 export type RootResource = Resource & { children?: Resource[] };
 
@@ -10,11 +17,11 @@ export interface TreeNode {
   resourceType: ResourceType;
   content?: string;
   attrs?: Record<string, unknown>;
-  tags?: import('@/interface').TagDto[];
-  path?: import('@/interface').PathItem[];
+  tags?: TagDto[];
+  path?: PathItem[];
   hasChildren: boolean;
-  currentPermission?: import('@/interface').Permission;
-  globalPermission?: import('@/interface').Permission;
+  currentPermission?: Permission;
+  globalPermission?: Permission;
   createdAt: string;
   updatedAt: string;
   children: string[];
@@ -32,9 +39,10 @@ export interface SidebarState {
   ui: Record<string, NodeUI>;
   rootIds: Record<SpaceType, string>;
   activeId: string | null;
+  createFolderTargetId: string | null;
+  currentUploadTargetId: string | null;
   spaceExpanded: Record<SpaceType, boolean>;
-  uploading: Record<string, boolean>;
-  uploadProgress: Record<string, string>;
+  upload: Record<string, string>;
 }
 
 export interface RemoveResult {
@@ -57,9 +65,12 @@ export interface SidebarActions {
   remove: (id: string, currentResourceId?: string) => RemoveResult;
   rename: (id: string, name: string) => Promise<void>;
   move: (dragId: string, dropId: string) => Promise<void>;
-  upload: (parentId: string, files: FileList) => Promise<string>;
+  uploadFiles: (parentId: string, files: FileList) => Promise<string>;
 
   activate: (id: string | null) => void;
+  openCreateFolderDialog: (parentId: string) => void;
+  closeCreateFolderDialog: () => void;
+  setCurrentUploadTargetId: (id: string | null) => void;
 
   expandPathTo: (
     targetId: string,
@@ -84,7 +95,8 @@ export const initialState: SidebarState = {
   ui: {},
   rootIds: { private: '', teamspace: '' },
   activeId: null,
+  createFolderTargetId: null,
+  currentUploadTargetId: null,
   spaceExpanded: { private: true, teamspace: true },
-  uploading: {},
-  uploadProgress: {},
+  upload: {},
 };

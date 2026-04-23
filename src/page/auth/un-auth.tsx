@@ -17,15 +17,15 @@ export default function UnauthorizedPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center justify-center mt-20">
-      <Card className="max-w-md w-full">
+    <div className="mt-20 flex items-center justify-center">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-4">
-            <div className="h-20 w-20 rounded-full bg-red-100 flex items-center justify-center">
-              <ShieldAlert className="h-10 w-10 text-red-600" />
+          <div className="mb-4 flex justify-center">
+            <div className="flex size-20 items-center justify-center rounded-full bg-red-100">
+              <ShieldAlert className="size-10 text-red-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">
+          <CardTitle className="text-center text-2xl">
             {t('unauth_page.title')}
           </CardTitle>
           <CardDescription className="text-center">
@@ -34,13 +34,13 @@ export default function UnauthorizedPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangle className="size-4" />
             <AlertTitle>{t('unauth_page.alert_title')}</AlertTitle>
             <AlertDescription> {t('unauth_page.alert_desc')}</AlertDescription>
           </Alert>
           <div className="text-sm text-muted-foreground">
             <p>{t('unauth_page.reason')}</p>
-            <ul className="list-disc pl-5 mt-2 space-y-1">
+            <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>{t('unauth_page.reason1')}</li>
               <li>{t('unauth_page.reason2')}</li>
               <li>{t('unauth_page.reason3')}</li>

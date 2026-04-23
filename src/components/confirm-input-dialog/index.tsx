@@ -68,10 +68,10 @@ export function ConfirmInputDialog({
         <AlertDialogTitle>{title}</AlertDialogTitle>
         <AlertDialogDescription className="space-y-4">
           {warningTitle && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-4">
+            <div className="rounded-md border border-destructive/20 bg-destructive/10 p-4">
               <p className="font-semibold text-destructive">{warningTitle}</p>
               {warningBody && (
-                <p className="text-sm mt-2 text-foreground">{warningBody}</p>
+                <p className="mt-2 text-sm text-foreground">{warningBody}</p>
               )}
             </div>
           )}

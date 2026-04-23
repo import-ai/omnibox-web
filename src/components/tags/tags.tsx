@@ -84,11 +84,11 @@ export default function Tags(props: IProps) {
         </span>
       </div>
       {loading ? (
-        <span className="flex items-center text-foreground h-7">
+        <span className="flex h-7 items-center text-foreground">
           <Spinner />
         </span>
       ) : (
-        <span className="flex flex-wrap items-center text-foreground min-h-6">
+        <span className="flex min-h-6 flex-wrap items-center text-foreground">
           {editing && !readOnly ? (
             <MultipleSelector
               creatable
@@ -102,7 +102,7 @@ export default function Tags(props: IProps) {
               onCreate={handleCreate}
               onChange={handleChange}
               createText={t('resource.attrs.create_tag')}
-              badgeClassName="!text-sm !border-neutral-300 !bg-transparent !text-neutral-500 !font-normal !rounded-[8px] !px-[8px] !py-[2px] !shadow-none dark:!border-neutral-500 dark:!text-neutral-400 hover:!bg-transparent"
+              badgeClassName="!text-sm !border-neutral-300 !bg-transparent !text-neutral-500 !font-normal !rounded-lg !px-2 !py-0.5 !shadow-none dark:!border-neutral-500 dark:!text-neutral-400 hover:!bg-transparent"
               inputProps={{
                 className:
                   'py-0 !text-sm !text-neutral-500 dark:!text-neutral-400',

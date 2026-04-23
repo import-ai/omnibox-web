@@ -205,7 +205,7 @@ function getIconForFile(resource: ResourceMeta) {
               fill={color}
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
-              className="lucide transition-transform scale-150"
+              className="lucide scale-150 transition-transform"
               {...domNode.attribs}
             >
               {domToReact(domNode.children)}

@@ -23,7 +23,7 @@ export default function Attributes(props: IProps) {
     resource.attrs.url
   ) {
     return (
-      <div className="space-y-2 mb-6 text-sm">
+      <div className="mb-6 space-y-2 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
@@ -52,7 +52,7 @@ export default function Attributes(props: IProps) {
     // On the sharing page (in read-only mode), file attributes are not displayed, only tags and creation time are shown
     if (readOnly) {
       return (
-        <div className="space-y-2 mb-6 text-sm">
+        <div className="mb-6 space-y-2 text-sm">
           <Tag
             data={resource.tags}
             resourceId={resource.id}
@@ -69,7 +69,7 @@ export default function Attributes(props: IProps) {
       );
     }
     return (
-      <div className="space-y-2 mb-6 text-sm">
+      <div className="mb-6 space-y-2 text-sm">
         <Tag
           data={resource.tags}
           resourceId={resource.id}
@@ -99,7 +99,7 @@ export default function Attributes(props: IProps) {
   }
 
   return (
-    <div className="space-y-2 mb-6 text-sm">
+    <div className="mb-6 space-y-2 text-sm">
       <Tag
         data={resource.tags}
         resourceId={resource.id}

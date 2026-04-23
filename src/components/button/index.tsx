@@ -21,7 +21,7 @@ const CustomButton = React.forwardRef<
         ref={ref}
         variant="outline"
         className={cn(
-          'bg-transparent text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground active:bg-[#D95E52] text-xs font-medium',
+          'border-destructive bg-transparent text-xs font-medium text-destructive hover:bg-destructive hover:text-destructive-foreground active:bg-[#D95E52]',
           className
         )}
         {...rest}
@@ -36,7 +36,7 @@ const CustomButton = React.forwardRef<
         ref={ref}
         variant={variant}
         className={cn(
-          'shadow-none bg-white border-neutral-200 hover:bg-neutral-100 active:border-neutral-300 dark:bg-transparent dark:!border-neutral-700 dark:hover:bg-neutral-600 active:bg-neutral-200 dark:active:bg-neutral-700 disabled:opacity-100 disabled:bg-neutral-400 disabled:text-neutral-200 disabled:border-neutral-400 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-500 dark:disabled:border-neutral-700 dark:disabled:hover:bg-neutral-700',
+          'border-neutral-200 bg-white shadow-none hover:bg-neutral-100 active:border-neutral-300 active:bg-neutral-200 disabled:border-neutral-400 disabled:bg-neutral-400 disabled:text-neutral-200 disabled:opacity-100 dark:!border-neutral-700 dark:bg-transparent dark:hover:bg-neutral-600 dark:active:bg-neutral-700 dark:disabled:border-neutral-700 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-500 dark:disabled:hover:bg-neutral-700',
           className
         )}
         {...rest}
@@ -51,7 +51,7 @@ const CustomButton = React.forwardRef<
         ref={ref}
         variant="default"
         className={cn(
-          'shadow-none dark:bg-white hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100 disabled:opacity-100 disabled:bg-neutral-400 disabled:text-neutral-200 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-500 dark:disabled:hover:bg-neutral-700',
+          'shadow-none hover:bg-neutral-800 active:bg-neutral-700 disabled:bg-neutral-400 disabled:text-neutral-200 disabled:opacity-100 dark:bg-white dark:hover:bg-neutral-100 dark:active:bg-neutral-300 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-500 dark:disabled:hover:bg-neutral-700',
           className
         )}
         {...rest}

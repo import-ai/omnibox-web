@@ -54,7 +54,7 @@ export function ShareLayout(props: IProps) {
           onAddToContext={handleAddToContext}
         />
       )}
-      <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)]">
+      <SidebarInset className="m-[8px] h-full min-h-0 rounded-[16px] bg-white dark:bg-background md:h-[calc(100svh-16px)]">
         {!isChatActive && (
           <>
             <Header
@@ -66,7 +66,7 @@ export function ShareLayout(props: IProps) {
             <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
           </>
         )}
-        <div className="flex flex-1 flex-col min-h-0 overflow-auto">
+        <div className="flex min-h-0 flex-1 flex-col overflow-auto">
           <Outlet />
         </div>
       </SidebarInset>

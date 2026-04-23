@@ -192,7 +192,7 @@ export default function SharePage() {
   if (requirePassword) {
     return (
       <div className="flex justify-center p-10">
-        <div className="flex flex-col gap-4 w-[400px]">
+        <div className="flex w-[400px] flex-col gap-4">
           <span className="text-sm">
             {t('shared_resources.password_required')}
           </span>

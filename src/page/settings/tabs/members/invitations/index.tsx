@@ -38,7 +38,7 @@ export function InvitationMain(props: InvitationProps) {
 
   return (
     <div className="space-y-4 p-px">
-      <div className="flex items-center justify-between flex-wrap">
+      <div className="flex flex-wrap items-center justify-between">
         <Input
           value={search}
           onChange={e => onSearch(e.target.value)}
@@ -57,7 +57,7 @@ export function InvitationMain(props: InvitationProps) {
         <Table rootClassName="max-w-[83vw] sm:w-full">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[40%]">{t('manage.group')}</TableHead>
+              <TableHead className="w-2/5">{t('manage.group')}</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>

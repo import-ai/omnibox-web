@@ -240,7 +240,7 @@ export function APIKeyForm() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
+      <div className="flex size-full items-center justify-center">
         <Spinner className="size-6 text-gray-400" />
       </div>
     );
@@ -286,10 +286,10 @@ export function APIKeyForm() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-5 w-5 p-0 hover:bg-transparent"
+                        className="size-5 p-0 hover:bg-transparent"
                         type="button"
                       >
-                        <CircleHelp className="h-4 w-4 text-muted-foreground" />
+                        <CircleHelp className="size-4 text-muted-foreground" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -410,10 +410,10 @@ export function APIKeyForm() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-5 w-5 p-0 hover:bg-transparent"
+                        className="size-5 p-0 hover:bg-transparent"
                         type="button"
                       >
-                        <CircleHelp className="h-4 w-4 text-muted-foreground" />
+                        <CircleHelp className="size-4 text-muted-foreground" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -547,7 +547,7 @@ export function APIKeyForm() {
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => toggleKeyVisibility(key.id)}
-                        className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70"
+                        className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
                       >
                         {visibleKeys.has(key.id) ? (
                           <EyeOff className="size-4 text-muted-foreground" />
@@ -567,7 +567,7 @@ export function APIKeyForm() {
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => copyToClipboard(key.value)}
-                        className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70"
+                        className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
                       >
                         <Copy className="size-4 text-muted-foreground" />
                       </button>
@@ -581,7 +581,7 @@ export function APIKeyForm() {
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => handleEditClick(key)}
-                        className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70"
+                        className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
                       >
                         <Pencil className="size-4 text-muted-foreground" />
                       </button>
@@ -593,7 +593,7 @@ export function APIKeyForm() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <AlertDialogTrigger asChild>
-                          <button className="flex items-center justify-center w-10 h-10 lg:w-auto lg:h-auto lg:p-1 transition-opacity hover:opacity-70">
+                          <button className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1">
                             <Trash2 className="size-4 text-muted-foreground" />
                           </button>
                         </AlertDialogTrigger>

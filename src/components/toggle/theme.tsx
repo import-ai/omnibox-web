@@ -32,7 +32,7 @@ export function ThemeToggle() {
           <Button
             size="icon"
             variant="ghost"
-            className="h-7 w-7"
+            className="size-7"
             onClick={handleToggleTheme}
           >
             {theme.skin === 'system' && <SunMoon />}

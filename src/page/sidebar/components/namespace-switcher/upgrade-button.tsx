@@ -31,7 +31,7 @@ export function UpgradeButton() {
     <button
       onClick={handleClick}
       className={cn(
-        'flex h-[30px] w-auto lg:w-full items-center gap-3 rounded px-3 text-left',
+        'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
         'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
       )}
     >

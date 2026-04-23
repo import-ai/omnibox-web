@@ -101,29 +101,29 @@ export function SettingsSidebar({
       : username || 'User';
 
   return (
-    <div className="relative h-auto lg:h-full w-full lg:w-[247px] shrink-0 rounded-t-xl lg:rounded-l-xl lg:rounded-tr-none bg-muted dark:bg-neutral-900 overflow-y-auto lg:overflow-visible">
-      <div className="p-2 lg:p-0 lg:absolute lg:inset-2 lg:w-[231px] flex flex-col gap-1 lg:gap-5 lg:justify-between">
+    <div className="relative h-auto w-full shrink-0 overflow-y-auto rounded-t-xl bg-muted dark:bg-neutral-900 lg:h-full lg:w-[247px] lg:overflow-visible lg:rounded-l-xl lg:rounded-tr-none">
+      <div className="flex flex-col gap-1 p-2 lg:absolute lg:inset-2 lg:w-[231px] lg:justify-between lg:gap-5 lg:p-0">
         <div className="flex flex-col gap-1 lg:gap-5">
           {/* Account Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
-            <div className="hidden lg:block px-2">
+            <div className="hidden px-2 lg:block">
               <span className="whitespace-nowrap text-xs font-semibold text-neutral-500">
                 {t('setting.account')}
               </span>
             </div>
 
-            <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5">
+            <div className="flex w-full flex-row flex-wrap gap-1 lg:flex-col lg:gap-0.5">
               <button
                 onClick={() => onChange('profile')}
                 className={cn(
-                  'flex h-[30px] w-auto lg:w-full items-center gap-2 lg:gap-3 rounded px-2.5 py-1 text-left',
+                  'flex h-[30px] w-auto items-center gap-2 rounded px-2.5 py-1 text-left lg:w-full lg:gap-3',
                   value === 'profile'
                     ? 'bg-neutral-200 dark:bg-neutral-800'
                     : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
                 )}
               >
                 <div className="relative flex size-[21px] shrink-0 items-center justify-center">
-                  <div className="absolute inset-0 rounded bg-primary dark:bg-neutral-950 shadow-[0_1px_2px_0_#00000040]" />
+                  <div className="absolute inset-0 rounded bg-primary shadow-[0_1px_2px_0_#00000040] dark:bg-neutral-950" />
                   <span className="relative text-xs font-normal text-primary-foreground dark:text-white">
                     {initial}
                   </span>
@@ -140,7 +140,7 @@ export function SettingsSidebar({
                     key={item.value}
                     onClick={() => onChange(item.value)}
                     className={cn(
-                      'flex h-[30px] w-auto lg:w-full items-center gap-3 rounded px-3 text-left',
+                      'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                       isSelected
                         ? 'bg-neutral-200 dark:bg-neutral-800'
                         : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
@@ -170,13 +170,13 @@ export function SettingsSidebar({
 
           {/* Space Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
-            <div className="hidden lg:block px-2">
+            <div className="hidden px-2 lg:block">
               <span className="w-full text-xs font-semibold text-neutral-500">
                 {t('setting.space')}
               </span>
             </div>
 
-            <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5">
+            <div className="flex w-full flex-row flex-wrap gap-1 lg:flex-col lg:gap-0.5">
               {filteredSpaceItems.map(item => {
                 const isSelected = value === item.value;
 
@@ -185,7 +185,7 @@ export function SettingsSidebar({
                     key={item.value}
                     onClick={() => onChange(item.value)}
                     className={cn(
-                      'flex h-[30px] w-auto lg:w-full items-center gap-3 rounded px-3 text-left',
+                      'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                       isSelected
                         ? 'bg-neutral-200 dark:bg-neutral-800'
                         : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
@@ -215,12 +215,12 @@ export function SettingsSidebar({
         </div>
 
         <div className="flex w-full flex-col gap-2 lg:gap-2">
-          <div className="flex w-full flex-row flex-wrap lg:flex-col gap-1 lg:gap-0.5">
+          <div className="flex w-full flex-row flex-wrap gap-1 lg:flex-col lg:gap-0.5">
             {config.commercial && <UpgradeButton />}
             <button
               onClick={() => onChange(aboutItem.value)}
               className={cn(
-                'flex h-[30px] w-auto lg:w-full items-center gap-3 rounded px-3 text-left',
+                'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                 value === aboutItem.value
                   ? 'bg-neutral-200 dark:bg-neutral-800'
                   : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'

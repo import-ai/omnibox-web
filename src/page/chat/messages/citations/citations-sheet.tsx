@@ -36,7 +36,7 @@ export function CitationsSheet(props: IProps) {
         <Button
           variant="outline"
           size="sm"
-          className="border-[#eaecf3] dark:border-[#4d4e4f] dark:bg-transparent hover:border-[#f7f8fa] dark:hover:border-[#626264] dark:hover:bg-[#404040]"
+          className="border-[#eaecf3] hover:border-[#f7f8fa] dark:border-[#4d4e4f] dark:bg-transparent dark:hover:border-[#626264] dark:hover:bg-[#404040]"
         >
           {citations.length} {t('chat.citations')}
           {plural} <ChevronRight />
@@ -50,7 +50,7 @@ export function CitationsSheet(props: IProps) {
           </VisuallyHidden>
         </SheetHeader>
         <Separator className="dark:bg-gray-700" />
-        <div className="overflow-y-auto h-[calc(100svh-53px)]">
+        <div className="h-[calc(100svh-53px)] overflow-y-auto">
           {citations.map((citation, i) => (
             <CitationCard
               key={index + i}

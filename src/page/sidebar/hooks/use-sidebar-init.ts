@@ -8,10 +8,11 @@ import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
 export function useSidebarInit() {
   const params = useParams();
   const navigate = useNavigate();
-  const loc = useLocation();
-  const namespaceId = params.namespace_id || '';
+  // Auto-navigate to first resource when no resourceId and not on chat page
+  const hasAutoNavigatedRef = useRef(false);
   const resourceId = params.resource_id || '';
-  const chatPage = loc.pathname.includes('/chat');
+  const namespaceId = params.namespace_id || '';
+  const chatPage = useLocation().pathname.includes('/chat');
 
   // Derive initialization state from rootIds.
   // setNamespaceId() clears rootIds when namespace switches, so this is reliable.
@@ -19,8 +20,10 @@ export function useSidebarInit() {
     s => s.rootIds.private !== '' || s.rootIds.teamspace !== ''
   );
 
-  // Set namespaceId (also clears old nodes/rootIds/ui/activeId)
   useEffect(() => {
+    // Reset auto-navigate flag when namespace changes
+    hasAutoNavigatedRef.current = false;
+    // Set namespaceId (also clears old nodes/rootIds/ui/activeId)
     useSidebarStore.getState().setNamespaceId(namespaceId);
   }, [namespaceId]);
 
@@ -71,9 +74,6 @@ export function useSidebarInit() {
     };
   }, [initialized, resourceId, chatPage]);
 
-  // Auto-navigate to first resource when no resourceId and not on chat page
-  const hasAutoNavigatedRef = useRef(false);
-
   useEffect(() => {
     if (!initialized || resourceId || chatPage) return;
     if (hasAutoNavigatedRef.current) return;
@@ -93,11 +93,6 @@ export function useSidebarInit() {
     }
   }, [initialized, resourceId, chatPage, namespaceId, navigate]);
 
-  // Reset auto-navigate flag when namespace changes
-  useEffect(() => {
-    hasAutoNavigatedRef.current = false;
-  }, [namespaceId]);
-
   // Sync activeId from URL (only when URL changes, not when store.activeId changes)
   useEffect(() => {
     const store = useSidebarStore.getState();
@@ -107,5 +102,5 @@ export function useSidebarInit() {
     // Only depend on resourceId to avoid racing with internal store navigation
   }, [resourceId]);
 
-  return { namespaceId, resourceId, chatPage };
+  return { namespaceId, resourceId };
 }

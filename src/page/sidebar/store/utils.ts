@@ -45,7 +45,9 @@ export function getDescendantIds(
 ): string[] {
   const result: string[] = [];
   const startNode = nodes[id];
-  if (!startNode) return result;
+  if (!startNode) {
+    return result;
+  }
 
   const stack: string[] = [...startNode.children];
   while (stack.length > 0) {
@@ -69,7 +71,9 @@ export function isDescendant(
   const stack: string[] = [...(nodes[ancestorId]?.children ?? [])];
   while (stack.length > 0) {
     const currentId = stack.pop()!;
-    if (currentId === targetId) return true;
+    if (currentId === targetId) {
+      return true;
+    }
     const node = nodes[currentId];
     if (node) {
       for (const childId of node.children) {
@@ -85,13 +89,19 @@ export function findNextActiveId(
   deletedId: string
 ): string | null {
   const deleted = nodes[deletedId];
-  if (!deleted?.parentId) return null;
+  if (!deleted?.parentId) {
+    return null;
+  }
 
   const parent = nodes[deleted.parentId];
-  if (!parent) return null;
+  if (!parent) {
+    return null;
+  }
 
   const idx = parent.children.indexOf(deletedId);
-  if (idx < 0) return null;
+  if (idx < 0) {
+    return null;
+  }
 
   const sortedSiblings = [...parent.children].sort((a, b) => {
     const nodeA = nodes[a];
@@ -101,13 +111,19 @@ export function findNextActiveId(
   });
 
   const sortedIdx = sortedSiblings.indexOf(deletedId);
-  if (sortedIdx < 0) return null;
+  if (sortedIdx < 0) {
+    return null;
+  }
 
   const prev = sortedSiblings[sortedIdx - 1];
-  if (prev) return prev;
+  if (prev) {
+    return prev;
+  }
 
   const next = sortedSiblings[sortedIdx + 1];
-  if (next) return next;
+  if (next) {
+    return next;
+  }
 
   return null;
 }
@@ -128,7 +144,9 @@ export function traverseDescendants(
   callback: (node: TreeNode) => void
 ): void {
   const node = nodes[id];
-  if (!node) return;
+  if (!node) {
+    return;
+  }
   callback(node);
   for (const childId of node.children) {
     traverseDescendants(nodes, childId, callback);
@@ -141,9 +159,13 @@ export function detectSpaceType(
   firstPathId: string
 ): SpaceType | null {
   for (const [type, rootId] of Object.entries(rootIds)) {
-    if (rootId === firstPathId) return type as SpaceType;
+    if (rootId === firstPathId) {
+      return type as SpaceType;
+    }
     const root = nodes[rootId];
-    if (root?.children.includes(firstPathId)) return type as SpaceType;
+    if (root?.children.includes(firstPathId)) {
+      return type as SpaceType;
+    }
   }
   return null;
 }

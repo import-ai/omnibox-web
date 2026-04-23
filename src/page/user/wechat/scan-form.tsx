@@ -88,13 +88,13 @@ export function ScanForm() {
   }, [redirect]);
 
   return (
-    <div className="h-[400px] relative overflow-hidden rounded-sm mx-[-24px]">
+    <div className="relative mx-[-24px] h-[400px] overflow-hidden rounded-sm">
       <div
         id="wx-login-container"
-        className={cn('w-full h-full', { 'opacity-0': opacity })}
+        className={cn('h-full w-full', { 'opacity-0': opacity })}
       />
       {loading && (
-        <div className="absolute left-0 top-0 z-10 flex items-center justify-center w-full h-full text-foreground">
+        <div className="absolute left-0 top-0 z-10 flex size-full items-center justify-center text-foreground">
           <Spinner />
         </div>
       )}

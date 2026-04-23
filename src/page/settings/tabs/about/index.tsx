@@ -6,7 +6,7 @@ export default function About() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 pb-2 border-b">
+      <div className="flex items-center gap-2 border-b pb-2">
         <h3 className="text-lg font-semibold">{t('setting.about_title')}</h3>
       </div>
       <div className="space-y-4">

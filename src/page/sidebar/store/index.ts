@@ -1,19 +1,12 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
-import { SpaceType } from '@/interface';
+import type { SpaceType } from '@/interface';
 
 import { buildActions } from './actions';
 import type { SidebarStore, TreeNode } from './types';
 import { initialState } from './types';
 
-export type {
-  BatchCreateItem,
-  BatchMoveItem,
-  BatchRenameItem,
-  CreatePayload,
-} from './api';
-export { sidebarApi } from './api';
 export type {
   NodeUI,
   RemoveResult,
@@ -35,6 +28,27 @@ export {
   patchNodeFromResource,
   traverseDescendants,
 } from './utils';
+export type {
+  BatchCreateItem,
+  BatchMoveItem,
+  BatchRenameItem,
+  CreatePayload,
+} from '@/service/resource';
+export {
+  batchCreate,
+  batchDelete,
+  batchMove,
+  batchRename,
+  createResource,
+  deleteResource,
+  fetchChildren,
+  fetchResource,
+  fetchResourcesByIds,
+  moveResource,
+  renameResource,
+  restoreResource,
+  uploadResource,
+} from '@/service/resource';
 
 export const useSidebarStore = create<SidebarStore>()(
   immer((set, get) => ({
@@ -69,10 +83,6 @@ export function useNodesSize(): number {
   return useSidebarStore(state => Object.keys(state.nodes).length);
 }
 
-export function useIsUploading(id: string): boolean {
-  return useSidebarStore(state => id in state.uploading);
-}
-
-export function useUploadProgress(id: string): string | undefined {
-  return useSidebarStore(state => state.uploadProgress[id]);
+export function useUpload(id: string): string | undefined {
+  return useSidebarStore(state => state.upload[id]);
 }

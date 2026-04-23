@@ -33,7 +33,7 @@ export function AddGroupInvitation(props: IProps) {
           {t('invite.title')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl p-4 sm:p-6">
+      <DialogContent className="w-[90%] max-w-7xl p-4 sm:w-1/2 sm:p-6">
         <DialogHeader>
           <DialogTitle>{t('invite.title')}</DialogTitle>
           <VisuallyHidden>

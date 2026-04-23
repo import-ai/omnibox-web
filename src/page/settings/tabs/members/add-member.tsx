@@ -1,5 +1,4 @@
-import { Plus } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -107,7 +106,7 @@ export default function AddMember(props: AddMemberProps) {
       <PopoverContent
         side="bottom"
         align="start"
-        className="p-0 shadow-none w-[85vw] max-w-[360px] border-none"
+        className="w-[85vw] max-w-[360px] border-none p-0 shadow-none"
       >
         <MultipleSelector
           value={value}

@@ -113,7 +113,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
   );
 
   return (
-    <div className="mt-2 flex h-full min-h-0 w-full flex-col bg-white dark:bg-neutral-900">
+    <div className="mt-2 flex size-full min-h-0 flex-col bg-white dark:bg-neutral-900">
       <div className="flex h-full min-h-0 flex-col">
         <NotificationToolbar
           unreadCount={unreadCount}
@@ -128,7 +128,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
 
         {items.length > 0 ? (
           <div
-            className="-mr-4 flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:#e5e7eb_transparent] hover:[scrollbar-color:#d1d5db_transparent] dark:[scrollbar-color:#4b5563_transparent] dark:hover:[scrollbar-color:#6b7280_transparent]"
+            className="-mr-4 flex-1 overflow-y-auto [scrollbar-color:#e5e7eb_transparent] [scrollbar-width:thin] hover:[scrollbar-color:#d1d5db_transparent] dark:[scrollbar-color:#4b5563_transparent] dark:hover:[scrollbar-color:#6b7280_transparent]"
             onScroll={handleScroll}
           >
             <div className="space-y-2 pr-4">

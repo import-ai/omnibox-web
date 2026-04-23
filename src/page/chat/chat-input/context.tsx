@@ -24,14 +24,14 @@ export default function ChatContext(props: IProps) {
   }
 
   return (
-    <div className="flex items-center gap-1 pt-2 mt-[-8px] max-w-3xl overflow-x-auto no-scrollbar">
+    <div className="no-scrollbar mt-[-8px] flex max-w-3xl items-center gap-1 overflow-x-auto pt-2">
       {value.map(item => (
         <Badge
           key={`${item.resource.id}_${item.type}`}
           slot={
             <Button
               size="icon"
-              className="w-4 h-4 bg-black text-white rounded-full dark:bg-white dark:text-black"
+              className="size-4 rounded-full bg-black text-white dark:bg-white dark:text-black"
               onClick={() => {
                 onChange(
                   value.filter(
@@ -51,13 +51,13 @@ export default function ChatContext(props: IProps) {
           <Button
             size="sm"
             variant="outline"
-            className="dark:bg-transparent dark:border-[#6e7276]"
+            className="dark:border-[#6e7276] dark:bg-transparent"
             onClick={() => {
               navigate(`${navigatePrefix}/${item.resource.id}`);
             }}
           >
             {item.type === 'folder' ? (
-              <Folder className="w-4 h-4" />
+              <Folder className="size-4" />
             ) : (
               <ResourceIcon expand={false} resource={item.resource} />
             )}

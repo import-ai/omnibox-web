@@ -33,13 +33,13 @@ export function StorageSection({
 }: StorageSectionProps) {
   return (
     <div className="space-y-1">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-foreground">{title}</h2>
         {currentTooltip ? (
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="text-sm font-medium text-muted-foreground cursor-pointer">
+                <span className="cursor-pointer text-sm font-medium text-muted-foreground">
                   {current}
                 </span>
               </TooltipTrigger>
@@ -56,12 +56,12 @@ export function StorageSection({
       <TooltipProvider delayDuration={200}>
         <div className="flex flex-wrap gap-7">
           {items.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-1 min-w-14">
+            <div key={idx} className="flex min-w-14 items-center gap-1">
               <div className={`size-2 rounded-full ${item.color}`} />
               {item.tooltip ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-sm font-medium text-muted-foreground cursor-pointer">
+                    <span className="cursor-pointer text-sm font-medium text-muted-foreground">
                       {item.label}
                     </span>
                   </TooltipTrigger>

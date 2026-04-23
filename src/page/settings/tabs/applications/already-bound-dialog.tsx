@@ -49,18 +49,18 @@ export function AlreadyBoundDialog({
               <img
                 src={qrCodeDataUrl}
                 alt="Bot QR Code"
-                className="w-48 h-48 border border-border rounded-lg"
+                className="size-48 rounded-lg border border-border"
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <img
                   src={logoUrl}
                   alt="OmniBox Logo"
-                  className="w-12 h-12 bg-white p-1 rounded-lg shadow-sm"
+                  className="size-12 rounded-lg bg-white p-1 shadow-sm"
                 />
               </div>
             </div>
           ) : (
-            <div className="w-48 h-48 border border-border rounded-lg flex items-center justify-center">
+            <div className="flex size-48 items-center justify-center rounded-lg border border-border">
               <div className="text-center text-muted-foreground">
                 {t('loading')}
               </div>

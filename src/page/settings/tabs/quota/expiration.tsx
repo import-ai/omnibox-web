@@ -36,7 +36,7 @@ export function Expiration({ basic, premium }: IProps) {
 
   if (!premium) {
     return (
-      <div className="text-right text-xs pt-2">
+      <div className="pt-2 text-right text-xs">
         <span className="font-semibold text-foreground">
           {t('quota.basic_period')}
         </span>
@@ -48,11 +48,11 @@ export function Expiration({ basic, premium }: IProps) {
   const premiumText = formatExpiration(premium.expired, premium.expire_date);
 
   return (
-    <div className="text-right text-xs pt-2">
+    <div className="pt-2 text-right text-xs">
       <span className="font-semibold text-foreground">
         {t('quota.premium_period')}
       </span>
-      <span className="text-muted-foreground mr-4">{premiumText}</span>
+      <span className="mr-4 text-muted-foreground">{premiumText}</span>
       <span className="font-semibold text-foreground">
         {t('quota.basic_period')}
       </span>

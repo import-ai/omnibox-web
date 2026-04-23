@@ -111,8 +111,8 @@ export default function GroupData(props: GroupProps) {
         '[&[data-state=open]>div>div>svg:first-child]:rotate-90': fold,
       })}
     >
-      <div className="flex h-[50px] lg:h-[60px] items-center border-b border-border">
-        <div className="flex w-[100px] lg:w-[210px] items-center px-2 whitespace-nowrap">
+      <div className="flex h-[50px] items-center border-b border-border lg:h-[60px]">
+        <div className="flex w-[100px] items-center whitespace-nowrap px-2 lg:w-[210px]">
           <CollapsibleTrigger asChild>
             <ChevronRight className="mr-2 size-4 flex-shrink-0 cursor-pointer transition-transform" />
           </CollapsibleTrigger>
@@ -120,18 +120,18 @@ export default function GroupData(props: GroupProps) {
             <span className="block truncate text-sm">{title}</span>
           </div>
         </div>
-        <div className="w-[80px] lg:w-[115px] px-2 whitespace-nowrap">
+        <div className="w-[80px] whitespace-nowrap px-2 lg:w-[115px]">
           <span className="text-sm text-muted-foreground">
             {t('manage.member_count', { size: groupUserData.length })}
           </span>
         </div>
-        <div className="flex w-[60px] lg:w-[127px] items-center justify-center whitespace-nowrap">
+        <div className="flex w-[60px] items-center justify-center whitespace-nowrap lg:w-[127px]">
           <Switch
             checked={Boolean(invitation_id)}
             onCheckedChange={handleCheckedChange}
           />
         </div>
-        <div className="flex flex-1 items-center justify-end gap-2 lg:gap-4 px-2">
+        <div className="flex flex-1 items-center justify-end gap-2 px-2 lg:gap-4">
           {/* Copy link - always reserve space, only show icon when invitation is enabled */}
           <div className="w-4">
             {invitation_id && (

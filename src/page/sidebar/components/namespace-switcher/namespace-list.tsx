@@ -24,14 +24,14 @@ export function NamespaceList({
           key={item.id}
           disabled={item.id === currentId}
           className={cn(
-            'gap-2 px-2 py-2 rounded-[8px] active:bg-neutral-200 dark:active:bg-neutral-600',
+            'gap-2 rounded-lg px-2 py-2 active:bg-neutral-200 dark:active:bg-neutral-600',
             {
               'cursor-pointer': item.id !== currentId,
             }
           )}
           onClick={() => onSelect(item)}
         >
-          <div className="flex size-6 items-center justify-center rounded-[6px] border text-[11px] font-normal">
+          <div className="flex size-6 items-center justify-center rounded-md border text-[11px] font-normal">
             {item.name.charAt(0).toUpperCase()}
           </div>
           {item.tier ? (

@@ -1,6 +1,7 @@
 import { Bell, BellDot, History, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 
 import { ChatIcon } from '@/assets/icons/chatIcon';
 import ActionDialog from '@/components/invite-dialog/action-dialog';
@@ -24,12 +25,12 @@ import { cn } from '@/lib/utils';
 import SearchMenu from '@/page/search';
 
 interface IProps {
-  active: boolean;
   onActiveKey: (activeKey: string, edit?: boolean) => void;
 }
 
 export function Header(props: IProps) {
-  const { active, onActiveKey } = props;
+  const { onActiveKey } = props;
+  const active = useLocation().pathname.includes('/chat');
   const [search, setSearch] = useState(false);
   const { t } = useTranslation();
   const isTouch = useIsTouch();
@@ -70,10 +71,10 @@ export function Header(props: IProps) {
                   variant="ghost"
                   onClick={onChatHistory}
                   className={cn(
-                    'p-0 w-5 h-5 [&_svg]:size-4 absolute top-[6px] z-10 right-1 focus-visible:outline-none focus-visible:ring-transparent',
+                    'absolute right-1 top-[6px] z-10 h-5 w-5 p-0 focus-visible:outline-none focus-visible:ring-transparent [&_svg]:size-4',
                     isTouch
-                      ? 'opacity-100 pointer-events-auto'
-                      : 'opacity-0 pointer-events-none group-hover/chat:opacity-100 group-hover/chat:pointer-events-auto'
+                      ? 'pointer-events-auto opacity-100'
+                      : 'pointer-events-none opacity-0 group-hover/chat:pointer-events-auto group-hover/chat:opacity-100'
                   )}
                 >
                   <History className="focus-visible:outline-none focus-visible:ring-transparent" />
@@ -86,7 +87,7 @@ export function Header(props: IProps) {
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
             <div
-              className="flex cursor-pointer items-center gap-2 "
+              className="flex cursor-pointer items-center gap-2"
               onClick={onSearch}
             >
               <Search className="size-4 text-neutral-400" />

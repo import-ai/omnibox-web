@@ -5,7 +5,7 @@ interface WeChatIconProps {
 export function WeChatIcon({ className }: WeChatIconProps) {
   return (
     <svg
-      className={className || 'w-full h-full'}
+      className={className || 'size-full'}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

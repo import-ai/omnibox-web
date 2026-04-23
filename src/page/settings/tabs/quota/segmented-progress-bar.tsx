@@ -19,7 +19,7 @@ interface SegmentedProgressBarProps {
 export function SegmentedProgressBar({ segments }: SegmentedProgressBarProps) {
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="flex w-full bg-neutral-200 dark:bg-neutral-700 h-2 overflow-hidden">
+      <div className="flex h-2 w-full overflow-hidden bg-neutral-200 dark:bg-neutral-700">
         {segments.map((segment, idx) => {
           const width = `${segment.percentage}%`;
           const shouldShowTooltip = segment.percentage > 0;

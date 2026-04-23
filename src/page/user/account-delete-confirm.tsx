@@ -53,12 +53,12 @@ export default function AccountDeleteConfirm() {
   }, [token, t, navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md p-8">
         {state === 'loading' && (
-          <div className="text-center space-y-4">
+          <div className="space-y-4 text-center">
             <svg
-              className="mx-auto h-8 w-8 animate-spin text-primary"
+              className="mx-auto size-8 animate-spin text-primary"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -87,8 +87,8 @@ export default function AccountDeleteConfirm() {
         )}
 
         {state === 'success' && (
-          <div className="text-center space-y-4">
-            <div className="text-green-500 text-5xl mb-4">✓</div>
+          <div className="space-y-4 text-center">
+            <div className="mb-4 text-5xl text-green-500">✓</div>
             <h2 className="text-xl font-semibold">
               {t('setting.delete_account.success_title')}
             </h2>
@@ -102,8 +102,8 @@ export default function AccountDeleteConfirm() {
         )}
 
         {state === 'error' && (
-          <div className="text-center space-y-4">
-            <div className="text-destructive text-5xl mb-4">✕</div>
+          <div className="space-y-4 text-center">
+            <div className="mb-4 text-5xl text-destructive">✕</div>
             <h2 className="text-xl font-semibold text-destructive">
               {t('setting.delete_account.error_title')}
             </h2>

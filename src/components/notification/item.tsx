@@ -24,7 +24,7 @@ export function NotificationListItem({
   return (
     <div
       data-notification-item="true"
-      className="w-full rounded-lg bg-white px-2 py-3 cursor-pointer transition-colors duration-200 hover:cursor-pointer hover:bg-neutral-100 active:cursor-pointer active:bg-neutral-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:active:bg-neutral-700 [&_*]:cursor-pointer"
+      className="w-full cursor-pointer rounded-lg bg-white px-2 py-3 transition-colors duration-200 hover:cursor-pointer hover:bg-neutral-100 active:cursor-pointer active:bg-neutral-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:active:bg-neutral-700 [&_*]:cursor-pointer"
       onClick={() => onClick?.(item)}
     >
       <div className="grid grid-cols-[minmax(0,1fr)_112px] items-start gap-x-2 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-x-4">
@@ -66,7 +66,7 @@ export function NotificationListItem({
             </div>
           ) : null}
           <div className="flex max-w-full items-center justify-center gap-2 text-sm text-muted-foreground">
-            <span className="truncate text-xs text-muted-foreground/75 font-normal">
+            <span className="truncate text-xs font-normal text-muted-foreground/75">
               {formatDistanceToNow(item.created_at, {
                 locale,
                 addSuffix: true,

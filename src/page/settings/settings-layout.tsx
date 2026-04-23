@@ -113,9 +113,9 @@ export default function SettingWrapper({
 
   return (
     <SettingsToastProvider>
-      <div className="relative flex flex-col lg:flex-row flex-1 min-h-0 w-full rounded-[12px] bg-card overflow-hidden">
+      <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-[12px] bg-card lg:flex-row">
         {/* Sidebar */}
-        <div className="w-full lg:w-[247px] shrink-0">
+        <div className="w-full shrink-0 lg:w-[247px]">
           <SettingsSidebar
             value={activeKey}
             onChange={onActiveKey}
@@ -134,7 +134,7 @@ export default function SettingWrapper({
         </button>
 
         {/* Content area */}
-        <div className="flex-1 min-h-0 min-w-0 bg-white dark:bg-neutral-800 overflow-auto px-5 py-4 lg:p-4 lg:pl-10 lg:pr-4 lg:pt-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900">
+        <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-white px-5 py-4 dark:bg-neutral-800 lg:p-4 lg:pl-10 lg:pt-10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900 [&::-webkit-scrollbar]:w-1.5">
           {
             items
               .filter(item => !item.requireOwner || userIsOwnerOrAdmin)

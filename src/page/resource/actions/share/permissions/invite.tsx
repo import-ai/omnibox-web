@@ -74,15 +74,15 @@ export default function InviteForm(props: InviteFormProps) {
   };
 
   return (
-    <div className="flex gap-2 mb-4">
-      <div className="flex-1 relative">
+    <div className="mb-4 flex gap-2">
+      <div className="relative flex-1">
         <AutosizeTextarea
           value={value}
           minHeight={34}
           maxHeight={200}
           onChange={handleChange}
           placeholder={t('share.permissions.invite_placeholder')}
-          className={cn('resize-none !leading-[26px] py-1 pr-1', {
+          className={cn('resize-none py-1 pr-1 !leading-[26px]', {
             'pr-24': visible,
           })}
         />
@@ -91,7 +91,7 @@ export default function InviteForm(props: InviteFormProps) {
             data={data}
             value={permission}
             onChange={handlePermission}
-            className="absolute top-[4px] right-[4px] p-1 rounded-sm bg-gray-200 text-sm dark:bg-gray-900"
+            className="absolute right-[4px] top-[4px] rounded-sm bg-gray-200 p-1 text-sm dark:bg-gray-900"
           />
         )}
       </div>
@@ -99,7 +99,7 @@ export default function InviteForm(props: InviteFormProps) {
         loading={loading}
         disabled={!visible}
         onClick={handleSubmit}
-        className="bg-blue-500 hover:bg-blue-600 text-white px-6"
+        className="bg-blue-500 px-6 text-white hover:bg-blue-600"
       >
         {t('share.permissions.invite')}
       </Button>

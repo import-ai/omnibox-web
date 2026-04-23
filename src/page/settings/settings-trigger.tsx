@@ -16,7 +16,7 @@ export function SettingButton() {
     <Button
       size="sm"
       variant="ghost"
-      className="text-muted-foreground font-medium px-2 h-8 gap-1 justify-start w-full"
+      className="h-8 w-full justify-start gap-1 px-2 font-medium text-muted-foreground"
       onClick={handleClick}
     >
       <Settings />

@@ -72,7 +72,7 @@ export default function ChatInput(props: IProps) {
         onCompositionStart={handleCompositionStart}
         onCompositionEnd={handleCompositionEnd}
         placeholder={t('chat.textarea.placeholder')}
-        className="resize-none no-scrollbar p-0 border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:shadow-none hover:border-transparent hover:shadow-none placeholder:text-[#9CA3AF] dark:placeholder:text-gray-400"
+        className="no-scrollbar resize-none border-transparent p-0 shadow-none placeholder:text-[#9CA3AF] hover:border-transparent hover:shadow-none focus-visible:border-transparent focus-visible:shadow-none focus-visible:ring-0 dark:placeholder:text-gray-400"
       />
     </div>
   );

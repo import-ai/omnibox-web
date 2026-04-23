@@ -13,13 +13,13 @@ export function TrashSearch({ value, onChange }: TrashSearchProps) {
 
   return (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="text"
         placeholder={t('trash.search_placeholder')}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="pl-9 h-9 text-sm rounded-md placeholder:text-muted-foreground"
+        className="h-9 rounded-md pl-9 text-sm placeholder:text-muted-foreground"
       />
     </div>
   );

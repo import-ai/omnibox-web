@@ -5,7 +5,7 @@ import Page from './page';
 
 export default function Chat() {
   return (
-    <SidebarInset className="m-0 md:m-[8px] bg-white rounded-none md:rounded-2xl dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)]">
+    <SidebarInset className="m-0 h-full min-h-0 rounded-none bg-white dark:bg-background md:m-[8px] md:h-[calc(100svh-16px)] md:rounded-2xl">
       <Header />
       <Page />
     </SidebarInset>

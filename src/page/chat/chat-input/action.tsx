@@ -40,7 +40,7 @@ export default function ChatAction(props: IActionProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                className="font-normal pl-2 pr-1 mr-1"
+                className="mr-1 pl-2 pr-1 font-normal"
               >
                 {t('chat.action.mode.' + mode)}
                 <ChevronDown />
@@ -61,7 +61,7 @@ export default function ChatAction(props: IActionProps) {
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Separator orientation="vertical" className="h-4 ml-0 mr-3" />
+          <Separator orientation="vertical" className="ml-0 mr-3 h-4" />
         </>
       )}
       {loading ? (
@@ -69,7 +69,7 @@ export default function ChatAction(props: IActionProps) {
           <Button
             size="icon"
             variant="ghost"
-            className="rounded-full size-8"
+            className="size-8 rounded-full"
             disabled
           >
             <Spinner />
@@ -83,7 +83,7 @@ export default function ChatAction(props: IActionProps) {
                 <Button
                   size="icon"
                   variant="default"
-                  className="rounded-lg size-8"
+                  className="size-8 rounded-lg"
                   disabled
                 >
                   <ArrowUp />
@@ -94,7 +94,7 @@ export default function ChatAction(props: IActionProps) {
           </Tooltip>
         </TooltipProvider>
       ) : (
-        <Button size="icon" onClick={onSend} className="rounded-lg size-8">
+        <Button size="icon" onClick={onSend} className="size-8 rounded-lg">
           <ArrowUp />
         </Button>
       )}

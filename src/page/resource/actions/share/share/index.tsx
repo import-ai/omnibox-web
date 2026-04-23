@@ -93,7 +93,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
 
   return (
     <div className="pb-2">
-      <div className="flex gap-2 items-center">
+      <div className="flex items-center gap-2">
         <Input
           readOnly
           value={shareUrl}
@@ -106,7 +106,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
           onClick={handleCopy}
           disabled={!shareUrl}
         >
-          <Copy className="w-4 h-4" />
+          <Copy className="size-4" />
         </Button>
         <Switch
           checked={shareInfo?.enabled ?? false}
@@ -115,8 +115,8 @@ export function ShareTabContent(props: ShareTabContentProps) {
       </div>
       {shareInfo?.enabled && (
         <>
-          <div className="flex items-center gap-2 justify-between mt-4 h-6">
-            <span className="text-sm flex items-center gap-1">
+          <div className="mt-4 flex h-6 items-center justify-between gap-2">
+            <span className="flex items-center gap-1 text-sm">
               <Trans i18nKey="share.share.current_file_only" />
               <HelpTooltip
                 content={t('share.share.current_file_only_tooltip')}
@@ -128,8 +128,8 @@ export function ShareTabContent(props: ShareTabContentProps) {
               onCheckedChange={handleOnlyCurrent}
             />
           </div>
-          <div className="flex items-center gap-2 justify-between mt-4 h-6">
-            <span className="text-sm flex items-center gap-1">
+          <div className="mt-4 flex h-6 items-center justify-between gap-2">
+            <span className="flex items-center gap-1 text-sm">
               <Trans i18nKey="share.share.require_login" />
               <HelpTooltip content={t('share.share.require_login_tooltip')} />
             </span>
@@ -139,7 +139,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
               onCheckedChange={handleRequireLogin}
             />
           </div>
-          <div className="flex items-center gap-2 justify-between mt-4 h-6">
+          <div className="mt-4 flex h-6 items-center justify-between gap-2">
             <span className="text-sm">{t('share.share.expire.title')}</span>
             <Expire
               disabled={!shareInfo?.enabled}
@@ -149,7 +149,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
               onCountdownSelected={handleExpireCountdownChange}
             />
           </div>
-          <div className="flex items-center gap-2 justify-between mt-4 h-6">
+          <div className="mt-4 flex h-6 items-center justify-between gap-2">
             <span className="text-sm">{t('share.share.ai_chat')}</span>
             <ShareTypeSelector
               disabled={!shareInfo?.enabled}
@@ -157,7 +157,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
               onChange={handleShareTypeChange}
             />
           </div>
-          <div className="flex items-center gap-2 justify-between mt-4 h-6">
+          <div className="mt-4 flex h-6 items-center justify-between gap-2">
             <span className="text-sm">{t('share.share.password')}</span>
             <Password
               disabled={!shareInfo?.enabled}

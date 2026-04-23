@@ -123,7 +123,7 @@ function SectionHeader({
   return (
     <div
       className={cn(
-        'w-full pb-2 border-b text-foreground whitespace-nowrap lg:text-xl font-semibold',
+        'w-full whitespace-nowrap border-b pb-2 font-semibold text-foreground lg:text-xl',
         tooltip && 'flex items-center gap-1',
         className
       )}
@@ -136,10 +136,10 @@ function SectionHeader({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-5 w-5 p-0 hover:bg-transparent"
+                className="size-5 p-0 hover:bg-transparent"
                 type="button"
               >
-                <CircleHelp className="h-4 w-4 text-muted-foreground" />
+                <CircleHelp className="size-4 text-muted-foreground" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -162,16 +162,16 @@ function InfoRow({
   button: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between w-full lg:w-[533px] h-[30px]">
-      <div className="flex items-center h-[24px] flex-1 min-w-0 gap-2 lg:gap-3">
-        <p className="text-foreground whitespace-nowrap flex-shrink-0 text-sm lg:text-base font-semibold">
+    <div className="flex h-[30px] w-full items-center justify-between lg:w-[533px]">
+      <div className="flex h-[24px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
+        <p className="flex-shrink-0 whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
           {label}
         </p>
-        <p className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap text-sm lg:text-base flex-1 min-w-0">
+        <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
           {value}
         </p>
       </div>
-      <div className="flex-shrink-0 ml-2">{button}</div>
+      <div className="ml-2 flex-shrink-0">{button}</div>
     </div>
   );
 }
@@ -197,25 +197,25 @@ function BindingRow({
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
+    <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
       {/* Left side with icon, label, and value */}
-      <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
+      <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
         {/* Icon and label group - gap: 9px */}
-        <div className="flex items-center flex-shrink-0 gap-2">
-          <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
+        <div className="flex flex-shrink-0 items-center gap-2">
+          <span className="flex size-5 flex-shrink-0 items-center justify-center">
             {icon}
           </span>
-          <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
+          <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
             {label}
           </p>
         </div>
         {/* Value */}
-        <p className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis text-sm lg:text-base flex-1 min-w-0">
+        <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
           {value}
         </p>
       </div>
       {/* Button - Figma: both bound and unbound use outline style (white bg, border) */}
-      <div className="flex-shrink-0 ml-2">
+      <div className="ml-2 flex-shrink-0">
         {isBound ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -238,7 +238,7 @@ function BindingRow({
                 </AlertDialogCancel>
                 <AlertDialogAction
                   disabled={unbinding}
-                  className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
+                  className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
                   onClick={onUnbind}
                 >
                   {unbinding && <Spinner className="mr-2" />}
@@ -401,7 +401,7 @@ export default function ProfileForm() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[200px]">
+      <div className="flex h-[200px] items-center justify-center">
         <Spinner className="size-6 text-gray-400" />
       </div>
     );
@@ -410,7 +410,7 @@ export default function ProfileForm() {
   const maskedPassword = '********';
 
   return (
-    <div className="flex flex-col items-start w-full lg:w-[533px] gap-4 lg:gap-5">
+    <div className="flex w-full flex-col items-start gap-4 lg:w-[533px] lg:gap-5">
       {/* Account Section Header */}
       <SectionHeader title={t('setting.account')} />
 
@@ -444,23 +444,23 @@ export default function ProfileForm() {
       />
 
       {/* Phone Row */}
-      <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
-        <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
-          <div className="flex items-center flex-shrink-0 gap-2">
-            <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
+      <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
+        <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <span className="flex size-5 flex-shrink-0 items-center justify-center">
               <SmartphoneIcon />
             </span>
-            <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
+            <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
               {t('setting.phone')}
             </p>
           </div>
-          <p className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis text-sm lg:text-base flex-1 min-w-0">
+          <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
             {phoneBinding?.login_id
               ? phoneBinding.login_id
               : t('setting.not_bound')}
           </p>
         </div>
-        <div className="flex-shrink-0 ml-2">
+        <div className="ml-2 flex-shrink-0">
           {phoneBinding?.id ? (
             <ActionButton onClick={() => setPhoneDialogOpen(true)}>
               {t('setting.change')}
@@ -474,21 +474,21 @@ export default function ProfileForm() {
       </div>
 
       {/* Email Row */}
-      <div className="flex items-center justify-between w-full lg:w-[532px] h-[30px]">
-        <div className="flex items-center h-[22px] flex-1 min-w-0 gap-2 lg:gap-3">
-          <div className="flex items-center flex-shrink-0 gap-2">
-            <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 text-blue-400">
+      <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
+        <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <span className="flex size-5 flex-shrink-0 items-center justify-center text-blue-400">
               <MailIcon />
             </span>
-            <p className="text-foreground whitespace-nowrap text-sm lg:text-base font-semibold">
+            <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
               {t('setting.email_binding')}
             </p>
           </div>
-          <p className="text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis text-sm lg:text-base flex-1 min-w-0">
+          <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
             {user?.email || t('setting.not_bound')}
           </p>
         </div>
-        <div className="flex-shrink-0 ml-2">
+        <div className="ml-2 flex-shrink-0">
           <ActionButton onClick={() => setEmailDialogOpen(true)}>
             {t('setting.change')}
           </ActionButton>
@@ -533,7 +533,7 @@ export default function ProfileForm() {
 
       {/* Username Change Dialog */}
       <Dialog open={usernameDialogOpen} onOpenChange={setUsernameDialogOpen}>
-        <DialogContent className="w-[90%] sm:w-1/2 max-w-md">
+        <DialogContent className="w-[90%] max-w-md sm:w-1/2">
           <DialogHeader>
             <DialogTitle>{t('form.username')}</DialogTitle>
             <VisuallyHidden>
@@ -588,7 +588,7 @@ export default function ProfileForm() {
           }
         }}
       >
-        <DialogContent className="w-[90%] sm:w-1/2 max-w-md">
+        <DialogContent className="w-[90%] max-w-md sm:w-1/2">
           <DialogHeader>
             <DialogTitle>{t('form.password')}</DialogTitle>
             <VisuallyHidden>
@@ -614,12 +614,12 @@ export default function ProfileForm() {
                           autoComplete="new-password"
                           {...field}
                           disabled={submitting}
-                          className="border-line shadow-none pr-10"
+                          className="border-line pr-10 shadow-none"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                         >
                           {showPassword ? (
                             <EyeOff className="size-4" />
@@ -646,14 +646,14 @@ export default function ProfileForm() {
                           autoComplete="new-password"
                           {...field}
                           disabled={submitting}
-                          className="border-line shadow-none pr-10"
+                          className="border-line pr-10 shadow-none"
                         />
                         <button
                           type="button"
                           onClick={() =>
                             setShowPasswordRepeat(!showPasswordRepeat)
                           }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                         >
                           {showPasswordRepeat ? (
                             <EyeOff className="size-4" />
@@ -691,14 +691,14 @@ export default function ProfileForm() {
 
       {/* Email Validation Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent className="p-0 border-none bg-transparent shadow-none w-[90%] lg:w-[445px] max-w-[445px]">
+        <DialogContent className="w-[90%] max-w-[445px] border-none bg-transparent p-0 shadow-none lg:w-[445px]">
           <VisuallyHidden>
             <DialogHeader>
               <DialogTitle>{t('email.validate')}</DialogTitle>
               <DialogDescription>{t('email.description')}</DialogDescription>
             </DialogHeader>
           </VisuallyHidden>
-          <div className="bg-background rounded-[12px] flex items-center justify-center w-full min-h-[280px] lg:min-h-[303px] p-6 lg:p-[48px_30px_32px_30px]">
+          <div className="flex min-h-[280px] w-full items-center justify-center rounded-[12px] bg-background p-6 lg:min-h-[303px] lg:p-[48px_30px_32px_30px]">
             <EmailValidate onFinish={handleEmailValidateFinish} />
           </div>
         </DialogContent>
@@ -706,7 +706,7 @@ export default function ProfileForm() {
 
       {/* Phone Binding Dialog */}
       <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
-        <DialogContent className="p-0 border-none bg-transparent shadow-none w-[90%] lg:w-[445px] max-w-[445px] dark:bg-transparent">
+        <DialogContent className="w-[90%] max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]">
           <VisuallyHidden>
             <DialogHeader>
               <DialogTitle>{t('phone.input_phone')}</DialogTitle>
@@ -715,7 +715,7 @@ export default function ProfileForm() {
               </DialogDescription>
             </DialogHeader>
           </VisuallyHidden>
-          <div className="bg-background rounded-[12px] flex items-center justify-center w-full min-h-[280px] lg:min-h-[303px] p-6 lg:p-[48px_30px_32px_30px]">
+          <div className="flex min-h-[280px] w-full items-center justify-center rounded-[12px] bg-background p-6 lg:min-h-[303px] lg:p-[48px_30px_32px_30px]">
             <PhoneValidate
               currentPhone={user?.phone}
               onFinish={() => {
@@ -731,18 +731,18 @@ export default function ProfileForm() {
       {/* Danger Zone Section */}
       <SectionHeader
         title={t('setting.danger_zone')}
-        className="text-destructive mt-4"
+        className="mt-4 text-destructive"
       />
-      <div className="flex items-center justify-between w-full lg:w-[533px] h-[30px]">
-        <div className="flex items-center h-[24px] flex-1 min-w-0 gap-2 lg:gap-3">
-          <p className="text-foreground whitespace-nowrap flex-shrink-0 text-sm lg:text-base font-semibold">
+      <div className="flex h-[30px] w-full items-center justify-between lg:w-[533px]">
+        <div className="flex h-[24px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
+          <p className="flex-shrink-0 whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
             {t('setting.delete_account.section_title')}
           </p>
-          <p className="text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap text-sm lg:text-base flex-1 min-w-0">
+          <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
             {t('setting.delete_account.section_description')}
           </p>
         </div>
-        <div className="flex-shrink-0 ml-2">
+        <div className="ml-2 flex-shrink-0">
           <DeleteAccountDialog username={user?.username || ''} />
         </div>
       </div>

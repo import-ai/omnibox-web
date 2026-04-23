@@ -18,13 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
-import { useSidebar } from '@/components/ui/sidebar';
 import useConfig from '@/hooks/use-config';
 import useNamespaces from '@/hooks/use-namespaces';
 import useProNamespaces from '@/hooks/use-pro-namespaces';
@@ -79,13 +79,13 @@ export function Switcher(props: IProps) {
     <SidebarMenu>
       <SidebarMenuItem
         className={cn({
-          'flex justify-between items-center': open,
+          'flex items-center justify-between': open,
         })}
       >
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="h-auto w-full gap-[6px] px-1.5">
-              <div className="flex size-6 flex-shrink-0 items-center justify-center rounded-[8px] bg-primary text-[12px] text-primary-foreground dark:bg-neutral-700 dark:text-white">
+            <SidebarMenuButton className="h-auto w-full gap-1.5 px-1.5">
+              <div className="flex size-6 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground dark:bg-neutral-700 dark:text-white">
                 {current.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <span className="truncate">{current.name}</span>

@@ -128,9 +128,9 @@ export default function FeatureCards() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
+    <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
       {/* Upload Files Card */}
-      <Card className="dark:bg-[#303030] dark:border-none shadow-none">
+      <Card className="shadow-none dark:border-none dark:bg-[#303030]">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-medium">
             {t('chat.home.upload.title')}
@@ -159,7 +159,7 @@ export default function FeatureCards() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="opacity-50 w-24"
+                      className="w-24 opacity-50"
                     >
                       <Spinner className="text-red-500" />
                       {t('chat.home.upload.local')}
@@ -178,7 +178,7 @@ export default function FeatureCards() {
                       className="w-24"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <File className="w-4 h-4 text-red-500" />
+                      <File className="size-4 text-red-500" />
                       {t('chat.home.upload.local')}
                     </Button>
                   </TooltipTrigger>
@@ -195,7 +195,7 @@ export default function FeatureCards() {
                     className="w-24"
                     onClick={handleWeChatClick}
                   >
-                    <MessageCircle className="w-4 h-4 text-green-500" />
+                    <MessageCircle className="size-4 text-green-500" />
                     {t('chat.home.upload.wechat')}
                   </Button>
                 </TooltipTrigger>
@@ -225,7 +225,7 @@ export default function FeatureCards() {
       </Card>
 
       {/* Recent Resources Card */}
-      <Card className="bg-white dark:bg-[#303030] border-gray-200 dark:border-none shadow-none">
+      <Card className="border-gray-200 bg-white shadow-none dark:border-none dark:bg-[#303030]">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-medium">
             {t('chat.home.recent.title', {
@@ -235,13 +235,13 @@ export default function FeatureCards() {
         </CardHeader>
         <CardContent>
           {recent.length === 0 ? (
-            <div className="text-sm text-muted-foreground py-2">
+            <div className="py-2 text-sm text-muted-foreground">
               {t('chat.home.recent.empty', {
                 defaultValue: 'No recent resources',
               })}
             </div>
           ) : (
-            <div className="max-h-28 overflow-y-auto pr-1 space-y-1 no-scrollbar">
+            <div className="no-scrollbar max-h-28 space-y-1 overflow-y-auto pr-1">
               {recent.map(item => {
                 const name = item.name || t('untitled');
                 const time = getTime(item as any, i18n);
@@ -257,23 +257,23 @@ export default function FeatureCards() {
                 return (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors group"
+                    className="group flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors hover:bg-accent/50"
                     onClick={() => navigate(`/${namespaceId}/${item.id}`)}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="[&>svg]:w-4 [&>svg]:h-4">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div className="[&>svg]:size-4">
                         <ResourceIcon expand={false} resource={iconResource} />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-sm truncate group-hover:text-foreground">
+                        <div className="truncate text-sm group-hover:text-foreground">
                           {name}
                         </div>
-                        <div className="text-xs text-muted-foreground truncate">
+                        <div className="truncate text-xs text-muted-foreground">
                           {time}
                         </div>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    <ChevronRight className="size-4 text-muted-foreground transition-colors group-hover:text-foreground" />
                   </div>
                 );
               })}

@@ -51,8 +51,8 @@ export function SettingsToastProvider({
     <SettingsToastContext.Provider value={{ showToast }}>
       {children}
       {toast.visible && (
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-50">
-          <div className="pointer-events-auto flex items-center gap-2 rounded-lg bg-white px-4 py-3 shadow-lg border border-[#E5E5E5] dark:bg-neutral-900 dark:border-border">
+        <div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-lg border border-[#E5E5E5] bg-white px-4 py-3 shadow-lg dark:border-border dark:bg-neutral-900">
             {toast.type === 'success' ? <CompletedStatus /> : <ErrorStatus />}
             <span className="text-sm font-medium text-foreground">
               {toast.message}

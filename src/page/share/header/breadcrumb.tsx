@@ -43,7 +43,7 @@ export default function ShareBreadcrumb(props: IProps) {
           <BreadcrumbItem>
             <BreadcrumbPage
               title={fallbackName || t('untitled')}
-              className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+              className="line-clamp-1 max-w-[240px] truncate pl-2 font-normal text-foreground"
             >
               {fallbackName || t('untitled')}
             </BreadcrumbPage>
@@ -66,7 +66,7 @@ export default function ShareBreadcrumb(props: IProps) {
                 <BreadcrumbItem>
                   <BreadcrumbPage
                     title={item.name || t('untitled')}
-                    className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+                    className="line-clamp-1 max-w-[240px] truncate pl-2 font-normal text-foreground"
                   >
                     {item.name || t('untitled')}
                   </BreadcrumbPage>
@@ -76,7 +76,7 @@ export default function ShareBreadcrumb(props: IProps) {
                   <BreadcrumbLink asChild>
                     <Button
                       variant="ghost"
-                      className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+                      className="h-6 max-w-[240px] truncate px-2 py-0 font-normal text-foreground"
                       onClick={() => {
                         navigate(`/s/${shareId}/${item.id}`);
                       }}
@@ -105,7 +105,7 @@ export default function ShareBreadcrumb(props: IProps) {
           <BreadcrumbLink asChild>
             <Button
               variant="ghost"
-              className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+              className="h-6 max-w-[240px] truncate px-2 py-0 font-normal text-foreground"
               onClick={() => {
                 navigate(`/s/${shareId}/${rootItem.id}`);
               }}
@@ -140,7 +140,7 @@ export default function ShareBreadcrumb(props: IProps) {
         <BreadcrumbItem>
           <BreadcrumbPage
             title={currentItem.name || t('untitled')}
-            className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+            className="line-clamp-1 max-w-[240px] truncate pl-2 font-normal text-foreground"
           >
             {currentItem.name || t('untitled')}
           </BreadcrumbPage>

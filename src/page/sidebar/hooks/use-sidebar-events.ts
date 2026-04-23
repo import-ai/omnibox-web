@@ -23,7 +23,6 @@ export function useSidebarEvents(namespaceId: string) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const store = useSidebarStore.getState();
     const hooks: Array<() => void> = [];
 
     // AI generates resources
@@ -40,10 +39,11 @@ export function useSidebarEvents(namespaceId: string) {
             return;
           }
           for (const res of resources) {
-            await store.restore(res);
+            // 不用 create 是因为对方已经创建
+            await useSidebarStore.getState().restore(res);
           }
           const last = resources[resources.length - 1];
-          store.activate(last.id);
+          useSidebarStore.getState().activate(last.id);
           navigate(`/${namespaceId}/${last.id}`, {
             state: { fromSidebar: true },
           });
@@ -58,7 +58,7 @@ export function useSidebarEvents(namespaceId: string) {
           new RegExp(`^/${namespaceId}/([^/]+)`)
         );
         const currentResourceId = match?.[1];
-        const result = store.remove(id, currentResourceId);
+        const result = useSidebarStore.getState().remove(id, currentResourceId);
 
         if (result.nextId) {
           navigate(`/${namespaceId}/${result.nextId}`, {
@@ -71,7 +71,8 @@ export function useSidebarEvents(namespaceId: string) {
         showActionToast(t('resource.moved_to_trash'), {
           actionLabel: t('undo'),
           onAction: () => {
-            store
+            useSidebarStore
+              .getState()
               .restore(id)
               .then(restoredId => {
                 app.fire('trash_updated');
@@ -97,7 +98,7 @@ export function useSidebarEvents(namespaceId: string) {
     // Update a resource (name/content) — fired by editor / resource-tasks
     hooks.push(
       app.on('update_resource', (delta: Resource) => {
-        store.patch(delta.id, {
+        useSidebarStore.getState().patch(delta.id, {
           name: delta.name,
           content: delta.content,
         });
@@ -107,8 +108,8 @@ export function useSidebarEvents(namespaceId: string) {
     // Restore from trash
     hooks.push(
       app.on('restore_resource', async (resource: Resource) => {
-        const id = await store.restore(resource);
-        store.activate(id);
+        const id = await useSidebarStore.getState().restore(resource);
+        useSidebarStore.getState().activate(id);
         navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
       })
     );
@@ -116,5 +117,5 @@ export function useSidebarEvents(namespaceId: string) {
     return () => {
       hooks.forEach(unsub => unsub());
     };
-  }, [app, namespaceId, navigate, t]);
+  }, [namespaceId, navigate, t]);
 }

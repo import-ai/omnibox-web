@@ -41,7 +41,7 @@ export default function Action(props: ActionProps) {
           <span>
             {target && target.label ? target.label : t(`permission.${value}`)}
           </span>
-          {!disabled && <ChevronDown className="h-5 w-5 ml-1" />}
+          {!disabled && <ChevronDown className="ml-1 size-5" />}
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -61,7 +61,7 @@ export default function Action(props: ActionProps) {
                 <div>
                   <div>{item.label}</div>
                   {item.description && (
-                    <div className="text-gray-500 text-xs">
+                    <div className="text-xs text-gray-500">
                       {item.description}
                     </div>
                   )}
@@ -71,7 +71,7 @@ export default function Action(props: ActionProps) {
               )}
             </div>
             {item.value === value && (
-              <Check className="h-5 w-5 text-blue-600 dark:text-white" />
+              <Check className="size-5 text-blue-600 dark:text-white" />
             )}
           </DropdownMenuItem>
         ))}

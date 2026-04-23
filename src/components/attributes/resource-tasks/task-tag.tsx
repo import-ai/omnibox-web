@@ -20,7 +20,7 @@ export function TaskTag({ type, variant = 'outline' }: TaskTagProps) {
   return (
     <Button
       variant={variant}
-      className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs text-neutral-600 bg-transparent  dark:text-white"
+      className="h-6 gap-0.5 rounded-lg bg-transparent px-2 py-0 text-xs text-neutral-600 dark:text-white"
     >
       <config.icon />
       {t(config.labelKey)}

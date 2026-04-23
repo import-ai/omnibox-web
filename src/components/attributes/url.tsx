@@ -21,7 +21,7 @@ export function UrlAttribute({ url }: UrlAttributeProps) {
       <a
         target="_blank"
         href={url}
-        className={`block min-w-0 w-full truncate overflow-hidden ${ATTRIBUTE_STYLES.value} hover:underline`}
+        className={`block w-full min-w-0 overflow-hidden truncate ${ATTRIBUTE_STYLES.value} hover:underline`}
       >
         {url}
       </a>

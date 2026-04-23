@@ -25,7 +25,7 @@ export default function Invite(props: IProps) {
           <Button
             size="sm"
             variant="ghost"
-            className="text-muted-foreground font-medium h-8 gap-1 px-2 justify-start w-full"
+            className="h-8 w-full justify-start gap-1 px-2 font-medium text-muted-foreground"
           >
             <UserPlus />
             {t('invite.add')}

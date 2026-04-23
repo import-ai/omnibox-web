@@ -44,12 +44,12 @@ export default function GroupMain(props: GroupProps) {
 
   return (
     <div className="space-y-2 lg:space-y-4">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Input
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={t('manage.search')}
-          className="h-7 lg:h-9 w-[150px] lg:w-[435px] text-sm rounded-md border-border placeholder:text-muted-foreground bg-transparent dark:bg-transparent"
+          className="h-7 w-[150px] rounded-md border-border bg-transparent text-sm placeholder:text-muted-foreground dark:bg-transparent lg:h-9 lg:w-[435px]"
         />
         <CreateGroup
           data={edit}
@@ -57,19 +57,19 @@ export default function GroupMain(props: GroupProps) {
           onToggle={handleToggle}
         />
       </div>
-      <div className="overflow-auto max-w-[83vw] sm:max-w-full">
+      <div className="max-w-[83vw] overflow-auto sm:max-w-full">
         <div className="min-w-[320px]">
-          <div className="flex w-full border-b border-border sticky top-0 bg-background z-10">
-            <div className="flex h-8 lg:h-10 w-[100px] lg:w-[210px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
+          <div className="sticky top-0 z-10 flex w-full border-b border-border bg-background">
+            <div className="flex h-8 w-[100px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[210px] lg:text-base">
               {t('manage.group')}
             </div>
-            <div className="flex h-8 lg:h-10 w-[90px] lg:w-[115px] items-center px-2 text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
+            <div className="flex h-8 w-[90px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[115px] lg:text-base">
               {t('manage.member')}
             </div>
-            <div className="flex h-8 lg:h-10 w-[60px] lg:w-[127px] items-center justify-center text-sm lg:text-base font-medium text-foreground whitespace-nowrap">
+            <div className="flex h-8 w-[60px] items-center justify-center whitespace-nowrap text-sm font-medium text-foreground lg:h-10 lg:w-[127px] lg:text-base">
               {t('manage.invite_link')}
             </div>
-            <div className="flex h-8 lg:h-10 flex-1 items-center px-2"></div>
+            <div className="flex h-8 flex-1 items-center px-2 lg:h-10"></div>
           </div>
           <div className="w-full">
             {data.map(item => (

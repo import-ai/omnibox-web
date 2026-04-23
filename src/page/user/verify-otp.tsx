@@ -223,13 +223,13 @@ export default function VerifyOtpPage() {
           />
         </div>
 
-        <div className="flex flex-col items-center gap-3 w-full max-w-sm">
+        <div className="flex w-full max-w-sm flex-col items-center gap-3">
           <div className="text-sm text-muted-foreground">
             {t('verify_otp.didnt_receive')}{' '}
             <button
               onClick={handleResend}
               disabled={!canResend || isResending}
-              className="text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isResending
                 ? t('verify_otp.resending')

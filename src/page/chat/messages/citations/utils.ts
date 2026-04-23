@@ -1,5 +1,5 @@
 import { safeParseURL } from '@/lib/utils';
-import { Citation } from '@/page/chat/core/types/chat-response.tsx';
+import { Citation } from '@/page/chat/core/types/chat-response';
 
 export function formatCitation(citation: Citation): {
   name: string;

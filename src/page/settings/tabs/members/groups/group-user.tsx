@@ -33,12 +33,12 @@ export default function GroupDataUser(props: GroupProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="pl-6 pr-3 py-2">
+    <div className="py-2 pl-6 pr-3">
       {groupUserData.map(item => (
         <div key={item.id} className="flex items-center justify-between">
           <div className="flex items-center">
             <UserCard username={item.username} />
-            <span className="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">
+            <span className="ml-2 rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800">
               {t(`manage.${item.role}`)}
             </span>
           </div>

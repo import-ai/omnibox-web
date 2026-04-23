@@ -162,17 +162,17 @@ export default function SettingForm({
       {userIsOwnerOrAdmin && (
         <div>
           <h3 className="text-base font-semibold">{t('namespace.title')}</h3>
-          <Separator className="border-t my-2" />
+          <Separator className="my-2 border-t" />
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(handleSubmit)}
-              className="flex flex-row gap-2.5 items-center justify-between px-px w-full"
+              className="flex w-full flex-row items-center justify-between gap-2.5 px-px"
             >
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem className="flex gap-7 space-y-0 flex-row items-center w-full">
+                  <FormItem className="flex w-full flex-row items-center gap-7 space-y-0">
                     <FormLabel className="min-w-14">
                       {t('namespace.name')}
                     </FormLabel>
@@ -180,7 +180,7 @@ export default function SettingForm({
                       <Input
                         {...field}
                         disabled={submiting}
-                        className="rounded-md border-border bg-transparent dark:bg-transparent w-full mt-0"
+                        className="mt-0 w-full rounded-md border-border bg-transparent dark:bg-transparent"
                       />
                     </FormControl>
                     <FormMessage />
@@ -192,7 +192,7 @@ export default function SettingForm({
                 disabled={submiting}
                 loading={submiting}
                 variant="default"
-                className="shrink-0 text-xs font-medium w-[71px] h-[30px]"
+                className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
               >
                 {t('namespace.submit')}
               </Button>
@@ -203,7 +203,7 @@ export default function SettingForm({
       {config.commercial && (
         <div>
           <h3 className="text-base font-semibold">{t('namespace.usage')}</h3>
-          <Separator className="border-t my-2" />
+          <Separator className="my-2 border-t" />
           <RemainQuota namespaceId={namespaceId} />
         </div>
       )}
@@ -212,7 +212,7 @@ export default function SettingForm({
         <h3 className="text-base font-semibold text-destructive">
           {t('setting.danger_zone')}
         </h3>
-        <Separator className="border-t my-2" />
+        <Separator className="my-2 border-t" />
         <div className="space-y-4">
           {/* Leave Space */}
           <div className="flex items-center justify-between gap-4">

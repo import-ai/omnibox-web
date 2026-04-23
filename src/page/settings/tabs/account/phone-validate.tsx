@@ -58,7 +58,7 @@ function PhoneInputStep({
   return (
     <div className="flex w-full max-w-96 flex-col items-center gap-5">
       <div className="flex w-full flex-col items-center gap-2.5">
-        <p className="w-full text-center text-xl lg:text-2xl font-semibold text-foreground">
+        <p className="w-full text-center text-xl font-semibold text-foreground lg:text-2xl">
           {t('phone.input_phone')}
         </p>
 
@@ -134,7 +134,7 @@ function VerificationCodeStep({
     <div className="flex w-full max-w-96 flex-col items-start gap-5">
       <div className="flex w-full flex-col items-start gap-4">
         <div className="flex w-full flex-col items-center gap-2.5">
-          <p className="w-full text-center text-xl lg:text-2xl font-semibold text-foreground">
+          <p className="w-full text-center text-xl font-semibold text-foreground lg:text-2xl">
             {t('phone.input_verification_code')}
           </p>
 
@@ -146,7 +146,7 @@ function VerificationCodeStep({
           </p>
         </div>
 
-        <div className="flex flex-col items-center gap-2 w-full">
+        <div className="flex w-full flex-col items-center gap-2">
           <OtpInput
             value={code}
             onChange={handleCodeChange}

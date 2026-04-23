@@ -32,14 +32,14 @@ export default function CopyMain(props: IProps) {
     <Tooltip>
       <TooltipTrigger asChild>
         {copied ? (
-          <Button size="icon" variant="ghost" className="p-0 w-7 h-7">
+          <Button size="icon" variant="ghost" className="size-7 p-0">
             <Check />
           </Button>
         ) : (
           <Button
             size="icon"
             variant="ghost"
-            className="p-0 w-7 h-7"
+            className="size-7 p-0"
             onClick={handleCopy}
           >
             <Copy />

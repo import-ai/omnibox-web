@@ -2,13 +2,12 @@ import { RiDiscordLine } from '@remixicon/react';
 import { CircleHelp, MessageCircleWarning } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { WechatGroupQrCode } from '@/assets/icons/wechat-qr-code';
+import { Wechat } from '@/assets/icons/wechat-stroke';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import { SidebarFooter } from '@/components/ui/sidebar';
 import { DISCORD_LINK } from '@/const';
-
-import { WechatGroupQrCode } from './qr-code';
-import { Wechat } from './wechat-icon';
 
 export function FooterSidebar() {
   const { t, i18n } = useTranslation();
@@ -48,7 +47,7 @@ export function FooterSidebar() {
                 {item.icon}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="w-[178px] rounded-[12px] border-none px-[22px] pb-[16px] pt-[22px] shadow-sm">
+            <TooltipContent className="w-[178px] rounded-xl border-none px-[22px] pb-4 pt-[22px] shadow-sm">
               <WechatGroupQrCode />
               <p className="mt-2 p-0 text-center">{t('footer.join')}</p>
             </TooltipContent>

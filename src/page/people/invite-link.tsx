@@ -81,17 +81,17 @@ export default function InvitePeople(props: IProps) {
       </Dialog>
       <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-1 lg:gap-2">
-          <h2 className="text-sm lg:text-base font-semibold text-foreground">
+          <h2 className="text-sm font-semibold text-foreground lg:text-base">
             {t('invite.title')}
           </h2>
-          <p className="text-xs lg:text-sm text-neutral-400">
+          <p className="text-xs text-neutral-400 lg:text-sm">
             {t('invite.description')}
           </p>
         </div>
-        <div className="flex items-center gap-2 mt-2 lg:mt-0">
+        <div className="mt-2 flex items-center gap-2 lg:mt-0">
           {!!invitationId && (
             <span
-              className="cursor-pointer text-xs lg:text-sm text-neutral-400 hover:text-foreground"
+              className="cursor-pointer text-xs text-neutral-400 hover:text-foreground lg:text-sm"
               onClick={handleCopy}
             >
               {t('actions.copy_link')}

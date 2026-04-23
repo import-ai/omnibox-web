@@ -234,7 +234,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
+      <div className="flex size-full items-center justify-center">
         <Spinner className="size-6 text-gray-400" />
       </div>
     );
@@ -345,7 +345,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         </AlertDialogCancel>
                         <AlertDialogAction
                           disabled={unbindingLoading}
-                          className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
+                          className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
                           onClick={() => handleUnbind(application)}
                         >
                           {unbindingLoading && <Spinner className="mr-2" />}
@@ -397,7 +397,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                           </AlertDialogCancel>
                           <AlertDialogAction
                             disabled={cancelingLoading}
-                            className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
+                            className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
                             onClick={() => handleCancelBind(application)}
                           >
                             {cancelingLoading && <Spinner className="mr-2" />}

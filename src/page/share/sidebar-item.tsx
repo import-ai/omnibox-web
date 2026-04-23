@@ -143,7 +143,7 @@ export default function SidebarItem(props: SidebarItemProps) {
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <div
-              className="group/sidebar-item my-[1px] rounded-[6px] hover:bg-sidebar-accent"
+              className="group/sidebar-item my-px rounded-[6px] hover:bg-sidebar-accent"
               ref={contextMenuRef}
               data-resource-id={resource.id}
             >
@@ -151,7 +151,7 @@ export default function SidebarItem(props: SidebarItemProps) {
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
-                    className="gap-1 py-1.5 h-auto data-[active=true]:font-normal group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 group-hover/sidebar-item:!pr-[30px] data-[active=true]:bg-[#E2E2E6] dark:data-[active=true]:bg-[#363637] transition-none"
+                    className="h-auto gap-1 py-1.5 transition-none group-hover/sidebar-item:!pr-[30px] group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:bg-[#E2E2E6] data-[active=true]:font-normal dark:data-[active=true]:bg-[#363637]"
                     isActive={isActive}
                   >
                     <div
@@ -168,14 +168,14 @@ export default function SidebarItem(props: SidebarItemProps) {
                             e.stopPropagation();
                             handleToggle();
                           }}
-                          className="flex items-center justify-center w-4 h-4"
+                          className="flex size-4 items-center justify-center"
                         >
                           {loading ? (
-                            <Spinner className="w-3 h-3" />
+                            <Spinner className="size-3" />
                           ) : (
                             <Arrow
                               className={cn(
-                                'transition-transform text-neutral-400 hover:text-accent-foreground',
+                                'text-neutral-400 transition-transform hover:text-accent-foreground',
                                 (isControlledExpanded || isExpanded) &&
                                   'rotate-90'
                               )}
@@ -188,7 +188,7 @@ export default function SidebarItem(props: SidebarItemProps) {
                         expand={isControlledExpanded || isExpanded}
                         resource={resource}
                       />
-                      <span className="truncate flex-1 text-sm">
+                      <span className="flex-1 truncate text-sm">
                         {resource.name || t('untitled')}
                       </span>
                     </div>
@@ -204,7 +204,7 @@ export default function SidebarItem(props: SidebarItemProps) {
               </Tooltip>
               {showChat && (
                 <SidebarMenuAction
-                  className="group-hover/sidebar-item:opacity-100 opacity-0 group-hover/sidebar-item:pointer-events-auto pointer-events-none size-4 right-2 !text-neutral-400 hover:!text-sidebar-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent cursor-pointer peer-data-[size=default]/menu-button:top-[8px]"
+                  className="pointer-events-none right-2 size-4 cursor-pointer !text-neutral-400 opacity-0 hover:bg-transparent hover:!text-sidebar-foreground focus-visible:outline-none focus-visible:ring-transparent group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100 peer-data-[size=default]/menu-button:top-[8px]"
                   onClick={handleContextMenuTrigger}
                 >
                   <MoreHorizontal />
@@ -233,7 +233,7 @@ export default function SidebarItem(props: SidebarItemProps) {
         </ContextMenu>
         {hasChildren && (
           <CollapsibleContent>
-            <SidebarMenuSub className="pr-0 mr-0 pl-2">
+            <SidebarMenuSub className="mr-0 pl-2 pr-0">
               {displayChildren.map(child => (
                 <SidebarItem
                   key={child.id}

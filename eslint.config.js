@@ -1,5 +1,6 @@
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import importPlugin from 'eslint-plugin-import';
 import prettier from 'eslint-plugin-prettier';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import tailwindcss from 'eslint-plugin-tailwindcss';
@@ -23,10 +24,18 @@ export default [
       },
     },
     plugins: {
+      import: importPlugin,
       '@typescript-eslint': tsPlugin,
       'simple-import-sort': simpleImportSort,
       prettier: prettier,
       tailwindcss,
+    },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: './tsconfig.json',
+        },
+      },
     },
     rules: {
       'prettier/prettier': ['error', {}, { usePrettierrc: true }],
@@ -44,6 +53,14 @@ export default [
       'tailwindcss/no-contradicting-classname': 'warn',
       'tailwindcss/enforces-negative-arbitrary-values': 'warn',
       'tailwindcss/no-arbitrary-value': 'warn',
+      'import/no-unresolved': 'error',
+      'import/named': 'error',
+      'import/default': 'error',
+      'import/namespace': 'error',
+      'import/no-self-import': 'error',
+      'import/no-cycle': 'warn',
+      'import/no-duplicates': 'error',
+      'import/no-named-as-default-member': 'warn',
     },
   },
 ];

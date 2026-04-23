@@ -182,7 +182,7 @@ export default function Action(props: ActionProps) {
         >
           <div className="flex items-center text-gray-600 dark:text-white">
             <span>{allRoles.find(item => item.value === value)?.label}</span>
-            {!isDisabled && <ChevronDown className="h-5 w-5 ml-1" />}
+            {!isDisabled && <ChevronDown className="ml-1 size-5" />}
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -202,7 +202,7 @@ export default function Action(props: ActionProps) {
                   <div>
                     <div>{item.label}</div>
                     {item.description && (
-                      <div className="text-gray-500 text-xs">
+                      <div className="text-xs text-gray-500">
                         {item.description}
                       </div>
                     )}
@@ -212,14 +212,14 @@ export default function Action(props: ActionProps) {
                 )}
               </div>
               {item.value === value && (
-                <Check className="h-5 w-5 text-blue-600" />
+                <Check className="size-5 text-blue-600" />
               )}
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleRemove}
-            className="cursor-pointer justify-between hover:bg-gray-100 text-red-500"
+            className="cursor-pointer justify-between text-red-500 hover:bg-gray-100"
           >
             {t('manage.remove')}
           </DropdownMenuItem>

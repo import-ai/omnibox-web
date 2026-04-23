@@ -31,7 +31,7 @@ export function Logout() {
       variant="ghost"
       loading={loading}
       onClick={handleLogout}
-      className="w-full gap-1 justify-start text-muted-foreground px-2"
+      className="w-full justify-start gap-1 px-2 text-muted-foreground"
     >
       <SquareArrowRightExit className="size-4" />
       {t('login.logout')}

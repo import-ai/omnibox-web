@@ -111,7 +111,7 @@ export function BindDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+        <div className="grid grid-cols-1 gap-6 py-4 md:grid-cols-2">
           {/* QR Code Section */}
           <div className="flex flex-col items-center space-y-4">
             <h3 className="text-lg font-medium">
@@ -122,18 +122,18 @@ export function BindDialog({
                 <img
                   src={qrCodeDataUrl}
                   alt="Bot QR Code"
-                  className="w-48 h-48 border border-border rounded-lg"
+                  className="size-48 rounded-lg border border-border"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <img
                     src={logoUrl}
                     alt="OmniBox Logo"
-                    className="w-12 h-12 bg-white p-1 rounded-lg shadow-sm"
+                    className="size-12 rounded-lg bg-white p-1 shadow-sm"
                   />
                 </div>
               </div>
             ) : (
-              <div className="w-48 h-48 border border-border rounded-lg flex items-center justify-center">
+              <div className="flex size-48 items-center justify-center rounded-lg border border-border">
                 <div className="text-center text-muted-foreground">
                   {t('loading')}
                 </div>
@@ -147,10 +147,10 @@ export function BindDialog({
               {t('applications.bind.step2', { platform_name: platformName })}
             </h3>
             <div className="p-4">
-              <p className="text-sm text-muted-foreground mb-2">
+              <p className="mb-2 text-sm text-muted-foreground">
                 {t('applications.bind.code_label')}
               </p>
-              <div className="font-mono text-lg font-semibold p-2 bg-background border rounded">
+              <div className="rounded border bg-background p-2 font-mono text-lg font-semibold">
                 {bindingCode}
               </div>
             </div>

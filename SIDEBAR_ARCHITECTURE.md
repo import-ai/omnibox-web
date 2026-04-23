@@ -172,6 +172,8 @@ async create(parentId, type, name) {
 4. **自动导航**：无 `resourceId` 且不在 chat 页时，自动导航到第一个资源
 5. **同步 activeId**：URL 变化时，`store.activate(resourceId)`
 
+> **设计原则**：`chatPage` 等纯派生状态不通过 hook 返回，由消费组件自行通过 `useLocation` 计算。
+
 防竞态设计：
 
 - **`initialized` 从 `rootIds` 推导** — `useSidebarStore(s => s.rootIds.private !== '' || s.rootIds.teamspace !== '')`。`setNamespaceId()` 会在 namespace 切换时清空 `rootIds`，因此推导结果可靠，无需 `useRef` 或 `useState`

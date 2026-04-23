@@ -18,8 +18,8 @@ export default function Header(props: IActionProps) {
   const { open, isMobile } = useSidebar();
 
   return (
-    <header className="rounded-[16px] bg-white flex flex-wrap min-h-[48px] shrink-0 items-center gap-2 dark:bg-background">
-      <div className="flex flex-1 items-center gap-1 sm:gap-2 px-3">
+    <header className="flex min-h-[48px] shrink-0 flex-wrap items-center gap-2 rounded-[16px] bg-white dark:bg-background">
+      <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
         {(!open || isMobile) && (
           <TooltipProvider>
             <Tooltip>

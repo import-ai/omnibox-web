@@ -169,15 +169,15 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                   <CommandItem
                     key={item.id}
                     value={item.id}
-                    className="cursor-pointer my-1"
+                    className="my-1 cursor-pointer"
                     onSelect={() => {
                       navigate(`/${params.namespace_id}/${item.id}`);
                       onOpenChange(false);
                     }}
                   >
-                    <div className="flex flex-col items-start w-full">
+                    <div className="flex w-full flex-col items-start">
                       <div className="flex items-center gap-2">
-                        <div className="[&>svg]:w-4 [&>svg]:h-4 text-muted-foreground">
+                        <div className="text-muted-foreground [&>svg]:size-4">
                           <ResourceIcon
                             expand={false}
                             resource={iconResource}
@@ -188,7 +188,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                         </div>
                       </div>
                       {(item as any).content && (
-                        <div className="text-sm text-muted-foreground ml-6">
+                        <div className="ml-6 text-sm text-muted-foreground">
                           {(item as any).content}
                         </div>
                       )}
@@ -215,7 +215,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                 <CommandItem
                   key={resourceItem.resource_id}
                   value={resourceItem.resource_id}
-                  className="cursor-pointer my-1"
+                  className="my-1 cursor-pointer"
                   onSelect={() => {
                     navigate(
                       `/${params.namespace_id}/${resourceItem.resource_id}?query=${encodeURIComponent(keywords)}`
@@ -223,15 +223,15 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                     onOpenChange(false);
                   }}
                 >
-                  <div className="flex flex-col items-start w-full">
+                  <div className="flex w-full flex-col items-start">
                     <div className="flex items-center gap-2">
-                      <div className="[&>svg]:w-4 [&>svg]:h-4 text-muted-foreground">
+                      <div className="text-muted-foreground [&>svg]:size-4">
                         <ResourceIcon expand={false} resource={iconResource} />
                       </div>
                       <div className="font-medium">{resourceItem.title}</div>
                     </div>
                     {resourceItem.content && (
-                      <div className="text-sm text-muted-foreground ml-6">
+                      <div className="ml-6 text-sm text-muted-foreground">
                         {resourceItem.content}
                       </div>
                     )}
@@ -247,7 +247,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
               <CommandItem
                 key={message.id}
                 value={message.id}
-                className="cursor-pointer my-1"
+                className="my-1 cursor-pointer"
                 onSelect={() => {
                   navigate(
                     `/${params.namespace_id}/chat/${message.conversation_id}`

@@ -184,14 +184,14 @@ export default function ResourceTasks({
           {t('tasks.related_tasks')}
         </span>
       </div>
-      <span className="flex items-center text-foreground h-7">
+      <span className="flex h-7 items-center text-foreground">
         <span className="flex gap-2">
           {pendingTasks.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger className="focus-visible:outline-none">
                 <Button
                   variant="secondary"
-                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs focus-visible:outline-none border border-neutral-500 text-neutral-500 bg-transparent dark:border-neutral-300 dark:text-neutral-300"
+                  className="h-6 gap-0.5 rounded-lg border border-neutral-500 bg-transparent px-2 py-0 text-xs text-neutral-500 focus-visible:outline-none dark:border-neutral-300 dark:text-neutral-300"
                 >
                   <ListVideo />
                   {t('tasks.status_label_pending')}
@@ -199,7 +199,7 @@ export default function ResourceTasks({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 side="bottom"
-                className="flex flex-col gap-[5px] p-[3px] min-w-[93px] max-h-[90px] overflow-y-auto"
+                className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
                 {pendingTasks.map(task => (
                   <DropdownMenuItem
@@ -217,7 +217,7 @@ export default function ResourceTasks({
               <DropdownMenuTrigger className="focus-visible:outline-none">
                 <Button
                   variant="secondary"
-                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs border border-blue-500 text-blue-500 bg-transparent dark:border-blue-400 dark:text-blue-400"
+                  className="h-6 gap-0.5 rounded-lg border border-blue-500 bg-transparent px-2 py-0 text-xs text-blue-500 dark:border-blue-400 dark:text-blue-400"
                 >
                   <ProgressIcon />
                   {t('tasks.status_label_running')}
@@ -225,7 +225,7 @@ export default function ResourceTasks({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 side="bottom"
-                className="flex flex-col gap-[5px] p-[3px] min-w-[93px] max-h-[90px] overflow-y-auto"
+                className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
                 {runningTasks.map(task => (
                   <DropdownMenuItem
@@ -243,7 +243,7 @@ export default function ResourceTasks({
               <DropdownMenuTrigger className="focus-visible:outline-none">
                 <Button
                   variant="secondary"
-                  className="h-6 rounded-[8px] gap-[2px] py-0 px-2 text-xs border border-green-600 text-green-600 bg-transparent dark:border-green-500 dark:text-green-500"
+                  className="h-6 gap-0.5 rounded-lg border border-green-600 bg-transparent px-2 py-0 text-xs text-green-600 dark:border-green-500 dark:text-green-500"
                 >
                   <DoneIcon />
                   {t('tasks.status_label_finished')}
@@ -251,7 +251,7 @@ export default function ResourceTasks({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 side="bottom"
-                className="flex flex-col gap-[5px] p-[3px] min-w-[93px] max-h-[90px] overflow-y-auto"
+                className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
                 {finishedTasks.map(task => (
                   <DropdownMenuItem

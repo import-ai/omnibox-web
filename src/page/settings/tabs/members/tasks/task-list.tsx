@@ -202,7 +202,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
+      <div className="flex size-full items-center justify-center">
         <Spinner className="size-6 text-gray-400" />
       </div>
     );
@@ -220,15 +220,15 @@ export function TaskList({ namespaceId }: TaskListProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex w-full items-center justify-between gap-2 shrink-0 mb-2 lg:mb-4">
+    <div className="flex h-full flex-col">
+      <div className="mb-2 flex w-full shrink-0 items-center justify-between gap-2 lg:mb-4">
         <div className="flex items-center gap-2 lg:gap-4">
-          <h3 className="text-sm lg:text-base font-semibold text-foreground">
+          <h3 className="text-sm font-semibold text-foreground lg:text-base">
             {t('tasks.title')}
           </h3>
           {showViewFilter && (
             <Select value={viewFilter} onValueChange={handleViewFilterChange}>
-              <SelectTrigger className="h-7 lg:h-[30px] w-[100px] lg:w-[120px] text-xs lg:text-sm">
+              <SelectTrigger className="h-7 w-[100px] text-xs lg:h-[30px] lg:w-[120px] lg:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -248,23 +248,23 @@ export function TaskList({ namespaceId }: TaskListProps) {
       </div>
 
       {tasks.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-muted-foreground">
+        <div className="flex flex-1 items-center justify-center text-muted-foreground">
           <p className="text-sm lg:text-base">{t('tasks.no_tasks')}</p>
         </div>
       ) : (
-        <div className="flex-1 min-h-0 overflow-auto max-w-[83vw] sm:max-w-full rounded-md border border-border">
+        <div className="min-h-0 max-w-[83vw] flex-1 overflow-auto rounded-md border border-border sm:max-w-full">
           <div className="min-w-[320px]">
-            <div className="flex w-full h-8 lg:h-10 items-center border-b border-border px-2 lg:px-8 text-xs lg:text-sm font-medium text-muted-foreground sticky top-0 bg-background z-10">
-              <div className="flex-1 min-w-[100px] whitespace-nowrap">
+            <div className="sticky top-0 z-10 flex h-8 w-full items-center border-b border-border bg-background px-2 text-xs font-medium text-muted-foreground lg:h-10 lg:px-8 lg:text-sm">
+              <div className="min-w-[100px] flex-1 whitespace-nowrap">
                 {t('tasks.function')}
               </div>
-              <div className="w-12 md:w-16 ml-2 lg:ml-4 whitespace-nowrap text-center">
+              <div className="ml-2 w-12 whitespace-nowrap text-center md:w-16 lg:ml-4">
                 {t('tasks.status')}
               </div>
-              <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 md:whitespace-nowrap">
+              <div className="ml-4 min-w-[90px] flex-1 md:whitespace-nowrap lg:ml-6">
                 {t('tasks.time')}
               </div>
-              <div className="w-14 lg:w-16 whitespace-nowrap text-right">
+              <div className="w-14 whitespace-nowrap text-right lg:w-16">
                 {t('common.actions')}
               </div>
             </div>
@@ -273,20 +273,20 @@ export function TaskList({ namespaceId }: TaskListProps) {
               {tasks.map(task => (
                 <div
                   key={task.id}
-                  className="flex w-full h-12 lg:h-14 items-center border-b border-border px-2 lg:px-8 last:border-b-0"
+                  className="flex h-12 w-full items-center border-b border-border px-2 last:border-b-0 lg:h-14 lg:px-8"
                 >
-                  <div className="flex-1 min-w-[100px]">
+                  <div className="min-w-[100px] flex-1">
                     <TaskTypeBadge functionName={task.function} />
                   </div>
 
-                  <div className="flex w-12 md:w-16 ml-2 lg:ml-4 justify-center">
+                  <div className="ml-2 flex w-12 justify-center md:w-16 lg:ml-4">
                     <TaskStatusBadge status={task.status as any} />
                   </div>
 
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="flex-1 min-w-[90px] ml-4 lg:ml-6 cursor-pointer text-xs font-medium text-muted-foreground md:whitespace-nowrap">
+                        <div className="ml-4 min-w-[90px] flex-1 cursor-pointer text-xs font-medium text-muted-foreground md:whitespace-nowrap lg:ml-6">
                           {getTimeDescription(task)}
                         </div>
                       </TooltipTrigger>
@@ -327,7 +327,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
                     </Tooltip>
                   </TooltipProvider>
 
-                  <div className="w-14 lg:w-16 flex justify-end">
+                  <div className="flex w-14 justify-end lg:w-16">
                     <TaskActions
                       task={task}
                       namespaceId={namespaceId}

@@ -49,7 +49,7 @@ export default function SaveMain(props: IProps) {
         <Button
           size="icon"
           variant="ghost"
-          className="p-0 w-7 h-7"
+          className="size-7 p-0"
           onClick={handleCreate}
         >
           {loading ? <Loader2 className="animate-spin" /> : <Save />}
