@@ -34,12 +34,17 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
     setNamespaceId: id => {
       set(s => {
         s.namespaceId = id;
+        s.nodes = {};
+        s.ui = {};
+        s.rootIds = { private: '', teamspace: '' };
+        s.activeId = null;
       });
     },
 
     init: (roots: Record<string, import('./types').RootResource>) => {
       set(state => {
         state.nodes = {};
+
         for (const [spaceType, resource] of Object.entries(roots)) {
           const rootNode = createNode(resource, null, spaceType as SpaceType);
           state.ui[rootNode.id] = {
@@ -233,8 +238,6 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
     },
 
     move: async (dragId, dropId) => {
-      await sidebarApi.move(get().namespaceId, dragId, dropId);
-
       const drag = get().nodes[dragId];
       const drop = get().nodes[dropId];
       if (!drag || !drop) return;
@@ -242,7 +245,21 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       if (isDescendant(get().nodes, dragId, dropId)) return;
 
       const oldParentId = drag.parentId;
+      const oldSpaceType = drag.spaceType;
+      const oldParentChildren = oldParentId
+        ? [...(get().nodes[oldParentId]?.children ?? [])]
+        : [];
+      const oldParentHasChildren = oldParentId
+        ? (get().nodes[oldParentId]?.hasChildren ?? false)
+        : false;
 
+      // Save descendant spaceTypes for rollback
+      const oldDescendantSpaceTypes = new Map<string, SpaceType>();
+      traverseDescendants(get().nodes, dragId, n => {
+        oldDescendantSpaceTypes.set(n.id, n.spaceType);
+      });
+
+      // Optimistic UI update
       set(s => {
         if (oldParentId) {
           const oldParent = s.nodes[oldParentId];
@@ -273,6 +290,42 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
           n.spaceType = newParent.spaceType;
         });
       });
+
+      try {
+        await sidebarApi.move(get().namespaceId, dragId, dropId);
+      } catch {
+        // Rollback on failure
+        set(s => {
+          const draftDrag = s.nodes[dragId];
+          if (draftDrag) {
+            draftDrag.parentId = oldParentId;
+            draftDrag.spaceType = oldSpaceType;
+          }
+
+          if (oldParentId) {
+            const oldParent = s.nodes[oldParentId];
+            if (oldParent) {
+              oldParent.children = oldParentChildren;
+              oldParent.hasChildren = oldParentHasChildren;
+            }
+          }
+
+          const newParent = s.nodes[dropId];
+          if (newParent) {
+            newParent.children = newParent.children.filter(
+              cid => cid !== dragId
+            );
+            newParent.hasChildren = newParent.children.length > 0;
+          }
+
+          for (const [id, spaceType] of oldDescendantSpaceTypes) {
+            const node = s.nodes[id];
+            if (node) node.spaceType = spaceType;
+          }
+        });
+
+        throw new Error('Move failed');
+      }
     },
 
     upload: async (parentId, files) => {

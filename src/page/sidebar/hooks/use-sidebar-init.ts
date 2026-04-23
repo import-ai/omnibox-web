@@ -1,10 +1,8 @@
-import axios from 'axios';
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Resource } from '@/interface';
 import { http } from '@/lib/request';
-import { useNodesSize } from '@/page/sidebar/store';
 import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
 
 export function useSidebarInit() {
@@ -15,31 +13,26 @@ export function useSidebarInit() {
   const resourceId = params.resource_id || '';
   const chatPage = loc.pathname.includes('/chat');
 
-  const autoExpandedRef = useRef<Set<string>>(new Set());
-  const hasAutoNavigatedRef = useRef(false);
-  const prevNodesSizeRef = useRef(0);
-  const nodesSize = useNodesSize();
+  // Derive initialization state from rootIds.
+  // setNamespaceId() clears rootIds when namespace switches, so this is reliable.
+  const initialized = useSidebarStore(
+    s => s.rootIds.private !== '' || s.rootIds.teamspace !== ''
+  );
 
-  // Set namespaceId for store API calls
+  // Set namespaceId (also clears old nodes/rootIds/ui/activeId)
   useEffect(() => {
     useSidebarStore.getState().setNamespaceId(namespaceId);
   }, [namespaceId]);
 
-  // Clear auto-expanded keys when namespace changes
-  useEffect(() => {
-    autoExpandedRef.current.clear();
-    hasAutoNavigatedRef.current = false;
-  }, [namespaceId]);
-
-  // Fetch root resources and initialize store
+  // Fetch root resources
   useEffect(() => {
     if (!namespaceId) return;
     if (!localStorage.getItem('uid')) return;
 
-    const source = axios.CancelToken.source();
+    const controller = new AbortController();
     http
       .get<Record<string, Resource>>(`/namespaces/${namespaceId}/root`, {
-        cancelToken: source.token,
+        signal: controller.signal,
       })
       .then(items => {
         useSidebarStore.getState().init(items);
@@ -49,22 +42,17 @@ export function useSidebarInit() {
       });
 
     return () => {
-      source.cancel();
+      controller.abort();
     };
   }, [namespaceId]);
 
-  // Auto-expand path when resourceId changes
+  // Auto-expand path when resourceId changes (only after roots are loaded)
   useEffect(() => {
-    if (!namespaceId || !resourceId || chatPage) return;
-    if (nodesSize === 0) return;
-
-    const key = `${namespaceId}:${resourceId}`;
-    if (autoExpandedRef.current.has(key)) return;
+    if (!initialized || !resourceId || chatPage) return;
 
     let cancelled = false;
     const store = useSidebarStore.getState();
 
-    autoExpandedRef.current.add(key);
     store.expandPathTo(resourceId, { expandTarget: true }).then(() => {
       if (cancelled) return;
       requestAnimationFrame(() => {
@@ -81,20 +69,13 @@ export function useSidebarInit() {
     return () => {
       cancelled = true;
     };
-  }, [namespaceId, resourceId, chatPage, nodesSize]);
+  }, [initialized, resourceId, chatPage]);
 
   // Auto-navigate to first resource when no resourceId and not on chat page
+  const hasAutoNavigatedRef = useRef(false);
+
   useEffect(() => {
-    if (resourceId || chatPage) return;
-    if (nodesSize === 0) {
-      prevNodesSizeRef.current = nodesSize;
-      return;
-    }
-    // Reset auto-navigate when nodes are recreated after being empty
-    if (prevNodesSizeRef.current === 0 && nodesSize > 0) {
-      hasAutoNavigatedRef.current = false;
-    }
-    prevNodesSizeRef.current = nodesSize;
+    if (!initialized || resourceId || chatPage) return;
     if (hasAutoNavigatedRef.current) return;
 
     const store = useSidebarStore.getState();
@@ -110,7 +91,12 @@ export function useSidebarInit() {
       hasAutoNavigatedRef.current = true;
       navigate(`/${namespaceId}/${firstNode.id}`);
     }
-  }, [chatPage, namespaceId, resourceId, nodesSize]);
+  }, [initialized, resourceId, chatPage, namespaceId, navigate]);
+
+  // Reset auto-navigate flag when namespace changes
+  useEffect(() => {
+    hasAutoNavigatedRef.current = false;
+  }, [namespaceId]);
 
   // Sync activeId from URL (only when URL changes, not when store.activeId changes)
   useEffect(() => {

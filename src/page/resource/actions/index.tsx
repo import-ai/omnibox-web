@@ -267,7 +267,11 @@ export default function Actions(props: IActionProps) {
   const handleMoveFinished = async (resourceId: string, targetId: string) => {
     setMoveTo(false);
     setOpen(false);
-    await useSidebarStore.getState().move(resourceId, targetId);
+    try {
+      await useSidebarStore.getState().move(resourceId, targetId);
+    } catch {
+      toast.error(t('move.failed'));
+    }
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

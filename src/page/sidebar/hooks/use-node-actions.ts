@@ -154,7 +154,11 @@ export function useNodeActions(
 
   const handleMoveFinished = async (resourceId: string, targetId: string) => {
     setMoveTo(false);
-    await useSidebarStore.getState().move(resourceId, targetId);
+    try {
+      await useSidebarStore.getState().move(resourceId, targetId);
+    } catch {
+      toast.error(t('move.failed'));
+    }
   };
 
   return {

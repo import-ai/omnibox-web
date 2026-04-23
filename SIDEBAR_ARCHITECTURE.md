@@ -166,7 +166,7 @@ async create(parentId, type, name) {
 
 职责：
 
-1. **设置 namespaceId**：`store.setNamespaceId(namespaceId)`
+1. **设置 namespaceId**：`store.setNamespaceId(namespaceId)`（同时清空旧 namespace 的 `nodes`/`ui`/`rootIds`/`activeId`）
 2. **获取根资源**：HTTP GET `/namespaces/{id}/root` → `store.init(roots)`
 3. **自动展开路径**：当 URL `resourceId` 变化时，自动展开到目标节点的所有父节点
 4. **自动导航**：无 `resourceId` 且不在 chat 页时，自动导航到第一个资源
@@ -174,9 +174,10 @@ async create(parentId, type, name) {
 
 防竞态设计：
 
-- `autoExpandedRef`：防止同一 namespace+resource 重复展开
-- `hasAutoNavigatedRef`：防止重复自动导航
-- `cancelled` 标志：组件卸载时取消滚动动画
+- **`initialized` 从 `rootIds` 推导** — `useSidebarStore(s => s.rootIds.private !== '' || s.rootIds.teamspace !== '')`。`setNamespaceId()` 会在 namespace 切换时清空 `rootIds`，因此推导结果可靠，无需 `useRef` 或 `useState`
+- **`hasAutoNavigatedRef`** — 仅用于阻止重复自动导航（同一 namespace 内只应自动导航一次）
+- **`cancelled` 标志** — 组件卸载或依赖变化时取消 `expandPathTo` + `scrollIntoView` 链
+- **`AbortController`** — 取消未完成的根资源 HTTP 请求（替代已废弃的 `axios.CancelToken`）
 
 ### 4.2 useSidebarEvents — 事件总线适配器
 
@@ -304,8 +305,10 @@ const [editName, setEditName] = useState('');
 用户拖拽资源 A 到资源 B
   → react-dnd drop (ResourceNode / SpaceSection)
     → store.move(A, B)
+      → 乐观 UI 更新：set(draft => { ... })
       → HTTP POST /namespaces/{ns}/resources/{A}/move/{B}
-      → set(draft => { ... })  // UI 更新
+        → 成功：UI 已更新，无需操作
+        → 失败：回滚到移动前状态
 ```
 
 **Resource Page 的 MoveTo 对话框**：
@@ -317,11 +320,12 @@ const [editName, setEditName] = useState('');
     → onFinished(resourceId, targetId)
       → handleMoveFinished
         → store.move(resourceId, targetId)
-          → HTTP POST /namespaces/{ns}/resources/{id}/move/{targetId}
-          → set(draft => { ... })
+          → 乐观 UI 更新
+          → HTTP POST .../move/{targetId}
+            → 失败时回滚 + toast.error('移动失败')
 ```
 
-> **重构要点**：`store.move()` 统一封装 HTTP + UI 更新。不存在 `moveHttp` 和 `move` 两个 action。Resource Page 的 MoveTo 对话框不再直接做 HTTP，仅负责 UI 交互和回调。
+> **设计要点**：`store.move()` 采用**乐观更新**。先执行本地 UI 变更，再发 HTTP 请求；成功则保持现状，失败则自动回滚。回滚时恢复：drag 节点的 `parentId`/`spaceType`、新旧父节点的 `children`/`hasChildren`、所有后代的 `spaceType`。
 
 ### 6.4 恢复资源
 
