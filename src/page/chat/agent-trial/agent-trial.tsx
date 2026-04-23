@@ -10,13 +10,13 @@ import { MessageDetail } from '@/page/chat/core/types/conversation';
 
 export function AgentTrial({
   namespaceId,
-  lastMessage,
+  messages,
 }: {
   namespaceId: string;
-  lastMessage?: MessageDetail;
+  messages?: MessageDetail[];
 }) {
   const { t, i18n } = useTranslation();
-  const { agentUsage } = useAgentUsage(namespaceId, lastMessage);
+  const { agentUsage } = useAgentUsage(namespaceId, messages ?? []);
   const { role } = useNamespaceRole(namespaceId);
   const hasUpgradePermission: boolean = role === 'owner';
 
