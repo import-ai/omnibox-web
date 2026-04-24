@@ -1,3 +1,14 @@
+import {
+  FilePlus,
+  FolderPlus,
+  MessageSquarePlus,
+  MessageSquareQuote,
+  MonitorUp,
+  Move,
+  Pencil,
+  SquarePen,
+  Trash2,
+} from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -23,19 +34,19 @@ export function useNodeMenu(
   const { t } = useTranslation();
   const { node } = actions;
 
-  return useMemo(() => {
+  const menuItems = useMemo(() => {
     if (!node) return [];
 
     return [
       {
         key: 'create_file',
-        icon: require('lucide-react').FilePlus,
+        icon: FilePlus,
         label: t('actions.create_file'),
         onClick: actions.handleCreateFile,
       },
       {
         key: 'create_folder',
-        icon: require('lucide-react').FolderPlus,
+        icon: FolderPlus,
         label: t('actions.create_folder'),
         onClick:
           createFolderMode === 'direct'
@@ -44,26 +55,26 @@ export function useNodeMenu(
       },
       {
         key: 'upload_file',
-        icon: require('lucide-react').MonitorUp,
+        icon: MonitorUp,
         label: t('actions.upload_file'),
         onClick: () => actions.fileInputRef.current?.click(),
       },
       { key: 'separator_1', separator: true },
       {
         key: 'rename',
-        icon: require('lucide-react').SquarePen,
+        icon: SquarePen,
         label: t('actions.rename'),
         onSelect: onRename,
       },
       {
         key: 'edit',
-        icon: require('lucide-react').Pencil,
+        icon: Pencil,
         label: t('edit'),
         onClick: actions.handleEdit,
       },
       {
         key: 'move_to',
-        icon: require('lucide-react').Move,
+        icon: Move,
         label: t('actions.move_to'),
         onClick: actions.handleMoveTo,
       },
@@ -72,13 +83,15 @@ export function useNodeMenu(
       { key: 'separator_3', separator: true },
       {
         key: 'delete',
-        icon: require('lucide-react').Trash2,
+        icon: Trash2,
         label: t('actions.move_to_trash'),
         destructive: true,
         onClick: actions.handleDelete,
       },
     ];
   }, [actions, t, createFolderMode, onRename, node]);
+
+  return menuItems;
 }
 
 function buildAddToChatItems(
@@ -89,13 +102,11 @@ function buildAddToChatItems(
 
   if (!node) return [];
 
-  const icons = require('lucide-react');
-
   if (node.resourceType === 'folder') {
     return [
       {
         key: 'add_all_to_context',
-        icon: icons.MessageSquarePlus,
+        icon: MessageSquarePlus,
         label: t('actions.add_all_to_context'),
         onClick: actions.handleAddAllToChat,
       },
@@ -106,13 +117,13 @@ function buildAddToChatItems(
     return [
       {
         key: 'add_all_to_context',
-        icon: icons.MessageSquarePlus,
+        icon: MessageSquarePlus,
         label: t('actions.add_all_to_context'),
         onClick: actions.handleAddAllToChat,
       },
       {
         key: 'add_it_to_context',
-        icon: icons.MessageSquareQuote,
+        icon: MessageSquareQuote,
         label: t('actions.add_it_to_context'),
         onClick: actions.handleAddToChat,
       },
@@ -122,7 +133,7 @@ function buildAddToChatItems(
   return [
     {
       key: 'add_it_to_context',
-      icon: icons.MessageSquareQuote,
+      icon: MessageSquareQuote,
       label: t('actions.add_it_to_context'),
       onClick: actions.handleAddToChat,
     },

@@ -44,8 +44,7 @@ export function NodeActionsContent({
   const isTouch = useIsTouch();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const menuItems = useNodeMenu(actions, 'dialog', (e: Event) => {
-    e.preventDefault();
+  const menuItems = useNodeMenu(actions, 'dialog', () => {
     setMenuOpen(false);
     onRename?.();
   });
@@ -119,15 +118,13 @@ export function NodeActionsContent({
         </DropdownMenuContent>
       </DropdownMenu>
       {actions.moveTo && (
-        <>
-          <MoveTo
-            open={true}
-            resourceId={nodeId}
-            onOpenChange={actions.setMoveTo}
-            namespaceId={namespaceId}
-            onFinished={actions.handleMoveFinished}
-          />
-        </>
+        <MoveTo
+          open={true}
+          resourceId={nodeId}
+          onOpenChange={actions.setMoveTo}
+          namespaceId={namespaceId}
+          onFinished={actions.handleMoveFinished}
+        />
       )}
     </>
   );

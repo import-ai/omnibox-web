@@ -1,14 +1,7 @@
 import { uploadResource } from '@/service/resource';
 
-import type { SidebarGet, SidebarSet, SidebarState } from '../types';
-import { createNode } from '../utils';
-
-function ensureUI(s: SidebarState, id: string) {
-  if (!s.ui[id]) {
-    s.ui[id] = { expanded: false, loading: false, loaded: false };
-  }
-  return s.ui[id];
-}
+import type { SidebarGet, SidebarSet } from '../types';
+import { createNode, ensureUI } from '../utils';
 
 export function buildUploadActions(set: SidebarSet, get: SidebarGet) {
   const lastProgressTimes = new Map<string, number>();

@@ -6,22 +6,16 @@ import {
   restoreResource,
 } from '@/service/resource';
 
-import type { SidebarGet, SidebarSet, SidebarState } from '../types';
+import type { SidebarGet, SidebarSet } from '../types';
 import {
   createNode,
   detectSpaceType,
+  ensureUI,
   findNextActiveId,
   getDescendantIds,
   isDescendant,
   traverseDescendants,
 } from '../utils';
-
-function ensureUI(s: SidebarState, id: string) {
-  if (!s.ui[id]) {
-    s.ui[id] = { expanded: false, loading: false, loaded: false };
-  }
-  return s.ui[id];
-}
 
 export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
   return {

@@ -1,6 +1,6 @@
 import { Resource, SpaceType } from '@/interface';
 
-import type { TreeNode } from './types';
+import type { SidebarState, TreeNode } from './types';
 
 export function createNode(
   resource: Resource,
@@ -168,4 +168,11 @@ export function detectSpaceType(
     }
   }
   return null;
+}
+
+export function ensureUI(s: SidebarState, id: string) {
+  if (!s.ui[id]) {
+    s.ui[id] = { expanded: false, loading: false, loaded: false };
+  }
+  return s.ui[id];
 }

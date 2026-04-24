@@ -31,12 +31,9 @@ export default function MainSidebar() {
   const { setOpenMobile } = useSidebar();
   const { namespaceId } = useSidebarInit();
   useSidebarEvents(namespaceId);
-
   const globalFileInputRef = useRef<HTMLInputElement>(null);
   const currentUploadTargetId = useSidebarStore(s => s.currentUploadTargetId);
-
   const createFolderTargetId = useSidebarStore(s => s.createFolderTargetId);
-
   const handleGlobalFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -81,41 +78,41 @@ export default function MainSidebar() {
         <ResourceTree namespaceId={namespaceId}>
           <TrashPanel />;
         </ResourceTree>
+        <CreateFolderDialog
+          open={!!createFolderTargetId}
+          onOpenChange={open => {
+            if (!open) useSidebarStore.getState().closeCreateFolderDialog();
+          }}
+          onConfirm={async folderName => {
+            if (!createFolderTargetId) {
+              return;
+            }
+            const store = useSidebarStore.getState();
+            const id = await store.create(
+              createFolderTargetId,
+              'folder',
+              folderName
+            );
+            store.activate(id);
+            store.closeCreateFolderDialog();
+            navigate(`/${namespaceId}/${id}`, {
+              state: { fromSidebar: true },
+            });
+          }}
+        />
+        <Input
+          multiple
+          type="file"
+          className="hidden"
+          ref={globalFileInputRef}
+          id="global-sidebar-file-input"
+          accept={ALLOW_FILE_EXTENSIONS}
+          onChange={handleGlobalFileUpload}
+        />
         <FooterSidebar />
         <SidebarRail className="opacity-0" />
       </Sidebar>
       <SettingModal />
-      <CreateFolderDialog
-        open={!!createFolderTargetId}
-        onOpenChange={open => {
-          if (!open) useSidebarStore.getState().closeCreateFolderDialog();
-        }}
-        onConfirm={async folderName => {
-          if (!createFolderTargetId) {
-            return;
-          }
-          const store = useSidebarStore.getState();
-          const id = await store.create(
-            createFolderTargetId,
-            'folder',
-            folderName
-          );
-          store.activate(id);
-          store.closeCreateFolderDialog();
-          navigate(`/${namespaceId}/${id}`, {
-            state: { fromSidebar: true },
-          });
-        }}
-      />
-      <Input
-        multiple
-        type="file"
-        className="hidden"
-        ref={globalFileInputRef}
-        id="global-sidebar-file-input"
-        accept={ALLOW_FILE_EXTENSIONS}
-        onChange={handleGlobalFileUpload}
-      />
     </React.Fragment>
   );
 }

@@ -1,17 +1,5 @@
-import type {
-  RootResource,
-  SidebarGet,
-  SidebarSet,
-  SidebarState,
-} from '../types';
-import { createNode, patchNodeFromResource } from '../utils';
-
-function ensureUI(s: SidebarState, id: string) {
-  if (!s.ui[id]) {
-    s.ui[id] = { expanded: false, loading: false, loaded: false };
-  }
-  return s.ui[id];
-}
+import type { RootResource, SidebarGet, SidebarSet } from '../types';
+import { createNode, ensureUI, patchNodeFromResource } from '../utils';
 
 export function buildBaseActions(set: SidebarSet, _get: SidebarGet) {
   return {

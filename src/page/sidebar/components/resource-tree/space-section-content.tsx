@@ -1,7 +1,5 @@
 import { FilePlus, FolderPlus, MonitorUp, MoreHorizontal } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { useDrop } from 'react-dnd';
-import { NativeTypes } from 'react-dnd-html5-backend';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -39,9 +37,9 @@ import { useIsTouch } from '@/hooks/use-is-touch';
 import { SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
 import { menuIconClass, menuItemClass } from '@/page/sidebar/constants';
+import { useSpaceDrop } from '@/page/sidebar/hooks/use-space-drop';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { isValidFileType } from '@/page/sidebar/utils';
 
 import ResourceNode from './resource-node';
 
@@ -73,85 +71,19 @@ export function SpaceSectionContent({
     useSidebarStore.getState().openCreateFolderDialog(rootId);
   };
 
-  // File and resource drop handling
-  const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
-  const isDragOver = fileDragTarget === rootId;
-
-  const [{ canDrop, isOver }, drop] = useDrop({
-    accept: [NativeTypes.FILE, 'card'],
-    drop: (item, monitor) => {
-      if (monitor.didDrop()) return;
-      const itemType = monitor.getItemType();
-      if (itemType === NativeTypes.FILE) {
-        const fileItem = item as { files: File[] };
-        const validFiles = fileItem.files.filter(file =>
-          isValidFileType(file.name)
-        );
-        if (validFiles.length > 0) {
-          const fileList = new DataTransfer();
-          validFiles.forEach(file => fileList.items.add(file));
-          useSidebarStore
-            .getState()
-            .uploadFiles(rootId, fileList.files)
-            .then(id => {
-              useSidebarStore.getState().activate(id);
-              navigate(`/${namespaceId}/${id}`, {
-                state: { fromSidebar: true },
-              });
-              toast.success(
-                t('upload.success', { count: fileList.files.length })
-              );
-            })
-            .catch(() => {
-              toast.error(t('upload.failed'));
-            });
-        } else {
-          toast(t('upload.invalid_ext'), { position: 'bottom-right' });
-        }
-        setFileDragTarget(null);
-      } else if (itemType === 'card') {
-        const dragItem = item as { id: string };
-        if (dragItem.id !== rootId) {
-          useSidebarStore
-            .getState()
-            .move(dragItem.id, rootId)
-            .catch(() => {
-              toast.error(t('move.failed'));
-            });
-        }
-        setFileDragTarget(null);
-      }
-    },
-    collect: monitor => ({
-      isOver: monitor.isOver({ shallow: true }),
-      canDrop: monitor.canDrop(),
-    }),
-    hover: (item, monitor) => {
-      const isOverShallow = monitor.isOver({ shallow: true });
-      const itemType = monitor.getItemType();
-      if (itemType === NativeTypes.FILE) {
-        if (isOverShallow) setFileDragTarget(rootId);
-      } else if (itemType === 'card') {
-        setFileDragTarget(null);
-        if (!isOverShallow) return;
-        const dragId = (item as { id: string }).id;
-        if (dragId === rootId) return;
-        // Resource drag target is handled elsewhere
-      }
-    },
+  const {
+    ref: dropRef,
+    isOver,
+    canDrop,
+    isFileDragOver,
+  } = useSpaceDrop({
+    spaceId: rootId,
+    namespaceId,
   });
 
   useEffect(() => {
-    if (groupRef.current) {
-      drop(groupRef);
-    }
-  }, [drop]);
-
-  useEffect(() => {
-    if (!isOver && fileDragTarget === rootId) {
-      setFileDragTarget(null);
-    }
-  }, [isOver, fileDragTarget, rootId]);
+    groupRef.current = dropRef.current;
+  }, [dropRef]);
 
   const handleHeaderToggle = () => {
     useSidebarStore.getState().toggleSpace(spaceType);
@@ -181,7 +113,7 @@ export function SpaceSectionContent({
       ref={groupRef}
       className={cn('pr-0', {
         'bg-sidebar-border text-sidebar-accent-foreground':
-          isDragOver || (canDrop && isOver),
+          isFileDragOver || (canDrop && isOver),
       })}
     >
       <ContextMenu>

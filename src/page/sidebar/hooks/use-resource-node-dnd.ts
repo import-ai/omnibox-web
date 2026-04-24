@@ -1,13 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 import type { TreeNode } from '../store';
-import { useSidebarStore } from '../store';
-import { isValidFileType } from '../utils';
+import { useDndHandlers } from './use-dnd-handlers';
 
 interface UseResourceNodeDndOptions {
   namespaceId: string;
@@ -27,15 +23,16 @@ export function useResourceNodeDnd(
   isEditing: boolean,
   options: UseResourceNodeDndOptions
 ): UseResourceNodeDndReturn {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
   const { namespaceId, onNodeDrop } = options;
 
   const ref = useRef<HTMLDivElement>(null);
-  const [localFileDragTarget, setLocalFileDragTarget] = useState<string | null>(
-    null
-  );
-  const isFileDragOver = localFileDragTarget === nodeId;
+
+  const { handleDrop, handleHover, isFileDragOver, clearFileDragTarget } =
+    useDndHandlers({
+      targetId: nodeId,
+      namespaceId,
+      onNodeDrop,
+    });
 
   const [dragStyle, drag] = useDrag(
     {
@@ -56,63 +53,10 @@ export function useResourceNodeDnd(
     }),
     hover: (item, monitor) => {
       if (!ref.current) return;
-      const itemType = monitor.getItemType();
-      const isOverShallow = monitor.isOver({ shallow: true });
-
-      if (itemType === NativeTypes.FILE) {
-        if (isOverShallow) setLocalFileDragTarget(nodeId);
-      } else {
-        setLocalFileDragTarget(null);
-        if (!isOverShallow) return;
-        const dragId = (item as { id: string }).id;
-        if (dragId === nodeId) return;
-      }
+      handleHover(item, monitor);
     },
     drop: (item, monitor) => {
-      const itemType = monitor.getItemType();
-      if (itemType === NativeTypes.FILE) {
-        if (monitor.didDrop()) return;
-        const fileItem = item as { files: File[] };
-        const validFiles = fileItem.files.filter(file =>
-          isValidFileType(file.name)
-        );
-        if (validFiles.length > 0) {
-          const fileList = new DataTransfer();
-          validFiles.forEach(file => fileList.items.add(file));
-          useSidebarStore
-            .getState()
-            .uploadFiles(nodeId, fileList.files)
-            .then(id => {
-              useSidebarStore.getState().activate(id);
-              navigate(`/${namespaceId}/${id}`, {
-                state: { fromSidebar: true },
-              });
-              toast.success(
-                t('upload.success', { count: fileList.files.length })
-              );
-            })
-            .catch(err => {
-              toast.error(err?.message || t('upload.failed'));
-            });
-        } else {
-          toast(t('upload.invalid_ext'), { position: 'bottom-right' });
-        }
-        setLocalFileDragTarget(null);
-      } else {
-        const dragItem = item as { id: string };
-        if (dragItem.id !== nodeId) {
-          if (onNodeDrop) {
-            onNodeDrop(dragItem.id, nodeId);
-          } else {
-            useSidebarStore
-              .getState()
-              .move(dragItem.id, nodeId)
-              .catch(() => {
-                toast.error(t('move.failed'));
-              });
-          }
-        }
-      }
+      handleDrop(item, monitor);
     },
   });
 
@@ -123,9 +67,9 @@ export function useResourceNodeDnd(
 
   useEffect(() => {
     if (!isOver && isFileDragOver) {
-      setLocalFileDragTarget(null);
+      clearFileDragTarget();
     }
-  }, [isOver, isFileDragOver]);
+  }, [isOver, isFileDragOver, clearFileDragTarget]);
 
   return { ref, dragStyle, isOver, isFileDragOver };
 }
