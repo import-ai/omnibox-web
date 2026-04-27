@@ -68,6 +68,9 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
                 }
               }
             }
+
+            // 记录此资源已展开，避免重复展开
+            s.autoExpandedKeys[`${s.namespaceId}:${id}`] = true;
           });
         } catch (err) {
           console.error('[sidebar] expand failed:', err);
@@ -101,8 +104,20 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
       targetId: string,
       options?: { expandTarget?: boolean }
     ) => {
+      const namespaceId = get().namespaceId;
+      const autoExpandKey = `${namespaceId}:${targetId}`;
+
       const nodes = get().nodes;
       const target = nodes[targetId];
+
+      // 如果节点已在树中且已展开，跳过展开
+      if (
+        target &&
+        get().ui[targetId]?.expanded &&
+        get().autoExpandedKeys[autoExpandKey]
+      ) {
+        return;
+      }
 
       if (target) {
         const parentIds = collectParentIds(nodes, targetId);
@@ -180,6 +195,11 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
             const ui = ensureUI(s, pid);
             ui.expanded = true;
           }
+        });
+
+        // 记录此资源已展开，避免重复展开
+        set(s => {
+          s.autoExpandedKeys[autoExpandKey] = true;
         });
 
         const parentIds = collectParentIds(get().nodes, targetId);

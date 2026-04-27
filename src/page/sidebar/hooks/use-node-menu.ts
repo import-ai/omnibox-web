@@ -18,8 +18,8 @@ export type CreateFolderMode = 'direct' | 'dialog';
 
 export interface MenuItem {
   key: string;
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  label?: string;
   separator?: boolean;
   destructive?: boolean;
   onClick?: () => void;
@@ -57,7 +57,7 @@ export function useNodeMenu(
         key: 'upload_file',
         icon: MonitorUp,
         label: t('actions.upload_file'),
-        onClick: () => actions.fileInputRef.current?.click(),
+        onClick: actions.handleUpload,
       },
       { key: 'separator_1', separator: true },
       {

@@ -43,6 +43,7 @@ export interface SidebarState {
   currentUploadTargetId: string | null;
   spaceExpanded: Record<SpaceType, boolean>;
   upload: Record<string, string>;
+  autoExpandedKeys: Record<string, boolean>;
 }
 
 export interface RemoveResult {
@@ -99,4 +100,5 @@ export const initialState: SidebarState = {
   currentUploadTargetId: null,
   spaceExpanded: { private: true, teamspace: true },
   upload: {},
+  autoExpandedKeys: {},
 };

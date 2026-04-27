@@ -7,7 +7,7 @@ export function buildUploadActions(set: SidebarSet, get: SidebarGet) {
   const lastProgressTimes = new Map<string, number>();
 
   return {
-    uploadFiles: async (parentId: string, files: FileList | File[]) => {
+    uploadFiles: async (parentId: string, files: FileList) => {
       const parent = get().nodes[parentId];
       if (!parent) throw new Error('Parent not found');
 

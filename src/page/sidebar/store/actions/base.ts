@@ -1,3 +1,5 @@
+import type { Resource } from '@/interface';
+
 import type { RootResource, SidebarGet, SidebarSet } from '../types';
 import { createNode, ensureUI, patchNodeFromResource } from '../utils';
 
@@ -10,6 +12,7 @@ export function buildBaseActions(set: SidebarSet, _get: SidebarGet) {
         s.ui = {};
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
+        s.autoExpandedKeys = {};
       });
     },
 
@@ -84,7 +87,7 @@ export function buildBaseActions(set: SidebarSet, _get: SidebarGet) {
       });
     },
 
-    refreshChildren: (parentId: string, resources: unknown[]) => {
+    refreshChildren: (parentId: string, resources: Resource[]) => {
       set(s => {
         const parent = s.nodes[parentId];
         if (!parent) return;
@@ -106,17 +109,16 @@ export function buildBaseActions(set: SidebarSet, _get: SidebarGet) {
         }
 
         for (const res of resources) {
-          const r = res as { id: string; parent_id?: string };
-          if (!(r.id in s.nodes)) {
-            s.nodes[r.id] = createNode(
-              r,
-              r.parent_id || parentId,
+          if (!(res.id in s.nodes)) {
+            s.nodes[res.id] = createNode(
+              res,
+              res.parent_id || parentId,
               parent.spaceType
             );
           } else {
-            const n = s.nodes[r.id];
+            const n = s.nodes[res.id];
             if (n) {
-              patchNodeFromResource(n, r);
+              patchNodeFromResource(n, res);
             }
           }
         }

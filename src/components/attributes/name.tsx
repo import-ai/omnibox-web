@@ -32,7 +32,7 @@ export function FilenameAttribute({
       <Button
         variant="ghost"
         loading={download}
-        className={`ml-[-8px] h-auto px-2 py-0 font-normal ${ATTRIBUTE_STYLES.value}`}
+        className={`ml-2 h-auto px-2 py-0 font-normal ${ATTRIBUTE_STYLES.value}`}
         onClick={() => {
           onDownload(true);
           downloadFile(namespaceId, resourceId, filename).finally(() => {
