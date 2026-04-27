@@ -157,6 +157,7 @@ export default function Actions(props: IActionProps) {
         id: resource.id,
         parentId: resource.parent_id,
         namespaceId,
+        resourceType: resource.resource_type,
         onSuccess: () => setOpen(false),
       }).finally(() => {
         onLoading('');

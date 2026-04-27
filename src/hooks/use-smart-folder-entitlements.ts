@@ -42,7 +42,7 @@ export default function useSmartFolderEntitlements(props?: IProps) {
   const { namespaceId, disabled = false } = props || {};
   const app = useApp();
   const [loading, onLoading] = useState(false);
-  const [data, onData] = useState<SmartFolderEntitlements | null>(null);
+  const [data, onData] = useState<SmartFolderEntitlements>();
   const currentUserId = localStorage.getItem('uid') || '';
   const cacheKey =
     namespaceId && currentUserId ? `${currentUserId}:${namespaceId}` : '';
@@ -55,18 +55,16 @@ export default function useSmartFolderEntitlements(props?: IProps) {
       return;
     }
 
-    if (!force) {
-      const cached = cachedEntitlements.get(cacheKey);
-      if (cached) {
-        onData(cached);
-        return;
-      }
+    const cached = cachedEntitlements.get(cacheKey);
+    if (!force && cached) {
+      onData(cached);
+      return;
+    }
 
-      const pending = pendingRequests.get(cacheKey);
-      if (pending) {
-        pending.then(onData);
-        return;
-      }
+    const pending = pendingRequests.get(cacheKey);
+    if (pending) {
+      pending.then(onData);
+      return;
     }
 
     onLoading(true);
@@ -102,7 +100,7 @@ export default function useSmartFolderEntitlements(props?: IProps) {
     }
 
     refetch();
-    return app.on('namespaces_refetch', () => refetch(true));
+    return app.on('smart_folder_entitlements_refetch', () => refetch(true));
   }, [app, cacheKey, currentUserId, disabled, namespaceId]);
 
   return { data, loading, refetch };

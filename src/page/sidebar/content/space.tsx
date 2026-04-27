@@ -49,6 +49,10 @@ import { cn } from '@/lib/utils';
 import { CreateFolderDialog } from './create-folder-dialog';
 import { CreateSmartFolderDialog } from './create-smart-folder-dialog';
 import { CreateSmartFolderPayload } from './smart-folder-types';
+import {
+  getRootSmartFolderState,
+  shouldOpenCreateSmartFolderDialog,
+} from './space-menu';
 import { menuIconClass, menuItemClass } from './styles';
 import Tree, { ITreeProps } from './tree';
 
@@ -89,25 +93,13 @@ export default function Space(props: ITreeProps) {
   const groupRef = useRef<HTMLDivElement>(null);
   const isDragOver = fileDragTarget === data.id;
   const isResourceDragOver = target && target.id === data.id;
-  const smartFolderCount =
-    data.children?.filter(item => item.resource_type === 'smart_folder')
-      .length ?? 0;
-  const smartFolderUsedCount =
-    spaceType === 'private'
-      ? Math.max(entitlements?.privateUsed ?? 0, smartFolderCount)
-      : Math.max(entitlements?.teamUsed ?? 0, smartFolderCount);
-  const smartFolderLimit =
-    spaceType === 'private'
-      ? (entitlements?.privateLimit ?? 1)
-      : (entitlements?.teamLimit ?? 1);
-  const disableCreateSmartFolder =
-    typeof smartFolderLimit === 'number' &&
-    smartFolderLimit >= 0 &&
-    smartFolderUsedCount >= smartFolderLimit;
-  const smartFolderDisabledMessage =
-    spaceType === 'private'
-      ? t('smart_folder.create.personal_quota_exhausted')
-      : t('smart_folder.create.team_quota_exhausted');
+  const smartFolderState = getRootSmartFolderState(
+    spaceType,
+    data.children,
+    entitlements
+  );
+  const disableCreateSmartFolder = smartFolderState.disabled;
+  const smartFolderDisabledMessage = t(smartFolderState.disabledMessageKey);
   const handleSelect = () => {
     fileInputRef.current?.click();
   };
@@ -129,7 +121,7 @@ export default function Space(props: ITreeProps) {
     return onCreate(spaceType, data.id, 'folder', folderName);
   };
   const handleCreateSmartFolder = () => {
-    if (disableCreateSmartFolder) {
+    if (!shouldOpenCreateSmartFolderDialog(disableCreateSmartFolder)) {
       return;
     }
     setCreateSmartFolderOpen(true);

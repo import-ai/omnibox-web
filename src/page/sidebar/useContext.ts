@@ -300,7 +300,8 @@ export default function useContext() {
     if (!spaceType) {
       return;
     }
-    deleteResource({ id, parentId, namespaceId, app });
+    const resourceType = getResourceByField(id)?.resource_type;
+    deleteResource({ id, parentId, namespaceId, app, resourceType });
   };
 
   const activeRoute = (
@@ -397,6 +398,7 @@ export default function useContext() {
       })
       .then((response: SmartFolderResponse) => {
         activeRoute(spaceType, parentId, response.resource, false);
+        app.fire('smart_folder_entitlements_refetch');
         toast.success(t('smart_folder.create.success'));
       })
       .finally(() => {
@@ -553,51 +555,63 @@ export default function useContext() {
       )
     );
     hooks.push(
-      app.on('delete_resource', (id: string, parentId: string) => {
-        const spaceType = getSpaceType(id);
-        const routeToActive =
-          id === resourceId ? getRouteToActive(spaceType, id, parentId) : '';
-        data[spaceType].children = data[spaceType].children.filter(
-          node => ![node.id, node.parent_id].includes(id)
-        );
-
-        // Update parent's has_children field
-        const parentIndex = data[spaceType].children.findIndex(
-          item => item.id === parentId
-        );
-        let parentBecameEmpty = false;
-        if (parentIndex >= 0) {
-          const remainingChildren = data[spaceType].children.filter(
-            item => item.parent_id === parentId
+      app.on(
+        'delete_resource',
+        (id: string, parentId: string, resourceType?: ResourceType) => {
+          const isDeletedSmartFolder =
+            resourceType === 'smart_folder' ||
+            getResourceByField(id)?.resource_type === 'smart_folder';
+          const spaceType = getSpaceType(id);
+          const routeToActive =
+            id === resourceId ? getRouteToActive(spaceType, id, parentId) : '';
+          data[spaceType].children = data[spaceType].children.filter(
+            node => ![node.id, node.parent_id].includes(id)
           );
-          data[spaceType].children[parentIndex].has_children =
-            remainingChildren.length > 0;
-          parentBecameEmpty = remainingChildren.length === 0;
+
+          // Update parent's has_children field
+          const parentIndex = data[spaceType].children.findIndex(
+            item => item.id === parentId
+          );
+          let parentBecameEmpty = false;
+          if (parentIndex >= 0) {
+            const remainingChildren = data[spaceType].children.filter(
+              item => item.parent_id === parentId
+            );
+            data[spaceType].children[parentIndex].has_children =
+              remainingChildren.length > 0;
+            parentBecameEmpty = remainingChildren.length === 0;
+          }
+
+          onData({ ...data });
+          if (isDeletedSmartFolder) {
+            app.fire('smart_folder_entitlements_refetch');
+          }
+
+          if (parentBecameEmpty) {
+            onExpands(expands => expands.filter(expand => expand !== parentId));
+          }
+
+          if (routeToActive) {
+            navigate(`/${namespaceId}/${routeToActive}`);
+          }
+
+          // Show toast notification for all delete operations
+          showActionToast(t('resource.moved_to_trash'), {
+            actionLabel: t('undo'),
+            onAction: () => {
+              http
+                .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
+                .then(response => {
+                  activeRoute(spaceType, parentId, response);
+                  if (isDeletedSmartFolder) {
+                    app.fire('smart_folder_entitlements_refetch');
+                  }
+                  app.fire('trash_updated');
+                });
+            },
+          });
         }
-
-        onData({ ...data });
-
-        if (parentBecameEmpty) {
-          onExpands(expands => expands.filter(expand => expand !== parentId));
-        }
-
-        if (routeToActive) {
-          navigate(`/${namespaceId}/${routeToActive}`);
-        }
-
-        // Show toast notification for all delete operations
-        showActionToast(t('resource.moved_to_trash'), {
-          actionLabel: t('undo'),
-          onAction: () => {
-            http
-              .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
-              .then(response => {
-                activeRoute(spaceType, parentId, response);
-                app.fire('trash_updated');
-              });
-          },
-        });
-      })
+      )
     );
     hooks.push(
       app.on('update_resource', (delta: Resource) => {

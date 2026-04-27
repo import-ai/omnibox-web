@@ -57,6 +57,7 @@ import {
   shouldShowValueInput,
   toSmartFolderApiPayload,
 } from './smart-folder-utils';
+import { stopRootContextMenuPropagation } from './space-menu';
 import {
   smartFolderDialogContentClass,
   smartFolderDialogTitleClass,
@@ -462,7 +463,10 @@ export function CreateSmartFolderDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className={smartFolderDialogContentClass}>
+        <DialogContent
+          className={smartFolderDialogContentClass}
+          onContextMenu={stopRootContextMenuPropagation}
+        >
           <DialogHeader className="space-y-0">
             <DialogTitle className={smartFolderDialogTitleClass}>
               {dialogTitle}
