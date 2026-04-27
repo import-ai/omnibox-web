@@ -74,7 +74,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
   const handleRelativeDateAmountChange = (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    const rawValue = event.target.value.replace(/[^\d]/g, '');
+    const nextValue = event.target.value.trim();
 
     if (
       normalizedValue?.kind === 'relative_date' &&
@@ -83,7 +83,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
     ) {
       onValueChange(index, {
         ...normalizedValue,
-        amount: rawValue,
+        amount: /^\d*$/.test(nextValue) ? nextValue : '',
       });
     }
   };
@@ -156,6 +156,8 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
                   <Input
                     value={normalizedValue.amount}
                     onChange={handleRelativeDateAmountChange}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder={t(
                       'smart_folder.create.relative_value_placeholder'
                     )}

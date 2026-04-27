@@ -128,14 +128,14 @@ export default function Action(props: ISidebarProps) {
     setMenuOpen(false);
   };
   const handleEdit = () => {
+    const sourceResourceId = getSmartFolderSourceResourceId(data);
+    const sourceParentId = getSmartFolderSourceParentId(data) || data.parent_id;
+
     onActiveKey(
-      getSmartFolderSourceResourceId(data),
+      sourceResourceId,
       true,
       isSmartFolderChild
-        ? getSmartFolderChildSidebarKey(
-            data.parent_id,
-            getSmartFolderSourceResourceId(data)
-          )
+        ? getSmartFolderChildSidebarKey(sourceParentId, sourceResourceId)
         : undefined
     );
   };

@@ -982,12 +982,12 @@
     "empty": "No matching resources yet. You can edit the filter rules.",
     "edit": {
       "title": "Edit smart folders",
-      "submit": "Update Filter Rules"
+      "submit": "Save"
     },
     "trash": {
       "this_folder": "this",
-      "title": "Move {{name}} smart folder to trash?",
-      "description": "Moving a smart folder to trash will not affect its internal resources. You can restore it from trash, and it will be automatically deleted after {{days}} days."
+      "title": "Move 1 smart folder to trash?",
+      "description": "Only the filter rules will be removed. Source files are not affected. You can restore it from trash, and it will be automatically deleted after {{days}} days."
     }
   }
 }

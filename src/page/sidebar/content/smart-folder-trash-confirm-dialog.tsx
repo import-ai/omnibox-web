@@ -22,23 +22,14 @@ interface SmartFolderTrashConfirmDialogProps {
 export function SmartFolderTrashConfirmDialog(
   props: SmartFolderTrashConfirmDialogProps
 ) {
-  const {
-    open,
-    retentionDays = 7,
-    smartFolderName,
-    onConfirm,
-    onOpenChange,
-  } = props;
+  const { open, retentionDays = 7, onConfirm, onOpenChange } = props;
   const { t } = useTranslation();
-  const displayName = smartFolderName || t('smart_folder.trash.this_folder');
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-[520px]">
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {t('smart_folder.trash.title', { name: displayName })}
-          </AlertDialogTitle>
+          <AlertDialogTitle>{t('smart_folder.trash.title')}</AlertDialogTitle>
           <AlertDialogDescription>
             {t('smart_folder.trash.description', { days: retentionDays })}
           </AlertDialogDescription>
