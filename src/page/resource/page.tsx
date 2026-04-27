@@ -37,7 +37,16 @@ export default function Page(props: IProps) {
         resource={resource}
         onResource={onResource}
       />
-      {resource.resource_type === 'folder' ? (
+      {resource.resource_type === 'smart_folder' ? (
+        <Folder
+          resourceId={resource.id}
+          apiPrefix={`/namespaces/${namespaceId}/smart-folders`}
+          emptyText={t('smart_folder.empty')}
+          navigationPrefix={`/${namespaceId}`}
+          loadAll
+          smartFolderParentId={resource.id}
+        />
+      ) : resource.resource_type === 'folder' ? (
         <Folder
           resourceId={resource.id}
           apiPrefix={`/namespaces/${namespaceId}/resources`}

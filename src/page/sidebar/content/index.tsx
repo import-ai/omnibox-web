@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
+import { useLocation } from 'react-router-dom';
 
 import { SidebarContent } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -30,10 +31,15 @@ export interface IProps extends Omit<
 
 export default function Content(props: IProps) {
   const { data, resourceId, progress, onDrop, openSpaces } = props;
+  const loc = useLocation();
   const isMobile = useIsMobile();
   const [target, onTarget] = useState<IResourceData | null>(null);
   const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const sidebarActiveKey =
+    typeof loc.state?.sidebarActiveKey === 'string'
+      ? loc.state.sidebarActiveKey
+      : resourceId;
   const handleDrop = (resource: IResourceData, item: IResourceData | null) => {
     onDrop(resource, item);
     onTarget(null);
@@ -67,7 +73,10 @@ export default function Content(props: IProps) {
       scrollAnimId = requestAnimationFrame(tick);
     };
 
-    const clear = () => setFileDragTarget(null);
+    const clear = () => {
+      setFileDragTarget(null);
+      onTarget(null);
+    };
     const handleDragEnd = () => {
       clear();
       stopAutoScroll();
@@ -168,8 +177,9 @@ export default function Content(props: IProps) {
               progress={progress}
               onTarget={onTarget}
               onDrop={handleDrop}
-              activeKey={resourceId}
+              activeKey={sidebarActiveKey}
               data={group(data[spaceType])}
+              spaceRoot={group(data[spaceType])}
               spaceType={spaceType as SpaceType}
               open={openSpaces[spaceType] !== false}
               fileDragTarget={fileDragTarget}

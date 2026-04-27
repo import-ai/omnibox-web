@@ -22,9 +22,13 @@ export function getTime(resource: Resource | null, i18next: I18nType) {
   });
 }
 
-interface GroupedItems {
-  [key: string]: Array<ResourceMeta>;
+interface TimestampedItem {
+  updated_at?: string;
 }
+
+type GroupedItems<T> = {
+  [key: string]: Array<T>;
+};
 
 function convert(year: number, month: number, i18next: I18nType): string {
   if (getLangOnly(i18next) === 'zh') {
@@ -41,6 +45,13 @@ export function groupItemsByTimestamp(
   items: Array<ResourceMeta>,
   i18next: I18nType
 ): [string, Array<ResourceMeta>][] {
+  return groupTimestampedItemsByTimestamp(items, i18next);
+}
+
+export function groupTimestampedItemsByTimestamp<T extends TimestampedItem>(
+  items: Array<T>,
+  i18next: I18nType
+): [string, Array<T>][] {
   const now = new Date();
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
@@ -51,7 +62,7 @@ export function groupItemsByTimestamp(
   const sevenDaysAgo = new Date(today);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const grouped: GroupedItems = {};
+  const grouped: GroupedItems<T> = {};
   const monthGroups: { key: string; date: Date }[] = [];
 
   items.forEach(item => {
@@ -89,7 +100,7 @@ export function groupItemsByTimestamp(
 
   monthGroups.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-  const orderedGroups: [string, Array<ResourceMeta>][] = [];
+  const orderedGroups: [string, Array<T>][] = [];
 
   if (grouped[i18next.t('date.today')]) {
     orderedGroups.push([

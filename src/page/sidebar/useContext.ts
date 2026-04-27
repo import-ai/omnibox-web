@@ -20,6 +20,11 @@ import each from '@/lib/each';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
+import {
+  CreateSmartFolderPayload,
+  SmartFolderResponse,
+} from './content/smart-folder-types';
+
 export default function useContext() {
   const app = useApp();
   const loc = useLocation();
@@ -37,23 +42,32 @@ export default function useContext() {
   const [expands, onExpands] = useState<Array<string>>([]);
   const [visibleResourceId, setVisibleResourceId] = useState<string>('');
   const [openSpaces, setOpenSpaces] = useState<Record<string, boolean>>({});
+  const sidebarActiveKey =
+    typeof loc.state?.sidebarActiveKey === 'string'
+      ? loc.state.sidebarActiveKey
+      : '';
+  const scrollFrameRef = useRef<number | null>(null);
+  const scrollTaskIdRef = useRef(0);
   const [data, onData] = useState<{
     [index: string]: IResourceData;
   }>({});
 
-  const scrollToResource = (resourceId: string) => {
-    if (visibleResourceId === resourceId) {
-      return;
+  const scrollToResource = (
+    resourceId: string,
+    force: boolean = false
+  ): boolean => {
+    if (!force && visibleResourceId === resourceId) {
+      return true;
     }
     setVisibleResourceId(resourceId);
 
     const isFromSidebar = loc.state?.fromSidebar === true;
-    if (isFromSidebar) {
+    if (!force && isFromSidebar) {
       navigate(loc.pathname, {
         replace: true,
         state: { ...loc.state, fromSidebar: undefined },
       });
-      return;
+      return true;
     }
 
     const element = document.querySelector(
@@ -64,6 +78,45 @@ export default function useContext() {
         behavior: 'smooth',
         block: 'center',
       });
+      return true;
+    }
+    return false;
+  };
+
+  const scheduleScrollToResource = (
+    id: string,
+    force: boolean = false,
+    attempts: number = 8
+  ) => {
+    scrollTaskIdRef.current += 1;
+    const taskId = scrollTaskIdRef.current;
+    if (scrollFrameRef.current !== null) {
+      cancelAnimationFrame(scrollFrameRef.current);
+    }
+    const run = (remainingAttempts: number) => {
+      if (taskId !== scrollTaskIdRef.current) {
+        return;
+      }
+      scrollFrameRef.current = requestAnimationFrame(() => {
+        if (taskId !== scrollTaskIdRef.current) {
+          return;
+        }
+        const didScroll = scrollToResource(id, force);
+        if (!didScroll && remainingAttempts > 0) {
+          run(remainingAttempts - 1);
+          return;
+        }
+        scrollFrameRef.current = null;
+      });
+    };
+    run(attempts);
+  };
+
+  const cancelPendingScroll = () => {
+    scrollTaskIdRef.current += 1;
+    if (scrollFrameRef.current !== null) {
+      cancelAnimationFrame(scrollFrameRef.current);
+      scrollFrameRef.current = null;
     }
   };
 
@@ -110,11 +163,16 @@ export default function useContext() {
     return current;
   };
 
-  const handleActiveKey = (id: string, edit?: boolean) => {
+  const handleActiveKey = (
+    id: string,
+    edit?: boolean,
+    sidebarActiveKey?: string
+  ) => {
+    const state = { fromSidebar: true, sidebarActiveKey };
     if (edit) {
-      navigate(`/${namespaceId}/${id}/edit`, { state: { fromSidebar: true } });
+      navigate(`/${namespaceId}/${id}/edit`, { state });
     } else {
-      navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+      navigate(`/${namespaceId}/${id}`, { state });
     }
     isMobile && setOpenMobile(false);
   };
@@ -126,6 +184,34 @@ export default function useContext() {
         open !== undefined ? open : prev[spaceType] !== false ? false : true,
     }));
   }, []);
+
+  const isSmartFolder = (id: string) =>
+    getResourceByField(id)?.resource_type === 'smart_folder';
+
+  const getChildrenApiPath = (id: string) =>
+    isSmartFolder(id)
+      ? `/namespaces/${namespaceId}/smart-folders/${id}/children`
+      : `/namespaces/${namespaceId}/resources/${id}/children`;
+
+  const normalizeChildrenForParent = (
+    parentId: string,
+    children: IResourceData[]
+  ): IResourceData[] =>
+    isSmartFolder(parentId)
+      ? children.map(child => ({
+          ...child,
+          id: `smart-folder-child-${parentId}-${child.id}`,
+          parent_id: parentId,
+          attrs: {
+            ...(child.attrs || {}),
+            __smart_folder_child: true,
+            __source_resource_id: child.id,
+            __source_parent_id: child.parent_id,
+          },
+          has_children: false,
+          children: [],
+        }))
+      : children;
 
   const handleExpand = (spaceType: SpaceType, id: string) => {
     if (expandedRef.current || expanding) {
@@ -151,19 +237,21 @@ export default function useContext() {
       item => item.parent_id !== id
     );
     http
-      .get(`/namespaces/${namespaceId}/resources/${id}/children`)
+      .get(getChildrenApiPath(id))
       .then(response => {
         // Merge backend data and existing frontend data, remove duplicates
-        const allChildren = [...response];
-        existingChildren.forEach(existingChild => {
-          const exists = response.find(
-            (item: IResourceData) => item.id === existingChild.id
-          );
-          if (!exists) {
-            // If backend doesn't return this resource but frontend has it (maybe just dragged in), keep frontend data
-            allChildren.push(existingChild);
-          }
-        });
+        const allChildren = normalizeChildrenForParent(id, [...response]);
+        if (!isSmartFolder(id)) {
+          existingChildren.forEach(existingChild => {
+            const exists = response.find(
+              (item: IResourceData) => item.id === existingChild.id
+            );
+            if (!exists) {
+              // If backend doesn't return this resource but frontend has it (maybe just dragged in), keep frontend data
+              allChildren.push(existingChild);
+            }
+          });
+        }
 
         each(allChildren, item => {
           data[spaceType].children.push(item);
@@ -209,7 +297,9 @@ export default function useContext() {
   };
 
   const handleDelete = (spaceType: SpaceType, id: string, parentId: string) => {
-    // Navigation is handled by delete_resource event handler
+    if (!spaceType) {
+      return;
+    }
     deleteResource({ id, parentId, namespaceId, app });
   };
 
@@ -293,6 +383,27 @@ export default function useContext() {
         onEditingKey('');
       });
   };
+  const handleCreateSmartFolder = (
+    spaceType: SpaceType,
+    parentId: string,
+    payload: CreateSmartFolderPayload
+  ) => {
+    onEditingKey(parentId);
+    return http
+      .post(`/namespaces/${namespaceId}/smart-folders`, {
+        ...payload,
+        parentId,
+        rootScope: spaceType,
+      })
+      .then((response: SmartFolderResponse) => {
+        activeRoute(spaceType, parentId, response.resource, false);
+        toast.success(t('smart_folder.create.success'));
+      })
+      .finally(() => {
+        onEditingKey('');
+      });
+  };
+
   const handleUpload = (
     spaceType: SpaceType,
     parentId: string,
@@ -397,18 +508,29 @@ export default function useContext() {
   const loadChildren = (spaceType: SpaceType, id: string) => {
     onExpanding(id);
     return http
-      .get(`/namespaces/${namespaceId}/resources/${id}/children`)
+      .get(getChildrenApiPath(id))
       .then(response => {
         data[spaceType].children = data[spaceType].children.filter(
           item => item.parent_id !== id
         );
-        data[spaceType].children.push(...response);
+        data[spaceType].children.push(
+          ...normalizeChildrenForParent(id, response)
+        );
         addExpandKeys([id]);
         onData({ ...data });
       })
       .finally(() => {
         onExpanding('');
       });
+  };
+
+  const refreshSmartFolderChildren = (resourceId: string) => {
+    const target = getResourceByField(resourceId);
+    if (!target || target.resource_type !== 'smart_folder') {
+      return;
+    }
+    const spaceType = getSpaceType(resourceId);
+    loadChildren(spaceType, resourceId);
   };
 
   useEffect(() => {
@@ -480,6 +602,7 @@ export default function useContext() {
     hooks.push(
       app.on('update_resource', (delta: Resource) => {
         let updated = false;
+        const smartFolderParentIds = new Set<string>();
         const newData = { ...data };
         each(data, (resource, key) => {
           // 1. Check if it's the root resource itself
@@ -497,27 +620,37 @@ export default function useContext() {
             Array.isArray(resource.children) &&
             resource.children.length > 0
           ) {
-            const index = resource.children.findIndex(
-              (node: Resource) => node.id === delta.id
-            );
-            if (index >= 0) {
+            let childrenUpdated = false;
+            const nextChildren = resource.children.map((child: Resource) => {
+              const isSourceResource =
+                child.id === delta.id ||
+                child.attrs?.__source_resource_id === delta.id;
+              if (!isSourceResource) {
+                return child;
+              }
+              if (child.attrs?.__smart_folder_child === true) {
+                smartFolderParentIds.add(child.parent_id);
+              }
+              childrenUpdated = true;
+              updated = true;
+              return { ...child, name: delta.name, content: delta.content };
+            });
+            if (childrenUpdated) {
               newData[key] = {
                 ...resource,
-                children: resource.children.map((child: Resource, i: number) =>
-                  i === index
-                    ? { ...child, name: delta.name, content: delta.content }
-                    : child
-                ),
+                children: nextChildren,
               };
-              updated = true;
-              return true;
             }
           }
         });
         if (updated) {
           onData(newData);
         }
+        smartFolderParentIds.forEach(refreshSmartFolderChildren);
       })
+    );
+    hooks.push(
+      app.on('refresh_smart_folder_children', refreshSmartFolderChildren)
     );
     hooks.push(
       app.on('refresh_resource', (resourceId: string) => {
@@ -828,9 +961,27 @@ export default function useContext() {
     );
     hooks.push(
       app.on('scroll_to_resource', (targetId: string, parentId?: string) => {
+        cancelPendingScroll();
         const finalizeScroll = (id: string) => {
-          requestAnimationFrame(() => scrollToResource(id));
+          navigate(`/${namespaceId}/${id}`, {
+            replace: true,
+            state: { fromSidebar: undefined },
+          });
+          scheduleScrollToResource(id, true);
         };
+
+        if (parentId) {
+          const parent = getResourceByField(parentId);
+          if (parent) {
+            const spaceType = getSpaceType(parentId);
+            handleSpaceToggle(spaceType, true);
+            addExpandKeys([...collectParentKeys(parent), parentId]);
+            loadChildren(spaceType, parentId).finally(() => {
+              finalizeScroll(targetId);
+            });
+            return;
+          }
+        }
 
         const target = getResourceByField(targetId);
         if (target) {
@@ -964,12 +1115,13 @@ export default function useContext() {
       return;
     }
 
-    const autoExpandKey = `${namespaceId}:${resourceId}`;
+    const treeTargetId = sidebarActiveKey || resourceId;
+    const autoExpandKey = `${namespaceId}:${treeTargetId}`;
     if (autoExpandedKeys[autoExpandKey]) {
       return;
     }
 
-    const target = getResourceByField(resourceId);
+    const target = getResourceByField(treeTargetId);
     if (target) {
       if (target.has_children && !expands.includes(target.id)) {
         handleExpand(getSpaceType(target.id), target.id);
@@ -989,9 +1141,10 @@ export default function useContext() {
         ...prev,
         [autoExpandKey]: true,
       }));
-      requestAnimationFrame(() => {
-        scrollToResource(resourceId);
-      });
+      scheduleScrollToResource(treeTargetId);
+      return;
+    }
+    if (sidebarActiveKey && sidebarActiveKey !== resourceId) {
       return;
     }
     const source = axios.CancelToken.source();
@@ -1076,16 +1229,21 @@ export default function useContext() {
               });
               onData({ ...data });
               // Scroll after all parent folders loaded
-              requestAnimationFrame(() => {
-                scrollToResource(resourceId);
-              });
+              scheduleScrollToResource(treeTargetId);
             });
           });
       });
     return () => {
       source.cancel();
     };
-  }, [namespaceId, resourceId, chatPage, data, autoExpandedKeys]);
+  }, [
+    namespaceId,
+    resourceId,
+    sidebarActiveKey,
+    chatPage,
+    data,
+    autoExpandedKeys,
+  ]);
 
   useEffect(() => {
     if (!localStorage.getItem('uid')) {
@@ -1130,6 +1288,7 @@ export default function useContext() {
     handleExpand,
     handleDelete,
     handleCreate,
+    handleCreateSmartFolder,
     handleUpload,
     handleRename,
     handleActiveKey,

@@ -110,7 +110,10 @@
     "add_it_to_context": "Add this File to Chat Box",
     "add_it_only_to_context": "Add this File only to Chat Box",
     "wide": "Widescreen Mode",
-    "rename": "Rename"
+    "rename": "Rename",
+    "create_smart_folder": "Create Smart Folder",
+    "edit_smart_folder_conditions": "Edit",
+    "locate_source_resource": "Locate Source File"
   },
   "form": {
     "or": "or",
@@ -914,6 +917,77 @@
       "seconds": "sec",
       "minutes": "min",
       "hours": "hrs"
+    }
+  },
+  "smart_folder": {
+    "create": {
+      "title": "Create Smart Folder",
+      "name": "Smart folder name",
+      "conditions": "Match the following conditions",
+      "description": "Resources matching these conditions will appear in the smart folder automatically.",
+      "select_field": "Select field",
+      "select_operator": "Select operator",
+      "value_placeholder": "Enter keyword",
+      "relative_value_placeholder": "Enter value",
+      "pick_date": "Pick a date",
+      "no_value_needed": "No value needed",
+      "add_condition": "Add condition",
+      "limit_reached_basic": "Condition limit reached (3). Upgrade to unlock 10.",
+      "limit_reached_premium": "Condition limit reached (10).",
+      "remaining_conditions": "Conditions remaining: {{remaining}} / {{total}}",
+      "personal_quota_exhausted": "Personal quota is exhausted. Upgrade for unlimited creation.",
+      "team_quota_exhausted": "Team quota is exhausted. Upgrade for unlimited creation.",
+      "unsaved_title": "Your smart folder configuration is not saved. Exit anyway?",
+      "unsaved_description": "Your current filter changes will be discarded if you leave.",
+      "success": "Smart folder created"
+    },
+    "match_mode": {
+      "all": "All",
+      "any": "Any"
+    },
+    "fields": {
+      "title": "Title",
+      "tags": "Tags",
+      "url": "Web link",
+      "file_name": "File name",
+      "content": "Content",
+      "created_at": "Created time"
+    },
+    "operators": {
+      "contains": "Contains",
+      "not_contains": "Does not contain",
+      "equals": "Equals",
+      "not_equals": "Does not equal",
+      "is_empty": "Is empty",
+      "is_not_empty": "Is not empty",
+      "in_last": "In the last",
+      "not_in_last": "Not in the last",
+      "before_date": "Before date",
+      "after_date": "After date",
+      "between_dates": "In range"
+    },
+    "units": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year"
+    },
+    "validation": {
+      "name_required": "Please enter a smart folder name",
+      "name_exists": "A resource with this name already exists in this folder.",
+      "name_too_long": "Name cannot exceed 128 characters.",
+      "condition_incomplete": "Please complete this condition"
+    },
+    "empty": "No matching resources yet. You can edit the filter rules.",
+    "edit": {
+      "title": "Edit smart folders",
+      "submit": "Update Filter Rules"
+    },
+    "trash": {
+      "this_folder": "this",
+      "title": "Move {{name}} smart folder to trash?",
+      "description": "Moving a smart folder to trash will not affect its internal resources. You can restore it from trash, and it will be automatically deleted after {{days}} days."
     }
   }
 }

@@ -27,6 +27,7 @@ import Action from './action';
 import { Arrow } from './arrow';
 import ContextMenuMain from './contextMenu';
 import ResourceIcon from './resourceIcon.tsx';
+import { getSmartFolderSourceResourceId } from './smart-folder-resource-utils';
 
 // Timing constants for rename functionality
 const FOCUS_DELAY = 50;
@@ -83,11 +84,14 @@ export default function Tree(props: ITreeProps) {
   }, [data.name]);
 
   const expand = expands.includes(data.id);
+  const canExpand = data.has_children || data.resource_type === 'smart_folder';
+  const isSmartFolderChild = data.attrs?.__smart_folder_child === true;
+  const treeResourceId = data.id;
   const isFileDragOver = fileDragTarget === data.id;
   const [dragStyle, drag] = useDrag({
     type: 'card',
     item: data,
-    canDrag: () => !isEditing,
+    canDrag: () => !isEditing && !isSmartFolderChild,
     collect: monitor => ({
       opacity: monitor.isDragging() ? 0.5 : 1,
     }),
@@ -116,11 +120,20 @@ export default function Tree(props: ITreeProps) {
       } else {
         // Handle resource drag
         onFileDragTarget(null);
+        if (isSmartFolderChild) {
+          onTarget(null);
+          return;
+        }
         if (!isOverShallow) {
           onTarget(null);
           return;
         }
-        const dragId = (item as IResourceData).id;
+        const dragItem = item as IResourceData;
+        if (dragItem.attrs?.__smart_folder_child === true) {
+          onTarget(null);
+          return;
+        }
+        const dragId = dragItem.id;
         if (dragId === data.id) {
           onTarget(null);
           return;
@@ -129,13 +142,11 @@ export default function Tree(props: ITreeProps) {
       }
     },
     drop(item, monitor) {
+      if (monitor.didDrop()) {
+        return;
+      }
       const itemType = monitor.getItemType();
       if (itemType === NativeTypes.FILE) {
-        // Debounce: Prevent multiple drop triggers
-        if (monitor.didDrop()) {
-          return;
-        }
-
         // Handle file drop
         const fileItem = item as { files: File[] };
         const validFiles = fileItem.files.filter(file =>
@@ -151,7 +162,17 @@ export default function Tree(props: ITreeProps) {
         onFileDragTarget(null);
       } else {
         // Handle resource drop
-        onDrop(item as IResourceData, target);
+        const dragItem = item as IResourceData;
+        if (
+          isSmartFolderChild ||
+          dragItem.attrs?.__smart_folder_child === true ||
+          dragItem.id === data.id
+        ) {
+          onTarget(null);
+          return;
+        }
+        onDrop(dragItem, data);
+        onTarget(null);
       }
     },
   });
@@ -161,14 +182,25 @@ export default function Tree(props: ITreeProps) {
     if (!isOverHere && isFileDragOver) {
       onFileDragTarget(null);
     }
-  }, [isOverHere, isFileDragOver, onFileDragTarget, data.id]);
+    if (!isOverHere && target?.id === data.id) {
+      onTarget(null);
+    }
+  }, [isOverHere, isFileDragOver, onFileDragTarget, data.id, onTarget, target]);
 
   const handleExpand = () => {
     onExpand(spaceType, data.id);
   };
   const handleActiveKey = () => {
+    if (isSmartFolderChild) {
+      const sourceResourceId = getSmartFolderSourceResourceId(data);
+      if (sourceResourceId) {
+        onActiveKey(sourceResourceId, false, data.id);
+      }
+      return;
+    }
+
     const isActive = data.id === activeKey;
-    if (data.has_children) {
+    if (canExpand) {
       if (isActive) {
         onExpand(spaceType, data.id);
       } else {
@@ -222,7 +254,10 @@ export default function Tree(props: ITreeProps) {
     setIsEditing(false);
     if (trimmedName && trimmedName !== data.name) {
       try {
-        await onRename(data.id, trimmedName);
+        await onRename(getSmartFolderSourceResourceId(data), trimmedName);
+        if (isSmartFolderChild) {
+          app.fire('refresh_smart_folder_children', data.parent_id);
+        }
       } catch {
         setEditName(data.name || '');
       }
@@ -302,7 +337,7 @@ export default function Tree(props: ITreeProps) {
         open={expand}
         className={cn('group/collapsible', {
           '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
-            expand && expanding !== data.id && data.has_children,
+            expand && expanding !== data.id && canExpand,
         })}
       >
         <CollapsibleTrigger asChild>
@@ -319,16 +354,16 @@ export default function Tree(props: ITreeProps) {
                   >
                     <div
                       ref={ref}
-                      data-resource-id={data.id}
+                      data-resource-id={treeResourceId}
                       style={dragStyle}
                       className={cn('flex list cursor-pointer', {
-                        'pl-1': data.has_children,
-                        'pl-[28px]': !data.has_children,
+                        'pl-1': canExpand,
+                        'pl-[28px]': !canExpand,
                         'bg-sidebar-accent text-sidebar-accent-foreground':
                           (target && target.id === data.id) || isFileDragOver,
                       })}
                     >
-                      {data.has_children &&
+                      {canExpand &&
                         (expanding === data.id ? (
                           <Button
                             size="icon"
@@ -388,11 +423,16 @@ export default function Tree(props: ITreeProps) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub className="pr-0 py-0 mr-0 gap-0">
-            {data.has_children &&
+            {canExpand &&
               Array.isArray(data.children) &&
               data.children.length > 0 &&
               data.children.map((item: IResourceData) => (
-                <Tree {...props} data={item} key={item.id} />
+                <Tree
+                  {...props}
+                  data={item}
+                  key={item.id}
+                  spaceRoot={props.spaceRoot}
+                />
               ))}
           </SidebarMenuSub>
         </CollapsibleContent>

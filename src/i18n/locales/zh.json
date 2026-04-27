@@ -110,7 +110,10 @@
     "add_it_to_context": "添加该文件到对话框",
     "add_it_only_to_context": "仅添加该文件到对话框",
     "wide": "宽屏模式",
-    "rename": "重命名"
+    "rename": "重命名",
+    "create_smart_folder": "创建智能文件夹",
+    "edit_smart_folder_conditions": "编辑",
+    "locate_source_resource": "定位到源文件"
   },
   "form": {
     "or": "或",
@@ -915,6 +918,77 @@
       "seconds": "秒",
       "minutes": "分钟",
       "hours": "小时"
+    }
+  },
+  "smart_folder": {
+    "create": {
+      "title": "创建智能文件夹",
+      "name": "智能文件夹名称",
+      "conditions": "匹配下列条件",
+      "description": "符合这些条件的资源会自动出现在智能文件夹中。",
+      "select_field": "选择属性",
+      "select_operator": "选择关系",
+      "value_placeholder": "请输入关键词",
+      "relative_value_placeholder": "请输入数值",
+      "pick_date": "选择日期",
+      "no_value_needed": "无需填写值",
+      "add_condition": "添加条件",
+      "limit_reached_basic": "筛选条件已达上限（3 条），升级可解锁 10 条",
+      "limit_reached_premium": "筛选条件已达上限（10 条）",
+      "remaining_conditions": "条件行剩余：{{remaining}} / {{total}}",
+      "personal_quota_exhausted": "个人额度已用尽，升级版本不限创建。",
+      "team_quota_exhausted": "团队额度已用尽，升级版本不限创建。",
+      "unsaved_title": "您的智能文件夹配置未保存，确定退出吗？",
+      "unsaved_description": "退出后本次填写的筛选条件不会被保留。",
+      "success": "智能文件夹已创建"
+    },
+    "match_mode": {
+      "all": "全部",
+      "any": "任一"
+    },
+    "fields": {
+      "title": "标题",
+      "tags": "标签",
+      "url": "网页链接",
+      "file_name": "文件名称",
+      "content": "正文",
+      "created_at": "创建时间"
+    },
+    "operators": {
+      "contains": "包含",
+      "not_contains": "不包含",
+      "equals": "等于",
+      "not_equals": "不等于",
+      "is_empty": "为空",
+      "is_not_empty": "不为空",
+      "in_last": "最近",
+      "not_in_last": "不是最近",
+      "before_date": "早于日期",
+      "after_date": "晚于日期",
+      "between_dates": "在范围内"
+    },
+    "units": {
+      "day": "天",
+      "week": "周",
+      "month": "月",
+      "quarter": "季度",
+      "year": "年"
+    },
+    "validation": {
+      "name_required": "请输入智能文件夹名称",
+      "name_exists": "资源名称在该目录下已存在。",
+      "name_too_long": "名称不能超过128个字符。",
+      "condition_incomplete": "请完善该行条件信息"
+    },
+    "empty": "暂无匹配的资源，可修改筛选条件。",
+    "edit": {
+      "title": "编辑智能文件夹",
+      "submit": "更新筛选条件"
+    },
+    "trash": {
+      "this_folder": "该",
+      "title": "确认将 {{name}} 智能文件夹移动到回收站？",
+      "description": "智能文件夹移动到回收站不会影响其内部资源，移动后可在回收站找回，{{days}} 天后将自动删除。"
     }
   }
 }

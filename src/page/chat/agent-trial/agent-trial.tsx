@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import { getRelatedTime } from '@/lib/time.ts';
-import { getUpgradeLink } from '@/lib/upgrade-link';
 import { useNamespaceRole } from '@/lib/use-namespace-role.ts';
 import { useAgentUsage } from '@/page/chat/agent-trial/use-agent-usage';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
@@ -54,10 +53,6 @@ export function AgentTrial({
         );
       }
 
-      const onClick = () => {
-        window.open(getUpgradeLink(i18n, namespaceId), '_blank');
-      };
-
       return (
         <div className="flex justify-end mb-1 gap-3 text-sm">
           <Tooltip delayDuration={0}>
@@ -75,32 +70,11 @@ export function AgentTrial({
               })}
             </TooltipContent>
           </Tooltip>
-          {hasUpgradePermission ? (
-            <Button
-              variant="default"
-              size="sm"
-              className="text-sm h-5"
-              onClick={onClick}
-            >
-              {t('namespace.upgrade')}
-            </Button>
-          ) : (
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <span className="text-muted-foreground cursor-pointer">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="text-sm h-5"
-                    disabled
-                  >
-                    {t('namespace.upgrade')}
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>{t('chat.trial.not_owner')}</TooltipContent>
-            </Tooltip>
-          )}
+          <UpgradeActionButton
+            namespaceId={namespaceId}
+            hasPermission={hasUpgradePermission}
+            disabledReason={t('chat.trial.not_owner')}
+          />
         </div>
       );
     }

@@ -2,6 +2,8 @@ import parse, { domToReact } from 'html-react-parser';
 import { File, FileText, Folder, FolderOpen, Globe } from 'lucide-react';
 import { themeIcons } from 'seti-icons';
 
+import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
+import { SmartFolderOpenIcon } from '@/assets/icons/smartFolderOpen';
 import { ResourceMeta } from '@/interface';
 import { safeParseURL } from '@/lib/utils';
 import {
@@ -114,6 +116,13 @@ function getIconForFile(resource: ResourceMeta) {
 
 export default function ResourceIcon(props: IProps) {
   const { expand, resource } = props;
+  if (resource.resource_type === 'smart_folder') {
+    const SmartFolderIcon = expand
+      ? SmartFolderOpenIcon
+      : SmartFolderDefaultIcon;
+
+    return <SmartFolderIcon className="size-4 shrink-0" />;
+  }
   if (resource.resource_type === 'folder') {
     return expand ? <FolderOpen /> : <Folder />;
   }

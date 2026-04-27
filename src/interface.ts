@@ -84,7 +84,7 @@ export interface TagDto {
 }
 
 export type SpaceType = 'private' | 'teamspace';
-export type ResourceType = 'doc' | 'file' | 'link' | 'folder';
+export type ResourceType = 'doc' | 'file' | 'link' | 'folder' | 'smart_folder';
 
 export interface PathItem {
   id: string;

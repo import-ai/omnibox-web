@@ -17,7 +17,7 @@ import {
 // import { Resource } from '@/interface';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Input } from '@/components/input';
@@ -57,6 +57,7 @@ export default function Actions(props: IActionProps) {
     props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const loc = useLocation();
   const isMobile = useIsMobile();
   const { deleteResource } = useDeleteResource();
   const [open, setOpen] = useState(false);
@@ -69,20 +70,26 @@ export default function Actions(props: IActionProps) {
     if (!resource) {
       return;
     }
-    navigate(`/${namespaceId}/${resource.id}/edit`);
+    navigate(`/${namespaceId}/${resource.id}/edit`, {
+      state: loc.state,
+    });
   };
   const handleExitEdit = () => {
     if (!resource) {
       return;
     }
-    navigate(`/${namespaceId}/${resource.id}`);
+    navigate(`/${namespaceId}/${resource.id}`, {
+      state: loc.state,
+    });
   };
   const handleSave = () => {
     app.fire('save', () => {
       if (!resource) {
         return;
       }
-      navigate(`/${namespaceId}/${resource.id}`);
+      navigate(`/${namespaceId}/${resource.id}`, {
+        state: loc.state,
+      });
     });
   };
   const handleAction = (id: string) => {
