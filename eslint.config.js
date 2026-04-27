@@ -52,7 +52,7 @@ export default [
       'tailwindcss/no-unnecessary-arbitrary-value': 'warn',
       'tailwindcss/no-contradicting-classname': 'warn',
       'tailwindcss/enforces-negative-arbitrary-values': 'warn',
-      'tailwindcss/no-arbitrary-value': 'warn',
+      // 'tailwindcss/no-arbitrary-value': 'warn',
       'import/no-unresolved': 'error',
       'import/named': 'error',
       'import/default': 'error',
