@@ -1,17 +1,28 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
+import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
+import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
+import { Button } from '@/components/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { SidebarContent } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
 import type { IResourceData, SpaceType } from '@/interface';
 import group from '@/lib/group';
 import { ISidebarProps } from '@/page/sidebar/interface';
 import { TrashPanel } from '@/page/sidebar/trash';
 
+import { CreateSmartFolderDialog } from './create-smart-folder-dialog';
+import {
+  CreateSmartFolderPayload,
+  SmartFolderOwnerScope,
+} from './smart-folder-types';
 import Space from './space';
+import { getToolbarSmartFolderState } from './space-menu';
 
 // Auto-scroll trigger zone
 const EDGE_SIZE = 60;
@@ -30,19 +41,44 @@ export interface IProps extends Omit<
 }
 
 export default function Content(props: IProps) {
-  const { data, resourceId, progress, onDrop, openSpaces } = props;
+  const { data, resourceId, progress, onDrop, openSpaces, namespaceId } = props;
+  const { t } = useTranslation();
   const loc = useLocation();
   const isMobile = useIsMobile();
   const [target, onTarget] = useState<IResourceData | null>(null);
   const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
+  const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
+  const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
   const sidebarRef = useRef<HTMLDivElement>(null);
   const sidebarActiveKey =
     typeof loc.state?.sidebarActiveKey === 'string'
       ? loc.state.sidebarActiveKey
       : resourceId;
+  const privateRoot = useMemo(() => group(data.private), [data]);
+  const teamspaceRoot = useMemo(() => group(data.teamspace), [data]);
+  const hasTeamspace = Boolean(data.teamspace?.id);
+  const privateSmartFolderCount =
+    privateRoot.children?.filter(item => item.resource_type === 'smart_folder')
+      .length ?? 0;
+  const teamSmartFolderCount =
+    teamspaceRoot.children?.filter(
+      item => item.resource_type === 'smart_folder'
+    ).length ?? 0;
+  const toolbarSmartFolderState = getToolbarSmartFolderState(entitlements, {
+    privateCount: privateSmartFolderCount,
+    teamCount: teamSmartFolderCount,
+    hasTeamspace,
+  });
   const handleDrop = (resource: IResourceData, item: IResourceData | null) => {
     onDrop(resource, item);
     onTarget(null);
+  };
+  const handleConfirmCreateSmartFolder = (
+    payload: CreateSmartFolderPayload
+  ) => {
+    const ownerScope: SmartFolderOwnerScope = payload.ownerScope;
+    const targetRoot = ownerScope === 'teamspace' ? teamspaceRoot : privateRoot;
+    return props.onCreateSmartFolder(ownerScope, targetRoot.id, payload);
   };
 
   // Auto-scroll during drag: extends to sidebar header/footer and outside browser window
@@ -167,6 +203,43 @@ export default function Content(props: IProps) {
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
       <SidebarContent ref={sidebarRef} className="gap-0 no-scrollbar">
+        <div className="flex items-center justify-end px-2 pb-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 text-muted-foreground"
+                  disabled={toolbarSmartFolderState.disabled}
+                  onClick={() => setCreateSmartFolderOpen(true)}
+                  aria-label={t('actions.create_smart_folder')}
+                >
+                  <SmartFolderDefaultIcon className="size-4" />
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              {toolbarSmartFolderState.disabled
+                ? t(toolbarSmartFolderState.disabledMessageKey)
+                : t('actions.create_smart_folder')}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        <CreateSmartFolderDialog
+          open={createSmartFolderOpen}
+          onOpenChange={setCreateSmartFolderOpen}
+          onConfirm={handleConfirmCreateSmartFolder}
+          hasTeamspace={hasTeamspace}
+          privateSmartFolderCount={privateSmartFolderCount}
+          teamSmartFolderCount={teamSmartFolderCount}
+          siblingResources={
+            privateRoot.children?.concat(teamspaceRoot.children || []) ||
+            teamspaceRoot.children ||
+            []
+          }
+        />
         {Object.keys(data)
           .sort()
           .map((spaceType: string) => (

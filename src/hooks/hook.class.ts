@@ -55,6 +55,9 @@ export default class Hook {
           (item: any) => item.factory === callback
         );
         removeIndex >= 0 && this._hooks[id].splice(removeIndex, 1);
+        if (this._hooks[id].length === 0) {
+          delete this._hooks[id];
+        }
       } else {
         delete this._hooks[id];
       }

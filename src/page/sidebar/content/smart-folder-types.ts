@@ -1,6 +1,8 @@
 import { SpaceType } from '@/interface';
 
 export type SmartFolderMatchMode = 'all' | 'any';
+export type SmartFolderOwnerScope = SpaceType;
+export type SmartFolderRootScope = SpaceType | 'all';
 
 export type SmartFolderField =
   | 'title'
@@ -68,19 +70,22 @@ export interface SmartFolderCondition {
 
 export interface CreateSmartFolderPayload {
   name: string;
+  ownerScope: SmartFolderOwnerScope;
+  rootScope: SmartFolderRootScope;
   matchMode: SmartFolderMatchMode;
   conditions: SmartFolderCondition[];
 }
 
 export interface CreateSmartFolderRequest extends CreateSmartFolderPayload {
-  parentId: string;
-  rootScope: SpaceType;
+  parentId?: string;
 }
 
 export interface SmartFolderResponse {
   resource: import('@/interface').Resource;
-  root_scope?: SpaceType;
-  rootScope?: SpaceType;
+  owner_scope?: SmartFolderOwnerScope;
+  ownerScope?: SmartFolderOwnerScope;
+  root_scope?: SmartFolderRootScope;
+  rootScope?: SmartFolderRootScope;
   match_mode?: SmartFolderMatchMode;
   matchMode?: SmartFolderMatchMode;
   conditions: SmartFolderCondition[];

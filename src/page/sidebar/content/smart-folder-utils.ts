@@ -27,6 +27,8 @@ type SmartFolderApiValue =
       date?: string;
       startDate?: string;
       endDate?: string;
+      start_date?: string;
+      end_date?: string;
     };
 
 type SmartFolderApiCondition = {
@@ -329,14 +331,25 @@ export function fromSmartFolderApiCondition(
       };
     }
 
-    if ('startDate' in condition.value || 'endDate' in condition.value) {
+    if (
+      'startDate' in condition.value ||
+      'endDate' in condition.value ||
+      'start_date' in condition.value ||
+      'end_date' in condition.value
+    ) {
       return {
         field: condition.field,
         operator,
         value: {
           kind: 'date_range',
-          startDate: condition.value.startDate || getTodayDateString(),
-          endDate: condition.value.endDate || getTodayDateString(),
+          startDate:
+            condition.value.startDate ||
+            condition.value.start_date ||
+            getTodayDateString(),
+          endDate:
+            condition.value.endDate ||
+            condition.value.end_date ||
+            getTodayDateString(),
         },
       };
     }
@@ -356,6 +369,8 @@ export function toSmartFolderApiPayload(
 ): CreateSmartFolderPayload {
   return {
     name: payload.name.trim(),
+    ownerScope: payload.ownerScope,
+    rootScope: payload.rootScope,
     matchMode: payload.matchMode,
     conditions: payload.conditions
       .map(condition => normalizeCondition(condition))
@@ -420,6 +435,8 @@ export function normalizeSmartFolderPayload(
 ): CreateSmartFolderPayload {
   return {
     name: payload.name.trim(),
+    ownerScope: payload.ownerScope,
+    rootScope: payload.rootScope,
     matchMode: payload.matchMode,
     conditions: payload.conditions
       .map(condition => normalizeCondition(condition))

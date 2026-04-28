@@ -7,7 +7,7 @@ export const menuItemClass = 'cursor-pointer gap-2 text-popover-foreground';
 export const menuIconClass = 'size-4 text-neutral-500 dark:text-[#a1a1a1]';
 
 export const smartFolderDialogContentClass =
-  'max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl p-5 sm:max-w-[690px] sm:p-7';
+  'max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl sm:max-w-[690px] sm:p-7';
 
 export const smartFolderDialogTitleClass =
   'text-lg font-semibold leading-7 text-foreground';

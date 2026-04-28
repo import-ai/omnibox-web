@@ -19,6 +19,7 @@ import { FolderContent } from './content';
 interface IProps {
   resourceId: string;
   apiPrefix: string;
+  namespaceId: string;
   emptyText?: string;
   navigationPrefix: string;
   loadAll?: boolean;
@@ -31,6 +32,7 @@ export default function Folder(props: IProps) {
   const {
     resourceId,
     apiPrefix,
+    namespaceId,
     emptyText,
     navigationPrefix,
     loadAll,
@@ -153,7 +155,11 @@ export default function Folder(props: IProps) {
                       </div>
                     </div>
                     {item.resource_type === 'folder' ? (
-                      <FolderContent resource={item} apiPrefix={apiPrefix} />
+                      <FolderContent
+                        resource={item}
+                        apiPrefix={apiPrefix}
+                        namespaceId={namespaceId}
+                      />
                     ) : (
                       <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
                         {item.updated_at

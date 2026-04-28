@@ -922,9 +922,11 @@
   "smart_folder": {
     "create": {
       "title": "Create Smart Folder",
-      "name": "Smart folder name",
+      "name": "Name",
       "conditions": "Match the following conditions",
       "description": "Resources matching these conditions will appear in the smart folder automatically.",
+      "owner_scope": "Belongs to",
+      "root_scope": "Filter scope",
       "select_field": "Select field",
       "select_operator": "Select operator",
       "value_placeholder": "Enter keyword",
@@ -937,9 +939,15 @@
       "remaining_conditions": "Conditions remaining: {{remaining}} / {{total}}",
       "personal_quota_exhausted": "Personal quota is exhausted. Upgrade for unlimited creation.",
       "team_quota_exhausted": "Team quota is exhausted. Upgrade for unlimited creation.",
+      "all_quota_exhausted": "All quotas are exhausted. Upgrade for unlimited creation.",
       "unsaved_title": "Your smart folder configuration is not saved. Exit anyway?",
       "unsaved_description": "Your current filter changes will be discarded if you leave.",
       "success": "Smart folder created"
+    },
+    "scope": {
+      "personal": "Personal",
+      "team": "Team",
+      "all": "Personal + Team"
     },
     "match_mode": {
       "all": "All",

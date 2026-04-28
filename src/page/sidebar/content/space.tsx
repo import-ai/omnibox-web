@@ -1,17 +1,10 @@
-import {
-  FilePlus,
-  FolderPlus,
-  FolderSearch,
-  MonitorUp,
-  MoreHorizontal,
-} from 'lucide-react';
+import { FilePlus, FolderPlus, MonitorUp, MoreHorizontal } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
 import { Input } from '@/components/input';
 import {
   Tooltip,
@@ -42,17 +35,10 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useIsTouch } from '@/hooks/use-is-touch';
-import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
 import { IResourceData } from '@/interface';
 import { cn } from '@/lib/utils';
 
 import { CreateFolderDialog } from './create-folder-dialog';
-import { CreateSmartFolderDialog } from './create-smart-folder-dialog';
-import { CreateSmartFolderPayload } from './smart-folder-types';
-import {
-  getRootSmartFolderState,
-  shouldOpenCreateSmartFolderDialog,
-} from './space-menu';
 import { menuIconClass, menuItemClass } from './styles';
 import Tree, { ITreeProps } from './tree';
 
@@ -71,7 +57,6 @@ export default function Space(props: ITreeProps) {
     editingKey,
     spaceType,
     onCreate,
-    onCreateSmartFolder,
     onUpload,
     progress,
     onDrop,
@@ -84,22 +69,11 @@ export default function Space(props: ITreeProps) {
   } = props;
   const { t } = useTranslation();
   const isTouch = useIsTouch();
-  const { data: entitlements } = useSmartFolderEntitlements({
-    namespaceId: props.namespaceId,
-  });
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
-  const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
   const isDragOver = fileDragTarget === data.id;
   const isResourceDragOver = target && target.id === data.id;
-  const smartFolderState = getRootSmartFolderState(
-    spaceType,
-    data.children,
-    entitlements
-  );
-  const disableCreateSmartFolder = smartFolderState.disabled;
-  const smartFolderDisabledMessage = t(smartFolderState.disabledMessageKey);
   const handleSelect = () => {
     fileInputRef.current?.click();
   };
@@ -119,17 +93,6 @@ export default function Space(props: ITreeProps) {
   };
   const handleConfirmCreateFolder = (folderName: string) => {
     return onCreate(spaceType, data.id, 'folder', folderName);
-  };
-  const handleCreateSmartFolder = () => {
-    if (!shouldOpenCreateSmartFolderDialog(disableCreateSmartFolder)) {
-      return;
-    }
-    setCreateSmartFolderOpen(true);
-  };
-  const handleConfirmCreateSmartFolder = (
-    payload: CreateSmartFolderPayload
-  ) => {
-    return onCreateSmartFolder(spaceType, data.id, payload);
   };
 
   // File and resource drop handling
@@ -297,25 +260,6 @@ export default function Space(props: ITreeProps) {
                     <FolderPlus className={menuIconClass} />
                     {t('actions.create_folder')}
                   </DropdownMenuItem>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="block">
-                        <DropdownMenuItem
-                          className={menuItemClass}
-                          onClick={handleCreateSmartFolder}
-                          disabled={disableCreateSmartFolder}
-                        >
-                          <SmartFolderDefaultIcon className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-                          {t('actions.create_smart_folder')}
-                        </DropdownMenuItem>
-                      </span>
-                    </TooltipTrigger>
-                    {disableCreateSmartFolder && (
-                      <TooltipContent>
-                        {smartFolderDisabledMessage}
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
                   <DropdownMenuItem
                     className={menuItemClass}
                     onClick={handleSelect}
@@ -329,12 +273,6 @@ export default function Space(props: ITreeProps) {
                 open={createFolderOpen}
                 onOpenChange={setCreateFolderOpen}
                 onConfirm={handleConfirmCreateFolder}
-              />
-              <CreateSmartFolderDialog
-                open={createSmartFolderOpen}
-                onOpenChange={setCreateSmartFolderOpen}
-                onConfirm={handleConfirmCreateSmartFolder}
-                siblingResources={data.children}
               />
               <Input
                 multiple
@@ -364,23 +302,6 @@ export default function Space(props: ITreeProps) {
             <FolderPlus className={menuIconClass} />
             {t('actions.create_folder')}
           </ContextMenuItem>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="block">
-                <ContextMenuItem
-                  className={menuItemClass}
-                  onClick={handleCreateSmartFolder}
-                  disabled={disableCreateSmartFolder}
-                >
-                  <FolderSearch className={menuIconClass} />
-                  {t('actions.create_smart_folder')}
-                </ContextMenuItem>
-              </span>
-            </TooltipTrigger>
-            {disableCreateSmartFolder && (
-              <TooltipContent>{smartFolderDisabledMessage}</TooltipContent>
-            )}
-          </Tooltip>
           <ContextMenuItem className={menuItemClass} onClick={handleSelect}>
             <MonitorUp className={menuIconClass} />
             {t('actions.upload_file')}

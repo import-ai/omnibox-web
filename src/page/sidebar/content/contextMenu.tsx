@@ -25,44 +25,17 @@ import { Input } from '@/components/ui/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
 import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
-import { http } from '@/lib/request';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
 import { CreateSmartFolderDialog } from './create-smart-folder-dialog';
 import {
-  getSmartFolderChildSidebarKey,
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
 } from './smart-folder-resource-utils';
 import { SmartFolderTrashConfirmDialog } from './smart-folder-trash-confirm-dialog';
-import {
-  CreateSmartFolderPayload,
-  SmartFolderResponse,
-} from './smart-folder-types';
 import { menuIconClass, menuItemClass } from './styles';
-
-function findResourceById(
-  resource: ISidebarProps['data'] | undefined,
-  resourceId: string
-): ISidebarProps['data'] | undefined {
-  if (!resource) {
-    return undefined;
-  }
-
-  if (resource.id === resourceId) {
-    return resource;
-  }
-
-  for (const child of resource.children || []) {
-    const result = findResourceById(child, resourceId);
-    if (result) {
-      return result;
-    }
-  }
-
-  return undefined;
-}
+import { useSmartFolderResourceActions } from './use-smart-folder-resource-actions';
 
 export interface IProps extends ISidebarProps {
   children: React.ReactNode;
@@ -83,16 +56,19 @@ export default function ContextMenuMain(props: IProps) {
   const app = useApp();
   const { t } = useTranslation();
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
-  const siblingResources =
-    findResourceById(spaceRoot, data.parent_id)?.children || [];
   const [moveTo, setMoveTo] = useState(false);
   const [, setContextOpen] = useState(false);
-  const [editSmartFolderOpen, setEditSmartFolderOpen] = useState(false);
-  const [trashSmartFolderConfirmOpen, setTrashSmartFolderConfirmOpen] =
-    useState(false);
-  const [smartFolderInitial, setSmartFolderInitial] =
-    useState<CreateSmartFolderPayload | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const smartFolder = useSmartFolderResourceActions({
+    data,
+    namespaceId,
+    spaceRoot,
+    onActiveKey,
+    onDelete,
+    spaceType,
+    closeMenu: () => setContextOpen(false),
+  });
 
   //Check whether to drag from the initial position
   const { isActuallyDragging } = useDragLayer(monitor => {
@@ -112,67 +88,15 @@ export default function ContextMenuMain(props: IProps) {
   const handleCreateFolder = () => {
     onCreate(spaceType, data.id, 'folder');
   };
-  const isSmartFolder = data.resource_type === 'smart_folder';
-  const isSmartFolderChild = data.attrs?.__smart_folder_child === true;
-  const canEditSmartFolder =
-    (data.current_permission || 'full_access') === 'can_edit' ||
-    (data.current_permission || 'full_access') === 'full_access';
-  const handleLocateSource = () => {
-    const sourceResourceId = getSmartFolderSourceResourceId(data);
-    const sourceParentId = getSmartFolderSourceParentId(data);
-    if (!sourceResourceId) {
-      return;
-    }
-    app.fire('scroll_to_resource', sourceResourceId, sourceParentId);
-    setContextOpen(false);
-  };
-  const handleEdit = () => {
-    const sourceResourceId = getSmartFolderSourceResourceId(data);
-    const sourceParentId = getSmartFolderSourceParentId(data) || data.parent_id;
-
-    onActiveKey(
-      sourceResourceId,
-      true,
-      isSmartFolderChild
-        ? getSmartFolderChildSidebarKey(sourceParentId, sourceResourceId)
-        : undefined
-    );
-  };
-  const handleEditSmartFolder = () => {
-    if (!canEditSmartFolder) {
-      return;
-    }
-    http
-      .get(`/namespaces/${namespaceId}/smart-folders/${data.id}/config`)
-      .then((response: SmartFolderResponse) => {
-        setSmartFolderInitial({
-          name: response.resource.name || '',
-          matchMode: response.matchMode || response.match_mode || 'all',
-          conditions: response.conditions || [],
-        });
-        setEditSmartFolderOpen(true);
-      });
-  };
-  const handleUpdateSmartFolder = (payload: CreateSmartFolderPayload) => {
-    return http
-      .patch(
-        `/namespaces/${namespaceId}/smart-folders/${data.id}/config`,
-        payload
-      )
-      .then((response: SmartFolderResponse) => {
-        app.fire('update_resource', response.resource);
-        app.fire('refresh_smart_folder_children', data.id);
-        onActiveKey(data.id);
-      });
-  };
   const handleRename = () => {
     // Delay to ensure context menu is fully closed before triggering rename
     setTimeout(() => {
       app.fire('start_rename', data.id);
     }, 150);
   };
+
   const addToContext = (type: 'resource' | 'folder') => {
-    const contextResource = isSmartFolderChild
+    const contextResource = smartFolder.isSmartFolderChild
       ? {
           ...data,
           id: getSmartFolderSourceResourceId(data),
@@ -191,18 +115,6 @@ export default function ContextMenuMain(props: IProps) {
   const handleAddAllToChat = () => addToContext('folder');
   const handleMoveTo = () => {
     setMoveTo(true);
-  };
-  const handleDelete = () => {
-    if (isSmartFolder) {
-      setTrashSmartFolderConfirmOpen(true);
-      return;
-    }
-
-    onDelete(spaceType, data.id, data.parent_id);
-  };
-  const handleConfirmDeleteSmartFolder = () => {
-    setTrashSmartFolderConfirmOpen(false);
-    onDelete(spaceType, data.id, data.parent_id);
   };
   const handleSelect = () => {
     fileInputRef.current?.click();
@@ -227,11 +139,11 @@ export default function ContextMenuMain(props: IProps) {
           {children}
         </ContextMenuTrigger>
         <ContextMenuContent>
-          {isSmartFolderChild ? (
+          {smartFolder.isSmartFolderChild ? (
             <>
               <ContextMenuItem
                 className={menuItemClass}
-                onClick={handleLocateSource}
+                onClick={smartFolder.handleLocateSource}
               >
                 <LocateFixed className={menuIconClass} />
                 {t('actions.locate_source_resource')}
@@ -240,7 +152,10 @@ export default function ContextMenuMain(props: IProps) {
                 <SquarePen className={menuIconClass} />
                 {t('actions.rename')}
               </ContextMenuItem>
-              <ContextMenuItem className={menuItemClass} onClick={handleEdit}>
+              <ContextMenuItem
+                className={menuItemClass}
+                onClick={smartFolder.handleEdit}
+              >
                 <Pencil className={menuIconClass} />
                 {t('edit')}
               </ContextMenuItem>
@@ -255,54 +170,55 @@ export default function ContextMenuMain(props: IProps) {
             </>
           ) : (
             <>
-              {!isSmartFolder && !isSmartFolderChild && (
-                <>
-                  <ContextMenuItem
-                    className={menuItemClass}
-                    onClick={handleCreateFile}
-                  >
-                    <FilePlus className={menuIconClass} />
-                    {t('actions.create_file')}
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    className={menuItemClass}
-                    onClick={handleCreateFolder}
-                  >
-                    <FolderPlus className={menuIconClass} />
-                    {t('actions.create_folder')}
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    className={menuItemClass}
-                    onClick={handleSelect}
-                  >
-                    <MonitorUp className={menuIconClass} />
-                    {t('actions.upload_file')}
-                  </ContextMenuItem>
-                  <ContextMenuSeparator />
-                </>
-              )}
+              {!smartFolder.isSmartFolder &&
+                !smartFolder.isSmartFolderChild && (
+                  <>
+                    <ContextMenuItem
+                      className={menuItemClass}
+                      onClick={handleCreateFile}
+                    >
+                      <FilePlus className={menuIconClass} />
+                      {t('actions.create_file')}
+                    </ContextMenuItem>
+                    <ContextMenuItem
+                      className={menuItemClass}
+                      onClick={handleCreateFolder}
+                    >
+                      <FolderPlus className={menuIconClass} />
+                      {t('actions.create_folder')}
+                    </ContextMenuItem>
+                    <ContextMenuItem
+                      className={menuItemClass}
+                      onClick={handleSelect}
+                    >
+                      <MonitorUp className={menuIconClass} />
+                      {t('actions.upload_file')}
+                    </ContextMenuItem>
+                    <ContextMenuSeparator />
+                  </>
+                )}
               <ContextMenuItem className={menuItemClass} onClick={handleRename}>
                 <SquarePen className={menuIconClass} />
                 {t('actions.rename')}
               </ContextMenuItem>
-              {isSmartFolder && canEditSmartFolder ? (
+              {smartFolder.isSmartFolder && smartFolder.canEditSmartFolder ? (
                 <ContextMenuItem
                   className={menuItemClass}
-                  onClick={handleEditSmartFolder}
+                  onClick={smartFolder.handleEditSmartFolder}
                 >
                   <Pencil className={menuIconClass} />
                   {t('actions.edit_smart_folder_conditions')}
                 </ContextMenuItem>
-              ) : !isSmartFolder ? (
+              ) : !smartFolder.isSmartFolder ? (
                 <>
                   <ContextMenuItem
                     className={menuItemClass}
-                    onClick={handleEdit}
+                    onClick={smartFolder.handleEdit}
                   >
                     <Pencil className={menuIconClass} />
                     {t('edit')}
                   </ContextMenuItem>
-                  {!isSmartFolderChild && (
+                  {!smartFolder.isSmartFolderChild && (
                     <ContextMenuItem
                       className={menuItemClass}
                       onClick={handleMoveTo}
@@ -351,7 +267,7 @@ export default function ContextMenuMain(props: IProps) {
               <ContextMenuSeparator />
               <ContextMenuItem
                 className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
-                onClick={handleDelete}
+                onClick={smartFolder.handleDelete}
               >
                 <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
                 {t('actions.move_to_trash')}
@@ -368,21 +284,21 @@ export default function ContextMenuMain(props: IProps) {
         onFinished={handleMoveFinished}
       />
       <CreateSmartFolderDialog
-        open={editSmartFolderOpen}
+        open={smartFolder.editSmartFolderOpen}
         currentResourceId={data.id}
-        initialValue={smartFolderInitial}
-        siblingResources={siblingResources}
+        initialValue={smartFolder.smartFolderInitial}
+        siblingResources={smartFolder.siblingResources}
         title={t('smart_folder.edit.title')}
         confirmText={t('smart_folder.edit.submit')}
-        onOpenChange={setEditSmartFolderOpen}
-        onConfirm={handleUpdateSmartFolder}
+        onOpenChange={smartFolder.setEditSmartFolderOpen}
+        onConfirm={smartFolder.handleUpdateSmartFolder}
       />
       <SmartFolderTrashConfirmDialog
-        open={trashSmartFolderConfirmOpen}
+        open={smartFolder.trashSmartFolderConfirmOpen}
         retentionDays={entitlements?.trashRetentionDays}
         smartFolderName={data.name}
-        onOpenChange={setTrashSmartFolderConfirmOpen}
-        onConfirm={handleConfirmDeleteSmartFolder}
+        onOpenChange={smartFolder.setTrashSmartFolderConfirmOpen}
+        onConfirm={smartFolder.handleConfirmDeleteSmartFolder}
       />
       <Input
         multiple

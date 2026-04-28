@@ -4,11 +4,7 @@ import { SmartFolderEntitlements } from './smart-folder-types';
 
 export type RootMenuSurface = 'context' | 'dropdown';
 
-export type RootMenuAction =
-  | 'create_file'
-  | 'create_folder'
-  | 'create_smart_folder'
-  | 'upload_file';
+export type RootMenuAction = 'create_file' | 'create_folder' | 'upload_file';
 
 export interface RootSmartFolderState {
   disabled: boolean;
@@ -18,7 +14,6 @@ export interface RootSmartFolderState {
 export const rootCreateMenuActions: RootMenuAction[] = [
   'create_file',
   'create_folder',
-  'create_smart_folder',
   'upload_file',
 ];
 
@@ -73,4 +68,28 @@ export function stopRootContextMenuPropagation(
   event: Pick<React.MouseEvent, 'stopPropagation'>
 ) {
   event.stopPropagation();
+}
+
+export function getToolbarSmartFolderState(
+  entitlements: SmartFolderEntitlements | undefined,
+  actualCounts?: {
+    privateCount: number;
+    teamCount: number;
+    hasTeamspace?: boolean;
+  }
+): RootSmartFolderState {
+  const privateLimit = entitlements?.privateLimit ?? 1;
+  const teamLimit = entitlements?.teamLimit ?? 1;
+  const privateUsed =
+    actualCounts?.privateCount ?? entitlements?.privateUsed ?? 0;
+  const teamUsed = actualCounts?.teamCount ?? entitlements?.teamUsed ?? 0;
+  const privateExhausted = privateLimit >= 0 && privateUsed >= privateLimit;
+  const teamExhausted = teamLimit >= 0 && teamUsed >= teamLimit;
+
+  return {
+    disabled: actualCounts?.hasTeamspace
+      ? privateExhausted && teamExhausted
+      : privateExhausted,
+    disabledMessageKey: 'smart_folder.create.all_quota_exhausted',
+  };
 }

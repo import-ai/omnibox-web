@@ -394,7 +394,6 @@ export default function useContext() {
       .post(`/namespaces/${namespaceId}/smart-folders`, {
         ...payload,
         parentId,
-        rootScope: spaceType,
       })
       .then((response: SmartFolderResponse) => {
         activeRoute(spaceType, parentId, response.resource, false);

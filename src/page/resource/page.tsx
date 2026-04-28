@@ -41,6 +41,7 @@ export default function Page(props: IProps) {
         <Folder
           resourceId={resource.id}
           apiPrefix={`/namespaces/${namespaceId}/smart-folders`}
+          namespaceId={namespaceId}
           emptyText={t('smart_folder.empty')}
           navigationPrefix={`/${namespaceId}`}
           loadAll
@@ -50,6 +51,7 @@ export default function Page(props: IProps) {
         <Folder
           resourceId={resource.id}
           apiPrefix={`/namespaces/${namespaceId}/resources`}
+          namespaceId={namespaceId}
           navigationPrefix={`/${namespaceId}`}
         />
       ) : (

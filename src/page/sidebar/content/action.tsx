@@ -34,7 +34,6 @@ import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
 import { useIsTouch } from '@/hooks/use-is-touch';
 import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
-import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
@@ -42,38 +41,12 @@ import { ISidebarProps } from '@/page/sidebar/interface';
 import { CreateFolderDialog } from './create-folder-dialog';
 import { CreateSmartFolderDialog } from './create-smart-folder-dialog';
 import {
-  getSmartFolderChildSidebarKey,
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
 } from './smart-folder-resource-utils';
 import { SmartFolderTrashConfirmDialog } from './smart-folder-trash-confirm-dialog';
-import {
-  CreateSmartFolderPayload,
-  SmartFolderResponse,
-} from './smart-folder-types';
 import { menuIconClass, menuItemClass } from './styles';
-
-function findResourceById(
-  resource: ISidebarProps['data'] | undefined,
-  resourceId: string
-): ISidebarProps['data'] | undefined {
-  if (!resource) {
-    return undefined;
-  }
-
-  if (resource.id === resourceId) {
-    return resource;
-  }
-
-  for (const child of resource.children || []) {
-    const result = findResourceById(child, resourceId);
-    if (result) {
-      return result;
-    }
-  }
-
-  return undefined;
-}
+import { useSmartFolderResourceActions } from './use-smart-folder-resource-actions';
 
 export default function Action(props: ISidebarProps) {
   const {
@@ -95,12 +68,17 @@ export default function Action(props: ISidebarProps) {
   const [moveTo, setMoveTo] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
-  const [editSmartFolderOpen, setEditSmartFolderOpen] = useState(false);
-  const [trashSmartFolderConfirmOpen, setTrashSmartFolderConfirmOpen] =
-    useState(false);
-  const [smartFolderInitial, setSmartFolderInitial] =
-    useState<CreateSmartFolderPayload | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const smartFolder = useSmartFolderResourceActions({
+    data,
+    namespaceId,
+    spaceRoot,
+    onActiveKey,
+    onDelete,
+    spaceType,
+    closeMenu: () => setMenuOpen(false),
+  });
 
   const handleCreateFile = () => {
     onCreate(spaceType, data.id, 'doc');
@@ -110,61 +88,6 @@ export default function Action(props: ISidebarProps) {
   };
   const handleConfirmCreateFolder = (folderName: string) => {
     return onCreate(spaceType, data.id, 'folder', folderName);
-  };
-  const isSmartFolder = data.resource_type === 'smart_folder';
-  const isSmartFolderChild = data.attrs?.__smart_folder_child === true;
-  const siblingResources =
-    findResourceById(spaceRoot, data.parent_id)?.children || [];
-  const canEditSmartFolder =
-    (data.current_permission || 'full_access') === 'can_edit' ||
-    (data.current_permission || 'full_access') === 'full_access';
-  const handleLocateSource = () => {
-    const sourceResourceId = getSmartFolderSourceResourceId(data);
-    const sourceParentId = getSmartFolderSourceParentId(data);
-    if (!sourceResourceId) {
-      return;
-    }
-    app.fire('scroll_to_resource', sourceResourceId, sourceParentId);
-    setMenuOpen(false);
-  };
-  const handleEdit = () => {
-    const sourceResourceId = getSmartFolderSourceResourceId(data);
-    const sourceParentId = getSmartFolderSourceParentId(data) || data.parent_id;
-
-    onActiveKey(
-      sourceResourceId,
-      true,
-      isSmartFolderChild
-        ? getSmartFolderChildSidebarKey(sourceParentId, sourceResourceId)
-        : undefined
-    );
-  };
-  const handleEditSmartFolder = () => {
-    if (!canEditSmartFolder) {
-      return;
-    }
-    http
-      .get(`/namespaces/${namespaceId}/smart-folders/${data.id}/config`)
-      .then((response: SmartFolderResponse) => {
-        setSmartFolderInitial({
-          name: response.resource.name || '',
-          matchMode: response.matchMode || response.match_mode || 'all',
-          conditions: response.conditions || [],
-        });
-        setEditSmartFolderOpen(true);
-      });
-  };
-  const handleUpdateSmartFolder = (payload: CreateSmartFolderPayload) => {
-    return http
-      .patch(
-        `/namespaces/${namespaceId}/smart-folders/${data.id}/config`,
-        payload
-      )
-      .then((response: SmartFolderResponse) => {
-        app.fire('update_resource', response.resource);
-        app.fire('refresh_smart_folder_children', data.id);
-        onActiveKey(data.id);
-      });
   };
   const handleRename = (e: Event) => {
     // Prevent default menu close behavior
@@ -177,7 +100,7 @@ export default function Action(props: ISidebarProps) {
     }, 150);
   };
   const addToContext = (type: 'resource' | 'folder') => {
-    const contextResource = isSmartFolderChild
+    const contextResource = smartFolder.isSmartFolderChild
       ? {
           ...data,
           id: getSmartFolderSourceResourceId(data),
@@ -196,18 +119,6 @@ export default function Action(props: ISidebarProps) {
   const handleAddAllToChat = () => addToContext('folder');
   const handleMoveTo = () => {
     setMoveTo(true);
-  };
-  const handleDelete = () => {
-    if (isSmartFolder) {
-      setTrashSmartFolderConfirmOpen(true);
-      return;
-    }
-
-    onDelete(spaceType, data.id, data.parent_id);
-  };
-  const handleConfirmDeleteSmartFolder = () => {
-    setTrashSmartFolderConfirmOpen(false);
-    onDelete(spaceType, data.id, data.parent_id);
   };
   const handleSelect = () => {
     fileInputRef.current?.click();
@@ -263,11 +174,11 @@ export default function Action(props: ISidebarProps) {
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" sideOffset={10}>
-          {isSmartFolderChild ? (
+          {smartFolder.isSmartFolderChild ? (
             <>
               <DropdownMenuItem
                 className={menuItemClass}
-                onClick={handleLocateSource}
+                onClick={smartFolder.handleLocateSource}
               >
                 <LocateFixed className={menuIconClass} />
                 {t('actions.locate_source_resource')}
@@ -279,7 +190,10 @@ export default function Action(props: ISidebarProps) {
                 <SquarePen className={menuIconClass} />
                 {t('actions.rename')}
               </DropdownMenuItem>
-              <DropdownMenuItem className={menuItemClass} onClick={handleEdit}>
+              <DropdownMenuItem
+                className={menuItemClass}
+                onClick={smartFolder.handleEdit}
+              >
                 <Pencil className={menuIconClass} />
                 {t('edit')}
               </DropdownMenuItem>
@@ -294,32 +208,33 @@ export default function Action(props: ISidebarProps) {
             </>
           ) : (
             <>
-              {!isSmartFolder && !isSmartFolderChild && (
-                <>
-                  <DropdownMenuItem
-                    className={menuItemClass}
-                    onClick={handleCreateFile}
-                  >
-                    <FilePlus className={menuIconClass} />
-                    {t('actions.create_file')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className={menuItemClass}
-                    onClick={handleCreateFolder}
-                  >
-                    <FolderPlus className={menuIconClass} />
-                    {t('actions.create_folder')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className={menuItemClass}
-                    onClick={handleSelect}
-                  >
-                    <MonitorUp className={menuIconClass} />
-                    {t('actions.upload_file')}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
+              {!smartFolder.isSmartFolder &&
+                !smartFolder.isSmartFolderChild && (
+                  <>
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleCreateFile}
+                    >
+                      <FilePlus className={menuIconClass} />
+                      {t('actions.create_file')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleCreateFolder}
+                    >
+                      <FolderPlus className={menuIconClass} />
+                      {t('actions.create_folder')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleSelect}
+                    >
+                      <MonitorUp className={menuIconClass} />
+                      {t('actions.upload_file')}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
               <DropdownMenuItem
                 className={menuItemClass}
                 onSelect={handleRename}
@@ -327,24 +242,24 @@ export default function Action(props: ISidebarProps) {
                 <SquarePen className={menuIconClass} />
                 {t('actions.rename')}
               </DropdownMenuItem>
-              {isSmartFolder && canEditSmartFolder ? (
+              {smartFolder.isSmartFolder && smartFolder.canEditSmartFolder ? (
                 <DropdownMenuItem
                   className={menuItemClass}
-                  onClick={handleEditSmartFolder}
+                  onClick={smartFolder.handleEditSmartFolder}
                 >
                   <Pencil className={menuIconClass} />
                   {t('actions.edit_smart_folder_conditions')}
                 </DropdownMenuItem>
-              ) : !isSmartFolder ? (
+              ) : !smartFolder.isSmartFolder ? (
                 <>
                   <DropdownMenuItem
                     className={menuItemClass}
-                    onClick={handleEdit}
+                    onClick={smartFolder.handleEdit}
                   >
                     <Pencil className={menuIconClass} />
                     {t('edit')}
                   </DropdownMenuItem>
-                  {!isSmartFolderChild && (
+                  {!smartFolder.isSmartFolderChild && (
                     <DropdownMenuItem
                       className={menuItemClass}
                       onClick={handleMoveTo}
@@ -395,7 +310,7 @@ export default function Action(props: ISidebarProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
-                onClick={handleDelete}
+                onClick={smartFolder.handleDelete}
               >
                 <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
                 {t('actions.move_to_trash')}
@@ -417,21 +332,21 @@ export default function Action(props: ISidebarProps) {
         onConfirm={handleConfirmCreateFolder}
       />
       <CreateSmartFolderDialog
-        open={editSmartFolderOpen}
+        open={smartFolder.editSmartFolderOpen}
         currentResourceId={data.id}
-        initialValue={smartFolderInitial}
-        siblingResources={siblingResources}
+        initialValue={smartFolder.smartFolderInitial}
+        siblingResources={smartFolder.siblingResources}
         title={t('smart_folder.edit.title')}
         confirmText={t('smart_folder.edit.submit')}
-        onOpenChange={setEditSmartFolderOpen}
-        onConfirm={handleUpdateSmartFolder}
+        onOpenChange={smartFolder.setEditSmartFolderOpen}
+        onConfirm={smartFolder.handleUpdateSmartFolder}
       />
       <SmartFolderTrashConfirmDialog
-        open={trashSmartFolderConfirmOpen}
+        open={smartFolder.trashSmartFolderConfirmOpen}
         retentionDays={entitlements?.trashRetentionDays}
         smartFolderName={data.name}
-        onOpenChange={setTrashSmartFolderConfirmOpen}
-        onConfirm={handleConfirmDeleteSmartFolder}
+        onOpenChange={smartFolder.setTrashSmartFolderConfirmOpen}
+        onConfirm={smartFolder.handleConfirmDeleteSmartFolder}
       />
       <Input
         multiple
