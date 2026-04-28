@@ -272,7 +272,7 @@ export default function Action(props: ISidebarProps) {
               ) : null}
               <DropdownMenuSeparator />
 
-              {data.resource_type === 'folder' ? (
+              {data.resource_type === 'folder' || smartFolder.isSmartFolder ? (
                 <DropdownMenuItem
                   className={menuItemClass}
                   onClick={handleAddAllToChat}

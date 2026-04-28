@@ -163,7 +163,7 @@ function SmartFolderRangeDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        'data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-[#f2f2f5] data-[range-middle=true]:text-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 rounded-md font-normal leading-none ring-0 outline-none focus:ring-0 focus:outline-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md [&>span]:text-xs [&>span]:opacity-70',
+        'data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-neutral-100 data-[range-middle=true]:text-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground dark:data-[range-middle=true]:bg-[#262626] dark:data-[range-middle=true]:text-[#f5f5f5] flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 rounded-md font-normal leading-none ring-0 outline-none focus:ring-0 focus:outline-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md [&>span]:text-xs [&>span]:opacity-70',
         defaultClassNames.day,
         className
       )}

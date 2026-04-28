@@ -230,7 +230,7 @@ export default function ContextMenuMain(props: IProps) {
                 </>
               ) : null}
               <ContextMenuSeparator />
-              {data.resource_type === 'folder' ? (
+              {data.resource_type === 'folder' || smartFolder.isSmartFolder ? (
                 <ContextMenuItem
                   className={menuItemClass}
                   onClick={handleAddAllToChat}
