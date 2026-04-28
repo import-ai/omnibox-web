@@ -76,7 +76,7 @@ export default function MainSidebar() {
           <Header onActiveKey={handleActiveKey} />
         </SidebarHeader>
         <ResourceTree namespaceId={namespaceId}>
-          <TrashPanel />;
+          <TrashPanel />
         </ResourceTree>
         <CreateFolderDialog
           open={!!createFolderTargetId}

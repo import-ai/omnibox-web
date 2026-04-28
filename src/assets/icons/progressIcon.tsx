@@ -25,7 +25,7 @@ export function ProgressIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <g clip-path="url(#clip0_1530_1985)">
+      <g clipPath="url(#clip0_1530_1985)">
         <path
           d="M9.6875 5.78125V7.34375"
           stroke="currentColor"

@@ -59,7 +59,7 @@ export function CreateFolderDialog({
         if (!open) setFolderName('');
       }}
     >
-      <DialogContent className="sm:max-w-32">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{t('folder.create_dialog.title')}</DialogTitle>
         </DialogHeader>
