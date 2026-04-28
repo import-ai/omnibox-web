@@ -950,6 +950,9 @@
       "team": "团队",
       "all": "个人+团队"
     },
+    "move": {
+      "unsupported_mixed_target": "智能文件夹与普通资源不支持互相移入。"
+    },
     "match_mode": {
       "all": "全部",
       "any": "任一"

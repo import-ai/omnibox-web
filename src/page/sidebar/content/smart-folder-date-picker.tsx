@@ -1,7 +1,13 @@
 import { format } from 'date-fns';
 import { enUS, zhCN } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
-import { type ComponentProps, useEffect, useMemo, useRef } from 'react';
+import {
+  type ComponentProps,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { DateRange, DayButton, getDefaultClassNames } from 'react-day-picker';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +20,10 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
+import {
+  getNextRangeSelectionState,
+  type SmartFolderRangeSelectionState,
+} from './smart-folder-date-picker-utils';
 import { smartFolderSelectTriggerClass } from './styles';
 
 interface SmartFolderDatePickerProps {
@@ -82,6 +92,28 @@ function normalizeRangeDates(from: Date, to: Date) {
   };
 }
 
+function isSameDateRange(first?: DateRange, second?: DateRange) {
+  return (
+    first?.from?.getTime() === second?.from?.getTime() &&
+    first?.to?.getTime() === second?.to?.getTime()
+  );
+}
+
+function getRangeMiddle(range?: DateRange) {
+  if (!range?.from || !range.to) {
+    return undefined;
+  }
+
+  if (range.from.getTime() === range.to.getTime()) {
+    return undefined;
+  }
+
+  return {
+    after: range.from,
+    before: range.to,
+  };
+}
+
 function getDisplayText(range?: DateRange, language?: string) {
   if (!range?.from) {
     return '';
@@ -122,7 +154,7 @@ function SmartFolderRangeDayButton({
       size="icon"
       data-day={day.date.toLocaleDateString()}
       data-selected-single={
-        modifiers.selected &&
+        (modifiers.selected || modifiers.range_start) &&
         !modifiers.range_start &&
         !modifiers.range_end &&
         !modifiers.range_middle
@@ -197,6 +229,8 @@ export function SmartFolderDateRangePicker(
   const { className, disabled, startDate, endDate, onChange } = props;
   const { i18n, t } = useTranslation();
   const calendarLocale = i18n.language?.startsWith('zh') ? zhCN : enUS;
+  const [selectionState, setSelectionState] =
+    useState<SmartFolderRangeSelectionState>({ nextStep: 'start' });
 
   const dateRange = useMemo<DateRange | undefined>(() => {
     const from = parseOptionalDate(startDate);
@@ -212,6 +246,18 @@ export function SmartFolderDateRangePicker(
     };
   }, [endDate, startDate]);
 
+  useEffect(() => {
+    setSelectionState(prev => {
+      if (isSameDateRange(prev.range, dateRange)) {
+        return prev;
+      }
+
+      return { range: dateRange, nextStep: 'start' };
+    });
+  }, [dateRange]);
+
+  const visibleRange = selectionState.range ?? dateRange;
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -219,7 +265,7 @@ export function SmartFolderDateRangePicker(
           type="button"
           variant="outline"
           disabled={disabled}
-          data-empty={!dateRange?.from}
+          data-empty={!visibleRange?.from}
           className={cn(
             smartFolderSelectTriggerClass,
             'w-full min-w-0 justify-start text-left font-normal data-[empty=true]:text-muted-foreground',
@@ -228,8 +274,8 @@ export function SmartFolderDateRangePicker(
         >
           <CalendarIcon className="shrink-0" />
           <span className="min-w-0 truncate">
-            {dateRange?.from
-              ? getDisplayText(dateRange, i18n.language)
+            {visibleRange?.from
+              ? getDisplayText(visibleRange, i18n.language)
               : t('smart_folder.create.pick_date')}
           </span>
         </Button>
@@ -237,21 +283,36 @@ export function SmartFolderDateRangePicker(
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           initialFocus
-          mode="range"
-          defaultMonth={dateRange?.from}
-          selected={dateRange}
+          mode="single"
+          defaultMonth={visibleRange?.from}
+          selected={visibleRange?.from}
           numberOfMonths={2}
           locale={calendarLocale}
-          modifiers={{ today: undefined }}
+          modifiers={{
+            today: undefined,
+            range_start: visibleRange?.from,
+            range_end: visibleRange?.to,
+            range_middle: getRangeMiddle(visibleRange),
+          }}
           components={{
             DayButton: SmartFolderRangeDayButton,
           }}
-          onSelect={range => {
-            if (!range?.from || !range?.to) {
+          onDayClick={date => {
+            const nextState = getNextRangeSelectionState(selectionState, date);
+            setSelectionState(nextState);
+
+            if (
+              nextState.nextStep !== 'start' ||
+              !nextState.range?.from ||
+              !nextState.range?.to
+            ) {
               return;
             }
 
-            const normalizedRange = normalizeRangeDates(range.from, range.to);
+            const normalizedRange = normalizeRangeDates(
+              nextState.range.from,
+              nextState.range.to
+            );
 
             onChange({
               startDate: toStorageDate(normalizedRange.from),

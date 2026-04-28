@@ -496,6 +496,7 @@ export default function Actions(props: IActionProps) {
           namespaceId={namespaceId}
           onOpenChange={setMoveTo}
           resourceId={resource.id}
+          sourceResourceType={resource.resource_type}
           onFinished={handleMoveFinished}
         />
       )}

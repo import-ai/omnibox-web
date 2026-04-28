@@ -279,6 +279,7 @@ export default function ContextMenuMain(props: IProps) {
       <MoveTo
         open={moveTo}
         resourceId={data.id}
+        sourceResourceType={data.resource_type}
         onOpenChange={setMoveTo}
         namespaceId={namespaceId}
         onFinished={handleMoveFinished}

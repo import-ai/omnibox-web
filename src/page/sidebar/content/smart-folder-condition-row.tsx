@@ -36,7 +36,6 @@ import {
   smartFolderConditionGridClass,
   smartFolderIconButtonClass,
   smartFolderInputClass,
-  smartFolderMutedTextClass,
   smartFolderSelectTriggerClass,
 } from './styles';
 
@@ -212,14 +211,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
                 <div />
               )
             ) : (
-              <div
-                className={cn(
-                  'flex h-9 items-center px-2',
-                  smartFolderMutedTextClass
-                )}
-              >
-                {t('smart_folder.create.no_value_needed')}
-              </div>
+              <></>
             )
           ) : (
             <div />
