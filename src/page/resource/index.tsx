@@ -49,7 +49,7 @@ export default function ResourcePage() {
   }, [app]);
 
   return (
-    <SidebarInset className="m-[8px] h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-white dark:bg-background md:h-[calc(100svh-16px)]">
+    <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)] min-w-0 overflow-hidden">
       <Header {...props} wide={wide} onWide={onWide} />
       <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
       <div
@@ -57,7 +57,7 @@ export default function ResourcePage() {
         className="flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4"
       >
         <div
-          className={cn('flex w-full min-w-0 max-w-full flex-col', {
+          className={cn('flex min-w-0 w-full max-w-full flex-col', {
             'max-w-[680px]': !wide && (open || !large),
             'max-w-[800px]': !wide && (!open || large),
             'max-w-7xl': wide,

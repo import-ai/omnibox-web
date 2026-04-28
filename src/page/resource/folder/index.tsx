@@ -97,7 +97,7 @@ export default function Folder(props: IProps) {
           {groupItemsByTimestamp(data, i18n).map(([key, items]) => (
             <div key={key}>
               <div className="pb-4">
-                <p className="ml-0.5 text-sm font-light text-muted-foreground">
+                <p className="text-sm text-muted-foreground font-light ml-0.5">
                   {key}
                 </p>
               </div>
@@ -113,21 +113,21 @@ export default function Folder(props: IProps) {
                 } as unknown as Resource;
                 return (
                   <div
-                    className="group cursor-pointer"
+                    className="cursor-pointer group"
                     key={item.id}
                     onClick={() => {
                       navigate(`${navigationPrefix}/${item.id}`);
                     }}
                   >
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <div className="text-muted-foreground [&>svg]:size-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="[&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
                           <ResourceIcon
                             expand={false}
                             resource={iconResource}
                           />
                         </div>
-                        <h3 className="line-clamp-2 truncate text-lg font-medium group-hover:text-blue-500">
+                        <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500 truncate">
                           {item.name || t('untitled')}
                         </h3>
                       </div>
@@ -135,7 +135,7 @@ export default function Folder(props: IProps) {
                     {item.resource_type === 'folder' ? (
                       <FolderContent resource={item} apiPrefix={apiPrefix} />
                     ) : (
-                      <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                      <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
                         {item.updated_at
                           ? format(item.updated_at, 'yyyy-MM-dd HH:mm:ss')
                           : ''}
@@ -148,7 +148,7 @@ export default function Folder(props: IProps) {
             </div>
           ))}
           {hasMore && (
-            <div className="flex justify-center pb-4">
+            <div className="pb-4 flex justify-center">
               <Button
                 variant="secondary"
                 className="block w-full"

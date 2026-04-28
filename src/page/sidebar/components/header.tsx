@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import SearchMenu from '@/page/search';
 
 interface IProps {
-  onActiveKey: (activeKey: string, edit?: boolean) => void;
+  onActiveKey: (activeKey: string) => void;
 }
 
 export function Header(props: IProps) {

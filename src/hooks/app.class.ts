@@ -75,5 +75,3 @@ export default class App extends Hook {
     return theme;
   }
 }
-
-export const app = new App();

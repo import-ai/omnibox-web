@@ -189,7 +189,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
                   mode: 'email',
                   redirect,
                 })}
-                className="text-sm underline-offset-2 hover:underline"
+                className="text-sm hover:underline underline-offset-2"
               >
                 {t('login.submit')}
               </Link>
@@ -237,7 +237,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
                   mode: 'phone',
                   redirect,
                 })}
-                className="text-sm underline-offset-2 hover:underline"
+                className="text-sm hover:underline underline-offset-2"
               >
                 {t('login.submit')}
               </Link>

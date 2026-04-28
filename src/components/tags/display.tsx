@@ -28,11 +28,11 @@ export function TagsDisplay(props: IProps) {
     return (
       <Space
         onClick={onEdit}
-        className="min-h-6 cursor-pointer flex-wrap gap-y-4"
+        className="flex-wrap min-h-6 cursor-pointer gap-y-4"
       >
         <Badge
           variant="outline"
-          className="rounded-lg border-neutral-300 px-2 py-[2px] font-normal text-neutral-500 dark:border-neutral-500 dark:text-neutral-400"
+          className="border-neutral-300 text-neutral-500 font-normal rounded-[8px] px-[8px] py-[2px] dark:border-neutral-500 dark:text-neutral-400"
         >
           {t('resource.attrs.add_tag')}
         </Badge>
@@ -47,13 +47,13 @@ export function TagsDisplay(props: IProps) {
   return (
     <Space
       onClick={readOnly ? undefined : onEdit}
-      className={`min-h-6 flex-wrap gap-y-4 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
+      className={`flex-wrap min-h-6 gap-y-4 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
     >
       {displayedTags.map(tag => (
         <Badge
           key={tag.value}
           variant="outline"
-          className="rounded-lg border-neutral-300 px-2 py-px text-sm font-normal text-neutral-500 dark:border-neutral-500 dark:text-neutral-400"
+          className="text-sm border-neutral-300 text-neutral-500 font-normal rounded-[8px] px-[8px] py-[1px] dark:border-neutral-500 dark:text-neutral-400"
         >
           {tag.label}
         </Badge>
@@ -61,7 +61,7 @@ export function TagsDisplay(props: IProps) {
       {!isExpanded && remainingCount > 0 && (
         <Badge
           variant="outline"
-          className="min-h-[24px] min-w-[24px] justify-center rounded-full border-neutral-300 px-0 py-[2px] font-normal text-neutral-500 dark:border-neutral-500 dark:text-neutral-400"
+          className="border-neutral-300 text-neutral-500 font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-[2px] dark:border-neutral-500 dark:text-neutral-400"
           onClick={e => {
             e.stopPropagation();
             setIsExpanded(true);
@@ -73,7 +73,7 @@ export function TagsDisplay(props: IProps) {
       {isExpanded && remainingCount > 0 && (
         <Badge
           variant="outline"
-          className="min-h-[24px] min-w-[24px] justify-center rounded-full border-neutral-300 px-0 py-[2px] font-normal text-neutral-500 dark:border-neutral-500 dark:text-neutral-400"
+          className="border-neutral-300 text-neutral-500 font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-[2px] dark:border-neutral-500 dark:text-neutral-400"
           onClick={e => {
             e.stopPropagation();
             setIsExpanded(false);

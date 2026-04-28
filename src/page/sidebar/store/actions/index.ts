@@ -6,26 +6,26 @@ import { buildUploadActions } from './upload';
 
 export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
   return {
-    ...buildBaseActions(set, get),
+    ...buildBaseActions(set),
     ...buildCRUDActions(set, get),
     ...buildNavigationActions(set, get),
     ...buildUploadActions(set, get),
 
     openCreateFolderDialog: (parentId: string) => {
       set(s => {
-        s.createFolderTargetId = parentId;
+        s.dialogs.createFolderTargetId = parentId;
       });
     },
 
     closeCreateFolderDialog: () => {
       set(s => {
-        s.createFolderTargetId = null;
+        s.dialogs.createFolderTargetId = null;
       });
     },
 
     setCurrentUploadTargetId: (id: string | null) => {
       set(s => {
-        s.currentUploadTargetId = id;
+        s.dialogs.currentUploadTargetId = id;
       });
     },
   };

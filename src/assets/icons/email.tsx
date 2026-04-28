@@ -5,7 +5,7 @@ interface MailIconProps {
 export function MailIcon({ className }: MailIconProps) {
   return (
     <svg
-      className={className || 'size-full'}
+      className={className || 'w-full h-full'}
       width="20"
       height="20"
       viewBox="0 0 20 20"

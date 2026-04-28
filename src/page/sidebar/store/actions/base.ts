@@ -1,9 +1,9 @@
-import type { Resource } from '@/interface';
+import type { Resource, SpaceType } from '@/interface';
 
-import type { RootResource, SidebarGet, SidebarSet } from '../types';
+import type { RootResource, SidebarSet } from '../types';
 import { createNode, ensureUI, patchNodeFromResource } from '../utils';
 
-export function buildBaseActions(set: SidebarSet, _get: SidebarGet) {
+export function buildBaseActions(set: SidebarSet) {
   return {
     setNamespaceId: (id: string) => {
       set(s => {
@@ -12,6 +12,11 @@ export function buildBaseActions(set: SidebarSet, _get: SidebarGet) {
         s.ui = {};
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
+        s.dialogs = {
+          createFolderTargetId: null,
+          currentUploadTargetId: null,
+          upload: {},
+        };
         s.autoExpandedKeys = {};
       });
     },
@@ -21,11 +26,7 @@ export function buildBaseActions(set: SidebarSet, _get: SidebarGet) {
         state.nodes = {};
 
         for (const [spaceType, resource] of Object.entries(roots)) {
-          const rootNode = createNode(
-            resource,
-            null,
-            spaceType as 'private' | 'teamspace'
-          );
+          const rootNode = createNode(resource, null, spaceType as SpaceType);
           state.ui[rootNode.id] = {
             expanded: true,
             loading: false,
@@ -33,7 +34,7 @@ export function buildBaseActions(set: SidebarSet, _get: SidebarGet) {
           };
 
           state.nodes[rootNode.id] = rootNode;
-          state.rootIds[spaceType as 'private' | 'teamspace'] = rootNode.id;
+          state.rootIds[spaceType as SpaceType] = rootNode.id;
 
           const children = resource.children || [];
           if (children.length > 0) {
@@ -43,7 +44,7 @@ export function buildBaseActions(set: SidebarSet, _get: SidebarGet) {
                 const childNode = createNode(
                   child,
                   parentId,
-                  spaceType as 'private' | 'teamspace'
+                  spaceType as SpaceType
                 );
                 childNode.hasChildren = child.has_children ?? false;
                 state.nodes[child.id] = childNode;
@@ -74,7 +75,12 @@ export function buildBaseActions(set: SidebarSet, _get: SidebarGet) {
         s.ui = {};
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
-        s.upload = {};
+        s.dialogs = {
+          createFolderTargetId: null,
+          currentUploadTargetId: null,
+          upload: {},
+        };
+        s.autoExpandedKeys = {};
       });
     },
 

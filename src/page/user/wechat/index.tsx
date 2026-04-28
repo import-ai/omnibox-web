@@ -45,7 +45,7 @@ export default function WeChat(props: IProps) {
       <Button
         variant="outline"
         onClick={alertDisableWeChatLogin}
-        className="w-full opacity-50 [&_svg]:size-5 dark:[&_svg]:fill-white"
+        className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white opacity-50"
       >
         <WeChatIcon />
         {t(

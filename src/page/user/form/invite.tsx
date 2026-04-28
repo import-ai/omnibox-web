@@ -120,7 +120,7 @@ export function InviteForm() {
 
   if (showLoginMessage) {
     return (
-      <div className="space-y-4 text-center text-sm">
+      <div className="text-center text-sm space-y-4">
         <p>{t('invite.please_login_first')}</p>
         <Button
           className="w-full"
@@ -138,7 +138,7 @@ export function InviteForm() {
 
   if (userMismatchMessage) {
     return (
-      <div className="pt-6 text-center text-sm">
+      <div className="text-center text-sm pt-6">
         <p>{userMismatchMessage}</p>
       </div>
     );
@@ -146,7 +146,7 @@ export function InviteForm() {
 
   if (invitationNotFound) {
     return (
-      <div className="pt-6 text-center text-sm">
+      <div className="text-center text-sm pt-6">
         <p>{t('invite.not_found')}</p>
       </div>
     );

@@ -45,12 +45,12 @@ interface IDecisionInputProps {
 function getDecisionIcon(decisionType: string) {
   const lowerType = decisionType.toLowerCase();
   if (lowerType === 'approve' || lowerType === 'accept') {
-    return <Check className="mr-2 size-4" />;
+    return <Check className="size-4 mr-2" />;
   }
   if (lowerType === 'reject' || lowerType === 'decline') {
-    return <X className="mr-2 size-4" />;
+    return <X className="size-4 mr-2" />;
   }
-  return <Circle className="mr-2 size-4" />;
+  return <Circle className="size-4 mr-2" />;
 }
 
 // Get decision style classes based on type and selection state
@@ -254,7 +254,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
   }, [activeCardIndex]);
 
   return (
-    <Card className="mx-auto w-full max-w-[766px] rounded-2xl border border-solid border-gray-200 bg-white shadow-none dark:border-[#303030] dark:bg-[#303030]">
+    <Card className="max-w-[766px] w-full mx-auto rounded-2xl border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030] shadow-none">
       <CardHeader className="p-3">
         <CardTitle className="flex items-center gap-2">
           <div className="text-base">
@@ -263,16 +263,16 @@ export default function DecisionInput(props: IDecisionInputProps) {
             )}
           </div>
           {interrupts.length > 1 && (
-            <div className="text-xs font-normal text-muted-foreground">
+            <div className="text-xs text-muted-foreground font-normal">
               {activeCardIndex + 1} / {interrupts.length}
             </div>
           )}
         </CardTitle>
-        <CardDescription className="flex flex-wrap gap-x-2 gap-y-1 text-xs">
+        <CardDescription className="text-xs flex flex-wrap gap-x-2 gap-y-1">
           {processArgs(activeInterrupt.args, t).map((arg, i) => (
             <code
               key={i}
-              className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
+              className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
             >
               {arg}
             </code>
@@ -280,7 +280,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-2 px-3 py-0">
+      <CardContent className="space-y-2 py-0 px-3">
         {activeInterrupt.decisions.map((decisionType, idx) => {
           const isSelected =
             selectedDecisions[activeCardIndex] === decisionType;
@@ -310,9 +310,9 @@ export default function DecisionInput(props: IDecisionInputProps) {
         })}
       </CardContent>
 
-      <CardFooter className="flex items-center justify-end gap-3 p-3">
+      <CardFooter className="flex gap-3 p-3 items-center justify-end">
         {interrupts.length > 1 && (
-          <div className="flex w-full items-center gap-2">
+          <div className="w-full flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
@@ -352,7 +352,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                       data-dot-index={idx}
                       className={cn(
                         'shrink-0 rounded-full transition-all duration-200',
-                        isCurrent ? 'h-2 w-5' : 'h-2 w-2',
+                        isCurrent ? 'w-5 h-2' : 'w-2 h-2',
                         dotColor
                       )}
                       onClick={() => setActiveCardIndex(idx)}
@@ -383,13 +383,13 @@ export default function DecisionInput(props: IDecisionInputProps) {
           <Button
             onClick={handleSubmit}
             size="sm"
-            className="size-8 rounded-lg"
+            className="rounded-lg size-8"
           >
             <ArrowUp />
           </Button>
         ) : (
           <span className="cursor-not-allowed">
-            <Button size="sm" className="size-8 rounded-lg" disabled>
+            <Button size="sm" className="rounded-lg size-8" disabled>
               <ArrowUp />
             </Button>
           </span>

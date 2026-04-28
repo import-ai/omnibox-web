@@ -20,27 +20,27 @@ export default function ShareTabs(props: ShareTabsProps) {
 
   return (
     <Tabs defaultValue={showPermissions ? 'permissions' : 'share'}>
-      <TabsList className="h-11 w-full justify-start rounded-none border-b px-5">
+      <TabsList className="w-full justify-start h-11 border-b rounded-none px-5">
         {showPermissions && (
           <TabsTrigger
             value="permissions"
-            className="h-11 max-w-[80px] flex-1 data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="flex-1 h-11 max-w-[80px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
           >
             {t('share.permissions.title')}
           </TabsTrigger>
         )}
         <TabsTrigger
           value="share"
-          className="h-11 max-w-[80px] flex-1 data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          className="flex-1 h-11 max-w-[80px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
         >
           {t('share.share.title')}
         </TabsTrigger>
       </TabsList>
-      <TabsContent value="permissions" className="px-4 pb-2 pt-4">
+      <TabsContent value="permissions" className="px-4 pt-4 pb-2">
         <Invite resource_id={resource_id} namespace_id={namespace_id} />
         <Table resource_id={resource_id} namespace_id={namespace_id} />
       </TabsContent>
-      <TabsContent value="share" className="px-4 pb-2 pt-4">
+      <TabsContent value="share" className="px-4 pt-4 pb-2">
         <ShareTabContent
           resource_id={resource_id}
           namespace_id={namespace_id}

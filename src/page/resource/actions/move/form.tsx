@@ -95,24 +95,24 @@ export default function MoveToForm(props: IFormProps) {
     <div>
       <div className="relative mb-2">
         {loading ? (
-          <Spinner className="absolute left-3 top-1/2 z-10 -translate-y-1/2 opacity-50" />
+          <Spinner className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 z-10" />
         ) : (
-          <Search className="absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 opacity-50" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 opacity-50 z-10" />
         )}
         <LazyInput
           value={search}
           onChange={onSearch}
-          className="rounded-lg pl-10"
+          className="pl-10 rounded-lg"
           placeholder={t('actions.move_page_to')}
         />
       </div>
-      <div className="max-h-80 min-h-60 overflow-y-auto overflow-x-hidden pb-2">
+      <div className="pb-2 min-h-60 max-h-80 overflow-y-auto overflow-x-hidden">
         {data.root.length > 0 && (
           <>
             <Button
               disabled
               variant="ghost"
-              className="h-7 w-full items-start justify-start whitespace-normal rounded-none pb-0"
+              className="w-full whitespace-normal justify-start items-start rounded-none pb-0 h-7"
             >
               Root
             </Button>
@@ -135,7 +135,7 @@ export default function MoveToForm(props: IFormProps) {
             <Button
               disabled
               variant="ghost"
-              className="h-7 w-full items-start justify-start whitespace-normal rounded-none pb-0"
+              className="w-full whitespace-normal justify-start items-start rounded-none pb-0 h-7"
             >
               Resource
             </Button>

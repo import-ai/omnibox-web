@@ -14,15 +14,23 @@ interface UseDndHandlersOptions {
 
 interface UseDndHandlersReturn {
   handleDrop: (
-    item: { files?: File[]; id?: string },
-    monitor: { didDrop: () => boolean; getItemType: () => string }
+    item: DndItem,
+    monitor: { didDrop: () => boolean; getItemType: () => unknown }
   ) => void;
   handleHover: (
-    item: { id?: string },
-    monitor: { isOver: (options?: { shallow: boolean }) => boolean }
+    item: DndItem,
+    monitor: {
+      getItemType: () => unknown;
+      isOver: (options?: { shallow: boolean }) => boolean;
+    }
   ) => void;
   isFileDragOver: boolean;
   clearFileDragTarget: () => void;
+}
+
+export interface DndItem {
+  files?: File[];
+  id?: string;
 }
 
 export function useDndHandlers({
@@ -52,9 +60,7 @@ export function useDndHandlers({
       .uploadFiles(targetId, fileList.files)
       .then(id => {
         useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`, {
-          state: { fromSidebar: true },
-        });
+        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
         toast.success(t('upload.success', { count: fileList.files.length }));
         return id;
       })
@@ -74,15 +80,14 @@ export function useDndHandlers({
         .getState()
         .move(dragId, targetId)
         .catch(() => {
-          toast.error(t('move.failed'));
-          throw new Error('Move failed');
+          //
         });
     }
   };
 
   const handleDrop = (
-    item: { files?: File[]; id?: string },
-    monitor: { didDrop: () => boolean; getItemType: () => string }
+    item: DndItem,
+    monitor: { didDrop: () => boolean; getItemType: () => unknown }
   ) => {
     if (monitor.didDrop()) return;
     const itemType = monitor.getItemType();
@@ -97,8 +102,11 @@ export function useDndHandlers({
   };
 
   const handleHover = (
-    item: { id?: string },
-    monitor: { isOver: (options?: { shallow: boolean }) => boolean }
+    item: DndItem,
+    monitor: {
+      getItemType: () => unknown;
+      isOver: (options?: { shallow: boolean }) => boolean;
+    }
   ) => {
     const isOverShallow = monitor.isOver({ shallow: true });
     const itemType = monitor.getItemType();

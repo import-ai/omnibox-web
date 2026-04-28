@@ -70,12 +70,18 @@ src/
 ├── page/            # Page components
 │   ├── chat/        # Chat interface
 │   ├── resource/    # Resource management
+│   ├── share/       # Public share access
 │   ├── user/        # User management
 │   └── sidebar/     # Sidebar navigation
 ├── hooks/           # Custom React hooks
 ├── layout/          # Layout components
 └── ...
 ```
+
+### Architecture Notes
+
+- [Share page architecture](https://www.omnibox.pro/s/JFLkWtAhYb)
+- [Workspace sidebar architecture](https://www.omnibox.pro/s/ksZfX3JpGh)
 
 ## Scripts
 

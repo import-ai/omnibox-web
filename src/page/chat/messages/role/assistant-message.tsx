@@ -266,7 +266,7 @@ export function AssistantMessage(props: IProps) {
                   {toolCall.args.map((arg, argIndex) => (
                     <code
                       key={'arg_' + argIndex}
-                      className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
+                      className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
                     >
                       {arg}
                     </code>
@@ -286,11 +286,11 @@ export function AssistantMessage(props: IProps) {
     domList.push(
       <div
         key={'response_loading_' + message.id}
-        className="mb-1.5 mt-3 flex items-center gap-x-2"
+        className="flex items-center mt-3 mb-1.5 gap-x-2"
       >
-        <Spinner className="size-4 text-muted-foreground" />
+        <Spinner className="text-muted-foreground size-4" />
         {message.attrs?.metrics?.tokens && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-muted-foreground text-sm">
             {t('chat.messages.metrics.tps', {
               tokens: message.attrs?.metrics?.tokens ?? 0,
               tps: message.attrs?.metrics?.tps ?? 0,

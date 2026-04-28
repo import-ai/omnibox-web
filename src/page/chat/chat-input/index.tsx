@@ -90,7 +90,7 @@ export default function ChatArea(props: IProps) {
   return interrupts.length > 0 ? (
     <DecisionInput interrupts={interrupts} sendMessage={sendMessage} />
   ) : (
-    <div className="mx-auto w-full max-w-[766px] rounded-2xl border border-solid border-gray-200 bg-white p-3 dark:border-[#303030] dark:bg-[#303030]">
+    <div className="max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]">
       <ChatContext
         value={selectedResources}
         onChange={setSelectedResources}

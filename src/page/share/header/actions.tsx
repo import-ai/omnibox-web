@@ -104,7 +104,7 @@ export default function ShareActions({
         <Button
           variant="ghost"
           size="icon"
-          className="size-7 data-[state=open]:bg-accent"
+          className="h-7 w-7 data-[state=open]:bg-accent"
         >
           <MoreHorizontal className="size-4" />
         </Button>
@@ -149,7 +149,7 @@ export default function ShareActions({
               className="cursor-pointer gap-2"
               onClick={() => handleAction('wide')}
             >
-              <div className="flex w-full items-center justify-between">
+              <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2">
                   <MoveHorizontal className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
                   <span>{t('actions.wide')}</span>

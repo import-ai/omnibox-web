@@ -1,6 +1,7 @@
 import {
   FilePlus,
   FolderPlus,
+  type LucideIcon,
   MessageSquarePlus,
   MessageSquareQuote,
   MonitorUp,
@@ -16,14 +17,21 @@ import type { UseNodeActionsReturn } from '../hooks/use-node-actions';
 
 export type CreateFolderMode = 'direct' | 'dialog';
 
-export interface MenuItem {
+export type MenuItem = MenuActionItem | MenuSeparatorItem;
+
+export interface MenuActionItem {
   key: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  label?: string;
-  separator?: boolean;
+  icon: LucideIcon;
+  label: string;
+  separator?: false;
   destructive?: boolean;
   onClick?: () => void;
   onSelect?: () => void;
+}
+
+export interface MenuSeparatorItem {
+  key: string;
+  separator: true;
 }
 
 export function useNodeMenu(
@@ -34,7 +42,7 @@ export function useNodeMenu(
   const { t } = useTranslation();
   const { node } = actions;
 
-  const menuItems = useMemo(() => {
+  const menuItems = useMemo<MenuItem[]>(() => {
     if (!node) return [];
 
     return [

@@ -21,7 +21,7 @@ export function CitationHoverIcon(props: CitationIconProps) {
       <HoverCardTrigger asChild>
         <Button
           variant="link"
-          className="h-auto p-0 align-baseline hover:no-underline"
+          className="px-0 py-0 h-auto align-baseline hover:no-underline"
           onClick={e => {
             e.preventDefault();
             e.stopPropagation();
@@ -30,7 +30,7 @@ export function CitationHoverIcon(props: CitationIconProps) {
         >
           <Badge
             variant="secondary"
-            className="rounded-full px-1 hover:bg-primary hover:text-primary-foreground dark:bg-[#303030] dark:hover:bg-primary"
+            className="rounded-full px-1 hover:text-primary-foreground hover:bg-primary dark:hover:bg-primary dark:bg-[#303030]"
           >
             {index + 1}
           </Badge>
@@ -38,9 +38,9 @@ export function CitationHoverIcon(props: CitationIconProps) {
       </HoverCardTrigger>
       <HoverCardContent className="w-80">
         <div>
-          <p className="line-clamp-2 font-semibold">{citation.title}</p>
-          <div className="line-clamp-4 text-sm">{citation.snippet}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{name}</div>
+          <p className="font-semibold line-clamp-2">{citation.title}</p>
+          <div className="text-sm line-clamp-4">{citation.snippet}</div>
+          <div className="text-muted-foreground text-xs mt-1">{name}</div>
         </div>
       </HoverCardContent>
     </HoverCard>

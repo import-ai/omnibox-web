@@ -1,11 +1,5 @@
-import type { PathItem } from '@/interface';
-import {
-  Permission,
-  Resource,
-  ResourceType,
-  SpaceType,
-  TagDto,
-} from '@/interface';
+import type { PathItem, SpaceType } from '@/interface';
+import { Permission, Resource, ResourceType, TagDto } from '@/interface';
 
 export type RootResource = Resource & { children?: Resource[] };
 
@@ -33,16 +27,20 @@ export interface NodeUI {
   loaded: boolean;
 }
 
+export interface DialogsState {
+  createFolderTargetId: string | null;
+  currentUploadTargetId: string | null;
+  upload: Record<string, string>;
+}
+
 export interface SidebarState {
   namespaceId: string;
   nodes: Record<string, TreeNode>;
   ui: Record<string, NodeUI>;
   rootIds: Record<SpaceType, string>;
   activeId: string | null;
-  createFolderTargetId: string | null;
-  currentUploadTargetId: string | null;
+  dialogs: DialogsState;
   spaceExpanded: Record<SpaceType, boolean>;
-  upload: Record<string, string>;
   autoExpandedKeys: Record<string, boolean>;
 }
 
@@ -96,9 +94,11 @@ export const initialState: SidebarState = {
   ui: {},
   rootIds: { private: '', teamspace: '' },
   activeId: null,
-  createFolderTargetId: null,
-  currentUploadTargetId: null,
+  dialogs: {
+    createFolderTargetId: null,
+    currentUploadTargetId: null,
+    upload: {},
+  },
   spaceExpanded: { private: true, teamspace: true },
-  upload: {},
   autoExpandedKeys: {},
 };

@@ -32,7 +32,7 @@ export default function ShareAction(props: ShareActionProps) {
         side="bottom"
         align={isMobile ? 'center' : 'end'}
         alignOffset={isMobile ? 0 : -106}
-        className="w-full overflow-hidden p-0 sm:w-[456px]"
+        className="w-full sm:w-[456px] p-0 overflow-hidden"
       >
         <ShareTabs showPermissions={spaceType === 'teamspace'} />
       </PopoverContent>

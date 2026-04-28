@@ -16,7 +16,8 @@ export function useDeleteResource() {
 
     await deleteResourceBase({ id, parentId, namespaceId, app });
 
-    // Sidebar navigation and toast are handled by use-sidebar-events.ts
+    // Navigation is handled by delete_resource event handler in useContext.ts
+    // to automatically select the next resource (consistent with sidebar)
 
     onSuccess?.();
   };

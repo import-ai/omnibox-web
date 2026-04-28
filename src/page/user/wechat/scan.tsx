@@ -22,7 +22,7 @@ export default function Scan(props: IProps) {
       <Button
         variant="outline"
         onClick={handleBack}
-        className="w-full [&_svg]:relative [&_svg]:top-[2px] [&_svg]:size-5 dark:[&_svg]:fill-white"
+        className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white"
       >
         <MoveLeft />
         {t('login.back')}

@@ -7,6 +7,14 @@ import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
 import { useSidebarStore } from '@/page/sidebar/store';
 
+function extractResourceId(
+  pathname: string,
+  namespaceId: string
+): string | undefined {
+  const match = pathname.match(new RegExp(`^/${namespaceId}/([^/]+)`));
+  return match?.[1];
+}
+
 /**
  * Event adapter: maps app-level events to sidebar store actions.
  *
@@ -54,16 +62,14 @@ export function useSidebarEvents(namespaceId: string) {
     // Delete a resource
     hooks.push(
       app.on('delete_resource', (id: string) => {
-        const match = window.location.pathname.match(
-          new RegExp(`^/${namespaceId}/([^/]+)`)
+        const currentResourceId = extractResourceId(
+          window.location.pathname,
+          namespaceId
         );
-        const currentResourceId = match?.[1];
         const result = useSidebarStore.getState().remove(id, currentResourceId);
 
         if (result.nextId) {
-          navigate(`/${namespaceId}/${result.nextId}`, {
-            state: { fromSidebar: true },
-          });
+          navigate(`/${namespaceId}/${result.nextId}`);
         } else if (result.navigateToChat) {
           navigate(`/${namespaceId}/chat`);
         }
@@ -77,14 +83,12 @@ export function useSidebarEvents(namespaceId: string) {
               .then(restoredId => {
                 app.fire('trash_updated');
                 const currentNs = useSidebarStore.getState().namespaceId;
-                const nowMatch = window.location.pathname.match(
-                  new RegExp(`^/${currentNs}/([^/]+)`)
+                const nowResourceId = extractResourceId(
+                  window.location.pathname,
+                  currentNs
                 );
-                const nowResourceId = nowMatch?.[1];
                 if (!nowResourceId || nowResourceId === id) {
-                  navigate(`/${currentNs}/${restoredId}`, {
-                    state: { fromSidebar: true },
-                  });
+                  navigate(`/${currentNs}/${restoredId}`);
                 }
               })
               .catch(err => {
@@ -110,7 +114,7 @@ export function useSidebarEvents(namespaceId: string) {
       app.on('restore_resource', async (resource: Resource) => {
         const id = await useSidebarStore.getState().restore(resource);
         useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        navigate(`/${namespaceId}/${id}`);
       })
     );
 

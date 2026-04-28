@@ -1,4 +1,4 @@
-import { ReactNode, useRef } from 'react';
+import { useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
@@ -7,18 +7,15 @@ import { SidebarContent } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SpaceType } from '@/interface';
 import { useDragAutoScroll } from '@/page/sidebar/hooks/use-drag-auto-scroll';
+import { TrashPanel } from '@/page/trash';
 
 import SpaceSection from './space-section';
 
 interface ResourceTreeProps {
   namespaceId: string;
-  children: ReactNode;
 }
 
-export default function ResourceTree({
-  children,
-  namespaceId,
-}: ResourceTreeProps) {
+export default function ResourceTree({ namespaceId }: ResourceTreeProps) {
   const isMobile = useIsMobile();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +31,7 @@ export default function ResourceTree({
             namespaceId={namespaceId}
           />
         ))}
-        {children}
+        <TrashPanel />
       </SidebarContent>
     </DndProvider>
   );

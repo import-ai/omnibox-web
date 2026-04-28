@@ -8,6 +8,7 @@ import type { SidebarStore, TreeNode } from './types';
 import { initialState } from './types';
 
 export type {
+  DialogsState,
   NodeUI,
   RemoveResult,
   RootResource,
@@ -28,17 +29,8 @@ export {
   patchNodeFromResource,
   traverseDescendants,
 } from './utils';
-export type {
-  BatchCreateItem,
-  BatchMoveItem,
-  BatchRenameItem,
-  CreatePayload,
-} from '@/service/resource';
+export type { CreatePayload } from '@/service/resource';
 export {
-  batchCreate,
-  batchDelete,
-  batchMove,
-  batchRename,
   createResource,
   deleteResource,
   fetchChildren,
@@ -84,5 +76,5 @@ export function useNodesSize(): number {
 }
 
 export function useUpload(id: string): string | undefined {
-  return useSidebarStore(state => state.upload[id]);
+  return useSidebarStore(state => state.dialogs.upload[id]);
 }

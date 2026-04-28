@@ -103,26 +103,15 @@ export function findNextActiveId(
     return null;
   }
 
-  const sortedSiblings = [...parent.children].sort((a, b) => {
-    const nodeA = nodes[a];
-    const nodeB = nodes[b];
-    if (!nodeA || !nodeB) return 0;
-    return nodeB.updatedAt.localeCompare(nodeA.updatedAt);
-  });
-
-  const sortedIdx = sortedSiblings.indexOf(deletedId);
-  if (sortedIdx < 0) {
-    return null;
-  }
-
-  const prev = sortedSiblings[sortedIdx - 1];
-  if (prev) {
-    return prev;
-  }
-
-  const next = sortedSiblings[sortedIdx + 1];
+  // Prefer the next sibling (visually below), fallback to previous
+  const next = parent.children[idx + 1];
   if (next) {
     return next;
+  }
+
+  const prev = parent.children[idx - 1];
+  if (prev) {
+    return prev;
   }
 
   return null;

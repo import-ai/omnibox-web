@@ -110,7 +110,7 @@ export function Messages(props: IProps) {
             )}
             {message.status === MessageStatus.FAILED &&
               message.attrs?.error_message && (
-                <div className="mt-2 text-destructive">
+                <div className="text-destructive mt-2">
                   {message.attrs.error_message}
                 </div>
               )}

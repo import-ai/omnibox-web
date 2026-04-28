@@ -42,7 +42,7 @@ export default function WrapperPage(props: WrapperPageProps) {
             </a>
           </div>
           {useCard ? (
-            <div className="flex w-full max-w-sm flex-col gap-6">
+            <div className="w-full max-w-sm flex flex-col gap-6">
               <Card className="dark:border-[#303030] dark:bg-[#171717]">
                 <CardHeader className="hidden">
                   <CardTitle></CardTitle>
@@ -53,7 +53,7 @@ export default function WrapperPage(props: WrapperPageProps) {
               {extra}
             </div>
           ) : (
-            <div className="flex w-full max-w-sm flex-col gap-6">
+            <div className="w-full max-w-sm flex flex-col gap-6">
               {children}
               {extra}
             </div>

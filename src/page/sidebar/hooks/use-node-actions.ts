@@ -9,6 +9,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { addToChatContext } from '@/lib/chat-bridge';
 import { deleteResource } from '@/lib/delete-resource';
 import { useNode, useSidebarStore } from '@/page/sidebar/store';
+import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
 
 export interface UseNodeActionsReturn {
   node: ReturnType<typeof useNode>;
@@ -76,9 +77,7 @@ export function useNodeActions(
   };
 
   const handleEdit = () => {
-    navigate(`/${namespaceId}/${nodeId}/edit`, {
-      state: { fromSidebar: true },
-    });
+    navigate(`/${namespaceId}/${nodeId}/edit`);
     if (isMobile) setOpenMobile(false);
   };
 
@@ -110,23 +109,12 @@ export function useNodeActions(
   };
 
   const handleUpload = () => {
-    useSidebarStore.getState().setCurrentUploadTargetId(nodeId);
-    // 触发全局文件选择器
-    const globalFileInput = document.querySelector(
-      '#global-sidebar-file-input'
-    ) as HTMLInputElement;
-    if (globalFileInput) {
-      globalFileInput.click();
-    }
+    triggerGlobalFileUpload(nodeId);
   };
 
   const handleMoveFinished = async (resourceId: string, targetId: string) => {
     setMoveTo(false);
-    try {
-      await useSidebarStore.getState().move(resourceId, targetId);
-    } catch {
-      toast.error(t('move.failed'));
-    }
+    await useSidebarStore.getState().move(resourceId, targetId);
   };
 
   return {

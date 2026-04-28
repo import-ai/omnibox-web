@@ -18,7 +18,7 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
   const expandPromises = new Map<string, Promise<void>>();
 
   return {
-    activate: (id: string) => {
+    activate: (id: string | null) => {
       set(s => {
         s.activeId = id;
       });

@@ -122,7 +122,7 @@ export default function ConfirmDeleteDialog(props: IProps) {
           <AlertDialogAction
             disabled={loading}
             onClick={handleConfirm}
-            className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
           >
             {loading && <Spinner className="mr-2" />}
             {t('delete')}

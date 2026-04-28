@@ -9,9 +9,10 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import MoveTo from '@/page/resource/actions/move';
-import { menuIconClass, menuItemClass } from '@/page/sidebar/constants';
 import { useNodeActions } from '@/page/sidebar/hooks/use-node-actions';
 import { useNodeMenu } from '@/page/sidebar/hooks/use-node-menu';
+
+import { menuIconClass, menuItemClass } from './shared';
 
 interface NodeContextMenuProps {
   nodeId: string;

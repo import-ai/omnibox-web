@@ -197,7 +197,7 @@ export function ResourceNodeContent({
     }
   };
 
-  const upload = useSidebarStore(s => s.upload[nodeId]);
+  const upload = useSidebarStore(s => s.dialogs.upload[nodeId]);
 
   return (
     <SidebarMenuItem>
@@ -280,6 +280,7 @@ export function ResourceNodeContent({
                           onChange={e => setEditName(e.target.value)}
                           onBlur={handleBlur}
                           onKeyDown={handleKeyDown}
+                          autoComplete="off"
                           onClick={e => e.stopPropagation()}
                           onDoubleClick={e => e.stopPropagation()}
                           className="min-w-0 flex-1 bg-transparent text-sm caret-blue-500 outline-none"

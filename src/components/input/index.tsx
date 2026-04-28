@@ -14,25 +14,26 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const EndIcon = endIcon;
 
     return (
-      <div className="relative w-full">
+      <div className="w-full relative">
         {StartIcon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 transform">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
             <StartIcon size={18} className="text-muted-foreground" />
           </div>
         )}
         <input
           type={type}
           className={cn(
-            'border-line flex h-10 w-full rounded-md border px-4 py-2 text-sm shadow-none ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50',
+            'flex h-10 w-full rounded-md border border-line py-2 px-4 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 shadow-none',
             startIcon ? 'pl-10' : '',
             endIcon ? 'pr-10' : '',
             className
           )}
           ref={ref}
+          autoComplete="off"
           {...props}
         />
         {EndIcon && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 transform">
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             <EndIcon className="text-muted-foreground" size={18} />
           </div>
         )}

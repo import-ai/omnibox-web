@@ -12,7 +12,7 @@ export function buildUploadActions(set: SidebarSet, get: SidebarGet) {
       if (!parent) throw new Error('Parent not found');
 
       set(s => {
-        s.upload[parentId] = '';
+        s.dialogs.upload[parentId] = '';
       });
 
       try {
@@ -25,7 +25,7 @@ export function buildUploadActions(set: SidebarSet, get: SidebarGet) {
             if (now - last < 100) return;
             lastProgressTimes.set(parentId, now);
             set(s => {
-              s.upload[parentId] = `${done}/${total}`;
+              s.dialogs.upload[parentId] = `${done}/${total}`;
             });
           },
         });
@@ -49,7 +49,7 @@ export function buildUploadActions(set: SidebarSet, get: SidebarGet) {
         return last.id;
       } finally {
         set(s => {
-          delete s.upload[parentId];
+          delete s.dialogs.upload[parentId];
         });
       }
     },

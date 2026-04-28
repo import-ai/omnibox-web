@@ -8,22 +8,6 @@ export interface CreatePayload {
   name?: string;
 }
 
-export interface BatchCreateItem {
-  parentId: string;
-  resourceType: ResourceType;
-  name?: string;
-}
-
-export interface BatchMoveItem {
-  id: string;
-  targetId: string;
-}
-
-export interface BatchRenameItem {
-  id: string;
-  name: string;
-}
-
 export function fetchChildren(namespaceId: string, id: string) {
   return http.get<Resource[]>(
     `/namespaces/${namespaceId}/resources/${id}/children`
@@ -82,32 +66,4 @@ export function uploadResource(
   }
 ) {
   return uploadFiles(files, options);
-}
-
-export function batchCreate(
-  _namespaceId: string,
-  _items: BatchCreateItem[]
-): Promise<Resource[]> {
-  throw new Error('batchCreate not implemented yet');
-}
-
-export function batchDelete(
-  _namespaceId: string,
-  _ids: string[]
-): Promise<void> {
-  throw new Error('batchDelete not implemented yet');
-}
-
-export function batchMove(
-  _namespaceId: string,
-  _items: BatchMoveItem[]
-): Promise<void> {
-  throw new Error('batchMove not implemented yet');
-}
-
-export function batchRename(
-  _namespaceId: string,
-  _items: BatchRenameItem[]
-): Promise<void> {
-  throw new Error('batchRename not implemented yet');
 }

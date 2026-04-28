@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { Input } from '@/components/input';
 import {
   Tooltip,
   TooltipContent,
@@ -32,16 +31,16 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
-import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useIsTouch } from '@/hooks/use-is-touch';
 import { SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
-import { menuIconClass, menuItemClass } from '@/page/sidebar/constants';
 import { useSpaceDrop } from '@/page/sidebar/hooks/use-space-drop';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
+import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
 
 import ResourceNode from './resource-node';
+import { menuIconClass, menuItemClass } from './shared';
 
 interface SpaceSectionContentProps {
   rootNode: TreeNode;
@@ -62,10 +61,9 @@ export function SpaceSectionContent({
   const navigate = useNavigate();
   const isTouch = useIsTouch();
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
 
-  const upload = useSidebarStore(s => s.upload[rootId]);
+  const upload = useSidebarStore(s => s.dialogs.upload[rootId]);
 
   const handleCreateFolder = () => {
     useSidebarStore.getState().openCreateFolderDialog(rootId);
@@ -89,22 +87,22 @@ export function SpaceSectionContent({
     useSidebarStore.getState().toggleSpace(spaceType);
   };
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  const handleUploadClick = () => {
+    triggerGlobalFileUpload(rootId);
+  };
+
+  const handleCreateFile = () => {
     useSidebarStore
       .getState()
-      .uploadFiles(rootId, files)
+      .create(rootId, 'doc')
       .then(id => {
         useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
-        toast.success(t('upload.success', { count: files.length }));
+        navigate(`/${namespaceId}/${id}/edit`, {
+          state: { fromSidebar: true },
+        });
       })
       .catch(err => {
-        toast.error(err?.message || t('upload.failed'));
-      })
-      .finally(() => {
-        fileInputRef.current!.value = '';
+        toast.error(err?.message || t('create.failed'));
       });
   };
 
@@ -169,20 +167,7 @@ export function SpaceSectionContent({
                 <DropdownMenuContent side="right" sideOffset={10} align="start">
                   <DropdownMenuItem
                     className={menuItemClass}
-                    onClick={() => {
-                      useSidebarStore
-                        .getState()
-                        .create(rootId, 'doc')
-                        .then(id => {
-                          useSidebarStore.getState().activate(id);
-                          navigate(`/${namespaceId}/${id}/edit`, {
-                            state: { fromSidebar: true },
-                          });
-                        })
-                        .catch(err => {
-                          toast.error(err?.message || t('create.failed'));
-                        });
-                    }}
+                    onClick={handleCreateFile}
                   >
                     <FilePlus className={menuIconClass} />
                     {t('actions.create_file')}
@@ -196,41 +181,18 @@ export function SpaceSectionContent({
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className={menuItemClass}
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={handleUploadClick}
                   >
                     <MonitorUp className={menuIconClass} />
                     {t('actions.upload_file')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Input
-                multiple
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                onChange={handleUpload}
-                accept={ALLOW_FILE_EXTENSIONS}
-              />
             </div>
           </SidebarMenuButton>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem
-            className={menuItemClass}
-            onClick={() => {
-              useSidebarStore
-                .getState()
-                .create(rootId, 'doc')
-                .then(id => {
-                  navigate(`/${namespaceId}/${id}/edit`, {
-                    state: { fromSidebar: true },
-                  });
-                })
-                .catch(err => {
-                  toast.error(err?.message || t('create.failed'));
-                });
-            }}
-          >
+          <ContextMenuItem className={menuItemClass} onClick={handleCreateFile}>
             <FilePlus className={menuIconClass} />
             {t('actions.create_file')}
           </ContextMenuItem>
@@ -243,7 +205,7 @@ export function SpaceSectionContent({
           </ContextMenuItem>
           <ContextMenuItem
             className={menuItemClass}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleUploadClick}
           >
             <MonitorUp className={menuIconClass} />
             {t('actions.upload_file')}

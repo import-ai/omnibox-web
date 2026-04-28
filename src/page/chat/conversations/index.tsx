@@ -39,8 +39,8 @@ export default function ChatConversationsPage() {
   } = useContext();
 
   return (
-    <div className="flex flex-1 justify-center overflow-auto p-4">
-      <div className="flex size-full max-w-3xl flex-col">
+    <div className="flex flex-1 justify-center p-4 overflow-auto">
+      <div className="flex flex-col h-full max-w-3xl w-full">
         <EditHistory
           data={edit}
           onFinish={onEditDone}
@@ -54,7 +54,7 @@ export default function ChatConversationsPage() {
           onOpenChange={onRemoveChange}
         />
         <div className="mb-6">
-          <h1 className="mb-4 text-2xl font-medium">
+          <h1 className="text-2xl font-medium mb-4">
             {t('chat.conversations.history')}
           </h1>
         </div>
@@ -67,7 +67,7 @@ export default function ChatConversationsPage() {
                 {groupItemsByTimestamp(data.data, i18n).map(([key, items]) => (
                   <div key={key}>
                     <div className="pb-4">
-                      <p className="ml-0.5 text-sm font-light text-muted-foreground">
+                      <p className="text-sm text-muted-foreground font-light ml-0.5">
                         {key}
                       </p>
                     </div>
@@ -78,20 +78,20 @@ export default function ChatConversationsPage() {
                         t('chat.conversations.new');
                       return (
                         <div
-                          className="group cursor-pointer"
+                          className="cursor-pointer group"
                           key={item.id}
                           onClick={() => {
                             navigate(`/${namespaceId}/chat/${item.id}`);
                           }}
                         >
-                          <div className="mb-2 flex items-center justify-between">
-                            <h3 className="line-clamp-2 text-lg font-medium group-hover:text-blue-500">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-medium line-clamp-2  group-hover:text-blue-500">
                               {conversationTitle}
                             </h3>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button size="icon" variant="ghost">
-                                  <MoreHorizontal className="size-4" />
+                                  <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent side="bottom" align="end">
@@ -126,7 +126,7 @@ export default function ChatConversationsPage() {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
-                          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                          <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
                             {item.assistant_content?.replace(
                               /\[\[\d+]]/g,
                               ''

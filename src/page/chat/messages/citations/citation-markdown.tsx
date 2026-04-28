@@ -172,7 +172,7 @@ export function CitationMarkdown(props: IProps) {
     }: React.ComponentProps<'code'> & ExtraProps) {
       const match = /language-(\w+)/.exec(className || '');
       return match ? (
-        <div className="max-w-full overflow-x-auto text-xs md:text-sm">
+        <div className="overflow-x-auto max-w-full md:text-sm text-xs">
           <SyntaxHighlighter
             PreTag="div"
             language={match[1]}
@@ -198,7 +198,7 @@ export function CitationMarkdown(props: IProps) {
 
   return (
     <div
-      className="markdown-body reset-list group"
+      className="group markdown-body reset-list"
       style={{ background: 'transparent' }}
     >
       <Markdown
@@ -210,10 +210,10 @@ export function CitationMarkdown(props: IProps) {
       </Markdown>
       {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
         <div
-          className={`ml-[-6px] mt-[-10px] flex items-center gap-1 ${
+          className={`flex items-center gap-1 ml-[-6px] mt-[-10px] ${
             isLastMessage
               ? ''
-              : 'opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-hover:duration-75'
+              : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
           }`}
         >
           {hasSiblings && (
@@ -221,23 +221,23 @@ export function CitationMarkdown(props: IProps) {
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-7 w-4 p-0"
+                className="p-0 w-4 h-7"
                 onClick={onPrevious}
                 disabled={currentIndex === 0}
               >
-                <ChevronLeft className="size-4" />
+                <ChevronLeft className="w-4 h-4" />
               </Button>
-              <span className="min-w-[3ch] text-center text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
                 {(currentIndex ?? 0) + 1}/{siblingsLength}
               </span>
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-7 w-4 p-0"
+                className="p-0 w-4 h-7"
                 onClick={onNext}
                 disabled={currentIndex === (siblingsLength ?? 1) - 1}
               >
-                <ChevronRight className="size-4" />
+                <ChevronRight className="w-4 h-4" />
               </Button>
             </>
           )}
@@ -246,10 +246,10 @@ export function CitationMarkdown(props: IProps) {
               <Button
                 size="icon"
                 variant="ghost"
-                className="size-7 p-0"
+                className="p-0 w-7 h-7"
                 onClick={() => onRegenerate(messageId)}
               >
-                <RefreshCw className="size-4" />
+                <RefreshCw className="w-4 h-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>

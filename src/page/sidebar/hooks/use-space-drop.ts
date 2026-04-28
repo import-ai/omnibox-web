@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 
-import { useDndHandlers } from './use-dnd-handlers';
+import { DndItem, useDndHandlers } from './use-dnd-handlers';
 
 interface UseSpaceDropOptions {
   spaceId: string;
@@ -10,7 +10,7 @@ interface UseSpaceDropOptions {
 }
 
 interface UseSpaceDropReturn {
-  ref: React.RefObject<HTMLDivElement>;
+  ref: RefObject<HTMLDivElement | null>;
   isOver: boolean;
   canDrop: boolean;
   isFileDragOver: boolean;
@@ -28,7 +28,11 @@ export function useSpaceDrop({
       namespaceId,
     });
 
-  const [{ canDrop, isOver }, drop] = useDrop({
+  const [{ canDrop, isOver }, drop] = useDrop<
+    DndItem,
+    void,
+    { isOver: boolean; canDrop: boolean }
+  >({
     accept: [NativeTypes.FILE, 'card'],
     drop: (item, monitor) => {
       handleDrop(item, monitor);

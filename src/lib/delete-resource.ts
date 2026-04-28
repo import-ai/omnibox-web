@@ -14,7 +14,6 @@ interface DeleteResourceParams {
  */
 export async function deleteResource({
   id,
-  parentId: _parentId,
   namespaceId,
   app,
 }: DeleteResourceParams): Promise<void> {

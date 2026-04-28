@@ -1,7 +1,7 @@
 export function AppleIcon() {
   return (
     <svg
-      className="size-full scale-125"
+      className="w-full h-full scale-125"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
       fill="currentColor"

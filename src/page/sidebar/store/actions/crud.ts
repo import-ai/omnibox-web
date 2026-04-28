@@ -1,4 +1,4 @@
-import type { Resource, ResourceType } from '@/interface';
+import type { Resource, ResourceType, SpaceType } from '@/interface';
 import {
   createResource,
   moveResource,
@@ -112,12 +112,11 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
         ? (get().nodes[oldParentId]?.hasChildren ?? false)
         : false;
 
-      const oldDescendantSpaceTypes = new Map<
-        string,
-        'private' | 'teamspace'
-      >();
+      const oldDescendantSpaceTypes = new Map<string, SpaceType>();
+      const oldDescendantExpanded = new Map<string, boolean>();
       traverseDescendants(get().nodes, dragId, n => {
         oldDescendantSpaceTypes.set(n.id, n.spaceType);
+        oldDescendantExpanded.set(n.id, get().ui[n.id]?.expanded ?? false);
       });
 
       set(s => {
@@ -181,6 +180,11 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
             const node = s.nodes[id];
             if (node) node.spaceType = spaceType;
           }
+
+          for (const [id, expanded] of oldDescendantExpanded) {
+            const ui = s.ui[id];
+            if (ui) ui.expanded = expanded;
+          }
         });
 
         throw new Error('Move failed');
@@ -193,7 +197,7 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
           ? await restoreResource(get().namespaceId, resourceOrId)
           : resourceOrId;
 
-      const spaceType =
+      const spaceType: SpaceType =
         resource.space_type ||
         detectSpaceType(
           get().nodes,

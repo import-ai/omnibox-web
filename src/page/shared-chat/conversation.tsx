@@ -188,7 +188,7 @@ export default function SharedChatConversationPage() {
   }, [shareId, conversationId]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex flex-1 flex-col min-h-0">
       <Scrollbar>
         <Messages
           messages={messages}
@@ -199,7 +199,7 @@ export default function SharedChatConversationPage() {
         />
       </Scrollbar>
       <div className="flex justify-center px-4">
-        <div className="w-full max-w-3xl flex-1">
+        <div className="flex-1 max-w-3xl w-full">
           <ChatArea
             messages={messages}
             navigatePrefix={`/s/${shareId}`}
@@ -208,7 +208,7 @@ export default function SharedChatConversationPage() {
             loading={loading}
             sendMessage={sendMessage}
           />
-          <div className="truncate pt-2 text-center text-xs text-muted-foreground">
+          <div className="text-center text-xs pt-2 text-muted-foreground truncate">
             {t('chat.disclaimer')}
           </div>
         </div>

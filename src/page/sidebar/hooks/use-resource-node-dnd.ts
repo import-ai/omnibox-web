@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 
 import type { TreeNode } from '../store';
-import { useDndHandlers } from './use-dnd-handlers';
+import { DndItem, useDndHandlers } from './use-dnd-handlers';
 
 interface UseResourceNodeDndOptions {
   namespaceId: string;
@@ -11,7 +11,7 @@ interface UseResourceNodeDndOptions {
 }
 
 interface UseResourceNodeDndReturn {
-  ref: React.RefObject<HTMLDivElement>;
+  ref: RefObject<HTMLDivElement | null>;
   dragStyle: { opacity: number };
   isOver: boolean;
   isFileDragOver: boolean;
@@ -46,7 +46,7 @@ export function useResourceNodeDnd(
     [isEditing, node]
   );
 
-  const [{ isOver }, drop] = useDrop({
+  const [{ isOver }, drop] = useDrop<DndItem, void, { isOver: boolean }>({
     accept: ['card', NativeTypes.FILE],
     collect: monitor => ({
       isOver: monitor.isOver({ shallow: true }),

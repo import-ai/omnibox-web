@@ -55,7 +55,7 @@ export function UserMessage(props: IProps) {
     <div className="group flex flex-col items-end">
       <div
         className={cn(
-          'flex w-fit flex-col gap-2 rounded-lg px-3 py-2 sm:max-w-[75%]',
+          'flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
           'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]'
         )}
       >
@@ -67,7 +67,7 @@ export function UserMessage(props: IProps) {
               className="min-h-[100px] resize-y"
               autoFocus
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex gap-2 justify-end">
               <Button size="sm" variant="outline" onClick={handleCancel}>
                 {t('chat.messages.actions.cancel_edit')}
               </Button>
@@ -92,7 +92,7 @@ export function UserMessage(props: IProps) {
       {selectedResources && selectedResources.length > 0 && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="my-0.5 cursor-default text-xs text-muted-foreground">
+            <div className="text-muted-foreground text-xs my-0.5 cursor-default">
               {t('chat.messages.user_context.selected_resources', {
                 count: selectedResources.length,
               })}
@@ -106,17 +106,17 @@ export function UserMessage(props: IProps) {
           </TooltipContent>
         </Tooltip>
       )}
-      <div className="flex items-center gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-hover:duration-75">
+      <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
         {!isEditing && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 size="icon"
                 variant="ghost"
-                className="size-7 p-0"
+                className="p-0 w-7 h-7"
                 onClick={handleEditClick}
               >
-                <Pencil className="size-4" />
+                <Pencil className="w-4 h-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -133,23 +133,23 @@ export function UserMessage(props: IProps) {
             <Button
               size="icon"
               variant="ghost"
-              className="h-7 w-4 p-0"
+              className="p-0 w-4 h-7"
               onClick={handlePrevious}
               disabled={currentIndex === 0}
             >
-              <ChevronLeft className="size-4" />
+              <ChevronLeft className="w-4 h-4" />
             </Button>
-            <span className="min-w-[3ch] text-center text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
               {currentIndex + 1}/{siblings.length}
             </span>
             <Button
               size="icon"
               variant="ghost"
-              className="h-7 w-4 p-0"
+              className="p-0 w-4 h-7"
               onClick={handleNext}
               disabled={currentIndex === siblings.length - 1}
             >
-              <ChevronRight className="size-4" />
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </>
         )}

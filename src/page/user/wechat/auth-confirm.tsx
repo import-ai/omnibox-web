@@ -79,12 +79,12 @@ export default function AuthConfirmPage() {
   return (
     <WrapperPage useCard={false}>
       {code && state ? (
-        <div className="flex items-center justify-center gap-2 font-bold">
+        <div className="flex font-bold gap-2 justify-center items-center">
           <Spinner />
           {t('login.authorizing')}
         </div>
       ) : (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex  gap-2 justify-center items-center">
           {t('form.invalid_request')}
         </div>
       )}

@@ -59,10 +59,10 @@ export function AgentTrial({
       };
 
       return (
-        <div className="mb-1 flex justify-end gap-3 text-sm">
+        <div className="flex justify-end mb-1 gap-3 text-sm">
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <span className="cursor-default text-muted-foreground">
+              <span className="text-muted-foreground cursor-default">
                 {t('chat.trial.text', {
                   agent_trial_remain: agentUsage.agent_trial_remain,
                   agent_trial_limit: agentUsage.agent_trial_limit,
@@ -79,7 +79,7 @@ export function AgentTrial({
             <Button
               variant="default"
               size="sm"
-              className="h-5 text-sm"
+              className="text-sm h-5"
               onClick={onClick}
             >
               {t('namespace.upgrade')}
@@ -87,11 +87,11 @@ export function AgentTrial({
           ) : (
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
-                <span className="cursor-pointer text-muted-foreground">
+                <span className="text-muted-foreground cursor-pointer">
                   <Button
                     variant="default"
                     size="sm"
-                    className="h-5 text-sm"
+                    className="text-sm h-5"
                     disabled
                   >
                     {t('namespace.upgrade')}

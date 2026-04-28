@@ -29,7 +29,7 @@ export function FolderContent(props: IProps) {
   }, [apiPrefix, resource.id]);
 
   return (
-    <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+    <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
       {t('resource.folder.children_count', {
         count: childrenCount,
       })}

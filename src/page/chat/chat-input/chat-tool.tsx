@@ -51,9 +51,9 @@ export default function ChatTool(props: IProps) {
             }
           }}
           className={cn(
-            'rounded-full border-transparent bg-[#f3f5f7] font-normal transition-colors hover:bg-[#e7e9ea] dark:bg-[#404040] dark:text-white dark:hover:bg-[#666666] [&_svg]:size-4',
+            'font-normal rounded-full bg-[#f3f5f7] dark:text-white dark:bg-[#404040] border-transparent [&_svg]:size-4 hover:bg-[#e7e9ea] dark:hover:bg-[#666666] transition-colors',
             {
-              'bg-[#cfe5fe] text-[#117bfa] hover:bg-[#cfe5fe] hover:text-[#117bfa] dark:bg-[#323f51] dark:text-[#60a5fb] dark:hover:bg-[#323f51] dark:hover:text-[#60a5fb]':
+              'text-[#117bfa] bg-[#cfe5fe] hover:text-[#117bfa] hover:bg-[#cfe5fe] dark:text-[#60a5fb] dark:bg-[#323f51] dark:hover:text-[#60a5fb] dark:hover:bg-[#323f51]':
                 tools.includes(item.value) ||
                 (item.value === ToolType.PRIVATE_SEARCH && context.length > 0),
             }

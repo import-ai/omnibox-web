@@ -19,10 +19,11 @@ import { Spinner } from '@/components/ui/spinner';
 import { useIsTouch } from '@/hooks/use-is-touch';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
-import { menuIconClass, menuItemClass } from '@/page/sidebar/constants';
 import type { UseNodeActionsReturn } from '@/page/sidebar/hooks/use-node-actions';
 import { useNodeMenu } from '@/page/sidebar/hooks/use-node-menu';
 import type { TreeNode } from '@/page/sidebar/store/types';
+
+import { menuIconClass, menuItemClass } from './shared';
 
 interface NodeActionsContentProps {
   nodeId: string;
@@ -36,7 +37,6 @@ interface NodeActionsContentProps {
 export function NodeActionsContent({
   nodeId,
   namespaceId,
-  node: _node,
   actions,
   upload,
   onRename,

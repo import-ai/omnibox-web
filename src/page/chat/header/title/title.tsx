@@ -58,14 +58,14 @@ export default function HeaderTitle(props: IProps) {
   }, [data, edit]);
 
   return (
-    <Space className="group items-center gap-0">
-      <span className="line-clamp-1 max-w-[400px]">{data}</span>
+    <Space className="items-center gap-0 group">
+      <span className="max-w-[400px] line-clamp-1">{data}</span>
       {editable && (
         <Button
           size="icon"
           variant="ghost"
           onClick={onEditTitle}
-          className="hidden size-6 p-0 group-hover:flex"
+          className="p-0 w-6 h-6 hidden group-hover:flex"
         >
           <Edit />
         </Button>

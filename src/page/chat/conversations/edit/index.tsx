@@ -28,7 +28,7 @@ export default function editHistory(props: IProps) {
 
   return (
     <Dialog open={data.open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-w-7xl p-4 sm:w-1/2 sm:p-6">
+      <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>
             {t('chat.conversations.rename.dialog.title')}

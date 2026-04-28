@@ -21,7 +21,7 @@ export function ShareTypeSelector(props: ShareTypeProps) {
 
   return (
     <Select disabled={disabled} value={shareType} onValueChange={onChange}>
-      <SelectTrigger className="h-6 w-36">
+      <SelectTrigger className="w-36 h-6">
         <SelectValue placeholder={t('share.share.ai_chat')} />
       </SelectTrigger>
       <SelectContent>

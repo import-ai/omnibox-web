@@ -1,17 +1,20 @@
 import { useEffect, useRef } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Resource } from '@/interface';
 import { http } from '@/lib/request';
 import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
 
-export function useSidebarInit() {
-  const params = useParams();
+interface IProps {
+  resourceId: string;
+  namespaceId: string;
+}
+
+export function useSidebarInit(props: IProps) {
+  const { namespaceId, resourceId } = props;
   const navigate = useNavigate();
   // Auto-navigate to first resource when no resourceId and not on chat page
   const hasAutoNavigatedRef = useRef(false);
-  const resourceId = params.resource_id || '';
-  const namespaceId = params.namespace_id || '';
   const chatPage = useLocation().pathname.includes('/chat');
 
   // Derive initialization state from rootIds.
@@ -40,8 +43,8 @@ export function useSidebarInit() {
       .then(items => {
         useSidebarStore.getState().init(items);
       })
-      .catch(() => {
-        // Silently fail — error is handled by the http interceptor
+      .catch(err => {
+        console.error('[sidebar] failed to fetch root resources:', err);
       });
 
     return () => {
@@ -49,9 +52,20 @@ export function useSidebarInit() {
     };
   }, [namespaceId]);
 
+  const location = useLocation();
+
   // Auto-expand path when resourceId changes (only after roots are loaded)
   useEffect(() => {
     if (!initialized || !resourceId || chatPage) return;
+
+    const isFromSidebar = location.state?.fromSidebar === true;
+    if (isFromSidebar) {
+      navigate(location.pathname, {
+        replace: true,
+        state: { ...location.state, fromSidebar: undefined },
+      });
+      return;
+    }
 
     let cancelled = false;
     const store = useSidebarStore.getState();
@@ -72,7 +86,7 @@ export function useSidebarInit() {
     return () => {
       cancelled = true;
     };
-  }, [initialized, resourceId, chatPage]);
+  }, [initialized, resourceId, chatPage, location.pathname, navigate]);
 
   useEffect(() => {
     if (!initialized || resourceId || chatPage) return;

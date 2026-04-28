@@ -48,9 +48,9 @@ export default function OAuthAuthorizePage() {
   return (
     <WrapperPage useCard={false}>
       {error ? (
-        <div className="flex items-center justify-center gap-2">{error}</div>
+        <div className="flex gap-2 justify-center items-center">{error}</div>
       ) : (
-        <div className="flex items-center justify-center gap-2 font-bold">
+        <div className="flex font-bold gap-2 justify-center items-center">
           <Spinner />
           {t('login.authorizing')}
         </div>

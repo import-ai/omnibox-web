@@ -28,7 +28,7 @@ export function HelpTooltip({ content, iconClassName }: HelpTooltipProps) {
       <Popover>
         <PopoverTrigger asChild>
           <CircleHelp
-            className={cn('h-3.5 w-3.5 text-muted-foreground', iconClassName)}
+            className={cn('w-3.5 h-3.5 text-muted-foreground', iconClassName)}
           />
         </PopoverTrigger>
         <PopoverContent className="max-w-xs">
@@ -45,7 +45,7 @@ export function HelpTooltip({ content, iconClassName }: HelpTooltipProps) {
         <TooltipTrigger asChild>
           <CircleHelp
             className={cn(
-              'h-3.5 w-3.5 cursor-help text-muted-foreground',
+              'w-3.5 h-3.5 text-muted-foreground cursor-help',
               iconClassName
             )}
           />
