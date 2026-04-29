@@ -14,6 +14,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { UseNodeActionsReturn } from '../hooks/use-node-actions';
+import { useSidebarStore } from '../store';
 
 export type CreateFolderMode = 'direct' | 'dialog';
 
@@ -25,6 +26,7 @@ export interface MenuActionItem {
   label: string;
   separator?: false;
   destructive?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
   onSelect?: () => void;
 }
@@ -41,9 +43,44 @@ export function useNodeMenu(
 ): MenuItem[] {
   const { t } = useTranslation();
   const { node } = actions;
+  const selectionMode = useSidebarStore(state => state.selectionMode);
+  const selectedCount = useSidebarStore(
+    state => Object.keys(state.selectedIds).length
+  );
 
   const menuItems = useMemo<MenuItem[]>(() => {
     if (!node) return [];
+
+    if (selectionMode) {
+      const disabled = selectedCount === 0;
+      return [
+        {
+          key: 'batch_add_to_chat',
+          icon: MessageSquarePlus,
+          label: t('batch.add_to_chat_tooltip'),
+          disabled,
+        },
+        {
+          key: 'batch_move',
+          icon: Move,
+          label: t('batch.move_tooltip'),
+          disabled,
+        },
+        {
+          key: 'batch_create',
+          icon: FolderPlus,
+          label: t('batch.create_tooltip'),
+          disabled,
+        },
+        {
+          key: 'batch_delete',
+          icon: Trash2,
+          label: t('batch.delete_tooltip'),
+          destructive: true,
+          disabled,
+        },
+      ];
+    }
 
     return [
       {
@@ -97,7 +134,15 @@ export function useNodeMenu(
         onClick: actions.handleDelete,
       },
     ];
-  }, [actions, t, createFolderMode, onRename, node]);
+  }, [
+    actions,
+    t,
+    createFolderMode,
+    onRename,
+    node,
+    selectedCount,
+    selectionMode,
+  ]);
 
   return menuItems;
 }

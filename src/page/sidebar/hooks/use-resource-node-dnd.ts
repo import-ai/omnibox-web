@@ -8,6 +8,9 @@ import { DndItem, useDndHandlers } from './use-dnd-handlers';
 interface UseResourceNodeDndOptions {
   namespaceId: string;
   onNodeDrop?: (dragId: string, dropId: string) => void;
+  selectionMode?: boolean;
+  isSelected?: boolean;
+  selectedIds?: string[];
 }
 
 interface UseResourceNodeDndReturn {
@@ -23,7 +26,13 @@ export function useResourceNodeDnd(
   isEditing: boolean,
   options: UseResourceNodeDndOptions
 ): UseResourceNodeDndReturn {
-  const { namespaceId, onNodeDrop } = options;
+  const {
+    namespaceId,
+    onNodeDrop,
+    selectionMode = false,
+    isSelected = false,
+    selectedIds = [],
+  } = options;
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -36,18 +45,21 @@ export function useResourceNodeDnd(
 
   const [dragStyle, drag] = useDrag(
     {
-      type: 'card',
-      item: () => node,
-      canDrag: () => !isEditing,
+      type: selectionMode && isSelected ? 'batch' : 'card',
+      item: () =>
+        selectionMode && isSelected
+          ? { type: 'batch', ids: selectedIds, count: selectedIds.length }
+          : node,
+      canDrag: () => !isEditing && (!selectionMode || isSelected),
       collect: monitor => ({
         opacity: monitor.isDragging() ? 0.5 : 1,
       }),
     },
-    [isEditing, node]
+    [isEditing, isSelected, node, selectedIds, selectionMode]
   );
 
   const [{ isOver }, drop] = useDrop<DndItem, void, { isOver: boolean }>({
-    accept: ['card', NativeTypes.FILE],
+    accept: ['card', 'batch', NativeTypes.FILE],
     collect: monitor => ({
       isOver: monitor.isOver({ shallow: true }),
     }),

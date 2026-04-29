@@ -6,6 +6,7 @@ import ResourceIcon from '@/assets/icons/resourceIcon';
 import { Arrow } from '@/assets/icons/treeArrow';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Collapsible,
   CollapsibleContent,
@@ -24,7 +25,14 @@ import { Resource } from '@/interface';
 import { cn } from '@/lib/utils';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/use-resource-node-dnd';
 import type { TreeNode } from '@/page/sidebar/store';
-import { useSidebarStore } from '@/page/sidebar/store';
+import {
+  useIsFailed,
+  useIsSelected,
+  useNodeIsFullySelected,
+  useNodeIsIndeterminate,
+  useSelectionState,
+  useSidebarStore,
+} from '@/page/sidebar/store';
 
 import Action from './node-actions';
 import ContextMenuMain from './node-context-menu';
@@ -53,6 +61,11 @@ export function ResourceNodeContent({
 
   const nodeUI = useSidebarStore(s => s.ui[nodeId]);
   const activeId = useSidebarStore(s => s.activeId);
+  const { selectionMode, lastSelectedId, selectedIds } = useSelectionState();
+  const isSelected = useIsSelected(nodeId);
+  const isFullySelected = useNodeIsFullySelected(nodeId);
+  const isIndeterminate = useNodeIsIndeterminate(nodeId);
+  const isFailed = useIsFailed(nodeId);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const clickTimeoutRef = useRef<number | null>(null);
@@ -68,7 +81,12 @@ export function ResourceNodeContent({
     nodeId,
     node,
     isEditing,
-    { namespaceId }
+    {
+      namespaceId,
+      selectionMode,
+      isSelected,
+      selectedIds: Object.keys(selectedIds),
+    }
   );
 
   useEffect(() => {
@@ -119,7 +137,17 @@ export function ResourceNodeContent({
     }
   };
 
-  const handleActive = () => {
+  const handleActive = (event?: React.MouseEvent) => {
+    if (selectionMode) {
+      useSidebarStore
+        .getState()
+        .toggleSelection(
+          nodeId,
+          event?.shiftKey ? lastSelectedId || undefined : undefined
+        );
+      return;
+    }
+
     if (node.hasChildren) {
       if (isActive) {
         handleExpand();
@@ -136,7 +164,7 @@ export function ResourceNodeContent({
     }
   };
 
-  const handleClick = () => {
+  const handleClick = (event: React.MouseEvent) => {
     if (isEditing) return;
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
@@ -145,19 +173,31 @@ export function ResourceNodeContent({
     }
     clickTimeoutRef.current = window.setTimeout(() => {
       clickTimeoutRef.current = null;
-      handleActive();
+      handleActive(event);
     }, CLICK_DEBOUNCE_DELAY);
   };
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (selectionMode) return;
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
     }
     setEditName(node.name || '');
     setIsEditing(true);
+  };
+
+  const handleSelectionChange = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    useSidebarStore
+      .getState()
+      .toggleSelection(
+        nodeId,
+        event.shiftKey ? lastSelectedId || undefined : undefined
+      );
   };
 
   const handleBlur = () => {
@@ -217,7 +257,14 @@ export function ResourceNodeContent({
               setIsEditing(true);
             }}
           >
-            <div className="group/sidebar-item my-px rounded-md hover:bg-sidebar-accent">
+            <div
+              className={cn(
+                'group/sidebar-item my-px rounded-md hover:bg-sidebar-accent',
+                isSelected &&
+                  'bg-sidebar-accent text-sidebar-accent-foreground',
+                isFailed && 'ring-1 ring-destructive/60'
+              )}
+            >
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
@@ -232,12 +279,22 @@ export function ResourceNodeContent({
                       data-resource-id={nodeId}
                       style={dragStyle}
                       className={cn('list flex cursor-pointer', {
-                        'pl-1': node.hasChildren,
-                        'pl-7': !node.hasChildren,
+                        'pl-1': node.hasChildren || selectionMode,
+                        'pl-7': !node.hasChildren && !selectionMode,
                         'bg-sidebar-accent text-sidebar-accent-foreground':
-                          isFileDragOver || isOver,
+                          isFileDragOver || isOver || isSelected,
                       })}
                     >
+                      {selectionMode && (
+                        <Checkbox
+                          checked={
+                            isIndeterminate ? 'indeterminate' : isFullySelected
+                          }
+                          onClick={handleSelectionChange}
+                          className="mr-1 mt-0.5 size-4"
+                          aria-label={t('batch.multi_select')}
+                        />
+                      )}
                       {node.hasChildren &&
                         (nodeUI?.loading ? (
                           <Button
@@ -303,15 +360,17 @@ export function ResourceNodeContent({
                   </TooltipContent>
                 )}
               </Tooltip>
-              <Action
-                nodeId={nodeId}
-                namespaceId={namespaceId}
-                upload={upload}
-                onRename={() => {
-                  setEditName(node.name || '');
-                  setIsEditing(true);
-                }}
-              />
+              {!selectionMode && (
+                <Action
+                  nodeId={nodeId}
+                  namespaceId={namespaceId}
+                  upload={upload}
+                  onRename={() => {
+                    setEditName(node.name || '');
+                    setIsEditing(true);
+                  }}
+                />
+              )}
             </div>
           </ContextMenuMain>
         </CollapsibleTrigger>

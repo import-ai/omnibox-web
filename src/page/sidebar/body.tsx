@@ -6,8 +6,13 @@ import { toast } from 'sonner';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 
+import { BatchCreateDialog } from './components/batch-create-dialog';
+import BatchDeleteDialog from './components/batch-delete-dialog';
+import BatchMoveDialog from './components/batch-move-dialog';
+import BatchToolbar from './components/batch-toolbar';
 import ResourceTree from './components/resource-tree';
 import { CreateFolderDialog } from './components/resource-tree/create-folder-dialog';
+import { useBatchOperations } from './hooks/use-batch-operations';
 import { useSidebarEvents } from './hooks/use-sidebar-events';
 import { useSidebarInit } from './hooks/use-sidebar-init';
 import { useSidebarStore } from './store';
@@ -24,12 +29,14 @@ export function BodyForSidebar(props: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const globalFileInputRef = useRef<HTMLInputElement>(null);
+  const batch = useBatchOperations({ namespaceId });
   const currentUploadTargetId = useSidebarStore(
     s => s.dialogs.currentUploadTargetId
   );
   const createFolderTargetId = useSidebarStore(
     s => s.dialogs.createFolderTargetId
   );
+
   const handleGlobalFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -55,6 +62,16 @@ export function BodyForSidebar(props: IProps) {
   return (
     <React.Fragment>
       <ResourceTree namespaceId={namespaceId} />
+      {batch.batchOperationEnabled && (
+        <BatchToolbar
+          onDeselectAll={batch.deselectAll}
+          onBatchDelete={batch.openDeleteDialog}
+          onBatchMove={batch.openMoveDialog}
+          onBatchRefresh={batch.refreshSelected}
+          onBatchCreate={batch.openCreateDialog}
+          onAddToChat={batch.addSelectedToChat}
+        />
+      )}
       <CreateFolderDialog
         open={!!createFolderTargetId}
         onOpenChange={open => {
@@ -87,6 +104,27 @@ export function BodyForSidebar(props: IProps) {
         id="global-sidebar-file-input"
         accept={ALLOW_FILE_EXTENSIONS}
         onChange={handleGlobalFileUpload}
+      />
+      <BatchDeleteDialog
+        open={batch.deleteDialogOpen}
+        selectedIds={batch.selectedIds}
+        nodes={batch.nodes}
+        loading={batch.isProcessing}
+        onConfirm={batch.confirmDelete}
+        onCancel={batch.closeDeleteDialog}
+      />
+      <BatchMoveDialog
+        open={batch.moveDialogOpen}
+        selectedIds={batch.selectedIds}
+        loading={batch.isProcessing}
+        onConfirm={batch.confirmMove}
+        onCancel={batch.closeMoveDialog}
+      />
+      <BatchCreateDialog
+        open={batch.createDialogOpen}
+        spaceType={batch.defaultTargetSpaceType}
+        onOpenChange={batch.setCreateDialogOpen}
+        onConfirm={batch.confirmCreate}
       />
     </React.Fragment>
   );

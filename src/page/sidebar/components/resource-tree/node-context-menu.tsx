@@ -78,6 +78,7 @@ export default function NodeContextMenu({
                 }
                 onClick={item.onClick}
                 onSelect={item.onSelect}
+                disabled={item.disabled}
               >
                 <Icon
                   className={

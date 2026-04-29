@@ -1,4 +1,4 @@
-import { Bell, BellDot, History, Search } from 'lucide-react';
+import { Bell, BellDot, CheckSquare, History, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
@@ -23,6 +23,7 @@ import {
 import { useIsTouch } from '@/hooks/use-is-touch';
 import { cn } from '@/lib/utils';
 import SearchMenu from '@/page/search';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 interface IProps {
   onActiveKey: (activeKey: string) => void;
@@ -35,6 +36,7 @@ export function Header(props: IProps) {
   const { t } = useTranslation();
   const isTouch = useIsTouch();
   const unreadCount = useNotificationUnreadCount();
+  const selectionMode = useSidebarStore(state => state.selectionMode);
   const onChat = () => {
     onActiveKey('chat');
   };
@@ -44,12 +46,15 @@ export function Header(props: IProps) {
   const onChatHistory = () => {
     onActiveKey('chat/conversations');
   };
+  const toggleSelectionMode = () => {
+    useSidebarStore.getState().setSelectionMode(!selectionMode);
+  };
 
   return (
     <>
       <SearchMenu open={search} onOpenChange={setSearch} />
       <SidebarMenu className="mb-4">
-        <SidebarMenuItem className="group/chat">
+        <SidebarMenuItem>
           <SidebarMenuButton
             asChild
             isActive={active}
@@ -95,7 +100,7 @@ export function Header(props: IProps) {
             </div>
           </SidebarMenuButton>
         </SidebarMenuItem>
-        <SidebarMenuItem>
+        <SidebarMenuItem className="group/chat">
           <ActionDialog
             contentClassName={notificationDialogContentClassName}
             closeClassName="size-6 mr-2"
@@ -121,6 +126,39 @@ export function Header(props: IProps) {
           >
             {close => <Notification onClose={close} />}
           </ActionDialog>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarMenuButton
+                  asChild
+                  isActive={selectionMode}
+                  aria-label={
+                    selectionMode
+                      ? t('batch.deselect_tooltip')
+                      : t('batch.multi_select')
+                  }
+                >
+                  <div
+                    className={cn(
+                      'flex cursor-pointer items-center gap-2',
+                      selectionMode && 'text-primary'
+                    )}
+                    onClick={toggleSelectionMode}
+                  >
+                    <CheckSquare className="size-4 text-neutral-400" />
+                    <span>{t('batch.multi_select')}</span>
+                  </div>
+                </SidebarMenuButton>
+              </TooltipTrigger>
+              <TooltipContent>
+                {selectionMode
+                  ? t('batch.deselect_tooltip')
+                  : t('batch.multi_select')}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </SidebarMenuItem>
       </SidebarMenu>
     </>

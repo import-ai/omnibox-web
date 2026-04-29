@@ -6,6 +6,7 @@ import { TouchBackend } from 'react-dnd-touch-backend';
 import { SidebarContent } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SpaceType } from '@/interface';
+import { BatchDragLayer } from '@/page/sidebar/hooks/use-batch-drag';
 import { useDragAutoScroll } from '@/page/sidebar/hooks/use-drag-auto-scroll';
 import { TrashPanel } from '@/page/trash';
 
@@ -33,6 +34,7 @@ export default function ResourceTree({ namespaceId }: ResourceTreeProps) {
         ))}
         <TrashPanel />
       </SidebarContent>
+      <BatchDragLayer />
     </DndProvider>
   );
 }

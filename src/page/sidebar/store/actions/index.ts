@@ -1,5 +1,6 @@
 import type { SidebarActions, SidebarGet, SidebarSet } from '../types';
 import { buildBaseActions } from './base';
+import { buildBatchActions } from './batch';
 import { buildCRUDActions } from './crud';
 import { buildNavigationActions } from './navigation';
 import { buildUploadActions } from './upload';
@@ -10,6 +11,7 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
     ...buildCRUDActions(set, get),
     ...buildNavigationActions(set, get),
     ...buildUploadActions(set, get),
+    ...buildBatchActions(set, get),
 
     openCreateFolderDialog: (parentId: string) => {
       set(s => {
