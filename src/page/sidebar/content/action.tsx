@@ -60,6 +60,7 @@ export default function Action(props: ISidebarProps) {
     onActiveKey,
     namespaceId,
     spaceRoot,
+    hasTeamspace,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
@@ -339,6 +340,7 @@ export default function Action(props: ISidebarProps) {
         siblingResources={smartFolder.siblingResources}
         title={t('smart_folder.edit.title')}
         confirmText={t('smart_folder.edit.submit')}
+        hasTeamspace={hasTeamspace}
         onOpenChange={smartFolder.setEditSmartFolderOpen}
         onConfirm={smartFolder.handleUpdateSmartFolder}
       />

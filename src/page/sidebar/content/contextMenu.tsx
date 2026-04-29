@@ -52,6 +52,7 @@ export default function ContextMenuMain(props: IProps) {
     onActiveKey,
     namespaceId,
     spaceRoot,
+    hasTeamspace,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
@@ -291,6 +292,7 @@ export default function ContextMenuMain(props: IProps) {
         siblingResources={smartFolder.siblingResources}
         title={t('smart_folder.edit.title')}
         confirmText={t('smart_folder.edit.submit')}
+        hasTeamspace={hasTeamspace}
         onOpenChange={smartFolder.setEditSmartFolderOpen}
         onConfirm={smartFolder.handleUpdateSmartFolder}
       />

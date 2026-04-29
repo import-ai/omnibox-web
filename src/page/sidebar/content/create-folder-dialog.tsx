@@ -67,7 +67,7 @@ export function CreateFolderDialog({
               value={folderName}
               onChange={e => setFolderName(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={t('folder.create_dialog.placeholder')}
+              placeholder={t('smart_folder.create.placeholder')}
               className="border-line"
               autoFocus
             />

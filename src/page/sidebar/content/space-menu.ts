@@ -90,6 +90,8 @@ export function getToolbarSmartFolderState(
     disabled: actualCounts?.hasTeamspace
       ? privateExhausted && teamExhausted
       : privateExhausted,
-    disabledMessageKey: 'smart_folder.create.all_quota_exhausted',
+    disabledMessageKey: actualCounts?.hasTeamspace
+      ? 'smart_folder.create.all_quota_exhausted'
+      : 'smart_folder.create.quota_exhausted',
   };
 }

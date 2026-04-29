@@ -632,7 +632,7 @@ export function CreateSmartFolderDialog({
                             value={option.value}
                             id={`smart-folder-owner-${option.value}`}
                             disabled={option.disabled}
-                            className="h-4 w-4 border-border text-blue-500 dark:border-none dark:bg-white"
+                            className="h-4 w-4 border-border disabled:bg-neutral-300 text-blue-500 dark:border-none dark:bg-white"
                           />
                           <Label
                             htmlFor={`smart-folder-owner-${option.value}`}
@@ -694,7 +694,8 @@ export function CreateSmartFolderDialog({
                 ref={inputRef}
                 id="smart-folder-name"
                 value={name}
-                placeholder={t('folder.create_dialog.placeholder')}
+                autoComplete="off"
+                placeholder={t('smart_folder.create.placeholder')}
                 onChange={event => {
                   const nextName = event.target.value;
 

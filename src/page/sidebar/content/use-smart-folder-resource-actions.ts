@@ -115,7 +115,10 @@ export function useSmartFolderResourceActions(
         payload
       )
       .then((response: SmartFolderResponse) => {
-        app.fire('update_resource', response.resource);
+        app.fire('update_resource', {
+          ...response.resource,
+          name: payload.name,
+        });
         app.fire('refresh_smart_folder_children', data.id);
         onActiveKey(data.id);
       });

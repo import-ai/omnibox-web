@@ -14,6 +14,7 @@ export interface ISidebarProps {
   namespaceId: string;
   expands: Array<string>;
   open?: boolean;
+  hasTeamspace?: boolean;
   onActiveKey: (id: string, edit?: boolean, sidebarActiveKey?: string) => void;
   onUpload: (
     spaceType: SpaceType,

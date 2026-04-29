@@ -97,7 +97,6 @@ export const SMART_FOLDER_RELATIVE_DATE_UNITS: SmartFolderRelativeDateUnit[] = [
   'day',
   'week',
   'month',
-  'quarter',
   'year',
 ];
 

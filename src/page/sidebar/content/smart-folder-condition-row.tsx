@@ -138,6 +138,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
               fieldType === 'text' && normalizedValue?.kind === 'text' ? (
                 <Input
                   value={normalizedValue.text}
+                  autoComplete="off"
                   onChange={event =>
                     onValueChange(index, {
                       ...normalizedValue,
@@ -154,6 +155,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
                 <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_88px] gap-2 sm:grid-cols-[minmax(96px,1fr)_104px]">
                   <Input
                     value={normalizedValue.amount}
+                    autoComplete="off"
                     onChange={handleRelativeDateAmountChange}
                     inputMode="numeric"
                     pattern="[0-9]*"

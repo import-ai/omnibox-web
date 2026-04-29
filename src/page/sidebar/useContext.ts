@@ -508,17 +508,43 @@ export default function useContext() {
   // Load children of a folder and expand it
   const loadChildren = (spaceType: SpaceType, id: string) => {
     onExpanding(id);
+    const shouldNormalizeSmartFolderChildren = isSmartFolder(id);
     return http
       .get(getChildrenApiPath(id))
       .then(response => {
-        data[spaceType].children = data[spaceType].children.filter(
-          item => item.parent_id !== id
-        );
-        data[spaceType].children.push(
-          ...normalizeChildrenForParent(id, response)
-        );
+        const nextChildren = shouldNormalizeSmartFolderChildren
+          ? response.map((child: IResourceData) => ({
+              ...child,
+              id: `smart-folder-child-${id}-${child.id}`,
+              parent_id: id,
+              attrs: {
+                ...(child.attrs || {}),
+                __smart_folder_child: true,
+                __source_resource_id: child.id,
+                __source_parent_id: child.parent_id,
+              },
+              has_children: false,
+              children: [],
+            }))
+          : response;
+        onData(prev => {
+          const currentSpace = prev[spaceType];
+          if (!currentSpace) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            [spaceType]: {
+              ...currentSpace,
+              children: [
+                ...currentSpace.children.filter(item => item.parent_id !== id),
+                ...nextChildren,
+              ],
+            },
+          };
+        });
         addExpandKeys([id]);
-        onData({ ...data });
       })
       .finally(() => {
         onExpanding('');

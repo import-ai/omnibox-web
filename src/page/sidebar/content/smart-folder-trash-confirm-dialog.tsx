@@ -38,7 +38,12 @@ export function SmartFolderTrashConfirmDialog(
           <AlertDialogCancel className="cancel-btn-outline">
             {t('cancel')}
           </AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>{t('ok')}</AlertDialogAction>
+          <AlertDialogAction
+            onClick={onConfirm}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {t('ok')}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -255,6 +255,7 @@ export default function Content(props: IProps) {
               spaceRoot={group(data[spaceType])}
               spaceType={spaceType as SpaceType}
               open={openSpaces[spaceType] !== false}
+              hasTeamspace={hasTeamspace}
               fileDragTarget={fileDragTarget}
               onFileDragTarget={setFileDragTarget}
             />
