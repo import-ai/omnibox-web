@@ -25,6 +25,7 @@ import {
 import { ToolCallStatus } from '@/page/chat/core/types/tool-call.ts';
 import { useMessageSiblings } from '@/page/chat/core/use-message-siblings.ts';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
+import type { VfsPathResourceIds } from '@/page/chat/messages/citations/vfs-path-links';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -34,6 +35,8 @@ interface IProps {
   messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
   isLastMessage: boolean;
+  vfsPathResourceIds: VfsPathResourceIds;
+  resourceLinkPrefix: string;
 }
 
 interface IToolCall {
@@ -75,6 +78,8 @@ export function AssistantMessage(props: IProps) {
     messageOperator,
     onRegenerate,
     isLastMessage,
+    vfsPathResourceIds,
+    resourceLinkPrefix,
   } = props;
   const { t } = useTranslation();
   const app = useApp();
@@ -118,6 +123,8 @@ export function AssistantMessage(props: IProps) {
         onPrevious={handlePrevious}
         onNext={handleNext}
         isLastMessage={isLastMessage}
+        vfsPathResourceIds={vfsPathResourceIds}
+        resourceLinkPrefix={resourceLinkPrefix}
       />
     );
   }

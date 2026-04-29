@@ -21,6 +21,7 @@ export interface Citation {
   title: string;
   snippet: string;
   link: string;
+  cite_ref?: string;
 }
 
 export interface OpenAIFunction {

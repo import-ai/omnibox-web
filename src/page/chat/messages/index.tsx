@@ -1,4 +1,5 @@
 import React from 'react';
+import { useParams } from 'react-router-dom';
 
 import { MessageOperator } from '@/page/chat/core/message-operator.ts';
 import {
@@ -10,6 +11,7 @@ import type {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
+import type { VfsPathResourceIds } from '@/page/chat/messages/citations/vfs-path-links';
 import { AssistantMessage } from '@/page/chat/messages/role/assistant-message';
 import { ToolMessage } from '@/page/chat/messages/role/tool-message';
 import { UserMessage } from '@/page/chat/messages/role/user-message';
@@ -30,7 +32,9 @@ function renderMessage(
   messageOperator: MessageOperator,
   onRegenerate: (messageId: string) => void,
   onEdit: (messageId: string, newContent: string) => void,
-  isLastMessage: boolean
+  isLastMessage: boolean,
+  vfsPathResourceIds: VfsPathResourceIds,
+  resourceLinkPrefix: string
 ) {
   const openAIMessage = message.message;
 
@@ -56,6 +60,8 @@ function renderMessage(
         messageOperator={messageOperator}
         onRegenerate={onRegenerate}
         isLastMessage={isLastMessage}
+        vfsPathResourceIds={vfsPathResourceIds}
+        resourceLinkPrefix={resourceLinkPrefix}
       />
     );
   }
@@ -68,6 +74,17 @@ function renderMessage(
 export function Messages(props: IProps) {
   const { messages, conversation, messageOperator, onRegenerate, onEdit } =
     props;
+  const params = useParams();
+  const resourceLinkPrefix = React.useMemo(() => {
+    if (params.share_id) {
+      return `/s/${params.share_id}`;
+    }
+    if (params.namespace_id) {
+      return `/${params.namespace_id}`;
+    }
+    return '';
+  }, [params.namespace_id, params.share_id]);
+
   const citations = React.useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
@@ -75,6 +92,17 @@ export function Messages(props: IProps) {
         message.attrs.citations.forEach(citation => {
           result.push({ ...citation, id: message.id });
         });
+      }
+    }
+    return result;
+  }, [messages]);
+
+  const vfsPathResourceIds = React.useMemo((): VfsPathResourceIds => {
+    const result: VfsPathResourceIds = {};
+    for (const message of messages) {
+      const mappings = message.attrs?.tool_call?.vfs_path_resource_ids;
+      if (mappings) {
+        Object.assign(result, mappings);
       }
     }
     return result;
@@ -106,7 +134,9 @@ export function Messages(props: IProps) {
               messageOperator,
               onRegenerate,
               onEdit,
-              isLastAssistantMessage
+              isLastAssistantMessage,
+              vfsPathResourceIds,
+              resourceLinkPrefix
             )}
             {message.status === MessageStatus.FAILED &&
               message.attrs?.error_message && (
