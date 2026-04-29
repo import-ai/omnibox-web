@@ -23,45 +23,30 @@ import Save from '@/page/chat/components/save';
 import { Citation, MessageStatus } from '@/page/chat/core/types/chat-response';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
+import {
+  citationUrlTransform,
+  findCitationByCiteRef,
+  isCiteRef,
+  replaceCiteTag,
+  trimIncompletedCitation,
+} from '@/page/chat/messages/citations/citation-utils';
+import {
+  getVfsResourceHref,
+  remarkVfsPathLinks,
+  type VfsPathResourceIds,
+} from '@/page/chat/messages/citations/vfs-path-links';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const citePattern = / *\[\[(\d+)]]/g;
 
-export function trimIncompletedCitation(text: string) {
-  const citePrefix = '[[';
-  const citePrefixRegexList = [/\[\[\d+$/g, /\[\[\d+]$/g];
-  for (let i = citePrefix.length - 1; i >= 0; i--) {
-    const suffix = citePrefix.slice(0, i + 1);
-    if (text.endsWith(suffix)) {
-      return text.slice(0, -suffix.length);
-    }
+function getTextContent(children: React.ReactNode): string {
+  if (typeof children === 'string' || typeof children === 'number') {
+    return String(children);
   }
-  for (const regex of citePrefixRegexList) {
-    if (regex.test(text)) {
-      return text.replace(regex, '');
-    }
+  if (Array.isArray(children)) {
+    return children.map(getTextContent).join('');
   }
-  return text;
-}
-
-/**
- * Replace citation tag
- * @param input
- * @param removeGeneratedCite
- * @param citesCount
- */
-export function replaceCiteTag(
-  input: string,
-  removeGeneratedCite: boolean,
-  citesCount: number
-): string {
-  return input.replace(citePattern, (_, i) => {
-    const id = Number(i) - 1;
-    if ((id >= 0 && id < citesCount) || !removeGeneratedCite) {
-      return `[[${i}]](#cite-${i})`;
-    }
-    return '';
-  });
+  return '';
 }
 
 function copyPreprocess(content: string, citations: Citation[]): string {
@@ -103,6 +88,8 @@ interface IProps {
   onPrevious?: () => void;
   onNext?: () => void;
   isLastMessage: boolean;
+  vfsPathResourceIds?: VfsPathResourceIds;
+  resourceLinkPrefix?: string;
 }
 
 export function CitationMarkdown(props: IProps) {
@@ -119,6 +106,8 @@ export function CitationMarkdown(props: IProps) {
     onPrevious,
     onNext,
     isLastMessage,
+    vfsPathResourceIds = {},
+    resourceLinkPrefix = '',
   } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
@@ -131,6 +120,13 @@ export function CitationMarkdown(props: IProps) {
     removeGeneratedCite,
     citations.length
   );
+  const vfsPathLinksPlugin = React.useMemo(
+    () =>
+      function vfsPathLinksPlugin() {
+        return remarkVfsPathLinks(vfsPathResourceIds, resourceLinkPrefix);
+      },
+    [resourceLinkPrefix, vfsPathResourceIds]
+  );
 
   const components = {
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
@@ -140,13 +136,27 @@ export function CitationMarkdown(props: IProps) {
         const id = Number(citeMatch[1]) - 1;
         return <CitationHoverIcon citation={citations[id]} index={id} />;
       }
+      if (getTextContent(children).trim() === 'cite') {
+        const citeRefMatch = findCitationByCiteRef(citations, href);
+        if (citeRefMatch) {
+          return (
+            <CitationHoverIcon
+              citation={citeRefMatch.citation}
+              index={citeRefMatch.index}
+            />
+          );
+        }
+        if (isCiteRef(href)) {
+          return null;
+        }
+      }
       if (
         node &&
         node.properties &&
         (!node.properties.target || node.properties.target !== 'blank')
       ) {
         return (
-          <a href={href} target="_blank">
+          <a href={href} target="_blank" rel="noopener noreferrer">
             {children}
           </a>
         );
@@ -189,9 +199,28 @@ export function CitationMarkdown(props: IProps) {
           </SyntaxHighlighter>
         </div>
       ) : (
-        <code {...props} className={className}>
-          {children}
-        </code>
+        (() => {
+          const codeContent = String(children);
+          const href = codeContent.includes('\n')
+            ? undefined
+            : getVfsResourceHref(
+                codeContent,
+                vfsPathResourceIds,
+                resourceLinkPrefix
+              );
+          const code = (
+            <code {...props} className={className}>
+              {children}
+            </code>
+          );
+          return href ? (
+            <a href={href} target="_blank" rel="noopener noreferrer">
+              {code}
+            </a>
+          ) : (
+            code
+          );
+        })()
       );
     },
   };
@@ -202,9 +231,10 @@ export function CitationMarkdown(props: IProps) {
       style={{ background: 'transparent' }}
     >
       <Markdown
-        remarkPlugins={[remarkGfm, remarkMath]}
+        remarkPlugins={[remarkGfm, remarkMath, vfsPathLinksPlugin]}
         rehypePlugins={[rehypeKatex]}
         components={components}
+        urlTransform={citationUrlTransform}
       >
         {replacedContent}
       </Markdown>

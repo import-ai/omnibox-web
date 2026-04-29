@@ -43,6 +43,7 @@ export interface MessageAttrs {
       type: DecisionType;
     }[];
     operations?: ToolCallFrontendOperation[];
+    vfs_path_resource_ids?: Record<string, string>;
     in_streaming?: boolean; // frontend only
   };
   // frontend only
