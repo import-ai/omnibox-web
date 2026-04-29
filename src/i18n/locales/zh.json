@@ -58,6 +58,18 @@
     "moved_to_trash": "已移动到回收站",
     "no_content": "资源没有内容可下载",
     "untitled": "未命名",
+    "revisions": {
+      "title": "版本历史",
+      "description": "当前保留 {{count}} 个历史版本。",
+      "loading": "正在加载历史版本...",
+      "empty": "暂无历史版本。编辑此资源后，变更会显示在这里。",
+      "load_failed": "加载历史版本失败。",
+      "content": "正文",
+      "empty_content": "该版本没有正文",
+      "tags": "标签",
+      "restore": "恢复此版本",
+      "restore_success": "已恢复版本"
+    },
     "attrs": {
       "tag": "标签",
       "add_tag": "点击添加标签",
@@ -96,6 +108,7 @@
     "copy_link_failed": "您的链接复制失败",
     "copy_content": "复制正文",
     "duplicate": "创建副本",
+    "history": "版本历史",
     "download": "源文件",
     "move_to": "移动到",
     "move_page_to": "将页面移至...",

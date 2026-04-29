@@ -5,6 +5,7 @@ import {
   Copy,
   Download,
   Files,
+  History,
   Link,
   MoreHorizontal,
   Move,
@@ -44,6 +45,7 @@ import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 
+import ResourceHistory from './history';
 import MoveTo from './move';
 import ShareAction from './share';
 
@@ -62,6 +64,7 @@ export default function Actions(props: IActionProps) {
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [progress, setProgress] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,6 +126,11 @@ export default function Actions(props: IActionProps) {
         .finally(() => {
           onLoading('');
         });
+      return;
+    }
+    if (id === 'history') {
+      setHistoryOpen(true);
+      setOpen(false);
       return;
     }
     if (id === 'download') {
@@ -382,6 +390,13 @@ export default function Actions(props: IActionProps) {
             )}
             <span>{t('actions.duplicate')}</span>
           </DropdownMenuItem>
+          <DropdownMenuItem
+            className="cursor-pointer gap-2"
+            onClick={() => handleAction('history')}
+          >
+            <History className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <span>{t('actions.history')}</span>
+          </DropdownMenuItem>
           {/* Download Submenu */}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="cursor-pointer gap-2">
@@ -489,6 +504,16 @@ export default function Actions(props: IActionProps) {
           onOpenChange={setMoveTo}
           resourceId={resource.id}
           onFinished={handleMoveFinished}
+        />
+      )}
+      {resource && (
+        <ResourceHistory
+          app={app}
+          open={historyOpen}
+          resource={resource}
+          namespaceId={namespaceId}
+          onResource={props.onResource}
+          onOpenChange={setHistoryOpen}
         />
       )}
     </div>

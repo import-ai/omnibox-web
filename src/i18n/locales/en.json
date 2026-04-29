@@ -58,6 +58,18 @@
     "moved_to_trash": "Moved to trash",
     "no_content": "Resource has no content to download",
     "untitled": "Untitled",
+    "revisions": {
+      "title": "Revision history",
+      "description": "Showing {{count}} retained revisions.",
+      "loading": "Loading revisions...",
+      "empty": "No revisions yet. Changes will appear here after this resource is edited.",
+      "load_failed": "Failed to load revision history.",
+      "content": "Content",
+      "empty_content": "No content in this revision",
+      "tags": "Tags",
+      "restore": "Restore revision",
+      "restore_success": "Revision restored"
+    },
     "attrs": {
       "tag": "Tag",
       "add_tag": "Add tag",
@@ -96,6 +108,7 @@
     "copy_link_failed": "Failed to copy your link",
     "copy_content": "Copy content",
     "duplicate": "Create a copy",
+    "history": "Revision history",
     "download": "Source file",
     "move_to": "Move to",
     "move_page_to": "Move page to...",
