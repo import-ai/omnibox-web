@@ -1,6 +1,7 @@
 import { Ban, Check, MessageCircleWarning, X } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import {
   Accordion,
@@ -35,8 +36,6 @@ interface IProps {
   messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
   isLastMessage: boolean;
-  vfsPathResourceIds: VfsPathResourceIds;
-  resourceLinkPrefix: string;
 }
 
 interface IToolCall {
@@ -78,15 +77,33 @@ export function AssistantMessage(props: IProps) {
     messageOperator,
     onRegenerate,
     isLastMessage,
-    vfsPathResourceIds,
-    resourceLinkPrefix,
   } = props;
   const { t } = useTranslation();
   const app = useApp();
+  const params = useParams();
   const openAIMessage = message.message;
 
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
     useMessageSiblings(message.id, messageOperator);
+  const resourceLinkPrefix = React.useMemo(() => {
+    if (params.share_id) {
+      return `/s/${params.share_id}`;
+    }
+    if (params.namespace_id) {
+      return `/${params.namespace_id}`;
+    }
+    return '';
+  }, [params.namespace_id, params.share_id]);
+  const vfsPathResourceIds = React.useMemo((): VfsPathResourceIds => {
+    const result: VfsPathResourceIds = {};
+    for (const message of messages) {
+      const mappings = message.attrs?.tool_call?.vfs_path_resource_ids;
+      if (mappings) {
+        Object.assign(result, mappings);
+      }
+    }
+    return result;
+  }, [messages]);
 
   const domList: React.ReactNode[] = [];
   if (openAIMessage.reasoning_content?.trim()) {
