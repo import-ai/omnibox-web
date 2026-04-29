@@ -412,11 +412,7 @@ export function CreateSmartFolderDialog({
     shouldScrollToLatestConditionRef.current = true;
     setConditions(prev => {
       const next = [...prev];
-      next.splice(
-        (afterIndex ?? prev.length - 1) + 1,
-        0,
-        createDefaultCondition()
-      );
+      next.splice((afterIndex ?? prev.length - 1) + 1, 0, {});
       return next;
     });
   };
