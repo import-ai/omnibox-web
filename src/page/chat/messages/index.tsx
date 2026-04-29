@@ -68,7 +68,6 @@ function renderMessage(
 export function Messages(props: IProps) {
   const { messages, conversation, messageOperator, onRegenerate, onEdit } =
     props;
-
   const citations = React.useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
