@@ -44,11 +44,11 @@ export function isCiteRef(value: string | undefined): value is string {
   return Boolean(value && /^(vfs:\/|web:)/.test(value));
 }
 
-function safeDecodeURIComponent(value: string): string {
+function decodeCiteRef(citeRef: string): string {
   try {
-    return decodeURIComponent(value);
+    return decodeURIComponent(citeRef);
   } catch {
-    return value;
+    return citeRef;
   }
 }
 
@@ -59,10 +59,9 @@ export function findCitationByCiteRef(
   if (!isCiteRef(citeRef)) {
     return undefined;
   }
-  const decodedCiteRef = safeDecodeURIComponent(citeRef);
+  const decodedCiteRef = decodeCiteRef(citeRef);
   const index = citations.findIndex(
-    citation =>
-      citation.cite_ref === citeRef || citation.cite_ref === decodedCiteRef
+    citation => citation.cite_ref === decodedCiteRef
   );
   if (index < 0) {
     return undefined;
