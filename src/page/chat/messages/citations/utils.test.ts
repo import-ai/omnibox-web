@@ -73,6 +73,23 @@ describe('cite_ref helpers', () => {
     });
   });
 
+  it('finds vfs citations when the path contains colons', () => {
+    const colonPathCitation = {
+      id: 'message-id',
+      title: 'Resource',
+      snippet: 'Snippet',
+      link: 'resource-id',
+      cite_ref: 'vfs:/private/foo/ba:r:1-12',
+    };
+
+    expect(
+      findCitationByCiteRef([colonPathCitation], 'vfs:/private/foo/ba:r:1-12')
+    ).toEqual({ citation: colonPathCitation, index: 0 });
+    expect(
+      findCitationByCiteRef([colonPathCitation], 'vfs:/private/foo/ba%3Ar:1-12')
+    ).toEqual({ citation: colonPathCitation, index: 0 });
+  });
+
   it('does not resolve unmatched cite_ref values', () => {
     expect(findCitationByCiteRef(citations, 'web:notfound')).toBeUndefined();
   });
@@ -97,6 +114,9 @@ describe('cite_ref helpers', () => {
   it('preserves cite_ref urls for markdown link rendering', () => {
     expect(citationUrlTransform('vfs:/private/example.md:2-3')).toBe(
       'vfs:/private/example.md:2-3'
+    );
+    expect(citationUrlTransform('vfs:/private/foo/ba:r:1-12')).toBe(
+      'vfs:/private/foo/ba:r:1-12'
     );
     expect(citationUrlTransform('web:abcdef123456')).toBe('web:abcdef123456');
   });
