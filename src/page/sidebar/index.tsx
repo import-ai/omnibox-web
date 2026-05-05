@@ -22,6 +22,7 @@ export default function MainSidebar() {
     handleExpand,
     handleDelete,
     handleCreate,
+    handleCreateSmartFolder,
     handleUpload,
     handleRename,
     handleActiveKey,
@@ -47,6 +48,7 @@ export default function MainSidebar() {
           onExpand={handleExpand}
           onDelete={handleDelete}
           onCreate={handleCreate}
+          onCreateSmartFolder={handleCreateSmartFolder}
           onUpload={handleUpload}
           onRename={handleRename}
           namespaceId={namespaceId}

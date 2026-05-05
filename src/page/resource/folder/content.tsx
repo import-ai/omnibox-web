@@ -8,17 +8,20 @@ import { http } from '@/lib/request';
 interface IProps {
   resource: ResourceSummary;
   apiPrefix: string;
+  namespaceId: string;
 }
 
 export function FolderContent(props: IProps) {
-  const { resource, apiPrefix } = props;
+  const { resource, apiPrefix, namespaceId } = props;
   const { t } = useTranslation();
   const [childrenCount, setChildrenCount] = useState(0);
 
   useEffect(() => {
     const source = axios.CancelToken.source();
+    const childrenApiPath = `${apiPrefix}/${resource.id}/children?summary=true`;
+
     http
-      .get(`${apiPrefix}/${resource.id}/children?summary=true`, {
+      .get(childrenApiPath, {
         cancelToken: source.token,
       })
       .then((response: ResourceSummary[]) => {
@@ -27,7 +30,7 @@ export function FolderContent(props: IProps) {
     return () => {
       source.cancel();
     };
-  }, [apiPrefix, resource.id]);
+  }, [apiPrefix, namespaceId, resource.id, resource.resource_type]);
 
   return (
     <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">

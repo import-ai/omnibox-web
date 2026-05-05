@@ -96,6 +96,9 @@ export function useTrash() {
 
         // Fire event to update sidebar
         app.fire('restore_resource', response);
+        if (response?.resource_type === 'smart_folder') {
+          app.fire('smart_folder_entitlements_refetch');
+        }
 
         onSuccess?.();
       } catch {

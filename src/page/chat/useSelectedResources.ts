@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
@@ -16,40 +16,44 @@ export default function useSelectedResources() {
   const app = useApp();
   const [selectedResources, setSelectedResources] =
     useState<IResTypeContext[]>(getChatContext());
+  const selectedResourcesRef = useRef(selectedResources);
+  selectedResourcesRef.current = selectedResources;
+
+  useEffect(() => {
+    setChatContext(selectedResources);
+  }, [selectedResources]);
 
   useEffect(() => {
     return app.on('context_clear', () => {
       setSelectedResources([]);
       removeChatContext();
     });
-  }, []);
+  }, [app]);
 
   useEffect(() => {
-    setChatContext(selectedResources);
     return app.on(
       'context',
       (resource: Resource, type: PrivateSearchResourceType) => {
-        const target = selectedResources.find(
+        const current = selectedResourcesRef.current;
+        const target = current.find(
           item => item.resource.id === resource.id && item.type === type
         );
         if (target) {
           return;
         }
-        setSelectedResources([...selectedResources, { type, resource }]);
+        setSelectedResources([...current, { type, resource }]);
       }
     );
-  }, [selectedResources]);
+  }, [app]);
 
   useEffect(() => {
     return app.on('delete_resource', (id: string) => {
-      const filtered = selectedResources.filter(
-        item => item.resource.id !== id
-      );
-      if (filtered.length !== selectedResources.length) {
-        setSelectedResources(filtered);
-      }
+      setSelectedResources(prev => {
+        const filtered = prev.filter(item => item.resource.id !== id);
+        return filtered.length !== prev.length ? filtered : prev;
+      });
     });
-  }, [selectedResources]);
+  }, [app]);
 
   return {
     selectedResources,

@@ -2,6 +2,7 @@ import { ResourceMeta } from '@/interface';
 
 export interface TrashItem extends ResourceMeta {
   deleted_at: string;
+  owner_scope?: 'private' | 'teamspace';
 }
 
 export interface TrashListResponse {

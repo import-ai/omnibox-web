@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { SITE_NAME } from '@/const';
 import App from '@/hooks/app.class';
-import { Resource } from '@/interface';
+import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 
@@ -26,6 +26,7 @@ export interface IUseResource {
 export default function useResource() {
   const app = useApp();
   const loc = useLocation();
+  const navigate = useNavigate();
   const params = useParams();
   const { t } = useTranslation();
   const editPage = loc.pathname.endsWith('/edit');
@@ -109,6 +110,29 @@ export default function useResource() {
       }
     });
   }, [app, resourceId, notFound]);
+
+  useEffect(() => {
+    return app.on(
+      'smart_folder_children_updated',
+      (parentId: string, children: ResourceSummary[]) => {
+        if (!resource || resource.id === parentId || editPage) {
+          return;
+        }
+
+        const fromCurrentSmartFolder =
+          loc.state?.sidebarActiveKey ===
+          `smart-folder-child-${parentId}-${resource.id}`;
+        if (!fromCurrentSmartFolder) {
+          return;
+        }
+
+        const stillVisible = children.some(item => item.id === resource.id);
+        if (!stillVisible) {
+          navigate(`/${namespaceId}/${parentId}`, { replace: true });
+        }
+      }
+    );
+  }, [app, editPage, loc.state, namespaceId, navigate, resource]);
 
   return {
     app,

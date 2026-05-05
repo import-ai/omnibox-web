@@ -50,10 +50,21 @@ export default function SharedResourcePage() {
             namespaceId={shareInfo.id}
             readOnly
           />
-          {resource.resource_type === 'folder' ? (
+          {resource.resource_type === 'smart_folder' ? (
             <Folder
               resourceId={resource.id}
               apiPrefix={`/shares/${shareInfo.id}/resources`}
+              namespaceId={shareInfo.id}
+              emptyText={t('smart_folder.empty')}
+              navigationPrefix={`/s/${shareInfo.id}`}
+              loadAll
+              smartFolderParentId={resource.id}
+            />
+          ) : resource.resource_type === 'folder' ? (
+            <Folder
+              resourceId={resource.id}
+              apiPrefix={`/shares/${shareInfo.id}/resources`}
+              namespaceId={shareInfo.id}
               navigationPrefix={`/s/${shareInfo.id}`}
             />
           ) : (

@@ -1,6 +1,7 @@
 import {
   FilePlus,
   FolderPlus,
+  LocateFixed,
   MessageSquarePlus,
   MessageSquareQuote,
   MonitorUp,
@@ -32,12 +33,20 @@ import { Spinner } from '@/components/ui/spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/use-app';
 import { useIsTouch } from '@/hooks/use-is-touch';
+import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
 import { CreateFolderDialog } from './create-folder-dialog';
+import { CreateSmartFolderDialog } from './create-smart-folder-dialog';
+import {
+  getSmartFolderSourceParentId,
+  getSmartFolderSourceResourceId,
+} from './smart-folder-resource-utils';
+import { SmartFolderTrashConfirmDialog } from './smart-folder-trash-confirm-dialog';
 import { menuIconClass, menuItemClass } from './styles';
+import { useSmartFolderResourceActions } from './use-smart-folder-resource-actions';
 
 export default function Action(props: ISidebarProps) {
   const {
@@ -50,14 +59,27 @@ export default function Action(props: ISidebarProps) {
     editingKey,
     onActiveKey,
     namespaceId,
+    spaceRoot,
+    hasTeamspace,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
   const isTouch = useIsTouch();
+  const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
   const [moveTo, setMoveTo] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const smartFolder = useSmartFolderResourceActions({
+    data,
+    namespaceId,
+    spaceRoot,
+    onActiveKey,
+    onDelete,
+    spaceType,
+    closeMenu: () => setMenuOpen(false),
+  });
 
   const handleCreateFile = () => {
     onCreate(spaceType, data.id, 'doc');
@@ -67,9 +89,6 @@ export default function Action(props: ISidebarProps) {
   };
   const handleConfirmCreateFolder = (folderName: string) => {
     return onCreate(spaceType, data.id, 'folder', folderName);
-  };
-  const handleEdit = () => {
-    onActiveKey(data.id, true);
   };
   const handleRename = (e: Event) => {
     // Prevent default menu close behavior
@@ -82,7 +101,14 @@ export default function Action(props: ISidebarProps) {
     }, 150);
   };
   const addToContext = (type: 'resource' | 'folder') => {
-    const fireEvent = () => app.fire('context', data, type);
+    const contextResource = smartFolder.isSmartFolderChild
+      ? {
+          ...data,
+          id: getSmartFolderSourceResourceId(data),
+          parent_id: getSmartFolderSourceParentId(data) || data.parent_id,
+        }
+      : data;
+    const fireEvent = () => app.fire('context', contextResource, type);
     if (location.pathname.includes('/chat')) {
       fireEvent();
     } else {
@@ -94,9 +120,6 @@ export default function Action(props: ISidebarProps) {
   const handleAddAllToChat = () => addToContext('folder');
   const handleMoveTo = () => {
     setMoveTo(true);
-  };
-  const handleDelete = () => {
-    onDelete(spaceType, data.id, data.parent_id);
   };
   const handleSelect = () => {
     fileInputRef.current?.click();
@@ -152,56 +175,30 @@ export default function Action(props: ISidebarProps) {
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" sideOffset={10}>
-          <DropdownMenuItem
-            className={menuItemClass}
-            onClick={handleCreateFile}
-          >
-            <FilePlus className={menuIconClass} />
-            {t('actions.create_file')}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className={menuItemClass}
-            onClick={handleCreateFolder}
-          >
-            <FolderPlus className={menuIconClass} />
-            {t('actions.create_folder')}
-          </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClass} onClick={handleSelect}>
-            <MonitorUp className={menuIconClass} />
-            {t('actions.upload_file')}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className={menuItemClass} onSelect={handleRename}>
-            <SquarePen className={menuIconClass} />
-            {t('actions.rename')}
-          </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClass} onClick={handleEdit}>
-            <Pencil className={menuIconClass} />
-            {t('edit')}
-          </DropdownMenuItem>
-          <DropdownMenuItem className={menuItemClass} onClick={handleMoveTo}>
-            <Move className={menuIconClass} />
-            {t('actions.move_to')}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-
-          {data.resource_type === 'folder' ? (
-            <DropdownMenuItem
-              className={menuItemClass}
-              onClick={handleAddAllToChat}
-            >
-              <MessageSquarePlus className={menuIconClass} />
-              {t('actions.add_all_to_context')}
-            </DropdownMenuItem>
-          ) : data.has_children ? (
+          {smartFolder.isSmartFolderChild ? (
             <>
               <DropdownMenuItem
                 className={menuItemClass}
-                onClick={handleAddAllToChat}
+                onClick={smartFolder.handleLocateSource}
               >
-                <MessageSquarePlus className={menuIconClass} />
-                {t('actions.add_all_to_context')}
+                <LocateFixed className={menuIconClass} />
+                {t('actions.locate_source_resource')}
               </DropdownMenuItem>
+              <DropdownMenuItem
+                className={menuItemClass}
+                onSelect={handleRename}
+              >
+                <SquarePen className={menuIconClass} />
+                {t('actions.rename')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className={menuItemClass}
+                onClick={smartFolder.handleEdit}
+              >
+                <Pencil className={menuIconClass} />
+                {t('edit')}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 className={menuItemClass}
                 onClick={handleAddToChat}
@@ -211,28 +208,122 @@ export default function Action(props: ISidebarProps) {
               </DropdownMenuItem>
             </>
           ) : (
-            <DropdownMenuItem
-              className={menuItemClass}
-              onClick={handleAddToChat}
-            >
-              <MessageSquareQuote className={menuIconClass} />
-              {t('actions.add_it_to_context')}
-            </DropdownMenuItem>
-          )}
+            <>
+              {!smartFolder.isSmartFolder &&
+                !smartFolder.isSmartFolderChild && (
+                  <>
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleCreateFile}
+                    >
+                      <FilePlus className={menuIconClass} />
+                      {t('actions.create_file')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleCreateFolder}
+                    >
+                      <FolderPlus className={menuIconClass} />
+                      {t('actions.create_folder')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleSelect}
+                    >
+                      <MonitorUp className={menuIconClass} />
+                      {t('actions.upload_file')}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+              <DropdownMenuItem
+                className={menuItemClass}
+                onSelect={handleRename}
+              >
+                <SquarePen className={menuIconClass} />
+                {t('actions.rename')}
+              </DropdownMenuItem>
+              {smartFolder.isSmartFolder && smartFolder.canEditSmartFolder ? (
+                <DropdownMenuItem
+                  className={menuItemClass}
+                  onClick={smartFolder.handleEditSmartFolder}
+                >
+                  <Pencil className={menuIconClass} />
+                  {t('actions.edit_smart_folder_conditions')}
+                </DropdownMenuItem>
+              ) : !smartFolder.isSmartFolder ? (
+                <>
+                  <DropdownMenuItem
+                    className={menuItemClass}
+                    onClick={smartFolder.handleEdit}
+                  >
+                    <Pencil className={menuIconClass} />
+                    {t('edit')}
+                  </DropdownMenuItem>
+                  {!smartFolder.isSmartFolderChild && (
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleMoveTo}
+                    >
+                      <Move className={menuIconClass} />
+                      {t('actions.move_to')}
+                    </DropdownMenuItem>
+                  )}
+                </>
+              ) : null}
+              <DropdownMenuSeparator />
 
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
-            onClick={handleDelete}
-          >
-            <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
-            {t('actions.move_to_trash')}
-          </DropdownMenuItem>
+              {data.resource_type === 'folder' || smartFolder.isSmartFolder ? (
+                <DropdownMenuItem
+                  className={menuItemClass}
+                  onClick={handleAddAllToChat}
+                >
+                  <MessageSquarePlus className={menuIconClass} />
+                  {t('actions.add_all_to_context')}
+                </DropdownMenuItem>
+              ) : data.has_children ? (
+                <>
+                  <DropdownMenuItem
+                    className={menuItemClass}
+                    onClick={handleAddAllToChat}
+                  >
+                    <MessageSquarePlus className={menuIconClass} />
+                    {t('actions.add_all_to_context')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={menuItemClass}
+                    onClick={handleAddToChat}
+                  >
+                    <MessageSquareQuote className={menuIconClass} />
+                    {t('actions.add_it_to_context')}
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <DropdownMenuItem
+                  className={menuItemClass}
+                  onClick={handleAddToChat}
+                >
+                  <MessageSquareQuote className={menuIconClass} />
+                  {t('actions.add_it_to_context')}
+                </DropdownMenuItem>
+              )}
+
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
+                onClick={smartFolder.handleDelete}
+              >
+                <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1] group-hover:text-destructive" />
+                {t('actions.move_to_trash')}
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
       <MoveTo
         open={moveTo}
         resourceId={data.id}
+        sourceResourceType={data.resource_type}
         onOpenChange={setMoveTo}
         namespaceId={namespaceId}
         onFinished={handleMoveFinished}
@@ -241,6 +332,24 @@ export default function Action(props: ISidebarProps) {
         open={createFolderOpen}
         onOpenChange={setCreateFolderOpen}
         onConfirm={handleConfirmCreateFolder}
+      />
+      <CreateSmartFolderDialog
+        open={smartFolder.editSmartFolderOpen}
+        currentResourceId={data.id}
+        initialValue={smartFolder.smartFolderInitial}
+        siblingResources={smartFolder.siblingResources}
+        title={t('smart_folder.edit.title')}
+        confirmText={t('smart_folder.edit.submit')}
+        hasTeamspace={hasTeamspace}
+        onOpenChange={smartFolder.setEditSmartFolderOpen}
+        onConfirm={smartFolder.handleUpdateSmartFolder}
+      />
+      <SmartFolderTrashConfirmDialog
+        open={smartFolder.trashSmartFolderConfirmOpen}
+        retentionDays={entitlements?.trashRetentionDays}
+        smartFolderName={data.name}
+        onOpenChange={smartFolder.setTrashSmartFolderConfirmOpen}
+        onConfirm={smartFolder.handleConfirmDeleteSmartFolder}
       />
       <Input
         multiple

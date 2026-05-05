@@ -3,7 +3,7 @@ import '@/styles/vditor-patch.css';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Vditor from 'vditor';
 
 import { Input } from '@/components/input';
@@ -63,6 +63,7 @@ export default function Editor(props: IEditorProps) {
   const busy = useRef(false);
   const root = useRef<any>(null);
   const navigate = useNavigate();
+  const loc = useLocation();
   const { app, theme } = useTheme();
   const [vd, setVd] = useState<Vditor>();
   const [title, onTitle] = useState('');
@@ -78,7 +79,9 @@ export default function Editor(props: IEditorProps) {
       const name = title.trim();
       const content: string | undefined = vd?.getValue();
       if (!content && !name) {
-        navigate(`/${namespaceId}/${resource.id}`);
+        navigate(`/${namespaceId}/${resource.id}`, {
+          state: loc.state,
+        });
         return;
       }
       http
@@ -91,11 +94,13 @@ export default function Editor(props: IEditorProps) {
           app.fire('update_resource', delta);
           onResource(delta);
           clearCache(resource.id);
-          navigate(`/${namespaceId}/${resource.id}`);
+          navigate(`/${namespaceId}/${resource.id}`, {
+            state: loc.state,
+          });
           onSuccess && onSuccess();
         });
     });
-  }, [title, vd]);
+  }, [title, vd, loc.state]);
 
   useEffect(() => {
     const keydownFN = (e: KeyboardEvent) => {

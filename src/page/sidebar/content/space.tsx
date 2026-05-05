@@ -99,7 +99,6 @@ export default function Space(props: ITreeProps) {
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: [NativeTypes.FILE, 'card'],
     drop: (item, monitor) => {
-      // Debounce: prevent multiple drop triggers
       if (monitor.didDrop()) {
         return;
       }
@@ -121,7 +120,12 @@ export default function Space(props: ITreeProps) {
         onFileDragTarget(null);
       } else if (itemType === 'card') {
         // Handle resource drop to root directory
-        onDrop(item as IResourceData, data);
+        const dragItem = item as IResourceData;
+        if (dragItem.attrs?.__smart_folder_child === true) {
+          onTarget(null);
+          return;
+        }
+        onDrop(dragItem, data);
         onTarget(null);
       }
     },
@@ -146,7 +150,12 @@ export default function Space(props: ITreeProps) {
           onTarget(null);
           return;
         }
-        const dragId = (item as IResourceData).id;
+        const dragItem = item as IResourceData;
+        if (dragItem.attrs?.__smart_folder_child === true) {
+          onTarget(null);
+          return;
+        }
+        const dragId = dragItem.id;
         // Prevent dropping on self (though root directory shouldn't have same id as dragged item)
         if (dragId === data.id) {
           onTarget(null);
