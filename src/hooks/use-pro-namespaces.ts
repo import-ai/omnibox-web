@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 
 import { Namespace } from '@/interface';
@@ -10,62 +9,90 @@ interface IProps {
   disabled?: boolean;
 }
 
-let cachedNamespaces: Array<Namespace> | null = null;
-let pendingRequest: Promise<Array<Namespace>> | null = null;
-let cachedUserId = '';
+const PRO_NAMESPACES_CACHE_TTL = 60000;
+let proNamespacesCache: Array<Namespace> | undefined;
+let proNamespacesCacheExpiresAt = 0;
+let proNamespacesPromise: Promise<Array<Namespace>> | undefined;
+
+function getProNamespaces(force?: boolean) {
+  if (proNamespacesPromise) {
+    return proNamespacesPromise;
+  }
+
+  if (
+    !force &&
+    proNamespacesCache &&
+    proNamespacesCacheExpiresAt > Date.now()
+  ) {
+    return Promise.resolve(proNamespacesCache);
+  }
+
+  proNamespacesPromise = http
+    .get<Array<Namespace>>('pro-namespaces')
+    .then(namespaces => {
+      proNamespacesCache = namespaces;
+      proNamespacesCacheExpiresAt = Date.now() + PRO_NAMESPACES_CACHE_TTL;
+      return namespaces;
+    })
+    .finally(() => {
+      proNamespacesPromise = undefined;
+    });
+
+  return proNamespacesPromise;
+}
 
 export default function useProNamespaces(props?: IProps) {
   const { disabled = false } = props || {};
   const app = useApp();
   const [loading, onLoading] = useState(false);
   const [data, onData] = useState<Array<Namespace>>([]);
-  const currentUserId = localStorage.getItem('uid') || '';
 
-  const refetch = (force: boolean = false) => {
+  const refetch = (force?: boolean) => {
     if (disabled) {
       return;
     }
-    if (!currentUserId) {
-      return;
-    }
-    if (cachedUserId !== currentUserId) {
-      cachedUserId = currentUserId;
-      cachedNamespaces = null;
-      pendingRequest = null;
-    }
-    if (!force && cachedNamespaces) {
-      onData(cachedNamespaces);
-      return;
-    }
-    if (!force && pendingRequest) {
-      pendingRequest.then(onData);
+    if (!localStorage.getItem('uid')) {
       return;
     }
     onLoading(true);
-    const source = axios.CancelToken.source();
-    pendingRequest = http
-      .get('pro-namespaces', { cancelToken: source.token })
-      .then(response => {
-        cachedNamespaces = response;
-        onData(response);
-        return response;
-      })
+    return getProNamespaces(force)
+      .then(onData)
       .finally(() => {
-        pendingRequest = null;
         onLoading(false);
       });
-    return () => {
-      source.cancel();
-    };
   };
 
   useEffect(() => {
     if (disabled) {
       return;
     }
-    refetch();
-    return app.on('namespaces_refetch', () => refetch(true));
-  }, [currentUserId, disabled]);
+    let mounted = true;
+    const update = (force?: boolean) => {
+      if (!localStorage.getItem('uid')) {
+        return;
+      }
+      onLoading(true);
+      getProNamespaces(force)
+        .then(namespaces => {
+          if (mounted) {
+            onData(namespaces);
+          }
+        })
+        .finally(() => {
+          if (mounted) {
+            onLoading(false);
+          }
+        });
+    };
 
-  return { app, data, loading };
+    update();
+    const off = app.on('namespaces_refetch', () => update(true));
+
+    return () => {
+      mounted = false;
+      off?.();
+    };
+  }, [disabled]);
+
+  return { app, data, loading, refetch };
 }

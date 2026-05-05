@@ -106,6 +106,7 @@ export interface Resource extends IBase {
 
   resource_type: ResourceType;
   space_type: SpaceType;
+  owner_scope?: 'private' | 'teamspace';
 
   parent_id: string;
 

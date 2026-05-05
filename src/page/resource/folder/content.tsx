@@ -18,10 +18,7 @@ export function FolderContent(props: IProps) {
 
   useEffect(() => {
     const source = axios.CancelToken.source();
-    const childrenApiPath =
-      resource.resource_type === 'folder'
-        ? `/namespaces/${namespaceId}/resources/${resource.id}/children?summary=true`
-        : `${apiPrefix}/${resource.id}/children?summary=true`;
+    const childrenApiPath = `${apiPrefix}/${resource.id}/children?summary=true`;
 
     http
       .get(childrenApiPath, {

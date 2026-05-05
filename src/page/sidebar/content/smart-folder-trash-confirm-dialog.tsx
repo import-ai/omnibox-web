@@ -22,7 +22,7 @@ interface SmartFolderTrashConfirmDialogProps {
 export function SmartFolderTrashConfirmDialog(
   props: SmartFolderTrashConfirmDialogProps
 ) {
-  const { open, retentionDays = 7, onConfirm, onOpenChange } = props;
+  const { open, retentionDays, onConfirm, onOpenChange } = props;
   const { t } = useTranslation();
 
   return (
@@ -31,7 +31,7 @@ export function SmartFolderTrashConfirmDialog(
         <AlertDialogHeader>
           <AlertDialogTitle>{t('smart_folder.trash.title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            {t('smart_folder.trash.description', { days: retentionDays })}
+            {t('smart_folder.trash.description', { days: retentionDays ?? 30 })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -40,7 +40,7 @@ export function SmartFolderTrashConfirmDialog(
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-transparent hover:bg-destructive hover:text-white border-destructive border text-destructive"
           >
             {t('ok')}
           </AlertDialogAction>

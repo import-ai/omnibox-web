@@ -38,11 +38,18 @@ import { Switch } from '@/components/ui/switch';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { useDeleteResource } from '@/hooks/use-delete-resource';
 import { useIsMobile } from '@/hooks/use-mobile';
+import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
 import { IUseResource } from '@/hooks/user-resource';
 import { downloadFile } from '@/lib/download-file';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
+import { CreateSmartFolderDialog } from '@/page/sidebar/content/create-smart-folder-dialog';
+import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/content/smart-folder-trash-confirm-dialog';
+import {
+  CreateSmartFolderPayload,
+  SmartFolderResponse,
+} from '@/page/sidebar/content/smart-folder-types';
 
 import MoveTo from './move';
 import ShareAction from './share';
@@ -60,19 +67,60 @@ export default function Actions(props: IActionProps) {
   const loc = useLocation();
   const isMobile = useIsMobile();
   const { deleteResource } = useDeleteResource();
+  const { data: smartFolderEntitlements } = useSmartFolderEntitlements({
+    namespaceId,
+    disabled: resource?.resource_type !== 'smart_folder',
+  });
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);
   const [progress, setProgress] = useState('');
+  const [smartFolderOpen, setSmartFolderOpen] = useState(false);
+  const [smartFolderTrashOpen, setSmartFolderTrashOpen] = useState(false);
+  const [smartFolderInitial, setSmartFolderInitial] =
+    useState<CreateSmartFolderPayload | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEdit = () => {
     if (!resource) {
       return;
     }
+    if (resource.resource_type === 'smart_folder') {
+      http
+        .get(`/namespaces/${namespaceId}/smart-folders/${resource.id}/config`)
+        .then((response: SmartFolderResponse) => {
+          setSmartFolderInitial({
+            name: response.resource.name || '',
+            ownerScope:
+              response.ownerScope || response.owner_scope || 'private',
+            rootScope: response.rootScope || response.root_scope || 'private',
+            matchMode: response.matchMode || response.match_mode || 'all',
+            conditions: response.conditions || [],
+          });
+          setSmartFolderOpen(true);
+        });
+      return;
+    }
     navigate(`/${namespaceId}/${resource.id}/edit`, {
       state: loc.state,
     });
+  };
+
+  const handleUpdateSmartFolder = (payload: CreateSmartFolderPayload) => {
+    if (!resource) return Promise.reject();
+
+    return http
+      .patch(
+        `/namespaces/${namespaceId}/smart-folders/${resource.id}/config`,
+        payload
+      )
+      .then((response: SmartFolderResponse) => {
+        app.fire('update_resource', {
+          ...response.resource,
+          name: payload.name,
+        });
+        app.fire('refresh_smart_folder_children', resource.id);
+      });
   };
   const handleExitEdit = () => {
     if (!resource) {
@@ -149,6 +197,11 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'move_to_trash') {
       if (!resource) {
+        setOpen(false);
+        return;
+      }
+      if (resource.resource_type === 'smart_folder') {
+        setSmartFolderTrashOpen(true);
         setOpen(false);
         return;
       }
@@ -277,6 +330,22 @@ export default function Actions(props: IActionProps) {
     app.fire('move_resource', resourceId, targetId);
   };
 
+  const handleConfirmTrashSmartFolder = () => {
+    if (!resource) return;
+
+    setSmartFolderTrashOpen(false);
+    onLoading('move_to_trash');
+    deleteResource({
+      id: resource.id,
+      parentId: resource.parent_id,
+      namespaceId,
+      resourceType: resource.resource_type,
+      onSuccess: () => setOpen(false),
+    }).finally(() => {
+      onLoading('');
+    });
+  };
+
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!resource || !e.target.files) {
       return;
@@ -372,58 +441,61 @@ export default function Actions(props: IActionProps) {
             <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             <span>{t('actions.copy_link')}</span>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer gap-2"
-            onClick={() => handleAction('copy_content')}
-          >
-            <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-            <span>{t('actions.copy_content')}</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer gap-2"
-            onClick={() => handleAction('duplicate')}
-          >
-            {loading === 'duplicate' ? (
-              <Spinner />
-            ) : (
-              <Copy className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-            )}
-            <span>{t('actions.duplicate')}</span>
-          </DropdownMenuItem>
-          {/* Download Submenu */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="cursor-pointer gap-2">
-              <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-              <span>{t('actions.download_as')}</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="w-48">
-              {resource && resource.resource_type === 'file' && (
-                <DropdownMenuItem
-                  className="cursor-pointer"
-                  onClick={() => handleAction('download')}
-                >
-                  {t('actions.download')}
-                </DropdownMenuItem>
-              )}
+          {resource?.resource_type !== 'smart_folder' && (
+            <>
               <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => handleAction('download_as_markdown')}
+                className="cursor-pointer gap-2"
+                onClick={() => handleAction('copy_content')}
               >
-                {t('actions.download_as_tooltip', { format: 'Markdown' })}
+                <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <span>{t('actions.copy_content')}</span>
               </DropdownMenuItem>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-          <DropdownMenuItem
-            className="cursor-pointer gap-2"
-            onClick={() => handleAction('move_to')}
-          >
-            {loading === 'move_to' ? (
-              <Spinner />
-            ) : (
-              <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-            )}
-            <span>{t('actions.move_to')}</span>
-          </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2"
+                onClick={() => handleAction('duplicate')}
+              >
+                {loading === 'duplicate' ? (
+                  <Spinner />
+                ) : (
+                  <Copy className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                )}
+                <span>{t('actions.duplicate')}</span>
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="cursor-pointer gap-2">
+                  <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                  <span>{t('actions.download_as')}</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-48">
+                  {resource && resource.resource_type === 'file' && (
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => handleAction('download')}
+                    >
+                      {t('actions.download')}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => handleAction('download_as_markdown')}
+                  >
+                    {t('actions.download_as_tooltip', { format: 'Markdown' })}
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2"
+                onClick={() => handleAction('move_to')}
+              >
+                {loading === 'move_to' ? (
+                  <Spinner />
+                ) : (
+                  <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                )}
+                <span>{t('actions.move_to')}</span>
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuItem
             className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
             onClick={() => handleAction('move_to_trash')}
@@ -435,9 +507,7 @@ export default function Actions(props: IActionProps) {
             )}
             <span>{t('actions.move_to_trash')}</span>
           </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
+          {!isMobile && <DropdownMenuSeparator />}
           {!isMobile && (
             <>
               <DropdownMenuItem
@@ -461,7 +531,6 @@ export default function Actions(props: IActionProps) {
               )}
             </>
           )}
-
           {resource && resource.resource_type === 'folder' && (
             <DropdownMenuItem
               className="cursor-pointer gap-2"
@@ -498,6 +567,26 @@ export default function Actions(props: IActionProps) {
           resourceId={resource.id}
           sourceResourceType={resource.resource_type}
           onFinished={handleMoveFinished}
+        />
+      )}
+      {resource?.resource_type === 'smart_folder' && (
+        <CreateSmartFolderDialog
+          open={smartFolderOpen}
+          currentResourceId={resource.id}
+          initialValue={smartFolderInitial}
+          title={t('smart_folder.edit.title')}
+          confirmText={t('smart_folder.edit.submit')}
+          onOpenChange={setSmartFolderOpen}
+          onConfirm={handleUpdateSmartFolder}
+        />
+      )}
+      {resource?.resource_type === 'smart_folder' && (
+        <SmartFolderTrashConfirmDialog
+          open={smartFolderTrashOpen}
+          retentionDays={smartFolderEntitlements?.trashRetentionDays}
+          smartFolderName={resource.name}
+          onOpenChange={setSmartFolderTrashOpen}
+          onConfirm={handleConfirmTrashSmartFolder}
         />
       )}
     </div>
