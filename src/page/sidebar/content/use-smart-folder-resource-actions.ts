@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import useApp from '@/hooks/use-app';
 import { IResourceData } from '@/interface';
@@ -53,6 +55,7 @@ export function useSmartFolderResourceActions(
     closeMenu,
   } = opts;
   const app = useApp();
+  const { t } = useTranslation();
 
   const [editSmartFolderOpen, setEditSmartFolderOpen] = useState(false);
   const [trashSmartFolderConfirmOpen, setTrashSmartFolderConfirmOpen] =
@@ -121,6 +124,7 @@ export function useSmartFolderResourceActions(
         });
         app.fire('refresh_smart_folder_children', data.id);
         onActiveKey(data.id);
+        toast.success(t('smart_folder.edit.success'));
       });
   };
 

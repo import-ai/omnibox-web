@@ -1,6 +1,7 @@
 import { File, Folder } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -80,6 +81,8 @@ export default function Resource(props: IProps) {
     >
       {isMoving ? (
         <Spinner />
+      ) : data.resource_type === 'smart_folder' ? (
+        <SmartFolderDefaultIcon className="size-4" />
       ) : data.resource_type === 'folder' ? (
         <Folder />
       ) : (

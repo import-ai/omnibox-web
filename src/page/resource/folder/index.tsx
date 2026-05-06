@@ -92,6 +92,24 @@ export default function Folder(props: IProps) {
   }, [loadAll, loadingMore, hasMore, offset, apiPrefix, resourceId]);
 
   useEffect(() => {
+    if (!smartFolderParentId) return;
+    return app.on('refresh_smart_folder_children', (id: string) => {
+      if (id === smartFolderParentId) {
+        onLoading(true);
+        http
+          .get(`${apiPrefix}/${resourceId}/children?summary=true`)
+          .then((res: Array<ResourceSummary>) => {
+            onData(res);
+            setHasMore(false);
+          })
+          .finally(() => {
+            onLoading(false);
+          });
+      }
+    });
+  }, [smartFolderParentId, apiPrefix, resourceId]);
+
+  useEffect(() => {
     return app.on('scroll-to-bottom', () => {
       if (hasMore && !loadingMore) {
         loadMore();

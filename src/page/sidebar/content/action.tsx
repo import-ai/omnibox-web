@@ -199,13 +199,23 @@ export default function Action(props: ISidebarProps) {
                 {t('edit')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className={menuItemClass}
-                onClick={handleAddToChat}
-              >
-                <MessageSquareQuote className={menuIconClass} />
-                {t('actions.add_it_to_context')}
-              </DropdownMenuItem>
+              {data.resource_type === 'folder' ? (
+                <DropdownMenuItem
+                  className={menuItemClass}
+                  onClick={handleAddAllToChat}
+                >
+                  <MessageSquarePlus className={menuIconClass} />
+                  {t('actions.add_all_to_context')}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  className={menuItemClass}
+                  onClick={handleAddToChat}
+                >
+                  <MessageSquareQuote className={menuIconClass} />
+                  {t('actions.add_it_to_context')}
+                </DropdownMenuItem>
+              )}
             </>
           ) : (
             <>

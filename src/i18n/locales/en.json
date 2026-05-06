@@ -995,7 +995,8 @@
     "empty": "No matching resources yet. You can edit the filter rules.",
     "edit": {
       "title": "Edit smart folders",
-      "submit": "Save"
+      "submit": "Save",
+      "success": "Smart folder updated"
     },
     "trash": {
       "this_folder": "this",

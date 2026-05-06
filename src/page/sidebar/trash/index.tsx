@@ -19,9 +19,11 @@ import {
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
+import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
 import { IResourceData } from '@/interface';
 import { deleteResource } from '@/lib/delete-resource';
 import { cn } from '@/lib/utils';
+import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/content/smart-folder-trash-confirm-dialog';
 
 import { ConfirmPermanentDeleteDialog } from './ConfirmPermanentDeleteDialog';
 import { TrashEmpty } from './TrashEmpty';
@@ -38,13 +40,28 @@ export function TrashPanel() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [isClearAll, setIsClearAll] = useState(false);
+  const [dragTrashConfirmOpen, setDragTrashConfirmOpen] = useState(false);
+  const [dragTrashItem, setDragTrashItem] = useState<IResourceData | null>(
+    null
+  );
   const trashDropRef = useRef<HTMLLIElement>(null);
+
+  const { data: smartFolderEntitlements } = useSmartFolderEntitlements({
+    namespaceId: namespace_id,
+    disabled: !dragTrashItem || dragTrashItem.resource_type !== 'smart_folder',
+  });
 
   // Drag and drop to the trash can location
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'card',
     drop: async (item: IResourceData) => {
       if (!item?.id || !namespace_id) return;
+
+      if (item.resource_type === 'smart_folder') {
+        setDragTrashItem(item);
+        setDragTrashConfirmOpen(true);
+        return;
+      }
 
       try {
         await deleteResource({
@@ -151,6 +168,22 @@ export function TrashPanel() {
     }
   }, [isClearAll, deleteItemId, emptyTrash, permanentlyDelete]);
 
+  const handleConfirmDragTrash = useCallback(async () => {
+    if (!dragTrashItem || !namespace_id) return;
+    setDragTrashConfirmOpen(false);
+    try {
+      await deleteResource({
+        id: dragTrashItem.id,
+        parentId: dragTrashItem.parent_id,
+        namespaceId: namespace_id,
+        app,
+        resourceType: dragTrashItem.resource_type,
+      });
+    } catch {
+      // Error handling is done by http interceptor
+    }
+  }, [dragTrashItem, namespace_id, app]);
+
   const handleScroll = useCallback(
     (e: React.UIEvent<HTMLDivElement>) => {
       const target = e.target as HTMLDivElement;
@@ -254,6 +287,14 @@ export function TrashPanel() {
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleConfirmDelete}
         isClearAll={isClearAll}
+      />
+
+      <SmartFolderTrashConfirmDialog
+        open={dragTrashConfirmOpen}
+        retentionDays={smartFolderEntitlements?.trashRetentionDays}
+        smartFolderName={dragTrashItem?.name}
+        onOpenChange={setDragTrashConfirmOpen}
+        onConfirm={handleConfirmDragTrash}
       />
     </>
   );

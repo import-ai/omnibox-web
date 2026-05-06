@@ -77,6 +77,7 @@ export default function Tree(props: ITreeProps) {
   const [editName, setEditName] = useState(data.name || '');
   const isBlurEnabledRef = useRef(false);
   const isEditingRef = useRef(false);
+  const rejectedDropRef = useRef(false);
 
   // Sync data.name changes to editName
   useEffect(() => {
@@ -91,7 +92,10 @@ export default function Tree(props: ITreeProps) {
   const [dragStyle, drag] = useDrag({
     type: 'card',
     item: data,
-    canDrag: () => !isEditing && !isSmartFolderChild,
+    canDrag: () =>
+      !isEditing &&
+      !isSmartFolderChild &&
+      data.resource_type !== 'smart_folder',
     collect: monitor => ({
       opacity: monitor.isDragging() ? 0.5 : 1,
     }),
@@ -102,7 +106,7 @@ export default function Tree(props: ITreeProps) {
       isOver: monitor.isOver({ shallow: true }),
     }),
     hover: (item, monitor) => {
-      if (!ref.current) {
+      if (!ref.current || rejectedDropRef.current) {
         onTarget(null);
         return;
       }
@@ -120,7 +124,7 @@ export default function Tree(props: ITreeProps) {
       } else {
         // Handle resource drag
         onFileDragTarget(null);
-        if (isSmartFolderChild) {
+        if (isSmartFolderChild || data.resource_type === 'smart_folder') {
           onTarget(null);
           return;
         }
@@ -165,9 +169,11 @@ export default function Tree(props: ITreeProps) {
         const dragItem = item as IResourceData;
         if (
           isSmartFolderChild ||
+          data.resource_type === 'smart_folder' ||
           dragItem.attrs?.__smart_folder_child === true ||
           dragItem.id === data.id
         ) {
+          rejectedDropRef.current = true;
           onTarget(null);
           return;
         }
@@ -179,11 +185,14 @@ export default function Tree(props: ITreeProps) {
 
   // Cleanup: When drag leaves this node (including its children), make sure to clear file highlight
   useEffect(() => {
-    if (!isOverHere && isFileDragOver) {
-      onFileDragTarget(null);
-    }
-    if (!isOverHere && target?.id === data.id) {
-      onTarget(null);
+    if (!isOverHere) {
+      rejectedDropRef.current = false;
+      if (isFileDragOver) {
+        onFileDragTarget(null);
+      }
+      if (target?.id === data.id) {
+        onTarget(null);
+      }
     }
   }, [isOverHere, isFileDragOver, onFileDragTarget, data.id, onTarget, target]);
 

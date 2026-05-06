@@ -396,7 +396,10 @@ export default function useContext() {
         parentId,
       })
       .then((response: SmartFolderResponse) => {
-        activeRoute(spaceType, parentId, response.resource, false);
+        setTimeout(() => {
+          activeRoute(spaceType, parentId, response.resource, false);
+          scheduleScrollToResource(response.resource.id);
+        }, 0);
         app.fire('smart_folder_entitlements_refetch');
         toast.success(t('smart_folder.create.success'));
       })
@@ -686,6 +689,37 @@ export default function useContext() {
           onData(newData);
         }
         smartFolderParentIds.forEach(refreshSmartFolderChildren);
+        // Also refresh all expanded smart folders so newly-matching resources appear
+        const collectExpandedSmartFolders = (
+          nodes: IResourceData[],
+          result: Set<string>
+        ) => {
+          nodes.forEach((node: IResourceData) => {
+            if (
+              node.resource_type === 'smart_folder' &&
+              expands.includes(node.id) &&
+              !smartFolderParentIds.has(node.id)
+            ) {
+              result.add(node.id);
+            }
+            if (Array.isArray(node.children) && node.children.length > 0) {
+              collectExpandedSmartFolders(node.children, result);
+            }
+          });
+        };
+        const expandedSmartFolderIds = new Set<string>();
+        each(data, resource => {
+          if (
+            Array.isArray(resource.children) &&
+            resource.children.length > 0
+          ) {
+            collectExpandedSmartFolders(
+              resource.children,
+              expandedSmartFolderIds
+            );
+          }
+        });
+        expandedSmartFolderIds.forEach(refreshSmartFolderChildren);
       })
     );
     hooks.push(

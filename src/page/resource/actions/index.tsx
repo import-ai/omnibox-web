@@ -15,7 +15,7 @@ import {
   Trash2,
 } from 'lucide-react';
 // import { Resource } from '@/interface';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -54,6 +54,8 @@ import {
 import MoveTo from './move';
 import ShareAction from './share';
 
+const hasTeamspaceCache = new Map<string, boolean>();
+
 export interface IActionProps extends IUseResource {
   wide: boolean;
   onWide: (wide: boolean) => void;
@@ -79,7 +81,26 @@ export default function Actions(props: IActionProps) {
   const [smartFolderTrashOpen, setSmartFolderTrashOpen] = useState(false);
   const [smartFolderInitial, setSmartFolderInitial] =
     useState<CreateSmartFolderPayload | null>(null);
+  const [hasTeamspace, setHasTeamspace] = useState(
+    () => hasTeamspaceCache.get(namespaceId) ?? true
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!namespaceId) return;
+    const cached = hasTeamspaceCache.get(namespaceId);
+    if (cached !== undefined) {
+      setHasTeamspace(cached);
+      return;
+    }
+    http
+      .get(`/namespaces/${namespaceId}/root`)
+      .then((items: Record<string, { id?: string }>) => {
+        const value = Boolean(items.teamspace?.id);
+        hasTeamspaceCache.set(namespaceId, value);
+        setHasTeamspace(value);
+      });
+  }, [namespaceId]);
 
   const handleEdit = () => {
     if (!resource) {
@@ -120,6 +141,7 @@ export default function Actions(props: IActionProps) {
           name: payload.name,
         });
         app.fire('refresh_smart_folder_children', resource.id);
+        toast.success(t('smart_folder.edit.success'));
       });
   };
   const handleExitEdit = () => {
@@ -576,6 +598,7 @@ export default function Actions(props: IActionProps) {
           initialValue={smartFolderInitial}
           title={t('smart_folder.edit.title')}
           confirmText={t('smart_folder.edit.submit')}
+          hasTeamspace={hasTeamspace}
           onOpenChange={setSmartFolderOpen}
           onConfirm={handleUpdateSmartFolder}
         />

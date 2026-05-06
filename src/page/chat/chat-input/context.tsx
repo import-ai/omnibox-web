@@ -2,6 +2,7 @@ import { Folder, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
 import Badge from '@/components/badge';
 import { Button } from '@/components/ui/button';
 import ResourceIcon from '@/page/sidebar/content/resourceIcon';
@@ -57,7 +58,11 @@ export default function ChatContext(props: IProps) {
             }}
           >
             {item.type === 'folder' ? (
-              <Folder className="w-4 h-4" />
+              item.resource.resource_type === 'smart_folder' ? (
+                <SmartFolderDefaultIcon className="w-4 h-4" />
+              ) : (
+                <Folder className="w-4 h-4" />
+              )
             ) : (
               <ResourceIcon expand={false} resource={item.resource} />
             )}

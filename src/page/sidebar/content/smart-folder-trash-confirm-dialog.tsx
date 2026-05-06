@@ -1,15 +1,14 @@
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/button';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface SmartFolderTrashConfirmDialogProps {
   open: boolean;
@@ -26,26 +25,36 @@ export function SmartFolderTrashConfirmDialog(
   const { t } = useTranslation();
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-[520px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t('smart_folder.trash.title')}</AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[520px] [&>button]:hidden">
+        <DialogHeader>
+          <DialogTitle className="pb-2">
+            {t('smart_folder.trash.title')}
+          </DialogTitle>
+          <DialogDescription>
             {t('smart_folder.trash.description', { days: retentionDays ?? 30 })}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel className="cancel-btn-outline">
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            className="cancel-btn-outline"
+            onClick={() => onOpenChange(false)}
+          >
             {t('cancel')}
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            className="bg-transparent hover:bg-destructive hover:text-white border-destructive border text-destructive"
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              onConfirm();
+              onOpenChange(false);
+            }}
+            className="text-destructive"
           >
             {t('ok')}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

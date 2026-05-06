@@ -161,13 +161,23 @@ export default function ContextMenuMain(props: IProps) {
                 {t('edit')}
               </ContextMenuItem>
               <ContextMenuSeparator />
-              <ContextMenuItem
-                className={menuItemClass}
-                onClick={handleAddToChat}
-              >
-                <MessageSquareQuote className={menuIconClass} />
-                {t('actions.add_it_to_context')}
-              </ContextMenuItem>
+              {data.resource_type === 'folder' ? (
+                <ContextMenuItem
+                  className={menuItemClass}
+                  onClick={handleAddAllToChat}
+                >
+                  <MessageSquarePlus className={menuIconClass} />
+                  {t('actions.add_all_to_context')}
+                </ContextMenuItem>
+              ) : (
+                <ContextMenuItem
+                  className={menuItemClass}
+                  onClick={handleAddToChat}
+                >
+                  <MessageSquareQuote className={menuIconClass} />
+                  {t('actions.add_it_to_context')}
+                </ContextMenuItem>
+              )}
             </>
           ) : (
             <>

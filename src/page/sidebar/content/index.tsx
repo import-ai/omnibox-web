@@ -203,7 +203,7 @@ export default function Content(props: IProps) {
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
       <SidebarContent ref={sidebarRef} className="gap-0 no-scrollbar">
-        <div className="flex items-center justify-end px-2 pb-1">
+        <div className="flex items-center justify-end px-2 pb-1 sticky top-0 z-10 bg-sidebar">
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
