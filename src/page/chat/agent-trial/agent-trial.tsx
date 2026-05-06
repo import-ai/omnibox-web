@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { UpgradeActionButton } from '@/components/upgrade-action-button';
+import {
+  UpgradeActionButton,
+  UpgradeTrialUsageTooltip,
+} from '@/components/upgrade-action-button';
 import { getRelatedTime } from '@/lib/time.ts';
 import { useNamespaceRole } from '@/lib/use-namespace-role.ts';
 import { useAgentUsage } from '@/page/chat/agent-trial/use-agent-usage';
@@ -55,21 +57,14 @@ export function AgentTrial({
 
       return (
         <div className="flex justify-end mb-1 gap-3 text-sm">
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <span className="text-muted-foreground cursor-default">
-                {t('chat.trial.text', {
-                  agent_trial_remain: agentUsage.agent_trial_remain,
-                  agent_trial_limit: agentUsage.agent_trial_limit,
-                })}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              {toolTipContents.map((item, index) => {
-                return <p key={index}>{item}</p>;
-              })}
-            </TooltipContent>
-          </Tooltip>
+          <UpgradeTrialUsageTooltip
+            textKey="chat.trial.text"
+            textValues={{
+              agent_trial_remain: agentUsage.agent_trial_remain,
+              agent_trial_limit: agentUsage.agent_trial_limit,
+            }}
+            tooltipItems={toolTipContents}
+          />
           <UpgradeActionButton
             namespaceId={namespaceId}
             hasPermission={hasUpgradePermission}

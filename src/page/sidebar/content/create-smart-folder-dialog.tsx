@@ -24,7 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UpgradeActionButton } from '@/components/upgrade-action-button';
+import {
+  UpgradeActionButton,
+  UpgradeTrialUsageTooltip,
+} from '@/components/upgrade-action-button';
 import useProNamespaces from '@/hooks/use-pro-namespaces';
 import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
 import { NamespaceTier, ResourceMeta } from '@/interface';
@@ -752,12 +755,14 @@ export function CreateSmartFolderDialog({
                     </SelectContent>
                   </Select>
                 )}
-                <p className="text-sm text-foreground">
-                  {t('smart_folder.create.remaining_conditions', {
+                <UpgradeTrialUsageTooltip
+                  textKey="smart_folder.create.remaining_conditions"
+                  textValues={{
                     remaining: remainingConditionCount,
                     total: maxConditionCount,
-                  })}
-                </p>
+                  }}
+                  tooltipItems={[disableAddMessage]}
+                />
                 {showUpgradeButton && (
                   <UpgradeActionButton
                     namespaceId={namespaceId}
