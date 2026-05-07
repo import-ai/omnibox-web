@@ -513,7 +513,9 @@ export default function useContext() {
     onExpanding(id);
     const shouldNormalizeSmartFolderChildren = isSmartFolder(id);
     return http
-      .get(getChildrenApiPath(id))
+      .get(getChildrenApiPath(id), {
+        mute: shouldNormalizeSmartFolderChildren,
+      })
       .then(response => {
         const nextChildren = shouldNormalizeSmartFolderChildren
           ? response.map((child: IResourceData) => ({
@@ -551,6 +553,33 @@ export default function useContext() {
           app.fire('smart_folder_children_updated', id, response);
         }
         addExpandKeys([id]);
+      })
+      .catch(error => {
+        if (
+          !shouldNormalizeSmartFolderChildren ||
+          error.response?.status !== 404
+        ) {
+          throw error;
+        }
+
+        onData(prev => {
+          const currentSpace = prev[spaceType];
+          if (!currentSpace) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            [spaceType]: {
+              ...currentSpace,
+              children: currentSpace.children.filter(
+                item => ![item.id, item.parent_id].includes(id)
+              ),
+            },
+          };
+        });
+        onExpands(prev => prev.filter(expand => expand !== id));
+        app.fire('smart_folder_children_updated', id, []);
       })
       .finally(() => {
         onExpanding('');

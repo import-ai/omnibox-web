@@ -46,6 +46,7 @@ export default function Folder(props: IProps) {
   const [data, onData] = useState<Array<ResourceSummary>>([]);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const isSmartFolder = !!smartFolderParentId;
 
   useEffect(() => {
     onLoading(true);
@@ -59,10 +60,17 @@ export default function Folder(props: IProps) {
     http
       .get(requestUrl, {
         cancelToken: source.token,
+        mute: isSmartFolder,
       })
       .then((res: Array<ResourceSummary>) => {
         onData(res);
         setHasMore(!loadAll && res.length === PAGE_SIZE);
+      })
+      .catch(error => {
+        if (isSmartFolder && error.response?.status === 404) {
+          onData([]);
+          setHasMore(false);
+        }
       })
       .finally(() => {
         onLoading(false);
@@ -90,24 +98,6 @@ export default function Folder(props: IProps) {
         onLoadingMore(false);
       });
   }, [loadAll, loadingMore, hasMore, offset, apiPrefix, resourceId]);
-
-  useEffect(() => {
-    if (!smartFolderParentId) return;
-    return app.on('refresh_smart_folder_children', (id: string) => {
-      if (id === smartFolderParentId) {
-        onLoading(true);
-        http
-          .get(`${apiPrefix}/${resourceId}/children?summary=true`)
-          .then((res: Array<ResourceSummary>) => {
-            onData(res);
-            setHasMore(false);
-          })
-          .finally(() => {
-            onLoading(false);
-          });
-      }
-    });
-  }, [smartFolderParentId, apiPrefix, resourceId]);
 
   useEffect(() => {
     if (!smartFolderParentId) return;
