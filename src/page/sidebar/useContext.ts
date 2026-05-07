@@ -595,6 +595,27 @@ export default function useContext() {
     loadChildren(spaceType, resourceId);
   };
 
+  const refreshLoadedSmartFolders = (excludeIds: Set<string> = new Set()) => {
+    const smartFolderIds = new Set<string>();
+    each(data, resource => {
+      if (
+        resource.resource_type === 'smart_folder' &&
+        !excludeIds.has(resource.id)
+      ) {
+        smartFolderIds.add(resource.id);
+      }
+      if (!Array.isArray(resource.children) || resource.children.length <= 0) {
+        return;
+      }
+      resource.children.forEach((node: IResourceData) => {
+        if (node.resource_type === 'smart_folder' && !excludeIds.has(node.id)) {
+          smartFolderIds.add(node.id);
+        }
+      });
+    });
+    smartFolderIds.forEach(refreshSmartFolderChildren);
+  };
+
   useEffect(() => {
     const hooks: Array<() => void> = [];
     hooks.push(
@@ -621,12 +642,32 @@ export default function useContext() {
           const isDeletedSmartFolder =
             resourceType === 'smart_folder' ||
             getResourceByField(id)?.resource_type === 'smart_folder';
+          const smartFolderParentIds = new Set<string>();
           const spaceType = getSpaceType(id);
           const routeToActive =
             id === resourceId ? getRouteToActive(spaceType, id, parentId) : '';
-          data[spaceType].children = data[spaceType].children.filter(
-            node => ![node.id, node.parent_id].includes(id)
-          );
+          each(data, spaceData => {
+            if (!Array.isArray(spaceData.children)) {
+              return;
+            }
+
+            spaceData.children = spaceData.children.filter((node: Resource) => {
+              const isSmartFolderChild =
+                node.attrs?.__smart_folder_child === true;
+              const sourceResourceId = node.attrs?.__source_resource_id;
+              const sourceParentId = node.attrs?.__source_parent_id;
+              const shouldRemove =
+                [node.id, node.parent_id].includes(id) ||
+                (isSmartFolderChild &&
+                  [sourceResourceId, sourceParentId].includes(id));
+
+              if (shouldRemove && isSmartFolderChild) {
+                smartFolderParentIds.add(node.parent_id);
+              }
+
+              return !shouldRemove;
+            });
+          });
 
           // Update parent's has_children field
           const parentIndex = data[spaceType].children.findIndex(
@@ -655,6 +696,9 @@ export default function useContext() {
             navigate(`/${namespaceId}/${routeToActive}`);
           }
 
+          smartFolderParentIds.forEach(refreshSmartFolderChildren);
+          refreshLoadedSmartFolders(smartFolderParentIds);
+
           // Show toast notification for all delete operations
           showActionToast(t('resource.moved_to_trash'), {
             actionLabel: t('undo'),
@@ -663,6 +707,7 @@ export default function useContext() {
                 .post(`/namespaces/${namespaceId}/resources/${id}/restore`)
                 .then(response => {
                   activeRoute(spaceType, parentId, response);
+                  refreshLoadedSmartFolders();
                   if (isDeletedSmartFolder) {
                     app.fire('smart_folder_entitlements_refetch');
                   }
@@ -678,13 +723,17 @@ export default function useContext() {
         let updated = false;
         const smartFolderParentIds = new Set<string>();
         const newData = { ...data };
+        const resourcePatch: Partial<Resource> = {};
+        if (delta.name !== undefined) resourcePatch.name = delta.name;
+        if (delta.content !== undefined) resourcePatch.content = delta.content;
+        if (delta.tags !== undefined) resourcePatch.tags = delta.tags;
+
         each(data, (resource, key) => {
           // 1. Check if it's the root resource itself
           if (resource.id === delta.id) {
             newData[key] = {
               ...resource,
-              name: delta.name,
-              content: delta.content,
+              ...resourcePatch,
             };
             updated = true;
             return true;
@@ -707,7 +756,10 @@ export default function useContext() {
               }
               childrenUpdated = true;
               updated = true;
-              return { ...child, name: delta.name, content: delta.content };
+              return {
+                ...child,
+                ...resourcePatch,
+              };
             });
             if (childrenUpdated) {
               newData[key] = {
@@ -721,37 +773,12 @@ export default function useContext() {
           onData(newData);
         }
         smartFolderParentIds.forEach(refreshSmartFolderChildren);
-        // Also refresh all expanded smart folders so newly-matching resources appear
-        const collectExpandedSmartFolders = (
-          nodes: IResourceData[],
-          result: Set<string>
-        ) => {
-          nodes.forEach((node: IResourceData) => {
-            if (
-              node.resource_type === 'smart_folder' &&
-              expands.includes(node.id) &&
-              !smartFolderParentIds.has(node.id)
-            ) {
-              result.add(node.id);
-            }
-            if (Array.isArray(node.children) && node.children.length > 0) {
-              collectExpandedSmartFolders(node.children, result);
-            }
-          });
-        };
-        const expandedSmartFolderIds = new Set<string>();
-        each(data, resource => {
-          if (
-            Array.isArray(resource.children) &&
-            resource.children.length > 0
-          ) {
-            collectExpandedSmartFolders(
-              resource.children,
-              expandedSmartFolderIds
-            );
-          }
-        });
-        expandedSmartFolderIds.forEach(refreshSmartFolderChildren);
+        refreshLoadedSmartFolders(smartFolderParentIds);
+      })
+    );
+    hooks.push(
+      app.on('refresh_visible_smart_folders', () => {
+        refreshLoadedSmartFolders();
       })
     );
     hooks.push(
@@ -887,6 +914,7 @@ export default function useContext() {
         // Expand the corresponding space (individual/team)
         handleSpaceToggle(spaceType, true);
         activeRoute(spaceType, resource.parent_id, resource, false, true);
+        refreshLoadedSmartFolders();
       })
     );
     hooks.push(

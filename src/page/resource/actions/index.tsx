@@ -136,12 +136,14 @@ export default function Actions(props: IActionProps) {
         payload
       )
       .then((response: SmartFolderResponse) => {
-        app.fire('update_resource', {
-          ...response.resource,
-          name: payload.name,
-        });
-        app.fire('refresh_smart_folder_children', resource.id);
-        toast.success(t('smart_folder.edit.success'));
+        setTimeout(() => {
+          app.fire('update_resource', {
+            ...response.resource,
+            name: payload.name,
+          });
+          app.fire('refresh_smart_folder_children', resource.id);
+          toast.success(t('smart_folder.edit.success'));
+        }, 0);
       });
   };
   const handleExitEdit = () => {

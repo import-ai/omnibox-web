@@ -117,6 +117,13 @@ export default function Folder(props: IProps) {
   }, [app, smartFolderParentId]);
 
   useEffect(() => {
+    if (!smartFolderParentId) return;
+    return app.on('delete_resource', (id: string) => {
+      onData(prevData => prevData.filter(item => item.id !== id));
+    });
+  }, [app, smartFolderParentId]);
+
+  useEffect(() => {
     return app.on('scroll-to-bottom', () => {
       if (hasMore && !loadingMore) {
         loadMore();

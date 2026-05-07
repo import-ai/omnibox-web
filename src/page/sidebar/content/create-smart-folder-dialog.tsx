@@ -293,6 +293,7 @@ export function CreateSmartFolderDialog({
   const disableAddMessage = t(getConditionLimitMessage(resolvedTier));
   const showUpgradeButton = resolvedTier === 'basic';
   const initialSnapshotRef = useRef('');
+  const initializedDialogKeyRef = useRef('');
 
   useEffect(() => {
     if (!shouldScrollToLatestConditionRef.current) {
@@ -308,18 +309,35 @@ export function CreateSmartFolderDialog({
 
   useEffect(() => {
     if (!open) {
+      initializedDialogKeyRef.current = '';
       return;
     }
 
-    const initialName = initialValue?.name || '';
-    const initialOwnerScope = hasTeamspace
-      ? initialValue?.ownerScope ||
-        getDefaultOwnerScope(
-          entitlements,
-          privateSmartFolderCount,
-          teamSmartFolderCount
+    const initialValueKey = initialValue
+      ? getDialogSnapshot(
+          initialValue.name || '',
+          initialValue.ownerScope || 'private',
+          initialValue.rootScope ||
+            getDefaultRootScope(initialValue.ownerScope),
+          initialValue.matchMode || 'all',
+          normalizeInitialConditions(initialValue.conditions)
         )
-      : 'private';
+      : 'create';
+    if (initializedDialogKeyRef.current === initialValueKey) {
+      return;
+    }
+    initializedDialogKeyRef.current = initialValueKey;
+
+    const initialName = initialValue?.name || '';
+    const initialOwnerScope = initialValue
+      ? initialValue.ownerScope || 'private'
+      : hasTeamspace
+        ? getDefaultOwnerScope(
+            entitlements,
+            privateSmartFolderCount,
+            teamSmartFolderCount
+          )
+        : 'private';
     const initialRootScope =
       initialOwnerScope === 'teamspace'
         ? 'teamspace'

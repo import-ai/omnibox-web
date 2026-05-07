@@ -27,6 +27,7 @@ export default function Attributes(props: IProps) {
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
+          onResource={onResource}
           readOnly={readOnly}
         />
         <UrlAttribute url={resource.attrs.url} />
@@ -56,6 +57,7 @@ export default function Attributes(props: IProps) {
             data={resource.tags}
             resourceId={resource.id}
             namespaceId={namespaceId}
+            onResource={onResource}
             readOnly={readOnly}
           />
           {resource.created_at && (
@@ -73,6 +75,7 @@ export default function Attributes(props: IProps) {
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
+          onResource={onResource}
           readOnly={readOnly}
         />
         <FilenameAttribute
@@ -103,6 +106,7 @@ export default function Attributes(props: IProps) {
         data={resource.tags}
         resourceId={resource.id}
         namespaceId={namespaceId}
+        onResource={onResource}
         readOnly={readOnly}
       />
       {resource.created_at && (
