@@ -75,8 +75,8 @@ export function BatchCreateDialog({
           <DialogTitle>{t('batch.create_title')}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="batch-folder-name">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="batch-folder-name" className="min-w-12">
               {t('batch.create_name_label')}
             </Label>
             <Input
@@ -93,8 +93,8 @@ export function BatchCreateDialog({
               autoFocus
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label>{t('batch.create_target_label')}</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-12">{t('batch.create_target_label')}</Label>
             <Select
               value={targetSpaceType}
               onValueChange={value => setTargetSpaceType(value as SpaceType)}

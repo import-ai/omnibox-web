@@ -9,9 +9,9 @@ import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { BatchCreateDialog } from './components/batch-create-dialog';
 import BatchDeleteDialog from './components/batch-delete-dialog';
 import BatchMoveDialog from './components/batch-move-dialog';
-import BatchToolbar from './components/batch-toolbar';
 import ResourceTree from './components/resource-tree';
 import { CreateFolderDialog } from './components/resource-tree/create-folder-dialog';
+import { Toolbar } from './components/toolbar';
 import { useBatchOperations } from './hooks/use-batch-operations';
 import { useSidebarEvents } from './hooks/use-sidebar-events';
 import { useSidebarInit } from './hooks/use-sidebar-init';
@@ -61,17 +61,26 @@ export function BodyForSidebar(props: IProps) {
 
   return (
     <React.Fragment>
+      <Toolbar
+        selectionMode={batch.selectionMode}
+        toggleSelectionMode={batch.toggleSelectionMode}
+        onDeselectAll={batch.deselectAll}
+        onBatchDelete={batch.openDeleteDialog}
+        onBatchMove={batch.openMoveDialog}
+        onBatchRefresh={batch.refreshSelected}
+        onBatchCreate={batch.openCreateDialog}
+        onAddToChat={batch.addSelectedToChat}
+      />
       <ResourceTree namespaceId={namespaceId} />
-      {batch.batchOperationEnabled && (
-        <BatchToolbar
-          onDeselectAll={batch.deselectAll}
-          onBatchDelete={batch.openDeleteDialog}
-          onBatchMove={batch.openMoveDialog}
-          onBatchRefresh={batch.refreshSelected}
-          onBatchCreate={batch.openCreateDialog}
-          onAddToChat={batch.addSelectedToChat}
-        />
-      )}
+      <Input
+        multiple
+        type="file"
+        className="hidden"
+        ref={globalFileInputRef}
+        id="global-sidebar-file-input"
+        accept={ALLOW_FILE_EXTENSIONS}
+        onChange={handleGlobalFileUpload}
+      />
       <CreateFolderDialog
         open={!!createFolderTargetId}
         onOpenChange={open => {
@@ -96,19 +105,16 @@ export function BodyForSidebar(props: IProps) {
           });
         }}
       />
-      <Input
-        multiple
-        type="file"
-        className="hidden"
-        ref={globalFileInputRef}
-        id="global-sidebar-file-input"
-        accept={ALLOW_FILE_EXTENSIONS}
-        onChange={handleGlobalFileUpload}
+      <BatchCreateDialog
+        open={batch.createDialogOpen}
+        spaceType={batch.defaultTargetSpaceType}
+        onOpenChange={batch.setCreateDialogOpen}
+        onConfirm={batch.confirmCreate}
       />
       <BatchDeleteDialog
         open={batch.deleteDialogOpen}
         selectedIds={batch.selectedIds}
-        nodes={batch.nodes}
+        namespaceId={namespaceId}
         loading={batch.isProcessing}
         onConfirm={batch.confirmDelete}
         onCancel={batch.closeDeleteDialog}
@@ -116,15 +122,10 @@ export function BodyForSidebar(props: IProps) {
       <BatchMoveDialog
         open={batch.moveDialogOpen}
         selectedIds={batch.selectedIds}
+        namespaceId={namespaceId}
         loading={batch.isProcessing}
         onConfirm={batch.confirmMove}
         onCancel={batch.closeMoveDialog}
-      />
-      <BatchCreateDialog
-        open={batch.createDialogOpen}
-        spaceType={batch.defaultTargetSpaceType}
-        onOpenChange={batch.setCreateDialogOpen}
-        onConfirm={batch.confirmCreate}
       />
     </React.Fragment>
   );

@@ -929,7 +929,7 @@
     "create_tooltip": "Create folder with selected items",
     "add_to_chat_tooltip": "Add selected items to chat",
     "delete_title": "Batch delete",
-    "delete_description": "Are you sure you want to delete {{count}} selected items? They will be moved to trash.",
+    "delete_description": "Deleted items can be restored from trash and will be permanently deleted after {{days}} days.",
     "delete_confirm": "Delete",
     "delete_success": "Deleted {{count}} items",
     "delete_failed": "Delete failed",

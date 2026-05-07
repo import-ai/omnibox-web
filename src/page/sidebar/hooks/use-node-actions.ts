@@ -26,7 +26,7 @@ export interface UseNodeActionsReturn {
   handleUpload: () => void;
   handleDelete: () => void;
   handleMoveTo: () => void;
-  handleMoveFinished: (resourceId: string, targetId: string) => void;
+  handleMoveFinished: (resourceIds: string[], targetId: string) => void;
   handleAddToChat: () => void;
   handleAddAllToChat: () => void;
 }
@@ -112,8 +112,13 @@ export function useNodeActions(
     triggerGlobalFileUpload(nodeId);
   };
 
-  const handleMoveFinished = async (resourceId: string, targetId: string) => {
+  const handleMoveFinished = async (
+    resourceIds: string[],
+    targetId: string
+  ) => {
     setMoveTo(false);
+    const [resourceId] = resourceIds;
+    if (!resourceId) return;
     await useSidebarStore.getState().move(resourceId, targetId);
   };
 

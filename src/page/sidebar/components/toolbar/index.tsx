@@ -6,14 +6,16 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
+import { ListCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { useSelectedCount } from '@/page/sidebar/store';
 
-interface BatchToolbarProps {
+import { ToolbarButton } from './tooltip';
+
+interface IProps {
+  selectionMode: boolean;
+  toggleSelectionMode: () => void;
   onDeselectAll: () => void;
   onBatchDelete: () => void;
   onBatchMove: () => void;
@@ -22,28 +24,36 @@ interface BatchToolbarProps {
   onAddToChat: () => void;
 }
 
-export default function BatchToolbar({
+export function Toolbar({
+  selectionMode,
+  toggleSelectionMode,
   onDeselectAll,
   onBatchDelete,
   onBatchMove,
   onBatchRefresh,
   onBatchCreate,
   onAddToChat,
-}: BatchToolbarProps) {
+}: IProps) {
   const { t } = useTranslation();
   const selectedCount = useSelectedCount();
 
   return (
-    <div
-      className={cn(
-        'flex items-center justify-between border-t border-border bg-sidebar px-3 py-2.5',
-        'animate-in slide-in-from-bottom-2 duration-200'
-      )}
-    >
+    <div className="flex items-center justify-between px-2 pb-1">
       <span className="text-sm font-medium text-foreground">
-        {t('batch.selected_count', { count: selectedCount })}
+        {selectionMode
+          ? t('batch.selected_count', { count: selectedCount })
+          : ''}
       </span>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0">
+        <ToolbarButton
+          label={
+            selectionMode
+              ? t('batch.deselect_tooltip')
+              : t('batch.multi_select')
+          }
+          onClick={toggleSelectionMode}
+          icon={ListCheck}
+        />
         <ToolbarButton
           label={t('batch.refresh_tooltip')}
           onClick={onBatchRefresh}
@@ -68,7 +78,6 @@ export default function BatchToolbar({
           label={t('batch.delete_tooltip')}
           onClick={onBatchDelete}
           icon={Trash2}
-          destructive
         />
         <div className="mx-1 h-5 w-px bg-border" />
         <ToolbarButton
@@ -78,39 +87,5 @@ export default function BatchToolbar({
         />
       </div>
     </div>
-  );
-}
-
-interface ToolbarButtonProps {
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  onClick: () => void;
-  destructive?: boolean;
-}
-
-function ToolbarButton({
-  label,
-  icon: Icon,
-  onClick,
-  destructive,
-}: ToolbarButtonProps) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          size="icon"
-          variant="ghost"
-          className={cn(
-            'size-8 text-muted-foreground hover:text-foreground',
-            destructive && 'hover:text-destructive'
-          )}
-          onClick={onClick}
-          aria-label={label}
-        >
-          <Icon className="size-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
   );
 }

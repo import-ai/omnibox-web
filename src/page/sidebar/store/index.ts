@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import { useShallow } from 'zustand/react/shallow';
 
 import type { SpaceType } from '@/interface';
 
@@ -101,16 +102,14 @@ export function useIsSelected(id: string): boolean {
 }
 
 export function useSelectionState() {
-  return useSidebarStore(state => ({
-    selectedIds: state.selectedIds,
-    selectionMode: state.selectionMode,
-    lastSelectedId: state.lastSelectedId,
-    failedIds: state.failedIds,
-  }));
-}
-
-export function useBatchOperationEnabled(): boolean {
-  return useSidebarStore(state => Object.keys(state.selectedIds).length > 0);
+  return useSidebarStore(
+    useShallow(state => ({
+      selectedIds: state.selectedIds,
+      selectionMode: state.selectionMode,
+      lastSelectedId: state.lastSelectedId,
+      failedIds: state.failedIds,
+    }))
+  );
 }
 
 export function useSelectionMode(): boolean {

@@ -12,13 +12,13 @@ import { http } from '@/lib/request';
 import FormResource from './resource';
 
 export interface IFormProps {
-  resourceId: string;
+  resourceIds: string[];
   namespaceId: string;
-  onFinished?: (resouceId: string, targetId: string) => void;
+  onFinished?: (resourceIds: string[], targetId: string) => void;
 }
 
 export default function MoveToForm(props: IFormProps) {
-  const { resourceId, namespaceId, onFinished } = props;
+  const { resourceIds, namespaceId, onFinished } = props;
   const { t } = useTranslation();
   const [editId, onEditId] = useState('');
   const [search, onSearch] = useState('');
@@ -46,26 +46,16 @@ export default function MoveToForm(props: IFormProps) {
             }
             root.push({ ...item, spaceType });
             if (Array.isArray(item.children) && item.children.length > 0) {
-              const resourceChildrenIdToRemove: Array<string> = [];
+              const resourceChildrenIdToRemove = new Set(resourceIds);
               each(item.children, children => {
-                if (
-                  children.parent_id === resourceId ||
-                  resourceChildrenIdToRemove.includes(children.parent_id)
-                ) {
-                  resourceChildrenIdToRemove.push(children.id);
+                if (resourceChildrenIdToRemove.has(children.parent_id)) {
+                  resourceChildrenIdToRemove.add(children.id);
                 }
               });
-              if (resourceChildrenIdToRemove.length > 0) {
-                item.children = item.children.filter(
-                  (children: Resource) =>
-                    !resourceChildrenIdToRemove.includes(children.id) &&
-                    children.id !== resourceId
-                );
-              } else {
-                item.children = item.children.filter(
-                  (children: Resource) => children.id !== resourceId
-                );
-              }
+              item.children = item.children.filter(
+                (children: Resource) =>
+                  !resourceChildrenIdToRemove.has(children.id)
+              );
               resources.push(...item.children);
             }
           });
@@ -78,18 +68,21 @@ export default function MoveToForm(props: IFormProps) {
     }
     http
       .get(
-        `/namespaces/${namespaceId}/resources/search?exclude_resource_id=${resourceId}&name=${encodeURIComponent(search)}`
+        `/namespaces/${namespaceId}/resources/search?exclude_resource_id=${resourceIds.join(',')}&name=${encodeURIComponent(search)}`
       )
       .then(response => {
+        const resourceIdSet = new Set(resourceIds);
         onData({
           root: [],
-          resources: response,
+          resources: response.filter(
+            (resource: Resource) => !resourceIdSet.has(resource.id)
+          ),
         });
       })
       .finally(() => {
         onLoading(false);
       });
-  }, [search]);
+  }, [search, resourceIds, namespaceId]);
 
   return (
     <div>
@@ -124,7 +117,7 @@ export default function MoveToForm(props: IFormProps) {
                 onEditId={onEditId}
                 onSearch={onSearch}
                 onFinished={onFinished}
-                resourceId={resourceId}
+                resourceIds={resourceIds}
                 namespaceId={namespaceId}
               />
             ))}
@@ -147,7 +140,7 @@ export default function MoveToForm(props: IFormProps) {
                 onEditId={onEditId}
                 onSearch={onSearch}
                 onFinished={onFinished}
-                resourceId={resourceId}
+                resourceIds={resourceIds}
                 namespaceId={namespaceId}
               />
             ))}

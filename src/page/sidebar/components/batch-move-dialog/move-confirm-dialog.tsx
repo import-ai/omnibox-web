@@ -14,6 +14,7 @@ interface MoveConfirmDialogProps {
   open: boolean;
   count: number;
   targetName: string;
+  loading?: boolean;
   onConfirm: () => Promise<void>;
   onOpenChange: (open: boolean) => void;
 }
@@ -22,6 +23,7 @@ export function MoveConfirmDialog({
   open,
   count,
   targetName,
+  loading = false,
   onConfirm,
   onOpenChange,
 }: MoveConfirmDialogProps) {
@@ -31,19 +33,27 @@ export function MoveConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('batch.move_confirm_title')}</DialogTitle>
-          <DialogDescription>
-            {t('batch.move_confirm_description', {
+          <DialogTitle>
+            {t('batch.move_confirm_title', {
               count,
               target: targetName,
             })}
+          </DialogTitle>
+          <DialogDescription>
+            {t('batch.move_confirm_description')}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            disabled={loading}
+            onClick={() => onOpenChange(false)}
+          >
             {t('cancel')}
           </Button>
-          <Button onClick={onConfirm}>{t('batch.move_confirm')}</Button>
+          <Button disabled={loading} onClick={onConfirm}>
+            {t('batch.move_confirm')}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

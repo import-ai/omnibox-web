@@ -264,9 +264,14 @@ export default function Actions(props: IActionProps) {
       return;
     }
   };
-  const handleMoveFinished = async (resourceId: string, targetId: string) => {
+  const handleMoveFinished = async (
+    resourceIds: string[],
+    targetId: string
+  ) => {
     setMoveTo(false);
     setOpen(false);
+    const [resourceId] = resourceIds;
+    if (!resourceId) return;
     await useSidebarStore.getState().move(resourceId, targetId);
   };
 
@@ -488,7 +493,7 @@ export default function Actions(props: IActionProps) {
           open={moveTo}
           namespaceId={namespaceId}
           onOpenChange={setMoveTo}
-          resourceId={resource.id}
+          resourceIds={[resource.id]}
           onFinished={handleMoveFinished}
         />
       )}

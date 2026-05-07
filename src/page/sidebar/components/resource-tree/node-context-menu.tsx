@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDragLayer } from 'react-dnd';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -54,6 +55,39 @@ export default function NodeContextMenu({
   }
 
   const menuItems = useNodeMenu(actions, 'direct', onRename);
+  const ContextMenuChildren = (
+    <div>
+      {menuItems.items.map(item => {
+        if (item.separator) {
+          return <ContextMenuSeparator key={item.key} />;
+        }
+
+        const Icon = item.icon;
+        return (
+          <ContextMenuItem
+            key={item.key}
+            className={
+              item.destructive
+                ? 'group cursor-pointer gap-2 data-[highlighted]:text-destructive'
+                : menuItemClass
+            }
+            onClick={item.onClick}
+            onSelect={item.onSelect}
+            disabled={item.disabled}
+          >
+            <Icon
+              className={
+                item.destructive
+                  ? 'size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]'
+                  : menuIconClass
+              }
+            />
+            {item.label}
+          </ContextMenuItem>
+        );
+      })}
+    </div>
+  );
 
   return (
     <>
@@ -62,42 +96,21 @@ export default function NodeContextMenu({
           {children}
         </ContextMenuTrigger>
         <ContextMenuContent>
-          {menuItems.map(item => {
-            if (item.separator) {
-              return <ContextMenuSeparator key={item.key} />;
-            }
-
-            const Icon = item.icon;
-            return (
-              <ContextMenuItem
-                key={item.key}
-                className={
-                  item.destructive
-                    ? 'group cursor-pointer gap-2 data-[highlighted]:text-destructive'
-                    : menuItemClass
-                }
-                onClick={item.onClick}
-                onSelect={item.onSelect}
-                disabled={item.disabled}
-              >
-                <Icon
-                  className={
-                    item.destructive
-                      ? 'size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]'
-                      : menuIconClass
-                  }
-                />
-                {item.label}
-              </ContextMenuItem>
-            );
-          })}
+          {menuItems.disabled ? (
+            <Tooltip>
+              <TooltipTrigger asChild>{ContextMenuChildren}</TooltipTrigger>
+              <TooltipContent>请选择资源后操作</TooltipContent>
+            </Tooltip>
+          ) : (
+            ContextMenuChildren
+          )}
         </ContextMenuContent>
       </ContextMenu>
       {actions.moveTo && (
         <>
           <MoveTo
             open={true}
-            resourceId={nodeId}
+            resourceIds={[nodeId]}
             onOpenChange={actions.setMoveTo}
             namespaceId={namespaceId}
             onFinished={actions.handleMoveFinished}

@@ -12,16 +12,16 @@ interface IResource extends Resource {
 
 interface IProps {
   data: IResource;
-  resourceId: string;
+  resourceIds: string[];
   namespaceId: string;
   editId: string;
   onEditId: (editId: string) => void;
   onSearch: (val: string) => void;
-  onFinished?: (resouceId: string, targetId: string) => void;
+  onFinished?: (resourceIds: string[], targetId: string) => void;
 }
 
 export default function Resource(props: IProps) {
-  const { data, editId, onEditId, resourceId, onSearch, onFinished } = props;
+  const { data, editId, onEditId, resourceIds, onSearch, onFinished } = props;
   const app = useApp();
   const { t } = useTranslation();
   const resourceName = data.name || t('untitled');
@@ -40,7 +40,7 @@ export default function Resource(props: IProps) {
         app.fire('move_resource_start');
         onEditId('');
         onSearch('');
-        onFinished && onFinished(resourceId, data.id);
+        onFinished && onFinished(resourceIds, data.id);
       }}
     >
       {data.id === editId ? (

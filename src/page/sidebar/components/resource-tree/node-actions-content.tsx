@@ -87,7 +87,7 @@ export function NodeActionsContent({
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" sideOffset={10}>
-          {menuItems.map(item => {
+          {menuItems.items.map(item => {
             if (item.separator) {
               return <DropdownMenuSeparator key={item.key} />;
             }
@@ -120,7 +120,7 @@ export function NodeActionsContent({
       {actions.moveTo && (
         <MoveTo
           open={true}
-          resourceId={nodeId}
+          resourceIds={[nodeId]}
           onOpenChange={actions.setMoveTo}
           namespaceId={namespaceId}
           onFinished={actions.handleMoveFinished}

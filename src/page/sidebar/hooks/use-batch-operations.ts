@@ -6,11 +6,7 @@ import { toast } from 'sonner';
 import useApp from '@/hooks/use-app';
 import type { SpaceType } from '@/interface';
 
-import {
-  useBatchOperationEnabled,
-  useSelectionState,
-  useSidebarStore,
-} from '../store';
+import { useSelectionState, useSidebarStore } from '../store';
 
 interface UseBatchOperationsOptions {
   namespaceId: string;
@@ -21,15 +17,17 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const selectionMode = useSidebarStore(state => state.selectionMode);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const selectionState = useSelectionState();
-  const batchOperationEnabled = useBatchOperationEnabled();
   const selectedIdList = Object.keys(selectionState.selectedIds);
   const nodes = useSidebarStore(state => state.nodes);
-
+  const toggleSelectionMode = () => {
+    useSidebarStore.getState().setSelectionMode(!selectionMode);
+  };
   const getSelectedIds = () =>
     Object.keys(useSidebarStore.getState().selectedIds);
 
@@ -39,7 +37,6 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
   const openMoveDialog = () => setMoveDialogOpen(true);
   const openCreateDialog = () => setCreateDialogOpen(true);
   const deselectAll = () => useSidebarStore.getState().deselectAll();
-
   const confirmDelete = async () => {
     setIsProcessing(true);
     try {
@@ -157,21 +154,21 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && selectionState.selectionMode) {
+      if (event.key === 'Escape' && selectionMode) {
         deselectAll();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectionState.selectionMode]);
+  }, [selectionMode]);
 
   return {
-    batchOperationEnabled,
     selectedIds: selectedIdList,
     nodes,
-    selectionMode: selectionState.selectionMode,
     isProcessing,
+    selectionMode,
+    toggleSelectionMode,
     defaultTargetSpaceType,
     deleteDialogOpen,
     moveDialogOpen,
