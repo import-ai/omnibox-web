@@ -5,7 +5,7 @@ import { TouchBackend } from 'react-dnd-touch-backend';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
-import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
+import SmartFolderCreate from '@/assets/icons/smartFolderCreate';
 import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { SidebarContent } from '@/components/ui/sidebar';
@@ -216,7 +216,7 @@ export default function Content(props: IProps) {
                   onClick={() => setCreateSmartFolderOpen(true)}
                   aria-label={t('actions.create_smart_folder')}
                 >
-                  <SmartFolderDefaultIcon className="size-4" />
+                  <SmartFolderCreate className="size-4" />
                 </Button>
               </span>
             </TooltipTrigger>
