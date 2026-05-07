@@ -23,3 +23,14 @@ export function getSmartFolderChildSidebarKey(
 ) {
   return `smart-folder-child-${parentId}-${sourceResourceId}`;
 }
+
+export function getSmartFolderChildEditSidebarKey(resource: Resource) {
+  if (!isSmartFolderChildResource(resource)) {
+    return undefined;
+  }
+
+  return getSmartFolderChildSidebarKey(
+    resource.parent_id,
+    getSmartFolderSourceResourceId(resource)
+  );
+}
