@@ -547,6 +547,9 @@ export default function useContext() {
             },
           };
         });
+        if (shouldNormalizeSmartFolderChildren) {
+          app.fire('smart_folder_children_updated', id, response);
+        }
         addExpandKeys([id]);
       })
       .finally(() => {

@@ -635,7 +635,7 @@ export function CreateSmartFolderDialog({
                             value={option.value}
                             id={`smart-folder-owner-${option.value}`}
                             disabled={option.disabled}
-                            className="h-4 w-4 border-border disabled:bg-neutral-300 text-blue-500 dark:border-none dark:bg-white"
+                            className="h-4 w-4 border-border dark:disabled:bg-neutral-300 disabled:bg-neutral-400 text-blue-500 dark:border-none dark:bg-white"
                           />
                           <Label
                             htmlFor={`smart-folder-owner-${option.value}`}
@@ -732,7 +732,7 @@ export function CreateSmartFolderDialog({
               <p className={cn(smartFolderFieldLabelClass, 'sm:w-[128px]')}>
                 {t('smart_folder.create.conditions')}
               </p>
-              <div className="flex flex-1 items-center justify-end gap-2">
+              <div className="flex flex-1 items-center gap-2">
                 {conditions.length > 1 && (
                   <Select
                     value={matchMode}
@@ -755,21 +755,23 @@ export function CreateSmartFolderDialog({
                     </SelectContent>
                   </Select>
                 )}
-                <UpgradeTrialUsageTooltip
-                  textKey="smart_folder.create.remaining_conditions"
-                  textValues={{
-                    remaining: remainingConditionCount,
-                    total: maxConditionCount,
-                  }}
-                  tooltipItems={[disableAddMessage]}
-                />
-                {showUpgradeButton && (
-                  <UpgradeActionButton
-                    namespaceId={namespaceId}
-                    hasPermission={currentNamespace?.is_owner !== false}
-                    disabledReason={t('chat.trial.not_owner')}
+                <div className="ml-auto flex items-center gap-2">
+                  <UpgradeTrialUsageTooltip
+                    textKey="smart_folder.create.remaining_conditions"
+                    textValues={{
+                      remaining: remainingConditionCount,
+                      total: maxConditionCount,
+                    }}
+                    tooltipItems={[disableAddMessage]}
                   />
-                )}
+                  {showUpgradeButton && (
+                    <UpgradeActionButton
+                      namespaceId={namespaceId}
+                      hasPermission={currentNamespace?.is_owner !== false}
+                      disabledReason={t('chat.trial.not_owner')}
+                    />
+                  )}
+                </div>
               </div>
             </div>
 

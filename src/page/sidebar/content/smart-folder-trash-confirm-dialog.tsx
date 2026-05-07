@@ -49,7 +49,7 @@ export function SmartFolderTrashConfirmDialog(
               onConfirm();
               onOpenChange(false);
             }}
-            className="text-destructive"
+            className="text-destructive text-sm"
           >
             {t('ok')}
           </Button>

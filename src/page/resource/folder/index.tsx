@@ -110,6 +110,23 @@ export default function Folder(props: IProps) {
   }, [smartFolderParentId, apiPrefix, resourceId]);
 
   useEffect(() => {
+    if (!smartFolderParentId) return;
+    return app.on(
+      'smart_folder_children_updated',
+      (id: string, children: ResourceSummary[]) => {
+        if (id !== smartFolderParentId) {
+          return;
+        }
+
+        onData(children);
+        setOffset(children.length);
+        setHasMore(false);
+        onLoading(false);
+      }
+    );
+  }, [app, smartFolderParentId]);
+
+  useEffect(() => {
     return app.on('scroll-to-bottom', () => {
       if (hasMore && !loadingMore) {
         loadMore();
