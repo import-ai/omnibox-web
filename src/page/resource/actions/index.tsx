@@ -55,6 +55,7 @@ import MoveTo from './move';
 import ShareAction from './share';
 
 const hasTeamspaceCache = new Map<string, boolean>();
+const SMART_FOLDER_DIALOG_CLOSE_DELAY_MS = 200;
 
 export interface IActionProps extends IUseResource {
   wide: boolean;
@@ -137,13 +138,24 @@ export default function Actions(props: IActionProps) {
       )
       .then((response: SmartFolderResponse) => {
         setTimeout(() => {
+          const movedParentId =
+            response.resource.parent_id &&
+            response.resource.parent_id !== resource.parent_id
+              ? response.resource.parent_id
+              : '';
+          if (movedParentId) {
+            app.fire('move_resource', resource.id, movedParentId);
+          }
           app.fire('update_resource', {
             ...response.resource,
             name: payload.name,
           });
           app.fire('refresh_smart_folder_children', resource.id);
+          if (movedParentId) {
+            app.fire('scroll_to_resource', resource.id, movedParentId);
+          }
           toast.success(t('smart_folder.edit.success'));
-        }, 0);
+        }, SMART_FOLDER_DIALOG_CLOSE_DELAY_MS);
       });
   };
   const handleExitEdit = () => {

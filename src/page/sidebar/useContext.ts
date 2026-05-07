@@ -509,7 +509,11 @@ export default function useContext() {
   };
 
   // Load children of a folder and expand it
-  const loadChildren = (spaceType: SpaceType, id: string) => {
+  const loadChildren = (
+    spaceType: SpaceType,
+    id: string,
+    expandAfterLoad = true
+  ) => {
     onExpanding(id);
     const shouldNormalizeSmartFolderChildren = isSmartFolder(id);
     return http
@@ -552,7 +556,9 @@ export default function useContext() {
         if (shouldNormalizeSmartFolderChildren) {
           app.fire('smart_folder_children_updated', id, response);
         }
-        addExpandKeys([id]);
+        if (expandAfterLoad) {
+          addExpandKeys([id]);
+        }
       })
       .catch(error => {
         if (
@@ -592,7 +598,7 @@ export default function useContext() {
       return;
     }
     const spaceType = getSpaceType(resourceId);
-    loadChildren(spaceType, resourceId);
+    loadChildren(spaceType, resourceId, false);
   };
 
   const refreshLoadedSmartFolders = (excludeIds: Set<string> = new Set()) => {
