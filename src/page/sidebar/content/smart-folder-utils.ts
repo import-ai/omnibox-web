@@ -336,19 +336,20 @@ export function fromSmartFolderApiCondition(
       'start_date' in condition.value ||
       'end_date' in condition.value
     ) {
+      const value = condition.value as {
+        startDate?: string;
+        endDate?: string;
+        start_date?: string;
+        end_date?: string;
+      };
       return {
         field: condition.field,
         operator,
         value: {
           kind: 'date_range',
           startDate:
-            condition.value.startDate ||
-            condition.value.start_date ||
-            getTodayDateString(),
-          endDate:
-            condition.value.endDate ||
-            condition.value.end_date ||
-            getTodayDateString(),
+            value.startDate || value.start_date || getTodayDateString(),
+          endDate: value.endDate || value.end_date || getTodayDateString(),
         },
       };
     }
@@ -403,7 +404,7 @@ export function toSmartFolderApiPayload(
             ...condition,
             operator,
             value: {
-              amount: Number(value.amount),
+              amount: Number(normalizeRelativeDateAmount(value.amount)),
               unit: value.unit,
             },
           } as unknown as SmartFolderCondition;
@@ -503,6 +504,16 @@ export function normalizeConditionValue(
   return createDefaultValue(operator);
 }
 
+export function normalizeRelativeDateAmount(value?: string | number) {
+  const text = String(value ?? '').trim();
+
+  if (!/^\d*$/.test(text)) {
+    return '';
+  }
+
+  return text.replace(/^0+(?=\d)/, '');
+}
+
 export function isConditionComplete(condition: SmartFolderCondition) {
   if (!condition.field || !condition.operator) {
     return false;
@@ -527,7 +538,7 @@ export function isConditionComplete(condition: SmartFolderCondition) {
   }
 
   if (value.kind === 'relative_date') {
-    return /^[1-9]\d*$/.test(value.amount);
+    return /^[1-9]\d*$/.test(normalizeRelativeDateAmount(value.amount));
   }
 
   if (value.kind === 'single_date') {
