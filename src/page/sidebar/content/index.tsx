@@ -9,7 +9,9 @@ import SmartFolderCreate from '@/assets/icons/smartFolderCreate';
 import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { SidebarContent } from '@/components/ui/sidebar';
+import useConfig from '@/hooks/use-config';
 import { useIsMobile } from '@/hooks/use-mobile';
+import useProNamespaces from '@/hooks/use-pro-namespaces';
 import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
 import type { IResourceData, SpaceType } from '@/interface';
 import group from '@/lib/group';
@@ -49,6 +51,10 @@ export default function Content(props: IProps) {
   const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
+  const { config, loading: configLoading } = useConfig();
+  const { data: proNamespaces } = useProNamespaces({
+    disabled: configLoading || !config.commercial,
+  });
   const sidebarRef = useRef<HTMLDivElement>(null);
   const sidebarActiveKey =
     typeof loc.state?.sidebarActiveKey === 'string'
@@ -57,6 +63,7 @@ export default function Content(props: IProps) {
   const privateRoot = useMemo(() => group(data.private), [data]);
   const teamspaceRoot = useMemo(() => group(data.teamspace), [data]);
   const hasTeamspace = Boolean(data.teamspace?.id);
+  const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
   const privateSmartFolderCount =
     privateRoot.children?.filter(item => item.resource_type === 'smart_folder')
       .length ?? 0;
@@ -232,6 +239,7 @@ export default function Content(props: IProps) {
           onOpenChange={setCreateSmartFolderOpen}
           onConfirm={handleConfirmCreateSmartFolder}
           hasTeamspace={hasTeamspace}
+          currentNamespace={currentNamespace}
           privateSmartFolderCount={privateSmartFolderCount}
           teamSmartFolderCount={teamSmartFolderCount}
           siblingResources={
@@ -256,6 +264,7 @@ export default function Content(props: IProps) {
               spaceType={spaceType as SpaceType}
               open={openSpaces[spaceType] !== false}
               hasTeamspace={hasTeamspace}
+              currentNamespace={currentNamespace}
               fileDragTarget={fileDragTarget}
               onFileDragTarget={setFileDragTarget}
             />

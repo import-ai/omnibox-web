@@ -36,8 +36,10 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import useConfig from '@/hooks/use-config';
 import { useDeleteResource } from '@/hooks/use-delete-resource';
 import { useIsMobile } from '@/hooks/use-mobile';
+import useProNamespaces from '@/hooks/use-pro-namespaces';
 import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
 import { IUseResource } from '@/hooks/user-resource';
 import { downloadFile } from '@/lib/download-file';
@@ -55,7 +57,6 @@ import MoveTo from './move';
 import ShareAction from './share';
 
 const hasTeamspaceCache = new Map<string, boolean>();
-const SMART_FOLDER_DIALOG_CLOSE_DELAY_MS = 200;
 
 export interface IActionProps extends IUseResource {
   wide: boolean;
@@ -70,10 +71,18 @@ export default function Actions(props: IActionProps) {
   const loc = useLocation();
   const isMobile = useIsMobile();
   const { deleteResource } = useDeleteResource();
+  const { config, loading: configLoading } = useConfig();
   const { data: smartFolderEntitlements } = useSmartFolderEntitlements({
     namespaceId,
     disabled: resource?.resource_type !== 'smart_folder',
   });
+  const { data: proNamespaces } = useProNamespaces({
+    disabled:
+      resource?.resource_type !== 'smart_folder' ||
+      configLoading ||
+      !config.commercial,
+  });
+  const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);
@@ -137,25 +146,23 @@ export default function Actions(props: IActionProps) {
         payload
       )
       .then((response: SmartFolderResponse) => {
-        setTimeout(() => {
-          const movedParentId =
-            response.resource.parent_id &&
-            response.resource.parent_id !== resource.parent_id
-              ? response.resource.parent_id
-              : '';
-          if (movedParentId) {
-            app.fire('move_resource', resource.id, movedParentId);
-          }
-          app.fire('update_resource', {
-            ...response.resource,
-            name: payload.name,
-          });
-          app.fire('refresh_smart_folder_children', resource.id);
-          if (movedParentId) {
-            app.fire('scroll_to_resource', resource.id, movedParentId);
-          }
-          toast.success(t('smart_folder.edit.success'));
-        }, SMART_FOLDER_DIALOG_CLOSE_DELAY_MS);
+        const movedParentId =
+          response.resource.parent_id &&
+          response.resource.parent_id !== resource.parent_id
+            ? response.resource.parent_id
+            : '';
+        if (movedParentId) {
+          app.fire('move_resource', resource.id, movedParentId);
+        }
+        app.fire('update_resource', {
+          ...response.resource,
+          name: payload.name,
+        });
+        app.fire('refresh_smart_folder_children', resource.id);
+        if (movedParentId) {
+          app.fire('scroll_to_resource', resource.id, movedParentId);
+        }
+        toast.success(t('smart_folder.edit.success'));
       });
   };
   const handleExitEdit = () => {
@@ -613,6 +620,7 @@ export default function Actions(props: IActionProps) {
           title={t('smart_folder.edit.title')}
           confirmText={t('smart_folder.edit.submit')}
           hasTeamspace={hasTeamspace}
+          currentNamespace={currentNamespace}
           onOpenChange={setSmartFolderOpen}
           onConfirm={handleUpdateSmartFolder}
         />

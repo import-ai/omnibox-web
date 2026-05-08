@@ -17,8 +17,6 @@ import {
   SmartFolderResponse,
 } from './smart-folder-types';
 
-const SMART_FOLDER_DIALOG_CLOSE_DELAY_MS = 200;
-
 function findResourceById(
   resource: IResourceData | undefined,
   resourceId: string
@@ -117,27 +115,25 @@ export function useSmartFolderResourceActions(
         payload
       )
       .then((response: SmartFolderResponse) => {
-        setTimeout(() => {
-          const movedParentId =
-            response.resource.parent_id &&
-            response.resource.parent_id !== data.parent_id
-              ? response.resource.parent_id
-              : '';
-          if (movedParentId) {
-            app.fire('move_resource', data.id, movedParentId);
-          }
-          app.fire('update_resource', {
-            ...response.resource,
-            name: payload.name,
-          });
-          app.fire('refresh_smart_folder_children', data.id);
-          if (movedParentId) {
-            app.fire('scroll_to_resource', data.id, movedParentId);
-          } else {
-            onActiveKey(data.id);
-          }
-          toast.success(t('smart_folder.edit.success'));
-        }, SMART_FOLDER_DIALOG_CLOSE_DELAY_MS);
+        const movedParentId =
+          response.resource.parent_id &&
+          response.resource.parent_id !== data.parent_id
+            ? response.resource.parent_id
+            : '';
+        if (movedParentId) {
+          app.fire('move_resource', data.id, movedParentId);
+        }
+        app.fire('update_resource', {
+          ...response.resource,
+          name: payload.name,
+        });
+        app.fire('refresh_smart_folder_children', data.id);
+        if (movedParentId) {
+          app.fire('scroll_to_resource', data.id, movedParentId);
+        } else {
+          onActiveKey(data.id);
+        }
+        toast.success(t('smart_folder.edit.success'));
       });
   };
 

@@ -1,4 +1,4 @@
-import { IResourceData, ResourceType, SpaceType } from '@/interface';
+import { IResourceData, Namespace, ResourceType, SpaceType } from '@/interface';
 
 import { CreateSmartFolderPayload } from './content/smart-folder-types';
 
@@ -15,6 +15,7 @@ export interface ISidebarProps {
   expands: Array<string>;
   open?: boolean;
   hasTeamspace?: boolean;
+  currentNamespace?: Namespace;
   onActiveKey: (id: string, edit?: boolean, sidebarActiveKey?: string) => void;
   onUpload: (
     spaceType: SpaceType,

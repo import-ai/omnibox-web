@@ -53,6 +53,7 @@ export default function ContextMenuMain(props: IProps) {
     namespaceId,
     spaceRoot,
     hasTeamspace,
+    currentNamespace,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
@@ -303,6 +304,7 @@ export default function ContextMenuMain(props: IProps) {
         title={t('smart_folder.edit.title')}
         confirmText={t('smart_folder.edit.submit')}
         hasTeamspace={hasTeamspace}
+        currentNamespace={currentNamespace}
         onOpenChange={smartFolder.setEditSmartFolderOpen}
         onConfirm={smartFolder.handleUpdateSmartFolder}
       />

@@ -28,9 +28,8 @@ import {
   UpgradeActionButton,
   UpgradeTrialUsageTooltip,
 } from '@/components/upgrade-action-button';
-import useProNamespaces from '@/hooks/use-pro-namespaces';
 import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
-import { NamespaceTier, ResourceMeta } from '@/interface';
+import { Namespace, NamespaceTier, ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 import ActionDialog from '@/page/sidebar/switcher/action-dialog';
 
@@ -82,6 +81,7 @@ interface CreateSmartFolderDialogProps {
   siblingResources?: ResourceMeta[];
   title?: string;
   confirmText?: string;
+  currentNamespace?: Namespace;
 }
 
 function hasSiblingNameConflict(
@@ -257,11 +257,11 @@ export function CreateSmartFolderDialog({
   siblingResources,
   title,
   confirmText,
+  currentNamespace,
 }: CreateSmartFolderDialogProps) {
   const { t } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id;
-  const { data: proNamespaces } = useProNamespaces();
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
   const inputRef = useRef<HTMLInputElement>(null);
   const conditionListRef = useRef<HTMLDivElement>(null);
@@ -280,7 +280,6 @@ export function CreateSmartFolderDialog({
   >({});
   const [submitting, setSubmitting] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
-  const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
   const resolvedTier =
     entitlements?.tier ??
     (currentNamespace?.tier === NamespaceTier.PREMIUM ? 'premium' : 'basic');
