@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { MessageCircle } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -20,6 +20,15 @@ export interface IProps {
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+function openAppPathInNewTab(path: string) {
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  window.open(
+    `${window.location.origin}${normalized}`,
+    '_blank',
+    'noopener,noreferrer'
+  );
+}
+
 export default function SearchMenu({ open, onOpenChange }: IProps) {
   const params = useParams();
   const navigate = useNavigate();
@@ -28,6 +37,24 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const [items, setItems] = useState<any[]>([]);
   const [recents, setRecents] = useState<ResourceMeta[]>([]);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const skipNavigateAfterModifierClickRef = useRef(false);
+
+  const handleModifierPointerDown = useCallback(
+    (e: React.PointerEvent, path: string) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      if (!e.metaKey && !e.ctrlKey) return;
+      e.preventDefault();
+      skipNavigateAfterModifierClickRef.current = true;
+      openAppPathInNewTab(path);
+      window.setTimeout(() => {
+        if (skipNavigateAfterModifierClickRef.current) {
+          skipNavigateAfterModifierClickRef.current = false;
+        }
+      }, 0);
+    },
+    []
+  );
+
   const resources = useMemo(
     () =>
       items
@@ -123,13 +150,6 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     return () => document.removeEventListener('keydown', handleKeyDownFN);
   }, []);
 
-  useEffect(() => {
-    if (open) {
-      return;
-    }
-    setKeywords('');
-  }, [open]);
-
   return (
     <CommandDialog
       open={open}
@@ -170,7 +190,17 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                     key={item.id}
                     value={item.id}
                     className="cursor-pointer my-1"
+                    onPointerDown={e =>
+                      handleModifierPointerDown(
+                        e,
+                        `/${params.namespace_id}/${item.id}`
+                      )
+                    }
                     onSelect={() => {
+                      if (skipNavigateAfterModifierClickRef.current) {
+                        skipNavigateAfterModifierClickRef.current = false;
+                        return;
+                      }
                       navigate(`/${params.namespace_id}/${item.id}`);
                       onOpenChange(false);
                     }}
@@ -216,7 +246,17 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                   key={resourceItem.resource_id}
                   value={resourceItem.resource_id}
                   className="cursor-pointer my-1"
+                  onPointerDown={e =>
+                    handleModifierPointerDown(
+                      e,
+                      `/${params.namespace_id}/${resourceItem.resource_id}?query=${encodeURIComponent(keywords)}`
+                    )
+                  }
                   onSelect={() => {
+                    if (skipNavigateAfterModifierClickRef.current) {
+                      skipNavigateAfterModifierClickRef.current = false;
+                      return;
+                    }
                     navigate(
                       `/${params.namespace_id}/${resourceItem.resource_id}?query=${encodeURIComponent(keywords)}`
                     );
@@ -248,7 +288,17 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                 key={message.id}
                 value={message.id}
                 className="cursor-pointer my-1"
+                onPointerDown={e =>
+                  handleModifierPointerDown(
+                    e,
+                    `/${params.namespace_id}/chat/${message.conversation_id}`
+                  )
+                }
                 onSelect={() => {
+                  if (skipNavigateAfterModifierClickRef.current) {
+                    skipNavigateAfterModifierClickRef.current = false;
+                    return;
+                  }
                   navigate(
                     `/${params.namespace_id}/chat/${message.conversation_id}`
                   );
