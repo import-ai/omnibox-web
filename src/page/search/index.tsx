@@ -20,13 +20,10 @@ export interface IProps {
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function openAppPathInNewTab(path: string) {
+/** Same-origin URL for router paths (used by native ⌘/Ctrl+click → background tab). */
+function appAbsoluteUrl(path: string): string {
   const normalized = path.startsWith('/') ? path : `/${path}`;
-  window.open(
-    `${window.location.origin}${normalized}`,
-    '_blank',
-    'noopener,noreferrer'
-  );
+  return `${window.location.origin}${normalized}`;
 }
 
 export default function SearchMenu({ open, onOpenChange }: IProps) {
@@ -39,18 +36,19 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const skipNavigateAfterModifierClickRef = useRef(false);
 
-  const handleModifierPointerDown = useCallback(
-    (e: React.PointerEvent, path: string) => {
-      if (e.pointerType !== 'mouse' || e.button !== 0) return;
-      if (!e.metaKey && !e.ctrlKey) return;
+  /** Plain click: SPA navigate via cmdk onSelect. ⌘/Ctrl+click: let <a> default (browser opens background tab). */
+  const onSearchResultAnchorClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (e.metaKey || e.ctrlKey) {
+        skipNavigateAfterModifierClickRef.current = true;
+        window.setTimeout(() => {
+          if (skipNavigateAfterModifierClickRef.current) {
+            skipNavigateAfterModifierClickRef.current = false;
+          }
+        }, 0);
+        return;
+      }
       e.preventDefault();
-      skipNavigateAfterModifierClickRef.current = true;
-      openAppPathInNewTab(path);
-      window.setTimeout(() => {
-        if (skipNavigateAfterModifierClickRef.current) {
-          skipNavigateAfterModifierClickRef.current = false;
-        }
-      }, 0);
     },
     []
   );
@@ -185,27 +183,28 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                   has_children: !!item.has_children,
                   attrs: (item as any).attrs || {},
                 } as unknown as Resource;
+                const recentPath = `/${params.namespace_id}/${item.id}`;
                 return (
                   <CommandItem
                     key={item.id}
                     value={item.id}
                     className="cursor-pointer my-1"
-                    onPointerDown={e =>
-                      handleModifierPointerDown(
-                        e,
-                        `/${params.namespace_id}/${item.id}`
-                      )
-                    }
                     onSelect={() => {
                       if (skipNavigateAfterModifierClickRef.current) {
                         skipNavigateAfterModifierClickRef.current = false;
                         return;
                       }
-                      navigate(`/${params.namespace_id}/${item.id}`);
+                      navigate(recentPath);
                       onOpenChange(false);
                     }}
                   >
-                    <div className="flex flex-col items-start w-full">
+                    <a
+                      href={appAbsoluteUrl(recentPath)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-start w-full text-left text-inherit no-underline rounded-sm outline-none"
+                      onClick={onSearchResultAnchorClick}
+                    >
                       <div className="flex items-center gap-2">
                         <div className="[&>svg]:w-4 [&>svg]:h-4 text-muted-foreground">
                           <ResourceIcon
@@ -222,7 +221,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                           {(item as any).content}
                         </div>
                       )}
-                    </div>
+                    </a>
                   </CommandItem>
                 );
               })
@@ -241,29 +240,28 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                 has_children: !!(resourceItem as any).has_children,
                 attrs: (resourceItem as any).attrs || {},
               } as unknown as Resource;
+              const resourcePath = `/${params.namespace_id}/${resourceItem.resource_id}?query=${encodeURIComponent(keywords)}`;
               return (
                 <CommandItem
                   key={resourceItem.resource_id}
                   value={resourceItem.resource_id}
                   className="cursor-pointer my-1"
-                  onPointerDown={e =>
-                    handleModifierPointerDown(
-                      e,
-                      `/${params.namespace_id}/${resourceItem.resource_id}?query=${encodeURIComponent(keywords)}`
-                    )
-                  }
                   onSelect={() => {
                     if (skipNavigateAfterModifierClickRef.current) {
                       skipNavigateAfterModifierClickRef.current = false;
                       return;
                     }
-                    navigate(
-                      `/${params.namespace_id}/${resourceItem.resource_id}?query=${encodeURIComponent(keywords)}`
-                    );
+                    navigate(resourcePath);
                     onOpenChange(false);
                   }}
                 >
-                  <div className="flex flex-col items-start w-full">
+                  <a
+                    href={appAbsoluteUrl(resourcePath)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-start w-full text-left text-inherit no-underline rounded-sm outline-none"
+                    onClick={onSearchResultAnchorClick}
+                  >
                     <div className="flex items-center gap-2">
                       <div className="[&>svg]:w-4 [&>svg]:h-4 text-muted-foreground">
                         <ResourceIcon expand={false} resource={iconResource} />
@@ -275,7 +273,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                         {resourceItem.content}
                       </div>
                     )}
-                  </div>
+                  </a>
                 </CommandItem>
               );
             })}
@@ -283,32 +281,35 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
         )}
         {messages.length > 0 && (
           <CommandGroup heading={t('search.chats')}>
-            {messages.map(message => (
-              <CommandItem
-                key={message.id}
-                value={message.id}
-                className="cursor-pointer my-1"
-                onPointerDown={e =>
-                  handleModifierPointerDown(
-                    e,
-                    `/${params.namespace_id}/chat/${message.conversation_id}`
-                  )
-                }
-                onSelect={() => {
-                  if (skipNavigateAfterModifierClickRef.current) {
-                    skipNavigateAfterModifierClickRef.current = false;
-                    return;
-                  }
-                  navigate(
-                    `/${params.namespace_id}/chat/${message.conversation_id}`
-                  );
-                  onOpenChange(false);
-                }}
-              >
-                <MessageCircle className="size-4 text-muted-foreground" />
-                {message.content}
-              </CommandItem>
-            ))}
+            {messages.map(message => {
+              const chatPath = `/${params.namespace_id}/chat/${message.conversation_id}`;
+              return (
+                <CommandItem
+                  key={message.id}
+                  value={message.id}
+                  className="cursor-pointer my-1"
+                  onSelect={() => {
+                    if (skipNavigateAfterModifierClickRef.current) {
+                      skipNavigateAfterModifierClickRef.current = false;
+                      return;
+                    }
+                    navigate(chatPath);
+                    onOpenChange(false);
+                  }}
+                >
+                  <a
+                    href={appAbsoluteUrl(chatPath)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-1 items-center gap-2 min-w-0 text-left text-inherit no-underline rounded-sm outline-none"
+                    onClick={onSearchResultAnchorClick}
+                  >
+                    <MessageCircle className="size-4 shrink-0 text-muted-foreground" />
+                    <span className="truncate">{message.content}</span>
+                  </a>
+                </CommandItem>
+              );
+            })}
           </CommandGroup>
         )}
       </CommandList>
