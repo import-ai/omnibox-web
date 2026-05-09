@@ -34,6 +34,7 @@ interface SidebarItemProps {
   expandedFolders?: Set<string>;
   loadedChildren?: Record<string, ResourceMeta[]>;
   onToggleFolder?: (folderId: string) => void;
+  disableExpand?: boolean;
 }
 
 export default function SidebarItem(props: SidebarItemProps) {
@@ -47,6 +48,7 @@ export default function SidebarItem(props: SidebarItemProps) {
     expandedFolders = new Set(),
     loadedChildren = {},
     onToggleFolder,
+    disableExpand = false,
   } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -55,7 +57,7 @@ export default function SidebarItem(props: SidebarItemProps) {
   const [loading, setLoading] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const isActive = isResourceActive(resource.id);
-  const hasChildren = !!resource.has_children;
+  const hasChildren = !!resource.has_children && !disableExpand;
 
   // Use external expandedFolders state if provided
   const isControlledExpanded = expandedFolders.has(resource.id);
@@ -246,6 +248,7 @@ export default function SidebarItem(props: SidebarItemProps) {
                   expandedFolders={expandedFolders}
                   loadedChildren={loadedChildren}
                   onToggleFolder={onToggleFolder}
+                  disableExpand={resource.resource_type === 'smart_folder'}
                 />
               ))}
             </SidebarMenuSub>

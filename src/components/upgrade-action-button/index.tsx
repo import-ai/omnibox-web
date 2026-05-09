@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { getUpgradeLink } from '@/lib/upgrade-link';
+import { cn } from '@/lib/utils';
 
 type I18nValues = Record<string, unknown>;
 type TooltipSide = ComponentPropsWithoutRef<typeof TooltipContent>['side'];
@@ -35,7 +36,9 @@ export function UpgradeTrialUsageTooltip({
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger asChild>
-        <span className={triggerClassName}>{t(textKey, textValues)}</span>
+        <span className={cn(triggerClassName, 'text-sm')}>
+          {t(textKey, textValues)}
+        </span>
       </TooltipTrigger>
       <TooltipContent side={tooltipSide}>
         {tooltipItems.map((item, index) => {
@@ -82,7 +85,9 @@ export function UpgradeActionButton({
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger asChild>
-        <span className="text-muted-foreground cursor-pointer">{button}</span>
+        <span className="inline-flex text-muted-foreground cursor-pointer">
+          {button}
+        </span>
       </TooltipTrigger>
       <TooltipContent>{disabledReason}</TooltipContent>
     </Tooltip>

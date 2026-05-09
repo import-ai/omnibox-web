@@ -140,6 +140,7 @@ export default function ShareSidebar(props: SharedSidebarProps) {
     (async () => {
       hasAutoExpandedRef.current[shareId] = true;
 
+      const isSmartFolder = rootResource.resource_type === 'smart_folder';
       const allFolderIds = new Set<string>();
       let currentLevel: string[] = [rootResource.id];
 
@@ -154,9 +155,11 @@ export default function ShareSidebar(props: SharedSidebarProps) {
           const folderId = currentLevel[index];
           allFolderIds.add(folderId);
 
-          for (const child of children) {
-            if (child.has_children && !allFolderIds.has(child.id)) {
-              nextLevel.push(child.id);
+          if (!isSmartFolder) {
+            for (const child of children) {
+              if (child.has_children && !allFolderIds.has(child.id)) {
+                nextLevel.push(child.id);
+              }
             }
           }
         });

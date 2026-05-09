@@ -668,7 +668,7 @@ export function CreateSmartFolderDialog({
                 </RadioGroup>
               </div>
 
-              <div className={smartFolderNameRowClass}>
+              <div className={cn(smartFolderNameRowClass)}>
                 <Label className={smartFolderFieldLabelClass}>
                   {t('smart_folder.create.root_scope')}
                 </Label>
@@ -679,10 +679,7 @@ export function CreateSmartFolderDialog({
                   }
                 >
                   <SelectTrigger
-                    className={cn(
-                      smartFolderSelectTriggerClass,
-                      'sm:w-[360px]'
-                    )}
+                    className={cn(smartFolderSelectTriggerClass, 'sm:w-44')}
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -782,6 +779,7 @@ export function CreateSmartFolderDialog({
                       namespaceId={namespaceId}
                       hasPermission={currentNamespace?.is_owner !== false}
                       disabledReason={t('chat.trial.not_owner')}
+                      // className="text-sm"
                     />
                   )}
                 </div>

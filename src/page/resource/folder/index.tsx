@@ -47,6 +47,9 @@ export default function Folder(props: IProps) {
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const isSmartFolder = !!smartFolderParentId;
+  const folderContentApiPrefix = apiPrefix.includes('/smart-folders')
+    ? `/namespaces/${namespaceId}/resources`
+    : apiPrefix;
 
   useEffect(() => {
     onLoading(true);
@@ -189,7 +192,7 @@ export default function Folder(props: IProps) {
                     {item.resource_type === 'folder' ? (
                       <FolderContent
                         resource={item}
-                        apiPrefix={apiPrefix}
+                        apiPrefix={folderContentApiPrefix}
                         namespaceId={namespaceId}
                       />
                     ) : (
