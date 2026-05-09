@@ -1,6 +1,6 @@
 import { Resource } from '@/interface';
 
-export function isSmartFolderChildResource(resource: Resource) {
+function isSmartFolderChildResource(resource: Resource) {
   return resource.attrs?.__smart_folder_child === true;
 }
 
@@ -22,15 +22,4 @@ export function getSmartFolderChildSidebarKey(
   sourceResourceId: string
 ) {
   return `smart-folder-child-${parentId}-${sourceResourceId}`;
-}
-
-export function getSmartFolderChildEditSidebarKey(resource: Resource) {
-  if (!isSmartFolderChildResource(resource)) {
-    return undefined;
-  }
-
-  return getSmartFolderChildSidebarKey(
-    resource.parent_id,
-    getSmartFolderSourceResourceId(resource)
-  );
 }

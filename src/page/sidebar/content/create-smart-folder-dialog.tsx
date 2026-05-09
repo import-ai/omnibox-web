@@ -52,11 +52,9 @@ import {
   getInitialConditionForField,
   isConditionComplete,
   normalizeConditionValue,
-  normalizeSmartFolderPayload,
   shouldShowValueInput,
   toSmartFolderApiPayload,
 } from './smart-folder-utils';
-import { stopRootContextMenuPropagation } from './space-menu';
 import {
   smartFolderDialogContentClass,
   smartFolderDialogTitleClass,
@@ -550,15 +548,13 @@ export function CreateSmartFolderDialog({
 
     setNameError('');
     setConditionErrors({});
-    return toSmartFolderApiPayload(
-      normalizeSmartFolderPayload({
-        name: trimmedName,
-        ownerScope,
-        rootScope,
-        matchMode: validConditions.length > 1 ? matchMode : 'all',
-        conditions: validConditions,
-      })
-    );
+    return toSmartFolderApiPayload({
+      name: trimmedName,
+      ownerScope,
+      rootScope,
+      matchMode: validConditions.length > 1 ? matchMode : 'all',
+      conditions: validConditions,
+    });
   };
 
   const handleConfirm = async () => {
@@ -625,7 +621,7 @@ export function CreateSmartFolderDialog({
         closeClassName="size-6 mr-2"
         closeWrapperClassName="right-5 top-6"
         contentProps={{
-          onContextMenu: stopRootContextMenuPropagation,
+          onContextMenu: event => event.stopPropagation(),
         }}
       >
         <div className="space-y-4">

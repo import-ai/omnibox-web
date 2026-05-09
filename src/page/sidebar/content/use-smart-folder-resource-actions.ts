@@ -8,7 +8,7 @@ import { http } from '@/lib/request';
 import { ISidebarProps } from '@/page/sidebar/interface';
 
 import {
-  getSmartFolderChildEditSidebarKey,
+  getSmartFolderChildSidebarKey,
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
 } from './smart-folder-resource-utils';
@@ -85,7 +85,9 @@ export function useSmartFolderResourceActions(
     onActiveKey(
       sourceResourceId,
       true,
-      isSmartFolderChild ? getSmartFolderChildEditSidebarKey(data) : undefined
+      isSmartFolderChild
+        ? getSmartFolderChildSidebarKey(data.parent_id, sourceResourceId)
+        : undefined
     );
   };
 

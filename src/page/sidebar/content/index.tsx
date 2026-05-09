@@ -21,14 +21,38 @@ import { TrashPanel } from '@/page/sidebar/trash';
 import { CreateSmartFolderDialog } from './create-smart-folder-dialog';
 import {
   CreateSmartFolderPayload,
+  SmartFolderEntitlements,
   SmartFolderOwnerScope,
 } from './smart-folder-types';
 import Space from './space';
-import { getToolbarSmartFolderState } from './space-menu';
 
 // Auto-scroll trigger zone
 const EDGE_SIZE = 60;
 const MAX_SCROLL_SPEED = 600; // px per second
+
+function getToolbarSmartFolderState(
+  entitlements: SmartFolderEntitlements | undefined,
+  actualCounts: {
+    privateCount: number;
+    teamCount: number;
+    hasTeamspace?: boolean;
+  }
+) {
+  const privateLimit = entitlements?.privateLimit ?? 1;
+  const teamLimit = entitlements?.teamLimit ?? 1;
+  const privateExhausted =
+    privateLimit >= 0 && actualCounts.privateCount >= privateLimit;
+  const teamExhausted = teamLimit >= 0 && actualCounts.teamCount >= teamLimit;
+
+  return {
+    disabled: actualCounts.hasTeamspace
+      ? privateExhausted && teamExhausted
+      : privateExhausted,
+    disabledMessageKey: actualCounts.hasTeamspace
+      ? 'smart_folder.create.all_quota_exhausted'
+      : 'smart_folder.create.quota_exhausted',
+  };
+}
 
 export interface IProps extends Omit<
   ISidebarProps,

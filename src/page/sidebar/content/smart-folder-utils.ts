@@ -177,13 +177,6 @@ export function getConditionLimitValue(tier?: SmartFolderNamespaceTier) {
   return tier === 'premium' ? PREMIUM_CONDITION_LIMIT : BASIC_CONDITION_LIMIT;
 }
 
-export function getRemainingConditionCount(
-  currentCount: number,
-  tier?: SmartFolderNamespaceTier
-) {
-  return Math.max(getConditionLimitValue(tier) - currentCount, 0);
-}
-
 export function getConditionLimitMessage(tier?: SmartFolderNamespaceTier) {
   return tier === 'premium'
     ? 'smart_folder.create.limit_reached_premium'
@@ -367,80 +360,67 @@ export function fromSmartFolderApiCondition(
 export function toSmartFolderApiPayload(
   payload: CreateSmartFolderPayload
 ): CreateSmartFolderPayload {
+  const normalizedConditions = payload.conditions
+    .map(condition => normalizeCondition(condition))
+    .filter((condition): condition is SmartFolderCondition => !!condition);
+
   return {
     name: payload.name.trim(),
     ownerScope: payload.ownerScope,
     rootScope: payload.rootScope,
     matchMode: payload.matchMode,
-    conditions: payload.conditions
-      .map(condition => normalizeCondition(condition))
-      .filter((condition): condition is SmartFolderCondition => !!condition)
-      .map(condition => {
-        const operator = toApiOperator(condition.operator);
-        const value = condition.value;
+    conditions: normalizedConditions.map(condition => {
+      const operator = toApiOperator(condition.operator);
+      const value = condition.value;
 
-        if (!operator) {
-          return condition;
-        }
+      if (!operator) {
+        return condition;
+      }
 
-        if (typeof value === 'string' || value === undefined) {
-          return {
-            ...condition,
-            operator,
-            ...(value !== undefined ? { value } : {}),
-          } as SmartFolderCondition;
-        }
+      if (typeof value === 'string' || value === undefined) {
+        return {
+          ...condition,
+          operator,
+          ...(value !== undefined ? { value } : {}),
+        } as SmartFolderCondition;
+      }
 
-        if (value.kind === 'text') {
-          return {
-            ...condition,
-            operator,
-            value: value.text.trim(),
-          } as SmartFolderCondition;
-        }
+      if (value.kind === 'text') {
+        return {
+          ...condition,
+          operator,
+          value: value.text.trim(),
+        } as SmartFolderCondition;
+      }
 
-        if (value.kind === 'relative_date') {
-          return {
-            ...condition,
-            operator,
-            value: {
-              amount: Number(normalizeRelativeDateAmount(value.amount)),
-              unit: value.unit,
-            },
-          } as unknown as SmartFolderCondition;
-        }
-
-        if (value.kind === 'single_date') {
-          return {
-            ...condition,
-            operator,
-            value: { date: value.date },
-          } as SmartFolderCondition;
-        }
-
+      if (value.kind === 'relative_date') {
         return {
           ...condition,
           operator,
           value: {
-            startDate: value.startDate,
-            endDate: value.endDate,
+            amount: Number(normalizeRelativeDateAmount(value.amount)),
+            unit: value.unit,
           },
-        } as SmartFolderCondition;
-      }),
-  };
-}
+        } as unknown as SmartFolderCondition;
+      }
 
-export function normalizeSmartFolderPayload(
-  payload: CreateSmartFolderPayload
-): CreateSmartFolderPayload {
-  return {
-    name: payload.name.trim(),
-    ownerScope: payload.ownerScope,
-    rootScope: payload.rootScope,
-    matchMode: payload.matchMode,
-    conditions: payload.conditions
-      .map(condition => normalizeCondition(condition))
-      .filter((condition): condition is SmartFolderCondition => !!condition),
+      if (value.kind === 'single_date') {
+        return {
+          ...condition,
+          operator,
+          value: { date: value.date },
+        } as SmartFolderCondition;
+      }
+
+      return {
+        ...condition,
+        operator,
+        value: {
+          startDate: value.startDate,
+          endDate: value.endDate,
+        },
+      } as SmartFolderCondition;
+    }),
   };
 }
 
