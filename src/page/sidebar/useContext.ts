@@ -21,7 +21,7 @@ import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
 import {
-  CreateSmartFolderPayload,
+  CreateSmartFolderRequest,
   SmartFolderResponse,
 } from './content/smart-folder-types';
 
@@ -387,13 +387,13 @@ export default function useContext() {
   const handleCreateSmartFolder = (
     spaceType: SpaceType,
     parentId: string,
-    payload: CreateSmartFolderPayload
+    payload: CreateSmartFolderRequest
   ) => {
     onEditingKey(parentId);
     return http
       .post(`/namespaces/${namespaceId}/smart-folders`, {
         ...payload,
-        parentId,
+        parent_id: parentId,
       })
       .then((response: SmartFolderResponse) => {
         setTimeout(() => {

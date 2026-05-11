@@ -114,21 +114,23 @@ function getRangeMiddle(range?: DateRange) {
   };
 }
 
-function getDisplayText(range?: DateRange, language?: string) {
+function getDisplayText(
+  range?: DateRange,
+  language?: string,
+  displayFormat?: string
+) {
   if (!range?.from) {
     return '';
   }
 
   const locale = language?.startsWith('zh') ? zhCN : enUS;
-  const displayFormat = language?.startsWith('zh')
-    ? 'yyyy年MM月dd日'
-    : 'LLL dd, y';
+  const formatPattern = displayFormat || 'LLL dd, y';
 
   if (!range.to) {
-    return format(range.from, displayFormat, { locale });
+    return format(range.from, formatPattern, { locale });
   }
 
-  return `${format(range.from, displayFormat, { locale })} - ${format(range.to, displayFormat, { locale })}`;
+  return `${format(range.from, formatPattern, { locale })} - ${format(range.to, formatPattern, { locale })}`;
 }
 
 function SmartFolderRangeDayButton({
@@ -229,6 +231,7 @@ export function SmartFolderDateRangePicker(
   const { className, disabled, startDate, endDate, onChange } = props;
   const { i18n, t } = useTranslation();
   const calendarLocale = i18n.language?.startsWith('zh') ? zhCN : enUS;
+  const displayFormat = t('smart_folder.date_format');
   const [selectionState, setSelectionState] =
     useState<SmartFolderRangeSelectionState>({ nextStep: 'start' });
 
@@ -275,7 +278,7 @@ export function SmartFolderDateRangePicker(
           <CalendarIcon className="shrink-0" />
           <span className="min-w-0 truncate">
             {visibleRange?.from
-              ? getDisplayText(visibleRange, i18n.language)
+              ? getDisplayText(visibleRange, i18n.language, displayFormat)
               : t('smart_folder.create.pick_date')}
           </span>
         </Button>

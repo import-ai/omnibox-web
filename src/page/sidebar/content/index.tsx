@@ -20,7 +20,7 @@ import { TrashPanel } from '@/page/sidebar/trash';
 
 import { CreateSmartFolderDialog } from './create-smart-folder-dialog';
 import {
-  CreateSmartFolderPayload,
+  CreateSmartFolderRequest,
   SmartFolderEntitlements,
   SmartFolderOwnerScope,
 } from './smart-folder-types';
@@ -38,6 +38,13 @@ function getToolbarSmartFolderState(
     hasTeamspace?: boolean;
   }
 ) {
+  if (!entitlements) {
+    return {
+      disabled: false,
+      disabledMessageKey: 'actions.create_smart_folder',
+    };
+  }
+
   const privateLimit = entitlements?.privateLimit ?? 1;
   const teamLimit = entitlements?.teamLimit ?? 1;
   const privateExhausted =
@@ -89,12 +96,16 @@ export default function Content(props: IProps) {
   const hasTeamspace = Boolean(data.teamspace?.id);
   const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
   const privateSmartFolderCount =
+    entitlements?.privateUsed ??
     privateRoot.children?.filter(item => item.resource_type === 'smart_folder')
-      .length ?? 0;
+      .length ??
+    0;
   const teamSmartFolderCount =
+    entitlements?.teamUsed ??
     teamspaceRoot.children?.filter(
       item => item.resource_type === 'smart_folder'
-    ).length ?? 0;
+    ).length ??
+    0;
   const toolbarSmartFolderState = getToolbarSmartFolderState(entitlements, {
     privateCount: privateSmartFolderCount,
     teamCount: teamSmartFolderCount,
@@ -105,9 +116,9 @@ export default function Content(props: IProps) {
     onTarget(null);
   };
   const handleConfirmCreateSmartFolder = (
-    payload: CreateSmartFolderPayload
+    payload: CreateSmartFolderRequest
   ) => {
-    const ownerScope: SmartFolderOwnerScope = payload.ownerScope;
+    const ownerScope: SmartFolderOwnerScope = payload.owner_scope;
     const targetRoot = ownerScope === 'teamspace' ? teamspaceRoot : privateRoot;
     return props.onCreateSmartFolder(ownerScope, targetRoot.id, payload);
   };
@@ -242,7 +253,7 @@ export default function Content(props: IProps) {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-7 text-muted-foreground"
+                  className="size-7 rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   disabled={toolbarSmartFolderState.disabled}
                   onClick={() => setCreateSmartFolderOpen(true)}
                   aria-label={t('actions.create_smart_folder')}
@@ -266,11 +277,10 @@ export default function Content(props: IProps) {
           currentNamespace={currentNamespace}
           privateSmartFolderCount={privateSmartFolderCount}
           teamSmartFolderCount={teamSmartFolderCount}
-          siblingResources={
-            privateRoot.children?.concat(teamspaceRoot.children || []) ||
-            teamspaceRoot.children ||
-            []
-          }
+          siblingResourcesByScope={{
+            private: privateRoot.children || [],
+            teamspace: teamspaceRoot.children || [],
+          }}
         />
         {Object.keys(data)
           .sort()

@@ -50,6 +50,7 @@ import { CreateSmartFolderDialog } from '@/page/sidebar/content/create-smart-fol
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/content/smart-folder-trash-confirm-dialog';
 import {
   CreateSmartFolderPayload,
+  CreateSmartFolderRequest,
   SmartFolderResponse,
 } from '@/page/sidebar/content/smart-folder-types';
 
@@ -122,10 +123,9 @@ export default function Actions(props: IActionProps) {
         .then((response: SmartFolderResponse) => {
           setSmartFolderInitial({
             name: response.resource.name || '',
-            ownerScope:
-              response.ownerScope || response.owner_scope || 'private',
-            rootScope: response.rootScope || response.root_scope || 'private',
-            matchMode: response.matchMode || response.match_mode || 'all',
+            ownerScope: response.owner_scope || 'private',
+            rootScope: response.root_scope || 'private',
+            matchMode: response.match_mode || 'all',
             conditions: response.conditions || [],
           });
           setSmartFolderOpen(true);
@@ -137,7 +137,7 @@ export default function Actions(props: IActionProps) {
     });
   };
 
-  const handleUpdateSmartFolder = (payload: CreateSmartFolderPayload) => {
+  const handleUpdateSmartFolder = (payload: CreateSmartFolderRequest) => {
     if (!resource) return Promise.reject();
 
     return http
@@ -159,6 +159,7 @@ export default function Actions(props: IActionProps) {
           name: payload.name,
         });
         app.fire('refresh_smart_folder_children', resource.id);
+        app.fire('smart_folder_entitlements_refetch');
         if (movedParentId) {
           app.fire('scroll_to_resource', resource.id, movedParentId);
         }

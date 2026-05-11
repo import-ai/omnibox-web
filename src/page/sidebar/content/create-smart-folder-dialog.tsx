@@ -1,19 +1,7 @@
 import { Plus } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 
 import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -28,587 +16,71 @@ import {
   UpgradeActionButton,
   UpgradeTrialUsageTooltip,
 } from '@/components/upgrade-action-button';
-import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
-import { Namespace, NamespaceTier, ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 import ActionDialog from '@/page/sidebar/switcher/action-dialog';
 
+import { getDefaultRootScope } from './create-smart-folder-dialog-helpers';
+import { CreateSmartFolderDialogProps } from './create-smart-folder-dialog-types';
 import { SmartFolderConditionRow } from './smart-folder-condition-row';
+import { SmartFolderDialogFooter } from './smart-folder-dialog-footer';
 import {
-  CreateSmartFolderPayload,
-  SmartFolderCondition,
-  SmartFolderField,
   SmartFolderMatchMode,
-  SmartFolderOperator,
   SmartFolderOwnerScope,
   SmartFolderRootScope,
 } from './smart-folder-types';
-import {
-  createDefaultCondition,
-  fromSmartFolderApiCondition,
-  getConditionLimitMessage,
-  getConditionLimitValue,
-  getDefaultOperator,
-  getInitialConditionForField,
-  isConditionComplete,
-  normalizeConditionValue,
-  shouldShowValueInput,
-  toSmartFolderApiPayload,
-} from './smart-folder-utils';
+import { SmartFolderUnsavedDialog } from './smart-folder-unsaved-dialog';
 import {
   smartFolderDialogContentClass,
   smartFolderDialogTitleClass,
   smartFolderFieldLabelClass,
-  smartFolderFooterButtonClass,
   smartFolderInputClass,
   smartFolderMatchRowClass,
   smartFolderNameRowClass,
   smartFolderSelectTriggerClass,
 } from './styles';
+import { useCreateSmartFolderDialogState } from './use-create-smart-folder-dialog-state';
 
-const MAX_NAME_LENGTH = 128;
-interface CreateSmartFolderDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: (payload: CreateSmartFolderPayload) => Promise<void>;
-  currentResourceId?: string;
-  initialValue?: CreateSmartFolderPayload | null;
-  hasTeamspace?: boolean;
-  privateSmartFolderCount?: number;
-  teamSmartFolderCount?: number;
-  siblingResources?: ResourceMeta[];
-  title?: string;
-  confirmText?: string;
-  currentNamespace?: Namespace;
-}
-
-function hasSiblingNameConflict(
-  siblings: ResourceMeta[] | undefined,
-  name: string,
-  currentResourceId?: string
-) {
-  return siblings?.some(resource => {
-    if (resource.id === currentResourceId) {
-      return false;
-    }
-
-    return resource.name?.trim() === name;
-  });
-}
-
-function normalizeInitialConditions(
-  conditions?: SmartFolderCondition[]
-): SmartFolderCondition[] {
-  if (!conditions?.length) {
-    return [createDefaultCondition()];
-  }
-
-  return conditions.map(condition => {
-    const normalizedCondition = fromSmartFolderApiCondition(condition);
-
-    if (!normalizedCondition?.field) {
-      return {};
-    }
-
-    return {
-      ...normalizedCondition,
-      value: normalizeConditionValue(
-        normalizedCondition.field,
-        normalizedCondition.operator,
-        normalizedCondition.value
-      ),
-    };
-  });
-}
-
-function serializeConditionValueForDirtyCheck(
-  value?: SmartFolderCondition['value']
-) {
-  if (!value) {
-    return null;
-  }
-
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  if (value.kind === 'text') {
-    return {
-      kind: value.kind,
-      text: value.text,
-    };
-  }
-
-  if (value.kind === 'relative_date') {
-    return {
-      kind: value.kind,
-      amount: value.amount,
-      unit: value.unit,
-    };
-  }
-
-  if (value.kind === 'single_date') {
-    return {
-      kind: value.kind,
-      date: value.date,
-    };
-  }
-
-  return {
-    kind: value.kind,
-    startDate: value.startDate,
-    endDate: value.endDate,
-  };
-}
-
-function getSmartFolderQuotaUsed(
-  entitlements: ReturnType<typeof useSmartFolderEntitlements>['data'],
-  scope: SmartFolderOwnerScope,
-  actualCount?: number
-) {
-  if (typeof actualCount === 'number') {
-    return actualCount;
-  }
-
-  return scope === 'private'
-    ? (entitlements?.privateUsed ?? 0)
-    : (entitlements?.teamUsed ?? 0);
-}
-
-function getSmartFolderQuotaLimit(
-  entitlements: ReturnType<typeof useSmartFolderEntitlements>['data'],
-  scope: SmartFolderOwnerScope
-) {
-  return scope === 'private'
-    ? (entitlements?.privateLimit ?? 1)
-    : (entitlements?.teamLimit ?? 1);
-}
-
-function isSmartFolderQuotaExhausted(
-  entitlements: ReturnType<typeof useSmartFolderEntitlements>['data'],
-  scope: SmartFolderOwnerScope,
-  actualCount?: number
-) {
-  const limit = getSmartFolderQuotaLimit(entitlements, scope);
-  return (
-    limit >= 0 &&
-    getSmartFolderQuotaUsed(entitlements, scope, actualCount) >= limit
-  );
-}
-
-function getDefaultOwnerScope(
-  entitlements: ReturnType<typeof useSmartFolderEntitlements>['data'],
-  privateSmartFolderCount?: number,
-  teamSmartFolderCount?: number
-): SmartFolderOwnerScope {
-  return isSmartFolderQuotaExhausted(
-    entitlements,
-    'private',
-    privateSmartFolderCount
-  ) &&
-    !isSmartFolderQuotaExhausted(
-      entitlements,
-      'teamspace',
-      teamSmartFolderCount
-    )
-    ? 'teamspace'
-    : 'private';
-}
-
-function getDefaultRootScope(ownerScope: SmartFolderOwnerScope) {
-  return ownerScope === 'teamspace' ? 'teamspace' : 'private';
-}
-
-function serializeConditionsForDirtyCheck(conditions: SmartFolderCondition[]) {
-  return conditions.map(condition => ({
-    field: condition.field ?? null,
-    operator: condition.operator ?? null,
-    value: serializeConditionValueForDirtyCheck(condition.value),
-  }));
-}
-
-function getDialogSnapshot(
-  name: string,
-  ownerScope: SmartFolderOwnerScope,
-  rootScope: SmartFolderRootScope,
-  matchMode: SmartFolderMatchMode,
-  conditions: SmartFolderCondition[]
-) {
-  return JSON.stringify({
+export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
+  const { open, hasTeamspace = true, confirmText, currentNamespace } = props;
+  const state = useCreateSmartFolderDialogState(props);
+  const {
+    t,
+    namespaceId,
+    inputRef,
+    conditionListRef,
     name,
     ownerScope,
+    setOwnerScope,
     rootScope,
+    setRootScope,
     matchMode,
-    conditions: serializeConditionsForDirtyCheck(conditions),
-  });
-}
-
-export function CreateSmartFolderDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-  currentResourceId,
-  initialValue,
-  hasTeamspace = true,
-  privateSmartFolderCount = 0,
-  teamSmartFolderCount = 0,
-  siblingResources,
-  title,
-  confirmText,
-  currentNamespace,
-}: CreateSmartFolderDialogProps) {
-  const { t } = useTranslation();
-  const params = useParams();
-  const namespaceId = params.namespace_id;
-  const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
-  const inputRef = useRef<HTMLInputElement>(null);
-  const conditionListRef = useRef<HTMLDivElement>(null);
-  const shouldScrollToLatestConditionRef = useRef(false);
-  const [name, setName] = useState('');
-  const [ownerScope, setOwnerScope] =
-    useState<SmartFolderOwnerScope>('private');
-  const [rootScope, setRootScope] = useState<SmartFolderRootScope>('private');
-  const [matchMode, setMatchMode] = useState<SmartFolderMatchMode>('all');
-  const [conditions, setConditions] = useState<SmartFolderCondition[]>([
-    createDefaultCondition(),
-  ]);
-  const [nameError, setNameError] = useState('');
-  const [conditionErrors, setConditionErrors] = useState<
-    Record<number, string>
-  >({});
-  const [submitting, setSubmitting] = useState(false);
-  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
-  const resolvedTier =
-    entitlements?.tier ??
-    (currentNamespace?.tier === NamespaceTier.PREMIUM ? 'premium' : 'basic');
-  const maxConditionCount =
-    entitlements?.ruleLimit ?? getConditionLimitValue(resolvedTier);
-  const remainingConditionCount = Math.max(
-    maxConditionCount - conditions.length,
-    0
-  );
-  const disableAddMessage = t(getConditionLimitMessage(resolvedTier));
-  const showUpgradeButton = resolvedTier === 'basic';
-  const initialSnapshotRef = useRef('');
-  const initializedDialogKeyRef = useRef('');
-
-  useEffect(() => {
-    if (!shouldScrollToLatestConditionRef.current) {
-      return;
-    }
-
-    shouldScrollToLatestConditionRef.current = false;
-    conditionListRef.current?.scrollTo({
-      top: conditionListRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
-  }, [conditions.length]);
-
-  useEffect(() => {
-    if (!open) {
-      initializedDialogKeyRef.current = '';
-      return;
-    }
-
-    const initialValueKey = initialValue
-      ? getDialogSnapshot(
-          initialValue.name || '',
-          initialValue.ownerScope || 'private',
-          initialValue.rootScope ||
-            getDefaultRootScope(initialValue.ownerScope),
-          initialValue.matchMode || 'all',
-          normalizeInitialConditions(initialValue.conditions)
-        )
-      : 'create';
-    if (initializedDialogKeyRef.current === initialValueKey) {
-      return;
-    }
-    initializedDialogKeyRef.current = initialValueKey;
-
-    const initialName = initialValue?.name || '';
-    const initialOwnerScope = initialValue
-      ? initialValue.ownerScope || 'private'
-      : hasTeamspace
-        ? getDefaultOwnerScope(
-            entitlements,
-            privateSmartFolderCount,
-            teamSmartFolderCount
-          )
-        : 'private';
-    const initialRootScope =
-      initialOwnerScope === 'teamspace'
-        ? 'teamspace'
-        : initialValue?.rootScope || getDefaultRootScope(initialOwnerScope);
-    const initialMatchMode = initialValue?.matchMode || 'all';
-    const initialConditions = normalizeInitialConditions(
-      initialValue?.conditions
-    );
-
-    setName(initialName);
-    setOwnerScope(initialOwnerScope);
-    setRootScope(initialRootScope);
-    setMatchMode(initialMatchMode);
-    setConditions(initialConditions);
-    setNameError('');
-    setConditionErrors({});
-    setConfirmCloseOpen(false);
-    shouldScrollToLatestConditionRef.current = false;
-    initialSnapshotRef.current = getDialogSnapshot(
-      initialName,
-      initialOwnerScope,
-      initialRootScope,
-      initialMatchMode,
-      initialConditions
-    );
-    window.setTimeout(() => {
-      inputRef.current?.focus();
-    }, 50);
-  }, [
-    open,
-    initialValue,
-    hasTeamspace,
-    entitlements,
-    privateSmartFolderCount,
-    teamSmartFolderCount,
-  ]);
-
-  const personalQuotaExhausted = isSmartFolderQuotaExhausted(
-    entitlements,
-    'private',
-    privateSmartFolderCount
-  );
-  const teamQuotaExhausted = isSmartFolderQuotaExhausted(
-    entitlements,
-    'teamspace',
-    teamSmartFolderCount
-  );
-  const ownerOptions: Array<{
-    value: SmartFolderOwnerScope;
-    labelKey: string;
-    disabled: boolean;
-    disabledMessageKey: string;
-  }> = [
-    {
-      value: 'private',
-      labelKey: 'smart_folder.scope.personal',
-      disabled: personalQuotaExhausted,
-      disabledMessageKey: 'smart_folder.create.personal_quota_exhausted',
-    },
-    {
-      value: 'teamspace',
-      labelKey: 'smart_folder.scope.team',
-      disabled: teamQuotaExhausted,
-      disabledMessageKey: 'smart_folder.create.team_quota_exhausted',
-    },
-  ];
-  const rootScopeOptions: Array<{
-    value: SmartFolderRootScope;
-    labelKey: string;
-  }> =
-    ownerScope === 'teamspace'
-      ? [{ value: 'teamspace', labelKey: 'smart_folder.scope.team' }]
-      : [
-          { value: 'private', labelKey: 'smart_folder.scope.personal' },
-          { value: 'teamspace', labelKey: 'smart_folder.scope.team' },
-          { value: 'all', labelKey: 'smart_folder.scope.all' },
-        ];
-  const canAddCondition = conditions.length < maxConditionCount;
-  const effectiveConditions = conditions.filter(condition => condition.field);
-  const ownerScopeAvailable =
-    ownerOptions.find(option => option.value === ownerScope)?.disabled !== true;
-  const canSubmit =
-    !!name.trim() &&
-    ownerScopeAvailable &&
-    effectiveConditions.length > 0 &&
-    effectiveConditions.every(isConditionComplete);
-
-  const addCondition = (afterIndex?: number) => {
-    if (!canAddCondition) {
-      return;
-    }
-
-    shouldScrollToLatestConditionRef.current = true;
-    setConditions(prev => {
-      const next = [...prev];
-      next.splice((afterIndex ?? prev.length - 1) + 1, 0, {});
-      return next;
-    });
-  };
-
-  const removeCondition = (index: number) => {
-    if (conditions.length <= 1) {
-      return;
-    }
-
-    setConditions(prev =>
-      prev.filter((_, currentIndex) => currentIndex !== index)
-    );
-    setConditionErrors(prev => {
-      const nextErrors: Record<number, string> = {};
-      Object.entries(prev).forEach(([key, value]) => {
-        const currentIndex = Number(key);
-        if (currentIndex < index) {
-          nextErrors[currentIndex] = value;
-        }
-        if (currentIndex > index) {
-          nextErrors[currentIndex - 1] = value;
-        }
-      });
-      return nextErrors;
-    });
-  };
-
-  const updateCondition = (
-    index: number,
-    patch: Partial<SmartFolderCondition>
-  ) => {
-    setConditions(prev =>
-      prev.map((condition, currentIndex) =>
-        currentIndex === index ? { ...condition, ...patch } : condition
-      )
-    );
-    setConditionErrors(prev => {
-      const next = { ...prev };
-      delete next[index];
-      return next;
-    });
-  };
-
-  const handleFieldChange = (index: number, field: SmartFolderField) => {
-    updateCondition(index, getInitialConditionForField(field));
-  };
-
-  const handleOperatorChange = (
-    index: number,
-    operator: SmartFolderOperator
-  ) => {
-    const currentCondition = conditions[index];
-    updateCondition(index, {
-      operator,
-      value: normalizeConditionValue(
-        currentCondition.field,
-        operator,
-        shouldShowValueInput(operator) ? currentCondition.value : undefined
-      ),
-    });
-  };
-
-  const handleValueChange = (
-    index: number,
-    value: SmartFolderCondition['value']
-  ) => {
-    const currentCondition = conditions[index];
-    updateCondition(index, {
-      value: normalizeConditionValue(
-        currentCondition.field,
-        currentCondition.operator || getDefaultOperator(currentCondition.field),
-        value
-      ),
-    });
-  };
-
-  const validate = () => {
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      setNameError(t('smart_folder.validation.name_required'));
-      return null;
-    }
-    if (name.length > MAX_NAME_LENGTH) {
-      setNameError(t('smart_folder.validation.name_too_long'));
-      return null;
-    }
-    if (!ownerScopeAvailable) {
-      return null;
-    }
-    if (
-      hasSiblingNameConflict(siblingResources, trimmedName, currentResourceId)
-    ) {
-      setNameError(t('smart_folder.validation.name_exists'));
-      return null;
-    }
-
-    const nextErrors: Record<number, string> = {};
-    const validConditions = conditions.filter(condition => condition.field);
-    validConditions.forEach(condition => {
-      const sourceIndex = conditions.indexOf(condition);
-      if (!isConditionComplete(condition)) {
-        nextErrors[sourceIndex] = t(
-          'smart_folder.validation.condition_incomplete'
-        );
-      }
-    });
-
-    if (Object.keys(nextErrors).length > 0 || validConditions.length <= 0) {
-      if (validConditions.length <= 0) {
-        nextErrors[0] = t('smart_folder.validation.condition_incomplete');
-      }
-      setConditionErrors(nextErrors);
-      return null;
-    }
-
-    setNameError('');
-    setConditionErrors({});
-    return toSmartFolderApiPayload({
-      name: trimmedName,
-      ownerScope,
-      rootScope,
-      matchMode: validConditions.length > 1 ? matchMode : 'all',
-      conditions: validConditions,
-    });
-  };
-
-  const handleConfirm = async () => {
-    const payload = validate();
-    if (!payload) {
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      await onConfirm(payload);
-      closeDialog();
-    } catch {
-      // Keep dialog open when request fails.
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const dialogTitle = useMemo(
-    () => title || t('smart_folder.create.title'),
-    [t, title]
-  );
-
-  const hasUnsavedChanges =
-    getDialogSnapshot(name, ownerScope, rootScope, matchMode, conditions) !==
-    initialSnapshotRef.current;
-
-  const closeDialog = () => {
-    setConfirmCloseOpen(false);
-    onOpenChange(false);
-  };
-
-  const handleRequestClose = () => {
-    if (submitting) {
-      return;
-    }
-
-    if (!hasUnsavedChanges) {
-      closeDialog();
-      return;
-    }
-
-    setConfirmCloseOpen(true);
-  };
-
-  const handleDialogOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
-      onOpenChange(true);
-      return;
-    }
-
-    handleRequestClose();
-  };
+    setMatchMode,
+    conditions,
+    nameError,
+    conditionErrors,
+    submitting,
+    confirmCloseOpen,
+    setConfirmCloseOpen,
+    maxConditionCount,
+    remainingConditionCount,
+    disableAddMessage,
+    showUpgradeButton,
+    ownerOptions,
+    rootScopeOptions,
+    canAddCondition,
+    canSubmit,
+    addCondition,
+    removeCondition,
+    handleFieldChange,
+    handleOperatorChange,
+    handleValueChange,
+    handleConfirm,
+    dialogTitle,
+    closeDialog,
+    handleRequestClose,
+    handleDialogOpenChange,
+    handleNameChange,
+  } = state;
 
   return (
     <>
@@ -709,16 +181,7 @@ export function CreateSmartFolderDialog({
                 value={name}
                 autoComplete="off"
                 placeholder={t('smart_folder.create.placeholder')}
-                onChange={event => {
-                  const nextName = event.target.value;
-
-                  setName(nextName);
-                  setNameError(
-                    nextName.length > MAX_NAME_LENGTH
-                      ? t('smart_folder.validation.name_too_long')
-                      : ''
-                  );
-                }}
+                onChange={event => handleNameChange(event.target.value)}
                 className={cn(
                   smartFolderInputClass,
                   'text-base',
@@ -779,7 +242,6 @@ export function CreateSmartFolderDialog({
                       namespaceId={namespaceId}
                       hasPermission={currentNamespace?.is_owner !== false}
                       disabledReason={t('chat.trial.not_owner')}
-                      // className="text-sm"
                     />
                   )}
                 </div>
@@ -827,43 +289,21 @@ export function CreateSmartFolderDialog({
           </div>
         </div>
 
-        <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end sm:space-x-2">
-          <Button
-            variant="outline"
-            className={smartFolderFooterButtonClass}
-            onClick={handleRequestClose}
-            disabled={submitting}
-          >
-            {t('cancel')}
-          </Button>
-          <Button
-            className={smartFolderFooterButtonClass}
-            onClick={handleConfirm}
-            disabled={!name.trim() || !canSubmit || submitting}
-            loading={submitting}
-          >
-            {confirmText || t('create')}
-          </Button>
-        </div>
+        <SmartFolderDialogFooter
+          canSubmit={canSubmit}
+          confirmText={confirmText}
+          name={name}
+          submitting={submitting}
+          onCancel={handleRequestClose}
+          onConfirm={handleConfirm}
+        />
       </ActionDialog>
 
-      <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
-        <AlertDialogContent className="max-w-[560px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('smart_folder.create.unsaved_title')}
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="cancel-btn-outline">
-              {t('cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={closeDialog}>
-              {t('ok')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <SmartFolderUnsavedDialog
+        open={confirmCloseOpen}
+        onOpenChange={setConfirmCloseOpen}
+        onConfirm={closeDialog}
+      />
     </>
   );
 }

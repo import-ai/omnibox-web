@@ -181,8 +181,17 @@ export function TrashPanel() {
       });
     } catch {
       // Error handling is done by http interceptor
+    } finally {
+      setDragTrashItem(null);
     }
   }, [dragTrashItem, namespace_id, app]);
+
+  const handleDragTrashOpenChange = useCallback((nextOpen: boolean) => {
+    setDragTrashConfirmOpen(nextOpen);
+    if (!nextOpen) {
+      setDragTrashItem(null);
+    }
+  }, []);
 
   const handleScroll = useCallback(
     (e: React.UIEvent<HTMLDivElement>) => {
@@ -293,7 +302,7 @@ export function TrashPanel() {
         open={dragTrashConfirmOpen}
         retentionDays={smartFolderEntitlements?.trashRetentionDays}
         smartFolderName={dragTrashItem?.name}
-        onOpenChange={setDragTrashConfirmOpen}
+        onOpenChange={handleDragTrashOpenChange}
         onConfirm={handleConfirmDragTrash}
       />
     </>

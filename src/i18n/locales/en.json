@@ -1001,7 +1001,9 @@
     "trash": {
       "this_folder": "this",
       "title": "Move 1 smart folder to trash?",
+      "named_title": "Move “{{name}}” to trash?",
       "description": "Moving a smart folder to the Recycle Bin will not affect its internal resources. After being moved, it can be retrieved from the Recycle Bin, and it will be automatically deleted after {{days}} days."
-    }
+    },
+    "date_format": "LLL dd, y"
   }
 }

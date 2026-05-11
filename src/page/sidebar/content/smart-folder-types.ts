@@ -76,18 +76,26 @@ export interface CreateSmartFolderPayload {
   conditions: SmartFolderCondition[];
 }
 
-export interface CreateSmartFolderRequest extends CreateSmartFolderPayload {
-  parentId?: string;
+export interface SmartFolderApiCondition {
+  field?: SmartFolderField;
+  operator?: string;
+  value?: unknown;
+}
+
+export interface CreateSmartFolderRequest {
+  name: string;
+  owner_scope: SmartFolderOwnerScope;
+  root_scope: SmartFolderRootScope;
+  match_mode: SmartFolderMatchMode;
+  conditions: SmartFolderApiCondition[];
+  parent_id?: string;
 }
 
 export interface SmartFolderResponse {
   resource: import('@/interface').Resource;
-  owner_scope?: SmartFolderOwnerScope;
-  ownerScope?: SmartFolderOwnerScope;
-  root_scope?: SmartFolderRootScope;
-  rootScope?: SmartFolderRootScope;
-  match_mode?: SmartFolderMatchMode;
-  matchMode?: SmartFolderMatchMode;
+  owner_scope: SmartFolderOwnerScope;
+  root_scope: SmartFolderRootScope;
+  match_mode: SmartFolderMatchMode;
   conditions: SmartFolderCondition[];
 }
 

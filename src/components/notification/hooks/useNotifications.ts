@@ -48,6 +48,12 @@ export function useNotifications(filter: NotificationFilter) {
   const pollingControllerRef = useRef<ReturnType<
     typeof startResettableNotificationPolling
   > | null>(null);
+  const itemsLengthRef = useRef(0);
+  const refreshInFlightRef = useRef<Promise<void> | null>(null);
+
+  useEffect(() => {
+    itemsLengthRef.current = items.length;
+  }, [items.length]);
 
   // get unread count
   const fetchUnreadCount = useCallback(async () => {
@@ -92,32 +98,43 @@ export function useNotifications(filter: NotificationFilter) {
   );
 
   const refresh = useCallback(async () => {
-    const shouldShowInitialLoading = items.length === 0;
-    const refreshLimit = Math.max(DEFAULT_LIMIT, items.length);
-
-    if (shouldShowInitialLoading) {
-      setLoading(true);
-    } else {
-      setRefreshing(true);
+    if (refreshInFlightRef.current) {
+      return refreshInFlightRef.current;
     }
 
-    try {
-      await Promise.all([
-        fetchNotifications(0, false, refreshLimit),
-        fetchUnreadCount(),
-      ]);
-    } finally {
+    const refreshPromise = (async () => {
+      const currentItemsLength = itemsLengthRef.current;
+      const shouldShowInitialLoading = currentItemsLength === 0;
+      const refreshLimit = Math.max(DEFAULT_LIMIT, currentItemsLength);
+
       if (shouldShowInitialLoading) {
-        setLoading(false);
+        setLoading(true);
       } else {
-        setRefreshing(false);
+        setRefreshing(true);
       }
-    }
-  }, [fetchNotifications, fetchUnreadCount, items.length]);
+
+      try {
+        await Promise.all([
+          fetchNotifications(0, false, refreshLimit),
+          fetchUnreadCount(),
+        ]);
+      } finally {
+        if (shouldShowInitialLoading) {
+          setLoading(false);
+        } else {
+          setRefreshing(false);
+        }
+        refreshInFlightRef.current = null;
+      }
+    })();
+
+    refreshInFlightRef.current = refreshPromise;
+    return refreshPromise;
+  }, [fetchNotifications, fetchUnreadCount]);
 
   const handleManualRefresh = useCallback(async () => {
-    pollingControllerRef.current?.restart();
     await refresh();
+    pollingControllerRef.current?.restart();
   }, [refresh]);
 
   // Load more

@@ -14,6 +14,7 @@ import {
 } from './smart-folder-resource-utils';
 import {
   CreateSmartFolderPayload,
+  CreateSmartFolderRequest,
   SmartFolderResponse,
 } from './smart-folder-types';
 
@@ -99,16 +100,16 @@ export function useSmartFolderResourceActions(
       .then((response: SmartFolderResponse) => {
         setSmartFolderInitial({
           name: response.resource.name || '',
-          ownerScope: response.ownerScope || response.owner_scope || 'private',
-          rootScope: response.rootScope || response.root_scope || 'private',
-          matchMode: response.matchMode || response.match_mode || 'all',
+          ownerScope: response.owner_scope || 'private',
+          rootScope: response.root_scope || 'private',
+          matchMode: response.match_mode || 'all',
           conditions: response.conditions || [],
         });
         setEditSmartFolderOpen(true);
       });
   };
 
-  const handleUpdateSmartFolder = (payload: CreateSmartFolderPayload) => {
+  const handleUpdateSmartFolder = (payload: CreateSmartFolderRequest) => {
     if (!namespaceId) return Promise.reject();
 
     return http
@@ -130,6 +131,7 @@ export function useSmartFolderResourceActions(
           name: payload.name,
         });
         app.fire('refresh_smart_folder_children', data.id);
+        app.fire('smart_folder_entitlements_refetch');
         if (movedParentId) {
           app.fire('scroll_to_resource', data.id, movedParentId);
         } else {

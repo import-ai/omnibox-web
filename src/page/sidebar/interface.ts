@@ -1,6 +1,6 @@
 import { IResourceData, Namespace, ResourceType, SpaceType } from '@/interface';
 
-import { CreateSmartFolderPayload } from './content/smart-folder-types';
+import { CreateSmartFolderRequest } from './content/smart-folder-types';
 
 export interface ISidebarProps {
   data: IResourceData;
@@ -33,7 +33,7 @@ export interface ISidebarProps {
   onCreateSmartFolder: (
     spaceType: SpaceType,
     parentId: string,
-    payload: CreateSmartFolderPayload
+    payload: CreateSmartFolderRequest
   ) => Promise<void>;
   onRename: (id: string, newName: string) => Promise<void>;
   onSpaceToggle: (spaceType: string, open?: boolean) => void;
