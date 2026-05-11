@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 import { useSidebar } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
@@ -36,7 +34,6 @@ export function useNodeActions(
   namespaceId: string
 ): UseNodeActionsReturn {
   const app = useApp();
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { setOpenMobile } = useSidebar();
@@ -55,8 +52,8 @@ export function useNodeActions(
         });
         if (isMobile) setOpenMobile(false);
       })
-      .catch(err => {
-        toast.error(err?.message || t('create.failed'));
+      .catch(() => {
+        // request.ts handles backend error toasts.
       });
   };
 
@@ -67,8 +64,8 @@ export function useNodeActions(
       .then(() => {
         if (isMobile) setOpenMobile(false);
       })
-      .catch(err => {
-        toast.error(err?.message || t('create.failed'));
+      .catch(() => {
+        // request.ts handles backend error toasts.
       });
   };
 
@@ -114,7 +111,12 @@ export function useNodeActions(
 
   const handleMoveFinished = async (resourceId: string, targetId: string) => {
     setMoveTo(false);
-    await useSidebarStore.getState().move(resourceId, targetId);
+    await useSidebarStore
+      .getState()
+      .move(resourceId, targetId)
+      .catch(() => {
+        // request.ts handles backend error toasts.
+      });
   };
 
   return {

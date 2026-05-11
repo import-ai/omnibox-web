@@ -3,13 +3,8 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { SidebarTriggerButton } from '@/components/sidebar-trigger';
 import Space from '@/components/space';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/tooltip';
 import { Avatar } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -22,7 +17,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import useConfig from '@/hooks/use-config';
@@ -46,7 +40,7 @@ interface IProps {
 
 export function Switcher(props: IProps) {
   const { namespaceId } = props;
-  const { open, isMobile } = useSidebar();
+  const { open } = useSidebar();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -138,16 +132,7 @@ export function Switcher(props: IProps) {
             </DropdownMenuLabel>
           </DropdownMenuContent>
         </DropdownMenu>
-        {open && !isMobile && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <SidebarTrigger className="text-neutral-400 hover:bg-[#E6E6EC] hover:text-neutral-400 dark:hover:bg-accent" />
-              </TooltipTrigger>
-              <TooltipContent>{t('sidebar.collapse')}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        <SidebarTriggerButton collapse={false} />
       </SidebarMenuItem>
     </SidebarMenu>
   );

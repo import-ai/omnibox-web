@@ -12,6 +12,7 @@ export function buildBaseActions(set: SidebarSet) {
         s.ui = {};
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
+        s.renamingId = null;
         s.dialogs = {
           createFolderTargetId: null,
           currentUploadTargetId: null,
@@ -75,6 +76,7 @@ export function buildBaseActions(set: SidebarSet) {
         s.ui = {};
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
+        s.renamingId = null;
         s.dialogs = {
           createFolderTargetId: null,
           currentUploadTargetId: null,
@@ -90,6 +92,12 @@ export function buildBaseActions(set: SidebarSet) {
         if (!node) return;
         if (updates.name !== undefined) node.name = updates.name;
         if (updates.content !== undefined) node.content = updates.content;
+      });
+    },
+
+    setRenamingId: (id: string | null) => {
+      set(s => {
+        s.renamingId = id;
       });
     },
 

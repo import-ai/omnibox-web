@@ -34,6 +34,7 @@ interface IProps {
   currentResourcePath?: Array<{ id: string }>;
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
+  allResources: boolean;
 }
 
 export default function ShareSidebar(props: IProps) {
@@ -47,6 +48,7 @@ export default function ShareSidebar(props: IProps) {
     currentResourcePath,
     isResourceActive,
     onAddToContext,
+    allResources,
   } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -57,6 +59,7 @@ export default function ShareSidebar(props: IProps) {
     rootResource,
     currentResourceId,
     currentResourcePath,
+    allResources,
   });
 
   return (
@@ -91,13 +94,17 @@ export default function ShareSidebar(props: IProps) {
         {showChat && (
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isChatActive}>
+              <SidebarMenuButton
+                asChild
+                isActive={isChatActive}
+                className="h-auto py-1.5 pr-1"
+              >
                 <div
-                  className="flex cursor-pointer"
+                  className="flex cursor-pointer items-center gap-2"
                   onClick={() => navigate(`/s/${shareId}/chat`)}
                 >
                   <ChatIcon className="size-4" />
-                  <span>{t('chat.title')}</span>
+                  <span className="font-normal">{t('chat.title')}</span>
                 </div>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -110,6 +117,7 @@ export default function ShareSidebar(props: IProps) {
         isChatActive={isChatActive}
         isResourceActive={isResourceActive}
         onAddToContext={onAddToContext}
+        canBrowseResources={allResources}
       />
       <SidebarRail className="opacity-0" />
     </Sidebar>

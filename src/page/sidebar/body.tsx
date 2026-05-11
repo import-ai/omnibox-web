@@ -43,8 +43,8 @@ export function BodyForSidebar(props: IProps) {
       useSidebarStore.getState().activate(id);
       navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
       toast.success(t('upload.success', { count: files.length }));
-    } catch (err) {
-      toast.error((err as Error)?.message || t('upload.failed'));
+    } catch {
+      // request.ts handles backend error toasts.
     } finally {
       if (globalFileInputRef.current) {
         globalFileInputRef.current.value = '';
@@ -67,16 +67,20 @@ export function BodyForSidebar(props: IProps) {
             return;
           }
           const store = useSidebarStore.getState();
-          const id = await store.create(
-            createFolderTargetId,
-            'folder',
-            folderName
-          );
-          store.activate(id);
-          store.closeCreateFolderDialog();
-          navigate(`/${namespaceId}/${id}`, {
-            state: { fromSidebar: true },
-          });
+          try {
+            const id = await store.create(
+              createFolderTargetId,
+              'folder',
+              folderName
+            );
+            store.activate(id);
+            store.closeCreateFolderDialog();
+            navigate(`/${namespaceId}/${id}`, {
+              state: { fromSidebar: true },
+            });
+          } catch {
+            // request.ts handles backend error toasts.
+          }
         }}
       />
       <Input

@@ -25,6 +25,7 @@ export default function SpaceSection(props: ResourceTreeProps) {
       isChatActive={props.isChatActive}
       isResourceActive={props.isResourceActive}
       onAddToContext={props.onAddToContext}
+      canBrowseResources={props.canBrowseResources}
     />
   );
 }

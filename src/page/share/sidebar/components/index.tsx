@@ -9,6 +9,7 @@ interface ResourceTreeProps {
   isChatActive: boolean;
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
+  canBrowseResources: boolean;
 }
 
 export default function ResourceTree(props: ResourceTreeProps) {

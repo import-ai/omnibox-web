@@ -39,6 +39,7 @@ export interface SidebarState {
   ui: Record<string, NodeUI>;
   rootIds: Record<SpaceType, string>;
   activeId: string | null;
+  renamingId: string | null;
   dialogs: DialogsState;
   spaceExpanded: Record<SpaceType, boolean>;
   autoExpandedKeys: Record<string, boolean>;
@@ -67,6 +68,7 @@ export interface SidebarActions {
   uploadFiles: (parentId: string, files: FileList) => Promise<string>;
 
   activate: (id: string | null) => void;
+  setRenamingId: (id: string | null) => void;
   openCreateFolderDialog: (parentId: string) => void;
   closeCreateFolderDialog: () => void;
   setCurrentUploadTargetId: (id: string | null) => void;
@@ -94,6 +96,7 @@ export const initialState: SidebarState = {
   ui: {},
   rootIds: { private: '', teamspace: '' },
   activeId: null,
+  renamingId: null,
   dialogs: {
     createFolderTargetId: null,
     currentUploadTargetId: null,

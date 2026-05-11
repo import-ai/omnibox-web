@@ -9,13 +9,15 @@ interface IProps {
   rootResource: ResourceMeta;
   currentResourceId?: string;
   currentResourcePath?: Array<{ id: string }>;
+  allResources: boolean;
 }
 
 export function useSidebarInit(props: IProps) {
-  const { shareId, rootResource, currentResourceId } = props;
+  const { shareId, rootResource, currentResourceId, allResources } = props;
   const navigate = useNavigate();
   // Auto-navigate to first resource when no resourceId and not on chat page
   const hasAutoNavigatedRef = useRef(false);
+  const autoExpandedAllKeyRef = useRef<string | null>(null);
   const chatPage = useLocation().pathname.includes('/chat');
 
   // Derive initialization state from rootIds.
@@ -25,6 +27,7 @@ export function useSidebarInit(props: IProps) {
   useEffect(() => {
     // Reset auto-navigate flag when namespace changes
     hasAutoNavigatedRef.current = false;
+    autoExpandedAllKeyRef.current = null;
     // Set namespaceId (also clears old nodes/rootIds/ui/activeId)
     useSidebarStore.getState().setNamespaceId(shareId);
   }, [shareId]);
@@ -43,13 +46,14 @@ export function useSidebarInit(props: IProps) {
         children: [
           {
             ...rootResource,
+            has_children: allResources ? rootResource.has_children : false,
             space_type: 'share',
             parent_id: virtualRootId,
           } as unknown as Resource,
         ],
       } as unknown as Resource & { children: Resource[] },
     });
-  }, [rootResource, shareId]);
+  }, [allResources, rootResource, shareId]);
 
   const location = useLocation();
 
@@ -69,23 +73,41 @@ export function useSidebarInit(props: IProps) {
     let cancelled = false;
     const store = useSidebarStore.getState();
 
-    store.expandPathTo(currentResourceId, { expandTarget: true }).then(() => {
-      if (cancelled) return;
-      requestAnimationFrame(() => {
+    store
+      .expandPathTo(currentResourceId, { expandTarget: allResources })
+      .then(() => {
         if (cancelled) return;
-        const element = document.querySelector(
-          `[data-resource-id="${currentResourceId}"]`
-        );
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        requestAnimationFrame(() => {
+          if (cancelled) return;
+          const element = document.querySelector(
+            `[data-resource-id="${currentResourceId}"]`
+          );
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
       });
-    });
 
     return () => {
       cancelled = true;
     };
-  }, [initialized, currentResourceId, chatPage, location.pathname, navigate]);
+  }, [
+    initialized,
+    currentResourceId,
+    chatPage,
+    allResources,
+    location.pathname,
+    navigate,
+  ]);
+
+  useEffect(() => {
+    if (!initialized || !allResources) return;
+    const key = `${shareId}:${rootResource.id}`;
+    if (autoExpandedAllKeyRef.current === key) return;
+
+    autoExpandedAllKeyRef.current = key;
+    useSidebarStore.getState().expandAllFrom(rootResource.id);
+  }, [initialized, allResources, rootResource.id, shareId]);
 
   useEffect(() => {
     if (!initialized || currentResourceId || chatPage) return;
@@ -109,11 +131,17 @@ export function useSidebarInit(props: IProps) {
   // Sync activeId from URL (only when URL changes, not when store.activeId changes)
   useEffect(() => {
     const store = useSidebarStore.getState();
+    if (chatPage) {
+      if (store.activeId) {
+        store.activate(null);
+      }
+      return;
+    }
     if (currentResourceId && store.activeId !== currentResourceId) {
       store.activate(currentResourceId);
     }
     // Only depend on resourceId to avoid racing with internal store navigation
-  }, [currentResourceId]);
+  }, [currentResourceId, chatPage]);
 
   return { shareId, currentResourceId };
 }

@@ -38,6 +38,7 @@ interface ShareContextValue {
   password: string | null;
   wide: boolean;
   onWide: (wide: boolean) => void;
+  notFound: boolean;
 }
 
 const ShareContext = createContext<ShareContextValue | null>(null);
@@ -54,6 +55,7 @@ export default function SharePage() {
   const params = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const [notFound, setNotFound] = useState(false);
   const cancelTokenSource = useRef<CancelTokenSource>(null);
   const [shareInfo, setShareInfo] = useState<PublicShareInfo | null>(null);
   const [resource, setResource] = useState<SharedResource | null>(null);
@@ -172,18 +174,22 @@ export default function SharePage() {
     http
       .get(`/shares/${shareId}/resources/${currentResourceId}`, {
         cancelToken: source.token,
+        mute: true,
       })
       .then(data => {
         setResource(data);
       })
       .catch(err => {
-        if (err && err.status && err.status === 401) {
-          // Redirect to login page
-          const currentUrl = encodeURIComponent(window.location.pathname);
-          navigate(`/user/login?redirect=${currentUrl}`);
-        }
-        if (err && err.status && err.status === 403) {
-          setRequirePassword(true);
+        if (err && err.status) {
+          if (err.status === 401) {
+            // Redirect to login page
+            const currentUrl = encodeURIComponent(window.location.pathname);
+            navigate(`/user/login?redirect=${currentUrl}`);
+          } else if (err.status === 403) {
+            setRequirePassword(true);
+          } else if (err.status === 404) {
+            setNotFound(true);
+          }
         }
       });
     return () => source.cancel();
@@ -228,6 +234,7 @@ export default function SharePage() {
         value={{
           shareInfo,
           resource,
+          notFound,
           selectedResources,
           setSelectedResources,
           mode,

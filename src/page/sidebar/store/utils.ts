@@ -2,11 +2,18 @@ import { Resource, SpaceType } from '@/interface';
 
 import type { SidebarState, TreeNode } from './types';
 
+type ResourceWithChildrenState = Resource & { hasChildren?: boolean };
+
+function getResourceHasChildren(resource: ResourceWithChildrenState): boolean {
+  return resource.has_children ?? resource.hasChildren ?? false;
+}
+
 export function createNode(
   resource: Resource,
   parentId: string | null,
   spaceType: SpaceType
 ): TreeNode {
+  const resourceWithChildrenState = resource as ResourceWithChildrenState;
   return {
     id: resource.id,
     parentId,
@@ -17,7 +24,7 @@ export function createNode(
     attrs: resource.attrs,
     tags: resource.tags,
     path: resource.path,
-    hasChildren: resource.has_children ?? false,
+    hasChildren: getResourceHasChildren(resourceWithChildrenState),
     currentPermission: resource.current_permission,
     globalPermission: resource.global_permission,
     createdAt: resource.created_at || '',
@@ -121,8 +128,9 @@ export function patchNodeFromResource(
   node: TreeNode,
   resource: Resource
 ): void {
+  const resourceWithChildrenState = resource as ResourceWithChildrenState;
   node.name = resource.name || '';
-  node.hasChildren = resource.has_children ?? false;
+  node.hasChildren = getResourceHasChildren(resourceWithChildrenState);
   node.updatedAt = resource.updated_at || '';
   node.resourceType = resource.resource_type;
 }

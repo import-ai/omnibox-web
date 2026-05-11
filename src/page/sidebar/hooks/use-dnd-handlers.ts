@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -65,8 +66,7 @@ export function useDndHandlers({
         return id;
       })
       .catch(() => {
-        toast.error(t('upload.failed'));
-        throw new Error('Upload failed');
+        // request.ts handles backend error toasts.
       });
   };
 
@@ -80,7 +80,7 @@ export function useDndHandlers({
         .getState()
         .move(dragId, targetId)
         .catch(() => {
-          //
+          // request.ts handles backend error toasts.
         });
     }
   };
@@ -92,7 +92,7 @@ export function useDndHandlers({
     if (monitor.didDrop()) return;
     const itemType = monitor.getItemType();
 
-    if (itemType === 'FILE' && item.files) {
+    if (itemType === NativeTypes.FILE && item.files) {
       handleFileUpload(item.files);
     } else if (itemType === 'card' && item.id) {
       handleNodeMove(item.id);
@@ -111,7 +111,7 @@ export function useDndHandlers({
     const isOverShallow = monitor.isOver({ shallow: true });
     const itemType = monitor.getItemType();
 
-    if (itemType === 'FILE') {
+    if (itemType === NativeTypes.FILE) {
       if (isOverShallow) setFileDragTarget(targetId);
     } else if (itemType === 'card') {
       setFileDragTarget(null);
