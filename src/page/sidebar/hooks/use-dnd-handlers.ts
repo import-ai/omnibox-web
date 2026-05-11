@@ -65,8 +65,10 @@ export function useDndHandlers({
         toast.success(t('upload.success', { count: fileList.files.length }));
         return id;
       })
-      .catch(() => {
-        // request.ts handles backend error toasts.
+      .catch(err => {
+        const message =
+          err instanceof Error ? err.message : err || t('upload.failed');
+        toast(message, { position: 'bottom-right' });
       });
   };
 

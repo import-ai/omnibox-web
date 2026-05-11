@@ -46,7 +46,9 @@ export function NodeActionsContent({
 
   const menuItems = useNodeMenu(actions, 'dialog', () => {
     setMenuOpen(false);
-    onRename?.();
+    window.setTimeout(() => {
+      onRename?.();
+    }, 150);
   });
 
   return (

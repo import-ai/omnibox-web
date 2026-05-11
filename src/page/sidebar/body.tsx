@@ -43,8 +43,10 @@ export function BodyForSidebar(props: IProps) {
       useSidebarStore.getState().activate(id);
       navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
       toast.success(t('upload.success', { count: files.length }));
-    } catch {
-      // request.ts handles backend error toasts.
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : err || t('upload.failed');
+      toast(message, { position: 'bottom-right' });
     } finally {
       if (globalFileInputRef.current) {
         globalFileInputRef.current.value = '';

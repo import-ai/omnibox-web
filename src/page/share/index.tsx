@@ -172,6 +172,7 @@ export default function SharePage() {
   // Get resource info
   useEffect(() => {
     setResource(null);
+    setNotFound(false);
     if (!shareInfo || !currentResourceId) {
       return;
     }
@@ -182,19 +183,20 @@ export default function SharePage() {
         mute: true,
       })
       .then(data => {
+        setNotFound(false);
         setResource(data);
       })
-      .catch(err => {
-        if (err && err.status) {
-          if (err.status === 401) {
-            // Redirect to login page
-            const currentUrl = encodeURIComponent(window.location.pathname);
-            navigate(`/user/login?redirect=${currentUrl}`);
-          } else if (err.status === 403) {
-            setRequirePassword(true);
-          } else if (err.status === 404) {
-            setNotFound(true);
-          }
+      .catch((err: AxiosError) => {
+        if (axios.isCancel(err)) return;
+        const status = err.response?.status;
+        if (status === 401) {
+          // Redirect to login page
+          const currentUrl = encodeURIComponent(window.location.pathname);
+          navigate(`/user/login?redirect=${currentUrl}`);
+        } else if (status === 403) {
+          setRequirePassword(true);
+        } else if (status === 404) {
+          setNotFound(true);
         }
       });
     return () => source.cancel();

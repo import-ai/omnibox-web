@@ -53,11 +53,16 @@ export default function NodeContextMenu({
     return children;
   }
 
-  const menuItems = useNodeMenu(actions, 'direct', onRename);
+  const menuItems = useNodeMenu(actions, 'direct', () => {
+    setContextOpen(false);
+    window.setTimeout(() => {
+      onRename?.();
+    }, 150);
+  });
 
   return (
     <>
-      <ContextMenu onOpenChange={setContextOpen}>
+      <ContextMenu open={contextOpen} onOpenChange={setContextOpen}>
         <ContextMenuTrigger disabled={isActuallyDragging}>
           {children}
         </ContextMenuTrigger>
