@@ -15,6 +15,7 @@ import {
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { http } from '@/lib/request';
+import { normalizeResourceMeta } from '@/lib/resource-meta';
 import {
   ChatMode,
   IResTypeContext,
@@ -83,19 +84,23 @@ export default function SharePage() {
     resource: ResourceMeta,
     type: 'resource' | 'folder'
   ) => {
-    const target = selectedResources.find(
-      item => item.resource.id === resource.id && item.type === type
-    );
-    if (target) {
-      return;
-    }
-    setSelectedResources([
-      ...selectedResources,
-      {
+    setSelectedResources(current => {
+      const existingIndex = current.findIndex(
+        item => item.resource.id === resource.id
+      );
+      const nextItem = {
         type,
-        resource,
-      },
-    ]);
+        resource: normalizeResourceMeta(resource),
+      };
+
+      if (existingIndex < 0) {
+        return [...current, nextItem];
+      }
+
+      return current.map((item, index) =>
+        index === existingIndex ? nextItem : item
+      );
+    });
   };
 
   const handlePassword = (password: string) => {

@@ -12,10 +12,7 @@ export function addToChatContext(
   resource: unknown,
   type: PrivateSearchResourceType
 ) {
-  useChatStore.getState().addContext(
-    normalizeResourceMeta(resource as ResourceMetaLike, {
-      contextType: type,
-    }),
-    type
-  );
+  useChatStore
+    .getState()
+    .addContext(normalizeResourceMeta(resource as ResourceMetaLike), type);
 }

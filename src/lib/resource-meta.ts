@@ -17,16 +17,19 @@ export function normalizeResourceMeta(
   resource: ResourceMetaLike,
   options: NormalizeResourceMetaOptions = {}
 ): ResourceMeta {
-  const fallbackType =
-    options.fallbackType ??
-    (options.contextType === 'folder' ? 'folder' : 'doc');
+  const resourceType =
+    options.contextType === 'folder'
+      ? 'folder'
+      : (resource.resource_type ??
+        resource.resourceType ??
+        options.fallbackType ??
+        'doc');
 
   return {
     id: resource.id,
     name: resource.name,
     parent_id: resource.parent_id ?? resource.parentId ?? null,
-    resource_type:
-      resource.resource_type ?? resource.resourceType ?? fallbackType,
+    resource_type: resourceType,
     created_at: resource.created_at,
     updated_at: resource.updated_at,
     attrs: resource.attrs,

@@ -22,11 +22,13 @@ export const useChatStore = create<ChatState>()(
     selectedResources: [],
     addContext: (resource, type) =>
       set(state => {
-        if (
-          !state.selectedResources.find(
-            item => item.resource.id === resource.id
-          )
-        ) {
+        const existingIndex = state.selectedResources.findIndex(
+          item => item.resource.id === resource.id
+        );
+
+        if (existingIndex >= 0) {
+          state.selectedResources[existingIndex] = { type, resource };
+        } else {
           state.selectedResources.push({ type, resource });
         }
       }),

@@ -97,7 +97,7 @@ export function ResourceNodeContent({
       <Collapsible
         open={isExpanded}
         className={cn('group/collapsible', {
-          '[&[data-state=open]>div>div>button>svg:first-child]:rotate-90':
+          '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
             isExpanded && !nodeUI?.loading,
         })}
       >
@@ -154,9 +154,7 @@ export function ResourceNodeContent({
                           id: node.id,
                           name: node.name,
                           parentId: node.parentId,
-                          resourceType: canExpand
-                            ? 'folder'
-                            : node.resourceType,
+                          resourceType: node.resourceType,
                           hasChildren: canExpand,
                           attrs: node.attrs,
                         }}
