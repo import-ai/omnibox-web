@@ -1,14 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
+import { SidebarTriggerButton } from '@/components/sidebar-trigger';
 import { LanguageToggle } from '@/components/toggle/language';
 import { ThemeToggle } from '@/components/toggle/theme';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/tooltip';
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/sidebar';
 import { PathItem } from '@/interface';
 import { cn } from '@/lib/utils';
 import { getTime } from '@/page/resource/utils';
@@ -36,24 +31,15 @@ export default function ShareHeader({
   onWide,
   showSidebarTrigger = true,
 }: ShareHeaderProps) {
-  const { t, i18n } = useTranslation();
-  const { open, isMobile } = useSidebar();
+  const { i18n } = useTranslation();
+  const { open } = useSidebar();
 
   const timeText = resource ? getTime(resource as any, i18n) : '';
 
   return (
     <header className="rounded-[16px] bg-white flex flex-wrap min-h-[48px] shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-1 sm:gap-2 px-3">
-        {showSidebarTrigger && (!open || isMobile) && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <SidebarTrigger className="text-neutral-400" />
-              </TooltipTrigger>
-              <TooltipContent>{t('sidebar.expand')}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {showSidebarTrigger && <SidebarTriggerButton collapse />}
         <ShareBreadcrumb
           path={resource?.path}
           fallbackName={resource?.name}

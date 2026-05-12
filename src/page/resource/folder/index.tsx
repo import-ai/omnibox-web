@@ -4,13 +4,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import ResourceIcon from '@/assets/icons/resourceIcon';
 import Loading from '@/components/loading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import useApp from '@/hooks/use-app';
 import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
-import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 import { groupItemsByTimestamp } from '../utils';
 import { FolderContent } from './content';

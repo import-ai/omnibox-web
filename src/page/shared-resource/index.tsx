@@ -5,6 +5,7 @@ import Attributes from '@/components/attributes';
 import Loading from '@/components/loading';
 import { useSidebar } from '@/components/ui/sidebar';
 import { cn, setDocumentTitle } from '@/lib/utils';
+import DeletedResourcePage from '@/page/auth/deleted-resource';
 
 import Folder from '../resource/folder';
 import Render from '../resource/render';
@@ -12,7 +13,7 @@ import { useShareContext } from '../share';
 
 export default function SharedResourcePage() {
   const { t } = useTranslation();
-  const { shareInfo, resource, wide } = useShareContext();
+  const { notFound, shareInfo, resource, wide } = useShareContext();
   const { open } = useSidebar();
   const [large, onLarge] = useState(window.innerWidth > 1500);
 
@@ -32,39 +33,44 @@ export default function SharedResourcePage() {
     };
   }, []);
 
-  if (shareInfo && resource) {
-    return (
-      <div className="flex h-full w-full min-w-0 justify-center overflow-y-auto overflow-x-hidden p-4">
-        <div
-          className={cn('flex min-w-0 w-full max-w-full flex-col', {
-            'max-w-[680px]': !wide && (open || !large),
-            'max-w-[800px]': !wide && (!open || large),
-            'max-w-7xl': wide,
-          })}
-        >
-          <h1 className="mb-4 min-w-0 max-w-full text-4xl font-bold break-all">
-            {resource.name || t('untitled')}
-          </h1>
-          <Attributes
-            resource={resource as any}
-            namespaceId={shareInfo.id}
-            readOnly
-          />
-          {resource.resource_type === 'folder' ? (
-            <Folder
-              resourceId={resource.id}
-              apiPrefix={`/shares/${shareInfo.id}/resources`}
-              navigationPrefix={`/s/${shareInfo.id}`}
-            />
-          ) : (
-            <Render
-              resource={resource}
-              linkBase={`/s/${shareInfo.id}/${resource.id}`}
-            />
-          )}
-        </div>
-      </div>
-    );
+  if (notFound) {
+    return <DeletedResourcePage />;
   }
-  return <Loading />;
+
+  if (!shareInfo || !resource) {
+    return <Loading />;
+  }
+
+  return (
+    <div className="flex h-full w-full min-w-0 justify-center overflow-y-auto overflow-x-hidden p-4">
+      <div
+        className={cn('flex min-w-0 w-full max-w-full flex-col', {
+          'max-w-[680px]': !wide && (open || !large),
+          'max-w-[800px]': !wide && (!open || large),
+          'max-w-7xl': wide,
+        })}
+      >
+        <h1 className="mb-4 min-w-0 max-w-full text-4xl font-bold break-all">
+          {resource.name || t('untitled')}
+        </h1>
+        <Attributes
+          resource={resource as any}
+          namespaceId={shareInfo.id}
+          readOnly
+        />
+        {resource.resource_type === 'folder' ? (
+          <Folder
+            resourceId={resource.id}
+            apiPrefix={`/shares/${shareInfo.id}/resources`}
+            navigationPrefix={`/s/${shareInfo.id}`}
+          />
+        ) : (
+          <Render
+            resource={resource}
+            linkBase={`/s/${shareInfo.id}/${resource.id}`}
+          />
+        )}
+      </div>
+    </div>
+  );
 }
