@@ -21,7 +21,7 @@ A modern web application built with React, TypeScript, and Vite, featuring chat 
 - **UI Components**: Radix UI + Tailwind CSS
 - **Form Handling**: React Hook Form + Zod
 - **Markdown Rendering**: React Markdown with KaTeX and syntax highlighting
-- **State Management**: React Context + Hooks
+- **State Management**: React Context + Hooks + feature-scoped Zustand stores
 - **Routing**: React Router v7
 - **Real-time Communication**: Socket.io Client
 - **Code Quality**: ESLint + Prettier + Husky
@@ -70,12 +70,18 @@ src/
 ├── page/            # Page components
 │   ├── chat/        # Chat interface
 │   ├── resource/    # Resource management
+│   ├── share/       # Public share access
 │   ├── user/        # User management
 │   └── sidebar/     # Sidebar navigation
 ├── hooks/           # Custom React hooks
 ├── layout/          # Layout components
 └── ...
 ```
+
+### Architecture Notes
+
+- [Share page architecture](https://www.omnibox.pro/s/JFLkWtAhYb)
+- [Workspace sidebar architecture](https://www.omnibox.pro/s/ksZfX3JpGh)
 
 ## Scripts
 

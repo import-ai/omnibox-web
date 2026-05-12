@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
 import type { Resource, SpaceType } from '@/interface';
-import { http } from '@/lib/request';
 
 interface IResource extends Resource {
   spaceType?: SpaceType;
@@ -22,15 +21,7 @@ interface IProps {
 }
 
 export default function Resource(props: IProps) {
-  const {
-    data,
-    editId,
-    onEditId,
-    resourceId,
-    namespaceId,
-    onSearch,
-    onFinished,
-  } = props;
+  const { data, editId, onEditId, resourceId, onSearch, onFinished } = props;
   const app = useApp();
   const { t } = useTranslation();
   const resourceName = data.name || t('untitled');
@@ -43,19 +34,13 @@ export default function Resource(props: IProps) {
     <Button
       variant="ghost"
       disabled={data.id === editId}
-      className="w-full flex h-auto whitespace-normal justify-start items-start font-normal rounded-none"
+      className="flex h-auto w-full items-start justify-start whitespace-normal rounded-none font-normal"
       onClick={() => {
         onEditId(data.id);
         app.fire('move_resource_start');
-        http
-          .post(
-            `/namespaces/${namespaceId}/resources/${resourceId}/move/${data.id}`
-          )
-          .then(() => {
-            onEditId('');
-            onSearch('');
-            onFinished && onFinished(resourceId, data.id);
-          });
+        onEditId('');
+        onSearch('');
+        onFinished && onFinished(resourceId, data.id);
       }}
     >
       {data.id === editId ? (
@@ -65,7 +50,7 @@ export default function Resource(props: IProps) {
       ) : (
         <File />
       )}
-      <div className="text-left break-all flex-1">{name}</div>
+      <div className="flex-1 break-all text-left">{name}</div>
     </Button>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import ResourceIcon from '@/assets/icons/resourceIcon';
 import {
   CommandDialog,
   CommandGroup,
@@ -13,7 +14,6 @@ import {
 } from '@/components/ui/command';
 import type { Resource, ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
-import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 export interface IProps {
   open: boolean;

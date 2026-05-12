@@ -2,18 +2,12 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useParams } from 'react-router-dom';
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/tooltip';
+import { SidebarTriggerButton } from '@/components/sidebar-trigger';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
 } from '@/components/ui/breadcrumb';
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
@@ -26,7 +20,6 @@ export default function ChatHeader() {
   const app = useApp();
   const loc = useLocation();
   const params = useParams();
-  const { open, isMobile } = useSidebar();
   const { t, i18n } = useTranslation();
   const i18nTitle = t('chat.conversations.new');
   const [chatTitle, setChatTitle] = useState(i18nTitle);
@@ -85,16 +78,7 @@ export default function ChatHeader() {
   return (
     <header className="rounded-2xl sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
-        {(!open || isMobile) && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <SidebarTrigger className="text-neutral-400" />
-              </TooltipTrigger>
-              <TooltipContent>{t('sidebar.expand')}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        <SidebarTriggerButton collapse />
         {conversationId && (
           <Breadcrumb>
             <BreadcrumbList>

@@ -70,12 +70,18 @@ src/
 ├── page/            # 页面组件
 │   ├── chat/        # 聊天界面
 │   ├── resource/    # 资源管理
+│   ├── share/       # 公开分享访问
 │   ├── user/        # 用户管理
 │   └── sidebar/     # 侧边栏导航
 ├── hooks/           # 自定义 React Hooks
 ├── layout/          # 布局组件
 └── ...
 ```
+
+### 架构文档
+
+- [Share 页面架构](https://www.omnibox.pro/s/JFLkWtAhYb)
+- [工作区 Sidebar 架构](https://www.omnibox.pro/s/ksZfX3JpGh)
 
 ## 可用脚本
 

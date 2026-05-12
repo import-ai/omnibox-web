@@ -91,9 +91,9 @@ export default function useResource() {
       onResource({
         ...resource,
         ...(isCurrentResource && {
-          name: delta.name,
-          content: delta.content,
-          tags: delta.tags,
+          ...(delta.name !== undefined && { name: delta.name }),
+          ...(delta.content !== undefined && { content: delta.content }),
+          ...(delta.tags !== undefined && { tags: delta.tags }),
         }),
         path: updatedPath,
       });
