@@ -26,6 +26,31 @@ function appAbsoluteUrl(path: string): string {
   return `${window.location.origin}${normalized}`;
 }
 
+const SEARCH_LINK_ROW_CLASS =
+  'flex flex-col items-start w-full text-left text-inherit no-underline rounded-sm outline-none';
+const SEARCH_LINK_INLINE_CLASS =
+  'flex flex-1 items-center gap-2 min-w-0 text-left text-inherit no-underline rounded-sm outline-none';
+
+function SearchMenuHitAnchor(props: {
+  path: string;
+  className: string;
+  onClick: React.MouseEventHandler<HTMLAnchorElement>;
+  children: React.ReactNode;
+}) {
+  const { path, className, onClick, children } = props;
+  return (
+    <a
+      href={appAbsoluteUrl(path)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+      onClick={onClick}
+    >
+      {children}
+    </a>
+  );
+}
+
 export default function SearchMenu({ open, onOpenChange }: IProps) {
   const params = useParams();
   const navigate = useNavigate();
@@ -198,11 +223,9 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                       onOpenChange(false);
                     }}
                   >
-                    <a
-                      href={appAbsoluteUrl(recentPath)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-start w-full text-left text-inherit no-underline rounded-sm outline-none"
+                    <SearchMenuHitAnchor
+                      path={recentPath}
+                      className={SEARCH_LINK_ROW_CLASS}
                       onClick={onSearchResultAnchorClick}
                     >
                       <div className="flex items-center gap-2">
@@ -221,7 +244,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                           {(item as any).content}
                         </div>
                       )}
-                    </a>
+                    </SearchMenuHitAnchor>
                   </CommandItem>
                 );
               })
@@ -255,11 +278,9 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                     onOpenChange(false);
                   }}
                 >
-                  <a
-                    href={appAbsoluteUrl(resourcePath)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-start w-full text-left text-inherit no-underline rounded-sm outline-none"
+                  <SearchMenuHitAnchor
+                    path={resourcePath}
+                    className={SEARCH_LINK_ROW_CLASS}
                     onClick={onSearchResultAnchorClick}
                   >
                     <div className="flex items-center gap-2">
@@ -273,7 +294,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                         {resourceItem.content}
                       </div>
                     )}
-                  </a>
+                  </SearchMenuHitAnchor>
                 </CommandItem>
               );
             })}
@@ -297,16 +318,14 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
                     onOpenChange(false);
                   }}
                 >
-                  <a
-                    href={appAbsoluteUrl(chatPath)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-1 items-center gap-2 min-w-0 text-left text-inherit no-underline rounded-sm outline-none"
+                  <SearchMenuHitAnchor
+                    path={chatPath}
+                    className={SEARCH_LINK_INLINE_CLASS}
                     onClick={onSearchResultAnchorClick}
                   >
                     <MessageCircle className="size-4 shrink-0 text-muted-foreground" />
                     <span className="truncate">{message.content}</span>
-                  </a>
+                  </SearchMenuHitAnchor>
                 </CommandItem>
               );
             })}
