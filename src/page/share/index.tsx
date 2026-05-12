@@ -15,6 +15,7 @@ import {
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { http } from '@/lib/request';
+import { normalizeResourceMeta } from '@/lib/resource-meta';
 import {
   ChatMode,
   IResTypeContext,
@@ -38,6 +39,7 @@ interface ShareContextValue {
   password: string | null;
   wide: boolean;
   onWide: (wide: boolean) => void;
+  notFound: boolean;
 }
 
 const ShareContext = createContext<ShareContextValue | null>(null);
@@ -54,6 +56,7 @@ export default function SharePage() {
   const params = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const [notFound, setNotFound] = useState(false);
   const cancelTokenSource = useRef<CancelTokenSource>(null);
   const [shareInfo, setShareInfo] = useState<PublicShareInfo | null>(null);
   const [resource, setResource] = useState<SharedResource | null>(null);
@@ -81,19 +84,23 @@ export default function SharePage() {
     resource: ResourceMeta,
     type: 'resource' | 'folder'
   ) => {
-    const target = selectedResources.find(
-      item => item.resource.id === resource.id && item.type === type
-    );
-    if (target) {
-      return;
-    }
-    setSelectedResources([
-      ...selectedResources,
-      {
+    setSelectedResources(current => {
+      const existingIndex = current.findIndex(
+        item => item.resource.id === resource.id
+      );
+      const nextItem = {
         type,
-        resource,
-      },
-    ]);
+        resource: normalizeResourceMeta(resource),
+      };
+
+      if (existingIndex < 0) {
+        return [...current, nextItem];
+      }
+
+      return current.map((item, index) =>
+        index === existingIndex ? nextItem : item
+      );
+    });
   };
 
   const handlePassword = (password: string) => {
@@ -165,6 +172,7 @@ export default function SharePage() {
   // Get resource info
   useEffect(() => {
     setResource(null);
+    setNotFound(false);
     if (!shareInfo || !currentResourceId) {
       return;
     }
@@ -172,18 +180,23 @@ export default function SharePage() {
     http
       .get(`/shares/${shareId}/resources/${currentResourceId}`, {
         cancelToken: source.token,
+        mute: true,
       })
       .then(data => {
+        setNotFound(false);
         setResource(data);
       })
-      .catch(err => {
-        if (err && err.status && err.status === 401) {
+      .catch((err: AxiosError) => {
+        if (axios.isCancel(err)) return;
+        const status = err.response?.status;
+        if (status === 401) {
           // Redirect to login page
           const currentUrl = encodeURIComponent(window.location.pathname);
           navigate(`/user/login?redirect=${currentUrl}`);
-        }
-        if (err && err.status && err.status === 403) {
+        } else if (status === 403) {
           setRequirePassword(true);
+        } else if (status === 404) {
+          setNotFound(true);
         }
       });
     return () => source.cancel();
@@ -228,6 +241,7 @@ export default function SharePage() {
         value={{
           shareInfo,
           resource,
+          notFound,
           selectedResources,
           setSelectedResources,
           mode,

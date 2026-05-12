@@ -88,7 +88,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
   };
 
   return (
-    <div className="space-y-3 rounded-lg border border-lime border-border sm:p-2">
+    <div className="space-y-3 rounded-lg border border-lime border-border sm:p-2.5">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-foreground">
           {t('smart_folder.create.condition_title', { index: index + 1 })}

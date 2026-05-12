@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 
 import { Button } from '@/components/button';
+import ActionDialog from '@/components/invite-dialog/action-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +18,6 @@ import {
   UpgradeTrialUsageTooltip,
 } from '@/components/upgrade-action-button';
 import { cn } from '@/lib/utils';
-import ActionDialog from '@/page/sidebar/switcher/action-dialog';
 
 import { getDefaultRootScope } from './create-smart-folder-dialog-helpers';
 import { CreateSmartFolderDialogProps } from './create-smart-folder-dialog-types';

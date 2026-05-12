@@ -33,20 +33,30 @@ Routes are defined in `src/App.tsx` using `createBrowserRouter` with lazy loadin
   - `/chat/:conversation_id` - Chat interface
 - `/s/:share_id` - Public share access
 
-### State Management (Event-Driven)
+### State Management (Event Bus + Local Stores)
 
-No Redux/Zustand. Uses a custom event system:
+The app uses a custom event system for app-wide notifications and scoped
+Zustand stores for feature-local, highly interactive state.
 
 - **`Hook` class** (`src/hooks/hook.class.ts`) - Observer pattern with `on()`, `fire()`, `addFilter()`
 - **`CoreApp`** (`src/hooks/app.class.ts`) - App-wide event bus extending Hook
 - **`AppContext`** (`src/hooks/app-context.ts`) - React Context providing app instance via `useApp()`
+- **Zustand stores** - Feature-scoped state for sidebar trees and chat context:
+  - `src/page/sidebar/store/` - Main workspace resource tree state
+  - `src/page/share/sidebar/store/` - Share page resource tree state
+  - `src/page/chat/chat-store.ts` - Selected chat context resources
 
-Components communicate via events:
+Use the event bus for cross-feature notifications and app-wide side effects:
 
 ```typescript
 app.fire('update_resource', resource); // emit
 app.on('update_resource', callback); // listen
 ```
+
+Use Zustand when a feature owns complex local UI state that needs selective
+subscriptions, imperative updates from hooks/utilities, or tree manipulation.
+Keep stores feature-scoped; do not introduce a global application store unless
+the state is genuinely shared across major product areas.
 
 ### API Layer
 

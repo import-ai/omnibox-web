@@ -10,10 +10,6 @@ interface DeleteResourceParams {
   resourceType?: ResourceType;
 }
 
-/**
- * Unified delete resource function
- * All delete operations (sidebar, resource page, drag-to-trash) should use this
- */
 export async function deleteResource({
   id,
   parentId,
@@ -23,9 +19,6 @@ export async function deleteResource({
 }: DeleteResourceParams): Promise<void> {
   await http.delete(`/namespaces/${namespaceId}/resources/${id}`);
 
-  // Trigger delete_resource event for data update and toast notification
   app.fire('delete_resource', id, parentId, resourceType);
-
-  // Notify trash panel to update icon
   app.fire('trash_updated');
 }

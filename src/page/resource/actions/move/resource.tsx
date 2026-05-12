@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
 import type { Resource, ResourceType, SpaceType } from '@/interface';
-import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 
 import { shouldDisableMoveTarget } from './utils';
@@ -33,7 +32,6 @@ export default function Resource(props: IProps) {
     editId,
     onEditId,
     resourceId,
-    namespaceId,
     sourceResourceType,
     onSearch,
     onFinished,
@@ -58,15 +56,9 @@ export default function Resource(props: IProps) {
 
     onEditId(data.id);
     app.fire('move_resource_start');
-    http
-      .post(
-        `/namespaces/${namespaceId}/resources/${resourceId}/move/${data.id}`
-      )
-      .then(() => {
-        onEditId('');
-        onSearch('');
-        onFinished && onFinished(resourceId, data.id);
-      });
+    onEditId('');
+    onSearch('');
+    onFinished?.(resourceId, data.id);
   };
 
   const button = (
@@ -88,7 +80,7 @@ export default function Resource(props: IProps) {
       ) : (
         <File />
       )}
-      <div className="text-left break-all flex-1">{name}</div>
+      <div className="flex-1 break-all text-left">{name}</div>
     </Button>
   );
 

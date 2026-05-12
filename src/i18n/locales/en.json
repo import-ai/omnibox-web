@@ -571,8 +571,11 @@
           "ls": "List Resources",
           "list_resources": "List Resources",
           "read_file": "Read Resource",
+          "read_resource": "Read Resource",
           "edit_file": "Edit Resource",
+          "edit_resource": "Edit Resource",
           "write_file": "Create Resource",
+          "create_resource": "Create Resource",
           "glob": "Glob",
           "grep": "Grep",
           "task": "Task",
@@ -1001,8 +1004,7 @@
     },
     "trash": {
       "this_folder": "this",
-      "title": "Move 1 smart folder to trash?",
-      "named_title": "Move “{{name}}” to trash?",
+      "title": "Move {{count}} smart folder to trash?",
       "description": "Moving a smart folder to the Recycle Bin will not affect its internal resources. After being moved, it can be retrieved from the Recycle Bin, and it will be automatically deleted after {{days}} days."
     },
     "date_format": "LLL dd, y"

@@ -1,6 +1,6 @@
 import type { i18n as I18nType } from 'i18next';
 
-import { Resource, ResourceMeta, SharedResource } from '@/interface';
+import { Resource, SharedResource } from '@/interface';
 import { getLangOnly } from '@/lib/lang';
 import { getRelatedTime } from '@/lib/time.ts';
 
@@ -22,13 +22,9 @@ export function getTime(resource: Resource | null, i18next: I18nType) {
   });
 }
 
-interface TimestampedItem {
-  updated_at?: string;
-}
-
-type GroupedItems<T> = {
+interface GroupedItems<T> {
   [key: string]: Array<T>;
-};
+}
 
 function convert(year: number, month: number, i18next: I18nType): string {
   if (getLangOnly(i18next) === 'zh') {
@@ -41,14 +37,7 @@ function convert(year: number, month: number, i18next: I18nType): string {
   }).format(date);
 }
 
-export function groupItemsByTimestamp(
-  items: Array<ResourceMeta>,
-  i18next: I18nType
-): [string, Array<ResourceMeta>][] {
-  return groupTimestampedItemsByTimestamp(items, i18next);
-}
-
-export function groupTimestampedItemsByTimestamp<T extends TimestampedItem>(
+export function groupItemsByTimestamp<T extends { updated_at?: string }>(
   items: Array<T>,
   i18next: I18nType
 ): [string, Array<T>][] {
@@ -193,3 +182,5 @@ export function parseImageLinks(markdownContent: string): string[] {
 
   return imageLinks;
 }
+
+export const groupTimestampedItemsByTimestamp = groupItemsByTimestamp;

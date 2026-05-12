@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
@@ -7,56 +7,76 @@ import {
   removeChatContext,
   setChatContext,
 } from '@/lib/chat-context';
-import type {
-  IResTypeContext,
-  PrivateSearchResourceType,
-} from '@/page/chat/chat-input/types';
+import { useChatStore } from '@/page/chat/chat-store';
+
+import { IResTypeContext, PrivateSearchResourceType } from './chat-input/types';
 
 export default function useSelectedResources() {
   const app = useApp();
-  const [selectedResources, setSelectedResources] =
-    useState<IResTypeContext[]>(getChatContext());
-  const selectedResourcesRef = useRef(selectedResources);
-  selectedResourcesRef.current = selectedResources;
+  const selectedResources = useChatStore(state => state.selectedResources);
+  const addContext = useChatStore(state => state.addContext);
+  const removeContext = useChatStore(state => state.removeContext);
+  const clearContext = useChatStore(state => state.clearContext);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setChatContext(selectedResources);
-  }, [selectedResources]);
+    const cached = getChatContext();
+    if (cached.length > 0) {
+      const store = useChatStore.getState();
+      cached.forEach(item => {
+        if (
+          !store.selectedResources.find(
+            resource => resource.resource.id === item.resource.id
+          )
+        ) {
+          store.addContext(item.resource, item.type);
+        }
+      });
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    if (selectedResources.length > 0) {
+      setChatContext(selectedResources);
+    } else {
+      removeChatContext();
+    }
+  }, [selectedResources, hydrated]);
 
   useEffect(() => {
     return app.on('context_clear', () => {
-      setSelectedResources([]);
+      clearContext();
       removeChatContext();
     });
-  }, [app]);
+  }, [app, clearContext]);
 
   useEffect(() => {
     return app.on(
       'context',
       (resource: Resource, type: PrivateSearchResourceType) => {
-        const current = selectedResourcesRef.current;
-        const target = current.find(
-          item => item.resource.id === resource.id && item.type === type
-        );
-        if (target) {
-          return;
-        }
-        setSelectedResources([...current, { type, resource }]);
+        addContext(resource, type);
       }
     );
-  }, [app]);
+  }, [app, addContext]);
 
   useEffect(() => {
     return app.on('delete_resource', (id: string) => {
-      setSelectedResources(prev => {
-        const filtered = prev.filter(item => item.resource.id !== id);
-        return filtered.length !== prev.length ? filtered : prev;
-      });
+      removeContext(id);
     });
-  }, [app]);
+  }, [app, removeContext]);
+
+  const setSelectedResources = (resources: IResTypeContext[]) => {
+    useChatStore.getState().setContext(resources);
+  };
 
   return {
     selectedResources,
     setSelectedResources,
+    addContext,
+    removeContext,
+    clearContext,
   };
 }

@@ -45,7 +45,7 @@ export default function ChatConversationPage() {
       </Scrollbar>
       <div className="flex justify-center px-4">
         <div className="max-w-3xl w-full">
-          <AgentTrial namespaceId={namespaceId} lastMessage={messages.at(-1)} />
+          <AgentTrial namespaceId={namespaceId} messages={messages} />
           <ChatArea
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}

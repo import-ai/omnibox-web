@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import useApp from '@/hooks/use-app';
+import { useChatStore } from '@/page/chat/chat-store';
 
 import { PlusIcon } from './plus';
 
@@ -33,6 +34,7 @@ export default function Actions(props: IProps) {
     conversationsPage,
     namespaceId,
   } = props;
+  const clearContext = useChatStore(state => state.clearContext);
   const app = useApp();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -49,7 +51,7 @@ export default function Actions(props: IProps) {
     navigate(`/${namespaceId}/chat/conversations`);
   };
   const onChatCreate = () => {
-    app.fire('context_clear');
+    clearContext();
     navigate(`/${namespaceId}/chat`);
   };
   const handleAction = (id: string) => {
@@ -86,7 +88,7 @@ export default function Actions(props: IProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="text-[#585D65] size-[28px] dark:text-white"
+              className="size-[28px] text-[#585D65] dark:text-white"
               onClick={onChatHistory}
             >
               <History />
@@ -101,7 +103,7 @@ export default function Actions(props: IProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 data-[state=open]:bg-accent"
+              className="size-7 data-[state=open]:bg-accent"
             >
               <MoreHorizontal className="size-4" />
             </Button>

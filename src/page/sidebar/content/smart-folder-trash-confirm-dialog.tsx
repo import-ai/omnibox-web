@@ -13,7 +13,7 @@ import {
 interface SmartFolderTrashConfirmDialogProps {
   open: boolean;
   retentionDays?: number;
-  smartFolderName?: string;
+  count?: number;
   onConfirm: () => void;
   onOpenChange: (open: boolean) => void;
 }
@@ -21,8 +21,7 @@ interface SmartFolderTrashConfirmDialogProps {
 export function SmartFolderTrashConfirmDialog(
   props: SmartFolderTrashConfirmDialogProps
 ) {
-  const { open, retentionDays, smartFolderName, onConfirm, onOpenChange } =
-    props;
+  const { open, retentionDays, count = 1, onConfirm, onOpenChange } = props;
   const { t } = useTranslation();
 
   return (
@@ -30,11 +29,7 @@ export function SmartFolderTrashConfirmDialog(
       <DialogContent className="max-w-[520px] [&>button]:hidden">
         <DialogHeader>
           <DialogTitle className="pb-2">
-            {smartFolderName
-              ? t('smart_folder.trash.named_title', {
-                  name: smartFolderName,
-                })
-              : t('smart_folder.trash.title')}
+            {t('smart_folder.trash.title', { count })}
           </DialogTitle>
           <DialogDescription>
             {t('smart_folder.trash.description', { days: retentionDays ?? 30 })}

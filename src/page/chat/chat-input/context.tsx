@@ -1,11 +1,10 @@
-import { Folder, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
 import Badge from '@/components/badge';
+import ResourceTypeIcon from '@/components/resource-type-icon';
 import { Button } from '@/components/ui/button';
-import ResourceIcon from '@/page/sidebar/content/resourceIcon';
 
 import { IResTypeContext } from './types';
 
@@ -25,14 +24,14 @@ export default function ChatContext(props: IProps) {
   }
 
   return (
-    <div className="flex items-center gap-1 pt-2 mt-[-8px] max-w-3xl overflow-x-auto no-scrollbar">
+    <div className="no-scrollbar mt-[-8px] flex max-w-3xl items-center gap-1 overflow-x-auto pt-2">
       {value.map(item => (
         <Badge
           key={`${item.resource.id}_${item.type}`}
           slot={
             <Button
               size="icon"
-              className="w-4 h-4 bg-black text-white rounded-full dark:bg-white dark:text-black"
+              className="size-4 rounded-full bg-black text-white dark:bg-white dark:text-black"
               onClick={() => {
                 onChange(
                   value.filter(
@@ -52,20 +51,15 @@ export default function ChatContext(props: IProps) {
           <Button
             size="sm"
             variant="outline"
-            className="dark:bg-transparent dark:border-[#6e7276]"
+            className="dark:border-[#6e7276] dark:bg-transparent"
             onClick={() => {
               navigate(`${navigatePrefix}/${item.resource.id}`);
             }}
           >
-            {item.type === 'folder' ? (
-              item.resource.resource_type === 'smart_folder' ? (
-                <SmartFolderDefaultIcon className="w-4 h-4" />
-              ) : (
-                <Folder className="w-4 h-4" />
-              )
-            ) : (
-              <ResourceIcon expand={false} resource={item.resource} />
-            )}
+            <ResourceTypeIcon
+              resource={item.resource}
+              contextType={item.type}
+            />
             <span className="max-w-[130px] truncate">
               {item.resource.name || t('untitled')}
             </span>

@@ -1,64 +1,50 @@
-import { Sidebar, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
+import React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-import Content from './content';
-import { FooterSidebar } from './footer';
-import { Header } from './header';
-import { Switcher } from './switcher';
-import Setting from './switcher/setting';
-import useContext from './useContext';
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarRail,
+  useSidebar,
+} from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
+import SettingModal from '@/page/settings';
+
+import { BodyForSidebar } from './body';
+import { FooterSidebar } from './components/footer';
+import { Header } from './components/header';
+import { Switcher } from './components/namespace-switcher';
 
 export default function MainSidebar() {
-  const {
-    data,
-    expands,
-    progress,
-    chatPage,
-    expanding,
-    editingKey,
-    resourceId,
-    openSpaces,
-    handleDrop,
-    namespaceId,
-    handleExpand,
-    handleDelete,
-    handleCreate,
-    handleCreateSmartFolder,
-    handleUpload,
-    handleRename,
-    handleActiveKey,
-    handleSpaceToggle,
-  } = useContext();
+  const params = useParams();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const resourceId = params.resource_id || '';
+  const namespaceId = params.namespace_id || '';
+  const { setOpenMobile } = useSidebar();
+  const handleActiveKey = (id: string) => {
+    if (id === 'chat') {
+      navigate(`/${namespaceId}/chat`);
+    } else {
+      navigate(`/${namespaceId}/${id}`);
+    }
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
-    <>
+    <React.Fragment>
       <Sidebar className="border-none">
-        <SidebarHeader className="pt-[16px] gap-[10px] pr-0">
+        <SidebarHeader className="gap-2.5 pr-0 pt-4">
           <Switcher namespaceId={namespaceId} />
-          <Header active={chatPage} onActiveKey={handleActiveKey} />
+          <Header onActiveKey={handleActiveKey} />
         </SidebarHeader>
-        <Content
-          data={data}
-          expands={expands}
-          onDrop={handleDrop}
-          progress={progress}
-          expanding={expanding}
-          editingKey={editingKey}
-          resourceId={resourceId}
-          openSpaces={openSpaces}
-          onExpand={handleExpand}
-          onDelete={handleDelete}
-          onCreate={handleCreate}
-          onCreateSmartFolder={handleCreateSmartFolder}
-          onUpload={handleUpload}
-          onRename={handleRename}
-          namespaceId={namespaceId}
-          onActiveKey={handleActiveKey}
-          onSpaceToggle={handleSpaceToggle}
-        />
+        <BodyForSidebar resourceId={resourceId} namespaceId={namespaceId} />
         <FooterSidebar />
         <SidebarRail className="opacity-0" />
       </Sidebar>
-      <Setting />
-    </>
+      <SettingModal />
+    </React.Fragment>
   );
 }

@@ -1,11 +1,3 @@
-// Shared menu styles for action.tsx and contextMenu.tsx
-
-// Menu item base style
-export const menuItemClass = 'cursor-pointer gap-2 text-popover-foreground';
-
-// Menu icon base style
-export const menuIconClass = 'size-4 text-neutral-500 dark:text-[#a1a1a1]';
-
 export const smartFolderDialogContentClass =
   'max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl sm:max-w-[650px] sm:p-7';
 
