@@ -88,51 +88,75 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
   };
 
   return (
-    <div className="space-y-1.5">
-      <div className={smartFolderConditionGridClass}>
-        <Select
-          value={condition.field || ''}
-          onValueChange={value =>
-            onFieldChange(index, value as SmartFolderField)
-          }
+    <div className="space-y-3 rounded-lg border border-lime border-border sm:p-2">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-medium text-foreground">
+          {t('smart_folder.create.condition_title', { index: index + 1 })}
+        </p>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className={cn(
+            smartFolderIconButtonClass,
+            'size-6 text-muted-foreground hover:text-foreground',
+            hideRemove && 'invisible'
+          )}
+          onClick={() => onRemove(index)}
         >
-          <SelectTrigger className={smartFolderSelectTriggerClass}>
-            <SelectValue placeholder={t('smart_folder.create.select_field')} />
-          </SelectTrigger>
-          <SelectContent>
-            {SMART_FOLDER_FIELD_OPTIONS.map(field => (
-              <SelectItem value={field} key={field}>
-                {t(`smart_folder.fields.${field}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {condition.field ? (
+          <X className="size-4" />
+        </Button>
+      </div>
+      <div className={smartFolderConditionGridClass}>
+        <div className="min-w-28 flex-[0.72_1_120px]">
           <Select
-            value={condition.operator || ''}
+            value={condition.field || ''}
             onValueChange={value =>
-              onOperatorChange(index, value as SmartFolderOperator)
+              onFieldChange(index, value as SmartFolderField)
             }
           >
             <SelectTrigger className={smartFolderSelectTriggerClass}>
               <SelectValue
-                placeholder={t('smart_folder.create.select_operator')}
+                placeholder={t('smart_folder.create.select_field')}
               />
             </SelectTrigger>
             <SelectContent>
-              {operators.map(operator => (
-                <SelectItem value={operator} key={operator}>
-                  {t(`smart_folder.operators.${operator}`)}
+              {SMART_FOLDER_FIELD_OPTIONS.map(field => (
+                <SelectItem value={field} key={field}>
+                  {t(`smart_folder.fields.${field}`)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        ) : (
-          <div />
-        )}
+        </div>
 
-        <div className="col-span-2 min-w-0 sm:col-span-1">
+        <div className="min-w-28 flex-[0.66_1_112px]">
+          {condition.field ? (
+            <Select
+              value={condition.operator || ''}
+              onValueChange={value =>
+                onOperatorChange(index, value as SmartFolderOperator)
+              }
+            >
+              <SelectTrigger className={smartFolderSelectTriggerClass}>
+                <SelectValue
+                  placeholder={t('smart_folder.create.select_operator')}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {operators.map(operator => (
+                  <SelectItem value={operator} key={operator}>
+                    {t(`smart_folder.operators.${operator}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div />
+          )}
+        </div>
+
+        <div className="min-w-64 flex-[2_1_260px]">
           {condition.field && condition.operator ? (
             shouldShowValueInput(condition.operator) ? (
               fieldType === 'text' && normalizedValue?.kind === 'text' ? (
@@ -219,16 +243,6 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
             <div />
           )}
         </div>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={cn(smartFolderIconButtonClass, hideRemove && 'invisible')}
-          onClick={() => onRemove(index)}
-        >
-          <X className="size-4" />
-        </Button>
       </div>
 
       {conditionError && (

@@ -929,6 +929,7 @@
       "description": "符合这些条件的资源会自动出现在智能文件夹中。",
       "owner_scope": "归属于",
       "root_scope": "筛选范围",
+      "condition_title": "条件{{index}}",
       "select_field": "选择属性",
       "select_operator": "选择关系",
       "value_placeholder": "请输入关键词",

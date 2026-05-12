@@ -34,7 +34,6 @@ import {
   smartFolderDialogTitleClass,
   smartFolderFieldLabelClass,
   smartFolderInputClass,
-  smartFolderMatchRowClass,
   smartFolderNameRowClass,
   smartFolderSelectTriggerClass,
 } from './styles';
@@ -196,16 +195,11 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
           </div>
 
           <div className="space-y-4">
-            <div
-              className={cn(
-                smartFolderMatchRowClass,
-                'items-center justify-between gap-3'
-              )}
-            >
-              <p className={cn(smartFolderFieldLabelClass, 'sm:w-[128px]')}>
+            <div className={cn(smartFolderNameRowClass, 'items-center')}>
+              <p className={smartFolderFieldLabelClass}>
                 {t('smart_folder.create.conditions')}
               </p>
-              <div className="flex flex-1 items-center gap-2">
+              <div className="flex items-center gap-2">
                 {conditions.length > 1 && (
                   <Select
                     value={matchMode}
@@ -250,7 +244,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
 
             <div
               ref={conditionListRef}
-              className="max-h-[232px] space-y-2 overflow-y-auto pr-1"
+              className="max-h-[232px] space-y-4 overflow-y-auto pr-1"
             >
               {conditions.map((condition, index) => (
                 <SmartFolderConditionRow

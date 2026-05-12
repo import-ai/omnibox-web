@@ -928,6 +928,7 @@
       "description": "Resources matching these conditions will appear in the smart folder automatically.",
       "owner_scope": "Belongs to",
       "root_scope": "Filter scope",
+      "condition_title": "Condition {{index}}",
       "select_field": "Select field",
       "select_operator": "Select operator",
       "value_placeholder": "Enter keyword",
