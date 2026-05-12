@@ -12,26 +12,19 @@ export function buildBaseActions(set: SidebarSet) {
         s.ui = {};
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
+        s.renamingId = null;
         s.dialogs = {
           createFolderTargetId: null,
           currentUploadTargetId: null,
           upload: {},
         };
         s.autoExpandedKeys = {};
-        s.selectedIds = {};
-        s.selectionMode = false;
-        s.lastSelectedId = null;
-        s.failedIds = {};
       });
     },
 
     init: (roots: Record<string, RootResource>) => {
       set(state => {
         state.nodes = {};
-        state.selectedIds = {};
-        state.selectionMode = false;
-        state.lastSelectedId = null;
-        state.failedIds = {};
 
         for (const [spaceType, resource] of Object.entries(roots)) {
           const rootNode = createNode(resource, null, spaceType as SpaceType);
@@ -83,16 +76,13 @@ export function buildBaseActions(set: SidebarSet) {
         s.ui = {};
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
+        s.renamingId = null;
         s.dialogs = {
           createFolderTargetId: null,
           currentUploadTargetId: null,
           upload: {},
         };
         s.autoExpandedKeys = {};
-        s.selectedIds = {};
-        s.selectionMode = false;
-        s.lastSelectedId = null;
-        s.failedIds = {};
       });
     },
 
@@ -102,6 +92,12 @@ export function buildBaseActions(set: SidebarSet) {
         if (!node) return;
         if (updates.name !== undefined) node.name = updates.name;
         if (updates.content !== undefined) node.content = updates.content;
+      });
+    },
+
+    setRenamingId: (id: string | null) => {
+      set(s => {
+        s.renamingId = id;
       });
     },
 
@@ -148,11 +144,6 @@ export function buildBaseActions(set: SidebarSet) {
         if (s.activeId && deletedIds.has(s.activeId)) {
           s.activeId = null;
         }
-        for (const id of deletedIds) {
-          delete s.selectedIds[id];
-          delete s.failedIds[id];
-        }
-        s.selectionMode = Object.keys(s.selectedIds).length > 0;
       });
     },
   };

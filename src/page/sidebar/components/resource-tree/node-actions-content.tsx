@@ -46,7 +46,9 @@ export function NodeActionsContent({
 
   const menuItems = useNodeMenu(actions, 'dialog', () => {
     setMenuOpen(false);
-    onRename?.();
+    window.setTimeout(() => {
+      onRename?.();
+    }, 150);
   });
 
   return (
@@ -87,7 +89,7 @@ export function NodeActionsContent({
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" sideOffset={10}>
-          {menuItems.items.map(item => {
+          {menuItems.map(item => {
             if (item.separator) {
               return <DropdownMenuSeparator key={item.key} />;
             }
@@ -120,7 +122,7 @@ export function NodeActionsContent({
       {actions.moveTo && (
         <MoveTo
           open={true}
-          resourceIds={[nodeId]}
+          resourceId={nodeId}
           onOpenChange={actions.setMoveTo}
           namespaceId={namespaceId}
           onFinished={actions.handleMoveFinished}

@@ -10,9 +10,3 @@ export function fetchShareResource(shareId: string, targetId: string) {
     mute: true,
   });
 }
-
-export function fetchShareResourcesByIds(shareId: string, ids: string[]) {
-  return http.get<Resource[]>(
-    `/shares/${shareId}/resources?id=${ids.join(',')}`
-  );
-}

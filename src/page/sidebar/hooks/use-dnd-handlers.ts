@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -31,8 +32,6 @@ interface UseDndHandlersReturn {
 export interface DndItem {
   files?: File[];
   id?: string;
-  ids?: string[];
-  count?: number;
 }
 
 export function useDndHandlers({
@@ -66,9 +65,10 @@ export function useDndHandlers({
         toast.success(t('upload.success', { count: fileList.files.length }));
         return id;
       })
-      .catch(() => {
-        toast.error(t('upload.failed'));
-        throw new Error('Upload failed');
+      .catch(err => {
+        const message =
+          err instanceof Error ? err.message : err || t('upload.failed');
+        toast(message, { position: 'bottom-right' });
       });
   };
 
@@ -82,30 +82,9 @@ export function useDndHandlers({
         .getState()
         .move(dragId, targetId)
         .catch(() => {
-          //
+          // request.ts handles backend error toasts.
         });
     }
-  };
-
-  const handleBatchMove = (ids: string[]) => {
-    const movableIds = ids.filter(id => id !== targetId);
-    if (movableIds.length === 0) return;
-
-    return useSidebarStore
-      .getState()
-      .batchMove(movableIds, targetId)
-      .then(result => {
-        if (result.failed.length > 0) {
-          toast.error(t('batch.move_failed'));
-        } else {
-          toast.success(
-            t('batch.move_success', { count: result.success.length })
-          );
-        }
-      })
-      .catch(() => {
-        toast.error(t('batch.move_failed'));
-      });
   };
 
   const handleDrop = (
@@ -115,12 +94,10 @@ export function useDndHandlers({
     if (monitor.didDrop()) return;
     const itemType = monitor.getItemType();
 
-    if (itemType === 'FILE' && item.files) {
+    if (itemType === NativeTypes.FILE && item.files) {
       handleFileUpload(item.files);
     } else if (itemType === 'card' && item.id) {
       handleNodeMove(item.id);
-    } else if (itemType === 'batch' && item.ids) {
-      handleBatchMove(item.ids);
     }
 
     setFileDragTarget(null);
@@ -136,9 +113,9 @@ export function useDndHandlers({
     const isOverShallow = monitor.isOver({ shallow: true });
     const itemType = monitor.getItemType();
 
-    if (itemType === 'FILE') {
+    if (itemType === NativeTypes.FILE) {
       if (isOverShallow) setFileDragTarget(targetId);
-    } else if (itemType === 'card' || itemType === 'batch') {
+    } else if (itemType === 'card') {
       setFileDragTarget(null);
       if (!isOverShallow) return;
       if (item.id && item.id === targetId) return;

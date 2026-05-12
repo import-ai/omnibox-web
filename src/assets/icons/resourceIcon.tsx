@@ -83,18 +83,37 @@ interface FileIconCondition {
   icon: JSX.Element;
 }
 
+const PDF_FILE_ICON = (
+  <RiFilePdf2Fill color="#F26D55" size={16} className="scale-125" />
+);
+const AUDIO_FILE_ICON = (
+  <RiFileMusicFill color="#6567F0" size={16} className="scale-125" />
+);
+
 const FILE_ICON_CONDITIONS: FileIconCondition[] = [
   {
     field: 'mimetype',
     type: 'equal',
     values: ['application/pdf'],
-    icon: <RiFilePdf2Fill color="#F26D55" size={16} className="scale-125" />,
+    icon: PDF_FILE_ICON,
+  },
+  {
+    field: 'original_name',
+    type: 'suffix',
+    values: ['.pdf'],
+    icon: PDF_FILE_ICON,
   },
   {
     field: 'mimetype',
     type: 'prefix',
     values: ['audio/'],
-    icon: <RiFileMusicFill color="#6567F0" size={16} className="scale-125" />,
+    icon: AUDIO_FILE_ICON,
+  },
+  {
+    field: 'original_name',
+    type: 'suffix',
+    values: ['.mp3', '.wav', '.m4a', '.pcm', '.opus'],
+    icon: AUDIO_FILE_ICON,
   },
   {
     field: 'mimetype',
@@ -157,7 +176,8 @@ function getIconForFile(resource: ResourceMeta) {
     const value: string =
       (condition.field === 'mimetype'
         ? resource.attrs.mimetype
-        : resource.attrs.original_name) || '';
+        : resource.attrs.original_name
+      )?.toLowerCase() || '';
     for (const target of condition.values) {
       if (condition.type === 'equal' && value === target) {
         return condition.icon;

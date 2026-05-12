@@ -188,7 +188,7 @@ export default function ResourceTasks({
         <span className="flex gap-2">
           {pendingTasks.length > 0 && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="focus-visible:outline-none">
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
                   className="h-6 gap-0.5 rounded-lg border border-neutral-500 bg-transparent px-2 py-0 text-xs text-neutral-500 focus-visible:outline-none dark:border-neutral-300 dark:text-neutral-300"
@@ -214,7 +214,7 @@ export default function ResourceTasks({
           )}
           {runningTasks.length > 0 && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="focus-visible:outline-none">
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
                   className="h-6 gap-0.5 rounded-lg border border-blue-500 bg-transparent px-2 py-0 text-xs text-blue-500 dark:border-blue-400 dark:text-blue-400"
@@ -240,7 +240,7 @@ export default function ResourceTasks({
           )}
           {finishedTasks.length > 0 && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="focus-visible:outline-none">
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
                   className="h-6 gap-0.5 rounded-lg border border-green-600 bg-transparent px-2 py-0 text-xs text-green-600 dark:border-green-500 dark:text-green-500"

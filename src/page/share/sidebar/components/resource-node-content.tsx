@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import ResourceIcon from '@/assets/icons/resourceIcon';
 import { Arrow } from '@/assets/icons/treeArrow';
+import ResourceTypeIcon from '@/components/resource-type-icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,6 +40,7 @@ export function ResourceNodeContent({
   isChatActive,
   isResourceActive,
   onAddToContext,
+  canBrowseResources,
 }: ResourceNodeContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -47,8 +48,9 @@ export function ResourceNodeContent({
   const { setOpenMobile } = useSidebar();
 
   const nodeUI = useSidebarStore(s => s.ui[nodeId]);
-  const activeId = useSidebarStore(s => s.activeId);
-  const isActive = isResourceActive(nodeId) || nodeId === activeId;
+  const canExpand = canBrowseResources && node.hasChildren;
+  const isExpanded = canExpand && nodeUI?.expanded === true;
+  const isActive = isResourceActive(nodeId);
 
   const handleNavigate = (id: string, edit?: boolean) => {
     if (edit) {
@@ -66,7 +68,7 @@ export function ResourceNodeContent({
   const handleExpand = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-    if (nodeUI?.expanded) {
+    if (isExpanded) {
       useSidebarStore.getState().collapse(nodeId);
     } else {
       useSidebarStore.getState().expand(nodeId);
@@ -74,13 +76,13 @@ export function ResourceNodeContent({
   };
 
   const handleActive = () => {
-    if (node.hasChildren) {
+    if (canExpand) {
       if (isActive) {
         handleExpand();
       } else {
         handleNavigate(nodeId);
         useSidebarStore.getState().activate(nodeId);
-        if (!nodeUI?.expanded) {
+        if (!isExpanded) {
           useSidebarStore.getState().expand(nodeId);
         }
       }
@@ -93,10 +95,10 @@ export function ResourceNodeContent({
   return (
     <SidebarMenuItem>
       <Collapsible
-        open={nodeUI?.expanded}
+        open={isExpanded}
         className={cn('group/collapsible', {
           '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
-            nodeUI?.expanded && !nodeUI?.loading && node.hasChildren,
+            isExpanded && !nodeUI?.loading,
         })}
       >
         <CollapsibleTrigger asChild>
@@ -119,11 +121,11 @@ export function ResourceNodeContent({
                     <div
                       data-resource-id={nodeId}
                       className={cn('list flex cursor-pointer', {
-                        'pl-1': node.hasChildren,
-                        'pl-7': !node.hasChildren,
+                        'pl-1': canExpand,
+                        'pl-7': !canExpand,
                       })}
                     >
-                      {node.hasChildren &&
+                      {canExpand &&
                         (nodeUI?.loading ? (
                           <Button
                             size="icon"
@@ -146,14 +148,14 @@ export function ResourceNodeContent({
                             <Arrow className="transition-transform" />
                           </Button>
                         ))}
-                      <ResourceIcon
-                        expand={nodeUI?.expanded}
+                      <ResourceTypeIcon
+                        expand={isExpanded}
                         resource={{
                           id: node.id,
                           name: node.name,
-                          parent_id: node.parentId,
-                          resource_type: node.resourceType,
-                          has_children: node.hasChildren,
+                          parentId: node.parentId,
+                          resourceType: node.resourceType,
+                          hasChildren: canExpand,
                           attrs: node.attrs,
                         }}
                       />
@@ -184,8 +186,7 @@ export function ResourceNodeContent({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub className="mr-0 gap-0 py-0 pr-0">
-            {nodeUI?.expanded &&
-              node.hasChildren &&
+            {isExpanded &&
               node.children.length > 0 &&
               node.children.map(childId => (
                 <ResourceNode
@@ -196,6 +197,7 @@ export function ResourceNodeContent({
                   isChatActive={isChatActive}
                   isResourceActive={isResourceActive}
                   onAddToContext={onAddToContext}
+                  canBrowseResources={canBrowseResources}
                 />
               ))}
           </SidebarMenuSub>

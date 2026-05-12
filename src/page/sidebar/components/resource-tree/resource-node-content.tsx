@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import ResourceIcon from '@/assets/icons/resourceIcon';
 import { Arrow } from '@/assets/icons/treeArrow';
+import ResourceTypeIcon from '@/components/resource-type-icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,14 +24,7 @@ import { Resource } from '@/interface';
 import { cn } from '@/lib/utils';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/use-resource-node-dnd';
 import type { TreeNode } from '@/page/sidebar/store';
-import {
-  useIsFailed,
-  useIsSelected,
-  useNodeIsFullySelected,
-  useNodeIsIndeterminate,
-  useSelectionState,
-  useSidebarStore,
-} from '@/page/sidebar/store';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 import Action from './node-actions';
 import ContextMenuMain from './node-context-menu';
@@ -40,7 +32,7 @@ import ResourceNode from './resource-node';
 
 const FOCUS_DELAY = 50;
 const BLUR_ENABLE_DELAY = 200;
-const CLICK_DEBOUNCE_DELAY = 50;
+const CLICK_DEBOUNCE_DELAY = 250;
 
 interface ResourceNodeContentProps {
   node: TreeNode;
@@ -61,32 +53,23 @@ export function ResourceNodeContent({
 
   const nodeUI = useSidebarStore(s => s.ui[nodeId]);
   const activeId = useSidebarStore(s => s.activeId);
-  const { selectionMode, lastSelectedId, selectedIds } = useSelectionState();
-  const isSelected = useIsSelected(nodeId);
-  const isFullySelected = useNodeIsFullySelected(nodeId);
-  const isIndeterminate = useNodeIsIndeterminate(nodeId);
-  const isFailed = useIsFailed(nodeId);
+  const renamingId = useSidebarStore(s => s.renamingId);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const clickTimeoutRef = useRef<number | null>(null);
   const isBlurEnabledRef = useRef(false);
   const isEditingRef = useRef(false);
 
-  const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
 
   const isActive = nodeId === activeId;
+  const isEditing = nodeId === renamingId;
 
   const { ref, dragStyle, isOver, isFileDragOver } = useResourceNodeDnd(
     nodeId,
     node,
     isEditing,
-    {
-      namespaceId,
-      selectionMode,
-      isSelected,
-      selectedIds: Object.keys(selectedIds),
-    }
+    { namespaceId }
   );
 
   useEffect(() => {
@@ -94,25 +77,8 @@ export function ResourceNodeContent({
   }, [isEditing]);
 
   useEffect(() => {
-    if (!isEditing) return;
-    isBlurEnabledRef.current = false;
-    const focusTimer = setTimeout(() => {
-      if (inputRef.current && isEditingRef.current) {
-        inputRef.current.focus();
-        inputRef.current.select();
-      }
-    }, FOCUS_DELAY);
-    const blurTimer = setTimeout(() => {
-      if (isEditingRef.current) {
-        isBlurEnabledRef.current = true;
-      }
-    }, BLUR_ENABLE_DELAY);
-    return () => {
-      clearTimeout(focusTimer);
-      clearTimeout(blurTimer);
-      isBlurEnabledRef.current = false;
-    };
-  }, [isEditing]);
+    setEditName(node.name || '');
+  }, [node.name]);
 
   const handleNavigate = (id: string, edit?: boolean) => {
     if (edit) {
@@ -137,17 +103,7 @@ export function ResourceNodeContent({
     }
   };
 
-  const handleActive = (event?: React.MouseEvent) => {
-    if (selectionMode) {
-      useSidebarStore
-        .getState()
-        .toggleSelection(
-          nodeId,
-          event?.shiftKey ? lastSelectedId || undefined : undefined
-        );
-      return;
-    }
-
+  const handleActive = () => {
     if (node.hasChildren) {
       if (isActive) {
         handleExpand();
@@ -164,7 +120,7 @@ export function ResourceNodeContent({
     }
   };
 
-  const handleClick = (event: React.MouseEvent) => {
+  const handleClick = () => {
     if (isEditing) return;
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
@@ -173,50 +129,26 @@ export function ResourceNodeContent({
     }
     clickTimeoutRef.current = window.setTimeout(() => {
       clickTimeoutRef.current = null;
-      handleActive(event);
+      handleActive();
     }, CLICK_DEBOUNCE_DELAY);
   };
 
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (selectionMode) return;
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-    }
-    setEditName(node.name || '');
-    setIsEditing(true);
-  };
+  const startRename = useCallback(() => {
+    useSidebarStore.getState().setRenamingId(nodeId);
+  }, [nodeId]);
 
-  const handleSelectionChange = (event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    useSidebarStore
-      .getState()
-      .toggleSelection(
-        nodeId,
-        event.shiftKey ? lastSelectedId || undefined : undefined
-      );
-  };
-
-  const handleBlur = () => {
-    if (!isBlurEnabledRef.current || !isEditing) return;
-    handleSave();
-  };
-
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
+    if (!isEditingRef.current) return;
     isBlurEnabledRef.current = false;
+    isEditingRef.current = false;
     const trimmedName = editName.trim();
-    setIsEditing(false);
+    useSidebarStore.getState().setRenamingId(null);
     if (trimmedName && trimmedName !== node.name) {
       try {
         await useSidebarStore.getState().rename(nodeId, trimmedName);
         app.fire('update_resource', {
           id: nodeId,
           name: trimmedName,
-          content: node.content,
-          tags: node.tags,
         } as unknown as Resource);
       } catch {
         setEditName(node.name || '');
@@ -224,6 +156,57 @@ export function ResourceNodeContent({
     } else {
       setEditName(node.name || '');
     }
+  }, [app, editName, node.name, nodeId]);
+
+  useEffect(() => {
+    if (!isEditing) return;
+
+    isBlurEnabledRef.current = false;
+
+    const focusTimer = window.setTimeout(() => {
+      if (inputRef.current && isEditingRef.current) {
+        inputRef.current.focus();
+        inputRef.current.select();
+      }
+    }, FOCUS_DELAY);
+
+    const blurTimer = window.setTimeout(() => {
+      if (isEditingRef.current) {
+        isBlurEnabledRef.current = true;
+      }
+    }, BLUR_ENABLE_DELAY);
+
+    return () => {
+      clearTimeout(focusTimer);
+      clearTimeout(blurTimer);
+      isBlurEnabledRef.current = false;
+    };
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (renamingId === nodeId) {
+      setEditName(node.name || '');
+      return;
+    }
+
+    isBlurEnabledRef.current = false;
+    isEditingRef.current = false;
+    setEditName(node.name || '');
+  }, [node.name, nodeId, renamingId]);
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+    startRename();
+  };
+
+  const handleBlur = () => {
+    if (!isEditing || !isBlurEnabledRef.current) return;
+    handleSave();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -232,7 +215,8 @@ export function ResourceNodeContent({
       handleSave();
     } else if (e.key === 'Escape') {
       isBlurEnabledRef.current = false;
-      setIsEditing(false);
+      isEditingRef.current = false;
+      useSidebarStore.getState().setRenamingId(null);
       setEditName(node.name || '');
     }
   };
@@ -253,18 +237,10 @@ export function ResourceNodeContent({
             nodeId={nodeId}
             namespaceId={namespaceId}
             onRename={() => {
-              setEditName(node.name || '');
-              setIsEditing(true);
+              startRename();
             }}
           >
-            <div
-              className={cn(
-                'group/sidebar-item my-px rounded-md hover:bg-sidebar-accent',
-                isSelected &&
-                  'bg-sidebar-accent text-sidebar-accent-foreground',
-                isFailed && 'ring-1 ring-destructive/60'
-              )}
-            >
+            <div className="group/sidebar-item my-px rounded-md hover:bg-sidebar-accent">
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
@@ -279,22 +255,12 @@ export function ResourceNodeContent({
                       data-resource-id={nodeId}
                       style={dragStyle}
                       className={cn('list flex cursor-pointer', {
-                        'pl-1': node.hasChildren || selectionMode,
-                        'pl-7': !node.hasChildren && !selectionMode,
+                        'pl-1': node.hasChildren,
+                        'pl-7': !node.hasChildren,
                         'bg-sidebar-accent text-sidebar-accent-foreground':
-                          isFileDragOver || isOver || isSelected,
+                          isFileDragOver || isOver,
                       })}
                     >
-                      {selectionMode && (
-                        <Checkbox
-                          checked={
-                            isIndeterminate ? 'indeterminate' : isFullySelected
-                          }
-                          onClick={handleSelectionChange}
-                          className="mr-1 mt-0.5 size-4"
-                          aria-label={t('batch.multi_select')}
-                        />
-                      )}
                       {node.hasChildren &&
                         (nodeUI?.loading ? (
                           <Button
@@ -318,14 +284,14 @@ export function ResourceNodeContent({
                             <Arrow className="transition-transform" />
                           </Button>
                         ))}
-                      <ResourceIcon
+                      <ResourceTypeIcon
                         expand={nodeUI?.expanded}
                         resource={{
                           id: node.id,
                           name: node.name,
-                          parent_id: node.parentId,
-                          resource_type: node.resourceType,
-                          has_children: node.hasChildren,
+                          parentId: node.parentId,
+                          resourceType: node.resourceType,
+                          hasChildren: node.hasChildren,
                           attrs: node.attrs,
                         }}
                       />
@@ -360,17 +326,14 @@ export function ResourceNodeContent({
                   </TooltipContent>
                 )}
               </Tooltip>
-              {!selectionMode && (
-                <Action
-                  nodeId={nodeId}
-                  namespaceId={namespaceId}
-                  upload={upload}
-                  onRename={() => {
-                    setEditName(node.name || '');
-                    setIsEditing(true);
-                  }}
-                />
-              )}
+              <Action
+                nodeId={nodeId}
+                namespaceId={namespaceId}
+                upload={upload}
+                onRename={() => {
+                  startRename();
+                }}
+              />
             </div>
           </ContextMenuMain>
         </CollapsibleTrigger>

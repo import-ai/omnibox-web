@@ -33,24 +33,16 @@ export interface DialogsState {
   upload: Record<string, string>;
 }
 
-export interface BatchOperationResult {
-  success: string[];
-  failed: Array<{ id: string; error: Error }>;
-}
-
 export interface SidebarState {
   namespaceId: string;
   nodes: Record<string, TreeNode>;
   ui: Record<string, NodeUI>;
   rootIds: Record<SpaceType, string>;
   activeId: string | null;
+  renamingId: string | null;
   dialogs: DialogsState;
   spaceExpanded: Record<SpaceType, boolean>;
   autoExpandedKeys: Record<string, boolean>;
-  selectedIds: Record<string, boolean>;
-  selectionMode: boolean;
-  lastSelectedId: string | null;
-  failedIds: Record<string, boolean>;
 }
 
 export interface RemoveResult {
@@ -76,6 +68,7 @@ export interface SidebarActions {
   uploadFiles: (parentId: string, files: FileList) => Promise<string>;
 
   activate: (id: string | null) => void;
+  setRenamingId: (id: string | null) => void;
   openCreateFolderDialog: (parentId: string) => void;
   closeCreateFolderDialog: () => void;
   setCurrentUploadTargetId: (id: string | null) => void;
@@ -91,19 +84,6 @@ export interface SidebarActions {
   refreshChildren: (parentId: string, resources: Resource[]) => void;
   restore: (resourceOrId: Resource | string) => Promise<string>;
   clear: () => void;
-
-  toggleSelection: (id: string, rangeStartId?: string) => void;
-  selectAll: (spaceType?: SpaceType) => void;
-  deselectAll: () => void;
-  setSelectionMode: (enabled: boolean) => void;
-  batchRemove: (ids: string[]) => Promise<BatchOperationResult>;
-  batchMove: (ids: string[], targetId: string) => Promise<BatchOperationResult>;
-  batchRefresh: (ids: string[]) => Promise<BatchOperationResult>;
-  batchCreate: (
-    folderName: string,
-    targetSpaceType: SpaceType
-  ) => Promise<BatchOperationResult>;
-  addToChat: (ids: string[]) => void;
 }
 
 export type SidebarStore = SidebarState & SidebarActions;
@@ -116,6 +96,7 @@ export const initialState: SidebarState = {
   ui: {},
   rootIds: { private: '', teamspace: '' },
   activeId: null,
+  renamingId: null,
   dialogs: {
     createFolderTargetId: null,
     currentUploadTargetId: null,
@@ -123,8 +104,4 @@ export const initialState: SidebarState = {
   },
   spaceExpanded: { private: true, teamspace: true },
   autoExpandedKeys: {},
-  selectedIds: {},
-  selectionMode: false,
-  lastSelectedId: null,
-  failedIds: {},
 };

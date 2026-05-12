@@ -1,10 +1,7 @@
-import {
-  fetchShareChildren,
-  fetchShareResource,
-  fetchShareResourcesByIds,
-} from '@/service/share';
+import type { Resource } from '@/interface';
+import { fetchShareChildren, fetchShareResource } from '@/service/share';
 
-import type { SidebarGet, SidebarSet, SpaceType } from '../types';
+import type { SidebarGet, SidebarSet, SpaceType, TreeNode } from '../types';
 import {
   collectParentIds,
   createNode,
@@ -16,8 +13,34 @@ import {
 export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
   const expandPromises = new Map<string, Promise<void>>();
 
+  const patchNodeFromSharedResource = (node: TreeNode, resource: Resource) => {
+    const previousHasChildren = node.hasChildren;
+    patchNodeFromResource(node, resource);
+    if (resource.has_children === undefined) {
+      node.hasChildren = previousHasChildren;
+    }
+  };
+
+  const fetchPathResources = async (
+    shareId: string,
+    path: Array<{ id: string }>,
+    target: Resource
+  ): Promise<Resource[]> => {
+    const resources: Resource[] = [];
+
+    for (const item of path) {
+      if (item.id === target.id) {
+        resources.push(target);
+      } else {
+        resources.push(await fetchShareResource(shareId, item.id));
+      }
+    }
+
+    return resources;
+  };
+
   return {
-    activate: (id: string) => {
+    activate: (id: string | null) => {
       set(s => {
         s.activeId = id;
       });
@@ -46,6 +69,7 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
             ui.expanded = true;
 
             const n = s.nodes[id];
+            n.hasChildren = children.length > 0;
             const backendIds = new Set(
               children.map((c: { id: string }) => c.id)
             );
@@ -66,13 +90,18 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
                   patchNodeFromResource(existing, child);
                 }
               }
+              ensureUI(s, child.id);
             }
 
             // 记录此资源已展开，避免重复展开
             s.autoExpandedKeys[`${s.namespaceId}:${id}`] = true;
           });
         } catch (err) {
-          console.error('[sidebar] expand failed:', err);
+          const status = (err as { response?: { status?: number } }).response
+            ?.status;
+          if (status !== 404) {
+            console.error('[sidebar] expand failed:', err);
+          }
           set(s => {
             const ui = s.ui[id];
             if (ui) ui.loading = false;
@@ -91,6 +120,30 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         const ui = s.ui[id];
         if (ui) ui.expanded = false;
       });
+    },
+
+    expandAllFrom: async (id: string) => {
+      const visited = new Set<string>();
+
+      const expandRecursive = async (nodeId: string): Promise<void> => {
+        if (visited.has(nodeId)) return;
+        visited.add(nodeId);
+
+        const node = get().nodes[nodeId];
+        if (!node?.hasChildren) return;
+
+        const ui = get().ui[nodeId];
+        if (!ui?.loaded || !ui.expanded) {
+          await get().expand(nodeId);
+        }
+
+        const latest = get().nodes[nodeId];
+        await Promise.all(
+          (latest?.children ?? []).map(childId => expandRecursive(childId))
+        );
+      };
+
+      await expandRecursive(id);
     },
 
     toggleSpace: (spaceType: SpaceType, open?: boolean) => {
@@ -129,8 +182,8 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         );
         if (
           options?.expandTarget &&
-          target.hasChildren &&
-          !get().ui[targetId]?.expanded
+          !get().ui[targetId]?.expanded &&
+          (!get().ui[targetId]?.loaded || target.hasChildren)
         ) {
           await get().expand(targetId);
         }
@@ -142,50 +195,46 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         if (!resource?.path?.length) return;
 
         const spaceType =
-          (resource.space_type as SpaceType | undefined) ||
-          detectSpaceType(nodes, get().rootIds, resource.path[0].id);
+          detectSpaceType(nodes, get().rootIds, resource.path[0].id) ??
+          ('share' satisfies SpaceType);
         if (!spaceType) return;
 
-        const missingIds: string[] = [];
-        for (const item of resource.path) {
-          if (!(item.id in nodes)) missingIds.push(item.id);
-        }
-        if (!(targetId in nodes) && !missingIds.includes(targetId)) {
-          missingIds.push(targetId);
-        }
-
-        if (missingIds.length > 0) {
-          const missingResources = await fetchShareResourcesByIds(
-            get().namespaceId,
-            missingIds
-          );
-
-          set(s => {
-            for (const res of missingResources) {
-              if (!(res.id in s.nodes)) {
-                const parentId = res.parent_id || s.rootIds[spaceType];
-                s.nodes[res.id] = createNode(res, parentId, spaceType);
-              }
-            }
-          });
-        }
+        const fullPath = resource.path.some(item => item.id === targetId)
+          ? resource.path
+          : [...resource.path, { id: targetId, name: resource.name || '' }];
+        const pathResources = await fetchPathResources(
+          get().namespaceId,
+          fullPath,
+          resource
+        );
+        const resourcesById = new Map(pathResources.map(res => [res.id, res]));
 
         set(s => {
-          for (let i = 0; i < resource.path.length - 1; i++) {
-            const parent = s.nodes[resource.path[i].id];
-            const child = s.nodes[resource.path[i + 1].id];
+          for (let i = 0; i < fullPath.length; i++) {
+            const item = fullPath[i];
+            const parentId =
+              i === 0 ? s.rootIds[spaceType] : fullPath[i - 1].id;
+            const pathResource = resourcesById.get(item.id);
+            if (!pathResource) continue;
+
+            if (!(item.id in s.nodes)) {
+              s.nodes[item.id] = createNode(pathResource, parentId, spaceType);
+            } else {
+              patchNodeFromSharedResource(s.nodes[item.id], pathResource);
+            }
+            const node = s.nodes[item.id];
+            if (node && i < fullPath.length - 1) {
+              node.hasChildren = true;
+            }
+            ensureUI(s, item.id);
+          }
+
+          for (let i = 0; i < fullPath.length - 1; i++) {
+            const parent = s.nodes[fullPath[i].id];
+            const child = s.nodes[fullPath[i + 1].id];
             if (parent && child && !parent.children.includes(child.id)) {
               parent.children.push(child.id);
               child.parentId = parent.id;
-            }
-          }
-          const targetNode = s.nodes[targetId];
-          const lastPathItem = resource.path[resource.path.length - 1];
-          if (targetNode && lastPathItem && targetNode.id !== lastPathItem.id) {
-            const lastParent = s.nodes[lastPathItem.id];
-            if (lastParent && !lastParent.children.includes(targetId)) {
-              lastParent.children.push(targetId);
-              targetNode.parentId = lastParent.id;
             }
           }
 
@@ -202,17 +251,26 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         });
 
         const parentIds = collectParentIds(get().nodes, targetId);
+        const idsToExpand = options?.expandTarget
+          ? [...parentIds, targetId]
+          : parentIds;
         await Promise.all(
-          [...parentIds, targetId].map(async pid => {
+          idsToExpand.map(async pid => {
             const ui = get().ui[pid];
             const n = get().nodes[pid];
-            if (n && ui && !ui.loaded && n.hasChildren) {
+            const shouldLoad =
+              pid === targetId ? options?.expandTarget : n?.hasChildren;
+            if (n && ui && !ui.loaded && shouldLoad) {
               await get().expand(pid);
             }
           })
         );
       } catch (err) {
-        console.error('[sidebar] expandPathTo failed:', err);
+        const status = (err as { response?: { status?: number } }).response
+          ?.status;
+        if (status !== 404) {
+          console.error('[sidebar] expandPathTo failed:', err);
+        }
       }
     },
   };

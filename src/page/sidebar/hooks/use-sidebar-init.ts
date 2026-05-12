@@ -110,11 +110,17 @@ export function useSidebarInit(props: IProps) {
   // Sync activeId from URL (only when URL changes, not when store.activeId changes)
   useEffect(() => {
     const store = useSidebarStore.getState();
+    if (chatPage) {
+      if (store.activeId) {
+        store.activate(null);
+      }
+      return;
+    }
     if (resourceId && store.activeId !== resourceId) {
       store.activate(resourceId);
     }
     // Only depend on resourceId to avoid racing with internal store navigation
-  }, [resourceId]);
+  }, [resourceId, chatPage]);
 
   return { namespaceId, resourceId };
 }

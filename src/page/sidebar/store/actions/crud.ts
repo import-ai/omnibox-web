@@ -71,11 +71,7 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
 
         for (const did of [...descendantIds, id]) {
           delete s.nodes[did];
-          delete s.ui[did];
-          delete s.selectedIds[did];
-          delete s.failedIds[did];
         }
-        s.selectionMode = Object.keys(s.selectedIds).length > 0;
 
         if (targetId === id || (targetId && descendantIds.includes(targetId))) {
           s.activeId = nextId;

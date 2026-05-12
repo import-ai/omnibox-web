@@ -2,11 +2,18 @@ import { Resource, SpaceType } from '@/interface';
 
 import type { SidebarState, TreeNode } from './types';
 
+type ResourceWithChildrenState = Resource & { hasChildren?: boolean };
+
+function getResourceHasChildren(resource: ResourceWithChildrenState): boolean {
+  return resource.has_children ?? resource.hasChildren ?? false;
+}
+
 export function createNode(
   resource: Resource,
   parentId: string | null,
   spaceType: SpaceType
 ): TreeNode {
+  const resourceWithChildrenState = resource as ResourceWithChildrenState;
   return {
     id: resource.id,
     parentId,
@@ -17,7 +24,7 @@ export function createNode(
     attrs: resource.attrs,
     tags: resource.tags,
     path: resource.path,
-    hasChildren: resource.has_children ?? false,
+    hasChildren: getResourceHasChildren(resourceWithChildrenState),
     currentPermission: resource.current_permission,
     globalPermission: resource.global_permission,
     createdAt: resource.created_at || '',
@@ -121,8 +128,9 @@ export function patchNodeFromResource(
   node: TreeNode,
   resource: Resource
 ): void {
+  const resourceWithChildrenState = resource as ResourceWithChildrenState;
   node.name = resource.name || '';
-  node.hasChildren = resource.has_children ?? false;
+  node.hasChildren = getResourceHasChildren(resourceWithChildrenState);
   node.updatedAt = resource.updated_at || '';
   node.resourceType = resource.resource_type;
 }
@@ -164,123 +172,4 @@ export function ensureUI(s: SidebarState, id: string) {
     s.ui[id] = { expanded: false, loading: false, loaded: false };
   }
   return s.ui[id];
-}
-
-export function getSelectableDescendantIds(
-  nodes: Record<string, TreeNode>,
-  id: string
-): string[] {
-  return [id, ...getDescendantIds(nodes, id)];
-}
-
-export function getVisibleNodeIds(
-  state: Pick<SidebarState, 'nodes' | 'rootIds' | 'spaceExpanded' | 'ui'>
-): string[] {
-  const result: string[] = [];
-
-  const visit = (id: string) => {
-    const node = state.nodes[id];
-    if (!node) return;
-    result.push(id);
-    if (!state.ui[id]?.expanded) return;
-    for (const childId of node.children) {
-      visit(childId);
-    }
-  };
-
-  for (const spaceType of Object.keys(state.rootIds) as SpaceType[]) {
-    if (state.spaceExpanded[spaceType] === false) continue;
-    const root = state.nodes[state.rootIds[spaceType]];
-    if (!root) continue;
-    for (const childId of root.children) {
-      visit(childId);
-    }
-  }
-
-  return result;
-}
-
-export function getIdsInVisibleRange(
-  state: Pick<SidebarState, 'nodes' | 'rootIds' | 'spaceExpanded' | 'ui'>,
-  startId: string,
-  endId: string
-): string[] {
-  const order = getVisibleNodeIds(state);
-  const startIndex = order.indexOf(startId);
-  const endIndex = order.indexOf(endId);
-  if (startIndex < 0 || endIndex < 0) {
-    return [endId];
-  }
-  const [from, to] = [startIndex, endIndex].sort((a, b) => a - b);
-  return order.slice(from, to + 1);
-}
-
-export function calculateSelectedCount(
-  nodes: Record<string, TreeNode>,
-  selectedIds: Record<string, boolean>
-): number {
-  return Object.keys(selectedIds).filter(id => Boolean(nodes[id])).length;
-}
-
-export function isNodeFullySelected(
-  nodes: Record<string, TreeNode>,
-  selectedIds: Record<string, boolean>,
-  id: string
-): boolean {
-  const ids = getSelectableDescendantIds(nodes, id);
-  return ids.length > 0 && ids.every(itemId => Boolean(selectedIds[itemId]));
-}
-
-export function isNodeIndeterminate(
-  nodes: Record<string, TreeNode>,
-  selectedIds: Record<string, boolean>,
-  id: string
-): boolean {
-  const ids = getSelectableDescendantIds(nodes, id);
-  const selectedCount = ids.filter(itemId =>
-    Boolean(selectedIds[itemId])
-  ).length;
-  return selectedCount > 0 && selectedCount < ids.length;
-}
-
-export function extractBatchResponseIds(
-  requestedIds: string[],
-  response: Array<{ id?: string; resource_id?: string }> | unknown
-): string[] {
-  if (!Array.isArray(response)) {
-    if (
-      response &&
-      typeof response === 'object' &&
-      'failed' in response &&
-      Number(response.failed) > 0
-    ) {
-      return [];
-    }
-    return requestedIds;
-  }
-
-  const responseIds = response
-    .map(item => item.id || item.resource_id)
-    .filter((id): id is string => Boolean(id));
-
-  return responseIds.length > 0
-    ? responseIds.filter(id => requestedIds.includes(id))
-    : requestedIds;
-}
-
-export function getTopLevelSelectedIds(
-  nodes: Record<string, TreeNode>,
-  ids: string[]
-): string[] {
-  const selected = new Set(ids);
-  return ids.filter(id => {
-    let current = nodes[id];
-    while (current?.parentId) {
-      if (selected.has(current.parentId)) {
-        return false;
-      }
-      current = nodes[current.parentId];
-    }
-    return true;
-  });
 }

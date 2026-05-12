@@ -50,7 +50,8 @@ export interface SidebarActions {
   collapse: (id: string) => void;
   toggleSpace: (spaceType: SpaceType, open?: boolean) => void;
 
-  activate: (id: string) => void;
+  activate: (id: string | null) => void;
+  expandAllFrom: (id: string) => Promise<void>;
 
   expandPathTo: (
     targetId: string,

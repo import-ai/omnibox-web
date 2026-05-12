@@ -49,7 +49,7 @@ export function Header(props: IProps) {
     <>
       <SearchMenu open={search} onOpenChange={setSearch} />
       <SidebarMenu className="mb-4">
-        <SidebarMenuItem>
+        <SidebarMenuItem className="group/chat">
           <SidebarMenuButton
             asChild
             isActive={active}
@@ -95,7 +95,7 @@ export function Header(props: IProps) {
             </div>
           </SidebarMenuButton>
         </SidebarMenuItem>
-        <SidebarMenuItem className="group/chat">
+        <SidebarMenuItem>
           <ActionDialog
             contentClassName={notificationDialogContentClassName}
             closeClassName="size-6 mr-2"

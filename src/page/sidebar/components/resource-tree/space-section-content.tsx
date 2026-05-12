@@ -1,8 +1,6 @@
 import { FilePlus, FolderPlus, MonitorUp, MoreHorizontal } from 'lucide-react';
-import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 import {
   Tooltip,
@@ -61,8 +59,6 @@ export function SpaceSectionContent({
   const navigate = useNavigate();
   const isTouch = useIsTouch();
 
-  const groupRef = useRef<HTMLDivElement>(null);
-
   const upload = useSidebarStore(s => s.dialogs.upload[rootId]);
 
   const handleCreateFolder = () => {
@@ -78,10 +74,6 @@ export function SpaceSectionContent({
     spaceId: rootId,
     namespaceId,
   });
-
-  useEffect(() => {
-    groupRef.current = dropRef.current;
-  }, [dropRef]);
 
   const handleHeaderToggle = () => {
     useSidebarStore.getState().toggleSpace(spaceType);
@@ -101,14 +93,14 @@ export function SpaceSectionContent({
           state: { fromSidebar: true },
         });
       })
-      .catch(err => {
-        toast.error(err?.message || t('create.failed'));
+      .catch(() => {
+        // request.ts handles backend error toasts.
       });
   };
 
   return (
     <SidebarGroup
-      ref={groupRef}
+      ref={dropRef}
       className={cn('pr-0', {
         'bg-sidebar-border text-sidebar-accent-foreground':
           isFileDragOver || (canDrop && isOver),

@@ -8,24 +8,6 @@ export interface CreatePayload {
   name?: string;
 }
 
-export interface BatchTrashResponse {
-  deleted: number;
-  failed: number;
-}
-
-export interface BatchMoveResponse {
-  moved: number;
-  failed: number;
-}
-
-export interface BatchCreateFolderPayload {
-  name: string;
-  parentId: string;
-  resourceIds: string[];
-}
-
-export type BatchRefreshResponse = Record<string, Resource[]>;
-
 export function fetchChildren(namespaceId: string, id: string) {
   return http.get<Resource[]>(
     `/namespaces/${namespaceId}/resources/${id}/children`
@@ -84,46 +66,4 @@ export function uploadResource(
   }
 ) {
   return uploadFiles(files, options);
-}
-
-export function batchDeleteResources(
-  namespaceId: string,
-  resourceIds: string[]
-) {
-  return http.post<BatchTrashResponse>(
-    `/namespaces/${namespaceId}/resources/batch-trash`,
-    { resourceIds },
-    { mute: true }
-  );
-}
-
-export function batchMoveResources(
-  namespaceId: string,
-  resourceIds: string[],
-  targetId: string
-) {
-  return http.post<BatchMoveResponse>(
-    `/namespaces/${namespaceId}/resources/batch-move`,
-    { resourceIds, targetId },
-    { mute: true }
-  );
-}
-
-export function batchCreateFolderFromResources(
-  namespaceId: string,
-  payload: BatchCreateFolderPayload
-) {
-  return http.post<Resource>(
-    `/namespaces/${namespaceId}/resources/batch-folder`,
-    payload,
-    { mute: true }
-  );
-}
-
-export function batchRefreshResources(namespaceId: string, ids: string[]) {
-  return http.post<BatchRefreshResponse>(
-    `/namespaces/${namespaceId}/resources/batch-refresh`,
-    { ids },
-    { mute: true }
-  );
 }

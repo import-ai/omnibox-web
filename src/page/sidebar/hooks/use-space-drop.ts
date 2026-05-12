@@ -33,7 +33,7 @@ export function useSpaceDrop({
     void,
     { isOver: boolean; canDrop: boolean }
   >({
-    accept: [NativeTypes.FILE, 'card', 'batch'],
+    accept: [NativeTypes.FILE, 'card'],
     drop: (item, monitor) => {
       handleDrop(item, monitor);
     },

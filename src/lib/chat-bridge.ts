@@ -1,4 +1,4 @@
-import type { ResourceMeta } from '@/interface';
+import { normalizeResourceMeta, ResourceMetaLike } from '@/lib/resource-meta';
 import type { PrivateSearchResourceType } from '@/page/chat/chat-input/types';
 import { useChatStore } from '@/page/chat/chat-store';
 
@@ -12,5 +12,7 @@ export function addToChatContext(
   resource: unknown,
   type: PrivateSearchResourceType
 ) {
-  useChatStore.getState().addContext(resource as ResourceMeta, type);
+  useChatStore
+    .getState()
+    .addContext(normalizeResourceMeta(resource as ResourceMetaLike), type);
 }

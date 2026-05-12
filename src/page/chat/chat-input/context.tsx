@@ -1,9 +1,9 @@
-import { Folder, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import ResourceIcon from '@/assets/icons/resourceIcon';
 import Badge from '@/components/badge';
+import ResourceTypeIcon from '@/components/resource-type-icon';
 import { Button } from '@/components/ui/button';
 
 import { IResTypeContext } from './types';
@@ -56,11 +56,10 @@ export default function ChatContext(props: IProps) {
               navigate(`${navigatePrefix}/${item.resource.id}`);
             }}
           >
-            {item.type === 'folder' ? (
-              <Folder className="size-4" />
-            ) : (
-              <ResourceIcon expand={false} resource={item.resource} />
-            )}
+            <ResourceTypeIcon
+              resource={item.resource}
+              contextType={item.type}
+            />
             <span className="max-w-[130px] truncate">
               {item.resource.name || t('untitled')}
             </span>
