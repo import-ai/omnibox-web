@@ -1,6 +1,6 @@
 import type { Citation } from '@/page/chat/core/types/chat-response';
 
-const citePattern = / *\[\[(\d+)]]/g;
+const citePattern = /\[\[(\d+)]](?:\([^)\s]+\))?/g;
 const safeUrlProtocol = /^(https?|ircs?|mailto|xmpp)$/i;
 
 export function trimIncompletedCitation(text: string) {
@@ -35,6 +35,32 @@ export function replaceCiteTag(
     const id = Number(i) - 1;
     if ((id >= 0 && id < citesCount) || !removeGeneratedCite) {
       return `[[${i}]](#cite-${i})`;
+    }
+    return '';
+  });
+}
+
+export function copyPreprocess(content: string, citations: Citation[]): string {
+  let citationsFooter: string = '';
+  const origin = location.origin;
+  const namespace = location.pathname.split('/')[1] || 'default';
+  for (let i = 0; i < citations.length; i++) {
+    const citation = citations[i];
+    const title = citation.title.replace('"', '\\"');
+    const link = citation.link.startsWith('http')
+      ? citation.link
+      : `${origin}/${namespace}/${citation.link}`;
+    citationsFooter += `[${i + 1}]: ${link} "${title}"\n`;
+  }
+
+  if (citationsFooter) {
+    content = content + '\n\n' + citationsFooter;
+  }
+
+  return content.replace(citePattern, (_, index) => {
+    const citationIndex = Number(index) - 1;
+    if (citationIndex >= 0 && citationIndex < citations.length) {
+      return `[^${index}][${index}]`;
     }
     return '';
   });

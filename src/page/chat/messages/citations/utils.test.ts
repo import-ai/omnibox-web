@@ -1,7 +1,9 @@
 import {
   citationUrlTransform,
+  copyPreprocess,
   findCitationByCiteRef,
   isCiteRef,
+  replaceCiteTag,
   trimIncompletedCitation,
 } from './citation-utils';
 
@@ -126,5 +128,60 @@ describe('cite_ref helpers', () => {
       'https://example.com'
     );
     expect(citationUrlTransform('javascript:alert(1)')).toBe('');
+  });
+});
+
+describe('citation marker replacement', () => {
+  it('replaces linked citation markers and preserves leading whitespace', () => {
+    expect(replaceCiteTag('Answer. [[1]](C1-x) next', true, 1)).toBe(
+      'Answer. [[1]](#cite-1) next'
+    );
+  });
+
+  it('keeps legacy citation marker behavior', () => {
+    expect(replaceCiteTag('Answer. [[1]] next', true, 1)).toBe(
+      'Answer. [[1]](#cite-1) next'
+    );
+  });
+
+  it('removes out-of-range linked markers without removing preceding whitespace', () => {
+    expect(replaceCiteTag('Answer. [[2]](C2-x) next', true, 1)).toBe(
+      'Answer.  next'
+    );
+  });
+});
+
+describe('copyPreprocess', () => {
+  const citations = [
+    {
+      id: 'message-id',
+      title: 'Resource',
+      snippet: 'Snippet',
+      link: 'resource-id',
+      cite_ref: 'vfs:/private/example.md:2-3',
+    },
+  ];
+
+  beforeEach(() => {
+    Object.defineProperty(globalThis, 'location', {
+      value: {
+        origin: 'https://omnibox.test',
+        pathname: '/namespace-id/chat/conversation-id',
+      },
+      configurable: true,
+      writable: true,
+    });
+  });
+
+  it('consumes linked markers while copying and preserves leading whitespace', () => {
+    expect(copyPreprocess('Answer. [[1]](C1-x) next', citations)).toBe(
+      'Answer. [^1][1] next\n\n[1]: https://omnibox.test/namespace-id/resource-id "Resource"\n'
+    );
+  });
+
+  it('keeps legacy marker copy behavior', () => {
+    expect(copyPreprocess('Answer. [[1]] next', citations)).toBe(
+      'Answer. [^1][1] next\n\n[1]: https://omnibox.test/namespace-id/resource-id "Resource"\n'
+    );
   });
 });

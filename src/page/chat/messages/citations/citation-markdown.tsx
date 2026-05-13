@@ -25,6 +25,7 @@ import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import {
   citationUrlTransform,
+  copyPreprocess,
   findCitationByCiteRef,
   isCiteRef,
   replaceCiteTag,
@@ -37,7 +38,6 @@ import {
 } from '@/page/chat/messages/citations/vfs-path-links';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
-const citePattern = / *\[\[(\d+)]]/g;
 
 function getTextContent(children: React.ReactNode): string {
   if (typeof children === 'string' || typeof children === 'number') {
@@ -47,32 +47,6 @@ function getTextContent(children: React.ReactNode): string {
     return children.map(getTextContent).join('');
   }
   return '';
-}
-
-function copyPreprocess(content: string, citations: Citation[]): string {
-  let citationsFooter: string = '';
-  const origin = location.origin;
-  const namespace = location.pathname.split('/')[1] || 'default';
-  for (let i = 0; i < citations.length; i++) {
-    const citation = citations[i];
-    const title = citation.title.replace('"', '\\"');
-    const link = citation.link.startsWith('http')
-      ? citation.link
-      : `${origin}/${namespace}/${citation.link}`;
-    citationsFooter += `[${i + 1}]: ${link} "${title}"\n`;
-  }
-
-  if (citationsFooter) {
-    content = content + '\n\n' + citationsFooter;
-  }
-
-  return content.replace(citePattern, (_, index) => {
-    const citationIndex = Number(index) - 1;
-    if (citationIndex >= 0 && citationIndex < citations.length) {
-      return `[^${index}][${index}]`;
-    }
-    return '';
-  });
 }
 
 interface IProps {
