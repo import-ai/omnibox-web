@@ -1,34 +1,21 @@
 import type { SVGProps } from 'react';
 
+import { SmartFolderFunnel } from './smartFolderFunnel';
+
 export function SmartFolderDefaultIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
+      viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       {...props}
     >
-      <g clipPath="url(#clip0_11275_28261)">
-        <path
-          d="M14.6667 7.32593V5.33333C14.6667 4.97971 14.5262 4.64057 14.2762 4.39052C14.0261 4.14048 13.687 4 13.3334 4H8.06671C7.84372 4.00219 7.62374 3.94841 7.42691 3.84359C7.23008 3.73877 7.06268 3.58625 6.94004 3.4L6.40004 2.6C6.27863 2.41565 6.11336 2.26432 5.91904 2.1596C5.72472 2.05488 5.50745 2.00004 5.28671 2H2.66671C2.31309 2 1.97395 2.14048 1.7239 2.39052C1.47385 2.64057 1.33337 2.97971 1.33337 3.33333V12C1.33337 12.3536 1.47385 12.6928 1.7239 12.9428C1.97395 13.1929 2.31309 13.3333 2.66671 13.3333H9.83012"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M11.5074 11.4653L11.3365 11.2905L10.5397 10.476L10.1217 9.85983C9.81648 9.41137 10.1506 8.84926 10.61 8.84909H14.1783C14.6677 8.84909 14.9988 9.48074 14.6237 9.91647V9.91745L13.6676 11.0258L13.4137 11.313L13.2633 11.4829V13.726C13.2632 14.1144 12.9609 14.3999 12.6246 14.3999H12.4821C12.1438 14.3417 11.9549 14.2565 11.776 14.0659C11.5837 13.8608 11.5416 13.7582 11.527 13.7085C11.5066 13.6387 11.5074 13.5809 11.5074 13.3403V11.4653Z"
-          stroke="currentColor"
-          strokeWidth="1.2"
-        />
-      </g>
-      <defs>
-        <clipPath id="clip0_11275_28261">
-          <rect width="16" height="16" fill="white" />
-        </clipPath>
-      </defs>
+      <path d="M10.7 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v4.1" />
+      <SmartFolderFunnel />
     </svg>
   );
 }
