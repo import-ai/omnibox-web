@@ -6,10 +6,11 @@ import { TouchBackend } from 'react-dnd-touch-backend';
 import { SidebarContent } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SpaceType } from '@/interface';
-import { useDragAutoScroll } from '@/page/sidebar/hooks/use-drag-auto-scroll';
+import { SidebarDragLayer } from '@/page/sidebar/hooks/useBatchDrag';
+import { useDragAutoScroll } from '@/page/sidebar/hooks/useDragAutoScroll';
 import { TrashPanel } from '@/page/trash';
 
-import SpaceSection from './space-section';
+import SpaceSection from './spaceSection';
 
 interface ResourceTreeProps {
   namespaceId: string;
@@ -33,6 +34,7 @@ export default function ResourceTree({ namespaceId }: ResourceTreeProps) {
         ))}
         <TrashPanel />
       </SidebarContent>
+      <SidebarDragLayer />
     </DndProvider>
   );
 }

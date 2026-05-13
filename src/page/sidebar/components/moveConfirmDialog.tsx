@@ -31,7 +31,7 @@ export function MoveConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[480px] max-w-[90%]">
         <DialogHeader>
           <DialogTitle>
             {t('batch.move_confirm_title', {
@@ -39,9 +39,11 @@ export function MoveConfirmDialog({
               target: targetName,
             })}
           </DialogTitle>
-          <DialogDescription>
-            {t('batch.move_confirm_description')}
-          </DialogDescription>
+          {t('batch.move_confirm_description') && (
+            <DialogDescription>
+              {t('batch.move_confirm_description')}
+            </DialogDescription>
+          )}
         </DialogHeader>
         <DialogFooter>
           <Button

@@ -2,16 +2,47 @@ import { Resource, ResourceType } from '@/interface';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
+export type RootResourcesResponse = Record<
+  string,
+  Resource & { children?: Resource[] }
+>;
+
 export interface CreatePayload {
   parentId: string;
   resourceType: ResourceType;
   name?: string;
 }
 
+export interface BatchTrashResponse {
+  success_ids: string[];
+  failed_ids: string[];
+}
+
+export interface BatchMoveResponse {
+  success_ids: string[];
+  failed_ids: string[];
+}
+
+export interface BatchCreateFolderPayload {
+  name: string;
+  parentId: string;
+  resourceIds: string[];
+}
+
+export type BatchRefreshResponse = Record<string, Resource[]>;
+export type BatchCreateFolderResponse = Partial<Resource> & {
+  success_ids: string[];
+  failed_ids: string[];
+};
+
 export function fetchChildren(namespaceId: string, id: string) {
   return http.get<Resource[]>(
     `/namespaces/${namespaceId}/resources/${id}/children`
   );
+}
+
+export function fetchRootResources(namespaceId: string) {
+  return http.get<RootResourcesResponse>(`/namespaces/${namespaceId}/root`);
 }
 
 export function createResource(namespaceId: string, payload: CreatePayload) {
@@ -66,4 +97,46 @@ export function uploadResource(
   }
 ) {
   return uploadFiles(files, options);
+}
+
+export function batchDeleteResources(
+  namespaceId: string,
+  resourceIds: string[]
+) {
+  return http.post<BatchTrashResponse>(
+    `/namespaces/${namespaceId}/resources/batch-trash`,
+    { resourceIds },
+    { mute: true }
+  );
+}
+
+export function batchMoveResources(
+  namespaceId: string,
+  resourceIds: string[],
+  targetId: string
+) {
+  return http.post<BatchMoveResponse>(
+    `/namespaces/${namespaceId}/resources/batch-move`,
+    { resourceIds, targetId },
+    { mute: true }
+  );
+}
+
+export function batchCreateFolderFromResources(
+  namespaceId: string,
+  payload: BatchCreateFolderPayload
+) {
+  return http.post<BatchCreateFolderResponse>(
+    `/namespaces/${namespaceId}/resources/batch-folder`,
+    payload,
+    { mute: true }
+  );
+}
+
+export function batchRefreshResources(namespaceId: string, ids: string[]) {
+  return http.post<BatchRefreshResponse>(
+    `/namespaces/${namespaceId}/resources/batch-refresh`,
+    { ids },
+    { mute: true }
+  );
 }

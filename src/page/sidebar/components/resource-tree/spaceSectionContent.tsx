@@ -32,12 +32,12 @@ import { Spinner } from '@/components/ui/spinner';
 import { useIsTouch } from '@/hooks/use-is-touch';
 import { SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
-import { useSpaceDrop } from '@/page/sidebar/hooks/use-space-drop';
+import { useSpaceDrop } from '@/page/sidebar/hooks/useSpaceDrop';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
 
-import ResourceNode from './resource-node';
+import ResourceNode from './resourceNode';
 import { menuIconClass, menuItemClass } from './shared';
 
 interface SpaceSectionContentProps {

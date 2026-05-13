@@ -29,10 +29,10 @@ import { SettingButton } from '@/page/settings/settings-trigger';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { Logout } from '@/page/user/logout';
 
-import Generate from './create-namespace';
-import { InviteButton } from './invite-button';
-import { NamespaceList } from './namespace-list';
-import NamespaceMember from './namespace-member';
+import Generate from './createNamespace';
+import { InviteButton } from './inviteButton';
+import { NamespaceList } from './namespaceList';
+import NamespaceMember from './namespaceMember';
 
 interface IProps {
   namespaceId: string;

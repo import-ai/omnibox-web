@@ -173,3 +173,150 @@ export function ensureUI(s: SidebarState, id: string) {
   }
   return s.ui[id];
 }
+
+export function getSelectableDescendantIds(
+  nodes: Record<string, TreeNode>,
+  id: string
+): string[] {
+  return [id, ...getDescendantIds(nodes, id)];
+}
+
+export function getVisibleNodeIds(
+  state: Pick<SidebarState, 'nodes' | 'rootIds' | 'spaceExpanded' | 'ui'>
+): string[] {
+  const result: string[] = [];
+
+  const visit = (id: string) => {
+    const node = state.nodes[id];
+    if (!node) return;
+    result.push(id);
+    if (!state.ui[id]?.expanded) return;
+    for (const childId of node.children) {
+      visit(childId);
+    }
+  };
+
+  for (const spaceType of Object.keys(state.rootIds) as SpaceType[]) {
+    if (state.spaceExpanded[spaceType] === false) continue;
+    const root = state.nodes[state.rootIds[spaceType]];
+    if (!root) continue;
+    for (const childId of root.children) {
+      visit(childId);
+    }
+  }
+
+  return result;
+}
+
+export function getIdsInVisibleRange(
+  state: Pick<SidebarState, 'nodes' | 'rootIds' | 'spaceExpanded' | 'ui'>,
+  startId: string,
+  endId: string
+): string[] {
+  const order = getVisibleNodeIds(state);
+  const startIndex = order.indexOf(startId);
+  const endIndex = order.indexOf(endId);
+  if (startIndex < 0 || endIndex < 0) {
+    return [endId];
+  }
+  const [from, to] = [startIndex, endIndex].sort((a, b) => a - b);
+  return order.slice(from, to + 1);
+}
+
+export function calculateSelectedCount(
+  nodes: Record<string, TreeNode>,
+  selectedIds: Record<string, boolean>
+): number {
+  const countNode = (id: string): number => {
+    const node = nodes[id];
+    if (!node) return 0;
+
+    if (selectedIds[id] && isNodeFullySelected(nodes, selectedIds, id)) {
+      return 1;
+    }
+
+    if (node.children.length === 0) {
+      return selectedIds[id] ? 1 : 0;
+    }
+
+    return node.children.reduce((count, childId) => {
+      return count + countNode(childId);
+    }, 0);
+  };
+
+  return (Object.values(nodes).filter(node => !node.parentId) as TreeNode[])
+    .flatMap(root => root.children)
+    .reduce((count, id) => count + countNode(id), 0);
+}
+
+export function isNodeFullySelected(
+  nodes: Record<string, TreeNode>,
+  selectedIds: Record<string, boolean>,
+  id: string
+): boolean {
+  const ids = getSelectableDescendantIds(nodes, id);
+  return ids.length > 0 && ids.every(itemId => Boolean(selectedIds[itemId]));
+}
+
+export function isNodeIndeterminate(
+  nodes: Record<string, TreeNode>,
+  selectedIds: Record<string, boolean>,
+  id: string
+): boolean {
+  const ids = getSelectableDescendantIds(nodes, id);
+  const selectedCount = ids.filter(itemId =>
+    Boolean(selectedIds[itemId])
+  ).length;
+  return selectedCount > 0 && selectedCount < ids.length;
+}
+
+export function isNodeDimmedBySelection(
+  nodes: Record<string, TreeNode>,
+  selectedIds: Record<string, boolean>,
+  id: string
+): boolean {
+  if (isNodeIndeterminate(nodes, selectedIds, id)) {
+    return true;
+  }
+
+  let current = nodes[id];
+  while (current?.parentId) {
+    const parent = nodes[current.parentId];
+    if (parent && isNodeFullySelected(nodes, selectedIds, parent.id)) {
+      return true;
+    }
+    current = parent;
+  }
+  return false;
+}
+
+export function extractBatchResponseIds(
+  requestedIds: string[],
+  response: Array<{ id?: string; resource_id?: string }> | unknown
+): string[] {
+  if (!Array.isArray(response)) return requestedIds;
+  const responseIds = response
+    .map(item => item.id || item.resource_id)
+    .filter((id): id is string => Boolean(id));
+
+  return responseIds.length > 0
+    ? responseIds.filter(id => requestedIds.includes(id))
+    : requestedIds;
+}
+
+export function getTopLevelSelectedIds(
+  nodes: Record<string, TreeNode>,
+  ids: string[]
+): string[] {
+  const selected = new Set(ids);
+  return ids.filter(id => {
+    let current = nodes[id];
+    while (current?.parentId) {
+      if (selected.has(current.parentId)) {
+        return false;
+      }
+      current = nodes[current.parentId];
+    }
+    return true;
+  });
+}

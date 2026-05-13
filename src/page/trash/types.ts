@@ -2,6 +2,7 @@ import { ResourceMeta } from '@/interface';
 
 export interface TrashItem extends ResourceMeta {
   deleted_at: string;
+  disable_restore?: boolean;
 }
 
 export interface TrashListResponse {

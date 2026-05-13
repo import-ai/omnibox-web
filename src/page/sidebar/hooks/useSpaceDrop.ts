@@ -2,7 +2,7 @@ import { type RefObject, useEffect, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 
-import { DndItem, useDndHandlers } from './use-dnd-handlers';
+import { DndItem, useDndHandlers } from './useDndHandlers';
 
 interface UseSpaceDropOptions {
   spaceId: string;
@@ -33,7 +33,7 @@ export function useSpaceDrop({
     void,
     { isOver: boolean; canDrop: boolean }
   >({
-    accept: [NativeTypes.FILE, 'card'],
+    accept: [NativeTypes.FILE, 'card', 'batch'],
     drop: (item, monitor) => {
       handleDrop(item, monitor);
     },

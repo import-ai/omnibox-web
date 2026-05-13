@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import MoveTo from '@/page/resource/actions/move';
 import { useNode } from '@/page/sidebar/store';
 
-import { MoveConfirmDialog } from './move-confirm-dialog';
+import { MoveConfirmDialog } from './moveConfirmDialog';
 
 interface BatchMoveDialogProps {
   open: boolean;
@@ -25,11 +25,13 @@ export default function BatchMoveDialog({
 }: BatchMoveDialogProps) {
   const { t } = useTranslation();
   const [targetId, setTargetId] = useState<string | null>(null);
+  const [targetName, setTargetName] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const targetNode = useNode(targetId || '');
 
   const handleCancel = () => {
     setTargetId(null);
+    setTargetName('');
     setConfirmOpen(false);
     onCancel();
   };
@@ -38,6 +40,7 @@ export default function BatchMoveDialog({
     if (!targetId) return;
     await onConfirm(targetId);
     setTargetId(null);
+    setTargetName('');
     setConfirmOpen(false);
   };
 
@@ -48,9 +51,11 @@ export default function BatchMoveDialog({
           open={open}
           resourceIds={selectedIds}
           namespaceId={namespaceId}
+          showDisabledTargets
           onOpenChange={handleCancel}
-          onFinished={(_, nextTargetId) => {
+          onFinished={(_, nextTargetId, nextTargetName) => {
             setTargetId(nextTargetId);
+            setTargetName(nextTargetName || '');
             setConfirmOpen(true);
           }}
         />
@@ -58,10 +63,16 @@ export default function BatchMoveDialog({
       <MoveConfirmDialog
         open={confirmOpen}
         count={selectedIds.length}
-        targetName={targetNode?.name || t('untitled')}
+        targetName={targetNode?.name || targetName || t('untitled')}
         loading={loading}
         onConfirm={handleFinalConfirm}
-        onOpenChange={setConfirmOpen}
+        onOpenChange={open => {
+          if (!open) {
+            handleCancel();
+            return;
+          }
+          setConfirmOpen(open);
+        }}
       />
     </>
   );

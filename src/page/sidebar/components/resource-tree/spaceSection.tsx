@@ -1,7 +1,7 @@
 import { SpaceType } from '@/interface';
 import { useIsSpaceExpanded, useNode, useRootId } from '@/page/sidebar/store';
 
-import { SpaceSectionContent } from './space-section-content';
+import { SpaceSectionContent } from './spaceSectionContent';
 
 interface SpaceSectionProps {
   spaceType: SpaceType;

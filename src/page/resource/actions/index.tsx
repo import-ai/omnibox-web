@@ -15,7 +15,7 @@ import {
   Trash2,
 } from 'lucide-react';
 // import { Resource } from '@/interface';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -65,6 +65,10 @@ export default function Actions(props: IActionProps) {
   const [moveTo, setMoveTo] = useState(false);
   const [progress, setProgress] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const moveResourceIds = useMemo(
+    () => (resource ? [resource.id] : []),
+    [resource?.id]
+  );
 
   const handleEdit = () => {
     if (!resource) {
@@ -264,9 +268,14 @@ export default function Actions(props: IActionProps) {
       return;
     }
   };
-  const handleMoveFinished = async (resourceId: string, targetId: string) => {
+  const handleMoveFinished = async (
+    resourceIds: string[],
+    targetId: string
+  ) => {
     setMoveTo(false);
     setOpen(false);
+    const [resourceId] = resourceIds;
+    if (!resourceId) return;
     await useSidebarStore.getState().move(resourceId, targetId);
   };
 
@@ -488,7 +497,7 @@ export default function Actions(props: IActionProps) {
           open={moveTo}
           namespaceId={namespaceId}
           onOpenChange={setMoveTo}
-          resourceId={resource.id}
+          resourceIds={moveResourceIds}
           onFinished={handleMoveFinished}
         />
       )}

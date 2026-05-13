@@ -25,19 +25,21 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
         {item.name || t('untitled')}
       </span>
       <div className="pointer-events-none absolute right-2 flex items-center gap-0.5 opacity-0 group-hover/trash-item:pointer-events-auto group-hover/trash-item:opacity-100">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-6 text-neutral-400 hover:bg-transparent hover:text-foreground"
-              onClick={() => onRestore(item.id)}
-            >
-              <Undo2 className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('trash.restore')}</TooltipContent>
-        </Tooltip>
+        {!item.disable_restore && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 text-neutral-400 hover:bg-transparent hover:text-foreground"
+                onClick={() => onRestore(item.id)}
+              >
+                <Undo2 className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('trash.restore')}</TooltipContent>
+          </Tooltip>
+        )}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

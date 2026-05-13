@@ -19,8 +19,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { useIsTouch } from '@/hooks/use-is-touch';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
-import type { UseNodeActionsReturn } from '@/page/sidebar/hooks/use-node-actions';
-import { useNodeMenu } from '@/page/sidebar/hooks/use-node-menu';
+import type { UseNodeActionsReturn } from '@/page/sidebar/hooks/useNodeActions';
+import { useNodeMenu } from '@/page/sidebar/hooks/useNodeMenu';
 import type { TreeNode } from '@/page/sidebar/store/types';
 
 import { menuIconClass, menuItemClass } from './shared';
@@ -89,7 +89,7 @@ export function NodeActionsContent({
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" sideOffset={10}>
-          {menuItems.map(item => {
+          {menuItems.items.map(item => {
             if (item.separator) {
               return <DropdownMenuSeparator key={item.key} />;
             }
@@ -122,7 +122,7 @@ export function NodeActionsContent({
       {actions.moveTo && (
         <MoveTo
           open={true}
-          resourceId={nodeId}
+          resourceIds={[nodeId]}
           onOpenChange={actions.setMoveTo}
           namespaceId={namespaceId}
           onFinished={actions.handleMoveFinished}

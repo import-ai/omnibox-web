@@ -1,6 +1,7 @@
 import type { Resource, SpaceType } from '@/interface';
 
 import type { RootResource, SidebarSet } from '../types';
+import { initialDialogsState } from '../types';
 import { createNode, ensureUI, patchNodeFromResource } from '../utils';
 
 export function buildBaseActions(set: SidebarSet) {
@@ -13,11 +14,7 @@ export function buildBaseActions(set: SidebarSet) {
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
         s.renamingId = null;
-        s.dialogs = {
-          createFolderTargetId: null,
-          currentUploadTargetId: null,
-          upload: {},
-        };
+        s.dialogs = { ...initialDialogsState };
         s.autoExpandedKeys = {};
       });
     },
@@ -77,11 +74,7 @@ export function buildBaseActions(set: SidebarSet) {
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
         s.renamingId = null;
-        s.dialogs = {
-          createFolderTargetId: null,
-          currentUploadTargetId: null,
-          upload: {},
-        };
+        s.dialogs = { ...initialDialogsState };
         s.autoExpandedKeys = {};
       });
     },

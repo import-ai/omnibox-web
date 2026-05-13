@@ -1,5 +1,5 @@
 import type { Resource, SpaceType } from '@/interface';
-import { addToChatContext } from '@/lib/chat-bridge';
+import { addToChatContext, removeFromChatContext } from '@/lib/chat-bridge';
 import {
   batchCreateFolderFromResources,
   batchDeleteResources,
@@ -16,7 +16,6 @@ import type {
 import {
   createNode,
   ensureUI,
-  extractBatchResponseIds,
   getDescendantIds,
   getIdsInVisibleRange,
   getSelectableDescendantIds,
@@ -36,17 +35,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
     });
   };
 
-  const clearSelectionFor = (ids: string[]) => {
-    set(s => {
-      for (const id of ids) {
-        delete s.selectedIds[id];
-        delete s.failedIds[id];
-      }
-      s.selectionMode = Object.keys(s.selectedIds).length > 0;
-      if (!s.selectionMode) {
-        s.lastSelectedId = null;
-      }
-    });
+  const finishBatchSelection = (s: SidebarStore) => {
+    s.selectionMode = Object.keys(s.selectedIds).length > 0;
+    if (!s.selectionMode) {
+      s.lastSelectedId = null;
+    }
   };
 
   return {
@@ -72,7 +65,9 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         }
 
         s.lastSelectedId = id;
-        s.selectionMode = Object.keys(s.selectedIds).length > 0;
+        if (Object.keys(s.selectedIds).length === 0) {
+          s.lastSelectedId = null;
+        }
       });
     },
 
@@ -99,7 +94,15 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           }
         }
 
-        s.selectionMode = Object.keys(s.selectedIds).length > 0;
+        s.selectionMode = true;
+      });
+    },
+
+    clearSelection: () => {
+      set(s => {
+        s.selectedIds = {};
+        s.lastSelectedId = null;
+        s.failedIds = {};
       });
     },
 
@@ -123,6 +126,13 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       });
     },
 
+    setBatchDragging: (dragging: boolean) => {
+      set(s => {
+        if (s.batchDragging === dragging) return;
+        s.batchDragging = dragging;
+      });
+    },
+
     batchRemove: async (ids: string[]) => {
       const requestedIds = getTopLevelSelectedIds(get().nodes, ids);
       const result: BatchOperationResult = { success: [], failed: [] };
@@ -132,9 +142,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           get().namespaceId,
           requestedIds
         );
-        result.success = extractBatchResponseIds(requestedIds, response);
-        result.failed = requestedIds
-          .filter(id => !result.success.includes(id))
+        result.success = response.success_ids.filter(id =>
+          requestedIds.includes(id)
+        );
+        result.failed = response.failed_ids
+          .filter(id => requestedIds.includes(id))
           .map(id => ({ id, error: new Error('Delete failed') }));
       } catch (error) {
         result.failed = requestedIds.map(id => ({
@@ -144,6 +156,7 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       }
 
       set(s => {
+        removeFromChatContext(result.success);
         for (const id of result.success) {
           const node = s.nodes[id];
           const parentId = node?.parentId ?? null;
@@ -168,10 +181,12 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           }
         }
 
-        for (const item of result.failed) {
-          s.failedIds[item.id] = true;
+        if (result.success.length > 0) {
+          for (const item of result.failed) {
+            s.failedIds[item.id] = true;
+          }
         }
-        s.selectionMode = Object.keys(s.selectedIds).length > 0;
+        finishBatchSelection(s);
       });
 
       return result;
@@ -179,18 +194,16 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
 
     batchMove: async (ids: string[], targetId: string) => {
       const requestedIds = getTopLevelSelectedIds(get().nodes, ids);
-      const target = get().nodes[targetId];
       const result: BatchOperationResult = { success: [], failed: [] };
-
-      if (!target) {
-        return {
-          success: [],
-          failed: requestedIds.map(id => ({
-            id,
-            error: new Error('Target not found'),
-          })),
-        };
-      }
+      const snapshots = new Map<
+        string,
+        {
+          parentId: string | null;
+          index: number;
+          spaceType: SpaceType;
+          descendantSpaceTypes: Record<string, SpaceType>;
+        }
+      >();
 
       const validIds: string[] = [];
       for (const id of requestedIds) {
@@ -206,6 +219,69 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         }
       }
 
+      const applyMove = (
+        s: SidebarStore,
+        moveIds: string[],
+        optimistic: boolean
+      ) => {
+        const newParent = s.nodes[targetId];
+        const newParentUI = newParent ? ensureUI(s, targetId) : null;
+
+        for (const id of moveIds) {
+          const node = s.nodes[id];
+          if (!node) continue;
+          const oldParentId = node.parentId;
+          if (optimistic && !snapshots.has(id)) {
+            const oldParent = oldParentId ? s.nodes[oldParentId] : null;
+            const descendantSpaceTypes: Record<string, SpaceType> = {};
+            traverseDescendants(s.nodes, id, descendant => {
+              descendantSpaceTypes[descendant.id] = descendant.spaceType;
+            });
+            snapshots.set(id, {
+              parentId: oldParentId,
+              index: oldParent ? oldParent.children.indexOf(id) : -1,
+              spaceType: node.spaceType,
+              descendantSpaceTypes,
+            });
+          }
+          if (oldParentId) {
+            const oldParent = s.nodes[oldParentId];
+            if (oldParent) {
+              oldParent.children = oldParent.children.filter(cid => cid !== id);
+              oldParent.hasChildren = oldParent.children.length > 0;
+            }
+          }
+
+          if (newParent) {
+            if (!newParent.children.includes(id)) {
+              newParent.children.unshift(id);
+            }
+            newParent.hasChildren = true;
+            if (newParentUI) {
+              newParentUI.expanded = true;
+            }
+            node.parentId = targetId;
+            node.spaceType = newParent.spaceType;
+          }
+
+          traverseDescendants(s.nodes, id, descendant => {
+            if (newParent) {
+              descendant.spaceType = newParent.spaceType;
+            }
+            const ui = s.ui[descendant.id];
+            if (ui) ui.expanded = false;
+          });
+
+          delete s.failedIds[id];
+        }
+      };
+
+      if (validIds.length > 0 && get().nodes[targetId]) {
+        set(s => {
+          applyMove(s, validIds, true);
+        });
+      }
+
       if (validIds.length > 0) {
         try {
           const response = await batchMoveResources(
@@ -213,10 +289,12 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             validIds,
             targetId
           );
-          result.success = extractBatchResponseIds(validIds, response);
+          result.success = response.success_ids.filter(id =>
+            validIds.includes(id)
+          );
           result.failed.push(
-            ...validIds
-              .filter(id => !result.success.includes(id))
+            ...response.failed_ids
+              .filter(id => validIds.includes(id))
               .map(id => ({ id, error: new Error('Move failed') }))
           );
         } catch (error) {
@@ -227,47 +305,62 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       }
 
       set(s => {
-        const newParent = s.nodes[targetId];
-        if (!newParent) return;
+        const successSet = new Set(result.success);
+        for (const item of result.failed) {
+          const snapshot = snapshots.get(item.id);
+          const node = s.nodes[item.id];
+          if (!snapshot || !node) {
+            s.failedIds[item.id] = true;
+            continue;
+          }
 
-        for (const id of result.success) {
-          const node = s.nodes[id];
-          if (!node) continue;
-          const oldParentId = node.parentId;
-          const movedIds = [id, ...getDescendantIds(s.nodes, id)];
-
-          if (oldParentId) {
-            const oldParent = s.nodes[oldParentId];
-            if (oldParent) {
-              oldParent.children = oldParent.children.filter(cid => cid !== id);
-              oldParent.hasChildren = oldParent.children.length > 0;
+          const currentParentId = node.parentId;
+          if (currentParentId) {
+            const currentParent = s.nodes[currentParentId];
+            if (currentParent) {
+              currentParent.children = currentParent.children.filter(
+                cid => cid !== item.id
+              );
+              currentParent.hasChildren = currentParent.children.length > 0;
             }
           }
 
-          if (!newParent.children.includes(id)) {
-            newParent.children.unshift(id);
+          if (snapshot.parentId) {
+            const oldParent = s.nodes[snapshot.parentId];
+            if (oldParent && !oldParent.children.includes(item.id)) {
+              const insertIndex =
+                snapshot.index >= 0
+                  ? snapshot.index
+                  : oldParent.children.length;
+              oldParent.children.splice(insertIndex, 0, item.id);
+              oldParent.hasChildren = true;
+            }
           }
-          newParent.hasChildren = true;
-          const parentUI = ensureUI(s, targetId);
-          parentUI.expanded = true;
+          node.parentId = snapshot.parentId;
+          node.spaceType = snapshot.spaceType;
 
-          node.parentId = targetId;
-          traverseDescendants(s.nodes, id, descendant => {
-            descendant.spaceType = newParent.spaceType;
-            const ui = s.ui[descendant.id];
-            if (ui) ui.expanded = false;
+          traverseDescendants(s.nodes, item.id, descendant => {
+            descendant.spaceType =
+              snapshot.descendantSpaceTypes[descendant.id] ??
+              snapshot.spaceType;
           });
 
-          for (const movedId of movedIds) {
-            delete s.selectedIds[movedId];
-            delete s.failedIds[movedId];
-          }
-        }
-
-        for (const item of result.failed) {
           s.failedIds[item.id] = true;
         }
-        s.selectionMode = Object.keys(s.selectedIds).length > 0;
+
+        const unappliedSuccessIds = result.success.filter(
+          id => !snapshots.has(id)
+        );
+        if (unappliedSuccessIds.length > 0) {
+          applyMove(s, unappliedSuccessIds, false);
+        }
+
+        for (const id of result.success) {
+          if (successSet.has(id)) {
+            delete s.failedIds[id];
+          }
+        }
+        finishBatchSelection(s);
       });
 
       return result;
@@ -297,67 +390,79 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       return result;
     },
 
-    batchCreate: async (folderName: string, targetSpaceType: SpaceType) => {
+    batchCreate: async (folderName: string, parentId: string) => {
       const selectedIds = Object.keys(get().selectedIds);
-      const rootId = get().rootIds[targetSpaceType];
-      const root = get().nodes[rootId];
-
-      if (!root) {
-        return {
-          success: [],
-          failed: selectedIds.map(id => ({
-            id,
-            error: new Error('Target root not found'),
-          })),
-        };
-      }
-
+      const target = get().nodes[parentId];
       const requestedIds = getTopLevelSelectedIds(get().nodes, selectedIds);
       const folder = await batchCreateFolderFromResources(get().namespaceId, {
-        parentId: rootId,
+        parentId,
         name: folderName,
         resourceIds: requestedIds,
       });
+      const successIds = folder.success_ids.filter(id =>
+        requestedIds.includes(id)
+      );
+      const failedIds = folder.failed_ids.filter(id =>
+        requestedIds.includes(id)
+      );
 
       set(s => {
-        const node = createNode(folder, rootId, targetSpaceType);
-        s.nodes[node.id] = node;
-        node.children = requestedIds.filter(id => Boolean(s.nodes[id]));
-        node.hasChildren = node.children.length > 0;
-
-        const draftRoot = s.nodes[rootId];
-        if (draftRoot) {
-          draftRoot.children.unshift(node.id);
-          draftRoot.hasChildren = true;
-        }
-        const rootUI = ensureUI(s, rootId);
-        rootUI.expanded = true;
-        const folderUI = ensureUI(s, node.id);
-        folderUI.expanded = true;
-        folderUI.loaded = true;
-
-        for (const id of node.children) {
-          const child = s.nodes[id];
-          if (!child) continue;
-          const oldParent = child.parentId ? s.nodes[child.parentId] : null;
-          if (oldParent) {
-            oldParent.children = oldParent.children.filter(cid => cid !== id);
-            oldParent.hasChildren = oldParent.children.length > 0;
+        if (folder.id && folder.resource_type) {
+          const parent = s.nodes[parentId];
+          const spaceType =
+            parent?.spaceType || folder.space_type || target?.spaceType;
+          if (!spaceType) {
+            return;
           }
-          child.parentId = node.id;
-          const movedIds = [id, ...getDescendantIds(s.nodes, id)];
-          traverseDescendants(s.nodes, id, descendant => {
-            descendant.spaceType = targetSpaceType;
-          });
-          for (const movedId of movedIds) {
-            delete s.selectedIds[movedId];
-            delete s.failedIds[movedId];
+          const node = createNode(folder as Resource, parentId, spaceType);
+          s.nodes[node.id] = node;
+          node.children = successIds.filter(id => Boolean(s.nodes[id]));
+          node.hasChildren = node.children.length > 0;
+
+          if (parent && !parent.children.includes(node.id)) {
+            parent.children.unshift(node.id);
+            parent.hasChildren = true;
+            const parentUI = ensureUI(s, parentId);
+            parentUI.expanded = true;
+          }
+          const folderUI = ensureUI(s, node.id);
+          folderUI.expanded = true;
+          folderUI.loaded = true;
+
+          for (const id of node.children) {
+            const child = s.nodes[id];
+            if (!child) continue;
+            const movedIds = [id, ...getDescendantIds(s.nodes, id)];
+            const oldParent = child.parentId ? s.nodes[child.parentId] : null;
+            if (oldParent) {
+              oldParent.children = oldParent.children.filter(cid => cid !== id);
+              oldParent.hasChildren = oldParent.children.length > 0;
+            }
+            child.parentId = node.id;
+            traverseDescendants(s.nodes, id, descendant => {
+              descendant.spaceType = spaceType;
+            });
+            for (const movedId of movedIds) {
+              delete s.selectedIds[movedId];
+              delete s.failedIds[movedId];
+            }
           }
         }
-        s.selectionMode = Object.keys(s.selectedIds).length > 0;
+
+        for (const id of failedIds) {
+          s.failedIds[id] = true;
+        }
+        finishBatchSelection(s);
       });
 
-      return { success: requestedIds, failed: [] };
+      return {
+        success: successIds,
+        failed: failedIds.map(id => ({
+          id,
+          error: new Error('Create folder failed'),
+        })),
+        resourceId: folder.id,
+      };
     },
 
     addToChat: (ids: string[]) => {
@@ -370,7 +475,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           node.resourceType === 'folder' ? 'folder' : 'resource'
         );
       }
-      clearSelectionFor(ids);
     },
   };
 }

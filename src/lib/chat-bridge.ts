@@ -12,7 +12,16 @@ export function addToChatContext(
   resource: unknown,
   type: PrivateSearchResourceType
 ) {
-  useChatStore
-    .getState()
-    .addContext(normalizeResourceMeta(resource as ResourceMetaLike), type);
+  const resourceMeta = normalizeResourceMeta(resource as ResourceMetaLike);
+  useChatStore.getState().addContext(resourceMeta, type);
+}
+
+export function removeFromChatContext(resourceIds: string[]) {
+  if (resourceIds.length === 0) return;
+
+  const removedIds = new Set(resourceIds);
+  const store = useChatStore.getState();
+  for (const id of removedIds) {
+    store.removeContext(id);
+  }
 }

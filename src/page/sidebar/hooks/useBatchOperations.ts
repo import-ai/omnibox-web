@@ -4,9 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import useApp from '@/hooks/use-app';
-import type { SpaceType } from '@/interface';
 
-import { useSelectionState, useSidebarStore } from '../store';
+import { useSelectedCount, useSelectionState, useSidebarStore } from '../store';
 
 interface UseBatchOperationsOptions {
   namespaceId: string;
@@ -18,11 +17,13 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
   const navigate = useNavigate();
   const location = useLocation();
   const selectionMode = useSidebarStore(state => state.selectionMode);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const batchDragging = useSidebarStore(state => state.batchDragging);
+  const deleteDialogOpen = useSidebarStore(state => state.dialogs.batchDelete);
+  const moveDialogOpen = useSidebarStore(state => state.dialogs.batchMove);
+  const createDialogOpen = useSidebarStore(state => state.dialogs.batchCreate);
   const [isProcessing, setIsProcessing] = useState(false);
   const selectionState = useSelectionState();
+  const selectedCount = useSelectedCount();
   const selectedIdList = Object.keys(selectionState.selectedIds);
   const nodes = useSidebarStore(state => state.nodes);
   const toggleSelectionMode = () => {
@@ -31,11 +32,16 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
   const getSelectedIds = () =>
     Object.keys(useSidebarStore.getState().selectedIds);
 
-  const closeDeleteDialog = () => setDeleteDialogOpen(false);
-  const closeMoveDialog = () => setMoveDialogOpen(false);
-  const openDeleteDialog = () => setDeleteDialogOpen(true);
-  const openMoveDialog = () => setMoveDialogOpen(true);
-  const openCreateDialog = () => setCreateDialogOpen(true);
+  const closeDeleteDialog = () =>
+    useSidebarStore.getState().setBatchDeleteDialog(false);
+  const closeMoveDialog = () =>
+    useSidebarStore.getState().setBatchMoveDialog(false);
+  const openDeleteDialog = () =>
+    useSidebarStore.getState().setBatchDeleteDialog(true);
+  const openMoveDialog = () =>
+    useSidebarStore.getState().setBatchMoveDialog(true);
+  const openCreateDialog = () =>
+    useSidebarStore.getState().setBatchCreateDialog(true);
   const deselectAll = () => useSidebarStore.getState().deselectAll();
   const confirmDelete = async () => {
     setIsProcessing(true);
@@ -45,12 +51,16 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         .batchRemove(getSelectedIds());
       app.fire('trash_updated');
       if (result.failed.length > 0) {
-        toast.error(
-          t('batch.delete_partial_error', {
-            success: result.success.length,
-            failed: result.failed.length,
-          })
-        );
+        if (result.success.length === 0) {
+          toast.error(t('batch.all_forbidden'));
+        } else {
+          toast.success(
+            t('batch.delete_partial_error', {
+              success: result.success.length,
+              failed: result.failed.length,
+            })
+          );
+        }
       } else {
         toast.success(
           t('batch.delete_success', { count: result.success.length })
@@ -71,12 +81,16 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         .getState()
         .batchMove(getSelectedIds(), targetId);
       if (result.failed.length > 0) {
-        toast.error(
-          t('batch.move_partial_error', {
-            success: result.success.length,
-            failed: result.failed.length,
-          })
-        );
+        if (result.success.length === 0) {
+          toast.error(t('batch.all_forbidden'));
+        } else {
+          toast.success(
+            t('batch.move_partial_error', {
+              success: result.success.length,
+              failed: result.failed.length,
+            })
+          );
+        }
       } else {
         toast.success(
           t('batch.move_success', { count: result.success.length })
@@ -104,19 +118,17 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
     }
   };
 
-  const confirmCreate = async (
-    folderName: string,
-    targetSpaceType: SpaceType
-  ) => {
+  const confirmCreate = async (folderName: string, parentId: string) => {
     setIsProcessing(true);
     try {
       const result = await useSidebarStore
         .getState()
-        .batchCreate(folderName, targetSpaceType);
+        .batchCreate(folderName, parentId);
 
       if (result.failed.length > 0) {
         if (result.success.length === 0) {
-          toast.error(t('batch.create_failed'));
+          toast.error(t('batch.all_forbidden'));
+          return false;
         } else {
           toast.success(
             t('batch.create_partial_success', {
@@ -130,8 +142,21 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
           t('batch.create_success', { count: result.success.length })
         );
       }
-    } catch {
+
+      if (result.resourceId) {
+        useSidebarStore.getState().activate(result.resourceId);
+        navigate(`/${namespaceId}/${result.resourceId}`, {
+          state: { fromSidebar: true },
+        });
+      }
+      return true;
+    } catch (error: any) {
+      if (error?.response?.data?.code === 'resource_name_conflict') {
+        toast.error(t('batch.create_name_conflict'));
+        return false;
+      }
       toast.error(t('batch.create_failed'));
+      return false;
     } finally {
       setIsProcessing(false);
     }
@@ -146,14 +171,17 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
     }
   };
 
-  const defaultTargetSpaceType: SpaceType = selectedIdList.some(
+  const defaultTargetSpaceType = selectedIdList.some(
     id => nodes[id]?.spaceType === 'private'
   )
     ? 'private'
     : 'teamspace';
+  const defaultTargetId =
+    useSidebarStore.getState().rootIds[defaultTargetSpaceType];
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (batchDragging) return;
       if (event.key === 'Escape' && selectionMode) {
         deselectAll();
       }
@@ -161,19 +189,21 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectionMode]);
+  }, [batchDragging, selectionMode]);
 
   return {
     selectedIds: selectedIdList,
+    selectedCount,
     nodes,
     isProcessing,
     selectionMode,
     toggleSelectionMode,
     defaultTargetSpaceType,
+    defaultTargetId,
     deleteDialogOpen,
     moveDialogOpen,
     createDialogOpen,
-    setCreateDialogOpen,
+    setCreateDialogOpen: useSidebarStore.getState().setBatchCreateDialog,
     openDeleteDialog,
     closeDeleteDialog,
     openMoveDialog,

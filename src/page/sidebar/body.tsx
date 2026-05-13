@@ -6,10 +6,15 @@ import { toast } from 'sonner';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 
+import { BatchCreateDialog } from './components/batchCreateDialog';
+import BatchDeleteDialog from './components/batchDeleteDialog';
+import BatchMoveDialog from './components/batchMoveDialog';
 import ResourceTree from './components/resource-tree';
-import { CreateFolderDialog } from './components/resource-tree/create-folder-dialog';
-import { useSidebarEvents } from './hooks/use-sidebar-events';
-import { useSidebarInit } from './hooks/use-sidebar-init';
+import { CreateFolderDialog } from './components/resource-tree/createFolderDialog';
+import { Toolbar } from './components/toolbar';
+import { useBatchOperations } from './hooks/useBatchOperations';
+import { useSidebarEvents } from './hooks/useSidebarEvents';
+import { useSidebarInit } from './hooks/useSidebarInit';
 import { useSidebarStore } from './store';
 
 interface IProps {
@@ -24,6 +29,7 @@ export function BodyForSidebar(props: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const globalFileInputRef = useRef<HTMLInputElement>(null);
+  const batch = useBatchOperations({ namespaceId });
   const currentUploadTargetId = useSidebarStore(
     s => s.dialogs.currentUploadTargetId
   );
@@ -56,6 +62,15 @@ export function BodyForSidebar(props: IProps) {
 
   return (
     <React.Fragment>
+      <Toolbar
+        selectionMode={batch.selectionMode}
+        toggleSelectionMode={batch.toggleSelectionMode}
+        onDeselectAll={batch.deselectAll}
+        onBatchDelete={batch.openDeleteDialog}
+        onBatchMove={batch.openMoveDialog}
+        onBatchCreate={batch.openCreateDialog}
+        onAddToChat={batch.addSelectedToChat}
+      />
       <ResourceTree namespaceId={namespaceId} />
       <CreateFolderDialog
         open={!!createFolderTargetId}
@@ -84,6 +99,30 @@ export function BodyForSidebar(props: IProps) {
             // request.ts handles backend error toasts.
           }
         }}
+      />
+      <BatchCreateDialog
+        open={batch.createDialogOpen}
+        namespaceId={namespaceId}
+        defaultTargetId={batch.defaultTargetId}
+        selectedIds={batch.selectedIds}
+        onOpenChange={batch.setCreateDialogOpen}
+        onConfirm={batch.confirmCreate}
+      />
+      <BatchDeleteDialog
+        open={batch.deleteDialogOpen}
+        selectedCount={batch.selectedCount}
+        namespaceId={namespaceId}
+        loading={batch.isProcessing}
+        onConfirm={batch.confirmDelete}
+        onCancel={batch.closeDeleteDialog}
+      />
+      <BatchMoveDialog
+        open={batch.moveDialogOpen}
+        selectedIds={batch.selectedIds}
+        namespaceId={namespaceId}
+        loading={batch.isProcessing}
+        onConfirm={batch.confirmMove}
+        onCancel={batch.closeMoveDialog}
       />
       <Input
         multiple

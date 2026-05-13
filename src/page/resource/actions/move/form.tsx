@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LazyInput } from '@/components/input/lazy';
@@ -14,11 +14,16 @@ import FormResource from './resource';
 export interface IFormProps {
   resourceIds: string[];
   namespaceId: string;
-  onFinished?: (resourceIds: string[], targetId: string) => void;
+  showDisabledTargets?: boolean;
+  onFinished?: (
+    resourceIds: string[],
+    targetId: string,
+    targetName?: string
+  ) => void;
 }
 
 export default function MoveToForm(props: IFormProps) {
-  const { resourceIds, namespaceId, onFinished } = props;
+  const { resourceIds, namespaceId, showDisabledTargets, onFinished } = props;
   const { t } = useTranslation();
   const [editId, onEditId] = useState('');
   const [search, onSearch] = useState('');
@@ -46,16 +51,18 @@ export default function MoveToForm(props: IFormProps) {
             }
             root.push({ ...item, spaceType });
             if (Array.isArray(item.children) && item.children.length > 0) {
-              const resourceChildrenIdToRemove = new Set(resourceIds);
-              each(item.children, children => {
-                if (resourceChildrenIdToRemove.has(children.parent_id)) {
-                  resourceChildrenIdToRemove.add(children.id);
-                }
-              });
-              item.children = item.children.filter(
-                (children: Resource) =>
-                  !resourceChildrenIdToRemove.has(children.id)
-              );
+              if (!showDisabledTargets) {
+                const resourceChildrenIdToRemove = new Set(resourceIds);
+                each(item.children, children => {
+                  if (resourceChildrenIdToRemove.has(children.parent_id)) {
+                    resourceChildrenIdToRemove.add(children.id);
+                  }
+                });
+                item.children = item.children.filter(
+                  (children: Resource) =>
+                    !resourceChildrenIdToRemove.has(children.id)
+                );
+              }
               resources.push(...item.children);
             }
           });
@@ -66,11 +73,21 @@ export default function MoveToForm(props: IFormProps) {
         });
       return;
     }
+
+    const excludeResourceId = showDisabledTargets ? '' : resourceIds.join(',');
     http
       .get(
-        `/namespaces/${namespaceId}/resources/search?exclude_resource_id=${resourceIds.join(',')}&name=${encodeURIComponent(search)}`
+        `/namespaces/${namespaceId}/resources/search?exclude_resource_id=${excludeResourceId}&name=${encodeURIComponent(search)}`
       )
       .then(response => {
+        if (showDisabledTargets) {
+          onData({
+            root: [],
+            resources: response,
+          });
+          return;
+        }
+
         const resourceIdSet = new Set(resourceIds);
         onData({
           root: [],
@@ -82,7 +99,20 @@ export default function MoveToForm(props: IFormProps) {
       .finally(() => {
         onLoading(false);
       });
-  }, [search, resourceIds, namespaceId]);
+  }, [search, resourceIds, namespaceId, showDisabledTargets]);
+
+  const disabledResourceIds = useMemo(() => {
+    const ids = new Set(resourceIds);
+    if (!showDisabledTargets) {
+      return ids;
+    }
+    each(data.resources, resource => {
+      if (ids.has(resource.parent_id)) {
+        ids.add(resource.id);
+      }
+    });
+    return ids;
+  }, [data.resources, resourceIds, showDisabledTargets]);
 
   return (
     <div>
@@ -119,6 +149,7 @@ export default function MoveToForm(props: IFormProps) {
                 onFinished={onFinished}
                 resourceIds={resourceIds}
                 namespaceId={namespaceId}
+                disabled={disabledResourceIds.has(item.id)}
               />
             ))}
           </>
@@ -142,6 +173,7 @@ export default function MoveToForm(props: IFormProps) {
                 onFinished={onFinished}
                 resourceIds={resourceIds}
                 namespaceId={namespaceId}
+                disabled={disabledResourceIds.has(item.id)}
               />
             ))}
           </>

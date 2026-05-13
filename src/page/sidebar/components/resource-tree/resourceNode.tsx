@@ -1,6 +1,6 @@
 import { useNode } from '@/page/sidebar/store';
 
-import { ResourceNodeContent } from './resource-node-content';
+import { ResourceNodeContent } from './resourceNodeContent';
 
 interface ResourceNodeProps {
   nodeId: string;

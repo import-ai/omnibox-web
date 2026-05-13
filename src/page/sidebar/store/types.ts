@@ -31,6 +31,15 @@ export interface DialogsState {
   createFolderTargetId: string | null;
   currentUploadTargetId: string | null;
   upload: Record<string, string>;
+  batchCreate: boolean;
+  batchMove: boolean;
+  batchDelete: boolean;
+}
+
+export interface BatchOperationResult {
+  success: string[];
+  failed: Array<{ id: string; error: Error }>;
+  resourceId?: string;
 }
 
 export interface SidebarState {
@@ -43,6 +52,11 @@ export interface SidebarState {
   dialogs: DialogsState;
   spaceExpanded: Record<SpaceType, boolean>;
   autoExpandedKeys: Record<string, boolean>;
+  selectedIds: Record<string, boolean>;
+  selectionMode: boolean;
+  lastSelectedId: string | null;
+  failedIds: Record<string, boolean>;
+  batchDragging: boolean;
 }
 
 export interface RemoveResult {
@@ -72,6 +86,9 @@ export interface SidebarActions {
   openCreateFolderDialog: (parentId: string) => void;
   closeCreateFolderDialog: () => void;
   setCurrentUploadTargetId: (id: string | null) => void;
+  setBatchCreateDialog: (open: boolean) => void;
+  setBatchMoveDialog: (open: boolean) => void;
+  setBatchDeleteDialog: (open: boolean) => void;
 
   expandPathTo: (
     targetId: string,
@@ -84,11 +101,35 @@ export interface SidebarActions {
   refreshChildren: (parentId: string, resources: Resource[]) => void;
   restore: (resourceOrId: Resource | string) => Promise<string>;
   clear: () => void;
+
+  toggleSelection: (id: string, rangeStartId?: string) => void;
+  selectAll: (spaceType?: SpaceType) => void;
+  deselectAll: () => void;
+  clearSelection: () => void;
+  setSelectionMode: (enabled: boolean) => void;
+  setBatchDragging: (dragging: boolean) => void;
+  batchRemove: (ids: string[]) => Promise<BatchOperationResult>;
+  batchMove: (ids: string[], targetId: string) => Promise<BatchOperationResult>;
+  batchRefresh: (ids: string[]) => Promise<BatchOperationResult>;
+  batchCreate: (
+    folderName: string,
+    parentId: string
+  ) => Promise<BatchOperationResult>;
+  addToChat: (ids: string[]) => void;
 }
 
 export type SidebarStore = SidebarState & SidebarActions;
 export type SidebarSet = (fn: (draft: SidebarStore) => void) => void;
 export type SidebarGet = () => SidebarStore;
+
+export const initialDialogsState: DialogsState = {
+  createFolderTargetId: null,
+  currentUploadTargetId: null,
+  upload: {},
+  batchCreate: false,
+  batchMove: false,
+  batchDelete: false,
+};
 
 export const initialState: SidebarState = {
   namespaceId: '',
@@ -97,11 +138,12 @@ export const initialState: SidebarState = {
   rootIds: { private: '', teamspace: '' },
   activeId: null,
   renamingId: null,
-  dialogs: {
-    createFolderTargetId: null,
-    currentUploadTargetId: null,
-    upload: {},
-  },
+  dialogs: initialDialogsState,
   spaceExpanded: { private: true, teamspace: true },
   autoExpandedKeys: {},
+  selectedIds: {},
+  selectionMode: false,
+  lastSelectedId: null,
+  failedIds: {},
+  batchDragging: false,
 };

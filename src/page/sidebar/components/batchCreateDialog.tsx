@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { ResourceSelect } from '@/components/resourceSelect';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,50 +13,49 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import type { SpaceType } from '@/interface';
 
 interface BatchCreateDialogProps {
   open: boolean;
-  spaceType: SpaceType;
+  namespaceId: string;
+  defaultTargetId: string;
+  selectedIds: string[];
   onOpenChange: (open: boolean) => void;
-  onConfirm: (folderName: string, targetSpaceType: SpaceType) => Promise<void>;
+  onConfirm: (folderName: string, targetId: string) => Promise<boolean | void>;
 }
 
 export function BatchCreateDialog({
   open,
-  spaceType,
+  namespaceId,
+  defaultTargetId,
+  selectedIds,
   onOpenChange,
   onConfirm,
 }: BatchCreateDialogProps) {
   const { t } = useTranslation();
   const [folderName, setFolderName] = useState('');
-  const [targetSpaceType, setTargetSpaceType] = useState<SpaceType>(spaceType);
+  const [targetId, setTargetId] = useState(defaultTargetId);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setTargetSpaceType(spaceType);
+      setTargetId(defaultTargetId);
     }
-  }, [open, spaceType]);
+  }, [defaultTargetId, open]);
 
   const handleConfirm = async () => {
     const trimmed = folderName.trim();
-    if (!trimmed) return;
+    if (!trimmed || !targetId) return;
     if (trimmed.length > 128) {
-      toast.error(t('batch.name_too_long', { max: 128 }));
+      toast.error(t('batch.name_too_long', { max: 128 }), {
+        position: 'bottom-right',
+      });
       return;
     }
 
     setLoading(true);
     try {
-      await onConfirm(trimmed, targetSpaceType);
+      const shouldClose = await onConfirm(trimmed, targetId);
+      if (shouldClose === false) return;
       setFolderName('');
       onOpenChange(false);
     } finally {
@@ -70,9 +70,9 @@ export function BatchCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-[480px] max-w-[90%]">
         <DialogHeader>
-          <DialogTitle>{t('batch.create_title')}</DialogTitle>
+          <DialogTitle>{t('batch.create_tooltip')}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4">
           <div className="flex items-center gap-2">
@@ -95,18 +95,14 @@ export function BatchCreateDialog({
           </div>
           <div className="flex items-center gap-2">
             <Label className="min-w-12">{t('batch.create_target_label')}</Label>
-            <Select
-              value={targetSpaceType}
-              onValueChange={value => setTargetSpaceType(value as SpaceType)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="private">{t('private')}</SelectItem>
-                <SelectItem value="teamspace">{t('teamspace')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <ResourceSelect
+              namespaceId={namespaceId}
+              resourceId={targetId}
+              disabledIds={selectedIds}
+              disabledTooltip={t('batch.operating_resource')}
+              loading={loading}
+              onChange={setTargetId}
+            />
           </div>
         </div>
         <DialogFooter>

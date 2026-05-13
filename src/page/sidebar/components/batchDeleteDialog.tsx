@@ -10,11 +10,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useTrashRetentionDays } from '@/page/sidebar/hooks/use-trash-retention-days';
+import { useTrashRetentionDays } from '@/page/sidebar/hooks/useTrashRetentionDays';
 
 interface BatchDeleteDialogProps {
   open: boolean;
-  selectedIds: string[];
+  selectedCount: number;
   namespaceId: string;
   loading?: boolean;
   onConfirm: () => Promise<void>;
@@ -23,7 +23,7 @@ interface BatchDeleteDialogProps {
 
 export default function BatchDeleteDialog({
   open,
-  selectedIds,
+  selectedCount,
   namespaceId,
   loading = false,
   onConfirm,
@@ -34,10 +34,10 @@ export default function BatchDeleteDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onCancel}>
-      <AlertDialogContent className="sm:max-w-md">
+      <AlertDialogContent className="w-[480px] max-w-[90%]">
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {t('batch.delete_title', { count: selectedIds.length })}
+            {t('batch.delete_title', { count: selectedCount })}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {t('batch.delete_description', {
@@ -58,7 +58,7 @@ export default function BatchDeleteDialog({
             onClick={onConfirm}
             disabled={loading}
           >
-            {t('delete')}
+            {t('batch.delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

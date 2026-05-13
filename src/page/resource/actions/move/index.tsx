@@ -16,7 +16,14 @@ interface IProps extends IFormProps {
 }
 
 export default function MoveTo(props: IProps) {
-  const { open, resourceIds, namespaceId, onOpenChange, onFinished } = props;
+  const {
+    open,
+    resourceIds,
+    namespaceId,
+    onOpenChange,
+    onFinished,
+    showDisabledTargets,
+  } = props;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -31,6 +38,7 @@ export default function MoveTo(props: IProps) {
           resourceIds={resourceIds}
           namespaceId={namespaceId}
           onFinished={onFinished}
+          showDisabledTargets={showDisabledTargets}
         />
       </DialogContent>
     </Dialog>

@@ -12,7 +12,7 @@ import { AppManagerIcon } from '@/assets/icons/appManager';
 import logoUrl from '@/assets/logo.svg';
 import useConfig from '@/hooks/use-config';
 import { cn } from '@/lib/utils';
-import { UpgradeButton } from '@/page/sidebar/components/namespace-switcher/upgrade-button';
+import { UpgradeButton } from '@/page/sidebar/components/namespace-switcher/upgradeButton';
 
 interface SettingsSidebarProps {
   value: string;

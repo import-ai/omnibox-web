@@ -1,22 +1,17 @@
 import type { IResTypeContext } from '@/page/chat/chat-input/types';
+import { useChatStore } from '@/page/chat/chat-store';
 
 const CHAT_CONTEXT = 'chat_context';
 
 export function getChatContext(): IResTypeContext[] {
-  const cache = localStorage.getItem(CHAT_CONTEXT);
-  if (cache) {
-    const data = JSON.parse(cache);
-    if (Array.isArray(data) && data.length > 0) {
-      return data;
-    }
-  }
-  return [];
+  return useChatStore.getState().selectedResources;
 }
 
 export function setChatContext(context: IResTypeContext[]) {
-  localStorage.setItem(CHAT_CONTEXT, JSON.stringify(context));
+  useChatStore.getState().setContext(context);
 }
 
 export function removeChatContext() {
+  useChatStore.getState().clearContext();
   localStorage.removeItem(CHAT_CONTEXT);
 }
