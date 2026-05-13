@@ -7,8 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
+import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/button';
 import { SidebarContent } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
 import useConfig from '@/hooks/use-config';
