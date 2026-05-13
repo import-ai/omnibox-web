@@ -48,18 +48,18 @@ export default function ShareSidebar(props: IProps) {
     currentResourcePath,
     isResourceActive,
     onAddToContext,
-    allResources,
   } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { open, isMobile } = useSidebar();
+  const canBrowseSharedResources = false;
 
   useSidebarInit({
     shareId,
     rootResource,
     currentResourceId,
     currentResourcePath,
-    allResources,
+    allResources: canBrowseSharedResources,
   });
 
   return (
@@ -117,7 +117,7 @@ export default function ShareSidebar(props: IProps) {
         isChatActive={isChatActive}
         isResourceActive={isResourceActive}
         onAddToContext={onAddToContext}
-        canBrowseResources={allResources}
+        canBrowseResources={canBrowseSharedResources}
       />
       <SidebarRail className="opacity-0" />
     </Sidebar>
