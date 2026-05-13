@@ -14,10 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  UpgradeActionButton,
-  UpgradeTrialUsageTooltip,
-} from '@/components/upgrade-action-button';
+import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import { cn } from '@/lib/utils';
 
 import { getDefaultRootScope } from './create-smart-folder-dialog-helpers';
@@ -224,14 +221,12 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                   </Select>
                 )}
                 <div className="ml-auto flex items-center gap-2">
-                  <UpgradeTrialUsageTooltip
-                    textKey="smart_folder.create.remaining_conditions"
-                    textValues={{
+                  <span className="cursor-default text-sm text-muted-foreground">
+                    {t('smart_folder.create.remaining_conditions', {
                       remaining: remainingConditionCount,
                       total: maxConditionCount,
-                    }}
-                    tooltipItems={[disableAddMessage]}
-                  />
+                    })}
+                  </span>
                   {showUpgradeButton && (
                     <UpgradeActionButton
                       namespaceId={namespaceId}
