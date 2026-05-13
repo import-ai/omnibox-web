@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import SmartFolderCreate from '@/assets/icons/smartFolderCreate';
+import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import { SidebarContent } from '@/components/ui/sidebar';
@@ -156,7 +156,7 @@ export default function ResourceTree({ namespaceId }: ResourceTreeProps) {
                   onClick={() => setCreateSmartFolderOpen(true)}
                   aria-label={t('actions.create_smart_folder')}
                 >
-                  <SmartFolderCreate className="size-4" />
+                  <SmartFolderDefaultIcon className="size-4" />
                 </Button>
               </span>
             </TooltipTrigger>
