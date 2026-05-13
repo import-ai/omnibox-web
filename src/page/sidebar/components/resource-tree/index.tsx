@@ -142,7 +142,7 @@ export default function ResourceTree({ namespaceId }: ResourceTreeProps) {
 
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
-      <div className="flex items-center justify-end px-2 pb-1">
+      <div className="flex items-center justify-end">
         <Tooltip>
           <TooltipTrigger asChild>
             <span>
@@ -150,12 +150,12 @@ export default function ResourceTree({ namespaceId }: ResourceTreeProps) {
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="size-7 rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                className="size-7"
                 disabled={toolbarSmartFolderState.disabled}
                 onClick={() => setCreateSmartFolderOpen(true)}
                 aria-label={t('actions.create_smart_folder')}
               >
-                <SmartFolderDefaultIcon className="size-4" />
+                <SmartFolderDefaultIcon className="size-4 text-muted-foreground" />
               </Button>
             </span>
           </TooltipTrigger>
