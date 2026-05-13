@@ -142,64 +142,64 @@ export default function ResourceTree({ namespaceId }: ResourceTreeProps) {
 
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
+      <div className="flex items-center justify-end px-2 pb-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-7 rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                disabled={toolbarSmartFolderState.disabled}
+                onClick={() => setCreateSmartFolderOpen(true)}
+                aria-label={t('actions.create_smart_folder')}
+              >
+                <SmartFolderDefaultIcon className="size-4" />
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            {toolbarSmartFolderState.disabled
+              ? t(toolbarSmartFolderState.disabledMessageKey)
+              : t('actions.create_smart_folder')}
+          </TooltipContent>
+        </Tooltip>
+      </div>
+      <CreateSmartFolderDialog
+        open={createSmartFolderOpen}
+        onOpenChange={setCreateSmartFolderOpen}
+        onConfirm={handleConfirmCreateSmartFolder}
+        hasTeamspace={hasTeamspace}
+        currentNamespace={currentNamespace}
+        privateSmartFolderCount={smartFolderCounts.privateCount}
+        teamSmartFolderCount={smartFolderCounts.teamCount}
+        siblingResourcesByScope={{
+          private: privateRoot?.children
+            .map(childId => nodes[childId])
+            .filter(Boolean)
+            .map(node => ({
+              id: node.id,
+              name: node.name,
+              parent_id: node.parentId,
+              resource_type: node.resourceType,
+              has_children: node.hasChildren,
+              attrs: node.attrs,
+            })),
+          teamspace: teamspaceRoot?.children
+            .map(childId => nodes[childId])
+            .filter(Boolean)
+            .map(node => ({
+              id: node.id,
+              name: node.name,
+              parent_id: node.parentId,
+              resource_type: node.resourceType,
+              has_children: node.hasChildren,
+              attrs: node.attrs,
+            })),
+        }}
+      />
       <SidebarContent ref={sidebarRef} className="no-scrollbar gap-0">
-        <div className="sticky top-0 z-10 flex items-center justify-end bg-sidebar px-2 pb-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  disabled={toolbarSmartFolderState.disabled}
-                  onClick={() => setCreateSmartFolderOpen(true)}
-                  aria-label={t('actions.create_smart_folder')}
-                >
-                  <SmartFolderDefaultIcon className="size-4" />
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              {toolbarSmartFolderState.disabled
-                ? t(toolbarSmartFolderState.disabledMessageKey)
-                : t('actions.create_smart_folder')}
-            </TooltipContent>
-          </Tooltip>
-        </div>
-        <CreateSmartFolderDialog
-          open={createSmartFolderOpen}
-          onOpenChange={setCreateSmartFolderOpen}
-          onConfirm={handleConfirmCreateSmartFolder}
-          hasTeamspace={hasTeamspace}
-          currentNamespace={currentNamespace}
-          privateSmartFolderCount={smartFolderCounts.privateCount}
-          teamSmartFolderCount={smartFolderCounts.teamCount}
-          siblingResourcesByScope={{
-            private: privateRoot?.children
-              .map(childId => nodes[childId])
-              .filter(Boolean)
-              .map(node => ({
-                id: node.id,
-                name: node.name,
-                parent_id: node.parentId,
-                resource_type: node.resourceType,
-                has_children: node.hasChildren,
-                attrs: node.attrs,
-              })),
-            teamspace: teamspaceRoot?.children
-              .map(childId => nodes[childId])
-              .filter(Boolean)
-              .map(node => ({
-                id: node.id,
-                name: node.name,
-                parent_id: node.parentId,
-                resource_type: node.resourceType,
-                has_children: node.hasChildren,
-                attrs: node.attrs,
-              })),
-          }}
-        />
         {(['private', 'teamspace'] as SpaceType[]).map(spaceType => (
           <SpaceSection
             key={spaceType}
