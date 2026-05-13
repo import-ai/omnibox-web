@@ -1,4 +1,5 @@
 import { Plus } from 'lucide-react';
+import { Fragment } from 'react';
 
 import { Button } from '@/components/button';
 import ActionDialog from '@/components/invite-dialog/action-dialog';
@@ -244,20 +245,22 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
 
             <div
               ref={conditionListRef}
-              className="max-h-[232px] space-y-4 overflow-y-auto pr-1"
+              className="max-h-56 overflow-y-auto pr-1"
             >
               {conditions.map((condition, index) => (
-                <SmartFolderConditionRow
-                  key={index}
-                  index={index}
-                  condition={condition}
-                  conditionError={conditionErrors[index]}
-                  hideRemove={conditions.length <= 1}
-                  onRemove={removeCondition}
-                  onFieldChange={handleFieldChange}
-                  onOperatorChange={handleOperatorChange}
-                  onValueChange={handleValueChange}
-                />
+                <Fragment key={index}>
+                  {index > 0 && <div className="my-5 h-px bg-slate-100" />}
+                  <SmartFolderConditionRow
+                    index={index}
+                    condition={condition}
+                    conditionError={conditionErrors[index]}
+                    hideRemove={conditions.length <= 1}
+                    onRemove={removeCondition}
+                    onFieldChange={handleFieldChange}
+                    onOperatorChange={handleOperatorChange}
+                    onValueChange={handleValueChange}
+                  />
+                </Fragment>
               ))}
             </div>
 

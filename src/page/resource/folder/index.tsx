@@ -51,6 +51,31 @@ export default function Folder(props: IProps) {
     ? `/namespaces/${namespaceId}/resources`
     : apiPrefix;
 
+  const reloadSmartFolderChildren = useCallback(() => {
+    if (!smartFolderParentId) {
+      return;
+    }
+
+    http
+      .get(`${apiPrefix}/${smartFolderParentId}/children?summary=true`, {
+        mute: true,
+      })
+      .then((res: Array<ResourceSummary>) => {
+        onData(res);
+        setOffset(res.length);
+        setHasMore(false);
+        onLoading(false);
+      })
+      .catch(error => {
+        if (error.response?.status === 404) {
+          onData([]);
+          setOffset(0);
+          setHasMore(false);
+          onLoading(false);
+        }
+      });
+  }, [apiPrefix, smartFolderParentId]);
+
   useEffect(() => {
     onLoading(true);
     onData([]);
@@ -121,10 +146,16 @@ export default function Folder(props: IProps) {
 
   useEffect(() => {
     if (!smartFolderParentId) return;
-    return app.on('delete_resource', (id: string) => {
-      onData(prevData => prevData.filter(item => item.id !== id));
-    });
-  }, [app, smartFolderParentId]);
+    const hooks = [
+      app.on('delete_resource', reloadSmartFolderChildren),
+      app.on('move_resource', reloadSmartFolderChildren),
+      app.on('update_resource', reloadSmartFolderChildren),
+      app.on('restore_resource', reloadSmartFolderChildren),
+    ];
+    return () => {
+      hooks.forEach(unsub => unsub());
+    };
+  }, [app, reloadSmartFolderChildren, smartFolderParentId]);
 
   useEffect(() => {
     return app.on('scroll-to-bottom', () => {

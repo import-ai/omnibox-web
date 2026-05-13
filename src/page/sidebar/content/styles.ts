@@ -1,5 +1,5 @@
 export const smartFolderDialogContentClass =
-  'max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl sm:max-w-[650px] sm:p-7';
+  'max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl bg-white dark:bg-neutral-900 sm:max-w-[650px] sm:p-7';
 
 export const smartFolderDialogTitleClass =
   'text-lg font-semibold leading-7 text-foreground';
