@@ -1,6 +1,6 @@
 import { Resource, ResourceType } from '@/interface';
 import { http } from '@/lib/request';
-import { uploadFiles } from '@/lib/upload-files';
+import { uploadFiles } from '@/lib/uploadFiles';
 
 export interface CreatePayload {
   parentId: string;

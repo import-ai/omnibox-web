@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Typewriter } from '@/components/typewriter';
 import { http } from '@/lib/request';
-import { AgentTrial } from '@/page/chat/agent-trial/agent-trial.tsx';
+import { AgentTrial } from '@/page/chat/agent-trial/agentTrial.tsx';
 import {
   ChatCreatePayload,
   ConversationEntity,
@@ -12,7 +12,7 @@ import {
 import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 
 import ChatArea from './chat-input';
-import FeatureCards from './home/feature-cards';
+import FeatureCards from './home/featureCards';
 import useSelectedResources from './useSelectedResources.ts';
 import { getGreeting } from './utils';
 

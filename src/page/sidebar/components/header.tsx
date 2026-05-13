@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
 import { ChatIcon } from '@/assets/icons/chatIcon';
-import ActionDialog from '@/components/invite-dialog/action-dialog';
+import ActionDialog from '@/components/invite-dialog/actionDialog';
 import Notification from '@/components/notification';
 import { useNotificationUnreadCount } from '@/components/notification/hooks/useNotifications';
 import { notificationDialogContentClassName } from '@/components/notification/utils';
@@ -20,7 +20,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useIsTouch } from '@/hooks/use-is-touch';
+import { useIsTouch } from '@/hooks/useIsTouch';
 import { cn } from '@/lib/utils';
 import SearchMenu from '@/page/search';
 

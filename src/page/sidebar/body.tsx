@@ -7,9 +7,9 @@ import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 
 import ResourceTree from './components/resource-tree';
-import { CreateFolderDialog } from './components/resource-tree/create-folder-dialog';
-import { useSidebarEvents } from './hooks/use-sidebar-events';
-import { useSidebarInit } from './hooks/use-sidebar-init';
+import { CreateFolderDialog } from './components/resource-tree/createFolderDialog';
+import { useSidebarEvents } from './hooks/useSidebarEvents';
+import { useSidebarInit } from './hooks/useSidebarInit';
 import { useSidebarStore } from './store';
 
 interface IProps {

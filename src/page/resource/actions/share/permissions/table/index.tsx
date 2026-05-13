@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 import { GroupPermission, Permission, Role, UserPermission } from '@/interface';
 import { http } from '@/lib/request';
 

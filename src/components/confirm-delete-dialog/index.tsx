@@ -11,7 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '@/components/ui/alertDialog';
 import { Spinner } from '@/components/ui/spinner';
 import { http } from '@/lib/request';
 

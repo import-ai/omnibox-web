@@ -1,7 +1,7 @@
 import { SidebarContent } from '@/components/ui/sidebar';
 import { ResourceMeta } from '@/interface';
 
-import SpaceSection from './space-section';
+import SpaceSection from './spaceSection';
 
 interface ResourceTreeProps {
   shareId: string;

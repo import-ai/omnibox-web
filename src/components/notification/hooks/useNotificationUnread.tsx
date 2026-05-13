@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 
 const notificationUnreadUpdatedEvent = 'notification:unread:updated';
 

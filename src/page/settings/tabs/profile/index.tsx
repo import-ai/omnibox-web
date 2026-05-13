@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from '@/components/ui/alertDialog';
 import {
   Dialog,
   DialogContent,
@@ -47,16 +47,16 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Spinner } from '@/components/ui/spinner';
-import useUser from '@/hooks/use-user';
+import useUser from '@/hooks/useUser';
 import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils.ts';
-import { optionalPasswordSchema } from '@/lib/validation-schemas';
+import { optionalPasswordSchema } from '@/lib/validationSchemas';
 
-import { DeleteAccountDialog } from '../account/delete-account-dialog';
-import EmailValidate from '../account/email-validate';
-import PhoneValidate from '../account/phone-validate';
+import { DeleteAccountDialog } from '../account/deleteAccountDialog';
+import EmailValidate from '../account/emailValidate';
+import PhoneValidate from '../account/phoneValidate';
 import { Wrapper } from '../third-party/wrapper';
 
 // Schema for username change dialog

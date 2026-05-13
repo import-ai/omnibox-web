@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdownMenu';
 import { Permission } from '@/interface';
 import { http } from '@/lib/request';
 

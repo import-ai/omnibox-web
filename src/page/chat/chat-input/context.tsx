@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import Badge from '@/components/badge';
-import ResourceTypeIcon from '@/components/resource-type-icon';
+import ResourceTypeIcon from '@/components/resourceTypeIcon';
 import { Button } from '@/components/ui/button';
 
 import { IResTypeContext } from './types';

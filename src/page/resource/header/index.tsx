@@ -1,4 +1,4 @@
-import { SidebarTriggerButton } from '@/components/sidebar-trigger';
+import { SidebarTriggerButton } from '@/components/sidebarTrigger';
 import { useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 

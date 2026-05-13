@@ -32,16 +32,16 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdownMenu';
 import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import { useDeleteResource } from '@/hooks/use-delete-resource';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { IUseResource } from '@/hooks/user-resource';
-import { downloadFile } from '@/lib/download-file';
+import { useDeleteResource } from '@/hooks/useDeleteResource';
+import { useIsMobile } from '@/hooks/useMobile';
+import { IUseResource } from '@/hooks/userResource';
+import { downloadFile } from '@/lib/downloadFile';
 import { http } from '@/lib/request';
-import { uploadFiles } from '@/lib/upload-files';
+import { uploadFiles } from '@/lib/uploadFiles';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 import { useSidebarStore } from '@/page/sidebar/store';
 

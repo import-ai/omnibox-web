@@ -8,7 +8,7 @@ import ResourceIcon from '@/assets/icons/resourceIcon';
 import Loading from '@/components/loading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
 

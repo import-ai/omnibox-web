@@ -17,7 +17,7 @@ import { http } from '@/lib/request';
 
 import { Expire } from './expire';
 import { Password } from './password';
-import { ShareTypeSelector } from './share-type';
+import { ShareTypeSelector } from './shareType';
 
 interface ShareTabContentProps {
   resource_id: string;

@@ -9,9 +9,9 @@ import Vditor from 'vditor';
 import { Input } from '@/components/input';
 import { markdownPreviewConfig } from '@/components/markdown';
 import { VDITOR_CDN } from '@/const';
-import useTheme from '@/hooks/use-theme';
+import useTheme from '@/hooks/useTheme';
 import { Resource } from '@/interface';
-import { addReferrerPolicyForElement } from '@/lib/add-referrer-policy';
+import { addReferrerPolicyForElement } from '@/lib/addReferrerPolicy';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 import {

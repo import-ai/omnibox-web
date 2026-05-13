@@ -9,9 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 
-import SettingWrapper from './settings-layout';
+import SettingWrapper from './settingsLayout';
 
 interface OpenSettingsPayload {
   tab?: string;

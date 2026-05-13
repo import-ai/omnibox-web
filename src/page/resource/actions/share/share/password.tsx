@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { passwordSchema } from '@/lib/validation-schemas';
+import { passwordSchema } from '@/lib/validationSchemas';
 
 export interface PasswordProps {
   disabled?: boolean;

@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
-import { getWizardLang } from '@/lib/wizard-lang';
+import { getWizardLang } from '@/lib/wizardLang';
 import ChatArea from '@/page/chat/chat-input';
 import {
   AgentRequestChannel,
@@ -16,7 +16,7 @@ import {
   ask,
   extractOriginalMessageSettings,
 } from '@/page/chat/conversation/utils.ts';
-import { createMessageOperator } from '@/page/chat/core/message-operator.ts';
+import { createMessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
   ConversationDetail,
   MessageDetail,

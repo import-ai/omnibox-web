@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useParams } from 'react-router-dom';
 
-import { SidebarTriggerButton } from '@/components/sidebar-trigger';
+import { SidebarTriggerButton } from '@/components/sidebarTrigger';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
 } from '@/components/ui/breadcrumb';
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
-import { getWizardLang } from '@/lib/wizard-lang.ts';
+import { getWizardLang } from '@/lib/wizardLang.ts';
 
 import Actions from './actions';
 import Title from './title';

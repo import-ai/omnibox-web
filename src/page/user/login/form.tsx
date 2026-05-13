@@ -11,7 +11,7 @@ import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import { PhoneNumberInput } from '@/components/phone-input';
 import Space from '@/components/space';
-import { SupportedEmailLink } from '@/components/supported-email-link';
+import { SupportedEmailLink } from '@/components/supportedEmailLink';
 import {
   Form,
   FormControl,
@@ -20,11 +20,11 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { usePhoneConfig } from '@/hooks/use-phone-config';
-import isEmail from '@/lib/is-email';
+import { usePhoneConfig } from '@/hooks/usePhoneConfig';
+import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
-import { passwordSchema, phoneSchema } from '@/lib/validation-schemas';
+import { passwordSchema, phoneSchema } from '@/lib/validationSchemas';
 import { setGlobalCredential } from '@/page/user/util';
 
 import type { AuthMethod, ContactMethod } from './index';

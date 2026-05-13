@@ -40,11 +40,11 @@ Zustand stores for feature-local, highly interactive state.
 
 - **`Hook` class** (`src/hooks/hook.class.ts`) - Observer pattern with `on()`, `fire()`, `addFilter()`
 - **`CoreApp`** (`src/hooks/app.class.ts`) - App-wide event bus extending Hook
-- **`AppContext`** (`src/hooks/app-context.ts`) - React Context providing app instance via `useApp()`
+- **`AppContext`** (`src/hooks/appContext.ts`) - React Context providing app instance via `useApp()`
 - **Zustand stores** - Feature-scoped state for sidebar trees and chat context:
   - `src/page/sidebar/store/` - Main workspace resource tree state
   - `src/page/share/sidebar/store/` - Share page resource tree state
-  - `src/page/chat/chat-store.ts` - Selected chat context resources
+  - `src/page/chat/chatStore.ts` - Selected chat context resources
 
 Use the event bus for cross-feature notifications and app-wide side effects:
 
@@ -103,7 +103,7 @@ Credentials managed in `src/page/user/util.tsx`:
 
 **Sidebar** (`src/page/sidebar/`): Tree view with react-dnd for drag-and-drop resource organization.
 
-**Chat** (`src/page/chat/`): Streaming messages via `src/lib/stream-transport.ts`, context-aware conversations using resources.
+**Chat** (`src/page/chat/`): Streaming messages via `src/lib/streamTransport.ts`, context-aware conversations using resources.
 
 **Resources**: Vditor markdown editor, file uploads with progress, permission-based access.
 

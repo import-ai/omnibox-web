@@ -4,12 +4,12 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
 
 import { SidebarContent } from '@/components/ui/sidebar';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/useMobile';
 import { SpaceType } from '@/interface';
-import { useDragAutoScroll } from '@/page/sidebar/hooks/use-drag-auto-scroll';
+import { useDragAutoScroll } from '@/page/sidebar/hooks/useDragAutoScroll';
 import { TrashPanel } from '@/page/trash';
 
-import SpaceSection from './space-section';
+import SpaceSection from './spaceSection';
 
 interface ResourceTreeProps {
   namespaceId: string;

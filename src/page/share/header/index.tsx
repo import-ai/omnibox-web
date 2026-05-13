@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { SidebarTriggerButton } from '@/components/sidebar-trigger';
+import { SidebarTriggerButton } from '@/components/sidebarTrigger';
 import { LanguageToggle } from '@/components/toggle/language';
 import { ThemeToggle } from '@/components/toggle/theme';
 import { useSidebar } from '@/components/ui/sidebar';

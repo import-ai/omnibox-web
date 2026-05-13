@@ -2,8 +2,8 @@ import { type UIEvent, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { NotificationDetailDialog } from './detail-dialog';
-import { NotificationEmptyState } from './empty-state';
+import { NotificationDetailDialog } from './detailDialog';
+import { NotificationEmptyState } from './emptyState';
 import { useNotifications } from './hooks/useNotifications';
 import { NotificationListItem } from './item';
 import { NotificationToolbar } from './toolbar';

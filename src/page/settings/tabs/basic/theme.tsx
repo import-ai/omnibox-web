@@ -7,8 +7,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import useTheme from '@/hooks/use-theme';
+} from '@/components/ui/dropdownMenu';
+import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
 
 export default function Theme() {

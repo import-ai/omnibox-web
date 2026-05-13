@@ -6,9 +6,9 @@ import { AutosizeTextarea } from '@/components/autosize-textarea';
 import { Button } from '@/components/button';
 import Actions from '@/components/permission-action/action';
 import { getData } from '@/components/permission-action/data';
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 import { Permission } from '@/interface';
-import isEmail from '@/lib/is-email';
+import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 

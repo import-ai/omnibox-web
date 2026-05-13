@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 
-import ActionDialog from './action-dialog';
-import InviteForm from './people/invite-form';
+import ActionDialog from './actionDialog';
+import InviteForm from './people/inviteForm';
 
 interface IProps {
   onFinish?: () => void;

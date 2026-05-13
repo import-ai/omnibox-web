@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';

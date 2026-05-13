@@ -2,8 +2,8 @@ import { RiDiscordLine } from '@remixicon/react';
 import { CircleHelp, MessageCircleWarning } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { WechatGroupQrCode } from '@/assets/icons/wechat-qr-code';
-import { Wechat } from '@/assets/icons/wechat-stroke';
+import { WechatGroupQrCode } from '@/assets/icons/wechatQrCode';
+import { Wechat } from '@/assets/icons/wechatStroke';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import { SidebarFooter } from '@/components/ui/sidebar';

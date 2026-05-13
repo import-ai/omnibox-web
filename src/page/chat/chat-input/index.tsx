@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import DecisionInput from '@/page/chat/chat-input/decision-input.tsx';
+import DecisionInput from '@/page/chat/chat-input/decisionInput.tsx';
 import {
   ChatMode,
   InputMode,
@@ -14,7 +14,7 @@ import {
 } from '@/page/chat/core/types/conversation.ts';
 
 import ChatAction from './action';
-import ChatTool from './chat-tool';
+import ChatTool from './chatTool';
 import ChatContext from './context';
 import ChatInput from './input';
 

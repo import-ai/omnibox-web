@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 
-import { SidebarTriggerButton } from '@/components/sidebar-trigger';
+import { SidebarTriggerButton } from '@/components/sidebarTrigger';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';

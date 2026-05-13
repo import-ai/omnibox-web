@@ -5,7 +5,7 @@ import Attributes from '@/components/attributes';
 import Loading from '@/components/loading';
 import { useSidebar } from '@/components/ui/sidebar';
 import { cn, setDocumentTitle } from '@/lib/utils';
-import DeletedResourcePage from '@/page/auth/deleted-resource';
+import DeletedResourcePage from '@/page/auth/deletedResource';
 
 import Folder from '../resource/folder';
 import Render from '../resource/render';

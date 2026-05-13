@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { http } from '@/lib/request';
 import Table from '@/page/settings/tabs/members';
 
-import Invite from './invite-link';
+import Invite from './inviteLink';
 
 export default function PeopleManage() {
   const params = useParams();

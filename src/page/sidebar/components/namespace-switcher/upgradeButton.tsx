@@ -1,0 +1,44 @@
+import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
+
+import { UpgradeIcon } from '@/assets/icons/upgrade';
+import useProNamespaces from '@/hooks/useProNamespaces';
+import { NamespaceTier } from '@/interface';
+import { getUpgradeLink } from '@/lib/upgradeLink';
+import { cn } from '@/lib/utils';
+
+export function UpgradeButton() {
+  const { t, i18n } = useTranslation();
+  const params = useParams();
+  const namespaceId = params.namespace_id;
+  const { data } = useProNamespaces();
+
+  const currentNamespace = data.find(item => item.id === namespaceId);
+
+  if (
+    !currentNamespace ||
+    currentNamespace.tier !== NamespaceTier.BASIC ||
+    !currentNamespace.is_owner
+  ) {
+    return null;
+  }
+
+  const handleClick = () => {
+    window.open(getUpgradeLink(i18n, namespaceId), '_blank');
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className={cn(
+        'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
+        'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
+      )}
+    >
+      <UpgradeIcon className="size-4 shrink-0 text-blue-500" />
+      <span className="whitespace-nowrap text-sm font-medium text-blue-500">
+        {t('namespace.upgrade')}
+      </span>
+    </button>
+  );
+}

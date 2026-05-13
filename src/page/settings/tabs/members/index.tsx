@@ -4,8 +4,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import Group from './groups';
-import Member from './member-list';
-import useContext from './use-context';
+import Member from './memberList';
+import useContext from './useContext';
 
 export default function ManagePeople() {
   const { t } = useTranslation();

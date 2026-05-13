@@ -12,9 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import useApp from '@/hooks/use-app';
-import { useChatStore } from '@/page/chat/chat-store';
+} from '@/components/ui/dropdownMenu';
+import useApp from '@/hooks/useApp';
+import { useChatStore } from '@/page/chat/chatStore';
 
 import { PlusIcon } from './plus';
 

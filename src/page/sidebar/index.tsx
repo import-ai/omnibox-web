@@ -7,7 +7,7 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/useMobile';
 import SettingModal from '@/page/settings';
 
 import { BodyForSidebar } from './body';

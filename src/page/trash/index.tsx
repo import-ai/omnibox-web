@@ -18,17 +18,17 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 import { IResourceData } from '@/interface';
-import { deleteResource } from '@/lib/delete-resource';
+import { deleteResource } from '@/lib/deleteResource';
 import { cn } from '@/lib/utils';
 
-import { ConfirmPermanentDeleteDialog } from './confirm-delete-dialog';
-import { TrashEmpty } from './trash-empty';
-import { TrashFooter } from './trash-footer';
-import { TrashItemRow } from './trash-item';
-import { TrashSearch } from './trash-search';
-import { useTrash } from './use-trash';
+import { ConfirmPermanentDeleteDialog } from './confirmDeleteDialog';
+import { TrashEmpty } from './trashEmpty';
+import { TrashFooter } from './trashFooter';
+import { TrashItemRow } from './trashItem';
+import { TrashSearch } from './trashSearch';
+import { useTrash } from './useTrash';
 
 export function TrashPanel() {
   const { t } = useTranslation();

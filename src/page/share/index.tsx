@@ -15,7 +15,7 @@ import {
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { http } from '@/lib/request';
-import { normalizeResourceMeta } from '@/lib/resource-meta';
+import { normalizeResourceMeta } from '@/lib/resourceMeta';
 import {
   ChatMode,
   IResTypeContext,

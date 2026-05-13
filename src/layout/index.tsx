@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Toaster } from '@/components/ui/sonner';
-import useTheme from '@/hooks/use-theme';
+import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
-import { track } from '@/lib/send-track-event';
+import { track } from '@/lib/sendTrackEvent';
 
 export default function Layout() {
   const loc = useLocation();

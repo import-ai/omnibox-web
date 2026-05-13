@@ -10,7 +10,7 @@ import * as z from 'zod';
 import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import { PhoneNumberInput } from '@/components/phone-input';
-import { SupportedEmailLink } from '@/components/supported-email-link';
+import { SupportedEmailLink } from '@/components/supportedEmailLink';
 import {
   Form,
   FormControl,
@@ -19,11 +19,11 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { usePhoneConfig } from '@/hooks/use-phone-config';
-import isEmail from '@/lib/is-email';
+import { usePhoneConfig } from '@/hooks/usePhoneConfig';
+import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
-import { phoneSchema } from '@/lib/validation-schemas';
+import { phoneSchema } from '@/lib/validationSchemas';
 
 import type { ContactMethod } from './index';
 

@@ -22,7 +22,7 @@ import { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 
 import ResourceTree from './components';
-import { useSidebarInit } from './hooks/use-sidebar-init';
+import { useSidebarInit } from './hooks/useSidebarInit';
 
 interface IProps {
   shareId: string;

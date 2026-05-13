@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/table';
 import { Group, Invitation } from '@/interface';
 
-import { AddGroupInvitation } from './invitation-add';
-import { InvitationData } from './invitation-list';
+import { AddGroupInvitation } from './invitationAdd';
+import { InvitationData } from './invitationList';
 
 interface InvitationProps {
   namespaceId: string;

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 import type { Resource, SpaceType } from '@/interface';
 
 interface IResource extends Resource {

@@ -1,5 +1,5 @@
 import Loading from '@/components/loading';
-import { IUseResource } from '@/hooks/user-resource';
+import { IUseResource } from '@/hooks/userResource';
 import AuthPage from '@/page/auth';
 
 import Page from './page';

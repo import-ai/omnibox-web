@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
-import useTheme from '@/hooks/use-theme';
+import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
 
 export function ThemeToggle() {

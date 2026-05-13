@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, useSidebar } from '@/components/ui/sidebar';
-import useApp from '@/hooks/use-app';
-import useWide from '@/hooks/use-wide';
-import useResource from '@/hooks/user-resource';
+import useApp from '@/hooks/useApp';
+import useResource from '@/hooks/userResource';
+import useWide from '@/hooks/useWide';
 import { cn } from '@/lib/utils';
 
 import Header from './header';

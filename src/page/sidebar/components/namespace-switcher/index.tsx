@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { SidebarTriggerButton } from '@/components/sidebar-trigger';
+import { SidebarTriggerButton } from '@/components/sidebarTrigger';
 import Space from '@/components/space';
 import { Avatar } from '@/components/ui/avatar';
 import {
@@ -12,27 +12,27 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdownMenu';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import useConfig from '@/hooks/use-config';
-import useNamespaces from '@/hooks/use-namespaces';
-import useProNamespaces from '@/hooks/use-pro-namespaces';
+import useConfig from '@/hooks/useConfig';
+import useNamespaces from '@/hooks/useNamespaces';
+import useProNamespaces from '@/hooks/useProNamespaces';
 import { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';
-import { useChatStore } from '@/page/chat/chat-store';
-import { SettingButton } from '@/page/settings/settings-trigger';
+import { useChatStore } from '@/page/chat/chatStore';
+import { SettingButton } from '@/page/settings/settingsTrigger';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { Logout } from '@/page/user/logout';
 
-import Generate from './create-namespace';
-import { InviteButton } from './invite-button';
-import { NamespaceList } from './namespace-list';
-import NamespaceMember from './namespace-member';
+import Generate from './createNamespace';
+import { InviteButton } from './inviteButton';
+import { NamespaceList } from './namespaceList';
+import NamespaceMember from './namespaceMember';
 
 interface IProps {
   namespaceId: string;

@@ -16,9 +16,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+} from '../ui/dropdownMenu';
 import { Input } from '../ui/input';
-import { ScrollArea } from '../ui/scroll-area';
+import { ScrollArea } from '../ui/scrollArea';
 import { countries, type CountryData } from './consts';
 
 /**

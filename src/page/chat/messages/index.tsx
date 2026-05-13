@@ -1,18 +1,18 @@
 import React from 'react';
 
-import { MessageOperator } from '@/page/chat/core/message-operator.ts';
+import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
   type Citation,
   MessageStatus,
   OpenAIMessageRole,
-} from '@/page/chat/core/types/chat-response';
+} from '@/page/chat/core/types/chatResponse';
 import type {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
-import { AssistantMessage } from '@/page/chat/messages/role/assistant-message';
-import { ToolMessage } from '@/page/chat/messages/role/tool-message';
-import { UserMessage } from '@/page/chat/messages/role/user-message';
+import { AssistantMessage } from '@/page/chat/messages/role/assistantMessage';
+import { ToolMessage } from '@/page/chat/messages/role/toolMessage';
+import { UserMessage } from '@/page/chat/messages/role/userMessage';
 
 interface IProps {
   conversation: ConversationDetail;

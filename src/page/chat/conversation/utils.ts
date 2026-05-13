@@ -1,7 +1,7 @@
 import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { ResourceMeta } from '@/interface.ts';
-import { createStreamTransport } from '@/lib/stream-transport';
-import { WizardLang } from '@/lib/wizard-lang';
+import { createStreamTransport } from '@/lib/streamTransport';
+import { WizardLang } from '@/lib/wizardLang';
 import {
   AgentRequestChannel,
   ChatRequestBody,
@@ -11,8 +11,8 @@ import {
   PrivateSearchResource,
   ToolType,
 } from '@/page/chat/chat-input/types';
-import { MessageOperator } from '@/page/chat/core/message-operator.ts';
-import { messageProcessor } from '@/page/chat/core/message-processor.ts';
+import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
+import { messageProcessor } from '@/page/chat/core/messageProcessor.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 
 function getPrivateSearchResources(
