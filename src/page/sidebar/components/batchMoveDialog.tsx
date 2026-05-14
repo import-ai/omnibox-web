@@ -9,6 +9,7 @@ import { MoveConfirmDialog } from './moveConfirmDialog';
 interface BatchMoveDialogProps {
   open: boolean;
   selectedIds: string[];
+  selectedCount: number;
   namespaceId: string;
   loading?: boolean;
   onConfirm: (targetId: string) => Promise<void>;
@@ -18,6 +19,7 @@ interface BatchMoveDialogProps {
 export default function BatchMoveDialog({
   open,
   selectedIds,
+  selectedCount,
   namespaceId,
   loading = false,
   onConfirm,
@@ -62,7 +64,7 @@ export default function BatchMoveDialog({
       )}
       <MoveConfirmDialog
         open={confirmOpen}
-        count={selectedIds.length}
+        count={selectedCount}
         targetName={targetNode?.name || targetName || t('untitled')}
         loading={loading}
         onConfirm={handleFinalConfirm}

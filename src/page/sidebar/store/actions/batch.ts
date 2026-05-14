@@ -4,7 +4,6 @@ import {
   batchCreateFolderFromResources,
   batchDeleteResources,
   batchMoveResources,
-  batchRefreshResources,
 } from '@/service/resource';
 
 import type {
@@ -21,20 +20,10 @@ import {
   getSelectableDescendantIds,
   getTopLevelSelectedIds,
   isDescendant,
-  patchNodeFromResource,
   traverseDescendants,
 } from '../utils';
 
 export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
-  const markFailed = (failed: BatchOperationResult['failed']) => {
-    set(s => {
-      s.failedIds = {};
-      for (const item of failed) {
-        s.failedIds[item.id] = true;
-      }
-    });
-  };
-
   const finishBatchSelection = (s: SidebarStore) => {
     s.selectionMode = Object.keys(s.selectedIds).length > 0;
     if (!s.selectionMode) {
@@ -366,30 +355,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       return result;
     },
 
-    batchRefresh: async (ids: string[]) => {
-      const result: BatchOperationResult = { success: [], failed: [] };
-      try {
-        const response = await batchRefreshResources(get().namespaceId, ids);
-        result.success = Object.keys(response).filter(id => ids.includes(id));
-        result.failed = ids
-          .filter(id => !result.success.includes(id))
-          .map(id => ({ id, error: new Error('Refresh failed') }));
-
-        set(s => {
-          for (const [parentId, children] of Object.entries(
-            response as Record<string, Resource[]>
-          )) {
-            refreshNodeChildren(s, parentId, children);
-          }
-        });
-      } catch (error) {
-        result.failed = ids.map(id => ({ id, error: error as Error }));
-      }
-
-      markFailed(result.failed);
-      return result;
-    },
-
     batchCreate: async (folderName: string, parentId: string) => {
       const selectedIds = Object.keys(get().selectedIds);
       const target = get().nodes[parentId];
@@ -477,47 +442,4 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       }
     },
   };
-}
-
-function refreshNodeChildren(
-  state: SidebarStore,
-  parentId: string,
-  children: Resource[]
-) {
-  const parent = state.nodes[parentId];
-  if (!parent) return;
-
-  const childIds = children.map(child => child.id);
-  const backendIds = new Set(childIds);
-
-  for (const currentChildId of parent.children) {
-    if (backendIds.has(currentChildId)) continue;
-    for (const removedId of [
-      ...getDescendantIds(state.nodes, currentChildId),
-      currentChildId,
-    ]) {
-      delete state.nodes[removedId];
-      delete state.ui[removedId];
-      delete state.selectedIds[removedId];
-      delete state.failedIds[removedId];
-      if (state.activeId === removedId) {
-        state.activeId = null;
-      }
-    }
-  }
-
-  for (const child of children) {
-    if (!state.nodes[child.id]) {
-      state.nodes[child.id] = createNode(child, parentId, parent.spaceType);
-    } else {
-      patchNodeFromResource(state.nodes[child.id], child);
-      state.nodes[child.id].parentId = parentId;
-      state.nodes[child.id].spaceType = parent.spaceType;
-    }
-  }
-
-  parent.children = childIds;
-  parent.hasChildren = childIds.length > 0;
-  const ui = ensureUI(state, parentId);
-  ui.loaded = true;
 }

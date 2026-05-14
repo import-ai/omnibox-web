@@ -36,6 +36,8 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
     useSidebarStore.getState().setBatchDeleteDialog(false);
   const closeMoveDialog = () =>
     useSidebarStore.getState().setBatchMoveDialog(false);
+  const closeCreateDialog = () =>
+    useSidebarStore.getState().setBatchCreateDialog(false);
   const openDeleteDialog = () =>
     useSidebarStore.getState().setBatchDeleteDialog(true);
   const openMoveDialog = () =>
@@ -103,21 +105,6 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
       closeMoveDialog();
     }
   };
-
-  const refreshSelected = async () => {
-    const ids = getSelectedIds();
-    try {
-      const result = await useSidebarStore.getState().batchRefresh(ids);
-      if (result.failed.length > 0) {
-        toast.error(t('batch.refresh_failed'));
-      } else {
-        toast.success(t('batch.refresh_success', { count: ids.length }));
-      }
-    } catch {
-      toast.error(t('batch.refresh_failed'));
-    }
-  };
-
   const confirmCreate = async (folderName: string, parentId: string) => {
     setIsProcessing(true);
     try {
@@ -203,16 +190,15 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
     deleteDialogOpen,
     moveDialogOpen,
     createDialogOpen,
-    setCreateDialogOpen: useSidebarStore.getState().setBatchCreateDialog,
     openDeleteDialog,
     closeDeleteDialog,
     openMoveDialog,
     closeMoveDialog,
     openCreateDialog,
+    closeCreateDialog,
     deselectAll,
     confirmDelete,
     confirmMove,
-    refreshSelected,
     confirmCreate,
     addSelectedToChat,
   };

@@ -29,7 +29,6 @@ export interface BatchCreateFolderPayload {
   resourceIds: string[];
 }
 
-export type BatchRefreshResponse = Record<string, Resource[]>;
 export type BatchCreateFolderResponse = Partial<Resource> & {
   success_ids: string[];
   failed_ids: string[];
@@ -129,14 +128,6 @@ export function batchCreateFolderFromResources(
   return http.post<BatchCreateFolderResponse>(
     `/namespaces/${namespaceId}/resources/batch-folder`,
     payload,
-    { mute: true }
-  );
-}
-
-export function batchRefreshResources(namespaceId: string, ids: string[]) {
-  return http.post<BatchRefreshResponse>(
-    `/namespaces/${namespaceId}/resources/batch-refresh`,
-    { ids },
     { mute: true }
   );
 }

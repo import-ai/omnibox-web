@@ -110,7 +110,6 @@ export interface SidebarActions {
   setBatchDragging: (dragging: boolean) => void;
   batchRemove: (ids: string[]) => Promise<BatchOperationResult>;
   batchMove: (ids: string[], targetId: string) => Promise<BatchOperationResult>;
-  batchRefresh: (ids: string[]) => Promise<BatchOperationResult>;
   batchCreate: (
     folderName: string,
     parentId: string

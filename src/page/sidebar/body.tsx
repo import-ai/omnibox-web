@@ -105,7 +105,11 @@ export function BodyForSidebar(props: IProps) {
         namespaceId={namespaceId}
         defaultTargetId={batch.defaultTargetId}
         selectedIds={batch.selectedIds}
-        onOpenChange={batch.setCreateDialogOpen}
+        onOpenChange={open => {
+          if (!open) {
+            batch.closeCreateDialog();
+          }
+        }}
         onConfirm={batch.confirmCreate}
       />
       <BatchDeleteDialog
@@ -119,6 +123,7 @@ export function BodyForSidebar(props: IProps) {
       <BatchMoveDialog
         open={batch.moveDialogOpen}
         selectedIds={batch.selectedIds}
+        selectedCount={batch.selectedCount}
         namespaceId={namespaceId}
         loading={batch.isProcessing}
         onConfirm={batch.confirmMove}

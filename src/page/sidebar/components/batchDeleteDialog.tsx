@@ -33,7 +33,14 @@ export default function BatchDeleteDialog({
   const trashRetentionDays = useTrashRetentionDays(namespaceId, open);
 
   return (
-    <AlertDialog open={open} onOpenChange={onCancel}>
+    <AlertDialog
+      open={open}
+      onOpenChange={nextOpen => {
+        if (!nextOpen) {
+          onCancel();
+        }
+      }}
+    >
       <AlertDialogContent className="w-[480px] max-w-[90%]">
         <AlertDialogHeader>
           <AlertDialogTitle>

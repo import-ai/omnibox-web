@@ -44,7 +44,6 @@ export type { CreatePayload } from '@/service/resource';
 export {
   batchDeleteResources,
   batchMoveResources,
-  batchRefreshResources,
   createResource,
   deleteResource,
   fetchChildren,
