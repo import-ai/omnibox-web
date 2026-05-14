@@ -953,7 +953,5 @@
     "select_required": "请选择资源后操作",
     "all_forbidden": "所选资源均无操作权限，批量操作失败",
     "operating_resource": "您正在批量操作此资源"
-  },
-  "deleting": "删除中...",
-  "moving": "移动中..."
+  }
 }

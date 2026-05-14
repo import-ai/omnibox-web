@@ -2,7 +2,6 @@ import { http } from '@/lib/request';
 
 export interface TrashRetentionDaysResponse {
   trash_retention_days?: number;
-  trashRetentionDays?: number;
 }
 
 export function fetchTrashRetentionDays(

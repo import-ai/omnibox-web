@@ -290,20 +290,6 @@ export function isNodeDimmedBySelection(
   return false;
 }
 
-export function extractBatchResponseIds(
-  requestedIds: string[],
-  response: Array<{ id?: string; resource_id?: string }> | unknown
-): string[] {
-  if (!Array.isArray(response)) return requestedIds;
-  const responseIds = response
-    .map(item => item.id || item.resource_id)
-    .filter((id): id is string => Boolean(id));
-
-  return responseIds.length > 0
-    ? responseIds.filter(id => requestedIds.includes(id))
-    : requestedIds;
-}
-
 export function getTopLevelSelectedIds(
   nodes: Record<string, TreeNode>,
   ids: string[]

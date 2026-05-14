@@ -952,7 +952,5 @@
     "select_required": "Select resources before operating",
     "all_forbidden": "None of the selected resources are authorized. Batch operation failed",
     "operating_resource": "You are batch operating this resource"
-  },
-  "deleting": "Deleting...",
-  "moving": "Moving..."
+  }
 }

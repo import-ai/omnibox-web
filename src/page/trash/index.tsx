@@ -240,7 +240,6 @@ export function TrashPanel() {
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
-
       <ConfirmPermanentDeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}

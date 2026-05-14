@@ -11,9 +11,7 @@ export function useTrashRetentionDays(namespaceId: string, enabled: boolean) {
     const controller = new AbortController();
     fetchTrashRetentionDays(namespaceId, controller.signal)
       .then(response => {
-        setTrashRetentionDays(
-          response.trash_retention_days ?? response.trashRetentionDays ?? 7
-        );
+        setTrashRetentionDays(response.trash_retention_days ?? 7);
       })
       .catch(() => {
         //

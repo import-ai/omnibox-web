@@ -64,12 +64,12 @@ export function BodyForSidebar(props: IProps) {
     <React.Fragment>
       <Toolbar
         selectionMode={batch.selectionMode}
-        toggleSelectionMode={batch.toggleSelectionMode}
         onDeselectAll={batch.deselectAll}
         onBatchDelete={batch.openDeleteDialog}
         onBatchMove={batch.openMoveDialog}
         onBatchCreate={batch.openCreateDialog}
         onAddToChat={batch.addSelectedToChat}
+        toggleSelectionMode={batch.toggleSelectionMode}
       />
       <ResourceTree namespaceId={namespaceId} />
       <CreateFolderDialog
