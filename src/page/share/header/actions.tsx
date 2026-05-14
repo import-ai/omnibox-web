@@ -42,6 +42,7 @@ export default function ShareActions({
 }: ShareActionsProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const isFolder = resource.resource_type === 'folder';
 
   const handleAction = (id: string) => {
     if (id === 'copy_link') {
@@ -117,7 +118,7 @@ export default function ShareActions({
           <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
           <span>{t('actions.copy_link')}</span>
         </DropdownMenuItem>
-        {resource.content && (
+        {resource.content && !isFolder && (
           <DropdownMenuItem
             className="cursor-pointer gap-2"
             onClick={() => handleAction('copy_content')}
@@ -126,21 +127,22 @@ export default function ShareActions({
             <span>{t('actions.copy_content')}</span>
           </DropdownMenuItem>
         )}
-        {/* Download as */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="cursor-pointer gap-2">
-            <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-            <span>{t('actions.download_as')}</span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-48">
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => handleAction('download_as_markdown')}
-            >
-              {t('actions.download_as_tooltip', { format: 'Markdown' })}
-            </DropdownMenuItem>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        {!isFolder && (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger className="cursor-pointer gap-2">
+              <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <span>{t('actions.download_as')}</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="w-48">
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => handleAction('download_as_markdown')}
+              >
+                {t('actions.download_as_tooltip', { format: 'Markdown' })}
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        )}
 
         {onWide && (
           <>

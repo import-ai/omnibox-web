@@ -69,6 +69,7 @@ export default function Actions(props: IActionProps) {
     () => (resource ? [resource.id] : []),
     [resource?.id]
   );
+  const isFolder = resource?.resource_type === 'folder';
 
   const handleEdit = () => {
     if (!resource) {
@@ -374,13 +375,15 @@ export default function Actions(props: IActionProps) {
             <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             <span>{t('actions.copy_link')}</span>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer gap-2"
-            onClick={() => handleAction('copy_content')}
-          >
-            <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-            <span>{t('actions.copy_content')}</span>
-          </DropdownMenuItem>
+          {!isFolder && (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={() => handleAction('copy_content')}
+            >
+              <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <span>{t('actions.copy_content')}</span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             className="cursor-pointer gap-2"
             onClick={() => handleAction('duplicate')}
@@ -392,29 +395,30 @@ export default function Actions(props: IActionProps) {
             )}
             <span>{t('actions.duplicate')}</span>
           </DropdownMenuItem>
-          {/* Download Submenu */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="cursor-pointer gap-2">
-              <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-              <span>{t('actions.download_as')}</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="w-48">
-              {resource && resource.resource_type === 'file' && (
+          {!isFolder && (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="cursor-pointer gap-2">
+                <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <span>{t('actions.download_as')}</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-48">
+                {resource && resource.resource_type === 'file' && (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => handleAction('download')}
+                  >
+                    {t('actions.download')}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   className="cursor-pointer"
-                  onClick={() => handleAction('download')}
+                  onClick={() => handleAction('download_as_markdown')}
                 >
-                  {t('actions.download')}
+                  {t('actions.download_as_tooltip', { format: 'Markdown' })}
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => handleAction('download_as_markdown')}
-              >
-                {t('actions.download_as_tooltip', { format: 'Markdown' })}
-              </DropdownMenuItem>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          )}
           <DropdownMenuItem
             className="cursor-pointer gap-2"
             onClick={() => handleAction('move_to')}
