@@ -98,7 +98,7 @@ export function Header(props: IProps) {
         <SidebarMenuItem>
           <ActionDialog
             contentClassName={notificationDialogContentClassName}
-            closeClassName="size-6 mr-2"
+            closeClassName="mr-2"
             titleClassName="text-card-foreground pb-2 pl-2"
             title={t('notification_modal.title')}
             trigger={

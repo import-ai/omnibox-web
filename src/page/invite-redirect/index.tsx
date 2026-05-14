@@ -13,11 +13,15 @@ export default function InviteRedirectPage() {
   useEffect(() => {
     const source = axios.CancelToken.source();
     http
-      .post(`/namespaces/${namespaceId}/invitations/${invitationId}/accept`, {
-        cancelToken: source.token,
-      })
+      .post(
+        `/namespaces/${namespaceId}/invitations/${invitationId}/accept`,
+        undefined,
+        {
+          cancelToken: source.token,
+        }
+      )
       .then(() => {
-        navigate(`/${namespaceId}`);
+        navigate(`/${namespaceId}/chat`, { replace: true });
       });
     return () => {
       source.cancel();

@@ -54,12 +54,7 @@ export default function ActionDialog(props: ActionDialogProps) {
                 closeClassName
               )}
             >
-              <X
-                className={cn(
-                  'h-6 w-6',
-                  closeClassName?.includes('size-') ? '' : closeClassName
-                )}
-              />
+              <X className="h-4 w-4" />
             </DialogClose>
           </div>
           <DialogHeader>
