@@ -32,7 +32,7 @@ export function HelpTooltip({ content, iconClassName }: HelpTooltipProps) {
           />
         </PopoverTrigger>
         <PopoverContent className="max-w-xs">
-          <p className="text-sm">{content}</p>
+          <p className="whitespace-pre-line text-sm">{content}</p>
         </PopoverContent>
       </Popover>
     );
@@ -51,7 +51,7 @@ export function HelpTooltip({ content, iconClassName }: HelpTooltipProps) {
           />
         </TooltipTrigger>
         <TooltipContent>
-          <p>{content}</p>
+          <p className="whitespace-pre-line">{content}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
