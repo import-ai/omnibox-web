@@ -33,6 +33,7 @@ import Generate from './create-namespace';
 import { InviteButton } from './invite-button';
 import { NamespaceList } from './namespace-list';
 import NamespaceMember from './namespace-member';
+import { NamespaceTierBadge } from './namespace-tier-badge';
 
 interface IProps {
   namespaceId: string;
@@ -97,9 +98,12 @@ export function Switcher(props: IProps) {
                 <Avatar className="flex size-8 items-center justify-center rounded-lg bg-primary font-normal text-primary-foreground dark:bg-neutral-700 dark:text-white">
                   {current.name?.charAt(0)?.toUpperCase() || '?'}
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{current.name}</span>
-                  <NamespaceMember namespaceId={namespaceId} />
+                  <div className="flex min-w-0 items-center justify-between gap-2">
+                    <NamespaceMember namespaceId={namespaceId} />
+                    <NamespaceTierBadge namespace={current} />
+                  </div>
                 </div>
               </div>
             </DropdownMenuLabel>
