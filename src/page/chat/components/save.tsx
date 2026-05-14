@@ -21,68 +21,30 @@ export default function SaveMain(props: IProps) {
   const { t } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
+  const shareId = params.share_id || '';
   const [loading, onLoading] = useState(false);
-  const uid = localStorage.getItem('uid');
-
-  const saveToNamespace = (targetNamespaceId: string, name?: string) => {
-    if (!targetNamespaceId) {
-      onLoading(false);
-      return;
-    }
-
-    http
-      .get(`/namespaces/${targetNamespaceId}/private`)
-      .then(privateRoot =>
-        http
-          .post(`/namespaces/${targetNamespaceId}/resources`, {
-            content,
-            resourceType: 'doc',
-            parentId: privateRoot.id,
-            name,
-          })
-          .then(response => {
-            app.fire('generate_resource', privateRoot.id, response);
-          })
-      )
-      .finally(() => {
-        onLoading(false);
-      });
-  };
-
   const handleCreate = () => {
     onLoading(true);
-
-    if (!namespaceId) {
-      http
-        .get('namespaces')
-        .then(list => {
-          const targetNamespaceId = Array.isArray(list) ? list[0]?.id : '';
-          saveToNamespace(
-            targetNamespaceId,
-            getTitleFromConversationDetail(conversation)
-          );
-        })
-        .catch(() => {
-          onLoading(false);
-        });
-      return;
-    }
-
     // Ensure the title is correct
     http
       .get(`/namespaces/${namespaceId}/conversations/${conversation.id}`)
       .then(conversationDetail => {
-        saveToNamespace(
-          namespaceId,
-          getTitleFromConversationDetail(conversationDetail)
+        http.get(`/namespaces/${namespaceId}/private`).then(privateRoot =>
+          http
+            .post(`/namespaces/${namespaceId}/resources`, {
+              content,
+              resourceType: 'doc',
+              parentId: privateRoot.id,
+              name: getTitleFromConversationDetail(conversationDetail),
+            })
+            .then(response => {
+              app.fire('generate_resource', privateRoot.id, response);
+            })
         );
-      })
-      .catch(() => {
-        onLoading(false);
       });
   };
 
-  if (!uid) {
+  if (shareId) {
     return null;
   }
 
@@ -94,7 +56,6 @@ export default function SaveMain(props: IProps) {
           variant="ghost"
           className="p-0 w-7 h-7"
           onClick={handleCreate}
-          disabled={loading}
         >
           {loading ? <Loader2 className="animate-spin" /> : <Save />}
         </Button>
