@@ -1,7 +1,9 @@
 import {
   citationUrlTransform,
-  findCitationByCiteRef,
-  isCiteRef,
+  copyPreprocess,
+  findCitationById,
+  isCitationId,
+  replaceCiteTag,
   trimIncompletedCitation,
 } from './citation-utils';
 
@@ -38,93 +40,132 @@ describe('cleanIncompletedCitation', () => {
   });
 });
 
-describe('cite_ref helpers', () => {
+describe('citation id helpers', () => {
   const citations = [
     {
-      id: 'message-id',
+      id: 'C1-resource-lines-L2-3',
       title: 'Resource',
       snippet: 'Snippet',
       link: 'resource-id',
-      cite_ref: 'vfs:/private/example.md:2-3',
     },
     {
-      id: 'message-id',
+      id: 'C2-web-title',
       title: 'Web',
       snippet: 'Snippet',
       link: 'https://example.com',
-      cite_ref: 'web:abcdef123456',
     },
   ];
 
-  it('detects supported cite_ref formats', () => {
-    expect(isCiteRef('vfs:/private/example.md:2-3')).toBe(true);
-    expect(isCiteRef('web:abcdef123456')).toBe(true);
-    expect(isCiteRef('/private/example.md')).toBe(false);
-    expect(isCiteRef('#cite-1')).toBe(false);
+  it('detects supported citation id formats', () => {
+    expect(isCitationId('C1-resource-lines-L2-3')).toBe(true);
+    expect(isCitationId('C2-web-title')).toBe(true);
+    expect(isCitationId('vfs:/private/example.md:2-3')).toBe(false);
+    expect(isCitationId('web:abcdef123456')).toBe(false);
+    expect(isCitationId('/private/example.md')).toBe(false);
+    expect(isCitationId('#cite-1')).toBe(false);
   });
 
-  it('finds citations by cite_ref', () => {
-    expect(
-      findCitationByCiteRef(citations, 'vfs:/private/example.md:2-3')
-    ).toEqual({ citation: citations[0], index: 0 });
-    expect(findCitationByCiteRef(citations, 'web:abcdef123456')).toEqual({
+  it('finds citations by id', () => {
+    expect(findCitationById(citations, 'C1-resource-lines-L2-3')).toEqual({
+      citation: citations[0],
+      index: 0,
+    });
+    expect(findCitationById(citations, 'C2-web-title')).toEqual({
       citation: citations[1],
       index: 1,
     });
   });
 
-  it('finds vfs citations when the path contains colons', () => {
-    const colonPathCitation = {
-      id: 'message-id',
-      title: 'Resource',
-      snippet: 'Snippet',
-      link: 'resource-id',
-      cite_ref: 'vfs:/private/foo/ba:r:1-12',
-    };
-
+  it('does not resolve unmatched citation ids', () => {
+    expect(findCitationById(citations, 'C3-not-found')).toBeUndefined();
+    expect(findCitationById(citations, 'web:abcdef123456')).toBeUndefined();
     expect(
-      findCitationByCiteRef([colonPathCitation], 'vfs:/private/foo/ba:r:1-12')
-    ).toEqual({ citation: colonPathCitation, index: 0 });
-    expect(
-      findCitationByCiteRef([colonPathCitation], 'vfs:/private/foo/ba%3Ar:1-12')
-    ).toEqual({ citation: colonPathCitation, index: 0 });
+      findCitationById(citations, 'vfs:/private/example.md:2-3')
+    ).toBeUndefined();
   });
 
-  it('does not resolve unmatched cite_ref values', () => {
-    expect(findCitationByCiteRef(citations, 'web:notfound')).toBeUndefined();
-  });
-
-  it('finds vfs citations when markdown percent-encodes non-ascii paths', () => {
+  it('finds citations when markdown percent-encodes ids', () => {
     const nonAsciiCitation = {
-      id: 'message-id',
+      id: 'C4-咖啡做法-L1-16',
       title: '咖啡做法1-手冲咖啡.md',
       snippet: 'Snippet',
       link: 'resource-id',
-      cite_ref: 'vfs:/private/test/咖啡做法1-手冲咖啡.md:1-16',
     };
 
     expect(
-      findCitationByCiteRef(
+      findCitationById(
         [nonAsciiCitation],
-        'vfs:/private/test/%E5%92%96%E5%95%A1%E5%81%9A%E6%B3%951-%E6%89%8B%E5%86%B2%E5%92%96%E5%95%A1.md:1-16'
+        'C4-%E5%92%96%E5%95%A1%E5%81%9A%E6%B3%95-L1-16'
       )
     ).toEqual({ citation: nonAsciiCitation, index: 0 });
   });
 
-  it('preserves cite_ref urls for markdown link rendering', () => {
-    expect(citationUrlTransform('vfs:/private/example.md:2-3')).toBe(
-      'vfs:/private/example.md:2-3'
+  it('preserves citation ids for markdown link rendering', () => {
+    expect(citationUrlTransform('C1-resource-lines-L2-3')).toBe(
+      'C1-resource-lines-L2-3'
     );
-    expect(citationUrlTransform('vfs:/private/foo/ba:r:1-12')).toBe(
-      'vfs:/private/foo/ba:r:1-12'
-    );
-    expect(citationUrlTransform('web:abcdef123456')).toBe('web:abcdef123456');
+    expect(citationUrlTransform('C2-web-title')).toBe('C2-web-title');
   });
 
-  it('keeps normal url sanitization for non-cite links', () => {
+  it('keeps normal url sanitization for non-citation links', () => {
     expect(citationUrlTransform('https://example.com')).toBe(
       'https://example.com'
     );
     expect(citationUrlTransform('javascript:alert(1)')).toBe('');
+    expect(citationUrlTransform('web:abcdef123456')).toBe('');
+  });
+});
+
+describe('citation marker replacement', () => {
+  it('replaces linked citation markers and preserves leading whitespace', () => {
+    expect(replaceCiteTag('Answer. [[1]](C1-x) next', true, 1)).toBe(
+      'Answer. [[1]](#cite-1) next'
+    );
+  });
+
+  it('keeps legacy citation marker behavior', () => {
+    expect(replaceCiteTag('Answer. [[1]] next', true, 1)).toBe(
+      'Answer. [[1]](#cite-1) next'
+    );
+  });
+
+  it('removes out-of-range linked markers without removing preceding whitespace', () => {
+    expect(replaceCiteTag('Answer. [[2]](C2-x) next', true, 1)).toBe(
+      'Answer.  next'
+    );
+  });
+});
+
+describe('copyPreprocess', () => {
+  const citations = [
+    {
+      id: 'C1-resource-lines-L2-3',
+      title: 'Resource',
+      snippet: 'Snippet',
+      link: 'resource-id',
+    },
+  ];
+
+  beforeEach(() => {
+    Object.defineProperty(globalThis, 'location', {
+      value: {
+        origin: 'https://omnibox.test',
+        pathname: '/namespace-id/chat/conversation-id',
+      },
+      configurable: true,
+      writable: true,
+    });
+  });
+
+  it('consumes linked markers while copying and preserves leading whitespace', () => {
+    expect(copyPreprocess('Answer. [[1]](C1-x) next', citations)).toBe(
+      'Answer. [^1][1] next\n\n[1]: https://omnibox.test/namespace-id/resource-id "Resource"\n'
+    );
+  });
+
+  it('keeps legacy marker copy behavior', () => {
+    expect(copyPreprocess('Answer. [[1]] next', citations)).toBe(
+      'Answer. [^1][1] next\n\n[1]: https://omnibox.test/namespace-id/resource-id "Resource"\n'
+    );
   });
 });

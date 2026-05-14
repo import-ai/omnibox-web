@@ -1,7 +1,8 @@
 import type { Citation } from '@/page/chat/core/types/chat-response';
 
-const citePattern = / *\[\[(\d+)]]/g;
+const citePattern = /\[\[(\d+)]](?:\([^)\s]+\))?/g;
 const safeUrlProtocol = /^(https?|ircs?|mailto|xmpp)$/i;
+const citationIdPattern = /^C\d+(?:-|$)/;
 
 export function trimIncompletedCitation(text: string) {
   const citePrefix = '[[';
@@ -40,28 +41,54 @@ export function replaceCiteTag(
   });
 }
 
-export function isCiteRef(value: string | undefined): value is string {
-  return Boolean(value && /^(vfs:\/|web:)/.test(value));
+export function copyPreprocess(content: string, citations: Citation[]): string {
+  let citationsFooter: string = '';
+  const origin = location.origin;
+  const namespace = location.pathname.split('/')[1] || 'default';
+  for (let i = 0; i < citations.length; i++) {
+    const citation = citations[i];
+    const title = citation.title.replace('"', '\\"');
+    const link = citation.link.startsWith('http')
+      ? citation.link
+      : `${origin}/${namespace}/${citation.link}`;
+    citationsFooter += `[${i + 1}]: ${link} "${title}"\n`;
+  }
+
+  if (citationsFooter) {
+    content = content + '\n\n' + citationsFooter;
+  }
+
+  return content.replace(citePattern, (_, index) => {
+    const citationIndex = Number(index) - 1;
+    if (citationIndex >= 0 && citationIndex < citations.length) {
+      return `[^${index}][${index}]`;
+    }
+    return '';
+  });
 }
 
-function decodeCiteRef(citeRef: string): string {
+export function isCitationId(value: string | undefined): value is string {
+  return Boolean(value && citationIdPattern.test(value));
+}
+
+function decodeCitationId(citationId: string): string {
   try {
-    return decodeURIComponent(citeRef);
+    return decodeURIComponent(citationId);
   } catch {
-    return citeRef;
+    return citationId;
   }
 }
 
-export function findCitationByCiteRef(
+export function findCitationById(
   citations: Citation[],
-  citeRef: string | undefined
+  citationId: string | undefined
 ): { citation: Citation; index: number } | undefined {
-  if (!isCiteRef(citeRef)) {
+  if (!citationId) {
     return undefined;
   }
-  const decodedCiteRef = decodeCiteRef(citeRef);
+  const decodedCitationId = decodeCitationId(citationId);
   const index = citations.findIndex(
-    citation => citation.cite_ref === decodedCiteRef
+    citation => citation.id === decodedCitationId
   );
   if (index < 0) {
     return undefined;
@@ -70,7 +97,7 @@ export function findCitationByCiteRef(
 }
 
 export function citationUrlTransform(url: string): string {
-  if (isCiteRef(url)) {
+  if (isCitationId(url)) {
     return url;
   }
 

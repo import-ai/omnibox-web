@@ -25,8 +25,9 @@ import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/citation-hover-icon';
 import {
   citationUrlTransform,
-  findCitationByCiteRef,
-  isCiteRef,
+  copyPreprocess,
+  findCitationById,
+  isCitationId,
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citation-utils';
@@ -37,43 +38,6 @@ import {
 } from '@/page/chat/messages/citations/vfs-path-links';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
-const citePattern = / *\[\[(\d+)]]/g;
-
-function getTextContent(children: React.ReactNode): string {
-  if (typeof children === 'string' || typeof children === 'number') {
-    return String(children);
-  }
-  if (Array.isArray(children)) {
-    return children.map(getTextContent).join('');
-  }
-  return '';
-}
-
-function copyPreprocess(content: string, citations: Citation[]): string {
-  let citationsFooter: string = '';
-  const origin = location.origin;
-  const namespace = location.pathname.split('/')[1] || 'default';
-  for (let i = 0; i < citations.length; i++) {
-    const citation = citations[i];
-    const title = citation.title.replace('"', '\\"');
-    const link = citation.link.startsWith('http')
-      ? citation.link
-      : `${origin}/${namespace}/${citation.link}`;
-    citationsFooter += `[${i + 1}]: ${link} "${title}"\n`;
-  }
-
-  if (citationsFooter) {
-    content = content + '\n\n' + citationsFooter;
-  }
-
-  return content.replace(citePattern, (_, index) => {
-    const citationIndex = Number(index) - 1;
-    if (citationIndex >= 0 && citationIndex < citations.length) {
-      return `[^${index}][${index}]`;
-    }
-    return '';
-  });
-}
 
 interface IProps {
   content: string;
@@ -136,19 +100,17 @@ export function CitationMarkdown(props: IProps) {
         const id = Number(citeMatch[1]) - 1;
         return <CitationHoverIcon citation={citations[id]} index={id} />;
       }
-      if (getTextContent(children).trim() === 'cite') {
-        const citeRefMatch = findCitationByCiteRef(citations, href);
-        if (citeRefMatch) {
-          return (
-            <CitationHoverIcon
-              citation={citeRefMatch.citation}
-              index={citeRefMatch.index}
-            />
-          );
-        }
-        if (isCiteRef(href)) {
-          return null;
-        }
+      const citationIdMatch = findCitationById(citations, href);
+      if (citationIdMatch) {
+        return (
+          <CitationHoverIcon
+            citation={citationIdMatch.citation}
+            index={citationIdMatch.index}
+          />
+        );
+      }
+      if (isCitationId(href)) {
+        return null;
       }
       if (
         node &&
