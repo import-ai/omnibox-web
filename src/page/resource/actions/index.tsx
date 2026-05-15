@@ -496,7 +496,10 @@ export default function Actions(props: IActionProps) {
             <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent
+          align="end"
+          className="w-56 !animate-none !fade-in-0 !fade-out-0 !zoom-in-100 !zoom-out-100 !slide-in-from-top-0 !slide-in-from-bottom-0 !slide-in-from-left-0 !slide-in-from-right-0"
+        >
           <DropdownMenuItem
             className="cursor-pointer gap-2"
             onClick={() => handleAction('copy_link')}

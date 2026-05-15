@@ -95,13 +95,7 @@ export function ResourceNodeContent({
 
   return (
     <SidebarMenuItem>
-      <Collapsible
-        open={isExpanded}
-        className={cn('group/collapsible', {
-          '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
-            isExpanded && !nodeUI?.loading,
-        })}
-      >
+      <Collapsible open={isExpanded} className="group/collapsible">
         <CollapsibleTrigger asChild>
           <ContextMenuMain
             nodeId={nodeId}
@@ -146,7 +140,12 @@ export function ResourceNodeContent({
                               handleExpand();
                             }}
                           >
-                            <Arrow className="transition-transform" />
+                            <Arrow
+                              className={cn(
+                                'transition-transform',
+                                isExpanded && 'rotate-90'
+                              )}
+                            />
                           </Button>
                         ))}
                       <ResourceTypeIcon
