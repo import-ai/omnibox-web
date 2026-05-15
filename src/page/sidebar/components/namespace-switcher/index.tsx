@@ -98,7 +98,7 @@ export function Switcher(props: IProps) {
                 <Avatar className="flex size-8 items-center justify-center rounded-lg bg-primary font-normal text-primary-foreground dark:bg-neutral-700 dark:text-white">
                   {current.name?.charAt(0)?.toUpperCase() || '?'}
                 </Avatar>
-                <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
+                <div className="grid min-w-0 flex-1 text-left text-sm leading-tight gap-0.5">
                   <span className="truncate font-semibold">{current.name}</span>
                   <div className="flex min-w-0 items-center justify-between gap-2">
                     <NamespaceMember namespaceId={namespaceId} />
