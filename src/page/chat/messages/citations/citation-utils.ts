@@ -41,6 +41,10 @@ export function replaceCiteTag(
   });
 }
 
+export function replaceReasoningCiteMarkers(input: string): string {
+  return input.replace(citePattern, (_, i) => `[${i}]`);
+}
+
 export function copyPreprocess(content: string, citations: Citation[]): string {
   let citationsFooter: string = '';
   const origin = location.origin;

@@ -4,6 +4,7 @@ import {
   findCitationById,
   isCitationId,
   replaceCiteTag,
+  replaceReasoningCiteMarkers,
   trimIncompletedCitation,
 } from './citation-utils';
 
@@ -133,6 +134,38 @@ describe('citation marker replacement', () => {
     expect(replaceCiteTag('Answer. [[2]](C2-x) next', true, 1)).toBe(
       'Answer.  next'
     );
+  });
+});
+
+describe('reasoning citation marker replacement', () => {
+  it('replaces linked citation markers with plain bracket labels', () => {
+    expect(
+      replaceReasoningCiteMarkers(
+        'Think with [[1]](C1-water-temperature-L12-18).'
+      )
+    ).toBe('Think with [1].');
+  });
+
+  it('replaces raw citation markers with plain bracket labels', () => {
+    expect(replaceReasoningCiteMarkers('Think with [[1]].')).toBe(
+      'Think with [1].'
+    );
+  });
+
+  it('replaces multiple markers independently', () => {
+    expect(
+      replaceReasoningCiteMarkers(
+        'Use [[1]](C1-alpha) then [[2]] and [[12]](C12-z).'
+      )
+    ).toBe('Use [1] then [2] and [12].');
+  });
+
+  it('leaves normal markdown links and non-citation text unchanged', () => {
+    expect(
+      replaceReasoningCiteMarkers(
+        'See [docs](https://example.com) and plain text.'
+      )
+    ).toBe('See [docs](https://example.com) and plain text.');
   });
 });
 

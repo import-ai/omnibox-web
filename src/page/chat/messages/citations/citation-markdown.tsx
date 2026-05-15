@@ -32,9 +32,13 @@ import {
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citation-utils';
 import {
+  getVfsResourceDisplayName,
   getVfsResourceHref,
+  getVfsRootPathLabel,
   remarkVfsPathLinks,
   type VfsPathResourceIds,
+  type VfsPathResourceTitles,
+  type VfsRootPathLabels,
 } from '@/page/chat/messages/citations/vfs-path-links';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
@@ -53,6 +57,7 @@ interface IProps {
   onNext?: () => void;
   isLastMessage: boolean;
   vfsPathResourceIds?: VfsPathResourceIds;
+  vfsPathResourceTitles?: VfsPathResourceTitles;
   resourceLinkPrefix?: string;
 }
 
@@ -71,11 +76,20 @@ export function CitationMarkdown(props: IProps) {
     onNext,
     isLastMessage,
     vfsPathResourceIds = {},
+    vfsPathResourceTitles = {},
     resourceLinkPrefix = '',
   } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
+  const vfsRootPathLabels = React.useMemo(
+    (): VfsRootPathLabels => ({
+      '/private': t('private'),
+      '/teamspace': t('teamspace'),
+      '/share': t('share.share.title'),
+    }),
+    [t]
+  );
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
@@ -87,9 +101,19 @@ export function CitationMarkdown(props: IProps) {
   const vfsPathLinksPlugin = React.useMemo(
     () =>
       function vfsPathLinksPlugin() {
-        return remarkVfsPathLinks(vfsPathResourceIds, resourceLinkPrefix);
+        return remarkVfsPathLinks(
+          vfsPathResourceIds,
+          resourceLinkPrefix,
+          vfsPathResourceTitles,
+          vfsRootPathLabels
+        );
       },
-    [resourceLinkPrefix, vfsPathResourceIds]
+    [
+      resourceLinkPrefix,
+      vfsPathResourceIds,
+      vfsPathResourceTitles,
+      vfsRootPathLabels,
+    ]
   );
 
   const components = {
@@ -163,6 +187,12 @@ export function CitationMarkdown(props: IProps) {
       ) : (
         (() => {
           const codeContent = String(children);
+          const rootLabel = codeContent.includes('\n')
+            ? undefined
+            : getVfsRootPathLabel(codeContent, vfsRootPathLabels);
+          if (rootLabel) {
+            return rootLabel;
+          }
           const href = codeContent.includes('\n')
             ? undefined
             : getVfsResourceHref(
@@ -172,7 +202,9 @@ export function CitationMarkdown(props: IProps) {
               );
           const code = (
             <code {...props} className={className}>
-              {children}
+              {href
+                ? getVfsResourceDisplayName(codeContent, vfsPathResourceTitles)
+                : children}
             </code>
           );
           return href ? (

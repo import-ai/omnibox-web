@@ -9,11 +9,27 @@ type MarkdownNode = {
 };
 
 export type VfsPathResourceIds = Record<string, string>;
+export type VfsPathResourceTitles = Record<string, string>;
+export type VfsRootPathLabels = Record<string, string>;
+
+function decodeVfsPath(path: string): string {
+  try {
+    return decodeURIComponent(path);
+  } catch {
+    return path;
+  }
+}
 
 export function isVfsPath(path: string): boolean {
+  const decodedPath = decodeVfsPath(path);
   return VFS_PATH_ROOTS.some(
-    root => path === root || path.startsWith(root + '/')
+    root => decodedPath === root || decodedPath.startsWith(root + '/')
   );
+}
+
+function isVfsRootPath(path: string): boolean {
+  const decodedPath = decodeVfsPath(path);
+  return VFS_PATH_ROOTS.includes(decodedPath);
 }
 
 export function getVfsResourceHref(
@@ -21,32 +37,71 @@ export function getVfsResourceHref(
   pathResourceIds: VfsPathResourceIds,
   resourceLinkPrefix: string
 ): string | undefined {
-  const resourceId = pathResourceIds[path];
-  if (!resourceId || !resourceLinkPrefix || !isVfsPath(path)) {
+  const decodedPath = decodeVfsPath(path);
+  if (isVfsRootPath(decodedPath)) {
+    return undefined;
+  }
+  const resourceId = pathResourceIds[path] || pathResourceIds[decodedPath];
+  if (!resourceId || !resourceLinkPrefix || !isVfsPath(decodedPath)) {
     return undefined;
   }
   return `${resourceLinkPrefix}/${resourceId}`;
+}
+
+export function getVfsRootPathLabel(
+  path: string,
+  rootPathLabels: VfsRootPathLabels
+): string | undefined {
+  const decodedPath = decodeVfsPath(path);
+  if (!isVfsRootPath(decodedPath)) {
+    return undefined;
+  }
+  return rootPathLabels[decodedPath] || decodedPath;
 }
 
 function isBoundary(value: string | undefined): boolean {
   return !value || /[\s`"'()[\]{}<>.,!?;:]/.test(value);
 }
 
-function linkNode(path: string, href: string): MarkdownNode {
+function linkNode(text: string, href: string): MarkdownNode {
   return {
     type: 'link',
     url: href,
     title: null,
-    children: [{ type: 'text', value: path }],
+    children: [{ type: 'text', value: text }],
   };
+}
+
+function getVfsResourceTitle(
+  path: string,
+  pathResourceTitles: VfsPathResourceTitles
+): string | undefined {
+  const decodedPath = decodeVfsPath(path);
+  return pathResourceTitles[path] || pathResourceTitles[decodedPath];
+}
+
+export function getVfsResourceDisplayName(
+  path: string,
+  pathResourceTitles: VfsPathResourceTitles = {}
+): string {
+  const decodedPath = decodeVfsPath(path);
+  const title = getVfsResourceTitle(decodedPath, pathResourceTitles);
+  if (title) {
+    return title;
+  }
+  return decodedPath.split('/').filter(Boolean).at(-1) || decodedPath;
 }
 
 export function splitTextWithVfsPathLinks(
   value: string,
   pathResourceIds: VfsPathResourceIds,
-  resourceLinkPrefix: string
+  resourceLinkPrefix: string,
+  pathResourceTitles: VfsPathResourceTitles = {},
+  rootPathLabels: VfsRootPathLabels = {}
 ): MarkdownNode[] {
-  const paths = Object.keys(pathResourceIds)
+  const paths = [
+    ...new Set([...Object.keys(pathResourceIds), ...VFS_PATH_ROOTS]),
+  ]
     .filter(path => isVfsPath(path))
     .sort((a, b) => b.length - a.length);
   if (paths.length === 0) {
@@ -66,6 +121,12 @@ export function splitTextWithVfsPathLinks(
         isBoundary(value[index - 1]) &&
         isBoundary(value[index + path.length])
       ) {
+        const rootLabel = getVfsRootPathLabel(path, rootPathLabels);
+        if (rootLabel) {
+          matchedPath = path;
+          matchedHref = '';
+          break;
+        }
         const href = getVfsResourceHref(
           path,
           pathResourceIds,
@@ -90,7 +151,17 @@ export function splitTextWithVfsPathLinks(
       continue;
     }
 
-    nodes.push(linkNode(matchedPath, matchedHref));
+    const rootLabel = getVfsRootPathLabel(matchedPath, rootPathLabels);
+    if (rootLabel) {
+      nodes.push({ type: 'text', value: rootLabel });
+    } else {
+      nodes.push(
+        linkNode(
+          getVfsResourceDisplayName(matchedPath, pathResourceTitles),
+          matchedHref
+        )
+      );
+    }
     index += matchedPath.length;
   }
 
@@ -100,7 +171,9 @@ export function splitTextWithVfsPathLinks(
 function transformChildren(
   node: MarkdownNode,
   pathResourceIds: VfsPathResourceIds,
-  resourceLinkPrefix: string
+  resourceLinkPrefix: string,
+  pathResourceTitles: VfsPathResourceTitles,
+  rootPathLabels: VfsRootPathLabels
 ) {
   if (
     !node.children ||
@@ -111,16 +184,46 @@ function transformChildren(
 
   const children: MarkdownNode[] = [];
   for (const child of node.children) {
-    if (child.type === 'text' && child.value) {
+    if (child.type === 'link' && child.url) {
+      const originalUrl = child.url;
+      const rootLabel = getVfsRootPathLabel(originalUrl, rootPathLabels);
+      if (rootLabel) {
+        children.push({ type: 'text', value: rootLabel });
+        continue;
+      }
+      const href = getVfsResourceHref(
+        originalUrl,
+        pathResourceIds,
+        resourceLinkPrefix
+      );
+      if (href) {
+        child.url = href;
+        child.children = [
+          {
+            type: 'text',
+            value: getVfsResourceDisplayName(originalUrl, pathResourceTitles),
+          },
+        ];
+      }
+      children.push(child);
+    } else if (child.type === 'text' && child.value) {
       children.push(
         ...splitTextWithVfsPathLinks(
           child.value,
           pathResourceIds,
-          resourceLinkPrefix
+          resourceLinkPrefix,
+          pathResourceTitles,
+          rootPathLabels
         )
       );
     } else {
-      transformChildren(child, pathResourceIds, resourceLinkPrefix);
+      transformChildren(
+        child,
+        pathResourceIds,
+        resourceLinkPrefix,
+        pathResourceTitles,
+        rootPathLabels
+      );
       children.push(child);
     }
   }
@@ -129,9 +232,17 @@ function transformChildren(
 
 export function remarkVfsPathLinks(
   pathResourceIds: VfsPathResourceIds,
-  resourceLinkPrefix: string
+  resourceLinkPrefix: string,
+  pathResourceTitles: VfsPathResourceTitles = {},
+  rootPathLabels: VfsRootPathLabels = {}
 ) {
   return function vfsPathLinksTransformer(tree: MarkdownNode) {
-    transformChildren(tree, pathResourceIds, resourceLinkPrefix);
+    transformChildren(
+      tree,
+      pathResourceIds,
+      resourceLinkPrefix,
+      pathResourceTitles,
+      rootPathLabels
+    );
   };
 }

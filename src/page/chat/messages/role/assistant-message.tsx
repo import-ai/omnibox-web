@@ -26,7 +26,11 @@ import {
 import { ToolCallStatus } from '@/page/chat/core/types/tool-call.ts';
 import { useMessageSiblings } from '@/page/chat/core/use-message-siblings.ts';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
-import type { VfsPathResourceIds } from '@/page/chat/messages/citations/vfs-path-links';
+import { replaceReasoningCiteMarkers } from '@/page/chat/messages/citations/citation-utils';
+import type {
+  VfsPathResourceIds,
+  VfsPathResourceTitles,
+} from '@/page/chat/messages/citations/vfs-path-links';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -104,6 +108,23 @@ export function AssistantMessage(props: IProps) {
     }
     return result;
   }, [messages]);
+  const vfsPathResourceTitles = React.useMemo((): VfsPathResourceTitles => {
+    const titleByResourceId: Record<string, string> = {};
+    for (const citation of citations) {
+      if (citation.title && !citation.link.startsWith('http')) {
+        titleByResourceId[citation.link] = citation.title;
+      }
+    }
+
+    const result: VfsPathResourceTitles = {};
+    for (const [path, resourceId] of Object.entries(vfsPathResourceIds)) {
+      const title = titleByResourceId[resourceId];
+      if (title) {
+        result[path] = title;
+      }
+    }
+    return result;
+  }, [citations, vfsPathResourceIds]);
 
   const domList: React.ReactNode[] = [];
   if (openAIMessage.reasoning_content?.trim()) {
@@ -118,7 +139,9 @@ export function AssistantMessage(props: IProps) {
         <AccordionItem value={'reasoning_' + message.id}>
           <AccordionTrigger>{t('chat.tools.reasoning')}</AccordionTrigger>
           <AccordionContent className="text-gray-500 dark:text-gray-400">
-            {openAIMessage.reasoning_content?.trim()}
+            {replaceReasoningCiteMarkers(
+              openAIMessage.reasoning_content?.trim() || ''
+            )}
           </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -141,6 +164,7 @@ export function AssistantMessage(props: IProps) {
         onNext={handleNext}
         isLastMessage={isLastMessage}
         vfsPathResourceIds={vfsPathResourceIds}
+        vfsPathResourceTitles={vfsPathResourceTitles}
         resourceLinkPrefix={resourceLinkPrefix}
       />
     );
