@@ -34,7 +34,7 @@ interface IProps {
   currentResourcePath?: Array<{ id: string }>;
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
-  allResources: boolean;
+  canBrowseResources: boolean;
 }
 
 export default function ShareSidebar(props: IProps) {
@@ -48,18 +48,18 @@ export default function ShareSidebar(props: IProps) {
     currentResourcePath,
     isResourceActive,
     onAddToContext,
+    canBrowseResources,
   } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { open, isMobile } = useSidebar();
-  const canBrowseSharedResources = false;
 
   useSidebarInit({
     shareId,
     rootResource,
     currentResourceId,
     currentResourcePath,
-    allResources: canBrowseSharedResources,
+    canBrowseResources,
   });
 
   return (
@@ -117,7 +117,7 @@ export default function ShareSidebar(props: IProps) {
         isChatActive={isChatActive}
         isResourceActive={isResourceActive}
         onAddToContext={onAddToContext}
-        canBrowseResources={canBrowseSharedResources}
+        canBrowseResources={canBrowseResources}
       />
       <SidebarRail className="opacity-0" />
     </Sidebar>
