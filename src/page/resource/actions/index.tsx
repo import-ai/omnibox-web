@@ -97,6 +97,9 @@ export default function Actions(props: IActionProps) {
     () => hasTeamspaceCache.get(namespaceId) ?? true
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const canModifyResource =
+    (resource?.current_permission || 'full_access') === 'can_edit' ||
+    (resource?.current_permission || 'full_access') === 'full_access';
 
   useEffect(() => {
     if (!namespaceId) return;
@@ -119,6 +122,10 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (resource.resource_type === 'smart_folder') {
+      if (!canModifyResource) {
+        toast.error(t('permission.edit_required'));
+        return;
+      }
       http
         .get(`/namespaces/${namespaceId}/smart-folders/${resource.id}/config`)
         .then((response: SmartFolderResponse) => {
@@ -242,6 +249,11 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'move_to_trash') {
       if (!resource) {
+        setOpen(false);
+        return;
+      }
+      if (!canModifyResource) {
+        toast.error(t('permission.delete_required'));
         setOpen(false);
         return;
       }

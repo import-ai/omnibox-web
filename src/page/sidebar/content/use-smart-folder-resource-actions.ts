@@ -93,7 +93,11 @@ export function useSmartFolderResourceActions(
   };
 
   const handleEditSmartFolder = () => {
-    if (!canEditSmartFolder || !namespaceId) return;
+    if (!canEditSmartFolder) {
+      toast.error(t('permission.edit_required'));
+      return;
+    }
+    if (!namespaceId) return;
 
     http
       .get(`/namespaces/${namespaceId}/smart-folders/${data.id}/config`)
@@ -143,6 +147,10 @@ export function useSmartFolderResourceActions(
 
   const handleDelete = () => {
     if (isSmartFolder) {
+      if (!canEditSmartFolder) {
+        toast.error(t('permission.delete_required'));
+        return;
+      }
       setTrashSmartFolderConfirmOpen(true);
       return;
     }

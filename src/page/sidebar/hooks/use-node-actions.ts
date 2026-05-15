@@ -7,6 +7,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
+import type { Resource } from '@/interface';
 import { addToChatContext } from '@/lib/chat-bridge';
 import { deleteResource } from '@/lib/delete-resource';
 import { http } from '@/lib/request';
@@ -52,11 +53,22 @@ export interface UseNodeActionsReturn {
   handleAddAllToChat: () => void;
 }
 
-function getNodeResource(node: TreeNode) {
+function getNodeResource(
+  node: TreeNode
+): Pick<
+  Resource,
+  | 'id'
+  | 'name'
+  | 'parent_id'
+  | 'resource_type'
+  | 'space_type'
+  | 'has_children'
+  | 'attrs'
+> {
   return {
     id: node.id,
     name: node.name,
-    parent_id: node.parentId,
+    parent_id: node.parentId || '',
     resource_type: node.resourceType,
     space_type: node.spaceType,
     has_children: node.hasChildren,
@@ -85,6 +97,9 @@ export function useNodeActions(
     disabled: node?.resourceType !== 'smart_folder',
   });
   const isSmartFolderChild = node?.attrs?.__smart_folder_child === true;
+  const canModifyNode =
+    (node?.currentPermission || 'full_access') === 'can_edit' ||
+    (node?.currentPermission || 'full_access') === 'full_access';
   const sourceResourceId = node
     ? getSmartFolderSourceResourceId(getNodeResource(node))
     : nodeId;
@@ -147,6 +162,10 @@ export function useNodeActions(
 
   const handleEdit = () => {
     if (node?.resourceType === 'smart_folder') {
+      if (!canModifyNode) {
+        toast.error(t('permission.edit_required'));
+        return;
+      }
       http
         .get(`/namespaces/${namespaceId}/smart-folders/${nodeId}/config`)
         .then((response: SmartFolderResponse) => {
@@ -209,6 +228,10 @@ export function useNodeActions(
 
   const handleDelete = () => {
     if (node?.resourceType === 'smart_folder') {
+      if (!canModifyNode) {
+        toast.error(t('permission.delete_required'));
+        return;
+      }
       setSmartFolderTrashOpen(true);
       return;
     }
