@@ -21,6 +21,7 @@ export default function SaveMain(props: IProps) {
   const { t } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
+  const shareId = params.share_id || '';
   const [loading, onLoading] = useState(false);
   const handleCreate = () => {
     onLoading(true);
@@ -42,6 +43,10 @@ export default function SaveMain(props: IProps) {
         );
       });
   };
+
+  if (shareId) {
+    return null;
+  }
 
   return (
     <Tooltip>
