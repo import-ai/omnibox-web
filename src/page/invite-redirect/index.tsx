@@ -12,6 +12,8 @@ export default function InviteRedirectPage() {
 
   useEffect(() => {
     const source = axios.CancelToken.source();
+    let cancelled = false;
+
     http
       .post(
         `/namespaces/${namespaceId}/invitations/${invitationId}/accept`,
@@ -21,12 +23,15 @@ export default function InviteRedirectPage() {
         }
       )
       .then(() => {
-        navigate(`/${namespaceId}/chat`, { replace: true });
+        if (cancelled) return;
+        navigate(`/${namespaceId}/chat`);
       });
+
     return () => {
+      cancelled = true;
       source.cancel();
     };
-  }, []);
+  }, [invitationId, namespaceId, navigate]);
 
   return <Outlet />;
 }
