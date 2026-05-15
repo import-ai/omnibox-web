@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import useApp from '@/hooks/use-app';
-import { IResourceData } from '@/interface';
+import { IResourceData, SpaceType } from '@/interface';
 import { http } from '@/lib/request';
-import { ISidebarProps } from '@/page/sidebar/interface';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 import {
   getSmartFolderChildSidebarKey,
@@ -34,12 +34,12 @@ function findResourceById(
 }
 
 interface UseSmartFolderResourceActionsOptions {
-  data: ISidebarProps['data'];
+  data: IResourceData;
   namespaceId?: string;
-  spaceRoot?: ISidebarProps['data'];
-  onActiveKey: ISidebarProps['onActiveKey'];
-  onDelete: ISidebarProps['onDelete'];
-  spaceType: ISidebarProps['spaceType'];
+  spaceRoot?: IResourceData;
+  onActiveKey: (id: string, open?: boolean, key?: string) => void;
+  onDelete: (spaceType: SpaceType, id: string, parentId: string) => void;
+  spaceType: SpaceType;
   closeMenu?: () => void;
 }
 
@@ -127,8 +127,10 @@ export function useSmartFolderResourceActions(
           response.resource.parent_id !== data.parent_id
             ? response.resource.parent_id
             : '';
+        const store = useSidebarStore.getState();
+
         if (movedParentId) {
-          app.fire('move_resource', data.id, movedParentId);
+          store.moveLocal(data.id, movedParentId);
         }
         app.fire('update_resource', {
           ...response.resource,

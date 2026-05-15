@@ -274,7 +274,7 @@ export function useNodeActions(
 
         store.patch(nodeId, { name: payload.name });
         if (movedParentId) {
-          app.fire('move_resource', nodeId, movedParentId);
+          store.moveLocal(nodeId, movedParentId);
         }
         app.fire('update_resource', {
           ...response.resource,

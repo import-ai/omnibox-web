@@ -191,6 +191,51 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
       }
     },
 
+    moveLocal: (dragId: string, dropId: string) => {
+      const drag = get().nodes[dragId];
+      const drop = get().nodes[dropId];
+      if (!drag || !drop) return;
+
+      if (isDescendant(get().nodes, dragId, dropId)) return;
+
+      const oldParentId = drag.parentId;
+
+      set(s => {
+        if (oldParentId) {
+          const oldParent = s.nodes[oldParentId];
+          if (oldParent) {
+            oldParent.children = oldParent.children.filter(
+              cid => cid !== dragId
+            );
+            oldParent.hasChildren = oldParent.children.length > 0;
+          }
+        }
+
+        const newParent = s.nodes[dropId];
+        if (!newParent) return;
+
+        newParent.hasChildren = true;
+        newParent.children = [
+          dragId,
+          ...newParent.children.filter(cid => cid !== dragId),
+        ];
+
+        const draftDrag = s.nodes[dragId];
+        if (!draftDrag) return;
+        draftDrag.parentId = dropId;
+        draftDrag.spaceType = newParent.spaceType;
+
+        traverseDescendants(s.nodes, dragId, n => {
+          const ui = s.ui[n.id];
+          if (ui) ui.expanded = false;
+        });
+
+        traverseDescendants(s.nodes, dragId, n => {
+          n.spaceType = newParent.spaceType;
+        });
+      });
+    },
+
     restore: async (resourceOrId: string | Resource): Promise<string> => {
       const resource: Resource =
         typeof resourceOrId === 'string'

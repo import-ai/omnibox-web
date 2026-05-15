@@ -163,8 +163,10 @@ export default function Actions(props: IActionProps) {
           response.resource.parent_id !== resource.parent_id
             ? response.resource.parent_id
             : '';
+        const store = useSidebarStore.getState();
+
         if (movedParentId) {
-          app.fire('move_resource', resource.id, movedParentId);
+          store.moveLocal(resource.id, movedParentId);
         }
         app.fire('update_resource', {
           ...response.resource,

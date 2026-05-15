@@ -65,6 +65,7 @@ export interface SidebarActions {
   remove: (id: string, currentResourceId?: string) => RemoveResult;
   rename: (id: string, name: string) => Promise<void>;
   move: (dragId: string, dropId: string) => Promise<void>;
+  moveLocal: (dragId: string, dropId: string) => void;
   uploadFiles: (parentId: string, files: FileList) => Promise<string>;
 
   activate: (id: string | null) => void;
