@@ -1,6 +1,8 @@
 import useApp from '@/hooks/use-app';
 import { removeFromChatContext } from '@/lib/chat-bridge';
 import { http } from '@/lib/request';
+import { useSidebarStore } from '@/page/sidebar/store';
+import { getDescendantIds } from '@/page/sidebar/store/utils';
 
 interface DeleteResourceParams {
   id: string;
@@ -20,7 +22,8 @@ export async function deleteResource({
 }: DeleteResourceParams): Promise<void> {
   await http.delete(`/namespaces/${namespaceId}/resources/${id}`);
 
-  removeFromChatContext([id]);
+  const nodes = useSidebarStore.getState().nodes;
+  removeFromChatContext([id, ...getDescendantIds(nodes, id)]);
 
   // Trigger delete_resource event for sidebar update and toast notification
   app.fire('delete_resource', id);

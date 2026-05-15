@@ -23,6 +23,8 @@ export default function MoveTo(props: IProps) {
     onOpenChange,
     onFinished,
     showDisabledTargets,
+    disabledTargetIds,
+    disabledTargetTooltip,
   } = props;
 
   return (
@@ -39,6 +41,8 @@ export default function MoveTo(props: IProps) {
           namespaceId={namespaceId}
           onFinished={onFinished}
           showDisabledTargets={showDisabledTargets}
+          disabledTargetIds={disabledTargetIds}
+          disabledTargetTooltip={disabledTargetTooltip}
         />
       </DialogContent>
     </Dialog>

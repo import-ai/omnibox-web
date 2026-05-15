@@ -7,9 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import type { Resource } from '@/interface';
+import type { Resource, ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
-import { fetchRootResources } from '@/service/resource';
+import { fetchRootResources, searchResources } from '@/service/resource';
 
 import { ChooseWrapper } from './ChooseWrapper';
 import FormResource from './FormResource';
@@ -40,18 +40,17 @@ export function ChooseResource(props: IProps) {
     teamRootId: string;
     private: Array<Resource>;
     team: Array<Resource>;
+    search: Array<ResourceMeta>;
   }>({
     privateRootId: '',
     teamRootId: '',
     private: [],
     team: [],
+    search: [],
   });
-  const teamData = search
-    ? data.team.filter(item => item.name?.includes(search))
-    : data.team;
-  const privateData = search
-    ? data.private.filter(item => item.name?.includes(search))
-    : data.private;
+  const showSearchResults = search.trim().length > 0;
+  const teamData = showSearchResults ? [] : data.team;
+  const privateData = showSearchResults ? data.search : data.private;
   const handlePrivateClick = () => {
     onChange(data.privateRootId, 'resourceId');
     onSearch('');
@@ -83,12 +82,37 @@ export function ChooseResource(props: IProps) {
             }
           }
         });
-        onData({ private: items, team, teamRootId, privateRootId });
+        onData(current => ({
+          ...current,
+          private: items,
+          team,
+          teamRootId,
+          privateRootId,
+        }));
       })
       .finally(() => {
         onFetching(false);
       });
   }, [loading, namespaceId]);
+
+  useEffect(() => {
+    const keyword = search.trim();
+    if (loading || !namespaceId || !keyword) {
+      onData(current => ({ ...current, search: [] }));
+      return;
+    }
+
+    onFetching(true);
+    searchResources(namespaceId, {
+      name: keyword,
+    })
+      .then(resources => {
+        onData(current => ({ ...current, search: resources }));
+      })
+      .finally(() => {
+        onFetching(false);
+      });
+  }, [loading, namespaceId, search]);
 
   const privateRoot = data.privateRootId ? (
     <DropdownMenuItem

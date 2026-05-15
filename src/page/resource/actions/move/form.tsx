@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { LazyInput } from '@/components/input/lazy';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import type { Resource } from '@/interface';
+import type { Resource, ResourceMeta } from '@/interface';
 import each from '@/lib/each';
-import { http } from '@/lib/request';
+import { fetchRootResources, searchResources } from '@/service/resource';
 
 import FormResource from './resource';
 
@@ -15,6 +15,8 @@ export interface IFormProps {
   resourceIds: string[];
   namespaceId: string;
   showDisabledTargets?: boolean;
+  disabledTargetIds?: string[];
+  disabledTargetTooltip?: string;
   onFinished?: (
     resourceIds: string[],
     targetId: string,
@@ -23,14 +25,21 @@ export interface IFormProps {
 }
 
 export default function MoveToForm(props: IFormProps) {
-  const { resourceIds, namespaceId, showDisabledTargets, onFinished } = props;
+  const {
+    resourceIds,
+    namespaceId,
+    showDisabledTargets,
+    disabledTargetIds,
+    disabledTargetTooltip,
+    onFinished,
+  } = props;
   const { t } = useTranslation();
   const [editId, onEditId] = useState('');
   const [search, onSearch] = useState('');
   const [loading, onLoading] = useState(false);
   const [data, onData] = useState<{
     root: Array<Resource>;
-    resources: Array<Resource>;
+    resources: Array<Resource | ResourceMeta>;
   }>({
     root: [],
     resources: [],
@@ -39,8 +48,7 @@ export default function MoveToForm(props: IFormProps) {
   useEffect(() => {
     onLoading(true);
     if (!search) {
-      http
-        .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
+      fetchRootResources(namespaceId)
         .then(response => {
           const root: Array<Resource> = [];
           const resources: Array<Resource> = [];
@@ -74,11 +82,10 @@ export default function MoveToForm(props: IFormProps) {
       return;
     }
 
-    const excludeResourceId = showDisabledTargets ? '' : resourceIds.join(',');
-    http
-      .get(
-        `/namespaces/${namespaceId}/resources/search?exclude_resource_id=${excludeResourceId}&name=${encodeURIComponent(search)}`
-      )
+    searchResources(namespaceId, {
+      name: search,
+      excludeResourceIds: showDisabledTargets ? undefined : resourceIds,
+    })
       .then(response => {
         if (showDisabledTargets) {
           onData({
@@ -102,7 +109,9 @@ export default function MoveToForm(props: IFormProps) {
   }, [search, resourceIds, namespaceId, showDisabledTargets]);
 
   const disabledResourceIds = useMemo(() => {
-    const ids = new Set(resourceIds);
+    const ids = new Set(
+      showDisabledTargets ? (disabledTargetIds ?? resourceIds) : resourceIds
+    );
     if (!showDisabledTargets) {
       return ids;
     }
@@ -112,7 +121,7 @@ export default function MoveToForm(props: IFormProps) {
       }
     });
     return ids;
-  }, [data.resources, resourceIds, showDisabledTargets]);
+  }, [data.resources, disabledTargetIds, resourceIds, showDisabledTargets]);
 
   return (
     <div>
@@ -150,6 +159,9 @@ export default function MoveToForm(props: IFormProps) {
                 resourceIds={resourceIds}
                 namespaceId={namespaceId}
                 disabled={disabledResourceIds.has(item.id)}
+                disabledTooltip={
+                  showDisabledTargets ? disabledTargetTooltip : undefined
+                }
               />
             ))}
           </>
@@ -174,6 +186,9 @@ export default function MoveToForm(props: IFormProps) {
                 resourceIds={resourceIds}
                 namespaceId={namespaceId}
                 disabled={disabledResourceIds.has(item.id)}
+                disabledTooltip={
+                  showDisabledTargets ? disabledTargetTooltip : undefined
+                }
               />
             ))}
           </>

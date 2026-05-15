@@ -1,4 +1,4 @@
-import { Resource, ResourceType } from '@/interface';
+import { Resource, ResourceMeta, ResourceType } from '@/interface';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 
@@ -42,6 +42,22 @@ export function fetchChildren(namespaceId: string, id: string) {
 
 export function fetchRootResources(namespaceId: string) {
   return http.get<RootResourcesResponse>(`/namespaces/${namespaceId}/root`);
+}
+
+export function searchResources(
+  namespaceId: string,
+  options: { name?: string; excludeResourceIds?: string[] }
+) {
+  const params = new URLSearchParams();
+  if (options.name) {
+    params.set('name', options.name);
+  }
+  if (options.excludeResourceIds?.length) {
+    params.set('exclude_resource_id', options.excludeResourceIds.join(','));
+  }
+  return http.get<ResourceMeta[]>(
+    `/namespaces/${namespaceId}/resources/search?${params.toString()}`
+  );
 }
 
 export function createResource(namespaceId: string, payload: CreatePayload) {

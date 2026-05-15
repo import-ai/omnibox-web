@@ -48,7 +48,9 @@ export function BodyForSidebar(props: IProps) {
         .uploadFiles(currentUploadTargetId, files);
       useSidebarStore.getState().activate(id);
       navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
-      toast.success(t('upload.success', { count: files.length }));
+      toast.success(t('upload.success', { count: files.length }), {
+        position: 'bottom-right',
+      });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : err || t('upload.failed');

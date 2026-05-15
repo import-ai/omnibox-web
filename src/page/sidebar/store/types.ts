@@ -114,7 +114,7 @@ export interface SidebarActions {
     folderName: string,
     parentId: string
   ) => Promise<BatchOperationResult>;
-  addToChat: (ids: string[]) => void;
+  addToChat: (ids: string[]) => string[];
 }
 
 export type SidebarStore = SidebarState & SidebarActions;

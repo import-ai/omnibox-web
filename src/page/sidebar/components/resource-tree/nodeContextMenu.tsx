@@ -79,8 +79,13 @@ export default function NodeContextMenu({
 
     if (key === 'batch_add_to_chat') {
       const ids = Object.keys(store.selectedIds);
-      store.addToChat(ids);
-      toast.success(t('batch.add_to_chat_success', { count: ids.length }));
+      const addedIds = store.addToChat(ids);
+      toast.success(
+        t('batch.add_to_chat_success', { count: addedIds.length }),
+        {
+          position: 'bottom-right',
+        }
+      );
       if (!location.pathname.includes('/chat')) {
         navigate(`/${namespaceId}/chat`);
       }

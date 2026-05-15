@@ -930,7 +930,7 @@
     "add_to_chat_tooltip": "Add selected resources to chat",
     "delete_title": "Move {{count}} resources to trash?",
     "delete_description": "You can restore them from trash. They will be automatically deleted after {{days}} days.",
-    "delete": "Move to trash",
+    "delete": "Delete",
     "delete_success": "Successfully moved {{count}} resources to trash",
     "delete_failed": "Delete failed",
     "delete_partial_error": "Successfully moved {{success}} resources to trash. {{failed}} resources were not authorized",

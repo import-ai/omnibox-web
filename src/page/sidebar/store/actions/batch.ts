@@ -20,6 +20,7 @@ import {
   getSelectableDescendantIds,
   getTopLevelSelectedIds,
   isDescendant,
+  isNodeFullySelected,
   traverseDescendants,
 } from '../utils';
 
@@ -40,7 +41,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
 
         for (const targetId of targetIds) {
           const expandedIds = getSelectableDescendantIds(s.nodes, targetId);
-          const selected = Boolean(s.selectedIds[targetId]);
+          const selected = isNodeFullySelected(
+            s.nodes,
+            s.selectedIds,
+            targetId
+          );
 
           for (const selectedId of expandedIds) {
             if (rangeStartId || !selected) {
@@ -144,8 +149,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         }));
       }
 
+      const chatContextRemovedIds = result.success.flatMap(id => [
+        id,
+        ...getDescendantIds(get().nodes, id),
+      ]);
       set(s => {
-        removeFromChatContext(result.success);
         for (const id of result.success) {
           const node = s.nodes[id];
           const parentId = node?.parentId ?? null;
@@ -177,6 +185,7 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         }
         finishBatchSelection(s);
       });
+      removeFromChatContext(chatContextRemovedIds);
 
       return result;
     },
@@ -432,7 +441,8 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
 
     addToChat: (ids: string[]) => {
       const nodes = get().nodes;
-      for (const id of ids) {
+      const requestedIds = getTopLevelSelectedIds(nodes, ids);
+      for (const id of requestedIds) {
         const node = nodes[id];
         if (!node) continue;
         addToChatContext(
@@ -440,6 +450,7 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           node.resourceType === 'folder' ? 'folder' : 'resource'
         );
       }
+      return requestedIds;
     },
   };
 }

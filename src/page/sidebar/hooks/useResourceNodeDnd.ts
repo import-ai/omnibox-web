@@ -1,4 +1,10 @@
-import { type RefObject, useEffect, useRef } from 'react';
+import {
+  type RefObject,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { getEmptyImage, NativeTypes } from 'react-dnd-html5-backend';
 
@@ -43,8 +49,14 @@ export function useResourceNodeDnd(
   const ref = useRef<HTMLDivElement>(null);
   const nodes = useSidebarStore(state => state.nodes);
   const selectedMap = useSidebarStore(state => state.selectedIds);
-  const batchIds = getTopLevelSelectedIds(nodes, selectedIds);
-  const batchCount = calculateSelectedCount(nodes, selectedMap);
+  const batchIds = useMemo(
+    () => getTopLevelSelectedIds(nodes, selectedIds),
+    [nodes, selectedIds]
+  );
+  const batchCount = useMemo(
+    () => calculateSelectedCount(nodes, selectedMap),
+    [nodes, selectedMap]
+  );
   const canDropItem = (item: DndItem) => {
     if (item.id) {
       return item.id !== nodeId && !isDescendant(nodes, item.id, nodeId);
@@ -63,10 +75,9 @@ export function useResourceNodeDnd(
       namespaceId,
       onNodeDrop,
     });
-
   const [dragStyle, drag, preview] = useDrag(
     {
-      type: selectionMode && isSelected ? 'batch' : 'card',
+      type: 'card',
       item: () => {
         if (!selectionMode || !isSelected) {
           return node;
@@ -87,7 +98,7 @@ export function useResourceNodeDnd(
   );
 
   const [{ isOver }, drop] = useDrop<DndItem, void, { isOver: boolean }>({
-    accept: ['card', 'batch', NativeTypes.FILE],
+    accept: ['card', NativeTypes.FILE],
     canDrop: item => canDropItem(item),
     collect: monitor => ({
       isOver: monitor.isOver({ shallow: true }) && monitor.canDrop(),
@@ -103,11 +114,14 @@ export function useResourceNodeDnd(
     },
   });
 
+  useLayoutEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: false });
+  }, [preview]);
+
   useEffect(() => {
     drag(ref);
     drop(ref);
-    preview(getEmptyImage(), { captureDraggingState: true });
-  }, [drag, drop, preview]);
+  }, [drag, drop]);
 
   useEffect(() => {
     if (!isOver && isFileDragOver) {

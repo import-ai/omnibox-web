@@ -5,10 +5,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
-import type { Resource, SpaceType } from '@/interface';
+import type { ResourceMeta, SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
 
-interface IResource extends Resource {
+interface IResource extends ResourceMeta {
   spaceType?: SpaceType;
 }
 
@@ -20,6 +20,7 @@ interface IProps {
   onEditId: (editId: string) => void;
   onSearch: (val: string) => void;
   disabled?: boolean;
+  disabledTooltip?: string;
   onFinished?: (
     resourceIds: string[],
     targetId: string,
@@ -35,6 +36,7 @@ export default function Resource(props: IProps) {
     resourceIds,
     onSearch,
     disabled,
+    disabledTooltip,
     onFinished,
   } = props;
   const app = useApp();
@@ -82,7 +84,9 @@ export default function Resource(props: IProps) {
       <TooltipTrigger asChild>
         <div>{content}</div>
       </TooltipTrigger>
-      <TooltipContent>{t('batch.operating_resource')}</TooltipContent>
+      <TooltipContent>
+        {disabledTooltip || t('batch.operating_resource')}
+      </TooltipContent>
     </Tooltip>
   );
 }

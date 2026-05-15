@@ -54,22 +54,24 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
       app.fire('trash_updated');
       if (result.failed.length > 0) {
         if (result.success.length === 0) {
-          toast.error(t('batch.all_forbidden'));
+          toast.error(t('batch.all_forbidden'), { position: 'bottom-right' });
         } else {
           toast.success(
             t('batch.delete_partial_error', {
               success: result.success.length,
               failed: result.failed.length,
-            })
+            }),
+            { position: 'bottom-right' }
           );
         }
       } else {
         toast.success(
-          t('batch.delete_success', { count: result.success.length })
+          t('batch.delete_success', { count: result.success.length }),
+          { position: 'bottom-right' }
         );
       }
     } catch {
-      toast.error(t('batch.delete_failed'));
+      toast.error(t('batch.delete_failed'), { position: 'bottom-right' });
     } finally {
       setIsProcessing(false);
       closeDeleteDialog();
@@ -84,22 +86,24 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         .batchMove(getSelectedIds(), targetId);
       if (result.failed.length > 0) {
         if (result.success.length === 0) {
-          toast.error(t('batch.all_forbidden'));
+          toast.error(t('batch.all_forbidden'), { position: 'bottom-right' });
         } else {
           toast.success(
             t('batch.move_partial_error', {
               success: result.success.length,
               failed: result.failed.length,
-            })
+            }),
+            { position: 'bottom-right' }
           );
         }
       } else {
         toast.success(
-          t('batch.move_success', { count: result.success.length })
+          t('batch.move_success', { count: result.success.length }),
+          { position: 'bottom-right' }
         );
       }
     } catch {
-      toast.error(t('batch.move_failed'));
+      toast.error(t('batch.move_failed'), { position: 'bottom-right' });
     } finally {
       setIsProcessing(false);
       closeMoveDialog();
@@ -114,19 +118,21 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
 
       if (result.failed.length > 0) {
         if (result.success.length === 0) {
-          toast.error(t('batch.all_forbidden'));
+          toast.error(t('batch.all_forbidden'), { position: 'bottom-right' });
           return false;
         } else {
           toast.success(
             t('batch.create_partial_success', {
               success: result.success.length,
               fail: result.failed.length,
-            })
+            }),
+            { position: 'bottom-right' }
           );
         }
       } else {
         toast.success(
-          t('batch.create_success', { count: result.success.length })
+          t('batch.create_success', { count: result.success.length }),
+          { position: 'bottom-right' }
         );
       }
 
@@ -139,10 +145,12 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
       return true;
     } catch (error: any) {
       if (error?.response?.data?.code === 'resource_name_conflict') {
-        toast.error(t('batch.create_name_conflict'));
+        toast.error(t('batch.create_name_conflict'), {
+          position: 'bottom-right',
+        });
         return false;
       }
-      toast.error(t('batch.create_failed'));
+      toast.error(t('batch.create_failed'), { position: 'bottom-right' });
       return false;
     } finally {
       setIsProcessing(false);
@@ -151,8 +159,10 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
 
   const addSelectedToChat = () => {
     const ids = getSelectedIds();
-    useSidebarStore.getState().addToChat(ids);
-    toast.success(t('batch.add_to_chat_success', { count: ids.length }));
+    const addedIds = useSidebarStore.getState().addToChat(ids);
+    toast.success(t('batch.add_to_chat_success', { count: addedIds.length }), {
+      position: 'bottom-right',
+    });
     if (!location.pathname.includes('/chat')) {
       navigate(`/${namespaceId}/chat`);
     }
@@ -168,8 +178,17 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (batchDragging) return;
-      if (event.key === 'Escape' && selectionMode) {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      if (batchDragging) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
+      if (selectionMode) {
         deselectAll();
       }
     };

@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import MoveTo from '@/page/resource/actions/move';
-import { useNode } from '@/page/sidebar/store';
+import {
+  getDescendantIds,
+  getTopLevelSelectedIds,
+  useNode,
+  useSidebarStore,
+} from '@/page/sidebar/store';
 
 import { MoveConfirmDialog } from './moveConfirmDialog';
 
@@ -30,6 +35,18 @@ export default function BatchMoveDialog({
   const [targetName, setTargetName] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const targetNode = useNode(targetId || '');
+  const nodes = useSidebarStore(state => state.nodes);
+  const disabledTargetIds = useMemo(() => {
+    const ids = new Set<string>();
+    const sourceIds = getTopLevelSelectedIds(nodes, selectedIds);
+    for (const sourceId of sourceIds) {
+      ids.add(sourceId);
+      for (const descendantId of getDescendantIds(nodes, sourceId)) {
+        ids.add(descendantId);
+      }
+    }
+    return Array.from(ids);
+  }, [nodes, selectedIds]);
 
   const handleCancel = () => {
     setTargetId(null);
@@ -54,6 +71,8 @@ export default function BatchMoveDialog({
           resourceIds={selectedIds}
           namespaceId={namespaceId}
           showDisabledTargets
+          disabledTargetIds={disabledTargetIds}
+          disabledTargetTooltip={t('batch.operating_resource')}
           onOpenChange={handleCancel}
           onFinished={(_, nextTargetId, nextTargetName) => {
             setTargetId(nextTargetId);

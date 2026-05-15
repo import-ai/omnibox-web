@@ -231,12 +231,12 @@ export function calculateSelectedCount(
     const node = nodes[id];
     if (!node) return 0;
 
-    if (selectedIds[id] && isNodeFullySelected(nodes, selectedIds, id)) {
-      return 1;
-    }
-
     if (node.children.length === 0) {
       return selectedIds[id] ? 1 : 0;
+    }
+
+    if (isNodeFullySelected(nodes, selectedIds, id)) {
+      return 1;
     }
 
     return node.children.reduce((count, childId) => {
@@ -254,8 +254,18 @@ export function isNodeFullySelected(
   selectedIds: Record<string, boolean>,
   id: string
 ): boolean {
-  const ids = getSelectableDescendantIds(nodes, id);
-  return ids.length > 0 && ids.every(itemId => Boolean(selectedIds[itemId]));
+  const node = nodes[id];
+  if (!node) {
+    return false;
+  }
+
+  if (node.children.length === 0) {
+    return Boolean(selectedIds[id]);
+  }
+
+  return node.children.every(childId =>
+    isNodeFullySelected(nodes, selectedIds, childId)
+  );
 }
 
 export function isNodeIndeterminate(
@@ -263,11 +273,23 @@ export function isNodeIndeterminate(
   selectedIds: Record<string, boolean>,
   id: string
 ): boolean {
-  const ids = getSelectableDescendantIds(nodes, id);
-  const selectedCount = ids.filter(itemId =>
-    Boolean(selectedIds[itemId])
-  ).length;
-  return selectedCount > 0 && selectedCount < ids.length;
+  const node = nodes[id];
+  if (!node || node.children.length === 0) {
+    return false;
+  }
+
+  if (isNodeFullySelected(nodes, selectedIds, id)) {
+    return false;
+  }
+
+  return (
+    Boolean(selectedIds[id]) ||
+    node.children.some(
+      childId =>
+        isNodeFullySelected(nodes, selectedIds, childId) ||
+        isNodeIndeterminate(nodes, selectedIds, childId)
+    )
+  );
 }
 
 export function isNodeDimmedBySelection(

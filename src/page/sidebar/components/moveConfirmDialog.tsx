@@ -33,7 +33,7 @@ export function MoveConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[480px] max-w-[90%]">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="leading-1">
             {t('batch.move_confirm_title', {
               count,
               target: targetName,

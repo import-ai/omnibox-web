@@ -66,7 +66,9 @@ export function useDndHandlers({
       .then(id => {
         useSidebarStore.getState().activate(id);
         navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
-        toast.success(t('upload.success', { count: fileList.files.length }));
+        toast.success(t('upload.success', { count: fileList.files.length }), {
+          position: 'bottom-right',
+        });
         return id;
       })
       .catch(err => {
@@ -78,6 +80,7 @@ export function useDndHandlers({
 
   const handleNodeMove = (dragId: string) => {
     if (dragId === targetId) return;
+    if (useSidebarStore.getState().nodes[dragId]?.parentId === targetId) return;
 
     if (onNodeDrop) {
       onNodeDrop(dragId, targetId);
@@ -91,33 +94,34 @@ export function useDndHandlers({
     }
   };
 
-  const handleBatchMove = (ids: string[]) => {
-    const movableIds = ids.filter(id => id !== targetId);
-    if (movableIds.length === 0) return;
+  const handleBatchMove = (ids: string[], count: number) => {
+    const store = useSidebarStore.getState();
+    if (ids.includes(targetId)) return;
+    if (ids.every(id => store.nodes[id]?.parentId === targetId)) return;
 
-    return useSidebarStore
-      .getState()
-      .batchMove(movableIds, targetId)
+    return store
+      .batchMove(ids, targetId)
       .then(result => {
         if (result.failed.length > 0) {
           if (result.success.length === 0) {
-            toast.error(t('batch.all_forbidden'));
+            toast.error(t('batch.all_forbidden'), { position: 'bottom-right' });
           } else {
             toast.success(
               t('batch.move_partial_error', {
                 success: result.success.length,
                 failed: result.failed.length,
-              })
+              }),
+              { position: 'bottom-right' }
             );
           }
         } else {
-          toast.success(
-            t('batch.move_success', { count: result.success.length })
-          );
+          toast.success(t('batch.move_success', { count }), {
+            position: 'bottom-right',
+          });
         }
       })
       .catch(() => {
-        toast.error(t('batch.move_failed'));
+        toast.error(t('batch.move_failed'), { position: 'bottom-right' });
       });
   };
 
@@ -128,12 +132,17 @@ export function useDndHandlers({
     if (monitor.didDrop()) return;
     const itemType = monitor.getItemType();
 
+    if (item.ids?.includes(targetId)) {
+      setFileDragTarget(null);
+      return;
+    }
+
     if (itemType === NativeTypes.FILE && item.files) {
       handleFileUpload(item.files);
-    } else if (itemType === 'card' && item.id) {
+    } else if (item.ids) {
+      handleBatchMove(item.ids, item.count ?? item.ids.length);
+    } else if (item.id) {
       handleNodeMove(item.id);
-    } else if (itemType === 'batch' && item.ids) {
-      handleBatchMove(item.ids);
     }
 
     setFileDragTarget(null);
@@ -151,10 +160,11 @@ export function useDndHandlers({
 
     if (itemType === NativeTypes.FILE) {
       if (isOverShallow) setFileDragTarget(targetId);
-    } else if (itemType === 'card' || itemType === 'batch') {
+    } else if (itemType === 'card') {
       setFileDragTarget(null);
       if (!isOverShallow) return;
-      if (item.id && item.id === targetId) return;
+      if (item.ids?.includes(targetId)) return;
+      if (item.id === targetId) return;
     }
   };
 

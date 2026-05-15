@@ -8,11 +8,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { Resource } from '@/interface';
+import type { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 
 interface IProps {
-  data: Resource;
+  data: ResourceMeta;
   resourceId: string;
   disabledIds?: string[];
   disabledTooltip?: string;
@@ -31,10 +31,6 @@ export default function FormResource({
   const { t } = useTranslation();
   const disabled = disabledIds.includes(data.id) ?? false;
   const resourceName = data.name || t('untitled');
-  let name = resourceName;
-  if ((!data.parent_id || data.parent_id === '0') && data.space_type) {
-    name = data.space_type === 'private' ? t('private') : t('teamspace');
-  }
   const handleClick = () => {
     onChange(data.id, 'resourceId');
     onSearch('');
@@ -61,7 +57,7 @@ export default function FormResource({
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <ResourceTypeIcon resource={data} />
         <span className="min-w-0 flex-1 truncate text-neutral-900 dark:text-white">
-          {name}
+          {resourceName}
         </span>
       </div>
       {data.id === resourceId && (

@@ -33,6 +33,7 @@ export {
   detectSpaceType,
   findNextActiveId,
   getDescendantIds,
+  getTopLevelSelectedIds,
   isDescendant,
   isNodeDimmedBySelection,
   isNodeFullySelected,
@@ -115,10 +116,6 @@ export function useSelectionState() {
 
 export function useSelectionMode(): boolean {
   return useSidebarStore(state => state.selectionMode);
-}
-
-export function useIsFailed(id: string): boolean {
-  return useSidebarStore(state => Boolean(state.failedIds[id]));
 }
 
 export function useNodeIsIndeterminate(id: string): boolean {

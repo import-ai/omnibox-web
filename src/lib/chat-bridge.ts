@@ -21,7 +21,30 @@ export function removeFromChatContext(resourceIds: string[]) {
 
   const removedIds = new Set(resourceIds);
   const store = useChatStore.getState();
-  for (const id of removedIds) {
+  const contextResourceIds = new Set(
+    store.selectedResources
+      .filter(item => {
+        let currentId = item.resource.id;
+        const visitedIds = new Set<string>();
+        while (currentId) {
+          if (visitedIds.has(currentId)) {
+            return false;
+          }
+          visitedIds.add(currentId);
+          if (removedIds.has(currentId)) {
+            return true;
+          }
+          currentId =
+            store.selectedResources.find(
+              context => context.resource.id === currentId
+            )?.resource.parent_id ?? null;
+        }
+        return false;
+      })
+      .map(item => item.resource.id)
+  );
+
+  for (const id of contextResourceIds) {
     store.removeContext(id);
   }
 }

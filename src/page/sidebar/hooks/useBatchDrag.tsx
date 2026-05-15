@@ -1,12 +1,12 @@
-import { useEffect, useMemo } from 'react';
-import { useDrag, useDragLayer } from 'react-dnd';
+import { useEffect } from 'react';
+import { useDragLayer } from 'react-dnd';
 
 import ResourceTypeIcon from '@/components/resource-type-icon';
 
 import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
 
-export interface BatchDragItem {
+interface BatchDragItem {
   type: 'batch';
   ids: string[];
   count: number;
@@ -18,41 +18,6 @@ interface CardDragItem extends TreeNode {
 }
 
 type SidebarDragItem = BatchDragItem | CardDragItem;
-
-interface UseBatchDragOptions {
-  selectionMode: boolean;
-  isSelected: boolean;
-}
-
-export function useBatchDrag({
-  selectionMode,
-  isSelected,
-}: UseBatchDragOptions) {
-  const selectedIds = useSidebarStore(state => state.selectedIds);
-  const canDrag = selectionMode && isSelected;
-  const dragItem = useMemo<BatchDragItem>(
-    () => ({
-      type: 'batch',
-      ids: Object.keys(selectedIds),
-      count: Object.keys(selectedIds).length,
-    }),
-    [selectedIds]
-  );
-
-  const [{ isDragging }, drag] = useDrag(
-    {
-      type: 'batch',
-      item: () => (canDrag ? dragItem : null),
-      canDrag: () => canDrag,
-      collect: monitor => ({
-        isDragging: monitor.isDragging(),
-      }),
-    },
-    [canDrag, dragItem]
-  );
-
-  return { isDragging, drag };
-}
 
 export function SidebarDragLayer() {
   const { isDragging, currentOffset, item } = useDragLayer(monitor => ({
@@ -79,17 +44,19 @@ export function SidebarDragLayer() {
         }}
         className="relative inline-flex min-w-40 max-w-72 items-center gap-2 rounded-md px-3 h-8 shadow-md bg-[rgba(226,226,230,0.5)]"
       >
-        <ResourceTypeIcon
-          expand={false}
-          resource={{
-            id: previewNode.id,
-            name: previewNode.name,
-            parentId: previewNode.parentId,
-            resourceType: previewNode.resourceType,
-            hasChildren: previewNode.hasChildren,
-            attrs: previewNode.attrs,
-          }}
-        />
+        <span className="flex size-4 shrink-0 items-center justify-center overflow-hidden [&_svg]:size-4 [&_img]:size-4">
+          <ResourceTypeIcon
+            expand={false}
+            resource={{
+              id: previewNode.id,
+              name: previewNode.name,
+              parentId: previewNode.parentId,
+              resourceType: previewNode.resourceType,
+              hasChildren: previewNode.hasChildren,
+              attrs: previewNode.attrs,
+            }}
+          />
+        </span>
         <span className="min-w-0 flex-1 truncate text-sm">
           {previewNode.name}
         </span>

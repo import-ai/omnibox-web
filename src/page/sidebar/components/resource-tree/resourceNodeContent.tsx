@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -26,7 +26,6 @@ import { cn } from '@/lib/utils';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/useResourceNodeDnd';
 import type { TreeNode } from '@/page/sidebar/store';
 import {
-  useIsFailed,
   useIsSelected,
   useNodeIsDimmedBySelection,
   useNodeIsFullySelected,
@@ -68,7 +67,6 @@ export function ResourceNodeContent({
   const isFullySelected = useNodeIsFullySelected(nodeId);
   const isIndeterminate = useNodeIsIndeterminate(nodeId);
   const isDimmedBySelection = useNodeIsDimmedBySelection(nodeId);
-  const isFailed = useIsFailed(nodeId);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const clickTimeoutRef = useRef<number | null>(null);
@@ -79,6 +77,9 @@ export function ResourceNodeContent({
 
   const isActive = nodeId === activeId;
   const isEditing = nodeId === renamingId;
+  const isSelectionHighlighted = isSelected || isFullySelected;
+  const isExpanded = nodeUI?.expanded === true;
+  const selectedIdList = useMemo(() => Object.keys(selectedIds), [selectedIds]);
 
   const { ref, dragStyle, isOver, isFileDragOver } = useResourceNodeDnd(
     nodeId,
@@ -88,7 +89,7 @@ export function ResourceNodeContent({
       namespaceId,
       selectionMode,
       isSelected,
-      selectedIds: Object.keys(selectedIds),
+      selectedIds: selectedIdList,
     }
   );
 
@@ -116,7 +117,7 @@ export function ResourceNodeContent({
   const handleExpand = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-    if (nodeUI?.expanded) {
+    if (isExpanded) {
       useSidebarStore.getState().collapse(nodeId);
     } else {
       useSidebarStore.getState().expand(nodeId);
@@ -130,7 +131,7 @@ export function ResourceNodeContent({
       } else {
         handleNavigate(nodeId);
         useSidebarStore.getState().activate(nodeId);
-        if (!nodeUI?.expanded) {
+        if (!isExpanded) {
           useSidebarStore.getState().expand(nodeId);
         }
       }
@@ -258,10 +259,10 @@ export function ResourceNodeContent({
   return (
     <SidebarMenuItem>
       <Collapsible
-        open={nodeUI?.expanded}
+        open={isExpanded}
         className={cn('group/collapsible', {
           '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
-            nodeUI?.expanded && !nodeUI?.loading && node.hasChildren,
+            isExpanded && !nodeUI?.loading && node.hasChildren,
         })}
       >
         <CollapsibleTrigger asChild>
@@ -275,9 +276,8 @@ export function ResourceNodeContent({
             <div
               className={cn(
                 'group/sidebar-item my-px rounded-md hover:bg-sidebar-accent',
-                isSelected &&
-                  'bg-sidebar-accent text-sidebar-accent-foreground',
-                isFailed && 'ring-1 ring-destructive/60'
+                isSelectionHighlighted &&
+                  'bg-sidebar-accent text-sidebar-accent-foreground'
               )}
             >
               <Tooltip delayDuration={0}>
@@ -297,7 +297,7 @@ export function ResourceNodeContent({
                         'pl-1': node.hasChildren,
                         'pl-7': !node.hasChildren,
                         'bg-sidebar-accent text-sidebar-accent-foreground':
-                          isFileDragOver || isOver || isSelected,
+                          isFileDragOver || isOver || isSelectionHighlighted,
                       })}
                     >
                       {selectionMode && (
@@ -336,7 +336,7 @@ export function ResourceNodeContent({
                           </Button>
                         ))}
                       <ResourceTypeIcon
-                        expand={nodeUI?.expanded}
+                        expand={isExpanded}
                         resource={{
                           id: node.id,
                           name: node.name,
