@@ -15,6 +15,8 @@ interface IProps {
 
 export default function Attributes(props: IProps) {
   const { resource, namespaceId, onResource, readOnly } = props;
+  const shouldRenderResourceTasks =
+    Boolean(onResource) && resource.resource_type !== 'smart_folder';
 
   if (
     resource.resource_type === 'link' &&
@@ -34,7 +36,7 @@ export default function Attributes(props: IProps) {
         {resource.created_at && (
           <CreatedTimeAttribute createdAt={resource.created_at} />
         )}
-        {onResource && (
+        {shouldRenderResourceTasks && onResource && (
           <ResourceTasks
             resource={resource}
             namespaceId={namespaceId}
@@ -86,7 +88,7 @@ export default function Attributes(props: IProps) {
         {resource.created_at && (
           <CreatedTimeAttribute createdAt={resource.created_at} />
         )}
-        {onResource && (
+        {shouldRenderResourceTasks && onResource && (
           <ResourceTasks
             resource={resource}
             namespaceId={namespaceId}
@@ -112,7 +114,7 @@ export default function Attributes(props: IProps) {
       {resource.created_at && (
         <CreatedTimeAttribute createdAt={resource.created_at} />
       )}
-      {onResource && (
+      {shouldRenderResourceTasks && onResource && (
         <ResourceTasks
           resource={resource}
           namespaceId={namespaceId}
