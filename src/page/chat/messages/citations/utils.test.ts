@@ -118,9 +118,9 @@ describe('citation id helpers', () => {
 });
 
 describe('citation marker replacement', () => {
-  it('replaces linked citation markers and preserves leading whitespace', () => {
+  it('leaves linked citation markers for id-based rendering', () => {
     expect(replaceCiteTag('Answer. [[1]](C1-x) next', true, 1)).toBe(
-      'Answer. [[1]](#cite-1) next'
+      'Answer. [[1]](C1-x) next'
     );
   });
 
@@ -130,9 +130,15 @@ describe('citation marker replacement', () => {
     );
   });
 
-  it('removes out-of-range linked markers without removing preceding whitespace', () => {
+  it('keeps out-of-range linked markers for id-based rendering', () => {
     expect(replaceCiteTag('Answer. [[2]](C2-x) next', true, 1)).toBe(
-      'Answer.  next'
+      'Answer. [[2]](C2-x) next'
+    );
+  });
+
+  it('converts only legacy raw markers in mixed citation content', () => {
+    expect(replaceCiteTag('Old [[1]] and new [[2]](C2-x)', true, 2)).toBe(
+      'Old [[1]](#cite-1) and new [[2]](C2-x)'
     );
   });
 });
@@ -177,6 +183,12 @@ describe('copyPreprocess', () => {
       snippet: 'Snippet',
       link: 'resource-id',
     },
+    {
+      id: 'C2-web-title',
+      title: 'Web',
+      snippet: 'Snippet',
+      link: 'https://example.com',
+    },
   ];
 
   beforeEach(() => {
@@ -190,15 +202,15 @@ describe('copyPreprocess', () => {
     });
   });
 
-  it('consumes linked markers while copying and preserves leading whitespace', () => {
-    expect(copyPreprocess('Answer. [[1]](C1-x) next', citations)).toBe(
-      'Answer. [^1][1] next\n\n[1]: https://omnibox.test/namespace-id/resource-id "Resource"\n'
+  it('resolves linked markers by citation id while copying', () => {
+    expect(copyPreprocess('Answer. [[1]](C2-web-title) next', citations)).toBe(
+      'Answer. [^2][2] next\n\n[1]: https://omnibox.test/namespace-id/resource-id "Resource"\n[2]: https://example.com "Web"\n'
     );
   });
 
   it('keeps legacy marker copy behavior', () => {
     expect(copyPreprocess('Answer. [[1]] next', citations)).toBe(
-      'Answer. [^1][1] next\n\n[1]: https://omnibox.test/namespace-id/resource-id "Resource"\n'
+      'Answer. [^1][1] next\n\n[1]: https://omnibox.test/namespace-id/resource-id "Resource"\n[2]: https://example.com "Web"\n'
     );
   });
 });

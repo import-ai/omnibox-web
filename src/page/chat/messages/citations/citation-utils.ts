@@ -1,6 +1,7 @@
 import type { Citation } from '@/page/chat/core/types/chat-response';
 
-const citePattern = /\[\[(\d+)]](?:\([^)\s]+\))?/g;
+const rawCitePattern = /\[\[(\d+)]](?!\()/g;
+const citePattern = /\[\[(\d+)]](?:\(([^)\s]+)\))?/g;
 const safeUrlProtocol = /^(https?|ircs?|mailto|xmpp)$/i;
 const citationIdPattern = /^C\d+(?:-|$)/;
 
@@ -32,7 +33,7 @@ export function replaceCiteTag(
   removeGeneratedCite: boolean,
   citesCount: number
 ): string {
-  return input.replace(citePattern, (_, i) => {
+  return input.replace(rawCitePattern, (_, i) => {
     const id = Number(i) - 1;
     if ((id >= 0 && id < citesCount) || !removeGeneratedCite) {
       return `[[${i}]](#cite-${i})`;
@@ -62,10 +63,12 @@ export function copyPreprocess(content: string, citations: Citation[]): string {
     content = content + '\n\n' + citationsFooter;
   }
 
-  return content.replace(citePattern, (_, index) => {
-    const citationIndex = Number(index) - 1;
+  return content.replace(citePattern, (_, index, citationId) => {
+    const citationIndex =
+      findCitationById(citations, citationId)?.index ?? Number(index) - 1;
     if (citationIndex >= 0 && citationIndex < citations.length) {
-      return `[^${index}][${index}]`;
+      const footnoteIndex = citationIndex + 1;
+      return `[^${footnoteIndex}][${footnoteIndex}]`;
     }
     return '';
   });
