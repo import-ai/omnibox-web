@@ -79,7 +79,7 @@ export interface SidebarActions {
   ) => Promise<void>;
   patch: (
     id: string,
-    updates: Partial<Pick<TreeNode, 'name' | 'content'>>
+    updates: Partial<Pick<TreeNode, 'name' | 'content' | 'hasChildren'>>
   ) => void;
   refreshChildren: (parentId: string, resources: Resource[]) => void;
   restore: (resourceOrId: Resource | string) => Promise<string>;
