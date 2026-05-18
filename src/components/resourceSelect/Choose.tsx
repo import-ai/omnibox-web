@@ -147,7 +147,7 @@ export function ChooseResource(props: IProps) {
         <LazyInput
           value={search}
           onChange={onSearch}
-          placeholder={t('search_placeholder')}
+          placeholder={t('search.title')}
           className="border-none pl-8 shadow-none outline-none"
         />
       </div>
