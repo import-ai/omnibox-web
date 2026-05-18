@@ -244,7 +244,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
             >
               {conditions.map((condition, index) => (
                 <Fragment key={index}>
-                  {index > 0 && <div className="my-5 h-px bg-slate-100" />}
+                  {index > 0 && <div className="my-5 h-px bg-muted" />}
                   <SmartFolderConditionRow
                     index={index}
                     condition={condition}
