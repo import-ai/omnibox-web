@@ -6,6 +6,7 @@ import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
 import { useSidebarStore } from '@/page/sidebar/store';
+import { fetchChildren, fetchResource } from '@/service/resource';
 
 function extractResourceId(
   pathname: string,
@@ -13,6 +14,32 @@ function extractResourceId(
 ): string | undefined {
   const match = pathname.match(new RegExp(`^/${namespaceId}/([^/]+)`));
   return match?.[1];
+}
+
+async function resolveResourceList(
+  namespaceId: string,
+  resourceIdOrParentId: string,
+  resource?: Resource | Resource[]
+): Promise<Resource[]> {
+  if (Array.isArray(resource)) {
+    return resource;
+  }
+  if (resource) {
+    return [resource];
+  }
+  if (!resourceIdOrParentId) {
+    return [];
+  }
+  return [await fetchResource(namespaceId, resourceIdOrParentId)];
+}
+
+function scrollToResource(resourceId: string) {
+  requestAnimationFrame(() => {
+    const element = document.querySelector(
+      `[data-resource-id="${resourceId}"]`
+    );
+    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 }
 
 /**
@@ -32,31 +59,61 @@ export function useSidebarEvents(namespaceId: string) {
 
   useEffect(() => {
     const hooks: Array<() => void> = [];
+    const handleGeneratedResource = async (
+      resourceIdOrParentId: string,
+      resource?: Resource | Resource[]
+    ) => {
+      const resources = await resolveResourceList(
+        namespaceId,
+        resourceIdOrParentId,
+        resource
+      );
+      if (resources.length <= 0) {
+        return;
+      }
+      for (const res of resources) {
+        // Don't need to create because the other party has already done it
+        await useSidebarStore.getState().restore(res);
+      }
+      const last = resources[resources.length - 1];
+      useSidebarStore.getState().activate(last.id);
+      navigate(`/${namespaceId}/${last.id}`, {
+        state: { fromSidebar: true },
+      });
+    };
+    const handleUpdatedResource = async (delta: Resource | string) => {
+      const resource =
+        typeof delta === 'string'
+          ? await fetchResource(namespaceId, delta)
+          : delta;
+
+      useSidebarStore.getState().patch(resource.id, {
+        name: resource.name,
+        content: resource.content,
+        hasChildren: resource.has_children,
+      });
+    };
+    const handleRefreshResourceChildren = async (resourceId: string) => {
+      const children = await fetchChildren(namespaceId, resourceId);
+      useSidebarStore.getState().refreshChildren(resourceId, children);
+    };
+    const handleScrollToResource = async (
+      targetId: string,
+      parentId?: string
+    ) => {
+      if (parentId) {
+        await handleRefreshResourceChildren(parentId);
+      }
+      await useSidebarStore
+        .getState()
+        .expandPathTo(targetId, { expandTarget: true });
+      scrollToResource(targetId);
+    };
 
     // AI generates resources
+    hooks.push(app.on('generate_resource', handleGeneratedResource));
     hooks.push(
-      app.on(
-        'generate_resource',
-        async (_parentId: string, resource: Resource | Resource[]) => {
-          const resources = Array.isArray(resource) ? resource : [resource];
-          if (
-            resources.length <= 0 ||
-            !Array.isArray(resources[0].path) ||
-            resources[0].path.length <= 0
-          ) {
-            return;
-          }
-          for (const res of resources) {
-            // 不用 create 是因为对方已经创建
-            await useSidebarStore.getState().restore(res);
-          }
-          const last = resources[resources.length - 1];
-          useSidebarStore.getState().activate(last.id);
-          navigate(`/${namespaceId}/${last.id}`, {
-            state: { fromSidebar: true },
-          });
-        }
-      )
+      app.on('refresh_resource_children', handleRefreshResourceChildren)
     );
 
     // Delete a resource
@@ -101,13 +158,20 @@ export function useSidebarEvents(namespaceId: string) {
 
     // Update a resource (name/content) — fired by editor / resource-tasks
     hooks.push(
-      app.on('update_resource', (delta: Resource) => {
-        useSidebarStore.getState().patch(delta.id, {
-          name: delta.name,
-          content: delta.content,
-        });
+      app.on('expand_resource', (resourceId: string) => {
+        void useSidebarStore
+          .getState()
+          .expandPathTo(resourceId, { expandTarget: true });
       })
     );
+    hooks.push(
+      app.on('collapse_resource', (resourceId: string) => {
+        useSidebarStore.getState().collapse(resourceId);
+      })
+    );
+    hooks.push(app.on('scroll_to_resource', handleScrollToResource));
+    hooks.push(app.on('update_resource', handleUpdatedResource));
+    hooks.push(app.on('refresh_resource', handleUpdatedResource));
 
     // Restore from trash
     hooks.push(

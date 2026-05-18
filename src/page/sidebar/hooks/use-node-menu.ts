@@ -3,6 +3,7 @@ import {
   FolderPlus,
   type LucideIcon,
   MessageSquarePlus,
+  MessageSquareQuote,
   MonitorUp,
   Move,
   Pencil,
@@ -130,7 +131,7 @@ function buildAddToChatItems(
       },
       {
         key: 'add_it_to_context',
-        icon: MessageSquarePlus,
+        icon: MessageSquareQuote,
         label: t('actions.add_it_to_context'),
         onClick: actions.handleAddToChat,
       },
@@ -140,7 +141,7 @@ function buildAddToChatItems(
   return [
     {
       key: 'add_it_to_context',
-      icon: MessageSquarePlus,
+      icon: MessageSquareQuote,
       label: t('actions.add_it_to_context'),
       onClick: actions.handleAddToChat,
     },
