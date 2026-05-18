@@ -73,7 +73,7 @@ export function Messages(props: IProps) {
     for (const message of messages) {
       if (message.attrs?.citations && message.attrs.citations.length > 0) {
         message.attrs.citations.forEach(citation => {
-          result.push({ ...citation, id: message.id });
+          result.push(citation);
         });
       }
     }
