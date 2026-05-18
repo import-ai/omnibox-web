@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -13,6 +13,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useSidebarStore } from '@/page/sidebar/store';
+import {
+  getDescendantIds,
+  getTopLevelSelectedIds,
+} from '@/page/sidebar/store/utils';
 
 interface BatchCreateDialogProps {
   open: boolean;
@@ -35,6 +40,14 @@ export function BatchCreateDialog({
   const [folderName, setFolderName] = useState('');
   const [targetId, setTargetId] = useState(defaultTargetId);
   const [loading, setLoading] = useState(false);
+  const nodes = useSidebarStore(state => state.nodes);
+  const disabledTargetIds = useMemo(() => {
+    const topLevelSelectedIds = getTopLevelSelectedIds(nodes, selectedIds);
+    return topLevelSelectedIds.flatMap(id => [
+      id,
+      ...getDescendantIds(nodes, id),
+    ]);
+  }, [nodes, selectedIds]);
 
   useEffect(() => {
     if (open) {
@@ -98,7 +111,7 @@ export function BatchCreateDialog({
             <ResourceSelect
               namespaceId={namespaceId}
               resourceId={targetId}
-              disabledIds={selectedIds}
+              disabledIds={disabledTargetIds}
               disabledTooltip={t('batch.operating_resource')}
               loading={loading}
               onChange={setTargetId}

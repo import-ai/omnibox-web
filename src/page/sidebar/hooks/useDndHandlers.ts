@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
+import { getTopLevelSelectedIds, isDescendant } from '../store/utils';
 import { isValidFileType } from '../utils';
 
 interface UseDndHandlersOptions {
@@ -96,11 +97,20 @@ export function useDndHandlers({
 
   const handleBatchMove = (ids: string[], count: number) => {
     const store = useSidebarStore.getState();
-    if (ids.includes(targetId)) return;
-    if (ids.every(id => store.nodes[id]?.parentId === targetId)) return;
+    const topLevelIds = getTopLevelSelectedIds(store.nodes, ids);
+    if (
+      topLevelIds.some(
+        id => id === targetId || isDescendant(store.nodes, id, targetId)
+      )
+    ) {
+      return;
+    }
+    if (topLevelIds.every(id => store.nodes[id]?.parentId === targetId)) {
+      return;
+    }
 
     return store
-      .batchMove(ids, targetId)
+      .batchMove(topLevelIds, targetId)
       .then(result => {
         if (result.failed.length > 0) {
           if (result.success.length === 0) {
