@@ -44,19 +44,17 @@ export function SidebarDragLayer() {
         }}
         className="relative inline-flex min-w-40 max-w-72 items-center gap-2 rounded-md px-3 h-8 shadow-md bg-[rgba(226,226,230,0.5)]"
       >
-        <span className="flex size-4 shrink-0 items-center justify-center overflow-hidden [&_svg]:size-4 [&_img]:size-4">
-          <ResourceTypeIcon
-            expand={false}
-            resource={{
-              id: previewNode.id,
-              name: previewNode.name,
-              parentId: previewNode.parentId,
-              resourceType: previewNode.resourceType,
-              hasChildren: previewNode.hasChildren,
-              attrs: previewNode.attrs,
-            }}
-          />
-        </span>
+        <ResourceTypeIcon
+          expand={false}
+          resource={{
+            id: previewNode.id,
+            name: previewNode.name,
+            parentId: previewNode.parentId,
+            resourceType: previewNode.resourceType,
+            hasChildren: previewNode.hasChildren,
+            attrs: previewNode.attrs,
+          }}
+        />
         <span className="min-w-0 flex-1 truncate text-sm">
           {previewNode.name}
         </span>

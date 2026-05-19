@@ -108,7 +108,7 @@ export function SpaceSectionContent({
     >
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <SidebarMenuButton className="group/sidebar-header h-8 pb-px pt-0">
+          <SidebarMenuButton className="group/sidebar-header h-8 py-0 pl-0 pr-1.5">
             <div className="relative size-full">
               <SidebarGroupLabel
                 onClick={handleHeaderToggle}

@@ -8,10 +8,10 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Checkbox } from '@/components/ui/checkbox';
+import { Checkbox } from '@/components/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { useSelectedCount } from '@/page/sidebar/store';
+import { isNodeFullySelected, useSelectedCount } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 import { ToolbarButton } from './tooltip';
@@ -44,7 +44,7 @@ export function Toolbar({
     rootId => nodes[rootId]?.children ?? []
   );
   const selectedTopLevelCount = allTopLevelIds.filter(id =>
-    Boolean(selectedIds[id])
+    isNodeFullySelected(nodes, selectedIds, id)
   ).length;
   const checked =
     allTopLevelIds.length > 0 && selectedTopLevelCount === allTopLevelIds.length

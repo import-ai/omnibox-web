@@ -297,14 +297,13 @@ export function isNodeDimmedBySelection(
   selectedIds: Record<string, boolean>,
   id: string
 ): boolean {
-  if (isNodeIndeterminate(nodes, selectedIds, id)) {
-    return true;
-  }
-
   let current = nodes[id];
   while (current?.parentId) {
     const parent = nodes[current.parentId];
-    if (parent && isNodeFullySelected(nodes, selectedIds, parent.id)) {
+    if (
+      parent?.parentId &&
+      isNodeFullySelected(nodes, selectedIds, parent.id)
+    ) {
       return true;
     }
     current = parent;

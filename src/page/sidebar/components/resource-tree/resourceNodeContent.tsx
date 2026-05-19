@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Arrow } from '@/assets/icons/treeArrow';
+import { Checkbox } from '@/components/checkbox';
 import ResourceTypeIcon from '@/components/resource-type-icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Collapsible,
   CollapsibleContent,
@@ -269,22 +269,31 @@ export function ResourceNodeContent({
           <ContextMenuMain
             nodeId={nodeId}
             namespaceId={namespaceId}
-            onRename={() => {
-              startRename();
-            }}
+            onRename={startRename}
           >
             <div
               className={cn(
                 'group/sidebar-item my-px rounded-md hover:bg-sidebar-accent',
-                isSelectionHighlighted &&
-                  'bg-sidebar-accent text-sidebar-accent-foreground'
+                'flex items-center',
+                (isActive || isEditing) &&
+                  'hover:bg-[#E2E2E6] bg-[#E2E2E6] dark:bg-[#363637]',
+                selectionMode && 'pl-2',
+                isSelectionHighlighted && 'bg-[#E2E2E6] dark:bg-[#363637]'
               )}
             >
+              {selectionMode && (
+                <Checkbox
+                  onClick={handleSelectionChange}
+                  muted={isDimmedBySelection}
+                  aria-label={t('batch.multi_select')}
+                  checked={isIndeterminate ? 'indeterminate' : isFullySelected}
+                />
+              )}
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
-                    className="h-auto gap-1 py-1.5 transition-none group-hover/sidebar-item:!pr-[30px] group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:bg-[#E2E2E6] data-[active=true]:font-normal dark:data-[active=true]:bg-[#363637]"
+                    className="h-auto gap-1 py-1.5 transition-none bg-transparent group-hover/sidebar-item:!pr-[30px] group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent"
                     onClick={handleClick}
                     onDoubleClick={handleDoubleClick}
                     isActive={isActive || isEditing}
@@ -300,18 +309,6 @@ export function ResourceNodeContent({
                           isFileDragOver || isOver || isSelectionHighlighted,
                       })}
                     >
-                      {selectionMode && (
-                        <Checkbox
-                          checked={
-                            isIndeterminate ? 'indeterminate' : isFullySelected
-                          }
-                          onClick={handleSelectionChange}
-                          className={cn('ml-1.5 mr-0.5 size-4', {
-                            'opacity-50': isDimmedBySelection,
-                          })}
-                          aria-label={t('batch.multi_select')}
-                        />
-                      )}
                       {node.hasChildren &&
                         (nodeUI?.loading ? (
                           <Button
@@ -391,7 +388,7 @@ export function ResourceNodeContent({
           </ContextMenuMain>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarMenuSub className="mr-0 gap-0 py-0 pr-0">
+          <SidebarMenuSub className="m-0 p-0 border-0 [&[data-sidebar=menu-sub]>li>div>span>div]:pl-[7px] [&[data-sidebar=menu-sub]>li>div>span>div>[data-sidebar=menu-button]]:ml-5">
             {nodeUI?.expanded &&
               node.hasChildren &&
               node.children.length > 0 &&
