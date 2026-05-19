@@ -13,6 +13,27 @@ import {
 export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
   const expandPromises = new Map<string, Promise<void>>();
 
+  const normalizeShareChildren = (
+    parent: TreeNode,
+    children: Resource[]
+  ): Resource[] => {
+    if (parent.resourceType !== 'smart_folder') {
+      return children;
+    }
+
+    return children.map(child => ({
+      ...child,
+      parent_id: parent.id,
+      has_children: false,
+      attrs: {
+        ...(child.attrs || {}),
+        __smart_folder_child: true,
+        __source_resource_id: child.id,
+        __source_parent_id: child.parent_id,
+      },
+    }));
+  };
+
   const patchNodeFromSharedResource = (node: TreeNode, resource: Resource) => {
     const previousHasChildren = node.hasChildren;
     patchNodeFromResource(node, resource);
@@ -60,7 +81,10 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         });
 
         try {
-          const children = await fetchShareChildren(get().namespaceId, id);
+          const children = normalizeShareChildren(
+            node,
+            await fetchShareChildren(get().namespaceId, id)
+          );
 
           set(s => {
             const ui = ensureUI(s, id);
@@ -90,10 +114,22 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
                   patchNodeFromResource(existing, child);
                 }
               }
+              if (child.attrs?.__smart_folder_child === true) {
+                const childNode = s.nodes[child.id];
+                if (childNode) {
+                  childNode.parentId = id;
+                  childNode.children = [];
+                  childNode.hasChildren = false;
+                }
+                const childUI = ensureUI(s, child.id);
+                childUI.expanded = false;
+                childUI.loaded = false;
+                childUI.loading = false;
+              }
               ensureUI(s, child.id);
             }
 
-            // 记录此资源已展开，避免重复展开
+            // Record that this resource has been expanded, to avoid repeated expansion
             s.autoExpandedKeys[`${s.namespaceId}:${id}`] = true;
           });
         } catch (err) {
@@ -182,8 +218,9 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         );
         if (
           options?.expandTarget &&
+          target.hasChildren &&
           !get().ui[targetId]?.expanded &&
-          (!get().ui[targetId]?.loaded || target.hasChildren)
+          !get().ui[targetId]?.loaded
         ) {
           await get().expand(targetId);
         }
@@ -199,7 +236,9 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
           ('share' satisfies SpaceType);
         if (!spaceType) return;
 
-        const fullPath = resource.path.some(item => item.id === targetId)
+        const fullPath = resource.path.some(
+          (item: { id: string }) => item.id === targetId
+        )
           ? resource.path
           : [...resource.path, { id: targetId, name: resource.name || '' }];
         const pathResources = await fetchPathResources(
@@ -259,7 +298,9 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
             const ui = get().ui[pid];
             const n = get().nodes[pid];
             const shouldLoad =
-              pid === targetId ? options?.expandTarget : n?.hasChildren;
+              pid === targetId
+                ? options?.expandTarget && n?.hasChildren
+                : n?.hasChildren;
             if (n && ui && !ui.loaded && shouldLoad) {
               await get().expand(pid);
             }
