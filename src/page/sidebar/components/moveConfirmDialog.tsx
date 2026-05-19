@@ -1,14 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/confirmDialog';
 
 interface MoveConfirmDialogProps {
   open: boolean;
@@ -30,34 +22,17 @@ export function MoveConfirmDialog({
   const { t } = useTranslation();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[480px] max-w-[90%]">
-        <DialogHeader>
-          <DialogTitle className="leading-1">
-            {t('batch.move_confirm_title', {
-              count,
-              target: targetName,
-            })}
-          </DialogTitle>
-          {t('batch.move_confirm_description') && (
-            <DialogDescription>
-              {t('batch.move_confirm_description')}
-            </DialogDescription>
-          )}
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            disabled={loading}
-            onClick={() => onOpenChange(false)}
-          >
-            {t('cancel')}
-          </Button>
-          <Button disabled={loading} onClick={onConfirm}>
-            {t('batch.move_confirm')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ConfirmDialog
+      open={open}
+      title={t('batch.move_confirm_title', {
+        count,
+        target: targetName,
+      })}
+      description={t('batch.move_confirm_description')}
+      confirmText={t('batch.move_confirm')}
+      loading={loading}
+      onOpenChange={onOpenChange}
+      onConfirm={onConfirm}
+    />
   );
 }

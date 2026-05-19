@@ -11,8 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/components/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { isNodeFullySelected, useSelectedCount } from '@/page/sidebar/store';
-import { useSidebarStore } from '@/page/sidebar/store';
+import { useSelectedCount, useSidebarStore } from '@/page/sidebar/store';
 
 import { ToolbarButton } from './tooltip';
 
@@ -43,8 +42,8 @@ export function Toolbar({
   const allTopLevelIds = Object.values(rootIds).flatMap(
     rootId => nodes[rootId]?.children ?? []
   );
-  const selectedTopLevelCount = allTopLevelIds.filter(id =>
-    isNodeFullySelected(nodes, selectedIds, id)
+  const selectedTopLevelCount = allTopLevelIds.filter(
+    id => selectedIds[id]
   ).length;
   const checked =
     allTopLevelIds.length > 0 && selectedTopLevelCount === allTopLevelIds.length
@@ -53,7 +52,7 @@ export function Toolbar({
         ? 'indeterminate'
         : false;
   const disabledLabel =
-    selectedCount === 0 ? t('batch.select_required') : undefined;
+    selectedCount <= 0 ? t('batch.select_required') : undefined;
 
   const handleCheckAll = () => {
     const store = useSidebarStore.getState();
@@ -82,7 +81,10 @@ export function Toolbar({
           </span>
         </div>
       )}
-      <div className="flex items-center gap-1">
+      <div
+        className="flex items-center gap-1"
+        key={selectionMode ? 'batch' : 'default'}
+      >
         {selectionMode ? (
           <>
             <ToolbarButton

@@ -11,6 +11,16 @@ interface UseBatchOperationsOptions {
   namespaceId: string;
 }
 
+const OPEN_LAYER_SELECTOR = [
+  '[role="dialog"][data-state="open"]',
+  '[role="alertdialog"][data-state="open"]',
+  '[data-radix-popper-content-wrapper] [data-state="open"]',
+].join(',');
+
+function hasOpenFloatingLayer() {
+  return document.querySelector(OPEN_LAYER_SELECTOR) !== null;
+}
+
 export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
   const app = useApp();
   const { t } = useTranslation();
@@ -102,6 +112,9 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
           { position: 'bottom-right' }
         );
       }
+      if (result.success.length > 0) {
+        app.fire('scroll_to_resource', targetId);
+      }
     } catch {
       toast.error(t('batch.move_failed'), { position: 'bottom-right' });
     } finally {
@@ -141,6 +154,7 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         navigate(`/${namespaceId}/${result.resourceId}`, {
           state: { fromSidebar: true },
         });
+        app.fire('scroll_to_resource', result.resourceId);
       }
       return true;
     } catch (error: any) {
@@ -188,13 +202,18 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         return;
       }
 
+      if (hasOpenFloatingLayer()) {
+        return;
+      }
+
       if (selectionMode) {
         deselectAll();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () =>
+      window.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, [batchDragging, selectionMode]);
 
   return {

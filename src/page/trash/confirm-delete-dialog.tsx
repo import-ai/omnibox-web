@@ -1,15 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmDialog } from '@/components/confirmDialog';
 
 interface ConfirmPermanentDeleteDialogProps {
   open: boolean;
@@ -39,24 +30,14 @@ export function ConfirmPermanentDeleteDialog({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-sm">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel className="cancel-btn-outline">
-            {t('cancel')}
-          </AlertDialogCancel>
-          <AlertDialogAction
-            className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
-            onClick={handleConfirm}
-          >
-            {t('delete')}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmDialog
+      open={open}
+      title={title}
+      description={description}
+      confirmText={t('delete')}
+      variant="destructive"
+      onOpenChange={onOpenChange}
+      onConfirm={handleConfirm}
+    />
   );
 }

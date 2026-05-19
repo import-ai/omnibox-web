@@ -29,6 +29,7 @@ interface UseResourceNodeDndReturn {
   ref: RefObject<HTMLDivElement | null>;
   dragStyle: { opacity: number };
   isOver: boolean;
+  isDisabledOver: boolean;
   isFileDragOver: boolean;
 }
 
@@ -101,11 +102,19 @@ export function useResourceNodeDnd(
     [batchCount, batchIds, isEditing, isSelected, node, selectionMode]
   );
 
-  const [{ isOver }, drop] = useDrop<DndItem, void, { isOver: boolean }>({
+  const [{ isOver, isDisabledOver }, drop] = useDrop<
+    DndItem,
+    void,
+    { isOver: boolean; isDisabledOver: boolean }
+  >({
     accept: ['card', NativeTypes.FILE],
     canDrop: item => canDropItem(item),
     collect: monitor => ({
       isOver: monitor.isOver({ shallow: true }) && monitor.canDrop(),
+      isDisabledOver:
+        monitor.isOver({ shallow: true }) &&
+        monitor.getItemType() === 'card' &&
+        !monitor.canDrop(),
     }),
     hover: (item, monitor) => {
       if (!ref.current) return;
@@ -133,5 +142,5 @@ export function useResourceNodeDnd(
     }
   }, [isOver, isFileDragOver, clearFileDragTarget]);
 
-  return { ref, dragStyle, isOver, isFileDragOver };
+  return { ref, dragStyle, isOver, isDisabledOver, isFileDragOver };
 }

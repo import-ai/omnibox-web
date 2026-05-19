@@ -181,6 +181,22 @@ export function getSelectableDescendantIds(
   return [id, ...getDescendantIds(nodes, id)];
 }
 
+export function getSelectedAncestorId(
+  nodes: Record<string, TreeNode>,
+  selectedIds: Record<string, boolean>,
+  id: string
+): string | null {
+  let current = nodes[id];
+  while (current?.parentId) {
+    const parent = nodes[current.parentId];
+    if (parent?.parentId && selectedIds[parent.id]) {
+      return parent.id;
+    }
+    current = parent;
+  }
+  return null;
+}
+
 export function getVisibleNodeIds(
   state: Pick<SidebarState, 'nodes' | 'rootIds' | 'spaceExpanded' | 'ui'>
 ): string[] {
@@ -231,11 +247,7 @@ export function calculateSelectedCount(
     const node = nodes[id];
     if (!node) return 0;
 
-    if (node.children.length === 0) {
-      return selectedIds[id] ? 1 : 0;
-    }
-
-    if (isNodeFullySelected(nodes, selectedIds, id)) {
+    if (selectedIds[id]) {
       return 1;
     }
 
@@ -254,42 +266,14 @@ export function isNodeFullySelected(
   selectedIds: Record<string, boolean>,
   id: string
 ): boolean {
-  const node = nodes[id];
-  if (!node) {
-    return false;
-  }
-
-  if (node.children.length === 0) {
-    return Boolean(selectedIds[id]);
-  }
-
-  return node.children.every(childId =>
-    isNodeFullySelected(nodes, selectedIds, childId)
+  return Boolean(
+    nodes[id] &&
+    (selectedIds[id] || getSelectedAncestorId(nodes, selectedIds, id))
   );
 }
 
-export function isNodeIndeterminate(
-  nodes: Record<string, TreeNode>,
-  selectedIds: Record<string, boolean>,
-  id: string
-): boolean {
-  const node = nodes[id];
-  if (!node || node.children.length === 0) {
-    return false;
-  }
-
-  if (isNodeFullySelected(nodes, selectedIds, id)) {
-    return false;
-  }
-
-  return (
-    Boolean(selectedIds[id]) ||
-    node.children.some(
-      childId =>
-        isNodeFullySelected(nodes, selectedIds, childId) ||
-        isNodeIndeterminate(nodes, selectedIds, childId)
-    )
-  );
+export function isNodeIndeterminate(): boolean {
+  return false;
 }
 
 export function isNodeDimmedBySelection(
@@ -297,18 +281,7 @@ export function isNodeDimmedBySelection(
   selectedIds: Record<string, boolean>,
   id: string
 ): boolean {
-  let current = nodes[id];
-  while (current?.parentId) {
-    const parent = nodes[current.parentId];
-    if (
-      parent?.parentId &&
-      isNodeFullySelected(nodes, selectedIds, parent.id)
-    ) {
-      return true;
-    }
-    current = parent;
-  }
-  return false;
+  return getSelectedAncestorId(nodes, selectedIds, id) !== null;
 }
 
 export function getTopLevelSelectedIds(

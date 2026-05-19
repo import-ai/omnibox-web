@@ -45,11 +45,13 @@ const CLICK_DEBOUNCE_DELAY = 250;
 interface ResourceNodeContentProps {
   node: TreeNode;
   nodeId: string;
+  depth: number;
 }
 
 export function ResourceNodeContent({
   node,
   nodeId,
+  depth,
 }: ResourceNodeContentProps) {
   const app = useApp();
   const { t } = useTranslation();
@@ -77,22 +79,19 @@ export function ResourceNodeContent({
 
   const isActive = nodeId === activeId;
   const isEditing = nodeId === renamingId;
-  const isSelectionHighlighted =
-    !isDimmedBySelection && (isSelected || isFullySelected);
+  const isSelectionHighlighted = isSelected || isFullySelected;
   const isExpanded = nodeUI?.expanded === true;
   const selectedIdList = useMemo(() => Object.keys(selectedIds), [selectedIds]);
+  const contentIndent = depth * 20;
+  const nodeIndent = node.hasChildren ? 4 : 28;
 
-  const { ref, dragStyle, isOver, isFileDragOver } = useResourceNodeDnd(
-    nodeId,
-    node,
-    isEditing,
-    {
+  const { ref, dragStyle, isOver, isDisabledOver, isFileDragOver } =
+    useResourceNodeDnd(nodeId, node, isEditing, {
       namespaceId,
       selectionMode,
       isSelected,
       selectedIds: selectedIdList,
-    }
-  );
+    });
 
   useEffect(() => {
     isEditingRef.current = isEditing;
@@ -279,7 +278,12 @@ export function ResourceNodeContent({
                 (isActive || isEditing) &&
                   'hover:bg-[#E2E2E6] bg-[#E2E2E6] dark:bg-[#363637]',
                 selectionMode && 'pl-2',
-                isSelectionHighlighted && 'bg-[#E2E2E6] dark:bg-[#363637]'
+                selectionMode && depth > 0 && '-mx-px',
+                isSelectionHighlighted &&
+                  'bg-[#E2E2E6] dark:bg-[#363637] hover:bg-[#E2E2E6]',
+                (isFileDragOver || isOver) &&
+                  'bg-sidebar-accent text-sidebar-accent-foreground',
+                isDisabledOver && 'cursor-not-allowed [&_*]:cursor-not-allowed'
               )}
             >
               {selectionMode && (
@@ -294,7 +298,11 @@ export function ResourceNodeContent({
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
-                    className="h-auto gap-1 py-1.5 transition-none bg-transparent group-hover/sidebar-item:!pr-[30px] group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent"
+                    className={cn(
+                      'h-auto gap-1 py-1.5 transition-none bg-transparent group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
+                      !selectionMode && 'group-hover/sidebar-item:!pr-[30px]',
+                      isDisabledOver && 'cursor-not-allowed'
+                    )}
                     onClick={handleClick}
                     onDoubleClick={handleDoubleClick}
                     isActive={isActive || isEditing}
@@ -302,13 +310,14 @@ export function ResourceNodeContent({
                     <div
                       ref={ref}
                       data-resource-id={nodeId}
-                      style={dragStyle}
-                      className={cn('list flex cursor-pointer', {
-                        'pl-1': node.hasChildren,
-                        'pl-7': !node.hasChildren,
-                        'bg-sidebar-accent text-sidebar-accent-foreground':
-                          isFileDragOver || isOver || isSelectionHighlighted,
-                      })}
+                      className={cn(
+                        'list flex cursor-pointer',
+                        isDisabledOver && 'cursor-not-allowed'
+                      )}
+                      style={{
+                        ...dragStyle,
+                        paddingLeft: `${contentIndent + nodeIndent}px`,
+                      }}
                     >
                       {node.hasChildren &&
                         (nodeUI?.loading ? (
@@ -380,21 +389,23 @@ export function ResourceNodeContent({
                   nodeId={nodeId}
                   namespaceId={namespaceId}
                   upload={upload}
-                  onRename={() => {
-                    startRename();
-                  }}
+                  onRename={startRename}
                 />
               )}
             </div>
           </ContextMenuMain>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarMenuSub className="m-0 p-0 border-0 [&[data-sidebar=menu-sub]>li>div>span>div]:pl-[7px] [&[data-sidebar=menu-sub]>li>div>span>div>[data-sidebar=menu-button]]:ml-5">
+          <SidebarMenuSub className="m-0 gap-0 border-0 p-0">
             {nodeUI?.expanded &&
               node.hasChildren &&
               node.children.length > 0 &&
               node.children.map(childId => (
-                <ResourceNode nodeId={childId} key={childId} />
+                <ResourceNode
+                  nodeId={childId}
+                  key={childId}
+                  depth={depth + 1}
+                />
               ))}
           </SidebarMenuSub>
         </CollapsibleContent>

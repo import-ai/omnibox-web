@@ -17,10 +17,9 @@ import {
   ensureUI,
   getDescendantIds,
   getIdsInVisibleRange,
-  getSelectableDescendantIds,
+  getSelectedAncestorId,
   getTopLevelSelectedIds,
   isDescendant,
-  isNodeFullySelected,
   traverseDescendants,
 } from '../utils';
 
@@ -40,21 +39,57 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           : [id];
 
         for (const targetId of targetIds) {
-          const expandedIds = getSelectableDescendantIds(s.nodes, targetId);
-          const selected = isNodeFullySelected(
+          const selected = Boolean(s.selectedIds[targetId]);
+          const selectedAncestorId = getSelectedAncestorId(
             s.nodes,
             s.selectedIds,
             targetId
           );
 
-          for (const selectedId of expandedIds) {
-            if (rangeStartId || !selected) {
-              s.selectedIds[selectedId] = true;
-              delete s.failedIds[selectedId];
-            } else {
-              delete s.selectedIds[selectedId];
-              delete s.failedIds[selectedId];
+          if (!rangeStartId && selectedAncestorId) {
+            delete s.selectedIds[selectedAncestorId];
+            delete s.failedIds[selectedAncestorId];
+            const excludedIds = new Set([
+              targetId,
+              ...getDescendantIds(s.nodes, targetId),
+            ]);
+            for (const descendantId of getDescendantIds(
+              s.nodes,
+              selectedAncestorId
+            )) {
+              if (excludedIds.has(descendantId)) {
+                delete s.selectedIds[descendantId];
+                delete s.failedIds[descendantId];
+              } else {
+                s.selectedIds[descendantId] = true;
+                delete s.failedIds[descendantId];
+              }
             }
+          } else if (rangeStartId || !selected) {
+            s.selectedIds[targetId] = true;
+            delete s.failedIds[targetId];
+            for (const descendantId of getDescendantIds(s.nodes, targetId)) {
+              delete s.selectedIds[descendantId];
+              delete s.failedIds[descendantId];
+            }
+          } else {
+            delete s.selectedIds[targetId];
+            delete s.failedIds[targetId];
+            for (const descendantId of getDescendantIds(s.nodes, targetId)) {
+              delete s.selectedIds[descendantId];
+              delete s.failedIds[descendantId];
+            }
+          }
+
+          let parentId = s.nodes[targetId]?.parentId;
+          while (parentId) {
+            const parent = s.nodes[parentId];
+            if (!parent) break;
+            if (parent.parentId) {
+              delete s.selectedIds[parentId];
+              delete s.failedIds[parentId];
+            }
+            parentId = parent.parentId;
           }
         }
 
@@ -67,16 +102,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
 
     selectAll: (spaceType?: SpaceType) => {
       set(s => {
-        const selectNode = (id: string) => {
-          const node = s.nodes[id];
-          if (!node) return;
-          s.selectedIds[id] = true;
-          delete s.failedIds[id];
-          for (const childId of node.children) {
-            selectNode(childId);
-          }
-        };
-
         const spaces = spaceType
           ? [spaceType]
           : (Object.keys(s.rootIds) as SpaceType[]);
@@ -84,7 +109,8 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           const root = s.nodes[s.rootIds[type]];
           if (!root) continue;
           for (const childId of root.children) {
-            selectNode(childId);
+            s.selectedIds[childId] = true;
+            delete s.failedIds[childId];
           }
         }
 

@@ -1,6 +1,7 @@
-import { File, Folder } from 'lucide-react';
+import { Folder, User, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import ResourceTypeIcon from '@/components/resource-type-icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -64,13 +65,19 @@ export default function Resource(props: IProps) {
         onFinished && onFinished(resourceIds, data.id, name);
       }}
     >
-      {data.id === editId ? (
-        <Spinner />
-      ) : data.resource_type === 'folder' ? (
-        <Folder />
-      ) : (
-        <File />
-      )}
+      <div className="relative top-[2px]">
+        {data.id === editId ? (
+          <Spinner />
+        ) : data.spaceType === 'private' ? (
+          <User />
+        ) : data.spaceType === 'teamspace' ? (
+          <Users />
+        ) : data.resource_type === 'folder' ? (
+          <Folder />
+        ) : (
+          <ResourceTypeIcon resource={data} />
+        )}
+      </div>
       <div className="flex-1 break-all text-left">{name}</div>
     </Button>
   );

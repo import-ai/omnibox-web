@@ -33,6 +33,7 @@ export {
   detectSpaceType,
   findNextActiveId,
   getDescendantIds,
+  getSelectedAncestorId,
   getTopLevelSelectedIds,
   isDescendant,
   isNodeDimmedBySelection,

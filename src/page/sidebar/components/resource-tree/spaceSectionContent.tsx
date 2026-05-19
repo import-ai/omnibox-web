@@ -206,11 +206,11 @@ export function SpaceSectionContent({
       </ContextMenu>
       {isOpen && (
         <SidebarGroupContent>
-          <SidebarMenu className="gap-0.5">
+          <SidebarMenu className="gap-0">
             {rootNode.hasChildren &&
               rootNode.children.length > 0 &&
               rootNode.children.map(childId => (
-                <ResourceNode nodeId={childId} key={childId} />
+                <ResourceNode nodeId={childId} key={childId} depth={0} />
               ))}
           </SidebarMenu>
         </SidebarGroupContent>

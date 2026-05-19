@@ -104,7 +104,6 @@ export function buildBaseActions(set: SidebarSet) {
       set(s => {
         const parent = s.nodes[parentId];
         if (!parent) return;
-
         const newIds = new Set(resources.map(r => (r as { id: string }).id));
         const deletedIds = new Set<string>();
 
