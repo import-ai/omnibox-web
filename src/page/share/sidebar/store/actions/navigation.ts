@@ -129,7 +129,6 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
               ensureUI(s, child.id);
             }
 
-            // Record that this resource has been expanded, to avoid repeated expansion
             s.autoExpandedKeys[`${s.namespaceId}:${id}`] = true;
           });
         } catch (err) {
