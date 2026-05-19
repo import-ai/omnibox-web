@@ -14,14 +14,13 @@ import useApp from '@/hooks/use-app';
 import { joinArgs, processArgs } from '@/lib/tool-args';
 import { MessageOperator } from '@/page/chat/core/message-operator.ts';
 import {
-  Citation,
+  type Citation,
   MessageStatus,
-  OpenAIMessageRole,
 } from '@/page/chat/core/types/chat-response';
 import {
-  ConversationDetail,
-  MessageDetail,
-  ToolCallFrontendOperation,
+  type ConversationDetail,
+  type MessageDetail,
+  type ToolCallFrontendOperation,
 } from '@/page/chat/core/types/conversation';
 import { ToolCallStatus } from '@/page/chat/core/types/tool-call.ts';
 import { useMessageSiblings } from '@/page/chat/core/use-message-siblings.ts';
@@ -31,6 +30,12 @@ import type {
   VfsPathResourceIds,
   VfsPathResourceTitles,
 } from '@/page/chat/messages/citations/vfs-path-links';
+
+import {
+  findToolMessageForToolCall,
+  isTerminalToolCallStatus,
+  resolveToolCallStatus,
+} from './assistant-message-utils';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -182,25 +187,8 @@ export function AssistantMessage(props: IProps) {
         JSON.parse(toolCall.function.arguments),
         t
       );
-      let functionStatus: ToolCallStatus = ToolCallStatus.PENDING;
-      const toolMessage = messages.find(
-        m =>
-          m.message.role === OpenAIMessageRole.TOOL &&
-          m.message.tool_call_id === toolCall.id &&
-          m.status === MessageStatus.SUCCESS
-      );
-      if (toolMessage) {
-        functionStatus = ToolCallStatus.RUNNING;
-      }
-      const toolCallMeta = toolMessage?.attrs?.tool_call;
-      const toolCallStatus: string | undefined = toolCallMeta?.status;
-      if (toolCallStatus === ToolCallStatus.SUCCESS) {
-        functionStatus = ToolCallStatus.SUCCESS;
-      } else if (toolCallStatus === ToolCallStatus.FAILED) {
-        functionStatus = ToolCallStatus.FAILED;
-      } else if (toolCallStatus === ToolCallStatus.REJECTED) {
-        functionStatus = ToolCallStatus.REJECTED;
-      }
+      const toolMessage = findToolMessageForToolCall(messages, toolCall.id);
+      const functionStatus = resolveToolCallStatus(toolMessage);
 
       toolCalls.push({
         toolCallId: toolCall.id,
@@ -237,14 +225,7 @@ export function AssistantMessage(props: IProps) {
 
   const hasPendingToolCalls =
     toolCalls.length > 0 &&
-    toolCalls.filter(
-      t =>
-        ![
-          ToolCallStatus.SUCCESS,
-          ToolCallStatus.FAILED,
-          ToolCallStatus.REJECTED,
-        ].includes(t.status)
-    ).length > 0;
+    toolCalls.some(toolCall => !isTerminalToolCallStatus(toolCall.status));
 
   useEffect(() => {
     if (toolCalls.length === 0 || hasPendingToolCalls) return;
