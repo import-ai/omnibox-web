@@ -7,7 +7,11 @@ import useApp from '@/hooks/use-app';
 import { Resource, ResourceType } from '@/interface';
 import { getSmartFolderChildSidebarKey } from '@/page/sidebar/content/smart-folder-resource-utils';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { fetchSmartFolderChildren } from '@/service/resource';
+import {
+  fetchChildren,
+  fetchResource,
+  fetchSmartFolderChildren,
+} from '@/service/resource';
 
 function extractResourceId(
   pathname: string,
@@ -15,6 +19,32 @@ function extractResourceId(
 ): string | undefined {
   const match = pathname.match(new RegExp(`^/${namespaceId}/([^/]+)`));
   return match?.[1];
+}
+
+async function resolveResourceList(
+  namespaceId: string,
+  resourceIdOrParentId: string,
+  resource?: Resource | Resource[]
+): Promise<Resource[]> {
+  if (Array.isArray(resource)) {
+    return resource;
+  }
+  if (resource) {
+    return [resource];
+  }
+  if (!resourceIdOrParentId) {
+    return [];
+  }
+  return [await fetchResource(namespaceId, resourceIdOrParentId)];
+}
+
+function scrollToResource(resourceId: string) {
+  requestAnimationFrame(() => {
+    const element = document.querySelector(
+      `[data-resource-id="${resourceId}"]`
+    );
+    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 }
 
 async function refreshSmartFolderChildren(
@@ -96,30 +126,62 @@ export function useSidebarEvents(namespaceId: string) {
 
   useEffect(() => {
     const hooks: Array<() => void> = [];
+    const handleGeneratedResource = async (
+      resourceIdOrParentId: string,
+      resource?: Resource | Resource[]
+    ) => {
+      const resources = await resolveResourceList(
+        namespaceId,
+        resourceIdOrParentId,
+        resource
+      );
+      if (resources.length <= 0) {
+        return;
+      }
+      for (const res of resources) {
+        await useSidebarStore.getState().restore(res);
+      }
+      const last = resources[resources.length - 1];
+      useSidebarStore.getState().activate(last.id);
+      navigate(`/${namespaceId}/${last.id}`, {
+        state: { fromSidebar: true },
+      });
+      refreshLoadedSmartFolders(namespaceId, app);
+    };
+    const handleUpdatedResource = async (delta: Resource | string) => {
+      const resource =
+        typeof delta === 'string'
+          ? await fetchResource(namespaceId, delta)
+          : delta;
 
+      useSidebarStore.getState().patch(resource.id, {
+        name: resource.name,
+        content: resource.content,
+        hasChildren: resource.has_children,
+      });
+      refreshLoadedSmartFolders(namespaceId, app);
+    };
+    const handleRefreshResourceChildren = async (resourceId: string) => {
+      const children = await fetchChildren(namespaceId, resourceId);
+      useSidebarStore.getState().refreshChildren(resourceId, children);
+    };
+    const handleScrollToResource = async (
+      targetId: string,
+      parentId?: string
+    ) => {
+      if (parentId) {
+        await handleRefreshResourceChildren(parentId);
+      }
+      await useSidebarStore
+        .getState()
+        .expandPathTo(targetId, { expandTarget: true });
+      useSidebarStore.getState().activate(targetId);
+      scrollToResource(targetId);
+    };
+
+    hooks.push(app.on('generate_resource', handleGeneratedResource));
     hooks.push(
-      app.on(
-        'generate_resource',
-        async (_parentId: string, resource: Resource | Resource[]) => {
-          const resources = Array.isArray(resource) ? resource : [resource];
-          if (
-            resources.length <= 0 ||
-            !Array.isArray(resources[0].path) ||
-            resources[0].path.length <= 0
-          ) {
-            return;
-          }
-          for (const res of resources) {
-            await useSidebarStore.getState().restore(res);
-          }
-          const last = resources[resources.length - 1];
-          useSidebarStore.getState().activate(last.id);
-          navigate(`/${namespaceId}/${last.id}`, {
-            state: { fromSidebar: true },
-          });
-          refreshLoadedSmartFolders(namespaceId, app);
-        }
-      )
+      app.on('refresh_resource_children', handleRefreshResourceChildren)
     );
 
     hooks.push(
@@ -174,6 +236,7 @@ export function useSidebarEvents(namespaceId: string) {
                 });
             },
           });
+
           smartFolderIdsToRefresh.forEach(smartFolderId => {
             refreshSmartFolderChildren(smartFolderId, namespaceId, app).catch(
               err => {
@@ -186,38 +249,26 @@ export function useSidebarEvents(namespaceId: string) {
     );
 
     hooks.push(
-      app.on('update_resource', (delta: Resource) => {
-        useSidebarStore.getState().patch(delta.id, {
-          name: delta.name,
-          content: delta.content,
-        });
-        refreshLoadedSmartFolders(namespaceId, app);
-      })
-    );
-
-    hooks.push(
       app.on('move_resource', async (id: string, parentId: string) => {
         await useSidebarStore.getState().move(id, parentId);
         refreshLoadedSmartFolders(namespaceId, app);
       })
     );
-
     hooks.push(
-      app.on('scroll_to_resource', async (id: string, parentId?: string) => {
-        const store = useSidebarStore.getState();
-        if (parentId) {
-          await store.expandPathTo(parentId, { expandTarget: true });
-        }
-        await store.expandPathTo(id, { expandTarget: true });
-        store.activate(id);
-        requestAnimationFrame(() => {
-          document
-            .querySelector(`[data-resource-id="${id}"]`)
-            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
+      app.on('expand_resource', async (resourceId: string) => {
+        await useSidebarStore
+          .getState()
+          .expandPathTo(resourceId, { expandTarget: true });
       })
     );
-
+    hooks.push(
+      app.on('collapse_resource', (resourceId: string) => {
+        useSidebarStore.getState().collapse(resourceId);
+      })
+    );
+    hooks.push(app.on('scroll_to_resource', handleScrollToResource));
+    hooks.push(app.on('update_resource', handleUpdatedResource));
+    hooks.push(app.on('refresh_resource', handleUpdatedResource));
     hooks.push(
       app.on('refresh_smart_folder_children', async (id: string) => {
         await refreshSmartFolderChildren(id, namespaceId, app);
@@ -239,5 +290,5 @@ export function useSidebarEvents(namespaceId: string) {
     return () => {
       hooks.forEach(unsub => unsub());
     };
-  }, [namespaceId, navigate, t]);
+  }, [app, namespaceId, navigate, t]);
 }

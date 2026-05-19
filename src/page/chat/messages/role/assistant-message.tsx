@@ -1,6 +1,7 @@
 import { Ban, Check, MessageCircleWarning, X } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import {
   Accordion,
@@ -13,18 +14,28 @@ import useApp from '@/hooks/use-app';
 import { joinArgs, processArgs } from '@/lib/tool-args';
 import { MessageOperator } from '@/page/chat/core/message-operator.ts';
 import {
-  Citation,
+  type Citation,
   MessageStatus,
-  OpenAIMessageRole,
 } from '@/page/chat/core/types/chat-response';
 import {
-  ConversationDetail,
-  MessageDetail,
-  ToolCallFrontendOperation,
+  type ConversationDetail,
+  type MessageDetail,
+  type ToolCallFrontendOperation,
 } from '@/page/chat/core/types/conversation';
 import { ToolCallStatus } from '@/page/chat/core/types/tool-call.ts';
 import { useMessageSiblings } from '@/page/chat/core/use-message-siblings.ts';
 import { CitationMarkdown } from '@/page/chat/messages/citations/citation-markdown.tsx';
+import { replaceReasoningCiteMarkers } from '@/page/chat/messages/citations/citation-utils';
+import type {
+  VfsPathResourceIds,
+  VfsPathResourceTitles,
+} from '@/page/chat/messages/citations/vfs-path-links';
+
+import {
+  findToolMessageForToolCall,
+  isTerminalToolCallStatus,
+  resolveToolCallStatus,
+} from './assistant-message-utils';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -78,10 +89,47 @@ export function AssistantMessage(props: IProps) {
   } = props;
   const { t } = useTranslation();
   const app = useApp();
+  const params = useParams();
   const openAIMessage = message.message;
 
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
     useMessageSiblings(message.id, messageOperator);
+  const resourceLinkPrefix = React.useMemo(() => {
+    if (params.share_id) {
+      return `/s/${params.share_id}`;
+    }
+    if (params.namespace_id) {
+      return `/${params.namespace_id}`;
+    }
+    return '';
+  }, [params.namespace_id, params.share_id]);
+  const vfsPathResourceIds = React.useMemo((): VfsPathResourceIds => {
+    const result: VfsPathResourceIds = {};
+    for (const message of messages) {
+      const mappings = message.attrs?.tool_call?.vfs_path_resource_ids;
+      if (mappings) {
+        Object.assign(result, mappings);
+      }
+    }
+    return result;
+  }, [messages]);
+  const vfsPathResourceTitles = React.useMemo((): VfsPathResourceTitles => {
+    const titleByResourceId: Record<string, string> = {};
+    for (const citation of citations) {
+      if (citation.title && !citation.link.startsWith('http')) {
+        titleByResourceId[citation.link] = citation.title;
+      }
+    }
+
+    const result: VfsPathResourceTitles = {};
+    for (const [path, resourceId] of Object.entries(vfsPathResourceIds)) {
+      const title = titleByResourceId[resourceId];
+      if (title) {
+        result[path] = title;
+      }
+    }
+    return result;
+  }, [citations, vfsPathResourceIds]);
 
   const domList: React.ReactNode[] = [];
   if (openAIMessage.reasoning_content?.trim()) {
@@ -96,7 +144,9 @@ export function AssistantMessage(props: IProps) {
         <AccordionItem value={'reasoning_' + message.id}>
           <AccordionTrigger>{t('chat.tools.reasoning')}</AccordionTrigger>
           <AccordionContent className="text-gray-500 dark:text-gray-400">
-            {openAIMessage.reasoning_content?.trim()}
+            {replaceReasoningCiteMarkers(
+              openAIMessage.reasoning_content?.trim() || ''
+            )}
           </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -118,6 +168,9 @@ export function AssistantMessage(props: IProps) {
         onPrevious={handlePrevious}
         onNext={handleNext}
         isLastMessage={isLastMessage}
+        vfsPathResourceIds={vfsPathResourceIds}
+        vfsPathResourceTitles={vfsPathResourceTitles}
+        resourceLinkPrefix={resourceLinkPrefix}
       />
     );
   }
@@ -134,25 +187,8 @@ export function AssistantMessage(props: IProps) {
         JSON.parse(toolCall.function.arguments),
         t
       );
-      let functionStatus: ToolCallStatus = ToolCallStatus.PENDING;
-      const toolMessage = messages.find(
-        m =>
-          m.message.role === OpenAIMessageRole.TOOL &&
-          m.message.tool_call_id === toolCall.id &&
-          m.status === MessageStatus.SUCCESS
-      );
-      if (toolMessage) {
-        functionStatus = ToolCallStatus.RUNNING;
-      }
-      const toolCallMeta = toolMessage?.attrs?.tool_call;
-      const toolCallStatus: string | undefined = toolCallMeta?.status;
-      if (toolCallStatus === ToolCallStatus.SUCCESS) {
-        functionStatus = ToolCallStatus.SUCCESS;
-      } else if (toolCallStatus === ToolCallStatus.FAILED) {
-        functionStatus = ToolCallStatus.FAILED;
-      } else if (toolCallStatus === ToolCallStatus.REJECTED) {
-        functionStatus = ToolCallStatus.REJECTED;
-      }
+      const toolMessage = findToolMessageForToolCall(messages, toolCall.id);
+      const functionStatus = resolveToolCallStatus(toolMessage);
 
       toolCalls.push({
         toolCallId: toolCall.id,
@@ -189,14 +225,7 @@ export function AssistantMessage(props: IProps) {
 
   const hasPendingToolCalls =
     toolCalls.length > 0 &&
-    toolCalls.filter(
-      t =>
-        ![
-          ToolCallStatus.SUCCESS,
-          ToolCallStatus.FAILED,
-          ToolCallStatus.REJECTED,
-        ].includes(t.status)
-    ).length > 0;
+    toolCalls.some(toolCall => !isTerminalToolCallStatus(toolCall.status));
 
   useEffect(() => {
     if (toolCalls.length === 0 || hasPendingToolCalls) return;
