@@ -39,6 +39,17 @@ export interface DndItem {
   preview?: TreeNode;
 }
 
+function isBatchDropOnDraggedResource(
+  nodes: Record<string, TreeNode>,
+  ids: string[],
+  targetId: string
+) {
+  const topLevelIds = getTopLevelSelectedIds(nodes, ids);
+  return topLevelIds.some(
+    id => id === targetId || isDescendant(nodes, id, targetId)
+  );
+}
+
 export function useDndHandlers({
   targetId,
   namespaceId,
@@ -98,11 +109,7 @@ export function useDndHandlers({
   const handleBatchMove = (ids: string[], count: number) => {
     const store = useSidebarStore.getState();
     const topLevelIds = getTopLevelSelectedIds(store.nodes, ids);
-    if (
-      topLevelIds.some(
-        id => id === targetId || isDescendant(store.nodes, id, targetId)
-      )
-    ) {
+    if (isBatchDropOnDraggedResource(store.nodes, topLevelIds, targetId)) {
       return;
     }
     if (topLevelIds.every(id => store.nodes[id]?.parentId === targetId)) {
@@ -142,7 +149,14 @@ export function useDndHandlers({
     if (monitor.didDrop()) return;
     const itemType = monitor.getItemType();
 
-    if (item.ids?.includes(targetId)) {
+    if (
+      item.ids &&
+      isBatchDropOnDraggedResource(
+        useSidebarStore.getState().nodes,
+        item.ids,
+        targetId
+      )
+    ) {
       setFileDragTarget(null);
       return;
     }
@@ -173,7 +187,16 @@ export function useDndHandlers({
     } else if (itemType === 'card') {
       setFileDragTarget(null);
       if (!isOverShallow) return;
-      if (item.ids?.includes(targetId)) return;
+      if (
+        item.ids &&
+        isBatchDropOnDraggedResource(
+          useSidebarStore.getState().nodes,
+          item.ids,
+          targetId
+        )
+      ) {
+        return;
+      }
       if (item.id === targetId) return;
     }
   };

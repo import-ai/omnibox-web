@@ -77,7 +77,8 @@ export function ResourceNodeContent({
 
   const isActive = nodeId === activeId;
   const isEditing = nodeId === renamingId;
-  const isSelectionHighlighted = isSelected || isFullySelected;
+  const isSelectionHighlighted =
+    !isDimmedBySelection && (isSelected || isFullySelected);
   const isExpanded = nodeUI?.expanded === true;
   const selectedIdList = useMemo(() => Object.keys(selectedIds), [selectedIds]);
 

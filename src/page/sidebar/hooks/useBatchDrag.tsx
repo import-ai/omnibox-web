@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useDragLayer } from 'react-dnd';
+import { useTranslation } from 'react-i18next';
 
 import ResourceTypeIcon from '@/components/resource-type-icon';
 
@@ -20,6 +21,7 @@ interface CardDragItem extends TreeNode {
 type SidebarDragItem = BatchDragItem | CardDragItem;
 
 export function SidebarDragLayer() {
+  const { t } = useTranslation();
   const { isDragging, currentOffset, item } = useDragLayer(monitor => ({
     item: monitor.getItem() as SidebarDragItem | null,
     currentOffset: monitor.getClientOffset(),
@@ -56,7 +58,7 @@ export function SidebarDragLayer() {
           }}
         />
         <span className="min-w-0 flex-1 truncate text-sm">
-          {previewNode.name}
+          {previewNode.name || t('untitled')}
         </span>
         {item.type === 'batch' && (
           <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full text-xs text-primary-foreground bg-primary">

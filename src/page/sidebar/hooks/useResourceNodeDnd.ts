@@ -62,6 +62,9 @@ export function useResourceNodeDnd(
       return item.id !== nodeId && !isDescendant(nodes, item.id, nodeId);
     }
     if (item.ids?.length) {
+      if (item.ids.includes(nodeId)) {
+        return false;
+      }
       const topLevelIds = getTopLevelSelectedIds(nodes, item.ids);
       return topLevelIds.every(
         id => id !== nodeId && !isDescendant(nodes, id, nodeId)

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -36,6 +36,11 @@ export function BodyForSidebar(props: IProps) {
   const createFolderTargetId = useSidebarStore(
     s => s.dialogs.createFolderTargetId
   );
+
+  useEffect(() => {
+    useSidebarStore.getState().deselectAll();
+  }, [namespaceId]);
+
   const handleGlobalFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {

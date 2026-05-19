@@ -34,6 +34,7 @@ export function useSpaceDrop({
     { isOver: boolean; canDrop: boolean }
   >({
     accept: [NativeTypes.FILE, 'card'],
+    canDrop: item => !item.ids?.length,
     drop: (item, monitor) => {
       handleDrop(item, monitor);
     },

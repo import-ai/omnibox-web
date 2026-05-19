@@ -93,7 +93,6 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
               ensureUI(s, child.id);
             }
 
-            // 记录此资源已展开，避免重复展开
             s.autoExpandedKeys[`${s.namespaceId}:${id}`] = true;
           });
         } catch (err) {
@@ -245,7 +244,6 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
           }
         });
 
-        // 记录此资源已展开，避免重复展开
         set(s => {
           s.autoExpandedKeys[autoExpandKey] = true;
         });
