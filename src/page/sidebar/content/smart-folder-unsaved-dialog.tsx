@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { AlertDescription } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +28,9 @@ export function SmartFolderUnsavedDialog(props: SmartFolderUnsavedDialogProps) {
           <AlertDialogTitle>
             {t('smart_folder.create.unsaved_title')}
           </AlertDialogTitle>
+          <AlertDescription className="text-muted-foreground text-sm">
+            {t('smart_folder.create.unsaved_description')}
+          </AlertDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel className="cancel-btn-outline">

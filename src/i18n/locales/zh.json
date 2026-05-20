@@ -950,7 +950,7 @@
       "quota_exhausted": "额度已用尽，升级版本不限创建。",
       "all_quota_exhausted": "额度均已用尽，升级版本不限创建。",
       "unsaved_title": "您的智能文件夹配置未保存，确定退出吗？",
-      "unsaved_description": "退出后本次填写的筛选条件不会被保留。",
+      "unsaved_description": "退出后，本次修改将不会保存。",
       "success": "智能文件夹已创建"
     },
     "scope": {

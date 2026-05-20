@@ -949,7 +949,7 @@
       "quota_exhausted": "Quota is exhausted. Upgrade for unlimited creation.",
       "all_quota_exhausted": "All quotas are exhausted. Upgrade for unlimited creation.",
       "unsaved_title": "Your smart folder configuration is not saved. Exit anyway?",
-      "unsaved_description": "Your current filter changes will be discarded if you leave.",
+      "unsaved_description": "After exiting, the current changes will not be saved.",
       "success": "Smart folder created"
     },
     "scope": {
