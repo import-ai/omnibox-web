@@ -1,8 +1,11 @@
+import Cookies from 'js-cookie';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { http } from '@/lib/request';
+import { StreamTransportError } from '@/lib/stream-transport';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
@@ -22,7 +25,7 @@ import {
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
 import { Messages } from '@/page/chat/messages';
-import { useShareContext } from '@/page/share';
+import { SHARE_PASSWORD_COOKIE, useShareContext } from '@/page/share';
 
 export default function SharedChatConversationPage() {
   const params = useParams();
@@ -42,6 +45,16 @@ export default function SharedChatConversationPage() {
     () => createMessageOperator(conversation, setConversation),
     [conversation, setConversation]
   );
+
+  const getSharePassword = () => {
+    return password || Cookies.get(SHARE_PASSWORD_COOKIE) || undefined;
+  };
+
+  const handleStreamError = (error: unknown) => {
+    if (error instanceof StreamTransportError) {
+      toast.error(error.message);
+    }
+  };
 
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
@@ -79,12 +92,14 @@ export default function SharedChatConversationPage() {
           getWizardLang(i18n),
           undefined,
           shareId,
-          password || undefined,
+          getSharePassword(),
           undefined,
           decisions ? { decisions } : undefined
         );
         askAbortRef.current = askFN.destroy;
         await askFN.start();
+      } catch (error) {
+        handleStreamError(error);
       } finally {
         setLoading(false);
       }
@@ -116,11 +131,13 @@ export default function SharedChatConversationPage() {
         originalLang,
         undefined,
         shareId,
-        password || undefined,
+        getSharePassword(),
         originalEnableThinking
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
+    } catch (error) {
+      handleStreamError(error);
     } finally {
       setLoading(false);
     }
@@ -155,11 +172,13 @@ export default function SharedChatConversationPage() {
         originalLang,
         undefined,
         shareId,
-        password || undefined,
+        getSharePassword(),
         originalEnableThinking
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
+    } catch (error) {
+      handleStreamError(error);
     } finally {
       setLoading(false);
     }
