@@ -919,5 +919,9 @@
       "minutes": "分钟",
       "hours": "小时"
     }
+  },
+  "tool": {
+    "positioning": "定位",
+    "sort": "排序"
   }
 }

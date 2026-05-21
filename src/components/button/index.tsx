@@ -30,6 +30,20 @@ const CustomButton = React.forwardRef<
       </BaseButton>
     );
   }
+
+  if (variant === 'ghost') {
+    return (
+      <BaseButton
+        ref={ref}
+        variant="ghost"
+        className={cn('hover:bg-sidebar-accent', className)}
+        {...rest}
+      >
+        {children}
+      </BaseButton>
+    );
+  }
+
   if (variant === 'outline') {
     return (
       <BaseButton

@@ -918,5 +918,9 @@
       "minutes": "min",
       "hours": "hrs"
     }
+  },
+  "tool": {
+    "positioning": "Positioning",
+    "sort": "Sort"
   }
 }
