@@ -2,10 +2,8 @@ import Cookies from 'js-cookie';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { toast } from 'sonner';
 
 import { http } from '@/lib/request';
-import { StreamTransportError } from '@/lib/stream-transport';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizard-lang';
 import ChatArea from '@/page/chat/chat-input';
@@ -50,12 +48,6 @@ export default function SharedChatConversationPage() {
     return password || Cookies.get(SHARE_PASSWORD_COOKIE) || undefined;
   };
 
-  const handleStreamError = (error: unknown) => {
-    if (error instanceof StreamTransportError) {
-      toast.error(error.message);
-    }
-  };
-
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
     let currentNode: string | undefined = conversation.current_node;
@@ -98,8 +90,6 @@ export default function SharedChatConversationPage() {
         );
         askAbortRef.current = askFN.destroy;
         await askFN.start();
-      } catch (error) {
-        handleStreamError(error);
       } finally {
         setLoading(false);
       }
@@ -131,13 +121,11 @@ export default function SharedChatConversationPage() {
         originalLang,
         undefined,
         shareId,
-        getSharePassword(),
+        password || undefined,
         originalEnableThinking
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
-    } catch (error) {
-      handleStreamError(error);
     } finally {
       setLoading(false);
     }
@@ -172,13 +160,11 @@ export default function SharedChatConversationPage() {
         originalLang,
         undefined,
         shareId,
-        getSharePassword(),
+        password || undefined,
         originalEnableThinking
       );
       askAbortRef.current = askFN.destroy;
       await askFN.start();
-    } catch (error) {
-      handleStreamError(error);
     } finally {
       setLoading(false);
     }

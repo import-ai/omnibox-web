@@ -1,16 +1,5 @@
 import { getWebSocketConnection } from './websocket';
 
-export class StreamTransportError extends Error {
-  constructor(
-    message: string,
-    public readonly code?: string,
-    public readonly status?: number
-  ) {
-    super(message);
-    this.name = 'StreamTransportError';
-  }
-}
-
 export interface StreamTransport {
   start: () => Promise<void>;
   destroy: () => void;
@@ -83,58 +72,34 @@ function createWebSocketTransport(
 ): StreamTransport {
   const socket = getWebSocketConnection();
   let isAborted = false;
-  let cleanup = () => {};
 
-  const getErrorMessage = (error: any) => {
-    return error?.message || error?.error || 'WebSocket stream failed';
+  const messageHandler = async (data: string) => {
+    if (!isAborted) {
+      await callback(data);
+    }
+  };
+
+  const errorHandler = (error: { error: string }) => {
+    console.error('WebSocket error:', error);
+  };
+
+  const completeHandler = () => {
+    cleanup();
+  };
+
+  const cleanup = () => {
+    socket.off('message', messageHandler);
+    socket.off('error', errorHandler);
+    socket.off('complete', completeHandler);
   };
 
   return {
     start: async () => {
-      return new Promise<void>((resolve, reject) => {
-        const finish = () => {
-          if (isAborted) return;
-          cleanup();
-          resolve();
-        };
+      socket.on('message', messageHandler);
+      socket.on('error', errorHandler);
+      socket.on('complete', completeHandler);
 
-        const fail = (error: any) => {
-          if (isAborted) return;
-          cleanup();
-          reject(
-            new StreamTransportError(
-              getErrorMessage(error),
-              error?.code,
-              error?.status
-            )
-          );
-        };
-
-        const messageHandler = async (data: string) => {
-          if (isAborted) return;
-          try {
-            await callback(data);
-          } catch (error) {
-            fail(error);
-          }
-        };
-
-        cleanup = () => {
-          socket.off('message', messageHandler);
-          socket.off('error', fail);
-          socket.off('exception', fail);
-          socket.off('connect_error', fail);
-          socket.off('complete', finish);
-        };
-
-        socket.on('message', messageHandler);
-        socket.on('error', fail);
-        socket.on('exception', fail);
-        socket.on('connect_error', fail);
-        socket.on('complete', finish);
-
-        socket.emit(event, body);
-      });
+      socket.emit(event, body);
     },
     destroy: () => {
       isAborted = true;
