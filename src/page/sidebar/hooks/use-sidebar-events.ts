@@ -77,9 +77,7 @@ export function useSidebarEvents(namespaceId: string) {
       }
       const last = resources[resources.length - 1];
       useSidebarStore.getState().activate(last.id);
-      navigate(`/${namespaceId}/${last.id}`, {
-        state: { fromSidebar: true },
-      });
+      navigate(`/${namespaceId}/${last.id}`);
     };
     const handleUpdatedResource = async (delta: Resource | string) => {
       const resource =
@@ -110,10 +108,20 @@ export function useSidebarEvents(namespaceId: string) {
       scrollToResource(targetId);
     };
 
-    // AI generates resources
-    hooks.push(app.on('generate_resource', handleGeneratedResource));
+    // The event bus treats a listener return value as the next listener's
+    // argument, so async handlers must not return Promise here.
     hooks.push(
-      app.on('refresh_resource_children', handleRefreshResourceChildren)
+      app.on(
+        'generate_resource',
+        (resourceIdOrParentId: string, resource?: Resource | Resource[]) => {
+          void handleGeneratedResource(resourceIdOrParentId, resource);
+        }
+      )
+    );
+    hooks.push(
+      app.on('refresh_resource_children', (resourceId: string) => {
+        void handleRefreshResourceChildren(resourceId);
+      })
     );
 
     // Delete a resource
@@ -140,13 +148,7 @@ export function useSidebarEvents(namespaceId: string) {
               .then(restoredId => {
                 app.fire('trash_updated');
                 const currentNs = useSidebarStore.getState().namespaceId;
-                const nowResourceId = extractResourceId(
-                  window.location.pathname,
-                  currentNs
-                );
-                if (!nowResourceId || nowResourceId === id) {
-                  navigate(`/${currentNs}/${restoredId}`);
-                }
+                navigate(`/${currentNs}/${restoredId}`);
               })
               .catch(err => {
                 console.error('[sidebar] restore failed:', err);
@@ -169,16 +171,30 @@ export function useSidebarEvents(namespaceId: string) {
         useSidebarStore.getState().collapse(resourceId);
       })
     );
-    hooks.push(app.on('scroll_to_resource', handleScrollToResource));
-    hooks.push(app.on('update_resource', handleUpdatedResource));
-    hooks.push(app.on('refresh_resource', handleUpdatedResource));
+    hooks.push(
+      app.on('scroll_to_resource', (targetId: string, parentId?: string) => {
+        void handleScrollToResource(targetId, parentId);
+      })
+    );
+    hooks.push(
+      app.on('update_resource', (delta: Resource | string) => {
+        void handleUpdatedResource(delta);
+      })
+    );
+    hooks.push(
+      app.on('refresh_resource', (delta: Resource | string) => {
+        void handleUpdatedResource(delta);
+      })
+    );
 
     // Restore from trash
     hooks.push(
-      app.on('restore_resource', async (resource: Resource) => {
-        const id = await useSidebarStore.getState().restore(resource);
-        useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`);
+      app.on('restore_resource', (resource: Resource) => {
+        void (async () => {
+          const id = await useSidebarStore.getState().restore(resource);
+          useSidebarStore.getState().activate(id);
+          navigate(`/${namespaceId}/${id}`);
+        })();
       })
     );
 

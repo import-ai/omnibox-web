@@ -10,6 +10,13 @@ export interface UploadProgress {
 
 export type UploadProgressCallback = (progress: UploadProgress) => void;
 
+function throwUploadRequestError(error: any): never {
+  if (error.response?.data?.message) {
+    throw new Error(error.response.data.message);
+  }
+  throw error;
+}
+
 async function uploadFile(
   namespaceId: string,
   parentId: string,
@@ -27,10 +34,7 @@ async function uploadFile(
       { mute: true }
     );
   } catch (error: any) {
-    if (error.response?.data?.message) {
-      throw new Error(error.response?.data?.message);
-    }
-    throw error;
+    throwUploadRequestError(error);
   }
   const formData = new FormData();
   for (const [key, value] of fileInfo.post_fields || []) {
@@ -46,12 +50,20 @@ async function uploadFile(
   if (!resp.ok) {
     throw new Error(t('upload.failed'));
   }
-  return await http.post(`/namespaces/${namespaceId}/resources`, {
-    parentId,
-    resourceType: 'file',
-    name: file.name,
-    file_id: fileInfo.id,
-  });
+  try {
+    return await http.post(
+      `/namespaces/${namespaceId}/resources`,
+      {
+        parentId,
+        resourceType: 'file',
+        name: file.name,
+        file_id: fileInfo.id,
+      },
+      { mute: true }
+    );
+  } catch (error: any) {
+    throwUploadRequestError(error);
+  }
 }
 
 export async function uploadFiles(
