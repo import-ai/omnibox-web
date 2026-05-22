@@ -921,6 +921,7 @@
   },
   "tool": {
     "positioning": "Positioning",
+    "positioning_disabled": "No resource to locate",
     "sort": "Sort"
   }
 }

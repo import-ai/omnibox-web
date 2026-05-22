@@ -46,7 +46,7 @@ export function BodyForSidebar(props: IProps) {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : err || t('upload.failed');
-      toast(message, { position: 'bottom-right' });
+      toast(message as string, { position: 'bottom-right' });
     } finally {
       if (globalFileInputRef.current) {
         globalFileInputRef.current.value = '';
@@ -56,7 +56,7 @@ export function BodyForSidebar(props: IProps) {
 
   return (
     <React.Fragment>
-      <ResourceTree namespaceId={namespaceId} />
+      <ResourceTree namespaceId={namespaceId} resourceId={resourceId} />
       <CreateFolderDialog
         open={!!createFolderTargetId}
         onOpenChange={open => {

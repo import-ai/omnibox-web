@@ -19,3 +19,12 @@ export function triggerGlobalFileUpload(targetId: string) {
     input.click();
   }
 }
+
+export function scrollToSidebarResource(resourceId: string) {
+  requestAnimationFrame(() => {
+    const element = document.querySelector(
+      `[data-resource-id="${resourceId}"]`
+    );
+    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}

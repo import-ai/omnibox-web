@@ -9,6 +9,7 @@ import { SidebarContent } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SpaceType } from '@/interface';
 import { useDragAutoScroll } from '@/page/sidebar/hooks/use-drag-auto-scroll';
+import { useSidebarStore } from '@/page/sidebar/store';
 import { TrashPanel } from '@/page/trash';
 
 import { menuIconClass } from './shared';
@@ -17,12 +18,23 @@ import { useToolConfig } from './tool.config';
 
 interface ResourceTreeProps {
   namespaceId: string;
+  resourceId: string;
 }
 
-export default function ResourceTree({ namespaceId }: ResourceTreeProps) {
+export default function ResourceTree({
+  namespaceId,
+  resourceId,
+}: ResourceTreeProps) {
   const isMobile = useIsMobile();
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const toolConfig = useToolConfig();
+  const activeId = useSidebarStore(s => s.activeId);
+  const locationTargetId = resourceId || activeId || '';
+  const toolConfig = useToolConfig({
+    currentResourceId: locationTargetId,
+    disabledMap: {
+      'one-click-location': !locationTargetId,
+    },
+  });
 
   useDragAutoScroll(sidebarRef);
 

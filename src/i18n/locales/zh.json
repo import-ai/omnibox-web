@@ -922,6 +922,7 @@
   },
   "tool": {
     "positioning": "定位",
+    "positioning_disabled": "当前无资源可定位",
     "sort": "排序"
   }
 }

@@ -6,6 +6,7 @@ import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/use-app';
 import { Resource } from '@/interface';
 import { useSidebarStore } from '@/page/sidebar/store';
+import { scrollToSidebarResource } from '@/page/sidebar/utils';
 import { fetchChildren, fetchResource } from '@/service/resource';
 
 function extractResourceId(
@@ -31,15 +32,6 @@ async function resolveResourceList(
     return [];
   }
   return [await fetchResource(namespaceId, resourceIdOrParentId)];
-}
-
-function scrollToResource(resourceId: string) {
-  requestAnimationFrame(() => {
-    const element = document.querySelector(
-      `[data-resource-id="${resourceId}"]`
-    );
-    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
 }
 
 /**
@@ -107,7 +99,7 @@ export function useSidebarEvents(namespaceId: string) {
       await useSidebarStore
         .getState()
         .expandPathTo(targetId, { expandTarget: true });
-      scrollToResource(targetId);
+      scrollToSidebarResource(targetId);
     };
 
     // AI generates resources
