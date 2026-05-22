@@ -1,4 +1,8 @@
 import type { Resource } from '@/interface';
+import {
+  isSmartFolderChildResource,
+  withSmartFolderChildSidebarAttrs,
+} from '@/page/sidebar/content/smart-folder';
 import { fetchShareChildren, fetchShareResource } from '@/service/share';
 
 import type { SidebarGet, SidebarSet, SpaceType, TreeNode } from '../types';
@@ -21,17 +25,9 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
       return children;
     }
 
-    return children.map(child => ({
-      ...child,
-      parent_id: parent.id,
-      has_children: false,
-      attrs: {
-        ...(child.attrs || {}),
-        __smart_folder_child: true,
-        __source_resource_id: child.id,
-        __source_parent_id: child.parent_id,
-      },
-    }));
+    return children.map(child =>
+      withSmartFolderChildSidebarAttrs(child, parent.id)
+    );
   };
 
   const patchNodeFromSharedResource = (node: TreeNode, resource: Resource) => {
@@ -114,7 +110,7 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
                   patchNodeFromResource(existing, child);
                 }
               }
-              if (child.attrs?.__smart_folder_child === true) {
+              if (isSmartFolderChildResource(child)) {
                 const childNode = s.nodes[child.id];
                 if (childNode) {
                   childNode.parentId = id;

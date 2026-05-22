@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { http } from '@/lib/request';
-import { SmartFolderEntitlements } from '@/page/sidebar/content/smart-folder-types';
+import { SmartFolderEntitlements } from '@/page/sidebar/content/smart-folder';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 interface IProps {

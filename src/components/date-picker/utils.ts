@@ -2,7 +2,7 @@ import { DateRange } from 'react-day-picker';
 
 export type RangeSelectionStep = 'start' | 'end';
 
-export interface SmartFolderRangeSelectionState {
+export interface RangeSelectionState {
   range?: DateRange;
   nextStep: RangeSelectionStep;
 }
@@ -12,9 +12,9 @@ function sortRange(from: Date, to: Date): DateRange {
 }
 
 export function getNextRangeSelectionState(
-  currentState: SmartFolderRangeSelectionState,
+  currentState: RangeSelectionState,
   selectedDate: Date
-): SmartFolderRangeSelectionState {
+): RangeSelectionState {
   if (currentState.nextStep === 'start') {
     return {
       range: { from: selectedDate, to: selectedDate },

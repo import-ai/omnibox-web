@@ -17,6 +17,15 @@ export function buildBaseActions(set: SidebarSet) {
           createFolderTargetId: null,
           currentUploadTargetId: null,
           upload: {},
+          editSmartFolder: {
+            open: false,
+            nodeId: null,
+            initialValue: null,
+          },
+          smartFolderTrash: {
+            open: false,
+            nodeId: null,
+          },
         };
         s.autoExpandedKeys = {};
       });
@@ -80,6 +89,15 @@ export function buildBaseActions(set: SidebarSet) {
           createFolderTargetId: null,
           currentUploadTargetId: null,
           upload: {},
+          editSmartFolder: {
+            open: false,
+            nodeId: null,
+            initialValue: null,
+          },
+          smartFolderTrash: {
+            open: false,
+            nodeId: null,
+          },
         };
         s.autoExpandedKeys = {};
       });

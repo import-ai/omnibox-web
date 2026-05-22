@@ -18,18 +18,16 @@ import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import { cn } from '@/lib/utils';
 
 import { getDefaultRootScope } from './create-smart-folder-dialog-helpers';
-import { CreateSmartFolderDialogProps } from './create-smart-folder-dialog-types';
-import { SmartFolderConditionRow } from './smart-folder-condition-row';
-import { SmartFolderDialogFooter } from './smart-folder-dialog-footer';
-import {
+import type {
+  CreateSmartFolderDialogProps,
   SmartFolderMatchMode,
   SmartFolderOwnerScope,
   SmartFolderRootScope,
-} from './smart-folder-types';
+} from './index';
+import { SmartFolderConditionRow } from './smart-folder-condition-row';
+import { SmartFolderDialogFooter } from './smart-folder-dialog-footer';
 import { SmartFolderUnsavedDialog } from './smart-folder-unsaved-dialog';
 import {
-  smartFolderDialogContentClass,
-  smartFolderDialogTitleClass,
   smartFolderFieldLabelClass,
   smartFolderInputClass,
   smartFolderNameRowClass,
@@ -85,8 +83,8 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
         title={dialogTitle}
         open={open}
         onOpenChange={handleDialogOpenChange}
-        contentClassName={smartFolderDialogContentClass}
-        titleClassName={smartFolderDialogTitleClass}
+        contentClassName="max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl bg-white dark:bg-neutral-900 sm:max-w-[650px] sm:p-7"
+        titleClassName="text-lg font-semibold leading-7 text-foreground"
         closeClassName="size-6 mr-2"
         closeWrapperClassName="right-5 top-6"
         contentProps={{

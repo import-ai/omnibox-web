@@ -8,15 +8,14 @@ import { http } from '@/lib/request';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 import {
+  CreateSmartFolderPayload,
+  CreateSmartFolderRequest,
   getSmartFolderChildSidebarKey,
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
-} from './smart-folder-resource-utils';
-import {
-  CreateSmartFolderPayload,
-  CreateSmartFolderRequest,
+  isSmartFolderChildResource,
   SmartFolderResponse,
-} from './smart-folder-types';
+} from './index';
 
 function findResourceById(
   resource: IResourceData | undefined,
@@ -65,7 +64,7 @@ export function useSmartFolderResourceActions(
     useState<CreateSmartFolderPayload | null>(null);
 
   const isSmartFolder = data.resource_type === 'smart_folder';
-  const isSmartFolderChild = data.attrs?.__smart_folder_child === true;
+  const isSmartFolderChild = isSmartFolderChildResource(data);
   const canEditSmartFolder =
     (data.current_permission || 'full_access') === 'can_edit' ||
     (data.current_permission || 'full_access') === 'full_access';
@@ -130,7 +129,7 @@ export function useSmartFolderResourceActions(
         const store = useSidebarStore.getState();
 
         if (movedParentId) {
-          store.moveLocal(data.id, movedParentId);
+          store.move(data.id, movedParentId, true);
         }
         app.fire('update_resource', {
           ...response.resource,

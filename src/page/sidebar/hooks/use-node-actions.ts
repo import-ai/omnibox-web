@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { useSidebar } from '@/components/ui/sidebar';
 import useApp from '@/hooks/use-app';
 import { useIsMobile } from '@/hooks/use-mobile';
-import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
 import type { Resource } from '@/interface';
 import { addToChatContext } from '@/lib/chat-bridge';
 import { deleteResource } from '@/lib/delete-resource';
@@ -14,12 +13,9 @@ import { http } from '@/lib/request';
 import {
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
-} from '@/page/sidebar/content/smart-folder-resource-utils';
-import {
-  CreateSmartFolderPayload,
-  CreateSmartFolderRequest,
-  SmartFolderResponse,
-} from '@/page/sidebar/content/smart-folder-types';
+  isSmartFolderChildResource,
+} from '@/page/sidebar/content/smart-folder';
+import { SmartFolderResponse } from '@/page/sidebar/content/smart-folder';
 import { useNode, useSidebarStore } from '@/page/sidebar/store';
 import type { TreeNode } from '@/page/sidebar/store/types';
 import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
@@ -29,12 +25,6 @@ export interface UseNodeActionsReturn {
 
   moveTo: boolean;
   setMoveTo: (v: boolean) => void;
-  smartFolderOpen: boolean;
-  setSmartFolderOpen: (v: boolean) => void;
-  smartFolderTrashOpen: boolean;
-  setSmartFolderTrashOpen: (v: boolean) => void;
-  smartFolderInitial: CreateSmartFolderPayload | null;
-  smartFolderRetentionDays?: number;
 
   handleCreateFile: () => void;
   /** Creates a folder directly without a name dialog (context-menu path) */
@@ -45,8 +35,6 @@ export interface UseNodeActionsReturn {
   handleLocateSource: () => void;
   handleUpload: () => void;
   handleDelete: () => void;
-  handleConfirmSmartFolderDelete: () => void;
-  handleUpdateSmartFolder: (payload: CreateSmartFolderRequest) => Promise<void>;
   handleMoveTo: () => void;
   handleMoveFinished: (resourceId: string, targetId: string) => void;
   handleAddToChat: () => void;
@@ -88,15 +76,7 @@ export function useNodeActions(
   const node = useNode(nodeId);
 
   const [moveTo, setMoveTo] = useState(false);
-  const [smartFolderOpen, setSmartFolderOpen] = useState(false);
-  const [smartFolderTrashOpen, setSmartFolderTrashOpen] = useState(false);
-  const [smartFolderInitial, setSmartFolderInitial] =
-    useState<CreateSmartFolderPayload | null>(null);
-  const { data: smartFolderEntitlements } = useSmartFolderEntitlements({
-    namespaceId,
-    disabled: node?.resourceType !== 'smart_folder',
-  });
-  const isSmartFolderChild = node?.attrs?.__smart_folder_child === true;
+  const isSmartFolderChild = node ? isSmartFolderChildResource(node) : false;
   const canModifyNode =
     (node?.currentPermission || 'full_access') === 'can_edit' ||
     (node?.currentPermission || 'full_access') === 'full_access';
@@ -108,10 +88,7 @@ export function useNodeActions(
     : undefined;
 
   const handleCreateFile = () => {
-    if (
-      node?.resourceType === 'smart_folder' ||
-      node?.attrs?.__smart_folder_child
-    ) {
+    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
       return;
     }
 
@@ -131,10 +108,7 @@ export function useNodeActions(
   };
 
   const handleCreateFolderDirect = () => {
-    if (
-      node?.resourceType === 'smart_folder' ||
-      node?.attrs?.__smart_folder_child
-    ) {
+    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
       return;
     }
 
@@ -150,10 +124,7 @@ export function useNodeActions(
   };
 
   const handleCreateFolderWithDialog = () => {
-    if (
-      node?.resourceType === 'smart_folder' ||
-      node?.attrs?.__smart_folder_child
-    ) {
+    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
       return;
     }
 
@@ -169,14 +140,13 @@ export function useNodeActions(
       http
         .get(`/namespaces/${namespaceId}/smart-folders/${nodeId}/config`)
         .then((response: SmartFolderResponse) => {
-          setSmartFolderInitial({
+          useSidebarStore.getState().openEditSmartFolderDialog(nodeId, {
             name: response.resource.name || '',
             ownerScope: response.owner_scope || 'private',
             rootScope: response.root_scope || 'private',
             matchMode: response.match_mode || 'all',
             conditions: response.conditions || [],
           });
-          setSmartFolderOpen(true);
         });
       return;
     }
@@ -216,10 +186,7 @@ export function useNodeActions(
   const handleAddAllToChat = () => addToContext('folder');
 
   const handleMoveTo = () => {
-    if (
-      node?.resourceType === 'smart_folder' ||
-      node?.attrs?.__smart_folder_child === true
-    ) {
+    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
       return;
     }
 
@@ -232,7 +199,7 @@ export function useNodeActions(
         toast.error(t('permission.delete_required'));
         return;
       }
-      setSmartFolderTrashOpen(true);
+      useSidebarStore.getState().openSmartFolderTrashDialog(nodeId);
       return;
     }
 
@@ -245,55 +212,8 @@ export function useNodeActions(
     });
   };
 
-  const handleConfirmSmartFolderDelete = () => {
-    setSmartFolderTrashOpen(false);
-    deleteResource({
-      id: nodeId,
-      parentId: node?.parentId ?? null,
-      namespaceId,
-      app,
-      resourceType: node?.resourceType,
-    });
-  };
-
-  const handleUpdateSmartFolder = (payload: CreateSmartFolderRequest) => {
-    if (!node) return Promise.reject();
-
-    return http
-      .patch(
-        `/namespaces/${namespaceId}/smart-folders/${nodeId}/config`,
-        payload
-      )
-      .then((response: SmartFolderResponse) => {
-        const movedParentId =
-          response.resource.parent_id &&
-          response.resource.parent_id !== node.parentId
-            ? response.resource.parent_id
-            : '';
-        const store = useSidebarStore.getState();
-
-        store.patch(nodeId, { name: payload.name });
-        if (movedParentId) {
-          store.moveLocal(nodeId, movedParentId);
-        }
-        app.fire('update_resource', {
-          ...response.resource,
-          name: payload.name,
-        });
-        app.fire('refresh_smart_folder_children', nodeId);
-        store.refetchSmartFolderEntitlements();
-        if (movedParentId) {
-          app.fire('scroll_to_resource', nodeId, movedParentId);
-        }
-        toast.success(t('smart_folder.edit.success'));
-      });
-  };
-
   const handleUpload = () => {
-    if (
-      node?.resourceType === 'smart_folder' ||
-      node?.attrs?.__smart_folder_child
-    ) {
+    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
       return;
     }
 
@@ -314,12 +234,6 @@ export function useNodeActions(
     node,
     moveTo,
     setMoveTo,
-    smartFolderOpen,
-    setSmartFolderOpen,
-    smartFolderTrashOpen,
-    setSmartFolderTrashOpen,
-    smartFolderInitial,
-    smartFolderRetentionDays: smartFolderEntitlements?.trashRetentionDays,
     handleCreateFile,
     handleCreateFolderDirect,
     handleCreateFolderWithDialog,
@@ -327,8 +241,6 @@ export function useNodeActions(
     handleLocateSource,
     handleUpload,
     handleDelete,
-    handleConfirmSmartFolderDelete,
-    handleUpdateSmartFolder,
     handleMoveTo,
     handleMoveFinished,
     handleAddToChat,

@@ -3,6 +3,7 @@ import { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
+import { DatePicker, DateRangePicker } from '@/components/date-picker';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -14,15 +15,11 @@ import {
 import { cn } from '@/lib/utils';
 
 import {
-  SmartFolderDatePicker,
-  SmartFolderDateRangePicker,
-} from './smart-folder-date-picker';
-import {
   SmartFolderCondition,
   SmartFolderField,
   SmartFolderOperator,
   SmartFolderRelativeDateUnit,
-} from './smart-folder-types';
+} from './index';
 import {
   getAvailableOperators,
   getFieldType,
@@ -31,13 +28,7 @@ import {
   SMART_FOLDER_FIELD_OPTIONS,
   SMART_FOLDER_RELATIVE_DATE_UNITS,
 } from './smart-folder-utils';
-import {
-  smartFolderConditionErrorClass,
-  smartFolderConditionGridClass,
-  smartFolderIconButtonClass,
-  smartFolderInputClass,
-  smartFolderSelectTriggerClass,
-} from './styles';
+import { smartFolderInputClass, smartFolderSelectTriggerClass } from './styles';
 
 interface SmartFolderConditionRowProps {
   condition: SmartFolderCondition;
@@ -98,8 +89,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
           variant="ghost"
           size="icon"
           className={cn(
-            smartFolderIconButtonClass,
-            'size-6 text-muted-foreground hover:text-foreground',
+            'text-muted-foreground hover:text-foreground size-4 rounded-none border-none bg-transparent p-0 shadow-none hover:bg-transparent',
             hideRemove && 'invisible'
           )}
           onClick={() => onRemove(index)}
@@ -107,7 +97,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
           <X className="size-4" />
         </Button>
       </div>
-      <div className={smartFolderConditionGridClass}>
+      <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-28 flex-[0.72_1_120px]">
           <Select
             value={condition.field || ''}
@@ -213,8 +203,10 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
                   </Select>
                 </div>
               ) : normalizedValue?.kind === 'single_date' ? (
-                <SmartFolderDatePicker
+                <DatePicker
                   value={normalizedValue.date}
+                  placeholder={t('smart_folder.create.pick_date')}
+                  className={smartFolderSelectTriggerClass}
                   onChange={value =>
                     onValueChange(index, {
                       ...normalizedValue,
@@ -223,9 +215,12 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
                   }
                 />
               ) : normalizedValue?.kind === 'date_range' ? (
-                <SmartFolderDateRangePicker
+                <DateRangePicker
                   startDate={normalizedValue.startDate}
                   endDate={normalizedValue.endDate}
+                  placeholder={t('smart_folder.create.pick_date')}
+                  displayFormat={t('smart_folder.date_format')}
+                  className={smartFolderSelectTriggerClass}
                   onChange={value =>
                     onValueChange(index, {
                       ...normalizedValue,
@@ -246,7 +241,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
       </div>
 
       {conditionError && (
-        <p className={smartFolderConditionErrorClass}>{conditionError}</p>
+        <p className="text-xs text-destructive">{conditionError}</p>
       )}
     </div>
   );

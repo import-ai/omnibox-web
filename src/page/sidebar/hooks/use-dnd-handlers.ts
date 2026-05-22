@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { isSmartFolderChildResource } from '@/page/sidebar/content/smart-folder';
+
 import { useSidebarStore } from '../store';
 import { isValidFileType } from '../utils';
 
@@ -51,7 +53,7 @@ export function useDndHandlers({
     const targetNode = useSidebarStore.getState().nodes[targetId];
     if (
       targetNode?.resourceType === 'smart_folder' ||
-      targetNode?.attrs?.__smart_folder_child === true
+      isSmartFolderChildResource(targetNode)
     ) {
       return;
     }
@@ -89,8 +91,8 @@ export function useDndHandlers({
     const dragNode = nodes[dragId];
     const targetNode = nodes[targetId];
     if (
-      dragNode?.attrs?.__smart_folder_child === true ||
-      targetNode?.attrs?.__smart_folder_child === true
+      isSmartFolderChildResource(dragNode) ||
+      isSmartFolderChildResource(targetNode)
     ) {
       return;
     }

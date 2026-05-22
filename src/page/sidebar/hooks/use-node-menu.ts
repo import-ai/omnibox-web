@@ -14,6 +14,8 @@ import {
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { isSmartFolderChildResource } from '@/page/sidebar/content/smart-folder';
+
 import type { UseNodeActionsReturn } from '../hooks/use-node-actions';
 
 export type CreateFolderMode = 'direct' | 'dialog';
@@ -46,7 +48,7 @@ export function useNodeMenu(
   const menuItems = useMemo<MenuItem[]>(() => {
     if (!node) return [];
 
-    if (node.attrs?.__smart_folder_child === true) {
+    if (isSmartFolderChildResource(node)) {
       return [
         {
           key: 'locate_source_resource',

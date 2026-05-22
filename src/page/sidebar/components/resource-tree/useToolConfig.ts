@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
 
-import type { SmartFolderEntitlements } from '../../content/smart-folder-types';
+import type { SmartFolderEntitlements } from '../../content/smart-folder';
 
 export type ResourceTreeToolId = 'create-smart-folder';
 

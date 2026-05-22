@@ -1,5 +1,5 @@
 import type { SpaceType } from '@/interface';
-import { getSmartFolderChildSidebarKey } from '@/page/sidebar/content/smart-folder-resource-utils';
+import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/content/smart-folder';
 import {
   fetchChildren,
   fetchResource,
@@ -46,18 +46,7 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
               : await fetchChildren(get().namespaceId, id);
           const children = rawChildren.map(child =>
             node.resourceType === 'smart_folder'
-              ? {
-                  ...child,
-                  id: getSmartFolderChildSidebarKey(id, child.id),
-                  parent_id: id,
-                  has_children: false,
-                  attrs: {
-                    ...(child.attrs || {}),
-                    __smart_folder_child: true,
-                    __source_resource_id: child.id,
-                    __source_parent_id: child.parent_id,
-                  },
-                }
+              ? withSmartFolderChildSidebarAttrs(child, id)
               : child
           );
 

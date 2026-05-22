@@ -22,6 +22,7 @@ import useApp from '@/hooks/use-app';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Namespace, Resource } from '@/interface';
 import { cn } from '@/lib/utils';
+import { getSmartFolderSourceResourceId } from '@/page/sidebar/content/smart-folder';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/use-resource-node-dnd';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
@@ -67,9 +68,14 @@ export function ResourceNodeContent({
 
   const [editName, setEditName] = useState('');
 
+  const smartFolderSourceResourceId = getSmartFolderSourceResourceId({
+    id: node.id,
+    parent_id: node.parentId || '',
+    attrs: node.attrs,
+  });
   const sourceResourceId =
-    typeof node.attrs?.__source_resource_id === 'string'
-      ? node.attrs.__source_resource_id
+    smartFolderSourceResourceId !== node.id
+      ? smartFolderSourceResourceId
       : undefined;
   const activeSidebarKey =
     typeof location.state?.sidebarActiveKey === 'string'
@@ -259,8 +265,6 @@ export function ResourceNodeContent({
           <ContextMenuMain
             nodeId={nodeId}
             namespaceId={namespaceId}
-            hasTeamspace={hasTeamspace}
-            currentNamespace={currentNamespace}
             onRename={() => {
               startRename();
             }}
@@ -355,8 +359,6 @@ export function ResourceNodeContent({
                 nodeId={nodeId}
                 namespaceId={namespaceId}
                 upload={upload}
-                hasTeamspace={hasTeamspace}
-                currentNamespace={currentNamespace}
                 onRename={() => {
                   startRename();
                 }}

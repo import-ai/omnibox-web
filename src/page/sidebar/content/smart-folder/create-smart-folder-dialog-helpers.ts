@@ -6,7 +6,7 @@ import {
   SmartFolderMatchMode,
   SmartFolderOwnerScope,
   SmartFolderRootScope,
-} from './smart-folder-types';
+} from './index';
 import {
   createDefaultCondition,
   fromSmartFolderApiCondition,

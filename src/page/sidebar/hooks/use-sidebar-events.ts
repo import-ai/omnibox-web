@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/use-app';
 import { Resource, ResourceType } from '@/interface';
-import { getSmartFolderChildSidebarKey } from '@/page/sidebar/content/smart-folder-resource-utils';
+import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/content/smart-folder';
 import { useSidebarStore } from '@/page/sidebar/store';
 import {
   fetchChildren,
@@ -63,18 +63,7 @@ async function refreshSmartFolderChildren(
     app.fire('smart_folder_children_updated', id, children);
     store.refreshChildren(
       id,
-      children.map(child => ({
-        ...child,
-        id: getSmartFolderChildSidebarKey(id, child.id),
-        parent_id: id,
-        has_children: false,
-        attrs: {
-          ...(child.attrs || {}),
-          __smart_folder_child: true,
-          __source_resource_id: child.id,
-          __source_parent_id: child.parent_id,
-        },
-      }))
+      children.map(child => withSmartFolderChildSidebarAttrs(child, id))
     );
   } catch (err) {
     if ((err as { response?: { status?: number } }).response?.status === 404) {

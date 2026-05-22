@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useDragLayer } from 'react-dnd';
-import { useTranslation } from 'react-i18next';
 
 import {
   ContextMenu,
@@ -9,13 +8,9 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { Namespace } from '@/interface';
 import MoveTo from '@/page/resource/actions/move';
-import { CreateSmartFolderDialog } from '@/page/sidebar/content/create-smart-folder-dialog';
-import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/content/smart-folder-trash-confirm-dialog';
 import { useNodeActions } from '@/page/sidebar/hooks/use-node-actions';
 import { useNodeMenu } from '@/page/sidebar/hooks/use-node-menu';
-import { useSidebarStore } from '@/page/sidebar/store';
 
 import { menuIconClass, menuItemClass } from './shared';
 
@@ -23,8 +18,6 @@ interface NodeContextMenuProps {
   nodeId: string;
   namespaceId: string;
   children: React.ReactNode;
-  hasTeamspace: boolean;
-  currentNamespace?: Namespace;
   onRename?: () => void;
 }
 
@@ -32,11 +25,8 @@ export default function NodeContextMenu({
   nodeId,
   namespaceId,
   children,
-  hasTeamspace,
-  currentNamespace,
   onRename,
 }: NodeContextMenuProps) {
-  const { t } = useTranslation();
   const [contextOpen, setContextOpen] = useState(false);
 
   const { isActuallyDragging } = useDragLayer(monitor => {
@@ -58,25 +48,10 @@ export default function NodeContextMenu({
 
   const actions = useNodeActions(nodeId, namespaceId);
   const { node } = actions;
-  const nodes = useSidebarStore(state => state.nodes);
 
   if (!node) {
     return children;
   }
-  const siblingResources =
-    node.parentId && nodes[node.parentId]
-      ? nodes[node.parentId].children
-          .map(childId => nodes[childId])
-          .filter(Boolean)
-          .map(sibling => ({
-            id: sibling.id,
-            name: sibling.name,
-            parent_id: sibling.parentId,
-            resource_type: sibling.resourceType,
-            has_children: sibling.hasChildren,
-            attrs: sibling.attrs,
-          }))
-      : [];
 
   const menuItems = useNodeMenu(actions, 'direct', () => {
     setContextOpen(false);
@@ -133,28 +108,6 @@ export default function NodeContextMenu({
             onFinished={actions.handleMoveFinished}
           />
         </>
-      )}
-      {node.resourceType === 'smart_folder' && (
-        <CreateSmartFolderDialog
-          open={actions.smartFolderOpen}
-          currentResourceId={nodeId}
-          initialValue={actions.smartFolderInitial}
-          title={t('smart_folder.edit.title')}
-          confirmText={t('smart_folder.edit.submit')}
-          hasTeamspace={hasTeamspace}
-          currentNamespace={currentNamespace}
-          siblingResources={siblingResources}
-          onOpenChange={actions.setSmartFolderOpen}
-          onConfirm={actions.handleUpdateSmartFolder}
-        />
-      )}
-      {node.resourceType === 'smart_folder' && (
-        <SmartFolderTrashConfirmDialog
-          open={actions.smartFolderTrashOpen}
-          retentionDays={actions.smartFolderRetentionDays}
-          onOpenChange={actions.setSmartFolderTrashOpen}
-          onConfirm={actions.handleConfirmSmartFolderDelete}
-        />
       )}
     </>
   );

@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import useApp from '@/hooks/use-app';
 import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
-import { getSmartFolderChildSidebarKey } from '@/page/sidebar/content/smart-folder-resource-utils';
+import { getSmartFolderChildSidebarKey } from '@/page/sidebar/content/smart-folder';
 
 import { groupTimestampedItemsByTimestamp } from '../utils';
 import { FolderContent } from './content';

@@ -20,22 +20,21 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
-import {
-  getNextRangeSelectionState,
-  type SmartFolderRangeSelectionState,
-} from './smart-folder-date-picker-utils';
-import { smartFolderSelectTriggerClass } from './styles';
+import { getNextRangeSelectionState, type RangeSelectionState } from './utils';
 
-interface SmartFolderDatePickerProps {
+interface DatePickerProps {
   className?: string;
   disabled?: boolean;
+  placeholder?: string;
   value: string;
   onChange: (value: string) => void;
 }
 
-interface SmartFolderDateRangePickerProps {
+interface DateRangePickerProps {
   className?: string;
   disabled?: boolean;
+  displayFormat?: string;
+  placeholder?: string;
   startDate: string;
   endDate: string;
   onChange: (value: { startDate: string; endDate: string }) => void;
@@ -133,7 +132,7 @@ function getDisplayText(
   return `${format(range.from, formatPattern, { locale })} - ${format(range.to, formatPattern, { locale })}`;
 }
 
-function SmartFolderRangeDayButton({
+function RangeDayButton({
   children,
   className,
   day,
@@ -176,9 +175,9 @@ function SmartFolderRangeDayButton({
   );
 }
 
-export function SmartFolderDatePicker(props: SmartFolderDatePickerProps) {
-  const { className, disabled, value, onChange } = props;
-  const { i18n, t } = useTranslation();
+export function DatePicker(props: DatePickerProps) {
+  const { className, disabled, placeholder, value, onChange } = props;
+  const { i18n } = useTranslation();
   const selectedDate = useMemo(() => parseDate(value), [value]);
   const calendarLocale = i18n.language?.startsWith('zh') ? zhCN : enUS;
 
@@ -190,15 +189,12 @@ export function SmartFolderDatePicker(props: SmartFolderDatePickerProps) {
           variant="outline"
           disabled={disabled}
           className={cn(
-            smartFolderSelectTriggerClass,
             'w-full justify-between font-normal',
             !value && 'text-muted-foreground',
             className
           )}
         >
-          <span className="truncate">
-            {formatDate(value) || t('smart_folder.create.pick_date')}
-          </span>
+          <span className="truncate">{formatDate(value) || placeholder}</span>
           <CalendarIcon className="size-4 text-neutral-400" />
         </Button>
       </PopoverTrigger>
@@ -225,15 +221,21 @@ export function SmartFolderDatePicker(props: SmartFolderDatePickerProps) {
   );
 }
 
-export function SmartFolderDateRangePicker(
-  props: SmartFolderDateRangePickerProps
-) {
-  const { className, disabled, startDate, endDate, onChange } = props;
-  const { i18n, t } = useTranslation();
+export function DateRangePicker(props: DateRangePickerProps) {
+  const {
+    className,
+    disabled,
+    displayFormat,
+    placeholder,
+    startDate,
+    endDate,
+    onChange,
+  } = props;
+  const { i18n } = useTranslation();
   const calendarLocale = i18n.language?.startsWith('zh') ? zhCN : enUS;
-  const displayFormat = t('smart_folder.date_format');
-  const [selectionState, setSelectionState] =
-    useState<SmartFolderRangeSelectionState>({ nextStep: 'start' });
+  const [selectionState, setSelectionState] = useState<RangeSelectionState>({
+    nextStep: 'start',
+  });
 
   const dateRange = useMemo<DateRange | undefined>(() => {
     const from = parseOptionalDate(startDate);
@@ -270,7 +272,6 @@ export function SmartFolderDateRangePicker(
           disabled={disabled}
           data-empty={!visibleRange?.from}
           className={cn(
-            smartFolderSelectTriggerClass,
             'w-full min-w-0 justify-start text-left font-normal data-[empty=true]:text-muted-foreground',
             className
           )}
@@ -279,7 +280,7 @@ export function SmartFolderDateRangePicker(
           <span className="min-w-0 truncate">
             {visibleRange?.from
               ? getDisplayText(visibleRange, i18n.language, displayFormat)
-              : t('smart_folder.create.pick_date')}
+              : placeholder}
           </span>
         </Button>
       </PopoverTrigger>
@@ -298,7 +299,7 @@ export function SmartFolderDateRangePicker(
             range_middle: getRangeMiddle(visibleRange),
           }}
           components={{
-            DayButton: SmartFolderRangeDayButton,
+            DayButton: RangeDayButton,
           }}
           onDayClick={date => {
             const nextState = getNextRangeSelectionState(selectionState, date);

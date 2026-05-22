@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { SidebarContent } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Namespace, SpaceType } from '@/interface';
-import { SmartFolderEntitlements } from '@/page/sidebar/content/smart-folder-types';
+import { SmartFolderEntitlements } from '@/page/sidebar/content/smart-folder';
 import { useDragAutoScroll } from '@/page/sidebar/hooks/use-drag-auto-scroll';
 import { TrashPanel } from '@/page/trash';
 

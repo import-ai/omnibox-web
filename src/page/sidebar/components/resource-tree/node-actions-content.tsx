@@ -1,6 +1,5 @@
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import {
   Tooltip,
@@ -18,14 +17,10 @@ import {
 import { SidebarMenuAction } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
 import { useIsTouch } from '@/hooks/use-is-touch';
-import { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
-import { CreateSmartFolderDialog } from '@/page/sidebar/content/create-smart-folder-dialog';
-import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/content/smart-folder-trash-confirm-dialog';
 import type { UseNodeActionsReturn } from '@/page/sidebar/hooks/use-node-actions';
 import { useNodeMenu } from '@/page/sidebar/hooks/use-node-menu';
-import { useSidebarStore } from '@/page/sidebar/store';
 import type { TreeNode } from '@/page/sidebar/store/types';
 
 import { menuIconClass, menuItemClass } from './shared';
@@ -36,8 +31,6 @@ interface NodeActionsContentProps {
   node: TreeNode;
   actions: UseNodeActionsReturn;
   upload?: string;
-  hasTeamspace: boolean;
-  currentNamespace?: Namespace;
   onRename?: () => void;
 }
 
@@ -47,28 +40,10 @@ export function NodeActionsContent({
   node,
   actions,
   upload,
-  hasTeamspace,
-  currentNamespace,
   onRename,
 }: NodeActionsContentProps) {
-  const { t } = useTranslation();
   const isTouch = useIsTouch();
   const [menuOpen, setMenuOpen] = useState(false);
-  const nodes = useSidebarStore(state => state.nodes);
-  const siblingResources =
-    node.parentId && nodes[node.parentId]
-      ? nodes[node.parentId].children
-          .map(childId => nodes[childId])
-          .filter(Boolean)
-          .map(sibling => ({
-            id: sibling.id,
-            name: sibling.name,
-            parent_id: sibling.parentId,
-            resource_type: sibling.resourceType,
-            has_children: sibling.hasChildren,
-            attrs: sibling.attrs,
-          }))
-      : [];
 
   const menuItems = useNodeMenu(actions, 'dialog', () => {
     setMenuOpen(false);
@@ -153,28 +128,6 @@ export function NodeActionsContent({
           namespaceId={namespaceId}
           sourceResourceType={node.resourceType}
           onFinished={actions.handleMoveFinished}
-        />
-      )}
-      {node.resourceType === 'smart_folder' && (
-        <CreateSmartFolderDialog
-          open={actions.smartFolderOpen}
-          currentResourceId={nodeId}
-          initialValue={actions.smartFolderInitial}
-          title={t('smart_folder.edit.title')}
-          confirmText={t('smart_folder.edit.submit')}
-          hasTeamspace={hasTeamspace}
-          currentNamespace={currentNamespace}
-          siblingResources={siblingResources}
-          onOpenChange={actions.setSmartFolderOpen}
-          onConfirm={actions.handleUpdateSmartFolder}
-        />
-      )}
-      {node.resourceType === 'smart_folder' && (
-        <SmartFolderTrashConfirmDialog
-          open={actions.smartFolderTrashOpen}
-          retentionDays={actions.smartFolderRetentionDays}
-          onOpenChange={actions.setSmartFolderTrashOpen}
-          onConfirm={actions.handleConfirmSmartFolderDelete}
         />
       )}
     </>

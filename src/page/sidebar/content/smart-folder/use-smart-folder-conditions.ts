@@ -4,7 +4,7 @@ import {
   SmartFolderCondition,
   SmartFolderField,
   SmartFolderOperator,
-} from './smart-folder-types';
+} from './index';
 import {
   createDefaultCondition,
   getDefaultOperator,

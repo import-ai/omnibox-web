@@ -14,12 +14,12 @@ import {
   MAX_SMART_FOLDER_NAME_LENGTH,
   normalizeInitialConditions,
 } from './create-smart-folder-dialog-helpers';
-import { CreateSmartFolderDialogProps } from './create-smart-folder-dialog-types';
-import {
+import type {
+  CreateSmartFolderDialogProps,
   SmartFolderMatchMode,
   SmartFolderOwnerScope,
   SmartFolderRootScope,
-} from './smart-folder-types';
+} from './index';
 import {
   getConditionLimitMessage,
   getConditionLimitValue,

@@ -5,17 +5,20 @@ import { toast } from 'sonner';
 
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import useApp from '@/hooks/use-app';
 import useConfig from '@/hooks/use-config';
 import useProNamespaces from '@/hooks/use-pro-namespaces';
 import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
 import { ResourceMeta } from '@/interface';
+import { deleteResource } from '@/lib/delete-resource';
 import { http } from '@/lib/request';
-import { CreateSmartFolderDialog } from '@/page/sidebar/content/create-smart-folder-dialog';
 import {
   CreateSmartFolderRequest,
   SmartFolderOwnerScope,
   SmartFolderResponse,
-} from '@/page/sidebar/content/smart-folder-types';
+} from '@/page/sidebar/content/smart-folder';
+import { CreateSmartFolderDialog } from '@/page/sidebar/content/smart-folder/create-smart-folder-dialog';
+import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/content/smart-folder/smart-folder-trash-confirm-dialog';
 import { fetchChildren } from '@/service/resource';
 
 import ResourceTree from './components/resource-tree';
@@ -53,8 +56,24 @@ function toResourceMeta(node: TreeNode): ResourceMeta {
   };
 }
 
+function getSiblingResources(
+  nodes: Record<string, TreeNode>,
+  parentId?: string | null
+): ResourceMeta[] {
+  const parent = parentId ? nodes[parentId] : undefined;
+  if (!parent) {
+    return [];
+  }
+
+  return parent.children
+    .map(childId => nodes[childId])
+    .filter(isTreeNode)
+    .map(toResourceMeta);
+}
+
 export function BodyForSidebar(props: IProps) {
   const { namespaceId, resourceId } = props;
+  const app = useApp();
   useSidebarInit({ namespaceId, resourceId });
   useSidebarEvents(namespaceId);
   const { t } = useTranslation();
@@ -74,10 +93,17 @@ export function BodyForSidebar(props: IProps) {
   const createFolderTargetId = useSidebarStore(
     s => s.dialogs.createFolderTargetId
   );
+  const editSmartFolderDialog = useSidebarStore(s => s.dialogs.editSmartFolder);
+  const smartFolderTrashDialog = useSidebarStore(
+    s => s.dialogs.smartFolderTrash
+  );
   const privateRoot = roots.private ? nodes[roots.private] : undefined;
   const teamspaceRoot = roots.teamspace ? nodes[roots.teamspace] : undefined;
   const hasTeamspace = !!teamspaceRoot?.id;
   const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
+  const editSmartFolderNode = editSmartFolderDialog.nodeId
+    ? nodes[editSmartFolderDialog.nodeId]
+    : undefined;
 
   const smartFolderCounts = useMemo(() => {
     const countRootSmartFolders = (rootId: string) => {
@@ -139,6 +165,71 @@ export function BodyForSidebar(props: IProps) {
       });
   };
 
+  const handleUpdateSmartFolder = (
+    payload: CreateSmartFolderRequest
+  ): Promise<void> => {
+    const nodeId = editSmartFolderDialog.nodeId;
+    const node = nodeId ? nodes[nodeId] : undefined;
+    if (!nodeId || !node) {
+      return Promise.reject();
+    }
+
+    return http
+      .patch(
+        `/namespaces/${namespaceId}/smart-folders/${nodeId}/config`,
+        payload
+      )
+      .then((response: SmartFolderResponse) => {
+        const movedParentId =
+          response.resource.parent_id &&
+          response.resource.parent_id !== node.parentId
+            ? response.resource.parent_id
+            : '';
+        const store = useSidebarStore.getState();
+
+        store.patch(nodeId, { name: payload.name });
+        if (movedParentId) {
+          store.move(nodeId, movedParentId, true);
+        }
+        store.refetchSmartFolderEntitlements();
+        store.closeEditSmartFolderDialog();
+        toast.success(t('smart_folder.edit.success'));
+
+        if (!movedParentId) {
+          return;
+        }
+
+        return fetchChildren(namespaceId, movedParentId).then(children => {
+          store.refreshChildren(movedParentId, children);
+          return store.expandPathTo(nodeId, { expandTarget: true }).then(() => {
+            store.activate(nodeId);
+            window.setTimeout(() => {
+              scrollToResource(nodeId);
+            }, 0);
+          });
+        });
+      });
+  };
+
+  const handleConfirmSmartFolderDelete = () => {
+    const nodeId = smartFolderTrashDialog.nodeId;
+    const node = nodeId ? nodes[nodeId] : undefined;
+    if (!nodeId) {
+      return;
+    }
+
+    useSidebarStore.getState().closeSmartFolderTrashDialog();
+    deleteResource({
+      id: nodeId,
+      parentId: node?.parentId ?? null,
+      namespaceId,
+      app,
+      resourceType: node?.resourceType,
+    }).catch(() => {
+      // request.ts handles backend error toasts.
+    });
+  };
+
   const handleGlobalFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -195,6 +286,35 @@ export function BodyForSidebar(props: IProps) {
             .filter(isTreeNode)
             .map(toResourceMeta),
         }}
+      />
+      <CreateSmartFolderDialog
+        open={editSmartFolderDialog.open}
+        currentResourceId={editSmartFolderDialog.nodeId || undefined}
+        initialValue={editSmartFolderDialog.initialValue}
+        title={t('smart_folder.edit.title')}
+        confirmText={t('smart_folder.edit.submit')}
+        hasTeamspace={hasTeamspace}
+        currentNamespace={currentNamespace}
+        siblingResources={getSiblingResources(
+          nodes,
+          editSmartFolderNode?.parentId
+        )}
+        onOpenChange={open => {
+          if (!open) {
+            useSidebarStore.getState().closeEditSmartFolderDialog();
+          }
+        }}
+        onConfirm={handleUpdateSmartFolder}
+      />
+      <SmartFolderTrashConfirmDialog
+        open={smartFolderTrashDialog.open}
+        retentionDays={entitlements?.trashRetentionDays}
+        onOpenChange={open => {
+          if (!open) {
+            useSidebarStore.getState().closeSmartFolderTrashDialog();
+          }
+        }}
+        onConfirm={handleConfirmSmartFolderDelete}
       />
       <CreateFolderDialog
         open={!!createFolderTargetId}

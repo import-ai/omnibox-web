@@ -46,13 +46,13 @@ import { downloadFile } from '@/lib/download-file';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/upload-files';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
-import { CreateSmartFolderDialog } from '@/page/sidebar/content/create-smart-folder-dialog';
-import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/content/smart-folder-trash-confirm-dialog';
 import {
   CreateSmartFolderPayload,
   CreateSmartFolderRequest,
   SmartFolderResponse,
-} from '@/page/sidebar/content/smart-folder-types';
+} from '@/page/sidebar/content/smart-folder';
+import { CreateSmartFolderDialog } from '@/page/sidebar/content/smart-folder/create-smart-folder-dialog';
+import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/content/smart-folder/smart-folder-trash-confirm-dialog';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 import MoveTo from './move';
@@ -166,7 +166,7 @@ export default function Actions(props: IActionProps) {
         const store = useSidebarStore.getState();
 
         if (movedParentId) {
-          store.moveLocal(resource.id, movedParentId);
+          store.move(resource.id, movedParentId, true);
         }
         app.fire('update_resource', {
           ...response.resource,

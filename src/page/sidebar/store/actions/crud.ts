@@ -96,7 +96,7 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
       });
     },
 
-    move: async (dragId: string, dropId: string) => {
+    move: async (dragId: string, dropId: string, localOnly?: boolean) => {
       const drag = get().nodes[dragId];
       const drop = get().nodes[dropId];
       if (!drag || !drop) return;
@@ -133,7 +133,10 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
         const newParent = s.nodes[dropId];
         if (!newParent) return;
         newParent.hasChildren = true;
-        newParent.children.unshift(dragId);
+        newParent.children = [
+          dragId,
+          ...newParent.children.filter(cid => cid !== dragId),
+        ];
 
         const draftDrag = s.nodes[dragId];
         if (!draftDrag) return;
@@ -149,6 +152,10 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
           n.spaceType = newParent.spaceType;
         });
       });
+
+      if (localOnly) {
+        return;
+      }
 
       try {
         await moveResource(get().namespaceId, dragId, dropId);
@@ -189,51 +196,6 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
 
         throw new Error('Move failed');
       }
-    },
-
-    moveLocal: (dragId: string, dropId: string) => {
-      const drag = get().nodes[dragId];
-      const drop = get().nodes[dropId];
-      if (!drag || !drop) return;
-
-      if (isDescendant(get().nodes, dragId, dropId)) return;
-
-      const oldParentId = drag.parentId;
-
-      set(s => {
-        if (oldParentId) {
-          const oldParent = s.nodes[oldParentId];
-          if (oldParent) {
-            oldParent.children = oldParent.children.filter(
-              cid => cid !== dragId
-            );
-            oldParent.hasChildren = oldParent.children.length > 0;
-          }
-        }
-
-        const newParent = s.nodes[dropId];
-        if (!newParent) return;
-
-        newParent.hasChildren = true;
-        newParent.children = [
-          dragId,
-          ...newParent.children.filter(cid => cid !== dragId),
-        ];
-
-        const draftDrag = s.nodes[dragId];
-        if (!draftDrag) return;
-        draftDrag.parentId = dropId;
-        draftDrag.spaceType = newParent.spaceType;
-
-        traverseDescendants(s.nodes, dragId, n => {
-          const ui = s.ui[n.id];
-          if (ui) ui.expanded = false;
-        });
-
-        traverseDescendants(s.nodes, dragId, n => {
-          n.spaceType = newParent.spaceType;
-        });
-      });
     },
 
     restore: async (resourceOrId: string | Resource): Promise<string> => {
