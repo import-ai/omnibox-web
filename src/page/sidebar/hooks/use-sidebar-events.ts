@@ -131,6 +131,8 @@ export function useSidebarEvents(namespaceId: string) {
           window.location.pathname,
           namespaceId
         );
+        const shouldNavigateAfterRestore =
+          !currentResourceId || currentResourceId === id;
         const result = useSidebarStore.getState().remove(id, currentResourceId);
 
         if (result.nextId) {
@@ -147,8 +149,12 @@ export function useSidebarEvents(namespaceId: string) {
               .restore(id)
               .then(restoredId => {
                 app.fire('trash_updated');
-                const currentNs = useSidebarStore.getState().namespaceId;
-                navigate(`/${currentNs}/${restoredId}`);
+                if (shouldNavigateAfterRestore) {
+                  const currentNs = useSidebarStore.getState().namespaceId;
+                  navigate(`/${currentNs}/${restoredId}`);
+                } else {
+                  void handleScrollToResource(restoredId);
+                }
               })
               .catch(err => {
                 console.error('[sidebar] restore failed:', err);
