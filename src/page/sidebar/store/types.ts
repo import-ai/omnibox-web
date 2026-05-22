@@ -43,6 +43,7 @@ export interface SidebarState {
   dialogs: DialogsState;
   spaceExpanded: Record<SpaceType, boolean>;
   autoExpandedKeys: Record<string, boolean>;
+  smartFolderEntitlementsVersion: number;
 }
 
 export interface RemoveResult {
@@ -73,6 +74,7 @@ export interface SidebarActions {
   openCreateFolderDialog: (parentId: string) => void;
   closeCreateFolderDialog: () => void;
   setCurrentUploadTargetId: (id: string | null) => void;
+  refetchSmartFolderEntitlements: () => void;
 
   expandPathTo: (
     targetId: string,
@@ -105,4 +107,5 @@ export const initialState: SidebarState = {
   },
   spaceExpanded: { private: true, teamspace: true },
   autoExpandedKeys: {},
+  smartFolderEntitlementsVersion: 0,
 };

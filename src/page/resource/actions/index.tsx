@@ -173,7 +173,7 @@ export default function Actions(props: IActionProps) {
           name: payload.name,
         });
         app.fire('refresh_smart_folder_children', resource.id);
-        app.fire('smart_folder_entitlements_refetch');
+        useSidebarStore.getState().refetchSmartFolderEntitlements();
         if (movedParentId) {
           app.fire('scroll_to_resource', resource.id, movedParentId);
         }

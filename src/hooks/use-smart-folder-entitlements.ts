@@ -3,8 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { http } from '@/lib/request';
 import { SmartFolderEntitlements } from '@/page/sidebar/content/smart-folder-types';
-
-import useApp from './use-app';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 interface IProps {
   namespaceId?: string;
@@ -43,10 +42,13 @@ function normalizeSmartFolderEntitlements(
 
 export default function useSmartFolderEntitlements(props?: IProps) {
   const { namespaceId, disabled = false } = props || {};
-  const app = useApp();
   const mountedRef = useRef(false);
+  const refetchVersionRef = useRef(0);
   const [loading, onLoading] = useState(false);
   const [data, onData] = useState<SmartFolderEntitlements>();
+  const entitlementsVersion = useSidebarStore(
+    state => state.smartFolderEntitlementsVersion
+  );
   const currentUserId = localStorage.getItem('uid') || '';
   const cacheKey =
     namespaceId && currentUserId ? `${currentUserId}:${namespaceId}` : '';
@@ -128,16 +130,14 @@ export default function useSmartFolderEntitlements(props?: IProps) {
       return;
     }
 
-    const cancelRequest = refetch();
-    const offRefetch = app.on('smart_folder_entitlements_refetch', () =>
-      refetch(true)
-    );
+    const force = refetchVersionRef.current !== entitlementsVersion;
+    refetchVersionRef.current = entitlementsVersion;
+    const cancelRequest = refetch(force);
 
     return () => {
       cancelRequest?.();
-      offRefetch();
     };
-  }, [app, disabled, namespaceId, refetch]);
+  }, [disabled, entitlementsVersion, namespaceId, refetch]);
 
   return { data, loading, refetch };
 }

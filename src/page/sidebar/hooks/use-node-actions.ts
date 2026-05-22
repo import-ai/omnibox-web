@@ -281,7 +281,7 @@ export function useNodeActions(
           name: payload.name,
         });
         app.fire('refresh_smart_folder_children', nodeId);
-        app.fire('smart_folder_entitlements_refetch');
+        store.refetchSmartFolderEntitlements();
         if (movedParentId) {
           app.fire('scroll_to_resource', nodeId, movedParentId);
         }

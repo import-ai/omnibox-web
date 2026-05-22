@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import useApp from '@/hooks/use-app';
 import { http } from '@/lib/request';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 import { TrashItem, TrashListResponse } from './types';
 
@@ -97,7 +98,7 @@ export function useTrash() {
         // Fire event to update sidebar
         app.fire('restore_resource', response);
         if (response?.resource_type === 'smart_folder') {
-          app.fire('smart_folder_entitlements_refetch');
+          useSidebarStore.getState().refetchSmartFolderEntitlements();
         }
 
         onSuccess?.();

@@ -137,7 +137,7 @@ export function useSmartFolderResourceActions(
           name: payload.name,
         });
         app.fire('refresh_smart_folder_children', data.id);
-        app.fire('smart_folder_entitlements_refetch');
+        useSidebarStore.getState().refetchSmartFolderEntitlements();
         if (movedParentId) {
           app.fire('scroll_to_resource', data.id, movedParentId);
         } else {

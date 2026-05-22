@@ -207,7 +207,7 @@ export function useSidebarEvents(namespaceId: string) {
             navigate(`/${namespaceId}/chat`);
           }
           if (isDeletedSmartFolder) {
-            app.fire('smart_folder_entitlements_refetch');
+            useSidebarStore.getState().refetchSmartFolderEntitlements();
           }
 
           showActionToast(t('resource.moved_to_trash'), {
@@ -228,7 +228,7 @@ export function useSidebarEvents(namespaceId: string) {
                   }
                   refreshLoadedSmartFolders(currentNs, app);
                   if (isDeletedSmartFolder) {
-                    app.fire('smart_folder_entitlements_refetch');
+                    useSidebarStore.getState().refetchSmartFolderEntitlements();
                   }
                 })
                 .catch(err => {
@@ -282,7 +282,7 @@ export function useSidebarEvents(namespaceId: string) {
         navigate(`/${namespaceId}/${id}`);
         refreshLoadedSmartFolders(namespaceId, app);
         if (resource.resource_type === 'smart_folder') {
-          app.fire('smart_folder_entitlements_refetch');
+          useSidebarStore.getState().refetchSmartFolderEntitlements();
         }
       })
     );

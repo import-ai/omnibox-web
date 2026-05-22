@@ -28,5 +28,11 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         s.dialogs.currentUploadTargetId = id;
       });
     },
+
+    refetchSmartFolderEntitlements: () => {
+      set(s => {
+        s.smartFolderEntitlementsVersion += 1;
+      });
+    },
   };
 }
