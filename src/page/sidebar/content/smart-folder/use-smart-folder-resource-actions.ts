@@ -16,6 +16,7 @@ import {
   isSmartFolderChildResource,
   SmartFolderResponse,
 } from './index';
+import { syncSmartFolderUpdate } from './smart-folder-update';
 
 function findResourceById(
   resource: IResourceData | undefined,
@@ -121,22 +122,15 @@ export function useSmartFolderResourceActions(
         payload
       )
       .then((response: SmartFolderResponse) => {
-        const movedParentId =
-          response.resource.parent_id &&
-          response.resource.parent_id !== data.parent_id
-            ? response.resource.parent_id
-            : '';
         const store = useSidebarStore.getState();
-
-        if (movedParentId) {
-          store.move(data.id, movedParentId, true);
-        }
-        app.fire('update_resource', {
-          ...response.resource,
-          name: payload.name,
+        const { movedParentId } = syncSmartFolderUpdate({
+          app,
+          store,
+          nodeId: data.id,
+          nodeParentId: data.parent_id,
+          payload,
+          response,
         });
-        app.fire('refresh_smart_folder_children', data.id);
-        useSidebarStore.getState().refetchSmartFolderEntitlements();
         if (movedParentId) {
           app.fire('scroll_to_resource', data.id, movedParentId);
         } else {
