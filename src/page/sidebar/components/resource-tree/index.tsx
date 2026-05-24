@@ -5,6 +5,12 @@ import { TouchBackend } from 'react-dnd-touch-backend';
 
 import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { SidebarContent } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SpaceType } from '@/interface';
@@ -12,7 +18,7 @@ import { useDragAutoScroll } from '@/page/sidebar/hooks/use-drag-auto-scroll';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { TrashPanel } from '@/page/trash';
 
-import { menuIconClass } from './shared';
+import { menuIconClass, menuItemClass } from './shared';
 import SpaceSection from './space-section';
 import { useToolConfig } from './tool.config';
 
@@ -47,15 +53,15 @@ export default function ResourceTree({
             ? item.disabledTip || item.hoverTip
             : item.hoverTip;
 
-          return (
-            <Tooltip key={item.id}>
+          const trigger = (
+            <Tooltip>
               <TooltipTrigger asChild>
                 <span className="inline-flex">
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="size-7"
+                    className="size-7 disabled:cursor-pointer"
                     disabled={item.disabled}
                     onClick={item.onClick}
                     aria-label={item.name}
@@ -72,6 +78,36 @@ export default function ResourceTree({
               </TooltipTrigger>
               <TooltipContent>{tooltip}</TooltipContent>
             </Tooltip>
+          );
+
+          if (!item.menuItems?.length) {
+            return <span key={item.id}>{trigger}</span>;
+          }
+
+          return (
+            <DropdownMenu key={item.id}>
+              <DropdownMenuTrigger asChild>
+                <span className="inline-flex">{trigger}</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="bottom" align="end" sideOffset={4}>
+                {item.menuItems.map(menuItem => {
+                  const TrailingIcon = menuItem.trailingIcon;
+
+                  return (
+                    <DropdownMenuItem
+                      key={menuItem.id}
+                      className={menuItemClass}
+                      onClick={menuItem.onClick}
+                    >
+                      <span className="flex-1">{menuItem.label}</span>
+                      {TrailingIcon && (
+                        <TrailingIcon className={menuIconClass} />
+                      )}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           );
         })}
       </div>

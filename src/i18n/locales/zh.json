@@ -923,6 +923,10 @@
   "tool": {
     "positioning": "定位",
     "positioning_disabled": "当前无资源可定位",
-    "sort": "排序"
+    "sort": "排序",
+    "sort_by_updated_at": "按更新时间",
+    "sort_by_created_at": "按创建时间",
+    "sort_by_resource_name": "按资源名称",
+    "sort_manually": "手动排序"
   }
 }

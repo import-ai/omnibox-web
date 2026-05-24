@@ -922,6 +922,10 @@
   "tool": {
     "positioning": "Positioning",
     "positioning_disabled": "No resource to locate",
-    "sort": "Sort"
+    "sort": "Sort",
+    "sort_by_updated_at": "Updated time",
+    "sort_by_created_at": "Created time",
+    "sort_by_resource_name": "Resource name",
+    "sort_manually": "Manual sort"
   }
 }

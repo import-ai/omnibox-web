@@ -19,6 +19,14 @@ export interface ResourceTreeToolItem {
   disabledTip?: string;
   destructive?: boolean;
   onClick: () => void;
+  menuItems?: ResourceTreeToolMenuItem[];
+}
+
+export interface ResourceTreeToolMenuItem {
+  id: string;
+  label: string;
+  trailingIcon?: LucideIcon;
+  onClick: () => void;
 }
 
 interface UseToolConfigOptions {
@@ -57,9 +65,29 @@ export function useToolConfig({
       icon: ArrowUpDown,
       hoverTip: t('tool.sort'),
       disabled: disabledMap.sort,
-      onClick: () => {
-        console.log('sort');
-      },
+      onClick: () => {},
+      menuItems: [
+        {
+          id: 'updated-at',
+          label: t('tool.sort_by_updated_at'),
+          onClick: () => {},
+        },
+        {
+          id: 'created-at',
+          label: t('tool.sort_by_created_at'),
+          onClick: () => {},
+        },
+        {
+          id: 'resource-name',
+          label: t('tool.sort_by_resource_name'),
+          onClick: () => {},
+        },
+        {
+          id: 'manual',
+          label: t('tool.sort_manually'),
+          onClick: () => {},
+        },
+      ],
     },
   ];
 }
