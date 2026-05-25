@@ -172,18 +172,20 @@ export default function SettingForm({
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem className="flex w-full flex-row items-center gap-7 space-y-0">
-                    <FormLabel className="min-w-14">
+                  <FormItem className="flex w-full flex-row items-start gap-7 space-y-0">
+                    <FormLabel className="flex h-10 min-w-14 items-center text-foreground">
                       {t('namespace.name')}
                     </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={submiting}
-                        className="mt-0 w-full rounded-md border-border bg-transparent dark:bg-transparent"
-                      />
-                    </FormControl>
-                    <FormMessage />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <FormControl>
+                        <Input
+                          {...field}
+                          disabled={submiting}
+                          className="mt-0 w-full rounded-md border-border bg-transparent dark:bg-transparent"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
