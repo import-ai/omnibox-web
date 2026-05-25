@@ -132,9 +132,7 @@ export function useSidebarEvents(namespaceId: string) {
       }
       const last = resources[resources.length - 1];
       useSidebarStore.getState().activate(last.id);
-      navigate(`/${namespaceId}/${last.id}`, {
-        state: { fromSidebar: true },
-      });
+      navigate(`/${namespaceId}/${last.id}`);
       refreshLoadedSmartFolders(namespaceId, app);
     };
     const handleUpdatedResource = async (delta: Resource | string) => {
@@ -168,9 +166,20 @@ export function useSidebarEvents(namespaceId: string) {
       scrollToResource(targetId);
     };
 
-    hooks.push(app.on('generate_resource', handleGeneratedResource));
+    // The event bus treats a listener return value as the next listener's
+    // argument, so async handlers must not return Promise here.
     hooks.push(
-      app.on('refresh_resource_children', handleRefreshResourceChildren)
+      app.on(
+        'generate_resource',
+        (resourceIdOrParentId: string, resource?: Resource | Resource[]) => {
+          handleGeneratedResource(resourceIdOrParentId, resource);
+        }
+      )
+    );
+    hooks.push(
+      app.on('refresh_resource_children', (resourceId: string) => {
+        handleRefreshResourceChildren(resourceId);
+      })
     );
 
     hooks.push(
@@ -214,6 +223,8 @@ export function useSidebarEvents(namespaceId: string) {
                   );
                   if (!nowResourceId || nowResourceId === id) {
                     navigate(`/${currentNs}/${restoredId}`);
+                  } else {
+                    handleScrollToResource(restoredId);
                   }
                   refreshLoadedSmartFolders(currentNs, app);
                   if (isDeletedSmartFolder) {
@@ -238,14 +249,16 @@ export function useSidebarEvents(namespaceId: string) {
     );
 
     hooks.push(
-      app.on('move_resource', async (id: string, parentId: string) => {
-        await useSidebarStore.getState().move(id, parentId);
-        refreshLoadedSmartFolders(namespaceId, app);
+      app.on('move_resource', (id: string, parentId: string) => {
+        (async () => {
+          await useSidebarStore.getState().move(id, parentId);
+          refreshLoadedSmartFolders(namespaceId, app);
+        })();
       })
     );
     hooks.push(
-      app.on('expand_resource', async (resourceId: string) => {
-        await useSidebarStore
+      app.on('expand_resource', (resourceId: string) => {
+        useSidebarStore
           .getState()
           .expandPathTo(resourceId, { expandTarget: true });
       })
@@ -255,24 +268,38 @@ export function useSidebarEvents(namespaceId: string) {
         useSidebarStore.getState().collapse(resourceId);
       })
     );
-    hooks.push(app.on('scroll_to_resource', handleScrollToResource));
-    hooks.push(app.on('update_resource', handleUpdatedResource));
-    hooks.push(app.on('refresh_resource', handleUpdatedResource));
     hooks.push(
-      app.on('refresh_smart_folder_children', async (id: string) => {
-        await refreshSmartFolderChildren(id, namespaceId, app);
+      app.on('scroll_to_resource', (targetId: string, parentId?: string) => {
+        handleScrollToResource(targetId, parentId);
+      })
+    );
+    hooks.push(
+      app.on('update_resource', (delta: Resource | string) => {
+        handleUpdatedResource(delta);
+      })
+    );
+    hooks.push(
+      app.on('refresh_resource', (delta: Resource | string) => {
+        handleUpdatedResource(delta);
+      })
+    );
+    hooks.push(
+      app.on('refresh_smart_folder_children', (id: string) => {
+        refreshSmartFolderChildren(id, namespaceId, app);
       })
     );
 
     hooks.push(
-      app.on('restore_resource', async (resource: Resource) => {
-        const id = await useSidebarStore.getState().restore(resource);
-        useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`);
-        refreshLoadedSmartFolders(namespaceId, app);
-        if (resource.resource_type === 'smart_folder') {
-          useSidebarStore.getState().refetchSmartFolderEntitlements();
-        }
+      app.on('restore_resource', (resource: Resource) => {
+        (async () => {
+          const id = await useSidebarStore.getState().restore(resource);
+          useSidebarStore.getState().activate(id);
+          navigate(`/${namespaceId}/${id}`);
+          refreshLoadedSmartFolders(namespaceId, app);
+          if (resource.resource_type === 'smart_folder') {
+            useSidebarStore.getState().refetchSmartFolderEntitlements();
+          }
+        })();
       })
     );
 

@@ -27,9 +27,9 @@ function appAbsoluteUrl(path: string): string {
 }
 
 const SEARCH_LINK_ROW_CLASS =
-  'flex flex-col items-start w-full text-left text-inherit no-underline rounded-sm outline-none';
+  'flex flex-col items-start w-full text-left !text-foreground no-underline rounded-sm outline-none';
 const SEARCH_LINK_INLINE_CLASS =
-  'flex flex-1 items-center gap-2 min-w-0 text-left text-inherit no-underline rounded-sm outline-none';
+  'flex flex-1 items-center gap-2 min-w-0 text-left !text-foreground no-underline rounded-sm outline-none';
 
 function SearchMenuHitAnchor(props: {
   path: string;
