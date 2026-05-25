@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -39,22 +38,23 @@ import { http } from '@/lib/request';
 
 import { RemainQuota } from '../quota';
 
-const FormSchema = z.object({
-  name: z
-    .string()
-    .min(2, i18next.t('namespace.min'))
-    .max(64, i18next.t('namespace.max'))
-    .refine(
-      value => {
-        return !Array.from(value).some(char => isEmoji(char));
-      },
-      {
-        message: i18next.t('namespace.no_special_chars'),
-      }
-    ),
-});
+const createFormSchema = (t: (key: string) => string) =>
+  z.object({
+    name: z
+      .string()
+      .min(2, t('namespace.min'))
+      .max(64, t('namespace.max'))
+      .refine(
+        value => {
+          return !Array.from(value).some(char => isEmoji(char));
+        },
+        {
+          message: t('namespace.no_special_chars'),
+        }
+      ),
+  });
 
-type FormValues = z.infer<typeof FormSchema>;
+type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 interface SettingFormProps {
   namespaceId: string;
@@ -69,7 +69,7 @@ export default function SettingForm({
   userIsOwnerOrAdmin,
   onClose,
 }: SettingFormProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [submiting, onSubmiting] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
@@ -79,8 +79,12 @@ export default function SettingForm({
   const { app, data, onChange, loading } = useNamespace();
   const { data: namespaces } = useNamespaces();
   const { config } = useConfig();
+  const formSchema = useMemo(
+    () => createFormSchema(t),
+    [t, i18n.resolvedLanguage]
+  );
   const form = useForm<FormValues>({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
     },
