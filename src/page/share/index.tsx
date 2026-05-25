@@ -25,7 +25,7 @@ import {
 import { ShareLayout } from './layout';
 import { Password } from './password';
 
-const SHARE_PASSWORD_COOKIE = 'share-password';
+export const SHARE_PASSWORD_COOKIE = 'share-password';
 
 interface ShareContextValue {
   shareInfo: PublicShareInfo | null;
