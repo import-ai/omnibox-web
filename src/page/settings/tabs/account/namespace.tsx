@@ -23,7 +23,7 @@ const generateFormSchema = z.object({
   name: z
     .string()
     .min(2, i18next.t('namespace.min'))
-    .max(64, i18next.t('namespace.max'))
+    .max(32, i18next.t('namespace.max'))
     .refine(
       value => {
         return !Array.from(value).some(char => isEmoji(char));

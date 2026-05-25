@@ -43,7 +43,7 @@ const FormSchema = z.object({
   name: z
     .string()
     .min(2, i18next.t('namespace.min'))
-    .max(64, i18next.t('namespace.max'))
+    .max(32, i18next.t('namespace.max'))
     .refine(
       value => {
         return !Array.from(value).some(char => isEmoji(char));
@@ -166,7 +166,7 @@ export default function SettingForm({
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(handleSubmit)}
-              className="flex w-full flex-row items-center justify-between gap-2.5 px-px"
+              className="flex w-full flex-row items-start justify-between gap-2.5 px-px"
             >
               <FormField
                 control={form.control}
@@ -194,7 +194,7 @@ export default function SettingForm({
                 disabled={submiting}
                 loading={submiting}
                 variant="default"
-                className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+                className="mt-[5px] h-[30px] w-[71px] shrink-0 text-xs font-medium"
               >
                 {t('namespace.submit')}
               </Button>

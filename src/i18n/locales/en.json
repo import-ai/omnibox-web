@@ -174,8 +174,8 @@
       "expired": "Expired"
     },
     "upgrade": "Upgrade",
-    "min": "At least 2 characters",
-    "max": "At most 64 characters",
+    "min": "Space name must be at least 2 characters",
+    "max": "Space name must be at most 32 characters",
     "submit": "Save",
     "success": "Updated",
     "member_count": "{{ size }} members",
