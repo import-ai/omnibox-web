@@ -36,7 +36,7 @@ export default function Attributes(props: IProps) {
         {resource.created_at && (
           <CreatedTimeAttribute createdAt={resource.created_at} />
         )}
-        {onResource && (
+        {shouldRenderResourceTasks && (
           <ResourceTasks
             resource={resource}
             namespaceId={namespaceId}

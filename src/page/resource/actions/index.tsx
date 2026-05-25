@@ -53,6 +53,7 @@ import {
 } from '@/page/sidebar/content/smart-folder';
 import { CreateSmartFolderDialog } from '@/page/sidebar/content/smart-folder/create-smart-folder-dialog';
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/content/smart-folder/smart-folder-trash-confirm-dialog';
+import { syncSmartFolderUpdate } from '@/page/sidebar/content/smart-folder/smart-folder-update';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 import MoveTo from './move';
@@ -158,22 +159,15 @@ export default function Actions(props: IActionProps) {
         payload
       )
       .then((response: SmartFolderResponse) => {
-        const movedParentId =
-          response.resource.parent_id &&
-          response.resource.parent_id !== resource.parent_id
-            ? response.resource.parent_id
-            : '';
         const store = useSidebarStore.getState();
-
-        if (movedParentId) {
-          store.move(resource.id, movedParentId, true);
-        }
-        app.fire('update_resource', {
-          ...response.resource,
-          name: payload.name,
+        const { movedParentId } = syncSmartFolderUpdate({
+          app,
+          store,
+          nodeId: resource.id,
+          nodeParentId: resource.parent_id,
+          payload,
+          response,
         });
-        app.fire('refresh_smart_folder_children', resource.id);
-        useSidebarStore.getState().refetchSmartFolderEntitlements();
         if (movedParentId) {
           app.fire('scroll_to_resource', resource.id, movedParentId);
         }
