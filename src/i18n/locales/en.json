@@ -175,7 +175,7 @@
     },
     "upgrade": "Upgrade",
     "min": "Space name must be at least 2 characters",
-    "max": "Space name must be at most 32 characters",
+    "max": "Space name must be at most 64 characters",
     "submit": "Save",
     "success": "Updated",
     "member_count": "{{ size }} members",
