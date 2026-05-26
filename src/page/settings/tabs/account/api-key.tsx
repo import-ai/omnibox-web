@@ -654,11 +654,9 @@ export function APIKeyForm() {
                 {key.attrs.permissions.map(perm => (
                   <div key={perm.target} className="flex flex-col gap-1">
                     <span className="text-sm text-muted-foreground">
-                      {perm.target === 'resources'
-                        ? 'Resources'
-                        : perm.target === 'chat'
-                          ? 'Chat'
-                          : perm.target}
+                      {t(`api_key.permission_targets.${perm.target}`, {
+                        defaultValue: perm.target,
+                      })}
                     </span>
                     <div className="flex flex-wrap gap-1">
                       {perm.permissions.map(permission => (
@@ -667,8 +665,9 @@ export function APIKeyForm() {
                           className="inline-flex h-6 items-center justify-center rounded-lg border border-border px-2 py-0.5"
                         >
                           <span className="text-xs font-medium text-muted-foreground">
-                            {permission.charAt(0).toUpperCase() +
-                              permission.slice(1)}
+                            {t(`api_key.permission_types.${permission}`, {
+                              defaultValue: permission,
+                            })}
                           </span>
                         </div>
                       ))}

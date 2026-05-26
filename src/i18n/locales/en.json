@@ -174,8 +174,8 @@
       "expired": "Expired"
     },
     "upgrade": "Upgrade",
-    "min": "At least 2 characters",
-    "max": "At most 64 characters",
+    "min": "Namespace name must be at least 2 characters",
+    "max": "Namespace name must be at most 64 characters",
     "submit": "Save",
     "success": "Updated",
     "member_count": "{{ size }} members",
@@ -691,6 +691,7 @@
   "search": {
     "title": "Search",
     "placeholder": "Search resources or chats...",
+    "root": "Root",
     "resources": "Resources",
     "chats": "Chats",
     "no_results": "No resources found"
@@ -728,6 +729,10 @@
     "permissions": "Permissions",
     "permissions_resources": "Resource Permissions",
     "permissions_chat": "Chat Permissions",
+    "permission_targets": {
+      "resources": "Resources",
+      "chat": "Chat"
+    },
     "permission_types": {
       "create": "Create",
       "read": "Read",
