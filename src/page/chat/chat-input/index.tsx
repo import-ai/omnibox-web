@@ -1,5 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import {
+  type ConversationPreferences,
+  preferencesToTools,
+} from '@/page/chat/chat-input/conversation-preferences';
 import DecisionInput from '@/page/chat/chat-input/decision-input.tsx';
 import {
   ChatMode,
@@ -21,6 +25,8 @@ import ChatInput from './input';
 interface IProps {
   messages: MessageDetail[];
   navigatePrefix: string;
+  conversationPreferences?: ConversationPreferences | null;
+  onPreferencesChange?: (tools: ToolType[]) => void;
   selectedResources: IResTypeContext[];
   setSelectedResources: any;
   loading: boolean;
@@ -37,6 +43,8 @@ export default function ChatArea(props: IProps) {
   const {
     messages,
     navigatePrefix,
+    conversationPreferences,
+    onPreferencesChange,
     selectedResources,
     setSelectedResources,
     loading,
@@ -46,6 +54,18 @@ export default function ChatArea(props: IProps) {
   const [tools, setTools] = useState<ToolType[]>([]);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    setTools(preferencesToTools(conversationPreferences));
+  }, [conversationPreferences]);
+
+  const handleToolsChange = useCallback(
+    (nextTools: ToolType[]) => {
+      setTools(nextTools);
+      onPreferencesChange?.(nextTools);
+    },
+    [onPreferencesChange]
+  );
 
   const lastMessage = useMemo<MessageDetail | undefined>(() => {
     return messages.at(-1);
@@ -106,7 +126,7 @@ export default function ChatArea(props: IProps) {
         <ChatTool
           tools={tools}
           context={selectedResources}
-          onToolsChange={setTools}
+          onToolsChange={handleToolsChange}
         />
         <ChatAction
           onSend={handleSend}

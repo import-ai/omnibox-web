@@ -22,6 +22,7 @@ export default function ChatConversationPage() {
     onRegenerate,
     onEdit,
     sendMessage,
+    updateConversationPreferences,
   } = useContext();
 
   return (
@@ -51,6 +52,8 @@ export default function ChatConversationPage() {
             setSelectedResources={setSelectedResources}
             messages={messages}
             navigatePrefix={`/${namespaceId}`}
+            conversationPreferences={conversation.preferences}
+            onPreferencesChange={updateConversationPreferences}
             sendMessage={sendMessage}
             loading={loading}
           />
