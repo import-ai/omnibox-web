@@ -21,6 +21,8 @@ import {
   IResTypeContext,
   ToolType,
 } from '@/page/chat/chat-input/types';
+import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
+import { getSmartFolderSidebarAttrs } from '@/page/sidebar/content/smart-folder';
 
 import { ShareLayout } from './layout';
 import { Password } from './password';
@@ -84,13 +86,23 @@ export default function SharePage() {
     resource: ResourceMeta,
     type: 'resource' | 'folder'
   ) => {
+    const sidebarAttrs = getSmartFolderSidebarAttrs(resource);
+    const navigateState =
+      sidebarAttrs?.smart_folder_child && resource.parent_id
+        ? getShareSmartFolderChildNavigationState(
+            resource.parent_id,
+            resource.id
+          )
+        : undefined;
+
     setSelectedResources(current => {
       const existingIndex = current.findIndex(
         item => item.resource.id === resource.id
       );
-      const nextItem = {
+      const nextItem: IResTypeContext = {
         type,
         resource: normalizeResourceMeta(resource),
+        navigateState,
       };
 
       if (existingIndex < 0) {
