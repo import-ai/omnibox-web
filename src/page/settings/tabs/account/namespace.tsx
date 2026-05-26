@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import i18next from 'i18next';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -19,26 +18,31 @@ import { Input } from '@/components/ui/input';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
 
-const generateFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, i18next.t('namespace.min'))
-    .max(64, i18next.t('namespace.max'))
-    .refine(
-      value => {
-        return !Array.from(value).some(char => isEmoji(char));
-      },
-      {
-        message: i18next.t('namespace.no_special_chars'),
-      }
-    ),
-});
+const createGenerateFormSchema = (t: (key: string) => string) =>
+  z.object({
+    name: z
+      .string()
+      .min(2, t('namespace.min'))
+      .max(64, t('namespace.max'))
+      .refine(
+        value => {
+          return !Array.from(value).some(char => isEmoji(char));
+        },
+        {
+          message: t('namespace.no_special_chars'),
+        }
+      ),
+  });
 
-type GenerateFormValues = z.infer<typeof generateFormSchema>;
+type GenerateFormValues = z.infer<ReturnType<typeof createGenerateFormSchema>>;
 
 export default function GenerateForm() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const generateFormSchema = useMemo(
+    () => createGenerateFormSchema(t),
+    [t, i18n.resolvedLanguage]
+  );
   const form = useForm<GenerateFormValues>({
     resolver: zodResolver(generateFormSchema),
     defaultValues: {
