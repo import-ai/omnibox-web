@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { LazyInput } from '@/components/input/lazy';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import type { Resource } from '@/interface';
+import type { Resource, ResourceType } from '@/interface';
 import each from '@/lib/each';
 import { http } from '@/lib/request';
 
@@ -14,11 +14,12 @@ import FormResource from './resource';
 export interface IFormProps {
   resourceId: string;
   namespaceId: string;
+  sourceResourceType?: ResourceType;
   onFinished?: (resouceId: string, targetId: string) => void;
 }
 
 export default function MoveToForm(props: IFormProps) {
-  const { resourceId, namespaceId, onFinished } = props;
+  const { resourceId, namespaceId, sourceResourceType, onFinished } = props;
   const { t } = useTranslation();
   const [editId, onEditId] = useState('');
   const [search, onSearch] = useState('');
@@ -126,6 +127,7 @@ export default function MoveToForm(props: IFormProps) {
                 onFinished={onFinished}
                 resourceId={resourceId}
                 namespaceId={namespaceId}
+                sourceResourceType={sourceResourceType}
               />
             ))}
           </>
@@ -149,6 +151,7 @@ export default function MoveToForm(props: IFormProps) {
                 onFinished={onFinished}
                 resourceId={resourceId}
                 namespaceId={namespaceId}
+                sourceResourceType={sourceResourceType}
               />
             ))}
           </>

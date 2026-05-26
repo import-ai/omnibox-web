@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Arrow } from '@/assets/icons/treeArrow';
 import ResourceTypeIcon from '@/components/resource-type-icon';
@@ -20,8 +20,9 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import useApp from '@/hooks/use-app';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Resource } from '@/interface';
+import { Namespace, Resource } from '@/interface';
 import { cn } from '@/lib/utils';
+import { getSmartFolderSourceResourceId } from '@/page/sidebar/content/smart-folder';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/use-resource-node-dnd';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
@@ -37,15 +38,20 @@ const CLICK_DEBOUNCE_DELAY = 250;
 interface ResourceNodeContentProps {
   node: TreeNode;
   nodeId: string;
+  hasTeamspace: boolean;
+  currentNamespace?: Namespace;
 }
 
 export function ResourceNodeContent({
   node,
   nodeId,
+  hasTeamspace,
+  currentNamespace,
 }: ResourceNodeContentProps) {
   const app = useApp();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const params = useParams();
   const isMobile = useIsMobile();
   const { setOpenMobile } = useSidebar();
@@ -62,7 +68,20 @@ export function ResourceNodeContent({
 
   const [editName, setEditName] = useState('');
 
-  const isActive = nodeId === activeId;
+  const smartFolderSourceResourceId = getSmartFolderSourceResourceId({
+    id: node.id,
+    parent_id: node.parentId || '',
+    attrs: node.attrs,
+  });
+  const sourceResourceId =
+    smartFolderSourceResourceId !== node.id
+      ? smartFolderSourceResourceId
+      : undefined;
+  const activeSidebarKey =
+    typeof location.state?.sidebarActiveKey === 'string'
+      ? location.state.sidebarActiveKey
+      : activeId;
+  const isActive = nodeId === activeSidebarKey;
   const isEditing = nodeId === renamingId;
 
   const { ref, dragStyle, isOver, isFileDragOver } = useResourceNodeDnd(
@@ -81,12 +100,17 @@ export function ResourceNodeContent({
   }, [node.name]);
 
   const handleNavigate = (id: string, edit?: boolean) => {
+    const state = {
+      fromSidebar: true,
+      ...(sourceResourceId ? { sidebarActiveKey: nodeId } : {}),
+    };
+
     if (edit) {
-      navigate(`/${namespaceId}/${id}/edit`, { state: { fromSidebar: true } });
+      navigate(`/${namespaceId}/${id}/edit`, { state });
     } else if (id === 'chat') {
       navigate(`/${namespaceId}/chat`);
     } else {
-      navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+      navigate(`/${namespaceId}/${id}`, { state });
     }
     if (isMobile) {
       setOpenMobile(false);
@@ -108,14 +132,14 @@ export function ResourceNodeContent({
       if (isActive) {
         handleExpand();
       } else {
-        handleNavigate(nodeId);
+        handleNavigate(sourceResourceId || nodeId);
         useSidebarStore.getState().activate(nodeId);
         if (!nodeUI?.expanded) {
           useSidebarStore.getState().expand(nodeId);
         }
       }
     } else {
-      handleNavigate(nodeId);
+      handleNavigate(sourceResourceId || nodeId);
       useSidebarStore.getState().activate(nodeId);
     }
   };
@@ -143,11 +167,16 @@ export function ResourceNodeContent({
     isEditingRef.current = false;
     const trimmedName = editName.trim();
     useSidebarStore.getState().setRenamingId(null);
+    const renameId = sourceResourceId || nodeId;
     if (trimmedName && trimmedName !== node.name) {
       try {
-        await useSidebarStore.getState().rename(nodeId, trimmedName);
+        await useSidebarStore.getState().rename(renameId, trimmedName);
+        if (sourceResourceId) {
+          useSidebarStore.getState().patch(nodeId, { name: trimmedName });
+          app.fire('refresh_smart_folder_children', node.parentId);
+        }
         app.fire('update_resource', {
-          id: nodeId,
+          id: renameId,
           name: trimmedName,
         } as unknown as Resource);
       } catch {
@@ -156,7 +185,7 @@ export function ResourceNodeContent({
     } else {
       setEditName(node.name || '');
     }
-  }, [app, editName, node.name, nodeId]);
+  }, [app, editName, node.name, node.parentId, nodeId, sourceResourceId]);
 
   useEffect(() => {
     if (!isEditing) return;
@@ -343,7 +372,12 @@ export function ResourceNodeContent({
               node.hasChildren &&
               node.children.length > 0 &&
               node.children.map(childId => (
-                <ResourceNode nodeId={childId} key={childId} />
+                <ResourceNode
+                  nodeId={childId}
+                  key={childId}
+                  hasTeamspace={hasTeamspace}
+                  currentNamespace={currentNamespace}
+                />
               ))}
           </SidebarMenuSub>
         </CollapsibleContent>

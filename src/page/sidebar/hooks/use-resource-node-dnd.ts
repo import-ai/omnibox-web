@@ -2,6 +2,8 @@ import { type RefObject, useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 
+import { isSmartFolderChildResource } from '@/page/sidebar/content/smart-folder';
+
 import type { TreeNode } from '../store';
 import { DndItem, useDndHandlers } from './use-dnd-handlers';
 
@@ -38,7 +40,10 @@ export function useResourceNodeDnd(
     {
       type: 'card',
       item: () => node,
-      canDrag: () => !isEditing,
+      canDrag: () =>
+        !isEditing &&
+        node.resourceType !== 'smart_folder' &&
+        !isSmartFolderChildResource(node),
       collect: monitor => ({
         opacity: monitor.isDragging() ? 0.5 : 1,
       }),

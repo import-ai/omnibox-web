@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 import { ATTRIBUTE_STYLES } from '@/components/attributes/constants';
 import MultipleSelector, { Option } from '@/components/multiple-selector';
 import { Spinner } from '@/components/ui/spinner';
-import type { Tag } from '@/interface';
+import useApp from '@/hooks/use-app';
+import type { Resource, Tag } from '@/interface';
 import { http } from '@/lib/request';
 
 import { TagsDisplay } from './display';
@@ -15,6 +16,7 @@ interface IProps {
   data: Array<Option>;
   namespaceId: string;
   resourceId: string;
+  onResource?: (resource: Resource) => void;
   readOnly?: boolean;
 }
 
@@ -22,7 +24,9 @@ const MAX_TAG_LENGTH = 20;
 const MAX_TAGS = 10;
 
 export default function Tags(props: IProps) {
-  const { data, loading, resourceId, namespaceId, readOnly } = props;
+  const { data, loading, resourceId, namespaceId, onResource, readOnly } =
+    props;
+  const app = useApp();
   const inputRef = useRef<any>(null);
   const { t } = useTranslation();
   const [value, onChange] = useState('');
@@ -44,10 +48,19 @@ export default function Tags(props: IProps) {
   };
   const leaveEdit = () => {
     onEditing(false);
-    http.patch(`/namespaces/${namespaceId}/resources/${resourceId}`, {
-      namespaceId,
-      tag_ids: tags.map(tag => tag.value),
-    });
+    http
+      .patch(`/namespaces/${namespaceId}/resources/${resourceId}`, {
+        namespaceId,
+        tag_ids: tags.map(tag => tag.value),
+      })
+      .then((resource: Resource | undefined) => {
+        if (resource?.id && resource.resource_type) {
+          onResource?.(resource);
+          app.fire('update_resource', resource);
+          return;
+        }
+        app.fire('refresh_visible_smart_folders');
+      });
   };
   const handleChange = (val: Array<Option>) => {
     if (val.length > MAX_TAGS) {

@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
 import { useIsTouch } from '@/hooks/use-is-touch';
-import { SpaceType } from '@/interface';
+import { Namespace, SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
 import { useSpaceDrop } from '@/page/sidebar/hooks/use-space-drop';
 import type { TreeNode } from '@/page/sidebar/store';
@@ -46,6 +46,8 @@ interface SpaceSectionContentProps {
   namespaceId: string;
   rootId: string;
   isOpen: boolean;
+  hasTeamspace: boolean;
+  currentNamespace?: Namespace;
 }
 
 export function SpaceSectionContent({
@@ -54,6 +56,8 @@ export function SpaceSectionContent({
   namespaceId,
   rootId,
   isOpen,
+  hasTeamspace,
+  currentNamespace,
 }: SpaceSectionContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -210,7 +214,12 @@ export function SpaceSectionContent({
             {rootNode.hasChildren &&
               rootNode.children.length > 0 &&
               rootNode.children.map(childId => (
-                <ResourceNode nodeId={childId} key={childId} />
+                <ResourceNode
+                  nodeId={childId}
+                  key={childId}
+                  hasTeamspace={hasTeamspace}
+                  currentNamespace={currentNamespace}
+                />
               ))}
           </SidebarMenu>
         </SidebarGroupContent>

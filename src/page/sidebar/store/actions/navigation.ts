@@ -1,8 +1,10 @@
 import type { SpaceType } from '@/interface';
+import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/content/smart-folder';
 import {
   fetchChildren,
   fetchResource,
   fetchResourcesByIds,
+  fetchSmartFolderChildren,
 } from '@/service/resource';
 
 import type { SidebarGet, SidebarSet } from '../types';
@@ -38,7 +40,15 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         });
 
         try {
-          const children = await fetchChildren(get().namespaceId, id);
+          const rawChildren =
+            node.resourceType === 'smart_folder'
+              ? await fetchSmartFolderChildren(get().namespaceId, id)
+              : await fetchChildren(get().namespaceId, id);
+          const children = rawChildren.map(child =>
+            node.resourceType === 'smart_folder'
+              ? withSmartFolderChildSidebarAttrs(child, id)
+              : child
+          );
 
           set(s => {
             const ui = ensureUI(s, id);
@@ -69,10 +79,28 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
               }
             }
 
-            // 记录此资源已展开，避免重复展开
             s.autoExpandedKeys[`${s.namespaceId}:${id}`] = true;
           });
         } catch (err) {
+          if (
+            node.resourceType === 'smart_folder' &&
+            (err as { response?: { status?: number } }).response?.status === 404
+          ) {
+            set(s => {
+              const ui = ensureUI(s, id);
+              ui.loading = false;
+              ui.loaded = true;
+              ui.expanded = false;
+              const n = s.nodes[id];
+              if (n) {
+                for (const childId of n.children) {
+                  delete s.nodes[childId];
+                }
+                n.children = [];
+              }
+            });
+            return;
+          }
           console.error('[sidebar] expand failed:', err);
           set(s => {
             const ui = s.ui[id];
@@ -110,7 +138,6 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
       const nodes = get().nodes;
       const target = nodes[targetId];
 
-      // 如果节点已在树中且已展开，跳过展开
       if (
         target &&
         get().ui[targetId]?.expanded &&
@@ -197,7 +224,6 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
           }
         });
 
-        // 记录此资源已展开，避免重复展开
         set(s => {
           s.autoExpandedKeys[autoExpandKey] = true;
         });

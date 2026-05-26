@@ -42,7 +42,9 @@ export default function ShareActions({
 }: ShareActionsProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const isFolder = resource.resource_type === 'folder';
+  const isFolderResource =
+    resource.resource_type === 'folder' ||
+    resource.resource_type === 'smart_folder';
 
   const handleAction = (id: string) => {
     if (id === 'copy_link') {
@@ -118,7 +120,7 @@ export default function ShareActions({
           <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
           <span>{t('actions.copy_link')}</span>
         </DropdownMenuItem>
-        {resource.content && !isFolder && (
+        {resource.content && !isFolderResource && (
           <DropdownMenuItem
             className="cursor-pointer gap-2"
             onClick={() => handleAction('copy_content')}
@@ -127,7 +129,7 @@ export default function ShareActions({
             <span>{t('actions.copy_content')}</span>
           </DropdownMenuItem>
         )}
-        {!isFolder && (
+        {!isFolderResource && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="cursor-pointer gap-2">
               <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />

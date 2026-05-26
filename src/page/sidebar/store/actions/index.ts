@@ -28,5 +28,45 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         s.dialogs.currentUploadTargetId = id;
       });
     },
+
+    openEditSmartFolderDialog: (nodeId, initialValue) => {
+      set(s => {
+        s.dialogs.editSmartFolder = {
+          open: true,
+          nodeId,
+          initialValue,
+        };
+      });
+    },
+
+    closeEditSmartFolderDialog: () => {
+      set(s => {
+        s.dialogs.editSmartFolder.open = false;
+        s.dialogs.editSmartFolder.nodeId = null;
+        s.dialogs.editSmartFolder.initialValue = null;
+      });
+    },
+
+    openSmartFolderTrashDialog: nodeId => {
+      set(s => {
+        s.dialogs.smartFolderTrash = {
+          open: true,
+          nodeId,
+        };
+      });
+    },
+
+    closeSmartFolderTrashDialog: () => {
+      set(s => {
+        s.dialogs.smartFolderTrash.open = false;
+        s.dialogs.smartFolderTrash.nodeId = null;
+      });
+    },
+
+    refetchSmartFolderEntitlements: () => {
+      set(s => {
+        s.smartFolderEntitlementsVersion += 1;
+      });
+    },
   };
 }

@@ -1,4 +1,4 @@
-import { SpaceType } from '@/interface';
+import { Namespace, SpaceType } from '@/interface';
 import { useIsSpaceExpanded, useNode, useRootId } from '@/page/sidebar/store';
 
 import { SpaceSectionContent } from './space-section-content';
@@ -6,11 +6,15 @@ import { SpaceSectionContent } from './space-section-content';
 interface SpaceSectionProps {
   spaceType: SpaceType;
   namespaceId: string;
+  hasTeamspace: boolean;
+  currentNamespace?: Namespace;
 }
 
 export default function SpaceSection({
   spaceType,
   namespaceId,
+  hasTeamspace,
+  currentNamespace,
 }: SpaceSectionProps) {
   const rootId = useRootId(spaceType);
   const rootNode = useNode(rootId);
@@ -27,6 +31,8 @@ export default function SpaceSection({
       namespaceId={namespaceId}
       rootId={rootId}
       isOpen={isOpen}
+      hasTeamspace={hasTeamspace}
+      currentNamespace={currentNamespace}
     />
   );
 }

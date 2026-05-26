@@ -4,9 +4,14 @@ import { useNavigate } from 'react-router-dom';
 
 import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/use-app';
-import { Resource } from '@/interface';
+import { Resource, ResourceType } from '@/interface';
+import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/content/smart-folder';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { fetchChildren, fetchResource } from '@/service/resource';
+import {
+  fetchChildren,
+  fetchResource,
+  fetchSmartFolderChildren,
+} from '@/service/resource';
 
 function extractResourceId(
   pathname: string,
@@ -42,6 +47,57 @@ function scrollToResource(resourceId: string) {
   });
 }
 
+async function refreshSmartFolderChildren(
+  id: string,
+  namespaceId: string,
+  app: ReturnType<typeof useApp>
+) {
+  const store = useSidebarStore.getState();
+  const parent = store.nodes[id];
+  if (!parent || parent.resourceType !== 'smart_folder') {
+    return;
+  }
+
+  try {
+    const children = await fetchSmartFolderChildren(namespaceId, id);
+    app.fire('smart_folder_children_updated', id, children);
+    store.refreshChildren(
+      id,
+      children.map(child => withSmartFolderChildSidebarAttrs(child, id))
+    );
+  } catch (err) {
+    if ((err as { response?: { status?: number } }).response?.status === 404) {
+      store.refreshChildren(id, []);
+      store.collapse(id);
+      app.fire('smart_folder_children_updated', id, []);
+      return;
+    }
+    throw err;
+  }
+}
+
+function getLoadedSmartFolderIds() {
+  const store = useSidebarStore.getState();
+  return Object.values(store.nodes)
+    .filter(
+      node =>
+        node.resourceType === 'smart_folder' &&
+        store.ui[node.id]?.loaded === true
+    )
+    .map(node => node.id);
+}
+
+function refreshLoadedSmartFolders(
+  namespaceId: string,
+  app: ReturnType<typeof useApp>
+) {
+  getLoadedSmartFolderIds().forEach(id => {
+    refreshSmartFolderChildren(id, namespaceId, app).catch(err => {
+      console.error('[sidebar] refresh smart folder failed:', err);
+    });
+  });
+}
+
 /**
  * Event adapter: maps app-level events to sidebar store actions.
  *
@@ -72,12 +128,12 @@ export function useSidebarEvents(namespaceId: string) {
         return;
       }
       for (const res of resources) {
-        // Don't need to create because the other party has already done it
         await useSidebarStore.getState().restore(res);
       }
       const last = resources[resources.length - 1];
       useSidebarStore.getState().activate(last.id);
       navigate(`/${namespaceId}/${last.id}`);
+      refreshLoadedSmartFolders(namespaceId, app);
     };
     const handleUpdatedResource = async (delta: Resource | string) => {
       const resource =
@@ -90,6 +146,7 @@ export function useSidebarEvents(namespaceId: string) {
         content: resource.content,
         hasChildren: resource.has_children,
       });
+      refreshLoadedSmartFolders(namespaceId, app);
     };
     const handleRefreshResourceChildren = async (resourceId: string) => {
       const children = await fetchChildren(namespaceId, resourceId);
@@ -105,6 +162,7 @@ export function useSidebarEvents(namespaceId: string) {
       await useSidebarStore
         .getState()
         .expandPathTo(targetId, { expandTarget: true });
+      useSidebarStore.getState().activate(targetId);
       scrollToResource(targetId);
     };
 
@@ -114,60 +172,93 @@ export function useSidebarEvents(namespaceId: string) {
       app.on(
         'generate_resource',
         (resourceIdOrParentId: string, resource?: Resource | Resource[]) => {
-          void handleGeneratedResource(resourceIdOrParentId, resource);
+          handleGeneratedResource(resourceIdOrParentId, resource);
         }
       )
     );
     hooks.push(
       app.on('refresh_resource_children', (resourceId: string) => {
-        void handleRefreshResourceChildren(resourceId);
+        handleRefreshResourceChildren(resourceId);
       })
     );
 
-    // Delete a resource
     hooks.push(
-      app.on('delete_resource', (id: string) => {
-        const currentResourceId = extractResourceId(
-          window.location.pathname,
-          namespaceId
-        );
-        const shouldNavigateAfterRestore =
-          !currentResourceId || currentResourceId === id;
-        const result = useSidebarStore.getState().remove(id, currentResourceId);
+      app.on(
+        'delete_resource',
+        (id: string, _parentId?: string, resourceType?: ResourceType) => {
+          const deletedNode = useSidebarStore.getState().nodes[id];
+          const isDeletedSmartFolder =
+            resourceType === 'smart_folder' ||
+            deletedNode?.resourceType === 'smart_folder';
+          const smartFolderIdsToRefresh = getLoadedSmartFolderIds();
+          const currentResourceId = extractResourceId(
+            window.location.pathname,
+            namespaceId
+          );
+          const result = useSidebarStore
+            .getState()
+            .remove(id, currentResourceId);
 
-        if (result.nextId) {
-          navigate(`/${namespaceId}/${result.nextId}`);
-        } else if (result.navigateToChat) {
-          navigate(`/${namespaceId}/chat`);
-        }
+          if (result.nextId) {
+            navigate(`/${namespaceId}/${result.nextId}`);
+          } else if (result.navigateToChat) {
+            navigate(`/${namespaceId}/chat`);
+          }
+          if (isDeletedSmartFolder) {
+            useSidebarStore.getState().refetchSmartFolderEntitlements();
+          }
 
-        showActionToast(t('resource.moved_to_trash'), {
-          actionLabel: t('undo'),
-          onAction: () => {
-            useSidebarStore
-              .getState()
-              .restore(id)
-              .then(restoredId => {
-                app.fire('trash_updated');
-                if (shouldNavigateAfterRestore) {
+          showActionToast(t('resource.moved_to_trash'), {
+            actionLabel: t('undo'),
+            onAction: () => {
+              useSidebarStore
+                .getState()
+                .restore(id)
+                .then(restoredId => {
+                  app.fire('trash_updated');
                   const currentNs = useSidebarStore.getState().namespaceId;
-                  navigate(`/${currentNs}/${restoredId}`);
-                } else {
-                  void handleScrollToResource(restoredId);
-                }
-              })
-              .catch(err => {
-                console.error('[sidebar] restore failed:', err);
-              });
-          },
-        });
-      })
+                  const nowResourceId = extractResourceId(
+                    window.location.pathname,
+                    currentNs
+                  );
+                  if (!nowResourceId || nowResourceId === id) {
+                    navigate(`/${currentNs}/${restoredId}`);
+                  } else {
+                    handleScrollToResource(restoredId);
+                  }
+                  refreshLoadedSmartFolders(currentNs, app);
+                  if (isDeletedSmartFolder) {
+                    useSidebarStore.getState().refetchSmartFolderEntitlements();
+                  }
+                })
+                .catch(err => {
+                  console.error('[sidebar] restore failed:', err);
+                });
+            },
+          });
+
+          smartFolderIdsToRefresh.forEach(smartFolderId => {
+            refreshSmartFolderChildren(smartFolderId, namespaceId, app).catch(
+              err => {
+                console.error('[sidebar] refresh smart folder failed:', err);
+              }
+            );
+          });
+        }
+      )
     );
 
-    // Update a resource (name/content) — fired by editor / resource-tasks
+    hooks.push(
+      app.on('move_resource', (id: string, parentId: string) => {
+        (async () => {
+          await useSidebarStore.getState().move(id, parentId);
+          refreshLoadedSmartFolders(namespaceId, app);
+        })();
+      })
+    );
     hooks.push(
       app.on('expand_resource', (resourceId: string) => {
-        void useSidebarStore
+        useSidebarStore
           .getState()
           .expandPathTo(resourceId, { expandTarget: true });
       })
@@ -179,27 +270,35 @@ export function useSidebarEvents(namespaceId: string) {
     );
     hooks.push(
       app.on('scroll_to_resource', (targetId: string, parentId?: string) => {
-        void handleScrollToResource(targetId, parentId);
+        handleScrollToResource(targetId, parentId);
       })
     );
     hooks.push(
       app.on('update_resource', (delta: Resource | string) => {
-        void handleUpdatedResource(delta);
+        handleUpdatedResource(delta);
       })
     );
     hooks.push(
       app.on('refresh_resource', (delta: Resource | string) => {
-        void handleUpdatedResource(delta);
+        handleUpdatedResource(delta);
+      })
+    );
+    hooks.push(
+      app.on('refresh_smart_folder_children', (id: string) => {
+        refreshSmartFolderChildren(id, namespaceId, app);
       })
     );
 
-    // Restore from trash
     hooks.push(
       app.on('restore_resource', (resource: Resource) => {
-        void (async () => {
+        (async () => {
           const id = await useSidebarStore.getState().restore(resource);
           useSidebarStore.getState().activate(id);
           navigate(`/${namespaceId}/${id}`);
+          refreshLoadedSmartFolders(namespaceId, app);
+          if (resource.resource_type === 'smart_folder') {
+            useSidebarStore.getState().refetchSmartFolderEntitlements();
+          }
         })();
       })
     );
@@ -207,5 +306,5 @@ export function useSidebarEvents(namespaceId: string) {
     return () => {
       hooks.forEach(unsub => unsub());
     };
-  }, [namespaceId, navigate, t]);
+  }, [app, namespaceId, navigate, t]);
 }
