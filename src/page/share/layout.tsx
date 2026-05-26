@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 import { SidebarTriggerButton } from '@/components/sidebar-trigger';
 import { Separator } from '@/components/ui/separator';
@@ -37,6 +37,11 @@ export function ShareLayout(props: IProps) {
     onWide,
     showSidebar = true,
   } = props;
+  const location = useLocation();
+  const sidebarActiveKey =
+    typeof location.state?.sidebarActiveKey === 'string'
+      ? location.state.sidebarActiveKey
+      : currentResourceId;
 
   return (
     <>
@@ -50,7 +55,7 @@ export function ShareLayout(props: IProps) {
           currentResourceId={currentResourceId}
           currentResourcePath={currentResourcePath}
           isResourceActive={resourceId =>
-            !isChatActive && resourceId === currentResourceId
+            !isChatActive && resourceId === sidebarActiveKey
           }
           onAddToContext={handleAddToContext}
           canBrowseResources={shareInfo.all_resources}

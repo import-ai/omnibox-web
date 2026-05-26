@@ -19,6 +19,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { getShareResourceNavigationTarget } from '@/page/share/sidebar/navigation';
 import type { TreeNode } from '@/page/share/sidebar/store';
 import { useSidebarStore } from '@/page/share/sidebar/store';
 
@@ -52,14 +53,24 @@ export function ResourceNodeContent({
   const canExpand = canBrowseResources && node.hasChildren;
   const isExpanded = canExpand && nodeUI?.expanded === true;
   const isActive = isResourceActive(nodeId);
+  const navigationTarget = getShareResourceNavigationTarget({
+    id: node.id,
+    parentId: node.parentId,
+    attrs: node.attrs,
+  });
 
-  const handleNavigate = (id: string, edit?: boolean) => {
+  const handleNavigate = (id: string, edit?: boolean, activeKey?: string) => {
+    const state = {
+      fromSidebar: true,
+      ...(activeKey ? { sidebarActiveKey: activeKey } : {}),
+    };
+
     if (edit) {
-      navigate(`/s/${shareId}/${id}`, { state: { fromSidebar: true } });
+      navigate(`/s/${shareId}/${id}`, { state });
     } else if (id === 'chat') {
       navigate(`/s/${shareId}/chat`);
     } else {
-      navigate(`/s/${shareId}/${id}`, { state: { fromSidebar: true } });
+      navigate(`/s/${shareId}/${id}`, { state });
     }
     if (isMobile) {
       setOpenMobile(false);
@@ -81,14 +92,22 @@ export function ResourceNodeContent({
       if (isActive) {
         handleExpand();
       } else {
-        handleNavigate(nodeId);
+        handleNavigate(
+          navigationTarget.resourceId,
+          false,
+          navigationTarget.sidebarActiveKey
+        );
         useSidebarStore.getState().activate(nodeId);
         if (!isExpanded) {
           useSidebarStore.getState().expand(nodeId);
         }
       }
     } else {
-      handleNavigate(nodeId);
+      handleNavigate(
+        navigationTarget.resourceId,
+        false,
+        navigationTarget.sidebarActiveKey
+      );
       useSidebarStore.getState().activate(nodeId);
     }
   };
