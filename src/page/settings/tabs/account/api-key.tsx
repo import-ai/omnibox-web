@@ -39,8 +39,44 @@ import {
   APIKeyPermissionType,
   type CreateAPIKeyDto,
 } from '@/interface';
+import { cn } from '@/lib/utils';
 
 import ResourceSearch from '../../components/resource-search';
+
+function APIKeyInfoRow({
+  label,
+  children,
+  className,
+}: {
+  label: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('flex flex-col gap-1', className)}>
+      <span className="text-sm text-muted-foreground">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+function APIKeyPermissionLabel({
+  target,
+}: {
+  target: APIKeyPermissionTarget | string;
+}) {
+  const { t } = useTranslation();
+
+  if (target === APIKeyPermissionTarget.RESOURCES || target === 'resources') {
+    return <>{t('api_key.permissions_resources')}</>;
+  }
+
+  if (target === APIKeyPermissionTarget.CHAT || target === 'chat') {
+    return <>{t('api_key.permissions_chat')}</>;
+  }
+
+  return <>{target}</>;
+}
 
 export function APIKeyForm() {
   const { t, i18n } = useTranslation();
@@ -625,56 +661,47 @@ export function APIKeyForm() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <span className="text-sm text-muted-foreground">
-                  {t('api_key.permission_scope')}
-                </span>
+              <APIKeyInfoRow label={t('api_key.permission_scope')}>
                 <span className="text-sm font-semibold text-foreground">
                   {key.attrs.root_resource_id}
                 </span>
-              </div>
+              </APIKeyInfoRow>
 
               {key.attrs.related_app_id && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-muted-foreground">
-                    {t('api_key.related_application')}
-                  </span>
+                <APIKeyInfoRow label={t('api_key.related_application')}>
                   <span className="text-sm font-semibold text-foreground">
                     {t(`applications.app_names.${key.attrs.related_app_id}`, {
                       defaultValue: key.attrs.related_app_id,
                     })}
                   </span>
-                </div>
+                </APIKeyInfoRow>
               )}
 
-              <div className="flex flex-col gap-1">
-                <span className="text-sm text-muted-foreground">
-                  {t('api_key.permissions')}
-                </span>
-                {key.attrs.permissions.map(perm => (
-                  <div key={perm.target} className="flex flex-col gap-1">
-                    <span className="text-sm text-muted-foreground">
-                      {t(`api_key.permission_targets.${perm.target}`, {
-                        defaultValue: perm.target,
-                      })}
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {perm.permissions.map(permission => (
-                        <div
-                          key={permission}
-                          className="inline-flex h-6 items-center justify-center rounded-lg border border-border px-2 py-0.5"
-                        >
-                          <span className="text-xs font-medium text-muted-foreground">
-                            {t(`api_key.permission_types.${permission}`, {
-                              defaultValue: permission,
-                            })}
-                          </span>
-                        </div>
-                      ))}
+              <APIKeyInfoRow label={t('api_key.permissions')}>
+                <div className="flex flex-col gap-3">
+                  {key.attrs.permissions.map(perm => (
+                    <div key={perm.target} className="flex flex-col gap-1.5">
+                      <span className="text-sm font-semibold text-foreground">
+                        <APIKeyPermissionLabel target={perm.target} />
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {perm.permissions.map(permission => (
+                          <div
+                            key={permission}
+                            className="inline-flex h-6 items-center justify-center rounded-lg border border-border px-2 py-0.5"
+                          >
+                            <span className="text-xs font-medium text-muted-foreground">
+                              {t(`api_key.permission_types.${permission}`, {
+                                defaultValue: permission,
+                              })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </APIKeyInfoRow>
             </div>
           </div>
         ))
