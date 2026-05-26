@@ -163,6 +163,16 @@ export function useSidebarEvents(namespaceId: string) {
         .getState()
         .expandPathTo(targetId, { expandTarget: true });
       useSidebarStore.getState().activate(targetId);
+      const currentState = window.history.state?.usr;
+      navigate(`/${namespaceId}/${targetId}`, {
+        replace: true,
+        state: {
+          ...(currentState && typeof currentState === 'object'
+            ? currentState
+            : {}),
+          sidebarActiveKey: targetId,
+        },
+      });
       scrollToResource(targetId);
     };
 
