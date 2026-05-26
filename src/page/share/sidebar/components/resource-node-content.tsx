@@ -48,6 +48,7 @@ export function ResourceNodeContent({
   const { setOpenMobile } = useSidebar();
 
   const nodeUI = useSidebarStore(s => s.ui[nodeId]);
+  const canRenderChildren = canBrowseResources && node.children.length > 0;
   const canExpand = canBrowseResources && node.hasChildren;
   const isExpanded = canExpand && nodeUI?.expanded === true;
   const isActive = isResourceActive(nodeId);
@@ -94,13 +95,7 @@ export function ResourceNodeContent({
 
   return (
     <SidebarMenuItem>
-      <Collapsible
-        open={isExpanded}
-        className={cn('group/collapsible', {
-          '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
-            isExpanded && !nodeUI?.loading,
-        })}
-      >
+      <Collapsible open={isExpanded} className="group/collapsible">
         <CollapsibleTrigger asChild>
           <ContextMenuMain
             nodeId={nodeId}
@@ -145,7 +140,12 @@ export function ResourceNodeContent({
                               handleExpand();
                             }}
                           >
-                            <Arrow className="transition-transform" />
+                            <Arrow
+                              className={cn(
+                                'transition-transform',
+                                isExpanded && 'rotate-90'
+                              )}
+                            />
                           </Button>
                         ))}
                       <ResourceTypeIcon
@@ -186,8 +186,8 @@ export function ResourceNodeContent({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub className="mr-0 gap-0 py-0 pr-0">
-            {isExpanded &&
-              node.children.length > 0 &&
+            {canRenderChildren &&
+              isExpanded &&
               node.children.map(childId => (
                 <ResourceNode
                   nodeId={childId}

@@ -53,7 +53,7 @@ export function ShareLayout(props: IProps) {
             !isChatActive && resourceId === currentResourceId
           }
           onAddToContext={handleAddToContext}
-          allResources={shareInfo.all_resources}
+          canBrowseResources={shareInfo.all_resources}
         />
       )}
       <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)]">

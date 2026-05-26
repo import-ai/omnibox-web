@@ -104,6 +104,7 @@ export default function NodeContextMenu({
             resourceId={nodeId}
             onOpenChange={actions.setMoveTo}
             namespaceId={namespaceId}
+            sourceResourceType={node.resourceType}
             onFinished={actions.handleMoveFinished}
           />
         </>

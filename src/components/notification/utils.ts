@@ -55,3 +55,31 @@ export function startNotificationPolling(
     clearInterval(timer);
   };
 }
+
+export function startResettableNotificationPolling(
+  refresh: () => Promise<void> | void,
+  intervalMs: number = NOTIFICATION_POLL_INTERVAL_MS
+) {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const clearTimer = () => {
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
+
+  const scheduleNext = () => {
+    clearTimer();
+    timer = setTimeout(() => {
+      Promise.resolve(refresh()).finally(scheduleNext);
+    }, intervalMs);
+  };
+
+  scheduleNext();
+
+  return {
+    restart: scheduleNext,
+    stop: clearTimer,
+  };
+}

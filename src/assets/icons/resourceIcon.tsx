@@ -25,6 +25,8 @@ import { GithubIcon } from '@/assets/icons/githubIcon';
 import { ITHomeIcon } from '@/assets/icons/itHomeIcon.tsx';
 import { OKJikeIcon } from '@/assets/icons/okJikeIcon.tsx';
 import { RedNoteIcon } from '@/assets/icons/redNoteIcon';
+import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
+import { SmartFolderOpenIcon } from '@/assets/icons/smartFolderOpen';
 import { Tiktok } from '@/assets/icons/tiktok.tsx';
 import { WeChatIcon } from '@/assets/icons/wechatIcon';
 import { ResourceMeta } from '@/interface';
@@ -242,6 +244,9 @@ export default function ResourceIcon(props: IProps) {
   const { expand, resource } = props;
   if (resource.resource_type === 'folder') {
     return expand ? <FolderOpen /> : <Folder />;
+  }
+  if (resource.resource_type === 'smart_folder') {
+    return expand ? <SmartFolderOpenIcon /> : <SmartFolderDefaultIcon />;
   }
   if (resource.resource_type === 'file') {
     return getIconForFile(resource);

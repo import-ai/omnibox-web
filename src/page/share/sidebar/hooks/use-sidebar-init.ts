@@ -9,11 +9,12 @@ interface IProps {
   rootResource: ResourceMeta;
   currentResourceId?: string;
   currentResourcePath?: Array<{ id: string }>;
-  allResources: boolean;
+  canBrowseResources: boolean;
 }
 
 export function useSidebarInit(props: IProps) {
-  const { shareId, rootResource, currentResourceId, allResources } = props;
+  const { shareId, rootResource, currentResourceId, canBrowseResources } =
+    props;
   const navigate = useNavigate();
   // Auto-navigate to first resource when no resourceId and not on chat page
   const hasAutoNavigatedRef = useRef(false);
@@ -46,14 +47,16 @@ export function useSidebarInit(props: IProps) {
         children: [
           {
             ...rootResource,
-            has_children: allResources ? rootResource.has_children : false,
+            has_children: canBrowseResources
+              ? rootResource.has_children
+              : false,
             space_type: 'share',
             parent_id: virtualRootId,
           } as unknown as Resource,
         ],
       } as unknown as Resource & { children: Resource[] },
     });
-  }, [allResources, rootResource, shareId]);
+  }, [canBrowseResources, rootResource, shareId]);
 
   const location = useLocation();
 
@@ -74,7 +77,7 @@ export function useSidebarInit(props: IProps) {
     const store = useSidebarStore.getState();
 
     store
-      .expandPathTo(currentResourceId, { expandTarget: allResources })
+      .expandPathTo(currentResourceId, { expandTarget: canBrowseResources })
       .then(() => {
         if (cancelled) return;
         requestAnimationFrame(() => {
@@ -95,19 +98,19 @@ export function useSidebarInit(props: IProps) {
     initialized,
     currentResourceId,
     chatPage,
-    allResources,
+    canBrowseResources,
     location.pathname,
     navigate,
   ]);
 
   useEffect(() => {
-    if (!initialized || !allResources) return;
+    if (!initialized || !canBrowseResources) return;
     const key = `${shareId}:${rootResource.id}`;
     if (autoExpandedAllKeyRef.current === key) return;
 
     autoExpandedAllKeyRef.current = key;
     useSidebarStore.getState().expandAllFrom(rootResource.id);
-  }, [initialized, allResources, rootResource.id, shareId]);
+  }, [initialized, canBrowseResources, rootResource.id, shareId]);
 
   useEffect(() => {
     if (!initialized || currentResourceId || chatPage) return;

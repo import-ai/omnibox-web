@@ -96,7 +96,7 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
       });
     },
 
-    move: async (dragId: string, dropId: string) => {
+    move: async (dragId: string, dropId: string, localOnly?: boolean) => {
       const drag = get().nodes[dragId];
       const drop = get().nodes[dropId];
       if (!drag || !drop) return;
@@ -136,7 +136,10 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
         const newParent = s.nodes[dropId];
         if (!newParent) return;
         newParent.hasChildren = true;
-        newParent.children.unshift(dragId);
+        newParent.children = [
+          dragId,
+          ...newParent.children.filter(cid => cid !== dragId),
+        ];
 
         const draftDrag = s.nodes[dragId];
         if (!draftDrag) return;
@@ -152,6 +155,10 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
           n.spaceType = newParent.spaceType;
         });
       });
+
+      if (localOnly) {
+        return;
+      }
 
       try {
         await moveResource(get().namespaceId, dragId, dropId);

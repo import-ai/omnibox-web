@@ -37,6 +37,7 @@ interface NodeActionsContentProps {
 export function NodeActionsContent({
   nodeId,
   namespaceId,
+  node,
   actions,
   upload,
   onRename,
@@ -125,6 +126,7 @@ export function NodeActionsContent({
           resourceId={nodeId}
           onOpenChange={actions.setMoveTo}
           namespaceId={namespaceId}
+          sourceResourceType={node.resourceType}
           onFinished={actions.handleMoveFinished}
         />
       )}

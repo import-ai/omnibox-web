@@ -182,3 +182,5 @@ export function parseImageLinks(markdownContent: string): string[] {
 
   return imageLinks;
 }
+
+export const groupTimestampedItemsByTimestamp = groupItemsByTimestamp;

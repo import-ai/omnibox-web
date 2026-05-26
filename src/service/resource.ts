@@ -14,6 +14,12 @@ export function fetchChildren(namespaceId: string, id: string) {
   );
 }
 
+export function fetchSmartFolderChildren(namespaceId: string, id: string) {
+  return http.get<Resource[]>(
+    `/namespaces/${namespaceId}/smart-folders/${id}/children`
+  );
+}
+
 export function createResource(namespaceId: string, payload: CreatePayload) {
   return http.post<Resource>(`/namespaces/${namespaceId}/resources`, payload);
 }
