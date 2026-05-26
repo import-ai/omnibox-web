@@ -692,6 +692,7 @@
   "search": {
     "title": "搜索",
     "placeholder": "搜索页面、文件、对话等",
+    "root": "根目录",
     "resources": "资源",
     "chats": "对话",
     "no_results": "未找到资源"
@@ -729,6 +730,10 @@
     "permissions": "权限",
     "permissions_resources": "资源权限",
     "permissions_chat": "对话权限",
+    "permission_targets": {
+      "resources": "资源",
+      "chat": "对话"
+    },
     "permission_types": {
       "create": "创建",
       "read": "读取",
