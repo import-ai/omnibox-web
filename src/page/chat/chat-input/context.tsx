@@ -53,7 +53,10 @@ export default function ChatContext(props: IProps) {
             variant="outline"
             className="dark:border-[#6e7276] dark:bg-transparent"
             onClick={() => {
-              navigate(`${navigatePrefix}/${item.resource.id}`);
+              navigate(
+                `${navigatePrefix}/${item.resource.id}`,
+                item.navigateState ? { state: item.navigateState } : undefined
+              );
             }}
           >
             <ResourceTypeIcon

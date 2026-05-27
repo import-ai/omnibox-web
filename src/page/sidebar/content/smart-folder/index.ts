@@ -27,12 +27,7 @@ export type SmartFolderOperator =
   | 'after_date'
   | 'between_dates';
 
-export type SmartFolderRelativeDateUnit =
-  | 'day'
-  | 'week'
-  | 'month'
-  | 'quarter'
-  | 'year';
+export type SmartFolderRelativeDateUnit = 'day' | 'week' | 'month' | 'year';
 
 export type SmartFolderNamespaceTier = 'basic' | 'premium' | undefined;
 
@@ -223,4 +218,20 @@ export function getSmartFolderChildSidebarKey(
   sourceResourceId: string
 ) {
   return `smart-folder-child-${parentId}-${sourceResourceId}`;
+}
+
+/**
+ * Given a composite sidebar key and the known source resource id, returns the
+ * smart folder parent id encoded in the key, or null if the key is not a
+ * smart-folder-child key for that resource.
+ */
+export function getSmartFolderParentIdFromChildKey(
+  key: string,
+  sourceResourceId: string
+): string | null {
+  const prefix = 'smart-folder-child-';
+  const suffix = `-${sourceResourceId}`;
+  if (!key.startsWith(prefix) || !key.endsWith(suffix)) return null;
+  const parentId = key.slice(prefix.length, key.length - suffix.length);
+  return parentId || null;
 }

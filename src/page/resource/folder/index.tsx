@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import useApp from '@/hooks/use-app';
 import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
+import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
 import { getSmartFolderChildSidebarKey } from '@/page/sidebar/content/smart-folder';
 
 import { groupTimestampedItemsByTimestamp } from '../utils';
@@ -197,12 +198,17 @@ export default function Folder(props: IProps) {
                     onClick={() => {
                       navigate(`${navigationPrefix}/${item.id}`, {
                         state: smartFolderParentId
-                          ? {
-                              sidebarActiveKey: getSmartFolderChildSidebarKey(
+                          ? navigationPrefix.startsWith('/s/')
+                            ? getShareSmartFolderChildNavigationState(
                                 smartFolderParentId,
                                 item.id
-                              ),
-                            }
+                              )
+                            : {
+                                sidebarActiveKey: getSmartFolderChildSidebarKey(
+                                  smartFolderParentId,
+                                  item.id
+                                ),
+                              }
                           : undefined,
                       });
                     }}
