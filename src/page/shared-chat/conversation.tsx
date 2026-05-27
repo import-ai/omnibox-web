@@ -1,4 +1,3 @@
-import Cookies from 'js-cookie';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -23,7 +22,7 @@ import {
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
 import { Messages } from '@/page/chat/messages';
-import { SHARE_PASSWORD_COOKIE, useShareContext } from '@/page/share';
+import { useShareContext } from '@/page/share';
 
 export default function SharedChatConversationPage() {
   const params = useParams();
@@ -43,10 +42,6 @@ export default function SharedChatConversationPage() {
     () => createMessageOperator(conversation, setConversation),
     [conversation, setConversation]
   );
-
-  const getSharePassword = () => {
-    return password || Cookies.get(SHARE_PASSWORD_COOKIE) || undefined;
-  };
 
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
@@ -84,7 +79,7 @@ export default function SharedChatConversationPage() {
           getWizardLang(i18n),
           undefined,
           shareId,
-          getSharePassword(),
+          password || undefined,
           undefined,
           decisions ? { decisions } : undefined
         );
