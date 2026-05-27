@@ -27,7 +27,7 @@ import { getSmartFolderSidebarAttrs } from '@/page/sidebar/content/smart-folder'
 import { ShareLayout } from './layout';
 import { Password } from './password';
 
-export const SHARE_PASSWORD_COOKIE = 'share-password';
+const SHARE_PASSWORD_COOKIE = 'share-password';
 
 interface ShareContextValue {
   shareInfo: PublicShareInfo | null;
