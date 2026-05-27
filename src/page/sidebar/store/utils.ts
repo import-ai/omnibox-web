@@ -174,6 +174,21 @@ export function ensureUI(s: SidebarState, id: string) {
   return s.ui[id];
 }
 
+export function collapseEmptyNode(
+  state: Pick<SidebarState, 'nodes' | 'ui'>,
+  id: string
+): void {
+  const node = state.nodes[id];
+  if (!node || node.children.length > 0) {
+    return;
+  }
+  node.hasChildren = false;
+  const ui = state.ui[id];
+  if (ui) {
+    ui.expanded = false;
+  }
+}
+
 export function getSelectableDescendantIds(
   nodes: Record<string, TreeNode>,
   id: string

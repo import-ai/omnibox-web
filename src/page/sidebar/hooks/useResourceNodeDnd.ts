@@ -12,10 +12,15 @@ import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
 import {
   calculateSelectedCount,
+  getDescendantIds,
   getTopLevelSelectedIds,
   isDescendant,
 } from '../store/utils';
-import { DndItem, useDndHandlers } from './useDndHandlers';
+import {
+  DndItem,
+  isDisabledBatchDropTarget,
+  useDndHandlers,
+} from './useDndHandlers';
 
 interface UseResourceNodeDndOptions {
   namespaceId: string;
@@ -26,7 +31,8 @@ interface UseResourceNodeDndOptions {
 }
 
 interface UseResourceNodeDndReturn {
-  ref: RefObject<HTMLDivElement | null>;
+  dragRef: RefObject<HTMLDivElement | null>;
+  dropRef: RefObject<HTMLDivElement | null>;
   dragStyle: { opacity: number };
   isOver: boolean;
   isDisabledOver: boolean;
@@ -47,9 +53,11 @@ export function useResourceNodeDnd(
     selectedIds = [],
   } = options;
 
-  const ref = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<HTMLDivElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
   const nodes = useSidebarStore(state => state.nodes);
   const selectedMap = useSidebarStore(state => state.selectedIds);
+  const batchDragging = useSidebarStore(state => state.batchDragging);
   const batchIds = useMemo(
     () => getTopLevelSelectedIds(nodes, selectedIds),
     [nodes, selectedIds]
@@ -58,12 +66,22 @@ export function useResourceNodeDnd(
     () => calculateSelectedCount(nodes, selectedMap),
     [nodes, selectedMap]
   );
+  const disabledBatchTargetIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const id of batchIds) {
+      ids.add(id);
+      for (const descendantId of getDescendantIds(nodes, id)) {
+        ids.add(descendantId);
+      }
+    }
+    return Array.from(ids);
+  }, [batchIds, nodes]);
   const canDropItem = (item: DndItem) => {
     if (item.id) {
       return item.id !== nodeId && !isDescendant(nodes, item.id, nodeId);
     }
     if (item.ids?.length) {
-      if (item.ids.includes(nodeId)) {
+      if (isDisabledBatchDropTarget(nodes, item, nodeId)) {
         return false;
       }
       const topLevelIds = getTopLevelSelectedIds(nodes, item.ids);
@@ -90,6 +108,7 @@ export function useResourceNodeDnd(
         return {
           type: 'batch',
           ids: batchIds,
+          disabledTargetIds: disabledBatchTargetIds,
           count: batchCount,
           preview: node,
         };
@@ -99,7 +118,15 @@ export function useResourceNodeDnd(
         opacity: monitor.isDragging() ? 0.5 : 1,
       }),
     },
-    [batchCount, batchIds, isEditing, isSelected, node, selectionMode]
+    [
+      batchCount,
+      batchIds,
+      disabledBatchTargetIds,
+      isEditing,
+      isSelected,
+      node,
+      selectionMode,
+    ]
   );
 
   const [{ isOver, isDisabledOver }, drop] = useDrop<
@@ -109,15 +136,23 @@ export function useResourceNodeDnd(
   >({
     accept: ['card', NativeTypes.FILE],
     canDrop: item => canDropItem(item),
-    collect: monitor => ({
-      isOver: monitor.isOver({ shallow: true }) && monitor.canDrop(),
-      isDisabledOver:
-        monitor.isOver({ shallow: true }) &&
-        monitor.getItemType() === 'card' &&
-        !monitor.canDrop(),
-    }),
+    collect: monitor => {
+      const item = monitor.getItem() as DndItem | null;
+      const isCardOver =
+        monitor.getItemType() === 'card' && monitor.isOver({ shallow: false });
+      const isBatchDisabledTarget =
+        isCardOver &&
+        Boolean(item?.ids?.length) &&
+        isDisabledBatchDropTarget(nodes, item, nodeId);
+      return {
+        isOver: monitor.isOver({ shallow: true }) && monitor.canDrop(),
+        isDisabledOver:
+          isBatchDisabledTarget ||
+          (isCardOver && item !== null && !canDropItem(item)),
+      };
+    },
     hover: (item, monitor) => {
-      if (!ref.current) return;
+      if (!dropRef.current) return;
       if (!canDropItem(item)) return;
       handleHover(item, monitor);
     },
@@ -126,14 +161,16 @@ export function useResourceNodeDnd(
       handleDrop(item, monitor);
     },
   });
+  const isBatchDisabledOver =
+    batchDragging && disabledBatchTargetIds.includes(nodeId);
 
   useLayoutEffect(() => {
     preview(getEmptyImage(), { captureDraggingState: false });
   }, [preview]);
 
   useEffect(() => {
-    drag(ref);
-    drop(ref);
+    drag(dragRef);
+    drop(dropRef);
   }, [drag, drop]);
 
   useEffect(() => {
@@ -142,5 +179,12 @@ export function useResourceNodeDnd(
     }
   }, [isOver, isFileDragOver, clearFileDragTarget]);
 
-  return { ref, dragStyle, isOver, isDisabledOver, isFileDragOver };
+  return {
+    dragRef,
+    dropRef,
+    dragStyle,
+    isOver,
+    isDisabledOver: isDisabledOver || isBatchDisabledOver,
+    isFileDragOver,
+  };
 }

@@ -21,6 +21,7 @@ export interface BatchTrashResponse {
 export interface BatchMoveResponse {
   success_ids: string[];
   failed_ids: string[];
+  name_conflict_ids?: string[];
 }
 
 export interface BatchCreateFolderPayload {
@@ -32,7 +33,17 @@ export interface BatchCreateFolderPayload {
 export type BatchCreateFolderResponse = Partial<Resource> & {
   success_ids: string[];
   failed_ids: string[];
+  name_conflict_ids?: string[];
 };
+
+interface IndexedResourceSearchResult {
+  type: 'resource';
+  id: string;
+  resource_id: string;
+  title: string;
+  attrs?: Record<string, any>;
+  resource_type: ResourceType;
+}
 
 export function fetchChildren(namespaceId: string, id: string) {
   return http.get<Resource[]>(
@@ -44,20 +55,25 @@ export function fetchRootResources(namespaceId: string) {
   return http.get<RootResourcesResponse>(`/namespaces/${namespaceId}/root`);
 }
 
-export function searchResources(
-  namespaceId: string,
-  options: { name?: string; excludeResourceIds?: string[] }
-) {
+export function searchResources(namespaceId: string, query: string) {
   const params = new URLSearchParams();
-  if (options.name) {
-    params.set('name', options.name);
+  if (query) {
+    params.set('query', query);
   }
-  if (options.excludeResourceIds?.length) {
-    params.set('exclude_resource_id', options.excludeResourceIds.join(','));
-  }
-  return http.get<ResourceMeta[]>(
-    `/namespaces/${namespaceId}/resources/search?${params.toString()}`
-  );
+  params.set('type', 'resource');
+  return http
+    .get<
+      IndexedResourceSearchResult[]
+    >(`/namespaces/${namespaceId}/search?${params.toString()}`)
+    .then(resources =>
+      resources.map<ResourceMeta>(resource => ({
+        id: resource.resource_id,
+        name: resource.title,
+        parent_id: null,
+        resource_type: resource.resource_type,
+        attrs: resource.attrs,
+      }))
+    );
 }
 
 export function createResource(namespaceId: string, payload: CreatePayload) {

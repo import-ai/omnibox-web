@@ -13,6 +13,7 @@ import type {
   SidebarStore,
 } from '../types';
 import {
+  collapseEmptyNode,
   createNode,
   ensureUI,
   getDescendantIds,
@@ -24,6 +25,9 @@ import {
 } from '../utils';
 
 export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
+  const isTargetNotEditableError = (error: unknown) =>
+    (error as any)?.response?.data?.code === 'target_not_editable';
+
   const finishBatchSelection = (s: SidebarStore) => {
     s.selectionMode = Object.keys(s.selectedIds).length > 0;
     if (!s.selectionMode) {
@@ -189,7 +193,7 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             const parent = s.nodes[parentId];
             if (parent) {
               parent.children = parent.children.filter(cid => cid !== id);
-              parent.hasChildren = parent.children.length > 0;
+              collapseEmptyNode(s, parentId);
             }
           }
 
@@ -218,7 +222,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
 
     batchMove: async (ids: string[], targetId: string) => {
       const requestedIds = getTopLevelSelectedIds(get().nodes, ids);
-      const result: BatchOperationResult = { success: [], failed: [] };
+      const result: BatchOperationResult = {
+        success: [],
+        failed: [],
+        nameConflictIds: [],
+      };
       const snapshots = new Map<
         string,
         {
@@ -272,7 +280,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             const oldParent = s.nodes[oldParentId];
             if (oldParent) {
               oldParent.children = oldParent.children.filter(cid => cid !== id);
-              oldParent.hasChildren = oldParent.children.length > 0;
             }
           }
 
@@ -316,25 +323,38 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           result.success = response.success_ids.filter(id =>
             validIds.includes(id)
           );
+          result.nameConflictIds = (response.name_conflict_ids ?? []).filter(
+            id => validIds.includes(id)
+          );
           result.failed.push(
             ...response.failed_ids
               .filter(id => validIds.includes(id))
               .map(id => ({ id, error: new Error('Move failed') }))
           );
         } catch (error) {
+          const isTargetError = isTargetNotEditableError(error);
+          result.targetError = isTargetError ? error : undefined;
           result.failed.push(
-            ...validIds.map(id => ({ id, error: error as Error }))
+            ...validIds.map(id => ({
+              id,
+              error: isTargetError
+                ? new Error('Target is not editable')
+                : (error as Error),
+            }))
           );
         }
       }
 
       set(s => {
         const successSet = new Set(result.success);
+        const sourceParentIds = new Set<string>();
         for (const item of result.failed) {
           const snapshot = snapshots.get(item.id);
           const node = s.nodes[item.id];
           if (!snapshot || !node) {
-            s.failedIds[item.id] = true;
+            if (!result.targetError) {
+              s.failedIds[item.id] = true;
+            }
             continue;
           }
 
@@ -345,11 +365,12 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
               currentParent.children = currentParent.children.filter(
                 cid => cid !== item.id
               );
-              currentParent.hasChildren = currentParent.children.length > 0;
+              collapseEmptyNode(s, currentParentId);
             }
           }
 
           if (snapshot.parentId) {
+            sourceParentIds.add(snapshot.parentId);
             const oldParent = s.nodes[snapshot.parentId];
             if (oldParent && !oldParent.children.includes(item.id)) {
               const insertIndex =
@@ -369,7 +390,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
               snapshot.spaceType;
           });
 
-          s.failedIds[item.id] = true;
+          if (result.targetError) {
+            delete s.failedIds[item.id];
+          } else {
+            s.failedIds[item.id] = true;
+          }
         }
 
         const unappliedSuccessIds = result.success.filter(
@@ -380,12 +405,28 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         }
 
         for (const id of result.success) {
+          const snapshot = snapshots.get(id);
+          if (snapshot?.parentId) {
+            sourceParentIds.add(snapshot.parentId);
+          }
           if (successSet.has(id)) {
+            const movedIds = [id, ...getDescendantIds(s.nodes, id)];
+            for (const movedId of movedIds) {
+              delete s.selectedIds[movedId];
+              delete s.failedIds[movedId];
+            }
             delete s.failedIds[id];
           }
         }
+        for (const parentId of sourceParentIds) {
+          collapseEmptyNode(s, parentId);
+        }
         finishBatchSelection(s);
       });
+
+      if (result.targetError) {
+        throw result.targetError;
+      }
 
       return result;
     },
@@ -433,10 +474,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             const child = s.nodes[id];
             if (!child) continue;
             const movedIds = [id, ...getDescendantIds(s.nodes, id)];
-            const oldParent = child.parentId ? s.nodes[child.parentId] : null;
+            const oldParentId = child.parentId;
+            const oldParent = oldParentId ? s.nodes[oldParentId] : null;
             if (oldParent) {
               oldParent.children = oldParent.children.filter(cid => cid !== id);
-              oldParent.hasChildren = oldParent.children.length > 0;
+              collapseEmptyNode(s, oldParentId);
             }
             child.parentId = node.id;
             traverseDescendants(s.nodes, id, descendant => {

@@ -21,6 +21,24 @@ function hasOpenFloatingLayer() {
   return document.querySelector(OPEN_LAYER_SELECTOR) !== null;
 }
 
+function isTargetNotEditableError(error: unknown) {
+  return (error as any)?.response?.data?.code === 'target_not_editable';
+}
+
+function isBatchSourceNotEditableError(error: unknown) {
+  return (error as any)?.response?.data?.code === 'batch_source_not_editable';
+}
+
+function getBatchMoveErrorKey(error: unknown) {
+  if (isBatchSourceNotEditableError(error)) {
+    return 'batch.all_forbidden';
+  }
+  if (isTargetNotEditableError(error)) {
+    return 'batch.move_target_readonly';
+  }
+  return 'batch.move_failed';
+}
+
 export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
   const app = useApp();
   const { t } = useTranslation();
@@ -94,9 +112,25 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
       const result = await useSidebarStore
         .getState()
         .batchMove(getSelectedIds(), targetId);
+      const nameConflictCount = result.nameConflictIds?.length ?? 0;
       if (result.failed.length > 0) {
         if (result.success.length === 0) {
-          toast.error(t('batch.all_forbidden'), { position: 'bottom-right' });
+          toast.error(
+            t(
+              nameConflictCount > 0
+                ? 'batch.move_name_conflict_failed'
+                : 'batch.all_forbidden'
+            ),
+            { position: 'bottom-right' }
+          );
+        } else if (nameConflictCount > 0) {
+          toast.success(
+            t('batch.move_name_conflict_partial', {
+              success: result.success.length,
+              failed: nameConflictCount,
+            }),
+            { position: 'bottom-right' }
+          );
         } else {
           toast.success(
             t('batch.move_partial_error', {
@@ -113,10 +147,16 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         );
       }
       if (result.success.length > 0) {
+        useSidebarStore.getState().activate(targetId);
+        navigate(`/${namespaceId}/${targetId}`, {
+          state: { fromSidebar: true },
+        });
         app.fire('scroll_to_resource', targetId);
       }
-    } catch {
-      toast.error(t('batch.move_failed'), { position: 'bottom-right' });
+    } catch (error) {
+      toast.error(t(getBatchMoveErrorKey(error)), {
+        position: 'bottom-right',
+      });
     } finally {
       setIsProcessing(false);
       closeMoveDialog();
@@ -162,6 +202,18 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         toast.error(t('batch.create_name_conflict'), {
           position: 'bottom-right',
         });
+        return false;
+      }
+      if (isTargetNotEditableError(error)) {
+        toast.error(
+          t('batch.create_target_readonly', {
+            target:
+              error?.response?.data?.target_name ||
+              nodes[parentId]?.name ||
+              t('batch.create_target_label'),
+          }),
+          { position: 'bottom-right' }
+        );
         return false;
       }
       toast.error(t('batch.create_failed'), { position: 'bottom-right' });

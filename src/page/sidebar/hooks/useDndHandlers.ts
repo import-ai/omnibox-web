@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import useApp from '@/hooks/use-app';
+
 import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
 import { getTopLevelSelectedIds, isDescendant } from '../store/utils';
@@ -18,7 +20,10 @@ interface UseDndHandlersOptions {
 interface UseDndHandlersReturn {
   handleDrop: (
     item: DndItem,
-    monitor: { didDrop: () => boolean; getItemType: () => unknown }
+    monitor: {
+      didDrop: () => boolean;
+      getItemType: () => unknown;
+    }
   ) => void;
   handleHover: (
     item: DndItem,
@@ -35,11 +40,12 @@ export interface DndItem {
   files?: File[];
   id?: string;
   ids?: string[];
+  disabledTargetIds?: string[];
   count?: number;
   preview?: TreeNode;
 }
 
-function isBatchDropOnDraggedResource(
+export function isBatchDropOnDraggedResource(
   nodes: Record<string, TreeNode>,
   ids: string[],
   targetId: string
@@ -50,6 +56,38 @@ function isBatchDropOnDraggedResource(
   );
 }
 
+export function isDisabledBatchDropTarget(
+  nodes: Record<string, TreeNode>,
+  item: Pick<DndItem, 'ids' | 'disabledTargetIds'>,
+  targetId: string
+) {
+  if (item.disabledTargetIds?.includes(targetId)) {
+    return true;
+  }
+  if (!item.ids?.length) {
+    return false;
+  }
+  return isBatchDropOnDraggedResource(nodes, item.ids, targetId);
+}
+
+function isTargetNotEditableError(error: unknown) {
+  return (error as any)?.response?.data?.code === 'target_not_editable';
+}
+
+function isBatchSourceNotEditableError(error: unknown) {
+  return (error as any)?.response?.data?.code === 'batch_source_not_editable';
+}
+
+function getBatchMoveErrorKey(error: unknown) {
+  if (isBatchSourceNotEditableError(error)) {
+    return 'batch.all_forbidden';
+  }
+  if (isTargetNotEditableError(error)) {
+    return 'batch.move_target_readonly';
+  }
+  return 'batch.move_failed';
+}
+
 export function useDndHandlers({
   targetId,
   namespaceId,
@@ -57,6 +95,7 @@ export function useDndHandlers({
 }: UseDndHandlersOptions): UseDndHandlersReturn {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const app = useApp();
 
   const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
   const isFileDragOver = fileDragTarget === targetId;
@@ -100,6 +139,13 @@ export function useDndHandlers({
       return useSidebarStore
         .getState()
         .move(dragId, targetId)
+        .then(() => {
+          useSidebarStore.getState().activate(targetId);
+          navigate(`/${namespaceId}/${targetId}`, {
+            state: { fromSidebar: true },
+          });
+          app.fire('scroll_to_resource', targetId);
+        })
         .catch(() => {
           // request.ts handles backend error toasts.
         });
@@ -119,9 +165,25 @@ export function useDndHandlers({
     return store
       .batchMove(topLevelIds, targetId)
       .then(result => {
+        const nameConflictCount = result.nameConflictIds?.length ?? 0;
         if (result.failed.length > 0) {
           if (result.success.length === 0) {
-            toast.error(t('batch.all_forbidden'), { position: 'bottom-right' });
+            toast.error(
+              t(
+                nameConflictCount > 0
+                  ? 'batch.move_name_conflict_failed'
+                  : 'batch.all_forbidden'
+              ),
+              { position: 'bottom-right' }
+            );
+          } else if (nameConflictCount > 0) {
+            toast.success(
+              t('batch.move_name_conflict_partial', {
+                success: result.success.length,
+                failed: nameConflictCount,
+              }),
+              { position: 'bottom-right' }
+            );
           } else {
             toast.success(
               t('batch.move_partial_error', {
@@ -136,27 +198,33 @@ export function useDndHandlers({
             position: 'bottom-right',
           });
         }
+        if (result.success.length > 0) {
+          useSidebarStore.getState().activate(targetId);
+          navigate(`/${namespaceId}/${targetId}`, {
+            state: { fromSidebar: true },
+          });
+          app.fire('scroll_to_resource', targetId);
+        }
       })
-      .catch(() => {
-        toast.error(t('batch.move_failed'), { position: 'bottom-right' });
+      .catch(error => {
+        toast.error(t(getBatchMoveErrorKey(error)), {
+          position: 'bottom-right',
+        });
       });
   };
 
   const handleDrop = (
     item: DndItem,
-    monitor: { didDrop: () => boolean; getItemType: () => unknown }
+    monitor: {
+      didDrop: () => boolean;
+      getItemType: () => unknown;
+    }
   ) => {
     if (monitor.didDrop()) return;
     const itemType = monitor.getItemType();
+    const nodes = useSidebarStore.getState().nodes;
 
-    if (
-      item.ids &&
-      isBatchDropOnDraggedResource(
-        useSidebarStore.getState().nodes,
-        item.ids,
-        targetId
-      )
-    ) {
+    if (item.ids && isDisabledBatchDropTarget(nodes, item, targetId)) {
       setFileDragTarget(null);
       return;
     }
@@ -189,9 +257,9 @@ export function useDndHandlers({
       if (!isOverShallow) return;
       if (
         item.ids &&
-        isBatchDropOnDraggedResource(
+        isDisabledBatchDropTarget(
           useSidebarStore.getState().nodes,
-          item.ids,
+          item,
           targetId
         )
       ) {

@@ -39,6 +39,8 @@ export interface DialogsState {
 export interface BatchOperationResult {
   success: string[];
   failed: Array<{ id: string; error: Error }>;
+  nameConflictIds?: string[];
+  targetError?: unknown;
   resourceId?: string;
 }
 

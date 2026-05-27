@@ -26,6 +26,7 @@ export default function BatchDeleteDialog({
   return (
     <ConfirmDialog
       open={open}
+      contentClassName="bg-popover"
       title={t('batch.delete_title', { count: selectedCount })}
       description={t('batch.delete_description', {
         days: trashRetentionDays,

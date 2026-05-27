@@ -2,6 +2,8 @@ import { type RefObject, useEffect, useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 
+import { useSidebarStore } from '../store';
+import { getTopLevelSelectedIds } from '../store/utils';
 import { DndItem, useDndHandlers } from './useDndHandlers';
 
 interface UseSpaceDropOptions {
@@ -21,6 +23,7 @@ export function useSpaceDrop({
   namespaceId,
 }: UseSpaceDropOptions): UseSpaceDropReturn {
   const ref = useRef<HTMLDivElement>(null);
+  const nodes = useSidebarStore(state => state.nodes);
 
   const { handleDrop, handleHover, isFileDragOver, clearFileDragTarget } =
     useDndHandlers({
@@ -34,7 +37,13 @@ export function useSpaceDrop({
     { isOver: boolean; canDrop: boolean }
   >({
     accept: [NativeTypes.FILE, 'card'],
-    canDrop: item => !item.ids?.length,
+    canDrop: item => {
+      if (!item.ids?.length) {
+        return item.id ? nodes[item.id]?.parentId !== spaceId : true;
+      }
+      const topLevelIds = getTopLevelSelectedIds(nodes, item.ids);
+      return topLevelIds.some(id => nodes[id]?.parentId !== spaceId);
+    },
     drop: (item, monitor) => {
       handleDrop(item, monitor);
     },

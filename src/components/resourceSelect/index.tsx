@@ -108,6 +108,9 @@ export function ResourceSelect(props: IProps) {
       <DropdownMenuContent
         side="bottom"
         align="end"
+        onOpenAutoFocus={event => {
+          event.preventDefault();
+        }}
         className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl border-none dark:bg-neutral-800"
       >
         {open && (

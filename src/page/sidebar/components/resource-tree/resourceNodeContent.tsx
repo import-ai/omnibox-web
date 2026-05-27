@@ -85,13 +85,19 @@ export function ResourceNodeContent({
   const contentIndent = depth * 20;
   const nodeIndent = node.hasChildren ? 4 : 28;
 
-  const { ref, dragStyle, isOver, isDisabledOver, isFileDragOver } =
-    useResourceNodeDnd(nodeId, node, isEditing, {
-      namespaceId,
-      selectionMode,
-      isSelected,
-      selectedIds: selectedIdList,
-    });
+  const {
+    dragRef,
+    dropRef,
+    dragStyle,
+    isOver,
+    isDisabledOver,
+    isFileDragOver,
+  } = useResourceNodeDnd(nodeId, node, isEditing, {
+    namespaceId,
+    selectionMode,
+    isSelected,
+    selectedIds: selectedIdList,
+  });
 
   useEffect(() => {
     isEditingRef.current = isEditing;
@@ -272,13 +278,15 @@ export function ResourceNodeContent({
             onRename={startRename}
           >
             <div
+              ref={dropRef}
+              data-resource-id={nodeId}
+              style={selectionMode ? { marginLeft: -1 * depth } : undefined}
               className={cn(
                 'group/sidebar-item my-px rounded-md hover:bg-sidebar-accent',
                 'flex items-center',
                 (isActive || isEditing) &&
                   'hover:bg-[#E2E2E6] bg-[#E2E2E6] dark:bg-[#363637]',
                 selectionMode && 'pl-2',
-                selectionMode && depth > 0 && '-mx-px',
                 isSelectionHighlighted &&
                   'bg-[#E2E2E6] dark:bg-[#363637] hover:bg-[#E2E2E6]',
                 (isFileDragOver || isOver) &&
@@ -308,7 +316,7 @@ export function ResourceNodeContent({
                     isActive={isActive || isEditing}
                   >
                     <div
-                      ref={ref}
+                      ref={dragRef}
                       data-resource-id={nodeId}
                       className={cn(
                         'list flex cursor-pointer',

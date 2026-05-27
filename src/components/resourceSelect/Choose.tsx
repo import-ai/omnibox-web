@@ -103,9 +103,7 @@ export function ChooseResource(props: IProps) {
     }
 
     onFetching(true);
-    searchResources(namespaceId, {
-      name: keyword,
-    })
+    searchResources(namespaceId, keyword)
       .then(resources => {
         onData(current => ({ ...current, search: resources }));
       })
@@ -113,28 +111,6 @@ export function ChooseResource(props: IProps) {
         onFetching(false);
       });
   }, [loading, namespaceId, search]);
-
-  const privateRoot = data.privateRootId ? (
-    <DropdownMenuItem
-      onSelect={() => {
-        handlePrivateClick();
-      }}
-      className={cn(
-        'cursor-pointer justify-between gap-1.5 rounded-lg py-2 hover:bg-gray-100 dark:text-white dark:hover:bg-neutral-900',
-        {
-          'bg-gray-100 dark:bg-neutral-900': data.privateRootId === resourceId,
-        }
-      )}
-    >
-      <div className="flex items-center gap-2">
-        <User className="size-4 text-neutral-500" />
-        <span className="text-neutral-900 dark:text-white">{t('private')}</span>
-      </div>
-      {data.privateRootId === resourceId && (
-        <Check className="size-5 text-neutral-900" />
-      )}
-    </DropdownMenuItem>
-  ) : null;
 
   return (
     <>
@@ -147,13 +123,39 @@ export function ChooseResource(props: IProps) {
         <LazyInput
           value={search}
           onChange={onSearch}
+          onKeyDown={event => {
+            event.stopPropagation();
+          }}
           placeholder={t('search.title')}
           className="border-none pl-8 shadow-none outline-none"
         />
       </div>
       <DropdownMenuSeparator />
       <div className="no-scrollbar flex max-h-72 flex-col gap-1 overflow-y-auto">
-        {privateRoot}
+        {data.privateRootId && (
+          <DropdownMenuItem
+            onSelect={() => {
+              handlePrivateClick();
+            }}
+            className={cn(
+              'cursor-pointer justify-between gap-1.5 rounded-lg py-2 hover:bg-gray-100 dark:text-white dark:hover:bg-neutral-900',
+              {
+                'bg-gray-100 dark:bg-neutral-900':
+                  data.privateRootId === resourceId,
+              }
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <User className="size-4 text-neutral-500" />
+              <span className="text-neutral-900 dark:text-white">
+                {t('private')}
+              </span>
+            </div>
+            {data.privateRootId === resourceId && (
+              <Check className="size-5 text-neutral-900" />
+            )}
+          </DropdownMenuItem>
+        )}
         <ChooseWrapper
           resourceId={resourceId}
           onSearch={onSearch}

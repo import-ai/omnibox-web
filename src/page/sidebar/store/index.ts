@@ -28,6 +28,7 @@ export type {
 } from './types';
 export {
   calculateSelectedCount,
+  collapseEmptyNode,
   collectParentIds,
   createNode,
   detectSpaceType,

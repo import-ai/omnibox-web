@@ -97,7 +97,7 @@ export default function ResourceSearch({
       return;
     }
 
-    searchResources(namespaceId, { name: search })
+    searchResources(namespaceId, search)
       .then(response => {
         setData({
           root: [],

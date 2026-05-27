@@ -82,10 +82,7 @@ export default function MoveToForm(props: IFormProps) {
       return;
     }
 
-    searchResources(namespaceId, {
-      name: search,
-      excludeResourceIds: showDisabledTargets ? undefined : resourceIds,
-    })
+    searchResources(namespaceId, search)
       .then(response => {
         if (showDisabledTargets) {
           onData({
