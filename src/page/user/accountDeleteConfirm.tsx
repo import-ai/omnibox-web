@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { http } from '@/lib/request';
 
 import { removeGlobalCredential } from './util';

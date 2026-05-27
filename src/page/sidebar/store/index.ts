@@ -36,6 +36,7 @@ export {
   fetchChildren,
   fetchResource,
   fetchResourcesByIds,
+  fetchSmartFolderChildren,
   moveResource,
   renameResource,
   restoreResource,

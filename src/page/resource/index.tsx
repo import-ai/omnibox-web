@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { Separator } from '@/components/ui/separator';
-import { SidebarInset, useSidebar } from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/Separator';
+import { SidebarInset, useSidebar } from '@/components/ui/Sidebar';
 import useApp from '@/hooks/useApp';
 import useResource from '@/hooks/userResource';
 import useWide from '@/hooks/useWide';
 import { cn } from '@/lib/utils';
 
 import Header from './header';
-import Wrapper from './wrapper';
+import Wrapper from './Wrapper';
 
 export default function ResourcePage() {
   const { wide, onWide } = useWide();

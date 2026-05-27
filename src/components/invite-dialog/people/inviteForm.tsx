@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
-import { SupportedEmailLink } from '@/components/supportedEmailLink';
+import { SupportedEmailLink } from '@/components/SupportedEmailLink';
 import {
   Form,
   FormControl,
@@ -16,15 +16,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from '@/components/ui/Form';
+import { Input } from '@/components/ui/Input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/Select';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 

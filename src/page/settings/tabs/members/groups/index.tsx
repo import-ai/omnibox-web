@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/input';
 import { Group, Member } from '@/interface';
 
-import CreateGroup from './groupAdd';
-import GroupData from './groupList';
+import CreateGroup from './CreateGroup';
+import GroupData from './GroupData';
 
 interface GroupProps {
   search: string;

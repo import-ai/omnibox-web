@@ -13,9 +13,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdownMenu';
-import { SidebarMenuAction } from '@/components/ui/sidebar';
-import { Spinner } from '@/components/ui/spinner';
+} from '@/components/ui/DropdownMenu';
+import { SidebarMenuAction } from '@/components/ui/Sidebar';
+import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
@@ -37,6 +37,7 @@ interface NodeActionsContentProps {
 export function NodeActionsContent({
   nodeId,
   namespaceId,
+  node,
   actions,
   upload,
   onRename,
@@ -125,6 +126,7 @@ export function NodeActionsContent({
           resourceId={nodeId}
           onOpenChange={actions.setMoveTo}
           namespaceId={namespaceId}
+          sourceResourceType={node.resourceType}
           onFinished={actions.handleMoveFinished}
         />
       )}

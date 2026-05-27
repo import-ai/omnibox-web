@@ -2,11 +2,11 @@ import { type UIEvent, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { NotificationDetailDialog } from './detailDialog';
-import { NotificationEmptyState } from './emptyState';
 import { useNotifications } from './hooks/useNotifications';
-import { NotificationListItem } from './item';
-import { NotificationToolbar } from './toolbar';
+import { NotificationDetailDialog } from './NotificationDetailDialog';
+import { NotificationEmptyState } from './NotificationEmptyState';
+import { NotificationListItem } from './NotificationListItem';
+import { NotificationToolbar } from './NotificationToolbar';
 import type {
   NotificationDetail,
   NotificationFilter,
@@ -24,6 +24,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
   const {
     items,
     loading,
+    refreshing,
     loadingMore,
     fetchNotificationDetail,
     loadMore,
@@ -121,7 +122,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
           filter={filter}
           onChange={setFilter}
           labels={labels}
-          refreshing={loading}
+          refreshing={refreshing}
           onRefresh={refresh}
           onMarkAllRead={clearUnread}
         />

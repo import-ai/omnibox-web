@@ -8,7 +8,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/Dialog';
 import { BIND_CHECK_INTERVAL } from '@/const';
 
 import { getQrCodeUrl } from './getQrCodeUrl';

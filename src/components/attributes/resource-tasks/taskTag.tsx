@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { TaskType } from '@/interface.ts';
 import { taskTypeConfig } from '@/page/settings/tabs/members/tasks/taskTypeBadge.tsx';
 

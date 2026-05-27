@@ -9,16 +9,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alertDialog';
+} from '@/components/ui/AlertDialog';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdownMenu';
-import { Spinner } from '@/components/ui/spinner';
+} from '@/components/ui/DropdownMenu';
+import { Spinner } from '@/components/ui/Spinner';
 import { Permission } from '@/interface';
 import { http } from '@/lib/request';
 
-import Action, { ActionProps } from './action';
+import Action, { ActionProps } from './Action';
 import { getData } from './data';
 
 interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {

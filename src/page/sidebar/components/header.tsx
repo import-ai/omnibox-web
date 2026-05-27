@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
-import { ChatIcon } from '@/assets/icons/chatIcon';
-import ActionDialog from '@/components/invite-dialog/actionDialog';
+import { ChatIcon } from '@/assets/icons/ChatIcon';
+import ActionDialog from '@/components/invite-dialog/ActionDialog';
 import Notification from '@/components/notification';
 import { useNotificationUnreadCount } from '@/components/notification/hooks/useNotifications';
 import { notificationDialogContentClassName } from '@/components/notification/utils';
@@ -14,12 +14,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar';
+} from '@/components/ui/Sidebar';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { cn } from '@/lib/utils';
 import SearchMenu from '@/page/search';
@@ -98,7 +98,7 @@ export function Header(props: IProps) {
         <SidebarMenuItem>
           <ActionDialog
             contentClassName={notificationDialogContentClassName}
-            closeClassName="size-6 mr-2"
+            closeClassName="mr-2"
             titleClassName="text-card-foreground pb-2 pl-2"
             title={t('notification_modal.title')}
             trigger={

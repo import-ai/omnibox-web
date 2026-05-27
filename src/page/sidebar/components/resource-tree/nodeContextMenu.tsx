@@ -7,7 +7,7 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from '@/components/ui/contextMenu';
+} from '@/components/ui/ContextMenu';
 import MoveTo from '@/page/resource/actions/move';
 import { useNodeActions } from '@/page/sidebar/hooks/useNodeActions';
 import { useNodeMenu } from '@/page/sidebar/hooks/useNodeMenu';
@@ -104,6 +104,7 @@ export default function NodeContextMenu({
             resourceId={nodeId}
             onOpenChange={actions.setMoveTo}
             namespaceId={namespaceId}
+            sourceResourceType={node.resourceType}
             onFinished={actions.handleMoveFinished}
           />
         </>

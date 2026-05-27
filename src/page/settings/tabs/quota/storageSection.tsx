@@ -8,7 +8,7 @@ import {
 import {
   type QuotaProgressSegment,
   SegmentedProgressBar,
-} from './segmentedProgressBar';
+} from './SegmentedProgressBar';
 
 export interface StorageItem {
   label: string;

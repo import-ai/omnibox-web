@@ -36,14 +36,11 @@ export function useDragAutoScroll(ref: React.RefObject<HTMLElement | null>) {
       lastScrollDirection = 0;
       prevClientY = null;
     };
-    const handleDrop = () => {
-      stopAutoScroll();
-      lastScrollDirection = 0;
-      prevClientY = null;
-    };
+
     const handleWindowBlur = () => {
       stopAutoScroll();
     };
+
     const handleVisibilityChange = () => {
       if (document.hidden) {
         stopAutoScroll();
@@ -96,7 +93,7 @@ export function useDragAutoScroll(ref: React.RefObject<HTMLElement | null>) {
     document.addEventListener('dragover', handleDragOver);
     document.addEventListener('dragleave', handleDragLeave);
     document.addEventListener('dragend', handleDragEnd);
-    document.addEventListener('drop', handleDrop);
+    document.addEventListener('drop', handleDragEnd);
     window.addEventListener('blur', handleWindowBlur);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
@@ -104,7 +101,7 @@ export function useDragAutoScroll(ref: React.RefObject<HTMLElement | null>) {
       document.removeEventListener('dragover', handleDragOver);
       document.removeEventListener('dragleave', handleDragLeave);
       document.removeEventListener('dragend', handleDragEnd);
-      document.removeEventListener('drop', handleDrop);
+      document.removeEventListener('drop', handleDragEnd);
       window.removeEventListener('blur', handleWindowBlur);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       stopAutoScroll();

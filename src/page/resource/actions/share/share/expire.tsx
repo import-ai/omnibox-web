@@ -2,21 +2,21 @@ import { SelectValue } from '@radix-ui/react-select';
 import { t } from 'i18next';
 import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/Button';
+import { Calendar } from '@/components/ui/Calendar';
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+} from '@/components/ui/Dialog';
+import { Input } from '@/components/ui/Input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from '@/components/ui/select';
+} from '@/components/ui/Select';
 
 export interface ExpireProps {
   disabled?: boolean;

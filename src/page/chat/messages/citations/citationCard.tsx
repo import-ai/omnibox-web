@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge';
-import { type CitationIconProps } from '@/page/chat/messages/citations/citationHoverIcon';
+import { Badge } from '@/components/ui/Badge';
+import { type CitationIconProps } from '@/page/chat/messages/citations/CitationHoverIcon';
 
 import { extractDomain } from './utils';
 

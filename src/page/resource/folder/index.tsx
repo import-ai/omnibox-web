@@ -4,27 +4,41 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import ResourceIcon from '@/assets/icons/resourceIcon';
+import ResourceIcon from '@/assets/icons/ResourceIcon';
 import Loading from '@/components/loading';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/Button';
+import { Separator } from '@/components/ui/Separator';
 import useApp from '@/hooks/useApp';
 import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
+import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
+import { getSmartFolderChildSidebarKey } from '@/page/sidebar/components/smart-folder';
 
-import { groupItemsByTimestamp } from '../utils';
-import { FolderContent } from './content';
+import { groupTimestampedItemsByTimestamp } from '../utils';
+import { FolderContent } from './FolderContent';
 
 interface IProps {
   resourceId: string;
   apiPrefix: string;
+  namespaceId: string;
+  emptyText?: string;
   navigationPrefix: string;
+  loadAll?: boolean;
+  smartFolderParentId?: string;
 }
 
 const PAGE_SIZE = 10;
 
 export default function Folder(props: IProps) {
-  const { resourceId, apiPrefix, navigationPrefix } = props;
+  const {
+    resourceId,
+    apiPrefix,
+    namespaceId,
+    emptyText,
+    navigationPrefix,
+    loadAll,
+    smartFolderParentId,
+  } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const app = useApp();
@@ -33,6 +47,35 @@ export default function Folder(props: IProps) {
   const [data, onData] = useState<Array<ResourceSummary>>([]);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const isSmartFolder = !!smartFolderParentId;
+  const folderContentApiPrefix = apiPrefix.includes('/smart-folders')
+    ? `/namespaces/${namespaceId}/resources`
+    : apiPrefix;
+
+  const reloadSmartFolderChildren = useCallback(() => {
+    if (!smartFolderParentId) {
+      return;
+    }
+
+    http
+      .get(`${apiPrefix}/${smartFolderParentId}/children?summary=true`, {
+        mute: true,
+      })
+      .then((res: Array<ResourceSummary>) => {
+        onData(res);
+        setOffset(res.length);
+        setHasMore(false);
+        onLoading(false);
+      })
+      .catch(error => {
+        if (error.response?.status === 404) {
+          onData([]);
+          setOffset(0);
+          setHasMore(false);
+          onLoading(false);
+        }
+      });
+  }, [apiPrefix, smartFolderParentId]);
 
   useEffect(() => {
     onLoading(true);
@@ -40,16 +83,23 @@ export default function Folder(props: IProps) {
     setOffset(0);
     setHasMore(true);
     const source = axios.CancelToken.source();
+    const requestUrl = loadAll
+      ? `${apiPrefix}/${resourceId}/children?summary=true`
+      : `${apiPrefix}/${resourceId}/children?summary=true&offset=0&limit=${PAGE_SIZE}`;
     http
-      .get(
-        `${apiPrefix}/${resourceId}/children?summary=true&offset=0&limit=${PAGE_SIZE}`,
-        {
-          cancelToken: source.token,
-        }
-      )
+      .get(requestUrl, {
+        cancelToken: source.token,
+        mute: isSmartFolder,
+      })
       .then((res: Array<ResourceSummary>) => {
         onData(res);
-        setHasMore(res.length === PAGE_SIZE);
+        setHasMore(!loadAll && res.length === PAGE_SIZE);
+      })
+      .catch(error => {
+        if (isSmartFolder && error.response?.status === 404) {
+          onData([]);
+          setHasMore(false);
+        }
       })
       .finally(() => {
         onLoading(false);
@@ -57,10 +107,10 @@ export default function Folder(props: IProps) {
     return () => {
       source.cancel();
     };
-  }, [apiPrefix, resourceId]);
+  }, [apiPrefix, loadAll, resourceId]);
 
   const loadMore = useCallback(() => {
-    if (loadingMore || !hasMore) return;
+    if (loadAll || loadingMore || !hasMore) return;
 
     onLoadingMore(true);
     const newOffset = offset + PAGE_SIZE;
@@ -76,7 +126,37 @@ export default function Folder(props: IProps) {
       .finally(() => {
         onLoadingMore(false);
       });
-  }, [loadingMore, hasMore, offset, apiPrefix, resourceId]);
+  }, [loadAll, loadingMore, hasMore, offset, apiPrefix, resourceId]);
+
+  useEffect(() => {
+    if (!smartFolderParentId) return;
+    return app.on(
+      'smart_folder_children_updated',
+      (id: string, children: ResourceSummary[]) => {
+        if (id !== smartFolderParentId) {
+          return;
+        }
+
+        onData(children);
+        setOffset(children.length);
+        setHasMore(false);
+        onLoading(false);
+      }
+    );
+  }, [app, smartFolderParentId]);
+
+  useEffect(() => {
+    if (!smartFolderParentId) return;
+    const hooks = [
+      app.on('delete_resource', reloadSmartFolderChildren),
+      app.on('move_resource', reloadSmartFolderChildren),
+      app.on('update_resource', reloadSmartFolderChildren),
+      app.on('restore_resource', reloadSmartFolderChildren),
+    ];
+    return () => {
+      hooks.forEach(unsub => unsub());
+    };
+  }, [app, reloadSmartFolderChildren, smartFolderParentId]);
 
   useEffect(() => {
     return app.on('scroll-to-bottom', () => {
@@ -94,7 +174,7 @@ export default function Folder(props: IProps) {
     <div className="space-y-6 pb-[30vh]">
       {data.length > 0 ? (
         <>
-          {groupItemsByTimestamp(data, i18n).map(([key, items]) => (
+          {groupTimestampedItemsByTimestamp(data, i18n).map(([key, items]) => (
             <div key={key}>
               <div className="pb-4">
                 <p className="text-sm text-muted-foreground font-light ml-0.5">
@@ -116,7 +196,21 @@ export default function Folder(props: IProps) {
                     className="cursor-pointer group"
                     key={item.id}
                     onClick={() => {
-                      navigate(`${navigationPrefix}/${item.id}`);
+                      navigate(`${navigationPrefix}/${item.id}`, {
+                        state: smartFolderParentId
+                          ? navigationPrefix.startsWith('/s/')
+                            ? getShareSmartFolderChildNavigationState(
+                                smartFolderParentId,
+                                item.id
+                              )
+                            : {
+                                sidebarActiveKey: getSmartFolderChildSidebarKey(
+                                  smartFolderParentId,
+                                  item.id
+                                ),
+                              }
+                          : undefined,
+                      });
                     }}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -133,7 +227,11 @@ export default function Folder(props: IProps) {
                       </div>
                     </div>
                     {item.resource_type === 'folder' ? (
-                      <FolderContent resource={item} apiPrefix={apiPrefix} />
+                      <FolderContent
+                        resource={item}
+                        apiPrefix={folderContentApiPrefix}
+                        namespaceId={namespaceId}
+                      />
                     ) : (
                       <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
                         {item.updated_at
@@ -147,7 +245,7 @@ export default function Folder(props: IProps) {
               })}
             </div>
           ))}
-          {hasMore && (
+          {!loadAll && hasMore && (
             <div className="pb-4 flex justify-center">
               <Button
                 variant="secondary"
@@ -161,8 +259,8 @@ export default function Folder(props: IProps) {
           )}
         </>
       ) : (
-        <div className="mt-12 text-center text-gray-500">
-          {t('no_pages_inside')}
+        <div className="mt-12 text-center text-muted-foreground">
+          {emptyText || t('no_pages_inside')}
         </div>
       )}
     </div>

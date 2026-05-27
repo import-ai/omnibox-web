@@ -1,6 +1,6 @@
 import { Resource } from '@/interface';
-import DeletedResourcePage from '@/page/auth/deletedResource';
-import UnauthorizedPage from '@/page/auth/unAuth';
+import DeletedResourcePage from '@/page/auth/DeletedResourcePage';
+import UnauthorizedPage from '@/page/auth/UnauthorizedPage';
 
 interface IProps {
   forbidden: boolean;

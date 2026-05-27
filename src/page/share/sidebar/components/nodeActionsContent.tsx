@@ -7,8 +7,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdownMenu';
-import { SidebarMenuAction } from '@/components/ui/sidebar';
+} from '@/components/ui/DropdownMenu';
+import { SidebarMenuAction } from '@/components/ui/Sidebar';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { cn } from '@/lib/utils';
 import type { UseNodeActionsReturn } from '@/page/share/sidebar/hooks/useNodeActions';

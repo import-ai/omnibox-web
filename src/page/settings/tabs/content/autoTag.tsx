@@ -2,7 +2,7 @@ import { Tags } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Switch } from '@/components/ui/switch';
+import { Switch } from '@/components/ui/Switch';
 import { http } from '@/lib/request';
 
 export default function AutoTag() {

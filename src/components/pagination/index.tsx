@@ -9,7 +9,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
+} from '@/components/ui/Pagination';
 import { useIsMobile } from '@/hooks/useMobile';
 import { cn } from '@/lib/utils';
 

@@ -1,15 +1,15 @@
 import { useTranslation } from 'react-i18next';
 
-import { SidebarTriggerButton } from '@/components/sidebarTrigger';
-import { LanguageToggle } from '@/components/toggle/language';
-import { ThemeToggle } from '@/components/toggle/theme';
-import { useSidebar } from '@/components/ui/sidebar';
+import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
+import { LanguageToggle } from '@/components/toggle/LanguageToggle';
+import { ThemeToggle } from '@/components/toggle/ThemeToggle';
+import { useSidebar } from '@/components/ui/Sidebar';
 import { PathItem } from '@/interface';
 import { cn } from '@/lib/utils';
 import { getTime } from '@/page/resource/utils';
 
-import Actions from './actions';
-import ShareBreadcrumb from './breadcrumb';
+import Actions from './ShareActions';
+import ShareBreadcrumb from './ShareBreadcrumb';
 
 interface ShareHeaderProps {
   resource?: {

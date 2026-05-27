@@ -4,8 +4,8 @@ import {
   useRootId,
 } from '@/page/share/sidebar/store';
 
-import { ResourceTreeProps } from './resourceNode';
-import { SpaceSectionContent } from './spaceSectionContent';
+import { ResourceTreeProps } from './ResourceNode';
+import { SpaceSectionContent } from './SpaceSectionContent';
 
 export default function SpaceSection(props: ResourceTreeProps) {
   const rootId = useRootId('share');

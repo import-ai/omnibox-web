@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alertDialog';
+} from '@/components/ui/AlertDialog';
 
 interface IProps {
   title: string;

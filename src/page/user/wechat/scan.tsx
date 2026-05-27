@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
 
-import { ScanForm } from './scanForm';
+import { ScanForm } from './ScanForm';
 
 interface IProps {
   onScan: (value: boolean) => void;

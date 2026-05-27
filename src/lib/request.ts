@@ -25,6 +25,12 @@ const request: AxiosInstance = axios.create({
   },
 });
 
+window.addEventListener('unhandledrejection', event => {
+  if (axios.isCancel(event.reason)) {
+    event.preventDefault();
+  }
+});
+
 request.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token');
@@ -63,7 +69,7 @@ request.interceptors.response.use(
   },
   (error: AxiosError) => {
     if (axios.isCancel(error)) {
-      return Promise.resolve();
+      return Promise.reject(error);
     }
     const err = error as AxiosError;
     const config = (err.config as RequestConfig) || {};

@@ -6,12 +6,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import Scan from '@/page/user/wechat/scan';
+} from '@/components/ui/Dialog';
+import Scan from '@/page/user/wechat/Scan';
 
-import { AppleLogin } from './apple';
-import { GoogleLogin } from './google';
-import { WechatLogin } from './wechat';
+import { AppleLogin } from './AppleLogin';
+import { GoogleLogin } from './GoogleLogin';
+import { WechatLogin } from './WechatLogin';
 
 interface IProps {
   type: string;

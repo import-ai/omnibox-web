@@ -4,17 +4,17 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/Button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
+} from '@/components/ui/Form';
+import { Input } from '@/components/ui/Input';
+import { Switch } from '@/components/ui/Switch';
 import { passwordSchema } from '@/lib/validationSchemas';
 
 export interface PasswordProps {

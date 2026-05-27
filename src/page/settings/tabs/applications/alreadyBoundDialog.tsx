@@ -7,7 +7,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/Dialog';
 
 import { getQrCodeUrl } from './getQrCodeUrl';
 import { useQrCode } from './useQrCode';

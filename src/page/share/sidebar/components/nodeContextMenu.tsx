@@ -6,11 +6,11 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from '@/components/ui/contextMenu';
+} from '@/components/ui/ContextMenu';
 import { useNodeActions } from '@/page/share/sidebar/hooks/useNodeActions';
 import { useNodeMenu } from '@/page/share/sidebar/hooks/useNodeMenu';
 
-import { ResourceTreeProps } from './resourceNode';
+import { ResourceTreeProps } from './ResourceNode';
 import { menuIconClass, menuItemClass } from './shared';
 
 interface NodeContextMenuProps extends Pick<

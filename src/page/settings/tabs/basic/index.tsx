@@ -1,5 +1,5 @@
-import Language from './language';
-import Theme from './theme';
+import Language from './Language';
+import Theme from './Theme';
 
 export default function CommonForm() {
   return (

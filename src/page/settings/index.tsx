@@ -8,10 +8,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/Dialog';
 import useApp from '@/hooks/useApp';
 
-import SettingWrapper from './settingsLayout';
+import SettingWrapper from './SettingWrapper';
 
 interface OpenSettingsPayload {
   tab?: string;

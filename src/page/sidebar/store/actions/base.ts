@@ -17,6 +17,15 @@ export function buildBaseActions(set: SidebarSet) {
           createFolderTargetId: null,
           currentUploadTargetId: null,
           upload: {},
+          editSmartFolder: {
+            open: false,
+            nodeId: null,
+            initialValue: null,
+          },
+          smartFolderTrash: {
+            open: false,
+            nodeId: null,
+          },
         };
         s.autoExpandedKeys = {};
       });
@@ -47,7 +56,6 @@ export function buildBaseActions(set: SidebarSet) {
                   parentId,
                   spaceType as SpaceType
                 );
-                childNode.hasChildren = child.has_children ?? false;
                 state.nodes[child.id] = childNode;
                 state.ui[child.id] = {
                   expanded: false,
@@ -81,17 +89,32 @@ export function buildBaseActions(set: SidebarSet) {
           createFolderTargetId: null,
           currentUploadTargetId: null,
           upload: {},
+          editSmartFolder: {
+            open: false,
+            nodeId: null,
+            initialValue: null,
+          },
+          smartFolderTrash: {
+            open: false,
+            nodeId: null,
+          },
         };
         s.autoExpandedKeys = {};
       });
     },
 
-    patch: (id: string, updates: { name?: string; content?: string }) => {
+    patch: (
+      id: string,
+      updates: { name?: string; content?: string; hasChildren?: boolean }
+    ) => {
       set(s => {
         const node = s.nodes[id];
         if (!node) return;
         if (updates.name !== undefined) node.name = updates.name;
         if (updates.content !== undefined) node.content = updates.content;
+        if (updates.hasChildren !== undefined) {
+          node.hasChildren = updates.hasChildren;
+        }
       });
     },
 
@@ -138,8 +161,10 @@ export function buildBaseActions(set: SidebarSet) {
         }
 
         parent.children = resources.map(r => (r as { id: string }).id);
+        parent.hasChildren = resources.length > 0;
         const pui = ensureUI(s, parentId);
         pui.loaded = true;
+        pui.expanded = true;
 
         if (s.activeId && deletedIds.has(s.activeId)) {
           s.activeId = null;

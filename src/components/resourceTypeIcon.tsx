@@ -1,4 +1,4 @@
-import ResourceIcon from '@/assets/icons/resourceIcon';
+import ResourceIcon from '@/assets/icons/ResourceIcon';
 import { normalizeResourceMeta, ResourceMetaLike } from '@/lib/resourceMeta';
 import { PrivateSearchResourceType } from '@/page/chat/chat-input/types';
 

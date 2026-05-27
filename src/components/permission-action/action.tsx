@@ -6,7 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdownMenu';
+} from '@/components/ui/DropdownMenu';
 import { Permission } from '@/interface';
 import { cn } from '@/lib/utils';
 

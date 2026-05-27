@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
+
 import { useSidebarStore } from '../store';
 import { isValidFileType } from '../utils';
 
@@ -32,6 +34,8 @@ interface UseDndHandlersReturn {
 export interface DndItem {
   files?: File[];
   id?: string;
+  resourceType?: string;
+  attrs?: Record<string, unknown>;
 }
 
 export function useDndHandlers({
@@ -46,6 +50,14 @@ export function useDndHandlers({
   const isFileDragOver = fileDragTarget === targetId;
 
   const handleFileUpload = (files: File[]) => {
+    const targetNode = useSidebarStore.getState().nodes[targetId];
+    if (
+      targetNode?.resourceType === 'smart_folder' ||
+      isSmartFolderChildResource(targetNode)
+    ) {
+      return;
+    }
+
     const validFiles = files.filter(file => isValidFileType(file.name));
 
     if (validFiles.length === 0) {
@@ -74,6 +86,24 @@ export function useDndHandlers({
 
   const handleNodeMove = (dragId: string) => {
     if (dragId === targetId) return;
+
+    const nodes = useSidebarStore.getState().nodes;
+    const dragNode = nodes[dragId];
+    const targetNode = nodes[targetId];
+    if (
+      isSmartFolderChildResource(dragNode) ||
+      isSmartFolderChildResource(targetNode)
+    ) {
+      return;
+    }
+    if (
+      dragNode?.resourceType &&
+      targetNode?.resourceType &&
+      (dragNode.resourceType === 'smart_folder') !==
+        (targetNode.resourceType === 'smart_folder')
+    ) {
+      return;
+    }
 
     if (onNodeDrop) {
       onNodeDrop(dragId, targetId);

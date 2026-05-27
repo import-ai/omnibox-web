@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { DropdownMenuItem } from '@/components/ui/dropdownMenu';
+import { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';
 

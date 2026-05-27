@@ -1,31 +1,32 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { Arrow } from '@/assets/icons/treeArrow';
-import ResourceTypeIcon from '@/components/resourceTypeIcon';
+import { Arrow } from '@/assets/icons/Arrow';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+} from '@/components/ui/Collapsible';
 import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { Spinner } from '@/components/ui/spinner';
+} from '@/components/ui/Sidebar';
+import { Spinner } from '@/components/ui/Spinner';
 import { useIsMobile } from '@/hooks/useMobile';
 import { cn } from '@/lib/utils';
+import { getShareResourceNavigationTarget } from '@/page/share/sidebar/navigation';
 import type { TreeNode } from '@/page/share/sidebar/store';
 import { useSidebarStore } from '@/page/share/sidebar/store';
 
-import Action from './nodeActions';
-import ContextMenuMain from './nodeContextMenu';
-import ResourceNode from './resourceNode';
-import { ResourceTreeProps } from './resourceNode';
+import Action from './NodeActions';
+import ContextMenuMain from './NodeContextMenu';
+import ResourceNode from './ResourceNode';
+import { ResourceTreeProps } from './ResourceNode';
 
 interface ResourceNodeContentProps extends ResourceTreeProps {
   node: TreeNode;
@@ -48,17 +49,28 @@ export function ResourceNodeContent({
   const { setOpenMobile } = useSidebar();
 
   const nodeUI = useSidebarStore(s => s.ui[nodeId]);
+  const canRenderChildren = canBrowseResources && node.children.length > 0;
   const canExpand = canBrowseResources && node.hasChildren;
   const isExpanded = canExpand && nodeUI?.expanded === true;
   const isActive = isResourceActive(nodeId);
+  const navigationTarget = getShareResourceNavigationTarget({
+    id: node.id,
+    parentId: node.parentId,
+    attrs: node.attrs,
+  });
 
-  const handleNavigate = (id: string, edit?: boolean) => {
+  const handleNavigate = (id: string, edit?: boolean, activeKey?: string) => {
+    const state = {
+      fromSidebar: true,
+      ...(activeKey ? { sidebarActiveKey: activeKey } : {}),
+    };
+
     if (edit) {
-      navigate(`/s/${shareId}/${id}`, { state: { fromSidebar: true } });
+      navigate(`/s/${shareId}/${id}`, { state });
     } else if (id === 'chat') {
       navigate(`/s/${shareId}/chat`);
     } else {
-      navigate(`/s/${shareId}/${id}`, { state: { fromSidebar: true } });
+      navigate(`/s/${shareId}/${id}`, { state });
     }
     if (isMobile) {
       setOpenMobile(false);
@@ -80,27 +92,29 @@ export function ResourceNodeContent({
       if (isActive) {
         handleExpand();
       } else {
-        handleNavigate(nodeId);
+        handleNavigate(
+          navigationTarget.resourceId,
+          false,
+          navigationTarget.sidebarActiveKey
+        );
         useSidebarStore.getState().activate(nodeId);
         if (!isExpanded) {
           useSidebarStore.getState().expand(nodeId);
         }
       }
     } else {
-      handleNavigate(nodeId);
+      handleNavigate(
+        navigationTarget.resourceId,
+        false,
+        navigationTarget.sidebarActiveKey
+      );
       useSidebarStore.getState().activate(nodeId);
     }
   };
 
   return (
     <SidebarMenuItem>
-      <Collapsible
-        open={isExpanded}
-        className={cn('group/collapsible', {
-          '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
-            isExpanded && !nodeUI?.loading,
-        })}
-      >
+      <Collapsible open={isExpanded} className="group/collapsible">
         <CollapsibleTrigger asChild>
           <ContextMenuMain
             nodeId={nodeId}
@@ -145,7 +159,12 @@ export function ResourceNodeContent({
                               handleExpand();
                             }}
                           >
-                            <Arrow className="transition-transform" />
+                            <Arrow
+                              className={cn(
+                                'transition-transform',
+                                isExpanded && 'rotate-90'
+                              )}
+                            />
                           </Button>
                         ))}
                       <ResourceTypeIcon
@@ -186,8 +205,8 @@ export function ResourceNodeContent({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub className="mr-0 gap-0 py-0 pr-0">
-            {isExpanded &&
-              node.children.length > 0 &&
+            {canRenderChildren &&
+              isExpanded &&
               node.children.map(childId => (
                 <ResourceNode
                   nodeId={childId}

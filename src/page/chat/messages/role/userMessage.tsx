@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/Button';
+import { Textarea } from '@/components/ui/Textarea';
 import { pathI18n, trimMiddle } from '@/lib/toolArgs.ts';
 import { cn } from '@/lib/utils';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';

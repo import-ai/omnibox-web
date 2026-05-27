@@ -1,9 +1,9 @@
-import { SidebarTriggerButton } from '@/components/sidebarTrigger';
-import { useSidebar } from '@/components/ui/sidebar';
+import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
+import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
 
 import Actions, { IActionProps } from '../actions';
-import Breadcrumb from './breadcrumb';
+import Breadcrumb from './BreadcrumbMain';
 
 export default function Header(props: IActionProps) {
   const { resource, namespaceId } = props;

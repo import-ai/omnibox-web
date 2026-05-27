@@ -10,9 +10,9 @@ import type {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
-import { AssistantMessage } from '@/page/chat/messages/role/assistantMessage';
-import { ToolMessage } from '@/page/chat/messages/role/toolMessage';
-import { UserMessage } from '@/page/chat/messages/role/userMessage';
+import { AssistantMessage } from '@/page/chat/messages/role/AssistantMessage';
+import { ToolMessage } from '@/page/chat/messages/role/ToolMessage';
+import { UserMessage } from '@/page/chat/messages/role/UserMessage';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -73,7 +73,7 @@ export function Messages(props: IProps) {
     for (const message of messages) {
       if (message.attrs?.citations && message.attrs.citations.length > 0) {
         message.attrs.citations.forEach(citation => {
-          result.push({ ...citation, id: message.id });
+          result.push(citation);
         });
       }
     }

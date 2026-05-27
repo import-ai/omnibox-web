@@ -1,6 +1,6 @@
-import { BreadcrumbPage } from '@/components/ui/breadcrumb';
+import { BreadcrumbPage } from '@/components/ui/Breadcrumb';
 
-import Title, { ITitleProps } from './title';
+import Title, { ITitleProps } from './HeaderTitle';
 
 export default function ChatHeaderTitle(props: ITitleProps) {
   return (

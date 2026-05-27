@@ -6,12 +6,12 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
-} from '@/components/ui/sidebar';
+} from '@/components/ui/Sidebar';
 import type { TreeNode } from '@/page/share/sidebar/store';
 import { useSidebarStore } from '@/page/share/sidebar/store';
 
-import ResourceNode from './resourceNode';
-import { ResourceTreeProps } from './resourceNode';
+import ResourceNode from './ResourceNode';
+import { ResourceTreeProps } from './ResourceNode';
 
 interface SpaceSectionContentProps {
   rootNode: TreeNode;

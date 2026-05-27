@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { ExtensionIcon } from '@/assets/icons/extensionIcon';
-import ResourceIcon from '@/assets/icons/resourceIcon';
+import { ExtensionIcon } from '@/assets/icons/ExtensionIcon';
+import ResourceIcon from '@/assets/icons/ResourceIcon';
 import { Button } from '@/components/button';
 import {
   Tooltip,
@@ -20,8 +20,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Spinner } from '@/components/ui/spinner';
+} from '@/components/ui/Card';
+import { Spinner } from '@/components/ui/Spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
 import { IResourceData, Resource, ResourceMeta } from '@/interface';

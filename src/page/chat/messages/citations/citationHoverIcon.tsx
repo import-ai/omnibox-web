@@ -1,10 +1,10 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from '@/components/ui/hoverCard';
+} from '@/components/ui/HoverCard';
 import type { Citation } from '@/page/chat/core/types/chatResponse';
 import { formatCitation } from '@/page/chat/messages/citations/utils';
 

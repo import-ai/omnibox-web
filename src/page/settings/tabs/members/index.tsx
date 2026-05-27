@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
-import { Spinner } from '@/components/ui/spinner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Spinner } from '@/components/ui/Spinner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 
 import Group from './groups';
-import Member from './memberList';
+import Member from './MemberMain';
 import useContext from './useContext';
 
 export default function ManagePeople() {

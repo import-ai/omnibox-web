@@ -16,15 +16,15 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Spinner } from '@/components/ui/spinner';
+} from '@/components/ui/Select';
+import { Spinner } from '@/components/ui/Spinner';
 import { Task } from '@/interface';
 import { http } from '@/lib/request';
 
-import { TaskActions } from './taskActions';
-import { TaskPagination } from './taskPagination';
-import { TaskStatusBadge } from './taskStatusBadge';
-import { TaskTypeBadge } from './taskTypeBadge';
+import { TaskActions } from './TaskActions';
+import { TaskPagination } from './TaskPagination';
+import { TaskStatusBadge } from './TaskStatusBadge';
+import { TaskTypeBadge } from './TaskTypeBadge';
 
 export interface TaskListProps {
   namespaceId: string;

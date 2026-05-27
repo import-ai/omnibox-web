@@ -10,16 +10,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Separator } from '@/components/ui/Separator';
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetTitle,
-} from '@/components/ui/sheet';
-import { Skeleton } from '@/components/ui/skeleton';
+} from '@/components/ui/Sheet';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useIsMobile } from '@/hooks/useMobile';
 import { cn } from '@/lib/utils';
 

@@ -8,11 +8,11 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { AppManagerIcon } from '@/assets/icons/appManager';
+import { AppManagerIcon } from '@/assets/icons/AppManagerIcon';
 import logoUrl from '@/assets/logo.svg';
 import useConfig from '@/hooks/useConfig';
 import { cn } from '@/lib/utils';
-import { UpgradeButton } from '@/page/sidebar/components/namespace-switcher/upgradeButton';
+import { UpgradeButton } from '@/page/sidebar/components/namespace-switcher/UpgradeButton';
 
 interface SettingsSidebarProps {
   value: string;

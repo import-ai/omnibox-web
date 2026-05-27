@@ -21,16 +21,18 @@ import {
   siZhihu,
 } from 'simple-icons';
 
-import { GithubIcon } from '@/assets/icons/githubIcon';
+import { GithubIcon } from '@/assets/icons/GithubIcon';
 import { ITHomeIcon } from '@/assets/icons/itHomeIcon.tsx';
 import { OKJikeIcon } from '@/assets/icons/okJikeIcon.tsx';
-import { RedNoteIcon } from '@/assets/icons/redNoteIcon';
+import { RedNoteIcon } from '@/assets/icons/RedNoteIcon';
+import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
+import { SmartFolderOpenIcon } from '@/assets/icons/SmartFolderOpenIcon';
 import { Tiktok } from '@/assets/icons/tiktok.tsx';
-import { WeChatIcon } from '@/assets/icons/wechatIcon';
+import { WeChatIcon } from '@/assets/icons/WechatIcon';
 import { ResourceMeta } from '@/interface';
 import { safeParseURL } from '@/lib/utils';
 
-import { TextIcon } from './textIcon';
+import { TextIcon } from './TextIcon';
 
 export interface IProps {
   expand: boolean;
@@ -242,6 +244,9 @@ export default function ResourceIcon(props: IProps) {
   const { expand, resource } = props;
   if (resource.resource_type === 'folder') {
     return expand ? <FolderOpen /> : <Folder />;
+  }
+  if (resource.resource_type === 'smart_folder') {
+    return expand ? <SmartFolderOpenIcon /> : <SmartFolderDefaultIcon />;
   }
   if (resource.resource_type === 'file') {
     return getIconForFile(resource);

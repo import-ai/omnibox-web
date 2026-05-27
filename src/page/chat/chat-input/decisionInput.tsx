@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
-import { Button as BaseButton } from '@/components/ui/button';
+import { Button as BaseButton } from '@/components/ui/Button';
 import {
   Card,
   CardContent,
@@ -18,8 +18,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { ScrollArea, ScrollBar } from '@/components/ui/scrollArea';
+} from '@/components/ui/Card';
+import { ScrollArea, ScrollBar } from '@/components/ui/ScrollArea';
 import { processArgs } from '@/lib/toolArgs';
 import { cn } from '@/lib/utils.ts';
 import {

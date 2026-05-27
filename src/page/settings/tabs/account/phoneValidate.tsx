@@ -13,7 +13,7 @@ import {
   FormField,
   FormItem,
   FormMessage,
-} from '@/components/ui/form';
+} from '@/components/ui/Form';
 import { usePhoneConfig } from '@/hooks/usePhoneConfig';
 import {
   getOtpErrorMessage,
@@ -21,7 +21,7 @@ import {
 } from '@/hooks/useVerificationCode';
 import { http } from '@/lib/request';
 import { phoneSchema } from '@/lib/validationSchemas';
-import { OtpInput } from '@/page/user/components/otpInput';
+import { OtpInput } from '@/page/user/components/OtpInput';
 
 const PhoneSchema = z.object({
   phone: phoneSchema,

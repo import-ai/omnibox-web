@@ -9,7 +9,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from '@/components/ui/Popover';
 import { Member } from '@/interface';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';

@@ -2,9 +2,9 @@ import { Check, File, Folder, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { LazyInput } from '@/components/input/lazy';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
+import { LazyInput } from '@/components/input/LazyInput';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import type { Resource } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -133,7 +133,7 @@ export default function ResourceSearch({
         {data.root.length > 0 && (
           <>
             <div className="border-b bg-muted/30 px-2 py-1 text-xs font-medium text-muted-foreground">
-              Root
+              {t('search.root')}
             </div>
             {data.root.map(item => (
               <ResourceItem
@@ -150,7 +150,7 @@ export default function ResourceSearch({
         {data.resources.length > 0 && (
           <>
             <div className="border-b bg-muted/30 px-2 py-1 text-xs font-medium text-muted-foreground">
-              Resources
+              {t('search.resources')}
             </div>
             {data.resources.map(item => (
               <ResourceItem

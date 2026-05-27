@@ -1,15 +1,15 @@
 import { Share as ShareIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from '@/components/ui/Popover';
 import { useIsMobile } from '@/hooks/useMobile';
 
-import ShareTabs from './tabs';
+import ShareTabs from './ShareTabs';
 
 export interface ShareActionProps {
   spaceType: string;

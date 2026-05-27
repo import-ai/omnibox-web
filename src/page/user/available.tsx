@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useAuthConfig } from '@/hooks/authConfigContext';
+import { useAuthConfig } from '@/hooks/AuthConfigContext';
 
 interface IProps {
   children: (access: {

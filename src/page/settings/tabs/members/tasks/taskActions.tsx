@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { StopIcon } from '@/assets/icons/stop';
+import { StopIcon } from '@/assets/icons/StopIcon';
 import {
   Tooltip,
   TooltipContent,
@@ -21,8 +21,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alertDialog';
-import { Spinner } from '@/components/ui/spinner';
+} from '@/components/ui/AlertDialog';
+import { Spinner } from '@/components/ui/Spinner';
 import { Task } from '@/interface.ts';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';

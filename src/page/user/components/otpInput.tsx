@@ -4,7 +4,7 @@ import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from '@/components/ui/inputOtp';
+} from '@/components/ui/InputOtp';
 
 interface OtpInputProps {
   value: string;

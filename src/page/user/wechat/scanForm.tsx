@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { Spinner } from '@/components/ui/spinner';
+import { Spinner } from '@/components/ui/Spinner';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';

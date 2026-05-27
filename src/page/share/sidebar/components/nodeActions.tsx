@@ -1,7 +1,7 @@
 import { useNodeActions } from '@/page/share/sidebar/hooks/useNodeActions';
 
-import { NodeActionsContent } from './nodeActionsContent';
-import { ResourceTreeProps } from './resourceNode';
+import { NodeActionsContent } from './NodeActionsContent';
+import { ResourceTreeProps } from './ResourceNode';
 
 interface NodeActionsProps extends Pick<
   ResourceTreeProps,

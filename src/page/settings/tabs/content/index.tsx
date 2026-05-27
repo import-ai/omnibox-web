@@ -1,4 +1,4 @@
-import AutoTag from './autoTag';
+import AutoTag from './AutoTag';
 
 export default function Content() {
   return (

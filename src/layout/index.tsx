@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from '@/components/ui/Toaster';
 import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
 import { track } from '@/lib/sendTrackEvent';

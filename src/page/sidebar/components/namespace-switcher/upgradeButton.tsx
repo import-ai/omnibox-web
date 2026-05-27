@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { UpgradeIcon } from '@/assets/icons/upgrade';
+import { UpgradeIcon } from '@/assets/icons/UpgradeIcon';
 import useProNamespaces from '@/hooks/useProNamespaces';
 import { NamespaceTier } from '@/interface';
 import { getUpgradeLink } from '@/lib/upgradeLink';

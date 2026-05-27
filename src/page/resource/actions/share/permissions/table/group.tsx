@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import GroupAction from '@/components/permission-action/group';
+import GroupAction from '@/components/permission-action/GroupAction';
 import UserCard from '@/components/user-card';
 import { GroupPermission, Permission } from '@/interface';
 

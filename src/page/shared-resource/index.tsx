@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next';
 
 import Attributes from '@/components/attributes';
 import Loading from '@/components/loading';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/Sidebar';
 import { cn, setDocumentTitle } from '@/lib/utils';
-import DeletedResourcePage from '@/page/auth/deletedResource';
+import DeletedResourcePage from '@/page/auth/DeletedResourcePage';
 
 import Folder from '../resource/folder';
-import Render from '../resource/render';
+import Render from '../resource/Render';
 import { useShareContext } from '../share';
 
 export default function SharedResourcePage() {
@@ -58,10 +58,21 @@ export default function SharedResourcePage() {
           namespaceId={shareInfo.id}
           readOnly
         />
-        {resource.resource_type === 'folder' ? (
+        {resource.resource_type === 'smart_folder' ? (
           <Folder
             resourceId={resource.id}
             apiPrefix={`/shares/${shareInfo.id}/resources`}
+            namespaceId={shareInfo.id}
+            emptyText={t('smart_folder.empty')}
+            navigationPrefix={`/s/${shareInfo.id}`}
+            loadAll
+            smartFolderParentId={resource.id}
+          />
+        ) : resource.resource_type === 'folder' ? (
+          <Folder
+            resourceId={resource.id}
+            apiPrefix={`/shares/${shareInfo.id}/resources`}
+            namespaceId={shareInfo.id}
             navigationPrefix={`/s/${shareInfo.id}`}
           />
         ) : (

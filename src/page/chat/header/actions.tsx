@@ -5,18 +5,18 @@ import { useNavigate } from 'react-router-dom';
 
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdownMenu';
+} from '@/components/ui/DropdownMenu';
 import useApp from '@/hooks/useApp';
 import { useChatStore } from '@/page/chat/chatStore';
 
-import { PlusIcon } from './plus';
+import { PlusIcon } from './PlusIcon';
 
 interface IProps {
   homePage: boolean;

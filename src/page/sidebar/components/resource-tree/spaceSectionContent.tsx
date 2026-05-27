@@ -13,13 +13,13 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from '@/components/ui/contextMenu';
+} from '@/components/ui/ContextMenu';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdownMenu';
+} from '@/components/ui/DropdownMenu';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -27,8 +27,8 @@ import {
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
-} from '@/components/ui/sidebar';
-import { Spinner } from '@/components/ui/spinner';
+} from '@/components/ui/Sidebar';
+import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
@@ -37,7 +37,7 @@ import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
 
-import ResourceNode from './resourceNode';
+import ResourceNode from './ResourceNode';
 import { menuIconClass, menuItemClass } from './shared';
 
 interface SpaceSectionContentProps {
@@ -46,6 +46,8 @@ interface SpaceSectionContentProps {
   namespaceId: string;
   rootId: string;
   isOpen: boolean;
+  hasTeamspace: boolean;
+  currentNamespace?: Namespace;
 }
 
 export function SpaceSectionContent({
@@ -54,6 +56,8 @@ export function SpaceSectionContent({
   namespaceId,
   rootId,
   isOpen,
+  hasTeamspace,
+  currentNamespace,
 }: SpaceSectionContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -210,7 +214,12 @@ export function SpaceSectionContent({
             {rootNode.hasChildren &&
               rootNode.children.length > 0 &&
               rootNode.children.map(childId => (
-                <ResourceNode nodeId={childId} key={childId} />
+                <ResourceNode
+                  nodeId={childId}
+                  key={childId}
+                  hasTeamspace={hasTeamspace}
+                  currentNamespace={currentNamespace}
+                />
               ))}
           </SidebarMenu>
         </SidebarGroupContent>

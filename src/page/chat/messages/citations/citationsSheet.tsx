@@ -2,8 +2,8 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/Button';
+import { Separator } from '@/components/ui/Separator';
 import {
   Sheet,
   SheetContent,
@@ -11,9 +11,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
+} from '@/components/ui/Sheet';
 import { type Citation } from '@/page/chat/core/types/chatResponse';
-import { CitationCard } from '@/page/chat/messages/citations/citationCard';
+import { CitationCard } from '@/page/chat/messages/citations/CitationCard';
 
 interface IProps {
   index: number;

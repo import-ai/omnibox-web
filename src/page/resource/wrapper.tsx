@@ -2,7 +2,7 @@ import Loading from '@/components/loading';
 import { IUseResource } from '@/hooks/userResource';
 import AuthPage from '@/page/auth';
 
-import Page from './page';
+import Page from './Page';
 
 export default function Wrapper(props: IUseResource) {
   const {

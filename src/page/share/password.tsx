@@ -3,15 +3,15 @@ import { t } from 'i18next';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from '@/components/ui/Form';
+import { Input } from '@/components/ui/Input';
 
 export interface PasswordProps {
   passwordFailed?: boolean;

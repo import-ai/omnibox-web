@@ -12,6 +12,7 @@ export type PrivateSearchResourceType = 'resource' | 'folder';
 export interface IResTypeContext {
   type: PrivateSearchResourceType;
   resource: ResourceMeta;
+  navigateState?: Record<string, unknown>;
 }
 
 export enum ChatMode {

@@ -1,10 +1,10 @@
-import { CancelStatus } from '@/assets/icons/cancelStatus';
-import { CompletedStatus } from '@/assets/icons/completedStatus';
-import { ErrorStatus } from '@/assets/icons/errorStatus';
-import { InProgressStatus } from '@/assets/icons/inProgressStatus';
-import { InsufficientQuotaStatus } from '@/assets/icons/insufficientQuotaStatus';
-import { QueueStatus } from '@/assets/icons/queueStatus';
-import { TimeoutStatus } from '@/assets/icons/timeoutStatus';
+import { CancelStatus } from '@/assets/icons/CancelStatus';
+import { CompletedStatus } from '@/assets/icons/CompletedStatus';
+import { ErrorStatus } from '@/assets/icons/ErrorStatus';
+import { InProgressStatus } from '@/assets/icons/InProgressStatus';
+import { InsufficientQuotaStatus } from '@/assets/icons/InsufficientQuotaStatus';
+import { QueueStatus } from '@/assets/icons/QueueStatus';
+import { TimeoutStatus } from '@/assets/icons/TimeoutStatus';
 import { TaskStatus } from '@/interface.ts';
 import { cn } from '@/lib/utils';
 

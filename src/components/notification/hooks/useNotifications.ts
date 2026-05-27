@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { http } from '@/lib/request';
@@ -16,6 +16,7 @@ import {
   markNotificationItemsAsRead,
   NOTIFICATION_POLL_INTERVAL_MS,
   startNotificationPolling,
+  startResettableNotificationPolling,
 } from '../utils';
 import { useNotificationUnread } from './useNotificationUnread';
 
@@ -38,11 +39,21 @@ export function useNotifications(filter: NotificationFilter) {
     : '';
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [clearingUnread, setClearingUnread] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const { unreadCount, setUnreadCount } = useNotificationUnread();
+  const pollingControllerRef = useRef<ReturnType<
+    typeof startResettableNotificationPolling
+  > | null>(null);
+  const itemsLengthRef = useRef(0);
+  const refreshInFlightRef = useRef<Promise<void> | null>(null);
+
+  useEffect(() => {
+    itemsLengthRef.current = items.length;
+  }, [items.length]);
 
   // get unread count
   const fetchUnreadCount = useCallback(async () => {
@@ -54,11 +65,15 @@ export function useNotifications(filter: NotificationFilter) {
 
   // get notifications
   const fetchNotifications = useCallback(
-    async (nextOffset: number, append: boolean) => {
+    async (
+      nextOffset: number,
+      append: boolean,
+      limit: number = DEFAULT_LIMIT
+    ) => {
       const query = new URLSearchParams({
         status: filter,
         offset: nextOffset.toString(),
-        limit: DEFAULT_LIMIT.toString(),
+        limit: limit.toString(),
       });
       if (namespaceId) {
         query.append('namespaceId', namespaceId);
@@ -67,7 +82,15 @@ export function useNotifications(filter: NotificationFilter) {
         `/notifications?${query.toString()}`
       );
       const { list } = response;
-      setItems(previousItems => (append ? [...previousItems, ...list] : list));
+      setItems(previousItems => {
+        if (append) {
+          return [...previousItems, ...list];
+        }
+
+        return JSON.stringify(previousItems) === JSON.stringify(list)
+          ? previousItems
+          : list;
+      });
       setHasMore(getNotificationHasMore(response.pagination));
       setOffset(response.pagination.offset + response.pagination.limit);
     },
@@ -75,13 +98,44 @@ export function useNotifications(filter: NotificationFilter) {
   );
 
   const refresh = useCallback(async () => {
-    setLoading(true);
-    try {
-      await Promise.all([fetchNotifications(0, false), fetchUnreadCount()]);
-    } finally {
-      setLoading(false);
+    if (refreshInFlightRef.current) {
+      return refreshInFlightRef.current;
     }
+
+    const refreshPromise = (async () => {
+      const currentItemsLength = itemsLengthRef.current;
+      const shouldShowInitialLoading = currentItemsLength === 0;
+      const refreshLimit = Math.max(DEFAULT_LIMIT, currentItemsLength);
+
+      if (shouldShowInitialLoading) {
+        setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
+
+      try {
+        await Promise.all([
+          fetchNotifications(0, false, refreshLimit),
+          fetchUnreadCount(),
+        ]);
+      } finally {
+        if (shouldShowInitialLoading) {
+          setLoading(false);
+        } else {
+          setRefreshing(false);
+        }
+        refreshInFlightRef.current = null;
+      }
+    })();
+
+    refreshInFlightRef.current = refreshPromise;
+    return refreshPromise;
   }, [fetchNotifications, fetchUnreadCount]);
+
+  const handleManualRefresh = useCallback(async () => {
+    await refresh();
+    pollingControllerRef.current?.restart();
+  }, [refresh]);
 
   // Load more
   const loadMore = useCallback(async () => {
@@ -155,16 +209,27 @@ export function useNotifications(filter: NotificationFilter) {
     refresh();
   }, [refresh]);
 
-  useEffect(() => startNotificationPolling(refresh), [refresh]);
+  useEffect(() => {
+    pollingControllerRef.current = startResettableNotificationPolling(
+      refresh,
+      NOTIFICATION_POLL_INTERVAL_MS
+    );
+
+    return () => {
+      pollingControllerRef.current?.stop();
+      pollingControllerRef.current = null;
+    };
+  }, [refresh]);
 
   return {
     hasMore,
     items,
     loading,
+    refreshing,
     loadingMore,
     fetchNotificationDetail,
     loadMore,
-    refresh,
+    refresh: handleManualRefresh,
     markNotificationRead,
     clearUnread,
     clearingUnread,

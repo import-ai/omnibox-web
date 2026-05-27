@@ -3,36 +3,37 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { SidebarTriggerButton } from '@/components/sidebarTrigger';
+import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import Space from '@/components/space';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar } from '@/components/ui/Avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdownMenu';
+} from '@/components/ui/DropdownMenu';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar';
+} from '@/components/ui/Sidebar';
 import useConfig from '@/hooks/useConfig';
 import useNamespaces from '@/hooks/useNamespaces';
 import useProNamespaces from '@/hooks/useProNamespaces';
 import { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';
 import { useChatStore } from '@/page/chat/chatStore';
-import { SettingButton } from '@/page/settings/settingsTrigger';
+import { SettingButton } from '@/page/settings/SettingButton';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { Logout } from '@/page/user/logout';
+import { Logout } from '@/page/user/Logout';
 
-import Generate from './createNamespace';
-import { InviteButton } from './inviteButton';
-import { NamespaceList } from './namespaceList';
-import NamespaceMember from './namespaceMember';
+import Generate from './Generate';
+import { InviteButton } from './InviteButton';
+import { NamespaceList } from './NamespaceList';
+import NamespaceMember from './NamespaceMember';
+import { NamespaceTierBadge } from './NamespaceTierBadge';
 
 interface IProps {
   namespaceId: string;
@@ -97,9 +98,12 @@ export function Switcher(props: IProps) {
                 <Avatar className="flex size-8 items-center justify-center rounded-lg bg-primary font-normal text-primary-foreground dark:bg-neutral-700 dark:text-white">
                   {current.name?.charAt(0)?.toUpperCase() || '?'}
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid min-w-0 flex-1 text-left text-sm leading-tight gap-0.5">
                   <span className="truncate font-semibold">{current.name}</span>
-                  <NamespaceMember namespaceId={namespaceId} />
+                  <div className="flex min-w-0 items-center justify-between gap-2">
+                    <NamespaceMember namespaceId={namespaceId} />
+                    <NamespaceTierBadge namespace={current} />
+                  </div>
                 </div>
               </div>
             </DropdownMenuLabel>

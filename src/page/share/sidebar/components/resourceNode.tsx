@@ -1,7 +1,7 @@
 import { ResourceMeta } from '@/interface';
 import { useNode } from '@/page/share/sidebar/store';
 
-import { ResourceNodeContent } from './resourceNodeContent';
+import { ResourceNodeContent } from './ResourceNodeContent';
 
 export interface ResourceTreeProps {
   shareId: string;

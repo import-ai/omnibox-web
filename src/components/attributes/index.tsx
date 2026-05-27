@@ -1,7 +1,7 @@
-import { CreatedTimeAttribute } from '@/components/attributes/created';
-import { Metadata } from '@/components/attributes/metadata';
-import { FilenameAttribute } from '@/components/attributes/name';
-import { UrlAttribute } from '@/components/attributes/url';
+import { CreatedTimeAttribute } from '@/components/attributes/CreatedTimeAttribute';
+import { FilenameAttribute } from '@/components/attributes/FilenameAttribute';
+import { Metadata } from '@/components/attributes/Metadata';
+import { UrlAttribute } from '@/components/attributes/UrlAttribute';
 import Tag from '@/components/tags';
 import { Resource } from '@/interface';
 
@@ -15,6 +15,8 @@ interface IProps {
 
 export default function Attributes(props: IProps) {
   const { resource, namespaceId, onResource, readOnly } = props;
+  const shouldRenderResourceTasks =
+    !!onResource && resource.resource_type !== 'smart_folder';
 
   if (
     resource.resource_type === 'link' &&
@@ -27,13 +29,14 @@ export default function Attributes(props: IProps) {
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
+          onResource={onResource}
           readOnly={readOnly}
         />
         <UrlAttribute url={resource.attrs.url} />
         {resource.created_at && (
           <CreatedTimeAttribute createdAt={resource.created_at} />
         )}
-        {onResource && (
+        {shouldRenderResourceTasks && (
           <ResourceTasks
             resource={resource}
             namespaceId={namespaceId}
@@ -56,6 +59,7 @@ export default function Attributes(props: IProps) {
             data={resource.tags}
             resourceId={resource.id}
             namespaceId={namespaceId}
+            onResource={onResource}
             readOnly={readOnly}
           />
           {resource.created_at && (
@@ -73,6 +77,7 @@ export default function Attributes(props: IProps) {
           data={resource.tags}
           resourceId={resource.id}
           namespaceId={namespaceId}
+          onResource={onResource}
           readOnly={readOnly}
         />
         <FilenameAttribute
@@ -83,7 +88,7 @@ export default function Attributes(props: IProps) {
         {resource.created_at && (
           <CreatedTimeAttribute createdAt={resource.created_at} />
         )}
-        {onResource && (
+        {shouldRenderResourceTasks && (
           <ResourceTasks
             resource={resource}
             namespaceId={namespaceId}
@@ -103,12 +108,13 @@ export default function Attributes(props: IProps) {
         data={resource.tags}
         resourceId={resource.id}
         namespaceId={namespaceId}
+        onResource={onResource}
         readOnly={readOnly}
       />
       {resource.created_at && (
         <CreatedTimeAttribute createdAt={resource.created_at} />
       )}
-      {onResource && (
+      {shouldRenderResourceTasks && (
         <ResourceTasks
           resource={resource}
           namespaceId={namespaceId}

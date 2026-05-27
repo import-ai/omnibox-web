@@ -7,14 +7,14 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Input } from '@/components/input';
-import { SupportedEmailLink } from '@/components/supportedEmailLink';
+import { SupportedEmailLink } from '@/components/SupportedEmailLink';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from '@/components/ui/form';
+} from '@/components/ui/Form';
 import useUser from '@/hooks/useUser';
 import {
   getOtpErrorMessage,
@@ -22,7 +22,7 @@ import {
 } from '@/hooks/useVerificationCode';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
-import { OtpInput } from '@/page/user/components/otpInput';
+import { OtpInput } from '@/page/user/components/OtpInput';
 
 interface IProps {
   onFinish: (email: string, code: string) => Promise<void>;

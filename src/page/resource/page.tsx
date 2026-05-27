@@ -4,7 +4,7 @@ import Attributes from '@/components/attributes';
 import { Resource } from '@/interface';
 import Editor from '@/page/resource/editor';
 import Folder from '@/page/resource/folder';
-import Render from '@/page/resource/render';
+import Render from '@/page/resource/Render';
 
 interface IProps {
   editPage: boolean;
@@ -37,10 +37,21 @@ export default function Page(props: IProps) {
         resource={resource}
         onResource={onResource}
       />
-      {resource.resource_type === 'folder' ? (
+      {resource.resource_type === 'smart_folder' ? (
+        <Folder
+          resourceId={resource.id}
+          apiPrefix={`/namespaces/${namespaceId}/smart-folders`}
+          namespaceId={namespaceId}
+          emptyText={t('smart_folder.empty')}
+          navigationPrefix={`/${namespaceId}`}
+          loadAll
+          smartFolderParentId={resource.id}
+        />
+      ) : resource.resource_type === 'folder' ? (
         <Folder
           resourceId={resource.id}
           apiPrefix={`/namespaces/${namespaceId}/resources`}
+          namespaceId={namespaceId}
           navigationPrefix={`/${namespaceId}`}
         />
       ) : (

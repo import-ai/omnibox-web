@@ -16,18 +16,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alertDialog';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Spinner } from '@/components/ui/spinner';
+} from '@/components/ui/AlertDialog';
+import { Badge } from '@/components/ui/Badge';
+import { Separator } from '@/components/ui/Separator';
+import { Spinner } from '@/components/ui/Spinner';
 import useApplications from '@/hooks/useApplications';
 import { Application } from '@/interface';
 import { getDocsLink } from '@/lib/getDocsLink.ts';
 import { cn } from '@/lib/utils';
 
-import { AlreadyBoundDialog } from './alreadyBoundDialog';
-import { BindDialog } from './bindDialog';
-import { QRCodeBindDialog } from './qrBindDialog';
+import { AlreadyBoundDialog } from './AlreadyBoundDialog';
+import { BindDialog } from './BindDialog';
+import { QRCodeBindDialog } from './QRCodeBindDialog';
 
 type ApplicationState = 'unbound' | 'binding_in_progress' | 'bound';
 

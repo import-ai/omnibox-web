@@ -1,6 +1,6 @@
 import { useNodeActions } from '@/page/sidebar/hooks/useNodeActions';
 
-import { NodeActionsContent } from './nodeActionsContent';
+import { NodeActionsContent } from './NodeActionsContent';
 
 interface NodeActionsProps {
   nodeId: string;

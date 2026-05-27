@@ -6,9 +6,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/Dialog';
 
-import Form, { IFormProps } from './form';
+import Form, { IFormProps } from './MoveToForm';
 
 interface IProps extends IFormProps {
   open: boolean;
@@ -16,7 +16,14 @@ interface IProps extends IFormProps {
 }
 
 export default function MoveTo(props: IProps) {
-  const { open, resourceId, namespaceId, onOpenChange, onFinished } = props;
+  const {
+    open,
+    resourceId,
+    namespaceId,
+    onOpenChange,
+    onFinished,
+    sourceResourceType,
+  } = props;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -30,6 +37,7 @@ export default function MoveTo(props: IProps) {
         <Form
           resourceId={resourceId}
           namespaceId={namespaceId}
+          sourceResourceType={sourceResourceType}
           onFinished={onFinished}
         />
       </DialogContent>

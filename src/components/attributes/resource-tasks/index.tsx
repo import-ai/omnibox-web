@@ -2,16 +2,16 @@ import { ListChecks, ListVideo } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { DoneIcon } from '@/assets/icons/doneIcon';
-import { ProgressIcon } from '@/assets/icons/progressIcon';
-import { Button } from '@/components/ui/button';
+import { DoneIcon } from '@/assets/icons/DoneIcon';
+import { ProgressIcon } from '@/assets/icons/ProgressIcon';
+import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdownMenu';
-import { Spinner } from '@/components/ui/spinner';
+} from '@/components/ui/DropdownMenu';
+import { Spinner } from '@/components/ui/Spinner';
 import { RESOURCE_TASKS_INTERVAL } from '@/const.ts';
 import useApp from '@/hooks/useApp';
 import { Resource, Task } from '@/interface';
@@ -19,7 +19,7 @@ import { http } from '@/lib/request';
 
 import { ATTRIBUTE_STYLES } from '../constants';
 import { CONTENT_MODIFYING_FUNCTIONS, DISPLAY_FUNCTIONS } from './const';
-import { TaskTag } from './taskTag';
+import { TaskTag } from './TaskTag';
 import { hasActiveContentModifyingTasks } from './utils';
 
 interface ResourceTasksProps {

@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/Input';
 import {
   Table,
   TableBody,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/ui/Table';
 import { Group, Invitation } from '@/interface';
 
-import { AddGroupInvitation } from './invitationAdd';
-import { InvitationData } from './invitationList';
+import { AddGroupInvitation } from './AddGroupInvitation';
+import { InvitationData } from './InvitationData';
 
 interface InvitationProps {
   namespaceId: string;
