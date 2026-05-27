@@ -82,10 +82,24 @@ export function useSidebarInit(props: IProps) {
       // exist in the sidebar and can be highlighted.
       if (shouldSkipPathExpand) {
         const expandParentId = location.state?.sidebarExpandParentId;
+        const scrollKey = location.state?.sidebarActiveKey ?? currentResourceId;
         if (typeof expandParentId === 'string') {
           useSidebarStore
             .getState()
-            .expandPathTo(expandParentId, { expandTarget: true });
+            .expandPathTo(expandParentId, { expandTarget: true })
+            .then(() => {
+              requestAnimationFrame(() => {
+                const element = document.querySelector(
+                  `[data-resource-id="${scrollKey}"]`
+                );
+                if (element) {
+                  element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                  });
+                }
+              });
+            });
         }
       }
       return;
