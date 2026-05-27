@@ -27,12 +27,7 @@ export type SmartFolderOperator =
   | 'after_date'
   | 'between_dates';
 
-export type SmartFolderRelativeDateUnit =
-  | 'day'
-  | 'week'
-  | 'month'
-  | 'quarter'
-  | 'year';
+export type SmartFolderRelativeDateUnit = 'day' | 'week' | 'month' | 'year';
 
 export type SmartFolderNamespaceTier = 'basic' | 'premium' | undefined;
 
