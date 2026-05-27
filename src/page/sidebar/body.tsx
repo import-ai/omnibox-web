@@ -36,11 +36,6 @@ export function BodyForSidebar(props: IProps) {
   const createFolderTargetId = useSidebarStore(
     s => s.dialogs.createFolderTargetId
   );
-
-  useEffect(() => {
-    useSidebarStore.getState().deselectAll();
-  }, [namespaceId]);
-
   const handleGlobalFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -66,6 +61,10 @@ export function BodyForSidebar(props: IProps) {
       }
     }
   };
+
+  useEffect(() => {
+    useSidebarStore.getState().deselectAll();
+  }, [namespaceId]);
 
   return (
     <React.Fragment>
