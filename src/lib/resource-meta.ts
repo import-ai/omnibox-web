@@ -17,13 +17,15 @@ export function normalizeResourceMeta(
   resource: ResourceMetaLike,
   options: NormalizeResourceMetaOptions = {}
 ): ResourceMeta {
+  const actualType =
+    resource.resource_type ??
+    resource.resourceType ??
+    options.fallbackType ??
+    'doc';
   const resourceType =
-    options.contextType === 'folder'
+    options.contextType === 'folder' && actualType !== 'smart_folder'
       ? 'folder'
-      : (resource.resource_type ??
-        resource.resourceType ??
-        options.fallbackType ??
-        'doc');
+      : actualType;
 
   return {
     id: resource.id,

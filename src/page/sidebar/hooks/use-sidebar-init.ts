@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Resource } from '@/interface';
 import { http } from '@/lib/request';
+import { getSmartFolderParentIdFromChildKey } from '@/page/sidebar/content/smart-folder';
 import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
 
 interface IProps {
@@ -69,13 +70,21 @@ export function useSidebarInit(props: IProps) {
 
     let cancelled = false;
     const store = useSidebarStore.getState();
+    const persistedActiveKey = location.state?.sidebarActiveKey;
+    const smartFolderParentId =
+      typeof persistedActiveKey === 'string'
+        ? getSmartFolderParentIdFromChildKey(persistedActiveKey, resourceId)
+        : null;
+    const expandId = smartFolderParentId ?? resourceId;
+    const scrollTargetId =
+      typeof persistedActiveKey === 'string' ? persistedActiveKey : resourceId;
 
-    store.expandPathTo(resourceId, { expandTarget: true }).then(() => {
+    store.expandPathTo(expandId, { expandTarget: true }).then(() => {
       if (cancelled) return;
       requestAnimationFrame(() => {
         if (cancelled) return;
         const element = document.querySelector(
-          `[data-resource-id="${resourceId}"]`
+          `[data-resource-id="${scrollTargetId}"]`
         );
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -110,17 +119,21 @@ export function useSidebarInit(props: IProps) {
   // Sync activeId from URL (only when URL changes, not when store.activeId changes)
   useEffect(() => {
     const store = useSidebarStore.getState();
+    const sidebarActiveKey =
+      typeof location.state?.sidebarActiveKey === 'string'
+        ? location.state.sidebarActiveKey
+        : resourceId;
     if (chatPage) {
       if (store.activeId) {
         store.activate(null);
       }
       return;
     }
-    if (resourceId && store.activeId !== resourceId) {
-      store.activate(resourceId);
+    if (sidebarActiveKey && store.activeId !== sidebarActiveKey) {
+      store.activate(sidebarActiveKey);
     }
     // Only depend on resourceId to avoid racing with internal store navigation
-  }, [resourceId, chatPage]);
+  }, [resourceId, chatPage, location.state]);
 
   return { namespaceId, resourceId };
 }

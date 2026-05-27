@@ -995,7 +995,6 @@
       "day": "天",
       "week": "周",
       "month": "月",
-      "quarter": "季度",
       "year": "年"
     },
     "validation": {

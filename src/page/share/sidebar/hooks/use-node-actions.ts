@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { ResourceMeta } from '@/interface';
+import { getShareResourceNavigationTarget } from '@/page/share/sidebar/navigation';
 import { useNode } from '@/page/share/sidebar/store';
 
 interface UseNodeActionsProps {
@@ -27,9 +28,14 @@ export function useNodeActions(
   const addToContext = (type: 'resource' | 'folder') => {
     const doAdd = () => {
       if (!node) return;
+      const navigationTarget = getShareResourceNavigationTarget({
+        id: node.id,
+        parentId: node.parentId,
+        attrs: node.attrs,
+      });
       onAddToContext(
         {
-          id: node.id,
+          id: navigationTarget.resourceId,
           name: node.name,
           parent_id: node.parentId,
           resource_type: node.resourceType,
