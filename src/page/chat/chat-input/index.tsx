@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import DecisionInput from '@/page/chat/chat-input/DecisionInput.tsx';
+import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ChatMode,
   InputMode,

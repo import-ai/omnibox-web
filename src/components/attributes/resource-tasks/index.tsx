@@ -19,7 +19,7 @@ import { http } from '@/lib/request';
 
 import { ATTRIBUTE_STYLES } from '../constants';
 import { CONTENT_MODIFYING_FUNCTIONS, DISPLAY_FUNCTIONS } from './const';
-import { TaskTag } from './TaskTag';
+import { TaskTag } from './TaskTags';
 import { hasActiveContentModifyingTasks } from './utils';
 
 interface ResourceTasksProps {

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Typewriter } from '@/components/typewriter';
 import { http } from '@/lib/request';
-import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial.tsx';
+import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import {
   ChatCreatePayload,
   ConversationEntity,

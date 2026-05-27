@@ -21,6 +21,35 @@ function getFileStem(basename) {
     .replace(/\.[jt]sx?$/, '');
 }
 
+function hasComponentLikeExport(program) {
+  return program.body.some(node => {
+    if (
+      node.type === 'FunctionDeclaration' &&
+      PASCAL_CASE_PATTERN.test(node.id?.name ?? '')
+    ) {
+      return true;
+    }
+
+    if (
+      node.type === 'ExportDefaultDeclaration' &&
+      node.declaration?.type === 'FunctionDeclaration' &&
+      PASCAL_CASE_PATTERN.test(node.declaration.id?.name ?? '')
+    ) {
+      return true;
+    }
+
+    const declaration =
+      node.type === 'ExportNamedDeclaration' ? node.declaration : node;
+    if (declaration?.type !== 'VariableDeclaration') {
+      return false;
+    }
+
+    return declaration.declarations.some(item =>
+      PASCAL_CASE_PATTERN.test(item.id?.name ?? '')
+    );
+  });
+}
+
 const fileNamingPlugin = {
   rules: {
     camelcase: {
@@ -90,7 +119,7 @@ const fileNamingPlugin = {
               ['JSXIdentifier', 'JSXText'].includes(token.type)
             );
 
-            if (hasJsx) {
+            if (hasJsx || hasComponentLikeExport(program)) {
               return;
             }
 

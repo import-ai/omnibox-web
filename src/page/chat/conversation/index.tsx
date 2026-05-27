@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial.tsx';
+import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import ChatArea from '@/page/chat/chat-input';
 import useContext from '@/page/chat/conversation/useContext';
 import { Messages } from '@/page/chat/messages';

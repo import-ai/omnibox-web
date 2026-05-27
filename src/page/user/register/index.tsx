@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import Apple from '../apple';
-import { Available } from '../Available';
+import { Available } from '../available';
 import Email from '../email';
 import Google from '../google';
 import MetaPage from '../MetaPage';

@@ -1,3 +1,4 @@
+// eslint-disable-next-line file-naming/camelcase
 import {
   RiFileImageFill,
   RiFileMusicFill,
@@ -22,12 +23,12 @@ import {
 } from 'simple-icons';
 
 import { GithubIcon } from '@/assets/icons/GithubIcon';
-import { ITHomeIcon } from '@/assets/icons/itHomeIcon.tsx';
-import { OKJikeIcon } from '@/assets/icons/okJikeIcon.tsx';
+import { ITHomeIcon } from '@/assets/icons/ItHomeIcon';
+import { OKJikeIcon } from '@/assets/icons/OkJikeIcon';
 import { RedNoteIcon } from '@/assets/icons/RedNoteIcon';
 import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import { SmartFolderOpenIcon } from '@/assets/icons/SmartFolderOpenIcon';
-import { Tiktok } from '@/assets/icons/tiktok.tsx';
+import { Tiktok } from '@/assets/icons/Tiktok';
 import { WeChatIcon } from '@/assets/icons/WechatIcon';
 import { ResourceMeta } from '@/interface';
 import { safeParseURL } from '@/lib/utils';
