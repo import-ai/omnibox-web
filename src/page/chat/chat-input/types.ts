@@ -1,5 +1,4 @@
 import { ResourceMeta } from '@/interface.ts';
-import type { ConversationPreferences } from '@/page/chat/chat-input/conversation-preferences';
 import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 
 export enum ToolType {
@@ -104,5 +103,4 @@ export interface ConversationEntity {
   userId: string;
   title: string;
   shareId: string;
-  preferences?: ConversationPreferences | null;
 }

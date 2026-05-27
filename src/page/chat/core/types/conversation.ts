@@ -1,5 +1,4 @@
 import { IBase } from '@/interface.ts';
-import type { ConversationPreferences } from '@/page/chat/chat-input/conversation-preferences';
 import type { ChatTool, DecisionType } from '@/page/chat/chat-input/types';
 import type {
   Citation,
@@ -66,7 +65,6 @@ export interface MessageDetail extends IBase {
 export interface ConversationDetail extends IBase {
   id: string;
   title?: string;
-  preferences?: ConversationPreferences | null;
   mapping: Record<string, MessageDetail>;
   current_node?: string;
 }

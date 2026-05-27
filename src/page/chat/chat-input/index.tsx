@@ -1,9 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-  type ConversationPreferences,
-  preferencesToTools,
-} from '@/page/chat/chat-input/conversation-preferences';
 import DecisionInput from '@/page/chat/chat-input/decision-input.tsx';
 import {
   ChatMode,
@@ -12,6 +8,10 @@ import {
   SendMessageParams,
   ToolType,
 } from '@/page/chat/chat-input/types';
+import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/core/types/chat-response.ts';
 import {
   Interrupt,
   MessageDetail,
@@ -22,11 +22,52 @@ import ChatTool from './chat-tool';
 import ChatContext from './context';
 import ChatInput from './input';
 
+interface RestoredTools {
+  conversationKey: string;
+  signature: string;
+  tools: ToolType[];
+  ready: boolean;
+}
+
+function getRestoredTools(messages: MessageDetail[]): RestoredTools {
+  const conversationKey = messages[0]?.id ?? 'empty';
+  const userMessage = messages
+    .slice()
+    .reverse()
+    .find(message => message.message.role === OpenAIMessageRole.USER);
+
+  if (!userMessage) {
+    return {
+      conversationKey,
+      signature: 'empty',
+      tools: [],
+      ready: true,
+    };
+  }
+
+  const tools: ToolType[] = [];
+  if (
+    userMessage.attrs?.tools?.some(tool => tool.name === ToolType.WEB_SEARCH)
+  ) {
+    tools.push(ToolType.WEB_SEARCH);
+  }
+  if (userMessage.attrs?.enable_thinking) {
+    tools.push(ToolType.REASONING);
+  }
+
+  return {
+    conversationKey,
+    signature: `${userMessage.id}:${tools.join(',')}`,
+    tools,
+    ready:
+      Boolean(userMessage.attrs) ||
+      userMessage.status !== MessageStatus.PENDING,
+  };
+}
+
 interface IProps {
   messages: MessageDetail[];
   navigatePrefix: string;
-  conversationPreferences?: ConversationPreferences | null;
-  onPreferencesChange?: (tools: ToolType[]) => void;
   selectedResources: IResTypeContext[];
   setSelectedResources: any;
   loading: boolean;
@@ -43,8 +84,6 @@ export default function ChatArea(props: IProps) {
   const {
     messages,
     navigatePrefix,
-    conversationPreferences,
-    onPreferencesChange,
     selectedResources,
     setSelectedResources,
     loading,
@@ -54,18 +93,40 @@ export default function ChatArea(props: IProps) {
   const [tools, setTools] = useState<ToolType[]>([]);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [query, setQuery] = useState('');
+  const toolsManuallyChangedRef = useRef(false);
+  const restoredToolsConversationKeyRef = useRef<string | null>(null);
+  const restoredToolsSignatureRef = useRef<string | null>(null);
+  const restoredTools = useMemo(() => getRestoredTools(messages), [messages]);
 
   useEffect(() => {
-    setTools(preferencesToTools(conversationPreferences));
-  }, [conversationPreferences]);
+    if (!restoredTools.ready) {
+      return;
+    }
 
-  const handleToolsChange = useCallback(
-    (nextTools: ToolType[]) => {
-      setTools(nextTools);
-      onPreferencesChange?.(nextTools);
-    },
-    [onPreferencesChange]
-  );
+    if (
+      restoredToolsConversationKeyRef.current !== restoredTools.conversationKey
+    ) {
+      restoredToolsConversationKeyRef.current = restoredTools.conversationKey;
+      restoredToolsSignatureRef.current = null;
+      toolsManuallyChangedRef.current = false;
+    }
+
+    if (toolsManuallyChangedRef.current) {
+      return;
+    }
+
+    if (restoredToolsSignatureRef.current === restoredTools.signature) {
+      return;
+    }
+
+    restoredToolsSignatureRef.current = restoredTools.signature;
+    setTools(restoredTools.tools);
+  }, [restoredTools]);
+
+  const handleToolsChange = useCallback((nextTools: ToolType[]) => {
+    toolsManuallyChangedRef.current = true;
+    setTools(nextTools);
+  }, []);
 
   const lastMessage = useMemo<MessageDetail | undefined>(() => {
     return messages.at(-1);
@@ -89,6 +150,7 @@ export default function ChatArea(props: IProps) {
     const v = query.trim();
     if (v) {
       setQuery('');
+      toolsManuallyChangedRef.current = false;
       const localContext = structuredClone(selectedResources);
       setSelectedResources([]);
       sendMessage({

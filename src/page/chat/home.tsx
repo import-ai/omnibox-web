@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Typewriter } from '@/components/typewriter';
 import { http } from '@/lib/request';
 import { AgentTrial } from '@/page/chat/agent-trial/agent-trial.tsx';
-import { toolsToPreferences } from '@/page/chat/chat-input/conversation-preferences';
 import {
   ChatCreatePayload,
   ConversationEntity,
@@ -31,9 +30,7 @@ export default function ChatHomePage() {
     mode,
   }: SendMessageParams) => {
     http
-      .post(`/namespaces/${namespaceId}/conversations`, {
-        preferences: toolsToPreferences(tools),
-      })
+      .post(`/namespaces/${namespaceId}/conversations`)
       .then((conversation: ConversationEntity) => {
         sessionStorage.setItem(
           'chat-create-payload',

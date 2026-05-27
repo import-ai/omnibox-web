@@ -1,22 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { API_BASE_URL, FORCE_ASK } from '@/const';
+import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/use-app';
-import { detectBrowserLanguage } from '@/lib/detect-language';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizard-lang';
-import {
-  type ConversationPreferences,
-  toolsToPreferences,
-} from '@/page/chat/chat-input/conversation-preferences';
 import {
   AgentRequestChannel,
   ChatCreatePayload,
   ChatMode,
   SendMessageParams,
-  ToolType,
 } from '@/page/chat/chat-input/types';
 import {
   ask,
@@ -36,59 +30,11 @@ import useGlobalContext from '@/page/chat/useSelectedResources.ts';
 
 import { getTitleFromConversationDetail } from '../utils';
 
-const PREFERENCES_PATCH_DELAY_MS = 300;
-
-interface PendingPreferencesPatch {
-  namespaceId: string;
-  conversationId: string;
-  preferences: ConversationPreferences | null;
-}
-
-function buildPreferenceHeaders(): HeadersInit {
-  const token = localStorage.getItem('token');
-  const lang = localStorage.getItem('i18nextLng') || detectBrowserLanguage();
-
-  return {
-    'Content-Type': 'application/json',
-    From: 'web',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(lang ? { 'X-Lang': lang } : {}),
-  };
-}
-
-function patchConversationPreferences(
-  pending: PendingPreferencesPatch,
-  keepalive = false
-) {
-  const url = `/namespaces/${pending.namespaceId}/conversations/${pending.conversationId}`;
-  const data = { preferences: pending.preferences };
-
-  if (!keepalive) {
-    void http.patch(url, data, { mute: true });
-    return;
-  }
-
-  void fetch(`${API_BASE_URL}${url}`, {
-    method: 'PATCH',
-    headers: buildPreferenceHeaders(),
-    body: JSON.stringify(data),
-    keepalive: true,
-  }).catch(() => {
-    // When unloading the page, only perform the last state synchronization. If it fails, do not interrupt the process of leaving.
-  });
-}
-
 export default function useContext() {
   const app = useApp();
   const params = useParams();
   const { i18n } = useTranslation();
   const askAbortRef = useRef<() => void>(null);
-  const preferencesPatchTimeoutRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
-  const pendingPreferencesPatchRef = useRef<PendingPreferencesPatch | null>(
-    null
-  );
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
   const [loading, setLoading] = useState<boolean>(false);
@@ -114,71 +60,6 @@ export default function useContext() {
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(conversation, setConversation);
   }, [conversation, setConversation]);
-
-  const applyConversationDetail = useCallback(
-    (response: ConversationDetail) => {
-      const conversationTitle = getTitleFromConversationDetail(response);
-      if (conversationTitle) {
-        app.fire('chat:title:update', conversationTitle);
-      }
-      setConversation(response);
-    },
-    [app]
-  );
-
-  const flushPendingPreferences = useCallback((keepalive = false) => {
-    const pending = pendingPreferencesPatchRef.current;
-    if (!pending) {
-      return;
-    }
-
-    if (preferencesPatchTimeoutRef.current) {
-      clearTimeout(preferencesPatchTimeoutRef.current);
-      preferencesPatchTimeoutRef.current = null;
-    }
-    pendingPreferencesPatchRef.current = null;
-    patchConversationPreferences(pending, keepalive);
-  }, []);
-
-  const updateConversationPreferences = useCallback(
-    (tools: ToolType[]) => {
-      if (!namespaceId || !conversationId) {
-        return;
-      }
-
-      const preferences = toolsToPreferences(tools);
-      setConversation(prev => ({
-        ...prev,
-        preferences,
-      }));
-
-      if (preferencesPatchTimeoutRef.current) {
-        clearTimeout(preferencesPatchTimeoutRef.current);
-      }
-      pendingPreferencesPatchRef.current = {
-        namespaceId,
-        conversationId,
-        preferences,
-      };
-
-      preferencesPatchTimeoutRef.current = setTimeout(() => {
-        flushPendingPreferences();
-      }, PREFERENCES_PATCH_DELAY_MS);
-    },
-    [namespaceId, conversationId, flushPendingPreferences]
-  );
-
-  useEffect(() => {
-    const handlePageHide = () => {
-      flushPendingPreferences(true);
-    };
-
-    window.addEventListener('pagehide', handlePageHide);
-    return () => {
-      window.removeEventListener('pagehide', handlePageHide);
-      flushPendingPreferences(true);
-    };
-  }, [flushPendingPreferences]);
 
   const sendMessage = async ({
     query,
@@ -225,20 +106,18 @@ export default function useContext() {
     if (!chatCreatePayload) {
       http
         .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
-        .then(applyConversationDetail);
+        .then(response => {
+          const conversationTitle = getTitleFromConversationDetail(response);
+          if (conversationTitle) {
+            app.fire('chat:title:update', conversationTitle);
+          }
+          setConversation(response);
+        });
       return;
     }
     sessionStorage.removeItem('chat-create-payload');
-    setConversation({
-      ...chatCreatePayload.conversation,
-      id: conversationId,
-      preferences:
-        chatCreatePayload.conversation.preferences ??
-        toolsToPreferences(chatCreatePayload.tools),
-      mapping: chatCreatePayload.conversation.mapping ?? {},
-    });
     void sendMessage(chatCreatePayload);
-  }, [namespaceId, conversationId, applyConversationDetail]);
+  }, [namespaceId, conversationId]);
 
   const mergedLoading =
     ![MessageStatus.FAILED, MessageStatus.SUCCESS].includes(
@@ -338,6 +217,5 @@ export default function useContext() {
     messageOperator,
     onRegenerate,
     onEdit,
-    updateConversationPreferences,
   };
 }
