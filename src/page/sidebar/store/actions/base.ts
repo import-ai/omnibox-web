@@ -44,7 +44,6 @@ export function buildBaseActions(set: SidebarSet) {
                   parentId,
                   spaceType as SpaceType
                 );
-                childNode.hasChildren = child.has_children ?? false;
                 state.nodes[child.id] = childNode;
                 state.ui[child.id] = {
                   expanded: false,

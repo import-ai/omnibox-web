@@ -2,13 +2,13 @@ import { Command as CommandPrimitive, useCommandState } from 'cmdk';
 import { X } from 'lucide-react';
 import React, { forwardRef, useEffect } from 'react';
 
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/Badge';
 import {
   Command,
   CommandGroup,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
+} from '@/components/ui/Command';
 import { cn } from '@/lib/utils';
 
 export interface Option {

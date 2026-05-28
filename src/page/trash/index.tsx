@@ -1,5 +1,5 @@
 import { Trash, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -8,7 +8,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from '@/components/ui/Popover';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -16,19 +16,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { Spinner } from '@/components/ui/spinner';
-import useApp from '@/hooks/use-app';
-import { IResourceData } from '@/interface';
-import { deleteResource } from '@/lib/delete-resource';
+} from '@/components/ui/Sidebar';
+import { Spinner } from '@/components/ui/Spinner';
+import useApp from '@/hooks/useApp';
+import { deleteResource } from '@/lib/deleteResource';
 import { cn } from '@/lib/utils';
+import type { TreeNode } from '@/page/sidebar/store';
 
-import { ConfirmPermanentDeleteDialog } from './confirm-delete-dialog';
-import { TrashEmpty } from './trash-empty';
-import { TrashFooter } from './trash-footer';
-import { TrashItemRow } from './trash-item';
-import { TrashSearch } from './trash-search';
-import { useTrash } from './use-trash';
+import { ConfirmPermanentDeleteDialog } from './ConfirmPermanentDeleteDialog';
+import { TrashEmpty } from './TrashEmpty';
+import { TrashFooter } from './TrashFooter';
+import { TrashItemRow } from './TrashItemRow';
+import { TrashSearch } from './TrashSearch';
+import { useTrash } from './useTrash';
 
 export function TrashPanel() {
   const { t } = useTranslation();
@@ -38,28 +38,31 @@ export function TrashPanel() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [isClearAll, setIsClearAll] = useState(false);
+  const trashDropRef = useRef<HTMLLIElement>(null);
 
   // Drag and drop to the trash can location
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: 'card',
-    drop: async (item: IResourceData) => {
-      if (!item?.id || !namespace_id) return;
+  const [{ isOver }, drop] = useDrop<TreeNode, void, { isOver: boolean }>(
+    () => ({
+      accept: 'card',
+      drop: item => {
+        if (!item?.id || !namespace_id) return;
 
-      try {
-        await deleteResource({
+        deleteResource({
           id: item.id,
-          parentId: item.parent_id,
+          parentId: item.parentId,
           namespaceId: namespace_id,
           app,
+          resourceType: item.resourceType,
+        }).catch(() => {
+          // Error handling is done by http interceptor
         });
-      } catch {
-        // Error handling is done by http interceptor
-      }
-    },
-    collect: monitor => ({
-      isOver: monitor.isOver({ shallow: true }),
+      },
+      collect: monitor => ({
+        isOver: monitor.isOver({ shallow: true }),
+      }),
     }),
-  }));
+    [app, namespace_id]
+  );
 
   const {
     items,
@@ -75,6 +78,12 @@ export function TrashPanel() {
     fetchTrash,
     trashRetentionDays,
   } = useTrash();
+
+  useEffect(() => {
+    if (trashDropRef.current) {
+      drop(trashDropRef);
+    }
+  }, [drop]);
 
   // Fetch trash on mount to determine icon state
   useEffect(() => {
@@ -163,7 +172,7 @@ export function TrashPanel() {
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem ref={drop as unknown as React.Ref<HTMLLIElement>}>
+            <SidebarMenuItem ref={trashDropRef}>
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                   <SidebarMenuButton

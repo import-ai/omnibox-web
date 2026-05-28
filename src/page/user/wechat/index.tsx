@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { WeChatIcon } from '@/assets/icons/wechat';
+import { WeChatIcon } from '@/assets/icons/Wechat';
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 

@@ -1,6 +1,7 @@
 import {
   FilePlus,
   FolderPlus,
+  LocateFixed,
   type LucideIcon,
   MessageSquarePlus,
   MessageSquareQuote,
@@ -12,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 
 import { useSidebarStore } from '../store';
 import type { UseNodeActionsReturn } from './useNodeActions';
@@ -51,7 +54,7 @@ export function useNodeMenu(
     state => Object.keys(state.selectedIds).length
   );
 
-  const menuItems = useMemo<{
+  return useMemo<{
     disabled: boolean;
     items: MenuItem[];
   }>(() => {
@@ -95,6 +98,64 @@ export function useNodeMenu(
             label: t('batch.delete_tooltip'),
             destructive: true,
             disabled,
+          },
+        ],
+      };
+    }
+
+    if (isSmartFolderChildResource(node)) {
+      return {
+        disabled: false,
+        items: [
+          {
+            key: 'locate_source_resource',
+            icon: LocateFixed,
+            label: t('actions.locate_source_resource'),
+            onClick: actions.handleLocateSource,
+          },
+          {
+            key: 'rename',
+            icon: SquarePen,
+            label: t('actions.rename'),
+            onSelect: onRename,
+          },
+          {
+            key: 'edit',
+            icon: Pencil,
+            label: t('edit'),
+            onClick: actions.handleEdit,
+          },
+          { key: 'separator_1', separator: true },
+          ...buildAddToChatItems(actions, t),
+        ],
+      };
+    }
+
+    if (node.resourceType === 'smart_folder') {
+      return {
+        disabled: false,
+        items: [
+          {
+            key: 'rename',
+            icon: SquarePen,
+            label: t('actions.rename'),
+            onSelect: onRename,
+          },
+          {
+            key: 'edit',
+            icon: Pencil,
+            label: t('actions.edit_smart_folder_conditions'),
+            onClick: actions.handleEdit,
+          },
+          { key: 'separator_1', separator: true },
+          ...buildAddToChatItems(actions, t),
+          { key: 'separator_2', separator: true },
+          {
+            key: 'delete',
+            icon: Trash2,
+            label: t('actions.move_to_trash'),
+            destructive: true,
+            onClick: actions.handleDelete,
           },
         ],
       };
@@ -164,8 +225,6 @@ export function useNodeMenu(
     selectedCount,
     selectionMode,
   ]);
-
-  return menuItems;
 }
 
 function buildAddToChatItems(
@@ -176,7 +235,7 @@ function buildAddToChatItems(
 
   if (!node) return [];
 
-  if (node.resourceType === 'folder') {
+  if (node.resourceType === 'folder' || node.resourceType === 'smart_folder') {
     return [
       {
         key: 'add_all_to_context',

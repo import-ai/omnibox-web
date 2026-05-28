@@ -1,7 +1,7 @@
 import { Check, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import { cn } from '@/lib/utils';
 
 interface IProps {

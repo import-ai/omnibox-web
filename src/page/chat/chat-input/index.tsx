@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import DecisionInput from '@/page/chat/chat-input/decision-input.tsx';
+import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ChatMode,
   InputMode,
@@ -9,14 +9,61 @@ import {
   ToolType,
 } from '@/page/chat/chat-input/types';
 import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/core/types/chatResponse.ts';
+import {
   Interrupt,
   MessageDetail,
 } from '@/page/chat/core/types/conversation.ts';
 
-import ChatAction from './action';
-import ChatTool from './chat-tool';
-import ChatContext from './context';
-import ChatInput from './input';
+import ChatAction from './ChatAction';
+import ChatContext from './ChatContext';
+import ChatInput from './ChatInput';
+import ChatTool from './ChatTool';
+
+interface RestoredTools {
+  conversationKey: string;
+  signature: string;
+  tools: ToolType[];
+  ready: boolean;
+}
+
+function getRestoredTools(messages: MessageDetail[]): RestoredTools {
+  const conversationKey = messages[0]?.id ?? 'empty';
+  const userMessage = messages
+    .slice()
+    .reverse()
+    .find(message => message.message.role === OpenAIMessageRole.USER);
+
+  if (!userMessage) {
+    return {
+      conversationKey,
+      signature: 'empty',
+      tools: [],
+      ready: true,
+    };
+  }
+
+  const tools: ToolType[] = [];
+  if (
+    userMessage.attrs?.tools?.some(tool => tool.name === ToolType.WEB_SEARCH)
+  ) {
+    tools.push(ToolType.WEB_SEARCH);
+  }
+  if (userMessage.attrs?.enable_thinking) {
+    tools.push(ToolType.REASONING);
+  }
+
+  return {
+    conversationKey,
+    signature: `${userMessage.id}:${tools.join(',')}`,
+    tools,
+    ready:
+      Boolean(userMessage.attrs) ||
+      userMessage.status !== MessageStatus.PENDING,
+  };
+}
 
 interface IProps {
   messages: MessageDetail[];
@@ -46,6 +93,40 @@ export default function ChatArea(props: IProps) {
   const [tools, setTools] = useState<ToolType[]>([]);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [query, setQuery] = useState('');
+  const toolsManuallyChangedRef = useRef(false);
+  const restoredToolsConversationKeyRef = useRef<string | null>(null);
+  const restoredToolsSignatureRef = useRef<string | null>(null);
+  const restoredTools = useMemo(() => getRestoredTools(messages), [messages]);
+
+  useEffect(() => {
+    if (!restoredTools.ready) {
+      return;
+    }
+
+    if (
+      restoredToolsConversationKeyRef.current !== restoredTools.conversationKey
+    ) {
+      restoredToolsConversationKeyRef.current = restoredTools.conversationKey;
+      restoredToolsSignatureRef.current = null;
+      toolsManuallyChangedRef.current = false;
+    }
+
+    if (toolsManuallyChangedRef.current) {
+      return;
+    }
+
+    if (restoredToolsSignatureRef.current === restoredTools.signature) {
+      return;
+    }
+
+    restoredToolsSignatureRef.current = restoredTools.signature;
+    setTools(restoredTools.tools);
+  }, [restoredTools]);
+
+  const handleToolsChange = useCallback((nextTools: ToolType[]) => {
+    toolsManuallyChangedRef.current = true;
+    setTools(nextTools);
+  }, []);
 
   const lastMessage = useMemo<MessageDetail | undefined>(() => {
     return messages.at(-1);
@@ -69,6 +150,7 @@ export default function ChatArea(props: IProps) {
     const v = query.trim();
     if (v) {
       setQuery('');
+      toolsManuallyChangedRef.current = false;
       const localContext = structuredClone(selectedResources);
       setSelectedResources([]);
       sendMessage({
@@ -106,7 +188,7 @@ export default function ChatArea(props: IProps) {
         <ChatTool
           tools={tools}
           context={selectedResources}
-          onToolsChange={setTools}
+          onToolsChange={handleToolsChange}
         />
         <ChatAction
           onSend={handleSend}

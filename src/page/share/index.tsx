@@ -11,19 +11,21 @@ import {
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
-} from '@/components/ui/empty';
-import { SidebarProvider } from '@/components/ui/sidebar';
+} from '@/components/ui/Empty';
+import { SidebarProvider } from '@/components/ui/Sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { http } from '@/lib/request';
-import { normalizeResourceMeta } from '@/lib/resource-meta';
+import { normalizeResourceMeta } from '@/lib/resourceMeta';
 import {
   ChatMode,
   IResTypeContext,
   ToolType,
 } from '@/page/chat/chat-input/types';
+import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
+import { getSmartFolderSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 
-import { ShareLayout } from './layout';
-import { Password } from './password';
+import { Password } from './Password';
+import { ShareLayout } from './ShareLayout';
 
 const SHARE_PASSWORD_COOKIE = 'share-password';
 
@@ -84,13 +86,23 @@ export default function SharePage() {
     resource: ResourceMeta,
     type: 'resource' | 'folder'
   ) => {
+    const sidebarAttrs = getSmartFolderSidebarAttrs(resource);
+    const navigateState =
+      sidebarAttrs?.smart_folder_child && resource.parent_id
+        ? getShareSmartFolderChildNavigationState(
+            resource.parent_id,
+            resource.id
+          )
+        : undefined;
+
     setSelectedResources(current => {
       const existingIndex = current.findIndex(
         item => item.resource.id === resource.id
       );
-      const nextItem = {
+      const nextItem: IResTypeContext = {
         type,
         resource: normalizeResourceMeta(resource),
+        navigateState,
       };
 
       if (existingIndex < 0) {

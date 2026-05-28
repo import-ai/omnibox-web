@@ -8,6 +8,8 @@ import {
 import { useDrag, useDrop } from 'react-dnd';
 import { getEmptyImage, NativeTypes } from 'react-dnd-html5-backend';
 
+import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
+
 import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
 import {
@@ -76,10 +78,32 @@ export function useResourceNodeDnd(
     }
     return Array.from(ids);
   }, [batchIds, nodes]);
+
   const canDropItem = (item: DndItem) => {
+    const targetNode = nodes[nodeId];
+    if (targetNode?.resourceType === 'smart_folder') {
+      return false;
+    }
+    if (isSmartFolderChildResource(targetNode)) {
+      return false;
+    }
+
     if (item.id) {
+      const dragNode = nodes[item.id];
+      if (isSmartFolderChildResource(dragNode)) {
+        return false;
+      }
+      if (
+        dragNode?.resourceType &&
+        targetNode?.resourceType &&
+        (dragNode.resourceType === 'smart_folder') !==
+          (targetNode.resourceType === 'smart_folder')
+      ) {
+        return false;
+      }
       return item.id !== nodeId && !isDescendant(nodes, item.id, nodeId);
     }
+
     if (item.ids?.length) {
       if (isDisabledBatchDropTarget(nodes, item, nodeId)) {
         return false;
@@ -89,6 +113,7 @@ export function useResourceNodeDnd(
         id => id !== nodeId && !isDescendant(nodes, id, nodeId)
       );
     }
+
     return true;
   };
 
@@ -98,6 +123,7 @@ export function useResourceNodeDnd(
       namespaceId,
       onNodeDrop,
     });
+
   const [dragStyle, drag, preview] = useDrag(
     {
       type: 'card',
@@ -113,7 +139,11 @@ export function useResourceNodeDnd(
           preview: node,
         };
       },
-      canDrag: () => !isEditing && (!selectionMode || isSelected),
+      canDrag: () =>
+        !isEditing &&
+        (!selectionMode || isSelected) &&
+        node.resourceType !== 'smart_folder' &&
+        !isSmartFolderChildResource(node),
       collect: monitor => ({
         opacity: monitor.isDragging() ? 0.5 : 1,
       }),

@@ -6,7 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/DropdownMenu';
 import type { Resource } from '@/interface';
 import each from '@/lib/each';
 import { cn } from '@/lib/utils';

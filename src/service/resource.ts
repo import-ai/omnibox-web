@@ -1,6 +1,6 @@
 import { Resource, ResourceMeta, ResourceType } from '@/interface';
 import { http } from '@/lib/request';
-import { uploadFiles } from '@/lib/upload-files';
+import { uploadFiles } from '@/lib/uploadFiles';
 
 export type RootResourcesResponse = Record<
   string,
@@ -53,6 +53,12 @@ export function fetchChildren(namespaceId: string, id: string) {
 
 export function fetchRootResources(namespaceId: string) {
   return http.get<RootResourcesResponse>(`/namespaces/${namespaceId}/root`);
+}
+
+export function fetchSmartFolderChildren(namespaceId: string, id: string) {
+  return http.get<Resource[]>(
+    `/namespaces/${namespaceId}/smart-folders/${id}/children`
+  );
 }
 
 export function searchResources(namespaceId: string, query: string) {

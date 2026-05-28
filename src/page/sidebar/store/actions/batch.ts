@@ -1,5 +1,5 @@
 import type { Resource, SpaceType } from '@/interface';
-import { addToChatContext, removeFromChatContext } from '@/lib/chat-bridge';
+import { addToChatContext, removeFromChatContext } from '@/lib/chatBridge';
 import {
   batchCreateFolderFromResources,
   batchDeleteResources,

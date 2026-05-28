@@ -15,14 +15,14 @@ import {
   Trash2,
 } from 'lucide-react';
 // import { Resource } from '@/interface';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Input } from '@/components/input';
-import PermissionWrapper from '@/components/permission-action/wrapper';
-import { Button } from '@/components/ui/button';
+import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
+import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,21 +32,34 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Spinner } from '@/components/ui/spinner';
-import { Switch } from '@/components/ui/switch';
+} from '@/components/ui/DropdownMenu';
+import { Spinner } from '@/components/ui/Spinner';
+import { Switch } from '@/components/ui/Switch';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import { useDeleteResource } from '@/hooks/use-delete-resource';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { IUseResource } from '@/hooks/user-resource';
-import { downloadFile } from '@/lib/download-file';
+import useConfig from '@/hooks/useConfig';
+import { useDeleteResource } from '@/hooks/useDeleteResource';
+import { useIsMobile } from '@/hooks/useMobile';
+import useProNamespaces from '@/hooks/useProNamespaces';
+import { IUseResource } from '@/hooks/userResource';
+import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
+import { downloadFile } from '@/lib/downloadFile';
 import { http } from '@/lib/request';
-import { uploadFiles } from '@/lib/upload-files';
+import { uploadFiles } from '@/lib/uploadFiles';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
+import {
+  CreateSmartFolderPayload,
+  CreateSmartFolderRequest,
+  SmartFolderResponse,
+} from '@/page/sidebar/components/smart-folder';
+import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/CreateSmartFolderDialog';
+import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
+import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 import MoveTo from './move';
 import ShareAction from './share';
+
+const hasTeamspaceCache = new Map<string, boolean>();
 
 export interface IActionProps extends IUseResource {
   wide: boolean;
@@ -58,37 +71,129 @@ export default function Actions(props: IActionProps) {
     props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const loc = useLocation();
   const isMobile = useIsMobile();
   const { deleteResource } = useDeleteResource();
+  const { config, loading: configLoading } = useConfig();
+  const { data: smartFolderEntitlements } = useSmartFolderEntitlements({
+    namespaceId,
+    disabled: resource?.resource_type !== 'smart_folder',
+  });
+  const { data: proNamespaces } = useProNamespaces({
+    disabled:
+      resource?.resource_type !== 'smart_folder' ||
+      configLoading ||
+      !config.commercial,
+  });
+  const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);
   const [progress, setProgress] = useState('');
+  const [smartFolderOpen, setSmartFolderOpen] = useState(false);
+  const [smartFolderTrashOpen, setSmartFolderTrashOpen] = useState(false);
+  const [smartFolderInitial, setSmartFolderInitial] =
+    useState<CreateSmartFolderPayload | null>(null);
+  const [hasTeamspace, setHasTeamspace] = useState(
+    () => hasTeamspaceCache.get(namespaceId) ?? true
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const moveResourceIds = useMemo(
     () => (resource ? [resource.id] : []),
     [resource?.id]
   );
+  const canModifyResource =
+    (resource?.current_permission || 'full_access') === 'can_edit' ||
+    (resource?.current_permission || 'full_access') === 'full_access';
   const isFolder = resource?.resource_type === 'folder';
+  const isSmartFolder = resource?.resource_type === 'smart_folder';
+  const canUseFileLikeActions = !isFolder && !isSmartFolder;
+  const canUseRegularResourceActions = !isSmartFolder;
+
+  useEffect(() => {
+    if (!namespaceId) return;
+    const cached = hasTeamspaceCache.get(namespaceId);
+    if (cached !== undefined) {
+      setHasTeamspace(cached);
+      return;
+    }
+    http
+      .get(`/namespaces/${namespaceId}/root`)
+      .then((items: Record<string, { id?: string }>) => {
+        const value = Boolean(items.teamspace?.id);
+        hasTeamspaceCache.set(namespaceId, value);
+        setHasTeamspace(value);
+      });
+  }, [namespaceId]);
 
   const handleEdit = () => {
     if (!resource) {
       return;
     }
-    navigate(`/${namespaceId}/${resource.id}/edit`);
+    if (resource.resource_type === 'smart_folder') {
+      if (!canModifyResource) {
+        toast.error(t('permission.edit_required'));
+        return;
+      }
+      http
+        .get(`/namespaces/${namespaceId}/smart-folders/${resource.id}/config`)
+        .then((response: SmartFolderResponse) => {
+          setSmartFolderInitial({
+            name: response.resource.name || '',
+            ownerScope: response.owner_scope || 'private',
+            rootScope: response.root_scope || 'private',
+            matchMode: response.match_mode || 'all',
+            conditions: response.conditions || [],
+          });
+          setSmartFolderOpen(true);
+        });
+      return;
+    }
+    navigate(`/${namespaceId}/${resource.id}/edit`, {
+      state: loc.state,
+    });
+  };
+
+  const handleUpdateSmartFolder = (payload: CreateSmartFolderRequest) => {
+    if (!resource) return Promise.reject();
+
+    return http
+      .patch(
+        `/namespaces/${namespaceId}/smart-folders/${resource.id}/config`,
+        payload
+      )
+      .then((response: SmartFolderResponse) => {
+        const store = useSidebarStore.getState();
+        const { movedParentId } = syncSmartFolderUpdate({
+          app,
+          store,
+          nodeId: resource.id,
+          nodeParentId: resource.parent_id,
+          payload,
+          response,
+        });
+        if (movedParentId) {
+          app.fire('scroll_to_resource', resource.id, movedParentId);
+        }
+        toast.success(t('smart_folder.edit.success'));
+      });
   };
   const handleExitEdit = () => {
     if (!resource) {
       return;
     }
-    navigate(`/${namespaceId}/${resource.id}`);
+    navigate(`/${namespaceId}/${resource.id}`, {
+      state: loc.state,
+    });
   };
   const handleSave = () => {
     app.fire('save', () => {
       if (!resource) {
         return;
       }
-      navigate(`/${namespaceId}/${resource.id}`);
+      navigate(`/${namespaceId}/${resource.id}`, {
+        state: loc.state,
+      });
     });
   };
   const handleAction = (id: string) => {
@@ -151,11 +256,22 @@ export default function Actions(props: IActionProps) {
         setOpen(false);
         return;
       }
+      if (!canModifyResource) {
+        toast.error(t('permission.delete_required'));
+        setOpen(false);
+        return;
+      }
+      if (resource.resource_type === 'smart_folder') {
+        setSmartFolderTrashOpen(true);
+        setOpen(false);
+        return;
+      }
       onLoading('move_to_trash');
       deleteResource({
         id: resource.id,
         parentId: resource.parent_id,
         namespaceId,
+        resourceType: resource.resource_type,
         onSuccess: () => setOpen(false),
       }).finally(() => {
         onLoading('');
@@ -280,6 +396,22 @@ export default function Actions(props: IActionProps) {
     await useSidebarStore.getState().move(resourceId, targetId);
   };
 
+  const handleConfirmTrashSmartFolder = () => {
+    if (!resource) return;
+
+    setSmartFolderTrashOpen(false);
+    onLoading('move_to_trash');
+    deleteResource({
+      id: resource.id,
+      parentId: resource.parent_id,
+      namespaceId,
+      resourceType: resource.resource_type,
+      onSuccess: () => setOpen(false),
+    }).finally(() => {
+      onLoading('');
+    });
+  };
+
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!resource || !e.target.files) {
       return;
@@ -367,7 +499,10 @@ export default function Actions(props: IActionProps) {
             <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent
+          align="end"
+          className="w-56 !animate-none !fade-in-0 !fade-out-0 !zoom-in-100 !zoom-out-100 !slide-in-from-top-0 !slide-in-from-bottom-0 !slide-in-from-left-0 !slide-in-from-right-0"
+        >
           <DropdownMenuItem
             className="cursor-pointer gap-2"
             onClick={() => handleAction('copy_link')}
@@ -375,7 +510,7 @@ export default function Actions(props: IActionProps) {
             <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
             <span>{t('actions.copy_link')}</span>
           </DropdownMenuItem>
-          {!isFolder && (
+          {canUseFileLikeActions && (
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               onClick={() => handleAction('copy_content')}
@@ -384,18 +519,20 @@ export default function Actions(props: IActionProps) {
               <span>{t('actions.copy_content')}</span>
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem
-            className="cursor-pointer gap-2"
-            onClick={() => handleAction('duplicate')}
-          >
-            {loading === 'duplicate' ? (
-              <Spinner />
-            ) : (
-              <Copy className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-            )}
-            <span>{t('actions.duplicate')}</span>
-          </DropdownMenuItem>
-          {!isFolder && (
+          {canUseRegularResourceActions && (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={() => handleAction('duplicate')}
+            >
+              {loading === 'duplicate' ? (
+                <Spinner />
+              ) : (
+                <Copy className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              )}
+              <span>{t('actions.duplicate')}</span>
+            </DropdownMenuItem>
+          )}
+          {canUseFileLikeActions && (
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className="cursor-pointer gap-2">
                 <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
@@ -419,17 +556,19 @@ export default function Actions(props: IActionProps) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           )}
-          <DropdownMenuItem
-            className="cursor-pointer gap-2"
-            onClick={() => handleAction('move_to')}
-          >
-            {loading === 'move_to' ? (
-              <Spinner />
-            ) : (
-              <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
-            )}
-            <span>{t('actions.move_to')}</span>
-          </DropdownMenuItem>
+          {canUseRegularResourceActions && (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={() => handleAction('move_to')}
+            >
+              {loading === 'move_to' ? (
+                <Spinner />
+              ) : (
+                <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              )}
+              <span>{t('actions.move_to')}</span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
             onClick={() => handleAction('move_to_trash')}
@@ -441,9 +580,7 @@ export default function Actions(props: IActionProps) {
             )}
             <span>{t('actions.move_to_trash')}</span>
           </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
+          {!isMobile && <DropdownMenuSeparator />}
           {!isMobile && (
             <>
               <DropdownMenuItem
@@ -467,7 +604,6 @@ export default function Actions(props: IActionProps) {
               )}
             </>
           )}
-
           {resource && resource.resource_type === 'folder' && (
             <DropdownMenuItem
               className="cursor-pointer gap-2"
@@ -502,7 +638,29 @@ export default function Actions(props: IActionProps) {
           namespaceId={namespaceId}
           onOpenChange={setMoveTo}
           resourceIds={moveResourceIds}
+          sourceResourceType={resource.resource_type}
           onFinished={handleMoveFinished}
+        />
+      )}
+      {resource?.resource_type === 'smart_folder' && (
+        <CreateSmartFolderDialog
+          open={smartFolderOpen}
+          currentResourceId={resource.id}
+          initialValue={smartFolderInitial}
+          title={t('smart_folder.edit.title')}
+          confirmText={t('smart_folder.edit.submit')}
+          hasTeamspace={hasTeamspace}
+          currentNamespace={currentNamespace}
+          onOpenChange={setSmartFolderOpen}
+          onConfirm={handleUpdateSmartFolder}
+        />
+      )}
+      {resource?.resource_type === 'smart_folder' && (
+        <SmartFolderTrashConfirmDialog
+          open={smartFolderTrashOpen}
+          retentionDays={smartFolderEntitlements?.trashRetentionDays}
+          onOpenChange={setSmartFolderTrashOpen}
+          onConfirm={handleConfirmTrashSmartFolder}
         />
       )}
     </div>

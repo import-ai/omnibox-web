@@ -1,5 +1,6 @@
 import type { PathItem, SpaceType } from '@/interface';
 import { Permission, Resource, ResourceType, TagDto } from '@/interface';
+import type { CreateSmartFolderPayload } from '@/page/sidebar/components/smart-folder';
 
 export type RootResource = Resource & { children?: Resource[] };
 
@@ -34,6 +35,15 @@ export interface DialogsState {
   batchCreate: boolean;
   batchMove: boolean;
   batchDelete: boolean;
+  editSmartFolder: {
+    open: boolean;
+    nodeId: string | null;
+    initialValue: CreateSmartFolderPayload | null;
+  };
+  smartFolderTrash: {
+    open: boolean;
+    nodeId: string | null;
+  };
 }
 
 export interface BatchOperationResult {
@@ -59,6 +69,7 @@ export interface SidebarState {
   lastSelectedId: string | null;
   failedIds: Record<string, boolean>;
   batchDragging: boolean;
+  smartFolderEntitlementsVersion: number;
 }
 
 export interface RemoveResult {
@@ -80,7 +91,7 @@ export interface SidebarActions {
   ) => Promise<string>;
   remove: (id: string, currentResourceId?: string) => RemoveResult;
   rename: (id: string, name: string) => Promise<void>;
-  move: (dragId: string, dropId: string) => Promise<void>;
+  move: (dragId: string, dropId: string, localOnly?: boolean) => Promise<void>;
   uploadFiles: (parentId: string, files: FileList) => Promise<string>;
 
   activate: (id: string | null) => void;
@@ -91,6 +102,14 @@ export interface SidebarActions {
   setBatchCreateDialog: (open: boolean) => void;
   setBatchMoveDialog: (open: boolean) => void;
   setBatchDeleteDialog: (open: boolean) => void;
+  openEditSmartFolderDialog: (
+    nodeId: string,
+    initialValue: CreateSmartFolderPayload
+  ) => void;
+  closeEditSmartFolderDialog: () => void;
+  openSmartFolderTrashDialog: (nodeId: string) => void;
+  closeSmartFolderTrashDialog: () => void;
+  refetchSmartFolderEntitlements: () => void;
 
   expandPathTo: (
     targetId: string,
@@ -130,6 +149,15 @@ export const initialDialogsState: DialogsState = {
   batchCreate: false,
   batchMove: false,
   batchDelete: false,
+  editSmartFolder: {
+    open: false,
+    nodeId: null,
+    initialValue: null,
+  },
+  smartFolderTrash: {
+    open: false,
+    nodeId: null,
+  },
 };
 
 export const initialState: SidebarState = {
@@ -147,4 +175,5 @@ export const initialState: SidebarState = {
   lastSelectedId: null,
   failedIds: {},
   batchDragging: false,
+  smartFolderEntitlementsVersion: 0,
 };

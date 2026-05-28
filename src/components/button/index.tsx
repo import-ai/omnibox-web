@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Button as BaseButton, ButtonProps } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner.tsx';
+import { Button as BaseButton, ButtonProps } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils.ts';
 
 interface ButtonLoadingProps extends Omit<ButtonProps, 'variant'> {
@@ -24,6 +24,18 @@ const CustomButton = React.forwardRef<
           'bg-transparent text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground active:bg-[#D95E52] text-xs font-medium',
           className
         )}
+        {...rest}
+      >
+        {children}
+      </BaseButton>
+    );
+  }
+  if (variant === 'ghost') {
+    return (
+      <BaseButton
+        ref={ref}
+        variant="ghost"
+        className={cn('hover:bg-sidebar-accent', className)}
         {...rest}
       >
         {children}

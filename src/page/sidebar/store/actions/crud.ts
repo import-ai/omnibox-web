@@ -97,12 +97,13 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
       });
     },
 
-    move: async (dragId: string, dropId: string) => {
+    move: async (dragId: string, dropId: string, localOnly?: boolean) => {
       const drag = get().nodes[dragId];
       const drop = get().nodes[dropId];
       if (!drag || !drop) return;
 
       if (isDescendant(get().nodes, dragId, dropId)) return;
+      if (drag.parentId === dropId) return;
 
       const oldParentId = drag.parentId;
       const oldSpaceType = drag.spaceType;
@@ -112,6 +113,8 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
       const oldParentHasChildren = oldParentId
         ? (get().nodes[oldParentId]?.hasChildren ?? false)
         : false;
+      const oldTargetChildren = [...(drop.children ?? [])];
+      const oldTargetHasChildren = drop.hasChildren;
 
       const oldDescendantSpaceTypes = new Map<string, SpaceType>();
       const oldDescendantExpanded = new Map<string, boolean>();
@@ -134,7 +137,10 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
         const newParent = s.nodes[dropId];
         if (!newParent) return;
         newParent.hasChildren = true;
-        newParent.children.unshift(dragId);
+        newParent.children = [
+          dragId,
+          ...newParent.children.filter(cid => cid !== dragId),
+        ];
 
         const draftDrag = s.nodes[dragId];
         if (!draftDrag) return;
@@ -150,6 +156,10 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
           n.spaceType = newParent.spaceType;
         });
       });
+
+      if (localOnly) {
+        return;
+      }
 
       try {
         await moveResource(get().namespaceId, dragId, dropId);
@@ -169,12 +179,12 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
             }
           }
 
-          const newParent = s.nodes[dropId];
-          if (newParent) {
-            newParent.children = newParent.children.filter(
-              cid => cid !== dragId
-            );
-            collapseEmptyNode(s, dropId);
+          if (dropId !== oldParentId) {
+            const newParent = s.nodes[dropId];
+            if (newParent) {
+              newParent.children = oldTargetChildren;
+              newParent.hasChildren = oldTargetHasChildren;
+            }
           }
 
           for (const [id, spaceType] of oldDescendantSpaceTypes) {

@@ -40,11 +40,11 @@ Zustand stores for feature-local, highly interactive state.
 
 - **`Hook` class** (`src/hooks/hook.class.ts`) - Observer pattern with `on()`, `fire()`, `addFilter()`
 - **`CoreApp`** (`src/hooks/app.class.ts`) - App-wide event bus extending Hook
-- **`AppContext`** (`src/hooks/app-context.ts`) - React Context providing app instance via `useApp()`
+- **`AppContext`** (`src/hooks/appContext.ts`) - React Context providing app instance via `useApp()`
 - **Zustand stores** - Feature-scoped state for sidebar trees and chat context:
   - `src/page/sidebar/store/` - Main workspace resource tree state
   - `src/page/share/sidebar/store/` - Share page resource tree state
-  - `src/page/chat/chat-store.ts` - Selected chat context resources
+  - `src/page/chat/chatStore.ts` - Selected chat context resources
 
 Use the event bus for cross-feature notifications and app-wide side effects:
 
@@ -77,7 +77,7 @@ the state is genuinely shared across major product areas.
 
 ### Authentication
 
-Credentials managed in `src/page/user/util.tsx`:
+Credentials managed in `src/page/user/util.ts`:
 
 - `setGlobalCredential(userId, token)` - Stores in localStorage + secure cookie
 - `removeGlobalCredential()` - Clears auth data
@@ -99,11 +99,19 @@ Credentials managed in `src/page/user/util.tsx`:
 - `src/lib/` - Utilities (`request.ts`, `utils.ts`, `websocket.ts`)
 - `src/i18n/` - Internationalization (en-US, zh-CN)
 
+### File Naming
+
+- Use `.tsx` only for files that contain JSX or define React components.
+- Use `.ts` for hooks, utility functions, constants, types, services, stores, and other non-JSX modules.
+- `.tsx` filenames must use PascalCase, except route or directory entry files such as `index.tsx`, `main.tsx`, and `App.tsx`.
+- `.ts` filenames must use camelCase, except established framework/config/declaration patterns such as `*.d.ts`, `*.test.ts`, and `*.class.ts`.
+- Do not create kebab-case source filenames under `src`; update import paths whenever a file is renamed.
+
 ### Key Patterns
 
 **Sidebar** (`src/page/sidebar/`): Tree view with react-dnd for drag-and-drop resource organization.
 
-**Chat** (`src/page/chat/`): Streaming messages via `src/lib/stream-transport.ts`, context-aware conversations using resources.
+**Chat** (`src/page/chat/`): Streaming messages via `src/lib/streamTransport.ts`, context-aware conversations using resources.
 
 **Resources**: Vditor markdown editor, file uploads with progress, permission-based access.
 

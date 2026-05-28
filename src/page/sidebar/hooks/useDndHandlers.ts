@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
+import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 
 import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
@@ -20,10 +21,7 @@ interface UseDndHandlersOptions {
 interface UseDndHandlersReturn {
   handleDrop: (
     item: DndItem,
-    monitor: {
-      didDrop: () => boolean;
-      getItemType: () => unknown;
-    }
+    monitor: { didDrop: () => boolean; getItemType: () => unknown }
   ) => void;
   handleHover: (
     item: DndItem,
@@ -43,6 +41,8 @@ export interface DndItem {
   disabledTargetIds?: string[];
   count?: number;
   preview?: TreeNode;
+  resourceType?: string;
+  attrs?: Record<string, unknown>;
 }
 
 export function isBatchDropOnDraggedResource(
@@ -101,6 +101,14 @@ export function useDndHandlers({
   const isFileDragOver = fileDragTarget === targetId;
 
   const handleFileUpload = (files: File[]) => {
+    const targetNode = useSidebarStore.getState().nodes[targetId];
+    if (
+      targetNode?.resourceType === 'smart_folder' ||
+      isSmartFolderChildResource(targetNode)
+    ) {
+      return;
+    }
+
     const validFiles = files.filter(file => isValidFileType(file.name));
 
     if (validFiles.length === 0) {
@@ -131,7 +139,25 @@ export function useDndHandlers({
 
   const handleNodeMove = (dragId: string) => {
     if (dragId === targetId) return;
-    if (useSidebarStore.getState().nodes[dragId]?.parentId === targetId) return;
+
+    const nodes = useSidebarStore.getState().nodes;
+    const dragNode = nodes[dragId];
+    const targetNode = nodes[targetId];
+    if (dragNode?.parentId === targetId) return;
+    if (
+      isSmartFolderChildResource(dragNode) ||
+      isSmartFolderChildResource(targetNode)
+    ) {
+      return;
+    }
+    if (
+      dragNode?.resourceType &&
+      targetNode?.resourceType &&
+      (dragNode.resourceType === 'smart_folder') !==
+        (targetNode.resourceType === 'smart_folder')
+    ) {
+      return;
+    }
 
     if (onNodeDrop) {
       onNodeDrop(dragId, targetId);
@@ -215,10 +241,7 @@ export function useDndHandlers({
 
   const handleDrop = (
     item: DndItem,
-    monitor: {
-      didDrop: () => boolean;
-      getItemType: () => unknown;
-    }
+    monitor: { didDrop: () => boolean; getItemType: () => unknown }
   ) => {
     if (monitor.didDrop()) return;
     const itemType = monitor.getItemType();
@@ -233,7 +256,7 @@ export function useDndHandlers({
       handleFileUpload(item.files);
     } else if (item.ids) {
       handleBatchMove(item.ids, item.count ?? item.ids.length);
-    } else if (item.id) {
+    } else if (itemType === 'card' && item.id) {
       handleNodeMove(item.id);
     }
 
@@ -265,7 +288,7 @@ export function useDndHandlers({
       ) {
         return;
       }
-      if (item.id === targetId) return;
+      if (item.id && item.id === targetId) return;
     }
   };
 

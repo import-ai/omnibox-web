@@ -4,18 +4,18 @@ import { useNavigate } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import Pagination from '@/components/pagination';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Separator } from '@/components/ui/separator';
+} from '@/components/ui/DropdownMenu';
+import { Separator } from '@/components/ui/Separator';
 
 import { groupItemsByTimestamp } from '../utils';
 import EditHistory from './edit';
-import RemoveHistory from './remove';
+import RemoveHistory from './RemoveHistory';
 import useContext from './useContext';
 
 export default function ChatConversationsPage() {

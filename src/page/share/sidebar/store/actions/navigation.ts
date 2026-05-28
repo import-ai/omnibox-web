@@ -1,4 +1,9 @@
 import type { Resource } from '@/interface';
+import {
+  getSmartFolderChildSidebarKey,
+  isSmartFolderChildResource,
+  withSmartFolderChildSidebarAttrs,
+} from '@/page/sidebar/components/smart-folder';
 import { fetchShareChildren, fetchShareResource } from '@/service/share';
 
 import type { SidebarGet, SidebarSet, SpaceType, TreeNode } from '../types';
@@ -12,6 +17,19 @@ import {
 
 export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
   const expandPromises = new Map<string, Promise<void>>();
+
+  const normalizeShareChildren = (
+    parent: TreeNode,
+    children: Resource[]
+  ): Resource[] => {
+    if (parent.resourceType !== 'smart_folder') {
+      return children;
+    }
+
+    return children.map(child =>
+      withSmartFolderChildSidebarAttrs(child, parent.id)
+    );
+  };
 
   const patchNodeFromSharedResource = (node: TreeNode, resource: Resource) => {
     const previousHasChildren = node.hasChildren;
@@ -60,7 +78,10 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         });
 
         try {
-          const children = await fetchShareChildren(get().namespaceId, id);
+          const children = normalizeShareChildren(
+            node,
+            await fetchShareChildren(get().namespaceId, id)
+          );
 
           set(s => {
             const ui = ensureUI(s, id);
@@ -73,9 +94,15 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
             const backendIds = new Set(
               children.map((c: { id: string }) => c.id)
             );
-            const preserved = n.children.filter(
-              (cid: string) => !backendIds.has(cid) && cid in s.nodes
-            );
+            const preserved = n.children.filter((cid: string) => {
+              if (backendIds.has(cid)) return false;
+              if (!(cid in s.nodes)) return false;
+              // If this parent is a smart folder, a real-id child that is about to
+              // be represented by a composite key should be removed to avoid
+              const sfKey = getSmartFolderChildSidebarKey(id, cid);
+              if (backendIds.has(sfKey)) return false;
+              return true;
+            });
             n.children = [
               ...children.map((c: { id: string }) => c.id),
               ...preserved,
@@ -89,6 +116,18 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
                 if (existing) {
                   patchNodeFromResource(existing, child);
                 }
+              }
+              if (isSmartFolderChildResource(child)) {
+                const childNode = s.nodes[child.id];
+                if (childNode) {
+                  childNode.parentId = id;
+                  childNode.children = [];
+                  childNode.hasChildren = false;
+                }
+                const childUI = ensureUI(s, child.id);
+                childUI.expanded = false;
+                childUI.loaded = false;
+                childUI.loading = false;
               }
               ensureUI(s, child.id);
             }
@@ -181,8 +220,9 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         );
         if (
           options?.expandTarget &&
+          target.hasChildren &&
           !get().ui[targetId]?.expanded &&
-          (!get().ui[targetId]?.loaded || target.hasChildren)
+          !get().ui[targetId]?.loaded
         ) {
           await get().expand(targetId);
         }
@@ -198,7 +238,9 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
           ('share' satisfies SpaceType);
         if (!spaceType) return;
 
-        const fullPath = resource.path.some(item => item.id === targetId)
+        const fullPath = resource.path.some(
+          (item: { id: string }) => item.id === targetId
+        )
           ? resource.path
           : [...resource.path, { id: targetId, name: resource.name || '' }];
         const pathResources = await fetchPathResources(
@@ -232,8 +274,14 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
             const parent = s.nodes[fullPath[i].id];
             const child = s.nodes[fullPath[i + 1].id];
             if (parent && child && !parent.children.includes(child.id)) {
-              parent.children.push(child.id);
-              child.parentId = parent.id;
+              // If the smart-folder composite key for this child already exists in
+              // parent.children (added by expandAllFrom), don't also add the real
+              // resource id — that would render a duplicate entry in the sidebar.
+              const sfKey = getSmartFolderChildSidebarKey(parent.id, child.id);
+              if (!parent.children.includes(sfKey)) {
+                parent.children.push(child.id);
+                child.parentId = parent.id;
+              }
             }
           }
 
@@ -257,7 +305,9 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
             const ui = get().ui[pid];
             const n = get().nodes[pid];
             const shouldLoad =
-              pid === targetId ? options?.expandTarget : n?.hasChildren;
+              pid === targetId
+                ? options?.expandTarget && n?.hasChildren
+                : n?.hasChildren;
             if (n && ui && !ui.loaded && shouldLoad) {
               await get().expand(pid);
             }

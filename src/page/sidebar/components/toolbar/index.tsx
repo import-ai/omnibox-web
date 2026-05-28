@@ -8,12 +8,12 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Checkbox } from '@/components/checkbox';
+import { Checkbox } from '@/components/Checkbox';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { useSelectedCount, useSidebarStore } from '@/page/sidebar/store';
 
-import { ToolbarButton } from './tooltip';
+import { ToolbarButton } from './Tooltip';
 
 interface IProps {
   selectionMode: boolean;

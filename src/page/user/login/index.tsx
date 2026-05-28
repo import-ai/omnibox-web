@@ -6,12 +6,12 @@ import Apple from '../apple';
 import { Available } from '../available';
 import Email from '../email';
 import Google from '../google';
-import MetaPage from '../meta';
+import MetaPage from '../MetaPage';
 import Phone from '../phone';
 import WeChat from '../wechat';
-import Scan from '../wechat/scan';
-import WrapperPage from '../wrapper';
-import { LoginForm } from './form';
+import Scan from '../wechat/Scan';
+import WrapperPage from '../WrapperPage';
+import { LoginForm } from './LoginForm';
 
 export type ContactMethod = 'email' | 'phone';
 export type AuthMethod = 'otp' | 'password';

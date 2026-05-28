@@ -110,7 +110,10 @@
     "add_it_to_context": "Add this File to Chat Box",
     "add_it_only_to_context": "Add this File only to Chat Box",
     "wide": "Widescreen Mode",
-    "rename": "Rename"
+    "rename": "Rename",
+    "create_smart_folder": "Create Smart Folder",
+    "edit_smart_folder_conditions": "Edit",
+    "locate_source_resource": "Locate Source File"
   },
   "form": {
     "or": "or",
@@ -171,8 +174,8 @@
       "expired": "Expired"
     },
     "upgrade": "Upgrade",
-    "min": "At least 2 characters",
-    "max": "At most 64 characters",
+    "min": "Namespace name must be at least 2 characters",
+    "max": "Namespace name must be at most 64 characters",
     "submit": "Save",
     "success": "Updated",
     "member_count": "{{ size }} members",
@@ -531,6 +534,8 @@
     "ok": "OK",
     "remove_self": "Are you sure you want to remove your own access?",
     "grant_permission": "Before removing this permission, please grant 'Full Access' to someone else.",
+    "edit_required": "You only have view permission and cannot edit this resource.",
+    "delete_required": "You only have view permission and cannot delete this resource.",
     "you": "You"
   },
   "copy": {
@@ -686,6 +691,7 @@
   "search": {
     "title": "Search",
     "placeholder": "Search resources or chats...",
+    "root": "Root",
     "resources": "Resources",
     "chats": "Chats",
     "no_results": "No resources found"
@@ -723,6 +729,10 @@
     "permissions": "Permissions",
     "permissions_resources": "Resource Permissions",
     "permissions_chat": "Chat Permissions",
+    "permission_targets": {
+      "resources": "Resources",
+      "chat": "Chat"
+    },
     "permission_types": {
       "create": "Create",
       "read": "Read",
@@ -955,5 +965,91 @@
     "select_required": "Select resources before operating",
     "all_forbidden": "None of the selected resources are authorized. Batch operation failed",
     "operating_resource": "You are batch operating this resource"
+  },
+  "smart_folder": {
+    "create": {
+      "title": "Create Smart Folder",
+      "name": "Name",
+      "placeholder": "Please enter the name of the smart folder",
+      "conditions": "Match conditions",
+      "description": "Resources matching these conditions will appear in the smart folder automatically.",
+      "owner_scope": "Belongs to",
+      "root_scope": "Filter scope",
+      "condition_title": "Condition {{index}}",
+      "select_field": "Select field",
+      "select_operator": "Select operator",
+      "value_placeholder": "Enter keyword",
+      "relative_value_placeholder": "Enter value",
+      "pick_date": "Pick a date",
+      "no_value_needed": "No value needed",
+      "add_condition": "Add condition",
+      "limit_reached_basic": "Condition limit reached (3). Upgrade to unlock 10.",
+      "limit_reached_premium": "Condition limit reached (10).",
+      "remaining_conditions": "Rows left: {{remaining}} / {{total}}",
+      "personal_quota_exhausted": "Personal quota is exhausted. Upgrade for unlimited creation.",
+      "team_quota_exhausted": "Team quota is exhausted. Upgrade for unlimited creation.",
+      "quota_exhausted": "Quota is exhausted. Upgrade for unlimited creation.",
+      "all_quota_exhausted": "All quotas are exhausted. Upgrade for unlimited creation.",
+      "unsaved_title": "Your smart folder configuration is not saved. Exit anyway?",
+      "unsaved_description": "After exiting, the current changes will not be saved.",
+      "success": "Smart folder created"
+    },
+    "scope": {
+      "personal": "Personal",
+      "team": "Team",
+      "all": "Personal + Team"
+    },
+    "move": {
+      "unsupported_mixed_target": "Smart folders and regular resources cannot be moved into each other."
+    },
+    "match_mode": {
+      "all": "All",
+      "any": "Any"
+    },
+    "fields": {
+      "title": "Title",
+      "tags": "Tags",
+      "url": "Web link",
+      "file_name": "File name",
+      "content": "Content",
+      "created_at": "Created time"
+    },
+    "operators": {
+      "contains": "Contains",
+      "not_contains": "Does not contain",
+      "equals": "Equals",
+      "not_equals": "Does not equal",
+      "is_empty": "Is empty",
+      "is_not_empty": "Is not empty",
+      "in_last": "In the last",
+      "not_in_last": "Not in the last",
+      "before_date": "Before date",
+      "after_date": "After date",
+      "between_dates": "In range"
+    },
+    "units": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "year": "Year"
+    },
+    "validation": {
+      "name_required": "Please enter a smart folder name",
+      "name_exists": "A resource with this name already exists in this folder.",
+      "name_too_long": "Name cannot exceed 128 characters.",
+      "condition_incomplete": "Please complete this condition"
+    },
+    "empty": "No matching resources yet. You can edit the filter rules.",
+    "edit": {
+      "title": "Edit smart folders",
+      "submit": "Save",
+      "success": "Smart folder updated"
+    },
+    "trash": {
+      "this_folder": "this",
+      "title": "Move {{count}} smart folder to trash?",
+      "description": "Moving a smart folder to the Recycle Bin will not affect its internal resources. After being moved, it can be retrieved from the Recycle Bin, and it will be automatically deleted after {{days}} days."
+    },
+    "date_format": "LLL dd, y"
   }
 }

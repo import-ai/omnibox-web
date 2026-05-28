@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { FORCE_ASK } from '@/const';
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
-import { getWizardLang } from '@/lib/wizard-lang';
+import { getWizardLang } from '@/lib/wizardLang';
 import {
   AgentRequestChannel,
   ChatCreatePayload,
@@ -20,8 +20,8 @@ import {
 import {
   createMessageOperator,
   MessageOperator,
-} from '@/page/chat/core/message-operator.ts';
-import { MessageStatus } from '@/page/chat/core/types/chat-response.ts';
+} from '@/page/chat/core/messageOperator.ts';
+import { MessageStatus } from '@/page/chat/core/types/chatResponse.ts';
 import {
   ConversationDetail,
   MessageDetail,

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { SmartphoneIcon } from '@/assets/icons/smartphone';
+import { SmartphoneIcon } from '@/assets/icons/SmartphoneIcon';
 import { Button } from '@/components/button';
 
 interface IProps {

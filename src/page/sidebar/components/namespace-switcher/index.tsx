@@ -3,37 +3,37 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { SidebarTriggerButton } from '@/components/sidebar-trigger';
+import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import Space from '@/components/space';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar } from '@/components/ui/Avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/DropdownMenu';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar';
-import useConfig from '@/hooks/use-config';
-import useNamespaces from '@/hooks/use-namespaces';
-import useProNamespaces from '@/hooks/use-pro-namespaces';
+} from '@/components/ui/Sidebar';
+import useConfig from '@/hooks/useConfig';
+import useNamespaces from '@/hooks/useNamespaces';
+import useProNamespaces from '@/hooks/useProNamespaces';
 import { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';
-import { useChatStore } from '@/page/chat/chat-store';
-import { SettingButton } from '@/page/settings/settings-trigger';
+import { useChatStore } from '@/page/chat/chatStore';
+import { SettingButton } from '@/page/settings/SettingButton';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { Logout } from '@/page/user/logout';
+import { Logout } from '@/page/user/Logout';
 
-import Generate from './createNamespace';
-import { InviteButton } from './inviteButton';
-import { NamespaceList } from './namespaceList';
-import NamespaceMember from './namespaceMember';
-import { NamespaceTierBadge } from './namespaceTierBadge';
+import Generate from './Generate';
+import { InviteButton } from './InviteButton';
+import { NamespaceList } from './NamespaceList';
+import NamespaceMember from './NamespaceMember';
+import { NamespaceTierBadge } from './NamespaceTierBadge';
 
 interface IProps {
   namespaceId: string;

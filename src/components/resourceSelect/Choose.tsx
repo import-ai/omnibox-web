@@ -2,11 +2,11 @@ import { Check, LoaderCircle, Search, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { LazyInput } from '@/components/input/lazy';
+import { LazyInput } from '@/components/input/LazyInput';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/DropdownMenu';
 import type { Resource, ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 import { fetchRootResources, searchResources } from '@/service/resource';

@@ -5,6 +5,10 @@ import type { SidebarState, TreeNode } from './types';
 type ResourceWithChildrenState = Resource & { hasChildren?: boolean };
 
 function getResourceHasChildren(resource: ResourceWithChildrenState): boolean {
+  if (resource.resource_type === 'smart_folder') {
+    return true;
+  }
+
   return resource.has_children ?? resource.hasChildren ?? false;
 }
 

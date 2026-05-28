@@ -1,13 +1,13 @@
 import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import ResourceTypeIcon from '@/components/resource-type-icon';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
+import { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '@/components/ui/Tooltip';
 import type { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 

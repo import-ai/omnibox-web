@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 
 import { useSelectedCount, useSelectionState, useSidebarStore } from '../store';
 

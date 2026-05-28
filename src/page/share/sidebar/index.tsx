@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { ChatIcon } from '@/assets/icons/chatIcon';
+import { ChatIcon } from '@/assets/icons/ChatIcon';
 import {
   Tooltip,
   TooltipContent,
@@ -17,12 +17,12 @@ import {
   SidebarRail,
   SidebarTrigger,
   useSidebar,
-} from '@/components/ui/sidebar';
+} from '@/components/ui/Sidebar';
 import { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 
 import ResourceTree from './components';
-import { useSidebarInit } from './hooks/use-sidebar-init';
+import { useSidebarInit } from './hooks/useSidebarInit';
 
 interface IProps {
   shareId: string;
@@ -34,7 +34,7 @@ interface IProps {
   currentResourcePath?: Array<{ id: string }>;
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
-  allResources: boolean;
+  canBrowseResources: boolean;
 }
 
 export default function ShareSidebar(props: IProps) {
@@ -48,7 +48,7 @@ export default function ShareSidebar(props: IProps) {
     currentResourcePath,
     isResourceActive,
     onAddToContext,
-    allResources,
+    canBrowseResources,
   } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ export default function ShareSidebar(props: IProps) {
     rootResource,
     currentResourceId,
     currentResourcePath,
-    allResources,
+    canBrowseResources,
   });
 
   return (
@@ -117,7 +117,7 @@ export default function ShareSidebar(props: IProps) {
         isChatActive={isChatActive}
         isResourceActive={isResourceActive}
         onAddToContext={onAddToContext}
-        canBrowseResources={allResources}
+        canBrowseResources={canBrowseResources}
       />
       <SidebarRail className="opacity-0" />
     </Sidebar>

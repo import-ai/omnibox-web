@@ -110,7 +110,10 @@
     "add_it_to_context": "添加该文件到对话框",
     "add_it_only_to_context": "仅添加该文件到对话框",
     "wide": "宽屏模式",
-    "rename": "重命名"
+    "rename": "重命名",
+    "create_smart_folder": "创建智能文件夹",
+    "edit_smart_folder_conditions": "编辑",
+    "locate_source_resource": "定位到源文件"
   },
   "form": {
     "or": "或",
@@ -118,8 +121,8 @@
     "exist_account": "已有账号？",
     "invalid_request": "无效的请求参数",
     "username": "用户名",
-    "username_min": "用户名至少2个字符",
-    "username_max": "用户名最多32个字符",
+    "username_min": "用户名至少 2 个字符",
+    "username_max": "用户名最多 32 个字符",
     "username_no_emoji": "用户名不允许使用特殊符号",
     "password": "密码",
     "confirm_password": "确认密码",
@@ -172,8 +175,8 @@
       "expired": "已过期"
     },
     "upgrade": "升级",
-    "min": "至少 2 个字符",
-    "max": "最多 64 个字符",
+    "min": "空间名称至少 2 个字符",
+    "max": "空间名称最多 64 个字符",
     "submit": "保存",
     "success": "已更新",
     "member_count": "{{ size }} 名成员",
@@ -532,6 +535,8 @@
     "ok": "确认",
     "remove_self": "确定要删除自己的访问权限吗？",
     "grant_permission": "在移除此权限之前，请向其他人授予“全部权限”。",
+    "edit_required": "您只有查看权限，无法编辑此资源。",
+    "delete_required": "您只有查看权限，无法删除此资源。",
     "you": "你"
   },
   "copy": {
@@ -687,6 +692,7 @@
   "search": {
     "title": "搜索",
     "placeholder": "搜索页面、文件、对话等",
+    "root": "根目录",
     "resources": "资源",
     "chats": "对话",
     "no_results": "未找到资源"
@@ -724,6 +730,10 @@
     "permissions": "权限",
     "permissions_resources": "资源权限",
     "permissions_chat": "对话权限",
+    "permission_targets": {
+      "resources": "资源",
+      "chat": "对话"
+    },
     "permission_types": {
       "create": "创建",
       "read": "读取",
@@ -956,5 +966,91 @@
     "select_required": "请选择资源后操作",
     "all_forbidden": "所选资源均无操作权限，批量操作失败",
     "operating_resource": "您正在批量操作此资源"
+  },
+  "smart_folder": {
+    "create": {
+      "title": "创建智能文件夹",
+      "name": "名称",
+      "placeholder": "请输入智能文件夹名称",
+      "conditions": "匹配下列条件",
+      "description": "符合这些条件的资源会自动出现在智能文件夹中。",
+      "owner_scope": "归属于",
+      "root_scope": "筛选范围",
+      "condition_title": "条件{{index}}",
+      "select_field": "选择属性",
+      "select_operator": "选择关系",
+      "value_placeholder": "请输入关键词",
+      "relative_value_placeholder": "请输入数值",
+      "pick_date": "选择日期",
+      "no_value_needed": "无需填写值",
+      "add_condition": "添加条件",
+      "limit_reached_basic": "筛选条件已达上限（3 条），升级可解锁 10 条",
+      "limit_reached_premium": "筛选条件已达上限（10 条）",
+      "remaining_conditions": "条件行剩余：{{remaining}} / {{total}}",
+      "personal_quota_exhausted": "个人额度已用尽，升级版本不限创建。",
+      "team_quota_exhausted": "团队额度已用尽，升级版本不限创建。",
+      "quota_exhausted": "额度已用尽，升级版本不限创建。",
+      "all_quota_exhausted": "额度均已用尽，升级版本不限创建。",
+      "unsaved_title": "您的智能文件夹配置未保存，确定退出吗？",
+      "unsaved_description": "退出后，本次修改将不会保存。",
+      "success": "智能文件夹已创建"
+    },
+    "scope": {
+      "personal": "个人",
+      "team": "团队",
+      "all": "个人+团队"
+    },
+    "move": {
+      "unsupported_mixed_target": "智能文件夹与普通资源不支持互相移入。"
+    },
+    "match_mode": {
+      "all": "全部",
+      "any": "任一"
+    },
+    "fields": {
+      "title": "标题",
+      "tags": "标签",
+      "url": "网页链接",
+      "file_name": "文件名称",
+      "content": "正文",
+      "created_at": "创建时间"
+    },
+    "operators": {
+      "contains": "包含",
+      "not_contains": "不包含",
+      "equals": "等于",
+      "not_equals": "不等于",
+      "is_empty": "为空",
+      "is_not_empty": "不为空",
+      "in_last": "最近",
+      "not_in_last": "不是最近",
+      "before_date": "早于日期",
+      "after_date": "晚于日期",
+      "between_dates": "在范围内"
+    },
+    "units": {
+      "day": "天",
+      "week": "周",
+      "month": "月",
+      "year": "年"
+    },
+    "validation": {
+      "name_required": "请输入智能文件夹名称",
+      "name_exists": "资源名称在该目录下已存在。",
+      "name_too_long": "名称不能超过128个字符。",
+      "condition_incomplete": "请完善该行条件信息"
+    },
+    "empty": "暂无匹配的资源，可修改筛选条件。",
+    "edit": {
+      "title": "编辑智能文件夹",
+      "submit": "保存",
+      "success": "智能文件夹已更新"
+    },
+    "trash": {
+      "this_folder": "该",
+      "title": "确认将 {{count}} 个智能文件夹移动到回收站？",
+      "description": "智能文件夹移动到回收站不会影响其内部资源，移动后可在回收站找回，{{days}} 天后将自动删除。"
+    },
+    "date_format": "yyyy年MM月dd日"
   }
 }

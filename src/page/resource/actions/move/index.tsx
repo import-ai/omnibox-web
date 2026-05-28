@@ -6,9 +6,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/Dialog';
 
-import Form, { IFormProps } from './form';
+import Form, { IFormProps } from './MoveToForm';
 
 interface IProps extends IFormProps {
   open: boolean;
@@ -25,6 +25,7 @@ export default function MoveTo(props: IProps) {
     showDisabledTargets,
     disabledTargetIds,
     disabledTargetTooltip,
+    sourceResourceType,
   } = props;
 
   return (
@@ -39,6 +40,7 @@ export default function MoveTo(props: IProps) {
         <Form
           resourceIds={resourceIds}
           namespaceId={namespaceId}
+          sourceResourceType={sourceResourceType}
           onFinished={onFinished}
           showDisabledTargets={showDisabledTargets}
           disabledTargetIds={disabledTargetIds}

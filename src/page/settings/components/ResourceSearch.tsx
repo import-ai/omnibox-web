@@ -1,0 +1,170 @@
+import { Check, File, Folder, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { LazyInput } from '@/components/input/LazyInput';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
+import type { Resource, ResourceMeta } from '@/interface';
+import { fetchRootResources, searchResources } from '@/service/resource';
+
+interface ResourceItemProps {
+  resource: ResourceMeta;
+  spaceType?: string;
+  onSelect: (resourceId: string) => void;
+  selected: boolean;
+}
+
+function ResourceItem({
+  resource,
+  spaceType,
+  onSelect,
+  selected,
+}: ResourceItemProps) {
+  const { t } = useTranslation();
+  let name = resource.name || t('untitled');
+
+  if ((!resource.parent_id || resource.parent_id === '0') && spaceType) {
+    name = t(spaceType);
+  }
+
+  return (
+    <Button
+      variant={selected ? 'secondary' : 'ghost'}
+      className="flex h-auto w-full items-center justify-between gap-2 whitespace-normal rounded-none font-normal"
+      onClick={() => onSelect(resource.id)}
+    >
+      <div className="flex items-center gap-2">
+        {resource.resource_type === 'folder' ? (
+          <Folder className="size-4 shrink-0" />
+        ) : (
+          <File className="size-4 shrink-0" />
+        )}
+        <div className="break-all text-left">{name}</div>
+      </div>
+      {selected && <Check className="size-4 shrink-0 text-primary" />}
+    </Button>
+  );
+}
+
+interface ResourceSearchProps {
+  namespaceId: string;
+  value: string;
+  onValueChange: (resourceId: string) => void;
+  placeholder?: string;
+}
+
+export default function ResourceSearch({
+  namespaceId,
+  value,
+  onValueChange,
+  placeholder,
+}: ResourceSearchProps) {
+  const { t } = useTranslation();
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<{
+    root: Array<Resource & { spaceType?: string }>;
+    resources: Array<Resource | ResourceMeta>;
+  }>({
+    root: [],
+    resources: [],
+  });
+
+  useEffect(() => {
+    setLoading(true);
+    if (!search) {
+      fetchRootResources(namespaceId)
+        .then(response => {
+          const root: Array<Resource & { spaceType?: string }> = [];
+          const resources: Array<Resource> = [];
+
+          Object.keys(response).forEach(spaceType => {
+            const item = response[spaceType];
+            if (!item.id) {
+              return;
+            }
+            root.push({ ...item, spaceType });
+            if (Array.isArray(item.children) && item.children.length > 0) {
+              resources.push(...item.children);
+            }
+          });
+          setData({ root, resources });
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+      return;
+    }
+
+    searchResources(namespaceId, search)
+      .then(response => {
+        setData({
+          root: [],
+          resources: response,
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [search, namespaceId]);
+
+  return (
+    <div className="space-y-2">
+      <div className="relative">
+        {loading ? (
+          <Spinner className="absolute left-3 top-[10px] opacity-50" />
+        ) : (
+          <Search className="absolute left-3 top-[10px] size-4 opacity-50" />
+        )}
+        <LazyInput
+          value={search}
+          onChange={setSearch}
+          className="pl-10"
+          placeholder={placeholder || t('search.placeholder')}
+        />
+      </div>
+
+      <div className="max-h-60 overflow-y-auto overflow-x-hidden rounded-md border">
+        {data.root.length > 0 && (
+          <>
+            <div className="border-b bg-muted/30 px-2 py-1 text-xs font-medium text-muted-foreground">
+              {t('search.root')}
+            </div>
+            {data.root.map(item => (
+              <ResourceItem
+                key={item.id}
+                resource={item}
+                spaceType={item.spaceType}
+                onSelect={onValueChange}
+                selected={value === item.id}
+              />
+            ))}
+          </>
+        )}
+
+        {data.resources.length > 0 && (
+          <>
+            <div className="border-b bg-muted/30 px-2 py-1 text-xs font-medium text-muted-foreground">
+              {t('search.resources')}
+            </div>
+            {data.resources.map(item => (
+              <ResourceItem
+                key={item.id}
+                resource={item}
+                onSelect={onValueChange}
+                selected={value === item.id}
+              />
+            ))}
+          </>
+        )}
+
+        {!loading && data.root.length === 0 && data.resources.length === 0 && (
+          <div className="p-4 text-center text-sm text-muted-foreground">
+            {search ? t('search.no_results') : t('search.resources')}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
