@@ -34,6 +34,7 @@ import {
   useSelectionState,
   useSidebarStore,
 } from '@/page/sidebar/store';
+import { isBatchSelectableNode } from '@/page/sidebar/store/utils';
 
 import Action from './NodeActions';
 import ContextMenuMain from './NodeContextMenu';
@@ -49,6 +50,10 @@ interface ResourceNodeContentProps {
   depth: number;
   hasTeamspace: boolean;
   currentNamespace?: Namespace;
+  onBatchDelete: () => void;
+  onBatchMove: () => void;
+  onBatchCreate: () => void;
+  onAddToChat: () => void;
 }
 
 export function ResourceNodeContent({
@@ -57,6 +62,10 @@ export function ResourceNodeContent({
   depth,
   hasTeamspace,
   currentNamespace,
+  onBatchDelete,
+  onBatchMove,
+  onBatchCreate,
+  onAddToChat,
 }: ResourceNodeContentProps) {
   const app = useApp();
   const { t } = useTranslation();
@@ -103,6 +112,7 @@ export function ResourceNodeContent({
   const selectedIdList = useMemo(() => Object.keys(selectedIds), [selectedIds]);
   const contentIndent = depth * 20;
   const nodeIndent = node.hasChildren ? 4 : 28;
+  const isSelectable = isBatchSelectableNode(node);
 
   const {
     dragRef,
@@ -307,11 +317,16 @@ export function ResourceNodeContent({
             onRename={() => {
               startRename();
             }}
+            batchActions={{
+              onCreate: onBatchCreate,
+              onMove: onBatchMove,
+              onAddToChat,
+              onDelete: onBatchDelete,
+            }}
           >
             <div
               ref={dropRef}
               data-resource-id={nodeId}
-              style={selectionMode ? { marginLeft: -1 * depth } : undefined}
               className={cn(
                 'group/sidebar-item my-px rounded-md hover:bg-sidebar-accent',
                 'flex items-center',
@@ -325,7 +340,7 @@ export function ResourceNodeContent({
                 isDisabledOver && 'cursor-not-allowed [&_*]:cursor-not-allowed'
               )}
             >
-              {selectionMode && (
+              {selectionMode && isSelectable && (
                 <Checkbox
                   onClick={handleSelectionChange}
                   muted={isDimmedBySelection}
@@ -350,8 +365,8 @@ export function ResourceNodeContent({
                       ref={dragRef}
                       data-resource-id={nodeId}
                       className={cn(
-                        'list flex cursor-pointer',
-                        isDisabledOver && 'cursor-not-allowed'
+                        'list flex',
+                        isDisabledOver ? 'cursor-not-allowed' : 'cursor-pointer'
                       )}
                       style={{
                         ...dragStyle,
@@ -437,7 +452,7 @@ export function ResourceNodeContent({
           </ContextMenuMain>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarMenuSub className="m-0 gap-0 border-0 p-0">
+          <SidebarMenuSub className="m-0 translate-x-0 gap-0 border-0 p-0">
             {isExpanded &&
               node.hasChildren &&
               node.children.length > 0 &&
@@ -448,6 +463,10 @@ export function ResourceNodeContent({
                   depth={depth + 1}
                   hasTeamspace={hasTeamspace}
                   currentNamespace={currentNamespace}
+                  onBatchDelete={onBatchDelete}
+                  onBatchMove={onBatchMove}
+                  onBatchCreate={onBatchCreate}
+                  onAddToChat={onAddToChat}
                 />
               ))}
           </SidebarMenuSub>

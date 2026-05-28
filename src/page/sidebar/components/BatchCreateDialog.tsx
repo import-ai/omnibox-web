@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Input } from '@/components/input';
 import { ResourceSelect } from '@/components/resourceSelect';
 import { Button } from '@/components/ui/Button';
 import {
@@ -11,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog';
-import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { useSidebarStore } from '@/page/sidebar/store';
 import {
@@ -83,7 +83,7 @@ export function BatchCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-popover w-[480px] max-w-[90%]">
+      <DialogContent className="bg-popover dark:bg-neutral-900 w-[480px] max-w-[90%]">
         <DialogHeader>
           <DialogTitle>{t('batch.create_tooltip')}</DialogTitle>
         </DialogHeader>
@@ -119,11 +119,17 @@ export function BatchCreateDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel} disabled={loading}>
+          <Button
+            variant="outline"
+            className="bg-transparent shadow-none"
+            onClick={handleCancel}
+            disabled={loading}
+          >
             {t('cancel')}
           </Button>
           <Button
             onClick={handleConfirm}
+            className="shadow-none"
             disabled={!folderName.trim() || loading}
           >
             {t('create')}

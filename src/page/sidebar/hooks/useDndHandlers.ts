@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import useApp from '@/hooks/useApp';
@@ -11,6 +11,11 @@ import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
 import { getTopLevelSelectedIds, isDescendant } from '../store/utils';
 import { isValidFileType } from '../utils';
+import {
+  getCurrentResourceId,
+  getPreviousParentIds,
+  syncBatchMoveResult,
+} from './batchMoveSync';
 
 interface UseDndHandlersOptions {
   targetId: string;
@@ -95,6 +100,7 @@ export function useDndHandlers({
 }: UseDndHandlersOptions): UseDndHandlersReturn {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const app = useApp();
 
   const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
@@ -181,6 +187,7 @@ export function useDndHandlers({
   const handleBatchMove = (ids: string[], count: number) => {
     const store = useSidebarStore.getState();
     const topLevelIds = getTopLevelSelectedIds(store.nodes, ids);
+    const previousParentIds = getPreviousParentIds(store.nodes, topLevelIds);
     if (isBatchDropOnDraggedResource(store.nodes, topLevelIds, targetId)) {
       return;
     }
@@ -194,14 +201,12 @@ export function useDndHandlers({
         const nameConflictCount = result.nameConflictIds?.length ?? 0;
         if (result.failed.length > 0) {
           if (result.success.length === 0) {
-            toast.error(
-              t(
-                nameConflictCount > 0
-                  ? 'batch.move_name_conflict_failed'
-                  : 'batch.all_forbidden'
-              ),
-              { position: 'bottom-right' }
-            );
+            const errorKey = result.smartFolderUnsupported
+              ? 'batch.smart_folder_unsupported_action'
+              : nameConflictCount > 0
+                ? 'batch.move_name_conflict_failed'
+                : 'batch.all_forbidden';
+            toast.error(t(errorKey), { position: 'bottom-right' });
           } else if (nameConflictCount > 0) {
             toast.success(
               t('batch.move_name_conflict_partial', {
@@ -225,11 +230,16 @@ export function useDndHandlers({
           });
         }
         if (result.success.length > 0) {
-          useSidebarStore.getState().activate(targetId);
-          navigate(`/${namespaceId}/${targetId}`, {
-            state: { fromSidebar: true },
+          syncBatchMoveResult({
+            app,
+            currentResourceId: getCurrentResourceId(
+              location.pathname,
+              namespaceId
+            ),
+            previousParentIds,
+            movedIds: result.success,
+            targetId,
           });
-          app.fire('scroll_to_resource', targetId);
         }
       })
       .catch(error => {

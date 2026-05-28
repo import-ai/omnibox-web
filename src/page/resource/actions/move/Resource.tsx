@@ -94,7 +94,13 @@ export default function Resource(props: IProps) {
     </Button>
   );
 
-  if (!disabledByResourceType && !disabledTooltip) {
+  const tooltipContent = disabledByResourceType
+    ? t('smart_folder.move.unsupported_mixed_target')
+    : disabledByProps
+      ? disabledTooltip
+      : undefined;
+
+  if (!tooltipContent) {
     return button;
   }
 
@@ -103,11 +109,7 @@ export default function Resource(props: IProps) {
       <TooltipTrigger asChild>
         <span className="block">{button}</span>
       </TooltipTrigger>
-      <TooltipContent>
-        {disabledByResourceType
-          ? t('smart_folder.move.unsupported_mixed_target')
-          : disabledTooltip}
-      </TooltipContent>
+      <TooltipContent>{tooltipContent}</TooltipContent>
     </Tooltip>
   );
 }

@@ -23,6 +23,7 @@ import type { UseNodeActionsReturn } from '@/page/sidebar/hooks/useNodeActions';
 import { useNodeMenu } from '@/page/sidebar/hooks/useNodeMenu';
 import type { TreeNode } from '@/page/sidebar/store/types';
 
+import { DisabledMenuTooltip } from './DisabledMenuTooltip';
 import { menuIconClass, menuItemClass } from './shared';
 
 interface NodeActionsContentProps {
@@ -45,7 +46,7 @@ export function NodeActionsContent({
   const isTouch = useIsTouch();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const menuItems = useNodeMenu(actions, 'dialog', () => {
+  const menu = useNodeMenu(actions, 'dialog', () => {
     setMenuOpen(false);
     window.setTimeout(() => {
       onRename?.();
@@ -90,22 +91,28 @@ export function NodeActionsContent({
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" sideOffset={10}>
-          {menuItems.map(item => {
+          {menu.items.map(item => {
             if (item.separator) {
               return <DropdownMenuSeparator key={item.key} />;
             }
 
             const Icon = item.icon;
-            return (
+            const menuItem = (
               <DropdownMenuItem
                 key={item.key}
                 className={
                   item.destructive
                     ? 'group cursor-pointer gap-2 data-[highlighted]:text-destructive'
-                    : menuItemClass
+                    : cn(
+                        menuItemClass,
+                        item.disabled &&
+                          'cursor-not-allowed text-muted-foreground opacity-50'
+                      )
                 }
-                onClick={item.onClick}
+                onClick={item.disabled ? undefined : item.onClick}
                 onSelect={item.onSelect}
+                disabled={item.disabled && !item.disabledTip}
+                aria-disabled={item.disabled}
               >
                 <Icon
                   className={
@@ -117,6 +124,16 @@ export function NodeActionsContent({
                 {item.label}
               </DropdownMenuItem>
             );
+
+            if (item.disabled && item.disabledTip) {
+              return (
+                <DisabledMenuTooltip key={item.key} content={item.disabledTip}>
+                  {menuItem}
+                </DisabledMenuTooltip>
+              );
+            }
+
+            return menuItem;
           })}
         </DropdownMenuContent>
       </DropdownMenu>

@@ -32,6 +32,7 @@ import { useBatchOperations } from './hooks/useBatchOperations';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
 import { TreeNode, useSidebarStore } from './store';
+import { getBatchSelectionSummary } from './store/utils';
 
 interface IProps {
   resourceId: string;
@@ -134,6 +135,10 @@ export function BodyForSidebar(props: IProps) {
     roots.private,
     roots.teamspace,
   ]);
+  const batchSelection = useMemo(
+    () => getBatchSelectionSummary(nodes, batch.selectedIds),
+    [batch.selectedIds, nodes]
+  );
 
   const handleConfirmCreateSmartFolder = (
     payload: CreateSmartFolderRequest
@@ -271,14 +276,19 @@ export function BodyForSidebar(props: IProps) {
         onBatchCreate={batch.openCreateDialog}
         onAddToChat={batch.addSelectedToChat}
         toggleSelectionMode={batch.toggleSelectionMode}
+        entitlements={entitlements}
+        hasTeamspace={hasTeamspace}
+        smartFolderCounts={smartFolderCounts}
+        onCreateSmartFolder={() => setCreateSmartFolderOpen(true)}
       />
       <ResourceTree
         namespaceId={namespaceId}
-        entitlements={entitlements}
         hasTeamspace={hasTeamspace}
         currentNamespace={currentNamespace}
-        smartFolderCounts={smartFolderCounts}
-        onCreateSmartFolder={() => setCreateSmartFolderOpen(true)}
+        onBatchDelete={batch.openDeleteDialog}
+        onBatchMove={batch.openMoveDialog}
+        onBatchCreate={batch.openCreateDialog}
+        onAddToChat={batch.addSelectedToChat}
       />
       <CreateSmartFolderDialog
         open={createSmartFolderOpen}
@@ -370,7 +380,7 @@ export function BodyForSidebar(props: IProps) {
       />
       <BatchDeleteDialog
         open={batch.deleteDialogOpen}
-        selectedCount={batch.selectedCount}
+        selection={batchSelection}
         namespaceId={namespaceId}
         loading={batch.isProcessing}
         onConfirm={batch.confirmDelete}

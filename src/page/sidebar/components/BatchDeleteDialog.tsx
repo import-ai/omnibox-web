@@ -2,10 +2,11 @@ import { useTranslation } from 'react-i18next';
 
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useTrashRetentionDays } from '@/page/sidebar/hooks/useTrashRetentionDays';
+import type { BatchSelectionSummary } from '@/page/sidebar/store/utils';
 
 interface BatchDeleteDialogProps {
   open: boolean;
-  selectedCount: number;
+  selection: BatchSelectionSummary;
   namespaceId: string;
   loading?: boolean;
   onConfirm: () => Promise<void>;
@@ -14,7 +15,7 @@ interface BatchDeleteDialogProps {
 
 export default function BatchDeleteDialog({
   open,
-  selectedCount,
+  selection,
   namespaceId,
   loading = false,
   onConfirm,
@@ -22,13 +23,20 @@ export default function BatchDeleteDialog({
 }: BatchDeleteDialogProps) {
   const { t } = useTranslation();
   const trashRetentionDays = useTrashRetentionDays(namespaceId, open);
+  const titleKey = selection.hasOnlySmartFolders
+    ? 'batch.delete_smart_folder_title'
+    : 'batch.delete_title';
+  const descriptionKey = selection.hasOnlySmartFolders
+    ? 'batch.delete_smart_folder_description'
+    : selection.isMixed
+      ? 'batch.delete_mixed_description'
+      : 'batch.delete_description';
 
   return (
     <ConfirmDialog
       open={open}
-      contentClassName="bg-popover"
-      title={t('batch.delete_title', { count: selectedCount })}
-      description={t('batch.delete_description', {
+      title={t(titleKey, { count: selection.selectedCount })}
+      description={t(descriptionKey, {
         days: trashRetentionDays,
       })}
       confirmText={t('batch.delete')}

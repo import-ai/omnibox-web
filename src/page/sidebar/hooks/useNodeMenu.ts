@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 
 import { useSidebarStore } from '../store';
+import { getBatchSelectionSummary } from '../store/utils';
 import type { UseNodeActionsReturn } from './useNodeActions';
 
 export type CreateFolderMode = 'direct' | 'dialog';
@@ -30,8 +31,16 @@ export interface MenuActionItem {
   separator?: false;
   destructive?: boolean;
   disabled?: boolean;
+  disabledTip?: string;
   onClick?: () => void;
   onSelect?: () => void;
+}
+
+export interface BatchMenuActions {
+  onCreate: () => void;
+  onMove: () => void;
+  onAddToChat: () => void;
+  onDelete: () => void;
 }
 
 export interface MenuSeparatorItem {
@@ -42,20 +51,22 @@ export interface MenuSeparatorItem {
 export function useNodeMenu(
   actions: UseNodeActionsReturn,
   createFolderMode: CreateFolderMode = 'dialog',
-  onRename?: () => void
+  onRename?: () => void,
+  batchActions?: BatchMenuActions
 ): {
   disabled: boolean;
+  disabledTip?: string;
   items: MenuItem[];
 } {
   const { t } = useTranslation();
   const { node } = actions;
   const selectionMode = useSidebarStore(state => state.selectionMode);
-  const selectedCount = useSidebarStore(
-    state => Object.keys(state.selectedIds).length
-  );
+  const selectedIds = useSidebarStore(state => state.selectedIds);
+  const nodes = useSidebarStore(state => state.nodes);
 
   return useMemo<{
     disabled: boolean;
+    disabledTip?: string;
     items: MenuItem[];
   }>(() => {
     if (!node) {
@@ -66,23 +77,37 @@ export function useNodeMenu(
     }
 
     if (selectionMode) {
-      const disabled = selectedCount === 0;
+      const batchSelection = getBatchSelectionSummary(nodes, selectedIds);
+      const disabled = batchSelection.selectedCount === 0;
+      const smartFolderUnsupported = batchSelection.hasSmartFolder;
+      const smartFolderUnsupportedTip = t(
+        'batch.smart_folder_unsupported_action'
+      );
+      const disabledTip = disabled ? t('batch.select_required') : undefined;
+      const smartFolderDisabledTip = smartFolderUnsupported
+        ? smartFolderUnsupportedTip
+        : disabledTip;
 
       return {
         disabled,
+        disabledTip,
         items: [
           {
             key: 'batch_create',
             icon: FolderPlus,
             label: t('batch.create_tooltip'),
-            disabled,
+            disabled: disabled || smartFolderUnsupported,
+            disabledTip: disabled ? undefined : smartFolderDisabledTip,
+            onClick: batchActions?.onCreate,
           },
           { key: 'batch_1', separator: true },
           {
             key: 'batch_move',
             icon: Move,
             label: t('batch.move_tooltip'),
-            disabled,
+            disabled: disabled || smartFolderUnsupported,
+            disabledTip: disabled ? undefined : smartFolderDisabledTip,
+            onClick: batchActions?.onMove,
           },
           { key: 'batch_2', separator: true },
           {
@@ -90,6 +115,7 @@ export function useNodeMenu(
             icon: MessageSquarePlus,
             label: t('batch.add_to_chat_tooltip'),
             disabled,
+            onClick: batchActions?.onAddToChat,
           },
           { key: 'batch_3', separator: true },
           {
@@ -98,6 +124,7 @@ export function useNodeMenu(
             label: t('batch.delete_tooltip'),
             destructive: true,
             disabled,
+            onClick: batchActions?.onDelete,
           },
         ],
       };
@@ -222,8 +249,10 @@ export function useNodeMenu(
     createFolderMode,
     onRename,
     node,
-    selectedCount,
+    nodes,
+    selectedIds,
     selectionMode,
+    batchActions,
   ]);
 }
 

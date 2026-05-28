@@ -10,7 +10,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '@/components/ui/AlertDialog';
 import { cn } from '@/lib/utils';
 
 interface ConfirmDialogProps {
@@ -61,7 +61,12 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className={cn('w-11/12 max-w-lg', contentClassName)}>
+      <AlertDialogContent
+        className={cn(
+          'w-11/12 max-w-lg bg-popover dark:bg-neutral-900',
+          contentClassName
+        )}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle className={titleClassName}>
             {title}
@@ -73,12 +78,19 @@ export function ConfirmDialog({
         <AlertDialogFooter>
           <AlertDialogCancel
             disabled={loading}
-            className={cn('cancel-btn-outline', cancelClassName)}
+            className={cn(
+              'cancel-btn-outline bg-transparent shadow-none',
+              cancelClassName
+            )}
           >
             {cancelText ?? t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
-            className={cn(confirmButtonClassName, confirmClassName)}
+            className={cn(
+              'shadow-none',
+              confirmButtonClassName,
+              confirmClassName
+            )}
             disabled={loading}
             onClick={onConfirm}
           >

@@ -16,10 +16,13 @@ import {
   collapseEmptyNode,
   createNode,
   ensureUI,
+  findNextActiveId,
+  getBatchSelectionSummary,
   getDescendantIds,
   getIdsInVisibleRange,
   getSelectedAncestorId,
   getTopLevelSelectedIds,
+  isBatchSelectableNode,
   isDescendant,
   traverseDescendants,
 } from '../utils';
@@ -43,6 +46,10 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           : [id];
 
         for (const targetId of targetIds) {
+          if (!isBatchSelectableNode(s.nodes[targetId])) {
+            continue;
+          }
+
           const selected = Boolean(s.selectedIds[targetId]);
           const selectedAncestorId = getSelectedAncestorId(
             s.nodes,
@@ -113,6 +120,9 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           const root = s.nodes[s.rootIds[type]];
           if (!root) continue;
           for (const childId of root.children) {
+            if (!isBatchSelectableNode(s.nodes[childId])) {
+              continue;
+            }
             s.selectedIds[childId] = true;
             delete s.failedIds[childId];
           }
@@ -157,7 +167,7 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       });
     },
 
-    batchRemove: async (ids: string[]) => {
+    batchRemove: async (ids: string[], currentResourceId?: string) => {
       const requestedIds = getTopLevelSelectedIds(get().nodes, ids);
       const result: BatchOperationResult = { success: [], failed: [] };
 
@@ -183,6 +193,19 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         id,
         ...getDescendantIds(get().nodes, id),
       ]);
+      const removedIds = new Set(chatContextRemovedIds);
+      const deletedActiveId = result.success.find(id => {
+        if (!currentResourceId) {
+          return false;
+        }
+        return (
+          id === currentResourceId ||
+          getDescendantIds(get().nodes, id).includes(currentResourceId)
+        );
+      });
+      const nextActiveId = deletedActiveId
+        ? findNextActiveId(get().nodes, deletedActiveId, removedIds)
+        : null;
       set(s => {
         for (const id of result.success) {
           const node = s.nodes[id];
@@ -207,6 +230,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             }
           }
         }
+        if (deletedActiveId) {
+          s.activeId = nextActiveId;
+          result.nextId = nextActiveId;
+          result.navigateToChat = !nextActiveId;
+        }
 
         if (result.success.length > 0) {
           for (const item of result.failed) {
@@ -222,6 +250,18 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
 
     batchMove: async (ids: string[], targetId: string) => {
       const requestedIds = getTopLevelSelectedIds(get().nodes, ids);
+      const selection = getBatchSelectionSummary(get().nodes, requestedIds);
+      if (selection.hasSmartFolder) {
+        return {
+          success: [],
+          failed: requestedIds.map(id => ({
+            id,
+            error: new Error('Smart folders do not support this operation'),
+          })),
+          nameConflictIds: [],
+          smartFolderUnsupported: true,
+        };
+      }
       const result: BatchOperationResult = {
         success: [],
         failed: [],
@@ -435,6 +475,16 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       const selectedIds = Object.keys(get().selectedIds);
       const target = get().nodes[parentId];
       const requestedIds = getTopLevelSelectedIds(get().nodes, selectedIds);
+      const selection = getBatchSelectionSummary(get().nodes, requestedIds);
+      if (selection.hasSmartFolder) {
+        return {
+          success: [],
+          failed: requestedIds.map(id => ({
+            id,
+            error: new Error('Smart folders do not support this operation'),
+          })),
+        };
+      }
       const folder = await batchCreateFolderFromResources(get().namespaceId, {
         parentId,
         name: folderName,
@@ -515,7 +565,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         if (!node) continue;
         addToChatContext(
           node,
-          node.resourceType === 'folder' ? 'folder' : 'resource'
+          node.resourceType === 'folder' ||
+            node.resourceType === 'smart_folder' ||
+            node.hasChildren
+            ? 'folder'
+            : 'resource'
         );
       }
       return requestedIds;

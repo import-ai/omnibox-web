@@ -1,10 +1,4 @@
-import {
-  type RefObject,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-} from 'react';
+import { type RefObject, useEffect, useMemo, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { getEmptyImage, NativeTypes } from 'react-dnd-html5-backend';
 
@@ -142,7 +136,7 @@ export function useResourceNodeDnd(
       canDrag: () =>
         !isEditing &&
         (!selectionMode || isSelected) &&
-        node.resourceType !== 'smart_folder' &&
+        (selectionMode || node.resourceType !== 'smart_folder') &&
         !isSmartFolderChildResource(node),
       collect: monitor => ({
         opacity: monitor.isDragging() ? 0.5 : 1,
@@ -169,13 +163,14 @@ export function useResourceNodeDnd(
     collect: monitor => {
       const item = monitor.getItem() as DndItem | null;
       const isCardOver =
-        monitor.getItemType() === 'card' && monitor.isOver({ shallow: false });
+        monitor.getItemType() === 'card' && monitor.isOver({ shallow: true });
+      const isShallowOver = monitor.isOver({ shallow: true });
       const isBatchDisabledTarget =
         isCardOver &&
         Boolean(item?.ids?.length) &&
         isDisabledBatchDropTarget(nodes, item, nodeId);
       return {
-        isOver: monitor.isOver({ shallow: true }) && monitor.canDrop(),
+        isOver: isShallowOver && monitor.canDrop(),
         isDisabledOver:
           isBatchDisabledTarget ||
           (isCardOver && item !== null && !canDropItem(item)),
@@ -191,12 +186,13 @@ export function useResourceNodeDnd(
       handleDrop(item, monitor);
     },
   });
-  const isBatchDisabledOver =
-    batchDragging && disabledBatchTargetIds.includes(nodeId);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     preview(getEmptyImage(), { captureDraggingState: false });
   }, [preview]);
+
+  const isBatchDisabledOver =
+    batchDragging && isDisabledOver && disabledBatchTargetIds.includes(nodeId);
 
   useEffect(() => {
     drag(dragRef);

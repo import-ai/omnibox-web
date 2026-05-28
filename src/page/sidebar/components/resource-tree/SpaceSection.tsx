@@ -8,6 +8,10 @@ interface SpaceSectionProps {
   namespaceId: string;
   hasTeamspace: boolean;
   currentNamespace?: Namespace;
+  onBatchDelete: () => void;
+  onBatchMove: () => void;
+  onBatchCreate: () => void;
+  onAddToChat: () => void;
 }
 
 export default function SpaceSection({
@@ -15,6 +19,10 @@ export default function SpaceSection({
   namespaceId,
   hasTeamspace,
   currentNamespace,
+  onBatchDelete,
+  onBatchMove,
+  onBatchCreate,
+  onAddToChat,
 }: SpaceSectionProps) {
   const rootId = useRootId(spaceType);
   const rootNode = useNode(rootId);
@@ -33,6 +41,10 @@ export default function SpaceSection({
       isOpen={isOpen}
       hasTeamspace={hasTeamspace}
       currentNamespace={currentNamespace}
+      onBatchDelete={onBatchDelete}
+      onBatchMove={onBatchMove}
+      onBatchCreate={onBatchCreate}
+      onAddToChat={onAddToChat}
     />
   );
 }

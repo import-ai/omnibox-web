@@ -8,6 +8,10 @@ interface ResourceNodeProps {
   depth?: number;
   hasTeamspace: boolean;
   currentNamespace?: Namespace;
+  onBatchDelete: () => void;
+  onBatchMove: () => void;
+  onBatchCreate: () => void;
+  onAddToChat: () => void;
 }
 
 export default function ResourceNode({
@@ -15,6 +19,10 @@ export default function ResourceNode({
   depth = 0,
   hasTeamspace,
   currentNamespace,
+  onBatchDelete,
+  onBatchMove,
+  onBatchCreate,
+  onAddToChat,
 }: ResourceNodeProps) {
   const node = useNode(nodeId);
   if (!node) return null;
@@ -25,6 +33,10 @@ export default function ResourceNode({
       depth={depth}
       hasTeamspace={hasTeamspace}
       currentNamespace={currentNamespace}
+      onBatchDelete={onBatchDelete}
+      onBatchMove={onBatchMove}
+      onBatchCreate={onBatchCreate}
+      onAddToChat={onAddToChat}
     />
   );
 }

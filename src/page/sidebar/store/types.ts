@@ -50,8 +50,11 @@ export interface BatchOperationResult {
   success: string[];
   failed: Array<{ id: string; error: Error }>;
   nameConflictIds?: string[];
+  smartFolderUnsupported?: boolean;
   targetError?: unknown;
   resourceId?: string;
+  nextId?: string | null;
+  navigateToChat?: boolean;
 }
 
 export interface SidebarState {
@@ -129,7 +132,10 @@ export interface SidebarActions {
   clearSelection: () => void;
   setSelectionMode: (enabled: boolean) => void;
   setBatchDragging: (dragging: boolean) => void;
-  batchRemove: (ids: string[]) => Promise<BatchOperationResult>;
+  batchRemove: (
+    ids: string[],
+    currentResourceId?: string
+  ) => Promise<BatchOperationResult>;
   batchMove: (ids: string[], targetId: string) => Promise<BatchOperationResult>;
   batchCreate: (
     folderName: string,

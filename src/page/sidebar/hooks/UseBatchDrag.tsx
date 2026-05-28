@@ -7,11 +7,15 @@ import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
 
+const RESOURCE_ID_ATTRIBUTE = 'data-resource-id';
+const BATCH_DROP_DISABLED_CLASS = 'batch-drop-not-allowed';
+
 interface BatchDragItem {
   type: 'batch';
   ids: string[];
   count: number;
   preview?: TreeNode;
+  disabledTargetIds?: string[];
 }
 
 interface CardDragItem extends TreeNode {
@@ -33,6 +37,30 @@ export function SidebarDragLayer() {
   useEffect(() => {
     useSidebarStore.getState().setBatchDragging(batchDragging);
   }, [batchDragging]);
+
+  useEffect(() => {
+    if (!batchDragging || item?.type !== 'batch' || !currentOffset) {
+      document.body.classList.remove(BATCH_DROP_DISABLED_CLASS);
+      return;
+    }
+
+    const hoveredId = document
+      .elementsFromPoint(currentOffset.x, currentOffset.y)
+      .map(element =>
+        element
+          .closest(`[${RESOURCE_ID_ATTRIBUTE}]`)
+          ?.getAttribute(RESOURCE_ID_ATTRIBUTE)
+      )
+      .find(Boolean);
+    const dropDisabled = Boolean(
+      hoveredId && item.disabledTargetIds?.includes(hoveredId)
+    );
+
+    document.body.classList.toggle(BATCH_DROP_DISABLED_CLASS, dropDisabled);
+    return () => {
+      document.body.classList.remove(BATCH_DROP_DISABLED_CLASS);
+    };
+  }, [batchDragging, currentOffset, item]);
 
   if (!isDragging || !item || !previewNode || !currentOffset) {
     return null;

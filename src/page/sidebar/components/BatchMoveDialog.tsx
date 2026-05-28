@@ -73,6 +73,7 @@ export default function BatchMoveDialog({
           showDisabledTargets
           disabledTargetIds={disabledTargetIds}
           disabledTargetTooltip={t('batch.operating_resource')}
+          sourceResourceType="folder"
           onOpenChange={handleCancel}
           onFinished={(_, nextTargetId, nextTargetName) => {
             setTargetId(nextTargetId);

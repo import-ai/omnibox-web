@@ -1,4 +1,5 @@
-import { Resource, SpaceType } from '@/interface';
+import { PathItem, Resource, SpaceType } from '@/interface';
+import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 
 import type { SidebarState, TreeNode } from './types';
 
@@ -50,6 +51,30 @@ export function collectParentIds(
   return ids;
 }
 
+export function buildNodePath(
+  nodes: Record<string, TreeNode>,
+  id: string
+): PathItem[] | undefined {
+  const path: PathItem[] = [];
+  const visitedIds = new Set<string>();
+  let current = nodes[id];
+
+  while (current) {
+    if (visitedIds.has(current.id)) {
+      return undefined;
+    }
+    visitedIds.add(current.id);
+    path.unshift({ id: current.id, name: current.name });
+
+    if (!current.parentId) {
+      break;
+    }
+    current = nodes[current.parentId];
+  }
+
+  return path.length > 0 ? path : undefined;
+}
+
 export function getDescendantIds(
   nodes: Record<string, TreeNode>,
   id: string
@@ -97,7 +122,8 @@ export function isDescendant(
 
 export function findNextActiveId(
   nodes: Record<string, TreeNode>,
-  deletedId: string
+  deletedId: string,
+  excludedIds: Set<string> = new Set()
 ): string | null {
   const deleted = nodes[deletedId];
   if (!deleted?.parentId) {
@@ -115,12 +141,15 @@ export function findNextActiveId(
   }
 
   // Prefer the next sibling (visually below), fallback to previous
-  const next = parent.children[idx + 1];
+  const next = parent.children.slice(idx + 1).find(id => !excludedIds.has(id));
   if (next) {
     return next;
   }
 
-  const prev = parent.children[idx - 1];
+  const prev = parent.children
+    .slice(0, idx)
+    .reverse()
+    .find(id => !excludedIds.has(id));
   if (prev) {
     return prev;
   }
@@ -193,11 +222,8 @@ export function collapseEmptyNode(
   }
 }
 
-export function getSelectableDescendantIds(
-  nodes: Record<string, TreeNode>,
-  id: string
-): string[] {
-  return [id, ...getDescendantIds(nodes, id)];
+export function isBatchSelectableNode(node?: TreeNode | null): boolean {
+  return !isSmartFolderChildResource(node);
 }
 
 export function getSelectedAncestorId(
@@ -309,6 +335,10 @@ export function getTopLevelSelectedIds(
 ): string[] {
   const selected = new Set(ids);
   return ids.filter(id => {
+    if (!isBatchSelectableNode(nodes[id])) {
+      return false;
+    }
+
     let current = nodes[id];
     while (current?.parentId) {
       if (selected.has(current.parentId)) {
@@ -318,4 +348,42 @@ export function getTopLevelSelectedIds(
     }
     return true;
   });
+}
+
+export interface BatchSelectionSummary {
+  selectedCount: number;
+  hasSmartFolder: boolean;
+  hasOnlySmartFolders: boolean;
+  isMixed: boolean;
+}
+
+export function getBatchSelectionSummary(
+  nodes: Record<string, TreeNode>,
+  selectedIds: Record<string, boolean> | string[]
+): BatchSelectionSummary {
+  const ids = Array.isArray(selectedIds)
+    ? selectedIds
+    : Object.keys(selectedIds).filter(id => selectedIds[id]);
+  const topLevelIds = getTopLevelSelectedIds(nodes, ids);
+  let smartFolderCount = 0;
+  let regularCount = 0;
+
+  for (const id of topLevelIds) {
+    if (nodes[id]?.resourceType === 'smart_folder') {
+      smartFolderCount += 1;
+    } else {
+      regularCount += 1;
+    }
+  }
+
+  const selectedCount = regularCount + smartFolderCount;
+  const hasRegularResource = regularCount > 0;
+  const hasSmartFolder = smartFolderCount > 0;
+
+  return {
+    selectedCount,
+    hasSmartFolder,
+    hasOnlySmartFolders: hasSmartFolder && !hasRegularResource,
+    isMixed: hasSmartFolder && hasRegularResource,
+  };
 }

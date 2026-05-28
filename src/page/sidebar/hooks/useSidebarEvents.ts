@@ -303,6 +303,11 @@ export function useSidebarEvents(namespaceId: string) {
         refreshSmartFolderChildren(id, namespaceId, app);
       })
     );
+    hooks.push(
+      app.on('refresh_loaded_smart_folders', () => {
+        refreshLoadedSmartFolders(namespaceId, app);
+      })
+    );
 
     hooks.push(
       app.on('restore_resource', (resource: Resource) => {

@@ -6,6 +6,12 @@ import { toast } from 'sonner';
 import useApp from '@/hooks/useApp';
 
 import { useSelectedCount, useSelectionState, useSidebarStore } from '../store';
+import { getTopLevelSelectedIds } from '../store/utils';
+import {
+  getCurrentResourceId,
+  getPreviousParentIds,
+  syncBatchMoveResult,
+} from './batchMoveSync';
 
 interface UseBatchOperationsOptions {
   namespaceId: string;
@@ -76,10 +82,31 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
   const confirmDelete = async () => {
     setIsProcessing(true);
     try {
+      const currentResourceId = getCurrentResourceId(
+        location.pathname,
+        namespaceId
+      );
+      const selectedIds = getSelectedIds();
+      const previousNodes = useSidebarStore.getState().nodes;
+      const topLevelSelectedIds = getTopLevelSelectedIds(
+        previousNodes,
+        selectedIds
+      );
+      const selectedSmartFolderIds = new Set(
+        topLevelSelectedIds.filter(
+          id => previousNodes[id]?.resourceType === 'smart_folder'
+        )
+      );
       const result = await useSidebarStore
         .getState()
-        .batchRemove(getSelectedIds());
+        .batchRemove(topLevelSelectedIds, currentResourceId);
       app.fire('trash_updated');
+      if (result.success.length > 0) {
+        app.fire('refresh_loaded_smart_folders');
+        if (result.success.some(id => selectedSmartFolderIds.has(id))) {
+          useSidebarStore.getState().refetchSmartFolderEntitlements();
+        }
+      }
       if (result.failed.length > 0) {
         if (result.success.length === 0) {
           toast.error(t('batch.all_forbidden'), { position: 'bottom-right' });
@@ -98,6 +125,14 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
           { position: 'bottom-right' }
         );
       }
+      if (result.nextId) {
+        navigate(`/${namespaceId}/${result.nextId}`, {
+          state: { fromSidebar: true },
+        });
+        app.fire('scroll_to_resource', result.nextId);
+      } else if (result.navigateToChat) {
+        navigate(`/${namespaceId}/chat`);
+      }
     } catch {
       toast.error(t('batch.delete_failed'), { position: 'bottom-right' });
     } finally {
@@ -109,9 +144,19 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
   const confirmMove = async (targetId: string) => {
     setIsProcessing(true);
     try {
+      const selectedIds = getSelectedIds();
+      const previousNodes = useSidebarStore.getState().nodes;
+      const topLevelSelectedIds = getTopLevelSelectedIds(
+        previousNodes,
+        selectedIds
+      );
+      const previousParentIds = getPreviousParentIds(
+        previousNodes,
+        topLevelSelectedIds
+      );
       const result = await useSidebarStore
         .getState()
-        .batchMove(getSelectedIds(), targetId);
+        .batchMove(topLevelSelectedIds, targetId);
       const nameConflictCount = result.nameConflictIds?.length ?? 0;
       if (result.failed.length > 0) {
         if (result.success.length === 0) {
@@ -147,11 +192,16 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         );
       }
       if (result.success.length > 0) {
-        useSidebarStore.getState().activate(targetId);
-        navigate(`/${namespaceId}/${targetId}`, {
-          state: { fromSidebar: true },
+        syncBatchMoveResult({
+          app,
+          currentResourceId: getCurrentResourceId(
+            location.pathname,
+            namespaceId
+          ),
+          previousParentIds,
+          movedIds: result.success,
+          targetId,
         });
-        app.fire('scroll_to_resource', targetId);
       }
     } catch (error) {
       toast.error(t(getBatchMoveErrorKey(error)), {
@@ -205,15 +255,9 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         return false;
       }
       if (isTargetNotEditableError(error)) {
-        toast.error(
-          t('batch.create_target_readonly', {
-            target:
-              error?.response?.data?.target_name ||
-              nodes[parentId]?.name ||
-              t('batch.create_target_label'),
-          }),
-          { position: 'bottom-right' }
-        );
+        toast.error(t('batch.create_target_readonly'), {
+          position: 'bottom-right',
+        });
         return false;
       }
       toast.error(t('batch.create_failed'), { position: 'bottom-right' });

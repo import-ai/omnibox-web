@@ -5,6 +5,14 @@ import { initialDialogsState } from '../types';
 import { createNode, ensureUI, patchNodeFromResource } from '../utils';
 
 export function buildBaseActions(set: SidebarSet) {
+  const resetTransientState = (s: Parameters<Parameters<typeof set>[0]>[0]) => {
+    s.selectedIds = {};
+    s.selectionMode = false;
+    s.lastSelectedId = null;
+    s.failedIds = {};
+    s.batchDragging = false;
+  };
+
   return {
     setNamespaceId: (id: string) => {
       set(s => {
@@ -16,6 +24,7 @@ export function buildBaseActions(set: SidebarSet) {
         s.renamingId = null;
         s.dialogs = { ...initialDialogsState };
         s.autoExpandedKeys = {};
+        resetTransientState(s);
       });
     },
 
@@ -75,6 +84,7 @@ export function buildBaseActions(set: SidebarSet) {
         s.renamingId = null;
         s.dialogs = { ...initialDialogsState };
         s.autoExpandedKeys = {};
+        resetTransientState(s);
       });
     },
 
