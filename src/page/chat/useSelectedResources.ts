@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 
-import useApp from '@/hooks/use-app';
+import useApp from '@/hooks/useApp';
 import { Resource } from '@/interface';
 import {
   getChatContext,
   removeChatContext,
   setChatContext,
-} from '@/lib/chat-context';
-import { useChatStore } from '@/page/chat/chat-store';
+} from '@/lib/chatContext';
+import { useChatStore } from '@/page/chat/chatStore';
 
 import { IResTypeContext, PrivateSearchResourceType } from './chat-input/types';
 

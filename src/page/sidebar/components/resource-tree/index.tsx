@@ -5,14 +5,14 @@ import { TouchBackend } from 'react-dnd-touch-backend';
 
 import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { SidebarContent } from '@/components/ui/sidebar';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { SidebarContent } from '@/components/ui/Sidebar';
+import { useIsMobile } from '@/hooks/useMobile';
 import { Namespace, SpaceType } from '@/interface';
-import { SmartFolderEntitlements } from '@/page/sidebar/content/smart-folder';
-import { useDragAutoScroll } from '@/page/sidebar/hooks/use-drag-auto-scroll';
+import { SmartFolderEntitlements } from '@/page/sidebar/components/smart-folder';
+import { useDragAutoScroll } from '@/page/sidebar/hooks/useDragAutoScroll';
 import { TrashPanel } from '@/page/trash';
 
-import SpaceSection from './space-section';
+import SpaceSection from './SpaceSection';
 import { useToolConfig } from './useToolConfig';
 
 interface ResourceTreeProps {

@@ -1,8 +1,9 @@
 import type { Resource } from '@/interface';
 import {
+  getSmartFolderChildSidebarKey,
   isSmartFolderChildResource,
   withSmartFolderChildSidebarAttrs,
-} from '@/page/sidebar/content/smart-folder';
+} from '@/page/sidebar/components/smart-folder';
 import { fetchShareChildren, fetchShareResource } from '@/service/share';
 
 import type { SidebarGet, SidebarSet, SpaceType, TreeNode } from '../types';
@@ -93,9 +94,15 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
             const backendIds = new Set(
               children.map((c: { id: string }) => c.id)
             );
-            const preserved = n.children.filter(
-              (cid: string) => !backendIds.has(cid) && cid in s.nodes
-            );
+            const preserved = n.children.filter((cid: string) => {
+              if (backendIds.has(cid)) return false;
+              if (!(cid in s.nodes)) return false;
+              // If this parent is a smart folder, a real-id child that is about to
+              // be represented by a composite key should be removed to avoid
+              const sfKey = getSmartFolderChildSidebarKey(id, cid);
+              if (backendIds.has(sfKey)) return false;
+              return true;
+            });
             n.children = [
               ...children.map((c: { id: string }) => c.id),
               ...preserved,
@@ -267,8 +274,14 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
             const parent = s.nodes[fullPath[i].id];
             const child = s.nodes[fullPath[i + 1].id];
             if (parent && child && !parent.children.includes(child.id)) {
-              parent.children.push(child.id);
-              child.parentId = parent.id;
+              // If the smart-folder composite key for this child already exists in
+              // parent.children (added by expandAllFrom), don't also add the real
+              // resource id — that would render a duplicate entry in the sidebar.
+              const sfKey = getSmartFolderChildSidebarKey(parent.id, child.id);
+              if (!parent.children.includes(sfKey)) {
+                parent.children.push(child.id);
+                child.parentId = parent.id;
+              }
             }
           }
 
@@ -279,7 +292,6 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
           }
         });
 
-        // 记录此资源已展开，避免重复展开
         set(s => {
           s.autoExpandedKeys[autoExpandKey] = true;
         });

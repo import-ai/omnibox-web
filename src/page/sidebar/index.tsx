@@ -6,13 +6,13 @@ import {
   SidebarHeader,
   SidebarRail,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { useIsMobile } from '@/hooks/use-mobile';
+} from '@/components/ui/Sidebar';
+import { useIsMobile } from '@/hooks/useMobile';
 import SettingModal from '@/page/settings';
 
-import { BodyForSidebar } from './body';
-import { FooterSidebar } from './components/footer';
-import { Header } from './components/header';
+import { BodyForSidebar } from './BodyForSidebar';
+import { FooterSidebar } from './components/FooterSidebar';
+import { Header } from './components/Header';
 import { Switcher } from './components/namespace-switcher';
 
 export default function MainSidebar() {

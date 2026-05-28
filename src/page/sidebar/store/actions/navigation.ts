@@ -1,5 +1,5 @@
 import type { SpaceType } from '@/interface';
-import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/content/smart-folder';
+import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import {
   fetchChildren,
   fetchResource,

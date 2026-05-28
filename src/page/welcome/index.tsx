@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import logoUrl from '@/assets/logo.svg';
 
-import GenerateForm from '../settings/tabs/account/namespace';
+import GenerateForm from '../settings/tabs/account/GenerateForm';
 
 export default function WelcomePage() {
   const { t } = useTranslation();

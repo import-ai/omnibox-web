@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/Sidebar';
 import Sidebar from '@/page/sidebar';
 
 export default function NamespacePage() {

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Button as BaseButton, ButtonProps } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner.tsx';
+import { Button as BaseButton, ButtonProps } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils.ts';
 
 interface ButtonLoadingProps extends Omit<ButtonProps, 'variant'> {

@@ -4,14 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import ResourceIcon from '@/assets/icons/resourceIcon';
+import ResourceIcon from '@/assets/icons/ResourceIcon';
 import {
   CommandDialog,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
+} from '@/components/ui/Command';
 import type { Resource, ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 

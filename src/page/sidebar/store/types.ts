@@ -1,6 +1,6 @@
 import type { PathItem, SpaceType } from '@/interface';
 import { Permission, Resource, ResourceType, TagDto } from '@/interface';
-import type { CreateSmartFolderPayload } from '@/page/sidebar/content/smart-folder';
+import type { CreateSmartFolderPayload } from '@/page/sidebar/components/smart-folder';
 
 export type RootResource = Resource & { children?: Resource[] };
 

@@ -6,9 +6,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/Dialog';
 
-import Form, { IFormProps } from './form';
+import Form, { IFormProps } from './MoveToForm';
 
 interface IProps extends IFormProps {
   open: boolean;

@@ -7,11 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
-import { AppleIcon } from '@/assets/icons/apple';
-import { MailIcon } from '@/assets/icons/email';
-import { GoogleIcon } from '@/assets/icons/google';
-import { SmartphoneIcon } from '@/assets/icons/smartphone';
-import { WeChatIcon } from '@/assets/icons/wechat';
+import { AppleIcon } from '@/assets/icons/AppleIcon';
+import { GoogleIcon } from '@/assets/icons/GoogleIcon';
+import { MailIcon } from '@/assets/icons/MailIcon';
+import { SmartphoneIcon } from '@/assets/icons/SmartphoneIcon';
+import { WeChatIcon } from '@/assets/icons/Wechat';
 import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import {
@@ -30,14 +30,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from '@/components/ui/AlertDialog';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/Dialog';
 import {
   Form,
   FormControl,
@@ -45,19 +45,19 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Spinner } from '@/components/ui/spinner';
-import useUser from '@/hooks/use-user';
+} from '@/components/ui/Form';
+import { Spinner } from '@/components/ui/Spinner';
+import useUser from '@/hooks/useUser';
 import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils.ts';
-import { optionalPasswordSchema } from '@/lib/validation-schemas';
+import { optionalPasswordSchema } from '@/lib/validationSchemas';
 
-import { DeleteAccountDialog } from '../account/delete-account-dialog';
-import EmailValidate from '../account/email-validate';
-import PhoneValidate from '../account/phone-validate';
-import { Wrapper } from '../third-party/wrapper';
+import { DeleteAccountDialog } from '../account/DeleteAccountDialog';
+import EmailValidate from '../account/EmailValidate';
+import PhoneValidate from '../account/PhoneValidate';
+import { Wrapper } from '../third-party/Wrapper';
 
 // Schema for username change dialog
 const usernameSchema = z.object({

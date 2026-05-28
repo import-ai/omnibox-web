@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { getUpgradeLink } from '@/lib/upgrade-link';
+import { getUpgradeLink } from '@/lib/upgradeLink';
 import { cn } from '@/lib/utils';
 
 type I18nValues = Record<string, unknown>;

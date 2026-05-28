@@ -1,7 +1,139 @@
+import path from 'node:path';
+
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import prettier from 'eslint-plugin-prettier';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
+
+const IGNORED_FILE_NAMES = new Set(['App', 'index', 'main']);
+const LOWER_CAMEL_CASE_PATTERN = /^[a-z][A-Za-z0-9]*$/;
+const PASCAL_CASE_PATTERN = /^[A-Z][A-Za-z0-9]*$/;
+
+function isSourceFile(filename) {
+  return filename.split(path.sep).includes('src');
+}
+
+function getFileStem(basename) {
+  return basename
+    .replace(/\.d\.ts$/, '')
+    .replace(/\.class\.[jt]sx?$/, '')
+    .replace(/\.test\.[jt]sx?$/, '')
+    .replace(/\.[jt]sx?$/, '');
+}
+
+function hasComponentLikeExport(program) {
+  return program.body.some(node => {
+    if (
+      node.type === 'FunctionDeclaration' &&
+      PASCAL_CASE_PATTERN.test(node.id?.name ?? '')
+    ) {
+      return true;
+    }
+
+    if (
+      node.type === 'ExportDefaultDeclaration' &&
+      node.declaration?.type === 'FunctionDeclaration' &&
+      PASCAL_CASE_PATTERN.test(node.declaration.id?.name ?? '')
+    ) {
+      return true;
+    }
+
+    const declaration =
+      node.type === 'ExportNamedDeclaration' ? node.declaration : node;
+    if (declaration?.type !== 'VariableDeclaration') {
+      return false;
+    }
+
+    return declaration.declarations.some(item =>
+      PASCAL_CASE_PATTERN.test(item.id?.name ?? '')
+    );
+  });
+}
+
+const fileNamingPlugin = {
+  rules: {
+    camelcase: {
+      meta: {
+        type: 'problem',
+        docs: {
+          description:
+            'Require PascalCase .tsx file names and camelCase .ts file names.',
+        },
+        messages: {
+          tsxCase:
+            'TSX file names must use PascalCase. Rename "{{name}}" to PascalCase.',
+          tsCase:
+            'TS file names must use camelCase. Rename "{{name}}" to camelCase.',
+          noJsx:
+            'TSX files must contain JSX. Rename "{{name}}" to a .ts file when it only exports functions, hooks, or constants.',
+        },
+      },
+      create(context) {
+        const filename = context.filename || context.getFilename();
+        if (!filename || filename === '<input>' || filename === '<text>') {
+          return {};
+        }
+
+        if (!isSourceFile(filename)) {
+          return {};
+        }
+
+        const basename = path.basename(filename);
+        if (
+          basename.endsWith('.d.ts') ||
+          basename.includes('.class.') ||
+          basename.includes('.test.')
+        ) {
+          return {};
+        }
+
+        const stem = getFileStem(basename);
+        if (!stem || IGNORED_FILE_NAMES.has(stem)) {
+          return {};
+        }
+
+        return {
+          Program(program) {
+            const isTsx = basename.endsWith('.tsx');
+            const isValid = isTsx
+              ? PASCAL_CASE_PATTERN.test(stem)
+              : LOWER_CAMEL_CASE_PATTERN.test(stem);
+
+            if (isValid) {
+              return;
+            }
+
+            context.report({
+              node: program,
+              messageId: isTsx ? 'tsxCase' : 'tsCase',
+              data: { name: basename },
+            });
+          },
+          'Program:exit'(program) {
+            if (!basename.endsWith('.tsx')) {
+              return;
+            }
+
+            const sourceCode = context.sourceCode ?? context.getSourceCode();
+            const hasJsx = sourceCode.ast.tokens?.some(token =>
+              ['JSXIdentifier', 'JSXText'].includes(token.type)
+            );
+
+            if (hasJsx || hasComponentLikeExport(program)) {
+              return;
+            }
+
+            context.report({
+              node: program,
+              messageId: 'noJsx',
+              data: { name: basename },
+            });
+          },
+        };
+      },
+    },
+  },
+};
 
 export default [
   {
@@ -24,6 +156,7 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
       'simple-import-sort': simpleImportSort,
+      'file-naming': fileNamingPlugin,
       prettier: prettier,
     },
     rules: {
@@ -33,6 +166,7 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
+      'file-naming/camelcase': 'error',
     },
   },
 ];

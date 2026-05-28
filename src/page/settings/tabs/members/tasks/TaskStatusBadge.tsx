@@ -1,0 +1,49 @@
+import { CancelStatus } from '@/assets/icons/CancelStatus';
+import { CompletedStatus } from '@/assets/icons/CompletedStatus';
+import { ErrorStatus } from '@/assets/icons/ErrorStatus';
+import { InProgressStatus } from '@/assets/icons/InProgressStatus';
+import { InsufficientQuotaStatus } from '@/assets/icons/InsufficientQuotaStatus';
+import { QueueStatus } from '@/assets/icons/QueueStatus';
+import { TimeoutStatus } from '@/assets/icons/TimeoutStatus';
+import { TaskStatus } from '@/interface.ts';
+import { cn } from '@/lib/utils';
+
+export const statusConfig: Record<
+  TaskStatus,
+  {
+    icon: React.ComponentType<{
+      className?: string;
+    }>;
+  }
+> = {
+  pending: {
+    icon: QueueStatus,
+  },
+  running: {
+    icon: InProgressStatus,
+  },
+  finished: {
+    icon: CompletedStatus,
+  },
+  canceled: {
+    icon: CancelStatus,
+  },
+  error: {
+    icon: ErrorStatus,
+  },
+  timeout: {
+    icon: TimeoutStatus,
+  },
+  insufficient_quota: {
+    icon: InsufficientQuotaStatus,
+  },
+};
+
+export function TaskStatusBadge({ status }: { status: TaskStatus }) {
+  const config = statusConfig[status];
+  const Icon = config.icon;
+
+  return (
+    <Icon className={cn('size-5', status === 'pending' && 'animate-spin')} />
+  );
+}

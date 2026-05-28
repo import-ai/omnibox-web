@@ -2,40 +2,44 @@ import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import CoreApp from '@/hooks/app.class';
-import AppContext from '@/hooks/app-context';
-import { AuthConfigProvider } from '@/hooks/auth-config-context';
+import AppContext from '@/hooks/appContext';
+import { AuthConfigProvider } from '@/hooks/AuthConfigContext';
 import Layout from '@/layout';
-import Error from '@/layout/error';
+import Error from '@/layout/ErrorPage';
 import ChatPage from '@/page/chat';
-import ChatHomePage from '@/page/chat/home';
+import ChatHomePage from '@/page/chat/ChatHomePage';
 import NamespacePage from '@/page/namespace';
 
 const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
 const ChatConversationsPage = lazy(() => import('@/page/chat/conversations'));
 
 const LoginPage = lazy(() => import('@/page/user/login'));
-const InvitePage = lazy(() => import('@/page/user/invite'));
+const InvitePage = lazy(() => import('@/page/user/InvitePage'));
 const ResourcePage = lazy(() => import('@/page/resource'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
-const VerifyOtpPage = lazy(() => import('@/page/user/verify-otp'));
-const AcceptInvitePage = lazy(() => import('@/page/user/accept-invite'));
+const VerifyOtpPage = lazy(() => import('@/page/user/VerifyOtpPage'));
+const AcceptInvitePage = lazy(() => import('@/page/user/AcceptInvitePage'));
 const InviteRedirectPage = lazy(() => import('@/page/invite-redirect'));
 const AccountDeleteConfirmPage = lazy(
-  () => import('@/page/user/account-delete-confirm')
+  () => import('@/page/user/AccountDeleteConfirm')
 );
 const WechatAuthConfirmPage = lazy(
-  () => import('@/page/user/wechat/auth-confirm')
+  () => import('@/page/user/wechat/AuthConfirmPage')
 );
 const GoogleAuthConfirmPage = lazy(
-  () => import('@/page/user/google/auth-confirm')
+  () => import('@/page/user/google/AuthConfirmPage')
 );
-const OAuthAuthorizePage = lazy(() => import('@/page/oauth/authorize'));
+const OAuthAuthorizePage = lazy(
+  () => import('@/page/oauth/OAuthAuthorizePage')
+);
 
 const SharePage = lazy(() => import('@/page/share'));
 const SharedResourcePage = lazy(() => import('@/page/shared-resource'));
-const SharedChatHomePage = lazy(() => import('@/page/shared-chat/home'));
+const SharedChatHomePage = lazy(
+  () => import('@/page/shared-chat/SharedChatHomePage')
+);
 const SharedChatConversationPage = lazy(
-  () => import('@/page/shared-chat/conversation')
+  () => import('@/page/shared-chat/SharedChatConversationPage')
 );
 
 const WelcomePage = lazy(() => import('@/page/welcome'));

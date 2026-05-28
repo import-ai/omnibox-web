@@ -12,12 +12,12 @@ import { DateRange, DayButton, getDefaultClassNames } from 'react-day-picker';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar } from '@/components/ui/Calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from '@/components/ui/Popover';
 import { cn } from '@/lib/utils';
 
 import { getNextRangeSelectionState, type RangeSelectionState } from './utils';

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import DecisionInput from '@/page/chat/chat-input/decision-input.tsx';
+import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ChatMode,
   InputMode,
@@ -11,16 +11,23 @@ import {
 import {
   MessageStatus,
   OpenAIMessageRole,
-} from '@/page/chat/core/types/chat-response.ts';
+} from '@/page/chat/core/types/chatResponse.ts';
 import {
   Interrupt,
   MessageDetail,
 } from '@/page/chat/core/types/conversation.ts';
 
-import ChatAction from './action';
-import ChatTool from './chat-tool';
-import ChatContext from './context';
-import ChatInput from './input';
+import ChatAction from './ChatAction';
+import ChatContext from './ChatContext';
+import ChatInput from './ChatInput';
+import ChatTool from './ChatTool';
+
+interface RestoredTools {
+  conversationKey: string;
+  signature: string;
+  tools: ToolType[];
+  ready: boolean;
+}
 
 interface RestoredTools {
   conversationKey: string;
@@ -64,7 +71,6 @@ function getRestoredTools(messages: MessageDetail[]): RestoredTools {
       userMessage.status !== MessageStatus.PENDING,
   };
 }
-
 interface IProps {
   messages: MessageDetail[];
   navigatePrefix: string;
