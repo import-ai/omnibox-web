@@ -1,7 +1,7 @@
 import {
   getSmartFolderChildSidebarKey,
   getSmartFolderSourceResourceId,
-} from '@/page/sidebar/content/smart-folder';
+} from '@/page/sidebar/components/smart-folder';
 
 interface ShareNavigationResource {
   id: string;

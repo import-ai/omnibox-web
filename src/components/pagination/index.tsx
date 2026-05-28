@@ -9,8 +9,8 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { useIsMobile } from '@/hooks/use-mobile';
+} from '@/components/ui/Pagination';
+import { useIsMobile } from '@/hooks/useMobile';
 import { cn } from '@/lib/utils';
 
 interface PaginationProps {

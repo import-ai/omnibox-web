@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
-import useQuota from '@/hooks/use-quota';
+import useQuota from '@/hooks/useQuota';
 
-import { ExpandButton } from './expand-button';
-import { Expiration } from './expiration';
-import { StorageSection } from './storage-section';
+import { ExpandButton } from './ExpandButton';
+import { Expiration } from './Expiration';
+import { StorageSection } from './StorageSection';
 import { formatStorage, formatTime, formatTimeAsMinutes } from './utils';
 
 interface RemainQuotaProps {

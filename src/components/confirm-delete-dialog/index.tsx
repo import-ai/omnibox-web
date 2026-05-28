@@ -11,8 +11,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Spinner } from '@/components/ui/spinner';
+} from '@/components/ui/AlertDialog';
+import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 
 interface IProps {

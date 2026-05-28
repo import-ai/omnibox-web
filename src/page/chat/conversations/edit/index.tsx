@@ -7,9 +7,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/Dialog';
 
-import EditForm from './form';
+import EditForm from './EditForm';
 
 interface IProps {
   data: {

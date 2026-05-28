@@ -21,8 +21,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Input } from '@/components/input';
-import PermissionWrapper from '@/components/permission-action/wrapper';
-import { Button } from '@/components/ui/button';
+import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
+import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,28 +32,28 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Spinner } from '@/components/ui/spinner';
-import { Switch } from '@/components/ui/switch';
+} from '@/components/ui/DropdownMenu';
+import { Spinner } from '@/components/ui/Spinner';
+import { Switch } from '@/components/ui/Switch';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
-import useConfig from '@/hooks/use-config';
-import { useDeleteResource } from '@/hooks/use-delete-resource';
-import { useIsMobile } from '@/hooks/use-mobile';
-import useProNamespaces from '@/hooks/use-pro-namespaces';
-import useSmartFolderEntitlements from '@/hooks/use-smart-folder-entitlements';
-import { IUseResource } from '@/hooks/user-resource';
-import { downloadFile } from '@/lib/download-file';
+import useConfig from '@/hooks/useConfig';
+import { useDeleteResource } from '@/hooks/useDeleteResource';
+import { useIsMobile } from '@/hooks/useMobile';
+import useProNamespaces from '@/hooks/useProNamespaces';
+import { IUseResource } from '@/hooks/userResource';
+import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
+import { downloadFile } from '@/lib/downloadFile';
 import { http } from '@/lib/request';
-import { uploadFiles } from '@/lib/upload-files';
+import { uploadFiles } from '@/lib/uploadFiles';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 import {
   CreateSmartFolderPayload,
   CreateSmartFolderRequest,
   SmartFolderResponse,
-} from '@/page/sidebar/content/smart-folder';
-import { CreateSmartFolderDialog } from '@/page/sidebar/content/smart-folder/create-smart-folder-dialog';
-import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/content/smart-folder/smart-folder-trash-confirm-dialog';
-import { syncSmartFolderUpdate } from '@/page/sidebar/content/smart-folder/smart-folder-update';
+} from '@/page/sidebar/components/smart-folder';
+import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/CreateSmartFolderDialog';
+import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
+import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 import MoveTo from './move';

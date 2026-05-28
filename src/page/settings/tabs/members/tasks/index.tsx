@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 
-import { TaskList } from './task-list';
+import { TaskList } from './TaskList';
 
 export default function TasksManagement() {
   const { namespace_id: namespaceId } = useParams();

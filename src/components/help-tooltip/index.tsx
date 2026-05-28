@@ -10,8 +10,8 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { useIsTouch } from '@/hooks/use-is-touch';
+} from '@/components/ui/Popover';
+import { useIsTouch } from '@/hooks/useIsTouch';
 import { cn } from '@/lib/utils.ts';
 
 interface HelpTooltipProps {

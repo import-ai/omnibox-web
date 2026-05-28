@@ -7,9 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import Vditor from 'vditor';
 
 import { LAZY_LOAD_IMAGE, VDITOR_CDN } from '@/const';
-import useTheme from '@/hooks/use-theme';
+import useTheme from '@/hooks/useTheme';
 import { Theme } from '@/interface';
-import { addReferrerPolicyForString } from '@/lib/add-referrer-policy';
+import { addReferrerPolicyForString } from '@/lib/addReferrerPolicy';
 
 interface IProps {
   content: string;

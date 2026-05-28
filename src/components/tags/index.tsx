@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Option } from '@/components/multiple-selector';
 import type { Resource, TagDto } from '@/interface';
 
-import Tags from './tags';
+import Tags from './Tags';
 
 interface IProps {
   data?: Array<TagDto>;

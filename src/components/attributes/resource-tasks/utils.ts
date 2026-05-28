@@ -1,5 +1,5 @@
 import { Task, TaskStatus } from '@/interface';
-import { statusConfig } from '@/page/settings/tabs/members/tasks/task-status-badge';
+import { statusConfig } from '@/page/settings/tabs/members/tasks/TaskStatusBadge';
 
 import { CONTENT_MODIFYING_FUNCTIONS } from './const';
 

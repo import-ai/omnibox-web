@@ -3,7 +3,7 @@ import {
   getSmartFolderChildSidebarKey,
   isSmartFolderChildResource,
   withSmartFolderChildSidebarAttrs,
-} from '@/page/sidebar/content/smart-folder';
+} from '@/page/sidebar/components/smart-folder';
 import { fetchShareChildren, fetchShareResource } from '@/service/share';
 
 import type { SidebarGet, SidebarSet, SpaceType, TreeNode } from '../types';

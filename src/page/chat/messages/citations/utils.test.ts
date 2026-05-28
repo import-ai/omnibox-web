@@ -6,7 +6,7 @@ import {
   replaceCiteTag,
   replaceReasoningCiteMarkers,
   trimIncompletedCitation,
-} from './citation-utils';
+} from './citationUtils';
 
 describe('cleanIncompletedCitation', () => {
   it('removes incomplete [ at the end', () => {

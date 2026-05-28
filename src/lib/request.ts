@@ -10,7 +10,7 @@ import { isUndefined } from 'lodash-es';
 import { toast } from 'sonner';
 
 import { API_BASE_URL } from '@/const';
-import { detectBrowserLanguage } from '@/lib/detect-language';
+import { detectBrowserLanguage } from '@/lib/detectLanguage';
 import { removeGlobalCredential } from '@/page/user/util';
 
 interface RequestConfig extends AxiosRequestConfig {

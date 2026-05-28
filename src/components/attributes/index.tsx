@@ -1,7 +1,7 @@
-import { CreatedTimeAttribute } from '@/components/attributes/created';
-import { Metadata } from '@/components/attributes/metadata';
-import { FilenameAttribute } from '@/components/attributes/name';
-import { UrlAttribute } from '@/components/attributes/url';
+import { CreatedTimeAttribute } from '@/components/attributes/CreatedTimeAttribute';
+import { FilenameAttribute } from '@/components/attributes/FilenameAttribute';
+import { Metadata } from '@/components/attributes/Metadata';
+import { UrlAttribute } from '@/components/attributes/UrlAttribute';
 import Tag from '@/components/tags';
 import { Resource } from '@/interface';
 

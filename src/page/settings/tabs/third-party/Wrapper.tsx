@@ -1,0 +1,47 @@
+import { useState } from 'react';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/Dialog';
+import Scan from '@/page/user/wechat/Scan';
+
+import { AppleLogin } from './AppleLogin';
+import { GoogleLogin } from './GoogleLogin';
+import { WechatLogin } from './WechatLogin';
+
+interface IProps {
+  type: string;
+  onSuccess?: () => void;
+}
+
+export function Wrapper(props: IProps) {
+  const { type, onSuccess } = props;
+  const [open, onOpen] = useState(false);
+
+  if (type === 'wechat') {
+    return (
+      <>
+        <Dialog open={open} onOpenChange={onOpen}>
+          <DialogContent className="w-[90%] max-w-7xl p-4 sm:w-1/2 sm:p-6">
+            <DialogHeader className="hidden">
+              <DialogTitle></DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
+            <Scan onScan={onOpen} />
+          </DialogContent>
+        </Dialog>
+        <WechatLogin onScan={onOpen} />
+      </>
+    );
+  }
+
+  if (type === 'apple') {
+    return <AppleLogin onSuccess={onSuccess} />;
+  }
+
+  return <GoogleLogin />;
+}

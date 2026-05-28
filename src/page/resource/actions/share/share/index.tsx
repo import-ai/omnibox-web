@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 
 import { HelpTooltip } from '@/components/help-tooltip';
 import { Input } from '@/components/input';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/Button';
+import { Switch } from '@/components/ui/Switch';
 import {
   parseShareInfo,
   ShareInfo,
@@ -15,9 +15,9 @@ import {
 } from '@/interface';
 import { http } from '@/lib/request';
 
-import { Expire } from './expire';
-import { Password } from './password';
-import { ShareTypeSelector } from './share-type';
+import { Expire } from './Expire';
+import { Password } from './Password';
+import { ShareTypeSelector } from './ShareTypeSelector';
 
 interface ShareTabContentProps {
   resource_id: string;

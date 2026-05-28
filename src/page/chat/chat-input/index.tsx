@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import DecisionInput from '@/page/chat/chat-input/decision-input.tsx';
+import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ChatMode,
   InputMode,
@@ -11,16 +11,16 @@ import {
 import {
   MessageStatus,
   OpenAIMessageRole,
-} from '@/page/chat/core/types/chat-response.ts';
+} from '@/page/chat/core/types/chatResponse.ts';
 import {
   Interrupt,
   MessageDetail,
 } from '@/page/chat/core/types/conversation.ts';
 
-import ChatAction from './action';
-import ChatTool from './chat-tool';
-import ChatContext from './context';
-import ChatInput from './input';
+import ChatAction from './ChatAction';
+import ChatContext from './ChatContext';
+import ChatInput from './ChatInput';
+import ChatTool from './ChatTool';
 
 interface RestoredTools {
   conversationKey: string;

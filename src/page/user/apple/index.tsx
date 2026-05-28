@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { AppleIcon } from '@/assets/icons/apple';
+import { AppleIcon } from '@/assets/icons/AppleIcon';
 import { Button } from '@/components/button';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';

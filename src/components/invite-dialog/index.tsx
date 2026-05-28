@@ -2,10 +2,10 @@ import { UserPlus } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 
-import ActionDialog from './action-dialog';
-import InviteForm from './people/invite-form';
+import ActionDialog from './ActionDialog';
+import InviteForm from './people/InviteForm';
 
 interface IProps {
   onFinish?: () => void;

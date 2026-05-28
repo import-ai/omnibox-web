@@ -1,7 +1,7 @@
-import { SidebarInset } from '@/components/ui/sidebar';
+import { SidebarInset } from '@/components/ui/Sidebar';
 
+import Page from './ChatPage';
 import Header from './header';
-import Page from './page';
 
 export default function Chat() {
   return (

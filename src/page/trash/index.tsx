@@ -8,7 +8,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from '@/components/ui/Popover';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -16,19 +16,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { Spinner } from '@/components/ui/spinner';
-import useApp from '@/hooks/use-app';
-import { deleteResource } from '@/lib/delete-resource';
+} from '@/components/ui/Sidebar';
+import { Spinner } from '@/components/ui/Spinner';
+import useApp from '@/hooks/useApp';
+import { deleteResource } from '@/lib/deleteResource';
 import { cn } from '@/lib/utils';
 import type { TreeNode } from '@/page/sidebar/store';
 
-import { ConfirmPermanentDeleteDialog } from './confirm-delete-dialog';
-import { TrashEmpty } from './trash-empty';
-import { TrashFooter } from './trash-footer';
-import { TrashItemRow } from './trash-item';
-import { TrashSearch } from './trash-search';
-import { useTrash } from './use-trash';
+import { ConfirmPermanentDeleteDialog } from './ConfirmPermanentDeleteDialog';
+import { TrashEmpty } from './TrashEmpty';
+import { TrashFooter } from './TrashFooter';
+import { TrashItemRow } from './TrashItemRow';
+import { TrashSearch } from './TrashSearch';
+import { useTrash } from './useTrash';
 
 export function TrashPanel() {
   const { t } = useTranslation();

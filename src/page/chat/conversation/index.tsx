@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
-import { AgentTrial } from '@/page/chat/agent-trial/agent-trial.tsx';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
+import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import ChatArea from '@/page/chat/chat-input';
 import useContext from '@/page/chat/conversation/useContext';
 import { Messages } from '@/page/chat/messages';
 
-import Scrollbar from './scrollbar';
+import Scrollbar from './Scrollbar';
 
 export default function ChatConversationPage() {
   const { t } = useTranslation();

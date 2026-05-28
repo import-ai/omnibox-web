@@ -1,9 +1,9 @@
 import type { ComponentType, SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { SmartFolderDefaultIcon } from '@/assets/icons/smartFolderDefault';
+import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 
-import type { SmartFolderEntitlements } from '../../content/smart-folder';
+import type { SmartFolderEntitlements } from '../smart-folder';
 
 export type ResourceTreeToolId = 'create-smart-folder';
 

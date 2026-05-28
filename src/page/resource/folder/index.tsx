@@ -4,18 +4,18 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import ResourceIcon from '@/assets/icons/resourceIcon';
+import ResourceIcon from '@/assets/icons/ResourceIcon';
 import Loading from '@/components/loading';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import useApp from '@/hooks/use-app';
+import { Button } from '@/components/ui/Button';
+import { Separator } from '@/components/ui/Separator';
+import useApp from '@/hooks/useApp';
 import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
 import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
-import { getSmartFolderChildSidebarKey } from '@/page/sidebar/content/smart-folder';
+import { getSmartFolderChildSidebarKey } from '@/page/sidebar/components/smart-folder';
 
 import { groupTimestampedItemsByTimestamp } from '../utils';
-import { FolderContent } from './content';
+import { FolderContent } from './FolderContent';
 
 interface IProps {
   resourceId: string;

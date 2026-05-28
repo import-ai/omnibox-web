@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next';
 
 import Attributes from '@/components/attributes';
 import Loading from '@/components/loading';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/Sidebar';
 import { cn, setDocumentTitle } from '@/lib/utils';
-import DeletedResourcePage from '@/page/auth/deleted-resource';
+import DeletedResourcePage from '@/page/auth/DeletedResourcePage';
 
 import Folder from '../resource/folder';
-import Render from '../resource/render';
+import Render from '../resource/Render';
 import { useShareContext } from '../share';
 
 export default function SharedResourcePage() {

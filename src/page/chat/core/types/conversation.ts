@@ -4,7 +4,7 @@ import type {
   Citation,
   MessageStatus,
   OpenAIMessage,
-} from '@/page/chat/core/types/chat-response.ts';
+} from '@/page/chat/core/types/chatResponse.ts';
 
 export interface ConversationSummary extends IBase {
   id: string;

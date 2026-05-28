@@ -10,15 +10,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ALLOWED_PHONE_COUNTRIES } from '@/const';
 import { cn } from '@/lib/utils';
 
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { Input } from '../ui/input';
-import { ScrollArea } from '../ui/scroll-area';
+} from '../ui/DropdownMenu';
+import { Input } from '../ui/Input';
+import { ScrollArea } from '../ui/ScrollArea';
 import { countries, type CountryData } from './consts';
 
 /**
