@@ -691,11 +691,17 @@
   },
   "search": {
     "title": "搜索",
-    "placeholder": "搜索页面、文件、对话等",
+    "placeholder": "搜索资源",
+    "clear": "清除",
     "root": "根目录",
     "resources": "资源",
     "chats": "对话",
-    "no_results": "未找到资源"
+    "no_results": "暂无匹配资源",
+    "filters": {
+      "title": "筛选",
+      "all": "全部",
+      "remaining_conditions": "条件行剩余：{{remaining}}/{{total}}"
+    }
   },
   "api_key": {
     "description": "API 密钥允许您通过编程方式访问您的资源。",
@@ -930,23 +936,52 @@
       "hours": "小时"
     }
   },
+  "resource_conditions": {
+    "conditions": "匹配下列条件",
+    "condition_title": "条件{{index}}",
+    "select_field": "选择属性",
+    "select_operator": "选择关系",
+    "value_placeholder": "请输入关键词",
+    "relative_value_placeholder": "请输入数值",
+    "pick_date": "选择日期",
+    "add_condition": "添加条件",
+    "fields": {
+      "title": "标题",
+      "tags": "标签",
+      "content": "正文",
+      "url": "网页链接",
+      "file_name": "文件名称",
+      "created_at": "创建时间"
+    },
+    "operators": {
+      "contains": "包含",
+      "not_contains": "不包含",
+      "equals": "等于",
+      "not_equals": "不等于",
+      "is_empty": "为空",
+      "is_not_empty": "不为空",
+      "in_last": "最近",
+      "not_in_last": "不是最近",
+      "before_date": "早于日期",
+      "after_date": "晚于日期",
+      "between_dates": "在范围内"
+    },
+    "units": {
+      "day": "天",
+      "week": "周",
+      "month": "月",
+      "year": "年"
+    },
+    "date_format": "yyyy年MM月dd日"
+  },
   "smart_folder": {
     "create": {
       "title": "创建智能文件夹",
       "name": "名称",
       "placeholder": "请输入智能文件夹名称",
-      "conditions": "匹配下列条件",
       "description": "符合这些条件的资源会自动出现在智能文件夹中。",
       "owner_scope": "归属于",
       "root_scope": "筛选范围",
-      "condition_title": "条件{{index}}",
-      "select_field": "选择属性",
-      "select_operator": "选择关系",
-      "value_placeholder": "请输入关键词",
-      "relative_value_placeholder": "请输入数值",
-      "pick_date": "选择日期",
-      "no_value_needed": "无需填写值",
-      "add_condition": "添加条件",
       "limit_reached_basic": "筛选条件已达上限（3 条），升级可解锁 10 条",
       "limit_reached_premium": "筛选条件已达上限（10 条）",
       "remaining_conditions": "条件行剩余：{{remaining}} / {{total}}",
@@ -970,33 +1005,6 @@
       "all": "全部",
       "any": "任一"
     },
-    "fields": {
-      "title": "标题",
-      "tags": "标签",
-      "url": "网页链接",
-      "file_name": "文件名称",
-      "content": "正文",
-      "created_at": "创建时间"
-    },
-    "operators": {
-      "contains": "包含",
-      "not_contains": "不包含",
-      "equals": "等于",
-      "not_equals": "不等于",
-      "is_empty": "为空",
-      "is_not_empty": "不为空",
-      "in_last": "最近",
-      "not_in_last": "不是最近",
-      "before_date": "早于日期",
-      "after_date": "晚于日期",
-      "between_dates": "在范围内"
-    },
-    "units": {
-      "day": "天",
-      "week": "周",
-      "month": "月",
-      "year": "年"
-    },
     "validation": {
       "name_required": "请输入智能文件夹名称",
       "name_exists": "资源名称在该目录下已存在。",
@@ -1013,7 +1021,6 @@
       "this_folder": "该",
       "title": "确认将 {{count}} 个智能文件夹移动到回收站？",
       "description": "智能文件夹移动到回收站不会影响其内部资源，移动后可在回收站找回，{{days}} 天后将自动删除。"
-    },
-    "date_format": "yyyy年MM月dd日"
+    }
   }
 }

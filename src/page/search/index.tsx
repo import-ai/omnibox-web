@@ -1,55 +1,37 @@
 import axios from 'axios';
-import { MessageCircle } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import ResourceIcon from '@/assets/icons/ResourceIcon';
-import {
-  CommandDialog,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/Command';
-import type { Resource, ResourceMeta } from '@/interface';
+import { Button } from '@/components/button';
+import { CommandDialog, CommandInput } from '@/components/ui/Command';
+import useConfig from '@/hooks/useConfig';
+import useProNamespaces from '@/hooks/useProNamespaces';
+import type { ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
+import type { ResourceConditionMatchMode } from '@/page/resource/conditions';
+import { useResourceConditions } from '@/page/resource/conditions/useResourceConditions';
+
+import { SearchFilterPanel } from './SearchFilterPanel';
+import {
+  SearchMessageResult,
+  SearchRecentResource,
+  SearchResourceResult,
+  SearchResultList,
+} from './SearchResultList';
+import {
+  buildSearchRequestPayload,
+  shouldRunSearchRequest,
+} from './searchUtils';
 
 export interface IProps {
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-/** Same-origin URL for router paths (used by native ⌘/Ctrl+click → background tab). */
-function appAbsoluteUrl(path: string): string {
-  const normalized = path.startsWith('/') ? path : `/${path}`;
-  return `${window.location.origin}${normalized}`;
-}
-
-const SEARCH_LINK_ROW_CLASS =
-  'flex flex-col items-start w-full text-left !text-foreground no-underline rounded-sm outline-none';
-const SEARCH_LINK_INLINE_CLASS =
-  'flex flex-1 items-center gap-2 min-w-0 text-left !text-foreground no-underline rounded-sm outline-none';
-
-function SearchMenuHitAnchor(props: {
-  path: string;
-  className: string;
-  onClick: React.MouseEventHandler<HTMLAnchorElement>;
-  children: React.ReactNode;
-}) {
-  const { path, className, onClick, children } = props;
-  return (
-    <a
-      href={appAbsoluteUrl(path)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={className}
-      onClick={onClick}
-    >
-      {children}
-    </a>
-  );
-}
+const SEARCH_CONDITION_LIMIT = 3;
 
 export default function SearchMenu({ open, onOpenChange }: IProps) {
   const params = useParams();
@@ -57,11 +39,32 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const { t } = useTranslation();
   const [keywords, setKeywords] = useState('');
   const [items, setItems] = useState<any[]>([]);
-  const [recents, setRecents] = useState<ResourceMeta[]>([]);
+  const [matchMode, setMatchMode] = useState<ResourceConditionMatchMode>('all');
+  const [recents, setRecents] = useState<SearchRecentResource[]>([]);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const skipNavigateAfterModifierClickRef = useRef(false);
+  const namespaceId = params.namespace_id;
+  const { config, loading: configLoading } = useConfig();
+  const { data: proNamespaces } = useProNamespaces({
+    disabled: configLoading || !config.commercial,
+  });
+  const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
+  const {
+    conditions,
+    addCondition,
+    removeCondition,
+    handleFieldChange,
+    handleOperatorChange,
+    handleValueChange,
+  } = useResourceConditions(SEARCH_CONDITION_LIMIT);
+  const remainingConditionCount = Math.max(
+    SEARCH_CONDITION_LIMIT - conditions.length,
+    0
+  );
+  const canAddCondition = conditions.length < SEARCH_CONDITION_LIMIT;
+  const shouldSearch = shouldRunSearchRequest(keywords, conditions);
+  const showRecents = !shouldSearch;
 
-  /** Plain click: SPA navigate via cmdk onSelect. ⌘/Ctrl+click: let <a> default (browser opens background tab). */
   const onSearchResultAnchorClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>) => {
       if (e.metaKey || e.ctrlKey) {
@@ -78,7 +81,24 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     []
   );
 
-  const resources = useMemo(
+  const shouldSkipNavigate = useCallback(() => {
+    if (!skipNavigateAfterModifierClickRef.current) {
+      return false;
+    }
+
+    skipNavigateAfterModifierClickRef.current = false;
+    return true;
+  }, []);
+
+  const handleNavigate = useCallback(
+    (path: string) => {
+      navigate(path);
+      onOpenChange(false);
+    },
+    [navigate, onOpenChange]
+  );
+
+  const resources = useMemo<SearchResourceResult[]>(
     () =>
       items
         .filter(item => item.type === 'resource')
@@ -86,49 +106,35 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           ...item,
           title: item.title || t('untitled'),
           content: item.content || '',
-        }))
-        .map(item => ({
-          ...item,
-          content:
-            item.content.length > 100
-              ? item.content.slice(0, 100) + '...'
-              : item.content,
         })),
-    [items]
+    [items, t]
   );
-  const messages = useMemo(
+  const messages = useMemo<SearchMessageResult[]>(
     () =>
       items
         .filter(item => item.type === 'message')
         .map(item => ({
           ...item,
           content: item.content || '',
-        }))
-        .map(item => ({
-          ...item,
-          content:
-            item.content.length > 100
-              ? item.content.slice(0, 100) + '...'
-              : item.content,
         })),
     [items]
   );
 
-  // Fetch search results
   useEffect(() => {
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
 
-    if (!keywords) {
+    if (!shouldSearch) {
       setItems([]);
       return;
     }
 
     debounceTimeout.current = setTimeout(() => {
       http
-        .get(
-          `/namespaces/${params.namespace_id}/search?query=${encodeURIComponent(keywords)}`
+        .post(
+          `/namespaces/${namespaceId}/search`,
+          buildSearchRequestPayload(keywords, conditions, matchMode)
         )
         .then(data => {
           setItems(data || []);
@@ -137,14 +143,11 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           console.error(err);
         });
     }, 300);
-  }, [keywords]);
+  }, [conditions, keywords, matchMode, namespaceId, shouldSearch]);
 
-  // Fetch recent resources when dialog opens without keywords
   useEffect(() => {
     if (!open) return;
-    if (keywords) return;
-
-    const { namespace_id: namespaceId } = params as { namespace_id?: string };
+    if (!showRecents) return;
     if (!namespaceId) return;
 
     const source = axios.CancelToken.source();
@@ -156,11 +159,13 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           mute: true,
         }
       )
-      .then((items: ResourceMeta[] = []) => setRecents(items || []))
+      .then((items: ResourceMeta[] = []) =>
+        setRecents((items || []) as SearchRecentResource[])
+      )
       .catch(() => void 0);
 
     return () => source.cancel();
-  }, [open, keywords, params.namespace_id]);
+  }, [open, showRecents, namespaceId]);
 
   useEffect(() => {
     const handleKeyDownFN = (e: KeyboardEvent) => {
@@ -171,167 +176,96 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     };
     document.addEventListener('keydown', handleKeyDownFN);
     return () => document.removeEventListener('keydown', handleKeyDownFN);
-  }, []);
+  }, [onOpenChange]);
+
+  const handleClear = () => {
+    setKeywords('');
+    setItems([]);
+  };
 
   return (
     <CommandDialog
       open={open}
       onOpenChange={onOpenChange}
-      className="bg-white dark:bg-[#303030]"
+      contentClassName="w-[calc(100vw-32px)] max-w-[922px] rounded-xl border-none bg-white shadow-xl dark:bg-neutral-900 [&>button]:hidden"
+      className="h-[min(628px,calc(100vh-32px))] rounded-xl bg-white p-4 text-foreground dark:bg-neutral-900"
     >
-      <CommandInput
-        placeholder={t('search.placeholder')}
-        value={keywords}
-        onValueChange={setKeywords}
-      />
-      <CommandList className="min-h-[300px]">
-        {!keywords && (
-          <CommandGroup
-            heading={t('chat.home.recent.title', {
-              defaultValue: 'Recently Updated',
-            })}
-          >
-            {recents.length === 0 ? (
-              <CommandItem value="recent-empty" disabled>
-                {t('chat.home.recent.empty', {
-                  defaultValue: 'No recent resources',
-                })}
-              </CommandItem>
-            ) : (
-              recents.map(item => {
-                const iconResource = {
-                  id: item.id,
-                  name: item.name,
-                  resource_type: item.resource_type,
-                  parent_id: '',
-                  space_type: 'private',
-                  has_children: !!item.has_children,
-                  attrs: (item as any).attrs || {},
-                } as unknown as Resource;
-                const recentPath = `/${params.namespace_id}/${item.id}`;
-                return (
-                  <CommandItem
-                    key={item.id}
-                    value={item.id}
-                    className="cursor-pointer my-1"
-                    onSelect={() => {
-                      if (skipNavigateAfterModifierClickRef.current) {
-                        skipNavigateAfterModifierClickRef.current = false;
-                        return;
-                      }
-                      navigate(recentPath);
-                      onOpenChange(false);
-                    }}
-                  >
-                    <SearchMenuHitAnchor
-                      path={recentPath}
-                      className={SEARCH_LINK_ROW_CLASS}
-                      onClick={onSearchResultAnchorClick}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="[&>svg]:w-4 [&>svg]:h-4 text-muted-foreground">
-                          <ResourceIcon
-                            expand={false}
-                            resource={iconResource}
-                          />
-                        </div>
-                        <div className="font-medium">
-                          {item.name || t('untitled')}
-                        </div>
-                      </div>
-                      {(item as any).content && (
-                        <div className="text-sm text-muted-foreground ml-6">
-                          {(item as any).content}
-                        </div>
-                      )}
-                    </SearchMenuHitAnchor>
-                  </CommandItem>
-                );
-              })
-            )}
-          </CommandGroup>
-        )}
-        {resources.length > 0 && (
-          <CommandGroup heading={t('search.resources')}>
-            {resources.map(resourceItem => {
-              const iconResource = {
-                id: resourceItem.resource_id || resourceItem.id,
-                name: resourceItem.title,
-                resource_type: (resourceItem as any).resource_type,
-                parent_id: '',
-                space_type: 'private',
-                has_children: !!(resourceItem as any).has_children,
-                attrs: (resourceItem as any).attrs || {},
-              } as unknown as Resource;
-              const resourcePath = `/${params.namespace_id}/${resourceItem.resource_id}?query=${encodeURIComponent(keywords)}`;
-              return (
-                <CommandItem
-                  key={resourceItem.resource_id}
-                  value={resourceItem.resource_id}
-                  className="cursor-pointer my-1"
-                  onSelect={() => {
-                    if (skipNavigateAfterModifierClickRef.current) {
-                      skipNavigateAfterModifierClickRef.current = false;
-                      return;
-                    }
-                    navigate(resourcePath);
-                    onOpenChange(false);
-                  }}
-                >
-                  <SearchMenuHitAnchor
-                    path={resourcePath}
-                    className={SEARCH_LINK_ROW_CLASS}
-                    onClick={onSearchResultAnchorClick}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="[&>svg]:w-4 [&>svg]:h-4 text-muted-foreground">
-                        <ResourceIcon expand={false} resource={iconResource} />
-                      </div>
-                      <div className="font-medium">{resourceItem.title}</div>
-                    </div>
-                    {resourceItem.content && (
-                      <div className="text-sm text-muted-foreground ml-6">
-                        {resourceItem.content}
-                      </div>
-                    )}
-                  </SearchMenuHitAnchor>
-                </CommandItem>
-              );
-            })}
-          </CommandGroup>
-        )}
-        {messages.length > 0 && (
-          <CommandGroup heading={t('search.chats')}>
-            {messages.map(message => {
-              const chatPath = `/${params.namespace_id}/chat/${message.conversation_id}`;
-              return (
-                <CommandItem
-                  key={message.id}
-                  value={message.id}
-                  className="cursor-pointer my-1"
-                  onSelect={() => {
-                    if (skipNavigateAfterModifierClickRef.current) {
-                      skipNavigateAfterModifierClickRef.current = false;
-                      return;
-                    }
-                    navigate(chatPath);
-                    onOpenChange(false);
-                  }}
-                >
-                  <SearchMenuHitAnchor
-                    path={chatPath}
-                    className={SEARCH_LINK_INLINE_CLASS}
-                    onClick={onSearchResultAnchorClick}
-                  >
-                    <MessageCircle className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="truncate">{message.content}</span>
-                  </SearchMenuHitAnchor>
-                </CommandItem>
-              );
-            })}
-          </CommandGroup>
-        )}
-      </CommandList>
+      <div className="relative flex h-full flex-col gap-4">
+        <div className="flex h-7 items-center gap-3 border-b border-slate-200 pb-3 dark:border-neutral-800">
+          <CommandInput
+            placeholder={t('search.placeholder')}
+            value={keywords}
+            onValueChange={setKeywords}
+            wrapperClassName="h-7 flex-1 border-b-0 px-0"
+            iconClassName="mr-1 size-4 opacity-70"
+            className="h-7 py-0 text-sm"
+          />
+          <div className="flex shrink-0 items-center justify-end gap-3">
+            <div
+              className={cn(
+                'flex items-center gap-3',
+                !keywords && 'invisible'
+              )}
+            >
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-[22px] rounded bg-accent px-2 text-sm font-normal text-muted-foreground hover:bg-accent"
+                onClick={handleClear}
+              >
+                {t('search.clear')}
+              </Button>
+              <span
+                aria-hidden="true"
+                className="h-4 w-px bg-slate-200 dark:bg-neutral-700"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-4 rounded-none p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
+              onClick={() => onOpenChange(false)}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_1px_268px] gap-0">
+          <div className="min-h-0 min-w-0">
+            <SearchResultList
+              keywords={keywords}
+              messages={messages}
+              namespaceId={namespaceId}
+              onAnchorClick={onSearchResultAnchorClick}
+              onNavigate={handleNavigate}
+              recents={recents}
+              resources={resources}
+              showRecents={showRecents}
+              shouldSkipNavigate={shouldSkipNavigate}
+            />
+          </div>
+          <div className="bg-slate-200 dark:bg-neutral-800" />
+          <div className="min-w-0">
+            <SearchFilterPanel
+              canAddCondition={canAddCondition}
+              conditions={conditions}
+              currentNamespace={currentNamespace}
+              matchMode={matchMode}
+              maxConditionCount={SEARCH_CONDITION_LIMIT}
+              namespaceId={namespaceId}
+              onAddCondition={() => addCondition(conditions.length - 1)}
+              onFieldChange={handleFieldChange}
+              onMatchModeChange={setMatchMode}
+              onOperatorChange={handleOperatorChange}
+              onRemoveCondition={removeCondition}
+              onValueChange={handleValueChange}
+              remainingConditionCount={remainingConditionCount}
+            />
+          </div>
+        </div>
+      </div>
     </CommandDialog>
   );
 }
