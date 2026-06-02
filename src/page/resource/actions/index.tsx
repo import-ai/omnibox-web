@@ -15,7 +15,7 @@ import {
   Trash2,
 } from 'lucide-react';
 // import { Resource } from '@/interface';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -54,6 +54,7 @@ import {
 import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/CreateSmartFolderDialog';
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
+import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 import MoveTo from './move';
@@ -98,6 +99,10 @@ export default function Actions(props: IActionProps) {
     () => hasTeamspaceCache.get(namespaceId) ?? true
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const moveResourceIds = useMemo(
+    () => (resource ? [resource.id] : []),
+    [resource?.id]
+  );
   const canModifyResource =
     (resource?.current_permission || 'full_access') === 'can_edit' ||
     (resource?.current_permission || 'full_access') === 'full_access';
@@ -381,10 +386,25 @@ export default function Actions(props: IActionProps) {
       return;
     }
   };
-  const handleMoveFinished = async (resourceId: string, targetId: string) => {
+  const handleMoveFinished = async (
+    resourceIds: string[],
+    targetId: string
+  ) => {
     setMoveTo(false);
-    setOpen(false);
+    const [resourceId] = resourceIds;
+    if (!resourceId) return;
+    const previousParentId =
+      resource?.id === resourceId
+        ? resource.parent_id || null
+        : (useSidebarStore.getState().nodes[resourceId]?.parentId ?? null);
     await useSidebarStore.getState().move(resourceId, targetId);
+    syncSingleMoveResult({
+      app,
+      currentResourceId: resource?.id,
+      movedId: resourceId,
+      previousParentId,
+      targetId,
+    });
   };
 
   const handleConfirmTrashSmartFolder = () => {
@@ -628,7 +648,7 @@ export default function Actions(props: IActionProps) {
           open={moveTo}
           namespaceId={namespaceId}
           onOpenChange={setMoveTo}
-          resourceId={resource.id}
+          resourceIds={moveResourceIds}
           sourceResourceType={resource.resource_type}
           onFinished={handleMoveFinished}
         />

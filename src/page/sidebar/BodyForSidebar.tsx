@@ -22,11 +22,17 @@ import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-f
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import { fetchChildren } from '@/service/resource';
 
+import { BatchCreateDialog } from './components/BatchCreateDialog';
+import BatchDeleteDialog from './components/BatchDeleteDialog';
+import BatchMoveDialog from './components/BatchMoveDialog';
 import ResourceTree from './components/resource-tree';
 import { CreateFolderDialog } from './components/resource-tree/CreateFolderDialog';
+import { Toolbar } from './components/toolbar';
+import { useBatchOperations } from './hooks/useBatchOperations';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
 import { TreeNode, useSidebarStore } from './store';
+import { getBatchSelectionSummary } from './store/utils';
 
 interface IProps {
   resourceId: string;
@@ -81,6 +87,7 @@ export function BodyForSidebar(props: IProps) {
   const navigate = useNavigate();
   const globalFileInputRef = useRef<HTMLInputElement>(null);
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
+  const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
   const { config, loading: configLoading } = useConfig();
   const { data: proNamespaces } = useProNamespaces({
@@ -128,6 +135,10 @@ export function BodyForSidebar(props: IProps) {
     roots.private,
     roots.teamspace,
   ]);
+  const batchSelection = useMemo(
+    () => getBatchSelectionSummary(nodes, batch.selectedIds),
+    [batch.selectedIds, nodes]
+  );
 
   const handleConfirmCreateSmartFolder = (
     payload: CreateSmartFolderRequest
@@ -257,13 +268,27 @@ export function BodyForSidebar(props: IProps) {
 
   return (
     <React.Fragment>
-      <ResourceTree
-        namespaceId={namespaceId}
+      <Toolbar
+        selectionMode={batch.selectionMode}
+        onDeselectAll={batch.deselectAll}
+        onBatchDelete={batch.openDeleteDialog}
+        onBatchMove={batch.openMoveDialog}
+        onBatchCreate={batch.openCreateDialog}
+        onAddToChat={batch.addSelectedToChat}
+        toggleSelectionMode={batch.toggleSelectionMode}
         entitlements={entitlements}
         hasTeamspace={hasTeamspace}
-        currentNamespace={currentNamespace}
         smartFolderCounts={smartFolderCounts}
         onCreateSmartFolder={() => setCreateSmartFolderOpen(true)}
+      />
+      <ResourceTree
+        namespaceId={namespaceId}
+        hasTeamspace={hasTeamspace}
+        currentNamespace={currentNamespace}
+        onBatchDelete={batch.openDeleteDialog}
+        onBatchMove={batch.openMoveDialog}
+        onBatchCreate={batch.openCreateDialog}
+        onAddToChat={batch.addSelectedToChat}
       />
       <CreateSmartFolderDialog
         open={createSmartFolderOpen}
@@ -340,6 +365,35 @@ export function BodyForSidebar(props: IProps) {
             // request.ts handles backend error toasts.
           }
         }}
+      />
+      <BatchCreateDialog
+        open={batch.createDialogOpen}
+        namespaceId={namespaceId}
+        defaultTargetId={batch.defaultTargetId}
+        selectedIds={batch.selectedIds}
+        onOpenChange={open => {
+          if (!open) {
+            batch.closeCreateDialog();
+          }
+        }}
+        onConfirm={batch.confirmCreate}
+      />
+      <BatchDeleteDialog
+        open={batch.deleteDialogOpen}
+        selection={batchSelection}
+        namespaceId={namespaceId}
+        loading={batch.isProcessing}
+        onConfirm={batch.confirmDelete}
+        onCancel={batch.closeDeleteDialog}
+      />
+      <BatchMoveDialog
+        open={batch.moveDialogOpen}
+        selectedIds={batch.selectedIds}
+        selectedCount={batch.selectedCount}
+        namespaceId={namespaceId}
+        loading={batch.isProcessing}
+        onConfirm={batch.confirmMove}
+        onCancel={batch.closeMoveDialog}
       />
       <Input
         multiple

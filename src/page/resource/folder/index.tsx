@@ -52,6 +52,38 @@ export default function Folder(props: IProps) {
     ? `/namespaces/${namespaceId}/resources`
     : apiPrefix;
 
+  const reloadChildren = useCallback(
+    (cancelToken?: axios.CancelToken) => {
+      onLoading(true);
+      onData([]);
+      setOffset(0);
+      setHasMore(true);
+      const requestUrl = loadAll
+        ? `${apiPrefix}/${resourceId}/children?summary=true`
+        : `${apiPrefix}/${resourceId}/children?summary=true&offset=0&limit=${PAGE_SIZE}`;
+
+      return http
+        .get(requestUrl, {
+          cancelToken,
+          mute: isSmartFolder,
+        })
+        .then((res: Array<ResourceSummary>) => {
+          onData(res);
+          setHasMore(!loadAll && res.length === PAGE_SIZE);
+        })
+        .catch(error => {
+          if (isSmartFolder && error.response?.status === 404) {
+            onData([]);
+            setHasMore(false);
+          }
+        })
+        .finally(() => {
+          onLoading(false);
+        });
+    },
+    [apiPrefix, isSmartFolder, loadAll, resourceId]
+  );
+
   const reloadSmartFolderChildren = useCallback(() => {
     if (!smartFolderParentId) {
       return;
@@ -78,36 +110,12 @@ export default function Folder(props: IProps) {
   }, [apiPrefix, smartFolderParentId]);
 
   useEffect(() => {
-    onLoading(true);
-    onData([]);
-    setOffset(0);
-    setHasMore(true);
     const source = axios.CancelToken.source();
-    const requestUrl = loadAll
-      ? `${apiPrefix}/${resourceId}/children?summary=true`
-      : `${apiPrefix}/${resourceId}/children?summary=true&offset=0&limit=${PAGE_SIZE}`;
-    http
-      .get(requestUrl, {
-        cancelToken: source.token,
-        mute: isSmartFolder,
-      })
-      .then((res: Array<ResourceSummary>) => {
-        onData(res);
-        setHasMore(!loadAll && res.length === PAGE_SIZE);
-      })
-      .catch(error => {
-        if (isSmartFolder && error.response?.status === 404) {
-          onData([]);
-          setHasMore(false);
-        }
-      })
-      .finally(() => {
-        onLoading(false);
-      });
+    reloadChildren(source.token);
     return () => {
       source.cancel();
     };
-  }, [apiPrefix, loadAll, resourceId]);
+  }, [reloadChildren]);
 
   const loadMore = useCallback(() => {
     if (loadAll || loadingMore || !hasMore) return;
@@ -149,7 +157,6 @@ export default function Folder(props: IProps) {
     if (!smartFolderParentId) return;
     const hooks = [
       app.on('delete_resource', reloadSmartFolderChildren),
-      app.on('move_resource', reloadSmartFolderChildren),
       app.on('update_resource', reloadSmartFolderChildren),
       app.on('restore_resource', reloadSmartFolderChildren),
     ];
@@ -157,6 +164,24 @@ export default function Folder(props: IProps) {
       hooks.forEach(unsub => unsub());
     };
   }, [app, reloadSmartFolderChildren, smartFolderParentId]);
+
+  useEffect(() => {
+    return app.on('batch_move_resource_children_changed', (id: string) => {
+      if (id === resourceId) {
+        if (smartFolderParentId) {
+          reloadSmartFolderChildren();
+          return;
+        }
+        reloadChildren();
+      }
+    });
+  }, [
+    app,
+    reloadChildren,
+    reloadSmartFolderChildren,
+    resourceId,
+    smartFolderParentId,
+  ]);
 
   useEffect(() => {
     return app.on('scroll-to-bottom', () => {

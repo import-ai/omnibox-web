@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Arrow } from '@/assets/icons/Arrow';
+import { Checkbox } from '@/components/Checkbox';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
@@ -25,7 +26,14 @@ import { cn } from '@/lib/utils';
 import { getSmartFolderSourceResourceId } from '@/page/sidebar/components/smart-folder';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/useResourceNodeDnd';
 import type { TreeNode } from '@/page/sidebar/store';
-import { useSidebarStore } from '@/page/sidebar/store';
+import {
+  useIsSelected,
+  useNodeIsDimmedBySelection,
+  useNodeIsFullySelected,
+  useSelectionState,
+  useSidebarStore,
+} from '@/page/sidebar/store';
+import { isBatchSelectableNode } from '@/page/sidebar/store/utils';
 
 import Action from './NodeActions';
 import ContextMenuMain from './NodeContextMenu';
@@ -38,15 +46,25 @@ const CLICK_DEBOUNCE_DELAY = 250;
 interface ResourceNodeContentProps {
   node: TreeNode;
   nodeId: string;
+  depth: number;
   hasTeamspace: boolean;
   currentNamespace?: Namespace;
+  onBatchDelete: () => void;
+  onBatchMove: () => void;
+  onBatchCreate: () => void;
+  onAddToChat: () => void;
 }
 
 export function ResourceNodeContent({
   node,
   nodeId,
+  depth,
   hasTeamspace,
   currentNamespace,
+  onBatchDelete,
+  onBatchMove,
+  onBatchCreate,
+  onAddToChat,
 }: ResourceNodeContentProps) {
   const app = useApp();
   const { t } = useTranslation();
@@ -60,6 +78,10 @@ export function ResourceNodeContent({
   const nodeUI = useSidebarStore(s => s.ui[nodeId]);
   const activeId = useSidebarStore(s => s.activeId);
   const renamingId = useSidebarStore(s => s.renamingId);
+  const { selectionMode, lastSelectedId, selectedIds } = useSelectionState();
+  const isSelected = useIsSelected(nodeId);
+  const isFullySelected = useNodeIsFullySelected(nodeId);
+  const isDimmedBySelection = useNodeIsDimmedBySelection(nodeId);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const clickTimeoutRef = useRef<number | null>(null);
@@ -83,13 +105,26 @@ export function ResourceNodeContent({
       : activeId;
   const isActive = nodeId === activeSidebarKey;
   const isEditing = nodeId === renamingId;
+  const isSelectionHighlighted = isSelected || isFullySelected;
+  const isExpanded = nodeUI?.expanded === true;
+  const selectedIdList = useMemo(() => Object.keys(selectedIds), [selectedIds]);
+  const contentIndent = depth * 20;
+  const nodeIndent = node.hasChildren ? 4 : 28;
+  const isSelectable = isBatchSelectableNode(node);
 
-  const { ref, dragStyle, isOver, isFileDragOver } = useResourceNodeDnd(
-    nodeId,
-    node,
-    isEditing,
-    { namespaceId }
-  );
+  const {
+    dragRef,
+    dropRef,
+    dragStyle,
+    isOver,
+    isDisabledOver,
+    isFileDragOver,
+  } = useResourceNodeDnd(nodeId, node, isEditing, {
+    namespaceId,
+    selectionMode,
+    isSelected,
+    selectedIds: selectedIdList,
+  });
 
   useEffect(() => {
     isEditingRef.current = isEditing;
@@ -120,7 +155,7 @@ export function ResourceNodeContent({
   const handleExpand = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-    if (nodeUI?.expanded) {
+    if (isExpanded) {
       useSidebarStore.getState().collapse(nodeId);
     } else {
       useSidebarStore.getState().expand(nodeId);
@@ -134,7 +169,7 @@ export function ResourceNodeContent({
       } else {
         handleNavigate(sourceResourceId || nodeId);
         useSidebarStore.getState().activate(nodeId);
-        if (!nodeUI?.expanded) {
+        if (!isExpanded) {
           useSidebarStore.getState().expand(nodeId);
         }
       }
@@ -226,11 +261,23 @@ export function ResourceNodeContent({
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (selectionMode) return;
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
     }
     startRename();
+  };
+
+  const handleSelectionChange = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    useSidebarStore
+      .getState()
+      .toggleSelection(
+        nodeId,
+        event.shiftKey ? lastSelectedId || undefined : undefined
+      );
   };
 
   const handleBlur = () => {
@@ -255,10 +302,10 @@ export function ResourceNodeContent({
   return (
     <SidebarMenuItem>
       <Collapsible
-        open={nodeUI?.expanded}
+        open={isExpanded}
         className={cn('group/collapsible', {
           '[&[data-state=open]>span>div>div>button>svg:first-child]:rotate-90':
-            nodeUI?.expanded && !nodeUI?.loading && node.hasChildren,
+            isExpanded && !nodeUI?.loading && node.hasChildren,
         })}
       >
         <CollapsibleTrigger asChild>
@@ -268,27 +315,61 @@ export function ResourceNodeContent({
             onRename={() => {
               startRename();
             }}
+            batchActions={{
+              onCreate: onBatchCreate,
+              onMove: onBatchMove,
+              onAddToChat,
+              onDelete: onBatchDelete,
+            }}
           >
-            <div className="group/sidebar-item my-px rounded-md hover:bg-sidebar-accent">
+            <div
+              ref={dropRef}
+              data-resource-id={nodeId}
+              className={cn(
+                'group/sidebar-item my-px rounded-md hover:bg-sidebar-accent',
+                'flex items-center',
+                (isActive || isEditing) &&
+                  'hover:bg-[#E2E2E6] bg-[#E2E2E6] dark:bg-[#363637]',
+                selectionMode && 'pl-2',
+                isSelectionHighlighted &&
+                  'bg-[#E2E2E6] dark:bg-[#363637] hover:bg-[#E2E2E6]',
+                (isFileDragOver || isOver) &&
+                  'bg-sidebar-accent text-sidebar-accent-foreground',
+                isDisabledOver && 'cursor-not-allowed [&_*]:cursor-not-allowed'
+              )}
+            >
+              {selectionMode && isSelectable && (
+                <Checkbox
+                  onClick={handleSelectionChange}
+                  muted={isDimmedBySelection}
+                  aria-label={t('batch.multi_select')}
+                  checked={isFullySelected}
+                />
+              )}
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
-                    className="h-auto gap-1 py-1.5 transition-none group-hover/sidebar-item:!pr-[30px] group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:bg-[#E2E2E6] data-[active=true]:font-normal dark:data-[active=true]:bg-[#363637]"
+                    className={cn(
+                      'h-auto gap-1 py-1.5 transition-none bg-transparent group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
+                      !selectionMode && 'group-hover/sidebar-item:!pr-[30px]',
+                      isDisabledOver && 'cursor-not-allowed'
+                    )}
                     onClick={handleClick}
                     onDoubleClick={handleDoubleClick}
                     isActive={isActive || isEditing}
                   >
                     <div
-                      ref={ref}
+                      ref={dragRef}
                       data-resource-id={nodeId}
-                      style={dragStyle}
-                      className={cn('list flex cursor-pointer', {
-                        'pl-1': node.hasChildren,
-                        'pl-7': !node.hasChildren,
-                        'bg-sidebar-accent text-sidebar-accent-foreground':
-                          isFileDragOver || isOver,
-                      })}
+                      className={cn(
+                        'list flex',
+                        isDisabledOver ? 'cursor-not-allowed' : 'cursor-pointer'
+                      )}
+                      style={{
+                        ...dragStyle,
+                        paddingLeft: `${contentIndent + nodeIndent}px`,
+                      }}
                     >
                       {node.hasChildren &&
                         (nodeUI?.loading ? (
@@ -314,7 +395,7 @@ export function ResourceNodeContent({
                           </Button>
                         ))}
                       <ResourceTypeIcon
-                        expand={nodeUI?.expanded}
+                        expand={isExpanded}
                         resource={{
                           id: node.id,
                           name: node.name,
@@ -355,28 +436,35 @@ export function ResourceNodeContent({
                   </TooltipContent>
                 )}
               </Tooltip>
-              <Action
-                nodeId={nodeId}
-                namespaceId={namespaceId}
-                upload={upload}
-                onRename={() => {
-                  startRename();
-                }}
-              />
+              {!selectionMode && (
+                <Action
+                  nodeId={nodeId}
+                  namespaceId={namespaceId}
+                  upload={upload}
+                  onRename={() => {
+                    startRename();
+                  }}
+                />
+              )}
             </div>
           </ContextMenuMain>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <SidebarMenuSub className="mr-0 gap-0 py-0 pr-0">
-            {nodeUI?.expanded &&
+          <SidebarMenuSub className="m-0 translate-x-0 gap-0 border-0 p-0">
+            {isExpanded &&
               node.hasChildren &&
               node.children.length > 0 &&
               node.children.map(childId => (
                 <ResourceNode
                   nodeId={childId}
                   key={childId}
+                  depth={depth + 1}
                   hasTeamspace={hasTeamspace}
                   currentNamespace={currentNamespace}
+                  onBatchDelete={onBatchDelete}
+                  onBatchMove={onBatchMove}
+                  onBatchCreate={onBatchCreate}
+                  onAddToChat={onAddToChat}
                 />
               ))}
           </SidebarMenuSub>

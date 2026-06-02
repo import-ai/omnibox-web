@@ -8,10 +8,15 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/ContextMenu';
+import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
 import { useNodeActions } from '@/page/sidebar/hooks/useNodeActions';
-import { useNodeMenu } from '@/page/sidebar/hooks/useNodeMenu';
+import {
+  BatchMenuActions,
+  useNodeMenu,
+} from '@/page/sidebar/hooks/useNodeMenu';
 
+import { DisabledMenuTooltip } from './DisabledMenuTooltip';
 import { menuIconClass, menuItemClass } from './shared';
 
 interface NodeContextMenuProps {
@@ -19,6 +24,7 @@ interface NodeContextMenuProps {
   namespaceId: string;
   children: React.ReactNode;
   onRename?: () => void;
+  batchActions?: BatchMenuActions;
 }
 
 export default function NodeContextMenu({
@@ -26,6 +32,7 @@ export default function NodeContextMenu({
   namespaceId,
   children,
   onRename,
+  batchActions,
 }: NodeContextMenuProps) {
   const [contextOpen, setContextOpen] = useState(false);
 
@@ -53,12 +60,17 @@ export default function NodeContextMenu({
     return children;
   }
 
-  const menuItems = useNodeMenu(actions, 'direct', () => {
-    setContextOpen(false);
-    window.setTimeout(() => {
-      onRename?.();
-    }, 150);
-  });
+  const menu = useNodeMenu(
+    actions,
+    'direct',
+    () => {
+      setContextOpen(false);
+      window.setTimeout(() => {
+        onRename?.();
+      }, 150);
+    },
+    batchActions
+  );
 
   return (
     <>
@@ -66,42 +78,73 @@ export default function NodeContextMenu({
         <ContextMenuTrigger disabled={isActuallyDragging}>
           {children}
         </ContextMenuTrigger>
-        <ContextMenuContent>
-          {menuItems.map(item => {
-            if (item.separator) {
-              return <ContextMenuSeparator key={item.key} />;
-            }
-
-            const Icon = item.icon;
-            return (
-              <ContextMenuItem
-                key={item.key}
-                className={
-                  item.destructive
-                    ? 'group cursor-pointer gap-2 data-[highlighted]:text-destructive'
-                    : menuItemClass
+        <ContextMenuContent
+          className={cn(menu.disabledTip && 'cursor-not-allowed')}
+        >
+          <DisabledMenuTooltip side="top" content={menu.disabledTip}>
+            <div className={cn(menu.disabledTip && 'cursor-not-allowed')}>
+              {menu.items.map(item => {
+                if (item.separator) {
+                  return <ContextMenuSeparator key={item.key} />;
                 }
-                onClick={item.onClick}
-                onSelect={item.onSelect}
-              >
-                <Icon
-                  className={
-                    item.destructive
-                      ? 'size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]'
-                      : menuIconClass
-                  }
-                />
-                {item.label}
-              </ContextMenuItem>
-            );
-          })}
+
+                const Icon = item.icon;
+                const menuItem = (
+                  <ContextMenuItem
+                    key={item.key}
+                    className={
+                      item.destructive
+                        ? cn(
+                            'group gap-2 data-[highlighted]:text-destructive',
+                            item.disabled
+                              ? 'cursor-not-allowed text-muted-foreground opacity-50'
+                              : 'cursor-pointer'
+                          )
+                        : cn(
+                            menuItemClass,
+                            item.disabled &&
+                              'cursor-not-allowed text-muted-foreground opacity-50'
+                          )
+                    }
+                    onClick={item.disabled ? undefined : item.onClick}
+                    onSelect={item.onSelect}
+                    disabled={item.disabled && !item.disabledTip}
+                    aria-disabled={item.disabled}
+                  >
+                    <Icon
+                      className={
+                        item.destructive
+                          ? 'size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]'
+                          : menuIconClass
+                      }
+                    />
+                    {item.label}
+                  </ContextMenuItem>
+                );
+
+                if (item.disabled && item.disabledTip) {
+                  return (
+                    <DisabledMenuTooltip
+                      side="top"
+                      key={item.key}
+                      content={item.disabledTip}
+                    >
+                      {menuItem}
+                    </DisabledMenuTooltip>
+                  );
+                }
+
+                return menuItem;
+              })}
+            </div>
+          </DisabledMenuTooltip>
         </ContextMenuContent>
       </ContextMenu>
       {actions.moveTo && (
         <>
           <MoveTo
             open={true}
-            resourceId={nodeId}
+            resourceIds={[nodeId]}
             onOpenChange={actions.setMoveTo}
             namespaceId={namespaceId}
             sourceResourceType={node.resourceType}

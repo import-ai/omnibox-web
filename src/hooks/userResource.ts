@@ -84,10 +84,16 @@ export default function useResource() {
 
       if (!isCurrentResource && !isInPath) return;
 
-      const newName = delta.name ?? '';
-      const updatedPath = resource.path?.map(item =>
-        item.id === delta.id ? { ...item, name: newName } : item
-      );
+      const updatedPath =
+        isCurrentResource && delta.path !== undefined
+          ? delta.path
+          : delta.name !== undefined
+            ? resource.path?.map(item =>
+                item.id === delta.id
+                  ? { ...item, name: delta.name || '' }
+                  : item
+              )
+            : resource.path;
 
       onResource({
         ...resource,
@@ -95,6 +101,10 @@ export default function useResource() {
           ...(delta.name !== undefined && { name: delta.name }),
           ...(delta.content !== undefined && { content: delta.content }),
           ...(delta.tags !== undefined && { tags: delta.tags }),
+          ...(delta.parent_id !== undefined && { parent_id: delta.parent_id }),
+          ...(delta.space_type !== undefined && {
+            space_type: delta.space_type,
+          }),
         }),
         path: updatedPath,
       });

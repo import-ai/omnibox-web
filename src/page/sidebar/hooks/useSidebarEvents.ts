@@ -103,7 +103,7 @@ function refreshLoadedSmartFolders(
  *
  * Only genuinely cross-module events are handled here:
  * - delete_resource, generate_resource, restore_resource
- * - update_resource (editor/resource-tasks → sidebar)
+ * - update_resource (editor/resource-tasks -> sidebar)
  *
  * Sidebar-internal actions (expand, collapse, rename, scroll, etc.)
  * are called directly on the store by components.
@@ -132,9 +132,12 @@ export function useSidebarEvents(namespaceId: string) {
       }
       const last = resources[resources.length - 1];
       useSidebarStore.getState().activate(last.id);
-      navigate(`/${namespaceId}/${last.id}`);
+      navigate(`/${namespaceId}/${last.id}`, {
+        state: { fromSidebar: true },
+      });
       refreshLoadedSmartFolders(namespaceId, app);
     };
+
     const handleUpdatedResource = async (delta: Resource | string) => {
       const resource =
         typeof delta === 'string'
@@ -148,10 +151,12 @@ export function useSidebarEvents(namespaceId: string) {
       });
       refreshLoadedSmartFolders(namespaceId, app);
     };
+
     const handleRefreshResourceChildren = async (resourceId: string) => {
       const children = await fetchChildren(namespaceId, resourceId);
       useSidebarStore.getState().refreshChildren(resourceId, children);
     };
+
     const handleScrollToResource = async (
       targetId: string,
       parentId?: string
@@ -259,14 +264,6 @@ export function useSidebarEvents(namespaceId: string) {
     );
 
     hooks.push(
-      app.on('move_resource', (id: string, parentId: string) => {
-        (async () => {
-          await useSidebarStore.getState().move(id, parentId);
-          refreshLoadedSmartFolders(namespaceId, app);
-        })();
-      })
-    );
-    hooks.push(
       app.on('expand_resource', (resourceId: string) => {
         useSidebarStore
           .getState()
@@ -296,6 +293,11 @@ export function useSidebarEvents(namespaceId: string) {
     hooks.push(
       app.on('refresh_smart_folder_children', (id: string) => {
         refreshSmartFolderChildren(id, namespaceId, app);
+      })
+    );
+    hooks.push(
+      app.on('refresh_loaded_smart_folders', () => {
+        refreshLoadedSmartFolders(namespaceId, app);
       })
     );
 

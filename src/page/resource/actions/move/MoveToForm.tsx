@@ -1,32 +1,48 @@
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LazyInput } from '@/components/input/LazyInput';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import type { Resource, ResourceType } from '@/interface';
+import type { Resource, ResourceMeta } from '@/interface';
+import type { ResourceType } from '@/interface';
 import each from '@/lib/each';
-import { http } from '@/lib/request';
+import { fetchRootResources, searchResources } from '@/service/resource';
 
 import FormResource from './Resource';
 
 export interface IFormProps {
-  resourceId: string;
+  resourceIds: string[];
   namespaceId: string;
+  showDisabledTargets?: boolean;
+  disabledTargetIds?: string[];
+  disabledTargetTooltip?: string;
   sourceResourceType?: ResourceType;
-  onFinished?: (resouceId: string, targetId: string) => void;
+  onFinished?: (
+    resourceIds: string[],
+    targetId: string,
+    targetName?: string
+  ) => void;
 }
 
 export default function MoveToForm(props: IFormProps) {
-  const { resourceId, namespaceId, sourceResourceType, onFinished } = props;
+  const {
+    resourceIds,
+    namespaceId,
+    showDisabledTargets,
+    disabledTargetIds,
+    disabledTargetTooltip,
+    sourceResourceType,
+    onFinished,
+  } = props;
   const { t } = useTranslation();
   const [editId, onEditId] = useState('');
   const [search, onSearch] = useState('');
   const [loading, onLoading] = useState(false);
   const [data, onData] = useState<{
     root: Array<Resource>;
-    resources: Array<Resource>;
+    resources: Array<Resource | ResourceMeta>;
   }>({
     root: [],
     resources: [],
@@ -35,8 +51,7 @@ export default function MoveToForm(props: IFormProps) {
   useEffect(() => {
     onLoading(true);
     if (!search) {
-      http
-        .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
+      fetchRootResources(namespaceId)
         .then(response => {
           const root: Array<Resource> = [];
           const resources: Array<Resource> = [];
@@ -47,24 +62,16 @@ export default function MoveToForm(props: IFormProps) {
             }
             root.push({ ...item, spaceType });
             if (Array.isArray(item.children) && item.children.length > 0) {
-              const resourceChildrenIdToRemove: Array<string> = [];
-              each(item.children, children => {
-                if (
-                  children.parent_id === resourceId ||
-                  resourceChildrenIdToRemove.includes(children.parent_id)
-                ) {
-                  resourceChildrenIdToRemove.push(children.id);
-                }
-              });
-              if (resourceChildrenIdToRemove.length > 0) {
+              if (!showDisabledTargets) {
+                const resourceChildrenIdToRemove = new Set(resourceIds);
+                each(item.children, children => {
+                  if (resourceChildrenIdToRemove.has(children.parent_id)) {
+                    resourceChildrenIdToRemove.add(children.id);
+                  }
+                });
                 item.children = item.children.filter(
                   (children: Resource) =>
-                    !resourceChildrenIdToRemove.includes(children.id) &&
-                    children.id !== resourceId
-                );
-              } else {
-                item.children = item.children.filter(
-                  (children: Resource) => children.id !== resourceId
+                    !resourceChildrenIdToRemove.has(children.id)
                 );
               }
               resources.push(...item.children);
@@ -77,20 +84,44 @@ export default function MoveToForm(props: IFormProps) {
         });
       return;
     }
-    http
-      .get(
-        `/namespaces/${namespaceId}/resources/search?exclude_resource_id=${resourceId}&name=${encodeURIComponent(search)}`
-      )
+
+    searchResources(namespaceId, search)
       .then(response => {
+        if (showDisabledTargets) {
+          onData({
+            root: [],
+            resources: response,
+          });
+          return;
+        }
+
+        const resourceIdSet = new Set(resourceIds);
         onData({
           root: [],
-          resources: response,
+          resources: response.filter(
+            (resource: Resource) => !resourceIdSet.has(resource.id)
+          ),
         });
       })
       .finally(() => {
         onLoading(false);
       });
-  }, [search]);
+  }, [search, resourceIds, namespaceId, showDisabledTargets]);
+
+  const disabledResourceIds = useMemo(() => {
+    const ids = new Set(
+      showDisabledTargets ? (disabledTargetIds ?? resourceIds) : resourceIds
+    );
+    if (!showDisabledTargets) {
+      return ids;
+    }
+    each(data.resources, resource => {
+      if (ids.has(resource.parent_id)) {
+        ids.add(resource.id);
+      }
+    });
+    return ids;
+  }, [data.resources, disabledTargetIds, resourceIds, showDisabledTargets]);
 
   return (
     <div>
@@ -125,8 +156,11 @@ export default function MoveToForm(props: IFormProps) {
                 onEditId={onEditId}
                 onSearch={onSearch}
                 onFinished={onFinished}
-                resourceId={resourceId}
-                namespaceId={namespaceId}
+                resourceIds={resourceIds}
+                disabled={disabledResourceIds.has(item.id)}
+                disabledTooltip={
+                  showDisabledTargets ? disabledTargetTooltip : undefined
+                }
                 sourceResourceType={sourceResourceType}
               />
             ))}
@@ -149,8 +183,11 @@ export default function MoveToForm(props: IFormProps) {
                 onEditId={onEditId}
                 onSearch={onSearch}
                 onFinished={onFinished}
-                resourceId={resourceId}
-                namespaceId={namespaceId}
+                resourceIds={resourceIds}
+                disabled={disabledResourceIds.has(item.id)}
+                disabledTooltip={
+                  showDisabledTargets ? disabledTargetTooltip : undefined
+                }
                 sourceResourceType={sourceResourceType}
               />
             ))}
