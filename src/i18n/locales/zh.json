@@ -951,7 +951,8 @@
       "content": "正文",
       "url": "网页链接",
       "file_name": "文件名称",
-      "created_at": "创建时间"
+      "created_at": "创建时间",
+      "updated_at": "更新时间"
     },
     "operators": {
       "contains": "包含",

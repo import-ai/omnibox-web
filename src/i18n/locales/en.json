@@ -950,7 +950,8 @@
       "content": "Content",
       "url": "Web link",
       "file_name": "File name",
-      "created_at": "Created time"
+      "created_at": "Created time",
+      "updated_at": "Updated time"
     },
     "operators": {
       "contains": "Contains",

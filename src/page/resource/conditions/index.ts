@@ -6,7 +6,8 @@ export type ResourceConditionField =
   | 'url'
   | 'file_name'
   | 'content'
-  | 'created_at';
+  | 'created_at'
+  | 'updated_at';
 
 export type ResourceConditionFieldType = 'text' | 'date';
 

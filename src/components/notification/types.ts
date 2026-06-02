@@ -1,4 +1,4 @@
-export type NotificationFilter = 'all' | 'unread' | 'read';
+export type NotificationFilter = 'all' | 'unread';
 
 export interface NotificationItemDto {
   id: string;

@@ -44,6 +44,7 @@ const FIELD_DEFINITIONS: Record<
   url: { type: 'text', operators: TEXT_OPERATORS },
   file_name: { type: 'text', operators: TEXT_OPERATORS },
   created_at: { type: 'date', operators: DATE_OPERATORS },
+  updated_at: { type: 'date', operators: DATE_OPERATORS },
 };
 
 export const VALUE_LESS_OPERATORS = new Set<ResourceConditionOperator>([
