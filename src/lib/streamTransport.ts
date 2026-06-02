@@ -65,8 +65,6 @@ function createSSETransport(
   };
 }
 
-let activeWebSocketFinish: (() => void) | null = null;
-
 function createWebSocketTransport(
   event: string,
   body: Record<string, any>,
@@ -96,9 +94,6 @@ function createWebSocketTransport(
     cleanup();
     resolveStart?.();
     resolveStart = undefined;
-    if (activeWebSocketFinish === finish) {
-      activeWebSocketFinish = null;
-    }
   };
 
   const errorHandler = (error: { error: string }) => {
@@ -112,12 +107,9 @@ function createWebSocketTransport(
 
   return {
     start: () => {
-      activeWebSocketFinish?.();
-
       return new Promise<void>(resolve => {
         isAborted = false;
         resolveStart = resolve;
-        activeWebSocketFinish = finish;
         socket.on('message', messageHandler);
         socket.on('error', errorHandler);
         socket.on('complete', completeHandler);

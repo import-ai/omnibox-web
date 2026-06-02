@@ -20,6 +20,7 @@ interface IProps {
   messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
+  regeneratingMessageId?: string | null;
 }
 
 function renderMessage(
@@ -30,7 +31,8 @@ function renderMessage(
   messageOperator: MessageOperator,
   onRegenerate: (messageId: string) => void,
   onEdit: (messageId: string, newContent: string) => void,
-  isLastMessage: boolean
+  isLastMessage: boolean,
+  regeneratingMessageId: string | null
 ) {
   const openAIMessage = message.message;
 
@@ -56,6 +58,8 @@ function renderMessage(
         messageOperator={messageOperator}
         onRegenerate={onRegenerate}
         isLastMessage={isLastMessage}
+        regenerateDisabled={Boolean(regeneratingMessageId)}
+        regenerating={regeneratingMessageId === message.id}
       />
     );
   }
@@ -66,8 +70,14 @@ function renderMessage(
 }
 
 export function Messages(props: IProps) {
-  const { messages, conversation, messageOperator, onRegenerate, onEdit } =
-    props;
+  const {
+    messages,
+    conversation,
+    messageOperator,
+    onRegenerate,
+    onEdit,
+    regeneratingMessageId = null,
+  } = props;
   const citations = React.useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
@@ -106,7 +116,8 @@ export function Messages(props: IProps) {
               messageOperator,
               onRegenerate,
               onEdit,
-              isLastAssistantMessage
+              isLastAssistantMessage,
+              regeneratingMessageId
             )}
             {message.status === MessageStatus.FAILED &&
               message.attrs?.error_message && (
