@@ -12,7 +12,11 @@ import {
   ToolType,
 } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
-import { messageProcessor } from '@/page/chat/core/messageProcessor.ts';
+import {
+  ChatDeltaResponse,
+  ChatErrorResponse,
+  ChatResponse,
+} from '@/page/chat/core/types/chatResponse.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 
 function getPrivateSearchResources(
@@ -174,9 +178,39 @@ export function ask(
   if (tool_call) {
     chatReq.tool_call = tool_call;
   }
-  return createStreamTransport(url, chatReq, async data =>
-    messageProcessor(messageOperator, data)
-  );
+  let streamMessageId: string | undefined;
+  return createStreamTransport(url, chatReq, async data => {
+    const chatResponse: ChatResponse = JSON.parse(data);
+    if (chatResponse.response_type === 'bos') {
+      streamMessageId = chatResponse.id;
+      messageOperator.add(chatResponse);
+    } else if (chatResponse.response_type === 'delta') {
+      messageOperator.update(chatResponse, streamMessageId);
+    } else if (chatResponse.response_type === 'eos') {
+      messageOperator.done(streamMessageId);
+      streamMessageId = undefined;
+    } else if (chatResponse.response_type === 'metrics') {
+      messageOperator.update(
+        {
+          response_type: 'delta',
+          message: {},
+          attrs: {
+            metrics: {
+              tps: chatResponse.tps,
+              tokens: chatResponse.tokens,
+            },
+          },
+        } as ChatDeltaResponse,
+        streamMessageId
+      );
+    } else if (chatResponse.response_type === 'error') {
+      messageOperator.error(chatResponse as ChatErrorResponse, streamMessageId);
+      streamMessageId = undefined;
+      console.error(chatResponse);
+    } else if (chatResponse.response_type !== 'done') {
+      console.error({ message: 'Unknown response type', chatResponse });
+    }
+  });
 }
 
 /**
