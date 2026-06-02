@@ -153,5 +153,5 @@ refactor(tasks): Add timeout status
 
 **Do NOT include**:
 
-- "Generated with xxx" or similar attribution
-- "Co-Authored-By: xxx" or any co-author tags
+- "Generated with Claude Code" or similar attribution
+- "Co-Authored-By: Claude" or any Claude co-author tags

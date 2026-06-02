@@ -48,6 +48,10 @@ interface SpaceSectionContentProps {
   isOpen: boolean;
   hasTeamspace: boolean;
   currentNamespace?: Namespace;
+  onBatchDelete: () => void;
+  onBatchMove: () => void;
+  onBatchCreate: () => void;
+  onAddToChat: () => void;
 }
 
 export function SpaceSectionContent({
@@ -58,6 +62,10 @@ export function SpaceSectionContent({
   isOpen,
   hasTeamspace,
   currentNamespace,
+  onBatchDelete,
+  onBatchMove,
+  onBatchCreate,
+  onAddToChat,
 }: SpaceSectionContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -219,6 +227,10 @@ export function SpaceSectionContent({
                   key={childId}
                   hasTeamspace={hasTeamspace}
                   currentNamespace={currentNamespace}
+                  onBatchDelete={onBatchDelete}
+                  onBatchMove={onBatchMove}
+                  onBatchCreate={onBatchCreate}
+                  onAddToChat={onAddToChat}
                 />
               ))}
           </SidebarMenu>

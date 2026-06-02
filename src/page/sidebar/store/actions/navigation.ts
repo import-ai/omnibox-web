@@ -78,7 +78,6 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
                 }
               }
             }
-
             s.autoExpandedKeys[`${s.namespaceId}:${id}`] = true;
           });
         } catch (err) {

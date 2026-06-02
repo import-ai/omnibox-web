@@ -5,7 +5,6 @@ import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import useApp from '@/hooks/useApp';
 import type { Resource, ResourceType, SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
 
@@ -17,13 +16,18 @@ interface IResource extends Resource {
 
 interface IProps {
   data: IResource;
-  resourceId: string;
-  namespaceId: string;
+  resourceIds: string[];
   sourceResourceType?: ResourceType;
+  disabled?: boolean;
+  disabledTooltip?: string;
   editId: string;
   onEditId: (editId: string) => void;
   onSearch: (val: string) => void;
-  onFinished?: (resouceId: string, targetId: string) => void;
+  onFinished?: (
+    resourceIds: string[],
+    targetId: string,
+    targetName?: string
+  ) => void;
 }
 
 export default function Resource(props: IProps) {
@@ -31,12 +35,13 @@ export default function Resource(props: IProps) {
     data,
     editId,
     onEditId,
-    resourceId,
+    resourceIds,
     sourceResourceType,
+    disabled: disabledByProps,
+    disabledTooltip,
     onSearch,
     onFinished,
   } = props;
-  const app = useApp();
   const { t } = useTranslation();
   const resourceName = data.name || t('untitled');
   let name = resourceName;
@@ -48,17 +53,18 @@ export default function Resource(props: IProps) {
     sourceResourceType,
     data.resource_type
   );
-  const disabled = isMoving || disabledByResourceType;
+  const disabled = Boolean(
+    isMoving || disabledByProps || disabledByResourceType
+  );
   const handleMove = () => {
     if (disabled) {
       return;
     }
 
     onEditId(data.id);
-    app.fire('move_resource_start');
     onEditId('');
     onSearch('');
-    onFinished?.(resourceId, data.id);
+    onFinished?.(resourceIds, data.id, name);
   };
 
   const button = (
@@ -67,7 +73,7 @@ export default function Resource(props: IProps) {
       disabled={disabled}
       className={cn(
         'flex h-auto w-full items-start justify-start whitespace-normal rounded-none font-normal',
-        disabledByResourceType && 'opacity-50'
+        (disabledByProps || disabledByResourceType) && 'opacity-50'
       )}
       onClick={handleMove}
     >
@@ -84,7 +90,13 @@ export default function Resource(props: IProps) {
     </Button>
   );
 
-  if (!disabledByResourceType) {
+  const tooltipContent = disabledByResourceType
+    ? t('smart_folder.move.unsupported_mixed_target')
+    : disabledByProps
+      ? disabledTooltip
+      : undefined;
+
+  if (!tooltipContent) {
     return button;
   }
 
@@ -93,9 +105,7 @@ export default function Resource(props: IProps) {
       <TooltipTrigger asChild>
         <span className="block">{button}</span>
       </TooltipTrigger>
-      <TooltipContent>
-        {t('smart_folder.move.unsupported_mixed_target')}
-      </TooltipContent>
+      <TooltipContent>{tooltipContent}</TooltipContent>
     </Tooltip>
   );
 }
