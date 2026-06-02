@@ -285,6 +285,7 @@ export function SearchFilterPanel({
   const { t } = useTranslation();
   const showUpgradeButton =
     maxConditionCount <= getConditionLimitValue('basic');
+  const showMatchModeSelect = conditions.length > 1;
   const addButtonTooltip = t(
     getSearchConditionLimitMessageKey(maxConditionCount)
   );
@@ -311,29 +312,30 @@ export function SearchFilterPanel({
           )}
         </div>
       </div>
-
       <div className="mt-4 space-y-2">
         <p className="text-sm font-medium leading-[1.4] text-foreground">
           {t('resource_conditions.conditions')}
         </p>
-        <Select
-          value={matchMode}
-          onValueChange={value =>
-            onMatchModeChange(value as ResourceConditionMatchMode)
-          }
-        >
-          <SelectTrigger className={cn(compactControlClass, 'w-[103px]')}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">
-              {t('smart_folder.match_mode.all')}
-            </SelectItem>
-            <SelectItem value="any">
-              {t('smart_folder.match_mode.any')}
-            </SelectItem>
-          </SelectContent>
-        </Select>
+        {showMatchModeSelect && (
+          <Select
+            value={matchMode}
+            onValueChange={value =>
+              onMatchModeChange(value as ResourceConditionMatchMode)
+            }
+          >
+            <SelectTrigger className={cn(compactControlClass, 'w-[103px]')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                {t('smart_folder.match_mode.all')}
+              </SelectItem>
+              <SelectItem value="any">
+                {t('smart_folder.match_mode.any')}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="mt-4 space-y-5">
