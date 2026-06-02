@@ -5,11 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { LazyInput } from '@/components/input/LazyInput';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import type { Resource } from '@/interface';
-import { http } from '@/lib/request';
+import type { Resource, ResourceMeta } from '@/interface';
+import { fetchRootResources, searchResources } from '@/service/resource';
 
 interface ResourceItemProps {
-  resource: Resource;
+  resource: ResourceMeta;
   spaceType?: string;
   onSelect: (resourceId: string) => void;
   selected: boolean;
@@ -65,7 +65,7 @@ export default function ResourceSearch({
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<{
     root: Array<Resource & { spaceType?: string }>;
-    resources: Array<Resource>;
+    resources: Array<Resource | ResourceMeta>;
   }>({
     root: [],
     resources: [],
@@ -74,8 +74,7 @@ export default function ResourceSearch({
   useEffect(() => {
     setLoading(true);
     if (!search) {
-      http
-        .get(`/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`)
+      fetchRootResources(namespaceId)
         .then(response => {
           const root: Array<Resource & { spaceType?: string }> = [];
           const resources: Array<Resource> = [];
@@ -98,10 +97,7 @@ export default function ResourceSearch({
       return;
     }
 
-    http
-      .get(
-        `/namespaces/${namespaceId}/resources/search?name=${encodeURIComponent(search)}`
-      )
+    searchResources(namespaceId, search)
       .then(response => {
         setData({
           root: [],

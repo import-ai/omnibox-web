@@ -18,10 +18,13 @@ interface IProps extends IFormProps {
 export default function MoveTo(props: IProps) {
   const {
     open,
-    resourceId,
+    resourceIds,
     namespaceId,
     onOpenChange,
     onFinished,
+    showDisabledTargets,
+    disabledTargetIds,
+    disabledTargetTooltip,
     sourceResourceType,
   } = props;
 
@@ -35,10 +38,13 @@ export default function MoveTo(props: IProps) {
           </VisuallyHidden>
         </DialogHeader>
         <Form
-          resourceId={resourceId}
+          resourceIds={resourceIds}
           namespaceId={namespaceId}
           sourceResourceType={sourceResourceType}
           onFinished={onFinished}
+          showDisabledTargets={showDisabledTargets}
+          disabledTargetIds={disabledTargetIds}
+          disabledTargetTooltip={disabledTargetTooltip}
         />
       </DialogContent>
     </Dialog>

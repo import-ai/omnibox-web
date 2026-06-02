@@ -972,55 +972,97 @@
       "month": "Month",
       "year": "Year"
     },
-    "date_format": "LLL dd, y"
-  },
-  "smart_folder": {
-    "create": {
-      "title": "Create Smart Folder",
-      "name": "Name",
-      "placeholder": "Please enter the name of the smart folder",
-      "description": "Resources matching these conditions will appear in the smart folder automatically.",
-      "owner_scope": "Belongs to",
-      "root_scope": "Filter scope",
-      "limit_reached_basic": "Condition limit reached (3). Upgrade to unlock 10.",
-      "limit_reached_premium": "Condition limit reached (10).",
-      "remaining_conditions": "Rows left: {{remaining}} / {{total}}",
-      "personal_quota_exhausted": "Personal quota is exhausted. Upgrade for unlimited creation.",
-      "team_quota_exhausted": "Team quota is exhausted. Upgrade for unlimited creation.",
-      "quota_exhausted": "Quota is exhausted. Upgrade for unlimited creation.",
-      "all_quota_exhausted": "All quotas are exhausted. Upgrade for unlimited creation.",
-      "unsaved_title": "Your smart folder configuration is not saved. Exit anyway?",
-      "unsaved_description": "After exiting, the current changes will not be saved.",
-      "success": "Smart folder created"
+    "date_format": "LLL dd, y",
+    "batch": {
+      "multi_select": "Multi-select",
+      "selected_count": "{{count}} selected",
+      "move_tooltip": "Move to",
+      "delete_tooltip": "Move to trash",
+      "exit_tooltip": "Exit multi-select (Esc)",
+      "create_tooltip": "Create folder with selected resources",
+      "add_to_chat_tooltip": "Add selected resources to chat",
+      "delete_title": "Move {{count}} resources to trash?",
+      "delete_description": "You can restore them from trash. They will be automatically deleted after {{days}} days.",
+      "delete_smart_folder_title": "Move {{count}} smart folders to trash?",
+      "delete_smart_folder_description": "Moving smart folders to trash will not affect their internal resources. You can restore them from trash, and they will be automatically deleted after {{days}} days.",
+      "delete_mixed_description": "You can restore them from trash. They will be automatically deleted after {{days}} days. (Moving smart folders to trash will not affect their internal resources.)",
+      "delete": "OK",
+      "delete_success": "Successfully moved {{count}} resources to trash",
+      "delete_failed": "Delete failed",
+      "delete_partial_error": "Successfully moved {{success}} resources to trash. {{failed}} resources were not authorized",
+      "move_confirm": "Move",
+      "move_confirm_title": "Move the selected {{count}} resources to \"{{target}}\"?",
+      "move_confirm_description": "This action cannot be undone.",
+      "move_success": "Successfully moved {{count}} resources",
+      "move_failed": "Move failed",
+      "move_partial_error": "Successfully moved {{success}} resources. {{failed}} were not authorized",
+      "move_name_conflict_failed": "The selected resources were not moved because resources with the same name already exist. Batch operation failed",
+      "move_name_conflict_partial": "Successfully moved {{success}} resources. {{failed}} were not moved because resources with the same name already exist",
+      "move_target_readonly": "The target location is view-only. Resources cannot be moved there",
+      "create_name_label": "Name",
+      "create_target_label": "Add to",
+      "create_placeholder": "Enter folder name",
+      "create_success": "Folder created. Selected resources were moved automatically",
+      "create_partial_success": "Folder created. {{success}} resources were moved, and {{fail}} were not authorized",
+      "create_failed": "Create failed",
+      "create_target_readonly": "The target location is view-only. Folders cannot be created there",
+      "create_name_conflict": "A resource with the same name already exists in the current directory",
+      "name_too_long": "Name cannot exceed {{max}} characters",
+      "add_to_chat_success": "Successfully added {{count}} resources to chat",
+      "select_required": "Select resources before operating",
+      "smart_folder_unsupported_action": "Smart folders do not support this operation.",
+      "smart_folder_child_unselectable": "Smart folder child items cannot be selected",
+      "all_forbidden": "None of the selected resources are authorized. Batch operation failed",
+      "operating_resource": "You are batch operating this resource"
     },
-    "scope": {
-      "personal": "Personal",
-      "team": "Team",
-      "all": "Personal + Team"
-    },
-    "move": {
-      "unsupported_mixed_target": "Smart folders and regular resources cannot be moved into each other."
-    },
-    "match_mode": {
-      "all": "All",
-      "any": "Any"
-    },
-    "validation": {
-      "name_required": "Please enter a smart folder name",
-      "name_exists": "A resource with this name already exists in this folder.",
-      "name_too_long": "Name cannot exceed 128 characters.",
-      "condition_incomplete": "Please complete this condition"
-    },
-    "empty": "No matching resources yet. You can edit the filter rules.",
-    "edit": {
-      "title": "Edit smart folders",
-      "submit": "Save",
-      "success": "Smart folder updated"
-    },
-    "trash": {
-      "this_folder": "this",
-      "title": "Move {{count}} smart folder to trash?",
-      "description": "Moving a smart folder to the Recycle Bin will not affect its internal resources. After being moved, it can be retrieved from the Recycle Bin, and it will be automatically deleted after {{days}} days."
+    "smart_folder": {
+      "create": {
+        "title": "Create Smart Folder",
+        "name": "Name",
+        "placeholder": "Please enter the name of the smart folder",
+        "description": "Resources matching these conditions will appear in the smart folder automatically.",
+        "owner_scope": "Belongs to",
+        "root_scope": "Filter scope",
+        "limit_reached_basic": "Condition limit reached (3). Upgrade to unlock 10.",
+        "limit_reached_premium": "Condition limit reached (10).",
+        "remaining_conditions": "Rows left: {{remaining}} / {{total}}",
+        "personal_quota_exhausted": "Personal quota is exhausted. Upgrade for unlimited creation.",
+        "team_quota_exhausted": "Team quota is exhausted. Upgrade for unlimited creation.",
+        "quota_exhausted": "Quota is exhausted. Upgrade for unlimited creation.",
+        "all_quota_exhausted": "All quotas are exhausted. Upgrade for unlimited creation.",
+        "unsaved_title": "Your smart folder configuration is not saved. Exit anyway?",
+        "unsaved_description": "After exiting, the current changes will not be saved.",
+        "success": "Smart folder created"
+      },
+      "scope": {
+        "personal": "Personal",
+        "team": "Team",
+        "all": "Personal + Team"
+      },
+      "move": {
+        "unsupported_mixed_target": "Smart folders and regular resources cannot be moved into each other."
+      },
+      "match_mode": {
+        "all": "All",
+        "any": "Any"
+      },
+      "validation": {
+        "name_required": "Please enter a smart folder name",
+        "name_exists": "A resource with this name already exists in this folder.",
+        "name_too_long": "Name cannot exceed 128 characters.",
+        "condition_incomplete": "Please complete this condition"
+      },
+      "empty": "No matching resources yet. You can edit the filter rules.",
+      "edit": {
+        "title": "Edit smart folders",
+        "submit": "Save",
+        "success": "Smart folder updated"
+      },
+      "trash": {
+        "this_folder": "this",
+        "title": "Move {{count}} smart folder to trash?",
+        "description": "Moving a smart folder to the Recycle Bin will not affect its internal resources. After being moved, it can be retrieved from the Recycle Bin, and it will be automatically deleted after {{days}} days."
+      }
     }
   }
 }

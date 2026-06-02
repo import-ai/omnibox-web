@@ -40,17 +40,15 @@ export function ConfirmPermanentDeleteDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-sm">
+      <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="cancel-btn-outline">
-            {t('cancel')}
-          </AlertDialogCancel>
+          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
           <AlertDialogAction
-            className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={handleConfirm}
           >
             {t('delete')}

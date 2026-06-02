@@ -12,9 +12,11 @@ export default function ResourceTypeIcon(props: ResourceTypeIconProps) {
   const { expand = false, resource, contextType } = props;
 
   return (
-    <ResourceIcon
-      expand={expand}
-      resource={normalizeResourceMeta(resource, { contextType })}
-    />
+    <span className="size-4 shrink-0 [&_svg]:size-4 [&_img]:size-4">
+      <ResourceIcon
+        expand={expand}
+        resource={normalizeResourceMeta(resource, { contextType })}
+      />
+    </span>
   );
 }

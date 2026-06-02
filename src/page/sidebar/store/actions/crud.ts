@@ -8,6 +8,7 @@ import {
 
 import type { SidebarGet, SidebarSet } from '../types';
 import {
+  collapseEmptyNode,
   createNode,
   detectSpaceType,
   ensureUI,
@@ -65,7 +66,7 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
           const parent = s.nodes[parentId];
           if (parent) {
             parent.children = parent.children.filter(cid => cid !== id);
-            parent.hasChildren = parent.children.length > 0;
+            collapseEmptyNode(s, parentId);
           }
         }
 
@@ -129,7 +130,7 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
             oldParent.children = oldParent.children.filter(
               cid => cid !== dragId
             );
-            oldParent.hasChildren = oldParent.children.length > 0;
+            collapseEmptyNode(s, oldParentId);
           }
         }
 

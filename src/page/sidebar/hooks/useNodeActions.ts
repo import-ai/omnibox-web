@@ -14,11 +14,13 @@ import {
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
   isSmartFolderChildResource,
+  SmartFolderResponse,
 } from '@/page/sidebar/components/smart-folder';
-import { SmartFolderResponse } from '@/page/sidebar/components/smart-folder';
 import { useNode, useSidebarStore } from '@/page/sidebar/store';
 import type { TreeNode } from '@/page/sidebar/store/types';
 import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
+
+import { getCurrentResourceId, syncSingleMoveResult } from './batchMoveSync';
 
 export interface UseNodeActionsReturn {
   node: ReturnType<typeof useNode>;
@@ -36,7 +38,7 @@ export interface UseNodeActionsReturn {
   handleUpload: () => void;
   handleDelete: () => void;
   handleMoveTo: () => void;
-  handleMoveFinished: (resourceId: string, targetId: string) => void;
+  handleMoveFinished: (resourceIds: string[], targetId: string) => void;
   handleAddToChat: () => void;
   handleAddAllToChat: () => void;
 }
@@ -74,6 +76,7 @@ export function useNodeActions(
   const isMobile = useIsMobile();
   const { setOpenMobile } = useSidebar();
   const node = useNode(nodeId);
+  const loc = useLocation();
 
   const [moveTo, setMoveTo] = useState(false);
   const isSmartFolderChild = node ? isSmartFolderChildResource(node) : false;
@@ -162,7 +165,6 @@ export function useNodeActions(
     app.fire('scroll_to_resource', sourceResourceId, sourceParentId);
   };
 
-  const loc = useLocation();
   const addToContext = (type: 'resource' | 'folder') => {
     const contextResource =
       node && isSmartFolderChild
@@ -220,11 +222,28 @@ export function useNodeActions(
     triggerGlobalFileUpload(nodeId);
   };
 
-  const handleMoveFinished = async (resourceId: string, targetId: string) => {
+  const handleMoveFinished = async (
+    resourceIds: string[],
+    targetId: string
+  ) => {
     setMoveTo(false);
+    const [resourceId] = resourceIds;
+    if (!resourceId) return;
+
+    const previousParentId =
+      useSidebarStore.getState().nodes[resourceId]?.parentId ?? null;
     await useSidebarStore
       .getState()
       .move(resourceId, targetId)
+      .then(() => {
+        syncSingleMoveResult({
+          app,
+          currentResourceId: getCurrentResourceId(loc.pathname, namespaceId),
+          movedId: resourceId,
+          previousParentId,
+          targetId,
+        });
+      })
       .catch(() => {
         // request.ts handles backend error toasts.
       });
