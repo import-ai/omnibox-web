@@ -127,7 +127,7 @@ export function SearchResultList({
   );
 
   return (
-    <CommandList className="h-full max-h-none overflow-y-auto overflow-x-hidden pr-2">
+    <CommandList className="h-full max-h-none overflow-y-auto overflow-x-hidden pr-2 [scrollbar-width:thin] [scrollbar-color:#E6E8EB_transparent] dark:[scrollbar-color:#4b5563_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#E6E8EB] dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-track]:bg-transparent">
       {showNoResults ? (
         <div className="flex h-full items-center justify-center px-2 text-sm text-muted-foreground">
           {t('search.no_results')}

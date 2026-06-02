@@ -8,10 +8,12 @@ import { Button } from '@/components/button';
 import { CommandDialog, CommandInput } from '@/components/ui/Command';
 import useConfig from '@/hooks/useConfig';
 import useProNamespaces from '@/hooks/useProNamespaces';
-import type { ResourceMeta } from '@/interface';
+import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
+import { NamespaceTier, type ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 import type { ResourceConditionMatchMode } from '@/page/resource/conditions';
+import { getConditionLimitValue } from '@/page/resource/conditions/resourceConditionUtils';
 import { useResourceConditions } from '@/page/resource/conditions/useResourceConditions';
 
 import { SearchFilterPanel } from './SearchFilterPanel';
@@ -31,8 +33,6 @@ export interface IProps {
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const SEARCH_CONDITION_LIMIT = 3;
-
 export default function SearchMenu({ open, onOpenChange }: IProps) {
   const params = useParams();
   const navigate = useNavigate();
@@ -49,6 +49,12 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     disabled: configLoading || !config.commercial,
   });
   const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
+  const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
+  const resolvedTier =
+    entitlements?.tier ??
+    (currentNamespace?.tier === NamespaceTier.PREMIUM ? 'premium' : 'basic');
+  const maxConditionCount =
+    entitlements?.ruleLimit ?? getConditionLimitValue(resolvedTier);
   const {
     conditions,
     addCondition,
@@ -56,12 +62,12 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     handleFieldChange,
     handleOperatorChange,
     handleValueChange,
-  } = useResourceConditions(SEARCH_CONDITION_LIMIT);
+  } = useResourceConditions(maxConditionCount);
   const remainingConditionCount = Math.max(
-    SEARCH_CONDITION_LIMIT - conditions.length,
+    maxConditionCount - conditions.length,
     0
   );
-  const canAddCondition = conditions.length < SEARCH_CONDITION_LIMIT;
+  const canAddCondition = conditions.length < maxConditionCount;
   const shouldSearch = shouldRunSearchRequest(keywords, conditions);
   const showRecents = !shouldSearch;
 
@@ -253,7 +259,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
               conditions={conditions}
               currentNamespace={currentNamespace}
               matchMode={matchMode}
-              maxConditionCount={SEARCH_CONDITION_LIMIT}
+              maxConditionCount={maxConditionCount}
               namespaceId={namespaceId}
               onAddCondition={() => addCondition(conditions.length - 1)}
               onFieldChange={handleFieldChange}
