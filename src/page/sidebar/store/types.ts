@@ -51,7 +51,6 @@ export interface BatchOperationResult {
   failed: Array<{ id: string; error: Error }>;
   nameConflictIds?: string[];
   smartFolderUnsupported?: boolean;
-  targetError?: unknown;
   resourceId?: string;
   nextId?: string | null;
   navigateToChat?: boolean;

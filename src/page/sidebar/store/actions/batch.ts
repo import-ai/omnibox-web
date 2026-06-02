@@ -28,9 +28,6 @@ import {
 } from '../utils';
 
 export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
-  const isTargetNotEditableError = (error: unknown) =>
-    (error as any)?.response?.data?.code === 'target_not_editable';
-
   const finishBatchSelection = (s: SidebarStore) => {
     s.selectionMode = Object.keys(s.selectedIds).length > 0;
     if (!s.selectionMode) {
@@ -159,23 +156,16 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       const requestedIds = getTopLevelSelectedIds(get().nodes, ids);
       const result: BatchOperationResult = { success: [], failed: [] };
 
-      try {
-        const response = await batchDeleteResources(
-          get().namespaceId,
-          requestedIds
-        );
-        result.success = response.success_ids.filter(id =>
-          requestedIds.includes(id)
-        );
-        result.failed = response.failed_ids
-          .filter(id => requestedIds.includes(id))
-          .map(id => ({ id, error: new Error('Delete failed') }));
-      } catch (error) {
-        result.failed = requestedIds.map(id => ({
-          id,
-          error: error as Error,
-        }));
-      }
+      const response = await batchDeleteResources(
+        get().namespaceId,
+        requestedIds
+      );
+      result.success = response.success_ids.filter(id =>
+        requestedIds.includes(id)
+      );
+      result.failed = response.failed_ids
+        .filter(id => requestedIds.includes(id))
+        .map(id => ({ id, error: new Error('Delete failed') }));
 
       const chatContextRemovedIds = result.success.flatMap(id => [
         id,
@@ -248,6 +238,7 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         failed: [],
         nameConflictIds: [],
       };
+      let requestError: unknown;
       const snapshots = new Map<
         string,
         {
@@ -351,14 +342,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
               .map(id => ({ id, error: new Error('Move failed') }))
           );
         } catch (error) {
-          const isTargetError = isTargetNotEditableError(error);
-          result.targetError = isTargetError ? error : undefined;
+          requestError = error;
           result.failed.push(
             ...validIds.map(id => ({
               id,
-              error: isTargetError
-                ? new Error('Target is not editable')
-                : (error as Error),
+              error: error as Error,
             }))
           );
         }
@@ -432,8 +420,8 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         finishBatchSelection(s);
       });
 
-      if (result.targetError) {
-        throw result.targetError;
+      if (requestError) {
+        throw requestError;
       }
 
       return result;
