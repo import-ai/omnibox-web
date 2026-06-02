@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -10,7 +10,7 @@ import { getTopLevelSelectedIds } from '../store/utils';
 import {
   getCurrentResourceId,
   getPreviousParentIds,
-  syncBatchMoveResult,
+  syncMoveResult,
 } from './batchMoveSync';
 
 interface UseBatchOperationsOptions {
@@ -58,7 +58,10 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
   const [isProcessing, setIsProcessing] = useState(false);
   const selectionState = useSelectionState();
   const selectedCount = useSelectedCount();
-  const selectedIdList = Object.keys(selectionState.selectedIds);
+  const selectedIdList = useMemo(
+    () => Object.keys(selectionState.selectedIds),
+    [selectionState.selectedIds]
+  );
   const nodes = useSidebarStore(state => state.nodes);
   const toggleSelectionMode = () => {
     useSidebarStore.getState().setSelectionMode(!selectionMode);
@@ -192,7 +195,7 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         );
       }
       if (result.success.length > 0) {
-        syncBatchMoveResult({
+        syncMoveResult({
           app,
           currentResourceId: getCurrentResourceId(
             location.pathname,

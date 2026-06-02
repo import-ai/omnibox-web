@@ -20,6 +20,8 @@ import { useNode, useSidebarStore } from '@/page/sidebar/store';
 import type { TreeNode } from '@/page/sidebar/store/types';
 import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
 
+import { getCurrentResourceId, syncSingleMoveResult } from './batchMoveSync';
+
 export interface UseNodeActionsReturn {
   node: ReturnType<typeof useNode>;
 
@@ -228,9 +230,20 @@ export function useNodeActions(
     const [resourceId] = resourceIds;
     if (!resourceId) return;
 
+    const previousParentId =
+      useSidebarStore.getState().nodes[resourceId]?.parentId ?? null;
     await useSidebarStore
       .getState()
       .move(resourceId, targetId)
+      .then(() => {
+        syncSingleMoveResult({
+          app,
+          currentResourceId: getCurrentResourceId(loc.pathname, namespaceId),
+          movedId: resourceId,
+          previousParentId,
+          targetId,
+        });
+      })
       .catch(() => {
         // request.ts handles backend error toasts.
       });

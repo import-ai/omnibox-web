@@ -54,6 +54,7 @@ import {
 import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/CreateSmartFolderDialog';
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
+import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 import MoveTo from './move';
@@ -390,10 +391,20 @@ export default function Actions(props: IActionProps) {
     targetId: string
   ) => {
     setMoveTo(false);
-    setOpen(false);
     const [resourceId] = resourceIds;
     if (!resourceId) return;
+    const previousParentId =
+      resource?.id === resourceId
+        ? resource.parent_id || null
+        : (useSidebarStore.getState().nodes[resourceId]?.parentId ?? null);
     await useSidebarStore.getState().move(resourceId, targetId);
+    syncSingleMoveResult({
+      app,
+      currentResourceId: resource?.id,
+      movedId: resourceId,
+      previousParentId,
+      targetId,
+    });
   };
 
   const handleConfirmTrashSmartFolder = () => {

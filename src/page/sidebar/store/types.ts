@@ -70,7 +70,6 @@ export interface SidebarState {
   selectedIds: Record<string, boolean>;
   selectionMode: boolean;
   lastSelectedId: string | null;
-  failedIds: Record<string, boolean>;
   batchDragging: boolean;
   smartFolderEntitlementsVersion: number;
 }
@@ -179,7 +178,6 @@ export const initialState: SidebarState = {
   selectedIds: {},
   selectionMode: false,
   lastSelectedId: null,
-  failedIds: {},
   batchDragging: false,
   smartFolderEntitlementsVersion: 0,
 };

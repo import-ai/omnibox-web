@@ -264,14 +264,6 @@ export function useSidebarEvents(namespaceId: string) {
     );
 
     hooks.push(
-      app.on('move_resource', (id: string, parentId: string) => {
-        (async () => {
-          await useSidebarStore.getState().move(id, parentId);
-          refreshLoadedSmartFolders(namespaceId, app);
-        })();
-      })
-    );
-    hooks.push(
       app.on('expand_resource', (resourceId: string) => {
         useSidebarStore
           .getState()

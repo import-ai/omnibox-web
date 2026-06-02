@@ -11,7 +11,6 @@ import {
   calculateSelectedCount,
   isNodeDimmedBySelection,
   isNodeFullySelected,
-  isNodeIndeterminate,
 } from './utils';
 
 export type {
@@ -39,7 +38,6 @@ export {
   isDescendant,
   isNodeDimmedBySelection,
   isNodeFullySelected,
-  isNodeIndeterminate,
   patchNodeFromResource,
   traverseDescendants,
 } from './utils';
@@ -112,19 +110,12 @@ export function useSelectionState() {
       selectedIds: state.selectedIds,
       selectionMode: state.selectionMode,
       lastSelectedId: state.lastSelectedId,
-      failedIds: state.failedIds,
     }))
   );
 }
 
 export function useSelectionMode(): boolean {
   return useSidebarStore(state => state.selectionMode);
-}
-
-export function useNodeIsIndeterminate(id: string): boolean {
-  return useSidebarStore(state =>
-    isNodeIndeterminate(state.nodes, state.selectedIds, id)
-  );
 }
 
 export function useNodeIsFullySelected(id: string): boolean {

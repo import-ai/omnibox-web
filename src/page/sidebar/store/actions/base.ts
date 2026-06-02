@@ -9,7 +9,6 @@ export function buildBaseActions(set: SidebarSet) {
     s.selectedIds = {};
     s.selectionMode = false;
     s.lastSelectedId = null;
-    s.failedIds = {};
     s.batchDragging = false;
   };
 

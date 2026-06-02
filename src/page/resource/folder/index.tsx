@@ -157,7 +157,6 @@ export default function Folder(props: IProps) {
     if (!smartFolderParentId) return;
     const hooks = [
       app.on('delete_resource', reloadSmartFolderChildren),
-      app.on('move_resource', reloadSmartFolderChildren),
       app.on('update_resource', reloadSmartFolderChildren),
       app.on('restore_resource', reloadSmartFolderChildren),
     ];

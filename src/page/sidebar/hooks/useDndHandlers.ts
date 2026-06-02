@@ -14,7 +14,8 @@ import { isValidFileType } from '../utils';
 import {
   getCurrentResourceId,
   getPreviousParentIds,
-  syncBatchMoveResult,
+  syncMoveResult,
+  syncSingleMoveResult,
 } from './batchMoveSync';
 
 interface UseDndHandlersOptions {
@@ -168,15 +169,21 @@ export function useDndHandlers({
     if (onNodeDrop) {
       onNodeDrop(dragId, targetId);
     } else {
+      const previousParentId = dragNode?.parentId ?? null;
       return useSidebarStore
         .getState()
         .move(dragId, targetId)
         .then(() => {
-          useSidebarStore.getState().activate(targetId);
-          navigate(`/${namespaceId}/${targetId}`, {
-            state: { fromSidebar: true },
+          syncSingleMoveResult({
+            app,
+            currentResourceId: getCurrentResourceId(
+              location.pathname,
+              namespaceId
+            ),
+            movedId: dragId,
+            previousParentId,
+            targetId,
           });
-          app.fire('scroll_to_resource', targetId);
         })
         .catch(() => {
           // request.ts handles backend error toasts.
@@ -230,7 +237,7 @@ export function useDndHandlers({
           });
         }
         if (result.success.length > 0) {
-          syncBatchMoveResult({
+          syncMoveResult({
             app,
             currentResourceId: getCurrentResourceId(
               location.pathname,

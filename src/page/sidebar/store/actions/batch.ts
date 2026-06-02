@@ -59,7 +59,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
 
           if (!rangeStartId && selectedAncestorId) {
             delete s.selectedIds[selectedAncestorId];
-            delete s.failedIds[selectedAncestorId];
             const excludedIds = new Set([
               targetId,
               ...getDescendantIds(s.nodes, targetId),
@@ -70,25 +69,19 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             )) {
               if (excludedIds.has(descendantId)) {
                 delete s.selectedIds[descendantId];
-                delete s.failedIds[descendantId];
               } else {
                 s.selectedIds[descendantId] = true;
-                delete s.failedIds[descendantId];
               }
             }
           } else if (rangeStartId || !selected) {
             s.selectedIds[targetId] = true;
-            delete s.failedIds[targetId];
             for (const descendantId of getDescendantIds(s.nodes, targetId)) {
               delete s.selectedIds[descendantId];
-              delete s.failedIds[descendantId];
             }
           } else {
             delete s.selectedIds[targetId];
-            delete s.failedIds[targetId];
             for (const descendantId of getDescendantIds(s.nodes, targetId)) {
               delete s.selectedIds[descendantId];
-              delete s.failedIds[descendantId];
             }
           }
 
@@ -98,7 +91,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             if (!parent) break;
             if (parent.parentId) {
               delete s.selectedIds[parentId];
-              delete s.failedIds[parentId];
             }
             parentId = parent.parentId;
           }
@@ -124,7 +116,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
               continue;
             }
             s.selectedIds[childId] = true;
-            delete s.failedIds[childId];
           }
         }
 
@@ -136,7 +127,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       set(s => {
         s.selectedIds = {};
         s.lastSelectedId = null;
-        s.failedIds = {};
       });
     },
 
@@ -145,7 +135,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         s.selectedIds = {};
         s.selectionMode = false;
         s.lastSelectedId = null;
-        s.failedIds = {};
       });
     },
 
@@ -155,7 +144,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         if (!enabled) {
           s.selectedIds = {};
           s.lastSelectedId = null;
-          s.failedIds = {};
         }
       });
     },
@@ -224,7 +212,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             delete s.nodes[removedId];
             delete s.ui[removedId];
             delete s.selectedIds[removedId];
-            delete s.failedIds[removedId];
             if (s.activeId === removedId) {
               s.activeId = null;
             }
@@ -234,12 +221,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           s.activeId = nextActiveId;
           result.nextId = nextActiveId;
           result.navigateToChat = !nextActiveId;
-        }
-
-        if (result.success.length > 0) {
-          for (const item of result.failed) {
-            s.failedIds[item.id] = true;
-          }
         }
         finishBatchSelection(s);
       });
@@ -342,8 +323,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             const ui = s.ui[descendant.id];
             if (ui) ui.expanded = false;
           });
-
-          delete s.failedIds[id];
         }
       };
 
@@ -392,9 +371,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           const snapshot = snapshots.get(item.id);
           const node = s.nodes[item.id];
           if (!snapshot || !node) {
-            if (!result.targetError) {
-              s.failedIds[item.id] = true;
-            }
             continue;
           }
 
@@ -429,12 +405,6 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
               snapshot.descendantSpaceTypes[descendant.id] ??
               snapshot.spaceType;
           });
-
-          if (result.targetError) {
-            delete s.failedIds[item.id];
-          } else {
-            s.failedIds[item.id] = true;
-          }
         }
 
         const unappliedSuccessIds = result.success.filter(
@@ -453,9 +423,7 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             const movedIds = [id, ...getDescendantIds(s.nodes, id)];
             for (const movedId of movedIds) {
               delete s.selectedIds[movedId];
-              delete s.failedIds[movedId];
             }
-            delete s.failedIds[id];
           }
         }
         for (const parentId of sourceParentIds) {
@@ -536,13 +504,8 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             });
             for (const movedId of movedIds) {
               delete s.selectedIds[movedId];
-              delete s.failedIds[movedId];
             }
           }
-        }
-
-        for (const id of failedIds) {
-          s.failedIds[id] = true;
         }
         finishBatchSelection(s);
       });

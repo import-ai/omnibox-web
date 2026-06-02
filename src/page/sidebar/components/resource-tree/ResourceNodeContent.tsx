@@ -30,7 +30,6 @@ import {
   useIsSelected,
   useNodeIsDimmedBySelection,
   useNodeIsFullySelected,
-  useNodeIsIndeterminate,
   useSelectionState,
   useSidebarStore,
 } from '@/page/sidebar/store';
@@ -82,7 +81,6 @@ export function ResourceNodeContent({
   const { selectionMode, lastSelectedId, selectedIds } = useSelectionState();
   const isSelected = useIsSelected(nodeId);
   const isFullySelected = useNodeIsFullySelected(nodeId);
-  const isIndeterminate = useNodeIsIndeterminate(nodeId);
   const isDimmedBySelection = useNodeIsDimmedBySelection(nodeId);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -345,7 +343,7 @@ export function ResourceNodeContent({
                   onClick={handleSelectionChange}
                   muted={isDimmedBySelection}
                   aria-label={t('batch.multi_select')}
-                  checked={isIndeterminate ? 'indeterminate' : isFullySelected}
+                  checked={isFullySelected}
                 />
               )}
               <Tooltip delayDuration={0}>

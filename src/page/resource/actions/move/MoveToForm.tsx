@@ -157,7 +157,6 @@ export default function MoveToForm(props: IFormProps) {
                 onSearch={onSearch}
                 onFinished={onFinished}
                 resourceIds={resourceIds}
-                namespaceId={namespaceId}
                 disabled={disabledResourceIds.has(item.id)}
                 disabledTooltip={
                   showDisabledTargets ? disabledTargetTooltip : undefined
@@ -185,7 +184,6 @@ export default function MoveToForm(props: IFormProps) {
                 onSearch={onSearch}
                 onFinished={onFinished}
                 resourceIds={resourceIds}
-                namespaceId={namespaceId}
                 disabled={disabledResourceIds.has(item.id)}
                 disabledTooltip={
                   showDisabledTargets ? disabledTargetTooltip : undefined

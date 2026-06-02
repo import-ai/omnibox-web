@@ -317,10 +317,6 @@ export function isNodeFullySelected(
   );
 }
 
-export function isNodeIndeterminate(): boolean {
-  return false;
-}
-
 export function isNodeDimmedBySelection(
   nodes: Record<string, TreeNode>,
   selectedIds: Record<string, boolean>,

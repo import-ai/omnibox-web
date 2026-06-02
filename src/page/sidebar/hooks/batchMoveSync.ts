@@ -35,7 +35,7 @@ export function getPreviousParentIds(
   return parentIds;
 }
 
-export function syncBatchMoveResult(options: {
+export function syncMoveResult(options: {
   app: AppEventBus;
   currentResourceId?: string;
   previousParentIds: Record<string, string | null>;
@@ -89,4 +89,24 @@ export function syncBatchMoveResult(options: {
     space_type: currentNode.spaceType,
     path,
   } as Resource);
+}
+
+export function syncSingleMoveResult(options: {
+  app: AppEventBus;
+  currentResourceId?: string;
+  movedId: string;
+  previousParentId: string | null;
+  targetId: string;
+}) {
+  const { app, currentResourceId, movedId, previousParentId, targetId } =
+    options;
+  syncMoveResult({
+    app,
+    currentResourceId,
+    previousParentIds: {
+      [movedId]: previousParentId,
+    },
+    movedIds: [movedId],
+    targetId,
+  });
 }
