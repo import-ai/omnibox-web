@@ -56,6 +56,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const maxConditionCount =
     entitlements?.ruleLimit ?? getConditionLimitValue(resolvedTier);
   const {
+    conditionListRef,
     conditions,
     addCondition,
     removeCondition,
@@ -256,6 +257,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           <div className="min-w-0">
             <SearchFilterPanel
               canAddCondition={canAddCondition}
+              conditionListRef={conditionListRef}
               conditions={conditions}
               currentNamespace={currentNamespace}
               matchMode={matchMode}

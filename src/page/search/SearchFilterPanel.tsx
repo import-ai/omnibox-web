@@ -37,6 +37,7 @@ import { getSearchConditionLimitMessageKey } from './searchUtils';
 
 interface SearchFilterPanelProps {
   canAddCondition: boolean;
+  conditionListRef?: React.RefObject<HTMLDivElement | null>;
   conditions: ResourceCondition[];
   currentNamespace?: Namespace;
   matchMode: ResourceConditionMatchMode;
@@ -274,6 +275,7 @@ function SearchFilterConditionRow({
 
 export function SearchFilterPanel({
   canAddCondition,
+  conditionListRef,
   conditions,
   currentNamespace,
   matchMode,
@@ -296,7 +298,7 @@ export function SearchFilterPanel({
   );
 
   return (
-    <aside className="flex h-full w-full shrink-0 flex-col bg-white px-4 py-3.5 dark:bg-neutral-900">
+    <aside className="flex h-full w-full shrink-0 flex-col bg-white p-2.5 dark:bg-neutral-900">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <h2 className="text-lg font-semibold leading-[1.4] text-foreground">
           {t('search.filters.title')}
@@ -343,7 +345,10 @@ export function SearchFilterPanel({
         )}
       </div>
 
-      <div className="mt-4 space-y-5">
+      <div
+        ref={conditionListRef}
+        className="mt-4 max-h-96 space-y-5 overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:#E6E8EB_transparent] dark:[scrollbar-color:#4b5563_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#E6E8EB] dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-track]:bg-transparent"
+      >
         {conditions.map((condition, index) => (
           <Fragment key={index}>
             {index > 0 && (

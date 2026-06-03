@@ -23,17 +23,40 @@ export function useResourceConditions(maxConditionCount: number) {
     Record<number, string>
   >({});
 
+  const scrollToLatestCondition = () => {
+    conditionListRef.current?.scrollTo({
+      top: conditionListRef.current.scrollHeight,
+      behavior: 'smooth',
+    });
+  };
+
+  const isConditionListScrolledToBottom = () => {
+    const list = conditionListRef.current;
+    if (!list) {
+      return false;
+    }
+
+    return list.scrollHeight - list.scrollTop - list.clientHeight <= 8;
+  };
+
+  const scrollToLatestConditionAfterNextUpdate = () => {
+    shouldScrollToLatestConditionRef.current = true;
+  };
+
+  const keepLatestConditionVisibleAfterUpdate = (index: number) => {
+    if (index === conditions.length - 1 && isConditionListScrolledToBottom()) {
+      scrollToLatestConditionAfterNextUpdate();
+    }
+  };
+
   useEffect(() => {
     if (!shouldScrollToLatestConditionRef.current) {
       return;
     }
 
     shouldScrollToLatestConditionRef.current = false;
-    conditionListRef.current?.scrollTo({
-      top: conditionListRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
-  }, [conditions.length]);
+    window.requestAnimationFrame(scrollToLatestCondition);
+  }, [conditions]);
 
   const resetConditionScroll = () => {
     shouldScrollToLatestConditionRef.current = false;
@@ -44,7 +67,7 @@ export function useResourceConditions(maxConditionCount: number) {
       return;
     }
 
-    shouldScrollToLatestConditionRef.current = true;
+    scrollToLatestConditionAfterNextUpdate();
     setConditions(prev => {
       const next = [...prev];
       next.splice((afterIndex ?? prev.length - 1) + 1, 0, {});
@@ -92,6 +115,7 @@ export function useResourceConditions(maxConditionCount: number) {
   };
 
   const handleFieldChange = (index: number, field: ResourceConditionField) => {
+    keepLatestConditionVisibleAfterUpdate(index);
     updateCondition(index, getInitialResourceConditionForField(field));
   };
 
@@ -99,6 +123,7 @@ export function useResourceConditions(maxConditionCount: number) {
     index: number,
     operator: ResourceConditionOperator
   ) => {
+    keepLatestConditionVisibleAfterUpdate(index);
     const currentCondition = conditions[index];
     updateCondition(index, {
       operator,

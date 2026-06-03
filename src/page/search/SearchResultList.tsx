@@ -12,8 +12,10 @@ import type { Resource, ResourceMeta } from '@/interface';
 
 import { buildSearchPreview, shouldShowSearchNoResults } from './searchUtils';
 
-const SEARCH_LINK_ROW_CLASS =
-  'flex w-full flex-col items-start rounded-lg px-2 py-1 text-left !text-foreground no-underline outline-none';
+const SEARCH_LINK_ROW_WITH_PREVIEW_CLASS =
+  'flex min-h-[62px] w-full flex-col items-start rounded-lg px-2 py-2 text-left !text-foreground no-underline outline-none';
+const SEARCH_LINK_ROW_WITHOUT_PREVIEW_CLASS =
+  'flex h-11 w-full flex-col items-start rounded-lg px-2 py-2.5 text-left !text-foreground no-underline outline-none';
 const SEARCH_LINK_INLINE_CLASS =
   'flex flex-1 items-center gap-2 min-w-0 rounded-lg px-2 py-1 text-left !text-foreground no-underline outline-none';
 
@@ -100,7 +102,7 @@ function ResourceResultContent({
         </div>
       </div>
       {preview ? (
-        <div className="ml-6 mt-1 line-clamp-2 text-sm leading-[22px] text-[rgba(26,26,26,0.36)] dark:text-neutral-500">
+        <div className="ml-6 line-clamp-2 text-sm leading-[22px] text-[rgba(26,26,26,0.36)] dark:text-neutral-500">
           {preview}
         </div>
       ) : null}
@@ -170,7 +172,7 @@ export function SearchResultList({
                 <CommandItem
                   key={item.id}
                   value={item.id}
-                  className="my-1 cursor-pointer rounded-lg p-0 data-[selected=true]:bg-accent"
+                  className="my-1 cursor-pointer rounded-lg !p-0 data-[selected=true]:bg-accent"
                   onSelect={() => {
                     if (shouldSkipNavigate()) {
                       return;
@@ -180,7 +182,11 @@ export function SearchResultList({
                 >
                   <SearchResultAnchor
                     path={recentPath}
-                    className={SEARCH_LINK_ROW_CLASS}
+                    className={
+                      preview
+                        ? SEARCH_LINK_ROW_WITH_PREVIEW_CLASS
+                        : SEARCH_LINK_ROW_WITHOUT_PREVIEW_CLASS
+                    }
                     onClick={onAnchorClick}
                   >
                     <ResourceResultContent
@@ -220,7 +226,7 @@ export function SearchResultList({
               <CommandItem
                 key={resourceId}
                 value={resourceId}
-                className="my-1 cursor-pointer rounded-lg p-0 data-[selected=true]:bg-accent"
+                className="my-1 cursor-pointer rounded-lg !p-0 data-[selected=true]:bg-accent"
                 onSelect={() => {
                   if (shouldSkipNavigate()) {
                     return;
@@ -230,7 +236,11 @@ export function SearchResultList({
               >
                 <SearchResultAnchor
                   path={resourcePath}
-                  className={SEARCH_LINK_ROW_CLASS}
+                  className={
+                    preview
+                      ? SEARCH_LINK_ROW_WITH_PREVIEW_CLASS
+                      : SEARCH_LINK_ROW_WITHOUT_PREVIEW_CLASS
+                  }
                   onClick={onAnchorClick}
                 >
                   <ResourceResultContent
@@ -256,7 +266,7 @@ export function SearchResultList({
               <CommandItem
                 key={message.id}
                 value={message.id}
-                className="my-1 cursor-pointer rounded-lg p-0 data-[selected=true]:bg-accent"
+                className="my-1 cursor-pointer rounded-lg !p-0 data-[selected=true]:bg-accent"
                 onSelect={() => {
                   if (shouldSkipNavigate()) {
                     return;
