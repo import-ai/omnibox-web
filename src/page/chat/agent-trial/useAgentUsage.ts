@@ -14,7 +14,11 @@ export interface AgentUsageResponseDto {
   last_message_date: string;
 }
 
-export function useAgentUsage(namespaceId: string, messages: MessageDetail[]) {
+export function useAgentUsage(
+  namespaceId: string,
+  messages: MessageDetail[],
+  enabled: boolean
+) {
   const [agentUsage, setAgentUsage] = useState<
     AgentUsageResponseDto | undefined
   >();
@@ -22,6 +26,9 @@ export function useAgentUsage(namespaceId: string, messages: MessageDetail[]) {
   const [assistantMessageIds, setAssistantMessageIds] = useState<string[]>([]);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     let lastUserMessage: MessageDetail | undefined = undefined;
     for (const message of messages) {
       if (
@@ -44,11 +51,14 @@ export function useAgentUsage(namespaceId: string, messages: MessageDetail[]) {
         lastUserMessage = message;
       }
     }
-  }, [messages, setAssistantMessageIds]);
+  }, [enabled, messages]);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     http.get(`/namespaces/${namespaceId}/usages/agent`).then(setAgentUsage);
-  }, [namespaceId, assistantMessageIds.length]);
+  }, [enabled, namespaceId, assistantMessageIds.length]);
 
   return {
     agentUsage,
