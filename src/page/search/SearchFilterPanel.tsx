@@ -130,10 +130,15 @@ function SearchFilterConditionRow({
             onFieldChange(index, value as ResourceConditionField)
           }
         >
-          <SelectTrigger className={compactControlClass}>
+          <SelectTrigger
+            className={cn(
+              compactControlClass,
+              'data-[placeholder]:text-foreground'
+            )}
+          >
             <SelectValue placeholder={t('resource_conditions.select_field')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)]">
             {RESOURCE_CONDITION_FIELD_OPTIONS.map(field => (
               <SelectItem value={field} key={field}>
                 {t(`resource_conditions.fields.${field}`)}
