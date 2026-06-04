@@ -194,10 +194,10 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     <CommandDialog
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="w-[calc(100vw-32px)] max-w-[922px] rounded-xl border-none bg-white shadow-xl dark:bg-neutral-900 [&>button]:hidden"
-      className="h-[min(628px,calc(100vh-32px))] rounded-xl bg-white p-4 text-foreground dark:bg-neutral-900"
+      contentClassName="w-[calc(100vw-32px)] max-w-[1184px] rounded-2xl border-none bg-white shadow-xl dark:bg-neutral-900 [&>button]:hidden"
+      className="h-[min(884px,calc(100vh-32px))] rounded-2xl bg-white px-6 py-4 text-foreground dark:bg-neutral-900"
     >
-      <div className="relative flex h-full flex-col gap-4">
+      <div className="relative flex h-full flex-col gap-2">
         <div className="flex h-7 items-center gap-3 border-b border-slate-200 pb-3 dark:border-neutral-800">
           <CommandInput
             placeholder={t('search.placeholder')}

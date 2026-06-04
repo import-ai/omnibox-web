@@ -56,7 +56,11 @@ interface SearchFilterPanelProps {
 }
 
 const compactControlClass =
-  'h-8 rounded-md border-line bg-white px-3 text-sm shadow-none hover:bg-white focus:ring-0 focus:ring-transparent focus:outline-none dark:bg-neutral-900';
+  'h-8 rounded-md border-line bg-transparent px-3 text-sm shadow-none hover:bg-transparent focus:ring-0 focus:ring-transparent focus:outline-none dark:bg-transparent dark:hover:bg-transparent';
+const compactSelectContentClass =
+  'w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)]';
+const compactScrollbarClass =
+  '[scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent';
 
 function SearchFilterConditionRow({
   condition,
@@ -139,7 +143,7 @@ function SearchFilterConditionRow({
           >
             <SelectValue placeholder={t('resource_conditions.select_field')} />
           </SelectTrigger>
-          <SelectContent className="w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)]">
+          <SelectContent className={compactSelectContentClass}>
             {RESOURCE_CONDITION_FIELD_OPTIONS.map(field => (
               <SelectItem value={field} key={field}>
                 {t(`resource_conditions.fields.${field}`)}
@@ -160,7 +164,7 @@ function SearchFilterConditionRow({
                 placeholder={t('resource_conditions.select_operator')}
               />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className={compactSelectContentClass}>
               {operators.map(operator => (
                 <SelectItem value={operator} key={operator}>
                   {t(`resource_conditions.operators.${operator}`)}
@@ -190,24 +194,7 @@ function SearchFilterConditionRow({
             )}
           />
         ) : normalizedValue?.kind === 'relative_date' ? (
-          <div className="grid grid-cols-[minmax(0,1fr)_35px_72px] gap-2">
-            <Select
-              value={condition.operator || ''}
-              onValueChange={value =>
-                onOperatorChange(index, value as ResourceConditionOperator)
-              }
-            >
-              <SelectTrigger className={compactControlClass}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {operators.map(operator => (
-                  <SelectItem value={operator} key={operator}>
-                    {t(`resource_conditions.operators.${operator}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-[minmax(0,1fr)_72px] gap-2">
             <Input
               value={normalizedValue.amount}
               autoComplete="off"
@@ -232,7 +219,7 @@ function SearchFilterConditionRow({
               <SelectTrigger className={compactControlClass}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className={compactSelectContentClass}>
                 {RESOURCE_CONDITION_RELATIVE_DATE_UNITS.map(unit => (
                   <SelectItem value={unit} key={unit}>
                     {t(`resource_conditions.units.${unit}`)}
@@ -333,7 +320,7 @@ export function SearchFilterPanel({
             <SelectTrigger className={cn(compactControlClass, 'w-[103px]')}>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className={compactSelectContentClass}>
               <SelectItem value="all">
                 {t('smart_folder.match_mode.all')}
               </SelectItem>
@@ -347,7 +334,10 @@ export function SearchFilterPanel({
 
       <div
         ref={conditionListRef}
-        className="mt-4 max-h-96 space-y-5 overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:#E6E8EB_transparent] dark:[scrollbar-color:#4b5563_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#E6E8EB] dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-track]:bg-transparent"
+        className={cn(
+          'mt-4 max-h-96 space-y-5 overflow-y-auto pr-1',
+          compactScrollbarClass
+        )}
       >
         {conditions.map((condition, index) => (
           <Fragment key={index}>

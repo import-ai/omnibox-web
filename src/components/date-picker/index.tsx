@@ -215,6 +215,7 @@ export function DatePicker(props: DatePickerProps) {
             const nextDay = `${date.getDate()}`.padStart(2, '0');
             onChange(`${date.getFullYear()}-${nextMonth}-${nextDay}`);
           }}
+          className="rounded-lg bg-white dark:bg-black"
         />
       </PopoverContent>
     </Popover>

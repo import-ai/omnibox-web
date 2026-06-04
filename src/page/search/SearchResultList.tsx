@@ -18,6 +18,8 @@ const SEARCH_LINK_ROW_WITHOUT_PREVIEW_CLASS =
   'flex h-11 w-full flex-col items-start rounded-lg px-2 py-2.5 text-left !text-foreground no-underline outline-none';
 const SEARCH_LINK_INLINE_CLASS =
   'flex flex-1 items-center gap-2 min-w-0 rounded-lg px-2 py-1 text-left !text-foreground no-underline outline-none';
+const SEARCH_SCROLLBAR_CLASS =
+  '[scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent';
 
 interface SearchResultAnchorProps {
   children: ReactNode;
@@ -56,6 +58,46 @@ export interface SearchResourceResult {
   resource_id?: string;
   resource_type?: Resource['resource_type'];
   title: string;
+}
+
+function SearchEmptyIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-24 shrink-0 text-[#D4D4D4]"
+      viewBox="0 0 96 96"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M88 48H64L56 60H40L32 48H8"
+        stroke="currentColor"
+        strokeWidth="3.06383"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M21.8 20.44L8 48V72C8 74.1217 8.84285 76.1566 10.3431 77.6569C11.8434 79.1571 13.8783 80 16 80H80C82.1217 80 84.1566 79.1571 85.6569 77.6569C87.1572 76.1566 88 74.1217 88 72V48L74.2 20.44C73.5377 19.1071 72.5167 17.9855 71.2518 17.2011C69.987 16.4168 68.5283 16.0008 67.04 16H28.96C27.4717 16.0008 26.0131 16.4168 24.7482 17.2011C23.4833 17.9855 22.4623 19.1071 21.8 20.44Z"
+        stroke="currentColor"
+        strokeWidth="3.06383"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SearchNoResults() {
+  const { t } = useTranslation();
+
+  return (
+    <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6 text-center">
+      <SearchEmptyIcon />
+      <p className="text-lg font-normal leading-normal text-muted-foreground">
+        {t('search.no_results')}
+      </p>
+    </div>
+  );
 }
 
 function appAbsoluteUrl(path: string): string {
@@ -129,12 +171,10 @@ export function SearchResultList({
   );
 
   return (
-    <CommandList className="h-full max-h-none overflow-y-auto overflow-x-hidden pr-2 [scrollbar-width:thin] [scrollbar-color:#E6E8EB_transparent] dark:[scrollbar-color:#4b5563_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#E6E8EB] dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-track]:bg-transparent">
-      {showNoResults ? (
-        <div className="flex h-full items-center justify-center px-2 text-sm text-muted-foreground">
-          {t('search.no_results')}
-        </div>
-      ) : null}
+    <CommandList
+      className={`relative h-full max-h-none overflow-y-auto overflow-x-hidden pr-2 ${SEARCH_SCROLLBAR_CLASS}`}
+    >
+      {showNoResults ? <SearchNoResults /> : null}
 
       {showRecents && (
         <CommandGroup
