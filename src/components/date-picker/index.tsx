@@ -98,6 +98,31 @@ function isSameDateRange(first?: DateRange, second?: DateRange) {
   );
 }
 
+function isSameCalendarDate(first: Date, second?: Date) {
+  return (
+    !!second &&
+    first.getFullYear() === second.getFullYear() &&
+    first.getMonth() === second.getMonth() &&
+    first.getDate() === second.getDate()
+  );
+}
+
+function addCalendarDays(date: Date, amount: number) {
+  const nextDate = new Date(date);
+  nextDate.setDate(date.getDate() + amount);
+  return nextDate;
+}
+
+function isNextCalendarDate(date: Date, previous?: Date) {
+  return previous
+    ? isSameCalendarDate(date, addCalendarDays(previous, 1))
+    : false;
+}
+
+function isPreviousCalendarDate(date: Date, next?: Date) {
+  return next ? isSameCalendarDate(date, addCalendarDays(next, -1)) : false;
+}
+
 function getRangeMiddle(range?: DateRange) {
   if (!range?.from || !range.to) {
     return undefined;
@@ -137,10 +162,34 @@ function RangeDayButton({
   className,
   day,
   modifiers,
+  range,
+  weekStartsOn,
   ...props
-}: ComponentProps<typeof DayButton>) {
+}: ComponentProps<typeof DayButton> & {
+  range?: DateRange;
+  weekStartsOn: number;
+}) {
   const defaultClassNames = getDefaultClassNames();
   const ref = useRef<HTMLButtonElement>(null);
+  const weekEndsOn = (weekStartsOn + 6) % 7;
+  const isRangeMiddle = !!modifiers.range_middle;
+  const startsRangeSegment =
+    isRangeMiddle &&
+    (day.date.getDay() === weekStartsOn ||
+      isNextCalendarDate(day.date, range?.from));
+  const endsRangeSegment =
+    isRangeMiddle &&
+    (day.date.getDay() === weekEndsOn ||
+      isPreviousCalendarDate(day.date, range?.to));
+  const rangeMiddleRadiusClass = isRangeMiddle
+    ? startsRangeSegment && endsRangeSegment
+      ? 'rounded-md'
+      : startsRangeSegment
+        ? 'rounded-l-md rounded-r-none'
+        : endsRangeSegment
+          ? 'rounded-l-none rounded-r-md'
+          : 'rounded-none'
+    : undefined;
 
   useEffect(() => {
     if (modifiers.focused) {
@@ -164,8 +213,9 @@ function RangeDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        'data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-neutral-100 data-[range-middle=true]:text-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground dark:data-[range-middle=true]:bg-[#262626] dark:data-[range-middle=true]:text-[#f5f5f5] flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 rounded-md font-normal leading-none ring-0 outline-none focus:ring-0 focus:outline-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md [&>span]:text-xs [&>span]:opacity-70',
+        'data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-neutral-100 data-[range-middle=true]:text-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground dark:data-[range-middle=true]:bg-[#262626] dark:data-[range-middle=true]:text-[#f5f5f5] flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 rounded-md font-normal leading-none ring-0 outline-none focus:ring-0 focus:outline-none data-[range-end=true]:rounded-md data-[range-start=true]:rounded-md [&>span]:text-xs [&>span]:opacity-70',
         defaultClassNames.day,
+        rangeMiddleRadiusClass,
         className
       )}
       {...props}
@@ -234,6 +284,7 @@ export function DateRangePicker(props: DateRangePickerProps) {
   } = props;
   const { i18n } = useTranslation();
   const calendarLocale = i18n.language?.startsWith('zh') ? zhCN : enUS;
+  const weekStartsOn = calendarLocale.options?.weekStartsOn ?? 0;
   const [selectionState, setSelectionState] = useState<RangeSelectionState>({
     nextStep: 'start',
   });
@@ -300,7 +351,13 @@ export function DateRangePicker(props: DateRangePickerProps) {
             range_middle: getRangeMiddle(visibleRange),
           }}
           components={{
-            DayButton: RangeDayButton,
+            DayButton: dayButtonProps => (
+              <RangeDayButton
+                {...dayButtonProps}
+                range={visibleRange}
+                weekStartsOn={weekStartsOn}
+              />
+            ),
           }}
           onDayClick={date => {
             const nextState = getNextRangeSelectionState(selectionState, date);
