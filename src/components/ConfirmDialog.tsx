@@ -63,7 +63,7 @@ export function ConfirmDialog({
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent
         className={cn(
-          'w-11/12 max-w-lg bg-popover dark:bg-neutral-900',
+          'w-11/12 max-w-lg bg-popover dark:bg-neutral-800',
           contentClassName
         )}
       >
