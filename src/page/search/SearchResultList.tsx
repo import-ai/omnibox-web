@@ -1,5 +1,5 @@
-import { MessageCircle } from 'lucide-react';
-import type { MouseEventHandler, ReactNode } from 'react';
+import { Loader2, MessageCircle } from 'lucide-react';
+import type { MouseEventHandler, ReactNode, UIEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import ResourceIcon from '@/assets/icons/ResourceIcon';
@@ -32,7 +32,9 @@ interface SearchResultListProps {
   keywords: string;
   messages: SearchMessageResult[];
   namespaceId?: string;
+  loadingMore: boolean;
   onAnchorClick: MouseEventHandler<HTMLAnchorElement>;
+  onLoadMore: () => void;
   onNavigate: (path: string) => void;
   recents: SearchRecentResource[];
   resources: SearchResourceResult[];
@@ -64,7 +66,7 @@ function SearchEmptyIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="size-24 shrink-0 text-[#D4D4D4]"
+      className="size-24 shrink-0 text-neutral-300 dark:text-neutral-400"
       viewBox="0 0 96 96"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -156,7 +158,9 @@ export function SearchResultList({
   keywords,
   messages,
   namespaceId,
+  loadingMore,
   onAnchorClick,
+  onLoadMore,
   onNavigate,
   recents,
   resources,
@@ -169,10 +173,20 @@ export function SearchResultList({
     resources.length,
     messages.length
   );
+  const handleScroll = (event: UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget;
+    const isCloseToBottom =
+      target.scrollTop + target.clientHeight >= target.scrollHeight - 80;
+
+    if (isCloseToBottom && !showRecents && !loadingMore) {
+      onLoadMore();
+    }
+  };
 
   return (
     <CommandList
       className={`relative h-full max-h-none overflow-y-auto overflow-x-hidden pr-2 ${SEARCH_SCROLLBAR_CLASS}`}
+      onScroll={handleScroll}
     >
       {showNoResults ? <SearchNoResults /> : null}
 
@@ -327,6 +341,12 @@ export function SearchResultList({
           })}
         </CommandGroup>
       )}
+
+      {loadingMore ? (
+        <div className="flex h-10 items-center justify-center text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+        </div>
+      ) : null}
     </CommandList>
   );
 }

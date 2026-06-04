@@ -381,7 +381,7 @@ export function DateRangePicker(props: DateRangePickerProps) {
               endDate: toStorageDate(normalizedRange.to),
             });
           }}
-          className="rounded-lg bg-white dark:bg-black"
+          className="rounded-lg bg-white dark:bg-neutral-800"
         />
       </PopoverContent>
     </Popover>

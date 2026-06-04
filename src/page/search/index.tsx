@@ -25,6 +25,7 @@ import {
 } from './SearchResultList';
 import {
   buildSearchRequestPayload,
+  SEARCH_PAGE_SIZE,
   shouldRunSearchRequest,
 } from './searchUtils';
 
@@ -39,9 +40,12 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const { t } = useTranslation();
   const [keywords, setKeywords] = useState('');
   const [items, setItems] = useState<any[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [matchMode, setMatchMode] = useState<ResourceConditionMatchMode>('all');
   const [recents, setRecents] = useState<SearchRecentResource[]>([]);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const searchRequestIdRef = useRef(0);
   const skipNavigateAfterModifierClickRef = useRef(false);
   const namespaceId = params.namespace_id;
   const { config, loading: configLoading } = useConfig();
@@ -71,6 +75,32 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const canAddCondition = conditions.length < maxConditionCount;
   const shouldSearch = shouldRunSearchRequest(keywords, conditions);
   const showRecents = !shouldSearch;
+
+  const fetchSearchPage = useCallback(
+    async (offset: number, requestId: number) => {
+      const data = await http.post(
+        `/namespaces/${namespaceId}/search`,
+        buildSearchRequestPayload(keywords, conditions, matchMode, {
+          offset,
+          limit: SEARCH_PAGE_SIZE,
+        }),
+        { mute: offset > 0 }
+      );
+
+      if (searchRequestIdRef.current !== requestId) {
+        return;
+      }
+
+      const nextItems = Array.isArray(data?.items) ? data.items : [];
+      const total =
+        typeof data?.total === 'number' ? data.total : nextItems.length;
+      setItems(current =>
+        offset === 0 ? nextItems : [...current, ...nextItems]
+      );
+      setHasMore(offset + nextItems.length < total);
+    },
+    [conditions, keywords, matchMode, namespaceId]
+  );
 
   const onSearchResultAnchorClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -133,24 +163,51 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     }
 
     if (!shouldSearch) {
+      searchRequestIdRef.current += 1;
       setItems([]);
+      setHasMore(false);
+      setLoadingMore(false);
       return;
     }
 
+    const requestId = searchRequestIdRef.current + 1;
+    searchRequestIdRef.current = requestId;
+    setItems([]);
+    setHasMore(false);
+    setLoadingMore(false);
     debounceTimeout.current = setTimeout(() => {
-      http
-        .post(
-          `/namespaces/${namespaceId}/search`,
-          buildSearchRequestPayload(keywords, conditions, matchMode)
-        )
-        .then(data => {
-          setItems(data || []);
-        })
-        .catch(err => {
-          console.error(err);
-        });
+      fetchSearchPage(0, requestId).catch(err => {
+        if (searchRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        console.error(err);
+      });
     }, 300);
-  }, [conditions, keywords, matchMode, namespaceId, shouldSearch]);
+  }, [fetchSearchPage, shouldSearch]);
+
+  const handleLoadMore = useCallback(() => {
+    if (!shouldSearch || !hasMore || loadingMore) {
+      return;
+    }
+
+    const requestId = searchRequestIdRef.current;
+    const offset = items.length;
+    setLoadingMore(true);
+    fetchSearchPage(offset, requestId)
+      .catch(err => {
+        if (searchRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        console.error(err);
+      })
+      .finally(() => {
+        if (searchRequestIdRef.current === requestId) {
+          setLoadingMore(false);
+        }
+      });
+  }, [fetchSearchPage, hasMore, items.length, loadingMore, shouldSearch]);
 
   useEffect(() => {
     if (!open) return;
@@ -217,7 +274,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
               <Button
                 type="button"
                 variant="ghost"
-                className="h-[22px] rounded bg-accent px-2 text-sm font-normal text-muted-foreground hover:bg-accent"
+                className="h-[22px] rounded border-none bg-transparent px-2 text-sm font-normal text-muted-foreground shadow-none outline-none ring-0 hover:bg-accent hover:text-muted-foreground focus-visible:ring-0 focus-visible:ring-transparent active:!bg-[#3b82f633] active:text-[#3b82f6] dark:hover:bg-accent"
                 onClick={handleClear}
               >
                 {t('search.clear')}
@@ -245,6 +302,8 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
               keywords={keywords}
               messages={messages}
               namespaceId={namespaceId}
+              loadingMore={loadingMore}
+              onLoadMore={handleLoadMore}
               onAnchorClick={onSearchResultAnchorClick}
               onNavigate={handleNavigate}
               recents={recents}

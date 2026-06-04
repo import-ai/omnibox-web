@@ -10,6 +10,7 @@ import {
 
 const SEARCH_PREVIEW_LIMIT = 120;
 const BASIC_SEARCH_CONDITION_LIMIT = 3;
+export const SEARCH_PAGE_SIZE = 20;
 
 export function buildSearchPreview(content?: string) {
   const normalized = content?.trim() ?? '';
@@ -49,7 +50,8 @@ export function shouldShowSearchNoResults(
 export function buildSearchRequestPayload(
   query: string,
   conditions: ResourceCondition[],
-  matchMode: ResourceConditionMatchMode
+  matchMode: ResourceConditionMatchMode,
+  pagination: { limit?: number; offset?: number } = {}
 ) {
   const payload = toResourceConditionApiPayload({
     matchMode,
@@ -58,6 +60,8 @@ export function buildSearchRequestPayload(
 
   return {
     query: query.trim(),
+    offset: pagination.offset ?? 0,
+    limit: pagination.limit ?? SEARCH_PAGE_SIZE,
     ...payload,
   };
 }
