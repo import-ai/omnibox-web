@@ -45,6 +45,7 @@ import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
+import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 import {
   CreateSmartFolderPayload,
@@ -283,6 +284,23 @@ export default function Actions(props: IActionProps) {
       fileInputRef.current?.click();
       return;
     }
+    if (id === 'download_as_png') {
+      onLoading('download_as_png');
+      exportResourceAsPng(resource.name || t('untitled'))
+        .then(() => {
+          setOpen(false);
+        })
+        .catch(error => {
+          console.error('Failed to export PNG:', error);
+          toast(t('actions.export_png_failed'), {
+            position: 'bottom-right',
+          });
+        })
+        .finally(() => {
+          onLoading('');
+        });
+      return;
+    }
     if (id === 'download_as_markdown') {
       if (!resource.content) {
         toast(t('resource.no_content'), {
@@ -512,7 +530,7 @@ export default function Actions(props: IActionProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          className="w-56 !animate-none !fade-in-0 !fade-out-0 !zoom-in-100 !zoom-out-100 !slide-in-from-top-0 !slide-in-from-bottom-0 !slide-in-from-left-0 !slide-in-from-right-0"
+          className="w-48 max-w-[calc(100vw-24px)] sm:w-56 !animate-none !fade-in-0 !fade-out-0 !zoom-in-100 !zoom-out-100 !slide-in-from-top-0 !slide-in-from-bottom-0 !slide-in-from-left-0 !slide-in-from-right-0"
         >
           <DropdownMenuItem
             className="cursor-pointer gap-2"
@@ -549,20 +567,37 @@ export default function Actions(props: IActionProps) {
                 <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
                 <span>{t('actions.download_as')}</span>
               </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="w-48">
+              <DropdownMenuSubContent className="w-40 max-w-[calc(100vw-24px)] sm:w-48">
                 {resource && resource.resource_type === 'file' && (
                   <DropdownMenuItem
-                    className="cursor-pointer"
+                    className="cursor-pointer whitespace-normal"
                     onClick={() => handleAction('download')}
                   >
-                    {t('actions.download')}
+                    <span className="min-w-0 break-words">
+                      {t('actions.download')}
+                    </span>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
-                  className="cursor-pointer"
+                  className="cursor-pointer whitespace-normal"
                   onClick={() => handleAction('download_as_markdown')}
                 >
-                  {t('actions.download_as_tooltip', { format: 'Markdown' })}
+                  <span className="min-w-0 break-words">
+                    {t('actions.download_as_tooltip', { format: 'Markdown' })}
+                  </span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer whitespace-normal"
+                  disabled={loading === 'download_as_png'}
+                  onClick={() => handleAction('download_as_png')}
+                >
+                  {loading === 'download_as_png' ? (
+                    <Spinner />
+                  ) : (
+                    <span className="min-w-0 break-words">
+                      {t('actions.download_as_tooltip', { format: 'PNG' })}
+                    </span>
+                  )}
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
