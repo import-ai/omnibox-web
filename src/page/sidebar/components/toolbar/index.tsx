@@ -109,7 +109,14 @@ export function Toolbar({
             onClick={handleCheckAll}
             aria-label={t('batch.multi_select')}
           />
-          <span className="text-sm text-neutral-500">
+          <span
+            className={cn(
+              'text-sm text-neutral-500',
+              selectedCount <= 0
+                ? 'text-neutral-500 dark:text-neutral-700'
+                : 'text-muted-foreground dark:text-neutral-50'
+            )}
+          >
             {t('batch.selected_count', { count: selectedCount })}
           </span>
         </div>
@@ -141,7 +148,10 @@ export function Toolbar({
               label={t('batch.delete_tooltip')}
               disabledLabel={disabledLabel}
             />
-            <Separator orientation="vertical" className="h-4 bg-neutral-300" />
+            <Separator
+              orientation="vertical"
+              className="h-4 bg-[#8F959E] dark:bg-neutral-400"
+            />
             <ToolbarButton
               icon={X}
               onClick={onDeselectAll}
