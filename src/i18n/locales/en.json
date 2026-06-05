@@ -729,9 +729,17 @@
     "permissions": "Permissions",
     "permissions_resources": "Resource Permissions",
     "permissions_chat": "Chat Permissions",
+    "permission_sections": {
+      "resources": "Resource Permissions",
+      "chat": "Chat Permissions",
+      "tags": "Tag Permissions",
+      "search": "Search Permissions"
+    },
     "permission_targets": {
       "resources": "Resources",
-      "chat": "Chat"
+      "chat": "Chat",
+      "tags": "Tags",
+      "search": "Search"
     },
     "permission_types": {
       "create": "Create",
