@@ -181,11 +181,13 @@ export enum APIKeyPermissionType {
 export enum APIKeyPermissionTarget {
   RESOURCES = 'resources',
   CHAT = 'chat',
+  TAGS = 'tags',
+  SEARCH = 'search',
 }
 
 export interface APIKeyPermission {
-  target: APIKeyPermissionTarget;
-  permissions: APIKeyPermissionType[];
+  target: APIKeyPermissionTarget | (string & {});
+  permissions: (APIKeyPermissionType | (string & {}))[];
 }
 
 export interface APIKeyAttrs {
