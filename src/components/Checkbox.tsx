@@ -19,7 +19,7 @@ const Checkbox = React.forwardRef<
     checked={checked}
     data-muted={!!muted}
     className={cn(
-      'peer size-4 shrink-0 rounded-sm text-white border border-[#d4d4d4] focus-visible:outline-none dark:border-[#fafafa]',
+      'peer size-4 shrink-0 rounded-sm text-white border border-[#d4d4d4] focus-visible:outline-none dark:border-[#898887]',
       'hover:border-blue-500 dark:hover:border-blue-500',
       'data-[state=checked]:border-[#0090ff] data-[state=checked]:bg-[#0090ff] dark:data-[state=checked]:border-blue-500 dark:data-[state=checked]:bg-blue-500',
       'data-[state=indeterminate]:border-[#0090ff] data-[state=indeterminate]:bg-[#0090ff] dark:data-[state=indeterminate]:border-blue-500 dark:data-[state=indeterminate]:bg-blue-500',
