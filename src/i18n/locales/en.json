@@ -1013,7 +1013,7 @@
       "all": "Personal + Team"
     },
     "move": {
-      "unsupported_mixed_target": "Smart folders and regular resources cannot be moved into each other."
+      "unsupported_mixed_target": "Regular resources can't be moved to smart folders."
     },
     "match_mode": {
       "all": "All",

@@ -1014,7 +1014,7 @@
       "all": "个人+团队"
     },
     "move": {
-      "unsupported_mixed_target": "智能文件夹与普通资源不支持互相移入。"
+      "unsupported_mixed_target": "普通资源不支持移动到智能文件夹"
     },
     "match_mode": {
       "all": "全部",
