@@ -13,7 +13,7 @@ export default function ChatConversationPage() {
   const { t } = useTranslation();
   const {
     loading,
-    regeneratingMessageId,
+    regeneratingParentId,
     messages,
     namespaceId,
     conversation,
@@ -41,7 +41,7 @@ export default function ChatConversationPage() {
             messageOperator={messageOperator}
             onRegenerate={onRegenerate}
             onEdit={onEdit}
-            regeneratingMessageId={regeneratingMessageId}
+            regeneratingParentId={regeneratingParentId}
           />
         )}
       </Scrollbar>

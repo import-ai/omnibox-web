@@ -39,7 +39,7 @@ export default function useContext() {
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
   const [loading, setLoading] = useState<boolean>(false);
-  const [regeneratingMessageId, setRegeneratingMessageId] = useState<
+  const [regeneratingParentId, setRegeneratingParentId] = useState<
     string | null
   >(null);
   const { selectedResources, setSelectedResources } = useGlobalContext();
@@ -148,7 +148,7 @@ export default function useContext() {
     } = extractOriginalMessageSettings(parentMessage);
 
     regeneratingRef.current = true;
-    setRegeneratingMessageId(messageId);
+    setRegeneratingParentId(parentId);
     setLoading(true);
     try {
       const askFN = ask(
@@ -170,7 +170,7 @@ export default function useContext() {
       await askFN.start();
     } finally {
       regeneratingRef.current = false;
-      setRegeneratingMessageId(null);
+      setRegeneratingParentId(null);
       setLoading(false);
     }
   };
@@ -220,7 +220,7 @@ export default function useContext() {
 
   return {
     loading: mergedLoading,
-    regeneratingMessageId,
+    regeneratingParentId,
     sendMessage,
     messages,
     selectedResources,
