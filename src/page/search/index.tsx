@@ -30,6 +30,7 @@ import {
 import {
   buildSearchRequestPayload,
   SEARCH_PAGE_SIZE,
+  shouldRefreshSearchRequest,
   shouldRunSearchRequest,
 } from './searchUtils';
 
@@ -45,7 +46,9 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const [keywords, setKeywords] = useState('');
   const [items, setItems] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(false);
+  const [loadingInitial, setLoadingInitial] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingRecents, setLoadingRecents] = useState(false);
   const [matchMode, setMatchMode] = useState<ResourceConditionMatchMode>('all');
   const [recents, setRecents] = useState<SearchRecentResource[]>([]);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -78,6 +81,11 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   );
   const canAddCondition = conditions.length < maxConditionCount;
   const shouldSearch = shouldRunSearchRequest(keywords, conditions);
+  const shouldRefreshSearch = shouldRefreshSearchRequest(
+    open,
+    keywords,
+    conditions
+  );
   const showRecents = !shouldSearch;
 
   const fetchSearchPage = useCallback(
@@ -164,12 +172,15 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   useEffect(() => {
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
+      debounceTimeout.current = null;
+      setLoadingInitial(false);
     }
 
-    if (!shouldSearch) {
+    if (!shouldRefreshSearch) {
       searchRequestIdRef.current += 1;
       setItems([]);
       setHasMore(false);
+      setLoadingInitial(false);
       setLoadingMore(false);
       return;
     }
@@ -178,17 +189,24 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     searchRequestIdRef.current = requestId;
     setItems([]);
     setHasMore(false);
+    setLoadingInitial(true);
     setLoadingMore(false);
     debounceTimeout.current = setTimeout(() => {
-      fetchSearchPage(0, requestId).catch(err => {
-        if (searchRequestIdRef.current !== requestId) {
-          return;
-        }
+      fetchSearchPage(0, requestId)
+        .catch(err => {
+          if (searchRequestIdRef.current !== requestId) {
+            return;
+          }
 
-        console.error(err);
-      });
+          console.error(err);
+        })
+        .finally(() => {
+          if (searchRequestIdRef.current === requestId) {
+            setLoadingInitial(false);
+          }
+        });
     }, 300);
-  }, [fetchSearchPage, shouldSearch]);
+  }, [fetchSearchPage, shouldRefreshSearch]);
 
   const handleLoadMore = useCallback(() => {
     if (!shouldSearch || !hasMore || loadingMore) {
@@ -216,9 +234,13 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   useEffect(() => {
     if (!open) return;
     if (!showRecents) return;
-    if (!namespaceId) return;
+    if (!namespaceId) {
+      setLoadingRecents(false);
+      return;
+    }
 
     const source = axios.CancelToken.source();
+    setLoadingRecents(true);
     http
       .get(
         `/namespaces/${namespaceId}/resources/recent?limit=10&summary=true`,
@@ -230,9 +252,13 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
       .then((items: ResourceMeta[] = []) =>
         setRecents((items || []) as SearchRecentResource[])
       )
-      .catch(() => void 0);
+      .catch(() => void 0)
+      .finally(() => setLoadingRecents(false));
 
-    return () => source.cancel();
+    return () => {
+      source.cancel();
+      setLoadingRecents(false);
+    };
   }, [open, showRecents, namespaceId]);
 
   useEffect(() => {
@@ -304,6 +330,8 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           <div className="min-h-0 min-w-0">
             <SearchResultList
               keywords={keywords}
+              loadingInitial={loadingInitial}
+              loadingRecents={loadingRecents}
               messages={messages}
               namespaceId={namespaceId}
               loadingMore={loadingMore}

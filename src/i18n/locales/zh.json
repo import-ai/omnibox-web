@@ -701,7 +701,7 @@
     "filters": {
       "title": "筛选",
       "all": "全部",
-      "remaining_conditions": "条件行剩余：{{remaining}}/{{total}}"
+      "remaining_conditions": "条件行剩余：{{remaining}} / {{total}}"
     }
   },
   "api_key": {

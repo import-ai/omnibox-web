@@ -61,8 +61,6 @@ interface SearchFilterPanelProps {
 
 const compactControlClass =
   'h-8 rounded-md border-line bg-transparent px-3 text-sm shadow-none hover:bg-transparent focus:ring-0 focus:ring-transparent focus:outline-none dark:bg-transparent dark:hover:bg-transparent';
-const compactSelectContentClass =
-  'w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)]';
 const compactScrollbarClass =
   '[scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent';
 
@@ -147,7 +145,7 @@ function SearchFilterConditionRow({
           >
             <SelectValue placeholder={t('resource_conditions.select_field')} />
           </SelectTrigger>
-          <SelectContent className={compactSelectContentClass}>
+          <SelectContent>
             {RESOURCE_CONDITION_FIELD_OPTIONS.map(field => (
               <SelectItem value={field} key={field}>
                 {t(`resource_conditions.fields.${field}`)}
@@ -168,7 +166,7 @@ function SearchFilterConditionRow({
                 placeholder={t('resource_conditions.select_operator')}
               />
             </SelectTrigger>
-            <SelectContent className={compactSelectContentClass}>
+            <SelectContent>
               {operators.map(operator => (
                 <SelectItem value={operator} key={operator}>
                   {t(`resource_conditions.operators.${operator}`)}
@@ -223,7 +221,7 @@ function SearchFilterConditionRow({
               <SelectTrigger className={compactControlClass}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className={compactSelectContentClass}>
+              <SelectContent>
                 {RESOURCE_CONDITION_RELATIVE_DATE_UNITS.map(unit => (
                   <SelectItem value={unit} key={unit}>
                     {t(`resource_conditions.units.${unit}`)}
@@ -283,7 +281,6 @@ export function SearchFilterPanel({
   const { t } = useTranslation();
   const showUpgradeButton =
     maxConditionCount <= getConditionLimitValue('basic');
-  const showMatchModeSelect = conditions.length > 1;
   const addButtonTooltip = t(
     getSearchConditionLimitMessageKey(maxConditionCount)
   );
@@ -314,26 +311,25 @@ export function SearchFilterPanel({
         <p className="text-sm font-medium leading-[1.4] text-foreground">
           {t('resource_conditions.conditions')}
         </p>
-        {showMatchModeSelect && (
-          <Select
-            value={matchMode}
-            onValueChange={value =>
-              onMatchModeChange(value as ResourceConditionMatchMode)
-            }
-          >
-            <SelectTrigger className={cn(compactControlClass, 'w-[103px]')}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className={compactSelectContentClass}>
-              <SelectItem value="all">
-                {t('smart_folder.match_mode.all')}
-              </SelectItem>
-              <SelectItem value="any">
-                {t('smart_folder.match_mode.any')}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        )}
+
+        <Select
+          value={matchMode}
+          onValueChange={value =>
+            onMatchModeChange(value as ResourceConditionMatchMode)
+          }
+        >
+          <SelectTrigger className={cn(compactControlClass, 'w-[103px]')}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">
+              {t('smart_folder.match_mode.all')}
+            </SelectItem>
+            <SelectItem value="any">
+              {t('smart_folder.match_mode.any')}
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div

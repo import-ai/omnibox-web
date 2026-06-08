@@ -39,12 +39,47 @@ export function shouldRunSearchRequest(
   return !!query.trim() || getCompleteSearchConditions(conditions).length > 0;
 }
 
+export function shouldRefreshSearchRequest(
+  open: boolean,
+  query: string,
+  conditions: ResourceCondition[]
+) {
+  return open && shouldRunSearchRequest(query, conditions);
+}
+
 export function shouldShowSearchNoResults(
   showRecents: boolean,
   resourceCount: number,
-  messageCount: number
+  messageCount: number,
+  loadingInitial = false
 ) {
-  return !showRecents && resourceCount === 0 && messageCount === 0;
+  return (
+    !loadingInitial && !showRecents && resourceCount === 0 && messageCount === 0
+  );
+}
+
+export function shouldShowSearchLoading(
+  shouldSearch: boolean,
+  loadingInitial: boolean,
+  itemCount: number
+) {
+  return shouldSearch && loadingInitial && itemCount === 0;
+}
+
+export function shouldShowRecentResourcesLoading(
+  showRecents: boolean,
+  loadingRecents: boolean,
+  recentCount: number
+) {
+  return showRecents && loadingRecents && recentCount === 0;
+}
+
+export function shouldShowRecentResourcesEmpty(
+  showRecents: boolean,
+  loadingRecents: boolean,
+  recentCount: number
+) {
+  return showRecents && !loadingRecents && recentCount === 0;
 }
 
 export function buildSearchRequestPayload(

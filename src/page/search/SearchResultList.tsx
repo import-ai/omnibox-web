@@ -8,18 +8,26 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/Command';
+import { Spinner } from '@/components/ui/Spinner';
 import type { Resource, ResourceMeta } from '@/interface';
 
-import { buildSearchPreview, shouldShowSearchNoResults } from './searchUtils';
-
-const SEARCH_LINK_ROW_WITH_PREVIEW_CLASS =
-  'flex min-h-[62px] w-full flex-col items-start rounded-lg px-2 py-2 text-left !text-foreground no-underline outline-none';
-const SEARCH_LINK_ROW_WITHOUT_PREVIEW_CLASS =
-  'flex h-11 w-full flex-col items-start rounded-lg px-2 py-2.5 text-left !text-foreground no-underline outline-none';
-const SEARCH_LINK_INLINE_CLASS =
-  'flex flex-1 items-center gap-2 min-w-0 rounded-lg px-2 py-1 text-left !text-foreground no-underline outline-none';
-const SEARCH_SCROLLBAR_CLASS =
-  '[scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent';
+import {
+  searchResultEmptyItemClassName,
+  searchResultGroupClassName,
+  searchResultInlineRowClassName,
+  searchResultItemClassName,
+  searchResultListClassName,
+  searchResultLoadingClassName,
+  searchResultRowWithoutPreviewClassName,
+  searchResultRowWithPreviewClassName,
+} from './searchResultLayout';
+import {
+  buildSearchPreview,
+  shouldShowRecentResourcesEmpty,
+  shouldShowRecentResourcesLoading,
+  shouldShowSearchLoading,
+  shouldShowSearchNoResults,
+} from './searchUtils';
 
 interface SearchResultAnchorProps {
   children: ReactNode;
@@ -30,6 +38,8 @@ interface SearchResultAnchorProps {
 
 interface SearchResultListProps {
   keywords: string;
+  loadingInitial: boolean;
+  loadingRecents: boolean;
   messages: SearchMessageResult[];
   namespaceId?: string;
   loadingMore: boolean;
@@ -156,6 +166,8 @@ function ResourceResultContent({
 
 export function SearchResultList({
   keywords,
+  loadingInitial,
+  loadingRecents,
   messages,
   namespaceId,
   loadingMore,
@@ -171,7 +183,23 @@ export function SearchResultList({
   const showNoResults = shouldShowSearchNoResults(
     showRecents,
     resources.length,
-    messages.length
+    messages.length,
+    loadingInitial
+  );
+  const showLoading = shouldShowSearchLoading(
+    !showRecents,
+    loadingInitial,
+    resources.length + messages.length
+  );
+  const showRecentResourcesLoading = shouldShowRecentResourcesLoading(
+    showRecents,
+    loadingRecents,
+    recents.length
+  );
+  const showRecentResourcesEmpty = shouldShowRecentResourcesEmpty(
+    showRecents,
+    loadingRecents,
+    recents.length
   );
   const handleScroll = (event: UIEvent<HTMLDivElement>) => {
     const target = event.currentTarget;
@@ -184,81 +212,91 @@ export function SearchResultList({
   };
 
   return (
-    <CommandList
-      className={`relative h-full max-h-none overflow-y-auto overflow-x-hidden pr-2 ${SEARCH_SCROLLBAR_CLASS}`}
-      onScroll={handleScroll}
-    >
+    <CommandList className={searchResultListClassName} onScroll={handleScroll}>
+      {showLoading ? (
+        <div className={searchResultLoadingClassName}>
+          <Spinner className="size-6" />
+        </div>
+      ) : null}
       {showNoResults ? <SearchNoResults /> : null}
 
       {showRecents && (
         <CommandGroup
-          className="p-0 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-0 [&_[cmdk-group-heading]]:text-base [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:leading-6"
+          className={searchResultGroupClassName}
           heading={t('chat.home.recent.title', {
             defaultValue: 'Recently Updated',
           })}
         >
-          {recents.length === 0 ? (
+          {showRecentResourcesLoading ? (
+            <div className={searchResultLoadingClassName}>
+              <Spinner className="size-5" />
+            </div>
+          ) : null}
+
+          {showRecentResourcesEmpty ? (
             <CommandItem
               value="recent-empty"
               disabled
-              className="mt-2 rounded-lg px-2 py-2"
+              className={searchResultEmptyItemClassName}
             >
               {t('chat.home.recent.empty', {
                 defaultValue: 'No recent resources',
               })}
             </CommandItem>
-          ) : (
-            recents.map(item => {
-              const iconResource = {
-                id: item.id,
-                name: item.name,
-                resource_type: item.resource_type,
-                parent_id: '',
-                space_type: 'private',
-                has_children: !!item.has_children,
-                attrs: item.attrs || {},
-              } as unknown as Resource;
-              const recentPath = `/${namespaceId}/${item.id}`;
-              const title = item.name || t('untitled');
-              const preview = buildSearchPreview(item.content);
+          ) : null}
 
-              return (
-                <CommandItem
-                  key={item.id}
-                  value={item.id}
-                  className="my-1 cursor-pointer rounded-lg !p-0 data-[selected=true]:bg-accent"
-                  onSelect={() => {
-                    if (shouldSkipNavigate()) {
-                      return;
-                    }
-                    onNavigate(recentPath);
-                  }}
-                >
-                  <SearchResultAnchor
-                    path={recentPath}
-                    className={
-                      preview
-                        ? SEARCH_LINK_ROW_WITH_PREVIEW_CLASS
-                        : SEARCH_LINK_ROW_WITHOUT_PREVIEW_CLASS
-                    }
-                    onClick={onAnchorClick}
+          {recents.length > 0
+            ? recents.map(item => {
+                const iconResource = {
+                  id: item.id,
+                  name: item.name,
+                  resource_type: item.resource_type,
+                  parent_id: '',
+                  space_type: 'private',
+                  has_children: !!item.has_children,
+                  attrs: item.attrs || {},
+                } as unknown as Resource;
+                const recentPath = `/${namespaceId}/${item.id}`;
+                const title = item.name || t('untitled');
+                const preview = buildSearchPreview(item.content);
+
+                return (
+                  <CommandItem
+                    key={item.id}
+                    value={item.id}
+                    className={searchResultItemClassName}
+                    onSelect={() => {
+                      if (shouldSkipNavigate()) {
+                        return;
+                      }
+                      onNavigate(recentPath);
+                    }}
                   >
-                    <ResourceResultContent
-                      resource={iconResource}
-                      title={title}
-                      preview={preview}
-                    />
-                  </SearchResultAnchor>
-                </CommandItem>
-              );
-            })
-          )}
+                    <SearchResultAnchor
+                      path={recentPath}
+                      className={
+                        preview
+                          ? searchResultRowWithPreviewClassName
+                          : searchResultRowWithoutPreviewClassName
+                      }
+                      onClick={onAnchorClick}
+                    >
+                      <ResourceResultContent
+                        resource={iconResource}
+                        title={title}
+                        preview={preview}
+                      />
+                    </SearchResultAnchor>
+                  </CommandItem>
+                );
+              })
+            : null}
         </CommandGroup>
       )}
 
       {resources.length > 0 && (
         <CommandGroup
-          className="p-0 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-0 [&_[cmdk-group-heading]]:text-base [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:leading-6"
+          className={searchResultGroupClassName}
           heading={t('search.resources')}
         >
           {resources.map(resourceItem => {
@@ -280,7 +318,7 @@ export function SearchResultList({
               <CommandItem
                 key={resourceId}
                 value={resourceId}
-                className="my-1 cursor-pointer rounded-lg !p-0 data-[selected=true]:bg-accent"
+                className={searchResultItemClassName}
                 onSelect={() => {
                   if (shouldSkipNavigate()) {
                     return;
@@ -292,8 +330,8 @@ export function SearchResultList({
                   path={resourcePath}
                   className={
                     preview
-                      ? SEARCH_LINK_ROW_WITH_PREVIEW_CLASS
-                      : SEARCH_LINK_ROW_WITHOUT_PREVIEW_CLASS
+                      ? searchResultRowWithPreviewClassName
+                      : searchResultRowWithoutPreviewClassName
                   }
                   onClick={onAnchorClick}
                 >
@@ -311,7 +349,7 @@ export function SearchResultList({
 
       {messages.length > 0 && (
         <CommandGroup
-          className="p-0 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-0 [&_[cmdk-group-heading]]:text-base [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:leading-6"
+          className={searchResultGroupClassName}
           heading={t('search.chats')}
         >
           {messages.map(message => {
@@ -320,7 +358,7 @@ export function SearchResultList({
               <CommandItem
                 key={message.id}
                 value={message.id}
-                className="my-1 cursor-pointer rounded-lg !p-0 data-[selected=true]:bg-accent"
+                className={searchResultItemClassName}
                 onSelect={() => {
                   if (shouldSkipNavigate()) {
                     return;
@@ -330,7 +368,7 @@ export function SearchResultList({
               >
                 <SearchResultAnchor
                   path={chatPath}
-                  className={SEARCH_LINK_INLINE_CLASS}
+                  className={searchResultInlineRowClassName}
                   onClick={onAnchorClick}
                 >
                   <MessageCircle className="size-4 shrink-0 text-muted-foreground" />

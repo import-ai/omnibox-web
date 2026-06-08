@@ -700,7 +700,7 @@
     "filters": {
       "title": "Filter",
       "all": "All",
-      "remaining_conditions": "Rows left: {{remaining}}/{{total}}"
+      "remaining_conditions": "Rows left: {{remaining}} / {{total}}"
     }
   },
   "api_key": {
