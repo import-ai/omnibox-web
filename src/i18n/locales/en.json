@@ -1050,7 +1050,7 @@
       "all": "Personal + Team"
     },
     "move": {
-      "unsupported_mixed_target": "Smart folders and regular resources cannot be moved into each other."
+      "unsupported_mixed_target": "Can't move to smart folders."
     },
     "match_mode": {
       "all": "All",
