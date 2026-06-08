@@ -731,9 +731,17 @@
     "permissions": "权限",
     "permissions_resources": "资源权限",
     "permissions_chat": "对话权限",
+    "permission_sections": {
+      "resources": "资源权限",
+      "chat": "对话权限",
+      "tags": "标签权限",
+      "search": "搜索权限"
+    },
     "permission_targets": {
       "resources": "资源",
-      "chat": "对话"
+      "chat": "对话",
+      "tags": "标签",
+      "search": "搜索"
     },
     "permission_types": {
       "create": "创建",
