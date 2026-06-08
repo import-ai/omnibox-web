@@ -33,6 +33,10 @@ import {
   shouldShowResourceConditionValueInput,
 } from '@/page/resource/conditions/resourceConditionUtils';
 
+import {
+  searchConditionListClassName,
+  searchFilterPanelClassName,
+} from './searchLayout';
 import { getSearchConditionLimitMessageKey } from './searchUtils';
 
 interface SearchFilterPanelProps {
@@ -285,7 +289,7 @@ export function SearchFilterPanel({
   );
 
   return (
-    <aside className="flex h-full w-full shrink-0 flex-col bg-white p-2.5 dark:bg-neutral-900">
+    <aside className={searchFilterPanelClassName}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <h2 className="text-lg font-semibold leading-[1.4] text-foreground">
           {t('search.filters.title')}
@@ -334,10 +338,7 @@ export function SearchFilterPanel({
 
       <div
         ref={conditionListRef}
-        className={cn(
-          'mt-4 max-h-96 space-y-5 overflow-y-auto pr-1',
-          compactScrollbarClass
-        )}
+        className={cn(searchConditionListClassName, compactScrollbarClass)}
       >
         {conditions.map((condition, index) => (
           <Fragment key={index}>

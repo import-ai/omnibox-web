@@ -18,6 +18,10 @@ import { useResourceConditions } from '@/page/resource/conditions/useResourceCon
 
 import { SearchFilterPanel } from './SearchFilterPanel';
 import {
+  searchDialogBodyClassName,
+  searchLayoutSeparatorClassName,
+} from './searchLayout';
+import {
   SearchMessageResult,
   SearchRecentResource,
   SearchResourceResult,
@@ -296,7 +300,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           </div>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_1px_268px] gap-0">
+        <div className={searchDialogBodyClassName}>
           <div className="min-h-0 min-w-0">
             <SearchResultList
               keywords={keywords}
@@ -312,7 +316,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
               shouldSkipNavigate={shouldSkipNavigate}
             />
           </div>
-          <div className="bg-slate-200 dark:bg-neutral-800" />
+          <div className={searchLayoutSeparatorClassName} />
           <div className="min-w-0">
             <SearchFilterPanel
               canAddCondition={canAddCondition}
