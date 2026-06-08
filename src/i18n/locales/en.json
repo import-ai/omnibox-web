@@ -809,6 +809,7 @@
       "extract_tags": "Gen Tags",
       "generate_title": "Gen Title",
       "generate_video_note": "Video Parsing",
+      "generate_audio_note": "Audio Parsing",
       "collect_url": "Visit URL",
       "web_analysis": "Web Analysis"
     }
