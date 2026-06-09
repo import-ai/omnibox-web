@@ -126,7 +126,7 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
           </Select>
         </div>
 
-        <div className="min-w-28 flex-[0.66_1_112px]">
+        <div className="flex-none">
           {condition.field ? (
             <Select
               value={condition.operator || ''}
@@ -134,7 +134,9 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
                 onOperatorChange(index, value as ResourceConditionOperator)
               }
             >
-              <SelectTrigger className={resourceConditionSelectTriggerClass}>
+              <SelectTrigger
+                className={cn(resourceConditionSelectTriggerClass, 'w-auto')}
+              >
                 <SelectValue
                   placeholder={t('resource_conditions.select_operator')}
                 />
