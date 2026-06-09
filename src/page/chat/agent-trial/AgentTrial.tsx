@@ -4,7 +4,6 @@ import {
   UpgradeActionButton,
   UpgradeTrialUsageTooltip,
 } from '@/components/upgrade-action-button';
-import useConfig from '@/hooks/useConfig';
 import { getRelatedTime } from '@/lib/time.ts';
 import { useNamespaceRole } from '@/lib/useNamespaceRole.ts';
 import { useAgentUsage } from '@/page/chat/agent-trial/useAgentUsage';
@@ -18,19 +17,9 @@ export function AgentTrial({
   messages?: MessageDetail[];
 }) {
   const { t, i18n } = useTranslation();
-  const { config, loading: configLoading } = useConfig();
-  const isCommercial = !configLoading && config.commercial;
-  const { agentUsage } = useAgentUsage(
-    namespaceId,
-    messages ?? [],
-    isCommercial
-  );
+  const { agentUsage } = useAgentUsage(namespaceId, messages ?? [], true);
   const { role } = useNamespaceRole(namespaceId);
   const hasUpgradePermission: boolean = role === 'owner';
-
-  if (!isCommercial) {
-    return null;
-  }
 
   if (agentUsage) {
     if (agentUsage.agent_trial_remain >= 0) {

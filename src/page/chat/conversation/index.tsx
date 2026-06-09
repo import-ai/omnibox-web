@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import useConfig from '@/hooks/useConfig';
 import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import ChatArea from '@/page/chat/chat-input';
 import useContext from '@/page/chat/conversation/useContext';
@@ -11,6 +12,7 @@ import Scrollbar from './Scrollbar';
 
 export default function ChatConversationPage() {
   const { t } = useTranslation();
+  const { config } = useConfig();
   const {
     loading,
     messages,
@@ -45,7 +47,9 @@ export default function ChatConversationPage() {
       </Scrollbar>
       <div className="flex justify-center px-4">
         <div className="max-w-3xl w-full">
-          <AgentTrial namespaceId={namespaceId} messages={messages} />
+          {config.commercial && (
+            <AgentTrial namespaceId={namespaceId} messages={messages} />
+          )}
           <ChatArea
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
