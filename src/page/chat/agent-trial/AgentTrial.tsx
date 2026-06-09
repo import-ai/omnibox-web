@@ -17,7 +17,7 @@ export function AgentTrial({
   messages?: MessageDetail[];
 }) {
   const { t, i18n } = useTranslation();
-  const { agentUsage } = useAgentUsage(namespaceId, messages ?? [], true);
+  const { agentUsage } = useAgentUsage(namespaceId, messages ?? []);
   const { role } = useNamespaceRole(namespaceId);
   const hasUpgradePermission: boolean = role === 'owner';
 
