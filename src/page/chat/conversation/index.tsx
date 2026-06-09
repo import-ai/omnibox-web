@@ -15,6 +15,7 @@ export default function ChatConversationPage() {
   const { config } = useConfig();
   const {
     loading,
+    regeneratingParentId,
     messages,
     namespaceId,
     conversation,
@@ -42,6 +43,7 @@ export default function ChatConversationPage() {
             messageOperator={messageOperator}
             onRegenerate={onRegenerate}
             onEdit={onEdit}
+            regeneratingParentId={regeneratingParentId}
           />
         )}
       </Scrollbar>
