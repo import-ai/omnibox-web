@@ -34,6 +34,7 @@ import {
 } from '@/page/resource/conditions/resourceConditionUtils';
 
 import {
+  searchConditionControlGridClassName,
   searchConditionListClassName,
   searchFilterPanelClassName,
 } from './searchLayout';
@@ -130,7 +131,7 @@ function SearchFilterConditionRow({
         </Button>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2">
+      <div className={searchConditionControlGridClassName}>
         <Select
           value={condition.field || ''}
           onValueChange={value =>
@@ -196,7 +197,7 @@ function SearchFilterConditionRow({
             )}
           />
         ) : normalizedValue?.kind === 'relative_date' ? (
-          <div className="grid grid-cols-[minmax(0,1fr)_72px] gap-2">
+          <div className={searchConditionControlGridClassName}>
             <Input
               value={normalizedValue.amount}
               autoComplete="off"
