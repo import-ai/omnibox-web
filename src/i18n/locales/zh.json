@@ -106,6 +106,7 @@
     "upload_file": "上传文件",
     "download_as": "下载",
     "download_as_tooltip": "{{ format }} 格式",
+    "export_png_failed": "导出 PNG 失败，请稍后重试",
     "add_all_to_context": "添加全部文件到对话框",
     "add_it_to_context": "添加该文件到对话框",
     "add_it_only_to_context": "仅添加该文件到对话框",
