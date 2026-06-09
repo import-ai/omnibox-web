@@ -34,7 +34,7 @@ export default function SharedChatConversationPage() {
     useShareContext();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
-  const [regeneratingMessageId, setRegeneratingMessageId] = useState<
+  const [regeneratingParentId, setRegeneratingParentId] = useState<
     string | null
   >(null);
   const channel = AgentRequestChannel.WEB_SHARE;
@@ -150,7 +150,7 @@ export default function SharedChatConversationPage() {
     } = extractOriginalMessageSettings(parentMessage);
 
     regeneratingRef.current = true;
-    setRegeneratingMessageId(messageId);
+    setRegeneratingParentId(parentId);
     setLoading(true);
     try {
       const askFN = ask(
@@ -172,7 +172,7 @@ export default function SharedChatConversationPage() {
       await askFN.start();
     } finally {
       regeneratingRef.current = false;
-      setRegeneratingMessageId(null);
+      setRegeneratingParentId(null);
       setLoading(false);
     }
   };
@@ -208,7 +208,7 @@ export default function SharedChatConversationPage() {
           messageOperator={messageOperator}
           onRegenerate={onRegenerate}
           onEdit={onEdit}
-          regeneratingMessageId={regeneratingMessageId}
+          regeneratingParentId={regeneratingParentId}
         />
       </Scrollbar>
       <div className="flex justify-center px-4">
