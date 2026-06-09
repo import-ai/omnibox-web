@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Typewriter } from '@/components/typewriter';
+import useConfig from '@/hooks/useConfig';
 import { http } from '@/lib/request';
 import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import {
@@ -22,6 +23,7 @@ export default function ChatHomePage() {
   const navigate = useNavigate();
   const namespaceId = params.namespace_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
+  const { config } = useConfig();
   const { selectedResources, setSelectedResources } = useSelectedResources();
   const sendMessage = ({
     query,
@@ -55,7 +57,7 @@ export default function ChatHomePage() {
           <h1 className="text-[28px] text-center mb-[32px] font-medium">
             <Typewriter text={t(i18n)} typeSpeed={32} />
           </h1>
-          <AgentTrial namespaceId={namespaceId} />
+          {config.commercial && <AgentTrial namespaceId={namespaceId} />}
           <ChatArea
             messages={[]}
             navigatePrefix={`/${namespaceId}`}
