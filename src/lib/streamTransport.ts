@@ -72,19 +72,12 @@ function createWebSocketTransport(
 ): StreamTransport {
   const socket = getWebSocketConnection();
   let isAborted = false;
+  let resolveStart: (() => void) | undefined;
 
   const messageHandler = async (data: string) => {
     if (!isAborted) {
       await callback(data);
     }
-  };
-
-  const errorHandler = (error: { error: string }) => {
-    console.error('WebSocket error:', error);
-  };
-
-  const completeHandler = () => {
-    cleanup();
   };
 
   const cleanup = () => {
@@ -93,17 +86,38 @@ function createWebSocketTransport(
     socket.off('complete', completeHandler);
   };
 
-  return {
-    start: async () => {
-      socket.on('message', messageHandler);
-      socket.on('error', errorHandler);
-      socket.on('complete', completeHandler);
+  const finish = () => {
+    if (isAborted) {
+      return;
+    }
+    isAborted = true;
+    cleanup();
+    resolveStart?.();
+    resolveStart = undefined;
+  };
 
-      socket.emit(event, body);
+  const errorHandler = (error: { error: string }) => {
+    console.error('WebSocket error:', error);
+    finish();
+  };
+
+  const completeHandler = () => {
+    finish();
+  };
+
+  return {
+    start: () => {
+      return new Promise<void>(resolve => {
+        isAborted = false;
+        resolveStart = resolve;
+        socket.on('message', messageHandler);
+        socket.on('error', errorHandler);
+        socket.on('complete', completeHandler);
+        socket.emit(event, body);
+      });
     },
     destroy: () => {
-      isAborted = true;
-      cleanup();
+      finish();
     },
   };
 }

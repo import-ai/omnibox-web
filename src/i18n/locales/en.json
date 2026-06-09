@@ -106,6 +106,7 @@
     "upload_file": "Upload File",
     "download_as": "Download",
     "download_as_tooltip": "Download as {{ format }} format",
+    "export_png_failed": "Failed to export PNG, please try again later",
     "add_all_to_context": "Add all Files to Chat Box",
     "add_it_to_context": "Add this File to Chat Box",
     "add_it_only_to_context": "Add this File only to Chat Box",
