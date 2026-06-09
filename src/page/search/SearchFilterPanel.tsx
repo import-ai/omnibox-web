@@ -64,6 +64,10 @@ const compactControlClass =
   'h-8 rounded-md border-line bg-transparent px-3 text-sm shadow-none hover:bg-transparent focus:ring-0 focus:ring-transparent focus:outline-none dark:bg-transparent dark:hover:bg-transparent';
 const compactScrollbarClass =
   '[scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent';
+export const relativeDateAmountInputClassName = cn(
+  compactControlClass,
+  'px-2 text-left focus-visible:ring-0 focus-visible:ring-transparent'
+);
 
 function SearchFilterConditionRow({
   condition,
@@ -205,10 +209,7 @@ function SearchFilterConditionRow({
               inputMode="numeric"
               pattern="[0-9]*"
               placeholder={t('resource_conditions.relative_value_placeholder')}
-              className={cn(
-                compactControlClass,
-                'px-2 text-center focus-visible:ring-0 focus-visible:ring-transparent'
-              )}
+              className={relativeDateAmountInputClassName}
             />
             <Select
               value={normalizedValue.unit}

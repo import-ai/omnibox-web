@@ -947,7 +947,7 @@
   },
   "resource_conditions": {
     "conditions": "匹配下列条件",
-    "condition_title": "条件{{index}}",
+    "condition_title": "条件 {{index}}",
     "select_field": "选择属性",
     "select_operator": "选择关系",
     "value_placeholder": "请输入关键词",
