@@ -589,15 +589,15 @@ export default function Actions(props: IActionProps) {
                 <DropdownMenuItem
                   className="cursor-pointer whitespace-normal"
                   disabled={loading === 'download_as_png'}
-                  onClick={() => handleAction('download_as_png')}
+                  onSelect={event => {
+                    event.preventDefault();
+                    handleAction('download_as_png');
+                  }}
                 >
-                  {loading === 'download_as_png' ? (
-                    <Spinner />
-                  ) : (
-                    <span className="min-w-0 break-words">
-                      {t('actions.download_as_tooltip', { format: 'PNG' })}
-                    </span>
-                  )}
+                  {loading === 'download_as_png' ? <Spinner /> : null}
+                  <span className="min-w-0 break-words">
+                    {t('actions.download_as_tooltip', { format: 'PNG' })}
+                  </span>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
