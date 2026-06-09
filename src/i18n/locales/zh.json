@@ -106,6 +106,7 @@
     "upload_file": "上传文件",
     "download_as": "下载",
     "download_as_tooltip": "{{ format }} 格式",
+    "export_png_failed": "导出 PNG 失败，请稍后重试",
     "add_all_to_context": "添加全部文件到对话框",
     "add_it_to_context": "添加该文件到对话框",
     "add_it_only_to_context": "仅添加该文件到对话框",
@@ -730,9 +731,17 @@
     "permissions": "权限",
     "permissions_resources": "资源权限",
     "permissions_chat": "对话权限",
+    "permission_sections": {
+      "resources": "资源权限",
+      "chat": "对话权限",
+      "tags": "标签权限",
+      "search": "搜索权限"
+    },
     "permission_targets": {
       "resources": "资源",
-      "chat": "对话"
+      "chat": "对话",
+      "tags": "标签",
+      "search": "搜索"
     },
     "permission_types": {
       "create": "创建",
@@ -1006,7 +1015,7 @@
       "all": "个人+团队"
     },
     "move": {
-      "unsupported_mixed_target": "智能文件夹与普通资源不支持互相移入。"
+      "unsupported_mixed_target": "不支持移动到智能文件夹"
     },
     "match_mode": {
       "all": "全部",

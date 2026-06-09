@@ -28,7 +28,7 @@ export default function Page(props: IProps) {
   }
 
   return (
-    <>
+    <div data-resource-export-content="true">
       <h1 className="mb-4 min-w-0 max-w-full break-all text-4xl font-bold">
         {resource.name || t('untitled')}
       </h1>
@@ -61,6 +61,6 @@ export default function Page(props: IProps) {
           style={{ overflow: 'inherit' }}
         />
       )}
-    </>
+    </div>
   );
 }
