@@ -207,31 +207,29 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
               onValueChange={handleValueChange}
               headerContent={
                 <div className="flex items-center gap-2">
-                  {conditions.length > 1 && (
-                    <Select
-                      value={matchMode}
-                      onValueChange={value =>
-                        setMatchMode(value as SmartFolderMatchMode)
-                      }
+                  <Select
+                    value={matchMode}
+                    onValueChange={value =>
+                      setMatchMode(value as SmartFolderMatchMode)
+                    }
+                  >
+                    <SelectTrigger
+                      className={cn(
+                        resourceConditionSelectTriggerClass,
+                        'w-[133px]'
+                      )}
                     >
-                      <SelectTrigger
-                        className={cn(
-                          resourceConditionSelectTriggerClass,
-                          'w-[133px]'
-                        )}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">
-                          {t('smart_folder.match_mode.all')}
-                        </SelectItem>
-                        <SelectItem value="any">
-                          {t('smart_folder.match_mode.any')}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        {t('smart_folder.match_mode.all')}
+                      </SelectItem>
+                      <SelectItem value="any">
+                        {t('smart_folder.match_mode.any')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                   <div className="ml-auto flex items-center gap-2">
                     <span className="cursor-default text-sm text-muted-foreground">
                       {t('smart_folder.create.remaining_conditions', {
