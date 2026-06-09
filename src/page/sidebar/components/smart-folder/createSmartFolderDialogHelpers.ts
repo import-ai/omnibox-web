@@ -1,5 +1,10 @@
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { ResourceMeta } from '@/interface';
+import {
+  createDefaultCondition,
+  fromResourceConditionApiCondition,
+  normalizeResourceConditionValue,
+} from '@/page/resource/conditions/resourceConditionUtils';
 
 import {
   SmartFolderCondition,
@@ -7,11 +12,6 @@ import {
   SmartFolderOwnerScope,
   SmartFolderRootScope,
 } from './index';
-import {
-  createDefaultCondition,
-  fromSmartFolderApiCondition,
-  normalizeConditionValue,
-} from './smartFolderUtils';
 
 export const MAX_SMART_FOLDER_NAME_LENGTH = 128;
 
@@ -37,7 +37,7 @@ export function normalizeInitialConditions(
   }
 
   return conditions.map(condition => {
-    const normalizedCondition = fromSmartFolderApiCondition(condition);
+    const normalizedCondition = fromResourceConditionApiCondition(condition);
 
     if (!normalizedCondition?.field) {
       return {};
@@ -45,7 +45,7 @@ export function normalizeInitialConditions(
 
     return {
       ...normalizedCondition,
-      value: normalizeConditionValue(
+      value: normalizeResourceConditionValue(
         normalizedCondition.field,
         normalizedCondition.operator,
         normalizedCondition.value

@@ -4,6 +4,13 @@ import { useParams } from 'react-router-dom';
 
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { NamespaceTier } from '@/interface';
+import {
+  getConditionLimitMessage,
+  getConditionLimitValue,
+  isResourceConditionComplete,
+  toResourceConditionApiPayload,
+} from '@/page/resource/conditions/resourceConditionUtils';
+import { useResourceConditions } from '@/page/resource/conditions/useResourceConditions';
 
 import {
   getDefaultOwnerScope,
@@ -20,13 +27,6 @@ import type {
   SmartFolderOwnerScope,
   SmartFolderRootScope,
 } from './index';
-import {
-  getConditionLimitMessage,
-  getConditionLimitValue,
-  isConditionComplete,
-  toSmartFolderApiPayload,
-} from './smartFolderUtils';
-import { useSmartFolderConditions } from './useSmartFolderConditions';
 
 export function useCreateSmartFolderDialogState({
   open,
@@ -75,7 +75,7 @@ export function useCreateSmartFolderDialogState({
     handleFieldChange,
     handleOperatorChange,
     handleValueChange,
-  } = useSmartFolderConditions(maxConditionCount);
+  } = useResourceConditions(maxConditionCount);
   const remainingConditionCount = Math.max(
     maxConditionCount - conditions.length,
     0
@@ -199,7 +199,7 @@ export function useCreateSmartFolderDialogState({
     !!name.trim() &&
     ownerScopeAvailable &&
     effectiveConditions.length > 0 &&
-    effectiveConditions.every(isConditionComplete);
+    effectiveConditions.every(isResourceConditionComplete);
 
   const validate = () => {
     const trimmedName = name.trim();
@@ -229,7 +229,7 @@ export function useCreateSmartFolderDialogState({
     const validConditions = conditions.filter(condition => condition.field);
     validConditions.forEach(condition => {
       const sourceIndex = conditions.indexOf(condition);
-      if (!isConditionComplete(condition)) {
+      if (!isResourceConditionComplete(condition)) {
         nextErrors[sourceIndex] = t(
           'smart_folder.validation.condition_incomplete'
         );
@@ -246,13 +246,17 @@ export function useCreateSmartFolderDialogState({
 
     setNameError('');
     setConditionErrors({});
-    return toSmartFolderApiPayload({
-      name: trimmedName,
-      ownerScope,
-      rootScope,
+    const conditionPayload = toResourceConditionApiPayload({
       matchMode: validConditions.length > 1 ? matchMode : 'all',
       conditions: validConditions,
     });
+
+    return {
+      name: trimmedName,
+      owner_scope: ownerScope,
+      root_scope: rootScope,
+      ...conditionPayload,
+    };
   };
 
   const handleConfirm = async () => {

@@ -11,6 +11,18 @@ import * as React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/Dialog';
 import { cn } from '@/lib/utils';
 
+interface CommandInputProps extends React.ComponentPropsWithoutRef<
+  typeof CommandPrimitive.Input
+> {
+  iconClassName?: string;
+  wrapperClassName?: string;
+}
+
+interface CommandDialogProps extends DialogProps {
+  className?: string;
+  contentClassName?: string;
+}
+
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive>
@@ -26,15 +38,11 @@ const Command = React.forwardRef<
 ));
 Command.displayName = CommandPrimitive.displayName;
 
-interface CommandDialogProps extends DialogProps {
-  className?: string;
-}
-
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
-  const { className, ...restProps } = props;
+  const { className, contentClassName, ...restProps } = props;
   return (
     <Dialog {...restProps}>
-      <DialogContent className="overflow-hidden p-0">
+      <DialogContent className={cn('overflow-hidden p-0', contentClassName)}>
         <VisuallyHidden>
           <DialogTitle></DialogTitle>
           <DialogDescription></DialogDescription>
@@ -55,10 +63,13 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+  CommandInputProps
+>(({ className, iconClassName, wrapperClassName, ...props }, ref) => (
+  <div
+    className={cn('flex items-center border-b px-3', wrapperClassName)}
+    cmdk-input-wrapper=""
+  >
+    <Search className={cn('mr-2 h-4 w-4 shrink-0 opacity-50', iconClassName)} />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(

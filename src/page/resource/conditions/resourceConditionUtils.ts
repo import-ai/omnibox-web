@@ -1,23 +1,23 @@
 import type {
-  CreateSmartFolderPayload,
-  CreateSmartFolderRequest,
-  SmartFolderApiCondition,
-  SmartFolderApiOperator,
-  SmartFolderCondition,
-  SmartFolderField,
-  SmartFolderFieldType,
-  SmartFolderNamespaceTier,
-  SmartFolderOperator,
-  SmartFolderRelativeDateUnit,
-  SmartFolderValue,
+  ResourceCondition,
+  ResourceConditionApiCondition,
+  ResourceConditionApiOperator,
+  ResourceConditionApiPayload,
+  ResourceConditionField,
+  ResourceConditionFieldType,
+  ResourceConditionNamespaceTier,
+  ResourceConditionOperator,
+  ResourceConditionPayload,
+  ResourceConditionRelativeDateUnit,
+  ResourceConditionValue,
 } from './index';
 
-interface SmartFolderFieldDefinition {
-  type: SmartFolderFieldType;
-  operators: SmartFolderOperator[];
+interface ResourceConditionFieldDefinition {
+  type: ResourceConditionFieldType;
+  operators: ResourceConditionOperator[];
 }
 
-const TEXT_OPERATORS: SmartFolderOperator[] = [
+const TEXT_OPERATORS: ResourceConditionOperator[] = [
   'contains',
   'not_contains',
   'equals',
@@ -26,7 +26,7 @@ const TEXT_OPERATORS: SmartFolderOperator[] = [
   'is_not_empty',
 ];
 
-const DATE_OPERATORS: SmartFolderOperator[] = [
+const DATE_OPERATORS: ResourceConditionOperator[] = [
   'in_last',
   'not_in_last',
   'before_date',
@@ -34,37 +34,41 @@ const DATE_OPERATORS: SmartFolderOperator[] = [
   'between_dates',
 ];
 
-const FIELD_DEFINITIONS: Record<SmartFolderField, SmartFolderFieldDefinition> =
-  {
-    title: { type: 'text', operators: TEXT_OPERATORS },
-    tags: { type: 'text', operators: TEXT_OPERATORS },
-    url: { type: 'text', operators: TEXT_OPERATORS },
-    file_name: { type: 'text', operators: TEXT_OPERATORS },
-    created_at: { type: 'date', operators: DATE_OPERATORS },
-    content: { type: 'text', operators: TEXT_OPERATORS },
-  };
+const FIELD_DEFINITIONS: Record<
+  ResourceConditionField,
+  ResourceConditionFieldDefinition
+> = {
+  title: { type: 'text', operators: TEXT_OPERATORS },
+  tags: { type: 'text', operators: TEXT_OPERATORS },
+  content: { type: 'text', operators: TEXT_OPERATORS },
+  url: { type: 'text', operators: TEXT_OPERATORS },
+  file_name: { type: 'text', operators: TEXT_OPERATORS },
+  created_at: { type: 'date', operators: DATE_OPERATORS },
+  updated_at: { type: 'date', operators: DATE_OPERATORS },
+};
 
-export const VALUE_LESS_OPERATORS = new Set<SmartFolderOperator>([
+export const VALUE_LESS_OPERATORS = new Set<ResourceConditionOperator>([
   'is_empty',
   'is_not_empty',
 ]);
 
-export const RELATIVE_DATE_OPERATORS = new Set<SmartFolderOperator>([
+export const RELATIVE_DATE_OPERATORS = new Set<ResourceConditionOperator>([
   'in_last',
   'not_in_last',
 ]);
 
-export const SINGLE_DATE_OPERATORS = new Set<SmartFolderOperator>([
+export const SINGLE_DATE_OPERATORS = new Set<ResourceConditionOperator>([
   'before_date',
   'after_date',
 ]);
 
-export const DEFAULT_RELATIVE_DATE_UNIT: SmartFolderRelativeDateUnit = 'day';
+export const DEFAULT_RELATIVE_DATE_UNIT: ResourceConditionRelativeDateUnit =
+  'day';
 const BASIC_CONDITION_LIMIT = 3;
 const PREMIUM_CONDITION_LIMIT = 10;
 
 const OPERATOR_TO_API_MAP: Partial<
-  Record<SmartFolderOperator, SmartFolderApiOperator>
+  Record<ResourceConditionOperator, ResourceConditionApiOperator>
 > = {
   in_last: 'recent',
   not_in_last: 'earlier_than',
@@ -74,7 +78,7 @@ const OPERATOR_TO_API_MAP: Partial<
 };
 
 const OPERATOR_FROM_API_MAP: Partial<
-  Record<SmartFolderApiOperator, SmartFolderOperator>
+  Record<ResourceConditionApiOperator, ResourceConditionOperator>
 > = {
   recent: 'in_last',
   earlier_than: 'not_in_last',
@@ -83,16 +87,12 @@ const OPERATOR_FROM_API_MAP: Partial<
   between: 'between_dates',
 };
 
-export const SMART_FOLDER_FIELD_OPTIONS = Object.keys(
+export const RESOURCE_CONDITION_FIELD_OPTIONS = Object.keys(
   FIELD_DEFINITIONS
-) as SmartFolderField[];
+) as ResourceConditionField[];
 
-export const SMART_FOLDER_RELATIVE_DATE_UNITS: SmartFolderRelativeDateUnit[] = [
-  'day',
-  'week',
-  'month',
-  'year',
-];
+export const RESOURCE_CONDITION_RELATIVE_DATE_UNITS: ResourceConditionRelativeDateUnit[] =
+  ['day', 'week', 'month', 'year'];
 
 export function getTodayDateString() {
   const now = new Date();
@@ -103,7 +103,9 @@ export function getTodayDateString() {
   return `${year}-${month}-${day}`;
 }
 
-export function getFieldType(field?: SmartFolderField): SmartFolderFieldType {
+export function getResourceConditionFieldType(
+  field?: ResourceConditionField
+): ResourceConditionFieldType {
   if (!field) {
     return 'text';
   }
@@ -111,9 +113,9 @@ export function getFieldType(field?: SmartFolderField): SmartFolderFieldType {
   return FIELD_DEFINITIONS[field].type;
 }
 
-export function getAvailableOperators(
-  field?: SmartFolderField
-): SmartFolderOperator[] {
+export function getAvailableResourceConditionOperators(
+  field?: ResourceConditionField
+): ResourceConditionOperator[] {
   if (!field) {
     return [];
   }
@@ -121,29 +123,35 @@ export function getAvailableOperators(
   return FIELD_DEFINITIONS[field].operators;
 }
 
-export function getDefaultOperator(field?: SmartFolderField) {
-  const operators = getAvailableOperators(field);
+export function getDefaultResourceConditionOperator(
+  field?: ResourceConditionField
+) {
+  const operators = getAvailableResourceConditionOperators(field);
 
   return operators[0];
 }
 
-export function getConditionLimitValue(tier?: SmartFolderNamespaceTier) {
+export function getConditionLimitValue(tier?: ResourceConditionNamespaceTier) {
   return tier === 'premium' ? PREMIUM_CONDITION_LIMIT : BASIC_CONDITION_LIMIT;
 }
 
-export function getConditionLimitMessage(tier?: SmartFolderNamespaceTier) {
+export function getConditionLimitMessage(
+  tier?: ResourceConditionNamespaceTier
+) {
   return tier === 'premium'
     ? 'smart_folder.create.limit_reached_premium'
     : 'smart_folder.create.limit_reached_basic';
 }
 
-export function shouldShowValueInput(operator?: SmartFolderOperator) {
+export function shouldShowResourceConditionValueInput(
+  operator?: ResourceConditionOperator
+) {
   return !!operator && !VALUE_LESS_OPERATORS.has(operator);
 }
 
-export function createDefaultValue(
-  operator?: SmartFolderOperator
-): SmartFolderValue | undefined {
+export function createDefaultResourceConditionValue(
+  operator?: ResourceConditionOperator
+): ResourceConditionValue | undefined {
   if (!operator || VALUE_LESS_OPERATORS.has(operator)) {
     return undefined;
   }
@@ -179,23 +187,23 @@ export function createDefaultValue(
   };
 }
 
-export function getInitialConditionForField(
-  field: SmartFolderField
-): SmartFolderCondition {
-  const operator = getDefaultOperator(field);
+export function getInitialResourceConditionForField(
+  field: ResourceConditionField
+): ResourceCondition {
+  const operator = getDefaultResourceConditionOperator(field);
 
   return {
     field,
     operator,
-    value: createDefaultValue(operator),
+    value: createDefaultResourceConditionValue(operator),
   };
 }
 
-export function createDefaultCondition(): SmartFolderCondition {
-  return getInitialConditionForField('title');
+export function createDefaultCondition(): ResourceCondition {
+  return getInitialResourceConditionForField('title');
 }
 
-function normalizeDateRangeValue(value: SmartFolderValue) {
+function normalizeDateRangeValue(value: ResourceConditionValue) {
   if (value.kind !== 'date_range') {
     return value;
   }
@@ -215,20 +223,20 @@ function normalizeDateRangeValue(value: SmartFolderValue) {
   };
 }
 
-export function normalizeConditionValue(
-  field?: SmartFolderCondition['field'],
-  operator?: SmartFolderCondition['operator'],
-  value?: SmartFolderCondition['value']
-): SmartFolderValue | undefined {
+export function normalizeResourceConditionValue(
+  field?: ResourceCondition['field'],
+  operator?: ResourceCondition['operator'],
+  value?: ResourceCondition['value']
+): ResourceConditionValue | undefined {
   if (!field || !operator) {
     return undefined;
   }
 
-  if (!shouldShowValueInput(operator)) {
+  if (!shouldShowResourceConditionValueInput(operator)) {
     return undefined;
   }
 
-  const fieldType = getFieldType(field);
+  const fieldType = getResourceConditionFieldType(field);
   if (fieldType === 'text') {
     if (typeof value === 'string') {
       return { kind: 'text', text: value.trim() };
@@ -238,7 +246,7 @@ export function normalizeConditionValue(
       return { kind: 'text', text: value.text.trim() };
     }
 
-    return createDefaultValue(operator);
+    return createDefaultResourceConditionValue(operator);
   }
 
   if (RELATIVE_DATE_OPERATORS.has(operator)) {
@@ -250,7 +258,7 @@ export function normalizeConditionValue(
       };
     }
 
-    return createDefaultValue(operator);
+    return createDefaultResourceConditionValue(operator);
   }
 
   if (SINGLE_DATE_OPERATORS.has(operator)) {
@@ -261,7 +269,7 @@ export function normalizeConditionValue(
       };
     }
 
-    return createDefaultValue(operator);
+    return createDefaultResourceConditionValue(operator);
   }
 
   if (operator === 'between_dates') {
@@ -269,10 +277,10 @@ export function normalizeConditionValue(
       return normalizeDateRangeValue(value);
     }
 
-    return createDefaultValue(operator);
+    return createDefaultResourceConditionValue(operator);
   }
 
-  return createDefaultValue(operator);
+  return createDefaultResourceConditionValue(operator);
 }
 
 export function normalizeRelativeDateAmount(value?: string | number) {
@@ -285,16 +293,16 @@ export function normalizeRelativeDateAmount(value?: string | number) {
   return text.replace(/^0+(?=\d)/, '');
 }
 
-export function isConditionComplete(condition: SmartFolderCondition) {
+export function isResourceConditionComplete(condition: ResourceCondition) {
   if (!condition.field || !condition.operator) {
     return false;
   }
 
-  if (!shouldShowValueInput(condition.operator)) {
+  if (!shouldShowResourceConditionValueInput(condition.operator)) {
     return true;
   }
 
-  const value = normalizeConditionValue(
+  const value = normalizeResourceConditionValue(
     condition.field,
     condition.operator,
     condition.value
@@ -320,8 +328,8 @@ export function isConditionComplete(condition: SmartFolderCondition) {
 }
 
 function toApiOperator(
-  operator?: SmartFolderOperator
-): SmartFolderApiOperator | undefined {
+  operator?: ResourceConditionOperator
+): ResourceConditionApiOperator | undefined {
   if (!operator) {
     return undefined;
   }
@@ -330,24 +338,27 @@ function toApiOperator(
 }
 
 function fromApiOperator(
-  operator?: SmartFolderApiOperator
-): SmartFolderOperator | undefined {
+  operator?: ResourceConditionApiOperator
+): ResourceConditionOperator | undefined {
   if (!operator) {
     return undefined;
   }
 
-  return OPERATOR_FROM_API_MAP[operator] || (operator as SmartFolderOperator);
+  return (
+    OPERATOR_FROM_API_MAP[operator] || (operator as ResourceConditionOperator)
+  );
 }
 
-export function normalizeCondition(
-  condition: SmartFolderCondition
-): SmartFolderCondition | null {
+export function normalizeResourceCondition(
+  condition: ResourceCondition
+): ResourceCondition | null {
   if (!condition.field) {
     return null;
   }
 
-  const operator = condition.operator || getDefaultOperator(condition.field);
-  const nextValue = normalizeConditionValue(
+  const operator =
+    condition.operator || getDefaultResourceConditionOperator(condition.field);
+  const nextValue = normalizeResourceConditionValue(
     condition.field,
     operator,
     condition.value
@@ -360,9 +371,9 @@ export function normalizeCondition(
   };
 }
 
-export function fromSmartFolderApiCondition(
-  condition: SmartFolderApiCondition | SmartFolderCondition
-): SmartFolderCondition {
+export function fromResourceConditionApiCondition(
+  condition: ResourceConditionApiCondition | ResourceCondition
+): ResourceCondition {
   const operator = fromApiOperator(condition.operator);
 
   if (!condition.field || !operator) {
@@ -429,15 +440,15 @@ export function fromSmartFolderApiCondition(
   return {
     field: condition.field,
     operator,
-    ...(shouldShowValueInput(operator)
-      ? { value: createDefaultValue(operator) }
+    ...(shouldShowResourceConditionValueInput(operator)
+      ? { value: createDefaultResourceConditionValue(operator) }
       : {}),
   };
 }
 
-function toSmartFolderApiCondition(
-  condition: SmartFolderCondition
-): SmartFolderApiCondition {
+function toResourceConditionApiCondition(
+  condition: ResourceCondition
+): ResourceConditionApiCondition {
   const operator = toApiOperator(condition.operator);
   const value = condition.value;
 
@@ -490,18 +501,15 @@ function toSmartFolderApiCondition(
   };
 }
 
-export function toSmartFolderApiPayload(
-  payload: CreateSmartFolderPayload
-): CreateSmartFolderRequest {
+export function toResourceConditionApiPayload(
+  payload: ResourceConditionPayload
+): ResourceConditionApiPayload {
   const normalizedConditions = payload.conditions
-    .map(condition => normalizeCondition(condition))
-    .filter((condition): condition is SmartFolderCondition => !!condition);
+    .map(condition => normalizeResourceCondition(condition))
+    .filter((condition): condition is ResourceCondition => !!condition);
 
   return {
-    name: payload.name.trim(),
-    owner_scope: payload.ownerScope,
-    root_scope: payload.rootScope,
     match_mode: payload.matchMode,
-    conditions: normalizedConditions.map(toSmartFolderApiCondition),
+    conditions: normalizedConditions.map(toResourceConditionApiCondition),
   };
 }

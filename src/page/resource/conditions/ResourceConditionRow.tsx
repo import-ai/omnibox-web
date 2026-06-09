@@ -15,33 +15,39 @@ import {
 import { cn } from '@/lib/utils';
 
 import {
-  SmartFolderCondition,
-  SmartFolderField,
-  SmartFolderOperator,
-  SmartFolderRelativeDateUnit,
+  ResourceCondition,
+  ResourceConditionField,
+  ResourceConditionOperator,
+  ResourceConditionRelativeDateUnit,
 } from './index';
 import {
-  getAvailableOperators,
-  getFieldType,
-  normalizeConditionValue,
-  shouldShowValueInput,
-  SMART_FOLDER_FIELD_OPTIONS,
-  SMART_FOLDER_RELATIVE_DATE_UNITS,
-} from './smartFolderUtils';
-import { smartFolderInputClass, smartFolderSelectTriggerClass } from './styles';
+  getAvailableResourceConditionOperators,
+  getResourceConditionFieldType,
+  normalizeResourceConditionValue,
+  RESOURCE_CONDITION_FIELD_OPTIONS,
+  RESOURCE_CONDITION_RELATIVE_DATE_UNITS,
+  shouldShowResourceConditionValueInput,
+} from './resourceConditionUtils';
+import {
+  resourceConditionInputClass,
+  resourceConditionSelectTriggerClass,
+} from './styles';
 
-interface SmartFolderConditionRowProps {
-  condition: SmartFolderCondition;
+interface ResourceConditionRowProps {
+  condition: ResourceCondition;
   conditionError?: string;
   hideRemove: boolean;
   index: number;
-  onFieldChange: (index: number, field: SmartFolderField) => void;
-  onOperatorChange: (index: number, operator: SmartFolderOperator) => void;
+  onFieldChange: (index: number, field: ResourceConditionField) => void;
+  onOperatorChange: (
+    index: number,
+    operator: ResourceConditionOperator
+  ) => void;
   onRemove: (index: number) => void;
-  onValueChange: (index: number, value: SmartFolderCondition['value']) => void;
+  onValueChange: (index: number, value: ResourceCondition['value']) => void;
 }
 
-export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
+export function ResourceConditionRow(props: ResourceConditionRowProps) {
   const {
     condition,
     conditionError,
@@ -53,9 +59,9 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
     onValueChange,
   } = props;
   const { t } = useTranslation();
-  const operators = getAvailableOperators(condition.field);
-  const fieldType = getFieldType(condition.field);
-  const normalizedValue = normalizeConditionValue(
+  const operators = getAvailableResourceConditionOperators(condition.field);
+  const fieldType = getResourceConditionFieldType(condition.field);
+  const normalizedValue = normalizeResourceConditionValue(
     condition.field,
     condition.operator,
     condition.value
@@ -82,7 +88,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-foreground">
-          {t('smart_folder.create.condition_title', { index: index + 1 })}
+          {t('resource_conditions.condition_title', { index: index + 1 })}
         </p>
         <Button
           type="button"
@@ -102,41 +108,43 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
           <Select
             value={condition.field || ''}
             onValueChange={value =>
-              onFieldChange(index, value as SmartFolderField)
+              onFieldChange(index, value as ResourceConditionField)
             }
           >
-            <SelectTrigger className={smartFolderSelectTriggerClass}>
+            <SelectTrigger className={resourceConditionSelectTriggerClass}>
               <SelectValue
-                placeholder={t('smart_folder.create.select_field')}
+                placeholder={t('resource_conditions.select_field')}
               />
             </SelectTrigger>
             <SelectContent>
-              {SMART_FOLDER_FIELD_OPTIONS.map(field => (
+              {RESOURCE_CONDITION_FIELD_OPTIONS.map(field => (
                 <SelectItem value={field} key={field}>
-                  {t(`smart_folder.fields.${field}`)}
+                  {t(`resource_conditions.fields.${field}`)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="min-w-28 flex-[0.66_1_112px]">
+        <div className="flex-none">
           {condition.field ? (
             <Select
               value={condition.operator || ''}
               onValueChange={value =>
-                onOperatorChange(index, value as SmartFolderOperator)
+                onOperatorChange(index, value as ResourceConditionOperator)
               }
             >
-              <SelectTrigger className={smartFolderSelectTriggerClass}>
+              <SelectTrigger
+                className={cn(resourceConditionSelectTriggerClass, 'w-auto')}
+              >
                 <SelectValue
-                  placeholder={t('smart_folder.create.select_operator')}
+                  placeholder={t('resource_conditions.select_operator')}
                 />
               </SelectTrigger>
               <SelectContent>
                 {operators.map(operator => (
                   <SelectItem value={operator} key={operator}>
-                    {t(`smart_folder.operators.${operator}`)}
+                    {t(`resource_conditions.operators.${operator}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -148,7 +156,7 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
 
         <div className="min-w-64 flex-[2_1_260px]">
           {condition.field && condition.operator ? (
-            shouldShowValueInput(condition.operator) ? (
+            shouldShowResourceConditionValueInput(condition.operator) ? (
               fieldType === 'text' && normalizedValue?.kind === 'text' ? (
                 <Input
                   value={normalizedValue.text}
@@ -159,9 +167,9 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
                       text: event.target.value,
                     })
                   }
-                  placeholder={t('smart_folder.create.value_placeholder')}
+                  placeholder={t('resource_conditions.value_placeholder')}
                   className={cn(
-                    smartFolderInputClass,
+                    resourceConditionInputClass,
                     'focus-visible:ring-0 focus-visible:ring-transparent'
                   )}
                 />
@@ -174,10 +182,10 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
                     inputMode="numeric"
                     pattern="[0-9]*"
                     placeholder={t(
-                      'smart_folder.create.relative_value_placeholder'
+                      'resource_conditions.relative_value_placeholder'
                     )}
                     className={cn(
-                      smartFolderInputClass,
+                      resourceConditionInputClass,
                       'focus-visible:ring-0 focus-visible:ring-transparent'
                     )}
                   />
@@ -186,17 +194,19 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
                     onValueChange={value =>
                       onValueChange(index, {
                         ...normalizedValue,
-                        unit: value as SmartFolderRelativeDateUnit,
+                        unit: value as ResourceConditionRelativeDateUnit,
                       })
                     }
                   >
-                    <SelectTrigger className={smartFolderSelectTriggerClass}>
+                    <SelectTrigger
+                      className={resourceConditionSelectTriggerClass}
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {SMART_FOLDER_RELATIVE_DATE_UNITS.map(unit => (
+                      {RESOURCE_CONDITION_RELATIVE_DATE_UNITS.map(unit => (
                         <SelectItem value={unit} key={unit}>
-                          {t(`smart_folder.units.${unit}`)}
+                          {t(`resource_conditions.units.${unit}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -205,8 +215,8 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
               ) : normalizedValue?.kind === 'single_date' ? (
                 <DatePicker
                   value={normalizedValue.date}
-                  placeholder={t('smart_folder.create.pick_date')}
-                  className={smartFolderSelectTriggerClass}
+                  placeholder={t('resource_conditions.pick_date')}
+                  className={resourceConditionSelectTriggerClass}
                   onChange={value =>
                     onValueChange(index, {
                       ...normalizedValue,
@@ -218,9 +228,9 @@ export function SmartFolderConditionRow(props: SmartFolderConditionRowProps) {
                 <DateRangePicker
                   startDate={normalizedValue.startDate}
                   endDate={normalizedValue.endDate}
-                  placeholder={t('smart_folder.create.pick_date')}
-                  displayFormat={t('smart_folder.date_format')}
-                  className={smartFolderSelectTriggerClass}
+                  placeholder={t('resource_conditions.pick_date')}
+                  displayFormat={t('resource_conditions.date_format')}
+                  className={resourceConditionSelectTriggerClass}
                   onChange={value =>
                     onValueChange(index, {
                       ...normalizedValue,

@@ -27,7 +27,6 @@ function FilterTabs({ value, unreadCount, onChange, labels }: FilterTabsProps) {
   const filters: Array<{ key: NotificationFilter; label: string }> = [
     { key: 'all', label: labels.all },
     { key: 'unread', label: labels.unread },
-    { key: 'read', label: labels.read },
   ];
 
   return (

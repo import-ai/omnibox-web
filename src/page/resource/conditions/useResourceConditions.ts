@@ -1,27 +1,53 @@
 import { useEffect, useRef, useState } from 'react';
 
 import {
-  SmartFolderCondition,
-  SmartFolderField,
-  SmartFolderOperator,
+  ResourceCondition,
+  ResourceConditionField,
+  ResourceConditionOperator,
 } from './index';
 import {
   createDefaultCondition,
-  getDefaultOperator,
-  getInitialConditionForField,
-  normalizeConditionValue,
-  shouldShowValueInput,
-} from './smartFolderUtils';
+  getDefaultResourceConditionOperator,
+  getInitialResourceConditionForField,
+  normalizeResourceConditionValue,
+  shouldShowResourceConditionValueInput,
+} from './resourceConditionUtils';
 
-export function useSmartFolderConditions(maxConditionCount: number) {
+export function useResourceConditions(maxConditionCount: number) {
   const conditionListRef = useRef<HTMLDivElement>(null);
   const shouldScrollToLatestConditionRef = useRef(false);
-  const [conditions, setConditions] = useState<SmartFolderCondition[]>([
+  const [conditions, setConditions] = useState<ResourceCondition[]>([
     createDefaultCondition(),
   ]);
   const [conditionErrors, setConditionErrors] = useState<
     Record<number, string>
   >({});
+
+  const scrollToLatestCondition = () => {
+    conditionListRef.current?.scrollTo({
+      top: conditionListRef.current.scrollHeight,
+      behavior: 'smooth',
+    });
+  };
+
+  const isConditionListScrolledToBottom = () => {
+    const list = conditionListRef.current;
+    if (!list) {
+      return false;
+    }
+
+    return list.scrollHeight - list.scrollTop - list.clientHeight <= 8;
+  };
+
+  const scrollToLatestConditionAfterNextUpdate = () => {
+    shouldScrollToLatestConditionRef.current = true;
+  };
+
+  const keepLatestConditionVisibleAfterUpdate = (index: number) => {
+    if (index === conditions.length - 1 && isConditionListScrolledToBottom()) {
+      scrollToLatestConditionAfterNextUpdate();
+    }
+  };
 
   useEffect(() => {
     if (!shouldScrollToLatestConditionRef.current) {
@@ -29,11 +55,8 @@ export function useSmartFolderConditions(maxConditionCount: number) {
     }
 
     shouldScrollToLatestConditionRef.current = false;
-    conditionListRef.current?.scrollTo({
-      top: conditionListRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
-  }, [conditions.length]);
+    window.requestAnimationFrame(scrollToLatestCondition);
+  }, [conditions]);
 
   const resetConditionScroll = () => {
     shouldScrollToLatestConditionRef.current = false;
@@ -44,7 +67,7 @@ export function useSmartFolderConditions(maxConditionCount: number) {
       return;
     }
 
-    shouldScrollToLatestConditionRef.current = true;
+    scrollToLatestConditionAfterNextUpdate();
     setConditions(prev => {
       const next = [...prev];
       next.splice((afterIndex ?? prev.length - 1) + 1, 0, {});
@@ -77,7 +100,7 @@ export function useSmartFolderConditions(maxConditionCount: number) {
 
   const updateCondition = (
     index: number,
-    patch: Partial<SmartFolderCondition>
+    patch: Partial<ResourceCondition>
   ) => {
     setConditions(prev =>
       prev.map((condition, currentIndex) =>
@@ -91,34 +114,39 @@ export function useSmartFolderConditions(maxConditionCount: number) {
     });
   };
 
-  const handleFieldChange = (index: number, field: SmartFolderField) => {
-    updateCondition(index, getInitialConditionForField(field));
+  const handleFieldChange = (index: number, field: ResourceConditionField) => {
+    keepLatestConditionVisibleAfterUpdate(index);
+    updateCondition(index, getInitialResourceConditionForField(field));
   };
 
   const handleOperatorChange = (
     index: number,
-    operator: SmartFolderOperator
+    operator: ResourceConditionOperator
   ) => {
+    keepLatestConditionVisibleAfterUpdate(index);
     const currentCondition = conditions[index];
     updateCondition(index, {
       operator,
-      value: normalizeConditionValue(
+      value: normalizeResourceConditionValue(
         currentCondition.field,
         operator,
-        shouldShowValueInput(operator) ? currentCondition.value : undefined
+        shouldShowResourceConditionValueInput(operator)
+          ? currentCondition.value
+          : undefined
       ),
     });
   };
 
   const handleValueChange = (
     index: number,
-    value: SmartFolderCondition['value']
+    value: ResourceCondition['value']
   ) => {
     const currentCondition = conditions[index];
     updateCondition(index, {
-      value: normalizeConditionValue(
+      value: normalizeResourceConditionValue(
         currentCondition.field,
-        currentCondition.operator || getDefaultOperator(currentCondition.field),
+        currentCondition.operator ||
+          getDefaultResourceConditionOperator(currentCondition.field),
         value
       ),
     });

@@ -39,7 +39,6 @@ function Notification({ onClose }: { onClose?: () => void }) {
   const labels: Record<NotificationFilter, string> = {
     all: t('notification_modal.all'),
     unread: t('notification_modal.unread'),
-    read: t('notification_modal.read'),
   };
 
   const emptyLabel = t('notification_modal.empty');
