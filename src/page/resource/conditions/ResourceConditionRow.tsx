@@ -103,8 +103,8 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
           <X className="size-4" />
         </Button>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="min-w-28 flex-[0.72_1_120px]">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-2 sm:flex sm:flex-wrap">
+        <div className="min-w-0 sm:min-w-28 sm:flex-[0.72_1_120px]">
           <Select
             value={condition.field || ''}
             onValueChange={value =>
@@ -126,7 +126,7 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
           </Select>
         </div>
 
-        <div className="flex-none">
+        <div className="min-w-0 sm:flex-none">
           {condition.field ? (
             <Select
               value={condition.operator || ''}
@@ -135,7 +135,7 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
               }
             >
               <SelectTrigger
-                className={cn(resourceConditionSelectTriggerClass, 'w-auto')}
+                className={cn(resourceConditionSelectTriggerClass, 'sm:w-auto')}
               >
                 <SelectValue
                   placeholder={t('resource_conditions.select_operator')}
@@ -154,7 +154,7 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
           )}
         </div>
 
-        <div className="min-w-64 flex-[2_1_260px]">
+        <div className="col-span-2 min-w-0 sm:min-w-64 sm:flex-[2_1_260px]">
           {condition.field && condition.operator ? (
             shouldShowResourceConditionValueInput(condition.operator) ? (
               fieldType === 'text' && normalizedValue?.kind === 'text' ? (
