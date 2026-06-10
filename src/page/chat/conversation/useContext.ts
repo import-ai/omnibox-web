@@ -35,9 +35,13 @@ export default function useContext() {
   const params = useParams();
   const { i18n } = useTranslation();
   const askAbortRef = useRef<() => void>(null);
+  const regeneratingRef = useRef(false);
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
   const [loading, setLoading] = useState<boolean>(false);
+  const [regeneratingParentId, setRegeneratingParentId] = useState<
+    string | null
+  >(null);
   const { selectedResources, setSelectedResources } = useGlobalContext();
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
@@ -125,6 +129,10 @@ export default function useContext() {
     ) || loading;
 
   const onRegenerate = async (messageId: string) => {
+    if (regeneratingRef.current) {
+      return;
+    }
+
     const parentId = messageOperator.getParent(messageId);
     const parentMessage = conversation.mapping[parentId];
     if (!parentMessage || !parentMessage.message.content) {
@@ -139,6 +147,8 @@ export default function useContext() {
       originalEnableThinking,
     } = extractOriginalMessageSettings(parentMessage);
 
+    regeneratingRef.current = true;
+    setRegeneratingParentId(parentId);
     setLoading(true);
     try {
       const askFN = ask(
@@ -159,6 +169,8 @@ export default function useContext() {
       askAbortRef.current = askFN.destroy;
       await askFN.start();
     } finally {
+      regeneratingRef.current = false;
+      setRegeneratingParentId(null);
       setLoading(false);
     }
   };
@@ -208,6 +220,7 @@ export default function useContext() {
 
   return {
     loading: mergedLoading,
+    regeneratingParentId,
     sendMessage,
     messages,
     selectedResources,

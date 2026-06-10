@@ -50,6 +50,8 @@ interface IProps {
   conversation: ConversationDetail;
   messageId: string;
   onRegenerate: (messageId: string) => void;
+  regenerateDisabled?: boolean;
+  regenerating?: boolean;
   hasSiblings?: boolean;
   currentIndex?: number;
   siblingsLength?: number;
@@ -69,6 +71,8 @@ export function CitationMarkdown(props: IProps) {
     conversation,
     messageId,
     onRegenerate,
+    regenerateDisabled = false,
+    regenerating = false,
     hasSiblings,
     currentIndex,
     siblingsLength,
@@ -271,9 +275,12 @@ export function CitationMarkdown(props: IProps) {
                 size="icon"
                 variant="ghost"
                 className="p-0 w-7 h-7"
+                disabled={regenerateDisabled}
                 onClick={() => onRegenerate(messageId)}
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw
+                  className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`}
+                />
               </Button>
             </TooltipTrigger>
             <TooltipContent>

@@ -1,93 +1,30 @@
 import type { Namespace, Resource, ResourceMeta, SpaceType } from '@/interface';
+import type {
+  ResourceCondition,
+  ResourceConditionApiCondition,
+  ResourceConditionApiOperator,
+  ResourceConditionApiValue,
+  ResourceConditionField,
+  ResourceConditionFieldType,
+  ResourceConditionMatchMode,
+  ResourceConditionNamespaceTier,
+  ResourceConditionOperator,
+  ResourceConditionRelativeDateUnit,
+  ResourceConditionValue,
+} from '@/page/resource/conditions';
 
-export type SmartFolderMatchMode = 'all' | 'any';
+export type SmartFolderMatchMode = ResourceConditionMatchMode;
 export type SmartFolderOwnerScope = SpaceType;
 export type SmartFolderRootScope = SpaceType | 'all';
-
-export type SmartFolderField =
-  | 'title'
-  | 'tags'
-  | 'url'
-  | 'file_name'
-  | 'content'
-  | 'created_at';
-
-export type SmartFolderFieldType = 'text' | 'date';
-
-export type SmartFolderOperator =
-  | 'contains'
-  | 'not_contains'
-  | 'equals'
-  | 'not_equals'
-  | 'is_empty'
-  | 'is_not_empty'
-  | 'in_last'
-  | 'not_in_last'
-  | 'before_date'
-  | 'after_date'
-  | 'between_dates';
-
-export type SmartFolderRelativeDateUnit = 'day' | 'week' | 'month' | 'year';
-
-export type SmartFolderNamespaceTier = 'basic' | 'premium' | undefined;
-
-export type SmartFolderApiOperator =
-  | SmartFolderOperator
-  | 'recent'
-  | 'earlier_than'
-  | 'before'
-  | 'after'
-  | 'on'
-  | 'not_on'
-  | 'between';
-
-export interface SmartFolderTextValue {
-  kind: 'text';
-  text: string;
-}
-
-export interface SmartFolderRelativeDateValue {
-  kind: 'relative_date';
-  amount: string;
-  unit: SmartFolderRelativeDateUnit;
-}
-
-export interface SmartFolderSingleDateValue {
-  kind: 'single_date';
-  date: string;
-}
-
-export interface SmartFolderDateRangeValue {
-  kind: 'date_range';
-  startDate: string;
-  endDate: string;
-}
-
-export type SmartFolderValue =
-  | SmartFolderTextValue
-  | SmartFolderRelativeDateValue
-  | SmartFolderSingleDateValue
-  | SmartFolderDateRangeValue;
-
-export type SmartFolderApiValue =
-  | SmartFolderValue
-  | string
-  | number
-  | {
-      amount?: number | string;
-      unit?: SmartFolderRelativeDateUnit;
-      date?: string;
-      startDate?: string;
-      endDate?: string;
-      start_date?: string;
-      end_date?: string;
-    };
-
-export interface SmartFolderCondition {
-  field?: SmartFolderField;
-  operator?: SmartFolderOperator;
-  value?: SmartFolderValue | string;
-}
+export type SmartFolderField = ResourceConditionField;
+export type SmartFolderFieldType = ResourceConditionFieldType;
+export type SmartFolderOperator = ResourceConditionOperator;
+export type SmartFolderRelativeDateUnit = ResourceConditionRelativeDateUnit;
+export type SmartFolderNamespaceTier = ResourceConditionNamespaceTier;
+export type SmartFolderApiOperator = ResourceConditionApiOperator;
+export type SmartFolderValue = ResourceConditionValue;
+export type SmartFolderApiValue = ResourceConditionApiValue;
+export type SmartFolderCondition = ResourceCondition;
 
 export interface CreateSmartFolderPayload {
   name: string;
@@ -97,11 +34,7 @@ export interface CreateSmartFolderPayload {
   conditions: SmartFolderCondition[];
 }
 
-export interface SmartFolderApiCondition {
-  field?: SmartFolderField;
-  operator?: SmartFolderApiOperator;
-  value?: SmartFolderApiValue;
-}
+export type SmartFolderApiCondition = ResourceConditionApiCondition;
 
 export interface CreateSmartFolderRequest {
   name: string;

@@ -29,10 +29,14 @@ export default function SharedChatConversationPage() {
   const shareId = params.share_id || '';
   const conversationId = params.conversation_id || '';
   const askAbortRef = useRef<() => void>(null);
+  const regeneratingRef = useRef(false);
   const { selectedResources, setSelectedResources, mode, password } =
     useShareContext();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
+  const [regeneratingParentId, setRegeneratingParentId] = useState<
+    string | null
+  >(null);
   const channel = AgentRequestChannel.WEB_SHARE;
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
@@ -127,6 +131,10 @@ export default function SharedChatConversationPage() {
   };
 
   const onRegenerate = async (messageId: string) => {
+    if (regeneratingRef.current) {
+      return;
+    }
+
     const parentId = messageOperator.getParent(messageId);
     const parentMessage = conversation.mapping[parentId];
     if (!parentMessage || !parentMessage.message.content) {
@@ -141,6 +149,8 @@ export default function SharedChatConversationPage() {
       originalEnableThinking,
     } = extractOriginalMessageSettings(parentMessage);
 
+    regeneratingRef.current = true;
+    setRegeneratingParentId(parentId);
     setLoading(true);
     try {
       const askFN = ask(
@@ -161,6 +171,8 @@ export default function SharedChatConversationPage() {
       askAbortRef.current = askFN.destroy;
       await askFN.start();
     } finally {
+      regeneratingRef.current = false;
+      setRegeneratingParentId(null);
       setLoading(false);
     }
   };
@@ -196,6 +208,7 @@ export default function SharedChatConversationPage() {
           messageOperator={messageOperator}
           onRegenerate={onRegenerate}
           onEdit={onEdit}
+          regeneratingParentId={regeneratingParentId}
         />
       </Scrollbar>
       <div className="flex justify-center px-4">

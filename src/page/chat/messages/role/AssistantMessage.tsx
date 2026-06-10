@@ -45,6 +45,8 @@ interface IProps {
   messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
   isLastMessage: boolean;
+  regenerateDisabled?: boolean;
+  regenerating?: boolean;
 }
 
 interface IToolCall {
@@ -86,6 +88,8 @@ export function AssistantMessage(props: IProps) {
     messageOperator,
     onRegenerate,
     isLastMessage,
+    regenerateDisabled = false,
+    regenerating = false,
   } = props;
   const { t } = useTranslation();
   const app = useApp();
@@ -162,6 +166,8 @@ export function AssistantMessage(props: IProps) {
         conversation={conversation}
         messageId={message.id}
         onRegenerate={onRegenerate}
+        regenerateDisabled={regenerateDisabled}
+        regenerating={regenerating}
         hasSiblings={hasSiblings}
         currentIndex={currentIndex}
         siblingsLength={siblings.length}

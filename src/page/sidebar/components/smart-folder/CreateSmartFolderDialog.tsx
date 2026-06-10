@@ -1,7 +1,3 @@
-import { Plus } from 'lucide-react';
-import { Fragment } from 'react';
-
-import { Button } from '@/components/button';
 import ActionDialog from '@/components/invite-dialog/ActionDialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/Input';
@@ -16,6 +12,13 @@ import {
 } from '@/components/ui/Select';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import { cn } from '@/lib/utils';
+import { ResourceConditionEditor } from '@/page/resource/conditions/ResourceConditionEditor';
+import {
+  resourceConditionFieldLabelClass,
+  resourceConditionInputClass,
+  resourceConditionNameRowClass,
+  resourceConditionSelectTriggerClass,
+} from '@/page/resource/conditions/styles';
 
 import { getDefaultRootScope } from './createSmartFolderDialogHelpers';
 import type {
@@ -24,15 +27,8 @@ import type {
   SmartFolderOwnerScope,
   SmartFolderRootScope,
 } from './index';
-import { SmartFolderConditionRow } from './SmartFolderConditionRow';
 import { SmartFolderDialogFooter } from './SmartFolderDialogFooter';
 import { SmartFolderUnsavedDialog } from './SmartFolderUnsavedDialog';
-import {
-  smartFolderFieldLabelClass,
-  smartFolderInputClass,
-  smartFolderNameRowClass,
-  smartFolderSelectTriggerClass,
-} from './styles';
 import { useCreateSmartFolderDialogState } from './useCreateSmartFolderDialogState';
 
 export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
@@ -83,10 +79,10 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
         title={dialogTitle}
         open={open}
         onOpenChange={handleDialogOpenChange}
-        contentClassName="max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl bg-white dark:bg-neutral-900 sm:max-w-[650px] sm:p-7"
+        contentClassName="max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl bg-white pt-5 dark:bg-neutral-900 sm:max-w-[650px] sm:px-7 sm:pb-7 sm:pt-5"
         titleClassName="text-lg font-semibold leading-7 text-foreground"
-        closeClassName="size-6 mr-2"
-        closeWrapperClassName="right-5 top-6"
+        closeClassName="size-6"
+        closeWrapperClassName="right-5 top-5"
         contentProps={{
           onContextMenu: event => event.stopPropagation(),
         }}
@@ -94,8 +90,8 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
         <div className="space-y-4">
           {hasTeamspace && (
             <>
-              <div className={cn(smartFolderNameRowClass)}>
-                <p className={smartFolderFieldLabelClass}>
+              <div className={cn(resourceConditionNameRowClass)}>
+                <p className={resourceConditionFieldLabelClass}>
                   {t('smart_folder.create.owner_scope')}
                 </p>
                 <RadioGroup
@@ -135,8 +131,8 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                 </RadioGroup>
               </div>
 
-              <div className={cn(smartFolderNameRowClass)}>
-                <Label className={smartFolderFieldLabelClass}>
+              <div className={cn(resourceConditionNameRowClass)}>
+                <Label className={resourceConditionFieldLabelClass}>
                   {t('smart_folder.create.root_scope')}
                 </Label>
                 <Select
@@ -146,7 +142,10 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                   }
                 >
                   <SelectTrigger
-                    className={cn(smartFolderSelectTriggerClass, 'sm:w-44')}
+                    className={cn(
+                      resourceConditionSelectTriggerClass,
+                      'sm:w-44'
+                    )}
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -162,10 +161,10 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
             </>
           )}
 
-          <div className={cn(smartFolderNameRowClass, 'items-center')}>
+          <div className={cn(resourceConditionNameRowClass, 'items-center')}>
             <Label
               htmlFor="smart-folder-name"
-              className={smartFolderFieldLabelClass}
+              className={resourceConditionFieldLabelClass}
             >
               {t('smart_folder.create.name')}
             </Label>
@@ -178,7 +177,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                 placeholder={t('smart_folder.create.placeholder')}
                 onChange={event => handleNameChange(event.target.value)}
                 className={cn(
-                  smartFolderInputClass,
+                  resourceConditionInputClass,
                   'text-base',
                   'focus-visible:ring-0 focus-visible:ring-transparent',
                   nameError && 'border-destructive'
@@ -190,13 +189,24 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className={cn(smartFolderNameRowClass, 'items-center')}>
-              <p className={smartFolderFieldLabelClass}>
-                {t('smart_folder.create.conditions')}
-              </p>
-              <div className="flex items-center gap-2">
-                {conditions.length > 1 && (
+          <div>
+            <ResourceConditionEditor
+              conditions={conditions}
+              conditionErrors={conditionErrors}
+              conditionListRef={conditionListRef}
+              canAddCondition={canAddCondition}
+              addButtonTooltip={disableAddMessage}
+              headerClassName={cn(
+                resourceConditionNameRowClass,
+                'items-center'
+              )}
+              onAddCondition={addCondition}
+              onRemoveCondition={removeCondition}
+              onFieldChange={handleFieldChange}
+              onOperatorChange={handleOperatorChange}
+              onValueChange={handleValueChange}
+              headerContent={
+                <div className="flex items-center gap-2">
                   <Select
                     value={matchMode}
                     onValueChange={value =>
@@ -204,7 +214,10 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                     }
                   >
                     <SelectTrigger
-                      className={cn(smartFolderSelectTriggerClass, 'w-[133px]')}
+                      className={cn(
+                        resourceConditionSelectTriggerClass,
+                        'w-[133px]'
+                      )}
                     >
                       <SelectValue />
                     </SelectTrigger>
@@ -217,67 +230,24 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                )}
-                <div className="ml-auto flex items-center gap-2">
-                  <span className="cursor-default text-sm text-muted-foreground">
-                    {t('smart_folder.create.remaining_conditions', {
-                      remaining: remainingConditionCount,
-                      total: maxConditionCount,
-                    })}
-                  </span>
-                  {showUpgradeButton && (
-                    <UpgradeActionButton
-                      namespaceId={namespaceId}
-                      hasPermission={currentNamespace?.is_owner !== false}
-                      disabledReason={t('chat.trial.not_owner')}
-                    />
-                  )}
+                  <div className="ml-auto flex items-center gap-2">
+                    <span className="cursor-default text-sm text-muted-foreground">
+                      {t('smart_folder.create.remaining_conditions', {
+                        remaining: remainingConditionCount,
+                        total: maxConditionCount,
+                      })}
+                    </span>
+                    {showUpgradeButton && (
+                      <UpgradeActionButton
+                        namespaceId={namespaceId}
+                        hasPermission={currentNamespace?.is_owner !== false}
+                        disabledReason={t('chat.trial.not_owner')}
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div
-              ref={conditionListRef}
-              className="max-h-56 overflow-y-auto pr-1"
-            >
-              {conditions.map((condition, index) => (
-                <Fragment key={index}>
-                  {index > 0 && (
-                    <div className="my-5 h-px bg-slate-100 dark:bg-neutral-800" />
-                  )}
-                  <SmartFolderConditionRow
-                    index={index}
-                    condition={condition}
-                    conditionError={conditionErrors[index]}
-                    hideRemove={conditions.length <= 1}
-                    onRemove={removeCondition}
-                    onFieldChange={handleFieldChange}
-                    onOperatorChange={handleOperatorChange}
-                    onValueChange={handleValueChange}
-                  />
-                </Fragment>
-              ))}
-            </div>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex w-fit">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-8 gap-1 px-0 text-sm font-normal hover:bg-transparent"
-                    onClick={() => addCondition(conditions.length - 1)}
-                    disabled={!canAddCondition}
-                  >
-                    <Plus className="size-4" />
-                    {t('smart_folder.create.add_condition')}
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              {!canAddCondition && (
-                <TooltipContent>{disableAddMessage}</TooltipContent>
-              )}
-            </Tooltip>
+              }
+            />
           </div>
         </div>
 
