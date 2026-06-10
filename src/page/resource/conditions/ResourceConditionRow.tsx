@@ -174,7 +174,7 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
                   )}
                 />
               ) : normalizedValue?.kind === 'relative_date' ? (
-                <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_88px] gap-2 sm:grid-cols-[minmax(96px,1fr)_104px]">
+                <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2 sm:grid-cols-[minmax(96px,1fr)_104px]">
                   <Input
                     value={normalizedValue.amount}
                     autoComplete="off"
