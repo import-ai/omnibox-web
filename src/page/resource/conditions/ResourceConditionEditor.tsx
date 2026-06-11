@@ -73,7 +73,10 @@ export function ResourceConditionEditor({
 
       <div
         ref={conditionListRef}
-        className={cn('max-h-56 overflow-y-auto pr-1', listClassName)}
+        className={cn(
+          'no-scrollbar max-h-56 overflow-y-auto pr-0',
+          listClassName
+        )}
       >
         {conditions.map((condition, index) => (
           <Fragment key={index}>
