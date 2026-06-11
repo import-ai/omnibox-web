@@ -1,6 +1,7 @@
 import {
   FolderPlus,
   ListCheck,
+  LocateFixed,
   MessageSquarePlus,
   Move,
   Trash2,
@@ -17,7 +18,6 @@ import type { SmartFolderEntitlements } from '@/page/sidebar/components/smart-fo
 import { useSelectedCount, useSidebarStore } from '@/page/sidebar/store';
 import { getBatchSelectionSummary } from '@/page/sidebar/store/utils';
 
-import { LocateResourceIcon } from './LocateResourceIcon';
 import { ToolbarButton } from './Tooltip';
 
 interface IProps {
@@ -168,7 +168,7 @@ export function Toolbar({
         ) : (
           <div className="flex items-center gap-2">
             <ToolbarButton
-              icon={LocateResourceIcon}
+              icon={LocateFixed}
               onClick={onLocateResource}
               label={t('actions.locate_resource')}
               disabledLabel={
