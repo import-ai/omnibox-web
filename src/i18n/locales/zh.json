@@ -668,10 +668,11 @@
       }
     },
     "trial": {
-      "text": "Agent 2.1 可用次数：{{agent_trial_remain}} / {{agent_trial_limit}} 次",
+      "text": "Agent 2.1 试用次数：{{agent_trial_remain}} / {{agent_trial_limit}} 次",
       "tooltip": {
         "base": "系统会统计过去 24 小时内的使用次数",
-        "related_time": "{{related_time}}后可用次数将恢复至 {{quota}} 次"
+        "fallback": "次数用尽后会自动回退到 Agent 1.1。",
+        "related_time": "{{related_time}}后试用次数将恢复至 {{quota}} 次"
       },
       "not_owner": "请联系空间所有者进行升级"
     },
