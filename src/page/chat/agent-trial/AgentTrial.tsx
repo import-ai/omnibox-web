@@ -23,7 +23,10 @@ export function AgentTrial({
 
   if (agentUsage) {
     if (agentUsage.agent_trial_remain >= 0) {
-      let toolTipContents: string[] = [t('chat.trial.tooltip.base')];
+      let toolTipContents: string[] = [
+        t('chat.trial.tooltip.base'),
+        t('chat.trial.tooltip.fallback'),
+      ];
       if (agentUsage.agent_trial_remain !== agentUsage.agent_trial_limit) {
         const firstMessageDate = new Date(agentUsage.first_message_date);
         const firstRelatedTime = getRelatedTime(
