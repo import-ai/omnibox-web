@@ -139,6 +139,25 @@ export function BodyForSidebar(props: IProps) {
     () => getBatchSelectionSummary(nodes, batch.selectedIds),
     [batch.selectedIds, nodes]
   );
+  const canLocateCurrentResource = !!resourceId && resourceId !== 'chat';
+
+  const handleLocateResource = () => {
+    if (!canLocateCurrentResource) return;
+
+    const store = useSidebarStore.getState();
+    store
+      .expandPathTo(resourceId, { expandTarget: true })
+      .then(() => {
+        store.activate(resourceId);
+        window.setTimeout(() => {
+          scrollToResource(resourceId);
+        }, 0);
+        toast.success(t('actions.locate_resource_success'));
+      })
+      .catch(err => {
+        console.error('[sidebar] locate resource failed:', err);
+      });
+  };
 
   const handleConfirmCreateSmartFolder = (
     payload: CreateSmartFolderRequest
@@ -280,6 +299,8 @@ export function BodyForSidebar(props: IProps) {
         hasTeamspace={hasTeamspace}
         smartFolderCounts={smartFolderCounts}
         onCreateSmartFolder={() => setCreateSmartFolderOpen(true)}
+        onLocateResource={handleLocateResource}
+        locateResourceDisabled={!canLocateCurrentResource}
       />
       <ResourceTree
         namespaceId={namespaceId}

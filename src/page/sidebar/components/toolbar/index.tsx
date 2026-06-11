@@ -17,6 +17,7 @@ import type { SmartFolderEntitlements } from '@/page/sidebar/components/smart-fo
 import { useSelectedCount, useSidebarStore } from '@/page/sidebar/store';
 import { getBatchSelectionSummary } from '@/page/sidebar/store/utils';
 
+import { LocateResourceIcon } from './LocateResourceIcon';
 import { ToolbarButton } from './Tooltip';
 
 interface IProps {
@@ -34,6 +35,8 @@ interface IProps {
     teamCount: number;
   };
   onCreateSmartFolder: () => void;
+  onLocateResource: () => void;
+  locateResourceDisabled: boolean;
 }
 
 export function Toolbar({
@@ -48,6 +51,8 @@ export function Toolbar({
   hasTeamspace,
   smartFolderCounts,
   onCreateSmartFolder,
+  onLocateResource,
+  locateResourceDisabled,
 }: IProps) {
   const { t } = useTranslation();
   const selectedCount = useSelectedCount();
@@ -168,6 +173,16 @@ export function Toolbar({
               label={t('actions.create_smart_folder')}
               disabledLabel={
                 smartFolderDisabled ? smartFolderDisabledLabel : undefined
+              }
+            />
+            <ToolbarButton
+              icon={LocateResourceIcon}
+              onClick={onLocateResource}
+              label={t('actions.locate_resource')}
+              disabledLabel={
+                locateResourceDisabled
+                  ? t('actions.locate_resource_unavailable')
+                  : undefined
               }
             />
             <ToolbarButton
