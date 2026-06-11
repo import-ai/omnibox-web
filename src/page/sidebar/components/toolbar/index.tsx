@@ -168,14 +168,6 @@ export function Toolbar({
         ) : (
           <div className="flex items-center gap-2">
             <ToolbarButton
-              icon={SmartFolderDefaultIcon}
-              onClick={onCreateSmartFolder}
-              label={t('actions.create_smart_folder')}
-              disabledLabel={
-                smartFolderDisabled ? smartFolderDisabledLabel : undefined
-              }
-            />
-            <ToolbarButton
               icon={LocateResourceIcon}
               onClick={onLocateResource}
               label={t('actions.locate_resource')}
@@ -183,6 +175,14 @@ export function Toolbar({
                 locateResourceDisabled
                   ? t('actions.locate_resource_unavailable')
                   : undefined
+              }
+            />
+            <ToolbarButton
+              icon={SmartFolderDefaultIcon}
+              onClick={onCreateSmartFolder}
+              label={t('actions.create_smart_folder')}
+              disabledLabel={
+                smartFolderDisabled ? smartFolderDisabledLabel : undefined
               }
             />
             <ToolbarButton
