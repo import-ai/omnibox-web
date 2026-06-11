@@ -95,6 +95,7 @@ export function BodyForSidebar(props: IProps) {
   });
   const roots = useSidebarStore(state => state.rootIds);
   const nodes = useSidebarStore(state => state.nodes);
+  const activeId = useSidebarStore(state => state.activeId);
   const currentUploadTargetId = useSidebarStore(
     s => s.dialogs.currentUploadTargetId
   );
@@ -139,18 +140,23 @@ export function BodyForSidebar(props: IProps) {
     () => getBatchSelectionSummary(nodes, batch.selectedIds),
     [batch.selectedIds, nodes]
   );
-  const canLocateCurrentResource = !!resourceId && resourceId !== 'chat';
+  const locateResourceId = activeId || resourceId;
+  const canLocateCurrentResource =
+    !!locateResourceId && locateResourceId !== 'chat';
 
   const handleLocateResource = () => {
     if (!canLocateCurrentResource) return;
 
+    const targetId = useSidebarStore.getState().activeId || resourceId;
+    if (!targetId || targetId === 'chat') return;
+
     const store = useSidebarStore.getState();
     store
-      .expandPathTo(resourceId, { expandTarget: true })
+      .expandPathTo(targetId, { expandTarget: true })
       .then(() => {
-        store.activate(resourceId);
+        store.activate(targetId);
         window.setTimeout(() => {
-          scrollToResource(resourceId);
+          scrollToResource(targetId);
         }, 0);
         toast.success(t('actions.locate_resource_success'));
       })
