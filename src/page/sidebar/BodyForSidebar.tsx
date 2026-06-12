@@ -170,7 +170,6 @@ export function BodyForSidebar(props: IProps) {
       : undefined;
 
     app.fire('scroll_to_resource', sourceResourceId, sourceParentId);
-    toast.success(t('actions.locate_resource_success'));
   };
 
   const handleConfirmCreateSmartFolder = (

@@ -1,7 +1,7 @@
 import {
+  Crosshair,
   FolderPlus,
   ListCheck,
-  LocateFixed,
   MessageSquarePlus,
   Move,
   Trash2,
@@ -168,7 +168,7 @@ export function Toolbar({
         ) : (
           <div className="flex items-center gap-2">
             <ToolbarButton
-              icon={LocateFixed}
+              icon={Crosshair}
               onClick={onLocateResource}
               label={t('actions.locate_resource')}
               disabledLabel={
