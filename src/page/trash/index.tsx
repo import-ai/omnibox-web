@@ -1,5 +1,5 @@
 import { ChevronRight, Trash, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -39,7 +39,6 @@ export function TrashPanel() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [isClearAll, setIsClearAll] = useState(false);
-  const trashDropRef = useRef<HTMLLIElement>(null);
 
   // Drag and drop to the trash can location
   const [{ isOver }, drop] = useDrop<TreeNode, void, { isOver: boolean }>(
@@ -65,6 +64,15 @@ export function TrashPanel() {
     [app, namespace_id]
   );
 
+  const setTrashDropRef = useCallback(
+    (node: HTMLLIElement | null) => {
+      if (node) {
+        drop(node);
+      }
+    },
+    [drop]
+  );
+
   const {
     items,
     loading,
@@ -79,12 +87,6 @@ export function TrashPanel() {
     fetchTrash,
     trashRetentionDays,
   } = useTrash();
-
-  useEffect(() => {
-    if (trashDropRef.current) {
-      drop(trashDropRef);
-    }
-  }, [drop]);
 
   // Fetch trash on mount to determine icon state
   useEffect(() => {
@@ -202,7 +204,7 @@ export function TrashPanel() {
         {systemOpen && (
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem ref={trashDropRef}>
+              <SidebarMenuItem ref={setTrashDropRef}>
                 <Popover open={open} onOpenChange={setOpen}>
                   <PopoverTrigger asChild>
                     <SidebarMenuButton
