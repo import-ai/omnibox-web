@@ -14,6 +14,8 @@ import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
 import {
   CreateSmartFolderRequest,
+  getSmartFolderSourceParentId,
+  getSmartFolderSourceResourceId,
   SmartFolderOwnerScope,
   SmartFolderResponse,
 } from '@/page/sidebar/components/smart-folder';
@@ -151,18 +153,24 @@ export function BodyForSidebar(props: IProps) {
     if (!targetId || targetId === 'chat') return;
 
     const store = useSidebarStore.getState();
-    store
-      .expandPathTo(targetId, { expandTarget: true })
-      .then(() => {
-        store.activate(targetId);
-        window.setTimeout(() => {
-          scrollToResource(targetId);
-        }, 0);
-        toast.success(t('actions.locate_resource_success'));
-      })
-      .catch(err => {
-        console.error('[sidebar] locate resource failed:', err);
-      });
+    const node = store.nodes[targetId];
+    const sourceResourceId = node
+      ? getSmartFolderSourceResourceId({
+          id: node.id,
+          parent_id: node.parentId || '',
+          attrs: node.attrs,
+        })
+      : targetId;
+    const sourceParentId = node
+      ? getSmartFolderSourceParentId({
+          id: node.id,
+          parent_id: node.parentId || '',
+          attrs: node.attrs,
+        })
+      : undefined;
+
+    app.fire('scroll_to_resource', sourceResourceId, sourceParentId);
+    toast.success(t('actions.locate_resource_success'));
   };
 
   const handleConfirmCreateSmartFolder = (
