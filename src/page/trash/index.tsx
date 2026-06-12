@@ -1,4 +1,4 @@
-import { Trash, Trash2 } from 'lucide-react';
+import { ChevronRight, Trash, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
@@ -167,8 +167,9 @@ export function TrashPanel() {
   return (
     <>
       <SidebarGroup>
-        <SidebarGroupLabel className="h-8 pl-4 font-normal leading-8 text-neutral-400">
+        <SidebarGroupLabel className="h-8 gap-1 pl-4 font-normal leading-8 text-neutral-400">
           {t('trash.system')}
+          <ChevronRight className="!size-3 shrink-0 text-neutral-300 dark:text-neutral-500" />
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
