@@ -247,7 +247,7 @@ export function SpaceSectionContent({
               ))
             ) : (
               <SidebarMenuItem>
-                <div className="my-px flex h-8 items-center pl-7 pr-2 text-sm text-muted-foreground">
+                <div className="my-px flex h-8 cursor-not-allowed items-center pl-7 pr-2 text-sm text-muted-foreground">
                   {t('notification_modal.empty')}
                 </div>
               </SidebarMenuItem>
