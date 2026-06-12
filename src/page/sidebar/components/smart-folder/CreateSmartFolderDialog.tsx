@@ -206,7 +206,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
               onOperatorChange={handleOperatorChange}
               onValueChange={handleValueChange}
               headerContent={
-                <div className="flex items-center gap-2">
+                <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-2">
                   <Select
                     value={matchMode}
                     onValueChange={value =>
@@ -216,7 +216,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                     <SelectTrigger
                       className={cn(
                         resourceConditionSelectTriggerClass,
-                        'w-[133px]'
+                        'w-24 sm:w-32'
                       )}
                     >
                       <SelectValue />
@@ -230,8 +230,8 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="ml-auto flex items-center gap-2">
-                    <span className="cursor-default text-sm text-muted-foreground">
+                  <div className="ml-auto flex min-w-max items-center justify-end gap-2">
+                    <span className="cursor-default whitespace-nowrap text-xs text-muted-foreground sm:text-sm">
                       {t('smart_folder.create.remaining_conditions', {
                         remaining: remainingConditionCount,
                         total: maxConditionCount,

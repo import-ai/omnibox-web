@@ -83,9 +83,11 @@ export function Toolbar({
       ? privateExhausted && teamExhausted
       : privateExhausted
     : false;
-  const smartFolderDisabledLabel = hasTeamspace
-    ? t('smart_folder.create.all_quota_exhausted')
-    : t('smart_folder.create.quota_exhausted');
+  const smartFolderDisabledLabel = t(
+    hasTeamspace
+      ? 'smart_folder.create.all_quota_exhausted'
+      : 'smart_folder.create.personal_quota_exhausted'
+  );
 
   const handleCheckAll = () => {
     const store = useSidebarStore.getState();
