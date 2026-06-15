@@ -186,10 +186,7 @@ export function Toolbar({
               icon={RotateCw}
               onClick={onRefreshResources}
               label={t('actions.refresh')}
-              disabledLabel={
-                refreshingResources ? t('actions.refresh') : undefined
-              }
-              iconClassName={refreshingResources ? 'animate-spin' : undefined}
+              loading={refreshingResources}
             />
             <ToolbarButton
               icon={SmartFolderDefaultIcon}

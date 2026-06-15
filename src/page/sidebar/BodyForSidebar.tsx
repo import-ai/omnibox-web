@@ -215,6 +215,7 @@ export function BodyForSidebar(props: IProps) {
       (a, b) => getNodeDepth(state.nodes, a) - getNodeDepth(state.nodes, b)
     );
     const expandedIdSet = new Set(expandedLoadedIds);
+    const locatedResourceId = state.activeId || resourceId;
 
     setRefreshingResources(true);
     try {
@@ -246,6 +247,14 @@ export function BodyForSidebar(props: IProps) {
           ui.expanded = refreshedRootIdSet.has(id) || expandedIdSet.has(id);
         });
       });
+
+      if (
+        locatedResourceId &&
+        useSidebarStore.getState().nodes[locatedResourceId]
+      ) {
+        useSidebarStore.getState().activate(locatedResourceId);
+        scrollToResource(locatedResourceId);
+      }
     } catch {
       // request.ts handles backend error toasts.
     } finally {

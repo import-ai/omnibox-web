@@ -1,5 +1,6 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 
 interface IProps {
@@ -8,6 +9,7 @@ interface IProps {
   onClick: () => void;
   disabledLabel?: string;
   iconClassName?: string;
+  loading?: boolean;
 }
 
 export function ToolbarButton({
@@ -16,7 +18,10 @@ export function ToolbarButton({
   icon: Icon,
   disabledLabel,
   iconClassName,
+  loading,
 }: IProps) {
+  const disabled = !!disabledLabel || loading;
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -26,16 +31,20 @@ export function ToolbarButton({
             variant="ghost"
             onClick={onClick}
             aria-label={label}
-            disabled={!!disabledLabel}
+            disabled={disabled}
             className={cn(
               'size-[18px] rounded-sm text-[#8F959E]',
               'hover:text-[#8F959E] hover:bg-[rgba(23,23,23,0.1)] active:text-[#8F959E] active:bg-[rgba(23,23,23,0.15)]',
               'disabled:cursor-not-allowed disabled:text-neutral-300 disabled:bg-transparent',
               'dark:text-neutral-300 dark:hover:text-neutral-400 dark:hover:bg-[rgba(255,255,255,0.1)] dark:active:text-[#fafafa] dark:active:bg-[rgba(255,255,255,0.2)] dark:disabled:text-primary-foreground',
-              'disabled:opacity-100 disabled:pointer-events-auto dark:disabled:bg-transparent dark:disabled:text-neutral-700'
+              'disabled:opacity-100 disabled:pointer-events-none disabled:hover:bg-transparent dark:disabled:bg-transparent dark:disabled:text-neutral-700 dark:disabled:hover:bg-transparent'
             )}
           >
-            <Icon className={cn('size-4', iconClassName)} />
+            {loading ? (
+              <Spinner />
+            ) : (
+              <Icon className={cn('size-4', iconClassName)} />
+            )}
           </Button>
         </span>
       </TooltipTrigger>
