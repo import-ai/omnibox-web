@@ -10,6 +10,7 @@ export const CONTENT_MODIFYING_FUNCTIONS: TaskType[] = [
   'extract_tags',
   'generate_title',
   'generate_video_note',
+  'generate_audio_note',
 ];
 
 export const DISPLAY_FUNCTIONS = CONTENT_MODIFYING_FUNCTIONS;
