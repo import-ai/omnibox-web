@@ -22,7 +22,7 @@ import {
 import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/CreateSmartFolderDialog';
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
-import { fetchChildren } from '@/service/resource';
+import { fetchChildren, fetchRootResources } from '@/service/resource';
 
 import { BatchCreateDialog } from './components/BatchCreateDialog';
 import BatchDeleteDialog from './components/BatchDeleteDialog';
@@ -89,6 +89,7 @@ export function BodyForSidebar(props: IProps) {
   const navigate = useNavigate();
   const globalFileInputRef = useRef<HTMLInputElement>(null);
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
+  const [refreshingResources, setRefreshingResources] = useState(false);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
   const { config, loading: configLoading } = useConfig();
@@ -170,6 +171,20 @@ export function BodyForSidebar(props: IProps) {
       : undefined;
 
     app.fire('scroll_to_resource', sourceResourceId, sourceParentId);
+  };
+
+  const handleRefreshSidebarResources = async () => {
+    if (refreshingResources) return;
+
+    setRefreshingResources(true);
+    try {
+      const items = await fetchRootResources(namespaceId);
+      useSidebarStore.getState().init(items);
+    } catch {
+      // request.ts handles backend error toasts.
+    } finally {
+      setRefreshingResources(false);
+    }
   };
 
   const handleConfirmCreateSmartFolder = (
@@ -314,6 +329,8 @@ export function BodyForSidebar(props: IProps) {
         onCreateSmartFolder={() => setCreateSmartFolderOpen(true)}
         onLocateResource={handleLocateResource}
         locateResourceDisabled={!canLocateCurrentResource}
+        onRefreshResources={handleRefreshSidebarResources}
+        refreshingResources={refreshingResources}
       />
       <ResourceTree
         namespaceId={namespaceId}

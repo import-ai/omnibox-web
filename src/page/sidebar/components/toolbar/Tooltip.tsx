@@ -7,6 +7,7 @@ interface IProps {
   icon: React.ComponentType<{ className?: string }>;
   onClick: () => void;
   disabledLabel?: string;
+  iconClassName?: string;
 }
 
 export function ToolbarButton({
@@ -14,6 +15,7 @@ export function ToolbarButton({
   onClick,
   icon: Icon,
   disabledLabel,
+  iconClassName,
 }: IProps) {
   return (
     <Tooltip>
@@ -33,7 +35,7 @@ export function ToolbarButton({
               'disabled:opacity-100 disabled:pointer-events-auto dark:disabled:bg-transparent dark:disabled:text-neutral-700'
             )}
           >
-            <Icon className="size-4" />
+            <Icon className={cn('size-4', iconClassName)} />
           </Button>
         </span>
       </TooltipTrigger>

@@ -114,6 +114,7 @@
     "rename": "Rename",
     "create_smart_folder": "Create Smart Folder",
     "edit_smart_folder_conditions": "Edit",
+    "refresh": "Refresh",
     "locate_resource": "Locate",
     "locate_resource_unavailable": "No resource to locate",
     "locate_resource_success": "Located the target resource.",

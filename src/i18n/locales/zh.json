@@ -114,6 +114,7 @@
     "rename": "重命名",
     "create_smart_folder": "创建智能文件夹",
     "edit_smart_folder_conditions": "编辑",
+    "refresh": "刷新",
     "locate_resource": "定位",
     "locate_resource_unavailable": "当前无资源可定位",
     "locate_resource_success": "已定位到目标资源。",
