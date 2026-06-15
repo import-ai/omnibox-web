@@ -8,7 +8,7 @@ import Vditor from 'vditor';
 
 import { Input } from '@/components/input';
 import { markdownPreviewConfig } from '@/components/markdown';
-import { VDITOR_CDN } from '@/const';
+import { EDITOR, VDITOR_CDN } from '@/const';
 import useTheme from '@/hooks/useTheme';
 import { Resource } from '@/interface';
 import { addReferrerPolicyForElement } from '@/lib/addReferrerPolicy';
@@ -21,6 +21,8 @@ import {
   updateCacheTitle,
 } from '@/page/resource/editor/cache';
 import { toolbar } from '@/page/resource/editor/const';
+
+import Tiptap from '../newEditor';
 
 interface IEditorProps {
   namespaceId: string;
@@ -67,6 +69,7 @@ export default function Editor(props: IEditorProps) {
   const { app, theme } = useTheme();
   const [vd, setVd] = useState<Vditor>();
   const [title, onTitle] = useState('');
+  const [tiptapContent, setTiptapContent] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
@@ -74,10 +77,17 @@ export default function Editor(props: IEditorProps) {
     updateCacheTitle(resource.id, newTitle);
   };
 
+  const handleTiptapChange = (content: string) => {
+    setTiptapContent(content);
+    updateCacheContent(resource.id, content);
+  };
+
   useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
       const name = title.trim();
-      const content: string | undefined = vd?.getValue();
+      const content: string | undefined = EDITOR
+        ? tiptapContent
+        : vd?.getValue();
       if (!content && !name) {
         navigate(`/${namespaceId}/${resource.id}`, {
           state: loc.state,
@@ -100,16 +110,16 @@ export default function Editor(props: IEditorProps) {
           onSuccess && onSuccess();
         });
     });
-  }, [title, vd, loc.state]);
+  }, [title, tiptapContent, vd, loc.state]);
 
   useEffect(() => {
     const keydownFN = (e: KeyboardEvent) => {
-      if (!vd) {
+      if (!EDITOR && !vd) {
         return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        const content = vd.getValue();
+        const content = EDITOR ? tiptapContent : vd?.getValue();
         if (busy.current) {
           return;
         }
@@ -128,7 +138,7 @@ export default function Editor(props: IEditorProps) {
     return () => {
       document.removeEventListener('keydown', keydownFN);
     };
-  }, [vd, resource]);
+  }, [tiptapContent, vd, resource]);
 
   useEffect(() => {
     const token = localStorage.getItem('token') || '';
@@ -137,6 +147,7 @@ export default function Editor(props: IEditorProps) {
     const cachedContent = cache?.content || resource.content || '';
 
     onTitle(cachedTitle);
+    setTiptapContent(cachedContent);
 
     if (!resource || !root.current || resource.resource_type === 'folder') {
       return;
@@ -201,7 +212,6 @@ export default function Editor(props: IEditorProps) {
       theme.code
     );
   }, [vd, theme]);
-
   return (
     <div>
       <Input
@@ -211,7 +221,17 @@ export default function Editor(props: IEditorProps) {
         placeholder="Enter title"
         className="mb-4 p-2 border rounded"
       />
-      <div ref={root} className="vditor reset-list" />
+
+      {EDITOR ? (
+        <Tiptap
+          content={tiptapContent}
+          namespaceId={namespaceId}
+          onChange={handleTiptapChange}
+          resourceId={resource.id}
+        />
+      ) : (
+        <div ref={root} className="vditor reset-list" />
+      )}
     </div>
   );
 }

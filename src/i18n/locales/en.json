@@ -46,6 +46,7 @@
     "success_one": "{{count}} file uploaded successfully",
     "success_other": "{{count}} files uploaded successfully",
     "invalid_ext": "Invalid file type",
+    "too_large": "File size cannot exceed 5MB",
     "failed": "Failed to upload file, please try again later"
   },
   "resource": {
@@ -58,6 +59,89 @@
     "moved_to_trash": "Moved to trash",
     "no_content": "Resource has no content to download",
     "untitled": "Untitled",
+    "editor": {
+      "toolbar": {
+        "heading": "Heading",
+        "bold": "Bold",
+        "italic": "Italic",
+        "strikethrough": "Strikethrough",
+        "link": "Link",
+        "bullet_list": "Bullet list",
+        "ordered_list": "Ordered list",
+        "task_list": "Task list",
+        "decrease_indent": "Decrease indent",
+        "increase_indent": "Increase indent",
+        "quote": "Quote",
+        "code_block": "Code block",
+        "inline_code": "Inline code",
+        "horizontal_rule": "Horizontal rule",
+        "insert_before": "Insert before",
+        "insert_after": "Insert after",
+        "image": "Upload image",
+        "record": "Record",
+        "table": "Table",
+        "emoji": "Emoji",
+        "math": "Math formula",
+        "diagram": "Mermaid / diagram",
+        "undo": "Undo",
+        "redo": "Redo",
+        "fullscreen": "Fullscreen",
+        "exit_fullscreen": "Exit fullscreen",
+        "edit_mode": "Switch edit mode",
+        "source_mode": "Markdown source",
+        "wysiwyg_mode": "WYSIWYG",
+        "instant_render_mode": "Instant render",
+        "split_preview_mode": "Split preview",
+        "outline": "Outline"
+      },
+      "outline": {
+        "empty": "No headings"
+      },
+      "insert": {
+        "inline_math": "Inline formula",
+        "block_math": "Block formula",
+        "mermaid": "Mermaid",
+        "echarts": "Chart"
+      },
+      "record": {
+        "recording": "Recording...",
+        "stop": "Stop recording",
+        "empty": "No audio was recorded. Please try again",
+        "permission_denied": "Cannot access microphone. Please check browser permissions"
+      },
+      "link": {
+        "url": "Paste or type a link",
+        "apply": "Apply link"
+      },
+      "table_picker": {
+        "size": "{{cols}} x {{rows}}",
+        "insert": "Insert {{cols}} x {{rows}} table"
+      },
+      "table_menu": {
+        "row": "Row",
+        "insert_row_before": "Insert row above",
+        "insert_row_after": "Insert row below",
+        "delete_row": "Delete current row",
+        "column": "Column",
+        "insert_column_before": "Insert column left",
+        "insert_column_after": "Insert column right",
+        "delete_column": "Delete current column",
+        "cell": "Cell",
+        "merge_cells": "Merge cells",
+        "split_cell": "Split cell",
+        "merge_or_split": "Merge or split",
+        "align": "Align",
+        "align_left": "Align left",
+        "align_center": "Align center",
+        "align_right": "Align right",
+        "header": "Header",
+        "toggle_header_row": "Toggle header row",
+        "toggle_header_column": "Toggle header column",
+        "toggle_header_cell": "Toggle header cell",
+        "table": "Table",
+        "delete_table": "Delete table"
+      }
+    },
     "attrs": {
       "tag": "Tag",
       "add_tag": "Add tag",

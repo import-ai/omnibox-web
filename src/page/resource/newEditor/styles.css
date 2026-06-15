@@ -1,0 +1,231 @@
+.omnibox-tiptap-editor :first-child {
+  margin-top: 0;
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor {
+  padding-bottom: 1rem;
+  padding-top: 1rem;
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor p {
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h1,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h2,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h3,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h4,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h5,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h6 {
+  margin-bottom: 0.75rem;
+  margin-top: 1rem;
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h1::before {
+  content: '# ';
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h2::before {
+  content: '## ';
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h3::before {
+  content: '### ';
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h4::before {
+  content: '#### ';
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h5::before {
+  content: '##### ';
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h6::before {
+  content: '###### ';
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h1::before,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h2::before,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h3::before,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h4::before,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h5::before,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor h6::before,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor blockquote::before,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor pre::before,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor pre::after {
+  color: rgb(100 116 139);
+  font-family:
+    sfmono-regular,
+    Consolas,
+    liberation mono,
+    Menlo,
+    Courier,
+    monospace;
+  font-weight: 400;
+}
+
+.dark .omnibox-tiptap-editor-ir .omnibox-tiptap-editor h1::before,
+.dark .omnibox-tiptap-editor-ir .omnibox-tiptap-editor h2::before,
+.dark .omnibox-tiptap-editor-ir .omnibox-tiptap-editor h3::before,
+.dark .omnibox-tiptap-editor-ir .omnibox-tiptap-editor h4::before,
+.dark .omnibox-tiptap-editor-ir .omnibox-tiptap-editor h5::before,
+.dark .omnibox-tiptap-editor-ir .omnibox-tiptap-editor h6::before,
+.dark .omnibox-tiptap-editor-ir .omnibox-tiptap-editor blockquote::before,
+.dark .omnibox-tiptap-editor-ir .omnibox-tiptap-editor pre::before,
+.dark .omnibox-tiptap-editor-ir .omnibox-tiptap-editor pre::after {
+  color: rgb(148 163 184);
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor blockquote {
+  position: relative;
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor blockquote::before {
+  content: '>';
+  left: -1rem;
+  position: absolute;
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor pre::before,
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor pre::after {
+  content: '```';
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor pre::before {
+  margin-bottom: 0.25rem;
+}
+
+.omnibox-tiptap-editor-ir .omnibox-tiptap-editor pre::after {
+  margin-top: 0.25rem;
+}
+
+.omnibox-tiptap-editor code::before,
+.omnibox-tiptap-editor code::after {
+  content: none;
+}
+
+.omnibox-tiptap-editor code {
+  margin: 0 1px;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  background-color: rgba(27, 31, 35, 0.05);
+  color: inherit;
+  font-family:
+    sfmono-regular,
+    Consolas,
+    liberation mono,
+    Menlo,
+    Courier,
+    monospace;
+  font-size: 0.9em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.dark .omnibox-tiptap-editor code {
+  background-color: rgba(66, 133, 244, 0.36);
+}
+
+.omnibox-tiptap-editor ul,
+.omnibox-tiptap-editor ol {
+  margin: 1.25rem 1rem 1.25rem 0.4rem;
+  padding: 0 1rem;
+}
+
+.omnibox-tiptap-editor ul li p,
+.omnibox-tiptap-editor ol li p {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.omnibox-tiptap-editor ul[data-type='taskList'] {
+  list-style: none;
+  margin-left: 0;
+  padding: 0;
+}
+
+.omnibox-tiptap-editor ul[data-type='taskList'] li {
+  align-items: flex-start;
+  display: flex;
+}
+
+.omnibox-tiptap-editor ul[data-type='taskList'] li > label {
+  flex: 0 0 auto;
+  margin-right: 0.5rem;
+  user-select: none;
+}
+
+.omnibox-tiptap-editor ul[data-type='taskList'] li > div {
+  flex: 1 1 auto;
+}
+
+.omnibox-tiptap-editor ul[data-type='taskList'] input[type='checkbox'] {
+  cursor: pointer;
+}
+
+.omnibox-tiptap-editor ul[data-type='taskList'] ul[data-type='taskList'] {
+  margin: 0;
+}
+
+.omnibox-tiptap-editor table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: auto;
+}
+
+.omnibox-tiptap-editor img.omnibox-tiptap-image {
+  border-radius: 4px;
+  margin: 1rem 0;
+  max-width: 100%;
+}
+
+.omnibox-tiptap-editor th,
+.omnibox-tiptap-editor td {
+  border: 1px solid rgb(203 213 225);
+  min-width: 1em;
+  padding: 0.35rem 0.5rem;
+  position: relative;
+  vertical-align: middle;
+}
+
+.omnibox-tiptap-editor th p,
+.omnibox-tiptap-editor td p {
+  margin: 0;
+}
+
+.dark .omnibox-tiptap-editor th,
+.dark .omnibox-tiptap-editor td {
+  border-color: rgb(82 82 91);
+}
+
+.omnibox-tiptap-editor th {
+  background-color: rgb(248 250 252);
+  font-weight: 600;
+}
+
+.dark .omnibox-tiptap-editor th {
+  background-color: rgb(39 39 42);
+}
+
+.omnibox-tiptap-editor .selectedCell::after {
+  background-color: rgba(148, 163, 184, 0.22);
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.omnibox-tiptap-editor .column-resize-handle {
+  background-color: rgb(59 130 246);
+  bottom: -1px;
+  pointer-events: none;
+  position: absolute;
+  right: -2px;
+  top: 0;
+  width: 4px;
+}

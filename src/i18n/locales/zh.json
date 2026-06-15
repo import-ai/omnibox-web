@@ -46,6 +46,7 @@
     "success_one": "成功上传 {{count}} 个文件",
     "success_other": "成功上传 {{count}} 个文件",
     "invalid_ext": "当前文件格式不支持",
+    "too_large": "文件大小不能超过 5MB",
     "failed": "上传文件失败，请稍后再试"
   },
   "resource": {
@@ -58,6 +59,89 @@
     "moved_to_trash": "已移动到回收站",
     "no_content": "资源没有内容可下载",
     "untitled": "未命名",
+    "editor": {
+      "toolbar": {
+        "heading": "标题",
+        "bold": "加粗",
+        "italic": "斜体",
+        "strikethrough": "删除线",
+        "link": "链接",
+        "bullet_list": "无序列表",
+        "ordered_list": "有序列表",
+        "task_list": "任务列表",
+        "decrease_indent": "减少缩进",
+        "increase_indent": "增加缩进",
+        "quote": "引用",
+        "code_block": "代码块",
+        "inline_code": "行内代码",
+        "horizontal_rule": "分割线",
+        "insert_before": "前方插入",
+        "insert_after": "后方插入",
+        "image": "上传图片",
+        "record": "录音",
+        "table": "表格",
+        "emoji": "Emoji",
+        "math": "数学公式",
+        "diagram": "Mermaid / 图表",
+        "undo": "撤销",
+        "redo": "重做",
+        "fullscreen": "全屏",
+        "exit_fullscreen": "退出全屏",
+        "edit_mode": "切换编辑模式",
+        "source_mode": "Markdown 源码",
+        "wysiwyg_mode": "所见即所得",
+        "instant_render_mode": "即时渲染",
+        "split_preview_mode": "分屏预览",
+        "outline": "大纲"
+      },
+      "outline": {
+        "empty": "暂无标题"
+      },
+      "insert": {
+        "inline_math": "行内公式",
+        "block_math": "块级公式",
+        "mermaid": "Mermaid",
+        "echarts": "图表"
+      },
+      "record": {
+        "recording": "录音中...",
+        "stop": "停止录音",
+        "empty": "未录到声音，请稍后再试",
+        "permission_denied": "无法访问麦克风，请检查浏览器权限"
+      },
+      "link": {
+        "url": "粘贴或输入链接",
+        "apply": "应用链接"
+      },
+      "table_picker": {
+        "size": "{{cols}} x {{rows}}",
+        "insert": "插入 {{cols}} x {{rows}} 表格"
+      },
+      "table_menu": {
+        "row": "行",
+        "insert_row_before": "上方插入行",
+        "insert_row_after": "下方插入行",
+        "delete_row": "删除当前行",
+        "column": "列",
+        "insert_column_before": "左侧插入列",
+        "insert_column_after": "右侧插入列",
+        "delete_column": "删除当前列",
+        "cell": "单元格",
+        "merge_cells": "合并单元格",
+        "split_cell": "拆分单元格",
+        "merge_or_split": "合并/拆分",
+        "align": "对齐",
+        "align_left": "左对齐",
+        "align_center": "居中对齐",
+        "align_right": "右对齐",
+        "header": "表头",
+        "toggle_header_row": "切换表头行",
+        "toggle_header_column": "切换表头列",
+        "toggle_header_cell": "切换表头单元格",
+        "table": "表格",
+        "delete_table": "删除整个表格"
+      }
+    },
     "attrs": {
       "tag": "标签",
       "add_tag": "点击添加标签",

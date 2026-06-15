@@ -21,3 +21,5 @@ export const FORCE_ASK =
 
 export const FORCE_PRIVATE_SEARCH =
   import.meta.env.VITE_FORCE_PRIVATE_SEARCH?.toLowerCase() !== 'false';
+
+export const EDITOR = import.meta.env.VITE_EDITOR?.toLowerCase() !== 'false';
