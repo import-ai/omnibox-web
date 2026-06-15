@@ -14,6 +14,8 @@ import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
 import {
   CreateSmartFolderRequest,
+  getSmartFolderSourceParentId,
+  getSmartFolderSourceResourceId,
   SmartFolderOwnerScope,
   SmartFolderResponse,
 } from '@/page/sidebar/components/smart-folder';
@@ -95,6 +97,7 @@ export function BodyForSidebar(props: IProps) {
   });
   const roots = useSidebarStore(state => state.rootIds);
   const nodes = useSidebarStore(state => state.nodes);
+  const activeId = useSidebarStore(state => state.activeId);
   const currentUploadTargetId = useSidebarStore(
     s => s.dialogs.currentUploadTargetId
   );
@@ -139,6 +142,35 @@ export function BodyForSidebar(props: IProps) {
     () => getBatchSelectionSummary(nodes, batch.selectedIds),
     [batch.selectedIds, nodes]
   );
+  const locateResourceId = activeId || resourceId;
+  const canLocateCurrentResource =
+    !!locateResourceId && locateResourceId !== 'chat';
+
+  const handleLocateResource = () => {
+    if (!canLocateCurrentResource) return;
+
+    const targetId = useSidebarStore.getState().activeId || resourceId;
+    if (!targetId || targetId === 'chat') return;
+
+    const store = useSidebarStore.getState();
+    const node = store.nodes[targetId];
+    const sourceResourceId = node
+      ? getSmartFolderSourceResourceId({
+          id: node.id,
+          parent_id: node.parentId || '',
+          attrs: node.attrs,
+        })
+      : targetId;
+    const sourceParentId = node
+      ? getSmartFolderSourceParentId({
+          id: node.id,
+          parent_id: node.parentId || '',
+          attrs: node.attrs,
+        })
+      : undefined;
+
+    app.fire('scroll_to_resource', sourceResourceId, sourceParentId);
+  };
 
   const handleConfirmCreateSmartFolder = (
     payload: CreateSmartFolderRequest
@@ -280,6 +312,8 @@ export function BodyForSidebar(props: IProps) {
         hasTeamspace={hasTeamspace}
         smartFolderCounts={smartFolderCounts}
         onCreateSmartFolder={() => setCreateSmartFolderOpen(true)}
+        onLocateResource={handleLocateResource}
+        locateResourceDisabled={!canLocateCurrentResource}
       />
       <ResourceTree
         namespaceId={namespaceId}
