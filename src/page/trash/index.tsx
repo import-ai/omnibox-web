@@ -181,16 +181,7 @@ export function TrashPanel() {
     <>
       <SidebarGroup>
         <SidebarGroupLabel
-          role="button"
-          tabIndex={0}
-          aria-expanded={systemOpen}
           onClick={handleSystemToggle}
-          onKeyDown={event => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              handleSystemToggle();
-            }
-          }}
           className="h-8 cursor-pointer select-none gap-1 pl-4 font-normal leading-8 text-neutral-400"
         >
           {t('trash.system')}
