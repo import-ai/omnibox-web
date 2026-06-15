@@ -248,11 +248,11 @@ export function BodyForSidebar(props: IProps) {
         });
       });
 
-      if (
-        locatedResourceId &&
-        useSidebarStore.getState().nodes[locatedResourceId]
-      ) {
-        useSidebarStore.getState().activate(locatedResourceId);
+      if (locatedResourceId) {
+        await useSidebarStore.getState().expandPathTo(locatedResourceId);
+        const refreshedStore = useSidebarStore.getState();
+        if (!refreshedStore.nodes[locatedResourceId]) return;
+        refreshedStore.activate(locatedResourceId);
         scrollToResource(locatedResourceId);
       }
     } catch {

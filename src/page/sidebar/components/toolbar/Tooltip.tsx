@@ -25,7 +25,11 @@ export function ToolbarButton({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="inline-flex">
+        <span
+          className={cn('inline-flex', {
+            'cursor-not-allowed': disabled,
+          })}
+        >
           <Button
             size="icon"
             variant="ghost"
