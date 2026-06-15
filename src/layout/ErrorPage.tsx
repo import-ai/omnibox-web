@@ -20,7 +20,7 @@ export default function ErrorPage() {
         </p>
         <a
           href="/"
-          className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+          className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 active:bg-blue-700"
         >
           {t('back_to_front')}
         </a>

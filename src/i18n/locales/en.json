@@ -198,6 +198,9 @@
     "rename": "Rename",
     "create_smart_folder": "Create Smart Folder",
     "edit_smart_folder_conditions": "Edit",
+    "locate_resource": "Locate",
+    "locate_resource_unavailable": "No resource to locate",
+    "locate_resource_success": "Located the target resource.",
     "locate_source_resource": "Locate Source File"
   },
   "form": {
@@ -902,6 +905,7 @@
       "extract_tags": "Gen Tags",
       "generate_title": "Gen Title",
       "generate_video_note": "Video Parsing",
+      "generate_audio_note": "Audio Parsing",
       "collect_url": "Visit URL",
       "web_analysis": "Web Analysis"
     }

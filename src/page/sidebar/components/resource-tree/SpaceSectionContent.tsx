@@ -1,4 +1,10 @@
-import { FilePlus, FolderPlus, MonitorUp, MoreHorizontal } from 'lucide-react';
+import {
+  ChevronRight,
+  FilePlus,
+  FolderPlus,
+  MonitorUp,
+  MoreHorizontal,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +33,7 @@ import {
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
+  SidebarMenuItem,
 } from '@/components/ui/Sidebar';
 import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
@@ -124,9 +131,15 @@ export function SpaceSectionContent({
             <div className="relative size-full">
               <SidebarGroupLabel
                 onClick={handleHeaderToggle}
-                className="mr-4 block h-full font-normal leading-8 text-neutral-400"
+                className="mr-4 flex h-full items-center gap-1 font-normal leading-8 text-neutral-400"
               >
                 {spaceType ? t(spaceType) : ''}
+                <ChevronRight
+                  className={cn(
+                    '!size-3 shrink-0 dark:text-neutral-500 text-neutral-300 transition-transform',
+                    isOpen && 'rotate-90'
+                  )}
+                />
               </SidebarGroupLabel>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -219,8 +232,7 @@ export function SpaceSectionContent({
       {isOpen && (
         <SidebarGroupContent>
           <SidebarMenu className="gap-0.5">
-            {rootNode.hasChildren &&
-              rootNode.children.length > 0 &&
+            {rootNode.children.length > 0 ? (
               rootNode.children.map(childId => (
                 <ResourceNode
                   nodeId={childId}
@@ -232,7 +244,14 @@ export function SpaceSectionContent({
                   onBatchCreate={onBatchCreate}
                   onAddToChat={onAddToChat}
                 />
-              ))}
+              ))
+            ) : (
+              <SidebarMenuItem>
+                <div className="my-px flex h-8 cursor-not-allowed items-center pl-7 pr-2 text-sm text-muted-foreground">
+                  {t('notification_modal.empty')}
+                </div>
+              </SidebarMenuItem>
+            )}
           </SidebarMenu>
         </SidebarGroupContent>
       )}

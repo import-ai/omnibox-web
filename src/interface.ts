@@ -313,6 +313,7 @@ export type TaskType =
   | 'extract_tags'
   | 'generate_title'
   | 'generate_video_note'
+  | 'generate_audio_note'
   | 'upsert_message_index';
 
 export interface Task {

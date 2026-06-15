@@ -1,4 +1,5 @@
 import {
+  FileAudio,
   FileText,
   FileUp,
   FolderSearch2,
@@ -65,6 +66,10 @@ export const taskTypeConfig: Record<
   generate_video_note: {
     icon: TvMinimalPlay,
     labelKey: 'tasks.functions.generate_video_note',
+  },
+  generate_audio_note: {
+    icon: FileAudio,
+    labelKey: 'tasks.functions.generate_audio_note',
   },
   collect_url: {
     icon: Globe,

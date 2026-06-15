@@ -1,4 +1,5 @@
 import {
+  Crosshair,
   FolderPlus,
   ListCheck,
   MessageSquarePlus,
@@ -34,6 +35,8 @@ interface IProps {
     teamCount: number;
   };
   onCreateSmartFolder: () => void;
+  onLocateResource: () => void;
+  locateResourceDisabled: boolean;
 }
 
 export function Toolbar({
@@ -48,6 +51,8 @@ export function Toolbar({
   hasTeamspace,
   smartFolderCounts,
   onCreateSmartFolder,
+  onLocateResource,
+  locateResourceDisabled,
 }: IProps) {
   const { t } = useTranslation();
   const selectedCount = useSelectedCount();
@@ -162,6 +167,16 @@ export function Toolbar({
           </div>
         ) : (
           <div className="flex items-center gap-2">
+            <ToolbarButton
+              icon={Crosshair}
+              onClick={onLocateResource}
+              label={t('actions.locate_resource')}
+              disabledLabel={
+                locateResourceDisabled
+                  ? t('actions.locate_resource_unavailable')
+                  : undefined
+              }
+            />
             <ToolbarButton
               icon={SmartFolderDefaultIcon}
               onClick={onCreateSmartFolder}
