@@ -4,6 +4,7 @@ import {
   ListCheck,
   MessageSquarePlus,
   Move,
+  RotateCw,
   Trash2,
   X,
 } from 'lucide-react';
@@ -37,6 +38,8 @@ interface IProps {
   onCreateSmartFolder: () => void;
   onLocateResource: () => void;
   locateResourceDisabled: boolean;
+  onRefreshResources: () => void;
+  refreshingResources: boolean;
 }
 
 export function Toolbar({
@@ -53,6 +56,8 @@ export function Toolbar({
   onCreateSmartFolder,
   onLocateResource,
   locateResourceDisabled,
+  onRefreshResources,
+  refreshingResources,
 }: IProps) {
   const { t } = useTranslation();
   const selectedCount = useSelectedCount();
@@ -176,6 +181,12 @@ export function Toolbar({
                   ? t('actions.locate_resource_unavailable')
                   : undefined
               }
+            />
+            <ToolbarButton
+              icon={RotateCw}
+              onClick={onRefreshResources}
+              label={t('actions.refresh')}
+              loading={refreshingResources}
             />
             <ToolbarButton
               icon={SmartFolderDefaultIcon}
