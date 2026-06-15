@@ -9,13 +9,14 @@ import useApp from '@/hooks/useApp';
 import useConfig from '@/hooks/useConfig';
 import useProNamespaces from '@/hooks/useProNamespaces';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
-import { ResourceMeta } from '@/interface';
+import { ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
 import {
   CreateSmartFolderRequest,
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
+  isSmartFolderChildResource,
   SmartFolderOwnerScope,
   SmartFolderResponse,
   withSmartFolderChildSidebarAttrs,
@@ -44,6 +45,12 @@ import { getBatchSelectionSummary } from './store/utils';
 interface IProps {
   resourceId: string;
   namespaceId: string;
+}
+
+interface LocateSnapshot {
+  id: string;
+  smartFolderId?: string;
+  spaceType?: SpaceType;
 }
 
 function scrollToResource(resourceId: string) {
@@ -97,6 +104,26 @@ function getNodeDepth(nodes: Record<string, TreeNode>, id: string) {
   }
 
   return depth;
+}
+
+function getLocateSnapshot(
+  nodes: Record<string, TreeNode>,
+  id: string | null
+): LocateSnapshot | null {
+  if (!id || id === 'chat') return null;
+
+  const node = nodes[id];
+  if (!node) return { id };
+
+  if (isSmartFolderChildResource(node)) {
+    return {
+      id,
+      smartFolderId: node.parentId || undefined,
+      spaceType: node.spaceType,
+    };
+  }
+
+  return { id, spaceType: node.spaceType };
 }
 
 export function BodyForSidebar(props: IProps) {
@@ -215,7 +242,10 @@ export function BodyForSidebar(props: IProps) {
       (a, b) => getNodeDepth(state.nodes, a) - getNodeDepth(state.nodes, b)
     );
     const expandedIdSet = new Set(expandedLoadedIds);
-    const locatedResourceId = state.activeId || resourceId;
+    const locateSnapshot = getLocateSnapshot(
+      state.nodes,
+      state.activeId || resourceId
+    );
 
     setRefreshingResources(true);
     try {
@@ -248,12 +278,20 @@ export function BodyForSidebar(props: IProps) {
         });
       });
 
-      if (locatedResourceId) {
-        await useSidebarStore.getState().expandPathTo(locatedResourceId);
+      if (locateSnapshot) {
+        const targetId = locateSnapshot.smartFolderId || locateSnapshot.id;
+        await useSidebarStore.getState().expandPathTo(targetId, {
+          expandTarget: !!locateSnapshot.smartFolderId,
+        });
         const refreshedStore = useSidebarStore.getState();
-        if (!refreshedStore.nodes[locatedResourceId]) return;
-        refreshedStore.activate(locatedResourceId);
-        scrollToResource(locatedResourceId);
+        const refreshedNode = refreshedStore.nodes[locateSnapshot.id];
+        if (!refreshedNode) return;
+        refreshedStore.toggleSpace(
+          locateSnapshot.spaceType || refreshedNode.spaceType,
+          true
+        );
+        refreshedStore.activate(locateSnapshot.id);
+        scrollToResource(locateSnapshot.id);
       }
     } catch {
       // request.ts handles backend error toasts.
