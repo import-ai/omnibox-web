@@ -1,3 +1,4 @@
+import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -7,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
 } from '@/components/ui/Sidebar';
+import { cn } from '@/lib/utils';
 import type { TreeNode } from '@/page/share/sidebar/store';
 import { useSidebarStore } from '@/page/share/sidebar/store';
 
@@ -34,9 +36,15 @@ export function SpaceSectionContent({
         <div className="relative size-full">
           <SidebarGroupLabel
             onClick={handleHeaderToggle}
-            className="mr-4 block h-full font-normal leading-8 text-neutral-400"
+            className="mr-4 flex h-full items-center gap-1 font-normal leading-8 text-neutral-400"
           >
             {t('share.share.title')}
+            <ChevronRight
+              className={cn(
+                '!size-3 shrink-0 text-neutral-300 transition-transform dark:text-neutral-500',
+                isOpen && 'rotate-90'
+              )}
+            />
           </SidebarGroupLabel>
         </div>
       </SidebarMenuButton>

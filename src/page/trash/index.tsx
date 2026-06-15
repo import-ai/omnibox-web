@@ -1,5 +1,5 @@
-import { Trash, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { ChevronRight, Trash, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -35,10 +35,10 @@ export function TrashPanel() {
   const app = useApp();
   const { namespace_id } = useParams();
   const [open, setOpen] = useState(false);
+  const [systemOpen, setSystemOpen] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [isClearAll, setIsClearAll] = useState(false);
-  const trashDropRef = useRef<HTMLLIElement>(null);
 
   // Drag and drop to the trash can location
   const [{ isOver }, drop] = useDrop<TreeNode, void, { isOver: boolean }>(
@@ -64,6 +64,15 @@ export function TrashPanel() {
     [app, namespace_id]
   );
 
+  const setTrashDropRef = useCallback(
+    (node: HTMLLIElement | null) => {
+      if (node) {
+        drop(node);
+      }
+    },
+    [drop]
+  );
+
   const {
     items,
     loading,
@@ -78,12 +87,6 @@ export function TrashPanel() {
     fetchTrash,
     trashRetentionDays,
   } = useTrash();
-
-  useEffect(() => {
-    if (trashDropRef.current) {
-      drop(trashDropRef);
-    }
-  }, [drop]);
 
   // Fetch trash on mount to determine icon state
   useEffect(() => {
@@ -132,6 +135,16 @@ export function TrashPanel() {
     });
   }, [app, fetchTrash]);
 
+  const handleSystemToggle = useCallback(() => {
+    setSystemOpen(current => {
+      const nextOpen = !current;
+      if (!nextOpen) {
+        setOpen(false);
+      }
+      return nextOpen;
+    });
+  }, []);
+
   const handleDelete = useCallback((id: string) => {
     setDeleteItemId(id);
     setIsClearAll(false);
@@ -167,87 +180,98 @@ export function TrashPanel() {
   return (
     <>
       <SidebarGroup>
-        <SidebarGroupLabel className="h-8 pl-4 font-normal leading-8 text-neutral-400">
+        <SidebarGroupLabel
+          onClick={handleSystemToggle}
+          className="h-8 cursor-pointer select-none gap-1 pl-4 font-normal leading-8 text-neutral-400"
+        >
           {t('trash.system')}
+          <ChevronRight
+            className={cn(
+              '!size-3 shrink-0 text-neutral-300 transition-transform dark:text-neutral-500',
+              systemOpen && 'rotate-90'
+            )}
+          />
         </SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            <SidebarMenuItem ref={trashDropRef}>
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <SidebarMenuButton
-                    className={cn({
-                      'bg-sidebar-accent text-sidebar-accent-foreground':
-                        isOver,
-                    })}
-                  >
-                    {total > 0 ? (
-                      <Trash2 className="size-4 text-neutral-400" />
-                    ) : (
-                      <Trash className="size-4 text-neutral-400" />
-                    )}
-                    <span>{t('trash.title')}</span>
-                  </SidebarMenuButton>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-80 p-3"
-                  side="right"
-                  align="start"
-                  sideOffset={8}
-                  onOpenAutoFocus={e => e.preventDefault()}
-                  onCloseAutoFocus={e => e.preventDefault()}
-                >
-                  <div className="space-y-3">
-                    <TrashSearch
-                      value={searchValue}
-                      onChange={setSearchValue}
-                    />
-
-                    <div
-                      className="-mr-3 max-h-[300px] overflow-y-auto pr-3"
-                      onScroll={handleScroll}
+        {systemOpen && (
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem ref={setTrashDropRef}>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <SidebarMenuButton
+                      className={cn({
+                        'bg-sidebar-accent text-sidebar-accent-foreground':
+                          isOver,
+                      })}
                     >
-                      {loading && items.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                          <Spinner className="size-6" />
-                          <span className="mt-2 text-sm">
-                            {t('trash.loading')}
-                          </span>
-                        </div>
-                      ) : items.length === 0 ? (
-                        <TrashEmpty />
+                      {total > 0 ? (
+                        <Trash2 className="size-4 text-neutral-400" />
                       ) : (
-                        <div className="space-y-1">
-                          {items.map(item => (
-                            <TrashItemRow
-                              key={item.id}
-                              item={item}
-                              onRestore={id =>
-                                restoreItem(id, () => setOpen(false))
-                              }
-                              onDelete={handleDelete}
-                            />
-                          ))}
-                          {loading && items.length > 0 && (
-                            <div className="flex items-center justify-center py-2">
-                              <Spinner className="size-4" />
-                            </div>
-                          )}
-                        </div>
+                        <Trash className="size-4 text-neutral-400" />
                       )}
-                    </div>
+                      <span>{t('trash.title')}</span>
+                    </SidebarMenuButton>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-80 p-3"
+                    side="right"
+                    align="start"
+                    sideOffset={8}
+                    onOpenAutoFocus={e => e.preventDefault()}
+                    onCloseAutoFocus={e => e.preventDefault()}
+                  >
+                    <div className="space-y-3">
+                      <TrashSearch
+                        value={searchValue}
+                        onChange={setSearchValue}
+                      />
 
-                    <TrashFooter
-                      onClearAll={handleClearAll}
-                      hasItems={items.length > 0}
-                      trashRetentionDays={trashRetentionDays}
-                    />
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroupContent>
+                      <div
+                        className="-mr-3 max-h-[300px] overflow-y-auto pr-3"
+                        onScroll={handleScroll}
+                      >
+                        {loading && items.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                            <Spinner className="size-6" />
+                            <span className="mt-2 text-sm">
+                              {t('trash.loading')}
+                            </span>
+                          </div>
+                        ) : items.length === 0 ? (
+                          <TrashEmpty />
+                        ) : (
+                          <div className="space-y-1">
+                            {items.map(item => (
+                              <TrashItemRow
+                                key={item.id}
+                                item={item}
+                                onRestore={id =>
+                                  restoreItem(id, () => setOpen(false))
+                                }
+                                onDelete={handleDelete}
+                              />
+                            ))}
+                            {loading && items.length > 0 && (
+                              <div className="flex items-center justify-center py-2">
+                                <Spinner className="size-4" />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <TrashFooter
+                        onClearAll={handleClearAll}
+                        hasItems={items.length > 0}
+                        trashRetentionDays={trashRetentionDays}
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        )}
       </SidebarGroup>
       <ConfirmPermanentDeleteDialog
         open={deleteDialogOpen}
