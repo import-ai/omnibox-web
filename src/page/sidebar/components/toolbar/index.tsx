@@ -4,7 +4,7 @@ import {
   ListCheck,
   MessageSquarePlus,
   Move,
-  RefreshCw,
+  RotateCw,
   Trash2,
   X,
 } from 'lucide-react';
@@ -183,7 +183,7 @@ export function Toolbar({
               }
             />
             <ToolbarButton
-              icon={RefreshCw}
+              icon={RotateCw}
               onClick={onRefreshResources}
               label={t('actions.refresh')}
               disabledLabel={

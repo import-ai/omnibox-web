@@ -18,11 +18,16 @@ import {
   getSmartFolderSourceResourceId,
   SmartFolderOwnerScope,
   SmartFolderResponse,
+  withSmartFolderChildSidebarAttrs,
 } from '@/page/sidebar/components/smart-folder';
 import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/CreateSmartFolderDialog';
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
-import { fetchChildren, fetchRootResources } from '@/service/resource';
+import {
+  fetchChildren,
+  fetchRootResources,
+  fetchSmartFolderChildren,
+} from '@/service/resource';
 
 import { BatchCreateDialog } from './components/BatchCreateDialog';
 import BatchDeleteDialog from './components/BatchDeleteDialog';
@@ -78,6 +83,20 @@ function getSiblingResources(
     .map(childId => nodes[childId])
     .filter(isTreeNode)
     .map(toResourceMeta);
+}
+
+function getNodeDepth(nodes: Record<string, TreeNode>, id: string) {
+  let depth = 0;
+  let parentId = nodes[id]?.parentId;
+  const visited = new Set<string>([id]);
+
+  while (parentId && nodes[parentId] && !visited.has(parentId)) {
+    depth += 1;
+    visited.add(parentId);
+    parentId = nodes[parentId].parentId;
+  }
+
+  return depth;
 }
 
 export function BodyForSidebar(props: IProps) {
@@ -176,10 +195,57 @@ export function BodyForSidebar(props: IProps) {
   const handleRefreshSidebarResources = async () => {
     if (refreshingResources) return;
 
+    const state = useSidebarStore.getState();
+    const rootIdSet = new Set(Object.values(state.rootIds).filter(Boolean));
+    const expandedLoadedIds = Object.entries(state.ui)
+      .filter(([id, ui]) => {
+        const node = state.nodes[id];
+        return (
+          !!node &&
+          ui.expanded &&
+          ui.loaded &&
+          (node.hasChildren ||
+            node.resourceType === 'folder' ||
+            node.resourceType === 'smart_folder') &&
+          !rootIdSet.has(id)
+        );
+      })
+      .map(([id]) => id);
+    expandedLoadedIds.sort(
+      (a, b) => getNodeDepth(state.nodes, a) - getNodeDepth(state.nodes, b)
+    );
+    const expandedIdSet = new Set(expandedLoadedIds);
+
     setRefreshingResources(true);
     try {
       const items = await fetchRootResources(namespaceId);
-      useSidebarStore.getState().init(items);
+      const store = useSidebarStore.getState();
+      store.init(items);
+
+      for (const id of expandedLoadedIds) {
+        const node = useSidebarStore.getState().nodes[id];
+        if (!node) continue;
+
+        const rawChildren =
+          node.resourceType === 'smart_folder'
+            ? await fetchSmartFolderChildren(namespaceId, id)
+            : await fetchChildren(namespaceId, id);
+        const children = rawChildren.map(child =>
+          node.resourceType === 'smart_folder'
+            ? withSmartFolderChildSidebarAttrs(child, id)
+            : child
+        );
+        store.refreshChildren(id, children);
+      }
+
+      useSidebarStore.setState(draft => {
+        const refreshedRootIdSet = new Set(
+          Object.values(draft.rootIds).filter(Boolean)
+        );
+        Object.entries(draft.ui).forEach(([id, ui]) => {
+          ui.expanded = refreshedRootIdSet.has(id) || expandedIdSet.has(id);
+        });
+      });
     } catch {
       // request.ts handles backend error toasts.
     } finally {
