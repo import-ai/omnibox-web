@@ -89,6 +89,7 @@ function SearchFieldActions({
         <Button
           type="button"
           variant="ghost"
+          aria-label={clearLabel}
           className={cn(searchFieldClearButtonClassName, clearClassName)}
           onClick={onClear}
         >
