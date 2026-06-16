@@ -2,6 +2,17 @@
   margin-top: 0;
 }
 
+.omnibox-tiptap-editor a {
+  color: #107bfa;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.dark .omnibox-tiptap-editor a {
+  color: #60a5fa;
+}
+
 .omnibox-tiptap-editor-ir .omnibox-tiptap-editor {
   padding-bottom: 1rem;
   padding-top: 1rem;
@@ -86,6 +97,11 @@
   content: '>';
   left: -1rem;
   position: absolute;
+}
+
+.omnibox-tiptap-editor blockquote p:first-of-type::before,
+.omnibox-tiptap-editor blockquote p:last-of-type::after {
+  content: none;
 }
 
 .omnibox-tiptap-editor-ir .omnibox-tiptap-editor pre::before,

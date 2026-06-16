@@ -110,6 +110,17 @@ export function getAdjacentTableDeleteRange(
     };
   }
 
+  if (
+    direction === 'backward' &&
+    !previousNode &&
+    nextNode?.type === tableType
+  ) {
+    return {
+      from: position.end,
+      to: position.end + nextNode.nodeSize,
+    };
+  }
+
   if (direction === 'forward' && nextNode?.type === tableType) {
     return {
       from: position.end,

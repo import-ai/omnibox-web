@@ -1,7 +1,9 @@
 import 'katex/dist/katex.min.css';
 
+import { LoaderCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown, { type ExtraProps } from 'react-markdown';
+import { useNavigate } from 'react-router-dom';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -16,11 +18,48 @@ import { resolvePreviewUrl } from './previewUrl';
 interface MarkdownPreviewProps {
   content: string;
   linkBase?: string;
+  navigateInternalLinks?: boolean;
+  onRendered?: () => void;
+  style?: React.CSSProperties;
 }
 
 interface DiagramPreviewProps {
   code: string;
   language: NonNullable<ReturnType<typeof getDiagramLanguage>>;
+}
+
+interface PreviewImageProps extends React.ComponentProps<'img'> {
+  src: string;
+}
+
+function PreviewImage(props: PreviewImageProps) {
+  const { alt, className, src, ...imageProps } = props;
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+    setFailed(false);
+  }, [src]);
+
+  return (
+    <span className="not-prose my-4 inline-flex min-h-24 min-w-24 items-center justify-center align-middle text-slate-400 dark:text-neutral-500">
+      {!loaded && (
+        <LoaderCircle className="size-10 animate-spin" aria-hidden="true" />
+      )}
+      {!failed && (
+        <img
+          {...imageProps}
+          alt={alt ?? ''}
+          className={cn(className, !loaded && 'hidden')}
+          referrerPolicy="same-origin"
+          src={src}
+          onError={() => setFailed(true)}
+          onLoad={() => setLoaded(true)}
+        />
+      )}
+    </span>
+  );
 }
 
 function DiagramPreview(props: DiagramPreviewProps) {
@@ -76,7 +115,50 @@ function DiagramPreview(props: DiagramPreviewProps) {
 }
 
 export function MarkdownPreview(props: MarkdownPreviewProps) {
-  const { content, linkBase = '' } = props;
+  const {
+    content,
+    linkBase = '',
+    navigateInternalLinks,
+    onRendered,
+    style,
+  } = props;
+  const navigate = useNavigate();
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    onRendered?.();
+  }, [content, onRendered]);
+
+  useEffect(() => {
+    if (!navigateInternalLinks || !previewRef.current) {
+      return;
+    }
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const link = target.closest('a');
+
+      if (!link || !previewRef.current?.contains(link)) {
+        return;
+      }
+
+      const href = link.getAttribute('href');
+
+      if (!href || !href.startsWith('/')) {
+        return;
+      }
+
+      event.preventDefault();
+      navigate(href);
+    };
+
+    previewRef.current.addEventListener('click', handleClick);
+
+    return () => {
+      previewRef.current?.removeEventListener('click', handleClick);
+    };
+  }, [navigate, navigateInternalLinks]);
+
   const components = useMemo(
     () => ({
       a({
@@ -97,14 +179,13 @@ export function MarkdownPreview(props: MarkdownPreviewProps) {
         alt,
         ...imageProps
       }: React.ComponentProps<'img'> & ExtraProps) {
-        return (
-          <img
-            {...imageProps}
-            alt={alt ?? ''}
-            referrerPolicy="same-origin"
-            src={resolvePreviewUrl(src, linkBase)}
-          />
-        );
+        const nextSrc = resolvePreviewUrl(src, linkBase);
+
+        if (typeof nextSrc !== 'string') {
+          return null;
+        }
+
+        return <PreviewImage {...imageProps} alt={alt ?? ''} src={nextSrc} />;
       },
       table({
         children,
@@ -141,6 +222,8 @@ export function MarkdownPreview(props: MarkdownPreviewProps) {
 
   return (
     <div
+      ref={previewRef}
+      style={style}
       className={cn(
         'omnibox-tiptap-preview prose prose-slate max-w-none text-base leading-6 text-slate-900 dark:prose-invert dark:text-slate-100',
         '[&_code::after]:content-none [&_code::before]:content-none'

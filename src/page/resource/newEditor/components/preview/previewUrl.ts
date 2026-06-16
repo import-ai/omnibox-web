@@ -1,11 +1,16 @@
-export function resolvePreviewUrl(src: unknown, linkBase = '') {
+export function resolvePreviewUrl<T>(
+  src: T,
+  linkBase = ''
+): T extends string ? string : T {
   if (typeof src !== 'string' || !src) {
-    return src;
+    return src as T extends string ? string : T;
   }
 
   if (!linkBase || src.startsWith('/') || /^[a-z][a-z\d+.-]*:/i.test(src)) {
-    return src;
+    return src as T extends string ? string : T;
   }
 
-  return `${linkBase}${src}`;
+  return `${linkBase.replace(/\/$/, '')}/${src.replace(/^\.\//, '')}` as T extends string
+    ? string
+    : T;
 }

@@ -17,10 +17,19 @@ import StarterKit from '@tiptap/starter-kit';
 import { Bold, Code, Italic, Strikethrough } from 'lucide-react';
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { TooltipProvider } from '@/components/tooltip';
 import { cn } from '@/lib/utils';
 
+import {
+  type EditorAttachmentContext,
+  uploadAndInsertAttachments,
+} from './components/attachments/attachmentUpload';
+import {
+  EDITOR_ATTACHMENT_ACCEPT,
+  validateEditorAttachments,
+} from './components/attachments/attachmentValidation';
 import { EditorAudio } from './components/audio/audioExtension';
 import { DiagramCodeBlock } from './components/diagram/diagramCodeBlockExtension';
 import {
@@ -29,12 +38,21 @@ import {
   isSourceEditorMode,
 } from './components/editorMode';
 import { EditorEmoji } from './components/emoji/editorEmoji';
+import { EditorCode } from './components/inline-code/editorCode';
 import InlineToolbarButton from './components/InlineToolbarButton';
 import { EditorKeyboardShortcuts } from './components/keyboardShortcuts';
 import LinkPopover from './components/link-popover';
+import { MarkdownLinkInput } from './components/markdown-link/markdownLinkInput';
+import { MarkdownPaste } from './components/paste/markdownPaste';
 import { MarkdownPreview } from './components/preview/MarkdownPreview';
 import { getEditorPreviewLinkBase } from './components/previewLinkBase';
 import { shortcutLabels } from './components/shortcutLabels';
+import { SlashCommand } from './components/slash-command/slashCommandExtension';
+import {
+  filterSlashCommandItems,
+  getSlashCommandItems,
+  type SlashCommandLabels,
+} from './components/slash-command/slashCommandItems';
 import TableContextMenu from './components/table/TableContextMenu';
 import { TableEditableEdges } from './components/table/tableEditableEdges';
 import Toolbar from './components/Toolbar';
@@ -51,19 +69,72 @@ interface TiptapProps {
 const Tiptap = (props: TiptapProps) => {
   const { content, namespaceId, onChange, resourceId } = props;
   const { t } = useTranslation();
+  const attachmentContext = useMemo<EditorAttachmentContext>(
+    () => ({ namespaceId, resourceId }),
+    [namespaceId, resourceId]
+  );
+  const slashImageInputRef = useRef<HTMLInputElement>(null);
   const sourceEditorRef = useRef<HTMLTextAreaElement>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>('wysiwyg');
   const [fullscreen, setFullscreen] = useState(false);
   const [recordingLocked, setRecordingLocked] = useState(false);
   const [sourceContent, setSourceContent] = useState(content);
+  const slashCommandLabels = useMemo<SlashCommandLabels>(
+    () => ({
+      blockMath: t('resource.editor.insert.block_math'),
+      blockquote: t('resource.editor.toolbar.quote'),
+      bulletList: t('resource.editor.toolbar.bullet_list'),
+      codeBlock: t('resource.editor.toolbar.code_block'),
+      echarts: t('resource.editor.insert.echarts'),
+      emoji: t('resource.editor.toolbar.emoji'),
+      heading1: t('resource.editor.slash.heading_1'),
+      heading2: t('resource.editor.slash.heading_2'),
+      heading3: t('resource.editor.slash.heading_3'),
+      heading4: t('resource.editor.slash.heading_4'),
+      heading5: t('resource.editor.slash.heading_5'),
+      heading6: t('resource.editor.slash.heading_6'),
+      horizontalRule: t('resource.editor.toolbar.horizontal_rule'),
+      image: t('resource.editor.toolbar.image'),
+      inlineMath: t('resource.editor.insert.inline_math'),
+      mermaid: t('resource.editor.insert.mermaid'),
+      orderedList: t('resource.editor.toolbar.ordered_list'),
+      paragraph: t('resource.editor.slash.paragraph'),
+      table: t('resource.editor.toolbar.table'),
+      taskList: t('resource.editor.toolbar.task_list'),
+    }),
+    [t]
+  );
+  const slashCommandExtension = useMemo(
+    () =>
+      SlashCommand.configure({
+        getItems: (query, currentEditor) => {
+          const items = getSlashCommandItems(slashCommandLabels, {
+            insideTable: currentEditor.isActive('table'),
+          });
+
+          return filterSlashCommandItems(items, query);
+        },
+        onSelect: ({ item }) => {
+          if (item.key !== 'image') {
+            return false;
+          }
+
+          slashImageInputRef.current?.click();
+          return true;
+        },
+      }),
+    [slashCommandLabels]
+  );
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
+        code: false,
         codeBlock: false,
         link: {
           openOnClick: false,
         },
       }),
+      EditorCode,
       DiagramCodeBlock,
       BlockMath.configure({
         katexOptions: {
@@ -92,6 +163,7 @@ const Tiptap = (props: TiptapProps) => {
         controls: true,
         preload: 'metadata',
       }),
+      MarkdownPaste,
       Table.configure({
         allowTableNodeSelection: true,
         cellMinWidth: 80,
@@ -107,6 +179,8 @@ const Tiptap = (props: TiptapProps) => {
       TableCell,
       TableEditableEdges,
       EditorKeyboardShortcuts,
+      slashCommandExtension,
+      MarkdownLinkInput,
     ],
     content,
     contentType: 'markdown',
@@ -235,6 +309,34 @@ const Tiptap = (props: TiptapProps) => {
 
     setSourceContent(nextContent);
     onChange(nextContent);
+  };
+
+  const handleSlashImageFiles = async (files: FileList | null) => {
+    if (!files?.length || !editor) {
+      return;
+    }
+
+    const validationError = validateEditorAttachments(files);
+
+    if (validationError) {
+      toast.error(t(`upload.${validationError}`), { position: 'bottom-right' });
+
+      if (slashImageInputRef.current) {
+        slashImageInputRef.current.value = '';
+      }
+
+      return;
+    }
+
+    try {
+      await uploadAndInsertAttachments(editor, files, attachmentContext);
+    } catch {
+      toast.error(t('upload.failed'), { position: 'bottom-right' });
+    } finally {
+      if (slashImageInputRef.current) {
+        slashImageInputRef.current.value = '';
+      }
+    }
   };
 
   const selectSourceLine = (line: number) => {
@@ -411,6 +513,14 @@ const Tiptap = (props: TiptapProps) => {
             />
           </BubbleMenu>
         )}
+        <input
+          ref={slashImageInputRef}
+          type="file"
+          accept={EDITOR_ATTACHMENT_ACCEPT}
+          multiple
+          className="hidden"
+          onChange={event => handleSlashImageFiles(event.target.files)}
+        />
       </EditorContext.Provider>
     </TooltipProvider>
   );

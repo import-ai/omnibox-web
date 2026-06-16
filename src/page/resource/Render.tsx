@@ -2,7 +2,9 @@ import { useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Markdown } from '@/components/markdown';
+import { EDITOR } from '@/const';
 import { Resource, SharedResource } from '@/interface';
+import { MarkdownPreview } from '@/page/resource/newEditor/components/preview/MarkdownPreview';
 
 import { embedImage } from './utils';
 
@@ -94,12 +96,22 @@ export default function Render(props: IProps) {
 
   return (
     <div ref={containerRef} className="pb-[30vh]">
-      <Markdown
-        style={style}
-        content={embedImage(resource)}
-        linkBase={linkBase}
-        onRendered={scrollToSearchResult}
-      />
+      {EDITOR ? (
+        <MarkdownPreview
+          style={style}
+          content={embedImage(resource)}
+          linkBase={linkBase}
+          onRendered={scrollToSearchResult}
+          navigateInternalLinks
+        />
+      ) : (
+        <Markdown
+          style={style}
+          content={embedImage(resource)}
+          linkBase={linkBase}
+          onRendered={scrollToSearchResult}
+        />
+      )}
     </div>
   );
 }
