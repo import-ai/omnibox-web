@@ -14,7 +14,10 @@ import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 
-import { shouldShowSearchFieldClear } from './searchFieldUtils';
+import {
+  searchFieldClearButtonClassName,
+  shouldShowSearchFieldClear,
+} from './searchFieldUtils';
 import { useSearchFieldValue } from './useSearchFieldValue';
 
 export interface SearchFieldProps extends Omit<
@@ -86,10 +89,7 @@ function SearchFieldActions({
         <Button
           type="button"
           variant="ghost"
-          className={cn(
-            'h-7 rounded-md px-2 text-sm font-normal text-muted-foreground hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring',
-            clearClassName
-          )}
+          className={cn(searchFieldClearButtonClassName, clearClassName)}
           onClick={onClear}
         >
           {clearLabel}
@@ -170,7 +170,7 @@ function SearchFieldView({
         onChange={onChange}
         disabled={disabled}
         className={cn(
-          'h-9 border-0 bg-transparent pl-10 pr-3 text-sm shadow-none focus-visible:ring-0',
+          'h-9 border-0 bg-transparent pl-8 pr-3 text-sm shadow-none focus-visible:ring-0',
           (canRenderClear || rightContent) && 'pr-20',
           inputClassName
         )}
