@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
-
 import { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';
+
+import { NamespaceTierBadge } from './NamespaceTierBadge';
 
 interface NamespaceListProps {
   namespaces: Namespace[];
@@ -15,8 +15,6 @@ export function NamespaceList({
   currentId,
   onSelect,
 }: NamespaceListProps) {
-  const { t } = useTranslation();
-
   return (
     <>
       {namespaces.map(item => (
@@ -37,15 +35,7 @@ export function NamespaceList({
           {item.tier ? (
             <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
               <span className="truncate">{item.name}</span>
-              {item.expired ? (
-                <span className="whitespace-nowrap text-xs text-muted-foreground">
-                  {t('namespace.tier.expired')}
-                </span>
-              ) : (
-                <span className="whitespace-nowrap text-xs text-muted-foreground">
-                  {t(`namespace.tier.${item.tier}`)}
-                </span>
-              )}
+              <NamespaceTierBadge namespace={item} />
             </div>
           ) : (
             <span className="truncate">{item.name}</span>
