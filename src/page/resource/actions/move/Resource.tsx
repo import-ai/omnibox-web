@@ -5,12 +5,15 @@ import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import type { Resource, ResourceType, SpaceType } from '@/interface';
+import type { ResourceMeta, ResourceType, SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
 
 import { shouldDisableMoveTarget } from './utils';
 
-interface IResource extends Resource {
+interface IResource extends Pick<
+  ResourceMeta,
+  'id' | 'name' | 'parent_id' | 'resource_type' | 'has_children'
+> {
   spaceType?: SpaceType;
 }
 

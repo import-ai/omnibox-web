@@ -4,6 +4,7 @@ import { useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { SearchField } from '@/components/search/SearchField';
 import {
   Popover,
   PopoverContent,
@@ -27,7 +28,6 @@ import { ConfirmPermanentDeleteDialog } from './ConfirmPermanentDeleteDialog';
 import { TrashEmpty } from './TrashEmpty';
 import { TrashFooter } from './TrashFooter';
 import { TrashItemRow } from './TrashItemRow';
-import { TrashSearch } from './TrashSearch';
 import { useTrash } from './useTrash';
 
 export function TrashPanel() {
@@ -221,9 +221,11 @@ export function TrashPanel() {
                     onCloseAutoFocus={e => e.preventDefault()}
                   >
                     <div className="space-y-3">
-                      <TrashSearch
+                      <SearchField
                         value={searchValue}
-                        onChange={setSearchValue}
+                        onValueChange={setSearchValue}
+                        placeholder={t('trash.search_placeholder')}
+                        clearLabel={t('search.clear')}
                       />
 
                       <div

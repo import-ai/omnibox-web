@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
-import { Input } from '@/components/input';
 import Invite from '@/components/invite-dialog';
 import PermissionAction from '@/components/permission-action';
+import { SearchField } from '@/components/search/SearchField';
 import UserCard from '@/components/user-card';
 import { Member, Role } from '@/interface';
 import { http } from '@/lib/request';
@@ -56,11 +56,13 @@ export default function MemberMain(props: MemberProps) {
   return (
     <div className="space-y-2 lg:space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Input
+        <SearchField
           value={search}
-          onChange={e => onSearch(e.target.value)}
+          onValueChange={onSearch}
           placeholder={t('manage.search')}
-          className="h-7 w-[150px] rounded-md border-border bg-transparent text-sm placeholder:text-muted-foreground dark:bg-transparent lg:h-9 lg:w-[435px]"
+          clearLabel={t('search.clear')}
+          containerClassName="h-7 min-h-7 w-[150px] rounded-md border-border lg:h-9 lg:min-h-9 lg:w-[435px]"
+          inputClassName="h-7 lg:h-9"
         />
         <Invite onFinish={refetch}>
           <Button

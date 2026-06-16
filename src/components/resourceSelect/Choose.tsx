@@ -1,8 +1,8 @@
-import { Check, LoaderCircle, Search, User } from 'lucide-react';
+import { Check, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { LazyInput } from '@/components/input/LazyInput';
+import { SearchField } from '@/components/search/SearchField';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -114,22 +114,19 @@ export function ChooseResource(props: IProps) {
 
   return (
     <>
-      <div className="relative p-0">
-        {fetching ? (
-          <LoaderCircle className="absolute left-3 top-3 size-4 animate-spin opacity-50 transition-transform" />
-        ) : (
-          <Search className="absolute left-3 top-3 size-4 opacity-50 hover:bg-transparent focus-visible:outline-none" />
-        )}
-        <LazyInput
-          value={search}
-          onChange={onSearch}
-          onKeyDown={event => {
-            event.stopPropagation();
-          }}
-          placeholder={t('search.title')}
-          className="border-none pl-8 shadow-none outline-none"
-        />
-      </div>
+      <SearchField
+        value={search}
+        onValueChange={onSearch}
+        debounceMs={1000}
+        loading={fetching}
+        placeholder={t('search.title')}
+        clearLabel={t('search.clear')}
+        onKeyDown={event => {
+          event.stopPropagation();
+        }}
+        containerClassName="min-h-0 rounded-none border-0"
+        inputClassName="border-none focus-visible:ring-0"
+      />
       <DropdownMenuSeparator />
       <div className="no-scrollbar flex max-h-72 flex-col gap-1 overflow-y-auto">
         {data.privateRootId && (
