@@ -34,6 +34,7 @@ export function useCreateSmartFolderDialogState({
   onConfirm,
   currentResourceId,
   initialValue,
+  defaultOwnerScope,
   hasTeamspace = true,
   privateSmartFolderCount = 0,
   teamSmartFolderCount = 0,
@@ -98,22 +99,27 @@ export function useCreateSmartFolderDialogState({
           initialValue.matchMode || 'all',
           normalizeInitialConditions(initialValue.conditions)
         )
-      : 'create';
+      : `create:${defaultOwnerScope || 'auto'}`;
     if (initializedDialogKeyRef.current === initialValueKey) {
       return;
     }
     initializedDialogKeyRef.current = initialValueKey;
 
     const initialName = initialValue?.name || '';
-    const initialOwnerScope = initialValue
-      ? initialValue.ownerScope || 'private'
-      : hasTeamspace
-        ? getDefaultOwnerScope(
-            entitlements,
-            privateSmartFolderCount,
-            teamSmartFolderCount
-          )
-        : 'private';
+    let initialOwnerScope: SmartFolderOwnerScope;
+    if (initialValue) {
+      initialOwnerScope = initialValue.ownerScope || 'private';
+    } else if (defaultOwnerScope) {
+      initialOwnerScope = defaultOwnerScope;
+    } else if (hasTeamspace) {
+      initialOwnerScope = getDefaultOwnerScope(
+        entitlements,
+        privateSmartFolderCount,
+        teamSmartFolderCount
+      );
+    } else {
+      initialOwnerScope = 'private';
+    }
     const initialRootScope =
       initialOwnerScope === 'teamspace'
         ? 'teamspace'
@@ -145,6 +151,7 @@ export function useCreateSmartFolderDialogState({
   }, [
     open,
     initialValue,
+    defaultOwnerScope,
     hasTeamspace,
     entitlements,
     privateSmartFolderCount,

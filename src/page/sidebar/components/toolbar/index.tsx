@@ -11,11 +11,9 @@ import {
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import { Checkbox } from '@/components/Checkbox';
 import { Separator } from '@/components/ui/Separator';
 import { cn } from '@/lib/utils';
-import type { SmartFolderEntitlements } from '@/page/sidebar/components/smart-folder';
 import { useSelectedCount, useSidebarStore } from '@/page/sidebar/store';
 import { getBatchSelectionSummary } from '@/page/sidebar/store/utils';
 
@@ -29,13 +27,6 @@ interface IProps {
   onBatchMove: () => void;
   onBatchCreate: () => void;
   onAddToChat: () => void;
-  entitlements: SmartFolderEntitlements | undefined;
-  hasTeamspace: boolean;
-  smartFolderCounts: {
-    privateCount: number;
-    teamCount: number;
-  };
-  onCreateSmartFolder: () => void;
   onLocateResource: () => void;
   locateResourceDisabled: boolean;
   onRefreshResources: () => void;
@@ -50,10 +41,6 @@ export function Toolbar({
   onBatchMove,
   onBatchCreate,
   onAddToChat,
-  entitlements,
-  hasTeamspace,
-  smartFolderCounts,
-  onCreateSmartFolder,
   onLocateResource,
   locateResourceDisabled,
   onRefreshResources,
@@ -82,22 +69,6 @@ export function Toolbar({
   const smartFolderUnsupportedLabel = batchSelection.hasSmartFolder
     ? t('batch.smart_folder_unsupported_action')
     : undefined;
-  const privateLimit = entitlements?.privateLimit ?? 1;
-  const teamLimit = entitlements?.teamLimit ?? 1;
-  const privateExhausted =
-    privateLimit >= 0 && smartFolderCounts.privateCount >= privateLimit;
-  const teamExhausted =
-    teamLimit >= 0 && smartFolderCounts.teamCount >= teamLimit;
-  const smartFolderDisabled = entitlements
-    ? hasTeamspace
-      ? privateExhausted && teamExhausted
-      : privateExhausted
-    : false;
-  const smartFolderDisabledLabel = t(
-    hasTeamspace
-      ? 'smart_folder.create.all_quota_exhausted'
-      : 'smart_folder.create.personal_quota_exhausted'
-  );
 
   const handleCheckAll = () => {
     const store = useSidebarStore.getState();
@@ -187,14 +158,6 @@ export function Toolbar({
               onClick={onRefreshResources}
               label={t('actions.refresh')}
               loading={refreshingResources}
-            />
-            <ToolbarButton
-              icon={SmartFolderDefaultIcon}
-              onClick={onCreateSmartFolder}
-              label={t('actions.create_smart_folder')}
-              disabledLabel={
-                smartFolderDisabled ? smartFolderDisabledLabel : undefined
-              }
             />
             <ToolbarButton
               icon={ListCheck}
