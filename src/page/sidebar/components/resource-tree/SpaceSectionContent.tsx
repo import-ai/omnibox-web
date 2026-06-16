@@ -8,6 +8,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import {
   Tooltip,
   TooltipContent,
@@ -39,11 +40,13 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
+import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
 import { useSpaceDrop } from '@/page/sidebar/hooks/useSpaceDrop';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
 
+import { DisabledMenuTooltip } from './DisabledMenuTooltip';
 import ResourceNode from './ResourceNode';
 import { menuIconClass, menuItemClass } from './shared';
 
@@ -59,6 +62,8 @@ interface SpaceSectionContentProps {
   onBatchMove: () => void;
   onBatchCreate: () => void;
   onAddToChat: () => void;
+  onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
+  smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
 }
 
 export function SpaceSectionContent({
@@ -73,6 +78,8 @@ export function SpaceSectionContent({
   onBatchMove,
   onBatchCreate,
   onAddToChat,
+  onCreateSmartFolder,
+  smartFolderQuotaExhausted,
 }: SpaceSectionContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -83,6 +90,15 @@ export function SpaceSectionContent({
   const handleCreateFolder = () => {
     useSidebarStore.getState().openCreateFolderDialog(rootId);
   };
+
+  const smartFolderDisabled = smartFolderQuotaExhausted[spaceType] === true;
+  const smartFolderDisabledTip = smartFolderDisabled
+    ? t(
+        spaceType === 'teamspace'
+          ? 'smart_folder.create.team_quota_exhausted'
+          : 'smart_folder.create.personal_quota_exhausted'
+      )
+    : undefined;
 
   const {
     ref: dropRef,
@@ -115,6 +131,10 @@ export function SpaceSectionContent({
       .catch(() => {
         // request.ts handles backend error toasts.
       });
+  };
+
+  const handleCreateSmartFolder = () => {
+    onCreateSmartFolder(spaceType);
   };
 
   return (
@@ -196,6 +216,29 @@ export function SpaceSectionContent({
                     <FolderPlus className={menuIconClass} />
                     {t('actions.create_folder')}
                   </DropdownMenuItem>
+                  <DisabledMenuTooltip content={smartFolderDisabledTip}>
+                    <DropdownMenuItem
+                      className={cn(
+                        menuItemClass,
+                        smartFolderDisabled &&
+                          'cursor-not-allowed text-muted-foreground opacity-50'
+                      )}
+                      onClick={
+                        smartFolderDisabled
+                          ? undefined
+                          : handleCreateSmartFolder
+                      }
+                      onSelect={event => {
+                        if (smartFolderDisabled) {
+                          event.preventDefault();
+                        }
+                      }}
+                      aria-disabled={smartFolderDisabled}
+                    >
+                      <SmartFolderDefaultIcon className={menuIconClass} />
+                      {t('actions.create_smart_folder')}
+                    </DropdownMenuItem>
+                  </DisabledMenuTooltip>
                   <DropdownMenuItem
                     className={menuItemClass}
                     onClick={handleUploadClick}
@@ -220,6 +263,27 @@ export function SpaceSectionContent({
             <FolderPlus className={menuIconClass} />
             {t('actions.create_folder')}
           </ContextMenuItem>
+          <DisabledMenuTooltip content={smartFolderDisabledTip}>
+            <ContextMenuItem
+              className={cn(
+                menuItemClass,
+                smartFolderDisabled &&
+                  'cursor-not-allowed text-muted-foreground opacity-50'
+              )}
+              onClick={
+                smartFolderDisabled ? undefined : handleCreateSmartFolder
+              }
+              onSelect={event => {
+                if (smartFolderDisabled) {
+                  event.preventDefault();
+                }
+              }}
+              aria-disabled={smartFolderDisabled}
+            >
+              <SmartFolderDefaultIcon className={menuIconClass} />
+              {t('actions.create_smart_folder')}
+            </ContextMenuItem>
+          </DisabledMenuTooltip>
           <ContextMenuItem
             className={menuItemClass}
             onClick={handleUploadClick}
