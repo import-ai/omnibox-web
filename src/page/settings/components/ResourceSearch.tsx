@@ -1,10 +1,9 @@
-import { Check, File, Folder, Search } from 'lucide-react';
+import { Check, File, Folder } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { LazyInput } from '@/components/input/LazyInput';
+import { SearchField } from '@/components/search/SearchField';
 import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
 import type { Resource, ResourceMeta } from '@/interface';
 import { fetchRootResources, searchResources } from '@/service/resource';
 
@@ -111,19 +110,15 @@ export default function ResourceSearch({
 
   return (
     <div className="space-y-2">
-      <div className="relative">
-        {loading ? (
-          <Spinner className="absolute left-3 top-[10px] opacity-50" />
-        ) : (
-          <Search className="absolute left-3 top-[10px] size-4 opacity-50" />
-        )}
-        <LazyInput
-          value={search}
-          onChange={setSearch}
-          className="pl-10"
-          placeholder={placeholder || t('search.placeholder')}
-        />
-      </div>
+      <SearchField
+        value={search}
+        onValueChange={setSearch}
+        debounceMs={1000}
+        loading={loading}
+        placeholder={placeholder || t('search.placeholder')}
+        showClear
+        clearLabel={t('search.clear')}
+      />
 
       <div className="max-h-60 overflow-y-auto overflow-x-hidden rounded-md border">
         {data.root.length > 0 && (

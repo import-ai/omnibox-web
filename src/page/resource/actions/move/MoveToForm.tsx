@@ -1,10 +1,8 @@
-import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { LazyInput } from '@/components/input/LazyInput';
+import { SearchField } from '@/components/search/SearchField';
 import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
 import type { Resource, ResourceMeta } from '@/interface';
 import type { ResourceType } from '@/interface';
 import each from '@/lib/each';
@@ -125,19 +123,16 @@ export default function MoveToForm(props: IFormProps) {
 
   return (
     <div>
-      <div className="relative mb-2">
-        {loading ? (
-          <Spinner className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 z-10" />
-        ) : (
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 opacity-50 z-10" />
-        )}
-        <LazyInput
-          value={search}
-          onChange={onSearch}
-          className="pl-10 rounded-lg"
-          placeholder={t('actions.move_page_to')}
-        />
-      </div>
+      <SearchField
+        value={search}
+        onValueChange={onSearch}
+        debounceMs={1000}
+        loading={loading}
+        placeholder={t('actions.move_page_to')}
+        showClear
+        clearLabel={t('search.clear')}
+        containerClassName="mb-2"
+      />
       <div className="pb-2 min-h-60 max-h-80 overflow-y-auto overflow-x-hidden">
         {data.root.length > 0 && (
           <>
