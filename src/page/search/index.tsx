@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button } from '@/components/button';
-import { searchFieldClearButtonClassName } from '@/components/search/searchFieldUtils';
+import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
 import { CommandDialog, CommandInput } from '@/components/ui/Command';
 import useConfig from '@/hooks/useConfig';
 import useProNamespaces from '@/hooks/useProNamespaces';

@@ -120,14 +120,12 @@ export function ChooseResource(props: IProps) {
         debounceMs={1000}
         loading={fetching}
         placeholder={t('search.title')}
-        showClear
         clearLabel={t('search.clear')}
         onKeyDown={event => {
           event.stopPropagation();
         }}
-        containerClassName="min-h-0 rounded-none border-0 bg-transparent shadow-none focus-within:ring-0"
-        inputClassName="h-9 border-none bg-transparent pl-8 shadow-none focus-visible:ring-0"
-        iconClassName="size-4"
+        containerClassName="min-h-0 rounded-none border-0"
+        inputClassName="border-none focus-visible:ring-0"
       />
       <DropdownMenuSeparator />
       <div className="no-scrollbar flex max-h-72 flex-col gap-1 overflow-y-auto">

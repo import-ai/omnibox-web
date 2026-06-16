@@ -129,7 +129,6 @@ export default function MoveToForm(props: IFormProps) {
         debounceMs={1000}
         loading={loading}
         placeholder={t('actions.move_page_to')}
-        showClear
         clearLabel={t('search.clear')}
         containerClassName="mb-2"
       />

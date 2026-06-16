@@ -49,10 +49,9 @@ export default function GroupMain(props: GroupProps) {
           value={search}
           onValueChange={onSearch}
           placeholder={t('manage.search')}
-          showClear
           clearLabel={t('search.clear')}
-          containerClassName="h-7 min-h-7 w-[150px] rounded-md border-border bg-transparent shadow-none dark:bg-transparent lg:h-9 lg:min-h-9 lg:w-[435px]"
-          inputClassName="h-7 text-sm lg:h-9 md:text-sm"
+          containerClassName="h-7 min-h-7 w-[150px] rounded-md border-border lg:h-9 lg:min-h-9 lg:w-[435px]"
+          inputClassName="h-7 lg:h-9"
         />
         <CreateGroup
           data={edit}

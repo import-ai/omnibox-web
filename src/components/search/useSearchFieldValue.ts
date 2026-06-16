@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { getSearchFieldDebounceDelay } from './searchFieldUtils';
-
 interface UseSearchFieldValueOptions {
   value: string;
   onValueChange: (value: string) => void;
@@ -15,7 +13,8 @@ export function useSearchFieldValue({
 }: UseSearchFieldValueOptions) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [draftValue, setDraftValue] = useState(value);
-  const resolvedDebounceMs = getSearchFieldDebounceDelay(debounceMs);
+  const resolvedDebounceMs =
+    Number.isFinite(debounceMs) && debounceMs > 0 ? debounceMs : 0;
 
   useEffect(() => {
     setDraftValue(value);

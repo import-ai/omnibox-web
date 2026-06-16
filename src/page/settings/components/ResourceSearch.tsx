@@ -116,7 +116,6 @@ export default function ResourceSearch({
         debounceMs={1000}
         loading={loading}
         placeholder={placeholder || t('search.placeholder')}
-        showClear
         clearLabel={t('search.clear')}
       />
 
