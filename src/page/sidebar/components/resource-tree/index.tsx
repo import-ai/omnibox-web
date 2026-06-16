@@ -6,6 +6,7 @@ import { TouchBackend } from 'react-dnd-touch-backend';
 import { SidebarContent } from '@/components/ui/Sidebar';
 import { useIsMobile } from '@/hooks/useMobile';
 import { Namespace, SpaceType } from '@/interface';
+import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
 import { SidebarDragLayer } from '@/page/sidebar/hooks/UseBatchDrag';
 import { useDragAutoScroll } from '@/page/sidebar/hooks/useDragAutoScroll';
 import { TrashPanel } from '@/page/trash';
@@ -20,6 +21,8 @@ interface ResourceTreeProps {
   onBatchMove: () => void;
   onBatchCreate: () => void;
   onAddToChat: () => void;
+  onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
+  smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
 }
 
 export default function ResourceTree({
@@ -30,6 +33,8 @@ export default function ResourceTree({
   onBatchMove,
   onBatchCreate,
   onAddToChat,
+  onCreateSmartFolder,
+  smartFolderQuotaExhausted,
 }: ResourceTreeProps) {
   const isMobile = useIsMobile();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -53,6 +58,8 @@ export default function ResourceTree({
             onBatchMove={onBatchMove}
             onBatchCreate={onBatchCreate}
             onAddToChat={onAddToChat}
+            onCreateSmartFolder={onCreateSmartFolder}
+            smartFolderQuotaExhausted={smartFolderQuotaExhausted}
           />
         ))}
         <TrashPanel />

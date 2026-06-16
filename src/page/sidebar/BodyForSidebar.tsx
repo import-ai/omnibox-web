@@ -135,6 +135,8 @@ export function BodyForSidebar(props: IProps) {
   const navigate = useNavigate();
   const globalFileInputRef = useRef<HTMLInputElement>(null);
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
+  const [defaultSmartFolderOwnerScope, setDefaultSmartFolderOwnerScope] =
+    useState<SmartFolderOwnerScope | undefined>();
   const [refreshingResources, setRefreshingResources] = useState(false);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
@@ -192,6 +194,30 @@ export function BodyForSidebar(props: IProps) {
   const locateResourceId = activeId || resourceId;
   const canLocateCurrentResource =
     !!locateResourceId && locateResourceId !== 'chat';
+  const smartFolderQuotaExhausted = useMemo(() => {
+    const privateLimit = entitlements?.privateLimit ?? 1;
+    const teamLimit = entitlements?.teamLimit ?? 1;
+
+    return {
+      private:
+        !!entitlements &&
+        privateLimit >= 0 &&
+        smartFolderCounts.privateCount >= privateLimit,
+      teamspace:
+        !!entitlements &&
+        teamLimit >= 0 &&
+        smartFolderCounts.teamCount >= teamLimit,
+    };
+  }, [
+    entitlements,
+    smartFolderCounts.privateCount,
+    smartFolderCounts.teamCount,
+  ]);
+
+  const handleCreateSmartFolder = (ownerScope: SmartFolderOwnerScope) => {
+    setDefaultSmartFolderOwnerScope(ownerScope);
+    setCreateSmartFolderOpen(true);
+  };
 
   const handleLocateResource = () => {
     if (!canLocateCurrentResource) return;
@@ -436,10 +462,6 @@ export function BodyForSidebar(props: IProps) {
         onBatchCreate={batch.openCreateDialog}
         onAddToChat={batch.addSelectedToChat}
         toggleSelectionMode={batch.toggleSelectionMode}
-        entitlements={entitlements}
-        hasTeamspace={hasTeamspace}
-        smartFolderCounts={smartFolderCounts}
-        onCreateSmartFolder={() => setCreateSmartFolderOpen(true)}
         onLocateResource={handleLocateResource}
         locateResourceDisabled={!canLocateCurrentResource}
         onRefreshResources={handleRefreshSidebarResources}
@@ -453,11 +475,19 @@ export function BodyForSidebar(props: IProps) {
         onBatchMove={batch.openMoveDialog}
         onBatchCreate={batch.openCreateDialog}
         onAddToChat={batch.addSelectedToChat}
+        onCreateSmartFolder={handleCreateSmartFolder}
+        smartFolderQuotaExhausted={smartFolderQuotaExhausted}
       />
       <CreateSmartFolderDialog
         open={createSmartFolderOpen}
-        onOpenChange={setCreateSmartFolderOpen}
+        onOpenChange={open => {
+          setCreateSmartFolderOpen(open);
+          if (!open) {
+            setDefaultSmartFolderOwnerScope(undefined);
+          }
+        }}
         onConfirm={handleConfirmCreateSmartFolder}
+        defaultOwnerScope={defaultSmartFolderOwnerScope}
         hasTeamspace={hasTeamspace}
         currentNamespace={currentNamespace}
         privateSmartFolderCount={smartFolderCounts.privateCount}
