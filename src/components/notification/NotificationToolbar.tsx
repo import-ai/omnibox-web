@@ -1,6 +1,7 @@
-import { BrushCleaning, RefreshCw } from 'lucide-react';
+import { BrushCleaning, RotateCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 
 import type { NotificationFilter } from './types';
@@ -104,9 +105,11 @@ export function NotificationToolbar({
           onClick={onRefresh}
           className={getActionClassName(isRefreshDisabled)}
         >
-          <RefreshCw
-            className={cn('size-4 stroke-2', refreshing && 'animate-spin')}
-          />
+          {refreshing ? (
+            <Spinner className="stroke-2" />
+          ) : (
+            <RotateCw className="size-4 stroke-2" />
+          )}
           <span>{t('notification_modal.refresh')}</span>
         </button>
       </div>

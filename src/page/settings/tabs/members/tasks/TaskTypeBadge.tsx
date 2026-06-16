@@ -1,10 +1,14 @@
 import {
   FileAudio,
+  FileImage,
   FileText,
+  FileType,
   FileUp,
+  FileVideo,
   FolderSearch2,
   Globe,
   MessageCircleX,
+  Presentation,
   SearchX,
   Split,
   Star,
@@ -58,6 +62,34 @@ export const taskTypeConfig: Record<
   file_reader: {
     icon: FileUp,
     labelKey: 'tasks.functions.file_reader',
+  },
+  file_reader_text: {
+    icon: FileText,
+    labelKey: 'tasks.functions.file_reader_text',
+  },
+  file_reader_ppt: {
+    icon: Presentation,
+    labelKey: 'tasks.functions.file_reader_ppt',
+  },
+  file_reader_word: {
+    icon: FileType,
+    labelKey: 'tasks.functions.file_reader_word',
+  },
+  file_reader_pdf: {
+    icon: FileText,
+    labelKey: 'tasks.functions.file_reader_pdf',
+  },
+  file_reader_audio: {
+    icon: FileAudio,
+    labelKey: 'tasks.functions.file_reader_audio',
+  },
+  file_reader_video: {
+    icon: FileVideo,
+    labelKey: 'tasks.functions.file_reader_video',
+  },
+  file_reader_image: {
+    icon: FileImage,
+    labelKey: 'tasks.functions.file_reader_image',
   },
   collect: {
     icon: Star,

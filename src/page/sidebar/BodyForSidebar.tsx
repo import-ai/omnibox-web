@@ -9,20 +9,26 @@ import useApp from '@/hooks/useApp';
 import useConfig from '@/hooks/useConfig';
 import useProNamespaces from '@/hooks/useProNamespaces';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
-import { ResourceMeta } from '@/interface';
+import { ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
 import {
   CreateSmartFolderRequest,
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
+  isSmartFolderChildResource,
   SmartFolderOwnerScope,
   SmartFolderResponse,
+  withSmartFolderChildSidebarAttrs,
 } from '@/page/sidebar/components/smart-folder';
 import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/CreateSmartFolderDialog';
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
-import { fetchChildren } from '@/service/resource';
+import {
+  fetchChildren,
+  fetchRootResources,
+  fetchSmartFolderChildren,
+} from '@/service/resource';
 
 import { BatchCreateDialog } from './components/BatchCreateDialog';
 import BatchDeleteDialog from './components/BatchDeleteDialog';
@@ -39,6 +45,12 @@ import { getBatchSelectionSummary } from './store/utils';
 interface IProps {
   resourceId: string;
   namespaceId: string;
+}
+
+interface LocateSnapshot {
+  id: string;
+  smartFolderId?: string;
+  spaceType?: SpaceType;
 }
 
 function scrollToResource(resourceId: string) {
@@ -80,6 +92,40 @@ function getSiblingResources(
     .map(toResourceMeta);
 }
 
+function getNodeDepth(nodes: Record<string, TreeNode>, id: string) {
+  let depth = 0;
+  let parentId = nodes[id]?.parentId;
+  const visited = new Set<string>([id]);
+
+  while (parentId && nodes[parentId] && !visited.has(parentId)) {
+    depth += 1;
+    visited.add(parentId);
+    parentId = nodes[parentId].parentId;
+  }
+
+  return depth;
+}
+
+function getLocateSnapshot(
+  nodes: Record<string, TreeNode>,
+  id: string | null
+): LocateSnapshot | null {
+  if (!id || id === 'chat') return null;
+
+  const node = nodes[id];
+  if (!node) return { id };
+
+  if (isSmartFolderChildResource(node)) {
+    return {
+      id,
+      smartFolderId: node.parentId || undefined,
+      spaceType: node.spaceType,
+    };
+  }
+
+  return { id, spaceType: node.spaceType };
+}
+
 export function BodyForSidebar(props: IProps) {
   const { namespaceId, resourceId } = props;
   const app = useApp();
@@ -89,6 +135,9 @@ export function BodyForSidebar(props: IProps) {
   const navigate = useNavigate();
   const globalFileInputRef = useRef<HTMLInputElement>(null);
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
+  const [defaultSmartFolderOwnerScope, setDefaultSmartFolderOwnerScope] =
+    useState<SmartFolderOwnerScope | undefined>();
+  const [refreshingResources, setRefreshingResources] = useState(false);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
   const { config, loading: configLoading } = useConfig();
@@ -145,6 +194,30 @@ export function BodyForSidebar(props: IProps) {
   const locateResourceId = activeId || resourceId;
   const canLocateCurrentResource =
     !!locateResourceId && locateResourceId !== 'chat';
+  const smartFolderQuotaExhausted = useMemo(() => {
+    const privateLimit = entitlements?.privateLimit ?? 1;
+    const teamLimit = entitlements?.teamLimit ?? 1;
+
+    return {
+      private:
+        !!entitlements &&
+        privateLimit >= 0 &&
+        smartFolderCounts.privateCount >= privateLimit,
+      teamspace:
+        !!entitlements &&
+        teamLimit >= 0 &&
+        smartFolderCounts.teamCount >= teamLimit,
+    };
+  }, [
+    entitlements,
+    smartFolderCounts.privateCount,
+    smartFolderCounts.teamCount,
+  ]);
+
+  const handleCreateSmartFolder = (ownerScope: SmartFolderOwnerScope) => {
+    setDefaultSmartFolderOwnerScope(ownerScope);
+    setCreateSmartFolderOpen(true);
+  };
 
   const handleLocateResource = () => {
     if (!canLocateCurrentResource) return;
@@ -170,6 +243,87 @@ export function BodyForSidebar(props: IProps) {
       : undefined;
 
     app.fire('scroll_to_resource', sourceResourceId, sourceParentId);
+  };
+
+  const handleRefreshSidebarResources = async () => {
+    if (refreshingResources) return;
+
+    const state = useSidebarStore.getState();
+    const rootIdSet = new Set(Object.values(state.rootIds).filter(Boolean));
+    const expandedLoadedIds = Object.entries(state.ui)
+      .filter(([id, ui]) => {
+        const node = state.nodes[id];
+        return (
+          !!node &&
+          ui.expanded &&
+          ui.loaded &&
+          (node.hasChildren ||
+            node.resourceType === 'folder' ||
+            node.resourceType === 'smart_folder') &&
+          !rootIdSet.has(id)
+        );
+      })
+      .map(([id]) => id);
+    expandedLoadedIds.sort(
+      (a, b) => getNodeDepth(state.nodes, a) - getNodeDepth(state.nodes, b)
+    );
+    const expandedIdSet = new Set(expandedLoadedIds);
+    const locateSnapshot = getLocateSnapshot(
+      state.nodes,
+      state.activeId || resourceId
+    );
+
+    setRefreshingResources(true);
+    try {
+      const items = await fetchRootResources(namespaceId);
+      const store = useSidebarStore.getState();
+      store.init(items);
+
+      for (const id of expandedLoadedIds) {
+        const node = useSidebarStore.getState().nodes[id];
+        if (!node) continue;
+
+        const rawChildren =
+          node.resourceType === 'smart_folder'
+            ? await fetchSmartFolderChildren(namespaceId, id)
+            : await fetchChildren(namespaceId, id);
+        const children = rawChildren.map(child =>
+          node.resourceType === 'smart_folder'
+            ? withSmartFolderChildSidebarAttrs(child, id)
+            : child
+        );
+        store.refreshChildren(id, children);
+      }
+
+      useSidebarStore.setState(draft => {
+        const refreshedRootIdSet = new Set(
+          Object.values(draft.rootIds).filter(Boolean)
+        );
+        Object.entries(draft.ui).forEach(([id, ui]) => {
+          ui.expanded = refreshedRootIdSet.has(id) || expandedIdSet.has(id);
+        });
+      });
+
+      if (locateSnapshot) {
+        const targetId = locateSnapshot.smartFolderId || locateSnapshot.id;
+        await useSidebarStore.getState().expandPathTo(targetId, {
+          expandTarget: !!locateSnapshot.smartFolderId,
+        });
+        const refreshedStore = useSidebarStore.getState();
+        const refreshedNode = refreshedStore.nodes[locateSnapshot.id];
+        if (!refreshedNode) return;
+        refreshedStore.toggleSpace(
+          locateSnapshot.spaceType || refreshedNode.spaceType,
+          true
+        );
+        refreshedStore.activate(locateSnapshot.id);
+        scrollToResource(locateSnapshot.id);
+      }
+    } catch {
+      // request.ts handles backend error toasts.
+    } finally {
+      setRefreshingResources(false);
+    }
   };
 
   const handleConfirmCreateSmartFolder = (
@@ -308,12 +462,10 @@ export function BodyForSidebar(props: IProps) {
         onBatchCreate={batch.openCreateDialog}
         onAddToChat={batch.addSelectedToChat}
         toggleSelectionMode={batch.toggleSelectionMode}
-        entitlements={entitlements}
-        hasTeamspace={hasTeamspace}
-        smartFolderCounts={smartFolderCounts}
-        onCreateSmartFolder={() => setCreateSmartFolderOpen(true)}
         onLocateResource={handleLocateResource}
         locateResourceDisabled={!canLocateCurrentResource}
+        onRefreshResources={handleRefreshSidebarResources}
+        refreshingResources={refreshingResources}
       />
       <ResourceTree
         namespaceId={namespaceId}
@@ -323,11 +475,19 @@ export function BodyForSidebar(props: IProps) {
         onBatchMove={batch.openMoveDialog}
         onBatchCreate={batch.openCreateDialog}
         onAddToChat={batch.addSelectedToChat}
+        onCreateSmartFolder={handleCreateSmartFolder}
+        smartFolderQuotaExhausted={smartFolderQuotaExhausted}
       />
       <CreateSmartFolderDialog
         open={createSmartFolderOpen}
-        onOpenChange={setCreateSmartFolderOpen}
+        onOpenChange={open => {
+          setCreateSmartFolderOpen(open);
+          if (!open) {
+            setDefaultSmartFolderOwnerScope(undefined);
+          }
+        }}
         onConfirm={handleConfirmCreateSmartFolder}
+        defaultOwnerScope={defaultSmartFolderOwnerScope}
         hasTeamspace={hasTeamspace}
         currentNamespace={currentNamespace}
         privateSmartFolderCount={smartFolderCounts.privateCount}

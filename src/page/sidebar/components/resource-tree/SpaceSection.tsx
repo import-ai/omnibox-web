@@ -1,4 +1,5 @@
 import { Namespace, SpaceType } from '@/interface';
+import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
 import { useIsSpaceExpanded, useNode, useRootId } from '@/page/sidebar/store';
 
 import { SpaceSectionContent } from './SpaceSectionContent';
@@ -12,6 +13,8 @@ interface SpaceSectionProps {
   onBatchMove: () => void;
   onBatchCreate: () => void;
   onAddToChat: () => void;
+  onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
+  smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
 }
 
 export default function SpaceSection({
@@ -23,6 +26,8 @@ export default function SpaceSection({
   onBatchMove,
   onBatchCreate,
   onAddToChat,
+  onCreateSmartFolder,
+  smartFolderQuotaExhausted,
 }: SpaceSectionProps) {
   const rootId = useRootId(spaceType);
   const rootNode = useNode(rootId);
@@ -45,6 +50,8 @@ export default function SpaceSection({
       onBatchMove={onBatchMove}
       onBatchCreate={onBatchCreate}
       onAddToChat={onAddToChat}
+      onCreateSmartFolder={onCreateSmartFolder}
+      smartFolderQuotaExhausted={smartFolderQuotaExhausted}
     />
   );
 }
