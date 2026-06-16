@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button } from '@/components/button';
+import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
 import { CommandDialog, CommandInput } from '@/components/ui/Command';
 import useConfig from '@/hooks/useConfig';
 import useProNamespaces from '@/hooks/useProNamespaces';
@@ -304,7 +305,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
               <Button
                 type="button"
                 variant="ghost"
-                className="h-[22px] rounded border-none bg-transparent px-2 text-sm font-normal text-muted-foreground shadow-none outline-none ring-0 hover:bg-accent hover:text-muted-foreground focus-visible:ring-0 focus-visible:ring-transparent active:!bg-[#3b82f633] active:text-[#3b82f6] dark:hover:bg-accent"
+                className={searchFieldClearButtonClassName}
                 onClick={handleClear}
               >
                 {t('search.clear')}

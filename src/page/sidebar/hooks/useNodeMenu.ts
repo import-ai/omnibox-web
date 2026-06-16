@@ -1,7 +1,7 @@
 import {
+  Crosshair,
   FilePlus,
   FolderPlus,
-  LocateFixed,
   type LucideIcon,
   MessageSquarePlus,
   MessageSquareQuote,
@@ -136,7 +136,7 @@ export function useNodeMenu(
         items: [
           {
             key: 'locate_source_resource',
-            icon: LocateFixed,
+            icon: Crosshair,
             label: t('actions.locate_source_resource'),
             onClick: actions.handleLocateSource,
           },
