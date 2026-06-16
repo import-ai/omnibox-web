@@ -59,6 +59,7 @@ export interface CreateSmartFolderDialogProps {
   onConfirm: (payload: CreateSmartFolderRequest) => Promise<void>;
   currentResourceId?: string;
   initialValue?: CreateSmartFolderPayload | null;
+  defaultOwnerScope?: SmartFolderOwnerScope;
   hasTeamspace?: boolean;
   privateSmartFolderCount?: number;
   teamSmartFolderCount?: number;
