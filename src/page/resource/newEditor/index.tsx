@@ -58,6 +58,7 @@ import { TableEditableEdges } from './components/table/tableEditableEdges';
 import Toolbar from './components/Toolbar';
 
 const bubbleIconClassName = 'size-4';
+const fullscreenContentClassName = 'mx-auto w-full max-w-4xl';
 
 interface TiptapProps {
   content: string;
@@ -187,7 +188,7 @@ const Tiptap = (props: TiptapProps) => {
     editorProps: {
       attributes: {
         class:
-          'omnibox-tiptap-editor px-9 py-2.5 text-base leading-6 text-slate-900 outline-none prose prose-slate max-w-none [&_p]:my-4 [&_hr]:my-3 dark:prose-invert dark:text-slate-100',
+          'omnibox-tiptap-editor px-0 py-2.5 text-base leading-6 text-slate-900 outline-none prose prose-slate max-w-none [&_p]:my-4 [&_hr]:my-3 dark:prose-invert dark:text-slate-100',
       },
     },
     onUpdate: ({ editor }) => {
@@ -379,9 +380,8 @@ const Tiptap = (props: TiptapProps) => {
       <EditorContext.Provider value={providerValue}>
         <div
           className={cn(
-            'relative overflow-hidden rounded border border-slate-300 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-950',
-            fullscreen &&
-              'fixed inset-0 z-40 flex flex-col rounded-none border-0 shadow-none'
+            'relative overflow-hidden bg-white dark:bg-neutral-950',
+            fullscreen && 'fixed inset-0 z-40 flex flex-col'
           )}
         >
           <Toolbar
@@ -403,19 +403,24 @@ const Tiptap = (props: TiptapProps) => {
             )}
           >
             {isRenderedEditorMode(editorMode) ? (
-              <TableContextMenu editor={recordingLocked ? null : editor}>
-                <EditorContent
-                  editor={editor}
-                  className={cn(
-                    editorMode === 'instant' && 'omnibox-tiptap-editor-ir'
-                  )}
-                />
-              </TableContextMenu>
+              <div className={cn(fullscreen && fullscreenContentClassName)}>
+                <TableContextMenu editor={recordingLocked ? null : editor}>
+                  <EditorContent
+                    editor={editor}
+                    className={cn(
+                      editorMode === 'instant' && 'omnibox-tiptap-editor-ir'
+                    )}
+                  />
+                </TableContextMenu>
+              </div>
             ) : (
               <div
                 className={cn(
                   'bg-white dark:bg-neutral-950',
                   fullscreen && 'h-full min-h-0',
+                  fullscreen &&
+                    editorMode !== 'split' &&
+                    fullscreenContentClassName,
                   editorMode === 'split' &&
                     'grid min-h-[420px] grid-cols-1 md:grid-cols-2'
                 )}
@@ -431,9 +436,10 @@ const Tiptap = (props: TiptapProps) => {
                   value={sourceContent}
                   onChange={handleSourceChange}
                   className={cn(
-                    'block min-h-[360px] w-full bg-white px-9 py-4 font-mono text-sm leading-6 text-slate-900 outline-none dark:bg-neutral-950 dark:text-slate-100',
+                    'block min-h-[360px] w-full bg-white px-0 py-4 font-mono text-sm leading-6 text-slate-900 outline-none dark:bg-neutral-950 dark:text-slate-100',
                     'selection:bg-blue-100 dark:selection:bg-blue-500/40',
                     fullscreen && 'h-full min-h-0 resize-none',
+                    fullscreen && editorMode === 'split' && 'mx-auto max-w-4xl',
                     editorMode === 'split' &&
                       'resize-none border-b border-slate-200 md:border-b-0 md:border-r dark:border-neutral-800'
                   )}
@@ -441,8 +447,11 @@ const Tiptap = (props: TiptapProps) => {
                 {editorMode === 'split' && (
                   <div
                     className={cn(
-                      'min-h-[360px] overflow-auto px-9 py-4',
-                      fullscreen && 'h-full min-h-0'
+                      'min-h-[360px] overflow-auto px-0 py-4',
+                      fullscreen && 'h-full min-h-0',
+                      fullscreen &&
+                        editorMode === 'split' &&
+                        'mx-auto max-w-4xl'
                     )}
                   >
                     <MarkdownPreview

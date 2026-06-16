@@ -24,6 +24,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { cn } from '@/lib/utils';
 
 import type { EditorAttachmentContext } from './attachments/attachmentUpload';
 import AttachmentUploadButton from './attachments/AttachmentUploadButton';
@@ -168,224 +169,251 @@ function Toolbar(props: ToolbarProps) {
     recordingLocked || !isRenderedEditorMode(editorMode);
 
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-slate-300 bg-slate-50 px-4 py-2 dark:border-neutral-700 dark:bg-neutral-900">
-      <ToolbarButton
-        label={t('resource.editor.toolbar.heading')}
-        active={editorState.activeHeading}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.heading}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-      >
-        <Heading className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.bold')}
-        active={editorState.activeBold}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.bold}
-        onClick={() => editor.chain().focus().toggleBold().run()}
-      >
-        <Bold className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.italic')}
-        active={editorState.activeItalic}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.italic}
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-      >
-        <Italic className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.strikethrough')}
-        active={editorState.activeStrike}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.strike}
-        onClick={() => editor.chain().focus().toggleStrike().run()}
-      >
-        <Strikethrough className={iconClassName} />
-      </ToolbarButton>
-      <LinkPopover
-        editor={tiptapActionsDisabled ? null : editor}
-        shortcut={shortcutLabels.link}
-      />
-
-      <ToolbarSeparator />
-
-      <ToolbarButton
-        label={t('resource.editor.toolbar.bullet_list')}
-        active={editorState.activeBulletList}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.bulletList}
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-      >
-        <List className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.ordered_list')}
-        active={editorState.activeOrderedList}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.orderedList}
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-      >
-        <ListOrdered className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.task_list')}
-        active={editorState.activeTaskList}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.taskList}
-        onClick={() => editor.chain().focus().toggleTaskList().run()}
-      >
-        <CheckSquare className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.decrease_indent')}
-        disabled={tiptapActionsDisabled || !editorState.canDecreaseIndent}
-        onClick={() =>
-          editor.chain().focus().liftListItem(editorState.listItemName).run()
-        }
-      >
-        <ListIndentDecrease className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.increase_indent')}
-        disabled={tiptapActionsDisabled || !editorState.canIncreaseIndent}
-        onClick={() =>
-          editor.chain().focus().sinkListItem(editorState.listItemName).run()
-        }
-      >
-        <ListIndentIncrease className={iconClassName} />
-      </ToolbarButton>
-
-      <ToolbarSeparator />
-
-      <ToolbarButton
-        label={t('resource.editor.toolbar.quote')}
-        active={editorState.activeBlockquote}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.quote}
-        onClick={() => editor.chain().focus().toggleBlockquote().run()}
-      >
-        <Quote className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.horizontal_rule')}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.horizontalRule}
-        onClick={() => editor.chain().focus().setHorizontalRule().run()}
-      >
-        <Minus className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.code_block')}
-        active={editorState.activeCodeBlock}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.codeBlock}
-        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-      >
-        <CodeXml className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.inline_code')}
-        active={editorState.activeCode}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.inlineCode}
-        onClick={() => editor.chain().focus().toggleCode().run()}
-      >
-        <Code className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.insert_before')}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.insertBefore}
-        onClick={() => insertEmptyParagraph(editor, 'before')}
-      >
-        <ArrowUpToLine className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.insert_after')}
-        disabled={tiptapActionsDisabled}
-        shortcut={shortcutLabels.insertAfter}
-        onClick={() => insertEmptyParagraph(editor, 'after')}
-      >
-        <ArrowDownToLine className={iconClassName} />
-      </ToolbarButton>
-
-      <ToolbarSeparator />
-
-      <AttachmentUploadButton
-        accept={EDITOR_ATTACHMENT_ACCEPT}
-        context={attachmentContext}
-        editor={editor}
-        icon={ImageIcon}
-        label={t('resource.editor.toolbar.image')}
-        disabled={tiptapActionsDisabled}
-      />
-      <RecordingButton
-        context={attachmentContext}
-        disabled={!isRenderedEditorMode(editorMode)}
-        editor={editor}
-        label={t('resource.editor.toolbar.record')}
-        onRecordingChange={onRecordingChange}
-      />
-      <TableSizePicker
-        editor={editor}
-        disabled={tiptapActionsDisabled || !editorState.canInsertTable}
-      />
-      <EmojiPicker editor={editor} disabled={tiptapActionsDisabled} />
-      <MathInsertMenu editor={editor} disabled={tiptapActionsDisabled} />
-      <DiagramInsertMenu editor={editor} disabled={tiptapActionsDisabled} />
-
-      <ToolbarSeparator />
-
-      <ToolbarButton
-        label={t('resource.editor.toolbar.undo')}
-        disabled={tiptapActionsDisabled || !editorState.canUndo}
-        shortcut={shortcutLabels.undo}
-        onClick={() => editor.chain().focus().undo().run()}
-      >
-        <Undo2 className={iconClassName} />
-      </ToolbarButton>
-      <ToolbarButton
-        label={t('resource.editor.toolbar.redo')}
-        disabled={tiptapActionsDisabled || !editorState.canRedo}
-        shortcut={shortcutLabels.redo}
-        onClick={() => editor.chain().focus().redo().run()}
-      >
-        <Redo2 className={iconClassName} />
-      </ToolbarButton>
-
-      <ToolbarSeparator />
-
-      <ToolbarButton
-        label={
-          fullscreen
-            ? t('resource.editor.toolbar.exit_fullscreen')
-            : t('resource.editor.toolbar.fullscreen')
-        }
-        active={fullscreen}
-        disabled={recordingLocked}
-        onClick={() => onFullscreenChange?.(!fullscreen)}
-      >
-        {fullscreen ? (
-          <Minimize2 className={iconClassName} />
-        ) : (
-          <Maximize2 className={iconClassName} />
+    <div className="bg-white dark:bg-neutral-950">
+      <div
+        className={cn(
+          'group flex flex-nowrap items-center gap-1 overflow-x-auto px-0 py-2',
+          fullscreen && 'mx-auto w-full max-w-4xl'
         )}
-      </ToolbarButton>
-      <EditModeMenu
-        mode={editorMode}
-        disabled={recordingLocked}
-        onModeChange={mode => onModeChange?.(mode)}
-      />
-      <OutlinePopover
-        editor={editor}
-        mode={editorMode}
-        disabled={recordingLocked}
-        onSelectSourceLine={onSelectSourceLine ?? (() => undefined)}
-        sourceContent={sourceContent}
-      />
+      >
+        <div
+          className={cn(
+            'flex max-w-0 flex-nowrap items-center gap-1 overflow-hidden opacity-0 transition-[max-width,opacity] duration-200',
+            'group-hover:max-w-[720px] group-hover:opacity-100 group-focus-within:max-w-[720px] group-focus-within:opacity-100'
+          )}
+        >
+          <ToolbarButton
+            label={t('resource.editor.toolbar.heading')}
+            active={editorState.activeHeading}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.heading}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+          >
+            <Heading className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.bold')}
+            active={editorState.activeBold}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.bold}
+            onClick={() => editor.chain().focus().toggleBold().run()}
+          >
+            <Bold className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.italic')}
+            active={editorState.activeItalic}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.italic}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+          >
+            <Italic className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.strikethrough')}
+            active={editorState.activeStrike}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.strike}
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+          >
+            <Strikethrough className={iconClassName} />
+          </ToolbarButton>
+          <LinkPopover
+            editor={tiptapActionsDisabled ? null : editor}
+            shortcut={shortcutLabels.link}
+          />
+
+          <ToolbarSeparator />
+
+          <ToolbarButton
+            label={t('resource.editor.toolbar.bullet_list')}
+            active={editorState.activeBulletList}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.bulletList}
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+          >
+            <List className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.ordered_list')}
+            active={editorState.activeOrderedList}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.orderedList}
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          >
+            <ListOrdered className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.task_list')}
+            active={editorState.activeTaskList}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.taskList}
+            onClick={() => editor.chain().focus().toggleTaskList().run()}
+          >
+            <CheckSquare className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.decrease_indent')}
+            disabled={tiptapActionsDisabled || !editorState.canDecreaseIndent}
+            onClick={() =>
+              editor
+                .chain()
+                .focus()
+                .liftListItem(editorState.listItemName)
+                .run()
+            }
+          >
+            <ListIndentDecrease className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.increase_indent')}
+            disabled={tiptapActionsDisabled || !editorState.canIncreaseIndent}
+            onClick={() =>
+              editor
+                .chain()
+                .focus()
+                .sinkListItem(editorState.listItemName)
+                .run()
+            }
+          >
+            <ListIndentIncrease className={iconClassName} />
+          </ToolbarButton>
+
+          <ToolbarSeparator />
+
+          <ToolbarButton
+            label={t('resource.editor.toolbar.quote')}
+            active={editorState.activeBlockquote}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.quote}
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          >
+            <Quote className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.horizontal_rule')}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.horizontalRule}
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+          >
+            <Minus className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.code_block')}
+            active={editorState.activeCodeBlock}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.codeBlock}
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          >
+            <CodeXml className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.inline_code')}
+            active={editorState.activeCode}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.inlineCode}
+            onClick={() => editor.chain().focus().toggleCode().run()}
+          >
+            <Code className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.insert_before')}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.insertBefore}
+            onClick={() => insertEmptyParagraph(editor, 'before')}
+          >
+            <ArrowUpToLine className={iconClassName} />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t('resource.editor.toolbar.insert_after')}
+            disabled={tiptapActionsDisabled}
+            shortcut={shortcutLabels.insertAfter}
+            onClick={() => insertEmptyParagraph(editor, 'after')}
+          >
+            <ArrowDownToLine className={iconClassName} />
+          </ToolbarButton>
+
+          <ToolbarSeparator />
+
+          <AttachmentUploadButton
+            accept={EDITOR_ATTACHMENT_ACCEPT}
+            context={attachmentContext}
+            editor={editor}
+            icon={ImageIcon}
+            label={t('resource.editor.toolbar.image')}
+            disabled={tiptapActionsDisabled}
+          />
+          <TableSizePicker
+            editor={editor}
+            disabled={tiptapActionsDisabled || !editorState.canInsertTable}
+          />
+          <EmojiPicker editor={editor} disabled={tiptapActionsDisabled} />
+          <MathInsertMenu editor={editor} disabled={tiptapActionsDisabled} />
+          <DiagramInsertMenu editor={editor} disabled={tiptapActionsDisabled} />
+
+          <ToolbarSeparator />
+        </div>
+
+        <RecordingButton
+          context={attachmentContext}
+          disabled={!isRenderedEditorMode(editorMode)}
+          editor={editor}
+          label={t('resource.editor.toolbar.record')}
+          onRecordingChange={onRecordingChange}
+        />
+
+        <ToolbarSeparator />
+
+        <ToolbarButton
+          label={t('resource.editor.toolbar.undo')}
+          disabled={tiptapActionsDisabled || !editorState.canUndo}
+          shortcut={shortcutLabels.undo}
+          onClick={() => editor.chain().focus().undo().run()}
+        >
+          <Undo2 className={iconClassName} />
+        </ToolbarButton>
+        <ToolbarButton
+          label={t('resource.editor.toolbar.redo')}
+          disabled={tiptapActionsDisabled || !editorState.canRedo}
+          shortcut={shortcutLabels.redo}
+          onClick={() => editor.chain().focus().redo().run()}
+        >
+          <Redo2 className={iconClassName} />
+        </ToolbarButton>
+
+        <ToolbarSeparator />
+
+        <ToolbarButton
+          label={
+            fullscreen
+              ? t('resource.editor.toolbar.exit_fullscreen')
+              : t('resource.editor.toolbar.fullscreen')
+          }
+          active={fullscreen}
+          disabled={recordingLocked}
+          onClick={() => onFullscreenChange?.(!fullscreen)}
+        >
+          {fullscreen ? (
+            <Minimize2 className={iconClassName} />
+          ) : (
+            <Maximize2 className={iconClassName} />
+          )}
+        </ToolbarButton>
+        <EditModeMenu
+          mode={editorMode}
+          disabled={recordingLocked}
+          onModeChange={mode => onModeChange?.(mode)}
+        />
+        <OutlinePopover
+          editor={editor}
+          mode={editorMode}
+          disabled={recordingLocked}
+          onSelectSourceLine={onSelectSourceLine ?? (() => undefined)}
+          sourceContent={sourceContent}
+        />
+      </div>
     </div>
   );
 }

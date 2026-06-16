@@ -213,13 +213,13 @@ export default function Editor(props: IEditorProps) {
     );
   }, [vd, theme]);
   return (
-    <div>
+    <div className="min-w-0 bg-white dark:bg-background">
       <Input
         type="text"
         value={title}
         onChange={handleChange}
         placeholder="Enter title"
-        className="mb-4 p-2 border rounded"
+        className="h-auto w-full rounded-none border-0 bg-transparent px-0 py-4 text-4xl font-bold shadow-none outline-none ring-0 placeholder:text-slate-300 focus-visible:ring-0 focus-visible:ring-offset-0 dark:placeholder:text-neutral-700"
       />
 
       {EDITOR ? (
