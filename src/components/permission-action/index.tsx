@@ -48,16 +48,24 @@ export default function PermissionAction(props: IProps) {
   const me = uid === user_id;
   const [grant, onGrant] = useState(false);
   const [remove, onRemove] = useState(false);
+  const [ownerOnly, setOwnerOnly] = useState(false);
   const [granting] = useState(false);
   const [removeing, onRemoveing] = useState(false);
   const [permissioning, onPermissioning] = useState(false);
   const [permission, onPermission] = useState<Permission>('full_access');
   const updatePermission = (permission: Permission) => {
     return http
-      .patch(`namespaces/${namespace_id}/permissions/users/${user_id}`, {
-        permission,
-      })
-      .then(refetch);
+      .patch(
+        `namespaces/${namespace_id}/permissions/users/${user_id}`,
+        { permission },
+        { mute: true }
+      )
+      .then(refetch)
+      .catch((err: any) => {
+        if (err?.response?.data?.code === 'owner_full_access_required') {
+          setOwnerOnly(true);
+        }
+      });
   };
   const removePermission = () => {
     return http
@@ -178,6 +186,20 @@ export default function PermissionAction(props: IProps) {
             <AlertDialogAction disabled={removeing} onClick={handleRemoveOk}>
               {removeing && <Spinner />}
               {t('permission.ok')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={ownerOnly}>
+        <AlertDialogContent className="w-[85%] max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('permission.owner_full_access_required')}
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setOwnerOnly(false)}>
+              {t('ok')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
