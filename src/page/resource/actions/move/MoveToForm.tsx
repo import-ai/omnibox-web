@@ -140,7 +140,7 @@ export default function MoveToForm(props: IFormProps) {
               variant="ghost"
               className="w-full whitespace-normal justify-start items-start rounded-none pb-0 h-7"
             >
-              Root
+              {t('search.root')}
             </Button>
             {data.root.map(item => (
               <FormResource
@@ -167,7 +167,7 @@ export default function MoveToForm(props: IFormProps) {
               variant="ghost"
               className="w-full whitespace-normal justify-start items-start rounded-none pb-0 h-7"
             >
-              Resource
+              {t('search.resources')}
             </Button>
             {data.resources.map(item => (
               <FormResource
