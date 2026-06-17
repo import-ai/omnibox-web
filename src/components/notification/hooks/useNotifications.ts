@@ -97,43 +97,54 @@ export function useNotifications(filter: NotificationFilter) {
     [filter, namespaceId]
   );
 
-  const refresh = useCallback(async () => {
-    if (refreshInFlightRef.current) {
-      return refreshInFlightRef.current;
-    }
-
-    const refreshPromise = (async () => {
-      const currentItemsLength = itemsLengthRef.current;
-      const shouldShowInitialLoading = currentItemsLength === 0;
-      const refreshLimit = Math.max(DEFAULT_LIMIT, currentItemsLength);
-
-      if (shouldShowInitialLoading) {
-        setLoading(true);
-      } else {
-        setRefreshing(true);
-      }
-
-      try {
-        await Promise.all([
-          fetchNotifications(0, false, refreshLimit),
-          fetchUnreadCount(),
-        ]);
-      } finally {
-        if (shouldShowInitialLoading) {
-          setLoading(false);
-        } else {
-          setRefreshing(false);
+  const refresh = useCallback(
+    async ({ showRefreshing = false }: { showRefreshing?: boolean } = {}) => {
+      if (refreshInFlightRef.current) {
+        if (showRefreshing) {
+          setRefreshing(true);
+          refreshInFlightRef.current.finally(() => setRefreshing(false));
         }
-        refreshInFlightRef.current = null;
+        return refreshInFlightRef.current;
       }
-    })();
 
-    refreshInFlightRef.current = refreshPromise;
-    return refreshPromise;
-  }, [fetchNotifications, fetchUnreadCount]);
+      const refreshPromise = (async () => {
+        const currentItemsLength = itemsLengthRef.current;
+        const shouldShowInitialLoading = currentItemsLength === 0;
+        const shouldShowRefreshing =
+          showRefreshing || !shouldShowInitialLoading;
+        const refreshLimit = Math.max(DEFAULT_LIMIT, currentItemsLength);
+
+        if (shouldShowInitialLoading) {
+          setLoading(true);
+        }
+        if (shouldShowRefreshing) {
+          setRefreshing(true);
+        }
+
+        try {
+          await Promise.all([
+            fetchNotifications(0, false, refreshLimit),
+            fetchUnreadCount(),
+          ]);
+        } finally {
+          if (shouldShowInitialLoading) {
+            setLoading(false);
+          }
+          if (shouldShowRefreshing) {
+            setRefreshing(false);
+          }
+          refreshInFlightRef.current = null;
+        }
+      })();
+
+      refreshInFlightRef.current = refreshPromise;
+      return refreshPromise;
+    },
+    [fetchNotifications, fetchUnreadCount]
+  );
 
   const handleManualRefresh = useCallback(async () => {
-    await refresh();
+    await refresh({ showRefreshing: true });
     pollingControllerRef.current?.restart();
   }, [refresh]);
 
