@@ -24,7 +24,6 @@ import { getData } from './data';
 interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   user_id: string;
   canRemove?: boolean;
-  resource_id: string;
   namespace_id: string;
   refetch: () => void;
   canNoAccess?: boolean;
@@ -37,7 +36,6 @@ export default function PermissionAction(props: IProps) {
     value,
     disabled,
     namespace_id,
-    resource_id,
     className,
     refetch,
     alertWhenDelete,
@@ -56,17 +54,14 @@ export default function PermissionAction(props: IProps) {
   const [permission, onPermission] = useState<Permission>('full_access');
   const updatePermission = (permission: Permission) => {
     return http
-      .patch(
-        `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`,
-        { permission }
-      )
+      .patch(`namespaces/${namespace_id}/permissions/users/${user_id}`, {
+        permission,
+      })
       .then(refetch);
   };
   const removePermission = () => {
     return http
-      .delete(
-        `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`
-      )
+      .delete(`namespaces/${namespace_id}/permissions/users/${user_id}`)
       .then(refetch);
   };
   const handleChange = (permission: Permission) => {
