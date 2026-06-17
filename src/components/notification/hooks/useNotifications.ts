@@ -109,9 +109,8 @@ export function useNotifications(filter: NotificationFilter) {
 
       if (shouldShowInitialLoading) {
         setLoading(true);
-      } else {
-        setRefreshing(true);
       }
+      setRefreshing(true);
 
       try {
         await Promise.all([
@@ -121,9 +120,8 @@ export function useNotifications(filter: NotificationFilter) {
       } finally {
         if (shouldShowInitialLoading) {
           setLoading(false);
-        } else {
-          setRefreshing(false);
         }
+        setRefreshing(false);
         refreshInFlightRef.current = null;
       }
     })();
