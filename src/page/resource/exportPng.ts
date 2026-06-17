@@ -7,6 +7,7 @@ const FALLBACK_EXPORT_COLOR = '#111827';
 const EXPORT_WIDTH = 390;
 const EXPORT_PADDING = 16;
 const IMAGE_LOAD_TIMEOUT = 8000;
+const LAZY_IMAGE_PLACEHOLDER = '/images/img-loading.svg';
 
 function downloadBlob(blob: Blob, fileName: string) {
   const url = window.URL.createObjectURL(blob);
@@ -67,56 +68,128 @@ function getExportTheme(container: HTMLElement) {
   };
 }
 
-async function waitForImages(container: HTMLElement) {
-  const images = Array.from(container.querySelectorAll('img'));
-  await Promise.all(
-    images.map(
-      image =>
-        new Promise<void>(resolve => {
-          if (image.complete) {
-            resolve();
-            return;
-          }
-
-          const finish = () => {
-            window.clearTimeout(timer);
-            image.removeEventListener('load', finish);
-            image.removeEventListener('error', finish);
-            resolve();
-          };
-          const timer = window.setTimeout(finish, IMAGE_LOAD_TIMEOUT);
-
-          image.addEventListener('load', finish);
-          image.addEventListener('error', finish);
-        })
-    )
-  );
-}
-
 function prepareLazyImages(container: HTMLElement) {
-  const images = Array.from(container.querySelectorAll('img[data-src]'));
+  const images = Array.from(container.querySelectorAll('img'));
   const restoreCallbacks: Array<() => void> = [];
 
   for (const image of images) {
     const originalSrc = image.getAttribute('src');
+    const originalSrcset = image.getAttribute('srcset');
+    const originalLoading = image.getAttribute('loading');
+    const originalDecoding = image.getAttribute('decoding');
     const originalDataSrc = image.getAttribute('data-src');
-    if (!originalDataSrc) {
-      continue;
+    const originalDataSrcset = image.getAttribute('data-srcset');
+
+    if (originalDataSrc) {
+      image.setAttribute('src', originalDataSrc);
+      image.removeAttribute('data-src');
+    }
+    if (originalDataSrcset) {
+      image.setAttribute('srcset', originalDataSrcset);
+      image.removeAttribute('data-srcset');
     }
 
-    image.setAttribute('src', originalDataSrc);
-    image.removeAttribute('data-src');
+    image.setAttribute('loading', 'eager');
+    image.setAttribute('decoding', 'sync');
     restoreCallbacks.push(() => {
       if (originalSrc) {
         image.setAttribute('src', originalSrc);
       } else {
         image.removeAttribute('src');
       }
-      image.setAttribute('data-src', originalDataSrc);
+      if (originalSrcset) {
+        image.setAttribute('srcset', originalSrcset);
+      } else {
+        image.removeAttribute('srcset');
+      }
+      if (originalLoading) {
+        image.setAttribute('loading', originalLoading);
+      } else {
+        image.removeAttribute('loading');
+      }
+      if (originalDecoding) {
+        image.setAttribute('decoding', originalDecoding);
+      } else {
+        image.removeAttribute('decoding');
+      }
+      if (originalDataSrc) {
+        image.setAttribute('data-src', originalDataSrc);
+      }
+      if (originalDataSrcset) {
+        image.setAttribute('data-srcset', originalDataSrcset);
+      }
     });
   }
 
   return () => restoreCallbacks.forEach(callback => callback());
+}
+
+function waitForImageLoad(image: HTMLImageElement) {
+  return new Promise<void>((resolve, reject) => {
+    const src = [
+      image.getAttribute('src'),
+      image.getAttribute('srcset'),
+      image.currentSrc,
+      image.src,
+    ].find(value => value && !value.includes(LAZY_IMAGE_PLACEHOLDER));
+    if (!src) {
+      reject(new Error('Image source is not ready'));
+      return;
+    }
+
+    const renderedSource = image.currentSrc || image.src;
+    if (image.complete && !renderedSource.includes(LAZY_IMAGE_PLACEHOLDER)) {
+      if (image.naturalWidth > 0) {
+        resolve();
+      } else {
+        reject(new Error('Image failed to load'));
+      }
+      return;
+    }
+
+    const cleanup = () => {
+      window.clearTimeout(timer);
+      image.removeEventListener('load', handleLoad);
+      image.removeEventListener('error', handleError);
+    };
+    const handleLoad = () => {
+      cleanup();
+      if (image.naturalWidth > 0) {
+        resolve();
+      } else {
+        reject(new Error('Image failed to load'));
+      }
+    };
+    const handleError = () => {
+      cleanup();
+      reject(new Error('Image failed to load'));
+    };
+    const timer = window.setTimeout(() => {
+      cleanup();
+      reject(new Error('Image load timeout'));
+    }, IMAGE_LOAD_TIMEOUT);
+
+    image.addEventListener('load', handleLoad);
+    image.addEventListener('error', handleError);
+  });
+}
+
+async function decodeImage(image: HTMLImageElement) {
+  if (!image.decode) {
+    return;
+  }
+
+  await image.decode();
+}
+
+async function waitForImages(container: HTMLElement) {
+  const images = Array.from(container.querySelectorAll('img'));
+  await Promise.all(
+    images.map(async image => {
+      await waitForImageLoad(image);
+      await decodeImage(image);
+    })
+  );
 }
 
 function createMobileExportNode(
