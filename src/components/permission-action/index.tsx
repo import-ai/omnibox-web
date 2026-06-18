@@ -24,8 +24,8 @@ import { getData } from './data';
 interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   user_id: string;
   canRemove?: boolean;
-  resource_id: string;
   namespace_id: string;
+  resource_id?: string;
   refetch: () => void;
   canNoAccess?: boolean;
   alertWhenDelete?: boolean;
@@ -50,24 +50,32 @@ export default function PermissionAction(props: IProps) {
   const me = uid === user_id;
   const [grant, onGrant] = useState(false);
   const [remove, onRemove] = useState(false);
+  const [ownerOnly, setOwnerOnly] = useState(false);
   const [granting] = useState(false);
   const [removeing, onRemoveing] = useState(false);
   const [permissioning, onPermissioning] = useState(false);
   const [permission, onPermission] = useState<Permission>('full_access');
+  const basePath = resource_id
+    ? `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`
+    : `namespaces/${namespace_id}/permissions/users/${user_id}`;
+  // Only the owner code is muted; other errors fall through to the
+  // global toast instead of being swallowed silently.
   const updatePermission = (permission: Permission) => {
     return http
       .patch(
-        `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`,
-        { permission }
+        basePath,
+        { permission },
+        { muteCodes: ['owner_full_access_required'] }
       )
-      .then(refetch);
+      .then(refetch)
+      .catch((err: any) => {
+        if (err?.response?.data?.code === 'owner_full_access_required') {
+          setOwnerOnly(true);
+        }
+      });
   };
   const removePermission = () => {
-    return http
-      .delete(
-        `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`
-      )
-      .then(refetch);
+    return http.delete(basePath).then(refetch);
   };
   const handleChange = (permission: Permission) => {
     if (me) {
@@ -183,6 +191,20 @@ export default function PermissionAction(props: IProps) {
             <AlertDialogAction disabled={removeing} onClick={handleRemoveOk}>
               {removeing && <Spinner />}
               {t('permission.ok')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={ownerOnly}>
+        <AlertDialogContent className="w-[85%] max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('permission.owner_full_access_required')}
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setOwnerOnly(false)}>
+              {t('ok')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

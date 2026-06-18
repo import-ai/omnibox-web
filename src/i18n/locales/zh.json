@@ -541,6 +541,7 @@
     "ok": "确认",
     "remove_self": "确定要删除自己的访问权限吗？",
     "grant_permission": "在移除此权限之前，请向其他人授予“全部权限”。",
+    "owner_full_access_required": "所有者需要拥有全部权限",
     "edit_required": "您只有查看权限，无法编辑此资源。",
     "delete_required": "您只有查看权限，无法删除此资源。",
     "you": "你"

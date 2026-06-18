@@ -1,5 +1,3 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
@@ -8,7 +6,6 @@ import PermissionAction from '@/components/permission-action';
 import { SearchField } from '@/components/search/SearchField';
 import UserCard from '@/components/user-card';
 import { Member, Role } from '@/interface';
-import { http } from '@/lib/request';
 
 import Action from './Action';
 
@@ -33,25 +30,10 @@ export default function MemberMain(props: MemberProps) {
     props;
   const { t } = useTranslation();
   const uid = localStorage.getItem('uid');
-  const [resourceId, onResourceId] = useState('');
   const currentUserMember = data.find(item => item.user_id === uid);
   const currentUserRole = currentUserMember?.role;
   const isOwnerOrAdmin =
     currentUserRole === 'owner' || currentUserRole === 'admin';
-
-  useEffect(() => {
-    const source = axios.CancelToken.source();
-    http
-      .get(`/namespaces/${namespace_id}/root?namespace_id=${namespace_id}`, {
-        cancelToken: source.token,
-      })
-      .then(res => {
-        onResourceId(res.teamspace.id);
-      });
-    return () => {
-      source.cancel();
-    };
-  }, [namespace_id]);
 
   return (
     <div className="space-y-2 lg:space-y-4">
@@ -111,7 +93,6 @@ export default function MemberMain(props: MemberProps) {
                       value={item.permission}
                       refetch={refetch}
                       user_id={item.user_id}
-                      resource_id={resourceId}
                       namespace_id={namespace_id}
                       canRemove={false}
                       canNoAccess={true}
