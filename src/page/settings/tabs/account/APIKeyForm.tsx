@@ -308,6 +308,20 @@ export function APIKeyForm() {
     setUpdateDialogOpen(true);
   };
 
+  const handleCreateDialogOpenChange = (open: boolean) => {
+    setCreateDialogOpen(open);
+    setFormData(createEmptyFormData());
+  };
+
+  const handleUpdateDialogOpenChange = (open: boolean) => {
+    setUpdateDialogOpen(open);
+
+    if (!open) {
+      setEditingKey(null);
+      setFormData(createEmptyFormData());
+    }
+  };
+
   const copyToClipboard = (value: string) => {
     navigator.clipboard
       .writeText(value)
@@ -438,7 +452,10 @@ export function APIKeyForm() {
           </p>
         </div>
 
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <Dialog
+          open={createDialogOpen}
+          onOpenChange={handleCreateDialogOpenChange}
+        >
           <DialogTrigger asChild>
             <Button
               variant="default"
@@ -514,7 +531,10 @@ export function APIKeyForm() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+        <Dialog
+          open={updateDialogOpen}
+          onOpenChange={handleUpdateDialogOpenChange}
+        >
           <DialogContent className="overflow-hidden">
             <DialogHeader>
               <DialogTitle>{t('api_key.update.title')}</DialogTitle>
