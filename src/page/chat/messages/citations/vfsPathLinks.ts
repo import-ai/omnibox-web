@@ -1,4 +1,6 @@
 const VFS_PATH_ROOTS = ['/private', '/teamspace', '/share'];
+const VFS_PATH_BOUNDARY_PATTERN =
+  /[\s`"'()[\]{}<>.,!?;:，。、；：！？（）【】《》“”‘’「」『』〈〉〔〕［］｛｝—…]/;
 
 type MarkdownNode = {
   type?: string;
@@ -60,7 +62,7 @@ export function getVfsRootPathLabel(
 }
 
 function isBoundary(value: string | undefined): boolean {
-  return !value || /[\s`"'()[\]{}<>.,!?;:]/.test(value);
+  return !value || VFS_PATH_BOUNDARY_PATTERN.test(value);
 }
 
 function linkNode(text: string, href: string): MarkdownNode {

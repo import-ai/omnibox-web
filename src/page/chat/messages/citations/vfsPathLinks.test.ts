@@ -106,6 +106,46 @@ describe('vfs path links', () => {
     expect(getVfsResourceDisplayName('/private/story3.md')).toBe('story3.md');
   });
 
+  it('links paths followed by Chinese punctuation without consuming punctuation', () => {
+    const punctuationCases = [
+      '。',
+      '，',
+      '、',
+      '；',
+      '：',
+      '！',
+      '？',
+      '）',
+      '》',
+    ];
+
+    for (const punctuation of punctuationCases) {
+      expect(serialize(`Open /private/story3.md${punctuation}`)).toEqual([
+        { type: 'text', value: 'Open ' },
+        {
+          type: 'link',
+          url: '/ns/story-id',
+          title: null,
+          children: [{ type: 'text', value: 'story3.md' }],
+        },
+        { type: 'text', value: punctuation },
+      ]);
+    }
+  });
+
+  it('links paths wrapped by Chinese punctuation', () => {
+    expect(serialize('Open “/private/story3.md”。')).toEqual([
+      { type: 'text', value: 'Open “' },
+      {
+        type: 'link',
+        url: '/ns/story-id',
+        title: null,
+        children: [{ type: 'text', value: 'story3.md' }],
+      },
+      { type: 'text', value: '”。' },
+    ]);
+  });
+
   it('renders root vfs paths as plain localized labels', () => {
     expect(serialize('/private, /teamspace, and /share')).toEqual([
       { type: 'text', value: 'Private, ' },
