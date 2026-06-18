@@ -661,8 +661,8 @@ export function APIKeyForm() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <AlertDialogTrigger asChild>
-                          <button className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1">
-                            <Trash2 className="size-4 text-muted-foreground" />
+                          <button className="group flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1">
+                            <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
                           </button>
                         </AlertDialogTrigger>
                       </TooltipTrigger>
