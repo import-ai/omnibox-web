@@ -58,9 +58,15 @@ export default function PermissionAction(props: IProps) {
   const basePath = resource_id
     ? `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`
     : `namespaces/${namespace_id}/permissions/users/${user_id}`;
+  // Only the owner code is muted; other errors fall through to the
+  // global toast instead of being swallowed silently.
   const updatePermission = (permission: Permission) => {
     return http
-      .patch(basePath, { permission }, { mute: true })
+      .patch(
+        basePath,
+        { permission },
+        { muteCodes: ['owner_full_access_required'] }
+      )
       .then(refetch)
       .catch((err: any) => {
         if (err?.response?.data?.code === 'owner_full_access_required') {
