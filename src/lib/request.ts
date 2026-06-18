@@ -16,6 +16,9 @@ import { removeGlobalCredential } from '@/page/user/util';
 interface RequestConfig extends AxiosRequestConfig {
   // Whether to show error messages, default is true
   mute?: boolean;
+  // Suppress the global error toast only for these response error codes,
+  // letting all other errors fall through to the global handler.
+  muteCodes?: string[];
 }
 
 const request: AxiosInstance = axios.create({
@@ -73,7 +76,12 @@ request.interceptors.response.use(
     }
     const err = error as AxiosError;
     const config = (err.config as RequestConfig) || {};
-    if (isUndefined(config.mute) || !config.mute) {
+    // @ts-ignore
+    const errorCode: string = (err.response?.data?.code || '').toLowerCase();
+    const mutedByCode = (config.muteCodes || []).some(
+      code => code.toLowerCase() === errorCode
+    );
+    if ((isUndefined(config.mute) || !config.mute) && !mutedByCode) {
       let errorMessage = i18next.t('request.failed');
       if (
         err.response &&
@@ -109,8 +117,6 @@ request.interceptors.response.use(
       }
       toast.error(errorMessage, { position: 'bottom-right' });
     }
-    // @ts-ignore
-    const errorCode: string = (err.response?.data?.code || '').toLowerCase();
     if (errorCode === 'token_expired') {
       handleTokenError(true);
     } else if (errorCode === 'invalid_token') {

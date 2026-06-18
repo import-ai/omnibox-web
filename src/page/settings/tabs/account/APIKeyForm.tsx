@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/Dialog';
+import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
 import useAPIKeys from '@/hooks/useApiKeys';
@@ -96,9 +97,12 @@ type APIKeyPermissionState = Record<
 >;
 
 interface APIKeyFormData {
+  note: string;
   root_resource_id: string;
   permissions: APIKeyPermissionState;
 }
+
+const API_KEY_NOTE_MAX_LENGTH = 128;
 
 const configuredPermissionTargets = new Set<string>(
   API_KEY_PERMISSION_MATRIX.map(({ target }) => target)
@@ -126,6 +130,7 @@ const createPermissionState = (
 };
 
 const createEmptyFormData = (): APIKeyFormData => ({
+  note: '',
   root_resource_id: '',
   permissions: createPermissionState(),
 });
@@ -199,6 +204,13 @@ export function APIKeyForm() {
   );
 
   const handleCreateAPIKey = async () => {
+    if (formData.note.length > API_KEY_NOTE_MAX_LENGTH) {
+      toast.error(
+        t('api_key.note_length_error', { max: API_KEY_NOTE_MAX_LENGTH })
+      );
+      return;
+    }
+
     if (!uid || !namespaceId || !formData.root_resource_id) {
       toast.error(t('api_key.create.validation_error'));
       return;
@@ -213,6 +225,7 @@ export function APIKeyForm() {
     setCreating(true);
     try {
       const attrs: APIKeyAttrs = {
+        note: formData.note.trim(),
         root_resource_id: formData.root_resource_id,
         permissions,
       };
@@ -235,6 +248,13 @@ export function APIKeyForm() {
   };
 
   const handleUpdateAPIKey = async () => {
+    if (formData.note.length > API_KEY_NOTE_MAX_LENGTH) {
+      toast.error(
+        t('api_key.note_length_error', { max: API_KEY_NOTE_MAX_LENGTH })
+      );
+      return;
+    }
+
     if (!editingKey || !formData.root_resource_id) {
       toast.error(t('api_key.create.validation_error'));
       return;
@@ -252,6 +272,7 @@ export function APIKeyForm() {
     setUpdating(true);
     try {
       const attrs: APIKeyAttrs = {
+        note: formData.note.trim(),
         root_resource_id: formData.root_resource_id,
         permissions,
       };
@@ -280,6 +301,7 @@ export function APIKeyForm() {
   const handleEditClick = (key: APIKey) => {
     setEditingKey(key);
     setFormData({
+      note: key.attrs.note ?? '',
       root_resource_id: key.attrs.root_resource_id,
       permissions: createPermissionState(key.attrs.permissions),
     });
@@ -373,6 +395,29 @@ export function APIKeyForm() {
     </div>
   );
 
+  const renderNoteField = (id: string) => (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor={id}>{t('api_key.note')}</Label>
+        <span className="text-xs text-muted-foreground">
+          {formData.note.length}/{API_KEY_NOTE_MAX_LENGTH}
+        </span>
+      </div>
+      <Input
+        id={id}
+        value={formData.note}
+        maxLength={API_KEY_NOTE_MAX_LENGTH}
+        placeholder={t('api_key.note_placeholder')}
+        onChange={event =>
+          setFormData(prev => ({
+            ...prev,
+            note: event.target.value,
+          }))
+        }
+      />
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="flex size-full items-center justify-center">
@@ -411,6 +456,8 @@ export function APIKeyForm() {
             </DialogHeader>
 
             <div className="space-y-4">
+              {renderNoteField('api_key_note')}
+
               <div className="space-y-2">
                 <div className="flex items-center gap-1">
                   <Label htmlFor="root_resource_id">
@@ -477,6 +524,8 @@ export function APIKeyForm() {
             </DialogHeader>
 
             <div className="space-y-4">
+              {renderNoteField('update_api_key_note')}
+
               <div className="space-y-2">
                 <div className="flex items-center gap-1">
                   <Label htmlFor="update_root_resource_id">
@@ -612,8 +661,8 @@ export function APIKeyForm() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <AlertDialogTrigger asChild>
-                          <button className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1">
-                            <Trash2 className="size-4 text-muted-foreground" />
+                          <button className="group flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1">
+                            <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
                           </button>
                         </AlertDialogTrigger>
                       </TooltipTrigger>
@@ -649,6 +698,14 @@ export function APIKeyForm() {
                   {key.attrs.root_resource_id}
                 </span>
               </APIKeyInfoRow>
+
+              {key.attrs.note && (
+                <APIKeyInfoRow label={t('api_key.note')}>
+                  <span className="whitespace-pre-wrap break-words text-sm font-semibold text-foreground">
+                    {key.attrs.note}
+                  </span>
+                </APIKeyInfoRow>
+              )}
 
               {key.attrs.related_app_id && (
                 <APIKeyInfoRow label={t('api_key.related_application')}>
