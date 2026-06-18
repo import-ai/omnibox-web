@@ -25,6 +25,7 @@ interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   user_id: string;
   canRemove?: boolean;
   namespace_id: string;
+  resource_id?: string;
   refetch: () => void;
   canNoAccess?: boolean;
   alertWhenDelete?: boolean;
@@ -36,6 +37,7 @@ export default function PermissionAction(props: IProps) {
     value,
     disabled,
     namespace_id,
+    resource_id,
     className,
     refetch,
     alertWhenDelete,
@@ -53,13 +55,12 @@ export default function PermissionAction(props: IProps) {
   const [removeing, onRemoveing] = useState(false);
   const [permissioning, onPermissioning] = useState(false);
   const [permission, onPermission] = useState<Permission>('full_access');
+  const basePath = resource_id
+    ? `namespaces/${namespace_id}/resources/${resource_id}/permissions/users/${user_id}`
+    : `namespaces/${namespace_id}/permissions/users/${user_id}`;
   const updatePermission = (permission: Permission) => {
     return http
-      .patch(
-        `namespaces/${namespace_id}/permissions/users/${user_id}`,
-        { permission },
-        { mute: true }
-      )
+      .patch(basePath, { permission }, { mute: true })
       .then(refetch)
       .catch((err: any) => {
         if (err?.response?.data?.code === 'owner_full_access_required') {
@@ -68,9 +69,7 @@ export default function PermissionAction(props: IProps) {
       });
   };
   const removePermission = () => {
-    return http
-      .delete(`namespaces/${namespace_id}/permissions/users/${user_id}`)
-      .then(refetch);
+    return http.delete(basePath).then(refetch);
   };
   const handleChange = (permission: Permission) => {
     if (me) {
