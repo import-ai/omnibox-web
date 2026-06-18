@@ -27,9 +27,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/Dialog';
+import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
-import { Textarea } from '@/components/ui/Textarea';
 import useAPIKeys from '@/hooks/useApiKeys';
 import useUser from '@/hooks/useUser';
 import {
@@ -403,11 +403,10 @@ export function APIKeyForm() {
           {formData.note.length}/{API_KEY_NOTE_MAX_LENGTH}
         </span>
       </div>
-      <Textarea
+      <Input
         id={id}
         value={formData.note}
         maxLength={API_KEY_NOTE_MAX_LENGTH}
-        rows={3}
         placeholder={t('api_key.note_placeholder')}
         onChange={event =>
           setFormData(prev => ({
