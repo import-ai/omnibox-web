@@ -68,9 +68,27 @@ function getExportTheme(container: HTMLElement) {
   };
 }
 
+function isPlaceholderSource(source: string | null | undefined) {
+  return !!source && source.includes(LAZY_IMAGE_PLACEHOLDER);
+}
+
+function getRenderedSource(image: HTMLImageElement) {
+  return image.currentSrc || image.src || '';
+}
+
+function isLazyImageReady(image: HTMLImageElement) {
+  const renderedSource = getRenderedSource(image);
+  return (
+    !isPlaceholderSource(renderedSource) &&
+    image.complete &&
+    image.naturalWidth > 0
+  );
+}
+
 function prepareLazyImages(container: HTMLElement) {
   const images = Array.from(container.querySelectorAll('img'));
   const restoreCallbacks: Array<() => void> = [];
+  const activatedLazyImages = new WeakSet<HTMLImageElement>();
 
   for (const image of images) {
     const originalSrc = image.getAttribute('src');
@@ -79,6 +97,7 @@ function prepareLazyImages(container: HTMLElement) {
     const originalDecoding = image.getAttribute('decoding');
     const originalDataSrc = image.getAttribute('data-src');
     const originalDataSrcset = image.getAttribute('data-srcset');
+    const hadLazySource = !!(originalDataSrc || originalDataSrcset);
 
     if (originalDataSrc) {
       image.setAttribute('src', originalDataSrc);
@@ -87,6 +106,9 @@ function prepareLazyImages(container: HTMLElement) {
     if (originalDataSrcset) {
       image.setAttribute('srcset', originalDataSrcset);
       image.removeAttribute('data-srcset');
+    }
+    if (hadLazySource) {
+      activatedLazyImages.add(image);
     }
 
     image.setAttribute('loading', 'eager');
@@ -121,72 +143,97 @@ function prepareLazyImages(container: HTMLElement) {
     });
   }
 
-  return () => restoreCallbacks.forEach(callback => callback());
+  return {
+    restore: () => restoreCallbacks.forEach(callback => callback()),
+    activatedLazyImages,
+  };
 }
 
-function waitForImageLoad(image: HTMLImageElement) {
-  return new Promise<void>((resolve, reject) => {
-    const src = [
-      image.getAttribute('src'),
-      image.getAttribute('srcset'),
-      image.currentSrc,
-      image.src,
-    ].find(value => value && !value.includes(LAZY_IMAGE_PLACEHOLDER));
-    if (!src) {
-      reject(new Error('Image source is not ready'));
+function waitForBestEffortImageLoad(image: HTMLImageElement) {
+  return new Promise<void>(resolve => {
+    if (image.complete) {
+      resolve();
       return;
     }
 
-    const renderedSource = image.currentSrc || image.src;
-    if (image.complete && !renderedSource.includes(LAZY_IMAGE_PLACEHOLDER)) {
-      if (image.naturalWidth > 0) {
-        resolve();
-      } else {
-        reject(new Error('Image failed to load'));
-      }
-      return;
-    }
-
-    const cleanup = () => {
+    const finish = () => {
       window.clearTimeout(timer);
-      image.removeEventListener('load', handleLoad);
-      image.removeEventListener('error', handleError);
+      image.removeEventListener('load', finish);
+      image.removeEventListener('error', finish);
+      resolve();
     };
-    const handleLoad = () => {
-      cleanup();
-      if (image.naturalWidth > 0) {
-        resolve();
-      } else {
-        reject(new Error('Image failed to load'));
-      }
-    };
-    const handleError = () => {
-      cleanup();
-      reject(new Error('Image failed to load'));
-    };
-    const timer = window.setTimeout(() => {
-      cleanup();
-      reject(new Error('Image load timeout'));
-    }, IMAGE_LOAD_TIMEOUT);
+    const timer = window.setTimeout(finish, IMAGE_LOAD_TIMEOUT);
 
-    image.addEventListener('load', handleLoad);
-    image.addEventListener('error', handleError);
+    image.addEventListener('load', finish);
+    image.addEventListener('error', finish);
   });
 }
 
+function waitForLazyImageLoad(image: HTMLImageElement) {
+  return new Promise<void>(resolve => {
+    if (isLazyImageReady(image)) {
+      resolve();
+      return;
+    }
+
+    const finish = () => {
+      window.clearTimeout(timer);
+      image.removeEventListener('load', handleUpdate);
+      image.removeEventListener('error', finish);
+      resolve();
+    };
+    const timer = window.setTimeout(finish, IMAGE_LOAD_TIMEOUT);
+
+    const handleUpdate = () => {
+      if (isLazyImageReady(image)) {
+        finish();
+      }
+    };
+
+    image.addEventListener('load', handleUpdate);
+    image.addEventListener('error', finish);
+  });
+}
+
+function shouldWaitForLazyImage(
+  image: HTMLImageElement,
+  activatedLazyImages: WeakSet<HTMLImageElement>
+) {
+  if (activatedLazyImages.has(image)) {
+    return true;
+  }
+
+  return (
+    isPlaceholderSource(image.getAttribute('src')) ||
+    isPlaceholderSource(image.getAttribute('srcset')) ||
+    isPlaceholderSource(getRenderedSource(image))
+  );
+}
+
 async function decodeImage(image: HTMLImageElement) {
-  if (!image.decode) {
+  if (!image.decode || image.naturalWidth === 0) {
     return;
   }
 
-  await image.decode();
+  try {
+    await image.decode();
+  } catch {
+    // Best effort: a broken image should not block export.
+  }
 }
 
-async function waitForImages(container: HTMLElement) {
+async function waitForImages(
+  container: HTMLElement,
+  activatedLazyImages: WeakSet<HTMLImageElement>
+) {
   const images = Array.from(container.querySelectorAll('img'));
   await Promise.all(
     images.map(async image => {
-      await waitForImageLoad(image);
+      if (shouldWaitForLazyImage(image, activatedLazyImages)) {
+        await waitForLazyImageLoad(image);
+      } else {
+        await waitForBestEffortImageLoad(image);
+      }
       await decodeImage(image);
     })
   );
@@ -237,10 +284,10 @@ export async function exportResourceAsPng(resourceName: string | undefined) {
 
   const exportTheme = getExportTheme(container);
   const { node, remove } = createMobileExportNode(container, exportTheme);
-  const restoreLazyImages = prepareLazyImages(node);
+  const { restore, activatedLazyImages } = prepareLazyImages(node);
 
   try {
-    await waitForImages(node);
+    await waitForImages(node, activatedLazyImages);
 
     const height = Math.ceil(node.scrollHeight);
     const blob = await toBlob(node, {
@@ -261,7 +308,7 @@ export async function exportResourceAsPng(resourceName: string | undefined) {
 
     downloadBlob(blob, getExportFileName(resourceName));
   } finally {
-    restoreLazyImages();
+    restore();
     remove();
   }
 }
