@@ -1,8 +1,21 @@
-import { useCallback, useRef } from 'react';
+import 'cvnert-editor/style.css';
+import './resourceEditor.css';
+
+import { CvnertEditor } from 'cvnert-editor';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Markdown } from '@/components/markdown';
 import { Resource, SharedResource } from '@/interface';
+import {
+  CVNERT_EDITOR_CONTENT_WIDTH,
+  ENABLE_CVNERT_EDITOR,
+} from '@/page/resource/editor/const';
+import {
+  renderReadonlyDiagrams,
+  resetReadonlyDiagrams,
+} from '@/page/resource/editor/diagramRender';
+import { contentToTiptapJson } from '@/page/resource/editor/markdownTiptap';
 
 import { embedImage } from './utils';
 
@@ -12,7 +25,7 @@ interface IProps {
   style?: React.CSSProperties;
 }
 
-export default function Render(props: IProps) {
+function MarkdownRender(props: IProps) {
   const { resource, linkBase, style } = props;
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
@@ -101,5 +114,168 @@ export default function Render(props: IProps) {
         onRendered={scrollToSearchResult}
       />
     </div>
+  );
+}
+
+function CvnertRender(props: IProps) {
+  const { resource, linkBase, style } = props;
+  const [searchParams] = useSearchParams();
+  const search = searchParams.get('query');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const content = useMemo(() => embedImage(resource), [resource]);
+  const editorContent = useMemo(
+    () => contentToTiptapJson(content, { linkBase }),
+    [content, linkBase]
+  );
+  const highlightSearchText = (container: HTMLElement, searchText: string) => {
+    const walker = document.createTreeWalker(
+      container,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
+    const nodesToHighlight: { node: Node; text: string }[] = [];
+    let node;
+
+    while ((node = walker.nextNode())) {
+      if (
+        node.textContent &&
+        node.textContent.toLowerCase().includes(searchText.toLowerCase())
+      ) {
+        nodesToHighlight.push({ node, text: node.textContent });
+      }
+    }
+
+    nodesToHighlight.forEach(({ node, text }) => {
+      const parent = node.parentElement;
+      if (!parent) {
+        return;
+      }
+
+      const regex = new RegExp(`(${searchText})`, 'gi');
+      const highlightedHTML = text.replace(
+        regex,
+        '<mark style="background-color:#ffeb3b;padding:2px 0;">$1</mark>'
+      );
+
+      const span = document.createElement('span');
+      span.innerHTML = highlightedHTML;
+      parent.replaceChild(span, node);
+    });
+  };
+  const scrollToSearchResult = useCallback(() => {
+    if (!search || !containerRef.current) {
+      return;
+    }
+
+    setTimeout(() => {
+      const container = containerRef.current;
+      if (!container) {
+        return;
+      }
+      const allTextNodes: Node[] = [];
+      const walker = document.createTreeWalker(
+        container,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+
+      let node;
+      while ((node = walker.nextNode())) {
+        if (
+          node.textContent &&
+          node.textContent.toLowerCase().includes(search.toLowerCase())
+        ) {
+          allTextNodes.push(node);
+        }
+      }
+
+      if (allTextNodes.length > 0) {
+        const firstMatch = allTextNodes[0].parentElement;
+        if (firstMatch) {
+          firstMatch.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+          highlightSearchText(container, search);
+        }
+      }
+    }, 100);
+  }, [search]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    let frame = 0;
+    let timeout = 0;
+    let hasRendered = false;
+
+    resetReadonlyDiagrams(container);
+
+    const renderWhenReady = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        scrollToSearchResult();
+
+        const hasCodeBlocks =
+          container.querySelector('.code-block-node') ||
+          container.querySelector('pre code');
+
+        if (!hasCodeBlocks) {
+          return;
+        }
+
+        hasRendered = renderReadonlyDiagrams(container, editorContent);
+
+        if (hasRendered) {
+          observer.disconnect();
+        }
+      });
+    };
+
+    const observer = new MutationObserver(() => {
+      renderWhenReady();
+    });
+
+    observer.observe(container, { childList: true, subtree: true });
+    renderWhenReady();
+    timeout = window.setTimeout(() => {
+      renderWhenReady();
+      observer.disconnect();
+    }, 1500);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timeout);
+      observer.disconnect();
+    };
+  }, [editorContent, scrollToSearchResult]);
+
+  return (
+    <div
+      ref={containerRef}
+      style={style}
+      className="resource-readonly-editor pb-[30vh]"
+    >
+      <CvnertEditor
+        key={resource.id}
+        editable={false}
+        content={editorContent}
+        contentWidth={CVNERT_EDITOR_CONTENT_WIDTH}
+        showHeader={false}
+        showToc={false}
+      />
+    </div>
+  );
+}
+
+export default function Render(props: IProps) {
+  return ENABLE_CVNERT_EDITOR ? (
+    <CvnertRender {...props} />
+  ) : (
+    <MarkdownRender {...props} />
   );
 }

@@ -42,6 +42,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "copy-to-clipboard": "^3.3.3",
+    "cvnert-editor": "file:..\\editor\\packages\\omnibox-editor",
     "date-fns": "^4.1.0",
     "html-react-parser": "^5.2.10",
     "html-to-image": "^1.11.13",

@@ -1,0 +1,74 @@
+.resource-readonly-editor .omnibox-editor-layout,
+.resource-editable-editor .omnibox-editor-layout {
+  grid-template-columns:
+    [full-start content-start] minmax(0, 1fr)
+    [content-end full-end];
+}
+
+.resource-readonly-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor,
+.resource-editable-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor {
+  padding-inline: 0;
+}
+
+.resource-readonly-editor .language-echarts,
+.resource-readonly-editor .language-mindmap,
+.resource-editor-diagram-preview .language-echarts,
+.resource-editor-diagram-preview .language-mindmap {
+  height: 420px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.resource-readonly-editor .language-mermaid,
+.resource-readonly-editor .language-markmap,
+.resource-readonly-editor .language-flowchart,
+.resource-readonly-editor .language-graphviz,
+.resource-editor-diagram-preview .language-mermaid,
+.resource-editor-diagram-preview .language-markmap,
+.resource-editor-diagram-preview .language-flowchart,
+.resource-editor-diagram-preview .language-graphviz {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.resource-editor-diagram-preview {
+  margin: 8px 0 16px;
+  border: 1px solid var(--tt-border-color, #d1d5db);
+  border-radius: 6px;
+  background: var(--tt-bg-color, #fff);
+  padding: 12px;
+}
+
+.resource-editor-diagram-preview > :last-child {
+  margin-bottom: 0;
+}
+
+.resource-readonly-editor pre[data-diagram-collapsed='true'] {
+  max-height: 0;
+  margin: 0;
+  border-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding-block: 0;
+  pointer-events: none;
+}
+
+.resource-editor-diagram-toggle {
+  margin: -8px 0 16px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 20px;
+  padding: 0;
+}
+
+.resource-editor-diagram-toggle:hover {
+  color: #0f172a;
+  text-decoration: underline;
+}

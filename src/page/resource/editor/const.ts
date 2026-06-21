@@ -1,3 +1,6 @@
+export const CVNERT_EDITOR_CONTENT_WIDTH = 880;
+export const ENABLE_CVNERT_EDITOR = true;
+
 export const toolbar = [
   'headings',
   'bold',
