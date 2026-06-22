@@ -85,6 +85,35 @@ function paragraph(content: TiptapJsonContent[] = []): TiptapJsonContent {
   return { type: 'paragraph', content };
 }
 
+function isImageNode(node: TiptapJsonContent) {
+  return node.type === 'image';
+}
+
+function appendInlineBlocks(
+  blocks: TiptapJsonContent[],
+  inlineNodes: TiptapJsonContent[]
+) {
+  let paragraphContent: TiptapJsonContent[] = [];
+
+  inlineNodes.forEach(node => {
+    if (!isImageNode(node)) {
+      paragraphContent.push(node);
+      return;
+    }
+
+    if (paragraphContent.length) {
+      blocks.push(paragraph(paragraphContent));
+      paragraphContent = [];
+    }
+
+    blocks.push(node);
+  });
+
+  if (paragraphContent.length) {
+    blocks.push(paragraph(paragraphContent));
+  }
+}
+
 function inlineMath(latex: string): TiptapJsonContent {
   return { type: 'inlineMath', attrs: { latex } };
 }
@@ -127,9 +156,9 @@ function htmlTableToTiptapJson(html: string): TiptapJsonContent[] {
   const tables = Array.from(document.querySelectorAll('table'));
 
   return tables
-    .map(table => {
+    .map<TiptapJsonContent | null>(table => {
       const rows = Array.from(table.querySelectorAll('tr'))
-        .map(row => {
+        .map<TiptapJsonContent | null>(row => {
           const cells = Array.from(row.children)
             .filter(
               (cell): cell is HTMLTableCellElement =>
@@ -503,7 +532,7 @@ export function markdownToTiptapJson(
       if (lineIndex > 0) paragraphContent.push({ type: 'hardBreak' });
       paragraphContent.push(...parseInline(paragraphLine, options));
     });
-    content.push(paragraph(paragraphContent));
+    appendInlineBlocks(content, paragraphContent);
   }
 
   return { type: 'doc', content: content.length ? content : [paragraph()] };
