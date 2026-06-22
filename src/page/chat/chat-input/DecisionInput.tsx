@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from '@/components/ui/Card';
 import { ScrollArea, ScrollBar } from '@/components/ui/ScrollArea';
+import { Spinner } from '@/components/ui/Spinner';
 import { processArgs } from '@/lib/toolArgs';
 import { cn } from '@/lib/utils.ts';
 import {
@@ -31,7 +32,7 @@ import { Interrupt } from '@/page/chat/core/types/conversation';
 
 interface IDecisionInputProps {
   interrupts: Interrupt[];
-  disabled?: boolean;
+  loading?: boolean;
   sendMessage: ({
     query,
     tools,
@@ -117,7 +118,7 @@ function getDecisionStyle(
 }
 
 export default function DecisionInput(props: IDecisionInputProps) {
-  const { interrupts, sendMessage } = props;
+  const { interrupts, loading = false, sendMessage } = props;
   const { t } = useTranslation();
 
   const onSubmit = (decisions: { type: DecisionType }[]) => {
@@ -158,6 +159,10 @@ export default function DecisionInput(props: IDecisionInputProps) {
     cardIndex: number,
     decisionType: DecisionType
   ) => {
+    if (loading) {
+      return;
+    }
+
     setSelectedDecisions(prev => ({
       ...prev,
       [cardIndex]: decisionType,
@@ -170,6 +175,10 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
   // Handle submit all decisions
   const handleSubmit = () => {
+    if (loading || !allDecided) {
+      return;
+    }
+
     const decisions = interrupts.map((_, idx) => ({
       type: selectedDecisions[idx],
     }));
@@ -195,6 +204,10 @@ export default function DecisionInput(props: IDecisionInputProps) {
   // Keyboard navigation — global listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (loading) {
+        return;
+      }
+
       const currentOptions = activeInterrupt.decisions;
 
       switch (e.key) {
@@ -231,7 +244,13 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeCardIndex, activeOptionIndex, activeInterrupt, interrupts.length]);
+  }, [
+    activeCardIndex,
+    activeOptionIndex,
+    activeInterrupt,
+    interrupts.length,
+    loading,
+  ]);
 
   const canGoLeft = activeCardIndex > 0;
   const canGoRight = activeCardIndex < interrupts.length - 1;
@@ -302,6 +321,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 )
               }
               onMouseEnter={() => setActiveOptionIndex(idx)}
+              disabled={loading}
             >
               {getDecisionIcon(decisionType)}
               <span>{t(`chat.decision.${decisionType.toLowerCase()}`)}</span>
@@ -318,7 +338,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
               size="icon"
               className="size-7 shrink-0"
               onClick={() => setActiveCardIndex(prev => Math.max(0, prev - 1))}
-              disabled={!canGoLeft}
+              disabled={loading || !canGoLeft}
             >
               <ChevronLeft className="size-4" />
             </Button>
@@ -355,7 +375,12 @@ export default function DecisionInput(props: IDecisionInputProps) {
                         isCurrent ? 'w-5 h-2' : 'w-2 h-2',
                         dotColor
                       )}
-                      onClick={() => setActiveCardIndex(idx)}
+                      onClick={() => {
+                        if (!loading) {
+                          setActiveCardIndex(idx);
+                        }
+                      }}
+                      disabled={loading}
                       aria-label={`Go to decision ${idx + 1}`}
                     />
                   );
@@ -373,7 +398,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                   Math.min(interrupts.length - 1, prev + 1)
                 )
               }
-              disabled={!canGoRight}
+              disabled={loading || !canGoRight}
             >
               <ChevronRight className="size-4" />
             </Button>
@@ -384,8 +409,9 @@ export default function DecisionInput(props: IDecisionInputProps) {
             onClick={handleSubmit}
             size="sm"
             className="rounded-lg size-8"
+            disabled={loading}
           >
-            <ArrowUp />
+            {loading ? <Spinner /> : <ArrowUp />}
           </Button>
         ) : (
           <span className="cursor-not-allowed">

@@ -68,12 +68,13 @@ export default function SharedChatConversationPage() {
     mode,
     decisions,
   }: SendMessageParams) => {
-    if (query && query.trim().length > 0) {
+    const v = query.trim();
+    if (v || (decisions && decisions.length > 0)) {
       try {
         setLoading(true);
         const askFN = ask(
           conversationId,
-          query,
+          v,
           tools,
           selectedResources,
           channel,
