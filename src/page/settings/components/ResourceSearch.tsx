@@ -1,7 +1,8 @@
-import { Check, File, Folder } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import ResourceIcon from '@/assets/icons/ResourceIcon';
 import { SearchField } from '@/components/search/SearchField';
 import { Button } from '@/components/ui/Button';
 import type { Resource, ResourceMeta } from '@/interface';
@@ -34,11 +35,9 @@ function ResourceItem({
       onClick={() => onSelect(resource.id)}
     >
       <div className="flex items-center gap-2">
-        {resource.resource_type === 'folder' ? (
-          <Folder className="size-4 shrink-0" />
-        ) : (
-          <File className="size-4 shrink-0" />
-        )}
+        <span className="size-4 shrink-0 [&>svg]:size-4">
+          <ResourceIcon expand={false} resource={resource} />
+        </span>
         <div className="break-all text-left">{name}</div>
       </div>
       {selected && <Check className="size-4 shrink-0 text-primary" />}
