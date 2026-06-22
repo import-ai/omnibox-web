@@ -29,6 +29,7 @@ import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import { SmartFolderOpenIcon } from '@/assets/icons/SmartFolderOpenIcon';
 import { Tiktok } from '@/assets/icons/Tiktok';
 import { WeChatIcon } from '@/assets/icons/WechatIcon';
+import { XIcon } from '@/assets/icons/XIcon';
 import { ResourceMeta } from '@/interface';
 import { safeParseURL } from '@/lib/utils';
 
@@ -66,6 +67,8 @@ const DOMAIN_SUFFIX_TO_ICON: Record<string, JSX.Element> = {
   'ithome.com': <ITHomeIcon />,
   'reddit.com': siParser(siReddit),
   'github.com': <GithubIcon />,
+  'x.com': <XIcon />,
+  'twitter.com': <XIcon />,
   'douyin.com': <Tiktok />,
   'tiktok.com': <Tiktok />,
   'douban.com': siParser(siDouban),
@@ -162,7 +165,7 @@ function getIconForLink(resource: ResourceMeta) {
 
   const hostname = url.hostname;
   for (const [suffix, icon] of Object.entries(DOMAIN_SUFFIX_TO_ICON)) {
-    if (hostname.endsWith(suffix)) {
+    if (hostname === suffix || hostname.endsWith(`.${suffix}`)) {
       return icon;
     }
   }
