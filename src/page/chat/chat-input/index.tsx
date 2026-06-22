@@ -170,7 +170,11 @@ export default function ChatArea(props: IProps) {
   ]);
 
   return interrupts.length > 0 ? (
-    <DecisionInput interrupts={interrupts} sendMessage={sendMessage} />
+    <DecisionInput
+      interrupts={interrupts}
+      loading={loading}
+      sendMessage={sendMessage}
+    />
   ) : (
     <div className="max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]">
       <ChatContext
