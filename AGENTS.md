@@ -117,6 +117,22 @@ Credentials managed in `src/page/user/util.ts`:
 
 **Cross-tab sync**: localStorage events sync theme, language, and user data across browser tabs.
 
+## Git Branch Guidelines
+
+**Format**: `type/<short-kebab-description>`
+
+**Rules**:
+
+- Use the same type prefixes as commit messages: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `revert`, or `build`.
+- Keep the description lowercase, kebab-case, and focused on the change.
+
+**Examples**:
+
+```
+feat/add-x-link-icon
+fix/sidebar-scroll
+```
+
 ## Git Commit Guidelines
 
 **Format**: `type(scope): Description`
