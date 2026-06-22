@@ -11,10 +11,6 @@ import {
   CVNERT_EDITOR_CONTENT_WIDTH,
   ENABLE_CVNERT_EDITOR,
 } from '@/page/resource/editor/const';
-import {
-  renderReadonlyDiagrams,
-  resetReadonlyDiagrams,
-} from '@/page/resource/editor/diagramRender';
 import { contentToTiptapJson } from '@/page/resource/editor/markdownTiptap';
 
 import { embedImage } from './utils';
@@ -203,6 +199,10 @@ function CvnertRender(props: IProps) {
   }, [search]);
 
   useEffect(() => {
+    if (!search) {
+      return;
+    }
+
     const container = containerRef.current;
 
     if (!container) {
@@ -211,39 +211,17 @@ function CvnertRender(props: IProps) {
 
     let frame = 0;
     let timeout = 0;
-    let hasRendered = false;
 
-    resetReadonlyDiagrams(container);
-
-    const renderWhenReady = () => {
+    const scrollWhenReady = () => {
       window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        scrollToSearchResult();
-
-        const hasCodeBlocks =
-          container.querySelector('.code-block-node') ||
-          container.querySelector('pre code');
-
-        if (!hasCodeBlocks) {
-          return;
-        }
-
-        hasRendered = renderReadonlyDiagrams(container, editorContent);
-
-        if (hasRendered) {
-          observer.disconnect();
-        }
-      });
+      frame = window.requestAnimationFrame(scrollToSearchResult);
     };
 
-    const observer = new MutationObserver(() => {
-      renderWhenReady();
-    });
-
+    const observer = new MutationObserver(scrollWhenReady);
     observer.observe(container, { childList: true, subtree: true });
-    renderWhenReady();
+    scrollWhenReady();
     timeout = window.setTimeout(() => {
-      renderWhenReady();
+      scrollWhenReady();
       observer.disconnect();
     }, 1500);
 

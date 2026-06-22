@@ -217,6 +217,7 @@ function CvnertResourceEditor(props: IEditorProps) {
           placeholder="Start writing..."
           content={editorContent as CvnertEditorProps['content']}
           contentWidth={CVNERT_EDITOR_CONTENT_WIDTH}
+          showHeader={false}
           imageUpload={uploadImage}
           onUpdate={handleEditorUpdate}
         />

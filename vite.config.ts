@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
         injectRegister: false,
         manifest: false,
         workbox: {
-          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+          maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         },
       }),
     ],
