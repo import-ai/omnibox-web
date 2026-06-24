@@ -708,7 +708,8 @@
     "filters": {
       "title": "筛选",
       "all": "全部",
-      "remaining_conditions": "条件行剩余：{{remaining}} / {{total}}"
+      "remaining_conditions": "条件行剩余：{{remaining}} / {{total}}",
+      "remaining_conditions_tooltip": "高级版支持 10 条筛选条件"
     }
   },
   "api_key": {

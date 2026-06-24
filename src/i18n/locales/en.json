@@ -707,7 +707,8 @@
     "filters": {
       "title": "Filter",
       "all": "All",
-      "remaining_conditions": "Rows left: {{remaining}} / {{total}}"
+      "remaining_conditions": "Rows left: {{remaining}} / {{total}}",
+      "remaining_conditions_tooltip": "Pro supports up to 10 filter conditions."
     }
   },
   "api_key": {

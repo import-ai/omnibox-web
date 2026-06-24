@@ -4,7 +4,12 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
 import { DatePicker, DateRangePicker } from '@/components/date-picker';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
 import { Input } from '@/components/ui/Input';
 import {
   Select,
@@ -286,6 +291,9 @@ export function SearchFilterPanel({
   const addButtonTooltip = t(
     getSearchConditionLimitMessageKey(maxConditionCount)
   );
+  const remainingConditionsTooltip = t(
+    'search.filters.remaining_conditions_tooltip'
+  );
 
   return (
     <aside className={searchFilterPanelClassName}>
@@ -294,12 +302,19 @@ export function SearchFilterPanel({
           {t('search.filters.title')}
         </h2>
         <div className="ml-auto flex items-center gap-2">
-          <span className="whitespace-nowrap text-xs text-muted-foreground">
-            {t('search.filters.remaining_conditions', {
-              remaining: remainingConditionCount,
-              total: maxConditionCount,
-            })}
-          </span>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-help whitespace-nowrap text-xs text-muted-foreground">
+                  {t('search.filters.remaining_conditions', {
+                    remaining: remainingConditionCount,
+                    total: maxConditionCount,
+                  })}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{remainingConditionsTooltip}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {showUpgradeButton && (
             <UpgradeActionButton
               namespaceId={namespaceId}
