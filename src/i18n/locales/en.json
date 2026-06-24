@@ -1054,6 +1054,7 @@
       "limit_reached_basic": "Condition limit reached (3). Upgrade to unlock 10.",
       "limit_reached_premium": "Condition limit reached (10).",
       "remaining_conditions": "Rows left: {{remaining}} / {{total}}",
+      "condition_rule_limit_tooltip": "Pro supports up to 10 filter conditions.",
       "personal_quota_exhausted": "Personal quota has been used up. Upgrade to create without limits.",
       "team_quota_exhausted": "Team quota has been used up. Upgrade to create without limits.",
       "quota_exhausted": "Quota is exhausted. Upgrade for unlimited creation.",
