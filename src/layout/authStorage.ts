@@ -17,10 +17,11 @@ export function isAuthStorageKey(key: string | null): boolean {
 
 export function getAuthChangeRedirectPath(
   pathname: string,
+  previousUid: string | null,
   nextUid: string | null
 ): string | undefined {
   if (PUBLIC_AUTH_PATH_PREFIXES.some(prefix => pathname.startsWith(prefix))) {
     return undefined;
   }
-  return nextUid ? '/' : '/user/login';
+  return previousUid && !nextUid ? '/user/login' : undefined;
 }

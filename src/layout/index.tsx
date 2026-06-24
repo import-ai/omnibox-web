@@ -39,6 +39,7 @@ export default function Layout() {
         useSidebarStore.getState().clear();
         const redirectPath = getAuthChangeRedirectPath(
           window.location.pathname,
+          uid,
           storedUid
         );
         if (redirectPath) {
@@ -50,7 +51,7 @@ export default function Layout() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [i18n, navigate, onToggleTheme]);
+  }, [i18n, navigate, onToggleTheme, uid]);
 
   useEffect(() => {
     const storedUid = localStorage.getItem('uid');
