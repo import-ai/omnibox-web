@@ -231,12 +231,26 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                     </SelectContent>
                   </Select>
                   <div className="ml-auto flex min-w-max items-center justify-end gap-2">
-                    <span className="cursor-default whitespace-nowrap text-xs text-muted-foreground sm:text-sm">
-                      {t('smart_folder.create.remaining_conditions', {
-                        remaining: remainingConditionCount,
-                        total: maxConditionCount,
-                      })}
-                    </span>
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <span
+                          tabIndex={showUpgradeButton ? 0 : undefined}
+                          className="cursor-default whitespace-nowrap text-xs text-muted-foreground sm:text-sm"
+                        >
+                          {t('smart_folder.create.remaining_conditions', {
+                            remaining: remainingConditionCount,
+                            total: maxConditionCount,
+                          })}
+                        </span>
+                      </TooltipTrigger>
+                      {showUpgradeButton && (
+                        <TooltipContent side="top">
+                          {t(
+                            'smart_folder.create.condition_rule_limit_tooltip'
+                          )}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                     {showUpgradeButton && (
                       <UpgradeActionButton
                         namespaceId={namespaceId}
