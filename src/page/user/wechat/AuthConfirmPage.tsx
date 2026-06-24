@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
+import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 import { setGlobalCredential } from '@/page/user/util';
 
 import WrapperPage from '../WrapperPage';
@@ -57,17 +58,7 @@ export default function AuthConfirmPage() {
             const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
             window.location.href = h5Url;
           } else {
-            // Use redirectUrl from response first, fallback to URL param
-            const finalRedirect = res.redirectUrl
-              ? decodeURIComponent(res.redirectUrl)
-              : redirect
-                ? decodeURIComponent(redirect)
-                : null;
-            if (finalRedirect) {
-              location.href = finalRedirect;
-            } else {
-              navigate('/', { replace: true });
-            }
+            location.href = getAuthSuccessRedirect(res.redirectUrl || redirect);
           }
         }
       })

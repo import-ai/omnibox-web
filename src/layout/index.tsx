@@ -7,6 +7,10 @@ import { Toaster } from '@/components/ui/Toaster';
 import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
 import { track } from '@/lib/sendTrackEvent';
+import { useChatStore } from '@/page/chat/chatStore';
+import { useSidebarStore } from '@/page/sidebar/store';
+
+import { getAuthChangeRedirectPath, isAuthStorageKey } from './authStorage';
 
 export default function Layout() {
   const loc = useLocation();
@@ -28,13 +32,25 @@ export default function Layout() {
       } else if (event.key === 'theme') {
         const themeInStorage = JSON.parse(event.newValue || '{}');
         onToggleTheme(themeInStorage.skin);
+      } else if (isAuthStorageKey(event.key)) {
+        const storedUid = localStorage.getItem('uid');
+        setUid(storedUid);
+        useChatStore.getState().clearContext();
+        useSidebarStore.getState().clear();
+        const redirectPath = getAuthChangeRedirectPath(
+          window.location.pathname,
+          storedUid
+        );
+        if (redirectPath) {
+          navigate(redirectPath, { replace: true });
+        }
       }
     };
     window.addEventListener('storage', handleStorageChange);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [i18n, navigate, onToggleTheme]);
 
   useEffect(() => {
     const storedUid = localStorage.getItem('uid');

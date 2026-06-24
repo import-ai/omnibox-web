@@ -25,6 +25,7 @@ import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
 import { passwordSchema, phoneSchema } from '@/lib/validationSchemas';
+import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 import { setGlobalCredential } from '@/page/user/util';
 
 import type { AuthMethod, ContactMethod } from './index';
@@ -144,11 +145,7 @@ export function LoginForm({
       })
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
-        if (redirect) {
-          location.href = decodeURIComponent(redirect);
-        } else {
-          navigate('/', { replace: true });
-        }
+        location.href = getAuthSuccessRedirect(redirect);
       })
       .catch(err => {
         setIsLoading(false);
@@ -204,11 +201,7 @@ export function LoginForm({
       })
       .then(response => {
         setGlobalCredential(response.id, response.access_token);
-        if (redirect) {
-          location.href = decodeURIComponent(redirect);
-        } else {
-          navigate('/', { replace: true });
-        }
+        location.href = getAuthSuccessRedirect(redirect);
       })
       .catch(err => {
         setIsLoading(false);

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { AppleIcon } from '@/assets/icons/AppleIcon';
 import { Button } from '@/components/button';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
+import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 import { setGlobalCredential } from '@/page/user/util';
 
 declare global {
@@ -42,7 +43,6 @@ interface IProps {
 export default function Apple(props: IProps) {
   const { mode = 'login' } = props;
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect');
   const [sdkLoaded, setSdkLoaded] = useState(false);
@@ -111,11 +111,7 @@ export default function Apple(props: IProps) {
         })
         .then(res => {
           setGlobalCredential(res.id, res.access_token);
-          if (redirect) {
-            location.href = decodeURIComponent(redirect);
-          } else {
-            navigate('/', { replace: true });
-          }
+          location.href = getAuthSuccessRedirect(redirect);
         });
     };
     const handleFailure = (event: CustomEvent) => {
