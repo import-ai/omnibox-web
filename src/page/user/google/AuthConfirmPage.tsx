@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
+import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 import { setGlobalCredential } from '@/page/user/util';
 
 import WrapperPage from '../WrapperPage';
@@ -29,7 +30,7 @@ export default function AuthConfirmPage() {
         state,
         lang: i18n.language,
       })
-      .then(res => {
+      .then(async res => {
         if (res.isBinding) {
           toast.success(t('setting.third_party_account.bound'), {
             position: 'bottom-right',
@@ -52,17 +53,9 @@ export default function AuthConfirmPage() {
           }
         } else {
           setGlobalCredential(res.id, res.access_token);
-          // Use redirectUrl from response first, fallback to URL param
-          const finalRedirect = res.redirectUrl
-            ? decodeURIComponent(res.redirectUrl)
-            : redirect
-              ? decodeURIComponent(redirect)
-              : null;
-          if (finalRedirect) {
-            location.href = finalRedirect;
-          } else {
-            navigate('/', { replace: true });
-          }
+          location.href = await getAuthSuccessRedirect(
+            res.redirectUrl || redirect
+          );
         }
       })
       .catch(() => {
