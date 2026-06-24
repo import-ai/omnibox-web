@@ -80,7 +80,7 @@ export default function VerifyOtpPage() {
         }
       );
       setGlobalCredential(response.id, response.access_token);
-      location.href = getAuthSuccessRedirect(redirect);
+      location.href = await getAuthSuccessRedirect(redirect);
     } catch {
       setIsVerifying(false);
       // If magic link fails, show the OTP input
@@ -120,7 +120,7 @@ export default function VerifyOtpPage() {
       }
 
       setGlobalCredential(response.id, response.access_token);
-      location.href = getAuthSuccessRedirect(redirect);
+      location.href = await getAuthSuccessRedirect(redirect);
     } catch (err: any) {
       setIsVerifying(false);
       setCode('');

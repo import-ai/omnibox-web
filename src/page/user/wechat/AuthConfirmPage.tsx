@@ -30,7 +30,7 @@ export default function AuthConfirmPage() {
     }
     http
       .get(url)
-      .then(res => {
+      .then(async res => {
         if (res.isBinding) {
           toast.success(t('setting.third_party_account.bound'), {
             position: 'bottom-right',
@@ -58,7 +58,9 @@ export default function AuthConfirmPage() {
             const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
             window.location.href = h5Url;
           } else {
-            location.href = getAuthSuccessRedirect(res.redirectUrl || redirect);
+            location.href = await getAuthSuccessRedirect(
+              res.redirectUrl || redirect
+            );
           }
         }
       })

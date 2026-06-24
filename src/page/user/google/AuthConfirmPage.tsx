@@ -30,7 +30,7 @@ export default function AuthConfirmPage() {
         state,
         lang: i18n.language,
       })
-      .then(res => {
+      .then(async res => {
         if (res.isBinding) {
           toast.success(t('setting.third_party_account.bound'), {
             position: 'bottom-right',
@@ -53,7 +53,9 @@ export default function AuthConfirmPage() {
           }
         } else {
           setGlobalCredential(res.id, res.access_token);
-          location.href = getAuthSuccessRedirect(res.redirectUrl || redirect);
+          location.href = await getAuthSuccessRedirect(
+            res.redirectUrl || redirect
+          );
         }
       })
       .catch(() => {

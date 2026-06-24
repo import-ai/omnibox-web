@@ -143,9 +143,9 @@ export function LoginForm({
         password: data.password,
         type: 'email',
       })
-      .then(response => {
+      .then(async response => {
         setGlobalCredential(response.id, response.access_token);
-        location.href = getAuthSuccessRedirect(redirect);
+        location.href = await getAuthSuccessRedirect(redirect);
       })
       .catch(err => {
         setIsLoading(false);
@@ -199,9 +199,9 @@ export function LoginForm({
         password: data.password,
         type: 'phone',
       })
-      .then(response => {
+      .then(async response => {
         setGlobalCredential(response.id, response.access_token);
-        location.href = getAuthSuccessRedirect(redirect);
+        location.href = await getAuthSuccessRedirect(redirect);
       })
       .catch(err => {
         setIsLoading(false);

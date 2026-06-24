@@ -109,9 +109,9 @@ export default function Apple(props: IProps) {
           user: data.user,
           lang: i18n.language,
         })
-        .then(res => {
+        .then(async res => {
           setGlobalCredential(res.id, res.access_token);
-          location.href = getAuthSuccessRedirect(redirect);
+          location.href = await getAuthSuccessRedirect(redirect);
         });
     };
     const handleFailure = (event: CustomEvent) => {
