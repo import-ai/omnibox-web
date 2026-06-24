@@ -100,7 +100,11 @@ export default function useResource() {
         ...(isCurrentResource && {
           ...(delta.name !== undefined && { name: delta.name }),
           ...(delta.content !== undefined && { content: delta.content }),
+          ...(delta.attrs !== undefined && { attrs: delta.attrs }),
           ...(delta.tags !== undefined && { tags: delta.tags }),
+          ...(delta.updated_at !== undefined && {
+            updated_at: delta.updated_at,
+          }),
           ...(delta.parent_id !== undefined && { parent_id: delta.parent_id }),
           ...(delta.space_type !== undefined && {
             space_type: delta.space_type,

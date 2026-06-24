@@ -1,5 +1,5 @@
 import { ListChecks, ListVideo } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DoneIcon } from '@/assets/icons/DoneIcon';
@@ -39,25 +39,64 @@ export default function ResourceTasks({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTasks = async () => {
+  const refreshResource = useCallback(async () => {
+    try {
+      const resourceResponse = await http.get(
+        `/namespaces/${namespaceId}/resources/${resource.id}`
+      );
+      if (resourceResponse) {
+        onResource(resourceResponse);
+        app.fire('update_resource', resourceResponse);
+      }
+    } catch (err) {
+      console.error('Failed to refresh resource:', err);
+    }
+  }, [app, namespaceId, onResource, resource.id]);
+
+  const shouldRefreshResource = useCallback(
+    (taskList: Task[]) => {
+      const resourceUpdatedAt = Date.parse(resource.updated_at || '') || 0;
+
+      return taskList.some(task => {
+        const taskEndedAt = Date.parse(task.ended_at || '');
+        return (
+          CONTENT_MODIFYING_FUNCTIONS.includes(task.function) &&
+          task.status !== 'running' &&
+          task.status !== 'pending' &&
+          Number.isFinite(taskEndedAt) &&
+          taskEndedAt >= resourceUpdatedAt
+        );
+      });
+    },
+    [resource.updated_at]
+  );
+
+  const fetchTasks = useCallback(async () => {
     try {
       setError(null);
       const response = await http.get(
         `/namespaces/${namespaceId}/resources/${resource.id}/tasks`
       );
-      setTasks(response || []);
+      const nextTasks = response || [];
+      setTasks(nextTasks);
+      return nextTasks;
     } catch (err) {
       setError(t('tasks.fetch_error'));
       console.error('Fetch resource tasks error:', err);
+      return [];
     } finally {
       setLoading(false);
     }
-  };
+  }, [namespaceId, resource.id, t]);
 
   // Initial fetch
   useEffect(() => {
-    fetchTasks();
-  }, [resource.id, namespaceId]);
+    fetchTasks().then(nextTasks => {
+      if (shouldRefreshResource(nextTasks)) {
+        refreshResource();
+      }
+    });
+  }, [fetchTasks, refreshResource, shouldRefreshResource]);
 
   // Auto-refresh logic for content-modifying tasks
   useEffect(() => {
@@ -72,14 +111,8 @@ export default function ResourceTasks({
           (task.status === 'running' || task.status === 'pending')
       );
 
-      await fetchTasks();
-
-      // Fetch updated tasks to compare
       try {
-        const response = await http.get(
-          `/namespaces/${namespaceId}/resources/${resource.id}/tasks`
-        );
-        const updatedTasks = response || [];
+        const updatedTasks = await fetchTasks();
 
         // Check if any previously active content-modifying task has finished
         const wasActiveNowFinished = previousActiveTasks.some(prevTask => {
@@ -95,19 +128,7 @@ export default function ResourceTasks({
         });
 
         if (wasActiveNowFinished) {
-          // Refresh the resource content
-          try {
-            const resourceResponse = await http.get(
-              `/namespaces/${namespaceId}/resources/${resource.id}`
-            );
-            if (resourceResponse) {
-              onResource(resourceResponse);
-              // Fire event to update sidebar
-              app.fire('update_resource', resourceResponse);
-            }
-          } catch (err) {
-            console.error('Failed to refresh resource:', err);
-          }
+          refreshResource();
         }
       } catch (err) {
         console.error('Failed to check task updates:', err);
@@ -115,7 +136,7 @@ export default function ResourceTasks({
     }, RESOURCE_TASKS_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [tasks, resource.id, namespaceId, onResource, app]);
+  }, [tasks, fetchTasks, refreshResource]);
 
   if (loading) {
     return (
