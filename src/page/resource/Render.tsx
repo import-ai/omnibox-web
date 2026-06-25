@@ -1,17 +1,22 @@
 import 'cvnert-editor/style.css';
 import './resourceEditor.css';
 
-import { CvnertEditor } from 'cvnert-editor';
+import {
+  contentToTiptapJson,
+  CvnertEditor,
+  type TiptapJsonContent,
+} from 'cvnert-editor';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { Markdown } from '@/components/markdown';
+import useTheme from '@/hooks/useTheme';
 import { Resource, SharedResource } from '@/interface';
 import {
   CVNERT_EDITOR_CONTENT_WIDTH,
   ENABLE_CVNERT_EDITOR,
 } from '@/page/resource/editor/const';
-import { contentToTiptapJson } from '@/page/resource/editor/markdownTiptap';
 
 import { embedImage } from './utils';
 
@@ -19,6 +24,25 @@ interface IProps {
   resource: Resource | SharedResource;
   linkBase?: string;
   style?: React.CSSProperties;
+}
+
+type ResourceCvnertEditorProps = Omit<
+  React.ComponentProps<typeof CvnertEditor>,
+  'content'
+> & {
+  content?: string | TiptapJsonContent;
+  locale?: string;
+  theme?: 'light' | 'dark';
+};
+
+const ResourceCvnertEditor =
+  CvnertEditor as React.ComponentType<ResourceCvnertEditorProps>;
+
+function getResourceEditorContent(
+  resource: Resource | SharedResource,
+  linkBase?: string
+): TiptapJsonContent {
+  return contentToTiptapJson(embedImage(resource), { linkBase });
 }
 
 function MarkdownRender(props: IProps) {
@@ -115,13 +139,14 @@ function MarkdownRender(props: IProps) {
 
 function CvnertRender(props: IProps) {
   const { resource, linkBase, style } = props;
+  const { i18n } = useTranslation();
+  const { theme } = useTheme();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
   const containerRef = useRef<HTMLDivElement>(null);
-  const content = useMemo(() => embedImage(resource), [resource]);
-  const editorContent = useMemo(
-    () => contentToTiptapJson(content, { linkBase }),
-    [content, linkBase]
+  const content = useMemo(
+    () => getResourceEditorContent(resource, linkBase),
+    [linkBase, resource]
   );
   const highlightSearchText = (container: HTMLElement, searchText: string) => {
     const walker = document.createTreeWalker(
@@ -230,7 +255,7 @@ function CvnertRender(props: IProps) {
       window.clearTimeout(timeout);
       observer.disconnect();
     };
-  }, [editorContent, scrollToSearchResult]);
+  }, [content, scrollToSearchResult]);
 
   return (
     <div
@@ -238,13 +263,18 @@ function CvnertRender(props: IProps) {
       style={style}
       className="resource-readonly-editor pb-[30vh]"
     >
-      <CvnertEditor
+      <ResourceCvnertEditor
         key={resource.id}
         editable={false}
-        content={editorContent}
+        content={content}
+        linkBase={linkBase}
+        locale={i18n.language}
+        theme={theme.content}
+        variant="embedded"
         contentWidth={CVNERT_EDITOR_CONTENT_WIDTH}
         showHeader={false}
         showToc={false}
+        debug={true}
       />
     </div>
   );

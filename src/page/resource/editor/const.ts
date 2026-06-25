@@ -1,4 +1,4 @@
-export const CVNERT_EDITOR_CONTENT_WIDTH = 800;
+export const CVNERT_EDITOR_CONTENT_WIDTH = 680;
 export const ENABLE_CVNERT_EDITOR = true;
 
 export const toolbar = [

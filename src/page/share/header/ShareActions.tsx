@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Switch } from '@/components/ui/Switch';
+import { getMarkdownDownloadContent } from '@/page/resource/downloadMarkdown';
 
 interface ShareActionsProps {
   resource: {
@@ -79,8 +80,9 @@ export default function ShareActions({
       // generate file name: use resource.name, if empty, use "untitled"
       const baseName = resource.name || t('untitled');
       const fileName = baseName.endsWith('.md') ? baseName : `${baseName}.md`;
+      const markdownContent = getMarkdownDownloadContent(resource.content);
 
-      const blob = new Blob([resource.content], { type: 'text/markdown' });
+      const blob = new Blob([markdownContent], { type: 'text/markdown' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

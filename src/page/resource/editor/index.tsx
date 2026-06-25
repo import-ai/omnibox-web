@@ -4,9 +4,9 @@ import '@/styles/vditor-patch.css';
 import '../resourceEditor.css';
 
 import {
+  contentToTiptapJson,
   CvnertEditor,
-  type CvnertEditorProps,
-  type CvnertEditorUpdatePayload,
+  type TiptapJsonContent,
   type UploadFunction,
 } from 'cvnert-editor';
 import React, {
@@ -39,11 +39,6 @@ import {
   ENABLE_CVNERT_EDITOR,
   toolbar,
 } from '@/page/resource/editor/const';
-import {
-  contentToTiptapJson,
-  type TiptapJsonContent,
-  tiptapJsonToMarkdown,
-} from '@/page/resource/editor/markdownTiptap';
 
 interface IEditorProps {
   namespaceId: string;
@@ -61,6 +56,33 @@ interface UploadResponse {
   resource_id: string;
   uploaded: UploadedFile[];
   failed: string[];
+}
+
+interface EditorUpdatePayload {
+  json?: TiptapJsonContent;
+  markdown?: string;
+  html?: string;
+}
+
+type ResourceCvnertEditorProps = Omit<
+  React.ComponentProps<typeof CvnertEditor>,
+  'content' | 'onUpdate'
+> & {
+  content?: string | TiptapJsonContent;
+  locale?: string;
+  theme?: string;
+  onUpdate?: (payload: EditorUpdatePayload) => void;
+};
+
+const ResourceCvnertEditor =
+  CvnertEditor as React.ComponentType<ResourceCvnertEditorProps>;
+
+function serializeResourceEditorContent(payload: EditorUpdatePayload): string {
+  if (payload.json) {
+    return JSON.stringify(payload.json);
+  }
+
+  return payload.markdown ?? payload.html ?? '';
 }
 
 function format(_files: File[], responseText: string): string {
@@ -82,18 +104,27 @@ function format(_files: File[], responseText: string): string {
 
 function CvnertResourceEditor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
+  const { i18n } = useTranslation();
   const busy = useRef(false);
   const markdownRef = useRef('');
   const navigate = useNavigate();
   const loc = useLocation();
-  const { app } = useTheme();
+  const { app, theme } = useTheme();
   const [title, onTitle] = useState('');
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const cachedTitle = cache?.title || resource.name || '';
   const cachedContent = cache?.content || resource.content || '';
+  const linkBase = useMemo(
+    () => `/${namespaceId}/${resource.id}`,
+    [namespaceId, resource.id]
+  );
   const editorContent = useMemo(
-    () => contentToTiptapJson(cachedContent) as TiptapJsonContent,
-    [cachedContent]
+    () => contentToTiptapJson(cachedContent, { linkBase }),
+    [cachedContent, linkBase]
+  );
+  const serializedEditorContent = useMemo(
+    () => (cachedContent ? JSON.stringify(editorContent) : ''),
+    [cachedContent, editorContent]
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,15 +135,14 @@ function CvnertResourceEditor(props: IEditorProps) {
 
   useEffect(() => {
     onTitle(cachedTitle);
-    markdownRef.current = cachedContent;
-  }, [cachedTitle, cachedContent]);
+    markdownRef.current = serializedEditorContent;
+  }, [cachedTitle, serializedEditorContent]);
 
   const handleEditorUpdate = useCallback(
-    ({ json }: CvnertEditorUpdatePayload) => {
-      const doc = json as TiptapJsonContent;
-      const markdown = tiptapJsonToMarkdown(doc);
-      markdownRef.current = markdown;
-      updateCacheContent(resource.id, markdown);
+    (payload: EditorUpdatePayload) => {
+      const content = serializeResourceEditorContent(payload);
+      markdownRef.current = content;
+      updateCacheContent(resource.id, content);
     },
     [resource.id]
   );
@@ -121,7 +151,7 @@ function CvnertResourceEditor(props: IEditorProps) {
     async (file, onProgress, abortSignal) => {
       const token = localStorage.getItem('token') || '';
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file[]', file);
 
       const response = await fetch(
         `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
@@ -144,9 +174,9 @@ function CvnertResourceEditor(props: IEditorProps) {
       }
 
       onProgress?.({ progress: 100 });
-      return `attachments/${uploaded.link}`;
+      return `${linkBase}/attachments/${uploaded.link}`;
     },
-    [namespaceId, resource.id]
+    [linkBase, namespaceId, resource.id]
   );
 
   useEffect(() => {
@@ -212,14 +242,19 @@ function CvnertResourceEditor(props: IEditorProps) {
         className="mb-4 p-2 border rounded"
       />
       <div className="resource-editable-editor">
-        <CvnertEditor
+        <ResourceCvnertEditor
           key={resource.id}
-          placeholder="Start writing..."
-          content={editorContent as CvnertEditorProps['content']}
+          content={editorContent}
+          locale={i18n.language}
+          theme={theme.content}
+          variant="embedded"
           contentWidth={CVNERT_EDITOR_CONTENT_WIDTH}
           showHeader={false}
+          showToc={true}
+          linkBase={linkBase}
           imageUpload={uploadImage}
           onUpdate={handleEditorUpdate}
+          debug={true}
         />
       </div>
     </div>
