@@ -581,6 +581,7 @@
           "list_resources": "List Resources",
           "read_file": "Read Resource",
           "read_resource": "Read Resource",
+          "read_root": "Read Root",
           "edit_file": "Edit Resource",
           "edit_resource": "Edit Resource",
           "write_file": "Create Resource",
