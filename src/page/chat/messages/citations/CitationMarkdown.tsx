@@ -31,15 +31,6 @@ import {
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
-import {
-  getVfsResourceDisplayName,
-  getVfsResourceHref,
-  getVfsRootPathLabel,
-  remarkVfsPathLinks,
-  type VfsPathResourceIds,
-  type VfsPathResourceTitles,
-  type VfsRootPathLabels,
-} from '@/page/chat/messages/citations/vfsPathLinks';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 
@@ -58,9 +49,6 @@ interface IProps {
   onPrevious?: () => void;
   onNext?: () => void;
   isLastMessage: boolean;
-  vfsPathResourceIds?: VfsPathResourceIds;
-  vfsPathResourceTitles?: VfsPathResourceTitles;
-  resourceLinkPrefix?: string;
 }
 
 export function CitationMarkdown(props: IProps) {
@@ -79,21 +67,10 @@ export function CitationMarkdown(props: IProps) {
     onPrevious,
     onNext,
     isLastMessage,
-    vfsPathResourceIds = {},
-    vfsPathResourceTitles = {},
-    resourceLinkPrefix = '',
   } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
-  const vfsRootPathLabels = React.useMemo(
-    (): VfsRootPathLabels => ({
-      '/private': t('private'),
-      '/teamspace': t('teamspace'),
-      '/share': t('share.share.title'),
-    }),
-    [t]
-  );
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
@@ -101,23 +78,6 @@ export function CitationMarkdown(props: IProps) {
     cleanedContent,
     removeGeneratedCite,
     citations.length
-  );
-  const vfsPathLinksPlugin = React.useMemo(
-    () =>
-      function vfsPathLinksPlugin() {
-        return remarkVfsPathLinks(
-          vfsPathResourceIds,
-          resourceLinkPrefix,
-          vfsPathResourceTitles,
-          vfsRootPathLabels
-        );
-      },
-    [
-      resourceLinkPrefix,
-      vfsPathResourceIds,
-      vfsPathResourceTitles,
-      vfsRootPathLabels,
-    ]
   );
 
   const components = {
@@ -189,36 +149,9 @@ export function CitationMarkdown(props: IProps) {
           </SyntaxHighlighter>
         </div>
       ) : (
-        (() => {
-          const codeContent = String(children);
-          const rootLabel = codeContent.includes('\n')
-            ? undefined
-            : getVfsRootPathLabel(codeContent, vfsRootPathLabels);
-          if (rootLabel) {
-            return rootLabel;
-          }
-          const href = codeContent.includes('\n')
-            ? undefined
-            : getVfsResourceHref(
-                codeContent,
-                vfsPathResourceIds,
-                resourceLinkPrefix
-              );
-          const code = (
-            <code {...props} className={className}>
-              {href
-                ? getVfsResourceDisplayName(codeContent, vfsPathResourceTitles)
-                : children}
-            </code>
-          );
-          return href ? (
-            <a href={href} target="_blank" rel="noopener noreferrer">
-              {code}
-            </a>
-          ) : (
-            code
-          );
-        })()
+        <code {...props} className={className}>
+          {children}
+        </code>
       );
     },
   };
@@ -229,7 +162,7 @@ export function CitationMarkdown(props: IProps) {
       style={{ background: 'transparent' }}
     >
       <Markdown
-        remarkPlugins={[remarkGfm, remarkMath, vfsPathLinksPlugin]}
+        remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
         components={components}
         urlTransform={citationUrlTransform}

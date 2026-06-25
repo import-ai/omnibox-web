@@ -1,7 +1,6 @@
 import { Ban, Check, MessageCircleWarning, X } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 
 import {
   Accordion,
@@ -26,10 +25,6 @@ import { ToolCallStatus } from '@/page/chat/core/types/toolCall';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings';
 import { CitationMarkdown } from '@/page/chat/messages/citations/CitationMarkdown';
 import { replaceReasoningCiteMarkers } from '@/page/chat/messages/citations/citationUtils';
-import type {
-  VfsPathResourceIds,
-  VfsPathResourceTitles,
-} from '@/page/chat/messages/citations/vfsPathLinks';
 
 import {
   findToolMessageForToolCall,
@@ -93,47 +88,10 @@ export function AssistantMessage(props: IProps) {
   } = props;
   const { t } = useTranslation();
   const app = useApp();
-  const params = useParams();
   const openAIMessage = message.message;
 
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
     useMessageSiblings(message.id, messageOperator);
-  const resourceLinkPrefix = React.useMemo(() => {
-    if (params.share_id) {
-      return `/s/${params.share_id}`;
-    }
-    if (params.namespace_id) {
-      return `/${params.namespace_id}`;
-    }
-    return '';
-  }, [params.namespace_id, params.share_id]);
-  const vfsPathResourceIds = React.useMemo((): VfsPathResourceIds => {
-    const result: VfsPathResourceIds = {};
-    for (const message of messages) {
-      const mappings = message.attrs?.tool_call?.vfs_path_resource_ids;
-      if (mappings) {
-        Object.assign(result, mappings);
-      }
-    }
-    return result;
-  }, [messages]);
-  const vfsPathResourceTitles = React.useMemo((): VfsPathResourceTitles => {
-    const titleByResourceId: Record<string, string> = {};
-    for (const citation of citations) {
-      if (citation.title && !citation.link.startsWith('http')) {
-        titleByResourceId[citation.link] = citation.title;
-      }
-    }
-
-    const result: VfsPathResourceTitles = {};
-    for (const [path, resourceId] of Object.entries(vfsPathResourceIds)) {
-      const title = titleByResourceId[resourceId];
-      if (title) {
-        result[path] = title;
-      }
-    }
-    return result;
-  }, [citations, vfsPathResourceIds]);
 
   const domList: React.ReactNode[] = [];
   if (openAIMessage.reasoning_content?.trim()) {
@@ -174,9 +132,6 @@ export function AssistantMessage(props: IProps) {
         onPrevious={handlePrevious}
         onNext={handleNext}
         isLastMessage={isLastMessage}
-        vfsPathResourceIds={vfsPathResourceIds}
-        vfsPathResourceTitles={vfsPathResourceTitles}
-        resourceLinkPrefix={resourceLinkPrefix}
       />
     );
   }
