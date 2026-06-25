@@ -32,6 +32,9 @@ export interface MessageAttrs {
   enable_thinking?: boolean;
   lang?: '简体中文' | 'English';
   error_message?: string;
+  compact?: {
+    status: 'compacted';
+  };
   user_context?: {
     selected_resources?: string[];
   };

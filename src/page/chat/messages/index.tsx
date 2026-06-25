@@ -1,5 +1,7 @@
+import { FileClock } from 'lucide-react';
 import React from 'react';
 
+import { Separator } from '@/components/ui/Separator';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
   type Citation,
@@ -70,6 +72,19 @@ function renderMessage(
   return <></>;
 }
 
+function ContextCompactedDivider() {
+  return (
+    <div className="flex items-center gap-3 py-4 text-muted-foreground">
+      <Separator className="flex-1" />
+      <div className="flex items-center gap-2 text-sm">
+        <FileClock className="size-4" />
+        <span>Context automatically compacted</span>
+      </div>
+      <Separator className="flex-1" />
+    </div>
+  );
+}
+
 export function Messages(props: IProps) {
   const {
     messages,
@@ -109,6 +124,9 @@ export function Messages(props: IProps) {
 
         return (
           <div key={message.id}>
+            {message.attrs?.compact?.status === 'compacted' && (
+              <ContextCompactedDivider />
+            )}
             {renderMessage(
               message,
               messages,
