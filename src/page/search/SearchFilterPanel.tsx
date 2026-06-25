@@ -294,12 +294,24 @@ export function SearchFilterPanel({
           {t('search.filters.title')}
         </h2>
         <div className="ml-auto flex items-center gap-2">
-          <span className="whitespace-nowrap text-xs text-muted-foreground">
-            {t('search.filters.remaining_conditions', {
-              remaining: remainingConditionCount,
-              total: maxConditionCount,
-            })}
-          </span>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <span
+                tabIndex={showUpgradeButton ? 0 : undefined}
+                className="cursor-default whitespace-nowrap text-xs text-muted-foreground"
+              >
+                {t('search.filters.remaining_conditions', {
+                  remaining: remainingConditionCount,
+                  total: maxConditionCount,
+                })}
+              </span>
+            </TooltipTrigger>
+            {showUpgradeButton && (
+              <TooltipContent side="top">
+                {t('smart_folder.create.condition_rule_limit_tooltip')}
+              </TooltipContent>
+            )}
+          </Tooltip>
           {showUpgradeButton && (
             <UpgradeActionButton
               namespaceId={namespaceId}

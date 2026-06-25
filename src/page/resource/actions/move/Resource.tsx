@@ -1,7 +1,6 @@
-import { File, Folder } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
+import ResourceIcon from '@/assets/icons/ResourceIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -12,7 +11,7 @@ import { shouldDisableMoveTarget } from './utils';
 
 interface IResource extends Pick<
   ResourceMeta,
-  'id' | 'name' | 'parent_id' | 'resource_type' | 'has_children'
+  'id' | 'name' | 'parent_id' | 'resource_type' | 'has_children' | 'attrs'
 > {
   spaceType?: SpaceType;
 }
@@ -82,12 +81,10 @@ export default function Resource(props: IProps) {
     >
       {isMoving ? (
         <Spinner />
-      ) : data.resource_type === 'smart_folder' ? (
-        <SmartFolderDefaultIcon className="size-4" />
-      ) : data.resource_type === 'folder' ? (
-        <Folder />
       ) : (
-        <File />
+        <span className="size-4 shrink-0 [&>svg]:size-4">
+          <ResourceIcon expand={false} resource={data} />
+        </span>
       )}
       <div className="flex-1 break-all text-left">{name}</div>
     </Button>
