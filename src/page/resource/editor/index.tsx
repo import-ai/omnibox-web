@@ -1,7 +1,21 @@
+import 'cvnert-editor/style.css';
 import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
+import '../resourceEditor.css';
 
-import React, { useEffect, useRef, useState } from 'react';
+import {
+  contentToTiptapJson,
+  CvnertEditor,
+  type TiptapJsonContent,
+  type UploadFunction,
+} from 'cvnert-editor';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Vditor from 'vditor';
@@ -20,7 +34,11 @@ import {
   updateCacheContent,
   updateCacheTitle,
 } from '@/page/resource/editor/cache';
-import { toolbar } from '@/page/resource/editor/const';
+import {
+  CVNERT_EDITOR_CONTENT_WIDTH,
+  ENABLE_CVNERT_EDITOR,
+  toolbar,
+} from '@/page/resource/editor/const';
 
 interface IEditorProps {
   namespaceId: string;
@@ -40,6 +58,33 @@ interface UploadResponse {
   failed: string[];
 }
 
+interface EditorUpdatePayload {
+  json?: TiptapJsonContent;
+  markdown?: string;
+  html?: string;
+}
+
+type ResourceCvnertEditorProps = Omit<
+  React.ComponentProps<typeof CvnertEditor>,
+  'content' | 'onUpdate'
+> & {
+  content?: string | TiptapJsonContent;
+  locale?: string;
+  theme?: string;
+  onUpdate?: (payload: EditorUpdatePayload) => void;
+};
+
+const ResourceCvnertEditor =
+  CvnertEditor as React.ComponentType<ResourceCvnertEditorProps>;
+
+function serializeResourceEditorContent(payload: EditorUpdatePayload): string {
+  if (payload.json) {
+    return JSON.stringify(payload.json);
+  }
+
+  return payload.markdown ?? payload.html ?? '';
+}
+
 function format(_files: File[], responseText: string): string {
   const response: UploadResponse = JSON.parse(responseText);
   const uploadedMap: Record<string, string> = {};
@@ -57,7 +102,166 @@ function format(_files: File[], responseText: string): string {
   return JSON.stringify(processedResponse);
 }
 
-export default function Editor(props: IEditorProps) {
+function CvnertResourceEditor(props: IEditorProps) {
+  const { resource, onResource, namespaceId } = props;
+  const { i18n } = useTranslation();
+  const busy = useRef(false);
+  const markdownRef = useRef('');
+  const navigate = useNavigate();
+  const loc = useLocation();
+  const { app, theme } = useTheme();
+  const [title, onTitle] = useState('');
+  const cache = useMemo(() => getCache(resource.id), [resource.id]);
+  const cachedTitle = cache?.title || resource.name || '';
+  const cachedContent = cache?.content || resource.content || '';
+  const linkBase = useMemo(
+    () => `/${namespaceId}/${resource.id}`,
+    [namespaceId, resource.id]
+  );
+  const editorContent = useMemo(
+    () => contentToTiptapJson(cachedContent, { linkBase }),
+    [cachedContent, linkBase]
+  );
+  const serializedEditorContent = useMemo(
+    () => (cachedContent ? JSON.stringify(editorContent) : ''),
+    [cachedContent, editorContent]
+  );
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    onTitle(newTitle);
+    updateCacheTitle(resource.id, newTitle);
+  };
+
+  useEffect(() => {
+    onTitle(cachedTitle);
+    markdownRef.current = serializedEditorContent;
+  }, [cachedTitle, serializedEditorContent]);
+
+  const handleEditorUpdate = useCallback(
+    (payload: EditorUpdatePayload) => {
+      const content = serializeResourceEditorContent(payload);
+      markdownRef.current = content;
+      updateCacheContent(resource.id, content);
+    },
+    [resource.id]
+  );
+
+  const uploadImage = useCallback<UploadFunction>(
+    async (file, onProgress, abortSignal) => {
+      const token = localStorage.getItem('token') || '';
+      const formData = new FormData();
+      formData.append('file[]', file);
+
+      const response = await fetch(
+        `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
+        {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          body: formData,
+          signal: abortSignal,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = (await response.json()) as UploadResponse;
+      const uploaded = data.uploaded[0];
+      if (!uploaded) {
+        throw new Error(data.failed[0] || 'Upload failed');
+      }
+
+      onProgress?.({ progress: 100 });
+      return `${linkBase}/attachments/${uploaded.link}`;
+    },
+    [linkBase, namespaceId, resource.id]
+  );
+
+  useEffect(() => {
+    return app.on('save', (onSuccess?: () => void) => {
+      const name = title.trim();
+      const content = markdownRef.current;
+      if (!content && !name) {
+        navigate(`/${namespaceId}/${resource.id}`, {
+          state: loc.state,
+        });
+        return;
+      }
+      http
+        .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
+          name,
+          content,
+          namespaceId: namespaceId,
+        })
+        .then((delta: Resource) => {
+          app.fire('update_resource', delta);
+          onResource(delta);
+          clearCache(resource.id);
+          navigate(`/${namespaceId}/${resource.id}`, {
+            state: loc.state,
+          });
+          onSuccess && onSuccess();
+        });
+    });
+  }, [app, title, namespaceId, resource.id, loc.state, navigate, onResource]);
+
+  useEffect(() => {
+    const keydownFN = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        const content = markdownRef.current;
+        if (busy.current) {
+          return;
+        }
+        busy.current = true;
+        http
+          .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
+            content,
+            namespaceId: namespaceId,
+          })
+          .then(() => {
+            busy.current = false;
+          });
+      }
+    };
+    document.addEventListener('keydown', keydownFN);
+    return () => {
+      document.removeEventListener('keydown', keydownFN);
+    };
+  }, [namespaceId, resource.id]);
+
+  return (
+    <div>
+      <Input
+        type="text"
+        value={title}
+        onChange={handleChange}
+        placeholder="Enter title"
+        className="mb-4 p-2 border rounded"
+      />
+      <div className="resource-editable-editor">
+        <ResourceCvnertEditor
+          key={resource.id}
+          content={editorContent}
+          locale={i18n.language}
+          theme={theme.content}
+          variant="embedded"
+          contentWidth={CVNERT_EDITOR_CONTENT_WIDTH}
+          showHeader={false}
+          showToc={true}
+          linkBase={linkBase}
+          imageUpload={uploadImage}
+          onUpdate={handleEditorUpdate}
+          debug={true}
+        />
+      </div>
+    </div>
+  );
+}
+
+function VditorResourceEditor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
   const { i18n } = useTranslation();
   const busy = useRef(false);
@@ -158,7 +362,7 @@ export default function Editor(props: IEditorProps) {
       upload: {
         url: `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
         accept: 'image/*,.wav',
-        max: 1024 * 1024 * 5, // 5MB
+        max: 1024 * 1024 * 5,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -213,5 +417,13 @@ export default function Editor(props: IEditorProps) {
       />
       <div ref={root} className="vditor reset-list" />
     </div>
+  );
+}
+
+export default function Editor(props: IEditorProps) {
+  return ENABLE_CVNERT_EDITOR ? (
+    <CvnertResourceEditor {...props} />
+  ) : (
+    <VditorResourceEditor {...props} />
   );
 }

@@ -6,6 +6,10 @@ import useApp from '@/hooks/useApp';
 import useResource from '@/hooks/userResource';
 import useWide from '@/hooks/useWide';
 import { cn } from '@/lib/utils';
+import {
+  CVNERT_EDITOR_CONTENT_WIDTH,
+  ENABLE_CVNERT_EDITOR,
+} from '@/page/resource/editor/const';
 
 import Header from './header';
 import Wrapper from './Wrapper';
@@ -17,6 +21,12 @@ export default function ResourcePage() {
   const [large, onLarge] = useState(window.innerWidth > 1500);
   const app = useApp();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const useEditorContentWidth =
+    ENABLE_CVNERT_EDITOR &&
+    (props.editPage ||
+      (!!props.resource &&
+        props.resource.resource_type !== 'folder' &&
+        props.resource.resource_type !== 'smart_folder'));
 
   useEffect(() => {
     function handleSize() {
@@ -58,10 +68,17 @@ export default function ResourcePage() {
       >
         <div
           className={cn('flex min-w-0 w-full max-w-full flex-col', {
-            'max-w-[680px]': !wide && (open || !large),
-            'max-w-[800px]': !wide && (!open || large),
+            'max-w-[680px]':
+              !wide && !useEditorContentWidth && (open || !large),
+            'max-w-[800px]':
+              !wide && !useEditorContentWidth && (!open || large),
             'max-w-7xl': wide,
           })}
+          style={
+            !wide && useEditorContentWidth
+              ? { maxWidth: CVNERT_EDITOR_CONTENT_WIDTH }
+              : undefined
+          }
         >
           <Wrapper {...props} />
         </div>
