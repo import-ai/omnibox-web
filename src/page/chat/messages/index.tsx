@@ -1,5 +1,6 @@
-import { FileClock } from 'lucide-react';
+import { FileText as Summary } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Separator } from '@/components/ui/Separator';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
@@ -73,12 +74,14 @@ function renderMessage(
 }
 
 function ContextCompactedDivider() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center gap-3 py-4 text-muted-foreground">
       <Separator className="flex-1" />
       <div className="flex items-center gap-2 text-sm">
-        <FileClock className="size-4" />
-        <span>Context automatically compacted</span>
+        <Summary className="size-4" />
+        <span>{t('chat.messages.context_compacted')}</span>
       </div>
       <Separator className="flex-1" />
     </div>
