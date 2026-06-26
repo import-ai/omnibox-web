@@ -1,4 +1,4 @@
-import { FileText as Summary } from 'lucide-react';
+import { Summary } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
