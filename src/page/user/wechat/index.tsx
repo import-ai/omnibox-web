@@ -1,4 +1,5 @@
 import isMobile from 'ismobilejs';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -6,6 +7,9 @@ import { toast } from 'sonner';
 import { WeChatIcon } from '@/assets/icons/Wechat';
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
+
+import { H5LaunchDialog } from './H5LaunchDialog';
+import { launchWechatMiniProgram } from './launchMiniProgram';
 
 interface IProps {
   onScan: (value: boolean) => void;
@@ -16,13 +20,12 @@ export default function WeChat(props: IProps) {
   const { onScan, mode = 'login' } = props;
   const { t } = useTranslation();
   const [params] = useSearchParams();
+  const [launchDialogOpen, setLaunchDialogOpen] = useState(false);
   const redirect = params.get('redirect');
   const userAgent = navigator.userAgent.toLowerCase();
   const isPhone = isMobile(userAgent).phone;
   const isWeChat = userAgent.includes('micromessenger');
-  const alertDisableWeChatLogin = () => {
-    toast(t('login.wechat_disabled'), { position: 'bottom-right' });
-  };
+
   const loginWithWeChat = () => {
     if (isWeChat) {
       http
@@ -40,20 +43,38 @@ export default function WeChat(props: IProps) {
     }
   };
 
+  const handleLaunchConfirm = () => {
+    setLaunchDialogOpen(false);
+    launchWechatMiniProgram(() => {
+      toast.error(t('login.wechat_h5_launch_failed'), {
+        position: 'bottom-right',
+      });
+    });
+  };
+
+  const label = t(
+    mode === 'register'
+      ? 'register.register_use_wechat'
+      : 'login.login_use_wechat'
+  );
+
   if (isPhone && !isWeChat) {
     return (
-      <Button
-        variant="outline"
-        onClick={alertDisableWeChatLogin}
-        className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white opacity-50"
-      >
-        <WeChatIcon />
-        {t(
-          mode === 'register'
-            ? 'register.register_use_wechat'
-            : 'login.login_use_wechat'
-        )}
-      </Button>
+      <>
+        <Button
+          variant="outline"
+          onClick={() => setLaunchDialogOpen(true)}
+          className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
+        >
+          <WeChatIcon />
+          {label}
+        </Button>
+        <H5LaunchDialog
+          open={launchDialogOpen}
+          onOpenChange={setLaunchDialogOpen}
+          onConfirm={handleLaunchConfirm}
+        />
+      </>
     );
   }
 
@@ -64,11 +85,7 @@ export default function WeChat(props: IProps) {
       className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
     >
       <WeChatIcon />
-      {t(
-        mode === 'register'
-          ? 'register.register_use_wechat'
-          : 'login.login_use_wechat'
-      )}
+      {label}
     </Button>
   );
 }
