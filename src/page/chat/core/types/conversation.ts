@@ -33,7 +33,7 @@ export interface MessageAttrs {
   lang?: '简体中文' | 'English';
   error_message?: string;
   compact?: {
-    status: 'compacted';
+    status: 'compacting' | 'compacted';
   };
   user_context?: {
     selected_resources?: string[];

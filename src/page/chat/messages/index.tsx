@@ -3,6 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Separator } from '@/components/ui/Separator';
+import { Spinner } from '@/components/ui/Spinner';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
   type Citation,
@@ -73,15 +74,26 @@ function renderMessage(
   return <></>;
 }
 
-function ContextCompactedDivider() {
+function ContextCompactedDivider({
+  status,
+}: {
+  status: 'compacting' | 'compacted';
+}) {
   const { t } = useTranslation();
+  const isCompacting = status === 'compacting';
 
   return (
     <div className="flex items-center gap-3 py-4 text-muted-foreground">
       <Separator className="flex-1" />
       <div className="flex items-center gap-2 text-sm">
-        <Summary className="size-4" />
-        <span>{t('chat.messages.context_compacted')}</span>
+        {isCompacting ? <Spinner /> : <Summary className="size-4" />}
+        <span>
+          {t(
+            isCompacting
+              ? 'chat.messages.context_compacting'
+              : 'chat.messages.context_compacted'
+          )}
+        </span>
       </div>
       <Separator className="flex-1" />
     </div>
@@ -124,23 +136,26 @@ export function Messages(props: IProps) {
         const isLastAssistantMessage =
           message.message.role === OpenAIMessageRole.ASSISTANT &&
           index === lastAssistantIndex;
+        const isCompacting = message.attrs?.compact?.status === 'compacting';
+        const shouldRenderMessage = !(isCompacting && !message.message.content);
 
         return (
           <div key={message.id}>
-            {message.attrs?.compact?.status === 'compacted' && (
-              <ContextCompactedDivider />
+            {message.attrs?.compact && (
+              <ContextCompactedDivider status={message.attrs.compact.status} />
             )}
-            {renderMessage(
-              message,
-              messages,
-              citations,
-              conversation,
-              messageOperator,
-              onRegenerate,
-              onEdit,
-              isLastAssistantMessage,
-              regeneratingParentId
-            )}
+            {shouldRenderMessage &&
+              renderMessage(
+                message,
+                messages,
+                citations,
+                conversation,
+                messageOperator,
+                onRegenerate,
+                onEdit,
+                isLastAssistantMessage,
+                regeneratingParentId
+              )}
             {message.status === MessageStatus.FAILED &&
               message.attrs?.error_message && (
                 <div className="text-destructive mt-2">
