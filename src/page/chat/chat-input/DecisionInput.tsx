@@ -293,7 +293,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
               key={i}
               className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
             >
-              {arg}
+              {arg.display}
             </code>
           ))}
         </CardDescription>

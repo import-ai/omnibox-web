@@ -1,6 +1,7 @@
 import { Ban, Check, MessageCircleWarning, X } from 'lucide-react';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import {
   Accordion,
@@ -10,7 +11,9 @@ import {
 } from '@/components/ui/Accordion';
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
-import { joinArgs, processArgs } from '@/lib/toolArgs';
+import type { Resource } from '@/interface';
+import type { ProcessedArg } from '@/lib/toolArgs';
+import { joinArgs, processArgs, trimMiddle } from '@/lib/toolArgs';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
   type Citation,
@@ -25,6 +28,8 @@ import { ToolCallStatus } from '@/page/chat/core/types/toolCall';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings';
 import { CitationMarkdown } from '@/page/chat/messages/citations/CitationMarkdown';
 import { replaceReasoningCiteMarkers } from '@/page/chat/messages/citations/citationUtils';
+import { fetchResourcesByIds } from '@/service/resource';
+import { fetchShareResource } from '@/service/share';
 
 import {
   findToolMessageForToolCall,
@@ -49,7 +54,7 @@ interface IToolCall {
   toolMessageId?: string;
   inStreaming?: boolean;
   name: string;
-  args: string[];
+  args: ProcessedArg[];
   status: ToolCallStatus;
   joinedArgs: string;
   operations?: ToolCallFrontendOperation[];
@@ -88,10 +93,21 @@ export function AssistantMessage(props: IProps) {
   } = props;
   const { t } = useTranslation();
   const app = useApp();
+  const params = useParams();
   const openAIMessage = message.message;
 
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
     useMessageSiblings(message.id, messageOperator);
+
+  // Resolved resource names for resource-id tool-call args (id -> name).
+  const [resourceNames, setResourceNames] = useState<Record<string, string>>(
+    {}
+  );
+  const resourceLinkPrefix = params.share_id
+    ? `/s/${params.share_id}`
+    : params.namespace_id
+      ? `/${params.namespace_id}`
+      : '';
 
   const domList: React.ReactNode[] = [];
   if (openAIMessage.reasoning_content?.trim()) {
@@ -144,7 +160,7 @@ export function AssistantMessage(props: IProps) {
         `chat.messages.tool_calls.function_name.${toolCall.function.name}`,
         t('chat.messages.tool_calls.function_name.unknown')
       );
-      const args: string[] = processArgs(
+      const args: ProcessedArg[] = processArgs(
         JSON.parse(toolCall.function.arguments),
         t
       );
@@ -165,7 +181,7 @@ export function AssistantMessage(props: IProps) {
   }
   if (message.attrs?.tool_call?.interrupts) {
     for (const interrupt of message.attrs.tool_call.interrupts) {
-      const args: string[] = processArgs(interrupt.args, t);
+      const args: ProcessedArg[] = processArgs(interrupt.args, t);
       const functionName = t(
         `chat.messages.tool_calls.function_name.${interrupt.name}`
       );
@@ -181,6 +197,56 @@ export function AssistantMessage(props: IProps) {
       }
     }
   }
+
+  const resourceIdsKey = Array.from(
+    new Set(
+      toolCalls.flatMap(toolCall =>
+        toolCall.args
+          .map(arg => arg.resourceId)
+          .filter((id): id is string => !!id)
+      )
+    )
+  )
+    .sort()
+    .join(',');
+
+  useEffect(() => {
+    const ids = resourceIdsKey ? resourceIdsKey.split(',') : [];
+    if (ids.length === 0) return;
+    let cancelled = false;
+    void (async () => {
+      let entries: [string, string][] = [];
+      if (params.share_id) {
+        const shareId = params.share_id;
+        const results = await Promise.all(
+          ids.map(id =>
+            fetchShareResource(shareId, id)
+              .then(
+                resource =>
+                  [id, resource.name || t('untitled')] as [string, string]
+              )
+              .catch(() => null)
+          )
+        );
+        entries = results.filter((e): e is [string, string] => e !== null);
+      } else if (params.namespace_id) {
+        const resources: Resource[] = await fetchResourcesByIds(
+          params.namespace_id,
+          ids
+        ).catch(() => []);
+        entries = resources.map(resource => [
+          resource.id,
+          resource.name || t('untitled'),
+        ]);
+      }
+      if (!cancelled && entries.length > 0) {
+        setResourceNames(prev => ({ ...prev, ...Object.fromEntries(entries) }));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [resourceIdsKey, params.namespace_id, params.share_id, t]);
 
   const processedToolMessageIds = useRef<Set<string>>(new Set());
 
@@ -253,14 +319,31 @@ export function AssistantMessage(props: IProps) {
                 >
                   {toolStateIcon(toolCall.status)}
                   <b>{toolCall.name}</b>
-                  {toolCall.args.map((arg, argIndex) => (
-                    <code
-                      key={'arg_' + argIndex}
-                      className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
-                    >
-                      {arg}
-                    </code>
-                  ))}
+                  {toolCall.args.map((arg, argIndex) => {
+                    if (arg.resourceId && resourceLinkPrefix) {
+                      const fullName = resourceNames[arg.resourceId];
+                      return (
+                        <a
+                          key={'arg_' + argIndex}
+                          href={`${resourceLinkPrefix}/${arg.resourceId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={fullName}
+                          className="bg-muted text-primary underline underline-offset-2 border border-border px-1.5 py-0.5 rounded text-xs font-mono hover:opacity-80"
+                        >
+                          {fullName ? trimMiddle(fullName) : arg.display}
+                        </a>
+                      );
+                    }
+                    return (
+                      <code
+                        key={'arg_' + argIndex}
+                        className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
+                      >
+                        {arg.display}
+                      </code>
+                    );
+                  })}
                 </li>
               ))}
             </ul>
