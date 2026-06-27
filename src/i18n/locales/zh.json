@@ -560,6 +560,8 @@
     "searching": "搜索中...",
     "disclaimer": "内容由小黑 AI 生成，仅供参考",
     "messages": {
+      "context_compacting": "正在压缩上下文...",
+      "context_compacted": "上下文已自动压缩",
       "actions": {
         "regenerate": "重新生成",
         "save": "保存至个人空间",
