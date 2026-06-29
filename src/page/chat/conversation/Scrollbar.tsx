@@ -9,7 +9,8 @@ interface IProps {
   children: React.ReactNode;
 }
 
-const bottomThreshold = 24;
+const showButtonThreshold = 24;
+const stickToBottomThreshold = 200;
 
 export default function Scrollbar(props: IProps) {
   const { t } = useTranslation();
@@ -26,7 +27,7 @@ export default function Scrollbar(props: IProps) {
 
     const distanceToBottom =
       root.scrollHeight - root.scrollTop - root.clientHeight;
-    setShowScrollToBottom(distanceToBottom > bottomThreshold);
+    setShowScrollToBottom(distanceToBottom > showButtonThreshold);
   }, []);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
@@ -49,7 +50,7 @@ export default function Scrollbar(props: IProps) {
     const stickToBottom = () => {
       if (
         root.scrollHeight - root.scrollTop - root.clientHeight <
-        bottomThreshold
+        stickToBottomThreshold
       ) {
         scrollToBottom();
       }
@@ -79,6 +80,7 @@ export default function Scrollbar(props: IProps) {
         </div>
       </div>
       <Button
+        aria-hidden={!showScrollToBottom}
         aria-label={scrollToBottomLabel}
         className={cn(
           'absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-border bg-white text-foreground opacity-0 shadow-none transition-opacity duration-200 hover:bg-accent hover:text-accent-foreground dark:bg-background dark:hover:bg-accent',
@@ -88,6 +90,7 @@ export default function Scrollbar(props: IProps) {
         )}
         onClick={() => scrollToBottom('smooth')}
         size="icon"
+        tabIndex={showScrollToBottom ? 0 : -1}
         title={scrollToBottomLabel}
         type="button"
         variant="ghost"
