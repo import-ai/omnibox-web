@@ -1,4 +1,3 @@
-import isMobile from 'ismobilejs';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -6,7 +5,10 @@ import { toast } from 'sonner';
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 import { H5LaunchDialog } from '@/page/user/wechat/H5LaunchDialog';
-import { launchWechatMiniProgram } from '@/page/user/wechat/launchMiniProgram';
+import {
+  isExternalMobileBrowser,
+  launchWechatMiniProgram,
+} from '@/page/user/wechat/launchMiniProgram';
 
 interface IProps {
   onScan: (value: boolean) => void;
@@ -34,9 +36,8 @@ export function WechatLogin(props: IProps) {
   const { onScan } = props;
   const { t } = useTranslation();
   const [launchDialogOpen, setLaunchDialogOpen] = useState(false);
-  const userAgent = navigator.userAgent.toLowerCase();
-  const isPhone = isMobile(userAgent).phone;
-  const isWeChat = userAgent.includes('micromessenger');
+  const isWeChat = navigator.userAgent.toLowerCase().includes('micromessenger');
+  const useMiniProgramLaunch = isExternalMobileBrowser();
 
   const loginWithWeChat = () => {
     if (isWeChat) {
@@ -62,7 +63,7 @@ export function WechatLogin(props: IProps) {
     });
   };
 
-  if (isPhone && !isWeChat) {
+  if (useMiniProgramLaunch) {
     return (
       <>
         <ActionButton onClick={() => setLaunchDialogOpen(true)}>

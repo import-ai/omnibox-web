@@ -9,9 +9,7 @@ import Google from '../google';
 import MetaPage from '../MetaPage';
 import Phone from '../phone';
 import WeChat from '../wechat';
-import { H5WechatAutoLoginStatus } from '../wechat/H5WechatAutoLoginStatus';
 import Scan from '../wechat/Scan';
-import { useH5WechatAutoLogin } from '../wechat/useH5WechatAutoLogin';
 import WrapperPage from '../WrapperPage';
 import { LoginForm } from './LoginForm';
 
@@ -23,7 +21,6 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const h5WechatAutoLogin = useH5WechatAutoLogin();
   const phoneParam = params.get('phone');
   const modeParam = params.get('mode');
 
@@ -53,7 +50,6 @@ export default function LoginPage() {
 
   return (
     <WrapperPage extra={<MetaPage />}>
-      {!scan && <H5WechatAutoLoginStatus state={h5WechatAutoLogin} />}
       {scan ? (
         <Scan onScan={onScan} />
       ) : (

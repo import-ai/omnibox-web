@@ -7,7 +7,6 @@ const PUBLIC_AUTH_PATH_PREFIXES = [
   '/user/accept-invite',
   '/user/account/delete/confirm',
   '/user/auth/confirm',
-  '/user/wechat/mp-session',
   '/oauth/authorize',
   '/invite/',
 ];
