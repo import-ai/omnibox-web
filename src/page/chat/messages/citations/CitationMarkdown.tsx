@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Markdown, { ExtraProps } from 'react-markdown';
+import { useParams } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
@@ -33,6 +34,7 @@ import {
 } from '@/page/chat/messages/citations/citationUtils';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
+const resourceLinkRegex = /^#resource-([\w-]+)$/;
 
 interface IProps {
   content: string;
@@ -71,6 +73,12 @@ export function CitationMarkdown(props: IProps) {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
+  const params = useParams();
+  const resourceLinkPrefix = params.share_id
+    ? `/s/${params.share_id}`
+    : params.namespace_id
+      ? `/${params.namespace_id}`
+      : '';
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
@@ -83,6 +91,18 @@ export function CitationMarkdown(props: IProps) {
   const components = {
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
       const { node } = props;
+      const resourceMatch = href?.match(resourceLinkRegex);
+      if (resourceMatch && resourceLinkPrefix) {
+        return (
+          <a
+            href={`${resourceLinkPrefix}/${resourceMatch[1]}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {children}
+          </a>
+        );
+      }
       const citeMatch = href?.match(citeLinkRegex);
       if (citeMatch) {
         const id = Number(citeMatch[1]) - 1;
