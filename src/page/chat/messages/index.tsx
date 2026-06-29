@@ -1,4 +1,4 @@
-import { Summary } from 'lucide-react';
+import { ScrollText } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -86,7 +86,7 @@ function ContextCompactedDivider({
     <div className="flex items-center gap-3 py-4 text-muted-foreground">
       <Separator className="flex-1" />
       <div className="flex items-center gap-2 text-sm">
-        {isCompacting ? <Spinner /> : <Summary className="size-4" />}
+        {isCompacting ? <Spinner /> : <ScrollText className="size-4" />}
         <span>
           {t(
             isCompacting
