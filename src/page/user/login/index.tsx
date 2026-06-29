@@ -9,6 +9,7 @@ import Google from '../google';
 import MetaPage from '../MetaPage';
 import Phone from '../phone';
 import WeChat from '../wechat';
+import { useH5WechatAuthPoll } from '../wechat/h5WechatAuthSync';
 import Scan from '../wechat/Scan';
 import WrapperPage from '../WrapperPage';
 import { LoginForm } from './LoginForm';
@@ -40,6 +41,8 @@ export default function LoginPage() {
   );
   const [authMethod, setAuthMethod] =
     useState<AuthMethod>(getInitialAuthMethod);
+
+  useH5WechatAuthPoll();
 
   useEffect(() => {
     const uid = localStorage.getItem('uid');

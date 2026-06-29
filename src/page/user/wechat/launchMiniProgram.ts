@@ -13,6 +13,7 @@ const SCHEME_QUERY_MAX_LENGTH = 512;
 
 export interface LaunchWechatMiniProgramOptions {
   redirect?: string | null;
+  oauthState?: string | null;
   envVersion?: WechatMpEnvVersion;
 }
 
@@ -35,20 +36,31 @@ export function getWechatMpEnvVersion(): WechatMpEnvVersion {
   return 'release';
 }
 
-function buildSchemePageQuery(redirect?: string | null): string {
-  // Keep query short — Android may fail to parse long encoded query strings.
-  if (!redirect || redirect.length > 200) {
-    return encodeURIComponent(`from=${WECHAT_H5_LAUNCH_FROM}`);
+function buildSchemePageQuery(
+  redirect?: string | null,
+  oauthState?: string | null
+): string {
+  const parts = [`from=${WECHAT_H5_LAUNCH_FROM}`];
+
+  if (oauthState) {
+    parts.push(`oauth_state=${encodeURIComponent(oauthState)}`);
   }
 
-  const pageQuery = [
-    `from=${WECHAT_H5_LAUNCH_FROM}`,
-    `redirect=${encodeURIComponent(redirect)}`,
-  ].join('&');
+  if (redirect && redirect.length <= 200) {
+    parts.push(`redirect=${encodeURIComponent(redirect)}`);
+  }
+
+  const pageQuery = parts.join('&');
   const encoded = encodeURIComponent(pageQuery);
 
   if (encoded.length > SCHEME_QUERY_MAX_LENGTH) {
-    return encodeURIComponent(`from=${WECHAT_H5_LAUNCH_FROM}`);
+    const fallback = oauthState
+      ? [
+          `from=${WECHAT_H5_LAUNCH_FROM}`,
+          `oauth_state=${encodeURIComponent(oauthState)}`,
+        ].join('&')
+      : `from=${WECHAT_H5_LAUNCH_FROM}`;
+    return encodeURIComponent(fallback);
   }
 
   return encoded;
@@ -68,7 +80,7 @@ export function buildWechatMiniProgramScheme(
   const schemeQuery = [
     `appid=${WECHAT_MP_APPID}`,
     `path=${WECHAT_MP_INDEX_PATH}`,
-    `query=${buildSchemePageQuery(options.redirect)}`,
+    `query=${buildSchemePageQuery(options.redirect, options.oauthState)}`,
   ];
 
   if (envVersion !== 'release') {

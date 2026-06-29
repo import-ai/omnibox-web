@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -6,6 +7,7 @@ import { WeChatIcon } from '@/assets/icons/Wechat';
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 
+import { prepareH5WechatOAuthState } from './h5WechatAuthSync';
 import {
   isExternalMobileBrowser,
   launchWechatMiniProgram,
@@ -21,14 +23,20 @@ export default function WeChat(props: IProps) {
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
+  const oauthState = params.get('oauth_state');
   const isWeChat = navigator.userAgent.toLowerCase().includes('micromessenger');
   const useMiniProgramLaunch = isExternalMobileBrowser();
+  const [launching, setLaunching] = useState(false);
 
   const loginWithWeChat = () => {
     if (isWeChat) {
       http
         .get('/wechat/auth-url', {
-          params: redirect ? { redirect } : undefined,
+          params: {
+            source: oauthState ? 'h5' : undefined,
+            ...(redirect ? { redirect } : {}),
+            ...(oauthState ? { state: oauthState } : {}),
+          },
         })
         .then(authUrl => {
           location.href = authUrl;
@@ -41,15 +49,31 @@ export default function WeChat(props: IProps) {
     }
   };
 
-  const handleMiniProgramLaunch = () => {
-    launchWechatMiniProgram(
-      () => {
-        toast.error(t('login.wechat_h5_launch_failed'), {
-          position: 'bottom-right',
-        });
-      },
-      { redirect }
-    );
+  const handleMiniProgramLaunch = async () => {
+    if (launching) {
+      return;
+    }
+
+    setLaunching(true);
+    try {
+      const state = await prepareH5WechatOAuthState(redirect);
+      launchWechatMiniProgram(
+        () => {
+          toast.error(t('login.wechat_h5_launch_failed'), {
+            position: 'bottom-right',
+          });
+        },
+        { redirect, oauthState: state }
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : t('login.wechat_h5_launch_failed');
+      toast.error(message, { position: 'bottom-right' });
+    } finally {
+      setLaunching(false);
+    }
   };
 
   const label = t(
@@ -63,6 +87,7 @@ export default function WeChat(props: IProps) {
       <Button
         variant="outline"
         onClick={handleMiniProgramLaunch}
+        disabled={launching}
         className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
       >
         <WeChatIcon />

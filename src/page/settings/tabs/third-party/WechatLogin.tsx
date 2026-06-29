@@ -1,12 +1,9 @@
+import isMobile from 'ismobilejs';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
-import {
-  isExternalMobileBrowser,
-  launchWechatMiniProgram,
-} from '@/page/user/wechat/launchMiniProgram';
 
 interface IProps {
   onScan: (value: boolean) => void;
@@ -33,8 +30,13 @@ function ActionButton({
 export function WechatLogin(props: IProps) {
   const { onScan } = props;
   const { t } = useTranslation();
-  const isWeChat = navigator.userAgent.toLowerCase().includes('micromessenger');
-  const useMiniProgramLaunch = isExternalMobileBrowser();
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isPhone = isMobile(userAgent).phone;
+  const isWeChat = userAgent.includes('micromessenger');
+
+  const alertDisableWeChatLogin = () => {
+    toast(t('login.wechat_disabled'), { position: 'bottom-right' });
+  };
 
   const loginWithWeChat = () => {
     if (isWeChat) {
@@ -51,17 +53,9 @@ export function WechatLogin(props: IProps) {
     }
   };
 
-  const handleMiniProgramLaunch = () => {
-    launchWechatMiniProgram(() => {
-      toast.error(t('login.wechat_h5_launch_failed'), {
-        position: 'bottom-right',
-      });
-    });
-  };
-
-  if (useMiniProgramLaunch) {
+  if (isPhone && !isWeChat) {
     return (
-      <ActionButton onClick={handleMiniProgramLaunch}>
+      <ActionButton onClick={alertDisableWeChatLogin}>
         {t('setting.bind_btn')}
       </ActionButton>
     );

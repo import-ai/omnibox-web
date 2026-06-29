@@ -27,6 +27,10 @@ import { buildUrl, cn } from '@/lib/utils';
 import { passwordSchema, phoneSchema } from '@/lib/validationSchemas';
 import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 import { setGlobalCredential } from '@/page/user/util';
+import {
+  getH5WechatLoginParams,
+  syncH5WechatOAuthState,
+} from '@/page/user/wechat/h5WechatAuthSync';
 
 import type { AuthMethod, ContactMethod } from './index';
 
@@ -70,6 +74,12 @@ export function LoginForm({
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
+  const oauthState = params.get('oauth_state');
+  const h5WechatParams = getH5WechatLoginParams(params);
+  const withLoginQuery = (
+    path: string,
+    query: Record<string, string | null | undefined>
+  ) => buildUrl(path, { ...query, ...h5WechatParams });
   const emailParam = params.get('email');
   const phoneParam = params.get('phone');
   const [isLoading, setIsLoading] = useState(false);
@@ -107,18 +117,24 @@ export function LoginForm({
     },
   });
 
+  const finishLogin = async (userId: string, accessToken: string) => {
+    await syncH5WechatOAuthState(oauthState, userId, accessToken);
+    setGlobalCredential(userId, accessToken);
+    location.href = await getAuthSuccessRedirect(redirect);
+  };
+
   const onEmailSubmit = async (data: z.infer<typeof emailFormSchema>) => {
     setIsLoading(true);
     try {
       const response = await http.post('auth/send-otp', {
         email: data.email,
-        url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
+        url: `${window.location.origin}${withLoginQuery('/user/verify-otp', { redirect })}`,
       });
 
       if (!response.exists) {
         toast.error(t('login.email_not_exists'), { position: 'bottom-right' });
         navigate(
-          buildUrl('/user/sign-up', {
+          withLoginQuery('/user/sign-up', {
             email: data.email,
             mode: 'email',
             redirect,
@@ -127,7 +143,9 @@ export function LoginForm({
         return;
       }
 
-      navigate(buildUrl('/user/verify-otp', { email: data.email, redirect }));
+      navigate(
+        withLoginQuery('/user/verify-otp', { email: data.email, redirect })
+      );
     } catch {
       setIsLoading(false);
     }
@@ -144,14 +162,13 @@ export function LoginForm({
         type: 'email',
       })
       .then(async response => {
-        setGlobalCredential(response.id, response.access_token);
-        location.href = await getAuthSuccessRedirect(redirect);
+        await finishLogin(response.id, response.access_token);
       })
       .catch(err => {
         setIsLoading(false);
         if (err.response?.data?.code === 'user_not_found') {
           navigate(
-            buildUrl('/user/sign-up', {
+            withLoginQuery('/user/sign-up', {
               email: data.email,
               mode: 'email',
               redirect,
@@ -174,7 +191,7 @@ export function LoginForm({
       if (!response.exists) {
         toast.error(t('login.phone_not_exists'), { position: 'bottom-right' });
         navigate(
-          buildUrl('/user/sign-up', {
+          withLoginQuery('/user/sign-up', {
             phone: data.phone,
             mode: 'phone',
             redirect,
@@ -183,7 +200,9 @@ export function LoginForm({
         return;
       }
 
-      navigate(buildUrl('/user/verify-otp', { phone: data.phone, redirect }));
+      navigate(
+        withLoginQuery('/user/verify-otp', { phone: data.phone, redirect })
+      );
     } catch {
       setIsLoading(false);
     }
@@ -200,14 +219,13 @@ export function LoginForm({
         type: 'phone',
       })
       .then(async response => {
-        setGlobalCredential(response.id, response.access_token);
-        location.href = await getAuthSuccessRedirect(redirect);
+        await finishLogin(response.id, response.access_token);
       })
       .catch(err => {
         setIsLoading(false);
         if (err.response?.data?.code === 'user_not_found') {
           navigate(
-            buildUrl('/user/sign-up', {
+            withLoginQuery('/user/sign-up', {
               phone: data.phone,
               mode: 'phone',
               redirect,
@@ -243,7 +261,7 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={buildUrl('/user/sign-up', {
+            to={withLoginQuery('/user/sign-up', {
               email: emailForm.getValues('email'),
               mode: 'email',
               redirect,
@@ -271,7 +289,7 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={buildUrl('/user/sign-up', {
+            to={withLoginQuery('/user/sign-up', {
               email: emailPasswordForm.getValues('email'),
               mode: 'email',
               redirect,
@@ -299,7 +317,7 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={buildUrl('/user/sign-up', {
+            to={withLoginQuery('/user/sign-up', {
               phone: phoneForm.getValues('phone'),
               mode: 'phone',
               redirect,
@@ -327,7 +345,7 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={buildUrl('/user/sign-up', {
+            to={withLoginQuery('/user/sign-up', {
               phone: phonePasswordForm.getValues('phone'),
               mode: 'phone',
               redirect,
