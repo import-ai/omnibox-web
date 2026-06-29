@@ -81,7 +81,7 @@ export default function Scrollbar(props: IProps) {
       <Button
         aria-label={scrollToBottomLabel}
         className={cn(
-          'absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-border bg-background/95 text-foreground opacity-0 backdrop-blur transition-opacity duration-200 hover:bg-accent hover:text-accent-foreground',
+          'absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-border bg-background text-foreground opacity-0 shadow-none transition-opacity duration-200 hover:bg-accent hover:text-accent-foreground',
           showScrollToBottom
             ? 'pointer-events-auto opacity-100'
             : 'pointer-events-none'
@@ -90,7 +90,7 @@ export default function Scrollbar(props: IProps) {
         size="icon"
         title={scrollToBottomLabel}
         type="button"
-        variant="outline"
+        variant="ghost"
       >
         <ArrowDown />
       </Button>
