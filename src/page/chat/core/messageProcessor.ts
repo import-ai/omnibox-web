@@ -13,9 +13,9 @@ export function messageProcessor(
   if (chatResponse.response_type === 'bos') {
     messageOperator.add(chatResponse);
   } else if (chatResponse.response_type === 'delta') {
-    messageOperator.update(chatResponse);
+    messageOperator.update(chatResponse, chatResponse.id);
   } else if (chatResponse.response_type === 'eos') {
-    messageOperator.done();
+    messageOperator.done(chatResponse.id);
   } else if (chatResponse.response_type === 'done') {
   } else if (chatResponse.response_type === 'metrics') {
     messageOperator.update({
@@ -29,7 +29,7 @@ export function messageProcessor(
       },
     } as ChatDeltaResponse);
   } else if (chatResponse.response_type === 'error') {
-    messageOperator.error(chatResponse as ChatErrorResponse);
+    messageOperator.error(chatResponse as ChatErrorResponse, chatResponse.id);
     console.error(chatResponse);
   } else {
     console.error({ message: 'Unknown response type', chatResponse });
