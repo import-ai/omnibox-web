@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { BIND_CHECK_INTERVAL } from '@/const';
 import { http } from '@/lib/request';
@@ -23,10 +23,6 @@ interface WechatCheckResponse {
     access_token: string;
   };
 }
-
-let pollIntervalId: number | null = null;
-let pollInFlight = false;
-let visibilityListenerAttached = false;
 
 export function parseOAuthStateFromAuthUrl(authUrl: string): string | null {
   try {
@@ -54,21 +50,6 @@ export function getH5WechatLoginParams(
   return extra;
 }
 
-function readPollSession(): H5WechatOAuthPollSession | null {
-  const raw = sessionStorage.getItem(H5_WECHAT_OAUTH_POLL_KEY);
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    const session = JSON.parse(raw) as H5WechatOAuthPollSession;
-    return session.state ? session : null;
-  } catch {
-    clearH5WechatOAuthPoll();
-    return null;
-  }
-}
-
 export function persistH5WechatOAuthPoll(
   state: string,
   redirect?: string | null
@@ -79,32 +60,30 @@ export function persistH5WechatOAuthPoll(
     startedAt: Date.now(),
   };
   sessionStorage.setItem(H5_WECHAT_OAUTH_POLL_KEY, JSON.stringify(session));
-  startH5WechatAuthPolling();
 }
 
 export function clearH5WechatOAuthPoll(): void {
   sessionStorage.removeItem(H5_WECHAT_OAUTH_POLL_KEY);
-  stopH5WechatAuthPolling();
 }
 
-function stopH5WechatAuthPolling(): void {
-  if (pollIntervalId !== null) {
-    window.clearInterval(pollIntervalId);
-    pollIntervalId = null;
-  }
-}
-
-function ensureVisibilityListener(): void {
-  if (visibilityListenerAttached) {
+export async function syncH5WechatOAuthState(
+  oauthState: string | null,
+  userId: string,
+  accessToken: string
+): Promise<void> {
+  if (!oauthState) {
     return;
   }
 
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      void pollH5WechatOAuthOnceFromStorage();
-    }
-  });
-  visibilityListenerAttached = true;
+  await http.post(
+    '/wechat/check/complete',
+    {
+      state: oauthState,
+      id: userId,
+      access_token: accessToken,
+    },
+    { mute: true }
+  );
 }
 
 async function pollH5WechatOAuthOnce(
@@ -135,69 +114,63 @@ async function pollH5WechatOAuthOnce(
   return false;
 }
 
-async function pollH5WechatOAuthOnceFromStorage(): Promise<void> {
-  if (pollInFlight || !isExternalMobileBrowser()) {
-    return;
-  }
-
-  const session = readPollSession();
-  if (!session) {
-    stopH5WechatAuthPolling();
-    return;
-  }
-
-  pollInFlight = true;
-  try {
-    await pollH5WechatOAuthOnce(session);
-  } finally {
-    pollInFlight = false;
-  }
-}
-
-export function startH5WechatAuthPolling(): void {
-  if (!isExternalMobileBrowser()) {
-    return;
-  }
-
-  if (!readPollSession()) {
-    stopH5WechatAuthPolling();
-    return;
-  }
-
-  ensureVisibilityListener();
-
-  if (pollIntervalId === null) {
-    void pollH5WechatOAuthOnceFromStorage();
-    pollIntervalId = window.setInterval(() => {
-      void pollH5WechatOAuthOnceFromStorage();
-    }, BIND_CHECK_INTERVAL);
-  }
-}
-
 export function useH5WechatAuthPoll(): void {
+  const pollingRef = useRef(false);
+
   useEffect(() => {
-    startH5WechatAuthPolling();
+    if (!isExternalMobileBrowser()) {
+      return;
+    }
+
+    const raw = sessionStorage.getItem(H5_WECHAT_OAUTH_POLL_KEY);
+    if (!raw) {
+      return;
+    }
+
+    let session: H5WechatOAuthPollSession;
+    try {
+      session = JSON.parse(raw) as H5WechatOAuthPollSession;
+    } catch {
+      clearH5WechatOAuthPoll();
+      return;
+    }
+
+    if (!session.state) {
+      clearH5WechatOAuthPoll();
+      return;
+    }
+
+    const poll = async () => {
+      if (pollingRef.current) {
+        return;
+      }
+
+      pollingRef.current = true;
+      try {
+        await pollH5WechatOAuthOnce(session);
+      } finally {
+        pollingRef.current = false;
+      }
+    };
+
+    void poll();
+    const intervalId = window.setInterval(() => {
+      void poll();
+    }, BIND_CHECK_INTERVAL);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void poll();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
-}
-
-export async function syncH5WechatOAuthState(
-  oauthState: string | null,
-  userId: string,
-  accessToken: string
-): Promise<void> {
-  if (!oauthState) {
-    return;
-  }
-
-  await http.post(
-    '/wechat/check/complete',
-    {
-      state: oauthState,
-      id: userId,
-      access_token: accessToken,
-    },
-    { mute: true }
-  );
 }
 
 export async function prepareH5WechatOAuthState(
