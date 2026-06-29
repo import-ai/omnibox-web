@@ -28,6 +28,7 @@ import { ToolCallStatus } from '@/page/chat/core/types/toolCall';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings';
 import { CitationMarkdown } from '@/page/chat/messages/citations/CitationMarkdown';
 import { replaceReasoningCiteMarkers } from '@/page/chat/messages/citations/citationUtils';
+import { useRootId } from '@/page/sidebar/store';
 import { fetchResourcesByIds } from '@/service/resource';
 import { fetchShareResource } from '@/service/share';
 
@@ -103,6 +104,11 @@ export function AssistantMessage(props: IProps) {
   const [resourceNames, setResourceNames] = useState<Record<string, string>>(
     {}
   );
+  // Space root ids for the current namespace. A resource-id arg matching one of
+  // these is a root and is shown as a non-clickable "Private"/"Teamspace" label
+  // instead of a link.
+  const privateRootId = useRootId('private');
+  const teamspaceRootId = useRootId('teamspace');
   const resourceLinkPrefix = params.share_id
     ? `/s/${params.share_id}`
     : params.namespace_id
@@ -320,6 +326,24 @@ export function AssistantMessage(props: IProps) {
                   {toolStateIcon(toolCall.status)}
                   <b>{toolCall.name}</b>
                   {toolCall.args.map((arg, argIndex) => {
+                    if (arg.resourceId) {
+                      const rootSpace =
+                        arg.resourceId === privateRootId
+                          ? 'private'
+                          : arg.resourceId === teamspaceRootId
+                            ? 'teamspace'
+                            : undefined;
+                      if (rootSpace) {
+                        return (
+                          <code
+                            key={'arg_' + argIndex}
+                            className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
+                          >
+                            {t(rootSpace)}
+                          </code>
+                        );
+                      }
+                    }
                     if (arg.resourceId && resourceLinkPrefix) {
                       const fullName = resourceNames[arg.resourceId];
                       return (
