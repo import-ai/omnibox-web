@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
-import { H5LaunchDialog } from '@/page/user/wechat/H5LaunchDialog';
 import {
   isExternalMobileBrowser,
   launchWechatMiniProgram,
@@ -35,7 +33,6 @@ function ActionButton({
 export function WechatLogin(props: IProps) {
   const { onScan } = props;
   const { t } = useTranslation();
-  const [launchDialogOpen, setLaunchDialogOpen] = useState(false);
   const isWeChat = navigator.userAgent.toLowerCase().includes('micromessenger');
   const useMiniProgramLaunch = isExternalMobileBrowser();
 
@@ -54,8 +51,7 @@ export function WechatLogin(props: IProps) {
     }
   };
 
-  const handleLaunchConfirm = () => {
-    setLaunchDialogOpen(false);
+  const handleMiniProgramLaunch = () => {
     launchWechatMiniProgram(() => {
       toast.error(t('login.wechat_h5_launch_failed'), {
         position: 'bottom-right',
@@ -65,16 +61,9 @@ export function WechatLogin(props: IProps) {
 
   if (useMiniProgramLaunch) {
     return (
-      <>
-        <ActionButton onClick={() => setLaunchDialogOpen(true)}>
-          {t('setting.bind_btn')}
-        </ActionButton>
-        <H5LaunchDialog
-          open={launchDialogOpen}
-          onOpenChange={setLaunchDialogOpen}
-          onConfirm={handleLaunchConfirm}
-        />
-      </>
+      <ActionButton onClick={handleMiniProgramLaunch}>
+        {t('setting.bind_btn')}
+      </ActionButton>
     );
   }
 
