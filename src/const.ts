@@ -8,6 +8,9 @@ export const WECHAT_ASSISTANT_QRCODE_CONTENT =
   'https://work.weixin.qq.com/u/vc3df33954d10ed707';
 export const WECHAT_MP_APPID = 'wx0507b7afbb78f308';
 export const WECHAT_MP_INDEX_PATH = 'pages/index/index';
+export const WECHAT_H5_LAUNCH_FROM = 'h5-wechat-launch';
+/** TODO: Set to false and remove debug panel before production release */
+export const SHOW_WECHAT_MP_LOGIN_DEBUG = true;
 export const QQ_ASSISTANT_QRCODE_CONTENT =
   'https://qun.qq.com/qunpro/robot/qunshare?robot_appid=102824772&robot_uin=3889826290';
 export const RESOURCE_TASKS_INTERVAL = 3 * 1000;

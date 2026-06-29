@@ -45,11 +45,14 @@ export default function WeChat(props: IProps) {
 
   const handleLaunchConfirm = () => {
     setLaunchDialogOpen(false);
-    launchWechatMiniProgram(() => {
-      toast.error(t('login.wechat_h5_launch_failed'), {
-        position: 'bottom-right',
-      });
-    });
+    launchWechatMiniProgram(
+      () => {
+        toast.error(t('login.wechat_h5_launch_failed'), {
+          position: 'bottom-right',
+        });
+      },
+      { redirect }
+    );
   };
 
   const label = t(

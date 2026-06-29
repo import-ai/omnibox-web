@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_USE_WEBSOCKET?: string;
   readonly VITE_FORCE_ASK?: string;
   readonly VITE_FORCE_PRIVATE_SEARCH?: string;
+  readonly VITE_WECHAT_MP_ENV?: string;
   // more env variables...
 }
 

@@ -1,10 +1,20 @@
 import isMobile from 'ismobilejs';
 
-import { WECHAT_MP_APPID, WECHAT_MP_INDEX_PATH } from '@/const';
+import {
+  WECHAT_H5_LAUNCH_FROM,
+  WECHAT_MP_APPID,
+  WECHAT_MP_INDEX_PATH,
+} from '@/const';
 
 export type WechatMpEnvVersion = 'release' | 'trial' | 'develop';
 
 const LAUNCH_FAILURE_DELAY_MS = 2500;
+const SCHEME_QUERY_MAX_LENGTH = 512;
+
+export interface LaunchWechatMiniProgramOptions {
+  redirect?: string | null;
+  envVersion?: WechatMpEnvVersion;
+}
 
 export function isExternalMobileBrowser(
   userAgent = navigator.userAgent
@@ -25,6 +35,25 @@ export function getWechatMpEnvVersion(): WechatMpEnvVersion {
   return 'release';
 }
 
+function buildSchemePageQuery(redirect?: string | null): string {
+  // Keep query short — Android may fail to parse long encoded query strings.
+  if (!redirect || redirect.length > 200) {
+    return encodeURIComponent(`from=${WECHAT_H5_LAUNCH_FROM}`);
+  }
+
+  const pageQuery = [
+    `from=${WECHAT_H5_LAUNCH_FROM}`,
+    `redirect=${encodeURIComponent(redirect)}`,
+  ].join('&');
+  const encoded = encodeURIComponent(pageQuery);
+
+  if (encoded.length > SCHEME_QUERY_MAX_LENGTH) {
+    return encodeURIComponent(`from=${WECHAT_H5_LAUNCH_FROM}`);
+  }
+
+  return encoded;
+}
+
 /**
  * Build a plain WeChat mini program URL Scheme.
  * Path must keep literal slashes — URLSearchParams encodes "/" as "%2F"
@@ -33,15 +62,20 @@ export function getWechatMpEnvVersion(): WechatMpEnvVersion {
  * @see https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/url-scheme.html
  */
 export function buildWechatMiniProgramScheme(
-  envVersion: WechatMpEnvVersion = getWechatMpEnvVersion()
+  options: LaunchWechatMiniProgramOptions = {}
 ): string {
-  const query = [`appid=${WECHAT_MP_APPID}`, `path=${WECHAT_MP_INDEX_PATH}`];
+  const envVersion = options.envVersion ?? getWechatMpEnvVersion();
+  const schemeQuery = [
+    `appid=${WECHAT_MP_APPID}`,
+    `path=${WECHAT_MP_INDEX_PATH}`,
+    `query=${buildSchemePageQuery(options.redirect)}`,
+  ];
 
   if (envVersion !== 'release') {
-    query.push(`env_version=${envVersion}`);
+    schemeQuery.push(`env_version=${envVersion}`);
   }
 
-  return `weixin://dl/business/?${query.join('&')}`;
+  return `weixin://dl/business/?${schemeQuery.join('&')}`;
 }
 
 function openSchemeUrl(url: string): void {
@@ -60,9 +94,9 @@ function openSchemeUrl(url: string): void {
 
 export function launchWechatMiniProgram(
   onLaunchFailed?: () => void,
-  envVersion: WechatMpEnvVersion = getWechatMpEnvVersion()
+  options: LaunchWechatMiniProgramOptions = {}
 ): void {
-  const schemeUrl = buildWechatMiniProgramScheme(envVersion);
+  const schemeUrl = buildWechatMiniProgramScheme(options);
 
   if (import.meta.env.DEV) {
     console.info('[wechat-mp] launch scheme:', schemeUrl);
