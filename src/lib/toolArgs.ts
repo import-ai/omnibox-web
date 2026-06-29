@@ -59,6 +59,12 @@ export function processArgs(
     if (RESOURCE_ID_ARG_KEYS.has(key) && typeof v === 'string' && v) {
       return { key, display: trimMiddle(v), resourceId: v };
     }
+    if (key === 'seconds' && typeof v === 'number') {
+      return {
+        key,
+        display: `${v}${t('chat.messages.tool_calls.function_args.seconds')}`,
+      };
+    }
     return { key, display: trimMiddle(pathI18n(convertToString(v), t)) };
   });
 }

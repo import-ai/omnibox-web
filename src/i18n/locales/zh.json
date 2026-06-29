@@ -608,12 +608,14 @@
           "tag_filter": "筛选标签",
           "collect_url": "收藏网页",
           "list_resource_tasks": "查询资源任务",
+          "wait": "等待",
           "frontend_operations": "前端操作",
           "unknown": "未知工具"
         },
         "function_args": {
           "private": "个人",
-          "teamspace": "团队"
+          "teamspace": "团队",
+          "seconds": "秒"
         }
       }
     },

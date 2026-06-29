@@ -607,12 +607,14 @@
           "tag_filter": "Tag Filter",
           "collect_url": "Collect URL",
           "list_resource_tasks": "List Resource Tasks",
+          "wait": "Wait",
           "frontend_operations": "Frontend Operating",
           "unknown": "Unknown"
         },
         "function_args": {
           "private": "private",
-          "teamspace": "teamspace"
+          "teamspace": "teamspace",
+          "seconds": "s"
         }
       }
     },
