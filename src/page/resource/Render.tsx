@@ -1,11 +1,11 @@
-import 'cvnert-editor/style.css';
+import '@import-ai/omnibox-editor/style.css';
 import './resourceEditor.css';
 
 import {
   contentToTiptapJson,
-  CvnertEditor,
+  OmniboxEditor,
   type TiptapJsonContent,
-} from 'cvnert-editor';
+} from '@import-ai/omnibox-editor';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -14,8 +14,8 @@ import { Markdown } from '@/components/markdown';
 import useTheme from '@/hooks/useTheme';
 import { Resource, SharedResource } from '@/interface';
 import {
-  CVNERT_EDITOR_CONTENT_WIDTH,
-  ENABLE_CVNERT_EDITOR,
+  ENABLE_OMNIBOX_EDITOR,
+  OMNIBOX_EDITOR_CONTENT_WIDTH,
 } from '@/page/resource/editor/const';
 
 import { embedImage } from './utils';
@@ -26,8 +26,8 @@ interface IProps {
   style?: React.CSSProperties;
 }
 
-type ResourceCvnertEditorProps = Omit<
-  React.ComponentProps<typeof CvnertEditor>,
+type ResourceOmniboxEditorProps = Omit<
+  React.ComponentProps<typeof OmniboxEditor>,
   'content'
 > & {
   content?: string | TiptapJsonContent;
@@ -35,8 +35,8 @@ type ResourceCvnertEditorProps = Omit<
   theme?: 'light' | 'dark';
 };
 
-const ResourceCvnertEditor =
-  CvnertEditor as React.ComponentType<ResourceCvnertEditorProps>;
+const ResourceOmniboxEditor =
+  OmniboxEditor as React.ComponentType<ResourceOmniboxEditorProps>;
 
 function getResourceEditorContent(
   resource: Resource | SharedResource,
@@ -137,7 +137,7 @@ function MarkdownRender(props: IProps) {
   );
 }
 
-function CvnertRender(props: IProps) {
+function OmniboxRender(props: IProps) {
   const { resource, linkBase, style } = props;
   const { i18n } = useTranslation();
   const { theme } = useTheme();
@@ -263,7 +263,7 @@ function CvnertRender(props: IProps) {
       style={style}
       className="resource-readonly-editor pb-[30vh]"
     >
-      <ResourceCvnertEditor
+      <ResourceOmniboxEditor
         key={resource.id}
         editable={false}
         content={content}
@@ -271,7 +271,7 @@ function CvnertRender(props: IProps) {
         locale={i18n.language}
         theme={theme.content}
         variant="embedded"
-        contentWidth={CVNERT_EDITOR_CONTENT_WIDTH}
+        contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
         showHeader={false}
         showToc={false}
         debug={true}
@@ -281,8 +281,8 @@ function CvnertRender(props: IProps) {
 }
 
 export default function Render(props: IProps) {
-  return ENABLE_CVNERT_EDITOR ? (
-    <CvnertRender {...props} />
+  return ENABLE_OMNIBOX_EDITOR ? (
+    <OmniboxRender {...props} />
   ) : (
     <MarkdownRender {...props} />
   );

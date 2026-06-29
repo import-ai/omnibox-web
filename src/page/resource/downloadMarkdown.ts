@@ -1,4 +1,7 @@
-import { contentToMarkdown, type TiptapJsonContent } from 'cvnert-editor';
+import {
+  contentToMarkdown,
+  type TiptapJsonContent,
+} from '@import-ai/omnibox-editor';
 
 function isTiptapDocContent(value: unknown): value is TiptapJsonContent {
   return (

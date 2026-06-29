@@ -7,8 +7,8 @@ import useResource from '@/hooks/userResource';
 import useWide from '@/hooks/useWide';
 import { cn } from '@/lib/utils';
 import {
-  CVNERT_EDITOR_CONTENT_WIDTH,
-  ENABLE_CVNERT_EDITOR,
+  ENABLE_OMNIBOX_EDITOR,
+  OMNIBOX_EDITOR_CONTENT_WIDTH,
 } from '@/page/resource/editor/const';
 
 import Header from './header';
@@ -22,7 +22,7 @@ export default function ResourcePage() {
   const app = useApp();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const useEditorContentWidth =
-    ENABLE_CVNERT_EDITOR &&
+    ENABLE_OMNIBOX_EDITOR &&
     (props.editPage ||
       (!!props.resource &&
         props.resource.resource_type !== 'folder' &&
@@ -76,7 +76,7 @@ export default function ResourcePage() {
           })}
           style={
             !wide && useEditorContentWidth
-              ? { maxWidth: CVNERT_EDITOR_CONTENT_WIDTH }
+              ? { maxWidth: OMNIBOX_EDITOR_CONTENT_WIDTH }
               : undefined
           }
         >

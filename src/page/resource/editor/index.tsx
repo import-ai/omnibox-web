@@ -1,14 +1,14 @@
-import 'cvnert-editor/style.css';
+import '@import-ai/omnibox-editor/style.css';
 import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
 import '../resourceEditor.css';
 
 import {
   contentToTiptapJson,
-  CvnertEditor,
+  OmniboxEditor,
   type TiptapJsonContent,
   type UploadFunction,
-} from 'cvnert-editor';
+} from '@import-ai/omnibox-editor';
 import React, {
   useCallback,
   useEffect,
@@ -35,8 +35,8 @@ import {
   updateCacheTitle,
 } from '@/page/resource/editor/cache';
 import {
-  CVNERT_EDITOR_CONTENT_WIDTH,
-  ENABLE_CVNERT_EDITOR,
+  ENABLE_OMNIBOX_EDITOR,
+  OMNIBOX_EDITOR_CONTENT_WIDTH,
   toolbar,
 } from '@/page/resource/editor/const';
 
@@ -64,8 +64,8 @@ interface EditorUpdatePayload {
   html?: string;
 }
 
-type ResourceCvnertEditorProps = Omit<
-  React.ComponentProps<typeof CvnertEditor>,
+type ResourceOmniboxEditorProps = Omit<
+  React.ComponentProps<typeof OmniboxEditor>,
   'content' | 'onUpdate'
 > & {
   content?: string | TiptapJsonContent;
@@ -74,8 +74,10 @@ type ResourceCvnertEditorProps = Omit<
   onUpdate?: (payload: EditorUpdatePayload) => void;
 };
 
-const ResourceCvnertEditor =
-  CvnertEditor as React.ComponentType<ResourceCvnertEditorProps>;
+const ResourceOmniboxEditor =
+  OmniboxEditor as React.ComponentType<ResourceOmniboxEditorProps>;
+
+const AUTO_SAVE_INTERVAL = 15_000;
 
 function serializeResourceEditorContent(payload: EditorUpdatePayload): string {
   if (payload.json) {
@@ -83,6 +85,119 @@ function serializeResourceEditorContent(payload: EditorUpdatePayload): string {
   }
 
   return payload.markdown ?? payload.html ?? '';
+}
+
+function createResourceEditorSnapshot(name: string, content: string) {
+  return JSON.stringify({ name, content });
+}
+
+function useLatestRef<T>(value: T) {
+  const ref = useRef(value);
+
+  useEffect(() => {
+    ref.current = value;
+  }, [value]);
+
+  return ref;
+}
+
+function useAutoSaveResource({
+  app,
+  contentRef,
+  dirtyRef,
+  enabled,
+  namespaceId,
+  onResource,
+  resource,
+  title,
+}: {
+  app: ReturnType<typeof useTheme>['app'];
+  contentRef: React.MutableRefObject<string>;
+  dirtyRef: React.MutableRefObject<boolean>;
+  enabled: boolean;
+  namespaceId: string;
+  onResource: (resource: Resource) => void;
+  resource: Resource;
+  title: string;
+}) {
+  const savingRef = useRef(false);
+  const titleRef = useLatestRef(title);
+  const onResourceRef = useLatestRef(onResource);
+  const savedSnapshotRef = useRef(
+    createResourceEditorSnapshot(resource.name || '', resource.content || '')
+  );
+
+  useEffect(() => {
+    savedSnapshotRef.current = createResourceEditorSnapshot(
+      resource.name || '',
+      resource.content || ''
+    );
+  }, [resource.content, resource.id, resource.name]);
+
+  const autoSave = useCallback(async () => {
+    if (!enabled || savingRef.current || !dirtyRef.current) {
+      return;
+    }
+
+    const name = titleRef.current.trim();
+    const content = contentRef.current;
+    const snapshot = createResourceEditorSnapshot(name, content);
+
+    if (snapshot === savedSnapshotRef.current) {
+      dirtyRef.current = false;
+      return;
+    }
+
+    savingRef.current = true;
+
+    try {
+      const delta = await http.patch<Resource>(
+        `/namespaces/${namespaceId}/resources/${resource.id}`,
+        {
+          name,
+          content,
+          namespaceId,
+        },
+        { mute: true }
+      );
+      savedSnapshotRef.current = snapshot;
+      app.fire('update_resource', delta);
+      onResourceRef.current(delta);
+      const currentSnapshot = createResourceEditorSnapshot(
+        titleRef.current.trim(),
+        contentRef.current
+      );
+      dirtyRef.current = currentSnapshot !== snapshot;
+      if (!dirtyRef.current) {
+        clearCache(resource.id);
+      }
+    } catch {
+      // Keep the local cache and retry on the next autosave tick.
+    } finally {
+      savingRef.current = false;
+    }
+  }, [
+    app,
+    contentRef,
+    dirtyRef,
+    enabled,
+    namespaceId,
+    onResourceRef,
+    resource.id,
+    titleRef,
+  ]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const timer = window.setInterval(autoSave, AUTO_SAVE_INTERVAL);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [autoSave, enabled]);
 }
 
 function format(_files: File[], responseText: string): string {
@@ -102,7 +217,7 @@ function format(_files: File[], responseText: string): string {
   return JSON.stringify(processedResponse);
 }
 
-function CvnertResourceEditor(props: IEditorProps) {
+function OmniboxResourceEditor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
   const { i18n } = useTranslation();
   const busy = useRef(false);
@@ -112,6 +227,7 @@ function CvnertResourceEditor(props: IEditorProps) {
   const { app, theme } = useTheme();
   const [title, onTitle] = useState('');
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
+  const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const cachedTitle = cache?.title || resource.name || '';
   const cachedContent = cache?.content || resource.content || '';
   const linkBase = useMemo(
@@ -129,6 +245,7 @@ function CvnertResourceEditor(props: IEditorProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
+    dirtyRef.current = true;
     onTitle(newTitle);
     updateCacheTitle(resource.id, newTitle);
   };
@@ -141,11 +258,25 @@ function CvnertResourceEditor(props: IEditorProps) {
   const handleEditorUpdate = useCallback(
     (payload: EditorUpdatePayload) => {
       const content = serializeResourceEditorContent(payload);
+      if (content !== markdownRef.current) {
+        dirtyRef.current = true;
+      }
       markdownRef.current = content;
       updateCacheContent(resource.id, content);
     },
     [resource.id]
   );
+
+  useAutoSaveResource({
+    app,
+    contentRef: markdownRef,
+    dirtyRef,
+    enabled: true,
+    namespaceId,
+    onResource,
+    resource,
+    title,
+  });
 
   const uploadImage = useCallback<UploadFunction>(
     async (file, onProgress, abortSignal) => {
@@ -198,6 +329,7 @@ function CvnertResourceEditor(props: IEditorProps) {
         .then((delta: Resource) => {
           app.fire('update_resource', delta);
           onResource(delta);
+          dirtyRef.current = false;
           clearCache(resource.id);
           navigate(`/${namespaceId}/${resource.id}`, {
             state: loc.state,
@@ -221,7 +353,7 @@ function CvnertResourceEditor(props: IEditorProps) {
             content,
             namespaceId: namespaceId,
           })
-          .then(() => {
+          .finally(() => {
             busy.current = false;
           });
       }
@@ -233,7 +365,7 @@ function CvnertResourceEditor(props: IEditorProps) {
   }, [namespaceId, resource.id]);
 
   return (
-    <div>
+    <div className="pb-[30vh]">
       <Input
         type="text"
         value={title}
@@ -242,13 +374,13 @@ function CvnertResourceEditor(props: IEditorProps) {
         className="mb-4 p-2 border rounded"
       />
       <div className="resource-editable-editor">
-        <ResourceCvnertEditor
+        <ResourceOmniboxEditor
           key={resource.id}
           content={editorContent}
           locale={i18n.language}
           theme={theme.content}
           variant="embedded"
-          contentWidth={CVNERT_EDITOR_CONTENT_WIDTH}
+          contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
           showHeader={false}
           showToc={true}
           linkBase={linkBase}
@@ -271,9 +403,15 @@ function VditorResourceEditor(props: IEditorProps) {
   const { app, theme } = useTheme();
   const [vd, setVd] = useState<Vditor>();
   const [title, onTitle] = useState('');
+  const contentRef = useRef('');
+  const initialCache = useMemo(() => getCache(resource.id), [resource.id]);
+  const dirtyRef = useRef(
+    Boolean(initialCache?.title || initialCache?.content)
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
+    dirtyRef.current = true;
     onTitle(newTitle);
     updateCacheTitle(resource.id, newTitle);
   };
@@ -297,6 +435,7 @@ function VditorResourceEditor(props: IEditorProps) {
         .then((delta: Resource) => {
           app.fire('update_resource', delta);
           onResource(delta);
+          dirtyRef.current = false;
           clearCache(resource.id);
           navigate(`/${namespaceId}/${resource.id}`, {
             state: loc.state,
@@ -323,7 +462,7 @@ function VditorResourceEditor(props: IEditorProps) {
             content,
             namespaceId: namespaceId,
           })
-          .then(() => {
+          .finally(() => {
             busy.current = false;
           });
       }
@@ -336,9 +475,8 @@ function VditorResourceEditor(props: IEditorProps) {
 
   useEffect(() => {
     const token = localStorage.getItem('token') || '';
-    const cache = getCache(resource.id);
-    const cachedTitle = cache?.title || resource.name || '';
-    const cachedContent = cache?.content || resource.content || '';
+    const cachedTitle = initialCache?.title || resource.name || '';
+    const cachedContent = initialCache?.content || resource.content || '';
 
     onTitle(cachedTitle);
 
@@ -369,10 +507,15 @@ function VditorResourceEditor(props: IEditorProps) {
         format,
       },
       input: (value: string) => {
+        if (value !== contentRef.current) {
+          dirtyRef.current = true;
+        }
+        contentRef.current = value;
         updateCacheContent(resource.id, value);
       },
       after: () => {
         vditor.setValue(cachedContent);
+        contentRef.current = cachedContent;
         vditor.setTheme(
           theme.content === 'dark' ? 'dark' : 'classic',
           theme.content,
@@ -393,7 +536,18 @@ function VditorResourceEditor(props: IEditorProps) {
       vd?.destroy();
       setVd(undefined);
     };
-  }, [resource]);
+  }, [initialCache, resource]);
+
+  useAutoSaveResource({
+    app,
+    contentRef,
+    dirtyRef,
+    enabled: Boolean(vd),
+    namespaceId,
+    onResource,
+    resource,
+    title,
+  });
 
   useEffect(() => {
     if (!vd) {
@@ -407,7 +561,7 @@ function VditorResourceEditor(props: IEditorProps) {
   }, [vd, theme]);
 
   return (
-    <div>
+    <div className="pb-[30vh]">
       <Input
         type="text"
         value={title}
@@ -421,8 +575,8 @@ function VditorResourceEditor(props: IEditorProps) {
 }
 
 export default function Editor(props: IEditorProps) {
-  return ENABLE_CVNERT_EDITOR ? (
-    <CvnertResourceEditor {...props} />
+  return ENABLE_OMNIBOX_EDITOR ? (
+    <OmniboxResourceEditor {...props} />
   ) : (
     <VditorResourceEditor {...props} />
   );
