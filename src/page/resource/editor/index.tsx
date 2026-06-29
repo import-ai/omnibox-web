@@ -6,6 +6,7 @@ import '../resourceEditor.css';
 import {
   contentToTiptapJson,
   OmniboxEditor,
+  type OmniboxEditorMentionUser,
   type TiptapJsonContent,
   type UploadFunction,
 } from '@import-ai/omnibox-editor';
@@ -24,7 +25,7 @@ import { Input } from '@/components/input';
 import { markdownPreviewConfig } from '@/components/markdown';
 import { VDITOR_CDN } from '@/const';
 import useTheme from '@/hooks/useTheme';
-import { Resource } from '@/interface';
+import type { Member, Resource } from '@/interface';
 import { addReferrerPolicyForElement } from '@/lib/addReferrerPolicy';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
@@ -226,6 +227,9 @@ function OmniboxResourceEditor(props: IEditorProps) {
   const loc = useLocation();
   const { app, theme } = useTheme();
   const [title, onTitle] = useState('');
+  const [mentionUsers, setMentionUsers] = useState<OmniboxEditorMentionUser[]>(
+    []
+  );
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const cachedTitle = cache?.title || resource.name || '';
@@ -249,11 +253,6 @@ function OmniboxResourceEditor(props: IEditorProps) {
     onTitle(newTitle);
     updateCacheTitle(resource.id, newTitle);
   };
-
-  useEffect(() => {
-    onTitle(cachedTitle);
-    markdownRef.current = serializedEditorContent;
-  }, [cachedTitle, serializedEditorContent]);
 
   const handleEditorUpdate = useCallback(
     (payload: EditorUpdatePayload) => {
@@ -309,6 +308,59 @@ function OmniboxResourceEditor(props: IEditorProps) {
     },
     [linkBase, namespaceId, resource.id]
   );
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadMentionUsers() {
+      try {
+        const members = await http.get<Member[]>(
+          `/namespaces/${namespaceId}/members`,
+          { mute: true }
+        );
+
+        if (ignore) {
+          return;
+        }
+
+        setMentionUsers(
+          (Array.isArray(members) ? members : []).reduce<
+            OmniboxEditorMentionUser[]
+          >((users, member) => {
+            const id = member.user_id;
+            const name = member.username || member.email || id;
+
+            if (!id || !name) {
+              return users;
+            }
+
+            users.push({
+              id,
+              name,
+              position: member.role,
+            });
+
+            return users;
+          }, [])
+        );
+      } catch {
+        if (!ignore) {
+          setMentionUsers([]);
+        }
+      }
+    }
+
+    loadMentionUsers();
+
+    return () => {
+      ignore = true;
+    };
+  }, [namespaceId]);
+
+  useEffect(() => {
+    onTitle(cachedTitle);
+    markdownRef.current = serializedEditorContent;
+  }, [cachedTitle, serializedEditorContent]);
 
   useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
@@ -385,6 +437,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
           showToc={true}
           linkBase={linkBase}
           imageUpload={uploadImage}
+          mentionUsers={mentionUsers}
           onUpdate={handleEditorUpdate}
           debug={true}
         />
