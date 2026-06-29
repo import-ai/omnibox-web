@@ -1,18 +1,22 @@
 import { ArrowDown } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
 
 interface IProps {
   children: React.ReactNode;
 }
 
-const bottomThreshold = 200;
+const bottomThreshold = 24;
 
 export default function Scrollbar(props: IProps) {
+  const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const scrollToBottomLabel = t('chat.messages.actions.scroll_to_bottom');
 
   const updateScrollToBottomVisible = useCallback(() => {
     const root = rootRef.current;
@@ -74,19 +78,22 @@ export default function Scrollbar(props: IProps) {
           {props.children}
         </div>
       </div>
-      {showScrollToBottom && (
-        <Button
-          aria-label="回到底部"
-          className="absolute bottom-4 right-6 rounded-full bg-background/95 text-foreground shadow-md backdrop-blur hover:bg-accent hover:text-accent-foreground"
-          onClick={() => scrollToBottom('smooth')}
-          size="icon"
-          title="回到底部"
-          type="button"
-          variant="outline"
-        >
-          <ArrowDown />
-        </Button>
-      )}
+      <Button
+        aria-label={scrollToBottomLabel}
+        className={cn(
+          'absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-border bg-background/95 text-foreground opacity-0 backdrop-blur transition-opacity duration-200 hover:bg-accent hover:text-accent-foreground',
+          showScrollToBottom
+            ? 'pointer-events-auto opacity-100'
+            : 'pointer-events-none'
+        )}
+        onClick={() => scrollToBottom('smooth')}
+        size="icon"
+        title={scrollToBottomLabel}
+        type="button"
+        variant="outline"
+      >
+        <ArrowDown />
+      </Button>
     </div>
   );
 }
