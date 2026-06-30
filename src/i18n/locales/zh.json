@@ -585,6 +585,7 @@
           "list_resources": "浏览资源",
           "read_file": "读取资源",
           "read_resource": "读取资源",
+          "read_root": "读取根资源",
           "edit_file": "编辑资源",
           "edit_resource": "编辑资源",
           "write_file": "创建资源",
@@ -607,12 +608,15 @@
           "add_tag_to_resource": "将标签添加至资源",
           "tag_filter": "筛选标签",
           "collect_url": "收藏网页",
+          "list_resource_tasks": "查询资源任务",
+          "wait": "等待",
           "frontend_operations": "前端操作",
           "unknown": "未知工具"
         },
         "function_args": {
           "private": "个人",
-          "teamspace": "团队"
+          "teamspace": "团队",
+          "seconds": "秒"
         }
       }
     },

@@ -1,7 +1,6 @@
 import { Ban, Check, MessageCircleWarning, X } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 
 import {
   Accordion,
@@ -11,7 +10,9 @@ import {
 } from '@/components/ui/Accordion';
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
+import type { ProcessedArg } from '@/lib/toolArgs';
 import { joinArgs, processArgs } from '@/lib/toolArgs';
+import { ToolCallArgs } from '@/page/chat/components/ToolCallArgs';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
   type Citation,
@@ -26,10 +27,6 @@ import { ToolCallStatus } from '@/page/chat/core/types/toolCall';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings';
 import { CitationMarkdown } from '@/page/chat/messages/citations/CitationMarkdown';
 import { replaceReasoningCiteMarkers } from '@/page/chat/messages/citations/citationUtils';
-import type {
-  VfsPathResourceIds,
-  VfsPathResourceTitles,
-} from '@/page/chat/messages/citations/vfsPathLinks';
 
 import {
   findToolMessageForToolCall,
@@ -54,7 +51,7 @@ interface IToolCall {
   toolMessageId?: string;
   inStreaming?: boolean;
   name: string;
-  args: string[];
+  args: ProcessedArg[];
   status: ToolCallStatus;
   joinedArgs: string;
   operations?: ToolCallFrontendOperation[];
@@ -93,47 +90,10 @@ export function AssistantMessage(props: IProps) {
   } = props;
   const { t } = useTranslation();
   const app = useApp();
-  const params = useParams();
   const openAIMessage = message.message;
 
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
     useMessageSiblings(message.id, messageOperator);
-  const resourceLinkPrefix = React.useMemo(() => {
-    if (params.share_id) {
-      return `/s/${params.share_id}`;
-    }
-    if (params.namespace_id) {
-      return `/${params.namespace_id}`;
-    }
-    return '';
-  }, [params.namespace_id, params.share_id]);
-  const vfsPathResourceIds = React.useMemo((): VfsPathResourceIds => {
-    const result: VfsPathResourceIds = {};
-    for (const message of messages) {
-      const mappings = message.attrs?.tool_call?.vfs_path_resource_ids;
-      if (mappings) {
-        Object.assign(result, mappings);
-      }
-    }
-    return result;
-  }, [messages]);
-  const vfsPathResourceTitles = React.useMemo((): VfsPathResourceTitles => {
-    const titleByResourceId: Record<string, string> = {};
-    for (const citation of citations) {
-      if (citation.title && !citation.link.startsWith('http')) {
-        titleByResourceId[citation.link] = citation.title;
-      }
-    }
-
-    const result: VfsPathResourceTitles = {};
-    for (const [path, resourceId] of Object.entries(vfsPathResourceIds)) {
-      const title = titleByResourceId[resourceId];
-      if (title) {
-        result[path] = title;
-      }
-    }
-    return result;
-  }, [citations, vfsPathResourceIds]);
 
   const domList: React.ReactNode[] = [];
   if (openAIMessage.reasoning_content?.trim()) {
@@ -174,9 +134,6 @@ export function AssistantMessage(props: IProps) {
         onPrevious={handlePrevious}
         onNext={handleNext}
         isLastMessage={isLastMessage}
-        vfsPathResourceIds={vfsPathResourceIds}
-        vfsPathResourceTitles={vfsPathResourceTitles}
-        resourceLinkPrefix={resourceLinkPrefix}
       />
     );
   }
@@ -189,7 +146,7 @@ export function AssistantMessage(props: IProps) {
         `chat.messages.tool_calls.function_name.${toolCall.function.name}`,
         t('chat.messages.tool_calls.function_name.unknown')
       );
-      const args: string[] = processArgs(
+      const args: ProcessedArg[] = processArgs(
         JSON.parse(toolCall.function.arguments),
         t
       );
@@ -210,7 +167,7 @@ export function AssistantMessage(props: IProps) {
   }
   if (message.attrs?.tool_call?.interrupts) {
     for (const interrupt of message.attrs.tool_call.interrupts) {
-      const args: string[] = processArgs(interrupt.args, t);
+      const args: ProcessedArg[] = processArgs(interrupt.args, t);
       const functionName = t(
         `chat.messages.tool_calls.function_name.${interrupt.name}`
       );
@@ -298,14 +255,7 @@ export function AssistantMessage(props: IProps) {
                 >
                   {toolStateIcon(toolCall.status)}
                   <b>{toolCall.name}</b>
-                  {toolCall.args.map((arg, argIndex) => (
-                    <code
-                      key={'arg_' + argIndex}
-                      className="bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded text-xs font-mono"
-                    >
-                      {arg}
-                    </code>
-                  ))}
+                  <ToolCallArgs args={toolCall.args} />
                 </li>
               ))}
             </ul>
