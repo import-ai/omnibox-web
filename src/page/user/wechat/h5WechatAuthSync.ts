@@ -66,26 +66,6 @@ export function clearH5WechatOAuthPoll(): void {
   sessionStorage.removeItem(H5_WECHAT_OAUTH_POLL_KEY);
 }
 
-export async function syncH5WechatOAuthState(
-  oauthState: string | null,
-  userId: string,
-  accessToken: string
-): Promise<void> {
-  if (!oauthState) {
-    return;
-  }
-
-  await http.post(
-    '/wechat/check/complete',
-    {
-      state: oauthState,
-      id: userId,
-      access_token: accessToken,
-    },
-    { mute: true }
-  );
-}
-
 async function pollH5WechatOAuthOnce(
   session: H5WechatOAuthPollSession
 ): Promise<boolean> {

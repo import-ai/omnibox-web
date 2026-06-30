@@ -8,7 +8,6 @@ import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 import { setGlobalCredential } from '@/page/user/util';
-import { syncH5WechatOAuthState } from '@/page/user/wechat/h5WechatAuthSync';
 
 import { OtpInput } from './components/OtpInput';
 import MetaPage from './MetaPage';
@@ -22,7 +21,6 @@ export default function VerifyOtpPage() {
   const email = params.get('email');
   const phone = params.get('phone');
   const redirect = params.get('redirect');
-  const oauthState = params.get('oauth_state');
   const magicToken = params.get('token');
 
   // Determine verification type
@@ -71,7 +69,6 @@ export default function VerifyOtpPage() {
   }, [countdown]);
 
   const finishLogin = async (userId: string, accessToken: string) => {
-    await syncH5WechatOAuthState(oauthState, userId, accessToken);
     setGlobalCredential(userId, accessToken);
     location.href = await getAuthSuccessRedirect(redirect);
   };
