@@ -9,7 +9,10 @@ import Google from '../google';
 import MetaPage from '../MetaPage';
 import Phone from '../phone';
 import WeChat from '../wechat';
-import { useH5WechatAuthPoll } from '../wechat/h5WechatAuthSync';
+import {
+  syncH5WechatOAuthState,
+  useH5WechatAuthPoll,
+} from '../wechat/h5WechatAuthSync';
 import Scan from '../wechat/Scan';
 import WrapperPage from '../WrapperPage';
 import { LoginForm } from './LoginForm';
@@ -46,10 +49,20 @@ export default function LoginPage() {
 
   useEffect(() => {
     const uid = localStorage.getItem('uid');
+    const token = localStorage.getItem('token');
+    const oauthState = params.get('oauth_state');
+
+    if (uid && token && oauthState) {
+      void syncH5WechatOAuthState(oauthState, uid, token).finally(() => {
+        navigate('/', { replace: true });
+      });
+      return;
+    }
+
     if (uid) {
       navigate('/', { replace: true });
     }
-  }, []);
+  }, [navigate, params]);
 
   return (
     <WrapperPage extra={<MetaPage />}>

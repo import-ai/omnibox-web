@@ -114,6 +114,25 @@ async function pollH5WechatOAuthOnce(
   return false;
 }
 
+function getPersistedH5WechatOAuthPoll(): H5WechatOAuthPollSession | null {
+  const raw = sessionStorage.getItem(H5_WECHAT_OAUTH_POLL_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const session = JSON.parse(raw) as H5WechatOAuthPollSession;
+    if (!session.state) {
+      clearH5WechatOAuthPoll();
+      return null;
+    }
+    return session;
+  } catch {
+    clearH5WechatOAuthPoll();
+    return null;
+  }
+}
+
 export function useH5WechatAuthPoll(): void {
   const pollingRef = useRef(false);
 
@@ -122,26 +141,13 @@ export function useH5WechatAuthPoll(): void {
       return;
     }
 
-    const raw = sessionStorage.getItem(H5_WECHAT_OAUTH_POLL_KEY);
-    if (!raw) {
-      return;
-    }
-
-    let session: H5WechatOAuthPollSession;
-    try {
-      session = JSON.parse(raw) as H5WechatOAuthPollSession;
-    } catch {
-      clearH5WechatOAuthPoll();
-      return;
-    }
-
-    if (!session.state) {
-      clearH5WechatOAuthPoll();
-      return;
-    }
-
     const poll = async () => {
       if (pollingRef.current) {
+        return;
+      }
+
+      const session = getPersistedH5WechatOAuthPoll();
+      if (!session) {
         return;
       }
 
@@ -164,11 +170,19 @@ export function useH5WechatAuthPoll(): void {
       }
     };
 
+    const handleResume = () => {
+      void poll();
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleResume);
+    window.addEventListener('pageshow', handleResume);
 
     return () => {
       window.clearInterval(intervalId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleResume);
+      window.removeEventListener('pageshow', handleResume);
     };
   }, []);
 }
