@@ -78,7 +78,7 @@ type ResourceOmniboxEditorProps = Omit<
 const ResourceOmniboxEditor =
   OmniboxEditor as React.ComponentType<ResourceOmniboxEditorProps>;
 
-const AUTO_SAVE_INTERVAL = 15_000;
+const AUTO_SAVE_INTERVAL = 5000;
 
 function serializeResourceEditorContent(payload: EditorUpdatePayload): string {
   if (payload.json) {
@@ -90,6 +90,15 @@ function serializeResourceEditorContent(payload: EditorUpdatePayload): string {
 
 function createResourceEditorSnapshot(name: string, content: string) {
   return JSON.stringify({ name, content });
+}
+
+function saveResourceEditorCache(
+  resourceId: string,
+  title: string,
+  content: string
+) {
+  updateCacheTitle(resourceId, title);
+  updateCacheContent(resourceId, content);
 }
 
 function useLatestRef<T>(value: T) {
@@ -221,7 +230,6 @@ function format(_files: File[], responseText: string): string {
 function OmniboxResourceEditor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
   const { i18n } = useTranslation();
-  const busy = useRef(false);
   const markdownRef = useRef('');
   const navigate = useNavigate();
   const loc = useLocation();
@@ -233,18 +241,30 @@ function OmniboxResourceEditor(props: IEditorProps) {
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const cachedTitle = cache?.title || resource.name || '';
-  const cachedContent = cache?.content || resource.content || '';
   const linkBase = useMemo(
     () => `/${namespaceId}/${resource.id}`,
     [namespaceId, resource.id]
   );
+  // Snapshot the content once per resource. Pinning it to the resource id means
+  // later changes to `resource.content` (autosave echoes, cross-tab
+  // `update_resource` events, etc.) never produce a new `content` prop for the
+  // editor — otherwise the editor calls `setContent` and the caret jumps to the
+  // end. The editor remounts via `key={resource.id}` when switching documents,
+  // and `Wrapper` only mounts it once the resource has finished loading.
+  // Depends only on resource.id by design — see comment above. `cache` is
+  // memoized on resource.id and `resource.content` is intentionally not a
+  // dependency so the editor is never re-seeded mid-edit.
+  const initialContent = useMemo(
+    () => cache?.content || resource.content || '',
+    [resource.id]
+  );
   const editorContent = useMemo(
-    () => contentToTiptapJson(cachedContent, { linkBase }),
-    [cachedContent, linkBase]
+    () => contentToTiptapJson(initialContent, { linkBase }),
+    [initialContent, linkBase]
   );
   const serializedEditorContent = useMemo(
-    () => (cachedContent ? JSON.stringify(editorContent) : ''),
-    [cachedContent, editorContent]
+    () => (initialContent ? JSON.stringify(editorContent) : ''),
+    [initialContent, editorContent]
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -395,26 +415,14 @@ function OmniboxResourceEditor(props: IEditorProps) {
     const keydownFN = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        const content = markdownRef.current;
-        if (busy.current) {
-          return;
-        }
-        busy.current = true;
-        http
-          .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
-            content,
-            namespaceId: namespaceId,
-          })
-          .finally(() => {
-            busy.current = false;
-          });
+        saveResourceEditorCache(resource.id, title, markdownRef.current);
       }
     };
     document.addEventListener('keydown', keydownFN);
     return () => {
       document.removeEventListener('keydown', keydownFN);
     };
-  }, [namespaceId, resource.id]);
+  }, [resource.id, title]);
 
   return (
     <div className="pb-[30vh]">
@@ -449,7 +457,6 @@ function OmniboxResourceEditor(props: IEditorProps) {
 function VditorResourceEditor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
   const { i18n } = useTranslation();
-  const busy = useRef(false);
   const root = useRef<any>(null);
   const navigate = useNavigate();
   const loc = useLocation();
@@ -505,26 +512,14 @@ function VditorResourceEditor(props: IEditorProps) {
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        const content = vd.getValue();
-        if (busy.current) {
-          return;
-        }
-        busy.current = true;
-        http
-          .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
-            content,
-            namespaceId: namespaceId,
-          })
-          .finally(() => {
-            busy.current = false;
-          });
+        saveResourceEditorCache(resource.id, title, vd.getValue());
       }
     };
     document.addEventListener('keydown', keydownFN);
     return () => {
       document.removeEventListener('keydown', keydownFN);
     };
-  }, [vd, resource]);
+  }, [resource.id, title, vd]);
 
   useEffect(() => {
     const token = localStorage.getItem('token') || '';
