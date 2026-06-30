@@ -567,6 +567,7 @@
         "copy": "Copy Markdown",
         "copy_simple": "Copy",
         "edit": "Edit message",
+        "scroll_to_bottom": "Back to bottom",
         "save_edit": "Save",
         "cancel_edit": "Cancel"
       },
