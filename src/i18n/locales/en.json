@@ -589,6 +589,7 @@
           "list_resources": "List Resources",
           "read_file": "Read Resource",
           "read_resource": "Read Resource",
+          "read_root": "Read Root",
           "edit_file": "Edit Resource",
           "edit_resource": "Edit Resource",
           "write_file": "Create Resource",
@@ -611,12 +612,15 @@
           "add_tag_to_resource": "Add Tag to Resource",
           "tag_filter": "Tag Filter",
           "collect_url": "Collect URL",
+          "list_resource_tasks": "List Resource Tasks",
+          "wait": "Wait",
           "frontend_operations": "Frontend Operating",
           "unknown": "Unknown"
         },
         "function_args": {
           "private": "private",
-          "teamspace": "teamspace"
+          "teamspace": "teamspace",
+          "seconds": "s"
         }
       }
     },
