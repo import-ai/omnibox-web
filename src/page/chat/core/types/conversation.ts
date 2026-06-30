@@ -32,6 +32,9 @@ export interface MessageAttrs {
   enable_thinking?: boolean;
   lang?: '简体中文' | 'English';
   error_message?: string;
+  compact?: {
+    status: 'compacting' | 'compacted';
+  };
   user_context?: {
     selected_resources?: string[];
   };
@@ -43,7 +46,6 @@ export interface MessageAttrs {
       type: DecisionType;
     }[];
     operations?: ToolCallFrontendOperation[];
-    vfs_path_resource_ids?: Record<string, string>;
     in_streaming?: boolean; // frontend only
   };
   // frontend only
