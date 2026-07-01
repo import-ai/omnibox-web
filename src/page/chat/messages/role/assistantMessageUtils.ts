@@ -34,3 +34,37 @@ export function resolveToolCallStatus(
   }
   return toolMessage ? ToolCallStatus.RUNNING : ToolCallStatus.PENDING;
 }
+
+export interface ContextCompactCapacity {
+  estimatedTokens: number;
+  triggerTokens: number;
+  percent: number;
+  remainingPercent: number;
+}
+
+export function getLatestContextCompactCapacity(
+  messages: MessageDetail[]
+): ContextCompactCapacity | undefined {
+  for (let index = messages.length - 1; index >= 0; index--) {
+    const usage = messages[index].attrs?.usage;
+    const estimatedTokens = usage?.context_compact?.estimated_tokens;
+    const triggerTokens = usage?.context_compact?.trigger_tokens;
+    if (
+      typeof estimatedTokens === 'number' &&
+      typeof triggerTokens === 'number' &&
+      triggerTokens > 0
+    ) {
+      const percent = Math.min(
+        100,
+        Math.round((estimatedTokens / triggerTokens) * 100)
+      );
+      return {
+        estimatedTokens,
+        triggerTokens,
+        percent,
+        remainingPercent: 100 - percent,
+      };
+    }
+  }
+  return undefined;
+}
