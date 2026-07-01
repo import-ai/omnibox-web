@@ -125,12 +125,6 @@ function ContextCapacityIndicator({
         <div className="text-muted-foreground">
           {t('chat.messages.context_capacity.title')}
         </div>
-        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-[#117bfa]"
-            style={{ width: `${capacity.percent}%` }}
-          />
-        </div>
         <div className="mt-1 text-foreground">
           {t('chat.messages.context_capacity.ratio', {
             used: capacity.percent,
