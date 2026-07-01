@@ -23,8 +23,6 @@ export default function WeChat(props: IProps) {
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
-  const oauthState = params.get('oauth_state');
-  const oauthDeviceToken = params.get('oauth_device_token');
   const isWeChat = navigator.userAgent.toLowerCase().includes('micromessenger');
   const useMiniProgramLaunch = isExternalMobileBrowser();
   const [launching, setLaunching] = useState(false);
@@ -34,10 +32,7 @@ export default function WeChat(props: IProps) {
       http
         .get('/wechat/auth-url', {
           params: {
-            source: oauthState ? 'h5' : undefined,
             ...(redirect ? { redirect } : {}),
-            ...(oauthState ? { state: oauthState } : {}),
-            ...(oauthDeviceToken ? { device_token: oauthDeviceToken } : {}),
           },
         })
         .then(authUrl => {
