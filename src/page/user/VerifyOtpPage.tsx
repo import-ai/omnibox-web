@@ -8,6 +8,10 @@ import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 import { setGlobalCredential } from '@/page/user/util';
+import {
+  getH5WechatLoginParams,
+  syncH5WechatOAuthState,
+} from '@/page/user/wechat/h5WechatAuthSync';
 
 import { OtpInput } from './components/OtpInput';
 import MetaPage from './MetaPage';
@@ -21,7 +25,14 @@ export default function VerifyOtpPage() {
   const email = params.get('email');
   const phone = params.get('phone');
   const redirect = params.get('redirect');
+  const oauthState = params.get('oauth_state');
+  const oauthDeviceToken = params.get('oauth_device_token');
   const magicToken = params.get('token');
+  const h5WechatParams = getH5WechatLoginParams(params);
+  const withVerifyQuery = (
+    path: string,
+    query: Record<string, string | null | undefined>
+  ) => buildUrl(path, { ...query, ...h5WechatParams });
 
   // Determine verification type
   const isPhoneVerification = !!phone && !email;
@@ -69,6 +80,12 @@ export default function VerifyOtpPage() {
   }, [countdown]);
 
   const finishLogin = async (userId: string, accessToken: string) => {
+    await syncH5WechatOAuthState(
+      oauthState,
+      oauthDeviceToken,
+      userId,
+      accessToken
+    );
     setGlobalCredential(userId, accessToken);
     location.href = await getAuthSuccessRedirect(redirect);
   };
@@ -154,7 +171,7 @@ export default function VerifyOtpPage() {
           'auth/send-otp',
           {
             email: identifier,
-            url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
+            url: `${window.location.origin}${withVerifyQuery('/user/verify-otp', { redirect })}`,
           },
           { mute: true }
         );
@@ -236,7 +253,7 @@ export default function VerifyOtpPage() {
           <button
             onClick={() =>
               navigate(
-                buildUrl('/user/login', {
+                withVerifyQuery('/user/login', {
                   email: isPhoneVerification ? undefined : email,
                   phone: isPhoneVerification ? phone : undefined,
                   mode: isPhoneVerification ? 'phone' : 'email',

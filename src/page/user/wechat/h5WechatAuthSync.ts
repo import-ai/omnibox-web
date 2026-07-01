@@ -12,6 +12,7 @@ const H5_WECHAT_POLL_TIMEOUT_MS = 5 * 60 * 1000;
 
 interface H5WechatOAuthPollSession {
   state: string;
+  deviceToken: string;
   redirect: string | null;
   startedAt: number;
 }
@@ -38,10 +39,14 @@ export function getH5WechatLoginParams(
 ): Record<string, string> {
   const extra: Record<string, string> = {};
   const oauthState = params.get('oauth_state');
+  const oauthDeviceToken = params.get('oauth_device_token');
   const from = params.get('from');
 
   if (oauthState) {
     extra.oauth_state = oauthState;
+  }
+  if (oauthDeviceToken) {
+    extra.oauth_device_token = oauthDeviceToken;
   }
   if (from) {
     extra.from = from;
@@ -50,20 +55,51 @@ export function getH5WechatLoginParams(
   return extra;
 }
 
+function generateDeviceToken(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
 export function persistH5WechatOAuthPoll(
   state: string,
+  deviceToken: string,
   redirect?: string | null
 ): void {
   const session: H5WechatOAuthPollSession = {
     state,
+    deviceToken,
     redirect: redirect ?? null,
     startedAt: Date.now(),
   };
-  sessionStorage.setItem(H5_WECHAT_OAUTH_POLL_KEY, JSON.stringify(session));
+  localStorage.setItem(H5_WECHAT_OAUTH_POLL_KEY, JSON.stringify(session));
 }
 
 export function clearH5WechatOAuthPoll(): void {
+  localStorage.removeItem(H5_WECHAT_OAUTH_POLL_KEY);
   sessionStorage.removeItem(H5_WECHAT_OAUTH_POLL_KEY);
+}
+
+export async function syncH5WechatOAuthState(
+  oauthState: string | null,
+  deviceToken: string | null,
+  userId: string,
+  accessToken: string
+): Promise<void> {
+  if (!oauthState || !deviceToken) {
+    return;
+  }
+
+  await http.post(
+    '/wechat/check/complete',
+    {
+      state: oauthState,
+      device_token: deviceToken,
+      id: userId,
+      access_token: accessToken,
+    },
+    { mute: true }
+  );
 }
 
 async function pollH5WechatOAuthOnce(
@@ -75,7 +111,7 @@ async function pollH5WechatOAuthOnce(
   }
 
   const response = (await http.get('/wechat/check', {
-    params: { state: session.state },
+    params: { state: session.state, device_token: session.deviceToken },
     mute: true,
   })) as WechatCheckResponse;
 
@@ -95,14 +131,16 @@ async function pollH5WechatOAuthOnce(
 }
 
 function getPersistedH5WechatOAuthPoll(): H5WechatOAuthPollSession | null {
-  const raw = sessionStorage.getItem(H5_WECHAT_OAUTH_POLL_KEY);
+  const raw =
+    localStorage.getItem(H5_WECHAT_OAUTH_POLL_KEY) ||
+    sessionStorage.getItem(H5_WECHAT_OAUTH_POLL_KEY);
   if (!raw) {
     return null;
   }
 
   try {
     const session = JSON.parse(raw) as H5WechatOAuthPollSession;
-    if (!session.state) {
+    if (!session.state || !session.deviceToken) {
       clearH5WechatOAuthPoll();
       return null;
     }
@@ -169,10 +207,12 @@ export function useH5WechatAuthPoll(): void {
 
 export async function prepareH5WechatOAuthState(
   redirect?: string | null
-): Promise<string> {
+): Promise<H5WechatOAuthPollSession> {
+  const deviceToken = generateDeviceToken();
   const authUrl = (await http.get('/wechat/auth-url', {
     params: {
       source: 'h5',
+      device_token: deviceToken,
       ...(redirect ? { redirect } : {}),
     },
   })) as string;
@@ -182,6 +222,11 @@ export async function prepareH5WechatOAuthState(
     throw new Error('Invalid WeChat auth URL');
   }
 
-  persistH5WechatOAuthPoll(state, redirect);
-  return state;
+  persistH5WechatOAuthPoll(state, deviceToken, redirect);
+  return {
+    state,
+    deviceToken,
+    redirect: redirect ?? null,
+    startedAt: Date.now(),
+  };
 }

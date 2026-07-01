@@ -24,6 +24,7 @@ import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { phoneSchema } from '@/lib/validationSchemas';
+import { getH5WechatLoginParams } from '@/page/user/wechat/h5WechatAuthSync';
 
 import type { ContactMethod } from './index';
 
@@ -50,6 +51,11 @@ export function RegisterForm({ children, contactMethod }: IProps) {
   const emailParam = params.get('email');
   const phoneParam = params.get('phone');
   const redirect = params.get('redirect');
+  const h5WechatParams = getH5WechatLoginParams(params);
+  const withRegisterQuery = (
+    path: string,
+    query: Record<string, string | null | undefined>
+  ) => buildUrl(path, { ...query, ...h5WechatParams });
   const [isLoading, setIsLoading] = useState(false);
   const { allowedCountries } = usePhoneConfig();
 
@@ -84,7 +90,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
     try {
       const response = await http.post('auth/send-signup-otp', {
         email: data.email,
-        url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
+        url: `${window.location.origin}${withRegisterQuery('/user/verify-otp', { redirect })}`,
       });
 
       if (response.exists) {
@@ -92,7 +98,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
           position: 'bottom-right',
         });
         navigate(
-          buildUrl('/user/login', {
+          withRegisterQuery('/user/login', {
             email: data.email,
             mode: 'email',
             redirect,
@@ -101,7 +107,9 @@ export function RegisterForm({ children, contactMethod }: IProps) {
         return;
       }
 
-      navigate(buildUrl('/user/verify-otp', { email: data.email, redirect }));
+      navigate(
+        withRegisterQuery('/user/verify-otp', { email: data.email, redirect })
+      );
     } catch {
       setIsLoading(false);
     }
@@ -119,7 +127,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
           position: 'bottom-right',
         });
         navigate(
-          buildUrl('/user/login', {
+          withRegisterQuery('/user/login', {
             phone: data.phone,
             mode: 'phone',
             redirect,
@@ -128,7 +136,9 @@ export function RegisterForm({ children, contactMethod }: IProps) {
         return;
       }
 
-      navigate(buildUrl('/user/verify-otp', { phone: data.phone, redirect }));
+      navigate(
+        withRegisterQuery('/user/verify-otp', { phone: data.phone, redirect })
+      );
     } catch {
       setIsLoading(false);
     }
@@ -184,7 +194,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
             <div className="text-center text-sm">
               {t('form.exist_account')}
               <Link
-                to={buildUrl('/user/login', {
+                to={withRegisterQuery('/user/login', {
                   email: emailForm.getValues('email'),
                   mode: 'email',
                   redirect,
@@ -232,7 +242,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
             <div className="text-center text-sm">
               {t('form.exist_account')}
               <Link
-                to={buildUrl('/user/login', {
+                to={withRegisterQuery('/user/login', {
                   phone: phoneForm.getValues('phone'),
                   mode: 'phone',
                   redirect,
