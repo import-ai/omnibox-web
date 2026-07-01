@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Markdown, { ExtraProps } from 'react-markdown';
+import { useParams } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
@@ -31,17 +32,9 @@ import {
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
-import {
-  getVfsResourceDisplayName,
-  getVfsResourceHref,
-  getVfsRootPathLabel,
-  remarkVfsPathLinks,
-  type VfsPathResourceIds,
-  type VfsPathResourceTitles,
-  type VfsRootPathLabels,
-} from '@/page/chat/messages/citations/vfsPathLinks';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
+const resourceLinkRegex = /^#resource-([\w-]+)$/;
 
 interface IProps {
   content: string;
@@ -58,9 +51,6 @@ interface IProps {
   onPrevious?: () => void;
   onNext?: () => void;
   isLastMessage: boolean;
-  vfsPathResourceIds?: VfsPathResourceIds;
-  vfsPathResourceTitles?: VfsPathResourceTitles;
-  resourceLinkPrefix?: string;
 }
 
 export function CitationMarkdown(props: IProps) {
@@ -79,21 +69,16 @@ export function CitationMarkdown(props: IProps) {
     onPrevious,
     onNext,
     isLastMessage,
-    vfsPathResourceIds = {},
-    vfsPathResourceTitles = {},
-    resourceLinkPrefix = '',
   } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
-  const vfsRootPathLabels = React.useMemo(
-    (): VfsRootPathLabels => ({
-      '/private': t('private'),
-      '/teamspace': t('teamspace'),
-      '/share': t('share.share.title'),
-    }),
-    [t]
-  );
+  const params = useParams();
+  const resourceLinkPrefix = params.share_id
+    ? `/s/${params.share_id}`
+    : params.namespace_id
+      ? `/${params.namespace_id}`
+      : '';
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
@@ -102,27 +87,22 @@ export function CitationMarkdown(props: IProps) {
     removeGeneratedCite,
     citations.length
   );
-  const vfsPathLinksPlugin = React.useMemo(
-    () =>
-      function vfsPathLinksPlugin() {
-        return remarkVfsPathLinks(
-          vfsPathResourceIds,
-          resourceLinkPrefix,
-          vfsPathResourceTitles,
-          vfsRootPathLabels
-        );
-      },
-    [
-      resourceLinkPrefix,
-      vfsPathResourceIds,
-      vfsPathResourceTitles,
-      vfsRootPathLabels,
-    ]
-  );
 
   const components = {
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
       const { node } = props;
+      const resourceMatch = href?.match(resourceLinkRegex);
+      if (resourceMatch && resourceLinkPrefix) {
+        return (
+          <a
+            href={`${resourceLinkPrefix}/${resourceMatch[1]}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {children}
+          </a>
+        );
+      }
       const citeMatch = href?.match(citeLinkRegex);
       if (citeMatch) {
         const id = Number(citeMatch[1]) - 1;
@@ -189,36 +169,9 @@ export function CitationMarkdown(props: IProps) {
           </SyntaxHighlighter>
         </div>
       ) : (
-        (() => {
-          const codeContent = String(children);
-          const rootLabel = codeContent.includes('\n')
-            ? undefined
-            : getVfsRootPathLabel(codeContent, vfsRootPathLabels);
-          if (rootLabel) {
-            return rootLabel;
-          }
-          const href = codeContent.includes('\n')
-            ? undefined
-            : getVfsResourceHref(
-                codeContent,
-                vfsPathResourceIds,
-                resourceLinkPrefix
-              );
-          const code = (
-            <code {...props} className={className}>
-              {href
-                ? getVfsResourceDisplayName(codeContent, vfsPathResourceTitles)
-                : children}
-            </code>
-          );
-          return href ? (
-            <a href={href} target="_blank" rel="noopener noreferrer">
-              {code}
-            </a>
-          ) : (
-            code
-          );
-        })()
+        <code {...props} className={className}>
+          {children}
+        </code>
       );
     },
   };
@@ -229,7 +182,7 @@ export function CitationMarkdown(props: IProps) {
       style={{ background: 'transparent' }}
     >
       <Markdown
-        remarkPlugins={[remarkGfm, remarkMath, vfsPathLinksPlugin]}
+        remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
         components={components}
         urlTransform={citationUrlTransform}

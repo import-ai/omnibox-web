@@ -60,7 +60,6 @@ describe('citation id helpers', () => {
   it('detects supported citation id formats', () => {
     expect(isCitationId('C1-resource-lines-L2-3')).toBe(true);
     expect(isCitationId('C2-web-title')).toBe(true);
-    expect(isCitationId('vfs:/private/example.md:2-3')).toBe(false);
     expect(isCitationId('web:abcdef123456')).toBe(false);
     expect(isCitationId('/private/example.md')).toBe(false);
     expect(isCitationId('#cite-1')).toBe(false);
@@ -80,9 +79,6 @@ describe('citation id helpers', () => {
   it('does not resolve unmatched citation ids', () => {
     expect(findCitationById(citations, 'C3-not-found')).toBeUndefined();
     expect(findCitationById(citations, 'web:abcdef123456')).toBeUndefined();
-    expect(
-      findCitationById(citations, 'vfs:/private/example.md:2-3')
-    ).toBeUndefined();
   });
 
   it('finds citations when markdown percent-encodes ids', () => {
