@@ -33,9 +33,11 @@ export function WechatLogin(props: IProps) {
   const userAgent = navigator.userAgent.toLowerCase();
   const isPhone = isMobile(userAgent).phone;
   const isWeChat = userAgent.includes('micromessenger');
+
   const alertDisableWeChatLogin = () => {
     toast(t('login.wechat_disabled'), { position: 'bottom-right' });
   };
+
   const loginWithWeChat = () => {
     if (isWeChat) {
       http
