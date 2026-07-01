@@ -24,7 +24,6 @@ import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { phoneSchema } from '@/lib/validationSchemas';
-import { getH5WechatLoginParams } from '@/page/user/wechat/h5WechatAuthSync';
 
 import type { ContactMethod } from './index';
 
@@ -51,11 +50,10 @@ export function RegisterForm({ children, contactMethod }: IProps) {
   const emailParam = params.get('email');
   const phoneParam = params.get('phone');
   const redirect = params.get('redirect');
-  const h5WechatParams = getH5WechatLoginParams(params);
   const withRegisterQuery = (
     path: string,
     query: Record<string, string | null | undefined>
-  ) => buildUrl(path, { ...query, ...h5WechatParams });
+  ) => buildUrl(path, query);
   const [isLoading, setIsLoading] = useState(false);
   const { allowedCountries } = usePhoneConfig();
 

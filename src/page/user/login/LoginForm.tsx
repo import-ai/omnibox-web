@@ -27,10 +27,6 @@ import { buildUrl, cn } from '@/lib/utils';
 import { passwordSchema, phoneSchema } from '@/lib/validationSchemas';
 import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 import { setGlobalCredential } from '@/page/user/util';
-import {
-  getH5WechatLoginParams,
-  syncH5WechatOAuthState,
-} from '@/page/user/wechat/h5WechatAuthSync';
 
 import type { AuthMethod, ContactMethod } from './index';
 
@@ -74,13 +70,10 @@ export function LoginForm({
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
-  const oauthState = params.get('oauth_state');
-  const oauthDeviceToken = params.get('oauth_device_token');
-  const h5WechatParams = getH5WechatLoginParams(params);
   const withLoginQuery = (
     path: string,
     query: Record<string, string | null | undefined>
-  ) => buildUrl(path, { ...query, ...h5WechatParams });
+  ) => buildUrl(path, query);
   const emailParam = params.get('email');
   const phoneParam = params.get('phone');
   const [isLoading, setIsLoading] = useState(false);
@@ -119,12 +112,6 @@ export function LoginForm({
   });
 
   const finishLogin = async (userId: string, accessToken: string) => {
-    await syncH5WechatOAuthState(
-      oauthState,
-      oauthDeviceToken,
-      userId,
-      accessToken
-    );
     setGlobalCredential(userId, accessToken);
     location.href = await getAuthSuccessRedirect(redirect);
   };

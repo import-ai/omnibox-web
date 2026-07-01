@@ -9,10 +9,7 @@ import Google from '../google';
 import MetaPage from '../MetaPage';
 import Phone from '../phone';
 import WeChat from '../wechat';
-import {
-  syncH5WechatOAuthState,
-  useH5WechatAuthPoll,
-} from '../wechat/h5WechatAuthSync';
+import { useH5WechatAuthPoll } from '../wechat/h5WechatAuthSync';
 import Scan from '../wechat/Scan';
 import WrapperPage from '../WrapperPage';
 import { LoginForm } from './LoginForm';
@@ -49,22 +46,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     const uid = localStorage.getItem('uid');
-    const token = localStorage.getItem('token');
-    const oauthState = params.get('oauth_state');
-    const oauthDeviceToken = params.get('oauth_device_token');
-
-    if (uid && token && oauthState && oauthDeviceToken) {
-      void syncH5WechatOAuthState(
-        oauthState,
-        oauthDeviceToken,
-        uid,
-        token
-      ).finally(() => {
-        navigate('/', { replace: true });
-      });
-      return;
-    }
-
     if (uid) {
       navigate('/', { replace: true });
     }

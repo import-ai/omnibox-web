@@ -34,27 +34,6 @@ export function parseOAuthStateFromAuthUrl(authUrl: string): string | null {
   }
 }
 
-export function getH5WechatLoginParams(
-  params: URLSearchParams
-): Record<string, string> {
-  const extra: Record<string, string> = {};
-  const oauthState = params.get('oauth_state');
-  const oauthDeviceToken = params.get('oauth_device_token');
-  const from = params.get('from');
-
-  if (oauthState) {
-    extra.oauth_state = oauthState;
-  }
-  if (oauthDeviceToken) {
-    extra.oauth_device_token = oauthDeviceToken;
-  }
-  if (from) {
-    extra.from = from;
-  }
-
-  return extra;
-}
-
 function generateDeviceToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
@@ -78,28 +57,6 @@ export function persistH5WechatOAuthPoll(
 export function clearH5WechatOAuthPoll(): void {
   localStorage.removeItem(H5_WECHAT_OAUTH_POLL_KEY);
   sessionStorage.removeItem(H5_WECHAT_OAUTH_POLL_KEY);
-}
-
-export async function syncH5WechatOAuthState(
-  oauthState: string | null,
-  deviceToken: string | null,
-  userId: string,
-  accessToken: string
-): Promise<void> {
-  if (!oauthState || !deviceToken) {
-    return;
-  }
-
-  await http.post(
-    '/wechat/check/complete',
-    {
-      state: oauthState,
-      device_token: deviceToken,
-      id: userId,
-      access_token: accessToken,
-    },
-    { mute: true }
-  );
 }
 
 async function pollH5WechatOAuthOnce(
