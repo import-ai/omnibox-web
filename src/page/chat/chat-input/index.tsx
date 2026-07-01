@@ -121,7 +121,10 @@ function ContextCapacityIndicator({
           </svg>
         </button>
       </HoverCardTrigger>
-      <HoverCardContent className="w-56 text-center text-xs" side="top">
+      <HoverCardContent
+        className="w-auto max-w-[calc(100vw-2rem)] whitespace-nowrap text-center text-xs"
+        side="top"
+      >
         <div className="text-muted-foreground">
           {t('chat.messages.context_capacity.title')}
         </div>
