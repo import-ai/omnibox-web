@@ -574,6 +574,11 @@
       "metrics": {
         "tps": "{{tokens}} tokens ({{tps}} tokens/s)"
       },
+      "context_capacity": {
+        "title": "Context window:",
+        "ratio": "{{used}}% used ({{remaining}}% left)",
+        "tokens": "{{estimated}} / {{trigger}} tokens used"
+      },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected"
       },
