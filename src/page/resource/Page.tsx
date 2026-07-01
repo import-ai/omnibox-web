@@ -57,7 +57,7 @@ export default function Page(props: IProps) {
       ) : (
         <Render
           resource={resource}
-          linkBase={resource.id}
+          linkBase={`/${namespaceId}/${resource.id}`}
           style={{ overflow: 'inherit' }}
         />
       )}

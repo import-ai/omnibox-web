@@ -45,6 +45,7 @@ import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
+import { getMarkdownDownloadContent } from '@/page/resource/downloadMarkdown';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 import {
@@ -312,13 +313,14 @@ export default function Actions(props: IActionProps) {
       // generate file name: use resource.name, if empty, use "untitled"
       const baseName = resource.name || t('untitled');
       const fileName = baseName.endsWith('.md') ? baseName : `${baseName}.md`;
+      const markdownContent = getMarkdownDownloadContent(resource.content);
 
-      const imageLinks = parseImageLinks(resource.content);
+      const imageLinks = parseImageLinks(markdownContent);
       const imageArray = imageLinks.map(item => `${resource.id}/${item}`);
 
       // if no image, download markdown file
       if (imageArray.length === 0) {
-        const blob = new Blob([resource.content], { type: 'text/markdown' });
+        const blob = new Blob([markdownContent], { type: 'text/markdown' });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -372,7 +374,7 @@ export default function Actions(props: IActionProps) {
       Promise.all(imagePromises)
         .then(() => {
           // add markdown file to zip (no modification, keep original)
-          zip.file(fileName, resource.content || '');
+          zip.file(fileName, markdownContent);
 
           // generate zip file
           return zip.generateAsync({ type: 'blob' });

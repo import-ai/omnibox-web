@@ -1,0 +1,50 @@
+.resource-readonly-editor .omnibox-editor-layout {
+  grid-template-columns:
+    [full-start content-start] minmax(0, 1fr)
+    [content-end full-end];
+}
+
+.resource-editable-editor .omnibox-editor-layout {
+  grid-template-columns:
+    [full-start content-start] minmax(0, 1fr)
+    [content-end] minmax(3.5rem, 4.5rem)
+    [full-end];
+}
+
+.resource-readonly-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor,
+.resource-editable-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding-inline: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.resource-readonly-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor:focus,
+.resource-editable-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor:focus {
+  border: 0;
+}
+
+.resource-readonly-editor .language-echarts,
+.resource-readonly-editor .language-mindmap {
+  height: 420px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.resource-readonly-editor .language-mermaid,
+.resource-readonly-editor .language-markmap,
+.resource-readonly-editor .language-flowchart,
+.resource-readonly-editor .language-graphviz {
+  margin-bottom: 16px;
+  text-align: center;
+}
