@@ -1,11 +1,4 @@
-import {
-  ArrowUp,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Circle,
-  X,
-} from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Circle, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -20,7 +13,6 @@ import {
   CardTitle,
 } from '@/components/ui/Card';
 import { ScrollArea, ScrollBar } from '@/components/ui/ScrollArea';
-import { Spinner } from '@/components/ui/Spinner';
 import { processArgs } from '@/lib/toolArgs';
 import { cn } from '@/lib/utils.ts';
 import {
@@ -153,11 +145,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
   // Ref for scroll area to auto-scroll active dot into view
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Check if all interrupts have been decided
-  const allDecided = interrupts.every(
-    (_, idx) => selectedDecisions[idx] !== undefined
-  );
-
   const submitSelectedDecisions = (
     nextSelectedDecisions: SelectedDecisions
   ) => {
@@ -204,11 +191,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
       setActiveCardIndex(cardIndex + 1);
     }
     submitSelectedDecisions(nextSelectedDecisions);
-  };
-
-  // Handle submit all decisions
-  const handleSubmit = () => {
-    submitSelectedDecisions(selectedDecisions);
   };
 
   // Current active interrupt
@@ -360,8 +342,8 @@ export default function DecisionInput(props: IDecisionInputProps) {
         })}
       </CardContent>
 
-      <CardFooter className="flex gap-3 p-3 items-center justify-end">
-        {interrupts.length > 1 && (
+      {interrupts.length > 1 && (
+        <CardFooter className="flex gap-3 p-3 items-center justify-end">
           <div className="w-full flex items-center gap-2">
             <Button
               variant="ghost"
@@ -433,24 +415,8 @@ export default function DecisionInput(props: IDecisionInputProps) {
               <ChevronRight className="size-4" />
             </Button>
           </div>
-        )}
-        {allDecided ? (
-          <Button
-            onClick={handleSubmit}
-            size="sm"
-            className="rounded-lg size-8"
-            disabled={loading}
-          >
-            {loading ? <Spinner /> : <ArrowUp />}
-          </Button>
-        ) : (
-          <span className="cursor-not-allowed">
-            <Button size="sm" className="rounded-lg size-8" disabled>
-              <ArrowUp />
-            </Button>
-          </span>
-        )}
-      </CardFooter>
+        </CardFooter>
+      )}
     </Card>
   );
 }
