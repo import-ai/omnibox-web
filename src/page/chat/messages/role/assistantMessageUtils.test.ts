@@ -110,7 +110,7 @@ describe('isTerminalToolCallStatus', () => {
 });
 
 describe('getLatestContextCompactCapacity', () => {
-  it('uses the latest valid usage compact trigger', () => {
+  it('uses the latest valid compact estimate and clamps percent', () => {
     const messages = [
       buildMessage({
         id: 'old-message',
@@ -125,27 +125,6 @@ describe('getLatestContextCompactCapacity', () => {
         id: 'latest-message',
         attrs: {
           usage: {
-            total_tokens: 50,
-            context_compact: { estimated_tokens: 50, trigger_tokens: 100 },
-          },
-        },
-      }),
-    ];
-
-    expect(getLatestContextCompactCapacity(messages)).toEqual({
-      estimatedTokens: 50,
-      triggerTokens: 100,
-      percent: 50,
-      remainingPercent: 50,
-    });
-  });
-
-  it('clamps percent to 100', () => {
-    const messages = [
-      buildMessage({
-        id: 'message',
-        attrs: {
-          usage: {
             total_tokens: 120,
             context_compact: { estimated_tokens: 120, trigger_tokens: 100 },
           },
@@ -153,25 +132,14 @@ describe('getLatestContextCompactCapacity', () => {
       }),
     ];
 
-    expect(getLatestContextCompactCapacity(messages)?.percent).toBe(100);
+    expect(getLatestContextCompactCapacity(messages)).toEqual({
+      estimatedTokens: 120,
+      triggerTokens: 100,
+      percent: 100,
+    });
   });
 
-  it('returns undefined without a valid usage compact trigger', () => {
-    const messages = [
-      buildMessage({
-        id: 'message',
-        attrs: {
-          usage: {
-            total_tokens: 50,
-          },
-        },
-      }),
-    ];
-
-    expect(getLatestContextCompactCapacity(messages)).toBeUndefined();
-  });
-
-  it('does not use raw usage total_tokens as context capacity', () => {
+  it('returns undefined without estimated and trigger tokens', () => {
     const messages = [
       buildMessage({
         id: 'message',

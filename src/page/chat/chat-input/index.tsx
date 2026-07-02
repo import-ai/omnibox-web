@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ChatMode,
@@ -89,67 +84,62 @@ function ContextCapacityIndicator({
   const radius = 8;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - capacity.percent / 100);
+  const remainingPercent = 100 - capacity.percent;
+  const usageLabel = t('chat.messages.context_capacity.ratio', {
+    used: capacity.percent,
+    remaining: remainingPercent,
+  });
 
   return (
-    <TooltipProvider>
-      <Tooltip delayDuration={150}>
-        <TooltipTrigger asChild>
-          <span
-            role="img"
-            tabIndex={0}
-            className="flex size-8 cursor-help items-center justify-center text-muted-foreground"
-            aria-label={t('chat.messages.context_capacity.ratio', {
-              used: capacity.percent,
-              remaining: capacity.remainingPercent,
-            })}
-          >
-            <svg
-              aria-hidden="true"
-              className="size-4 -rotate-90"
-              viewBox="0 0 20 20"
-            >
-              <circle
-                cx="10"
-                cy="10"
-                r={radius}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                className="opacity-25"
-              />
-              <circle
-                cx="10"
-                cy="10"
-                r={radius}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeDasharray={circumference}
-                strokeDashoffset={offset}
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent
-          className="max-w-[calc(100vw-2rem)] whitespace-nowrap text-center"
-          side="top"
+    <Tooltip delayDuration={150}>
+      <TooltipTrigger asChild>
+        <span
+          role="img"
+          tabIndex={0}
+          className="flex size-8 cursor-help items-center justify-center text-muted-foreground"
+          aria-label={usageLabel}
         >
-          <div>
-            {t('chat.messages.context_capacity.ratio', {
-              used: capacity.percent,
-              remaining: capacity.remainingPercent,
-            })}
-          </div>
-          <div>
-            {t('chat.messages.context_capacity.tokens', {
-              estimated: formatTokenCount(capacity.estimatedTokens),
-              trigger: formatTokenCount(capacity.triggerTokens),
-            })}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+          <svg
+            aria-hidden="true"
+            className="size-4 -rotate-90"
+            viewBox="0 0 20 20"
+          >
+            <circle
+              cx="10"
+              cy="10"
+              r={radius}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              className="opacity-25"
+            />
+            <circle
+              cx="10"
+              cy="10"
+              r={radius}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent
+        className="max-w-[calc(100vw-2rem)] whitespace-nowrap text-center"
+        side="top"
+      >
+        <div>{usageLabel}</div>
+        <div>
+          {t('chat.messages.context_capacity.tokens', {
+            estimated: formatTokenCount(capacity.estimatedTokens),
+            trigger: formatTokenCount(capacity.triggerTokens),
+          })}
+        </div>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -185,10 +175,7 @@ export default function ChatArea(props: IProps) {
   const restoredToolsConversationKeyRef = useRef<string | null>(null);
   const restoredToolsSignatureRef = useRef<string | null>(null);
   const restoredTools = useMemo(() => getRestoredTools(messages), [messages]);
-  const contextCompactCapacity = useMemo(
-    () => getLatestContextCompactCapacity(messages),
-    [messages]
-  );
+  const contextCompactCapacity = getLatestContextCompactCapacity(messages);
 
   useEffect(() => {
     if (!restoredTools.ready) {
