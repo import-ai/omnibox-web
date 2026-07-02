@@ -68,6 +68,11 @@ export default function VerifyOtpPage() {
     }
   }, [countdown]);
 
+  const finishLogin = async (userId: string, accessToken: string) => {
+    setGlobalCredential(userId, accessToken);
+    location.href = await getAuthSuccessRedirect(redirect);
+  };
+
   const verifyMagicLink = async (token: string) => {
     setIsVerifying(true);
     try {
@@ -79,8 +84,7 @@ export default function VerifyOtpPage() {
           data: { lang: localStorage.getItem('i18nextLng') },
         }
       );
-      setGlobalCredential(response.id, response.access_token);
-      location.href = await getAuthSuccessRedirect(redirect);
+      await finishLogin(response.id, response.access_token);
     } catch {
       setIsVerifying(false);
       // If magic link fails, show the OTP input
@@ -119,8 +123,7 @@ export default function VerifyOtpPage() {
         );
       }
 
-      setGlobalCredential(response.id, response.access_token);
-      location.href = await getAuthSuccessRedirect(redirect);
+      await finishLogin(response.id, response.access_token);
     } catch (err: any) {
       setIsVerifying(false);
       setCode('');

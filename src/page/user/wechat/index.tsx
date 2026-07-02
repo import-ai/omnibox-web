@@ -1,4 +1,4 @@
-import isMobile from 'ismobilejs';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -6,6 +6,12 @@ import { toast } from 'sonner';
 import { WeChatIcon } from '@/assets/icons/Wechat';
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
+
+import { prepareH5WechatOAuthState } from './h5WechatAuthSync';
+import {
+  isExternalMobileBrowser,
+  launchWechatMiniProgram,
+} from './launchMiniProgram';
 
 interface IProps {
   onScan: (value: boolean) => void;
@@ -17,17 +23,17 @@ export default function WeChat(props: IProps) {
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
-  const userAgent = navigator.userAgent.toLowerCase();
-  const isPhone = isMobile(userAgent).phone;
-  const isWeChat = userAgent.includes('micromessenger');
-  const alertDisableWeChatLogin = () => {
-    toast(t('login.wechat_disabled'), { position: 'bottom-right' });
-  };
+  const isWeChat = navigator.userAgent.toLowerCase().includes('micromessenger');
+  const useMiniProgramLaunch = isExternalMobileBrowser();
+  const [launching, setLaunching] = useState(false);
+
   const loginWithWeChat = () => {
     if (isWeChat) {
       http
         .get('/wechat/auth-url', {
-          params: redirect ? { redirect } : undefined,
+          params: {
+            ...(redirect ? { redirect } : {}),
+          },
         })
         .then(authUrl => {
           location.href = authUrl;
@@ -40,19 +46,53 @@ export default function WeChat(props: IProps) {
     }
   };
 
-  if (isPhone && !isWeChat) {
+  const handleMiniProgramLaunch = async () => {
+    if (launching) {
+      return;
+    }
+
+    setLaunching(true);
+    try {
+      const session = await prepareH5WechatOAuthState(redirect);
+      launchWechatMiniProgram(
+        () => {
+          toast.error(t('login.wechat_h5_launch_failed'), {
+            position: 'bottom-right',
+          });
+        },
+        {
+          redirect,
+          oauthState: session.state,
+          oauthDeviceToken: session.deviceToken,
+        }
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : t('login.wechat_h5_launch_failed');
+      toast.error(message, { position: 'bottom-right' });
+    } finally {
+      setLaunching(false);
+    }
+  };
+
+  const label = t(
+    mode === 'register'
+      ? 'register.register_use_wechat'
+      : 'login.login_use_wechat'
+  );
+
+  if (useMiniProgramLaunch) {
     return (
       <Button
         variant="outline"
-        onClick={alertDisableWeChatLogin}
-        className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white opacity-50"
+        onClick={handleMiniProgramLaunch}
+        disabled={launching}
+        className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
       >
         <WeChatIcon />
-        {t(
-          mode === 'register'
-            ? 'register.register_use_wechat'
-            : 'login.login_use_wechat'
-        )}
+        {label}
       </Button>
     );
   }
@@ -64,11 +104,7 @@ export default function WeChat(props: IProps) {
       className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
     >
       <WeChatIcon />
-      {t(
-        mode === 'register'
-          ? 'register.register_use_wechat'
-          : 'login.login_use_wechat'
-      )}
+      {label}
     </Button>
   );
 }

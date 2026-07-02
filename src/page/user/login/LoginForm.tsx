@@ -107,6 +107,11 @@ export function LoginForm({
     },
   });
 
+  const finishLogin = async (userId: string, accessToken: string) => {
+    setGlobalCredential(userId, accessToken);
+    location.href = await getAuthSuccessRedirect(redirect);
+  };
+
   const onEmailSubmit = async (data: z.infer<typeof emailFormSchema>) => {
     setIsLoading(true);
     try {
@@ -144,8 +149,7 @@ export function LoginForm({
         type: 'email',
       })
       .then(async response => {
-        setGlobalCredential(response.id, response.access_token);
-        location.href = await getAuthSuccessRedirect(redirect);
+        await finishLogin(response.id, response.access_token);
       })
       .catch(err => {
         setIsLoading(false);
@@ -200,8 +204,7 @@ export function LoginForm({
         type: 'phone',
       })
       .then(async response => {
-        setGlobalCredential(response.id, response.access_token);
-        location.href = await getAuthSuccessRedirect(redirect);
+        await finishLogin(response.id, response.access_token);
       })
       .catch(err => {
         setIsLoading(false);
