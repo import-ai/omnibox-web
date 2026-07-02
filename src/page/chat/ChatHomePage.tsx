@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -23,11 +24,48 @@ export default function ChatHomePage() {
   const navigate = useNavigate();
   const namespaceId = params.namespace_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
-  const defaultHomeInput = t('chat.home.default_input', {
-    defaultValue: '你好，我是小黑',
-  });
+  const [hasConversationHistory, setHasConversationHistory] = useState<
+    boolean | null
+  >(null);
   const { config } = useConfig();
   const { selectedResources, setSelectedResources } = useSelectedResources();
+
+  useEffect(() => {
+    let active = true;
+    setHasConversationHistory(null);
+
+    if (!namespaceId) {
+      return;
+    }
+
+    http
+      .get(
+        `/namespaces/${namespaceId}/conversations?offset=0&limit=1&order=desc`,
+        {
+          mute: true,
+        }
+      )
+      .then((result: { total?: number; data?: unknown[] }) => {
+        if (!active) {
+          return;
+        }
+        const size = result?.data?.length ?? 0;
+        setHasConversationHistory(size > 0);
+      })
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+        setHasConversationHistory(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [namespaceId]);
+
+  const defaultHomeInput =
+    hasConversationHistory === false ? t('chat.home.default_input') : undefined;
   const sendMessage = ({
     query,
     tools,
