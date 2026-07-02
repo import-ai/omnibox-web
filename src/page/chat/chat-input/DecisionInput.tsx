@@ -43,6 +43,8 @@ interface IDecisionInputProps {
   }: SendMessageParams) => void;
 }
 
+type SelectedDecisions = Partial<Record<number, DecisionType>>;
+
 // Get icon for decision type
 function getDecisionIcon(decisionType: string) {
   const lowerType = decisionType.toLowerCase();
@@ -121,6 +123,7 @@ function getDecisionStyle(
 export default function DecisionInput(props: IDecisionInputProps) {
   const { interrupts, loading = false, sendMessage } = props;
   const { t } = useTranslation();
+  const submittedRef = useRef(false);
 
   const onSubmit = (decisions: { type: DecisionType }[]) => {
     sendMessage({
@@ -137,9 +140,9 @@ export default function DecisionInput(props: IDecisionInputProps) {
   }
 
   // Track selected decisions: index -> decision type
-  const [selectedDecisions, setSelectedDecisions] = useState<
-    Record<number, DecisionType>
-  >({});
+  const [selectedDecisions, setSelectedDecisions] = useState<SelectedDecisions>(
+    {}
+  );
 
   // Current active card index
   const [activeCardIndex, setActiveCardIndex] = useState(0);
@@ -155,6 +158,32 @@ export default function DecisionInput(props: IDecisionInputProps) {
     (_, idx) => selectedDecisions[idx] !== undefined
   );
 
+  const submitSelectedDecisions = (
+    nextSelectedDecisions: SelectedDecisions
+  ) => {
+    if (loading || submittedRef.current) {
+      return;
+    }
+
+    const decisions = interrupts.reduce<{ type: DecisionType }[]>(
+      (result, _, idx) => {
+        const type = nextSelectedDecisions[idx];
+        if (type) {
+          result.push({ type });
+        }
+        return result;
+      },
+      []
+    );
+
+    if (decisions.length !== interrupts.length) {
+      return;
+    }
+
+    submittedRef.current = true;
+    onSubmit(decisions);
+  };
+
   // Handle individual decision selection
   const handleSelectDecision = (
     cardIndex: number,
@@ -164,26 +193,22 @@ export default function DecisionInput(props: IDecisionInputProps) {
       return;
     }
 
-    setSelectedDecisions(prev => ({
-      ...prev,
+    const nextSelectedDecisions = {
+      ...selectedDecisions,
       [cardIndex]: decisionType,
-    }));
+    };
+
+    setSelectedDecisions(nextSelectedDecisions);
     // Auto-advance to next card (but user can manually go back)
     if (cardIndex >= 0 && cardIndex < interrupts.length - 1) {
       setActiveCardIndex(cardIndex + 1);
     }
+    submitSelectedDecisions(nextSelectedDecisions);
   };
 
   // Handle submit all decisions
   const handleSubmit = () => {
-    if (loading || !allDecided) {
-      return;
-    }
-
-    const decisions = interrupts.map((_, idx) => ({
-      type: selectedDecisions[idx],
-    }));
-    onSubmit(decisions);
+    submitSelectedDecisions(selectedDecisions);
   };
 
   // Current active interrupt
@@ -251,7 +276,18 @@ export default function DecisionInput(props: IDecisionInputProps) {
     activeInterrupt,
     interrupts.length,
     loading,
+    selectedDecisions,
   ]);
+
+  useEffect(() => {
+    submittedRef.current = false;
+  }, [interrupts]);
+
+  useEffect(() => {
+    if (!loading) {
+      submittedRef.current = false;
+    }
+  }, [loading]);
 
   const canGoLeft = activeCardIndex > 0;
   const canGoRight = activeCardIndex < interrupts.length - 1;
