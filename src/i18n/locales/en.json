@@ -580,7 +580,6 @@
         "tps": "{{tokens}} tokens ({{tps}} tokens/s)"
       },
       "context_capacity": {
-        "title": "Context window:",
         "ratio": "{{used}}% used ({{remaining}}% until auto-compaction)",
         "tokens": "{{estimated}} / {{trigger}} tokens"
       },

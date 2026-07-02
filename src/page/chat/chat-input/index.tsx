@@ -98,7 +98,10 @@ function ContextCapacityIndicator({
             role="img"
             tabIndex={0}
             className="flex size-8 cursor-help items-center justify-center text-muted-foreground"
-            aria-label={t('chat.messages.context_capacity.title')}
+            aria-label={t('chat.messages.context_capacity.ratio', {
+              used: capacity.percent,
+              remaining: capacity.remainingPercent,
+            })}
           >
             <svg
               aria-hidden="true"

@@ -581,7 +581,6 @@
         "tps": "{{tokens}} 词元（{{tps}} 词元 / 秒）"
       },
       "context_capacity": {
-        "title": "上下文窗口：",
         "ratio": "{{used}}% 已用（剩 {{remaining}}% 自动压缩）",
         "tokens": "{{estimated}} / {{trigger}} 词元"
       },
