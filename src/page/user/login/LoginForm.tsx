@@ -70,10 +70,6 @@ export function LoginForm({
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
-  const withLoginQuery = (
-    path: string,
-    query: Record<string, string | null | undefined>
-  ) => buildUrl(path, query);
   const emailParam = params.get('email');
   const phoneParam = params.get('phone');
   const [isLoading, setIsLoading] = useState(false);
@@ -121,13 +117,13 @@ export function LoginForm({
     try {
       const response = await http.post('auth/send-otp', {
         email: data.email,
-        url: `${window.location.origin}${withLoginQuery('/user/verify-otp', { redirect })}`,
+        url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
       });
 
       if (!response.exists) {
         toast.error(t('login.email_not_exists'), { position: 'bottom-right' });
         navigate(
-          withLoginQuery('/user/sign-up', {
+          buildUrl('/user/sign-up', {
             email: data.email,
             mode: 'email',
             redirect,
@@ -136,9 +132,7 @@ export function LoginForm({
         return;
       }
 
-      navigate(
-        withLoginQuery('/user/verify-otp', { email: data.email, redirect })
-      );
+      navigate(buildUrl('/user/verify-otp', { email: data.email, redirect }));
     } catch {
       setIsLoading(false);
     }
@@ -161,7 +155,7 @@ export function LoginForm({
         setIsLoading(false);
         if (err.response?.data?.code === 'user_not_found') {
           navigate(
-            withLoginQuery('/user/sign-up', {
+            buildUrl('/user/sign-up', {
               email: data.email,
               mode: 'email',
               redirect,
@@ -184,7 +178,7 @@ export function LoginForm({
       if (!response.exists) {
         toast.error(t('login.phone_not_exists'), { position: 'bottom-right' });
         navigate(
-          withLoginQuery('/user/sign-up', {
+          buildUrl('/user/sign-up', {
             phone: data.phone,
             mode: 'phone',
             redirect,
@@ -193,9 +187,7 @@ export function LoginForm({
         return;
       }
 
-      navigate(
-        withLoginQuery('/user/verify-otp', { phone: data.phone, redirect })
-      );
+      navigate(buildUrl('/user/verify-otp', { phone: data.phone, redirect }));
     } catch {
       setIsLoading(false);
     }
@@ -218,7 +210,7 @@ export function LoginForm({
         setIsLoading(false);
         if (err.response?.data?.code === 'user_not_found') {
           navigate(
-            withLoginQuery('/user/sign-up', {
+            buildUrl('/user/sign-up', {
               phone: data.phone,
               mode: 'phone',
               redirect,
@@ -254,7 +246,7 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={withLoginQuery('/user/sign-up', {
+            to={buildUrl('/user/sign-up', {
               email: emailForm.getValues('email'),
               mode: 'email',
               redirect,
@@ -282,7 +274,7 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={withLoginQuery('/user/sign-up', {
+            to={buildUrl('/user/sign-up', {
               email: emailPasswordForm.getValues('email'),
               mode: 'email',
               redirect,
@@ -310,7 +302,7 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={withLoginQuery('/user/sign-up', {
+            to={buildUrl('/user/sign-up', {
               phone: phoneForm.getValues('phone'),
               mode: 'phone',
               redirect,
@@ -338,7 +330,7 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={withLoginQuery('/user/sign-up', {
+            to={buildUrl('/user/sign-up', {
               phone: phonePasswordForm.getValues('phone'),
               mode: 'phone',
               redirect,

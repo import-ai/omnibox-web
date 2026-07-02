@@ -22,10 +22,6 @@ export default function VerifyOtpPage() {
   const phone = params.get('phone');
   const redirect = params.get('redirect');
   const magicToken = params.get('token');
-  const withVerifyQuery = (
-    path: string,
-    query: Record<string, string | null | undefined>
-  ) => buildUrl(path, query);
 
   // Determine verification type
   const isPhoneVerification = !!phone && !email;
@@ -158,7 +154,7 @@ export default function VerifyOtpPage() {
           'auth/send-otp',
           {
             email: identifier,
-            url: `${window.location.origin}${withVerifyQuery('/user/verify-otp', { redirect })}`,
+            url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
           },
           { mute: true }
         );
@@ -240,7 +236,7 @@ export default function VerifyOtpPage() {
           <button
             onClick={() =>
               navigate(
-                withVerifyQuery('/user/login', {
+                buildUrl('/user/login', {
                   email: isPhoneVerification ? undefined : email,
                   phone: isPhoneVerification ? phone : undefined,
                   mode: isPhoneVerification ? 'phone' : 'email',
