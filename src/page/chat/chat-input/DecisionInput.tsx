@@ -311,7 +311,12 @@ export default function DecisionInput(props: IDecisionInputProps) {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-2 py-0 px-3">
+      <CardContent
+        className={cn(
+          'space-y-2 px-3 pt-0',
+          interrupts.length > 1 ? 'pb-0' : 'pb-3'
+        )}
+      >
         {activeInterrupt.decisions.map((decisionType, idx) => {
           const isSelected =
             selectedDecisions[activeCardIndex] === decisionType;
