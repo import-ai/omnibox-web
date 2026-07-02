@@ -582,8 +582,8 @@
       },
       "context_capacity": {
         "title": "上下文窗口：",
-        "ratio": "{{used}}% 已用（剩余 {{remaining}}%）",
-        "tokens": "已使用 {{estimated}} / {{trigger}} 词元"
+        "ratio": "{{used}}% 已用（剩 {{remaining}}% 自动压缩）",
+        "tokens": "{{estimated}} / {{trigger}} 词元"
       },
       "user_context": {
         "selected_resources": "选择了 {{count}} 个资源"

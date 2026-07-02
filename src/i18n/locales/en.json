@@ -581,8 +581,8 @@
       },
       "context_capacity": {
         "title": "Context window:",
-        "ratio": "{{used}}% used ({{remaining}}% left)",
-        "tokens": "{{estimated}} / {{trigger}} tokens used"
+        "ratio": "{{used}}% used ({{remaining}}% until auto-compaction)",
+        "tokens": "{{estimated}} / {{trigger}} tokens"
       },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected"
