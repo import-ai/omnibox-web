@@ -580,6 +580,10 @@
       "metrics": {
         "tps": "{{tokens}} 词元（{{tps}} 词元 / 秒）"
       },
+      "context_capacity": {
+        "ratio": "{{used}}% 已用（剩 {{remaining}}% 自动压缩）",
+        "tokens": "{{estimated}} / {{trigger}} 词元"
+      },
       "user_context": {
         "selected_resources": "选择了 {{count}} 个资源"
       },

@@ -579,6 +579,10 @@
       "metrics": {
         "tps": "{{tokens}} tokens ({{tps}} tokens/s)"
       },
+      "context_capacity": {
+        "ratio": "{{used}}% used ({{remaining}}% until auto-compaction)",
+        "tokens": "{{estimated}} / {{trigger}} tokens"
+      },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected"
       },
