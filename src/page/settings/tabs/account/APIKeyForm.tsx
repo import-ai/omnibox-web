@@ -113,6 +113,39 @@ const isConfiguredPermissionTarget = (
 ): target is ConfiguredAPIKeyPermissionTarget =>
   configuredPermissionTargets.has(target);
 
+const getRootResourceLabel = (
+  rootType: APIKey['root_resource'] extends infer RootResource
+    ? RootResource extends null | undefined
+      ? never
+      : RootResource['root_type']
+    : never,
+  fallbackName: string,
+  t: (key: string) => string
+) => {
+  if (rootType === 'private' || rootType === 'teamspace') {
+    return t(rootType);
+  }
+  return fallbackName;
+};
+
+const getRootResourcePathLabel = (
+  apiKey: APIKey,
+  t: (key: string) => string
+) => {
+  const rootResource = apiKey.root_resource;
+  if (!rootResource || rootResource.path.length === 0) {
+    return t('api_key.resource_not_found');
+  }
+
+  return rootResource.path
+    .map((resource, index) =>
+      index === 0
+        ? getRootResourceLabel(rootResource.root_type, resource.name, t)
+        : resource.name
+    )
+    .join(' / ');
+};
+
 const createPermissionState = (
   permissions: APIKeyPermission[] = []
 ): APIKeyPermissionState => {
@@ -714,9 +747,16 @@ export function APIKeyForm() {
               </div>
 
               <APIKeyInfoRow label={t('api_key.permission_scope')}>
-                <span className="text-sm font-semibold text-foreground">
-                  {key.attrs.root_resource_id}
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="break-words text-sm font-semibold text-foreground">
+                      {getRootResourcePathLabel(key, t)}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-80 break-words">
+                    {getRootResourcePathLabel(key, t)}
+                  </TooltipContent>
+                </Tooltip>
               </APIKeyInfoRow>
 
               {key.attrs.note && (

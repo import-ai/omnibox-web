@@ -197,12 +197,24 @@ export interface APIKeyAttrs {
   permissions: APIKeyPermission[];
 }
 
+export interface APIKeyRootResourcePathItem {
+  id: string;
+  name: string;
+}
+
+export interface APIKeyRootResource {
+  id: string;
+  root_type: 'private' | 'teamspace' | 'unknown';
+  path: APIKeyRootResourcePathItem[];
+}
+
 export interface APIKey extends IBase {
   id: string;
   value: string;
   user_id: string;
   namespace_id: string;
   attrs: APIKeyAttrs;
+  root_resource?: APIKeyRootResource | null;
 }
 
 export interface CreateAPIKeyDto {
