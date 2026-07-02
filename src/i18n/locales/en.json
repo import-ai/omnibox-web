@@ -649,6 +649,7 @@
         "evening": "Good evening, how can I help you today?",
         "night": "Good night, how can I help you today?"
       },
+      "default_input": "Hello, I am Xiaohei",
       "upload": {
         "title": "Import Resources",
         "subtitle": "Let knowledge work for you",

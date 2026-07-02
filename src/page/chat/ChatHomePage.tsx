@@ -23,6 +23,9 @@ export default function ChatHomePage() {
   const navigate = useNavigate();
   const namespaceId = params.namespace_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
+  const defaultHomeInput = t('chat.home.default_input', {
+    defaultValue: '你好，我是小黑',
+  });
   const { config } = useConfig();
   const { selectedResources, setSelectedResources } = useSelectedResources();
   const sendMessage = ({
@@ -64,6 +67,7 @@ export default function ChatHomePage() {
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             loading={false}
+            initialQuery={defaultHomeInput}
             sendMessage={sendMessage}
           />
         </div>

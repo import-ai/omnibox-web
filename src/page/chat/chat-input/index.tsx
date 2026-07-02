@@ -71,6 +71,7 @@ interface IProps {
   selectedResources: IResTypeContext[];
   setSelectedResources: any;
   loading: boolean;
+  initialQuery?: string;
   sendMessage: ({
     query,
     tools,
@@ -87,12 +88,13 @@ export default function ChatArea(props: IProps) {
     selectedResources,
     setSelectedResources,
     loading,
+    initialQuery,
     sendMessage,
   } = props;
 
   const [tools, setTools] = useState<ToolType[]>([]);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery ?? '');
   const toolsManuallyChangedRef = useRef(false);
   const restoredToolsConversationKeyRef = useRef<string | null>(null);
   const restoredToolsSignatureRef = useRef<string | null>(null);
@@ -122,6 +124,10 @@ export default function ChatArea(props: IProps) {
     restoredToolsSignatureRef.current = restoredTools.signature;
     setTools(restoredTools.tools);
   }, [restoredTools]);
+
+  useEffect(() => {
+    setQuery(initialQuery ?? '');
+  }, [initialQuery]);
 
   const handleToolsChange = useCallback((nextTools: ToolType[]) => {
     toolsManuallyChangedRef.current = true;
