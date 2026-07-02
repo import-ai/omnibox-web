@@ -700,7 +700,12 @@
     "decision": {
       "approve": "同意",
       "reject": "拒绝",
-      "selected": "已选择"
+      "selected": "已选择",
+      "mode": {
+        "manual": "手动",
+        "auto_approve": "自动同意",
+        "auto_reject": "自动拒绝"
+      }
     }
   },
   "date": {

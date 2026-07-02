@@ -699,7 +699,12 @@
     "decision": {
       "approve": "Approve",
       "reject": "Reject",
-      "selected": "Selected"
+      "selected": "Selected",
+      "mode": {
+        "manual": "Manual",
+        "auto_approve": "Auto approve",
+        "auto_reject": "Auto reject"
+      }
     }
   },
   "date": {

@@ -1,4 +1,12 @@
-import { Check, ChevronLeft, ChevronRight, Circle, X } from 'lucide-react';
+import {
+  ArrowUp,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
+  X,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +20,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/Card';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/DropdownMenu';
 import { ScrollArea, ScrollBar } from '@/components/ui/ScrollArea';
+import { Spinner } from '@/components/ui/Spinner';
 import { processArgs } from '@/lib/toolArgs';
 import { cn } from '@/lib/utils.ts';
 import {
@@ -36,6 +51,18 @@ interface IDecisionInputProps {
 }
 
 type SelectedDecisions = Partial<Record<number, DecisionType>>;
+type ApprovalMode = 'manual' | 'auto_approve' | 'auto_reject';
+
+const AUTO_DECISION_BY_MODE: Partial<Record<ApprovalMode, DecisionType>> = {
+  auto_approve: 'approve',
+  auto_reject: 'reject',
+};
+
+function getAutoSubmitKey(approvalMode: ApprovalMode, interrupts: Interrupt[]) {
+  return `${approvalMode}:${interrupts
+    .map(interrupt => `${interrupt.name}:${interrupt.decisions.join(',')}`)
+    .join('|')}`;
+}
 
 // Get icon for decision type
 function getDecisionIcon(decisionType: string) {
@@ -116,6 +143,8 @@ export default function DecisionInput(props: IDecisionInputProps) {
   const { interrupts, loading = false, sendMessage } = props;
   const { t } = useTranslation();
   const submittedRef = useRef(false);
+  const autoSubmittedRef = useRef<string | null>(null);
+  const [approvalMode, setApprovalMode] = useState<ApprovalMode>('manual');
 
   const onSubmit = (decisions: { type: DecisionType }[]) => {
     sendMessage({
@@ -145,6 +174,10 @@ export default function DecisionInput(props: IDecisionInputProps) {
   // Ref for scroll area to auto-scroll active dot into view
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  const allDecided = interrupts.every(
+    (_, idx) => selectedDecisions[idx] !== undefined
+  );
+
   const submitSelectedDecisions = (
     nextSelectedDecisions: SelectedDecisions
   ) => {
@@ -171,6 +204,14 @@ export default function DecisionInput(props: IDecisionInputProps) {
     onSubmit(decisions);
   };
 
+  const handleSubmit = () => {
+    if (!allDecided) {
+      return;
+    }
+
+    submitSelectedDecisions(selectedDecisions);
+  };
+
   // Handle individual decision selection
   const handleSelectDecision = (
     cardIndex: number,
@@ -190,12 +231,12 @@ export default function DecisionInput(props: IDecisionInputProps) {
     if (cardIndex >= 0 && cardIndex < interrupts.length - 1) {
       setActiveCardIndex(cardIndex + 1);
     }
-    submitSelectedDecisions(nextSelectedDecisions);
   };
 
   // Current active interrupt
-  const activeInterrupt = interrupts[activeCardIndex];
-  const activeSelectedDecision = selectedDecisions[activeCardIndex];
+  const activeInterruptIndex = Math.min(activeCardIndex, interrupts.length - 1);
+  const activeInterrupt = interrupts[activeInterruptIndex];
+  const activeSelectedDecision = selectedDecisions[activeInterruptIndex];
 
   // Sync activeOptionIndex when card changes
   useEffect(() => {
@@ -242,7 +283,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
           e.preventDefault();
           if (currentOptions[activeOptionIndex]) {
             handleSelectDecision(
-              activeCardIndex,
+              activeInterruptIndex,
               currentOptions[activeOptionIndex] as DecisionType
             );
           }
@@ -254,6 +295,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     activeCardIndex,
+    activeInterruptIndex,
     activeOptionIndex,
     activeInterrupt,
     interrupts.length,
@@ -263,6 +305,9 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
   useEffect(() => {
     submittedRef.current = false;
+    autoSubmittedRef.current = null;
+    setSelectedDecisions({});
+    setActiveCardIndex(0);
   }, [interrupts]);
 
   useEffect(() => {
@@ -271,8 +316,33 @@ export default function DecisionInput(props: IDecisionInputProps) {
     }
   }, [loading]);
 
-  const canGoLeft = activeCardIndex > 0;
-  const canGoRight = activeCardIndex < interrupts.length - 1;
+  useEffect(() => {
+    const autoDecision = AUTO_DECISION_BY_MODE[approvalMode];
+    if (!autoDecision || loading || submittedRef.current) {
+      return;
+    }
+
+    const autoSubmitKey = getAutoSubmitKey(approvalMode, interrupts);
+    if (autoSubmittedRef.current === autoSubmitKey) {
+      return;
+    }
+
+    if (
+      !interrupts.every(interrupt => interrupt.decisions.includes(autoDecision))
+    ) {
+      return;
+    }
+
+    const nextSelectedDecisions = Object.fromEntries(
+      interrupts.map((_, idx) => [idx, autoDecision])
+    ) as SelectedDecisions;
+    autoSubmittedRef.current = autoSubmitKey;
+    setSelectedDecisions(nextSelectedDecisions);
+    submitSelectedDecisions(nextSelectedDecisions);
+  }, [approvalMode, interrupts, loading]);
+
+  const canGoLeft = activeInterruptIndex > 0;
+  const canGoRight = activeInterruptIndex < interrupts.length - 1;
 
   // Auto-scroll indicator into view when active card changes
   useEffect(() => {
@@ -295,16 +365,50 @@ export default function DecisionInput(props: IDecisionInputProps) {
     <Card className="max-w-[766px] w-full mx-auto rounded-2xl border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030] shadow-none">
       <CardHeader className="p-3">
         <CardTitle className="flex items-center gap-2">
-          <div className="text-base">
-            {t(
-              `chat.messages.tool_calls.function_name.${activeInterrupt.name}`
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <div className="truncate text-base">
+              {t(
+                `chat.messages.tool_calls.function_name.${activeInterrupt.name}`
+              )}
+            </div>
+            {interrupts.length > 1 && (
+              <div className="shrink-0 text-xs font-normal text-muted-foreground">
+                {activeInterruptIndex + 1} / {interrupts.length}
+              </div>
             )}
           </div>
-          {interrupts.length > 1 && (
-            <div className="text-xs text-muted-foreground font-normal">
-              {activeCardIndex + 1} / {interrupts.length}
-            </div>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="shrink-0 pl-2 pr-1 text-xs font-normal"
+              >
+                {t(`chat.decision.mode.${approvalMode}`)}
+                <ChevronDown className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="bottom" align="end">
+              <DropdownMenuCheckboxItem
+                checked={approvalMode === 'manual'}
+                onCheckedChange={() => setApprovalMode('manual')}
+              >
+                {t('chat.decision.mode.manual')}
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={approvalMode === 'auto_approve'}
+                onCheckedChange={() => setApprovalMode('auto_approve')}
+              >
+                {t('chat.decision.mode.auto_approve')}
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={approvalMode === 'auto_reject'}
+                onCheckedChange={() => setApprovalMode('auto_reject')}
+              >
+                {t('chat.decision.mode.auto_reject')}
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </CardTitle>
         <CardDescription className="text-xs flex flex-wrap gap-x-2 gap-y-1">
           <ToolCallArgs args={processArgs(activeInterrupt.args, t)} />
@@ -319,7 +423,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
       >
         {activeInterrupt.decisions.map((decisionType, idx) => {
           const isSelected =
-            selectedDecisions[activeCardIndex] === decisionType;
+            selectedDecisions[activeInterruptIndex] === decisionType;
           const isActive = idx === activeOptionIndex;
 
           return (
@@ -333,7 +437,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
               )}
               onClick={() =>
                 handleSelectDecision(
-                  activeCardIndex,
+                  activeInterruptIndex,
                   decisionType as DecisionType
                 )
               }
@@ -347,79 +451,93 @@ export default function DecisionInput(props: IDecisionInputProps) {
         })}
       </CardContent>
 
-      {interrupts.length > 1 && (
+      {(interrupts.length > 1 || allDecided) && (
         <CardFooter className="flex gap-3 p-3 items-center justify-end">
-          <div className="w-full flex items-center gap-2">
+          {interrupts.length > 1 && (
+            <div className="w-full flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 shrink-0"
+                onClick={() =>
+                  setActiveCardIndex(prev => Math.max(0, prev - 1))
+                }
+                disabled={loading || !canGoLeft}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+
+              <ScrollArea className="flex-1" ref={scrollAreaRef}>
+                <div className="flex items-center justify-center gap-1.5 py-1">
+                  {interrupts.map((_, idx) => {
+                    const isCurrent = idx === activeInterruptIndex;
+                    const selectedType = selectedDecisions[idx];
+                    const lowerType = selectedType?.toLowerCase() ?? '';
+                    const isApprove =
+                      lowerType === 'approve' || lowerType === 'accept';
+                    const isReject =
+                      lowerType === 'reject' || lowerType === 'decline';
+
+                    const dotColor = isCurrent
+                      ? isApprove
+                        ? 'bg-green-500'
+                        : isReject
+                          ? 'bg-red-500'
+                          : 'bg-primary'
+                      : isApprove
+                        ? 'bg-green-400'
+                        : isReject
+                          ? 'bg-red-400'
+                          : 'bg-muted-foreground/30';
+
+                    return (
+                      <button
+                        key={idx}
+                        data-dot-index={idx}
+                        className={cn(
+                          'shrink-0 rounded-full transition-all duration-200',
+                          isCurrent ? 'w-5 h-2' : 'w-2 h-2',
+                          dotColor
+                        )}
+                        onClick={() => {
+                          if (!loading) {
+                            setActiveCardIndex(idx);
+                          }
+                        }}
+                        disabled={loading}
+                        aria-label={`Go to decision ${idx + 1}`}
+                      />
+                    );
+                  })}
+                </div>
+                <ScrollBar orientation="horizontal" className="invisible" />
+              </ScrollArea>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                onClick={() =>
+                  setActiveCardIndex(prev =>
+                    Math.min(interrupts.length - 1, prev + 1)
+                  )
+                }
+                disabled={loading || !canGoRight}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          )}
+          {allDecided && (
             <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 shrink-0"
-              onClick={() => setActiveCardIndex(prev => Math.max(0, prev - 1))}
-              disabled={loading || !canGoLeft}
+              onClick={handleSubmit}
+              size="sm"
+              className="rounded-lg size-8"
+              disabled={loading}
             >
-              <ChevronLeft className="size-4" />
+              {loading ? <Spinner /> : <ArrowUp />}
             </Button>
-
-            <ScrollArea className="flex-1" ref={scrollAreaRef}>
-              <div className="flex items-center justify-center gap-1.5 py-1">
-                {interrupts.map((_, idx) => {
-                  const isCurrent = idx === activeCardIndex;
-                  const selectedType = selectedDecisions[idx];
-                  const lowerType = selectedType?.toLowerCase() ?? '';
-                  const isApprove =
-                    lowerType === 'approve' || lowerType === 'accept';
-                  const isReject =
-                    lowerType === 'reject' || lowerType === 'decline';
-
-                  const dotColor = isCurrent
-                    ? isApprove
-                      ? 'bg-green-500'
-                      : isReject
-                        ? 'bg-red-500'
-                        : 'bg-primary'
-                    : isApprove
-                      ? 'bg-green-400'
-                      : isReject
-                        ? 'bg-red-400'
-                        : 'bg-muted-foreground/30';
-
-                  return (
-                    <button
-                      key={idx}
-                      data-dot-index={idx}
-                      className={cn(
-                        'shrink-0 rounded-full transition-all duration-200',
-                        isCurrent ? 'w-5 h-2' : 'w-2 h-2',
-                        dotColor
-                      )}
-                      onClick={() => {
-                        if (!loading) {
-                          setActiveCardIndex(idx);
-                        }
-                      }}
-                      disabled={loading}
-                      aria-label={`Go to decision ${idx + 1}`}
-                    />
-                  );
-                })}
-              </div>
-              <ScrollBar orientation="horizontal" className="invisible" />
-            </ScrollArea>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 shrink-0"
-              onClick={() =>
-                setActiveCardIndex(prev =>
-                  Math.min(interrupts.length - 1, prev + 1)
-                )
-              }
-              disabled={loading || !canGoRight}
-            >
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
+          )}
         </CardFooter>
       )}
     </Card>
