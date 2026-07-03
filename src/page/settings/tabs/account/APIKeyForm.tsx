@@ -783,12 +783,12 @@ export function APIKeyForm() {
                         }
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex max-w-full truncate text-sm font-semibold text-primary hover:underline"
+                        className="inline-flex w-fit max-w-full self-start truncate text-sm font-semibold text-primary hover:underline"
                       >
                         {getDisplayRootResourcePathLabel(key, t)}
                       </a>
                     ) : (
-                      <span className="inline-flex max-w-full truncate text-sm font-semibold text-foreground">
+                      <span className="inline-flex w-fit max-w-full self-start truncate text-sm font-semibold text-foreground">
                         {getDisplayRootResourcePathLabel(key, t)}
                       </span>
                     )}
