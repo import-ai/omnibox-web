@@ -86,12 +86,15 @@ export type Decision = {
   type: DecisionType;
 };
 
+export type ApprovalMode = 'manual' | 'auto_approve' | 'auto_reject';
+
 export interface SendMessageParams {
   query: string;
   tools: ToolType[];
   selectedResources: IResTypeContext[];
   mode: ChatMode;
   decisions?: Decision[];
+  approvalMode?: ApprovalMode;
 }
 
 export interface ChatCreatePayload extends SendMessageParams {

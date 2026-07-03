@@ -8,6 +8,7 @@ import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizardLang';
 import {
   AgentRequestChannel,
+  ApprovalMode,
   ChatCreatePayload,
   ChatMode,
   SendMessageParams,
@@ -42,6 +43,8 @@ export default function useContext() {
   const [regeneratingParentId, setRegeneratingParentId] = useState<
     string | null
   >(null);
+  const [initialApprovalMode, setInitialApprovalMode] =
+    useState<ApprovalMode>();
   const { selectedResources, setSelectedResources } = useGlobalContext();
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
@@ -107,6 +110,7 @@ export default function useContext() {
     const chatCreatePayload: ChatCreatePayload | undefined = state
       ? JSON.parse(state)
       : undefined;
+    setInitialApprovalMode(chatCreatePayload?.approvalMode);
     if (!chatCreatePayload) {
       http
         .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
@@ -225,6 +229,7 @@ export default function useContext() {
     messages,
     selectedResources,
     setSelectedResources,
+    initialApprovalMode,
     namespaceId,
     conversation,
     messageOperator,
