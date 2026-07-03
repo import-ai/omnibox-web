@@ -1,7 +1,6 @@
 import {
   ArrowUp,
   Check,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Circle,
@@ -20,17 +19,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/Card';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu';
 import { ScrollArea, ScrollBar } from '@/components/ui/ScrollArea';
 import { Spinner } from '@/components/ui/Spinner';
 import { processArgs } from '@/lib/toolArgs';
 import { cn } from '@/lib/utils.ts';
 import {
+  ApprovalMode,
   ChatMode,
   DecisionType,
   SendMessageParams,
@@ -40,6 +34,7 @@ import { Interrupt } from '@/page/chat/core/types/conversation';
 
 interface IDecisionInputProps {
   interrupts: Interrupt[];
+  approvalMode: ApprovalMode;
   loading?: boolean;
   sendMessage: ({
     query,
@@ -51,7 +46,6 @@ interface IDecisionInputProps {
 }
 
 type SelectedDecisions = Partial<Record<number, DecisionType>>;
-type ApprovalMode = 'manual' | 'auto_approve' | 'auto_reject';
 
 const AUTO_DECISION_BY_MODE: Partial<Record<ApprovalMode, DecisionType>> = {
   auto_approve: 'approve',
@@ -140,11 +134,10 @@ function getDecisionStyle(
 }
 
 export default function DecisionInput(props: IDecisionInputProps) {
-  const { interrupts, loading = false, sendMessage } = props;
+  const { interrupts, approvalMode, loading = false, sendMessage } = props;
   const { t } = useTranslation();
   const submittedRef = useRef(false);
   const autoSubmittedRef = useRef<string | null>(null);
-  const [approvalMode, setApprovalMode] = useState<ApprovalMode>('manual');
 
   const onSubmit = (decisions: { type: DecisionType }[]) => {
     sendMessage({
@@ -210,6 +203,21 @@ export default function DecisionInput(props: IDecisionInputProps) {
     }
 
     submitSelectedDecisions(selectedDecisions);
+  };
+
+  const canBulkDecide = (decisionType: DecisionType) =>
+    interrupts.every(interrupt => interrupt.decisions.includes(decisionType));
+
+  const handleBulkDecision = (decisionType: DecisionType) => {
+    if (loading || !canBulkDecide(decisionType)) {
+      return;
+    }
+
+    const nextSelectedDecisions = Object.fromEntries(
+      interrupts.map((_, idx) => [idx, decisionType])
+    ) as SelectedDecisions;
+    setSelectedDecisions(nextSelectedDecisions);
+    submitSelectedDecisions(nextSelectedDecisions);
   };
 
   // Handle individual decision selection
@@ -377,38 +385,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
               </div>
             )}
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="shrink-0 pl-2 pr-1 text-xs font-normal"
-              >
-                {t(`chat.decision.mode.${approvalMode}`)}
-                <ChevronDown className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" align="end">
-              <DropdownMenuCheckboxItem
-                checked={approvalMode === 'manual'}
-                onCheckedChange={() => setApprovalMode('manual')}
-              >
-                {t('chat.decision.mode.manual')}
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={approvalMode === 'auto_approve'}
-                onCheckedChange={() => setApprovalMode('auto_approve')}
-              >
-                {t('chat.decision.mode.auto_approve')}
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={approvalMode === 'auto_reject'}
-                onCheckedChange={() => setApprovalMode('auto_reject')}
-              >
-                {t('chat.decision.mode.auto_reject')}
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </CardTitle>
         <CardDescription className="text-xs flex flex-wrap gap-x-2 gap-y-1">
           <ToolCallArgs args={processArgs(activeInterrupt.args, t)} />
@@ -451,10 +427,32 @@ export default function DecisionInput(props: IDecisionInputProps) {
         })}
       </CardContent>
 
-      {(interrupts.length > 1 || allDecided) && (
-        <CardFooter className="flex gap-3 p-3 items-center justify-end">
+      <CardFooter className="flex flex-wrap gap-3 p-3 items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 rounded-lg px-3 text-xs text-green-700 dark:text-green-300"
+            disabled={loading || !canBulkDecide('approve')}
+            onClick={() => handleBulkDecision('approve')}
+          >
+            <Check className="size-4" />
+            {t('chat.decision.approve_all')}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 rounded-lg px-3 text-xs text-red-700 dark:text-red-300"
+            disabled={loading || !canBulkDecide('reject')}
+            onClick={() => handleBulkDecision('reject')}
+          >
+            <X className="size-4" />
+            {t('chat.decision.reject_all')}
+          </Button>
+        </div>
+        <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-3">
           {interrupts.length > 1 && (
-            <div className="w-full flex items-center gap-2">
+            <div className="min-w-0 flex-1 flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
@@ -538,8 +536,8 @@ export default function DecisionInput(props: IDecisionInputProps) {
               {loading ? <Spinner /> : <ArrowUp />}
             </Button>
           )}
-        </CardFooter>
-      )}
+        </div>
+      </CardFooter>
     </Card>
   );
 }

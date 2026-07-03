@@ -701,10 +701,17 @@
       "approve": "同意",
       "reject": "拒绝",
       "selected": "已选择",
+      "approve_all": "全部同意",
+      "reject_all": "全部拒绝",
       "mode": {
         "manual": "手动",
         "auto_approve": "自动同意",
         "auto_reject": "自动拒绝"
+      },
+      "mode_description": {
+        "manual": "每次审批都由你手动选择",
+        "auto_approve": "自动同意所有支持的审批请求",
+        "auto_reject": "自动拒绝所有支持的审批请求"
       }
     }
   },

@@ -32,6 +32,7 @@ export default function SharedChatHomePage() {
     tools,
     selectedResources,
     mode,
+    approvalMode,
   }: SendMessageParams) => {
     http
       .post(`/shares/${shareId}/conversations`)
@@ -43,6 +44,7 @@ export default function SharedChatHomePage() {
             query,
             tools,
             selectedResources,
+            approvalMode,
             conversation: {
               id: conversation.id,
             } as ConversationDetail,
@@ -61,6 +63,7 @@ export default function SharedChatHomePage() {
         <ChatArea
           messages={[]}
           navigatePrefix={`/s/${shareId}`}
+          approvalModeResetKey={`share-home:${shareId}`}
           selectedResources={selectedResources}
           setSelectedResources={setSelectedResources}
           loading={false}

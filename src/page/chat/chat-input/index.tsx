@@ -1,9 +1,18 @@
+import { Check, ChevronDown, Hand, ShieldCheck, ShieldX } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/DropdownMenu';
 import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
+  ApprovalMode,
   ChatMode,
   InputMode,
   IResTypeContext,
@@ -148,6 +157,8 @@ interface IProps {
   navigatePrefix: string;
   selectedResources: IResTypeContext[];
   setSelectedResources: any;
+  initialApprovalMode?: ApprovalMode;
+  approvalModeResetKey?: string;
   loading: boolean;
   sendMessage: ({
     query,
@@ -158,18 +169,79 @@ interface IProps {
   }: SendMessageParams) => void;
 }
 
+function ApprovalModeSelect({
+  approvalMode,
+  setApprovalMode,
+}: {
+  approvalMode: ApprovalMode;
+  setApprovalMode: (mode: ApprovalMode) => void;
+}) {
+  const { t } = useTranslation();
+  const options = [
+    { value: 'manual', Icon: Hand },
+    { value: 'auto_approve', Icon: ShieldCheck },
+    { value: 'auto_reject', Icon: ShieldX },
+  ] as const;
+  const TriggerIcon = options.find(
+    option => option.value === approvalMode
+  )?.Icon;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="shrink-0 pl-2 pr-1 text-xs font-normal"
+        >
+          {TriggerIcon && <TriggerIcon className="size-4" />}
+          {t(`chat.decision.mode.${approvalMode}`)}
+          <ChevronDown className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="top" align="start" className="w-80 p-2">
+        {options.map(({ value, Icon }) => (
+          <DropdownMenuItem
+            key={value}
+            className="grid cursor-pointer grid-cols-[28px_minmax(0,1fr)_20px] items-start gap-3 rounded-md px-2 py-2.5"
+            onClick={() => setApprovalMode(value)}
+          >
+            <Icon className="mt-0.5 size-5 text-muted-foreground" />
+            <span className="min-w-0">
+              <span className="block text-sm font-medium">
+                {t(`chat.decision.mode.${value}`)}
+              </span>
+              <span className="mt-1 block whitespace-normal text-xs leading-5 text-muted-foreground">
+                {t(`chat.decision.mode_description.${value}`)}
+              </span>
+            </span>
+            {approvalMode === value && (
+              <Check className="mt-1 size-4 text-muted-foreground" />
+            )}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export default function ChatArea(props: IProps) {
   const {
     messages,
     navigatePrefix,
     selectedResources,
     setSelectedResources,
+    initialApprovalMode,
+    approvalModeResetKey,
     loading,
     sendMessage,
   } = props;
 
   const [tools, setTools] = useState<ToolType[]>([]);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
+  const [approvalMode, setApprovalMode] = useState<ApprovalMode>(
+    initialApprovalMode ?? 'manual'
+  );
   const [query, setQuery] = useState('');
   const toolsManuallyChangedRef = useRef(false);
   const restoredToolsConversationKeyRef = useRef<string | null>(null);
@@ -207,6 +279,10 @@ export default function ChatArea(props: IProps) {
     setTools(nextTools);
   }, []);
 
+  useEffect(() => {
+    setApprovalMode(initialApprovalMode ?? 'manual');
+  }, [approvalModeResetKey, initialApprovalMode]);
+
   const lastMessage = useMemo<MessageDetail | undefined>(() => {
     return messages.at(-1);
   }, [messages]);
@@ -237,6 +313,7 @@ export default function ChatArea(props: IProps) {
         selectedResources: localContext,
         tools,
         mode,
+        approvalMode,
       });
     }
   }, [
@@ -245,12 +322,14 @@ export default function ChatArea(props: IProps) {
     setSelectedResources,
     tools,
     mode,
+    approvalMode,
     sendMessage,
   ]);
 
   return interrupts.length > 0 ? (
     <DecisionInput
       interrupts={interrupts}
+      approvalMode={approvalMode}
       loading={loading}
       sendMessage={sendMessage}
     />
@@ -268,11 +347,17 @@ export default function ChatArea(props: IProps) {
         disabled={disabled}
       />
       <div className="flex items-center justify-between">
-        <ChatTool
-          tools={tools}
-          context={selectedResources}
-          onToolsChange={handleToolsChange}
-        />
+        <div className="flex min-w-0 items-center gap-2">
+          <ChatTool
+            tools={tools}
+            context={selectedResources}
+            onToolsChange={handleToolsChange}
+          />
+          <ApprovalModeSelect
+            approvalMode={approvalMode}
+            setApprovalMode={setApprovalMode}
+          />
+        </div>
         <div className="flex items-center gap-2">
           {contextCompactCapacity && (
             <ContextCapacityIndicator capacity={contextCompactCapacity} />

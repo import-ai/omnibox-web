@@ -8,6 +8,7 @@ import { getWizardLang } from '@/lib/wizardLang';
 import ChatArea from '@/page/chat/chat-input';
 import {
   AgentRequestChannel,
+  ApprovalMode,
   ChatCreatePayload,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
@@ -37,6 +38,8 @@ export default function SharedChatConversationPage() {
   const [regeneratingParentId, setRegeneratingParentId] = useState<
     string | null
   >(null);
+  const [initialApprovalMode, setInitialApprovalMode] =
+    useState<ApprovalMode>();
   const channel = AgentRequestChannel.WEB_SHARE;
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
@@ -189,6 +192,7 @@ export default function SharedChatConversationPage() {
       ? JSON.parse(state)
       : null;
     if (!chatCreatePayload) {
+      setInitialApprovalMode(undefined);
       http
         .get(`/shares/${shareId}/conversations/${conversationId}`)
         .then(response => {
@@ -196,6 +200,7 @@ export default function SharedChatConversationPage() {
         });
       return;
     }
+    setInitialApprovalMode(chatCreatePayload.approvalMode);
     sessionStorage.removeItem('shared-chat-create-payload');
     void sendMessage(chatCreatePayload);
   }, [shareId, conversationId]);
@@ -217,6 +222,8 @@ export default function SharedChatConversationPage() {
           <ChatArea
             messages={messages}
             navigatePrefix={`/s/${shareId}`}
+            initialApprovalMode={initialApprovalMode}
+            approvalModeResetKey={conversation.id}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             loading={loading}
