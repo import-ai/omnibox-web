@@ -52,12 +52,6 @@ const AUTO_DECISION_BY_MODE: Partial<Record<ApprovalMode, DecisionType>> = {
   auto_reject: 'reject',
 };
 
-function getAutoSubmitKey(approvalMode: ApprovalMode, interrupts: Interrupt[]) {
-  return `${approvalMode}:${interrupts
-    .map(interrupt => `${interrupt.name}:${interrupt.decisions.join(',')}`)
-    .join('|')}`;
-}
-
 // Get icon for decision type
 function getDecisionIcon(decisionType: string) {
   const lowerType = decisionType.toLowerCase();
@@ -226,6 +220,11 @@ export default function DecisionInput(props: IDecisionInputProps) {
       return;
     }
 
+    if (interrupts.length === 1) {
+      handleBulkDecision(decisionType);
+      return;
+    }
+
     setSelectedDecisions(prev => ({
       ...prev,
       [cardIndex]: decisionType,
@@ -324,8 +323,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
       return;
     }
 
-    const autoSubmitKey = getAutoSubmitKey(approvalMode, interrupts);
-    if (autoSubmittedRef.current === autoSubmitKey) {
+    if (autoSubmittedRef.current === approvalMode) {
       return;
     }
 
@@ -336,7 +334,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
     }
 
     const nextSelectedDecisions = getBulkSelectedDecisions(autoDecision);
-    autoSubmittedRef.current = autoSubmitKey;
+    autoSubmittedRef.current = approvalMode;
     setSelectedDecisions(nextSelectedDecisions);
     submitSelectedDecisions(nextSelectedDecisions);
   }, [approvalMode, interrupts, loading]);
@@ -393,6 +391,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
           const isSelected =
             selectedDecisions[activeInterruptIndex] === decisionType;
           const isActive = idx === activeOptionIndex;
+          const showSpinner = loading && interrupts.length === 1 && isSelected;
 
           return (
             <BaseButton
@@ -414,13 +413,14 @@ export default function DecisionInput(props: IDecisionInputProps) {
             >
               {getDecisionIcon(decisionType)}
               <span>{t(`chat.decision.${decisionType.toLowerCase()}`)}</span>
+              {showSpinner && <Spinner className="ml-auto" />}
             </BaseButton>
           );
         })}
       </CardContent>
 
-      <CardFooter className="flex flex-wrap gap-3 p-3 items-center justify-between">
-        {interrupts.length > 1 && (
+      {interrupts.length > 1 && (
+        <CardFooter className="flex flex-wrap gap-3 p-3 items-center justify-between">
           <div className="min-w-0 flex-1 flex items-center gap-2">
             <Button
               variant="ghost"
@@ -492,40 +492,53 @@ export default function DecisionInput(props: IDecisionInputProps) {
               <ChevronRight className="size-4" />
             </Button>
           </div>
-        )}
-        <div className="ml-auto flex items-center justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 rounded-lg px-3 text-xs text-green-700 dark:text-green-300"
-            disabled={loading || !canBulkDecide('approve')}
-            onClick={() => handleBulkDecision('approve')}
-          >
-            <Check className="size-4" />
-            {t('chat.decision.approve_all')}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 rounded-lg px-3 text-xs text-red-700 dark:text-red-300"
-            disabled={loading || !canBulkDecide('reject')}
-            onClick={() => handleBulkDecision('reject')}
-          >
-            <X className="size-4" />
-            {t('chat.decision.reject_all')}
-          </Button>
-          {allDecided && (
-            <Button
-              onClick={handleSubmit}
-              size="sm"
-              className="rounded-lg size-8"
-              disabled={loading}
-            >
-              {loading ? <Spinner /> : <ArrowUp />}
-            </Button>
-          )}
-        </div>
-      </CardFooter>
+          <div className="ml-auto flex items-center justify-end gap-2">
+            {loading ? (
+              <span className="cursor-not-allowed">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-full size-8"
+                  disabled
+                >
+                  <Spinner />
+                </Button>
+              </span>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg px-3 text-xs text-green-700 hover:!text-green-700 dark:text-green-300 dark:hover:!text-green-300"
+                  disabled={!canBulkDecide('approve')}
+                  onClick={() => handleBulkDecision('approve')}
+                >
+                  <Check className="size-4" />
+                  {t('chat.decision.approve_all')}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg px-3 text-xs text-red-700 hover:!text-red-700 dark:text-red-300 dark:hover:!text-red-300"
+                  disabled={!canBulkDecide('reject')}
+                  onClick={() => handleBulkDecision('reject')}
+                >
+                  <X className="size-4" />
+                  {t('chat.decision.reject_all')}
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  size="sm"
+                  className="rounded-lg size-8"
+                  disabled={!allDecided}
+                >
+                  <ArrowUp />
+                </Button>
+              </>
+            )}
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 }
