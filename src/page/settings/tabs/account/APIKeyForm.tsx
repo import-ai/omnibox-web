@@ -136,6 +136,18 @@ const getRootResourcePathLabel = (
   return pathSegments.join(' / ');
 };
 
+const MAX_DISPLAY_SEGMENT_LENGTH = 12;
+
+const truncatePathSegment = (segment: string) => {
+  if (segment.length <= MAX_DISPLAY_SEGMENT_LENGTH) {
+    return { label: segment, truncated: false };
+  }
+  return {
+    label: `${segment.slice(0, MAX_DISPLAY_SEGMENT_LENGTH)}…`,
+    truncated: true,
+  };
+};
+
 const getRootResourceHref = (apiKey: APIKey, namespaceId: string) => {
   const rootResource = apiKey.root_resource;
   if (!namespaceId || !rootResource || rootResource.path.length <= 1) {
@@ -150,11 +162,18 @@ const getDisplayRootResourcePathLabel = (
 ) => {
   const pathSegments = getRootResourcePathSegments(apiKey, t);
   if (pathSegments.length <= 3) {
-    return pathSegments.join(' / ');
+    return { label: pathSegments.join(' / '), hasEllipsis: false };
   }
-  return [pathSegments[0], pathSegments[1], '…', pathSegments.at(-1)].join(
-    ' / '
-  );
+
+  const secondSegment = truncatePathSegment(pathSegments[1]);
+  const lastSegment = truncatePathSegment(pathSegments.at(-1) ?? '');
+
+  return {
+    label: [pathSegments[0], secondSegment.label, '…', lastSegment.label].join(
+      ' / '
+    ),
+    hasEllipsis: true,
+  };
 };
 
 const getRootResourcePathSegments = (
@@ -172,6 +191,51 @@ const getRootResourcePathSegments = (
       : resource.name
   );
 };
+
+function APIKeyPermissionScope({
+  apiKey,
+  namespaceId,
+  t,
+}: {
+  apiKey: APIKey;
+  namespaceId: string;
+  t: (key: string) => string;
+}) {
+  const href = getRootResourceHref(apiKey, namespaceId);
+  const fullLabel = getRootResourcePathLabel(apiKey, t);
+  const displayPath = getDisplayRootResourcePathLabel(apiKey, t);
+  const content = href ? (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex w-fit max-w-full self-start whitespace-normal break-all text-sm font-semibold leading-5 text-blue-600 hover:underline dark:text-blue-400"
+    >
+      {displayPath.label}
+    </a>
+  ) : (
+    <span className="inline-flex w-fit max-w-full self-start whitespace-normal break-all text-sm font-semibold leading-5 text-foreground">
+      {displayPath.label}
+    </span>
+  );
+
+  if (!displayPath.hasEllipsis) {
+    return content;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{content}</TooltipTrigger>
+      <TooltipContent
+        side="top"
+        align="center"
+        className="max-w-80 break-words"
+      >
+        {fullLabel}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 const createPermissionState = (
   permissions: APIKeyPermission[] = []
@@ -774,33 +838,11 @@ export function APIKeyForm() {
               </div>
 
               <APIKeyInfoRow label={t('api_key.permission_scope')}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    {getRootResourceHref(key, namespaceId) ? (
-                      <a
-                        href={
-                          getRootResourceHref(key, namespaceId) ?? undefined
-                        }
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex w-fit max-w-full self-start truncate text-sm font-semibold text-primary hover:underline"
-                      >
-                        {getDisplayRootResourcePathLabel(key, t)}
-                      </a>
-                    ) : (
-                      <span className="inline-flex w-fit max-w-full self-start truncate text-sm font-semibold text-foreground">
-                        {getDisplayRootResourcePathLabel(key, t)}
-                      </span>
-                    )}
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    align="center"
-                    className="max-w-80 break-words"
-                  >
-                    {getRootResourcePathLabel(key, t)}
-                  </TooltipContent>
-                </Tooltip>
+                <APIKeyPermissionScope
+                  apiKey={key}
+                  namespaceId={namespaceId}
+                  t={t}
+                />
               </APIKeyInfoRow>
 
               {key.attrs.note && (
