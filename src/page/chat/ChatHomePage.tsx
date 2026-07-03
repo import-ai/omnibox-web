@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Typewriter } from '@/components/typewriter';
 import useConfig from '@/hooks/useConfig';
+import useUser from '@/hooks/useUser';
 import { http } from '@/lib/request';
 import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import {
@@ -15,30 +16,48 @@ import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 
 import ChatArea from './chat-input';
 import FeatureCards from './home/FeatureCards';
+import { getDefaultHomeInput } from './home/getDefaultHomeInput';
 import useSelectedResources from './useSelectedResources.ts';
 import { getGreeting } from './utils';
 
+interface NamespaceRootResource {
+  children?: unknown[];
+}
+
+function hasNamespaceResources(
+  roots: Record<string, NamespaceRootResource | undefined>
+) {
+  return Object.values(roots).some(
+    root => Array.isArray(root?.children) && root.children.length > 0
+  );
+}
+
 export default function ChatHomePage() {
   const params = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const namespaceId = params.namespace_id || '';
-  const i18n = `chat.home.greeting.${getGreeting()}`;
+  const greetingI18nKey = `chat.home.greeting.${getGreeting()}`;
   const [hasConversationHistory, setHasConversationHistory] = useState<
     boolean | null
   >(null);
+  const [hasWorkspaceResources, setHasWorkspaceResources] = useState<
+    boolean | null
+  >(null);
   const { config } = useConfig();
+  const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
 
   useEffect(() => {
     let active = true;
     setHasConversationHistory(null);
+    setHasWorkspaceResources(null);
 
     if (!namespaceId) {
       return;
     }
 
-    http
+    const conversationRequest = http
       .get(
         `/namespaces/${namespaceId}/conversations?offset=0&limit=1&order=desc`,
         {
@@ -58,6 +77,27 @@ export default function ChatHomePage() {
         }
         setHasConversationHistory(null);
       });
+    const resourceRequest = http
+      .get<Record<string, NamespaceRootResource>>(
+        `/namespaces/${namespaceId}/root`,
+        {
+          mute: true,
+        }
+      )
+      .then(result => {
+        if (!active) {
+          return;
+        }
+        setHasWorkspaceResources(hasNamespaceResources(result));
+      })
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+        setHasWorkspaceResources(null);
+      });
+
+    void Promise.allSettled([conversationRequest, resourceRequest]);
 
     return () => {
       active = false;
@@ -65,7 +105,15 @@ export default function ChatHomePage() {
   }, [namespaceId]);
 
   const defaultHomeInput =
-    hasConversationHistory === false ? t('chat.home.default_input') : undefined;
+    hasConversationHistory === false &&
+    hasWorkspaceResources === false &&
+    !userLoading
+      ? getDefaultHomeInput({
+          language: i18n.language,
+          t,
+          username: user.username,
+        })
+      : undefined;
   const sendMessage = ({
     query,
     tools,
@@ -98,7 +146,7 @@ export default function ChatHomePage() {
       <div className="flex flex-col h-full max-w-3xl w-full">
         <div className="flex flex-col justify-center flex-1 mb-8">
           <h1 className="text-[28px] text-center mb-[32px] font-medium">
-            <Typewriter text={t(i18n)} typeSpeed={32} />
+            <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
           </h1>
           {config.commercial && <AgentTrial namespaceId={namespaceId} />}
           <ChatArea

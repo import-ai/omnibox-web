@@ -654,7 +654,7 @@
         "evening": "晚上好，今天有什么可以帮您的吗？",
         "night": "夜深了，今天有什么可以帮您的吗？"
       },
-      "default_input": "你好，我是小黑",
+      "default_input": "帮我收藏 https://xhslink.com/o/t4VtmtBT4Y，然后新建文件夹“小黑的小红书”并移入。解析后生成总结并存入同一文件夹、打上标签“小黑”。另外以后请称我为 {username}。",
       "upload": {
         "title": "上传文档",
         "subtitle": "让知识为你所用",

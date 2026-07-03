@@ -6,6 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_FORCE_ASK?: string;
   readonly VITE_FORCE_PRIVATE_SEARCH?: string;
   readonly VITE_WECHAT_MP_ENV?: string;
+  readonly VITE_CHAT_HOME_DEFAULT_INPUT_ZH?: string;
+  readonly VITE_CHAT_HOME_DEFAULT_INPUT_EN?: string;
   // more env variables...
 }
 
