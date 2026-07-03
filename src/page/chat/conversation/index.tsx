@@ -22,6 +22,7 @@ export default function ChatConversationPage() {
     messageOperator,
     selectedResources,
     setSelectedResources,
+    initialApprovalMode,
     onRegenerate,
     onEdit,
     sendMessage,
@@ -57,6 +58,8 @@ export default function ChatConversationPage() {
             setSelectedResources={setSelectedResources}
             messages={messages}
             navigatePrefix={`/${namespaceId}`}
+            initialApprovalMode={initialApprovalMode}
+            approvalModeResetKey={conversation.id}
             sendMessage={sendMessage}
             loading={loading}
           />

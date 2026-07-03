@@ -30,6 +30,7 @@ export default function ChatHomePage() {
     tools,
     selectedResources,
     mode,
+    approvalMode,
   }: SendMessageParams) => {
     http
       .post(`/namespaces/${namespaceId}/conversations`)
@@ -41,6 +42,7 @@ export default function ChatHomePage() {
             query,
             tools,
             selectedResources,
+            approvalMode,
             conversation: {
               id: conversation.id,
             } as ConversationDetail,
@@ -61,6 +63,7 @@ export default function ChatHomePage() {
           <ChatArea
             messages={[]}
             navigatePrefix={`/${namespaceId}`}
+            approvalModeResetKey={`home:${namespaceId}`}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             loading={false}
