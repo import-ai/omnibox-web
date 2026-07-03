@@ -132,18 +132,37 @@ const getRootResourcePathLabel = (
   apiKey: APIKey,
   t: (key: string) => string
 ) => {
+  const pathSegments = getRootResourcePathSegments(apiKey, t);
+  return pathSegments.join(' / ');
+};
+
+const getDisplayRootResourcePathLabel = (
+  apiKey: APIKey,
+  t: (key: string) => string
+) => {
+  const pathSegments = getRootResourcePathSegments(apiKey, t);
+  if (pathSegments.length <= 3) {
+    return pathSegments.join(' / ');
+  }
+  return [pathSegments[0], pathSegments[1], '…', pathSegments.at(-1)].join(
+    ' / '
+  );
+};
+
+const getRootResourcePathSegments = (
+  apiKey: APIKey,
+  t: (key: string) => string
+) => {
   const rootResource = apiKey.root_resource;
   if (!rootResource || rootResource.path.length === 0) {
-    return t('api_key.resource_not_found');
+    return [t('api_key.resource_not_found')];
   }
 
-  return rootResource.path
-    .map((resource, index) =>
-      index === 0
-        ? getRootResourceLabel(rootResource.root_type, resource.name, t)
-        : resource.name
-    )
-    .join(' / ');
+  return rootResource.path.map((resource, index) =>
+    index === 0
+      ? getRootResourceLabel(rootResource.root_type, resource.name, t)
+      : resource.name
+  );
 };
 
 const createPermissionState = (
@@ -750,7 +769,7 @@ export function APIKeyForm() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span className="break-words text-sm font-semibold text-foreground">
-                      {getRootResourcePathLabel(key, t)}
+                      {getDisplayRootResourcePathLabel(key, t)}
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-80 break-words">
