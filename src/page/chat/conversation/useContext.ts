@@ -110,8 +110,8 @@ export default function useContext() {
     const chatCreatePayload: ChatCreatePayload | undefined = state
       ? JSON.parse(state)
       : undefined;
+    setInitialApprovalMode(chatCreatePayload?.approvalMode);
     if (!chatCreatePayload) {
-      setInitialApprovalMode(undefined);
       http
         .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
         .then(response => {
@@ -123,7 +123,6 @@ export default function useContext() {
         });
       return;
     }
-    setInitialApprovalMode(chatCreatePayload.approvalMode);
     sessionStorage.removeItem('chat-create-payload');
     void sendMessage(chatCreatePayload);
   }, [namespaceId, conversationId]);

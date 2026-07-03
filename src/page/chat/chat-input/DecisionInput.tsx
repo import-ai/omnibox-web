@@ -178,19 +178,13 @@ export default function DecisionInput(props: IDecisionInputProps) {
       return;
     }
 
-    const decisions = interrupts.reduce<{ type: DecisionType }[]>(
-      (result, _, idx) => {
-        const type = nextSelectedDecisions[idx];
-        if (type) {
-          result.push({ type });
-        }
-        return result;
-      },
-      []
-    );
-
-    if (decisions.length !== interrupts.length) {
-      return;
+    const decisions: { type: DecisionType }[] = [];
+    for (let idx = 0; idx < interrupts.length; idx++) {
+      const type = nextSelectedDecisions[idx];
+      if (!type) {
+        return;
+      }
+      decisions.push({ type });
     }
 
     submittedRef.current = true;
@@ -208,14 +202,17 @@ export default function DecisionInput(props: IDecisionInputProps) {
   const canBulkDecide = (decisionType: DecisionType) =>
     interrupts.every(interrupt => interrupt.decisions.includes(decisionType));
 
+  const getBulkSelectedDecisions = (decisionType: DecisionType) =>
+    Object.fromEntries(
+      interrupts.map((_, idx) => [idx, decisionType])
+    ) as SelectedDecisions;
+
   const handleBulkDecision = (decisionType: DecisionType) => {
     if (loading || !canBulkDecide(decisionType)) {
       return;
     }
 
-    const nextSelectedDecisions = Object.fromEntries(
-      interrupts.map((_, idx) => [idx, decisionType])
-    ) as SelectedDecisions;
+    const nextSelectedDecisions = getBulkSelectedDecisions(decisionType);
     setSelectedDecisions(nextSelectedDecisions);
     submitSelectedDecisions(nextSelectedDecisions);
   };
@@ -229,12 +226,10 @@ export default function DecisionInput(props: IDecisionInputProps) {
       return;
     }
 
-    const nextSelectedDecisions = {
-      ...selectedDecisions,
+    setSelectedDecisions(prev => ({
+      ...prev,
       [cardIndex]: decisionType,
-    };
-
-    setSelectedDecisions(nextSelectedDecisions);
+    }));
     // Auto-advance to next card (but user can manually go back)
     if (cardIndex >= 0 && cardIndex < interrupts.length - 1) {
       setActiveCardIndex(cardIndex + 1);
@@ -308,7 +303,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
     activeInterrupt,
     interrupts.length,
     loading,
-    selectedDecisions,
   ]);
 
   useEffect(() => {
@@ -341,9 +335,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
       return;
     }
 
-    const nextSelectedDecisions = Object.fromEntries(
-      interrupts.map((_, idx) => [idx, autoDecision])
-    ) as SelectedDecisions;
+    const nextSelectedDecisions = getBulkSelectedDecisions(autoDecision);
     autoSubmittedRef.current = autoSubmitKey;
     setSelectedDecisions(nextSelectedDecisions);
     submitSelectedDecisions(nextSelectedDecisions);

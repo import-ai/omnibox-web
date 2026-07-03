@@ -191,8 +191,8 @@ export default function SharedChatConversationPage() {
     const chatCreatePayload: ChatCreatePayload = state
       ? JSON.parse(state)
       : null;
+    setInitialApprovalMode(chatCreatePayload?.approvalMode);
     if (!chatCreatePayload) {
-      setInitialApprovalMode(undefined);
       http
         .get(`/shares/${shareId}/conversations/${conversationId}`)
         .then(response => {
@@ -200,7 +200,6 @@ export default function SharedChatConversationPage() {
         });
       return;
     }
-    setInitialApprovalMode(chatCreatePayload.approvalMode);
     sessionStorage.removeItem('shared-chat-create-payload');
     void sendMessage(chatCreatePayload);
   }, [shareId, conversationId]);
