@@ -618,6 +618,8 @@
           "tag_filter": "筛选标签",
           "collect_url": "收藏网页",
           "list_resource_tasks": "查询资源任务",
+          "load_docs": "查看文档",
+          "get_agent_asset_resource_id": "加载资源",
           "wait": "等待",
           "frontend_operations": "前端操作",
           "unknown": "未知工具"
@@ -704,14 +706,14 @@
       "approve_all": "全部同意",
       "reject_all": "全部拒绝",
       "mode": {
-        "manual": "手动",
+        "manual": "手动确认",
         "auto_approve": "自动同意",
         "auto_reject": "自动拒绝"
       },
       "mode_description": {
-        "manual": "每次审批都由你手动选择",
-        "auto_approve": "自动同意所有支持的审批请求",
-        "auto_reject": "自动拒绝所有支持的审批请求"
+        "manual": "每次执行前询问",
+        "auto_approve": "自动通过审批请求",
+        "auto_reject": "自动拒绝审批请求"
       }
     }
   },

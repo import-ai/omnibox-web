@@ -617,6 +617,8 @@
           "tag_filter": "Tag Filter",
           "collect_url": "Collect URL",
           "list_resource_tasks": "List Resource Tasks",
+          "load_docs": "Read Docs",
+          "get_agent_asset_resource_id": "Get Agent Asset",
           "wait": "Wait",
           "frontend_operations": "Frontend Operating",
           "unknown": "Unknown"
@@ -703,14 +705,14 @@
       "approve_all": "Approve all",
       "reject_all": "Reject all",
       "mode": {
-        "manual": "Manual",
+        "manual": "Manual approval",
         "auto_approve": "Auto approve",
         "auto_reject": "Auto reject"
       },
       "mode_description": {
-        "manual": "Choose each approval decision yourself",
-        "auto_approve": "Approve every supported decision request",
-        "auto_reject": "Reject every supported decision request"
+        "manual": "Ask before each action",
+        "auto_approve": "Automatically approve requests",
+        "auto_reject": "Automatically reject requests"
       }
     }
   },
