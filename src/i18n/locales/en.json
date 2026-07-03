@@ -579,6 +579,10 @@
       "metrics": {
         "tps": "{{tokens}} tokens ({{tps}} tokens/s)"
       },
+      "context_capacity": {
+        "ratio": "{{used}}% used ({{remaining}}% until auto-compaction)",
+        "tokens": "{{estimated}} / {{trigger}} tokens"
+      },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected"
       },
@@ -696,7 +700,19 @@
     "decision": {
       "approve": "Approve",
       "reject": "Reject",
-      "selected": "Selected"
+      "selected": "Selected",
+      "approve_all": "Approve all",
+      "reject_all": "Reject all",
+      "mode": {
+        "manual": "Manual",
+        "auto_approve": "Auto approve",
+        "auto_reject": "Auto reject"
+      },
+      "mode_description": {
+        "manual": "Choose each approval decision yourself",
+        "auto_approve": "Approve every supported decision request",
+        "auto_reject": "Reject every supported decision request"
+      }
     }
   },
   "date": {

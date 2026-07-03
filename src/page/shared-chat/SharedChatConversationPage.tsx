@@ -8,6 +8,7 @@ import { getWizardLang } from '@/lib/wizardLang';
 import ChatArea from '@/page/chat/chat-input';
 import {
   AgentRequestChannel,
+  ApprovalMode,
   ChatCreatePayload,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
@@ -37,6 +38,8 @@ export default function SharedChatConversationPage() {
   const [regeneratingParentId, setRegeneratingParentId] = useState<
     string | null
   >(null);
+  const [initialApprovalMode, setInitialApprovalMode] =
+    useState<ApprovalMode>();
   const channel = AgentRequestChannel.WEB_SHARE;
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
@@ -188,6 +191,7 @@ export default function SharedChatConversationPage() {
     const chatCreatePayload: ChatCreatePayload = state
       ? JSON.parse(state)
       : null;
+    setInitialApprovalMode(chatCreatePayload?.approvalMode);
     if (!chatCreatePayload) {
       http
         .get(`/shares/${shareId}/conversations/${conversationId}`)
@@ -217,6 +221,8 @@ export default function SharedChatConversationPage() {
           <ChatArea
             messages={messages}
             navigatePrefix={`/s/${shareId}`}
+            initialApprovalMode={initialApprovalMode}
+            approvalModeResetKey={conversation.id}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             loading={loading}

@@ -53,6 +53,14 @@ export interface MessageAttrs {
     tps?: number;
     tokens?: number;
   };
+  usage?: {
+    total_tokens?: number;
+    context_compact?: {
+      estimated_tokens?: number;
+      trigger_tokens?: number;
+    };
+    [key: string]: any;
+  };
 }
 
 export interface MessageDetail extends IBase {

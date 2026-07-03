@@ -6,6 +6,7 @@ import type { MessageDetail } from '../../core/types/conversation';
 import { ToolCallStatus } from '../../core/types/toolCall';
 import {
   findToolMessageForToolCall,
+  getLatestContextCompactCapacity,
   isTerminalToolCallStatus,
   resolveToolCallStatus,
 } from './assistantMessageUtils';
@@ -106,4 +107,103 @@ describe('isTerminalToolCallStatus', () => {
       expect(isTerminalToolCallStatus(status)).toBe(false);
     }
   );
+});
+
+describe('getLatestContextCompactCapacity', () => {
+  function buildAssistantMessage(
+    overrides: Partial<MessageDetail> & Pick<MessageDetail, 'id'>
+  ): MessageDetail {
+    return buildMessage({
+      message: {
+        role: OpenAIMessageRole.ASSISTANT,
+      },
+      ...overrides,
+    });
+  }
+
+  it('uses the latest completed assistant compact estimate and clamps percent', () => {
+    const messages = [
+      buildAssistantMessage({
+        id: 'old-message',
+        attrs: {
+          usage: {
+            total_tokens: 20,
+            context_compact: { estimated_tokens: 20, trigger_tokens: 100 },
+          },
+        },
+      }),
+      buildAssistantMessage({
+        id: 'latest-message',
+        attrs: {
+          usage: {
+            total_tokens: 120,
+            context_compact: { estimated_tokens: 120, trigger_tokens: 100 },
+          },
+        },
+      }),
+    ];
+
+    expect(getLatestContextCompactCapacity(messages)).toEqual({
+      estimatedTokens: 120,
+      triggerTokens: 100,
+      percent: 100,
+    });
+  });
+
+  it('returns undefined without estimated and trigger tokens', () => {
+    const messages = [
+      buildAssistantMessage({
+        id: 'message',
+        attrs: {
+          usage: {
+            total_tokens: 120,
+            context_compact: { trigger_tokens: 100 },
+          },
+        },
+      }),
+    ];
+
+    expect(getLatestContextCompactCapacity(messages)).toBeUndefined();
+  });
+
+  it('does not fall back past the latest completed assistant message', () => {
+    const messages = [
+      buildAssistantMessage({
+        id: 'old-pro-message',
+        attrs: {
+          usage: {
+            context_compact: { estimated_tokens: 20, trigger_tokens: 100 },
+          },
+        },
+      }),
+      buildAssistantMessage({
+        id: 'latest-basic-message',
+      }),
+    ];
+
+    expect(getLatestContextCompactCapacity(messages)).toBeUndefined();
+  });
+
+  it('ignores streaming assistant messages', () => {
+    const messages = [
+      buildAssistantMessage({
+        id: 'completed-message',
+        attrs: {
+          usage: {
+            context_compact: { estimated_tokens: 20, trigger_tokens: 100 },
+          },
+        },
+      }),
+      buildAssistantMessage({
+        id: 'streaming-message',
+        status: MessageStatus.STREAMING,
+      }),
+    ];
+
+    expect(getLatestContextCompactCapacity(messages)).toEqual({
+      estimatedTokens: 20,
+      triggerTokens: 100,
+      percent: 20,
+    });
+  });
 });

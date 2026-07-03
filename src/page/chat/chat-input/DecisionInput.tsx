@@ -24,6 +24,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { processArgs } from '@/lib/toolArgs';
 import { cn } from '@/lib/utils.ts';
 import {
+  ApprovalMode,
   ChatMode,
   DecisionType,
   SendMessageParams,
@@ -33,6 +34,7 @@ import { Interrupt } from '@/page/chat/core/types/conversation';
 
 interface IDecisionInputProps {
   interrupts: Interrupt[];
+  approvalMode: ApprovalMode;
   loading?: boolean;
   sendMessage: ({
     query,
@@ -42,6 +44,13 @@ interface IDecisionInputProps {
     decisions,
   }: SendMessageParams) => void;
 }
+
+type SelectedDecisions = Partial<Record<number, DecisionType>>;
+
+const AUTO_DECISION_BY_MODE: Partial<Record<ApprovalMode, DecisionType>> = {
+  auto_approve: 'approve',
+  auto_reject: 'reject',
+};
 
 // Get icon for decision type
 function getDecisionIcon(decisionType: string) {
@@ -119,8 +128,10 @@ function getDecisionStyle(
 }
 
 export default function DecisionInput(props: IDecisionInputProps) {
-  const { interrupts, loading = false, sendMessage } = props;
+  const { interrupts, approvalMode, loading = false, sendMessage } = props;
   const { t } = useTranslation();
+  const submittedRef = useRef(false);
+  const autoSubmittedRef = useRef<string | null>(null);
 
   const onSubmit = (decisions: { type: DecisionType }[]) => {
     sendMessage({
@@ -137,9 +148,9 @@ export default function DecisionInput(props: IDecisionInputProps) {
   }
 
   // Track selected decisions: index -> decision type
-  const [selectedDecisions, setSelectedDecisions] = useState<
-    Record<number, DecisionType>
-  >({});
+  const [selectedDecisions, setSelectedDecisions] = useState<SelectedDecisions>(
+    {}
+  );
 
   // Current active card index
   const [activeCardIndex, setActiveCardIndex] = useState(0);
@@ -150,10 +161,55 @@ export default function DecisionInput(props: IDecisionInputProps) {
   // Ref for scroll area to auto-scroll active dot into view
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Check if all interrupts have been decided
   const allDecided = interrupts.every(
     (_, idx) => selectedDecisions[idx] !== undefined
   );
+
+  const submitSelectedDecisions = (
+    nextSelectedDecisions: SelectedDecisions
+  ) => {
+    if (loading || submittedRef.current) {
+      return;
+    }
+
+    const decisions: { type: DecisionType }[] = [];
+    for (let idx = 0; idx < interrupts.length; idx++) {
+      const type = nextSelectedDecisions[idx];
+      if (!type) {
+        return;
+      }
+      decisions.push({ type });
+    }
+
+    submittedRef.current = true;
+    onSubmit(decisions);
+  };
+
+  const handleSubmit = () => {
+    if (!allDecided) {
+      return;
+    }
+
+    submitSelectedDecisions(selectedDecisions);
+  };
+
+  const canBulkDecide = (decisionType: DecisionType) =>
+    interrupts.every(interrupt => interrupt.decisions.includes(decisionType));
+
+  const getBulkSelectedDecisions = (decisionType: DecisionType) =>
+    Object.fromEntries(
+      interrupts.map((_, idx) => [idx, decisionType])
+    ) as SelectedDecisions;
+
+  const handleBulkDecision = (decisionType: DecisionType) => {
+    if (loading || !canBulkDecide(decisionType)) {
+      return;
+    }
+
+    const nextSelectedDecisions = getBulkSelectedDecisions(decisionType);
+    setSelectedDecisions(nextSelectedDecisions);
+    submitSelectedDecisions(nextSelectedDecisions);
+  };
 
   // Handle individual decision selection
   const handleSelectDecision = (
@@ -161,6 +217,11 @@ export default function DecisionInput(props: IDecisionInputProps) {
     decisionType: DecisionType
   ) => {
     if (loading) {
+      return;
+    }
+
+    if (interrupts.length === 1) {
+      handleBulkDecision(decisionType);
       return;
     }
 
@@ -174,21 +235,10 @@ export default function DecisionInput(props: IDecisionInputProps) {
     }
   };
 
-  // Handle submit all decisions
-  const handleSubmit = () => {
-    if (loading || !allDecided) {
-      return;
-    }
-
-    const decisions = interrupts.map((_, idx) => ({
-      type: selectedDecisions[idx],
-    }));
-    onSubmit(decisions);
-  };
-
   // Current active interrupt
-  const activeInterrupt = interrupts[activeCardIndex];
-  const activeSelectedDecision = selectedDecisions[activeCardIndex];
+  const activeInterruptIndex = Math.min(activeCardIndex, interrupts.length - 1);
+  const activeInterrupt = interrupts[activeInterruptIndex];
+  const activeSelectedDecision = selectedDecisions[activeInterruptIndex];
 
   // Sync activeOptionIndex when card changes
   useEffect(() => {
@@ -235,7 +285,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
           e.preventDefault();
           if (currentOptions[activeOptionIndex]) {
             handleSelectDecision(
-              activeCardIndex,
+              activeInterruptIndex,
               currentOptions[activeOptionIndex] as DecisionType
             );
           }
@@ -247,14 +297,50 @@ export default function DecisionInput(props: IDecisionInputProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     activeCardIndex,
+    activeInterruptIndex,
     activeOptionIndex,
     activeInterrupt,
     interrupts.length,
     loading,
   ]);
 
-  const canGoLeft = activeCardIndex > 0;
-  const canGoRight = activeCardIndex < interrupts.length - 1;
+  useEffect(() => {
+    submittedRef.current = false;
+    autoSubmittedRef.current = null;
+    setSelectedDecisions({});
+    setActiveCardIndex(0);
+  }, [interrupts]);
+
+  useEffect(() => {
+    if (!loading) {
+      submittedRef.current = false;
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    const autoDecision = AUTO_DECISION_BY_MODE[approvalMode];
+    if (!autoDecision || loading || submittedRef.current) {
+      return;
+    }
+
+    if (autoSubmittedRef.current === approvalMode) {
+      return;
+    }
+
+    if (
+      !interrupts.every(interrupt => interrupt.decisions.includes(autoDecision))
+    ) {
+      return;
+    }
+
+    const nextSelectedDecisions = getBulkSelectedDecisions(autoDecision);
+    autoSubmittedRef.current = approvalMode;
+    setSelectedDecisions(nextSelectedDecisions);
+    submitSelectedDecisions(nextSelectedDecisions);
+  }, [approvalMode, interrupts, loading]);
+
+  const canGoLeft = activeInterruptIndex > 0;
+  const canGoRight = activeInterruptIndex < interrupts.length - 1;
 
   // Auto-scroll indicator into view when active card changes
   useEffect(() => {
@@ -277,27 +363,35 @@ export default function DecisionInput(props: IDecisionInputProps) {
     <Card className="max-w-[766px] w-full mx-auto rounded-2xl border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030] shadow-none">
       <CardHeader className="p-3">
         <CardTitle className="flex items-center gap-2">
-          <div className="text-base">
-            {t(
-              `chat.messages.tool_calls.function_name.${activeInterrupt.name}`
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <div className="truncate text-base">
+              {t(
+                `chat.messages.tool_calls.function_name.${activeInterrupt.name}`
+              )}
+            </div>
+            {interrupts.length > 1 && (
+              <div className="shrink-0 text-xs font-normal text-muted-foreground">
+                {activeInterruptIndex + 1} / {interrupts.length}
+              </div>
             )}
           </div>
-          {interrupts.length > 1 && (
-            <div className="text-xs text-muted-foreground font-normal">
-              {activeCardIndex + 1} / {interrupts.length}
-            </div>
-          )}
         </CardTitle>
         <CardDescription className="text-xs flex flex-wrap gap-x-2 gap-y-1">
           <ToolCallArgs args={processArgs(activeInterrupt.args, t)} />
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-2 py-0 px-3">
+      <CardContent
+        className={cn(
+          'space-y-2 px-3 pt-0',
+          interrupts.length > 1 ? 'pb-0' : 'pb-3'
+        )}
+      >
         {activeInterrupt.decisions.map((decisionType, idx) => {
           const isSelected =
-            selectedDecisions[activeCardIndex] === decisionType;
+            selectedDecisions[activeInterruptIndex] === decisionType;
           const isActive = idx === activeOptionIndex;
+          const showSpinner = loading && interrupts.length === 1 && isSelected;
 
           return (
             <BaseButton
@@ -310,7 +404,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
               )}
               onClick={() =>
                 handleSelectDecision(
-                  activeCardIndex,
+                  activeInterruptIndex,
                   decisionType as DecisionType
                 )
               }
@@ -319,14 +413,15 @@ export default function DecisionInput(props: IDecisionInputProps) {
             >
               {getDecisionIcon(decisionType)}
               <span>{t(`chat.decision.${decisionType.toLowerCase()}`)}</span>
+              {showSpinner && <Spinner className="ml-auto" />}
             </BaseButton>
           );
         })}
       </CardContent>
 
-      <CardFooter className="flex gap-3 p-3 items-center justify-end">
-        {interrupts.length > 1 && (
-          <div className="w-full flex items-center gap-2">
+      {interrupts.length > 1 && (
+        <CardFooter className="flex flex-wrap gap-3 p-3 items-center justify-between">
+          <div className="min-w-0 flex-1 flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
@@ -340,7 +435,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
             <ScrollArea className="flex-1" ref={scrollAreaRef}>
               <div className="flex items-center justify-center gap-1.5 py-1">
                 {interrupts.map((_, idx) => {
-                  const isCurrent = idx === activeCardIndex;
+                  const isCurrent = idx === activeInterruptIndex;
                   const selectedType = selectedDecisions[idx];
                   const lowerType = selectedType?.toLowerCase() ?? '';
                   const isApprove =
@@ -397,24 +492,53 @@ export default function DecisionInput(props: IDecisionInputProps) {
               <ChevronRight className="size-4" />
             </Button>
           </div>
-        )}
-        {allDecided ? (
-          <Button
-            onClick={handleSubmit}
-            size="sm"
-            className="rounded-lg size-8"
-            disabled={loading}
-          >
-            {loading ? <Spinner /> : <ArrowUp />}
-          </Button>
-        ) : (
-          <span className="cursor-not-allowed">
-            <Button size="sm" className="rounded-lg size-8" disabled>
-              <ArrowUp />
-            </Button>
-          </span>
-        )}
-      </CardFooter>
+          <div className="ml-auto flex items-center justify-end gap-2">
+            {loading ? (
+              <span className="cursor-not-allowed">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-full size-8"
+                  disabled
+                >
+                  <Spinner />
+                </Button>
+              </span>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg px-3 text-xs text-green-700 hover:!text-green-700 dark:text-green-300 dark:hover:!text-green-300"
+                  disabled={!canBulkDecide('approve')}
+                  onClick={() => handleBulkDecision('approve')}
+                >
+                  <Check className="size-4" />
+                  {t('chat.decision.approve_all')}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg px-3 text-xs text-red-700 hover:!text-red-700 dark:text-red-300 dark:hover:!text-red-300"
+                  disabled={!canBulkDecide('reject')}
+                  onClick={() => handleBulkDecision('reject')}
+                >
+                  <X className="size-4" />
+                  {t('chat.decision.reject_all')}
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  size="sm"
+                  className="rounded-lg size-8"
+                  disabled={!allDecided}
+                >
+                  <ArrowUp />
+                </Button>
+              </>
+            )}
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 }

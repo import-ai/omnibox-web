@@ -1,4 +1,7 @@
-import { OpenAIMessageRole } from '../../core/types/chatResponse';
+import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '../../core/types/chatResponse';
 import type { MessageDetail } from '../../core/types/conversation';
 import { ToolCallStatus } from '../../core/types/toolCall';
 
@@ -33,4 +36,34 @@ export function resolveToolCallStatus(
     return toolCallStatus;
   }
   return toolMessage ? ToolCallStatus.RUNNING : ToolCallStatus.PENDING;
+}
+
+export function getLatestContextCompactCapacity(messages: MessageDetail[]) {
+  const latestCompletedAssistantMessage = messages
+    .filter(
+      message =>
+        message.message.role === OpenAIMessageRole.ASSISTANT &&
+        message.status === MessageStatus.SUCCESS
+    )
+    .pop();
+
+  const usage = latestCompletedAssistantMessage?.attrs?.usage;
+  const estimatedTokens = usage?.context_compact?.estimated_tokens;
+  const triggerTokens = usage?.context_compact?.trigger_tokens;
+  if (
+    typeof estimatedTokens === 'number' &&
+    typeof triggerTokens === 'number' &&
+    triggerTokens > 0
+  ) {
+    const percent = Math.min(
+      100,
+      Math.round((estimatedTokens / triggerTokens) * 100)
+    );
+    return {
+      estimatedTokens,
+      triggerTokens,
+      percent,
+    };
+  }
+  return undefined;
 }
