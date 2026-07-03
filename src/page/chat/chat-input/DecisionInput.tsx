@@ -428,7 +428,80 @@ export default function DecisionInput(props: IDecisionInputProps) {
       </CardContent>
 
       <CardFooter className="flex flex-wrap gap-3 p-3 items-center justify-between">
-        <div className="flex items-center gap-2">
+        {interrupts.length > 1 && (
+          <div className="min-w-0 flex-1 flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0"
+              onClick={() => setActiveCardIndex(prev => Math.max(0, prev - 1))}
+              disabled={loading || !canGoLeft}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+
+            <ScrollArea className="flex-1" ref={scrollAreaRef}>
+              <div className="flex items-center justify-center gap-1.5 py-1">
+                {interrupts.map((_, idx) => {
+                  const isCurrent = idx === activeInterruptIndex;
+                  const selectedType = selectedDecisions[idx];
+                  const lowerType = selectedType?.toLowerCase() ?? '';
+                  const isApprove =
+                    lowerType === 'approve' || lowerType === 'accept';
+                  const isReject =
+                    lowerType === 'reject' || lowerType === 'decline';
+
+                  const dotColor = isCurrent
+                    ? isApprove
+                      ? 'bg-green-500'
+                      : isReject
+                        ? 'bg-red-500'
+                        : 'bg-primary'
+                    : isApprove
+                      ? 'bg-green-400'
+                      : isReject
+                        ? 'bg-red-400'
+                        : 'bg-muted-foreground/30';
+
+                  return (
+                    <button
+                      key={idx}
+                      data-dot-index={idx}
+                      className={cn(
+                        'shrink-0 rounded-full transition-all duration-200',
+                        isCurrent ? 'w-5 h-2' : 'w-2 h-2',
+                        dotColor
+                      )}
+                      onClick={() => {
+                        if (!loading) {
+                          setActiveCardIndex(idx);
+                        }
+                      }}
+                      disabled={loading}
+                      aria-label={`Go to decision ${idx + 1}`}
+                    />
+                  );
+                })}
+              </div>
+              <ScrollBar orientation="horizontal" className="invisible" />
+            </ScrollArea>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0"
+              onClick={() =>
+                setActiveCardIndex(prev =>
+                  Math.min(interrupts.length - 1, prev + 1)
+                )
+              }
+              disabled={loading || !canGoRight}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        )}
+        <div className="ml-auto flex items-center justify-end gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -449,83 +522,6 @@ export default function DecisionInput(props: IDecisionInputProps) {
             <X className="size-4" />
             {t('chat.decision.reject_all')}
           </Button>
-        </div>
-        <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-3">
-          {interrupts.length > 1 && (
-            <div className="min-w-0 flex-1 flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-7 shrink-0"
-                onClick={() =>
-                  setActiveCardIndex(prev => Math.max(0, prev - 1))
-                }
-                disabled={loading || !canGoLeft}
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-
-              <ScrollArea className="flex-1" ref={scrollAreaRef}>
-                <div className="flex items-center justify-center gap-1.5 py-1">
-                  {interrupts.map((_, idx) => {
-                    const isCurrent = idx === activeInterruptIndex;
-                    const selectedType = selectedDecisions[idx];
-                    const lowerType = selectedType?.toLowerCase() ?? '';
-                    const isApprove =
-                      lowerType === 'approve' || lowerType === 'accept';
-                    const isReject =
-                      lowerType === 'reject' || lowerType === 'decline';
-
-                    const dotColor = isCurrent
-                      ? isApprove
-                        ? 'bg-green-500'
-                        : isReject
-                          ? 'bg-red-500'
-                          : 'bg-primary'
-                      : isApprove
-                        ? 'bg-green-400'
-                        : isReject
-                          ? 'bg-red-400'
-                          : 'bg-muted-foreground/30';
-
-                    return (
-                      <button
-                        key={idx}
-                        data-dot-index={idx}
-                        className={cn(
-                          'shrink-0 rounded-full transition-all duration-200',
-                          isCurrent ? 'w-5 h-2' : 'w-2 h-2',
-                          dotColor
-                        )}
-                        onClick={() => {
-                          if (!loading) {
-                            setActiveCardIndex(idx);
-                          }
-                        }}
-                        disabled={loading}
-                        aria-label={`Go to decision ${idx + 1}`}
-                      />
-                    );
-                  })}
-                </div>
-                <ScrollBar orientation="horizontal" className="invisible" />
-              </ScrollArea>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 shrink-0"
-                onClick={() =>
-                  setActiveCardIndex(prev =>
-                    Math.min(interrupts.length - 1, prev + 1)
-                  )
-                }
-                disabled={loading || !canGoRight}
-              >
-                <ChevronRight className="size-4" />
-              </Button>
-            </div>
-          )}
           {allDecided && (
             <Button
               onClick={handleSubmit}

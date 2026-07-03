@@ -199,24 +199,24 @@ function ApprovalModeSelect({
           <ChevronDown className="size-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="start" className="w-80 p-2">
+      <DropdownMenuContent side="top" align="start" className="w-72 p-1.5">
         {options.map(({ value, Icon }) => (
           <DropdownMenuItem
             key={value}
-            className="grid cursor-pointer grid-cols-[28px_minmax(0,1fr)_20px] items-start gap-3 rounded-md px-2 py-2.5"
+            className="grid cursor-pointer grid-cols-[24px_minmax(0,1fr)_18px] items-center gap-2 rounded-md px-2 py-2"
             onClick={() => setApprovalMode(value)}
           >
-            <Icon className="mt-0.5 size-5 text-muted-foreground" />
+            <Icon className="size-4 text-muted-foreground" />
             <span className="min-w-0">
-              <span className="block text-sm font-medium">
+              <span className="block text-sm font-medium leading-5">
                 {t(`chat.decision.mode.${value}`)}
               </span>
-              <span className="mt-1 block whitespace-normal text-xs leading-5 text-muted-foreground">
+              <span className="block whitespace-normal text-xs leading-4 text-muted-foreground">
                 {t(`chat.decision.mode_description.${value}`)}
               </span>
             </span>
             {approvalMode === value && (
-              <Check className="mt-1 size-4 text-muted-foreground" />
+              <Check className="size-4 text-muted-foreground" />
             )}
           </DropdownMenuItem>
         ))}
