@@ -136,6 +136,14 @@ const getRootResourcePathLabel = (
   return pathSegments.join(' / ');
 };
 
+const getRootResourceHref = (apiKey: APIKey, namespaceId: string) => {
+  const rootResource = apiKey.root_resource;
+  if (!namespaceId || !rootResource || rootResource.path.length <= 1) {
+    return null;
+  }
+  return `/${namespaceId}/${rootResource.id}`;
+};
+
 const getDisplayRootResourcePathLabel = (
   apiKey: APIKey,
   t: (key: string) => string
@@ -768,11 +776,28 @@ export function APIKeyForm() {
               <APIKeyInfoRow label={t('api_key.permission_scope')}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="break-words text-sm font-semibold text-foreground">
-                      {getDisplayRootResourcePathLabel(key, t)}
-                    </span>
+                    {getRootResourceHref(key, namespaceId) ? (
+                      <a
+                        href={
+                          getRootResourceHref(key, namespaceId) ?? undefined
+                        }
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex max-w-full truncate text-sm font-semibold text-primary hover:underline"
+                      >
+                        {getDisplayRootResourcePathLabel(key, t)}
+                      </a>
+                    ) : (
+                      <span className="inline-flex max-w-full truncate text-sm font-semibold text-foreground">
+                        {getDisplayRootResourcePathLabel(key, t)}
+                      </span>
+                    )}
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-80 break-words">
+                  <TooltipContent
+                    side="top"
+                    align="center"
+                    className="max-w-80 break-words"
+                  >
                     {getRootResourcePathLabel(key, t)}
                   </TooltipContent>
                 </Tooltip>
