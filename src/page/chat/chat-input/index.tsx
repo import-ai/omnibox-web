@@ -353,7 +353,6 @@ export default function ChatArea(props: IProps) {
         <div className="flex min-w-0 items-center gap-2">
           <ChatTool
             tools={tools}
-            context={selectedResources}
             namespaceId={namespaceId}
             onBeforeOpen={() => inputRef.current?.rememberSelection()}
             onToolToggle={tool => inputRef.current?.toggleTool(tool)}

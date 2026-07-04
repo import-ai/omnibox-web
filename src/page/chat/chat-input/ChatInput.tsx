@@ -171,7 +171,8 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
       span.className = inlineChatTokenClassName;
       span.append(
         createInlineChatTokenIconElement(
-          token.kind === 'resource' ? 'resource' : token.tool
+          token.kind === 'resource' ? 'resource' : token.tool,
+          token.kind === 'resource' ? token.resource : undefined
         ),
         document.createTextNode(token.label)
       );

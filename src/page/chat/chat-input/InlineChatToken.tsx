@@ -1,4 +1,9 @@
 import type { ReactNode } from 'react';
+import { flushSync } from 'react-dom';
+import { createRoot } from 'react-dom/client';
+
+import ResourceIcon from '@/assets/icons/ResourceIcon';
+import type { ResourceMeta } from '@/interface';
 
 import { ToolType } from './types';
 
@@ -27,6 +32,26 @@ const iconPaths: Record<InlineChatTokenIcon, string[]> = {
   ],
 };
 
+function createSvgIcon(paths: string[]) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'mr-1 inline size-4 align-[-0.125em]');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+
+  paths.forEach(value => {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', value);
+    svg.appendChild(path);
+  });
+
+  return svg;
+}
+
 function Icon({ icon }: { icon: InlineChatTokenIcon }) {
   return (
     <svg
@@ -46,37 +71,46 @@ function Icon({ icon }: { icon: InlineChatTokenIcon }) {
   );
 }
 
+function ResourceTokenIcon({ resource }: { resource: ResourceMeta }) {
+  return (
+    <span className="mr-1 inline-flex size-4 align-[-0.125em] [&>svg]:size-4">
+      <ResourceIcon expand={false} resource={resource} />
+    </span>
+  );
+}
+
 export function InlineChatToken({
   icon,
+  resource,
   children,
 }: {
   icon: InlineChatTokenIcon;
+  resource?: ResourceMeta;
   children: ReactNode;
 }) {
   return (
     <span className={inlineChatTokenClassName}>
-      <Icon icon={icon} />
+      {icon === 'resource' && resource ? (
+        <ResourceTokenIcon resource={resource} />
+      ) : (
+        <Icon icon={icon} />
+      )}
       {children}
     </span>
   );
 }
 
-export function createInlineChatTokenIconElement(icon: InlineChatTokenIcon) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'mr-1 inline size-4 align-[-0.125em]');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '2');
-  svg.setAttribute('stroke-linecap', 'round');
-  svg.setAttribute('stroke-linejoin', 'round');
-  svg.setAttribute('aria-hidden', 'true');
+export function createInlineChatTokenIconElement(
+  icon: InlineChatTokenIcon,
+  resource?: ResourceMeta
+) {
+  if (icon === 'resource' && resource) {
+    const container = document.createElement('span');
+    flushSync(() => {
+      createRoot(container).render(<ResourceTokenIcon resource={resource} />);
+    });
+    return container;
+  }
 
-  iconPaths[icon].forEach(value => {
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', value);
-    svg.appendChild(path);
-  });
-
-  return svg;
+  return createSvgIcon(iconPaths[icon]);
 }

@@ -1,6 +1,6 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Check, FileSearch, Globe, Lightbulb, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/Dialog';
 import type { ResourceMeta } from '@/interface';
-import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
+import { ToolType } from '@/page/chat/chat-input/types';
 import MoveToForm from '@/page/resource/actions/move/MoveToForm';
 
 const datasource = [
@@ -30,7 +30,6 @@ const datasource = [
 
 interface IProps {
   tools: Array<ToolType>;
-  context: IResTypeContext[];
   namespaceId: string;
   onBeforeOpen: () => void;
   onToolToggle: (tool: ToolType) => void;
@@ -38,21 +37,29 @@ interface IProps {
 }
 
 export default function ChatTool(props: IProps) {
-  const {
-    tools,
-    context,
-    namespaceId,
-    onBeforeOpen,
-    onToolToggle,
-    onResourceSelect,
-  } = props;
+  const { tools, namespaceId, onBeforeOpen, onToolToggle, onResourceSelect } =
+    props;
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, [menuOpen]);
 
   return (
     <>
-      <div className="relative">
+      <div ref={menuRef} className="relative">
         <Button
           size="icon"
           variant="ghost"
@@ -84,7 +91,6 @@ export default function ChatTool(props: IProps) {
             >
               <FileSearch className="size-4 text-muted-foreground" />
               <span className="flex-1">{t('chat.tools.select_resource')}</span>
-              {context.length > 0 && <Check className="size-4" />}
             </button>
             {datasource.map(({ label, value, Icon }) => (
               <button

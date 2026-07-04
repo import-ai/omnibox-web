@@ -6,6 +6,7 @@ import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
+import type { ResourceMeta } from '@/interface';
 import { pathI18n, trimMiddle } from '@/lib/toolArgs.ts';
 import { cn } from '@/lib/utils';
 import { InlineChatToken } from '@/page/chat/chat-input/InlineChatToken';
@@ -15,7 +16,7 @@ import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings.ts';
 
 import {
   createUserMessageCopyHtml,
-  getUserMessageResourceNames,
+  getUserMessageResources,
   splitUserMessageResourceTokens,
 } from './userMessageTokens';
 
@@ -57,7 +58,19 @@ export function UserMessage(props: IProps) {
   };
 
   const selectedResources = message.attrs?.user_context?.selected_resources;
-  const resourceNames = getUserMessageResourceNames(message.attrs?.tools);
+  const resources = getUserMessageResources(message.attrs?.tools);
+  const resourceByName = new Map<string, ResourceMeta>(
+    resources.map(resource => [
+      resource.name,
+      {
+        id: resource.id,
+        name: resource.name,
+        parent_id: null,
+        resource_type: resource.type === 'folder' ? 'folder' : 'file',
+      },
+    ])
+  );
+  const resourceNames = resources.map(resource => resource.name);
   const copyHtml = createUserMessageCopyHtml(
     openAIMessage.content || '',
     message.attrs?.tools
@@ -98,7 +111,11 @@ export function UserMessage(props: IProps) {
               {splitUserMessageResourceTokens(line, resourceNames).map(
                 (segment, segmentIndex) =>
                   segment.type === 'resource' ? (
-                    <InlineChatToken key={segmentIndex} icon="resource">
+                    <InlineChatToken
+                      key={segmentIndex}
+                      icon="resource"
+                      resource={resourceByName.get(segment.text)}
+                    >
                       {segment.text}
                     </InlineChatToken>
                   ) : (
