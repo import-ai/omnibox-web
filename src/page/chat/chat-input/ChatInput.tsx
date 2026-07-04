@@ -240,6 +240,11 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
       placeCaret(parent, childIndex(node) + 1);
     };
 
+    const isTokenBoundaryText = (node: Node | null): node is Text => {
+      if (node?.nodeType !== Node.TEXT_NODE) return false;
+      return node.textContent === '' || node.textContent === ' ';
+    };
+
     const createToken = (token: TokenData) => {
       const span = document.createElement('span');
       span.contentEditable = 'false';
@@ -326,6 +331,14 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           return;
         }
         if (node.tagName === 'BR') {
+          if (
+            node.parentNode === editor &&
+            !node.nextSibling &&
+            node.previousSibling?.nodeType === Node.TEXT_NODE &&
+            node.previousSibling.textContent?.endsWith('\n')
+          ) {
+            return;
+          }
           query += '\n';
           return;
         }
@@ -347,7 +360,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
       if (!sameResources(selectedResources, state.resources)) {
         onSelectedResourcesChange(state.resources);
       }
-      setEmpty(state.query.trim().length === 0 && state.tools.length === 0);
+      setEmpty(state.query.length === 0 && state.tools.length === 0);
       pauseSelectionUpdatesRef.current = false;
       saveSelection();
     };
@@ -378,11 +391,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
       const index = childIndex(token);
       const next = token.nextSibling;
       token.remove();
-      if (
-        removeNextSpace &&
-        next?.nodeType === Node.TEXT_NODE &&
-        next.textContent === ' '
-      ) {
+      if (removeNextSpace && isTokenBoundaryText(next)) {
         next.remove();
       }
       placeCaret(parent, Math.min(index, parent.childNodes.length));
@@ -426,8 +435,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
         return true;
       }
       if (
-        previous?.nodeType === Node.TEXT_NODE &&
-        previous.textContent === ' ' &&
+        isTokenBoundaryText(previous) &&
         isTokenNode(previous.previousSibling)
       ) {
         const token = previous.previousSibling;
@@ -438,11 +446,62 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
       return false;
     };
 
-    const insertText = (text: string) => {
-      insertNodes([document.createTextNode(text)]);
+    const moveCaretBeforeTokenFromRight = () => {
+      const editor = editorRef.current;
+      const selection = window.getSelection();
+      if (
+        !editor ||
+        !selection ||
+        selection.rangeCount === 0 ||
+        !selection.isCollapsed
+      ) {
+        return false;
+      }
+
+      const range = selection.getRangeAt(0);
+      if (!editor.contains(range.commonAncestorContainer)) return false;
+      const { startContainer, startOffset } = range;
+
+      if (startContainer.nodeType === Node.TEXT_NODE) {
+        const text = startContainer.textContent || '';
+        const before = text.slice(0, startOffset);
+        const token = startContainer.previousSibling;
+        if ((before === '' || before === ' ') && isTokenNode(token)) {
+          const parent = token.parentNode;
+          if (!parent) return false;
+          placeCaret(parent, childIndex(token));
+          return true;
+        }
+        return false;
+      }
+
+      const container = startContainer as HTMLElement;
+      const previous = container.childNodes[startOffset - 1];
+      if (isTokenNode(previous)) {
+        placeCaret(container, childIndex(previous));
+        return true;
+      }
+      if (
+        isTokenBoundaryText(previous) &&
+        isTokenNode(previous.previousSibling)
+      ) {
+        placeCaret(container, childIndex(previous.previousSibling));
+        return true;
+      }
+      return false;
     };
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (
+        event.key === 'ArrowLeft' &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        moveCaretBeforeTokenFromRight()
+      ) {
+        event.preventDefault();
+        return;
+      }
       if (event.key === 'Backspace' && removeTokenBeforeCaret()) {
         event.preventDefault();
         return;
@@ -450,12 +509,16 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
       if (isComposing || disabled) return;
       if (event.key !== 'Enter') return;
 
-      event.preventDefault();
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.shiftKey) {
-        insertText('\n');
+        if (!event.metaKey && !event.ctrlKey && !event.altKey) {
+          setTimeout(syncFromDom, 0);
+        } else {
+          event.preventDefault();
+        }
         return;
       }
+      event.preventDefault();
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
       onSend();
     };
 

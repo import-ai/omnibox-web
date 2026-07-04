@@ -12,7 +12,6 @@ import {
   DialogTitle,
 } from '@/components/ui/Dialog';
 import type { ResourceMeta } from '@/interface';
-import { cn } from '@/lib/utils';
 import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
 import MoveToForm from '@/page/resource/actions/move/MoveToForm';
 
@@ -57,13 +56,7 @@ export default function ChatTool(props: IProps) {
         <Button
           size="icon"
           variant="ghost"
-          className={cn(
-            'size-8 rounded-full text-muted-foreground hover:text-foreground',
-            {
-              'text-[#117bfa] dark:text-[#60a5fb]':
-                tools.length > 0 || context.length > 0,
-            }
-          )}
+          className="size-8 rounded-full text-muted-foreground hover:text-foreground"
           aria-label={t('chat.tools.add')}
           onMouseDown={event => {
             event.preventDefault();

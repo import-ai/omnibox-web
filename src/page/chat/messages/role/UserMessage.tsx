@@ -8,9 +8,16 @@ import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 import { pathI18n, trimMiddle } from '@/lib/toolArgs.ts';
 import { cn } from '@/lib/utils';
+import { InlineChatToken } from '@/page/chat/chat-input/InlineChatToken';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings.ts';
+
+import {
+  createUserMessageCopyHtml,
+  getUserMessageResourceNames,
+  splitUserMessageResourceTokens,
+} from './userMessageTokens';
 
 interface IProps {
   message: MessageDetail;
@@ -50,6 +57,11 @@ export function UserMessage(props: IProps) {
   };
 
   const selectedResources = message.attrs?.user_context?.selected_resources;
+  const resourceNames = getUserMessageResourceNames(message.attrs?.tools);
+  const copyHtml = createUserMessageCopyHtml(
+    openAIMessage.content || '',
+    message.attrs?.tools
+  );
 
   return (
     <div className="group flex flex-col items-end">
@@ -82,8 +94,17 @@ export function UserMessage(props: IProps) {
           </div>
         ) : (
           lines.map((line, idx) => (
-            <span key={idx} className="break-words">
-              {line}
+            <span key={idx} className="break-words [overflow-wrap:anywhere]">
+              {splitUserMessageResourceTokens(line, resourceNames).map(
+                (segment, segmentIndex) =>
+                  segment.type === 'resource' ? (
+                    <InlineChatToken key={segmentIndex} icon="resource">
+                      {segment.text}
+                    </InlineChatToken>
+                  ) : (
+                    segment.text
+                  )
+              )}
               {idx !== lines.length - 1 && <br />}
             </span>
           ))
@@ -126,6 +147,7 @@ export function UserMessage(props: IProps) {
         )}
         <Copy
           content={openAIMessage.content || ''}
+          htmlContent={copyHtml}
           tooltip={t('chat.messages.actions.copy_simple')}
         />
         {hasSiblings && (
