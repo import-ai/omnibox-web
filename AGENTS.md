@@ -124,6 +124,7 @@ Credentials managed in `src/page/user/util.ts`:
 **Rules**:
 
 - Use the same type prefixes as commit messages: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `revert`, or `build`.
+- Choose the type using the same meaning as the Git Commit Guidelines below.
 - Keep the description lowercase, kebab-case, and focused on the change.
 
 **Examples**:
