@@ -1,70 +1,142 @@
-import { Globe, Lightbulb, Sparkles } from 'lucide-react';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { Check, FileSearch, Globe, Lightbulb, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
-import { FORCE_PRIVATE_SEARCH } from '@/const.ts';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/Dialog';
+import type { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 import { IResTypeContext, ToolType } from '@/page/chat/chat-input/types';
+import MoveToForm from '@/page/resource/actions/move/MoveToForm';
 
 const datasource = [
   {
-    label: 'private_search',
-    value: ToolType.PRIVATE_SEARCH,
-    icon: <Sparkles />,
-  },
-  {
     label: 'web_search',
     value: ToolType.WEB_SEARCH,
-    icon: <Globe />,
+    Icon: Globe,
   },
   {
     label: 'reasoning',
     value: ToolType.REASONING,
-    icon: <Lightbulb />,
+    Icon: Lightbulb,
   },
-].filter(
-  item => !(FORCE_PRIVATE_SEARCH && item.value === ToolType.PRIVATE_SEARCH)
-);
+];
 
 interface IProps {
   tools: Array<ToolType>;
   context: IResTypeContext[];
-  onToolsChange: (tool: Array<ToolType>) => void;
+  namespaceId: string;
+  onBeforeOpen: () => void;
+  onToolToggle: (tool: ToolType) => void;
+  onResourceSelect: (resource: ResourceMeta) => void;
 }
 
 export default function ChatTool(props: IProps) {
-  const { tools, context, onToolsChange } = props;
+  const {
+    tools,
+    context,
+    namespaceId,
+    onBeforeOpen,
+    onToolToggle,
+    onResourceSelect,
+  } = props;
   const { t } = useTranslation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
 
   return (
-    <div className="flex items-center gap-3">
-      {datasource.map(item => (
+    <>
+      <div className="relative">
         <Button
-          size="sm"
-          key={item.value}
-          variant="outline"
-          onClick={() => {
-            if (tools.includes(item.value)) {
-              onToolsChange(tools.filter(target => target !== item.value));
-            } else {
-              onToolsChange([...tools, item.value]);
-            }
-          }}
+          size="icon"
+          variant="ghost"
           className={cn(
-            'font-normal rounded-full bg-[#f3f5f7] dark:text-white dark:bg-[#404040] border-transparent [&_svg]:size-4 hover:bg-[#e7e9ea] dark:hover:bg-[#666666] transition-colors',
+            'size-8 rounded-full text-muted-foreground hover:text-foreground',
             {
-              'text-[#117bfa] bg-[#cfe5fe] hover:text-[#117bfa] hover:bg-[#cfe5fe] dark:text-[#60a5fb] dark:bg-[#323f51] dark:hover:text-[#60a5fb] dark:hover:bg-[#323f51]':
-                tools.includes(item.value) ||
-                (item.value === ToolType.PRIVATE_SEARCH && context.length > 0),
+              'text-[#117bfa] dark:text-[#60a5fb]':
+                tools.length > 0 || context.length > 0,
             }
           )}
+          aria-label={t('chat.tools.add')}
+          onMouseDown={event => {
+            event.preventDefault();
+            onBeforeOpen();
+          }}
+          onClick={() => {
+            setMenuOpen(open => !open);
+          }}
         >
-          {item.icon}
-          <span className="hidden md:block">
-            {t('chat.tools.' + item.label)}
-          </span>
+          <Plus />
         </Button>
-      ))}
-    </div>
+        {menuOpen && (
+          <div className="absolute bottom-full left-0 z-50 mb-2 min-w-52 rounded-xl border bg-popover p-1 text-popover-foreground shadow-md dark:bg-neutral-800">
+            <div className="px-2 py-1 text-xs text-muted-foreground">
+              {t('chat.tools.add')}
+            </div>
+            <button
+              type="button"
+              className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-left text-sm hover:bg-accent"
+              onMouseDown={event => event.preventDefault()}
+              onClick={() => {
+                setMenuOpen(false);
+                setResourceDialogOpen(true);
+              }}
+            >
+              <FileSearch className="size-4 text-muted-foreground" />
+              <span className="flex-1">{t('chat.tools.select_resource')}</span>
+              {context.length > 0 && <Check className="size-4" />}
+            </button>
+            {datasource.map(({ label, value, Icon }) => (
+              <button
+                type="button"
+                key={value}
+                className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-left text-sm hover:bg-accent"
+                onMouseDown={event => event.preventDefault()}
+                onClick={() => {
+                  setMenuOpen(false);
+                  onToolToggle(value);
+                }}
+              >
+                <Icon className="size-4 text-muted-foreground" />
+                <span className="flex-1">{t('chat.tools.' + label)}</span>
+                {tools.includes(value) && <Check className="size-4" />}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <Dialog open={resourceDialogOpen} onOpenChange={setResourceDialogOpen}>
+        <DialogContent className="w-[480px] max-w-[90%] overflow-hidden bg-popover px-4 pb-5 pt-6 dark:bg-neutral-900">
+          <DialogHeader>
+            <VisuallyHidden>
+              <DialogTitle>{t('chat.tools.select_resource')}</DialogTitle>
+              <DialogDescription>
+                {t('chat.tools.select_resource')}
+              </DialogDescription>
+            </VisuallyHidden>
+          </DialogHeader>
+          <MoveToForm
+            resourceIds={[]}
+            namespaceId={namespaceId}
+            showDisabledTargets
+            onFinished={(_, __, targetName, resource) => {
+              if (!resource) return;
+              onResourceSelect({
+                ...resource,
+                name: resource.name || targetName,
+              });
+              setResourceDialogOpen(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

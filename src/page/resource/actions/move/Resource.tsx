@@ -28,7 +28,8 @@ interface IProps {
   onFinished?: (
     resourceIds: string[],
     targetId: string,
-    targetName?: string
+    targetName?: string,
+    targetResource?: IResource
   ) => void;
 }
 
@@ -66,7 +67,7 @@ export default function Resource(props: IProps) {
     onEditId(data.id);
     onEditId('');
     onSearch('');
-    onFinished?.(resourceIds, data.id, name);
+    onFinished?.(resourceIds, data.id, name, data);
   };
 
   const button = (

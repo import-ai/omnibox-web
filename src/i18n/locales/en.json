@@ -675,6 +675,8 @@
       }
     },
     "tools": {
+      "add": "Add",
+      "select_resource": "Select Resource",
       "web_search": "Web Search",
       "private_search": "OmniBox",
       "reasoning": "Reasoning",

@@ -62,6 +62,7 @@ export default function ChatHomePage() {
           {config.commercial && <AgentTrial namespaceId={namespaceId} />}
           <ChatArea
             messages={[]}
+            namespaceId={namespaceId}
             navigatePrefix={`/${namespaceId}`}
             approvalModeResetKey={`home:${namespaceId}`}
             selectedResources={selectedResources}

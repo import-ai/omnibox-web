@@ -57,6 +57,7 @@ export default function ChatConversationPage() {
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             messages={messages}
+            namespaceId={namespaceId}
             navigatePrefix={`/${namespaceId}`}
             initialApprovalMode={initialApprovalMode}
             approvalModeResetKey={conversation.id}

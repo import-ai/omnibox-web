@@ -20,7 +20,8 @@ export interface IFormProps {
   onFinished?: (
     resourceIds: string[],
     targetId: string,
-    targetName?: string
+    targetName?: string,
+    targetResource?: Resource | ResourceMeta
   ) => void;
 }
 

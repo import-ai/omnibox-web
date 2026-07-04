@@ -30,8 +30,7 @@ import {
 import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
 
 import ChatAction from './ChatAction';
-import ChatContext from './ChatContext';
-import ChatInput from './ChatInput';
+import ChatInput, { ChatInputHandle } from './ChatInput';
 import ChatTool from './ChatTool';
 
 interface RestoredTools {
@@ -154,6 +153,7 @@ function ContextCapacityIndicator({
 
 interface IProps {
   messages: MessageDetail[];
+  namespaceId: string;
   navigatePrefix: string;
   selectedResources: IResTypeContext[];
   setSelectedResources: any;
@@ -228,7 +228,7 @@ function ApprovalModeSelect({
 export default function ChatArea(props: IProps) {
   const {
     messages,
-    navigatePrefix,
+    namespaceId,
     selectedResources,
     setSelectedResources,
     initialApprovalMode,
@@ -243,6 +243,7 @@ export default function ChatArea(props: IProps) {
     initialApprovalMode ?? 'manual'
   );
   const [query, setQuery] = useState('');
+  const inputRef = useRef<ChatInputHandle>(null);
   const toolsManuallyChangedRef = useRef(false);
   const restoredToolsConversationKeyRef = useRef<string | null>(null);
   const restoredToolsSignatureRef = useRef<string | null>(null);
@@ -304,14 +305,16 @@ export default function ChatArea(props: IProps) {
   const handleSend = useCallback(() => {
     const v = query.trim();
     if (v) {
+      const localTools = [...tools];
+      const localContext = structuredClone(selectedResources);
+      inputRef.current?.clear();
       setQuery('');
       toolsManuallyChangedRef.current = false;
-      const localContext = structuredClone(selectedResources);
       setSelectedResources([]);
       sendMessage({
         query: v,
         selectedResources: localContext,
-        tools,
+        tools: localTools,
         mode,
         approvalMode,
       });
@@ -335,14 +338,14 @@ export default function ChatArea(props: IProps) {
     />
   ) : (
     <div className="max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]">
-      <ChatContext
-        value={selectedResources}
-        onChange={setSelectedResources}
-        navigatePrefix={navigatePrefix}
-      />
       <ChatInput
+        ref={inputRef}
         value={query}
+        tools={tools}
+        selectedResources={selectedResources}
         onChange={setQuery}
+        onToolsChange={handleToolsChange}
+        onSelectedResourcesChange={setSelectedResources}
         onSend={handleSend}
         disabled={disabled}
       />
@@ -351,7 +354,12 @@ export default function ChatArea(props: IProps) {
           <ChatTool
             tools={tools}
             context={selectedResources}
-            onToolsChange={handleToolsChange}
+            namespaceId={namespaceId}
+            onBeforeOpen={() => inputRef.current?.rememberSelection()}
+            onToolToggle={tool => inputRef.current?.toggleTool(tool)}
+            onResourceSelect={resource =>
+              inputRef.current?.insertResource(resource)
+            }
           />
           <ApprovalModeSelect
             approvalMode={approvalMode}
