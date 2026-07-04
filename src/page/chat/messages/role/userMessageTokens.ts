@@ -1,3 +1,5 @@
+import type { ResourceMeta } from '@/interface';
+
 import {
   type ChatTool,
   type PrivateSearchResource,
@@ -34,6 +36,22 @@ export function getUserMessageResources(tools?: ChatTool[]) {
   return Array.from(resourcesByName.values()).sort(
     (a, b) => b.name.length - a.name.length
   );
+}
+
+export function resourceMetaFromPrivateSearchResource(
+  resource: PrivateSearchResource
+): ResourceMeta {
+  const resourceType =
+    resource.resource_type ?? (resource.type === 'folder' ? 'folder' : 'file');
+  return {
+    id: resource.id,
+    name: resource.name,
+    parent_id: null,
+    resource_type: resourceType,
+    attrs:
+      resource.attrs ??
+      (resourceType === 'file' ? { original_name: resource.name } : undefined),
+  };
 }
 
 export function splitUserMessageResourceTokens(
@@ -80,7 +98,12 @@ function escapeHtml(value: string) {
 
 function resourceTokenHtml(resource: PrivateSearchResource) {
   const label = escapeHtml(resource.name);
-  const resourceType = resource.type === 'folder' ? 'folder' : 'file';
+  const resourceType =
+    resource.resource_type ?? (resource.type === 'folder' ? 'folder' : 'file');
+  const url =
+    typeof resource.attrs?.url === 'string'
+      ? escapeHtml(resource.attrs.url)
+      : '';
 
   return [
     '<span contenteditable="false"',
@@ -91,6 +114,7 @@ function resourceTokenHtml(resource: PrivateSearchResource) {
     ` data-resource-type="${resourceType}"`,
     ' data-parent-id=""',
     ` data-context-type="${resource.type}"`,
+    url ? ` data-resource-url="${url}"` : '',
     ` title="${label}"`,
     `>${label}</span>`,
   ].join('');

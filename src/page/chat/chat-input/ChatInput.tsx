@@ -188,6 +188,9 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
       span.dataset.resourceType = token.resource.resource_type;
       span.dataset.parentId = token.resource.parent_id || '';
       span.dataset.contextType = token.type;
+      if (token.resource.attrs?.url) {
+        span.dataset.resourceUrl = token.resource.attrs.url;
+      }
       return span;
     };
 
@@ -211,6 +214,12 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
         name: element.dataset.resourceName || label,
         parent_id: element.dataset.parentId || null,
         resource_type: resourceType,
+        attrs:
+          resourceType === 'file'
+            ? { original_name: element.dataset.resourceName || label }
+            : resourceType === 'link' && element.dataset.resourceUrl
+              ? { url: element.dataset.resourceUrl }
+              : undefined,
       };
       return {
         kind: 'resource',

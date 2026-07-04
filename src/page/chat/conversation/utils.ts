@@ -23,7 +23,9 @@ function getPrivateSearchResources(
       name: item.resource.name || '',
       id: item.resource.id,
       type: item.type,
-    } as PrivateSearchResource;
+      resource_type: item.resource.resource_type,
+      attrs: item.resource.attrs,
+    };
   });
 }
 

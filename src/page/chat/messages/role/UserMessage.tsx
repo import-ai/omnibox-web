@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
@@ -13,10 +14,12 @@ import { InlineChatToken } from '@/page/chat/chat-input/InlineChatToken';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings.ts';
+import { fetchResourcesByIds } from '@/service/resource';
 
 import {
   createUserMessageCopyHtml,
   getUserMessageResources,
+  resourceMetaFromPrivateSearchResource,
   splitUserMessageResourceTokens,
 } from './userMessageTokens';
 
@@ -29,8 +32,12 @@ interface IProps {
 export function UserMessage(props: IProps) {
   const { message, messageOperator, onEdit } = props;
   const { t } = useTranslation();
+  const params = useParams();
   const openAIMessage = message.message;
   const lines = openAIMessage.content?.split('\n') || [];
+  const [resourceMetaById, setResourceMetaById] = useState<
+    Record<string, ResourceMeta>
+  >({});
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(
@@ -59,15 +66,50 @@ export function UserMessage(props: IProps) {
 
   const selectedResources = message.attrs?.user_context?.selected_resources;
   const resources = getUserMessageResources(message.attrs?.tools);
-  const resourceByName = new Map<string, ResourceMeta>(
+  const resourceIdsKey = resources
+    .map(resource => resource.id)
+    .sort()
+    .join(',');
+
+  useEffect(() => {
+    const namespaceId = params.namespace_id;
+    if (!namespaceId || !resourceIdsKey) return;
+
+    const ids = resources
+      .filter(resource => {
+        if (resourceMetaById[resource.id]) return false;
+        if (!resource.resource_type) return true;
+        if (resource.resource_type === 'link') return !resource.attrs?.url;
+        if (resource.resource_type === 'file') {
+          return !resource.attrs?.original_name && !resource.attrs?.mimetype;
+        }
+        return false;
+      })
+      .map(resource => resource.id);
+    if (ids.length === 0) return;
+
+    let cancelled = false;
+    void fetchResourcesByIds(namespaceId, ids)
+      .then(fetchedResources => {
+        if (cancelled) return;
+        setResourceMetaById(prev => ({
+          ...prev,
+          ...Object.fromEntries(
+            fetchedResources.map(resource => [resource.id, resource])
+          ),
+        }));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [params.namespace_id, resourceIdsKey]);
+
+  const resourceByName = new Map(
     resources.map(resource => [
       resource.name,
-      {
-        id: resource.id,
-        name: resource.name,
-        parent_id: null,
-        resource_type: resource.type === 'folder' ? 'folder' : 'file',
-      },
+      resourceMetaById[resource.id] ??
+        resourceMetaFromPrivateSearchResource(resource),
     ])
   );
   const resourceNames = resources.map(resource => resource.name);

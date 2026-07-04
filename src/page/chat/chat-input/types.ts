@@ -37,6 +37,8 @@ export interface PrivateSearchResource {
   name: string;
   id: string;
   type: PrivateSearchResourceType;
+  resource_type?: ResourceMeta['resource_type'];
+  attrs?: ResourceMeta['attrs'];
 }
 
 export interface PrivateSearch extends IChatTool {

@@ -1,7 +1,12 @@
-import { ToolType } from '../../chat-input/types';
+import {
+  type ChatTool,
+  type PrivateSearchResource,
+  ToolType,
+} from '../../chat-input/types';
 import {
   createUserMessageCopyHtml,
   getUserMessageResourceNames,
+  resourceMetaFromPrivateSearchResource,
   splitUserMessageResourceTokens,
 } from './userMessageTokens';
 
@@ -44,6 +49,44 @@ describe('user message resource tokens', () => {
       ])
     ).toBe(
       'ask <span contenteditable="false" data-chat-token="resource" data-label="doc.txt" data-resource-id="1" data-resource-name="doc.txt" data-resource-type="file" data-parent-id="" data-context-type="resource" title="doc.txt">doc.txt</span><br>now'
+    );
+  });
+
+  it('keeps filename attrs for resource icons', () => {
+    expect(
+      resourceMetaFromPrivateSearchResource({
+        id: '1',
+        name: 'doc.pdf',
+        type: 'resource',
+      })
+    ).toMatchObject({
+      resource_type: 'file',
+      attrs: { original_name: 'doc.pdf' },
+    });
+  });
+
+  it('keeps link metadata for resource icons', () => {
+    const resource: PrivateSearchResource = {
+      id: '1',
+      name: 'x.com/story',
+      type: 'resource',
+      resource_type: 'link',
+      attrs: { url: 'https://x.com/story' },
+    };
+    const tools: ChatTool[] = [
+      {
+        name: ToolType.PRIVATE_SEARCH,
+        resources: [resource],
+      },
+    ];
+
+    expect(resourceMetaFromPrivateSearchResource(resource)).toMatchObject({
+      resource_type: 'link',
+      attrs: { url: 'https://x.com/story' },
+    });
+
+    expect(createUserMessageCopyHtml('x.com/story', tools)).toContain(
+      'data-resource-type="link" data-parent-id="" data-context-type="resource" data-resource-url="https://x.com/story"'
     );
   });
 });
