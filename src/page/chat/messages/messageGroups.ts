@@ -15,6 +15,7 @@ export type MessageDisplayItem =
 export interface MessageIndexItem {
   id: string;
   targetMessageId: string;
+  answerMessageId: string;
   query: string;
   answer: string;
 }
@@ -128,6 +129,7 @@ export function buildMessageIndexItems(
       result.push({
         id: queryMessage.id,
         targetMessageId: queryMessage.id,
+        answerMessageId: answerMessage.id,
         query,
         answer,
       });

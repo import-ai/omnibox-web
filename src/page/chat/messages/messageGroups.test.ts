@@ -181,6 +181,7 @@ describe('buildMessageIndexItems', () => {
       ])
     ).toEqual([
       {
+        answerMessageId: 'final-answer',
         id: 'user',
         targetMessageId: 'user',
         query: 'Question?',

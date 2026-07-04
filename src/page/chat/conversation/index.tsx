@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
@@ -20,6 +20,50 @@ import Scrollbar from './Scrollbar';
 
 function MessageIndex({ messages }: { messages: MessageDetail[] }) {
   const items = useMemo(() => buildMessageIndexItems(messages), [messages]);
+  const [visibleMessageIds, setVisibleMessageIds] = useState<Set<string>>(
+    () => new Set()
+  );
+
+  useEffect(() => {
+    setVisibleMessageIds(new Set());
+
+    const elements = items
+      .flatMap(item => [item.targetMessageId, item.answerMessageId])
+      .map(id => document.getElementById(`message-${id}`))
+      .filter((element): element is HTMLElement => Boolean(element));
+
+    if (elements.length === 0 || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      entries => {
+        setVisibleMessageIds(current => {
+          const next = new Set(current);
+
+          for (const entry of entries) {
+            const messageId = entry.target.id.replace(/^message-/, '');
+            if (entry.isIntersecting) {
+              next.add(messageId);
+            } else {
+              next.delete(messageId);
+            }
+          }
+
+          return next;
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    for (const element of elements) {
+      observer.observe(element);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [items]);
 
   if (items.length === 0) {
     return null;
@@ -31,25 +75,41 @@ function MessageIndex({ messages }: { messages: MessageDetail[] }) {
       className="sticky top-4 hidden w-10 shrink-0 self-start pt-8 lg:flex"
     >
       <div className="flex max-h-[calc(100vh-16rem)] flex-col items-center gap-1 overflow-y-auto py-2">
-        {items.map(item => (
-          <HoverCard key={item.id} closeDelay={100} openDelay={100}>
-            <HoverCardTrigger asChild>
-              <a
-                aria-label={item.query}
-                className="group flex h-4 w-8 items-center justify-center"
-                href={`#message-${item.targetMessageId}`}
+        {items.map(item => {
+          const active =
+            visibleMessageIds.has(item.targetMessageId) ||
+            visibleMessageIds.has(item.answerMessageId);
+
+          return (
+            <HoverCard key={item.id} closeDelay={100} openDelay={100}>
+              <HoverCardTrigger asChild>
+                <a
+                  aria-label={item.query}
+                  className="group flex h-4 w-8 items-center justify-center"
+                  href={`#message-${item.targetMessageId}`}
+                >
+                  <span
+                    className={
+                      active
+                        ? 'h-0.5 w-7 rounded-full bg-foreground transition-all'
+                        : 'h-0.5 w-3 rounded-full bg-muted-foreground/35 transition-all group-hover:w-7 group-hover:bg-foreground'
+                    }
+                  />
+                </a>
+              </HoverCardTrigger>
+              <HoverCardContent
+                align="center"
+                className="w-80 p-3"
+                side="right"
               >
-                <span className="h-0.5 w-3 rounded-full bg-muted-foreground/35 transition-all group-hover:w-7 group-hover:bg-foreground" />
-              </a>
-            </HoverCardTrigger>
-            <HoverCardContent align="center" className="w-80 p-3" side="right">
-              <p className="line-clamp-2 text-sm font-medium">{item.query}</p>
-              <p className="mt-2 line-clamp-4 text-sm text-muted-foreground">
-                {item.answer}
-              </p>
-            </HoverCardContent>
-          </HoverCard>
-        ))}
+                <p className="line-clamp-2 text-sm font-medium">{item.query}</p>
+                <p className="mt-2 line-clamp-4 text-sm text-muted-foreground">
+                  {item.answer}
+                </p>
+              </HoverCardContent>
+            </HoverCard>
+          );
+        })}
       </div>
     </nav>
   );
