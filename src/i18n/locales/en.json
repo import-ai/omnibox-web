@@ -583,6 +583,16 @@
         "ratio": "{{used}}% used ({{remaining}}% until auto-compaction)",
         "tokens": "{{estimated}} / {{trigger}} tokens"
       },
+      "process": {
+        "worked_for": "Worked for {{duration}}",
+        "message_count_one": "{{count}} assistant/tool message",
+        "message_count_other": "{{count}} assistant/tool messages",
+        "duration": {
+          "hours": "{{count}}h",
+          "minutes": "{{count}}m",
+          "seconds": "{{count}}s"
+        }
+      },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected"
       },

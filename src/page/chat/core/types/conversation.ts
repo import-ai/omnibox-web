@@ -49,6 +49,7 @@ export interface MessageAttrs {
     in_streaming?: boolean; // frontend only
   };
   // frontend only
+  response_done?: boolean;
   metrics?: {
     tps?: number;
     tokens?: number;

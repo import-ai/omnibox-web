@@ -17,6 +17,7 @@ export function messageProcessor(
   } else if (chatResponse.response_type === 'eos') {
     messageOperator.done(chatResponse.id);
   } else if (chatResponse.response_type === 'done') {
+    messageOperator.done(undefined, true);
   } else if (chatResponse.response_type === 'metrics') {
     messageOperator.update({
       response_type: 'delta',

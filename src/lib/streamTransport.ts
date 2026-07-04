@@ -1,3 +1,4 @@
+import { createPaintScheduler } from './streamPaintScheduler';
 import { getWebSocketConnection } from './websocket';
 
 export interface StreamTransport {
@@ -13,6 +14,7 @@ function createSSETransport(
   callback: StreamCallback
 ): StreamTransport {
   let isAborted = false;
+  const schedulePaint = createPaintScheduler();
 
   return {
     start: async () => {
@@ -52,6 +54,7 @@ function createSSETransport(
             if (line.startsWith('data:')) {
               const data = line.slice(5).trim();
               await callback(data);
+              await schedulePaint(data);
             }
           }
         }
