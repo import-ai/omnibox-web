@@ -4,7 +4,7 @@ import {
   ToolType,
 } from '../../chat-input/types';
 
-export type UserMessageTokenSegment =
+type UserMessageTokenSegment =
   | {
       type: 'text';
       text: string;
@@ -44,39 +44,19 @@ export function splitUserMessageResourceTokens(
     return [{ type: 'text', text }];
   }
 
-  const segments: UserMessageTokenSegment[] = [];
-  let index = 0;
+  const resourceNameSet = new Set(resourceNames);
+  const pattern = new RegExp(`(${resourceNames.map(escapeRegExp).join('|')})`);
+  return text
+    .split(pattern)
+    .filter(Boolean)
+    .map<UserMessageTokenSegment>(part => ({
+      type: resourceNameSet.has(part) ? 'resource' : 'text',
+      text: part,
+    }));
+}
 
-  while (index < text.length) {
-    let matchIndex = -1;
-    let matchName = '';
-
-    for (const name of resourceNames) {
-      const found = text.indexOf(name, index);
-      if (
-        found !== -1 &&
-        (matchIndex === -1 ||
-          found < matchIndex ||
-          (found === matchIndex && name.length > matchName.length))
-      ) {
-        matchIndex = found;
-        matchName = name;
-      }
-    }
-
-    if (matchIndex === -1) {
-      segments.push({ type: 'text', text: text.slice(index) });
-      break;
-    }
-
-    if (matchIndex > index) {
-      segments.push({ type: 'text', text: text.slice(index, matchIndex) });
-    }
-    segments.push({ type: 'resource', text: matchName });
-    index = matchIndex + matchName.length;
-  }
-
-  return segments;
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function escapeHtml(value: string) {

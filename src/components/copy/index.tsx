@@ -17,45 +17,18 @@ export default function CopyMain(props: IProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
-  const copyWithFallback = () => {
-    try {
-      return copy(content, {
-        ...(htmlContent
-          ? {
-              onCopy: clipboardData => {
-                const data = clipboardData as {
-                  clearData?: () => void;
-                  setData?: (format: string, data: string) => void;
-                };
-                data.clearData?.();
-                data.setData?.('text/plain', content);
-                data.setData?.('text/html', htmlContent);
-              },
-            }
-          : { format: 'text/plain' }),
-      });
-    } catch {
-      return false;
-    }
-  };
-
-  const handleCopy = async () => {
-    let success = false;
-    if (htmlContent && navigator.clipboard?.write && window.ClipboardItem) {
-      try {
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            'text/plain': new Blob([content], { type: 'text/plain' }),
-            'text/html': new Blob([htmlContent], { type: 'text/html' }),
-          }),
-        ]);
-        success = true;
-      } catch {
-        success = copyWithFallback();
-      }
-    } else {
-      success = copyWithFallback();
-    }
+  const handleCopy = () => {
+    const success = copy(content, {
+      ...(htmlContent
+        ? {
+            onCopy: clipboardData => {
+              clipboardData.clearData();
+              clipboardData.setData('text/plain', content);
+              clipboardData.setData('text/html', htmlContent);
+            },
+          }
+        : { format: 'text/plain' }),
+    });
 
     if (success) {
       setCopied(true);

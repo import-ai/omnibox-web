@@ -48,13 +48,6 @@ type TokenData =
       type: IResTypeContext['type'];
     };
 
-interface SerializedRange {
-  startPath: number[];
-  startOffset: number;
-  endPath: number[];
-  endOffset: number;
-}
-
 function getResourceContextType(
   resource: ResourceMeta
 ): IResTypeContext['type'] {
@@ -70,33 +63,6 @@ function isTokenNode(node: Node | null): node is HTMLElement {
 
 function childIndex(node: Node) {
   return Array.prototype.indexOf.call(node.parentNode?.childNodes ?? [], node);
-}
-
-function getNodePath(root: Node, node: Node) {
-  const path: number[] = [];
-  let current: Node | null = node;
-  while (current && current !== root) {
-    const parent = current.parentNode;
-    if (!parent) return null;
-    path.unshift(childIndex(current));
-    current = parent;
-  }
-  return current === root ? path : null;
-}
-
-function getNodeFromPath(root: Node, path: number[]) {
-  let current: Node | null = root;
-  for (const index of path) {
-    current = current?.childNodes[index] ?? null;
-    if (!current) return null;
-  }
-  return current;
-}
-
-function getMaxOffset(node: Node) {
-  return node.nodeType === Node.TEXT_NODE
-    ? (node.textContent?.length ?? 0)
-    : node.childNodes.length;
 }
 
 function sameTools(a: ToolType[], b: ToolType[]) {
@@ -130,51 +96,19 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
     const { t } = useTranslation();
     const editorRef = useRef<HTMLDivElement>(null);
     const savedRangeRef = useRef<Range | null>(null);
-    const serializedRangeRef = useRef<SerializedRange | null>(null);
-    const preferSavedRangeRef = useRef(false);
-    const pauseSelectionUpdatesRef = useRef(false);
     const [isComposing, setIsComposing] = useState(false);
     const [empty, setEmpty] = useState(true);
 
     const getToolLabel = (tool: ToolType) => t(`chat.tools.${tool}`);
 
-    const serializeRange = (editor: HTMLElement, range: Range) => {
-      const startPath = getNodePath(editor, range.startContainer);
-      const endPath = getNodePath(editor, range.endContainer);
-      if (!startPath || !endPath) return null;
-      return {
-        startPath,
-        startOffset: range.startOffset,
-        endPath,
-        endOffset: range.endOffset,
-      };
-    };
-
-    const rangeFromSerialized = (serialized: SerializedRange) => {
-      const editor = editorRef.current;
-      if (!editor) return null;
-      const start = getNodeFromPath(editor, serialized.startPath);
-      const end = getNodeFromPath(editor, serialized.endPath);
-      if (!start || !end) return null;
-      const range = document.createRange();
-      range.setStart(
-        start,
-        Math.min(serialized.startOffset, getMaxOffset(start))
-      );
-      range.setEnd(end, Math.min(serialized.endOffset, getMaxOffset(end)));
-      return range;
-    };
-
     const saveSelection = (force = false) => {
       const editor = editorRef.current;
       const selection = window.getSelection();
       if (!editor || !selection || selection.rangeCount === 0) return false;
-      if (pauseSelectionUpdatesRef.current && !force) return false;
       if (!force && document.activeElement !== editor) return false;
       const range = selection.getRangeAt(0);
       if (!editor.contains(range.commonAncestorContainer)) return false;
       savedRangeRef.current = range.cloneRange();
-      serializedRangeRef.current = serializeRange(editor, range);
       return true;
     };
 
@@ -190,19 +124,6 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
     const insertionRange = () => {
       const editor = editorRef.current;
       if (!editor) return null;
-      if (preferSavedRangeRef.current) {
-        preferSavedRangeRef.current = false;
-        const serializedRange = serializedRangeRef.current
-          ? rangeFromSerialized(serializedRangeRef.current)
-          : null;
-        if (serializedRange) return serializedRange;
-        if (
-          savedRangeRef.current &&
-          editor.contains(savedRangeRef.current.commonAncestorContainer)
-        ) {
-          return savedRangeRef.current.cloneRange();
-        }
-      }
       const selection = window.getSelection();
       if (
         document.activeElement === editor &&
@@ -229,9 +150,6 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
       selection?.removeAllRanges();
       selection?.addRange(range);
       savedRangeRef.current = range.cloneRange();
-      serializedRangeRef.current = editorRef.current
-        ? serializeRange(editorRef.current, range)
-        : null;
     };
 
     const placeCaretAfter = (node: Node) => {
@@ -361,7 +279,6 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
         onSelectedResourcesChange(state.resources);
       }
       setEmpty(state.query.length === 0 && state.tools.length === 0);
-      pauseSelectionUpdatesRef.current = false;
       saveSelection();
     };
 
@@ -377,7 +294,6 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
       const last = nodes[nodes.length - 1];
       range.insertNode(fragment);
       placeCaretAfter(last);
-      pauseSelectionUpdatesRef.current = false;
       syncFromDom();
     };
 
@@ -575,8 +491,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
         });
       },
       rememberSelection: () => {
-        pauseSelectionUpdatesRef.current = true;
-        preferSavedRangeRef.current = true;
+        saveSelection(true);
       },
       toggleTool: tool => {
         const editor = editorRef.current;
@@ -593,32 +508,24 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
     }));
 
     useEffect(() => {
-      const handleSelectionChange = () => saveSelection();
-      document.addEventListener('selectionchange', handleSelectionChange);
-      return () => {
-        document.removeEventListener('selectionchange', handleSelectionChange);
-      };
-    });
-
-    useEffect(() => {
       const editor = editorRef.current;
       if (!editor) return;
 
-      const existingTools = new Set(readEditor().tools);
-      tools
-        .filter(tool => tool !== ToolType.PRIVATE_SEARCH)
-        .forEach(tool => {
-          if (!existingTools.has(tool)) {
-            editor.append(
-              createToken({ kind: 'tool', label: getToolLabel(tool), tool }),
-              ' '
-            );
-          }
-        });
-
-      const wantedTools = new Set(
-        tools.filter(tool => tool !== ToolType.PRIVATE_SEARCH)
+      const state = readEditor();
+      const visibleTools = tools.filter(
+        tool => tool !== ToolType.PRIVATE_SEARCH
       );
+      const existingTools = new Set(state.tools);
+      visibleTools.forEach(tool => {
+        if (!existingTools.has(tool)) {
+          editor.append(
+            createToken({ kind: 'tool', label: getToolLabel(tool), tool }),
+            ' '
+          );
+        }
+      });
+
+      const wantedTools = new Set(visibleTools);
       editor
         .querySelectorAll<HTMLElement>('[data-chat-token="tool"]')
         .forEach(token => {
@@ -626,7 +533,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
         });
 
       const existingResources = new Set(
-        readEditor().resources.map(item => `${item.resource.id}:${item.type}`)
+        state.resources.map(item => `${item.resource.id}:${item.type}`)
       );
       selectedResources.forEach(item => {
         const key = `${item.resource.id}:${item.type}`;
@@ -673,15 +580,9 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           )}
           onInput={syncFromDom}
           onKeyDown={handleKeyDown}
-          onKeyUp={() => {
-            pauseSelectionUpdatesRef.current = false;
-            saveSelection();
-          }}
-          onMouseUp={() => {
-            pauseSelectionUpdatesRef.current = false;
-            saveSelection();
-          }}
-          onBlur={saveSelection}
+          onKeyUp={() => saveSelection()}
+          onMouseUp={() => saveSelection()}
+          onBlur={() => saveSelection(true)}
           onCut={() => setTimeout(syncFromDom, 0)}
           onPaste={handlePaste}
           onCompositionStart={() => setIsComposing(true)}
