@@ -201,7 +201,11 @@ export function Messages(props: IProps) {
     const shouldRenderMessage = !(isCompacting && !message.message.content);
 
     return (
-      <div key={message.id}>
+      <div
+        key={message.id}
+        id={`message-${message.id}`}
+        className="scroll-mt-4"
+      >
         {message.attrs?.compact && (
           <ContextCompactedDivider status={message.attrs.compact.status} />
         )}

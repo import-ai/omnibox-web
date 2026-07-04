@@ -12,6 +12,13 @@ export type MessageDisplayItem =
       finalMessage: MessageDetail;
     };
 
+export interface MessageIndexItem {
+  id: string;
+  targetMessageId: string;
+  query: string;
+  answer: string;
+}
+
 function isResponseMessage(message: MessageDetail) {
   return (
     message.message.role === OpenAIMessageRole.ASSISTANT ||
@@ -26,6 +33,14 @@ function isFinalAnswer(message: MessageDetail) {
       message.status === MessageStatus.STOPPED) &&
     Boolean(message.message.content?.trim()) &&
     !message.message.tool_calls?.length
+  );
+}
+
+function isUserQuery(message: MessageDetail) {
+  return (
+    message.message.role === OpenAIMessageRole.USER &&
+    (message.attrs?.tool_call?.decisions ?? []).length === 0 &&
+    Boolean(message.message.content?.trim())
   );
 }
 
@@ -95,6 +110,40 @@ export function buildMessageDisplayItems(
       result.push({ type: 'message', message: responseMessage });
     }
   }
+
+  return result;
+}
+
+export function buildMessageIndexItems(
+  messages: MessageDetail[]
+): MessageIndexItem[] {
+  const result: MessageIndexItem[] = [];
+  let queryMessage: MessageDetail | undefined;
+  let answerMessage: MessageDetail | undefined;
+
+  function flush() {
+    const query = queryMessage?.message.content?.trim();
+    const answer = answerMessage?.message.content?.trim();
+    if (queryMessage && answerMessage && query && answer) {
+      result.push({
+        id: queryMessage.id,
+        targetMessageId: queryMessage.id,
+        query,
+        answer,
+      });
+    }
+  }
+
+  for (const message of messages) {
+    if (isUserQuery(message)) {
+      flush();
+      queryMessage = message;
+      answerMessage = undefined;
+    } else if (queryMessage && isFinalAnswer(message)) {
+      answerMessage = message;
+    }
+  }
+  flush();
 
   return result;
 }

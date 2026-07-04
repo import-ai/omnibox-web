@@ -2,6 +2,7 @@ import { MessageStatus, OpenAIMessageRole } from '../core/types/chatResponse';
 import type { MessageDetail } from '../core/types/conversation';
 import {
   buildMessageDisplayItems,
+  buildMessageIndexItems,
   getCollapsedProcessDurationSeconds,
 } from './messageGroups';
 
@@ -145,5 +146,46 @@ describe('getCollapsedProcessDurationSeconds', () => {
         buildMessage({ id: 'final' })
       )
     ).toBeUndefined();
+  });
+});
+
+describe('buildMessageIndexItems', () => {
+  it('pairs user queries with the final assistant answer', () => {
+    expect(
+      buildMessageIndexItems([
+        buildMessage({
+          id: 'user',
+          message: { role: OpenAIMessageRole.USER, content: 'Question?' },
+        }),
+        buildMessage({
+          id: 'assistant-tool-call',
+          message: {
+            role: OpenAIMessageRole.ASSISTANT,
+            tool_calls: [
+              {
+                id: 'tool-call',
+                type: 'function',
+                function: { name: 'web_search', arguments: '{}' },
+              },
+            ],
+          },
+        }),
+        buildMessage({
+          id: 'tool-message',
+          message: { role: OpenAIMessageRole.TOOL, tool_call_id: 'tool-call' },
+        }),
+        buildMessage({
+          id: 'final-answer',
+          message: { role: OpenAIMessageRole.ASSISTANT, content: 'Answer.' },
+        }),
+      ])
+    ).toEqual([
+      {
+        id: 'user',
+        targetMessageId: 'user',
+        query: 'Question?',
+        answer: 'Answer.',
+      },
+    ]);
   });
 });
