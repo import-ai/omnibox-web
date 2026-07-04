@@ -74,7 +74,7 @@ function MessageIndex({ messages }: { messages: MessageDetail[] }) {
       aria-label="Message index"
       className="sticky top-4 hidden w-10 shrink-0 self-start pt-8 lg:flex"
     >
-      <div className="flex max-h-[calc(100vh-16rem)] flex-col items-center gap-1 overflow-y-auto py-2">
+      <div className="flex max-h-[calc(100vh-16rem)] flex-col items-center gap-0 overflow-y-auto py-2">
         {items.map(item => {
           const active =
             visibleMessageIds.has(item.targetMessageId) ||
@@ -85,13 +85,13 @@ function MessageIndex({ messages }: { messages: MessageDetail[] }) {
               <HoverCardTrigger asChild>
                 <a
                   aria-label={item.query}
-                  className="group flex h-4 w-8 items-center justify-center"
+                  className="group flex h-3 w-8 items-center justify-center"
                   href={`#message-${item.targetMessageId}`}
                 >
                   <span
                     className={
                       active
-                        ? 'h-0.5 w-7 rounded-full bg-foreground transition-all'
+                        ? 'h-0.5 w-3 rounded-full bg-foreground transition-all group-hover:w-7'
                         : 'h-0.5 w-3 rounded-full bg-muted-foreground/35 transition-all group-hover:w-7 group-hover:bg-foreground'
                     }
                   />
