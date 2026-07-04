@@ -23,6 +23,7 @@ function MessageIndex({ messages }: { messages: MessageDetail[] }) {
   const [visibleMessageIds, setVisibleMessageIds] = useState<Set<string>>(
     () => new Set()
   );
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setVisibleMessageIds(new Set());
@@ -74,26 +75,41 @@ function MessageIndex({ messages }: { messages: MessageDetail[] }) {
       aria-label="Message index"
       className="sticky top-4 hidden w-10 shrink-0 self-start pt-8 lg:flex"
     >
-      <div className="flex max-h-[calc(100vh-16rem)] flex-col items-center gap-0 overflow-y-auto py-2">
-        {items.map(item => {
+      <div className="flex max-h-[calc(100vh-16rem)] flex-col items-start gap-0 overflow-y-auto py-2">
+        {items.map((item, index) => {
           const active =
-            visibleMessageIds.has(item.targetMessageId) ||
-            visibleMessageIds.has(item.answerMessageId);
+            hoveredIndex === null &&
+            (visibleMessageIds.has(item.targetMessageId) ||
+              visibleMessageIds.has(item.answerMessageId));
+          const hoverDistance =
+            hoveredIndex === null ? undefined : Math.abs(hoveredIndex - index);
+          const width =
+            hoverDistance === 0
+              ? 'w-5'
+              : hoverDistance === 1
+                ? 'w-4'
+                : hoverDistance === 2
+                  ? 'w-3'
+                  : 'w-2';
 
           return (
             <HoverCard key={item.id} closeDelay={100} openDelay={100}>
               <HoverCardTrigger asChild>
                 <a
                   aria-label={item.query}
-                  className="group flex h-3 w-8 items-center justify-center"
+                  className="group flex h-3 w-5 items-center justify-start"
                   href={`#message-${item.targetMessageId}`}
+                  onBlur={() => setHoveredIndex(null)}
+                  onFocus={() => setHoveredIndex(index)}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
                 >
                   <span
-                    className={
-                      active
-                        ? 'h-0.5 w-3 rounded-full bg-foreground transition-all group-hover:w-7'
-                        : 'h-0.5 w-3 rounded-full bg-muted-foreground/35 transition-all group-hover:w-7 group-hover:bg-foreground'
-                    }
+                    className={`h-0.5 ${width} rounded-full transition-all ${
+                      active || hoverDistance === 0
+                        ? 'bg-foreground'
+                        : 'bg-muted-foreground/35'
+                    }`}
                   />
                 </a>
               </HoverCardTrigger>
