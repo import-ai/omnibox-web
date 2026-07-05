@@ -1,4 +1,3 @@
-import type { TFunction } from 'i18next';
 import { ChevronRight, ScrollText } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,10 +18,7 @@ import { AssistantMessage } from '@/page/chat/messages/role/AssistantMessage';
 import { ToolMessage } from '@/page/chat/messages/role/ToolMessage';
 import { UserMessage } from '@/page/chat/messages/role/UserMessage';
 
-import {
-  buildMessageDisplayItems,
-  getCollapsedProcessDurationSeconds,
-} from './messageGroups';
+import { buildMessageDisplayItems } from './messageGroups';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -79,28 +75,6 @@ function renderMessage(
     return <ToolMessage citations={citations} message={message} />;
   }
   return <></>;
-}
-
-function formatProcessDuration(seconds: number, t: TFunction) {
-  const totalSeconds = Math.max(0, seconds);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const restSeconds = totalSeconds % 60;
-  const parts: string[] = [];
-
-  if (hours > 0) {
-    parts.push(t('chat.messages.process.duration.hours', { count: hours }));
-  }
-  if (minutes > 0) {
-    parts.push(t('chat.messages.process.duration.minutes', { count: minutes }));
-  }
-  if (restSeconds > 0 || parts.length === 0) {
-    parts.push(
-      t('chat.messages.process.duration.seconds', { count: restSeconds })
-    );
-  }
-
-  return parts.join(' ');
 }
 
 function ContextCompactedDivider({
@@ -209,26 +183,17 @@ export function Messages(props: IProps) {
     <div className="space-y-4">
       {displayItems.map((item, index) => {
         if (item.type === 'collapsed_process') {
-          const durationSeconds = getCollapsedProcessDurationSeconds(
-            item.messages,
-            item.finalMessage
-          );
-          const summary =
-            durationSeconds === undefined
-              ? t('chat.messages.process.message_count', {
-                  count: item.messages.length,
-                })
-              : t('chat.messages.process.worked_for', {
-                  duration: formatProcessDuration(durationSeconds, t),
-                });
-
           return (
             <details
               className="group border-b border-border/60 pb-3"
               key={`process_${item.messages[0].id}`}
             >
               <summary className="flex w-fit cursor-pointer list-none items-center gap-1 py-3 text-sm text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
-                <span>{summary}</span>
+                <span>
+                  {t('chat.messages.process.message_count', {
+                    count: item.messages.length,
+                  })}
+                </span>
                 <ChevronRight className="size-4 transition-transform group-open:rotate-90" />
               </summary>
               <div className="space-y-4 pb-3">

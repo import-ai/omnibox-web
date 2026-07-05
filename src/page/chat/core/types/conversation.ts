@@ -48,6 +48,7 @@ export interface MessageAttrs {
     operations?: ToolCallFrontendOperation[];
     in_streaming?: boolean; // frontend only
   };
+  // frontend only
   metrics?: {
     tps?: number;
     tokens?: number;

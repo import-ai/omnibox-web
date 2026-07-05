@@ -585,14 +585,8 @@
         "tokens": "{{estimated}} / {{trigger}} 词元"
       },
       "process": {
-        "worked_for": "处理用时 {{duration}}",
         "message_count_one": "共 {{count}} 条中间消息",
-        "message_count_other": "共 {{count}} 条中间消息",
-        "duration": {
-          "hours": "{{count}} 小时",
-          "minutes": "{{count}} 分",
-          "seconds": "{{count}} 秒"
-        }
+        "message_count_other": "共 {{count}} 条中间消息"
       },
       "user_context": {
         "selected_resources": "选择了 {{count}} 个资源"

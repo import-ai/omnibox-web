@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 
 interface IProps {
   children: React.ReactNode;
-  contentClassName?: string;
 }
 
 const showButtonThreshold = 24;
@@ -76,10 +75,7 @@ export default function Scrollbar(props: IProps) {
         ref={rootRef}
         className="flex shrink grow justify-center p-4 w-full min-h-0 overflow-y-auto [scrollbar-gutter:stable_both-edges]"
       >
-        <div
-          ref={containerRef}
-          className={cn('max-w-3xl w-full h-fit', props.contentClassName)}
-        >
+        <div ref={containerRef} className="max-w-5xl w-full h-fit">
           {props.children}
         </div>
       </div>

@@ -3,7 +3,6 @@ import type { MessageDetail } from '../core/types/conversation';
 import {
   buildMessageDisplayItems,
   buildMessageIndexItems,
-  getCollapsedProcessDurationSeconds,
 } from './messageGroups';
 
 function buildMessage(
@@ -24,9 +23,7 @@ function displayIds(messages: MessageDetail[], loading = false) {
   return buildMessageDisplayItems(messages, loading).map(item =>
     item.type === 'message'
       ? `message:${item.message.id}`
-      : `process:${item.messages.map(message => message.id).join(',')}->${
-          item.finalMessage.id
-        }`
+      : `process:${item.messages.map(message => message.id).join(',')}`
   );
 }
 
@@ -59,7 +56,7 @@ describe('buildMessageDisplayItems', () => {
       ])
     ).toEqual([
       'message:user',
-      'process:assistant-tool-call,tool-message->final-answer',
+      'process:assistant-tool-call,tool-message',
       'message:final-answer',
     ]);
   });
@@ -114,7 +111,7 @@ describe('buildMessageDisplayItems', () => {
         true
       )
     ).toEqual([
-      'process:previous-tool-message->previous-final-answer',
+      'process:previous-tool-message',
       'message:previous-final-answer',
       'message:next-user',
       'message:tool-message',
@@ -136,36 +133,7 @@ describe('buildMessageDisplayItems', () => {
           message: { role: OpenAIMessageRole.ASSISTANT, content: 'Done' },
         }),
       ])
-    ).toEqual(['process:tool-message->final-answer', 'message:final-answer']);
-  });
-});
-
-describe('getCollapsedProcessDurationSeconds', () => {
-  it('uses process start and final answer update timestamps', () => {
-    expect(
-      getCollapsedProcessDurationSeconds(
-        [
-          buildMessage({
-            id: 'process',
-            created_at: '2026-07-04T10:00:00.000Z',
-          }),
-        ],
-        buildMessage({
-          id: 'final',
-          created_at: '2026-07-04T10:01:00.000Z',
-          updated_at: '2026-07-04T10:02:08.000Z',
-        })
-      )
-    ).toBe(128);
-  });
-
-  it('returns undefined when timestamps are missing', () => {
-    expect(
-      getCollapsedProcessDurationSeconds(
-        [buildMessage({ id: 'process' })],
-        buildMessage({ id: 'final' })
-      )
-    ).toBeUndefined();
+    ).toEqual(['process:tool-message', 'message:final-answer']);
   });
 });
 

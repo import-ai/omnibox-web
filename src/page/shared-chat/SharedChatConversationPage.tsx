@@ -207,7 +207,7 @@ export default function SharedChatConversationPage() {
 
   return (
     <div className="flex flex-1 flex-col min-h-0">
-      <Scrollbar contentClassName="max-w-5xl">
+      <Scrollbar>
         <div className="flex w-full justify-center gap-4">
           <MessageIndex messages={messages} />
           <div className="min-w-0 max-w-3xl flex-1">

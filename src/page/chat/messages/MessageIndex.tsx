@@ -67,7 +67,7 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
       aria-label="Message index"
       className="sticky top-4 hidden w-10 shrink-0 self-start pt-8 lg:flex"
     >
-      <div className="flex max-h-[calc(100vh-16rem)] flex-col items-start gap-0 overflow-y-auto py-2">
+      <div className="flex max-h-[calc(100vh-16rem)] flex-col items-start overflow-y-auto py-2">
         {items.map((item, index) => {
           const active =
             hoveredIndex === null &&
@@ -82,7 +82,7 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
               <HoverCardTrigger asChild>
                 <a
                   aria-label={item.query}
-                  className="group flex h-3 w-5 items-center justify-start"
+                  className="flex h-3 w-5 items-center justify-start"
                   href={`#message-${item.targetMessageId}`}
                   onBlur={() => setHoveredIndex(null)}
                   onFocus={() => setHoveredIndex(index)}
@@ -98,11 +98,7 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
                   />
                 </a>
               </HoverCardTrigger>
-              <HoverCardContent
-                align="center"
-                className="w-80 p-3 data-[state=closed]:!animate-none data-[state=open]:!animate-none"
-                side="right"
-              >
+              <HoverCardContent className="w-80 p-3 !animate-none" side="right">
                 <p className="line-clamp-2 text-sm font-medium">{item.query}</p>
                 <p className="mt-2 line-clamp-4 text-sm text-muted-foreground">
                   {item.answer}
