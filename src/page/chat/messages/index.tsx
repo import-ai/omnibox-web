@@ -187,16 +187,16 @@ export function Messages(props: IProps) {
   );
   const displayItems = buildMessageDisplayItems(filteredMessages);
 
-  // Find the index of the last assistant message
-  const lastAssistantIndex = filteredMessages.reduce((lastIndex, msg, idx) => {
-    return msg.message.role === OpenAIMessageRole.ASSISTANT ? idx : lastIndex;
-  }, -1);
+  const lastAssistantId = filteredMessages.reduce((lastId, message) => {
+    return message.message.role === OpenAIMessageRole.ASSISTANT
+      ? message.id
+      : lastId;
+  }, '');
 
   function renderMessageBlock(message: MessageDetail, isLastInList: boolean) {
-    const filteredIndex = filteredMessages.indexOf(message);
     const isLastAssistantMessage =
       message.message.role === OpenAIMessageRole.ASSISTANT &&
-      filteredIndex === lastAssistantIndex;
+      message.id === lastAssistantId;
     const isCompacting = message.attrs?.compact?.status === 'compacting';
     const shouldRenderMessage = !(isCompacting && !message.message.content);
 

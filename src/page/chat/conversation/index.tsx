@@ -83,14 +83,7 @@ function MessageIndex({ messages }: { messages: MessageDetail[] }) {
               visibleMessageIds.has(item.answerMessageId));
           const hoverDistance =
             hoveredIndex === null ? undefined : Math.abs(hoveredIndex - index);
-          const width =
-            hoverDistance === 0
-              ? 'w-5'
-              : hoverDistance === 1
-                ? 'w-4'
-                : hoverDistance === 2
-                  ? 'w-3'
-                  : 'w-2';
+          const width = ['w-5', 'w-4', 'w-3'][hoverDistance ?? 3] ?? 'w-2';
 
           return (
             <HoverCard key={item.id} closeDelay={100} openDelay={100}>

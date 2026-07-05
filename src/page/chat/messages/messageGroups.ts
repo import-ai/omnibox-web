@@ -50,13 +50,6 @@ function getTimestamp(value?: string) {
   return Number.isNaN(timestamp) ? undefined : timestamp;
 }
 
-function hasPersistedTimestamp(message: MessageDetail) {
-  return (
-    getTimestamp(message.created_at) !== undefined ||
-    getTimestamp(message.updated_at) !== undefined
-  );
-}
-
 export function getCollapsedProcessDurationSeconds(
   messages: MessageDetail[],
   finalMessage: MessageDetail
@@ -96,7 +89,9 @@ export function buildMessageDisplayItems(
     if (
       responseMessages.length > 1 &&
       isFinalAnswer(finalMessage) &&
-      (finalMessage.attrs?.response_done || hasPersistedTimestamp(finalMessage))
+      (finalMessage.attrs?.response_done ||
+        getTimestamp(finalMessage.created_at) !== undefined ||
+        getTimestamp(finalMessage.updated_at) !== undefined)
     ) {
       result.push({
         type: 'collapsed_process',
