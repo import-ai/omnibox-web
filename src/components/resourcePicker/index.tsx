@@ -136,10 +136,10 @@ export function ResourcePicker({
         variant="ghost"
         disabled={resource.disabled}
         className={cn(
-          'flex h-auto w-full items-start justify-start rounded-none py-1.5 font-normal',
+          'flex h-auto w-full min-w-0 items-center justify-start whitespace-normal rounded-md px-0 py-2 font-normal',
           resource.disabled && 'opacity-50'
         )}
-        style={{ paddingLeft: depth * 16 + 8 }}
+        style={{ paddingLeft: depth * 16 + 8, paddingRight: 8 }}
         onClick={() => {
           if (!resource.disabled) onSelect(resource);
         }}
@@ -169,10 +169,10 @@ export function ResourcePicker({
         ) : (
           <span className="mr-1 size-5 shrink-0" />
         )}
-        <span className="mt-0.5 size-4 shrink-0 [&>svg]:size-4">
+        <span className="size-4 shrink-0 [&>svg]:size-4">
           <ResourceIcon expand={expanded} resource={resource} />
         </span>
-        <span className="ml-2 flex-1 break-all text-left">{name}</span>
+        <span className="ml-2 min-w-0 flex-1 truncate text-left">{name}</span>
       </Button>
     );
 
@@ -198,7 +198,7 @@ export function ResourcePicker({
   const visibleResources = search ? searchResults : roots;
 
   return (
-    <div>
+    <div className="min-w-0">
       {searchResources && (
         <SearchField
           value={search}
@@ -210,7 +210,7 @@ export function ResourcePicker({
           containerClassName="mb-2"
         />
       )}
-      <div className="min-h-60 max-h-80 overflow-y-auto overflow-x-hidden pb-2">
+      <div className="min-h-60 w-full min-w-0 max-h-80 overflow-y-auto overflow-x-hidden pb-2">
         {searchLoading && visibleResources.length === 0 ? (
           <div className="flex h-24 items-center justify-center">
             <Spinner />

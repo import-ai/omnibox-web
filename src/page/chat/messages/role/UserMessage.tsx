@@ -15,6 +15,7 @@ import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings.ts';
 import { fetchResourcesByIds } from '@/service/resource';
+import { fetchShareResource } from '@/service/share';
 
 import {
   createUserMessageCopyHtml,
@@ -73,10 +74,16 @@ export function UserMessage(props: IProps) {
 
   useEffect(() => {
     const namespaceId = params.namespace_id;
-    if (!namespaceId || !resourceIdsKey) return;
+    const shareId = params.share_id;
+    if (!resourceIdsKey || (!namespaceId && !shareId)) return;
 
     let cancelled = false;
-    void fetchResourcesByIds(namespaceId, resourceIdsKey.split(','))
+    const ids = resourceIdsKey.split(',');
+    const request = namespaceId
+      ? fetchResourcesByIds(namespaceId, ids)
+      : Promise.all(ids.map(id => fetchShareResource(shareId as string, id)));
+
+    void request
       .then(fetchedResources => {
         if (cancelled) return;
         setResourceMetaById(prev => ({
@@ -90,7 +97,7 @@ export function UserMessage(props: IProps) {
     return () => {
       cancelled = true;
     };
-  }, [params.namespace_id, resourceIdsKey]);
+  }, [params.namespace_id, params.share_id, resourceIdsKey]);
 
   const resourceByName = new Map(
     resources.map(resource => [

@@ -101,7 +101,7 @@ export default function ChatTool(props: IProps) {
       </DropdownMenu>
       {renderResourcePicker && (
         <Dialog open={resourceDialogOpen} onOpenChange={setResourceDialogOpen}>
-          <DialogContent className="w-[480px] max-w-[90%] overflow-hidden bg-popover px-4 pb-5 pt-6 dark:bg-neutral-900">
+          <DialogContent className="w-[480px] max-w-[90%] overflow-hidden bg-popover px-4 pb-5 pt-12 dark:bg-neutral-900">
             <DialogHeader>
               <VisuallyHidden>
                 <DialogTitle>{t('chat.tools.select_resource')}</DialogTitle>
