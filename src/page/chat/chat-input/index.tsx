@@ -153,7 +153,7 @@ function ContextCapacityIndicator({
 
 interface IProps {
   messages: MessageDetail[];
-  namespaceId: string;
+  namespaceId?: string;
   navigatePrefix: string;
   selectedResources: IResTypeContext[];
   setSelectedResources: any;

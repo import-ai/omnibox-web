@@ -36,7 +36,7 @@ const datasource = [
 
 interface IProps {
   tools: Array<ToolType>;
-  namespaceId: string;
+  namespaceId?: string;
   onBeforeOpen: () => void;
   onToolToggle: (tool: ToolType) => void;
   onResourceSelect: (resource: ResourceMeta) => void;
@@ -70,13 +70,15 @@ export default function ChatTool(props: IProps) {
           <div className="px-2 py-1 text-xs text-muted-foreground">
             {t('chat.tools.add')}
           </div>
-          <DropdownMenuItem
-            className="cursor-pointer gap-2 rounded-lg px-2 py-2"
-            onClick={() => setResourceDialogOpen(true)}
-          >
-            <FileSearch className="size-4 text-muted-foreground" />
-            <span className="flex-1">{t('chat.tools.select_resource')}</span>
-          </DropdownMenuItem>
+          {namespaceId && (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2 rounded-lg px-2 py-2"
+              onClick={() => setResourceDialogOpen(true)}
+            >
+              <FileSearch className="size-4 text-muted-foreground" />
+              <span className="flex-1">{t('chat.tools.select_resource')}</span>
+            </DropdownMenuItem>
+          )}
           {datasource.map(({ label, value, Icon }) => (
             <DropdownMenuItem
               key={value}
@@ -90,31 +92,33 @@ export default function ChatTool(props: IProps) {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      <Dialog open={resourceDialogOpen} onOpenChange={setResourceDialogOpen}>
-        <DialogContent className="w-[480px] max-w-[90%] overflow-hidden bg-popover px-4 pb-5 pt-6 dark:bg-neutral-900">
-          <DialogHeader>
-            <VisuallyHidden>
-              <DialogTitle>{t('chat.tools.select_resource')}</DialogTitle>
-              <DialogDescription>
-                {t('chat.tools.select_resource')}
-              </DialogDescription>
-            </VisuallyHidden>
-          </DialogHeader>
-          <MoveToForm
-            resourceIds={[]}
-            namespaceId={namespaceId}
-            showDisabledTargets
-            onFinished={(_, __, targetName, resource) => {
-              if (!resource) return;
-              onResourceSelect({
-                ...resource,
-                name: resource.name || targetName,
-              });
-              setResourceDialogOpen(false);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      {namespaceId && (
+        <Dialog open={resourceDialogOpen} onOpenChange={setResourceDialogOpen}>
+          <DialogContent className="w-[480px] max-w-[90%] overflow-hidden bg-popover px-4 pb-5 pt-6 dark:bg-neutral-900">
+            <DialogHeader>
+              <VisuallyHidden>
+                <DialogTitle>{t('chat.tools.select_resource')}</DialogTitle>
+                <DialogDescription>
+                  {t('chat.tools.select_resource')}
+                </DialogDescription>
+              </VisuallyHidden>
+            </DialogHeader>
+            <MoveToForm
+              resourceIds={[]}
+              namespaceId={namespaceId}
+              showDisabledTargets
+              onFinished={(_, __, targetName, resource) => {
+                if (!resource) return;
+                onResourceSelect({
+                  ...resource,
+                  name: resource.name || targetName,
+                });
+                setResourceDialogOpen(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
