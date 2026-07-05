@@ -10,6 +10,7 @@ type MessageDisplayItem =
   | {
       type: 'collapsed_process';
       messages: MessageDetail[];
+      finalMessage: MessageDetail;
     };
 
 function isResponseMessage(message: MessageDetail) {
@@ -35,6 +36,24 @@ function isUserQuery(message: MessageDetail) {
     (message.attrs?.tool_call?.decisions ?? []).length === 0 &&
     Boolean(message.message.content?.trim())
   );
+}
+
+function getTimestamp(value?: string) {
+  const timestamp = value ? new Date(value).getTime() : NaN;
+  return Number.isNaN(timestamp) ? undefined : timestamp;
+}
+
+export function getCollapsedProcessDurationSeconds(
+  messages: MessageDetail[],
+  finalMessage: MessageDetail
+) {
+  const start = getTimestamp(messages[0]?.created_at);
+  const end = getTimestamp(finalMessage.created_at);
+
+  if (start === undefined || end === undefined || end < start) {
+    return 0;
+  }
+  return Math.floor((end - start) / 1000);
 }
 
 export function buildMessageDisplayItems(
@@ -67,6 +86,7 @@ export function buildMessageDisplayItems(
       result.push({
         type: 'collapsed_process',
         messages: responseMessages.slice(0, -1),
+        finalMessage,
       });
       result.push({ type: 'message', message: finalMessage });
       continue;

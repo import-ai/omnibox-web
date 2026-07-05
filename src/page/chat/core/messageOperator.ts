@@ -120,6 +120,7 @@ export function createMessageOperator(
     add: (chatResponse: ChatBOSResponse): string => {
       const message: MessageDetail = {
         id: chatResponse.id,
+        created_at: chatResponse.created_at || new Date().toISOString(),
         message: {
           role: chatResponse.role,
         },

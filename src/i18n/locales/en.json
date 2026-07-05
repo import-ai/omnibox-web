@@ -584,8 +584,11 @@
         "tokens": "{{estimated}} / {{trigger}} tokens"
       },
       "process": {
-        "message_count_one": "{{count}} message",
-        "message_count_other": "{{count}} messages"
+        "duration": {
+          "hours": "{{count}}h",
+          "minutes": "{{count}}m",
+          "seconds": "{{count}}s"
+        }
       },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected"
