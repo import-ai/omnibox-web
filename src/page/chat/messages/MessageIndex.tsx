@@ -98,9 +98,12 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
                   />
                 </a>
               </HoverCardTrigger>
-              <HoverCardContent className="w-80 p-3 !animate-none" side="right">
-                <p className="line-clamp-2 text-sm font-medium">{item.query}</p>
-                <p className="mt-2 line-clamp-4 text-sm text-muted-foreground">
+              <HoverCardContent
+                className="w-80 rounded-xl p-3 !animate-none"
+                side="right"
+              >
+                <p className="truncate text-sm font-medium">{item.query}</p>
+                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
                   {item.answer}
                 </p>
               </HoverCardContent>

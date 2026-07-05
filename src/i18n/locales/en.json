@@ -584,8 +584,8 @@
         "tokens": "{{estimated}} / {{trigger}} tokens"
       },
       "process": {
-        "message_count_one": "{{count}} assistant/tool message",
-        "message_count_other": "{{count}} assistant/tool messages"
+        "message_count_one": "{{count}} message",
+        "message_count_other": "{{count}} messages"
       },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected"
