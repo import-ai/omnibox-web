@@ -20,8 +20,8 @@ function buildMessage(
   };
 }
 
-function displayIds(messages: MessageDetail[]) {
-  return buildMessageDisplayItems(messages).map(item =>
+function displayIds(messages: MessageDetail[], loading = false) {
+  return buildMessageDisplayItems(messages, loading).map(item =>
     item.type === 'message'
       ? `message:${item.message.id}`
       : `process:${item.messages.map(message => message.id).join(',')}->${
@@ -54,7 +54,6 @@ describe('buildMessageDisplayItems', () => {
         }),
         buildMessage({
           id: 'final-answer',
-          attrs: { response_done: true },
           message: { role: OpenAIMessageRole.ASSISTANT, content: 'Done' },
         }),
       ])
@@ -84,22 +83,43 @@ describe('buildMessageDisplayItems', () => {
     ).toEqual(['message:tool-message', 'message:final-answer']);
   });
 
-  it('keeps terminal assistant messages visible until the stream is done', () => {
+  it('keeps only the latest response visible while streaming', () => {
     expect(
-      displayIds([
-        buildMessage({
-          id: 'tool-message',
-          message: { role: OpenAIMessageRole.TOOL },
-        }),
-        buildMessage({
-          id: 'intermediate-answer',
-          message: {
-            role: OpenAIMessageRole.ASSISTANT,
-            content: 'I found one result. I will keep checking.',
-          },
-        }),
-      ])
-    ).toEqual(['message:tool-message', 'message:intermediate-answer']);
+      displayIds(
+        [
+          buildMessage({
+            id: 'previous-tool-message',
+            message: { role: OpenAIMessageRole.TOOL },
+          }),
+          buildMessage({
+            id: 'previous-final-answer',
+            message: { role: OpenAIMessageRole.ASSISTANT, content: 'Done' },
+          }),
+          buildMessage({
+            id: 'next-user',
+            message: { role: OpenAIMessageRole.USER, content: 'Next' },
+          }),
+          buildMessage({
+            id: 'tool-message',
+            message: { role: OpenAIMessageRole.TOOL },
+          }),
+          buildMessage({
+            id: 'intermediate-answer',
+            message: {
+              role: OpenAIMessageRole.ASSISTANT,
+              content: 'I found one result. I will keep checking.',
+            },
+          }),
+        ],
+        true
+      )
+    ).toEqual([
+      'process:previous-tool-message->previous-final-answer',
+      'message:previous-final-answer',
+      'message:next-user',
+      'message:tool-message',
+      'message:intermediate-answer',
+    ]);
   });
 
   it('collapses persisted history without frontend stream state', () => {

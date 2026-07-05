@@ -1,7 +1,7 @@
 import { MessageStatus, OpenAIMessageRole } from '../core/types/chatResponse';
 import type { MessageDetail } from '../core/types/conversation';
 
-export type MessageDisplayItem =
+type MessageDisplayItem =
   | {
       type: 'message';
       message: MessageDetail;
@@ -11,14 +11,6 @@ export type MessageDisplayItem =
       messages: MessageDetail[];
       finalMessage: MessageDetail;
     };
-
-export interface MessageIndexItem {
-  id: string;
-  targetMessageId: string;
-  answerMessageId: string;
-  query: string;
-  answer: string;
-}
 
 function isResponseMessage(message: MessageDetail) {
   return (
@@ -66,7 +58,8 @@ export function getCollapsedProcessDurationSeconds(
 }
 
 export function buildMessageDisplayItems(
-  messages: MessageDetail[]
+  messages: MessageDetail[],
+  loading = false
 ): MessageDisplayItem[] {
   const result: MessageDisplayItem[] = [];
   let index = 0;
@@ -89,7 +82,8 @@ export function buildMessageDisplayItems(
     if (
       responseMessages.length > 1 &&
       isFinalAnswer(finalMessage) &&
-      (finalMessage.attrs?.response_done ||
+      (!loading ||
+        index < messages.length ||
         getTimestamp(finalMessage.created_at) !== undefined ||
         getTimestamp(finalMessage.updated_at) !== undefined)
     ) {
@@ -110,10 +104,8 @@ export function buildMessageDisplayItems(
   return result;
 }
 
-export function buildMessageIndexItems(
-  messages: MessageDetail[]
-): MessageIndexItem[] {
-  const result: MessageIndexItem[] = [];
+export function buildMessageIndexItems(messages: MessageDetail[]) {
+  const result = [];
   let queryMessage: MessageDetail | undefined;
   let answerMessage: MessageDetail | undefined;
 

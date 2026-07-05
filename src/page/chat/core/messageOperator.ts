@@ -19,7 +19,7 @@ function add(source?: string, delta?: string): string | undefined {
 export interface MessageOperator {
   update: (delta: ChatDeltaResponse, id?: string) => void;
   add: (chatResponse: ChatBOSResponse) => string;
-  done: (id?: string, responseDone?: boolean) => void;
+  done: (id?: string) => void;
   error: (errorResponse: ChatErrorResponse, id?: string) => void;
   activate: (id: string) => void;
   getSiblings: (id: string) => string[];
@@ -152,19 +152,13 @@ export function createMessageOperator(
       return chatResponse.id;
     },
 
-    done: (id?: string, responseDone = false) => {
+    done: (id?: string) => {
       setConversation(prev => {
         const message = getMessage(prev, id);
         if (!message) {
           return prev;
         }
         message.status = MessageStatus.SUCCESS;
-        if (responseDone) {
-          message.attrs = {
-            ...(message.attrs || {}),
-            response_done: true,
-          };
-        }
         if (message.message.role === OpenAIMessageRole.TOOL) {
           if (message.attrs?.tool_call) {
             message.attrs.tool_call.in_streaming = true;

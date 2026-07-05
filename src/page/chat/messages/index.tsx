@@ -22,7 +22,6 @@ import { UserMessage } from '@/page/chat/messages/role/UserMessage';
 import {
   buildMessageDisplayItems,
   getCollapsedProcessDurationSeconds,
-  type MessageDisplayItem,
 } from './messageGroups';
 
 interface IProps {
@@ -31,6 +30,7 @@ interface IProps {
   messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
+  loading: boolean;
   regeneratingParentId?: string | null;
 }
 
@@ -129,45 +129,15 @@ function ContextCompactedDivider({
   );
 }
 
-function CollapsedProcessMessages({
-  item,
-  children,
-}: {
-  item: Extract<MessageDisplayItem, { type: 'collapsed_process' }>;
-  children: React.ReactNode;
-}) {
-  const { t } = useTranslation();
-  const durationSeconds = getCollapsedProcessDurationSeconds(
-    item.messages,
-    item.finalMessage
-  );
-  const summary =
-    durationSeconds === undefined
-      ? t('chat.messages.process.message_count', {
-          count: item.messages.length,
-        })
-      : t('chat.messages.process.worked_for', {
-          duration: formatProcessDuration(durationSeconds, t),
-        });
-
-  return (
-    <details className="group border-b border-border/60 pb-3">
-      <summary className="flex w-fit cursor-pointer list-none items-center gap-1 py-3 text-sm text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
-        <span>{summary}</span>
-        <ChevronRight className="size-4 transition-transform group-open:rotate-90" />
-      </summary>
-      <div className="space-y-4 pb-3">{children}</div>
-    </details>
-  );
-}
-
 export function Messages(props: IProps) {
+  const { t } = useTranslation();
   const {
     messages,
     conversation,
     messageOperator,
     onRegenerate,
     onEdit,
+    loading,
     regeneratingParentId = null,
   } = props;
   const citations = React.useMemo((): Citation[] => {
@@ -185,7 +155,7 @@ export function Messages(props: IProps) {
   const filteredMessages = messages.filter(
     message => message.message.role !== OpenAIMessageRole.SYSTEM
   );
-  const displayItems = buildMessageDisplayItems(filteredMessages);
+  const displayItems = buildMessageDisplayItems(filteredMessages, loading);
 
   const lastAssistantId = filteredMessages.reduce((lastId, message) => {
     return message.message.role === OpenAIMessageRole.ASSISTANT
@@ -239,18 +209,37 @@ export function Messages(props: IProps) {
     <div className="space-y-4">
       {displayItems.map((item, index) => {
         if (item.type === 'collapsed_process') {
+          const durationSeconds = getCollapsedProcessDurationSeconds(
+            item.messages,
+            item.finalMessage
+          );
+          const summary =
+            durationSeconds === undefined
+              ? t('chat.messages.process.message_count', {
+                  count: item.messages.length,
+                })
+              : t('chat.messages.process.worked_for', {
+                  duration: formatProcessDuration(durationSeconds, t),
+                });
+
           return (
-            <CollapsedProcessMessages
+            <details
+              className="group border-b border-border/60 pb-3"
               key={`process_${item.messages[0].id}`}
-              item={item}
             >
-              {item.messages.map((message, processIndex) =>
-                renderMessageBlock(
-                  message,
-                  processIndex === item.messages.length - 1
-                )
-              )}
-            </CollapsedProcessMessages>
+              <summary className="flex w-fit cursor-pointer list-none items-center gap-1 py-3 text-sm text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+                <span>{summary}</span>
+                <ChevronRight className="size-4 transition-transform group-open:rotate-90" />
+              </summary>
+              <div className="space-y-4 pb-3">
+                {item.messages.map((message, processIndex) =>
+                  renderMessageBlock(
+                    message,
+                    processIndex === item.messages.length - 1
+                  )
+                )}
+              </div>
+            </details>
           );
         }
 

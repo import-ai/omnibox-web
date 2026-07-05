@@ -86,7 +86,7 @@ function MessageIndex({ messages }: { messages: MessageDetail[] }) {
           const width = ['w-5', 'w-4', 'w-3'][hoverDistance ?? 3] ?? 'w-2';
 
           return (
-            <HoverCard key={item.id} closeDelay={100} openDelay={100}>
+            <HoverCard key={item.id}>
               <HoverCardTrigger asChild>
                 <a
                   aria-label={item.query}
@@ -161,6 +161,7 @@ export default function ChatConversationPage() {
                 messageOperator={messageOperator}
                 onRegenerate={onRegenerate}
                 onEdit={onEdit}
+                loading={loading}
                 regeneratingParentId={regeneratingParentId}
               />
             </div>
