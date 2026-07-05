@@ -5,7 +5,7 @@ import {
 } from '../../chat-input/types';
 import {
   createUserMessageCopyHtml,
-  getUserMessageResourceNames,
+  getUserMessageResources,
   resourceMetaFromPrivateSearchResource,
   splitUserMessageResourceTokens,
 } from './userMessageTokens';
@@ -13,7 +13,7 @@ import {
 describe('user message resource tokens', () => {
   it('extracts private search resource names longest first', () => {
     expect(
-      getUserMessageResourceNames([
+      getUserMessageResources([
         { name: ToolType.WEB_SEARCH },
         {
           name: ToolType.PRIVATE_SEARCH,
@@ -22,7 +22,7 @@ describe('user message resource tokens', () => {
             { id: '2', name: 'very-long-doc.txt', type: 'resource' },
           ],
         },
-      ])
+      ]).map(resource => resource.name)
     ).toEqual(['very-long-doc.txt', 'doc.txt']);
   });
 

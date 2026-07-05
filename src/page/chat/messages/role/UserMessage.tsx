@@ -75,21 +75,8 @@ export function UserMessage(props: IProps) {
     const namespaceId = params.namespace_id;
     if (!namespaceId || !resourceIdsKey) return;
 
-    const ids = resources
-      .filter(resource => {
-        if (resourceMetaById[resource.id]) return false;
-        if (!resource.resource_type) return true;
-        if (resource.resource_type === 'link') return !resource.attrs?.url;
-        if (resource.resource_type === 'file') {
-          return !resource.attrs?.original_name && !resource.attrs?.mimetype;
-        }
-        return false;
-      })
-      .map(resource => resource.id);
-    if (ids.length === 0) return;
-
     let cancelled = false;
-    void fetchResourcesByIds(namespaceId, ids)
+    void fetchResourcesByIds(namespaceId, resourceIdsKey.split(','))
       .then(fetchedResources => {
         if (cancelled) return;
         setResourceMetaById(prev => ({

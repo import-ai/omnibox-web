@@ -16,10 +16,6 @@ type UserMessageTokenSegment =
       text: string;
     };
 
-export function getUserMessageResourceNames(tools?: ChatTool[]) {
-  return getUserMessageResources(tools).map(resource => resource.name);
-}
-
 export function getUserMessageResources(tools?: ChatTool[]) {
   const resourcesByName = new Map<string, PrivateSearchResource>();
 

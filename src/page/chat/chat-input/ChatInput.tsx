@@ -29,7 +29,6 @@ interface IProps {
 
 export interface ChatInputHandle {
   clear: () => void;
-  focus: () => void;
   insertResource: (resource: ResourceMeta) => void;
   rememberSelection: () => void;
   toggleTool: (tool: ToolType) => void;
@@ -449,7 +448,9 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
     };
 
     const nodesFromHtml = (html: string, text: string) => {
-      if (!html) return [document.createTextNode(text)];
+      if (!html.includes('data-chat-token')) {
+        return [document.createTextNode(text)];
+      }
       const template = document.createElement('template');
       template.innerHTML = html;
       const nodes: Node[] = [];
@@ -488,9 +489,6 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
       clear: () => {
         if (editorRef.current) editorRef.current.textContent = '';
         syncFromDom();
-      },
-      focus: () => {
-        editorRef.current?.focus();
       },
       insertResource: resource => {
         insertToken({
