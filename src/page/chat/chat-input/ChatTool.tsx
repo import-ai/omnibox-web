@@ -1,5 +1,6 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Check, FileSearch, Globe, Lightbulb, Plus } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -19,7 +20,6 @@ import {
 } from '@/components/ui/DropdownMenu';
 import type { ResourceMeta } from '@/interface';
 import { ToolType } from '@/page/chat/chat-input/types';
-import MoveToForm from '@/page/resource/actions/move/MoveToForm';
 
 const datasource = [
   {
@@ -36,15 +36,22 @@ const datasource = [
 
 interface IProps {
   tools: Array<ToolType>;
-  namespaceId?: string;
+  renderResourcePicker?: (
+    onSelect: (resource: ResourceMeta) => void
+  ) => ReactNode;
   onBeforeOpen: () => void;
   onToolToggle: (tool: ToolType) => void;
   onResourceSelect: (resource: ResourceMeta) => void;
 }
 
 export default function ChatTool(props: IProps) {
-  const { tools, namespaceId, onBeforeOpen, onToolToggle, onResourceSelect } =
-    props;
+  const {
+    tools,
+    renderResourcePicker,
+    onBeforeOpen,
+    onToolToggle,
+    onResourceSelect,
+  } = props;
   const { t } = useTranslation();
   const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
 
@@ -70,7 +77,7 @@ export default function ChatTool(props: IProps) {
           <div className="px-2 py-1 text-xs text-muted-foreground">
             {t('chat.tools.add')}
           </div>
-          {namespaceId && (
+          {renderResourcePicker && (
             <DropdownMenuItem
               className="cursor-pointer gap-2 rounded-lg px-2 py-2"
               onClick={() => setResourceDialogOpen(true)}
@@ -92,7 +99,7 @@ export default function ChatTool(props: IProps) {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      {namespaceId && (
+      {renderResourcePicker && (
         <Dialog open={resourceDialogOpen} onOpenChange={setResourceDialogOpen}>
           <DialogContent className="w-[480px] max-w-[90%] overflow-hidden bg-popover px-4 pb-5 pt-6 dark:bg-neutral-900">
             <DialogHeader>
@@ -103,19 +110,10 @@ export default function ChatTool(props: IProps) {
                 </DialogDescription>
               </VisuallyHidden>
             </DialogHeader>
-            <MoveToForm
-              resourceIds={[]}
-              namespaceId={namespaceId}
-              showDisabledTargets
-              onFinished={(_, __, targetName, resource) => {
-                if (!resource) return;
-                onResourceSelect({
-                  ...resource,
-                  name: resource.name || targetName,
-                });
-                setResourceDialogOpen(false);
-              }}
-            />
+            {renderResourcePicker(resource => {
+              onResourceSelect(resource);
+              setResourceDialogOpen(false);
+            })}
           </DialogContent>
         </Dialog>
       )}

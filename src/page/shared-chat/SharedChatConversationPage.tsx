@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { ShareResourcePicker } from '@/components/resourcePicker';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizardLang';
@@ -31,7 +32,7 @@ export default function SharedChatConversationPage() {
   const conversationId = params.conversation_id || '';
   const askAbortRef = useRef<() => void>(null);
   const regeneratingRef = useRef(false);
-  const { selectedResources, setSelectedResources, mode, password } =
+  const { shareInfo, selectedResources, setSelectedResources, mode, password } =
     useShareContext();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
@@ -225,6 +226,18 @@ export default function SharedChatConversationPage() {
             approvalModeResetKey={conversation.id}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
+            renderResourcePicker={
+              shareInfo
+                ? onSelect => (
+                    <ShareResourcePicker
+                      shareId={shareId}
+                      rootResource={shareInfo.resource}
+                      canBrowseResources={shareInfo.all_resources}
+                      onSelect={resource => onSelect(resource)}
+                    />
+                  )
+                : undefined
+            }
             loading={loading}
             sendMessage={sendMessage}
           />

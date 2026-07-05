@@ -1,8 +1,16 @@
 import { Check, ChevronDown, Hand, ShieldCheck, ShieldX } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
+import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
@@ -10,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
+import type { ResourceMeta } from '@/interface';
 import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ApprovalMode,
@@ -157,6 +166,9 @@ interface IProps {
   navigatePrefix: string;
   selectedResources: IResTypeContext[];
   setSelectedResources: any;
+  renderResourcePicker?: (
+    onSelect: (resource: ResourceMeta) => void
+  ) => ReactNode;
   initialApprovalMode?: ApprovalMode;
   approvalModeResetKey?: string;
   loading: boolean;
@@ -231,6 +243,7 @@ export default function ChatArea(props: IProps) {
     namespaceId,
     selectedResources,
     setSelectedResources,
+    renderResourcePicker,
     initialApprovalMode,
     approvalModeResetKey,
     loading,
@@ -249,6 +262,14 @@ export default function ChatArea(props: IProps) {
   const restoredToolsSignatureRef = useRef<string | null>(null);
   const restoredTools = useMemo(() => getRestoredTools(messages), [messages]);
   const contextCompactCapacity = getLatestContextCompactCapacity(messages);
+  const defaultResourcePicker = namespaceId
+    ? (onSelect: (resource: ResourceMeta) => void) => (
+        <WorkspaceResourcePicker
+          namespaceId={namespaceId}
+          onSelect={resource => onSelect(resource)}
+        />
+      )
+    : undefined;
 
   useEffect(() => {
     if (!restoredTools.ready) {
@@ -353,7 +374,7 @@ export default function ChatArea(props: IProps) {
         <div className="flex min-w-0 items-center gap-2">
           <ChatTool
             tools={tools}
-            namespaceId={namespaceId}
+            renderResourcePicker={renderResourcePicker ?? defaultResourcePicker}
             onBeforeOpen={() => inputRef.current?.rememberSelection()}
             onToolToggle={tool => inputRef.current?.toggleTool(tool)}
             onResourceSelect={resource =>
