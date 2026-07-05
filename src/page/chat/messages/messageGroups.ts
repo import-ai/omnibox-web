@@ -1,3 +1,4 @@
+/** Groups chat messages for final-answer collapse and message index rendering. */
 import { MessageStatus, OpenAIMessageRole } from '../core/types/chatResponse';
 import type { MessageDetail } from '../core/types/conversation';
 

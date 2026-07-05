@@ -98,6 +98,7 @@ Credentials managed in `src/page/user/util.ts`:
 - `src/hooks/` - Custom hooks and state management
 - `src/lib/` - Utilities (`request.ts`, `utils.ts`, `websocket.ts`)
 - `src/i18n/` - Internationalization (en-US, zh-CN)
+- Do not manually edit files under `src/components/ui/`; they are shadcn-ui components. Adjust behavior with wrappers or call-site overrides instead.
 
 ### File Naming
 

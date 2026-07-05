@@ -23,6 +23,7 @@ import {
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
 import { Messages } from '@/page/chat/messages';
+import { MessageIndex } from '@/page/chat/messages/MessageIndex';
 import { useShareContext } from '@/page/share';
 
 export default function SharedChatConversationPage() {
@@ -206,15 +207,21 @@ export default function SharedChatConversationPage() {
 
   return (
     <div className="flex flex-1 flex-col min-h-0">
-      <Scrollbar>
-        <Messages
-          messages={messages}
-          conversation={conversation}
-          messageOperator={messageOperator}
-          onRegenerate={onRegenerate}
-          onEdit={onEdit}
-          regeneratingParentId={regeneratingParentId}
-        />
+      <Scrollbar contentClassName="max-w-5xl">
+        <div className="flex w-full justify-center gap-4">
+          <MessageIndex messages={messages} />
+          <div className="min-w-0 max-w-3xl flex-1">
+            <Messages
+              messages={messages}
+              conversation={conversation}
+              messageOperator={messageOperator}
+              onRegenerate={onRegenerate}
+              onEdit={onEdit}
+              loading={loading}
+              regeneratingParentId={regeneratingParentId}
+            />
+          </div>
+        </div>
       </Scrollbar>
       <div className="flex justify-center px-4">
         <div className="flex-1 max-w-3xl w-full">
