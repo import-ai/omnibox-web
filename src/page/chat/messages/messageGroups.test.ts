@@ -20,8 +20,8 @@ function buildMessage(
   };
 }
 
-function displayIds(messages: MessageDetail[], loading = false) {
-  return buildMessageDisplayItems(messages, loading).map(item =>
+function displayIds(messages: MessageDetail[]) {
+  return buildMessageDisplayItems(messages).map(item =>
     item.type === 'message'
       ? `message:${item.message.id}`
       : `process:${item.messages.map(message => message.id).join(',')}`
@@ -83,34 +83,32 @@ describe('buildMessageDisplayItems', () => {
 
   it('keeps only the latest response visible while streaming', () => {
     expect(
-      displayIds(
-        [
-          buildMessage({
-            id: 'previous-tool-message',
-            message: { role: OpenAIMessageRole.TOOL },
-          }),
-          buildMessage({
-            id: 'previous-final-answer',
-            message: { role: OpenAIMessageRole.ASSISTANT, content: 'Done' },
-          }),
-          buildMessage({
-            id: 'next-user',
-            message: { role: OpenAIMessageRole.USER, content: 'Next' },
-          }),
-          buildMessage({
-            id: 'tool-message',
-            message: { role: OpenAIMessageRole.TOOL },
-          }),
-          buildMessage({
-            id: 'intermediate-answer',
-            message: {
-              role: OpenAIMessageRole.ASSISTANT,
-              content: 'I found one result. I will keep checking.',
-            },
-          }),
-        ],
-        true
-      )
+      displayIds([
+        buildMessage({
+          id: 'previous-tool-message',
+          message: { role: OpenAIMessageRole.TOOL },
+        }),
+        buildMessage({
+          id: 'previous-final-answer',
+          message: { role: OpenAIMessageRole.ASSISTANT, content: 'Done' },
+        }),
+        buildMessage({
+          id: 'next-user',
+          message: { role: OpenAIMessageRole.USER, content: 'Next' },
+        }),
+        buildMessage({
+          id: 'tool-message',
+          message: { role: OpenAIMessageRole.TOOL },
+        }),
+        buildMessage({
+          id: 'intermediate-answer',
+          status: MessageStatus.STREAMING,
+          message: {
+            role: OpenAIMessageRole.ASSISTANT,
+            content: 'I found one result. I will keep checking.',
+          },
+        }),
+      ])
     ).toEqual([
       'process:previous-tool-message',
       'message:previous-final-answer',
@@ -135,6 +133,45 @@ describe('buildMessageDisplayItems', () => {
         }),
       ])
     ).toEqual(['process:tool-message', 'message:final-answer']);
+  });
+
+  it('keeps tool decision messages inside the collapsed process', () => {
+    expect(
+      displayIds([
+        buildMessage({
+          id: 'assistant-tool-call',
+          message: {
+            role: OpenAIMessageRole.ASSISTANT,
+            content: 'I will run a tool.',
+            tool_calls: [
+              {
+                id: 'tool-call',
+                type: 'function',
+                function: { name: 'create_resource', arguments: '{}' },
+              },
+            ],
+          },
+        }),
+        buildMessage({
+          id: 'tool-decision',
+          message: { role: OpenAIMessageRole.USER },
+          attrs: {
+            tool_call: { status: 'success', decisions: [{ type: 'approve' }] },
+          },
+        }),
+        buildMessage({
+          id: 'tool-message',
+          message: { role: OpenAIMessageRole.TOOL },
+        }),
+        buildMessage({
+          id: 'final-answer',
+          message: { role: OpenAIMessageRole.ASSISTANT, content: 'Done' },
+        }),
+      ])
+    ).toEqual([
+      'process:assistant-tool-call,tool-decision,tool-message',
+      'message:final-answer',
+    ]);
   });
 });
 
@@ -163,6 +200,24 @@ describe('getCollapsedProcessDurationSeconds', () => {
         buildMessage({ id: 'final' })
       )
     ).toBe(0);
+  });
+
+  it('uses the first valid process timestamp', () => {
+    expect(
+      getCollapsedProcessDurationSeconds(
+        [
+          buildMessage({ id: 'missing-time' }),
+          buildMessage({
+            id: 'process',
+            created_at: '2026-07-04T10:00:00.000Z',
+          }),
+        ],
+        buildMessage({
+          id: 'final',
+          created_at: '2026-07-04T10:00:07.000Z',
+        })
+      )
+    ).toBe(7);
   });
 });
 

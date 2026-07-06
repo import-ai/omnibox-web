@@ -217,7 +217,6 @@ export default function SharedChatConversationPage() {
               messageOperator={messageOperator}
               onRegenerate={onRegenerate}
               onEdit={onEdit}
-              loading={loading}
               regeneratingParentId={regeneratingParentId}
             />
           </div>

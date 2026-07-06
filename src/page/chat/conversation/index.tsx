@@ -48,7 +48,6 @@ export default function ChatConversationPage() {
                 messageOperator={messageOperator}
                 onRegenerate={onRegenerate}
                 onEdit={onEdit}
-                loading={loading}
                 regeneratingParentId={regeneratingParentId}
               />
             </div>

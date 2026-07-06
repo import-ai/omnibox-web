@@ -20,6 +20,17 @@ function isResponseMessage(message: MessageDetail) {
   );
 }
 
+function isToolDecisionMessage(message: MessageDetail) {
+  return (
+    message.message.role === OpenAIMessageRole.USER &&
+    (message.attrs?.tool_call?.decisions ?? []).length > 0
+  );
+}
+
+function isProcessMessage(message: MessageDetail) {
+  return isResponseMessage(message) || isToolDecisionMessage(message);
+}
+
 function isFinalAnswer(message: MessageDetail) {
   return (
     message.message.role === OpenAIMessageRole.ASSISTANT &&
@@ -47,7 +58,9 @@ export function getCollapsedProcessDurationSeconds(
   messages: MessageDetail[],
   finalMessage: MessageDetail
 ) {
-  const start = getTimestamp(messages[0]?.created_at);
+  const start = messages
+    .map(message => getTimestamp(message.created_at))
+    .find(timestamp => timestamp !== undefined);
   const end = getTimestamp(finalMessage.created_at);
 
   if (start === undefined || end === undefined || end < start) {
@@ -57,32 +70,27 @@ export function getCollapsedProcessDurationSeconds(
 }
 
 export function buildMessageDisplayItems(
-  messages: MessageDetail[],
-  loading = false
+  messages: MessageDetail[]
 ): MessageDisplayItem[] {
   const result: MessageDisplayItem[] = [];
   let index = 0;
 
   while (index < messages.length) {
     const message = messages[index];
-    if (!isResponseMessage(message)) {
+    if (!isProcessMessage(message)) {
       result.push({ type: 'message', message });
       index += 1;
       continue;
     }
 
     const start = index;
-    while (index < messages.length && isResponseMessage(messages[index])) {
+    while (index < messages.length && isProcessMessage(messages[index])) {
       index += 1;
     }
 
     const responseMessages = messages.slice(start, index);
     const finalMessage = responseMessages[responseMessages.length - 1];
-    if (
-      responseMessages.length > 1 &&
-      isFinalAnswer(finalMessage) &&
-      (!loading || index < messages.length)
-    ) {
+    if (responseMessages.length > 1 && isFinalAnswer(finalMessage)) {
       result.push({
         type: 'collapsed_process',
         messages: responseMessages.slice(0, -1),

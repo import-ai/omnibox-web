@@ -30,7 +30,6 @@ interface IProps {
   messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
-  loading: boolean;
   regeneratingParentId?: string | null;
 }
 
@@ -136,7 +135,6 @@ export function Messages(props: IProps) {
     messageOperator,
     onRegenerate,
     onEdit,
-    loading,
     regeneratingParentId = null,
   } = props;
   const citations = React.useMemo((): Citation[] => {
@@ -154,7 +152,7 @@ export function Messages(props: IProps) {
   const filteredMessages = messages.filter(
     message => message.message.role !== OpenAIMessageRole.SYSTEM
   );
-  const displayItems = buildMessageDisplayItems(filteredMessages, loading);
+  const displayItems = buildMessageDisplayItems(filteredMessages);
 
   const lastAssistantId = filteredMessages.reduce((lastId, message) => {
     return message.message.role === OpenAIMessageRole.ASSISTANT
