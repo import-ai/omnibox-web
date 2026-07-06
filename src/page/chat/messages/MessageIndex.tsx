@@ -75,9 +75,9 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
   return (
     <nav
       aria-label="Message index"
-      className="sticky top-4 hidden w-10 shrink-0 self-start pt-8 lg:flex"
+      className="absolute -left-14 top-0 hidden h-full w-10 lg:block"
     >
-      <div className="flex max-h-[calc(100vh-16rem)] flex-col items-start overflow-y-auto py-2">
+      <div className="sticky top-4 flex max-h-[calc(100vh-16rem)] flex-col items-start overflow-y-auto py-2 pt-8">
         {items.map((item, index) => {
           const active =
             hoveredIndex === null &&
