@@ -17,6 +17,16 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
   );
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
+  function scrollToMessage(messageId: string) {
+    const target = document.getElementById(`message-${messageId}`);
+    if (!target) {
+      return;
+    }
+
+    window.history.pushState(null, '', `#message-${messageId}`);
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   useEffect(() => {
     setVisibleMessageIds(new Set());
 
@@ -85,6 +95,11 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
                   className="flex h-3 w-5 items-center justify-start"
                   href={`#message-${item.targetMessageId}`}
                   onBlur={() => setHoveredIndex(null)}
+                  onClick={event => {
+                    event.preventDefault();
+                    setHoveredIndex(index);
+                    scrollToMessage(item.targetMessageId);
+                  }}
                   onFocus={() => setHoveredIndex(index)}
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
