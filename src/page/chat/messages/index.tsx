@@ -101,6 +101,35 @@ function formatProcessDuration(seconds: number, t: TFunction) {
   return parts.join(' ');
 }
 
+function hasVisibleMessageContent(message: MessageDetail) {
+  const openAIMessage = message.message;
+
+  if (message.attrs?.compact || message.attrs?.error_message) {
+    return true;
+  }
+  if (
+    openAIMessage.role === OpenAIMessageRole.USER &&
+    (message.attrs?.tool_call?.decisions ?? []).length === 0
+  ) {
+    return Boolean(openAIMessage.content?.trim());
+  }
+  if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
+    const isRunning = [MessageStatus.PENDING, MessageStatus.STREAMING].includes(
+      message.status
+    );
+    return Boolean(
+      openAIMessage.content?.trim() ||
+      openAIMessage.reasoning_content?.trim() ||
+      openAIMessage.tool_calls?.length ||
+      isRunning
+    );
+  }
+  if (openAIMessage.role === OpenAIMessageRole.TOOL) {
+    return Boolean(message.attrs?.citations?.length);
+  }
+  return false;
+}
+
 function ContextCompactedDivider({
   status,
 }: {
@@ -161,6 +190,10 @@ export function Messages(props: IProps) {
   }, '');
 
   function renderMessageBlock(message: MessageDetail, isLastInList: boolean) {
+    if (!hasVisibleMessageContent(message)) {
+      return null;
+    }
+
     const isLastAssistantMessage =
       message.message.role === OpenAIMessageRole.ASSISTANT &&
       message.id === lastAssistantId;
@@ -206,6 +239,10 @@ export function Messages(props: IProps) {
     <div className="space-y-4">
       {displayItems.map((item, index) => {
         if (item.type === 'collapsed_process') {
+          const visibleProcessMessages = item.messages.filter(
+            hasVisibleMessageContent
+          );
+
           return (
             <details
               className="group border-b border-border/60 pb-3"
@@ -224,10 +261,10 @@ export function Messages(props: IProps) {
                 <ChevronRight className="size-4 transition-transform group-open:rotate-90" />
               </summary>
               <div className="space-y-4 pb-3">
-                {item.messages.map((message, processIndex) =>
+                {visibleProcessMessages.map((message, processIndex) =>
                   renderMessageBlock(
                     message,
-                    processIndex === item.messages.length - 1
+                    processIndex === visibleProcessMessages.length - 1
                   )
                 )}
               </div>
