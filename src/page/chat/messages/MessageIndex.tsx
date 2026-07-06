@@ -88,7 +88,12 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
           const width = ['w-5', 'w-4', 'w-3'][hoverDistance ?? 3] ?? 'w-2';
 
           return (
-            <HoverCard key={item.id} closeDelay={0} openDelay={0}>
+            <HoverCard
+              key={item.id}
+              closeDelay={0}
+              open={hoveredIndex === index}
+              openDelay={0}
+            >
               <HoverCardTrigger asChild>
                 <a
                   aria-label={item.query}
