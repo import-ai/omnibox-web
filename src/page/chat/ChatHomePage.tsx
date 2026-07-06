@@ -33,9 +33,12 @@ export default function ChatHomePage() {
     selectedResources,
     mode,
     approvalMode,
+    isRecommended,
   }: SendMessageParams) => {
     http
-      .post(`/namespaces/${namespaceId}/conversations`)
+      .post(`/namespaces/${namespaceId}/conversations`, {
+        is_recommended: !!isRecommended,
+      })
       .then((conversation: ConversationEntity) => {
         sessionStorage.setItem(
           'chat-create-payload',
@@ -60,6 +63,7 @@ export default function ChatHomePage() {
       selectedResources: [],
       mode: ChatMode.ASK,
       approvalMode: 'manual',
+      isRecommended: true,
     });
   };
 

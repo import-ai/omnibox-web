@@ -95,6 +95,7 @@ export interface SendMessageParams {
   mode: ChatMode;
   decisions?: Decision[];
   approvalMode?: ApprovalMode;
+  isRecommended?: boolean;
 }
 
 export interface ChatCreatePayload extends SendMessageParams {
