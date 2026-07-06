@@ -15,10 +15,12 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
   const [visibleMessageIds, setVisibleMessageIds] = useState<Set<string>>(
     () => new Set()
   );
+  const [visibilityReady, setVisibilityReady] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setVisibleMessageIds(new Set());
+    setVisibilityReady(false);
 
     const elements = items
       .flatMap(item => [item.targetMessageId, item.answerMessageId])
@@ -45,6 +47,7 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
 
           return next;
         });
+        setVisibilityReady(true);
       },
       { threshold: 0.1 }
     );
@@ -58,7 +61,15 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
     };
   }, [items]);
 
-  if (items.length === 0) {
+  const shouldShowIndex =
+    visibilityReady &&
+    items.some(
+      item =>
+        !visibleMessageIds.has(item.targetMessageId) &&
+        !visibleMessageIds.has(item.answerMessageId)
+    );
+
+  if (items.length === 0 || !shouldShowIndex) {
     return null;
   }
 

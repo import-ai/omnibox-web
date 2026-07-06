@@ -131,6 +131,7 @@ export function AssistantMessage(props: IProps) {
         hasSiblings={hasSiblings}
         currentIndex={currentIndex}
         siblingsLength={siblings.length}
+        createdAt={message.created_at}
         onPrevious={handlePrevious}
         onNext={handleNext}
         isLastMessage={isLastMessage}
