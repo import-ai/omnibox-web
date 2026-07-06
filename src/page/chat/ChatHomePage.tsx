@@ -7,6 +7,7 @@ import { http } from '@/lib/request';
 import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import {
   ChatCreatePayload,
+  ChatMode,
   ConversationEntity,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
@@ -14,6 +15,7 @@ import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 
 import ChatArea from './chat-input';
 import FeatureCards from './home/FeatureCards';
+import RecommendedQuestions from './home/RecommendedQuestions';
 import useSelectedResources from './useSelectedResources.ts';
 import { getGreeting } from './utils';
 
@@ -51,6 +53,15 @@ export default function ChatHomePage() {
         navigate(`/${namespaceId}/chat/${conversation.id}`);
       });
   };
+  const handleQuestionSelect = (question: string) => {
+    sendMessage({
+      query: question,
+      tools: [],
+      selectedResources: [],
+      mode: ChatMode.ASK,
+      approvalMode: 'manual',
+    });
+  };
 
   return (
     <div className="flex justify-center flex-1 p-4 overflow-auto">
@@ -68,6 +79,10 @@ export default function ChatHomePage() {
             setSelectedResources={setSelectedResources}
             loading={false}
             sendMessage={sendMessage}
+          />
+          <RecommendedQuestions
+            namespaceId={namespaceId}
+            onSelect={handleQuestionSelect}
           />
         </div>
         <FeatureCards />
