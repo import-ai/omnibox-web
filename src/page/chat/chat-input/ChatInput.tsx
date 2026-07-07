@@ -29,29 +29,14 @@ export default function ChatInput(props: IProps) {
     textarea.scrollTop = textarea.scrollHeight;
   };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (isComposing || disabled) {
+    if (isComposing || e.key !== 'Enter' || e.shiftKey) {
       return;
     }
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (e.metaKey || e.ctrlKey || e.altKey) {
-        return;
-      }
-      if (e.shiftKey) {
-        const textarea = e.currentTarget;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const newValue =
-          value.substring(0, start) + '\n' + value.substring(end);
-        onChange(newValue);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start + 1;
-        }, 0);
-        adjustHeight();
-      } else {
-        onSend();
-      }
+    e.preventDefault();
+    if (disabled || e.metaKey || e.ctrlKey || e.altKey) {
+      return;
     }
+    onSend();
   };
   const handleCompositionStart = () => {
     setIsComposing(true);

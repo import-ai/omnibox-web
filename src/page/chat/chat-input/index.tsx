@@ -326,9 +326,10 @@ export default function ChatArea(props: IProps) {
 
   const disabled = useMemo(() => {
     return (
-      inputMode === InputMode.TEXT && (!query || query.trim().length === 0)
+      loading ||
+      (inputMode === InputMode.TEXT && (!query || query.trim().length === 0))
     );
-  }, [query, inputMode]);
+  }, [loading, query, inputMode]);
 
   const handleSend = useCallback(() => {
     const v = query.trim();
