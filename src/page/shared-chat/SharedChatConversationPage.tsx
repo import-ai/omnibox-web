@@ -208,19 +208,15 @@ export default function SharedChatConversationPage() {
   return (
     <div className="flex flex-1 flex-col min-h-0">
       <Scrollbar>
-        <div className="flex w-full justify-center">
-          <div className="relative min-w-0 max-w-3xl flex-1">
-            <MessageIndex messages={messages} />
-            <Messages
-              messages={messages}
-              conversation={conversation}
-              messageOperator={messageOperator}
-              onRegenerate={onRegenerate}
-              onEdit={onEdit}
-              regeneratingParentId={regeneratingParentId}
-            />
-          </div>
-        </div>
+        <MessageIndex messages={messages} />
+        <Messages
+          messages={messages}
+          conversation={conversation}
+          messageOperator={messageOperator}
+          onRegenerate={onRegenerate}
+          onEdit={onEdit}
+          regeneratingParentId={regeneratingParentId}
+        />
       </Scrollbar>
       <div className="flex justify-center px-4">
         <div className="flex-1 max-w-3xl w-full">
