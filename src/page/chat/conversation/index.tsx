@@ -39,19 +39,17 @@ export default function ChatConversationPage() {
             </Button>
           </div>
         ) : (
-          <div className="flex w-full justify-center">
-            <div className="relative min-w-0 max-w-3xl flex-1">
-              <MessageIndex messages={messages} />
-              <Messages
-                conversation={conversation}
-                messages={messages}
-                messageOperator={messageOperator}
-                onRegenerate={onRegenerate}
-                onEdit={onEdit}
-                regeneratingParentId={regeneratingParentId}
-              />
-            </div>
-          </div>
+          <>
+            <MessageIndex messages={messages} />
+            <Messages
+              conversation={conversation}
+              messages={messages}
+              messageOperator={messageOperator}
+              onRegenerate={onRegenerate}
+              onEdit={onEdit}
+              regeneratingParentId={regeneratingParentId}
+            />
+          </>
         )}
       </Scrollbar>
       <div className="flex justify-center px-4">
