@@ -6,8 +6,6 @@ import { http } from '@/lib/request';
 
 interface RecommendedQuestionItem {
   question: string;
-  intent: string;
-  reason: string;
 }
 
 interface IProps {
@@ -46,7 +44,6 @@ export default function RecommendedQuestions({
           key={item.question}
           variant="outline"
           size="sm"
-          title={item.reason}
           className="rounded-full px-3 font-normal text-muted-foreground hover:text-foreground"
           onClick={() => onSelect(item.question)}
         >
