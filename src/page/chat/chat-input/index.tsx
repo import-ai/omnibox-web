@@ -245,10 +245,6 @@ export default function ChatArea(props: IProps) {
     initialApprovalMode ?? 'manual'
   );
   const [query, setQuery] = useState(initialQuery ?? '');
-  const queryEditedRef = useRef(false);
-  const appliedInitialQueryRef = useRef<string | null>(
-    initialQuery ? initialQuery : null
-  );
   const toolsManuallyChangedRef = useRef(false);
   const restoredToolsConversationKeyRef = useRef<string | null>(null);
   const restoredToolsSignatureRef = useRef<string | null>(null);
@@ -279,34 +275,6 @@ export default function ChatArea(props: IProps) {
     restoredToolsSignatureRef.current = restoredTools.signature;
     setTools(restoredTools.tools);
   }, [restoredTools]);
-
-  useEffect(() => {
-    const nextInitialQuery = initialQuery ?? '';
-    setQuery(currentQuery => {
-      const appliedInitialQuery = appliedInitialQueryRef.current;
-
-      if (!nextInitialQuery) {
-        if (!queryEditedRef.current && currentQuery === appliedInitialQuery) {
-          appliedInitialQueryRef.current = null;
-          return '';
-        }
-        appliedInitialQueryRef.current = null;
-        return currentQuery;
-      }
-
-      if (queryEditedRef.current) {
-        return currentQuery;
-      }
-
-      appliedInitialQueryRef.current = nextInitialQuery;
-      return nextInitialQuery;
-    });
-  }, [initialQuery]);
-
-  const handleQueryChange = useCallback((value: string) => {
-    queryEditedRef.current = true;
-    setQuery(value);
-  }, []);
 
   const handleToolsChange = useCallback((nextTools: ToolType[]) => {
     toolsManuallyChangedRef.current = true;
@@ -339,8 +307,6 @@ export default function ChatArea(props: IProps) {
     const v = query.trim();
     if (v) {
       setQuery('');
-      queryEditedRef.current = false;
-      appliedInitialQueryRef.current = null;
       toolsManuallyChangedRef.current = false;
       const localContext = structuredClone(selectedResources);
       setSelectedResources([]);
@@ -378,7 +344,7 @@ export default function ChatArea(props: IProps) {
       />
       <ChatInput
         value={query}
-        onChange={handleQueryChange}
+        onChange={setQuery}
         onSend={handleSend}
         disabled={disabled}
       />

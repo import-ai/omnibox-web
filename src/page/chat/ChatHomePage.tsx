@@ -16,20 +16,11 @@ import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 
 import ChatArea from './chat-input';
 import FeatureCards from './home/FeatureCards';
-import { getDefaultHomeInput } from './home/getDefaultHomeInput';
 import useSelectedResources from './useSelectedResources.ts';
 import { getGreeting } from './utils';
 
 interface NamespaceRootResource {
   children?: unknown[];
-}
-
-function hasNamespaceResources(
-  roots: Record<string, NamespaceRootResource | undefined>
-) {
-  return Object.values(roots).some(
-    root => Array.isArray(root?.children) && root.children.length > 0
-  );
 }
 
 export default function ChatHomePage() {
@@ -38,81 +29,73 @@ export default function ChatHomePage() {
   const navigate = useNavigate();
   const namespaceId = params.namespace_id || '';
   const greetingI18nKey = `chat.home.greeting.${getGreeting()}`;
-  const [hasConversationHistory, setHasConversationHistory] = useState<
-    boolean | null
-  >(null);
-  const [hasWorkspaceResources, setHasWorkspaceResources] = useState<
-    boolean | null
-  >(null);
+  const [isEmptyWorkspace, setIsEmptyWorkspace] = useState<boolean | null>(
+    null
+  );
   const { config } = useConfig();
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
 
   useEffect(() => {
     let active = true;
-    setHasConversationHistory(null);
-    setHasWorkspaceResources(null);
 
     if (!namespaceId) {
+      setIsEmptyWorkspace(false);
       return;
     }
 
-    const conversationRequest = http
-      .get(
+    setIsEmptyWorkspace(null);
+
+    void Promise.all([
+      http.get<{ data?: unknown[] }>(
         `/namespaces/${namespaceId}/conversations?offset=0&limit=1&order=desc`,
         {
           mute: true,
         }
-      )
-      .then((result: { total?: number; data?: unknown[] }) => {
-        if (!active) {
-          return;
-        }
-        const size = result?.data?.length ?? 0;
-        setHasConversationHistory(size > 0);
-      })
-      .catch(() => {
-        if (!active) {
-          return;
-        }
-        setHasConversationHistory(null);
-      });
-    const resourceRequest = http
-      .get<Record<string, NamespaceRootResource>>(
+      ),
+      http.get<Record<string, NamespaceRootResource>>(
         `/namespaces/${namespaceId}/root`,
         {
           mute: true,
         }
-      )
-      .then(result => {
+      ),
+    ])
+      .then(([conversations, roots]) => {
         if (!active) {
           return;
         }
-        setHasWorkspaceResources(hasNamespaceResources(result));
+        setIsEmptyWorkspace(
+          (conversations.data?.length ?? 0) === 0 &&
+            !Object.values(roots).some(
+              root => Array.isArray(root?.children) && root.children.length > 0
+            )
+        );
       })
       .catch(() => {
         if (!active) {
           return;
         }
-        setHasWorkspaceResources(null);
+        setIsEmptyWorkspace(false);
       });
-
-    void Promise.allSettled([conversationRequest, resourceRequest]);
 
     return () => {
       active = false;
     };
   }, [namespaceId]);
 
+  const defaultInputTemplate = (
+    i18n.language.startsWith('zh')
+      ? import.meta.env.VITE_CHAT_HOME_DEFAULT_INPUT_ZH
+      : import.meta.env.VITE_CHAT_HOME_DEFAULT_INPUT_EN
+  )?.trim();
+  const username = user.username.trim();
   const defaultHomeInput =
-    hasConversationHistory === false &&
-    hasWorkspaceResources === false &&
-    !userLoading
-      ? getDefaultHomeInput({
-          language: i18n.language,
-          username: user.username,
-        })
+    isEmptyWorkspace && !userLoading && username && defaultInputTemplate
+      ? defaultInputTemplate.replaceAll('{username}', username)
       : undefined;
+  const showChatArea =
+    isEmptyWorkspace !== null && (!isEmptyWorkspace || !userLoading);
+
   const sendMessage = ({
     query,
     tools,
@@ -148,16 +131,18 @@ export default function ChatHomePage() {
             <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
           </h1>
           {config.commercial && <AgentTrial namespaceId={namespaceId} />}
-          <ChatArea
-            messages={[]}
-            navigatePrefix={`/${namespaceId}`}
-            approvalModeResetKey={`home:${namespaceId}`}
-            selectedResources={selectedResources}
-            setSelectedResources={setSelectedResources}
-            loading={false}
-            initialQuery={defaultHomeInput}
-            sendMessage={sendMessage}
-          />
+          {showChatArea && (
+            <ChatArea
+              messages={[]}
+              navigatePrefix={`/${namespaceId}`}
+              approvalModeResetKey={`home:${namespaceId}`}
+              selectedResources={selectedResources}
+              setSelectedResources={setSelectedResources}
+              loading={false}
+              initialQuery={defaultHomeInput}
+              sendMessage={sendMessage}
+            />
+          )}
         </div>
         <FeatureCards />
       </div>
