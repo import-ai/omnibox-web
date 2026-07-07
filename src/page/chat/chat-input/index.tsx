@@ -241,10 +241,16 @@ export default function ChatArea(props: IProps) {
 
   const [tools, setTools] = useState<ToolType[]>([]);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const [approvalMode, setApprovalMode] = useState<ApprovalMode>(
-    initialApprovalMode ?? 'manual'
-  );
+  const [selectedApprovalMode, setSelectedApprovalMode] = useState<
+    ApprovalMode | undefined
+  >(initialApprovalMode);
   const [query, setQuery] = useState(initialQuery ?? '');
+  const defaultQueryRef = useRef(initialQuery ?? '');
+  const approvalMode: ApprovalMode =
+    selectedApprovalMode ??
+    (defaultQueryRef.current && query === defaultQueryRef.current
+      ? 'auto_approve'
+      : 'manual');
   const queryEditedRef = useRef(false);
   const toolsManuallyChangedRef = useRef(false);
   const restoredToolsConversationKeyRef = useRef<string | null>(null);
@@ -282,7 +288,14 @@ export default function ChatArea(props: IProps) {
       return;
     }
 
-    setQuery(currentQuery => currentQuery || initialQuery);
+    setQuery(currentQuery => {
+      if (currentQuery) {
+        return currentQuery;
+      }
+
+      defaultQueryRef.current = initialQuery;
+      return initialQuery;
+    });
   }, [initialQuery]);
 
   const handleQueryChange = useCallback((value: string) => {
@@ -296,7 +309,7 @@ export default function ChatArea(props: IProps) {
   }, []);
 
   useEffect(() => {
-    setApprovalMode(initialApprovalMode ?? 'manual');
+    setSelectedApprovalMode(initialApprovalMode);
   }, [approvalModeResetKey, initialApprovalMode]);
 
   const lastMessage = useMemo<MessageDetail | undefined>(() => {
@@ -372,7 +385,7 @@ export default function ChatArea(props: IProps) {
           />
           <ApprovalModeSelect
             approvalMode={approvalMode}
-            setApprovalMode={setApprovalMode}
+            setApprovalMode={setSelectedApprovalMode}
           />
         </div>
         <div className="flex items-center gap-2">
