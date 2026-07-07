@@ -1,17 +1,8 @@
-import { getWebSocketConnection } from './websocket';
-
-export interface StreamTransport {
-  start: () => Promise<void>;
-  destroy: () => void;
-}
-
-type StreamCallback = (data: string) => Promise<void>;
-
-function createSSETransport(
+export function createStreamTransport(
   url: string,
   body: Record<string, any>,
-  callback: StreamCallback
-): StreamTransport {
+  callback: (data: string) => Promise<void>
+) {
   let isAborted = false;
 
   return {
@@ -63,80 +54,4 @@ function createSSETransport(
       isAborted = true;
     },
   };
-}
-
-function createWebSocketTransport(
-  event: string,
-  body: Record<string, any>,
-  callback: StreamCallback
-): StreamTransport {
-  const socket = getWebSocketConnection();
-  let isAborted = false;
-  let resolveStart: (() => void) | undefined;
-
-  const messageHandler = async (data: string) => {
-    if (!isAborted) {
-      await callback(data);
-    }
-  };
-
-  const cleanup = () => {
-    socket.off('message', messageHandler);
-    socket.off('error', errorHandler);
-    socket.off('complete', completeHandler);
-  };
-
-  const finish = () => {
-    if (isAborted) {
-      return;
-    }
-    isAborted = true;
-    cleanup();
-    resolveStart?.();
-    resolveStart = undefined;
-  };
-
-  const errorHandler = (error: { error: string }) => {
-    console.error('WebSocket error:', error);
-    finish();
-  };
-
-  const completeHandler = () => {
-    finish();
-  };
-
-  return {
-    start: () => {
-      return new Promise<void>(resolve => {
-        isAborted = false;
-        resolveStart = resolve;
-        socket.on('message', messageHandler);
-        socket.on('error', errorHandler);
-        socket.on('complete', completeHandler);
-        socket.emit(event, body);
-      });
-    },
-    destroy: () => {
-      finish();
-    },
-  };
-}
-
-export function createStreamTransport(
-  url: string,
-  body: Record<string, any>,
-  callback: StreamCallback
-): StreamTransport {
-  const useWebSocket =
-    import.meta.env.VITE_USE_WEBSOCKET?.toLowerCase() === 'true';
-
-  if (useWebSocket) {
-    let event = url.includes('/ask') ? 'ask' : 'write';
-    if (body.share_id) {
-      event = `share_${event}`;
-    }
-    return createWebSocketTransport(event, body, callback);
-  }
-
-  return createSSETransport(url, body, callback);
 }
