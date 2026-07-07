@@ -110,7 +110,6 @@ export default function ChatHomePage() {
     !userLoading
       ? getDefaultHomeInput({
           language: i18n.language,
-          t,
           username: user.username,
         })
       : undefined;

@@ -1,8 +1,5 @@
-import type { TFunction } from 'i18next';
-
 interface GetDefaultHomeInputParams {
   language: string;
-  t: TFunction;
   username: string;
 }
 
@@ -18,12 +15,8 @@ function applyUsername(template: string, username: string): string {
   return template.replaceAll('{username}', username);
 }
 
-/**
- * Build the chat home default input from env or i18n templates.
- */
 export function getDefaultHomeInput({
   language,
-  t,
   username,
 }: GetDefaultHomeInputParams): string | undefined {
   const normalizedUsername = username.trim();
@@ -32,8 +25,7 @@ export function getDefaultHomeInput({
     return undefined;
   }
 
-  const template =
-    getEnvDefaultInput(language) || t('chat.home.default_input').trim();
+  const template = getEnvDefaultInput(language);
 
   if (!template) {
     return undefined;
