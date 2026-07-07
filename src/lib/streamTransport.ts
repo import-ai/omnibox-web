@@ -1,15 +1,8 @@
-export interface StreamTransport {
-  start: () => Promise<void>;
-  destroy: () => void;
-}
-
-type StreamCallback = (data: string) => Promise<void>;
-
 export function createStreamTransport(
   url: string,
   body: Record<string, any>,
-  callback: StreamCallback
-): StreamTransport {
+  callback: (data: string) => Promise<void>
+) {
   let isAborted = false;
 
   return {
