@@ -93,8 +93,6 @@ export default function ChatHomePage() {
     isEmptyWorkspace && !userLoading && username && defaultInputTemplate
       ? defaultInputTemplate.replaceAll('{username}', username)
       : undefined;
-  const showChatArea =
-    isEmptyWorkspace !== null && (!isEmptyWorkspace || !userLoading);
 
   const sendMessage = ({
     query,
@@ -131,18 +129,16 @@ export default function ChatHomePage() {
             <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
           </h1>
           {config.commercial && <AgentTrial namespaceId={namespaceId} />}
-          {showChatArea && (
-            <ChatArea
-              messages={[]}
-              navigatePrefix={`/${namespaceId}`}
-              approvalModeResetKey={`home:${namespaceId}`}
-              selectedResources={selectedResources}
-              setSelectedResources={setSelectedResources}
-              loading={false}
-              initialQuery={defaultHomeInput}
-              sendMessage={sendMessage}
-            />
-          )}
+          <ChatArea
+            messages={[]}
+            navigatePrefix={`/${namespaceId}`}
+            approvalModeResetKey={`home:${namespaceId}`}
+            selectedResources={selectedResources}
+            setSelectedResources={setSelectedResources}
+            loading={false}
+            initialQuery={defaultHomeInput}
+            sendMessage={sendMessage}
+          />
         </div>
         <FeatureCards />
       </div>

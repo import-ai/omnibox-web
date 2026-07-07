@@ -245,6 +245,7 @@ export default function ChatArea(props: IProps) {
     initialApprovalMode ?? 'manual'
   );
   const [query, setQuery] = useState(initialQuery ?? '');
+  const queryEditedRef = useRef(false);
   const toolsManuallyChangedRef = useRef(false);
   const restoredToolsConversationKeyRef = useRef<string | null>(null);
   const restoredToolsSignatureRef = useRef<string | null>(null);
@@ -276,6 +277,19 @@ export default function ChatArea(props: IProps) {
     setTools(restoredTools.tools);
   }, [restoredTools]);
 
+  useEffect(() => {
+    if (!initialQuery || queryEditedRef.current) {
+      return;
+    }
+
+    setQuery(currentQuery => currentQuery || initialQuery);
+  }, [initialQuery]);
+
+  const handleQueryChange = useCallback((value: string) => {
+    queryEditedRef.current = true;
+    setQuery(value);
+  }, []);
+
   const handleToolsChange = useCallback((nextTools: ToolType[]) => {
     toolsManuallyChangedRef.current = true;
     setTools(nextTools);
@@ -306,6 +320,7 @@ export default function ChatArea(props: IProps) {
   const handleSend = useCallback(() => {
     const v = query.trim();
     if (v) {
+      queryEditedRef.current = true;
       setQuery('');
       toolsManuallyChangedRef.current = false;
       const localContext = structuredClone(selectedResources);
@@ -344,7 +359,7 @@ export default function ChatArea(props: IProps) {
       />
       <ChatInput
         value={query}
-        onChange={setQuery}
+        onChange={handleQueryChange}
         onSend={handleSend}
         disabled={disabled}
       />
