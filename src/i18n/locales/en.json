@@ -583,6 +583,13 @@
         "ratio": "{{used}}% used ({{remaining}}% until auto-compaction)",
         "tokens": "{{estimated}} / {{trigger}} tokens"
       },
+      "process": {
+        "duration": {
+          "hours": "{{count}}h",
+          "minutes": "{{count}}m",
+          "seconds": "{{count}}s"
+        }
+      },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected"
       },
