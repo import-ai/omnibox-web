@@ -59,6 +59,7 @@ export interface ChatBOSResponse extends ChatBaseResponse {
   role: OpenAIMessageRole;
   id: string;
   parentId: string;
+  created_at?: string;
 }
 
 export interface ChatEOSResponse extends ChatBaseResponse {

@@ -6,11 +6,8 @@ import {
   ChatErrorResponse,
   MessageStatus,
   OpenAIMessageRole,
-} from '@/page/chat/core/types/chatResponse.ts';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/core/types/conversation.ts';
+} from './types/chatResponse.ts';
+import { ConversationDetail, MessageDetail } from './types/conversation.ts';
 
 function add(source?: string, delta?: string): string | undefined {
   return delta ? (source || '') + delta : source;
@@ -103,7 +100,15 @@ export function createMessageOperator(
           message.message.tool_call_id = delta.message.tool_call_id;
         }
 
-        message.status = MessageStatus.STREAMING;
+        if (
+          ![
+            MessageStatus.SUCCESS,
+            MessageStatus.STOPPED,
+            MessageStatus.FAILED,
+          ].includes(message.status)
+        ) {
+          message.status = MessageStatus.STREAMING;
+        }
         if (delta.attrs) {
           message.attrs = message.attrs || {};
           Object.assign(message.attrs, delta.attrs);
@@ -120,6 +125,7 @@ export function createMessageOperator(
     add: (chatResponse: ChatBOSResponse): string => {
       const message: MessageDetail = {
         id: chatResponse.id,
+        created_at: chatResponse.created_at || new Date().toISOString(),
         message: {
           role: chatResponse.role,
         },

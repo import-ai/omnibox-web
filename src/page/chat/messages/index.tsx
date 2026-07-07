@@ -1,4 +1,5 @@
-import { ScrollText } from 'lucide-react';
+import type { TFunction } from 'i18next';
+import { ChevronRight, ScrollText } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -17,6 +18,11 @@ import type {
 import { AssistantMessage } from '@/page/chat/messages/role/AssistantMessage';
 import { ToolMessage } from '@/page/chat/messages/role/ToolMessage';
 import { UserMessage } from '@/page/chat/messages/role/UserMessage';
+
+import {
+  buildMessageDisplayItems,
+  getCollapsedProcessDurationSeconds,
+} from './messageGroups';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -74,6 +80,56 @@ function renderMessage(
   return <></>;
 }
 
+function formatProcessDuration(seconds: number, t: TFunction) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const restSeconds = seconds % 60;
+  const parts: string[] = [];
+
+  if (hours > 0) {
+    parts.push(t('chat.messages.process.duration.hours', { count: hours }));
+  }
+  if (minutes > 0) {
+    parts.push(t('chat.messages.process.duration.minutes', { count: minutes }));
+  }
+  if (restSeconds > 0 || parts.length === 0) {
+    parts.push(
+      t('chat.messages.process.duration.seconds', { count: restSeconds })
+    );
+  }
+
+  return parts.join(' ');
+}
+
+function hasVisibleMessageContent(message: MessageDetail) {
+  const openAIMessage = message.message;
+
+  if (message.attrs?.compact || message.attrs?.error_message) {
+    return true;
+  }
+  if (
+    openAIMessage.role === OpenAIMessageRole.USER &&
+    (message.attrs?.tool_call?.decisions ?? []).length === 0
+  ) {
+    return Boolean(openAIMessage.content?.trim());
+  }
+  if (openAIMessage.role === OpenAIMessageRole.ASSISTANT) {
+    const isRunning = [MessageStatus.PENDING, MessageStatus.STREAMING].includes(
+      message.status
+    );
+    return Boolean(
+      openAIMessage.content?.trim() ||
+      openAIMessage.reasoning_content?.trim() ||
+      openAIMessage.tool_calls?.length ||
+      isRunning
+    );
+  }
+  if (openAIMessage.role === OpenAIMessageRole.TOOL) {
+    return Boolean(message.attrs?.citations?.length);
+  }
+  return false;
+}
+
 function ContextCompactedDivider({
   status,
 }: {
@@ -101,6 +157,7 @@ function ContextCompactedDivider({
 }
 
 export function Messages(props: IProps) {
+  const { t } = useTranslation();
   const {
     messages,
     conversation,
@@ -124,49 +181,100 @@ export function Messages(props: IProps) {
   const filteredMessages = messages.filter(
     message => message.message.role !== OpenAIMessageRole.SYSTEM
   );
+  const displayItems = buildMessageDisplayItems(filteredMessages);
 
-  // Find the index of the last assistant message
-  const lastAssistantIndex = filteredMessages.reduce((lastIndex, msg, idx) => {
-    return msg.message.role === OpenAIMessageRole.ASSISTANT ? idx : lastIndex;
-  }, -1);
+  const lastAssistantId = filteredMessages.reduce((lastId, message) => {
+    return message.message.role === OpenAIMessageRole.ASSISTANT
+      ? message.id
+      : lastId;
+  }, '');
+
+  function renderMessageBlock(message: MessageDetail, isLastInList: boolean) {
+    if (!hasVisibleMessageContent(message)) {
+      return null;
+    }
+
+    const isLastAssistantMessage =
+      message.message.role === OpenAIMessageRole.ASSISTANT &&
+      message.id === lastAssistantId;
+    const isCompacting = message.attrs?.compact?.status === 'compacting';
+    const shouldRenderMessage = !(isCompacting && !message.message.content);
+
+    return (
+      <div
+        key={message.id}
+        id={`message-${message.id}`}
+        className="scroll-mt-4"
+      >
+        {message.attrs?.compact && (
+          <ContextCompactedDivider status={message.attrs.compact.status} />
+        )}
+        {shouldRenderMessage &&
+          renderMessage(
+            message,
+            messages,
+            citations,
+            conversation,
+            messageOperator,
+            onRegenerate,
+            onEdit,
+            isLastAssistantMessage,
+            regeneratingParentId
+          )}
+        {message.status === MessageStatus.FAILED &&
+          message.attrs?.error_message && (
+            <div className="text-destructive mt-2">
+              {message.attrs.error_message}
+            </div>
+          )}
+        {!isLastInList &&
+          ![OpenAIMessageRole.TOOL, OpenAIMessageRole.USER].includes(
+            message.message.role
+          ) && <div className="py-4" />}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {filteredMessages.map((message, index) => {
-        const isLastAssistantMessage =
-          message.message.role === OpenAIMessageRole.ASSISTANT &&
-          index === lastAssistantIndex;
-        const isCompacting = message.attrs?.compact?.status === 'compacting';
-        const shouldRenderMessage = !(isCompacting && !message.message.content);
+      {displayItems.map((item, index) => {
+        if (item.type === 'collapsed_process') {
+          const visibleProcessMessages = item.messages.filter(
+            hasVisibleMessageContent
+          );
 
-        return (
-          <div key={message.id}>
-            {message.attrs?.compact && (
-              <ContextCompactedDivider status={message.attrs.compact.status} />
-            )}
-            {shouldRenderMessage &&
-              renderMessage(
-                message,
-                messages,
-                citations,
-                conversation,
-                messageOperator,
-                onRegenerate,
-                onEdit,
-                isLastAssistantMessage,
-                regeneratingParentId
-              )}
-            {message.status === MessageStatus.FAILED &&
-              message.attrs?.error_message && (
-                <div className="text-destructive mt-2">
-                  {message.attrs.error_message}
-                </div>
-              )}
-            {index < filteredMessages.length - 1 &&
-              ![OpenAIMessageRole.TOOL, OpenAIMessageRole.USER].includes(
-                message.message.role
-              ) && <div className="py-4" />}
-          </div>
+          return (
+            <details
+              className="group border-b border-border/60 pb-3"
+              key={`process_${item.messages[0].id}`}
+            >
+              <summary className="flex w-fit cursor-pointer list-none items-center gap-1 py-3 text-sm text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+                <span>
+                  {formatProcessDuration(
+                    getCollapsedProcessDurationSeconds(
+                      item.messages,
+                      item.finalMessage
+                    ),
+                    t
+                  )}
+                </span>
+                <ChevronRight className="size-4 transition-transform group-open:rotate-90" />
+              </summary>
+              <div className="space-y-4 pb-3">
+                {visibleProcessMessages.map((message, processIndex) =>
+                  renderMessageBlock(
+                    message,
+                    processIndex === visibleProcessMessages.length - 1
+                  )
+                )}
+              </div>
+            </details>
+          );
+        }
+
+        return renderMessageBlock(
+          item.message,
+          index === displayItems.length - 1
         );
       })}
     </div>
