@@ -19,19 +19,15 @@ import FeatureCards from './home/FeatureCards';
 import useSelectedResources from './useSelectedResources.ts';
 import { getGreeting } from './utils';
 
-interface NamespaceRootResource {
-  children?: unknown[];
-}
-
 export default function ChatHomePage() {
   const params = useParams();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const namespaceId = params.namespace_id || '';
   const greetingI18nKey = `chat.home.greeting.${getGreeting()}`;
-  const [isEmptyWorkspace, setIsEmptyWorkspace] = useState<boolean | null>(
-    null
-  );
+  const [hasConversationHistory, setHasConversationHistory] = useState<
+    boolean | null
+  >(null);
   const { config } = useConfig();
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
@@ -40,42 +36,30 @@ export default function ChatHomePage() {
     let active = true;
 
     if (!namespaceId) {
-      setIsEmptyWorkspace(false);
+      setHasConversationHistory(true);
       return;
     }
 
-    setIsEmptyWorkspace(null);
+    setHasConversationHistory(null);
 
-    void Promise.all([
-      http.get<{ data?: unknown[] }>(
+    http
+      .get<{ data?: unknown[] }>(
         `/namespaces/${namespaceId}/conversations?offset=0&limit=1&order=desc`,
         {
           mute: true,
         }
-      ),
-      http.get<Record<string, NamespaceRootResource>>(
-        `/namespaces/${namespaceId}/root`,
-        {
-          mute: true,
-        }
-      ),
-    ])
-      .then(([conversations, roots]) => {
+      )
+      .then(conversations => {
         if (!active) {
           return;
         }
-        setIsEmptyWorkspace(
-          (conversations.data?.length ?? 0) === 0 &&
-            !Object.values(roots).some(
-              root => Array.isArray(root?.children) && root.children.length > 0
-            )
-        );
+        setHasConversationHistory((conversations.data?.length ?? 0) > 0);
       })
       .catch(() => {
         if (!active) {
           return;
         }
-        setIsEmptyWorkspace(false);
+        setHasConversationHistory(true);
       });
 
     return () => {
@@ -90,7 +74,10 @@ export default function ChatHomePage() {
   )?.trim();
   const username = user.username.trim();
   const defaultHomeInput =
-    isEmptyWorkspace && !userLoading && username && defaultInputTemplate
+    hasConversationHistory === false &&
+    !userLoading &&
+    username &&
+    defaultInputTemplate
       ? defaultInputTemplate.replaceAll('{username}', username)
       : undefined;
 
