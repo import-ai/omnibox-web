@@ -160,6 +160,7 @@ interface IProps {
   initialApprovalMode?: ApprovalMode;
   approvalModeResetKey?: string;
   loading: boolean;
+  waitingForUserMessage?: boolean;
   initialQuery?: string;
   sendMessage: ({
     query,
@@ -242,6 +243,7 @@ export default function ChatArea(props: IProps) {
     initialApprovalMode,
     approvalModeResetKey,
     loading,
+    waitingForUserMessage = false,
     initialQuery,
     sendMessage,
     onStop,
@@ -406,6 +408,7 @@ export default function ChatArea(props: IProps) {
             onStop={onStop}
             disabled={disabled}
             loading={loading}
+            waitingForUserMessage={waitingForUserMessage}
             mode={mode}
             setMode={setMode}
           />

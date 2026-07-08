@@ -26,6 +26,7 @@ import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/core/messageOperator.ts';
+import { OpenAIMessageRole } from '@/page/chat/core/types/chatResponse.ts';
 import {
   ConversationDetail,
   MessageDetail,
@@ -43,6 +44,7 @@ export default function useContext() {
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
   const [loading, setLoading] = useState<boolean>(false);
+  const [waitingUserParentId, setWaitingUserParentId] = useState<string>();
   const [regeneratingParentId, setRegeneratingParentId] = useState<
     string | null
   >(null);
@@ -80,7 +82,11 @@ export default function useContext() {
   }: SendMessageParams) => {
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
+      const parentMessageId = messages.at(-1)?.id;
       try {
+        if (v) {
+          setWaitingUserParentId(parentMessageId ?? '');
+        }
         setLoading(true);
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
         const askFN = ask(
@@ -89,7 +95,7 @@ export default function useContext() {
           tools,
           selectedResources,
           channel,
-          messages.at(-1)?.id,
+          parentMessageId,
           messageOperator,
           url,
           getWizardLang(i18n),
@@ -103,6 +109,7 @@ export default function useContext() {
         await askFN.start();
       } finally {
         askAbortRef.current = null;
+        setWaitingUserParentId(undefined);
         setLoading(false);
       }
     }
@@ -157,6 +164,20 @@ export default function useContext() {
 
   const mergedLoading =
     loading || !isTerminalMessageStatus(messages.at(-1)?.status);
+
+  useEffect(() => {
+    if (
+      waitingUserParentId !== undefined &&
+      messages.some(
+        message =>
+          message.message.role === OpenAIMessageRole.USER &&
+          (!waitingUserParentId || message.parent_id === waitingUserParentId) &&
+          isTerminalMessageStatus(message.status)
+      )
+    ) {
+      setWaitingUserParentId(undefined);
+    }
+  }, [messages, waitingUserParentId]);
 
   const onRegenerate = async (messageId: string) => {
     if (regeneratingRef.current) {
@@ -264,6 +285,7 @@ export default function useContext() {
 
   return {
     loading: mergedLoading,
+    waitingForUserMessage: waitingUserParentId !== undefined,
     regeneratingParentId,
     sendMessage,
     messages,

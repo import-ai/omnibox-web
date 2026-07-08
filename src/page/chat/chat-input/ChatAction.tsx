@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Separator } from '@/components/ui/Separator';
+import { Spinner } from '@/components/ui/Spinner';
 import { FORCE_ASK } from '@/const';
 import { ChatMode } from '@/page/chat/chat-input/types';
 
@@ -23,13 +24,22 @@ interface IActionProps {
   onSend: () => void;
   onStop?: () => void;
   loading: boolean;
+  waitingForUserMessage: boolean;
   mode: ChatMode;
   setMode: (mode: ChatMode) => void;
 }
 
 export default function ChatAction(props: IActionProps) {
   const { t } = useTranslation();
-  const { disabled, onSend, onStop, loading, mode, setMode } = props;
+  const {
+    disabled,
+    onSend,
+    onStop,
+    loading,
+    waitingForUserMessage,
+    mode,
+    setMode,
+  } = props;
 
   return (
     <div className="flex items-center">
@@ -64,7 +74,18 @@ export default function ChatAction(props: IActionProps) {
           <Separator orientation="vertical" className="h-4 ml-0 mr-3" />
         </>
       )}
-      {loading ? (
+      {waitingForUserMessage ? (
+        <span className="cursor-not-allowed">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="rounded-full size-8"
+            disabled
+          >
+            <Spinner />
+          </Button>
+        </span>
+      ) : loading ? (
         <TooltipProvider>
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
