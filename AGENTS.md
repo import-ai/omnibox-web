@@ -14,24 +14,49 @@ pnpm dev
 # Production build
 pnpm build
 
+# Build and serve production bundle locally
+pnpm preview
+
 # Linting and formatting
 pnpm lint          # Check ESLint + Prettier
 pnpm lint:fix      # Auto-fix issues
+pnpm format        # Run Prettier only
+
+# Targeted Jest tests (there is no package-level test script)
+pnpm exec jest src/page/chat/core/messageOperator.test.ts
 ```
 
 ## Architecture Overview
 
-This is a React 18 + TypeScript web application built with Vite. The app is a collaborative workspace with chat, resource management, and user management features.
+This is a React 18 + TypeScript web application built with Vite, Tailwind CSS,
+shadcn-ui, React Router v7, and Zustand. The app is a collaborative workspace
+with chat, resource management, sharing, notifications, and user management.
 
 ### Routing (React Router v7)
 
 Routes are defined in `src/App.tsx` using `createBrowserRouter` with lazy loading:
 
-- `/user/*` - Authentication (login, register, OTP verification, invite acceptance)
-- `/:namespace_id` - Main workspace with sidebar layout
-  - `/:resource_id` - Resource viewer
-  - `/chat/:conversation_id` - Chat interface
-- `/s/:share_id` - Public share access
+- `/` - Requires login, then redirects to the first namespace chat or `/welcome`
+- `/welcome` - Empty-state onboarding for users without namespaces
+- `/user/*` - Authentication flows:
+  - `/user/login`, `/user/sign-up`, `/user/verify-otp`, `/user/accept-invite`
+  - `/user/account/delete/confirm`
+  - `/user/auth/confirm`, `/user/auth/miniprogram`, `/user/auth/confirm/google`
+- `/oauth/authorize` - OAuth authorization screen
+- `/invite/confirm` and `/invite/:namespace_id/:invitation_id` - Invite flows
+- `/:namespace_id` - Authenticated workspace with the main sidebar layout
+  - `/:resource_id?` - Resource viewer
+  - `/:resource_id/edit` - Resource editor
+  - `/chat` - Chat home
+  - `/chat/conversations` - Chat history
+  - `/chat/:conversation_id` - Chat conversation
+- `/s/:share_id` - Public share layout
+  - index and `/:resource_id` - Shared resource viewer
+  - `/chat` and `/chat/:conversation_id` - Shared chat
+
+Search, settings, notifications, people/invite UI, and trash management are
+feature UI mounted from the workspace/sidebar flow rather than top-level browser
+routes.
 
 ### State Management (Event Bus + Local Stores)
 
@@ -44,7 +69,10 @@ Zustand stores for feature-local, highly interactive state.
 - **Zustand stores** - Feature-scoped state for sidebar trees and chat context:
   - `src/page/sidebar/store/` - Main workspace resource tree state
   - `src/page/share/sidebar/store/` - Share page resource tree state
-  - `src/page/chat/chatStore.ts` - Selected chat context resources
+  - `src/page/chat/chatStore.ts` - Persisted selected chat context resources
+- **`ShareContext`** (`src/page/share/index.tsx`) - Share page local context for
+  public share metadata, active resource, chat context, password state, and wide
+  layout state
 
 Use the event bus for cross-feature notifications and app-wide side effects:
 
@@ -62,26 +90,41 @@ the state is genuinely shared across major product areas.
 
 **HTTP Client** (`src/lib/request.ts`):
 
-- Axios instance with base URL `/api/v1`
+- Axios instance with base URL from `API_BASE_URL` (`/api/v1`)
 - Auto-injects Bearer token, language header
 - Handles 401/token expiration with redirect to login
 - **Error handling**: Errors are automatically toasted by default (using server message or status-based i18n message). Business code should NOT toast errors again to avoid duplicates.
 - Use `{ mute: true }` config to suppress automatic error toasts when you need custom error handling
+- Use `{ muteCodes: [...] }` to suppress global toasts only for specific backend error codes.
+- API wrappers that are reused outside one component live in `src/service/`
+  (`resource.ts`, `share.ts`, `usage.ts`). Keep one-off calls near the feature
+  only when they are not reused.
+
+**Dev server proxy** (`vite.config.ts`):
+
+- `/api/v1` proxies to `VITE_API_PATH` or `http://127.0.0.1:8000`
+- `/assets/vditor` proxies to `VITE_VDITOR_DIST_PATH` or the hosted fallback
+- Attachment URLs are rewritten for namespace and share resource downloads
 
 **Key endpoints**:
 
 - `/namespaces` - Workspace management
-- `/namespaces/{id}/resources` - Document/file CRUD
+- `/namespaces/{id}/root`, `/resources`, `/smart-folders`, `/search` - Resource tree, smart folders, and search
 - `/namespaces/{id}/chat` - Chat conversations
+- `/namespaces/{id}/usages/*` - Usage/quota-related feature data
+- `/shares/{id}` - Public share metadata, resources, and shared chat
 - `/user/{id}` - User management
 
 ### Authentication
 
 Credentials managed in `src/page/user/util.ts`:
 
-- `setGlobalCredential(userId, token)` - Stores in localStorage + secure cookie
+- `setGlobalCredential(userId, token)` - Stores `uid`/`token` in localStorage and
+  writes a strict `token` cookie that expires with the JWT
 - `removeGlobalCredential()` - Clears auth data
-- Layout component (`src/layout/index.tsx`) redirects unauthenticated users
+- Layout component (`src/layout/index.tsx`) redirects unauthenticated users,
+  redirects `/` to the first namespace or `/welcome`, and handles auth changes
+  across tabs by clearing chat/sidebar stores
 
 ### Key Hooks
 
@@ -90,14 +133,26 @@ Credentials managed in `src/page/user/util.ts`:
 - `useNamespace()` - Load namespace data
 - `useResource()` - Load resource with event-driven updates
 - `useAsync()` - Generic async state helper
+- `useNamespaces()`, `useProNamespaces()` - Namespace lists and plan-aware namespace data
+- `useQuota()`, `useSmartFolderEntitlements()` - Usage and entitlement data
+- `useApiKeys()`, `useApplications()` - Settings integrations data
+- `useTheme()` - Theme state and app event wiring
 
 ### Component Organization
 
 - `src/page/` - Feature pages (chat, resource, user, sidebar, share)
 - `src/components/` - Reusable UI (Radix UI primitives in `ui/`)
+- `src/service/` - Reusable API wrappers shared by stores/hooks/features
 - `src/hooks/` - Custom hooks and state management
 - `src/lib/` - Utilities (`request.ts`, `utils.ts`, `streamTransport.ts`)
-- `src/i18n/` - Internationalization (en-US, zh-CN)
+- `src/assets/icons/` - App-specific SVG/icon React components
+- `src/styles/` - Global third-party style patches
+- `src/i18n/` - Internationalization resources (`en`, `zh`)
+- Existing shadcn modules live under `src/components/ui/`
+- When a reusable local UI module is missing, check https://ui.shadcn.com/llms.txt for available shadcn modules before building one from scratch.
+- shadcn config is in `components.json`: style `new-york`, `tsx: true`,
+  aliases `@/components`, `@/components/ui`, `@/lib`, `@/hooks`, icon library
+  `lucide`.
 - Do not manually edit files under `src/components/ui/`; they are shadcn-ui components. Adjust behavior with wrappers or call-site overrides instead.
 
 ### File Naming
@@ -107,16 +162,37 @@ Credentials managed in `src/page/user/util.ts`:
 - `.tsx` filenames must use PascalCase, except route or directory entry files such as `index.tsx`, `main.tsx`, and `App.tsx`.
 - `.ts` filenames must use camelCase, except established framework/config/declaration patterns such as `*.d.ts`, `*.test.ts`, and `*.class.ts`.
 - Do not create kebab-case source filenames under `src`; update import paths whenever a file is renamed.
+- ESLint enforces file naming, unused vars, Prettier, and simple import sorting.
 
 ### Key Patterns
 
-**Sidebar** (`src/page/sidebar/`): Tree view with react-dnd for drag-and-drop resource organization.
+**Sidebar** (`src/page/sidebar/`): Tree view with react-dnd for drag-and-drop,
+batch operations, smart folders, upload state, and trash/restore flows. Store
+actions are split under `src/page/sidebar/store/actions/`; shared resource API
+calls come from `src/service/resource.ts`.
 
-**Chat** (`src/page/chat/`): Streaming messages via `src/lib/streamTransport.ts`, context-aware conversations using resources.
+**Chat** (`src/page/chat/`): Streaming messages via
+`src/lib/streamTransport.ts`, context-aware conversations using persisted
+selected resources, history view, shared-chat variants, and small pure helpers
+with Jest coverage under `src/page/chat/**`.
 
-**Resources**: Vditor markdown editor, file uploads with progress, permission-based access.
+**Resources**: Vditor markdown editor, markdown rendering, folder views,
+resource conditions, tags/metadata attributes, file uploads with progress, and
+permission-based access.
 
-**Cross-tab sync**: localStorage events sync theme, language, and user data across browser tabs.
+**Share pages** (`src/page/share/`, `src/page/shared-*`): Public share metadata
+and password handling live in `SharePage`; share sidebar state is separate from
+the authenticated sidebar store.
+
+**Settings/Search/Notifications**: Settings open through the `open_settings`
+event. Search and notifications are mounted from sidebar UI and use feature
+components instead of route entries.
+
+**Cross-tab sync**: localStorage events sync theme, language, and auth changes
+across tabs; auth changes clear chat context and sidebar state.
+
+**PWA/i18n**: Vite PWA is configured without auto registration. i18n updates the
+manifest and app title for English/Chinese naming.
 
 ## Git Branch Guidelines
 
