@@ -1,5 +1,6 @@
 import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { ResourceMeta } from '@/interface.ts';
+import { http } from '@/lib/request';
 import { createStreamTransport } from '@/lib/streamTransport';
 import { WizardLang } from '@/lib/wizardLang';
 import {
@@ -13,6 +14,7 @@ import {
 } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import { messageProcessor } from '@/page/chat/core/messageProcessor.ts';
+import { MessageStatus } from '@/page/chat/core/types/chatResponse.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 
 function getPrivateSearchResources(
@@ -197,6 +199,44 @@ export function resumeStream(
 
 function streamCancelUrl(url: string) {
   return url.replace(/\/(?:ask|write|stream\/resume)$/, '/stream/cancel');
+}
+
+export function isTerminalMessageStatus(status?: MessageStatus): boolean {
+  return (
+    !status ||
+    status === MessageStatus.FAILED ||
+    status === MessageStatus.STOPPED ||
+    status === MessageStatus.SUCCESS
+  );
+}
+
+export async function stopStream({
+  cancel,
+  cancelUrl,
+  conversationId,
+  messageOperator,
+  setLoading,
+}: {
+  cancel?: (() => Promise<void>) | null;
+  cancelUrl: string;
+  conversationId: string;
+  messageOperator: MessageOperator;
+  setLoading: (loading: boolean) => void;
+}) {
+  messageOperator.stop();
+  try {
+    if (cancel) {
+      await cancel();
+    } else {
+      await http.post(
+        cancelUrl,
+        { conversation_id: conversationId },
+        { mute: true }
+      );
+    }
+  } finally {
+    setLoading(false);
+  }
 }
 
 /**

@@ -17,13 +17,14 @@ import {
   ask,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
+  isTerminalMessageStatus,
   resumeStream,
+  stopStream,
 } from '@/page/chat/conversation/utils.ts';
 import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/core/messageOperator.ts';
-import { MessageStatus } from '@/page/chat/core/types/chatResponse.ts';
 import {
   ConversationDetail,
   MessageDetail,
@@ -144,15 +145,8 @@ export default function useContext() {
     void sendMessage(chatCreatePayload);
   }, [namespaceId, conversationId]);
 
-  const lastMessageStatus = messages.at(-1)?.status;
-  const lastMessageTerminal =
-    !lastMessageStatus ||
-    [
-      MessageStatus.FAILED,
-      MessageStatus.STOPPED,
-      MessageStatus.SUCCESS,
-    ].includes(lastMessageStatus);
-  const mergedLoading = loading || !lastMessageTerminal;
+  const mergedLoading =
+    loading || !isTerminalMessageStatus(messages.at(-1)?.status);
 
   const onRegenerate = async (messageId: string) => {
     if (regeneratingRef.current) {
@@ -241,20 +235,13 @@ export default function useContext() {
   const onStop = async () => {
     const cancel = askAbortRef.current;
     askAbortRef.current = null;
-    messageOperator.stop();
-    try {
-      if (cancel) {
-        await cancel();
-      } else {
-        await http.post(
-          `/namespaces/${namespaceId}/wizard/stream/cancel`,
-          { conversation_id: conversationId },
-          { mute: true }
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
+    await stopStream({
+      cancel,
+      cancelUrl: `/namespaces/${namespaceId}/wizard/stream/cancel`,
+      conversationId,
+      messageOperator,
+      setLoading,
+    });
   };
 
   const firstUserMessage = findFirstMessageWithMissingParent(messages);
