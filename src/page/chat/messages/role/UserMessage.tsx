@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -50,6 +51,9 @@ export function UserMessage(props: IProps) {
   };
 
   const selectedResources = message.attrs?.user_context?.selected_resources;
+  const createdAt = message.created_at
+    ? format(new Date(message.created_at), 'yyyy-MM-dd HH:mm:ss')
+    : null;
 
   return (
     <div className="group flex flex-col items-end">
@@ -107,6 +111,9 @@ export function UserMessage(props: IProps) {
         </Tooltip>
       )}
       <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
+        {createdAt && (
+          <span className="text-xs text-muted-foreground">{createdAt}</span>
+        )}
         {!isEditing && (
           <Tooltip>
             <TooltipTrigger asChild>

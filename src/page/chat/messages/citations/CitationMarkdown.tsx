@@ -1,6 +1,7 @@
 import '@/styles/github-markdown.css';
 import 'katex/dist/katex.min.css';
 
+import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -50,6 +51,7 @@ interface IProps {
   siblingsLength?: number;
   onPrevious?: () => void;
   onNext?: () => void;
+  createdAt?: string;
   isLastMessage: boolean;
 }
 
@@ -68,6 +70,7 @@ export function CitationMarkdown(props: IProps) {
     siblingsLength,
     onPrevious,
     onNext,
+    createdAt,
     isLastMessage,
   } = props;
   const { theme } = useTheme();
@@ -87,6 +90,9 @@ export function CitationMarkdown(props: IProps) {
     removeGeneratedCite,
     citations.length
   );
+  const createdAtLabel = createdAt
+    ? format(new Date(createdAt), 'yyyy-MM-dd HH:mm:ss')
+    : null;
 
   const components = {
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
@@ -245,6 +251,11 @@ export function CitationMarkdown(props: IProps) {
             conversation={conversation}
             content={copyPreprocess(content, citations)}
           />
+          {createdAtLabel && (
+            <span className="text-xs text-muted-foreground opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100">
+              {createdAtLabel}
+            </span>
+          )}
         </div>
       )}
     </div>

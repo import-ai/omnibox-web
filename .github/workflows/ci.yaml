@@ -75,6 +75,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_CHAT_HOME_DEFAULT_INPUT_ZH=${{ vars.VITE_CHAT_HOME_DEFAULT_INPUT_ZH }}
+            VITE_CHAT_HOME_DEFAULT_INPUT_EN=${{ vars.VITE_CHAT_HOME_DEFAULT_INPUT_EN }}
           platforms: |
             linux/amd64
             linux/arm64

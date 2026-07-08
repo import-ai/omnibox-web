@@ -584,6 +584,13 @@
         "ratio": "{{used}}% 已用（剩 {{remaining}}% 自动压缩）",
         "tokens": "{{estimated}} / {{trigger}} 词元"
       },
+      "process": {
+        "duration": {
+          "hours": "{{count}} 小时",
+          "minutes": "{{count}} 分",
+          "seconds": "{{count}} 秒"
+        }
+      },
       "user_context": {
         "selected_resources": "选择了 {{count}} 个资源"
       },

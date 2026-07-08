@@ -7,6 +7,7 @@ import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import ChatArea from '@/page/chat/chat-input';
 import useContext from '@/page/chat/conversation/useContext';
 import { Messages } from '@/page/chat/messages';
+import { MessageIndex } from '@/page/chat/messages/MessageIndex';
 
 import Scrollbar from './Scrollbar';
 
@@ -38,14 +39,17 @@ export default function ChatConversationPage() {
             </Button>
           </div>
         ) : (
-          <Messages
-            conversation={conversation}
-            messages={messages}
-            messageOperator={messageOperator}
-            onRegenerate={onRegenerate}
-            onEdit={onEdit}
-            regeneratingParentId={regeneratingParentId}
-          />
+          <>
+            <MessageIndex messages={messages} />
+            <Messages
+              conversation={conversation}
+              messages={messages}
+              messageOperator={messageOperator}
+              onRegenerate={onRegenerate}
+              onEdit={onEdit}
+              regeneratingParentId={regeneratingParentId}
+            />
+          </>
         )}
       </Scrollbar>
       <div className="flex justify-center px-4">
