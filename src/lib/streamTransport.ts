@@ -2,7 +2,7 @@ export function createStreamTransport(
   url: string,
   body: Record<string, any>,
   callback: (data: string) => Promise<void>,
-  cancelUrl?: string
+  cancelUrl: string
 ) {
   let isAborted = false;
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
@@ -64,16 +64,14 @@ export function createStreamTransport(
     cancel: async () => {
       const token = localStorage.getItem('token') || '';
       try {
-        if (cancelUrl) {
-          await fetch(cancelUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ conversation_id: body.conversation_id }),
-          });
-        }
+        await fetch(cancelUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ conversation_id: body.conversation_id }),
+        });
       } finally {
         isAborted = true;
         await reader?.cancel();

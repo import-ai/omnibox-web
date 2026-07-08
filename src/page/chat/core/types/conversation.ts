@@ -61,6 +61,7 @@ export interface MessageAttrs {
     };
     [key: string]: any;
   };
+  stream_event_id?: string;
 }
 
 export interface MessageDetail extends IBase {

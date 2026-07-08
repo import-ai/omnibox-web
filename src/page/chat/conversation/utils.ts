@@ -15,7 +15,10 @@ import {
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import { messageProcessor } from '@/page/chat/core/messageProcessor.ts';
 import { MessageStatus } from '@/page/chat/core/types/chatResponse.ts';
-import { MessageDetail } from '@/page/chat/core/types/conversation';
+import {
+  ConversationDetail,
+  MessageDetail,
+} from '@/page/chat/core/types/conversation';
 
 function getPrivateSearchResources(
   context: IResTypeContext[]
@@ -187,11 +190,15 @@ export function ask(
 export function resumeStream(
   conversationId: string,
   messageOperator: MessageOperator,
-  url: string
+  url: string,
+  lastEventId?: string
 ) {
   return createStreamTransport(
     url,
-    { conversation_id: conversationId },
+    {
+      conversation_id: conversationId,
+      last_event_id: lastEventId,
+    },
     async data => messageProcessor(messageOperator, data),
     streamCancelUrl(url)
   );
@@ -199,6 +206,12 @@ export function resumeStream(
 
 function streamCancelUrl(url: string) {
   return url.replace(/\/(?:ask|write|stream\/resume)$/, '/stream/cancel');
+}
+
+export function getStreamEventId(conversation: ConversationDetail) {
+  return Object.values(conversation.mapping).find(
+    message => !isTerminalMessageStatus(message.status)
+  )?.attrs?.stream_event_id;
 }
 
 export function isTerminalMessageStatus(status?: MessageStatus): boolean {

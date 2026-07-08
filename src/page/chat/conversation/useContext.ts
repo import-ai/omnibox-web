@@ -17,6 +17,7 @@ import {
   ask,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
+  getStreamEventId,
   isTerminalMessageStatus,
   resumeStream,
   stopStream,
@@ -117,29 +118,38 @@ export default function useContext() {
     const loadConversation = () =>
       http
         .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
-        .then(response => {
+        .then((response: ConversationDetail) => {
           const conversationTitle = getTitleFromConversationDetail(response);
           if (conversationTitle) {
             app.fire('chat:title:update', conversationTitle);
           }
           setConversation(response);
+          return response;
         });
 
     if (!chatCreatePayload) {
-      const resumeFN = resumeStream(
-        conversationId,
-        messageOperator,
-        `/api/v1/namespaces/${namespaceId}/wizard/stream/resume`
-      );
-      askAbortRef.current = resumeFN.cancel;
-      void resumeFN.start().finally(() => {
-        if (askAbortRef.current === resumeFN.cancel) {
-          askAbortRef.current = null;
-        }
-        void loadConversation();
+      let destroyed = false;
+      let resumeFN: ReturnType<typeof resumeStream> | undefined;
+      void loadConversation().then(conversation => {
+        if (destroyed) return;
+        resumeFN = resumeStream(
+          conversationId,
+          messageOperator,
+          `/api/v1/namespaces/${namespaceId}/wizard/stream/resume`,
+          getStreamEventId(conversation)
+        );
+        askAbortRef.current = resumeFN.cancel;
+        void resumeFN.start().finally(() => {
+          if (askAbortRef.current === resumeFN?.cancel) {
+            askAbortRef.current = null;
+          }
+          void loadConversation();
+        });
       });
-      void loadConversation();
-      return () => resumeFN.destroy();
+      return () => {
+        destroyed = true;
+        resumeFN?.destroy();
+      };
     }
     sessionStorage.removeItem('chat-create-payload');
     void sendMessage(chatCreatePayload);

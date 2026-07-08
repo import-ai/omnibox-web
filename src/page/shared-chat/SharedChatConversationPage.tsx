@@ -16,6 +16,7 @@ import Scrollbar from '@/page/chat/conversation/Scrollbar';
 import {
   ask,
   extractOriginalMessageSettings,
+  getStreamEventId,
   isTerminalMessageStatus,
   resumeStream,
   stopStream,
@@ -202,25 +203,34 @@ export default function SharedChatConversationPage() {
     const loadConversation = () =>
       http
         .get(`/shares/${shareId}/conversations/${conversationId}`)
-        .then(response => {
+        .then((response: ConversationDetail) => {
           setConversation(response);
+          return response;
         });
 
     if (!chatCreatePayload) {
-      const resumeFN = resumeStream(
-        conversationId,
-        messageOperator,
-        `/api/v1/shares/${shareId}/wizard/stream/resume`
-      );
-      askAbortRef.current = resumeFN.cancel;
-      void resumeFN.start().finally(() => {
-        if (askAbortRef.current === resumeFN.cancel) {
-          askAbortRef.current = null;
-        }
-        void loadConversation();
+      let destroyed = false;
+      let resumeFN: ReturnType<typeof resumeStream> | undefined;
+      void loadConversation().then(conversation => {
+        if (destroyed) return;
+        resumeFN = resumeStream(
+          conversationId,
+          messageOperator,
+          `/api/v1/shares/${shareId}/wizard/stream/resume`,
+          getStreamEventId(conversation)
+        );
+        askAbortRef.current = resumeFN.cancel;
+        void resumeFN.start().finally(() => {
+          if (askAbortRef.current === resumeFN?.cancel) {
+            askAbortRef.current = null;
+          }
+          void loadConversation();
+        });
       });
-      void loadConversation();
-      return () => resumeFN.destroy();
+      return () => {
+        destroyed = true;
+        resumeFN?.destroy();
+      };
     }
     sessionStorage.removeItem('shared-chat-create-payload');
     void sendMessage(chatCreatePayload);

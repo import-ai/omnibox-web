@@ -133,6 +133,7 @@ export function createMessageOperator(
         status: MessageStatus.PENDING,
         parent_id: chatResponse.parentId,
         children: [],
+        attrs: chatResponse.attrs,
       };
 
       setConversation(prev => {
