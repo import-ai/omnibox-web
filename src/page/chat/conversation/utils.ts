@@ -174,9 +174,29 @@ export function ask(
   if (tool_call) {
     chatReq.tool_call = tool_call;
   }
-  return createStreamTransport(url, chatReq, async data =>
-    messageProcessor(messageOperator, data)
+  return createStreamTransport(
+    url,
+    chatReq,
+    async data => messageProcessor(messageOperator, data),
+    streamCancelUrl(url)
   );
+}
+
+export function resumeStream(
+  conversationId: string,
+  messageOperator: MessageOperator,
+  url: string
+) {
+  return createStreamTransport(
+    url,
+    { conversation_id: conversationId },
+    async data => messageProcessor(messageOperator, data),
+    streamCancelUrl(url)
+  );
+}
+
+function streamCancelUrl(url: string) {
+  return url.replace(/\/(?:ask|write|stream\/resume)$/, '/stream/cancel');
 }
 
 /**

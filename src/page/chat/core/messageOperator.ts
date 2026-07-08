@@ -17,6 +17,7 @@ export interface MessageOperator {
   update: (delta: ChatDeltaResponse, id?: string) => void;
   add: (chatResponse: ChatBOSResponse) => string;
   done: (id?: string) => void;
+  stop: (id?: string) => void;
   error: (errorResponse: ChatErrorResponse, id?: string) => void;
   activate: (id: string) => void;
   getSiblings: (id: string) => string[];
@@ -170,6 +171,20 @@ export function createMessageOperator(
             message.attrs.tool_call.in_streaming = true;
           }
         }
+        return {
+          ...prev,
+          mapping: { ...prev.mapping, [message.id]: message },
+        };
+      });
+    },
+
+    stop: (id?: string) => {
+      setConversation(prev => {
+        const message = getMessage(prev, id);
+        if (!message) {
+          return prev;
+        }
+        message.status = MessageStatus.STOPPED;
         return {
           ...prev,
           mapping: { ...prev.mapping, [message.id]: message },

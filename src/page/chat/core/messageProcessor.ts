@@ -31,6 +31,8 @@ export function messageProcessor(
   } else if (chatResponse.response_type === 'error') {
     messageOperator.error(chatResponse as ChatErrorResponse, chatResponse.id);
     console.error(chatResponse);
+  } else if (chatResponse.response_type === 'stopped') {
+    messageOperator.stop(chatResponse.id);
   } else {
     console.error({ message: 'Unknown response type', chatResponse });
   }

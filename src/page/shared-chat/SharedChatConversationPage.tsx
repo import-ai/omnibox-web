@@ -16,8 +16,10 @@ import Scrollbar from '@/page/chat/conversation/Scrollbar';
 import {
   ask,
   extractOriginalMessageSettings,
+  resumeStream,
 } from '@/page/chat/conversation/utils.ts';
 import { createMessageOperator } from '@/page/chat/core/messageOperator.ts';
+import { MessageStatus } from '@/page/chat/core/types/chatResponse.ts';
 import {
   ConversationDetail,
   MessageDetail,
@@ -30,7 +32,7 @@ export default function SharedChatConversationPage() {
   const params = useParams();
   const shareId = params.share_id || '';
   const conversationId = params.conversation_id || '';
-  const askAbortRef = useRef<() => void>(null);
+  const askAbortRef = useRef<(() => Promise<void>) | null>(null);
   const regeneratingRef = useRef(false);
   const { selectedResources, setSelectedResources, mode, password } =
     useShareContext();
@@ -92,9 +94,10 @@ export default function SharedChatConversationPage() {
           undefined,
           decisions ? { decisions } : undefined
         );
-        askAbortRef.current = askFN.destroy;
+        askAbortRef.current = askFN.cancel;
         await askFN.start();
       } finally {
+        askAbortRef.current = null;
         setLoading(false);
       }
     }
@@ -128,9 +131,10 @@ export default function SharedChatConversationPage() {
         password || undefined,
         originalEnableThinking
       );
-      askAbortRef.current = askFN.destroy;
+      askAbortRef.current = askFN.cancel;
       await askFN.start();
     } finally {
+      askAbortRef.current = null;
       setLoading(false);
     }
   };
@@ -173,9 +177,10 @@ export default function SharedChatConversationPage() {
         password || undefined,
         originalEnableThinking
       );
-      askAbortRef.current = askFN.destroy;
+      askAbortRef.current = askFN.cancel;
       await askFN.start();
     } finally {
+      askAbortRef.current = null;
       regeneratingRef.current = false;
       setRegeneratingParentId(null);
       setLoading(false);
@@ -193,17 +198,61 @@ export default function SharedChatConversationPage() {
       ? JSON.parse(state)
       : null;
     setInitialApprovalMode(chatCreatePayload?.approvalMode);
-    if (!chatCreatePayload) {
+    const loadConversation = () =>
       http
         .get(`/shares/${shareId}/conversations/${conversationId}`)
         .then(response => {
           setConversation(response);
         });
-      return;
+
+    if (!chatCreatePayload) {
+      const resumeFN = resumeStream(
+        conversationId,
+        messageOperator,
+        `/api/v1/shares/${shareId}/wizard/stream/resume`
+      );
+      askAbortRef.current = resumeFN.cancel;
+      void resumeFN.start().finally(() => {
+        if (askAbortRef.current === resumeFN.cancel) {
+          askAbortRef.current = null;
+        }
+        void loadConversation();
+      });
+      void loadConversation();
+      return () => resumeFN.destroy();
     }
     sessionStorage.removeItem('shared-chat-create-payload');
     void sendMessage(chatCreatePayload);
   }, [shareId, conversationId]);
+
+  const onStop = async () => {
+    const cancel = askAbortRef.current;
+    askAbortRef.current = null;
+    messageOperator.stop();
+    try {
+      if (cancel) {
+        await cancel();
+      } else {
+        await http.post(
+          `/shares/${shareId}/wizard/stream/cancel`,
+          { conversation_id: conversationId },
+          { mute: true }
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const lastMessageStatus = messages.at(-1)?.status;
+  const lastMessageTerminal =
+    !lastMessageStatus ||
+    [
+      MessageStatus.FAILED,
+      MessageStatus.STOPPED,
+      MessageStatus.SUCCESS,
+    ].includes(lastMessageStatus);
+  const mergedLoading = loading || !lastMessageTerminal;
 
   return (
     <div className="flex flex-1 flex-col min-h-0">
@@ -227,8 +276,9 @@ export default function SharedChatConversationPage() {
             approvalModeResetKey={conversation.id}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
-            loading={loading}
+            loading={mergedLoading}
             sendMessage={sendMessage}
+            onStop={onStop}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">
             {t('chat.disclaimer')}

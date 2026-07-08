@@ -168,6 +168,7 @@ interface IProps {
     mode,
     decisions,
   }: SendMessageParams) => void;
+  onStop?: () => void;
 }
 
 function ApprovalModeSelect({
@@ -237,6 +238,7 @@ export default function ChatArea(props: IProps) {
     loading,
     initialQuery,
     sendMessage,
+    onStop,
   } = props;
 
   const [tools, setTools] = useState<ToolType[]>([]);
@@ -395,6 +397,7 @@ export default function ChatArea(props: IProps) {
           )}
           <ChatAction
             onSend={handleSend}
+            onStop={onStop}
             disabled={disabled}
             loading={loading}
             mode={mode}

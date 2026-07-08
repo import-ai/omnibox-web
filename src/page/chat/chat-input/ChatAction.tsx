@@ -1,4 +1,4 @@
-import { ArrowUp, ChevronDown } from 'lucide-react';
+import { ArrowUp, ChevronDown, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
@@ -15,13 +15,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Separator } from '@/components/ui/Separator';
-import { Spinner } from '@/components/ui/Spinner';
 import { FORCE_ASK } from '@/const';
 import { ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
   disabled: boolean;
   onSend: () => void;
+  onStop?: () => void;
   loading: boolean;
   mode: ChatMode;
   setMode: (mode: ChatMode) => void;
@@ -29,7 +29,7 @@ interface IActionProps {
 
 export default function ChatAction(props: IActionProps) {
   const { t } = useTranslation();
-  const { disabled, onSend, loading, mode, setMode } = props;
+  const { disabled, onSend, onStop, loading, mode, setMode } = props;
 
   return (
     <div className="flex items-center">
@@ -65,16 +65,21 @@ export default function ChatAction(props: IActionProps) {
         </>
       )}
       {loading ? (
-        <span className="cursor-not-allowed">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="rounded-full size-8"
-            disabled
-          >
-            <Spinner />
-          </Button>
-        </span>
+        <TooltipProvider>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="default"
+                className="rounded-lg size-8"
+                onClick={onStop}
+              >
+                <Square className="size-3 fill-current" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('chat.messages.actions.stop')}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       ) : disabled ? (
         <TooltipProvider>
           <Tooltip delayDuration={0}>
