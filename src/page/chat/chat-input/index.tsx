@@ -194,14 +194,20 @@ function ApprovalModeSelect({
         <Button
           size="sm"
           variant="ghost"
-          className="shrink-0 pl-2 pr-1 text-xs font-normal"
+          className="shrink-0 px-2 text-xs font-normal rounded-full md:pl-2 md:pr-1"
         >
           {TriggerIcon && <TriggerIcon className="size-4" />}
-          {t(`chat.decision.mode.${approvalMode}`)}
+          <span className="hidden md:block">
+            {t(`chat.decision.mode.${approvalMode}`)}
+          </span>
           <ChevronDown className="size-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="start" className="w-72 p-1.5">
+      <DropdownMenuContent
+        side="top"
+        align="start"
+        className="w-72 rounded-xl p-1.5"
+      >
         {options.map(({ value, Icon }) => (
           <DropdownMenuItem
             key={value}

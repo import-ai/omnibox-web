@@ -71,10 +71,10 @@ export default function ChatAction(props: IActionProps) {
               <Button
                 size="icon"
                 variant="default"
-                className="rounded-lg size-8"
+                className="rounded-full size-8"
                 onClick={onStop}
               >
-                <Square className="size-3 fill-current" />
+                <Square className="!size-3 fill-current" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>{t('chat.messages.actions.stop')}</TooltipContent>
@@ -88,7 +88,7 @@ export default function ChatAction(props: IActionProps) {
                 <Button
                   size="icon"
                   variant="default"
-                  className="rounded-lg size-8"
+                  className="rounded-full size-8"
                   disabled
                 >
                   <ArrowUp />
@@ -99,7 +99,7 @@ export default function ChatAction(props: IActionProps) {
           </Tooltip>
         </TooltipProvider>
       ) : (
-        <Button size="icon" onClick={onSend} className="rounded-lg size-8">
+        <Button size="icon" onClick={onSend} className="rounded-full size-8">
           <ArrowUp />
         </Button>
       )}
