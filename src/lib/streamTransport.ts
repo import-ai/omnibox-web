@@ -15,7 +15,6 @@ export function createStreamTransport(
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
-          'X-Request-Id': crypto.randomUUID(),
         },
         body: JSON.stringify(body),
       });
