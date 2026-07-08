@@ -10,11 +10,13 @@ interface RecommendedQuestionItem {
 
 interface IProps {
   namespaceId: string;
+  loadingQuestion?: string | null;
   onSelect: (question: string) => void;
 }
 
 export default function RecommendedQuestions({
   namespaceId,
+  loadingQuestion,
   onSelect,
 }: IProps) {
   const [questions, setQuestions] = useState<RecommendedQuestionItem[]>([]);
@@ -45,6 +47,8 @@ export default function RecommendedQuestions({
           variant="outline"
           size="sm"
           className="rounded-full px-3 font-normal text-muted-foreground hover:text-foreground"
+          disabled={!!loadingQuestion}
+          loading={loadingQuestion === item.question}
           onClick={() => onSelect(item.question)}
         >
           {item.question}

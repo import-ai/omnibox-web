@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -33,6 +33,10 @@ export default function ChatHomePage() {
   const { config } = useConfig();
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
+  const creatingRecommendedQuestionRef = useRef(false);
+  const [loadingRecommendedQuestion, setLoadingRecommendedQuestion] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     let active = true;
@@ -91,7 +95,7 @@ export default function ChatHomePage() {
     approvalMode,
     isRecommended,
   }: SendMessageParams) => {
-    http
+    return http
       .post(`/namespaces/${namespaceId}/conversations`, {
         is_recommended: !!isRecommended,
       })
@@ -113,6 +117,13 @@ export default function ChatHomePage() {
       });
   };
   const handleQuestionSelect = (question: string) => {
+    if (creatingRecommendedQuestionRef.current) {
+      return;
+    }
+
+    creatingRecommendedQuestionRef.current = true;
+    setLoadingRecommendedQuestion(question);
+
     sendMessage({
       query: question,
       tools: [],
@@ -120,6 +131,9 @@ export default function ChatHomePage() {
       mode: ChatMode.ASK,
       approvalMode: 'manual',
       isRecommended: true,
+    }).catch(() => {
+      creatingRecommendedQuestionRef.current = false;
+      setLoadingRecommendedQuestion(null);
     });
   };
 
@@ -143,6 +157,7 @@ export default function ChatHomePage() {
           />
           <RecommendedQuestions
             namespaceId={namespaceId}
+            loadingQuestion={loadingRecommendedQuestion}
             onSelect={handleQuestionSelect}
           />
         </div>
