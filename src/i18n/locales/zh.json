@@ -574,6 +574,7 @@
         "copy_simple": "复制",
         "edit": "编辑消息",
         "scroll_to_bottom": "回到底部",
+        "stop": "停止",
         "save_edit": "保存",
         "cancel_edit": "取消"
       },

@@ -16,6 +16,7 @@ export default function ChatConversationPage() {
   const { config } = useConfig();
   const {
     loading,
+    waitingForAssistantDelta,
     regeneratingParentId,
     messages,
     namespaceId,
@@ -26,6 +27,7 @@ export default function ChatConversationPage() {
     initialApprovalMode,
     onRegenerate,
     onEdit,
+    onStop,
     sendMessage,
   } = useContext();
 
@@ -66,6 +68,8 @@ export default function ChatConversationPage() {
             approvalModeResetKey={conversation.id}
             sendMessage={sendMessage}
             loading={loading}
+            waitingForAssistantDelta={waitingForAssistantDelta}
+            onStop={onStop}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">
             {t('chat.disclaimer')}
