@@ -17,7 +17,9 @@ import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 
 import ChatArea from './chat-input';
 import FeatureCards from './home/FeatureCards';
-import RecommendedQuestions from './home/RecommendedQuestions';
+import RecommendedQuestions, {
+  RecommendedQuestionItem,
+} from './home/RecommendedQuestions';
 import useSelectedResources from './useSelectedResources.ts';
 import { getGreeting } from './utils';
 
@@ -34,9 +36,8 @@ export default function ChatHomePage() {
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
   const creatingRecommendedQuestionRef = useRef(false);
-  const [loadingRecommendedQuestion, setLoadingRecommendedQuestion] = useState<
-    string | null
-  >(null);
+  const [loadingRecommendedQuestionId, setLoadingRecommendedQuestionId] =
+    useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -93,12 +94,17 @@ export default function ChatHomePage() {
     selectedResources,
     mode,
     approvalMode,
-    isRecommended,
+    recommendedQuestionId,
   }: SendMessageParams) => {
+    const createConversationPayload = recommendedQuestionId
+      ? { recommended_question_id: recommendedQuestionId }
+      : {};
+
     return http
-      .post(`/namespaces/${namespaceId}/conversations`, {
-        is_recommended: !!isRecommended,
-      })
+      .post(
+        `/namespaces/${namespaceId}/conversations`,
+        createConversationPayload
+      )
       .then((conversation: ConversationEntity) => {
         sessionStorage.setItem(
           'chat-create-payload',
@@ -116,24 +122,24 @@ export default function ChatHomePage() {
         navigate(`/${namespaceId}/chat/${conversation.id}`);
       });
   };
-  const handleQuestionSelect = (question: string) => {
+  const handleQuestionSelect = (item: RecommendedQuestionItem) => {
     if (creatingRecommendedQuestionRef.current) {
       return;
     }
 
     creatingRecommendedQuestionRef.current = true;
-    setLoadingRecommendedQuestion(question);
+    setLoadingRecommendedQuestionId(item.id);
 
     sendMessage({
-      query: question,
+      query: item.question,
       tools: [],
       selectedResources: [],
       mode: ChatMode.ASK,
       approvalMode: 'manual',
-      isRecommended: true,
+      recommendedQuestionId: item.id,
     }).catch(() => {
       creatingRecommendedQuestionRef.current = false;
-      setLoadingRecommendedQuestion(null);
+      setLoadingRecommendedQuestionId(null);
     });
   };
 
@@ -157,7 +163,7 @@ export default function ChatHomePage() {
           />
           <RecommendedQuestions
             namespaceId={namespaceId}
-            loadingQuestion={loadingRecommendedQuestion}
+            loadingQuestionId={loadingRecommendedQuestionId}
             onSelect={handleQuestionSelect}
           />
         </div>

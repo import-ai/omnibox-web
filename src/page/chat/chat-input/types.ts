@@ -95,7 +95,7 @@ export interface SendMessageParams {
   mode: ChatMode;
   decisions?: Decision[];
   approvalMode?: ApprovalMode;
-  isRecommended?: boolean;
+  recommendedQuestionId?: string;
 }
 
 export interface ChatCreatePayload extends SendMessageParams {
@@ -108,4 +108,5 @@ export interface ConversationEntity {
   userId: string;
   title: string;
   shareId: string;
+  recommendedQuestionId: string | null;
 }
