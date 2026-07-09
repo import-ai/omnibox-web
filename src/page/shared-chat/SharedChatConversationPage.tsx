@@ -23,6 +23,10 @@ import {
 } from '@/page/chat/conversation/utils.ts';
 import { createMessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/core/types/chatResponse.ts';
+import {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
@@ -40,6 +44,8 @@ export default function SharedChatConversationPage() {
     useShareContext();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
+  const [waitingForAssistantDelta, setWaitingForAssistantDelta] =
+    useState(false);
   const [regeneratingParentId, setRegeneratingParentId] = useState<
     string | null
   >(null);
@@ -79,6 +85,9 @@ export default function SharedChatConversationPage() {
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
       try {
+        if (v) {
+          setWaitingForAssistantDelta(true);
+        }
         setLoading(true);
         const askFN = ask(
           conversationId,
@@ -100,6 +109,7 @@ export default function SharedChatConversationPage() {
         await askFN.start();
       } finally {
         askAbortRef.current = null;
+        setWaitingForAssistantDelta(false);
         setLoading(false);
       }
     }
@@ -251,6 +261,19 @@ export default function SharedChatConversationPage() {
   const mergedLoading =
     loading || !isTerminalMessageStatus(messages.at(-1)?.status);
 
+  useEffect(() => {
+    if (
+      waitingForAssistantDelta &&
+      messages.some(
+        message =>
+          message.message.role === OpenAIMessageRole.ASSISTANT &&
+          message.status === MessageStatus.STREAMING
+      )
+    ) {
+      setWaitingForAssistantDelta(false);
+    }
+  }, [messages, waitingForAssistantDelta]);
+
   return (
     <div className="flex flex-1 flex-col min-h-0">
       <Scrollbar>
@@ -274,6 +297,7 @@ export default function SharedChatConversationPage() {
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             loading={mergedLoading}
+            waitingForAssistantDelta={waitingForAssistantDelta}
             sendMessage={sendMessage}
             onStop={onStop}
           />
