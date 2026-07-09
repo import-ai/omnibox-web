@@ -4,6 +4,7 @@ import '@/styles/vditor-patch.css';
 import '../resourceEditor.css';
 
 import {
+  contentToMarkdown,
   contentToTiptapJson,
   OmniboxEditor,
   type OmniboxEditorMentionUser,
@@ -40,6 +41,11 @@ import {
   OMNIBOX_EDITOR_CONTENT_WIDTH,
   toolbar,
 } from '@/page/resource/editor/const';
+import {
+  type EditorUpdatePayload,
+  serializeResourceEditorContent,
+  shouldSaveOmniboxEditorJson,
+} from '@/page/resource/editor/contentSerialization';
 
 interface IEditorProps {
   namespaceId: string;
@@ -59,12 +65,6 @@ interface UploadResponse {
   failed: string[];
 }
 
-interface EditorUpdatePayload {
-  json?: TiptapJsonContent;
-  markdown?: string;
-  html?: string;
-}
-
 type ResourceOmniboxEditorProps = Omit<
   React.ComponentProps<typeof OmniboxEditor>,
   'content' | 'onUpdate'
@@ -79,14 +79,9 @@ const ResourceOmniboxEditor =
   OmniboxEditor as React.ComponentType<ResourceOmniboxEditorProps>;
 
 const AUTO_SAVE_INTERVAL = 5000;
-
-function serializeResourceEditorContent(payload: EditorUpdatePayload): string {
-  if (payload.json) {
-    return JSON.stringify(payload.json);
-  }
-
-  return payload.markdown ?? payload.html ?? '';
-}
+const SAVE_OMNIBOX_EDITOR_JSON = shouldSaveOmniboxEditorJson(
+  import.meta.env.VITE_OMNIBOX_EDITOR_SAVE_JSON
+);
 
 function createResourceEditorSnapshot(name: string, content: string) {
   return JSON.stringify({ name, content });
@@ -263,8 +258,20 @@ function OmniboxResourceEditor(props: IEditorProps) {
     [initialContent, linkBase]
   );
   const serializedEditorContent = useMemo(
-    () => (initialContent ? JSON.stringify(editorContent) : ''),
-    [initialContent, editorContent]
+    () =>
+      initialContent
+        ? serializeResourceEditorContent(
+            {
+              json: editorContent,
+              markdown: contentToMarkdown(editorContent, {
+                linkBase,
+                debug: false,
+              }),
+            },
+            SAVE_OMNIBOX_EDITOR_JSON
+          )
+        : '',
+    [initialContent, editorContent, linkBase]
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -276,7 +283,10 @@ function OmniboxResourceEditor(props: IEditorProps) {
 
   const handleEditorUpdate = useCallback(
     (payload: EditorUpdatePayload) => {
-      const content = serializeResourceEditorContent(payload);
+      const content = serializeResourceEditorContent(
+        payload,
+        SAVE_OMNIBOX_EDITOR_JSON
+      );
       if (content !== markdownRef.current) {
         dirtyRef.current = true;
       }
