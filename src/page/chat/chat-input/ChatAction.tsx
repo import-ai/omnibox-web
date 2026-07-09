@@ -24,7 +24,7 @@ interface IActionProps {
   onSend: () => void;
   onStop?: () => void;
   loading: boolean;
-  waitingForUserMessage: boolean;
+  waitingForAssistantDelta: boolean;
   mode: ChatMode;
   setMode: (mode: ChatMode) => void;
 }
@@ -36,7 +36,7 @@ export default function ChatAction(props: IActionProps) {
     onSend,
     onStop,
     loading,
-    waitingForUserMessage,
+    waitingForAssistantDelta,
     mode,
     setMode,
   } = props;
@@ -74,7 +74,7 @@ export default function ChatAction(props: IActionProps) {
           <Separator orientation="vertical" className="h-4 ml-0 mr-3" />
         </>
       )}
-      {waitingForUserMessage ? (
+      {waitingForAssistantDelta ? (
         <span className="cursor-not-allowed">
           <Button
             size="icon"

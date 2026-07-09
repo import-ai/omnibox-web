@@ -16,7 +16,7 @@ export default function ChatConversationPage() {
   const { config } = useConfig();
   const {
     loading,
-    waitingForUserMessage,
+    waitingForAssistantDelta,
     regeneratingParentId,
     messages,
     namespaceId,
@@ -68,7 +68,7 @@ export default function ChatConversationPage() {
             approvalModeResetKey={conversation.id}
             sendMessage={sendMessage}
             loading={loading}
-            waitingForUserMessage={waitingForUserMessage}
+            waitingForAssistantDelta={waitingForAssistantDelta}
             onStop={onStop}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">

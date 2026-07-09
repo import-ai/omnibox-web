@@ -26,7 +26,10 @@ import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/core/messageOperator.ts';
-import { OpenAIMessageRole } from '@/page/chat/core/types/chatResponse.ts';
+import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/core/types/chatResponse.ts';
 import {
   ConversationDetail,
   MessageDetail,
@@ -44,7 +47,8 @@ export default function useContext() {
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
   const [loading, setLoading] = useState<boolean>(false);
-  const [waitingUserParentId, setWaitingUserParentId] = useState<string>();
+  const [waitingForAssistantDelta, setWaitingForAssistantDelta] =
+    useState(false);
   const [regeneratingParentId, setRegeneratingParentId] = useState<
     string | null
   >(null);
@@ -85,7 +89,7 @@ export default function useContext() {
       const parentMessageId = messages.at(-1)?.id;
       try {
         if (v) {
-          setWaitingUserParentId(parentMessageId ?? '');
+          setWaitingForAssistantDelta(true);
         }
         setLoading(true);
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
@@ -109,7 +113,7 @@ export default function useContext() {
         await askFN.start();
       } finally {
         askAbortRef.current = null;
-        setWaitingUserParentId(undefined);
+        setWaitingForAssistantDelta(false);
         setLoading(false);
       }
     }
@@ -167,17 +171,16 @@ export default function useContext() {
 
   useEffect(() => {
     if (
-      waitingUserParentId !== undefined &&
+      waitingForAssistantDelta &&
       messages.some(
         message =>
-          message.message.role === OpenAIMessageRole.USER &&
-          (!waitingUserParentId || message.parent_id === waitingUserParentId) &&
-          isTerminalMessageStatus(message.status)
+          message.message.role === OpenAIMessageRole.ASSISTANT &&
+          message.status === MessageStatus.STREAMING
       )
     ) {
-      setWaitingUserParentId(undefined);
+      setWaitingForAssistantDelta(false);
     }
-  }, [messages, waitingUserParentId]);
+  }, [messages, waitingForAssistantDelta]);
 
   const onRegenerate = async (messageId: string) => {
     if (regeneratingRef.current) {
@@ -285,7 +288,7 @@ export default function useContext() {
 
   return {
     loading: mergedLoading,
-    waitingForUserMessage: waitingUserParentId !== undefined,
+    waitingForAssistantDelta,
     regeneratingParentId,
     sendMessage,
     messages,
