@@ -1,4 +1,4 @@
-import { ArrowUp, ChevronDown } from 'lucide-react';
+import { ArrowUp, ChevronDown, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
@@ -22,14 +22,24 @@ import { ChatMode } from '@/page/chat/chat-input/types';
 interface IActionProps {
   disabled: boolean;
   onSend: () => void;
+  onStop?: () => void;
   loading: boolean;
+  waitingForAssistantDelta: boolean;
   mode: ChatMode;
   setMode: (mode: ChatMode) => void;
 }
 
 export default function ChatAction(props: IActionProps) {
   const { t } = useTranslation();
-  const { disabled, onSend, loading, mode, setMode } = props;
+  const {
+    disabled,
+    onSend,
+    onStop,
+    loading,
+    waitingForAssistantDelta,
+    mode,
+    setMode,
+  } = props;
 
   return (
     <div className="flex items-center">
@@ -64,7 +74,7 @@ export default function ChatAction(props: IActionProps) {
           <Separator orientation="vertical" className="h-4 ml-0 mr-3" />
         </>
       )}
-      {loading ? (
+      {waitingForAssistantDelta ? (
         <span className="cursor-not-allowed">
           <Button
             size="icon"
@@ -75,6 +85,22 @@ export default function ChatAction(props: IActionProps) {
             <Spinner />
           </Button>
         </span>
+      ) : loading ? (
+        <TooltipProvider>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="default"
+                className="rounded-full size-8"
+                onClick={onStop}
+              >
+                <Square className="!size-3 fill-current" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('chat.messages.actions.stop')}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       ) : disabled ? (
         <TooltipProvider>
           <Tooltip delayDuration={0}>
@@ -83,7 +109,7 @@ export default function ChatAction(props: IActionProps) {
                 <Button
                   size="icon"
                   variant="default"
-                  className="rounded-lg size-8"
+                  className="rounded-full size-8"
                   disabled
                 >
                   <ArrowUp />
@@ -94,7 +120,7 @@ export default function ChatAction(props: IActionProps) {
           </Tooltip>
         </TooltipProvider>
       ) : (
-        <Button size="icon" onClick={onSend} className="rounded-lg size-8">
+        <Button size="icon" onClick={onSend} className="rounded-full size-8">
           <ArrowUp />
         </Button>
       )}
