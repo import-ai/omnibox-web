@@ -1,8 +1,16 @@
 import { Check, ChevronDown, Hand, ShieldCheck, ShieldX } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
+import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
@@ -10,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
+import type { ResourceMeta } from '@/interface';
 import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ApprovalMode,
@@ -20,62 +29,21 @@ import {
   ToolType,
 } from '@/page/chat/chat-input/types';
 import {
-  MessageStatus,
-  OpenAIMessageRole,
-} from '@/page/chat/core/types/chatResponse.ts';
-import {
   Interrupt,
   MessageDetail,
 } from '@/page/chat/core/types/conversation.ts';
 import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
 
 import ChatAction from './ChatAction';
-import ChatContext from './ChatContext';
-import ChatInput from './ChatInput';
+import ChatInput, { ChatInputHandle } from './ChatInput';
+import {
+  createToolRestoreState,
+  getRestoredTools,
+  markToolsManuallyChanged,
+  resolveToolRestore,
+  suppressNextToolRestore,
+} from './chatInputToolRestore';
 import ChatTool from './ChatTool';
-
-interface RestoredTools {
-  conversationKey: string;
-  signature: string;
-  tools: ToolType[];
-  ready: boolean;
-}
-
-function getRestoredTools(messages: MessageDetail[]): RestoredTools {
-  const conversationKey = messages[0]?.id ?? 'empty';
-  const userMessage = messages
-    .slice()
-    .reverse()
-    .find(message => message.message.role === OpenAIMessageRole.USER);
-
-  if (!userMessage) {
-    return {
-      conversationKey,
-      signature: 'empty',
-      tools: [],
-      ready: true,
-    };
-  }
-
-  const tools: ToolType[] = [];
-  if (
-    userMessage.attrs?.tools?.some(tool => tool.name === ToolType.WEB_SEARCH)
-  ) {
-    tools.push(ToolType.WEB_SEARCH);
-  }
-  if (userMessage.attrs?.enable_thinking) {
-    tools.push(ToolType.REASONING);
-  }
-
-  return {
-    conversationKey,
-    signature: `${userMessage.id}:${tools.join(',')}`,
-    tools,
-    ready:
-      Boolean(userMessage.attrs) ||
-      userMessage.status !== MessageStatus.PENDING,
-  };
-}
 
 function formatTokenCount(tokens: number): string {
   if (tokens >= 1000) {
@@ -154,11 +122,16 @@ function ContextCapacityIndicator({
 
 interface IProps {
   messages: MessageDetail[];
+  namespaceId?: string;
   navigatePrefix: string;
   selectedResources: IResTypeContext[];
   setSelectedResources: any;
+  renderResourcePicker?: (
+    onSelect: (resource: ResourceMeta) => void
+  ) => ReactNode;
   initialApprovalMode?: ApprovalMode;
   approvalModeResetKey?: string;
+  suppressInitialToolRestore?: boolean;
   loading: boolean;
   waitingForAssistantDelta?: boolean;
   initialQuery?: string;
@@ -237,11 +210,13 @@ function ApprovalModeSelect({
 export default function ChatArea(props: IProps) {
   const {
     messages,
-    navigatePrefix,
+    namespaceId,
     selectedResources,
     setSelectedResources,
+    renderResourcePicker,
     initialApprovalMode,
     approvalModeResetKey,
+    suppressInitialToolRestore = false,
     loading,
     waitingForAssistantDelta = false,
     initialQuery,
@@ -262,36 +237,45 @@ export default function ChatArea(props: IProps) {
       ? 'auto_approve'
       : 'manual');
   const queryEditedRef = useRef(false);
-  const toolsManuallyChangedRef = useRef(false);
-  const restoredToolsConversationKeyRef = useRef<string | null>(null);
-  const restoredToolsSignatureRef = useRef<string | null>(null);
-  const restoredTools = useMemo(() => getRestoredTools(messages), [messages]);
+  const inputRef = useRef<ChatInputHandle>(null);
+  const toolRestoreStateRef = useRef(
+    createToolRestoreState(suppressInitialToolRestore)
+  );
+  const restoredTools = useMemo(
+    () => getRestoredTools(messages, approvalModeResetKey),
+    [messages, approvalModeResetKey]
+  );
   const contextCompactCapacity = getLatestContextCompactCapacity(messages);
+  const defaultResourcePicker = namespaceId
+    ? (onSelect: (resource: ResourceMeta) => void) => (
+        <WorkspaceResourcePicker
+          namespaceId={namespaceId}
+          onSelect={resource => onSelect(resource)}
+        />
+      )
+    : undefined;
 
   useEffect(() => {
-    if (!restoredTools.ready) {
-      return;
-    }
+    const result = resolveToolRestore(
+      restoredTools,
+      toolRestoreStateRef.current,
+      suppressInitialToolRestore
+    );
+    toolRestoreStateRef.current = result.nextState;
 
-    if (
-      restoredToolsConversationKeyRef.current !== restoredTools.conversationKey
-    ) {
-      restoredToolsConversationKeyRef.current = restoredTools.conversationKey;
-      restoredToolsSignatureRef.current = null;
-      toolsManuallyChangedRef.current = false;
+    if (result.toolsToRestore) {
+      setTools(result.toolsToRestore);
     }
+  }, [restoredTools, suppressInitialToolRestore]);
 
-    if (toolsManuallyChangedRef.current) {
-      return;
+  useEffect(() => {
+    if (suppressInitialToolRestore) {
+      toolRestoreStateRef.current = suppressNextToolRestore(
+        toolRestoreStateRef.current,
+        false
+      );
     }
-
-    if (restoredToolsSignatureRef.current === restoredTools.signature) {
-      return;
-    }
-
-    restoredToolsSignatureRef.current = restoredTools.signature;
-    setTools(restoredTools.tools);
-  }, [restoredTools]);
+  }, [approvalModeResetKey, suppressInitialToolRestore]);
 
   useEffect(() => {
     if (!initialQuery || queryEditedRef.current) {
@@ -314,7 +298,9 @@ export default function ChatArea(props: IProps) {
   }, []);
 
   const handleToolsChange = useCallback((nextTools: ToolType[]) => {
-    toolsManuallyChangedRef.current = true;
+    toolRestoreStateRef.current = markToolsManuallyChanged(
+      toolRestoreStateRef.current
+    );
     setTools(nextTools);
   }, []);
 
@@ -345,16 +331,26 @@ export default function ChatArea(props: IProps) {
     const v = query.trim();
     if (v) {
       queryEditedRef.current = true;
-      setQuery('');
-      toolsManuallyChangedRef.current = false;
+      const localTools = [...tools];
       const localContext = structuredClone(selectedResources);
+      const displayParts = inputRef.current?.getDisplayParts();
+      const localDisplayParts = displayParts?.some(part => part.type !== 'text')
+        ? displayParts
+        : undefined;
+      inputRef.current?.clear();
+      setQuery('');
+      toolRestoreStateRef.current = suppressNextToolRestore(
+        toolRestoreStateRef.current,
+        false
+      );
       setSelectedResources([]);
       sendMessage({
         query: v,
         selectedResources: localContext,
-        tools,
+        tools: localTools,
         mode,
         approvalMode,
+        displayParts: localDisplayParts,
       });
     }
   }, [
@@ -376,14 +372,14 @@ export default function ChatArea(props: IProps) {
     />
   ) : (
     <div className="max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]">
-      <ChatContext
-        value={selectedResources}
-        onChange={setSelectedResources}
-        navigatePrefix={navigatePrefix}
-      />
       <ChatInput
+        ref={inputRef}
         value={query}
+        tools={tools}
+        selectedResources={selectedResources}
         onChange={handleQueryChange}
+        onToolsChange={handleToolsChange}
+        onSelectedResourcesChange={setSelectedResources}
         onSend={handleSend}
         disabled={disabled}
       />
@@ -391,8 +387,12 @@ export default function ChatArea(props: IProps) {
         <div className="flex min-w-0 items-center gap-2">
           <ChatTool
             tools={tools}
-            context={selectedResources}
-            onToolsChange={handleToolsChange}
+            renderResourcePicker={renderResourcePicker ?? defaultResourcePicker}
+            onBeforeOpen={() => inputRef.current?.rememberSelection()}
+            onToolToggle={tool => inputRef.current?.toggleTool(tool)}
+            onResourceSelect={resource =>
+              inputRef.current?.insertResource(resource)
+            }
           />
           <ApprovalModeSelect
             approvalMode={approvalMode}

@@ -683,6 +683,9 @@
       }
     },
     "tools": {
+      "add": "Add",
+      "more": "More",
+      "select_resource": "Select Resource",
       "web_search": "Web Search",
       "private_search": "OmniBox",
       "reasoning": "Reasoning",

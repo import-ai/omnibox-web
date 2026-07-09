@@ -86,6 +86,7 @@ export default function ChatHomePage() {
     tools,
     selectedResources,
     mode,
+    displayParts,
     approvalMode,
   }: SendMessageParams) => {
     http
@@ -98,6 +99,7 @@ export default function ChatHomePage() {
             query,
             tools,
             selectedResources,
+            displayParts,
             approvalMode,
             conversation: {
               id: conversation.id,
@@ -118,6 +120,7 @@ export default function ChatHomePage() {
           {config.commercial && <AgentTrial namespaceId={namespaceId} />}
           <ChatArea
             messages={[]}
+            namespaceId={namespaceId}
             navigatePrefix={`/${namespaceId}`}
             approvalModeResetKey={`home:${namespaceId}`}
             selectedResources={selectedResources}

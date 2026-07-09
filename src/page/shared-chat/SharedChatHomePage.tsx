@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { ShareResourcePicker } from '@/components/resourcePicker';
 import { Typewriter } from '@/components/typewriter';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
@@ -21,7 +22,8 @@ export default function SharedChatHomePage() {
   const { t } = useTranslation();
   const shareId = params.share_id || '';
   const i18n = `chat.home.greeting.${getGreeting()}`;
-  const { selectedResources, setSelectedResources } = useShareContext();
+  const { shareInfo, selectedResources, setSelectedResources } =
+    useShareContext();
 
   useEffect(() => {
     setDocumentTitle(t('chat.title'));
@@ -66,6 +68,18 @@ export default function SharedChatHomePage() {
           approvalModeResetKey={`share-home:${shareId}`}
           selectedResources={selectedResources}
           setSelectedResources={setSelectedResources}
+          renderResourcePicker={
+            shareInfo
+              ? onSelect => (
+                  <ShareResourcePicker
+                    shareId={shareId}
+                    rootResource={shareInfo.resource}
+                    canBrowseResources={shareInfo.all_resources}
+                    onSelect={resource => onSelect(resource)}
+                  />
+                )
+              : undefined
+          }
           loading={false}
           sendMessage={sendMessage}
         />

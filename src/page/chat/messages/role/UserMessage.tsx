@@ -1,17 +1,31 @@
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
+import type { ResourceMeta } from '@/interface';
 import { pathI18n, trimMiddle } from '@/lib/toolArgs.ts';
 import { cn } from '@/lib/utils';
+import { InlineChatToken } from '@/page/chat/chat-input/InlineChatToken';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings.ts';
+import { fetchResourcesByIds } from '@/service/resource';
+import { fetchShareResource } from '@/service/share';
+
+import {
+  createUserMessageCopyHtml,
+  getUserMessageResources,
+  getUserMessageToolTokens,
+  resourceMetaFromPrivateSearchResource,
+  splitDisplayPartsByLine,
+  splitUserMessageResourceTokens,
+} from './userMessageTokens';
 
 interface IProps {
   message: MessageDetail;
@@ -22,8 +36,12 @@ interface IProps {
 export function UserMessage(props: IProps) {
   const { message, messageOperator, onEdit } = props;
   const { t } = useTranslation();
+  const params = useParams();
   const openAIMessage = message.message;
   const lines = openAIMessage.content?.split('\n') || [];
+  const [resourceMetaById, setResourceMetaById] = useState<
+    Record<string, ResourceMeta>
+  >({});
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(
@@ -54,6 +72,71 @@ export function UserMessage(props: IProps) {
   const createdAt = message.created_at
     ? format(new Date(message.created_at), 'yyyy-MM-dd HH:mm:ss')
     : null;
+  const displayParts = message.attrs?.composer?.display_parts;
+  const resources = getUserMessageResources(message.attrs?.tools);
+  const displayResources =
+    displayParts
+      ?.filter(part => part.type === 'resource')
+      .map(part => part.resource) ?? [];
+  const toolTokens = getUserMessageToolTokens(
+    message.attrs?.tools,
+    message.attrs?.enable_thinking
+  );
+  const resourceIdsKey = Array.from(
+    new Set([...resources, ...displayResources].map(resource => resource.id))
+  )
+    .sort()
+    .join(',');
+
+  useEffect(() => {
+    const namespaceId = params.namespace_id;
+    const shareId = params.share_id;
+    if (!resourceIdsKey || (!namespaceId && !shareId)) return;
+
+    let cancelled = false;
+    const ids = resourceIdsKey.split(',');
+    const request = namespaceId
+      ? fetchResourcesByIds(namespaceId, ids)
+      : Promise.all(ids.map(id => fetchShareResource(shareId as string, id)));
+
+    void request
+      .then((fetchedResources: ResourceMeta[]) => {
+        if (cancelled) return;
+        setResourceMetaById(prev => ({
+          ...prev,
+          ...Object.fromEntries(
+            fetchedResources.map(resource => [resource.id, resource])
+          ),
+        }));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [params.namespace_id, params.share_id, resourceIdsKey]);
+
+  const resourceByName = new Map(
+    resources.map(resource => [
+      resource.name,
+      {
+        resource:
+          resourceMetaById[resource.id] ??
+          resourceMetaFromPrivateSearchResource(resource),
+        contextType: resource.type,
+      },
+    ])
+  );
+  const resourceNames = resources.map(resource => resource.name);
+  const copyHtml = createUserMessageCopyHtml(
+    openAIMessage.content || '',
+    message.attrs?.tools,
+    message.attrs?.enable_thinking,
+    tool => t(`chat.tools.${tool}`),
+    displayParts
+  );
+  const displayLines = displayParts?.some(part => part.type !== 'text')
+    ? splitDisplayPartsByLine(displayParts)
+    : undefined;
 
   return (
     <div className="group flex flex-col items-end">
@@ -84,10 +167,64 @@ export function UserMessage(props: IProps) {
               </Button>
             </div>
           </div>
+        ) : displayLines ? (
+          displayLines.map((line, idx) => (
+            <span key={idx} className="break-words [overflow-wrap:anywhere]">
+              {line.map((part, partIndex) => {
+                if (part.type === 'text') return part.text;
+                if (part.type === 'tool') {
+                  return (
+                    <InlineChatToken key={partIndex} icon={part.tool}>
+                      {t(`chat.tools.${part.tool}`)}
+                    </InlineChatToken>
+                  );
+                }
+
+                const tokenResource =
+                  resourceMetaById[part.resource.id] ??
+                  resourceMetaFromPrivateSearchResource(part.resource);
+                return (
+                  <InlineChatToken
+                    key={partIndex}
+                    icon="resource"
+                    resource={tokenResource}
+                    contextType={part.resource.type}
+                  >
+                    {part.resource.name}
+                  </InlineChatToken>
+                );
+              })}
+              {idx !== displayLines.length - 1 && <br />}
+            </span>
+          ))
         ) : (
           lines.map((line, idx) => (
-            <span key={idx} className="break-words">
-              {line}
+            <span key={idx} className="break-words [overflow-wrap:anywhere]">
+              {splitUserMessageResourceTokens(line, resourceNames).map(
+                (segment, segmentIndex) => {
+                  if (segment.type !== 'resource') {
+                    return segment.text;
+                  }
+
+                  const tokenResource = resourceByName.get(segment.text);
+                  return (
+                    <InlineChatToken
+                      key={segmentIndex}
+                      icon="resource"
+                      resource={tokenResource?.resource}
+                      contextType={tokenResource?.contextType}
+                    >
+                      {segment.text}
+                    </InlineChatToken>
+                  );
+                }
+              )}
+              {idx === lines.length - 1 &&
+                toolTokens.map(tool => (
+                  <InlineChatToken key={tool} icon={tool}>
+                    {t(`chat.tools.${tool}`)}
+                  </InlineChatToken>
+                ))}
               {idx !== lines.length - 1 && <br />}
             </span>
           ))
@@ -133,6 +270,7 @@ export function UserMessage(props: IProps) {
         )}
         <Copy
           content={openAIMessage.content || ''}
+          htmlContent={copyHtml}
           tooltip={t('chat.messages.actions.copy_simple')}
         />
         {hasSiblings && (

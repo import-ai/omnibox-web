@@ -1,64 +1,74 @@
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Textarea } from '@/components/ui/Textarea';
+import { cn } from '@/lib/utils';
+
+import ComposerOverlay from './ComposerOverlay';
+import { IResTypeContext, ToolType } from './types';
+import {
+  type ChatInputHandle,
+  useChatInputComposer,
+} from './useChatInputComposer';
+
+export type { ChatInputHandle } from './useChatInputComposer';
 
 interface IProps {
   value: string;
   disabled: boolean;
+  tools: ToolType[];
+  selectedResources: IResTypeContext[];
   onChange: (value: string) => void;
+  onToolsChange: (value: ToolType[]) => void;
+  onSelectedResourcesChange: (value: IResTypeContext[]) => void;
   onSend: () => void;
 }
 
-export default function ChatInput(props: IProps) {
-  const { value, disabled, onChange, onSend } = props;
-  const { t } = useTranslation();
-  const [isComposing, setIsComposing] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(e.target.value);
-  };
-  const adjustHeight = () => {
-    const textarea = textareaRef.current;
-    if (!textarea) {
-      return;
-    }
-    textarea.style.height = 'auto';
-    const newHeight = Math.min(Math.max(textarea.scrollHeight, 60), 200);
-    textarea.style.height = `${newHeight}px`;
-    textarea.scrollTop = textarea.scrollHeight;
-  };
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (isComposing || e.key !== 'Enter' || e.shiftKey) {
-      return;
-    }
-    e.preventDefault();
-    if (disabled || e.metaKey || e.ctrlKey || e.altKey) {
-      return;
-    }
-    onSend();
-  };
-  const handleCompositionStart = () => {
-    setIsComposing(true);
-  };
-  const handleCompositionEnd = () => {
-    setIsComposing(false);
-  };
+const ChatInput = forwardRef<ChatInputHandle, IProps>(
+  function ChatInput(props, ref) {
+    const { t } = useTranslation();
+    const getToolLabel = useCallback(
+      (tool: Exclude<ToolType, ToolType.PRIVATE_SEARCH>) =>
+        t(`chat.tools.${tool}`),
+      [t]
+    );
+    const composer = useChatInputComposer({
+      ...props,
+      getToolLabel,
+      untitledLabel: t('untitled'),
+    });
 
-  useEffect(adjustHeight, [value]);
+    useImperativeHandle(ref, () => composer.handle, [composer.handle]);
 
-  return (
-    <div className="mb-[2px]">
-      <Textarea
-        value={value}
-        ref={textareaRef}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={handleCompositionEnd}
-        placeholder={t('chat.textarea.placeholder')}
-        className="resize-none no-scrollbar p-0 border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:shadow-none hover:border-transparent hover:shadow-none placeholder:text-[#9CA3AF] dark:placeholder:text-gray-400"
-      />
-    </div>
-  );
-}
+    return (
+      <div className="relative mb-[2px] min-h-[60px]">
+        <ComposerOverlay
+          text={composer.displayText}
+          mentions={composer.mentions}
+          toolRanges={composer.toolRanges}
+          overlayRef={composer.overlayRef}
+        />
+        <textarea
+          ref={composer.textareaRef}
+          value={composer.displayText}
+          rows={1}
+          placeholder={t('chat.textarea.placeholder')}
+          className={cn(
+            'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent p-0 text-sm leading-7 text-transparent outline-none',
+            'caret-foreground placeholder:text-[#9CA3AF] selection:bg-[#117bfa]/20 selection:text-transparent dark:placeholder:text-gray-400'
+          )}
+          onBlur={composer.rememberSelection}
+          onChange={composer.handleTextChange}
+          onClick={composer.rememberSelection}
+          onCompositionEnd={() => composer.setIsComposing(false)}
+          onCompositionStart={() => composer.setIsComposing(true)}
+          onKeyDown={composer.handleKeyDown}
+          onKeyUp={composer.rememberSelection}
+          onScroll={composer.handleScroll}
+          onSelect={composer.rememberSelection}
+        />
+      </div>
+    );
+  }
+);
+
+export default ChatInput;

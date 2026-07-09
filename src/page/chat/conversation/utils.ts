@@ -3,6 +3,7 @@ import { ResourceMeta } from '@/interface.ts';
 import { http } from '@/lib/request';
 import { createStreamTransport } from '@/lib/streamTransport';
 import { WizardLang } from '@/lib/wizardLang';
+import type { ChatMessageDisplayPart } from '@/page/chat/chat-input/types';
 import {
   AgentRequestChannel,
   ChatRequestBody,
@@ -14,7 +15,12 @@ import {
 } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import { messageProcessor } from '@/page/chat/core/messageProcessor.ts';
-import { MessageStatus } from '@/page/chat/core/types/chatResponse.ts';
+import {
+  ChatDeltaResponse,
+  ChatResponse,
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/core/types/chatResponse.ts';
 import {
   ConversationDetail,
   MessageDetail,
@@ -28,7 +34,9 @@ function getPrivateSearchResources(
       name: item.resource.name || '',
       id: item.resource.id,
       type: item.type,
-    } as PrivateSearchResource;
+      resource_type: item.resource.resource_type,
+      attrs: item.resource.attrs,
+    };
   });
 }
 
@@ -161,7 +169,8 @@ export function ask(
   shareId: string | undefined,
   sharePassword: string | undefined,
   enable_thinking?: boolean,
-  tool_call?: ChatRequestBody['tool_call']
+  tool_call?: ChatRequestBody['tool_call'],
+  displayParts?: ChatMessageDisplayPart[]
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -179,10 +188,35 @@ export function ask(
   if (tool_call) {
     chatReq.tool_call = tool_call;
   }
+  let pendingDisplayParts = displayParts?.length ? displayParts : undefined;
+
   return createStreamTransport(
     url,
     chatReq,
-    async data => messageProcessor(messageOperator, data),
+    async data => {
+      const chatResponse = JSON.parse(data) as ChatResponse;
+      messageProcessor(messageOperator, data);
+
+      if (
+        pendingDisplayParts &&
+        chatResponse.response_type === 'bos' &&
+        chatResponse.role === OpenAIMessageRole.USER
+      ) {
+        messageOperator.update(
+          {
+            response_type: 'delta',
+            message: {},
+            attrs: {
+              composer: {
+                display_parts: pendingDisplayParts,
+              },
+            },
+          } as ChatDeltaResponse,
+          chatResponse.id
+        );
+        pendingDisplayParts = undefined;
+      }
+    },
     streamCancelUrl(url)
   );
 }

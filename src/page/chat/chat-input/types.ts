@@ -37,7 +37,25 @@ export interface PrivateSearchResource {
   name: string;
   id: string;
   type: PrivateSearchResourceType;
+  resource_type?: ResourceMeta['resource_type'];
+  attrs?: ResourceMeta['attrs'];
 }
+
+export type VisibleToolType = Exclude<ToolType, ToolType.PRIVATE_SEARCH>;
+
+export type ChatMessageDisplayPart =
+  | {
+      type: 'text';
+      text: string;
+    }
+  | {
+      type: 'tool';
+      tool: VisibleToolType;
+    }
+  | {
+      type: 'resource';
+      resource: PrivateSearchResource;
+    };
 
 export interface PrivateSearch extends IChatTool {
   name: ToolType.PRIVATE_SEARCH;
@@ -93,6 +111,7 @@ export interface SendMessageParams {
   tools: ToolType[];
   selectedResources: IResTypeContext[];
   mode: ChatMode;
+  displayParts?: ChatMessageDisplayPart[];
   decisions?: Decision[];
   approvalMode?: ApprovalMode;
 }

@@ -684,6 +684,9 @@
       }
     },
     "tools": {
+      "add": "添加",
+      "more": "更多",
+      "select_resource": "选择资源",
       "web_search": "联网搜索",
       "private_search": "本地搜索",
       "reasoning": "深度思考",
