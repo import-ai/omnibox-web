@@ -171,10 +171,11 @@ batch operations, smart folders, upload state, and trash/restore flows. Store
 actions are split under `src/page/sidebar/store/actions/`; shared resource API
 calls come from `src/service/resource.ts`.
 
-**Chat** (`src/page/chat/`): Streaming messages via
-`src/lib/streamTransport.ts`, context-aware conversations using persisted
-selected resources, history view, shared-chat variants, and small pure helpers
-with Jest coverage under `src/page/chat/**`.
+**Chat** (`src/page/chat/`): Streaming and resumable messages via
+`src/lib/streamTransport.ts` and `src/page/chat/conversation/utils.ts`,
+context-aware conversations using persisted selected resources, history view,
+shared-chat variants, typed chat core models under `src/page/chat/core/types/`,
+and small pure helpers with Jest coverage under `src/page/chat/**`.
 
 **Resources**: Vditor markdown editor, markdown rendering, folder views,
 resource conditions, tags/metadata attributes, file uploads with progress, and
