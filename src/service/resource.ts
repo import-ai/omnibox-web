@@ -68,9 +68,9 @@ export function searchResources(namespaceId: string, query: string) {
   }
   params.set('type', 'resource');
   return http
-    .get<
-      IndexedResourceSearchResult[]
-    >(`/namespaces/${namespaceId}/search?${params.toString()}`)
+    .get<IndexedResourceSearchResult[]>(
+      `/namespaces/${namespaceId}/search?${params.toString()}`
+    )
     .then(resources =>
       resources.map<ResourceMeta>(resource => ({
         id: resource.resource_id,
