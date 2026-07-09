@@ -43,15 +43,11 @@ export interface OpenAIMessage {
 }
 
 export type ChatResponseType =
-  | 'bos'
-  | 'delta'
-  | 'eos'
-  | 'done'
-  | 'error'
-  | 'metrics';
+  'bos' | 'delta' | 'eos' | 'done' | 'error' | 'metrics' | 'stopped';
 
 export interface ChatBaseResponse {
   response_type: ChatResponseType;
+  event_id?: string;
 }
 
 export interface ChatBOSResponse extends ChatBaseResponse {
@@ -59,6 +55,8 @@ export interface ChatBOSResponse extends ChatBaseResponse {
   role: OpenAIMessageRole;
   id: string;
   parentId: string;
+  created_at?: string;
+  attrs?: MessageAttrs;
 }
 
 export interface ChatEOSResponse extends ChatBaseResponse {
@@ -89,10 +87,16 @@ export interface ChatErrorResponse extends ChatBaseResponse {
   message: string;
 }
 
+export interface ChatStoppedResponse extends ChatBaseResponse {
+  response_type: 'stopped';
+  id?: string;
+}
+
 export type ChatResponse =
   | ChatBOSResponse
   | ChatDeltaResponse
   | ChatEOSResponse
   | ChatMetricsResponse
   | ChatDoneResponse
-  | ChatErrorResponse;
+  | ChatErrorResponse
+  | ChatStoppedResponse;

@@ -6,11 +6,8 @@ import {
   ChatErrorResponse,
   MessageStatus,
   OpenAIMessageRole,
-} from '@/page/chat/core/types/chatResponse.ts';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/core/types/conversation.ts';
+} from './types/chatResponse.ts';
+import { ConversationDetail, MessageDetail } from './types/conversation.ts';
 
 function add(source?: string, delta?: string): string | undefined {
   return delta ? (source || '') + delta : source;
@@ -20,6 +17,7 @@ export interface MessageOperator {
   update: (delta: ChatDeltaResponse, id?: string) => void;
   add: (chatResponse: ChatBOSResponse) => string;
   done: (id?: string) => void;
+  stop: (id?: string) => void;
   error: (errorResponse: ChatErrorResponse, id?: string) => void;
   activate: (id: string) => void;
   getSiblings: (id: string) => string[];
@@ -103,7 +101,15 @@ export function createMessageOperator(
           message.message.tool_call_id = delta.message.tool_call_id;
         }
 
-        message.status = MessageStatus.STREAMING;
+        if (
+          ![
+            MessageStatus.SUCCESS,
+            MessageStatus.STOPPED,
+            MessageStatus.FAILED,
+          ].includes(message.status)
+        ) {
+          message.status = MessageStatus.STREAMING;
+        }
         if (delta.attrs) {
           message.attrs = message.attrs || {};
           Object.assign(message.attrs, delta.attrs);
@@ -120,12 +126,14 @@ export function createMessageOperator(
     add: (chatResponse: ChatBOSResponse): string => {
       const message: MessageDetail = {
         id: chatResponse.id,
+        created_at: chatResponse.created_at || new Date().toISOString(),
         message: {
           role: chatResponse.role,
         },
         status: MessageStatus.PENDING,
         parent_id: chatResponse.parentId,
         children: [],
+        attrs: chatResponse.attrs,
       };
 
       setConversation(prev => {
@@ -164,6 +172,20 @@ export function createMessageOperator(
             message.attrs.tool_call.in_streaming = true;
           }
         }
+        return {
+          ...prev,
+          mapping: { ...prev.mapping, [message.id]: message },
+        };
+      });
+    },
+
+    stop: (id?: string) => {
+      setConversation(prev => {
+        const message = getMessage(prev, id);
+        if (!message) {
+          return prev;
+        }
+        message.status = MessageStatus.STOPPED;
         return {
           ...prev,
           mapping: { ...prev.mapping, [message.id]: message },

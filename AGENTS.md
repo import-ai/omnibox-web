@@ -96,8 +96,9 @@ Credentials managed in `src/page/user/util.ts`:
 - `src/page/` - Feature pages (chat, resource, user, sidebar, share)
 - `src/components/` - Reusable UI (Radix UI primitives in `ui/`)
 - `src/hooks/` - Custom hooks and state management
-- `src/lib/` - Utilities (`request.ts`, `utils.ts`, `websocket.ts`)
+- `src/lib/` - Utilities (`request.ts`, `utils.ts`, `streamTransport.ts`)
 - `src/i18n/` - Internationalization (en-US, zh-CN)
+- Do not manually edit files under `src/components/ui/`; they are shadcn-ui components. Adjust behavior with wrappers or call-site overrides instead.
 
 ### File Naming
 
@@ -123,7 +124,7 @@ Credentials managed in `src/page/user/util.ts`:
 
 **Rules**:
 
-- Use the same type prefixes as commit messages: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `revert`, or `build`.
+- Use the same type prefixes and meanings as commit messages: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `revert`, or `build`.
 - Keep the description lowercase, kebab-case, and focused on the change.
 
 **Examples**:
@@ -169,5 +170,5 @@ refactor(tasks): Add timeout status
 
 **Do NOT include**:
 
-- "Generated with Claude Code" or similar attribution
-- "Co-Authored-By: Claude" or any Claude co-author tags
+- "Generated with xxx" or similar attribution
+- "Co-Authored-By: xxx" or any co-author tags

@@ -232,6 +232,11 @@
     "login_use_google": "使用 Google 登录",
     "login_use_apple": "使用 Apple 登录",
     "wechat_disabled": "当前环境不支持微信登录",
+    "wechat_h5_title": "打开微信登录",
+    "wechat_h5_description": "将跳转到 OmniBox 微信小程序继续登录。",
+    "wechat_h5_confirm": "确认打开",
+    "wechat_h5_cancel": "取消",
+    "wechat_h5_launch_failed": "未能打开微信，请确认已安装微信后重试",
     "apple_signin_failed": "Apple 登录失败",
     "apple_sdk_not_loaded": "Apple SDK 未加载",
     "or_continue": "或",
@@ -569,11 +574,23 @@
         "copy_simple": "复制",
         "edit": "编辑消息",
         "scroll_to_bottom": "回到底部",
+        "stop": "停止",
         "save_edit": "保存",
         "cancel_edit": "取消"
       },
       "metrics": {
         "tps": "{{tokens}} 词元（{{tps}} 词元 / 秒）"
+      },
+      "context_capacity": {
+        "ratio": "{{used}}% 已用（剩 {{remaining}}% 自动压缩）",
+        "tokens": "{{estimated}} / {{trigger}} 词元"
+      },
+      "process": {
+        "duration": {
+          "hours": "{{count}} 小时",
+          "minutes": "{{count}} 分",
+          "seconds": "{{count}} 秒"
+        }
       },
       "user_context": {
         "selected_resources": "选择了 {{count}} 个资源"
@@ -609,6 +626,8 @@
           "tag_filter": "筛选标签",
           "collect_url": "收藏网页",
           "list_resource_tasks": "查询资源任务",
+          "load_docs": "查看文档",
+          "get_agent_asset_resource_id": "加载资源",
           "wait": "等待",
           "frontend_operations": "前端操作",
           "unknown": "未知工具"
@@ -691,7 +710,19 @@
     "decision": {
       "approve": "同意",
       "reject": "拒绝",
-      "selected": "已选择"
+      "selected": "已选择",
+      "approve_all": "全部同意",
+      "reject_all": "全部拒绝",
+      "mode": {
+        "manual": "手动确认",
+        "auto_approve": "自动同意",
+        "auto_reject": "自动拒绝"
+      },
+      "mode_description": {
+        "manual": "每次执行前询问",
+        "auto_approve": "自动通过审批请求",
+        "auto_reject": "自动拒绝审批请求"
+      }
     }
   },
   "date": {

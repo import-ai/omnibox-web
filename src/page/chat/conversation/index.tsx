@@ -7,6 +7,7 @@ import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import ChatArea from '@/page/chat/chat-input';
 import useContext from '@/page/chat/conversation/useContext';
 import { Messages } from '@/page/chat/messages';
+import { MessageIndex } from '@/page/chat/messages/MessageIndex';
 
 import Scrollbar from './Scrollbar';
 
@@ -15,6 +16,7 @@ export default function ChatConversationPage() {
   const { config } = useConfig();
   const {
     loading,
+    waitingForAssistantDelta,
     regeneratingParentId,
     messages,
     namespaceId,
@@ -22,8 +24,10 @@ export default function ChatConversationPage() {
     messageOperator,
     selectedResources,
     setSelectedResources,
+    initialApprovalMode,
     onRegenerate,
     onEdit,
+    onStop,
     sendMessage,
   } = useContext();
 
@@ -37,14 +41,17 @@ export default function ChatConversationPage() {
             </Button>
           </div>
         ) : (
-          <Messages
-            conversation={conversation}
-            messages={messages}
-            messageOperator={messageOperator}
-            onRegenerate={onRegenerate}
-            onEdit={onEdit}
-            regeneratingParentId={regeneratingParentId}
-          />
+          <>
+            <MessageIndex messages={messages} />
+            <Messages
+              conversation={conversation}
+              messages={messages}
+              messageOperator={messageOperator}
+              onRegenerate={onRegenerate}
+              onEdit={onEdit}
+              regeneratingParentId={regeneratingParentId}
+            />
+          </>
         )}
       </Scrollbar>
       <div className="flex justify-center px-4">
@@ -57,8 +64,12 @@ export default function ChatConversationPage() {
             setSelectedResources={setSelectedResources}
             messages={messages}
             navigatePrefix={`/${namespaceId}`}
+            initialApprovalMode={initialApprovalMode}
+            approvalModeResetKey={conversation.id}
             sendMessage={sendMessage}
             loading={loading}
+            waitingForAssistantDelta={waitingForAssistantDelta}
+            onStop={onStop}
           />
           <div className="text-center text-xs pt-2 text-muted-foreground truncate">
             {t('chat.disclaimer')}

@@ -26,6 +26,9 @@ const AccountDeleteConfirmPage = lazy(
 const WechatAuthConfirmPage = lazy(
   () => import('@/page/user/wechat/AuthConfirmPage')
 );
+const WechatMiniProgramAuthPage = lazy(
+  () => import('@/page/user/wechat/MiniProgramAuthPage')
+);
 const GoogleAuthConfirmPage = lazy(
   () => import('@/page/user/google/AuthConfirmPage')
 );
@@ -58,6 +61,10 @@ const router = createBrowserRouter([
       {
         path: 'user/auth/confirm',
         element: <WechatAuthConfirmPage />,
+      },
+      {
+        path: 'user/auth/miniprogram',
+        element: <WechatMiniProgramAuthPage />,
       },
       {
         path: 'user/auth/confirm/google',

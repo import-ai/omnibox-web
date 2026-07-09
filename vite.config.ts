@@ -99,14 +99,6 @@ export default defineConfig(({ mode }) => {
             return path;
           },
         },
-        '/api/v1/socket.io': {
-          target:
-            process.env.VITE_API_PATH ??
-            env.VITE_API_PATH ??
-            'http://127.0.0.1:8000',
-          changeOrigin: true,
-          ws: true,
-        },
       },
     },
   };
