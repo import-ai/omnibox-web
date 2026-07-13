@@ -12,7 +12,7 @@ export type InlineChatTokenIcon =
   | ToolType.REASONING;
 
 export const inlineChatTokenClassName =
-  'mx-0.5 inline break-all align-baseline text-[#117bfa] [overflow-wrap:anywhere] dark:text-[#60a5fb]';
+  'inline align-baseline text-[#117bfa] dark:text-[#60a5fb]';
 
 const toolIcon: Record<Exclude<InlineChatTokenIcon, 'resource'>, LucideIcon> = {
   [ToolType.WEB_SEARCH]: Globe,
@@ -25,7 +25,7 @@ function ToolTokenIcon({
   icon: Exclude<InlineChatTokenIcon, 'resource'>;
 }) {
   const Icon = toolIcon[icon];
-  return <Icon className="mr-1 inline size-4 align-[-0.125em]" aria-hidden />;
+  return <Icon className="size-4" aria-hidden />;
 }
 
 function ResourceTokenIcon({
@@ -36,7 +36,7 @@ function ResourceTokenIcon({
   contextType?: PrivateSearchResourceType;
 }) {
   return (
-    <span className="mr-1 inline-flex size-4 align-[-0.125em] [&>svg]:size-4">
+    <span className="inline-flex size-4 [&>svg]:size-4">
       <ResourceTypeIcon resource={resource} contextType={contextType} />
     </span>
   );
@@ -65,16 +65,43 @@ export function InlineChatToken({
   icon,
   resource,
   contextType,
+  spacer,
   children,
 }: {
   icon: InlineChatTokenIcon;
   resource?: ResourceMeta;
   contextType?: PrivateSearchResourceType;
+  /** Composer overlay uses a fixed spacer; omit for read-only message display. */
+  spacer?: string;
   children: ReactNode;
 }) {
+  if (!spacer) {
+    return (
+      <span className={inlineChatTokenClassName}>
+        <span className="mr-1 inline-flex align-[-0.125em] [&>svg]:size-4">
+          <TokenIcon
+            icon={icon}
+            resource={resource}
+            contextType={contextType}
+          />
+        </span>
+        {children}
+      </span>
+    );
+  }
+
   return (
     <span className={inlineChatTokenClassName}>
-      <TokenIcon icon={icon} resource={resource} contextType={contextType} />
+      <span className="relative inline-block align-baseline">
+        <span className="text-transparent">{spacer}</span>
+        <span className="absolute inset-0 inline-flex items-center justify-center">
+          <TokenIcon
+            icon={icon}
+            resource={resource}
+            contextType={contextType}
+          />
+        </span>
+      </span>
       {children}
     </span>
   );

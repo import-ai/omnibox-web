@@ -1,6 +1,10 @@
 import type { ResourceMeta } from '@/interface';
 
 import { getRememberedComposerSelection } from './composerAtomicRanges';
+import {
+  createResourceMentionText,
+  insertResourceMention,
+} from './composerDocument';
 import { syncComposerResources } from './composerExternalSync';
 import {
   insertComposerResource,
@@ -112,6 +116,140 @@ describe('composer operations', () => {
         reasoning?.state.toolRanges ?? []
       ).map(part => (part.type === 'tool' ? part.tool : part.type))
     ).toEqual(['text', 'resource', ToolType.WEB_SEARCH, ToolType.REASONING]);
+  });
+
+  it('keeps one resource token at its original position when selected again', () => {
+    const initial = createComposerState('分析一下');
+    const withResource = insertComposerResource(
+      initial,
+      resource('r1', 'plan.md'),
+      { start: initial.displayText.length, end: initial.displayText.length },
+      'Untitled'
+    );
+    const webSearch = toggleComposerTool(
+      withResource.state,
+      ToolType.WEB_SEARCH,
+      '联网搜索',
+      withResource.selection
+    );
+    expect(webSearch).not.toBeNull();
+
+    const repeated = insertComposerResource(
+      webSearch?.state ?? withResource.state,
+      resource('r1', 'plan.md'),
+      webSearch?.selection ?? withResource.selection,
+      'Untitled'
+    );
+
+    expect(repeated.state.mentions).toHaveLength(1);
+    expect(
+      displayPartsFromComposerText(
+        repeated.state.displayText,
+        repeated.state.mentions,
+        repeated.state.toolRanges
+      ).map(part => {
+        if (part.type === 'resource') return part.resource.id;
+        if (part.type === 'tool') return part.tool;
+        return part.type;
+      })
+    ).toEqual(['text', 'r1', ToolType.WEB_SEARCH]);
+    expect(repeated.selection).toEqual(webSearch?.selection);
+  });
+
+  it('updates a reselected resource in place and preserves the caret order', () => {
+    const initial = createComposerState('分析一下');
+    const withResource = insertComposerResource(
+      initial,
+      resource('r1', 'a.md'),
+      { start: initial.displayText.length, end: initial.displayText.length },
+      'Untitled'
+    );
+    const reasoning = toggleComposerTool(
+      withResource.state,
+      ToolType.REASONING,
+      '深度思考',
+      withResource.selection
+    );
+    expect(reasoning).not.toBeNull();
+
+    const updated = insertComposerResource(
+      reasoning?.state ?? withResource.state,
+      resource('r1', 'renamed.md'),
+      reasoning?.selection ?? withResource.selection,
+      'Untitled'
+    );
+    const tokenLengthDelta =
+      createResourceMentionText('renamed.md').length -
+      createResourceMentionText('a.md').length;
+
+    expect(updated.state.mentions).toMatchObject([
+      {
+        label: 'renamed.md',
+        resource: { id: 'r1', name: 'renamed.md' },
+        start: withResource.state.mentions[0].start,
+      },
+    ]);
+    expect(updated.state.mentions).toHaveLength(1);
+    expect(
+      displayPartsFromComposerText(
+        updated.state.displayText,
+        updated.state.mentions,
+        updated.state.toolRanges
+      ).map(part => {
+        if (part.type === 'resource') return part.resource.id;
+        if (part.type === 'tool') return part.tool;
+        return part.type;
+      })
+    ).toEqual(['text', 'r1', ToolType.REASONING]);
+    expect(updated.selection).toEqual({
+      start: (reasoning?.selection.start ?? 0) + tokenLengthDelta,
+      end: (reasoning?.selection.end ?? 0) + tokenLengthDelta,
+    });
+  });
+
+  it('collapses duplicate resource mentions restored from an older draft', () => {
+    const initial = createComposerState('分析一下');
+    const first = insertResourceMention(
+      { text: initial.displayText, mentions: [] },
+      resource('r1', 'plan.md'),
+      { start: initial.displayText.length, end: initial.displayText.length },
+      'Untitled'
+    );
+    const duplicate = insertResourceMention(
+      first,
+      resource('r1', 'plan.md'),
+      first.selection,
+      'Untitled'
+    );
+    const reasoning = toggleComposerTool(
+      {
+        displayText: duplicate.text,
+        mentions: duplicate.mentions,
+        toolRanges: [],
+      },
+      ToolType.REASONING,
+      '深度思考',
+      duplicate.selection
+    );
+
+    const synced = syncComposerResources(
+      reasoning?.state ?? initial,
+      [{ type: 'resource', resource: resource('r1', 'plan.md') }],
+      'Untitled'
+    );
+
+    expect(synced.mentions).toHaveLength(1);
+    expect(
+      displayPartsFromComposerText(
+        synced.displayText,
+        synced.mentions,
+        synced.toolRanges
+      ).map(part => {
+        if (part.type === 'resource') return part.resource.id;
+        if (part.type === 'tool') return part.tool;
+        return part.type;
+      })
+    ).toEqual(['text', 'r1', ToolType.REASONING]);
   });
 
   it('removes externally deleted resources without disturbing remaining tokens', () => {

@@ -1,6 +1,7 @@
 import type { ResourceMeta } from '@/interface';
 
 import { getTextChange, normalizeSelection } from './composerTextRanges';
+import { normalizeResourceContexts } from './resourceContexts';
 import type { IResTypeContext, PrivateSearchResourceType } from './types';
 
 export interface TextSelection {
@@ -42,7 +43,8 @@ export function getResourceContextType(
   resource: ResourceMeta
 ): PrivateSearchResourceType {
   return resource.resource_type === 'folder' ||
-    resource.resource_type === 'smart_folder'
+    resource.resource_type === 'smart_folder' ||
+    resource.has_children
     ? 'folder'
     : 'resource';
 }
@@ -65,7 +67,8 @@ export function sameResourceContexts(
     return (
       item.type === other.type &&
       item.resource.id === other.resource.id &&
-      item.resource.name === other.resource.name
+      item.resource.name === other.resource.name &&
+      item.resource === other.resource
     );
   });
 }
@@ -81,7 +84,8 @@ export function sameMentions(
       mentionKey(mention) === mentionKey(other) &&
       mention.label === other.label &&
       mention.start === other.start &&
-      mention.end === other.end
+      mention.end === other.end &&
+      mention.resource === other.resource
     );
   });
 }
@@ -90,14 +94,12 @@ export function sameMentions(
 export function mentionsToResources(
   mentions: ComposerMention[]
 ): IResTypeContext[] {
-  const resources = new Map<string, IResTypeContext>();
-  mentions.forEach(mention => {
-    resources.set(mentionKey(mention), {
+  return normalizeResourceContexts(
+    mentions.map(mention => ({
       type: mention.type,
       resource: mention.resource,
-    });
-  });
-  return Array.from(resources.values());
+    }))
+  );
 }
 
 /** Keeps mention ranges stable after ordinary textarea edits. */
@@ -193,21 +195,19 @@ export function appendMissingResourceMentions(
 ): ComposerDocument {
   let text = document.text;
   const mentions = document.mentions.map(mention => ({ ...mention }));
-  const existingKeys = new Set(mentions.map(mentionKey));
 
-  resources.forEach(item => {
-    const key = resourceContextKey(item);
-    if (existingKeys.has(key)) return;
-
+  normalizeResourceContexts(resources).forEach(item => {
     const sameResourceMention = mentions.find(
       mention => mention.resource.id === item.resource.id
     );
     if (sameResourceMention) {
-      existingKeys.delete(mentionKey(sameResourceMention));
-      sameResourceMention.id = `${item.resource.id}:${item.type}`;
-      sameResourceMention.type = item.type;
-      sameResourceMention.resource = item.resource;
-      existingKeys.add(key);
+      text = replaceMentionResource(
+        text,
+        mentions,
+        sameResourceMention,
+        item,
+        fallbackLabel
+      );
       return;
     }
 
@@ -217,13 +217,39 @@ export function appendMissingResourceMentions(
     const start = text.length + prefix.length;
     text += `${prefix}${tokenText} `;
     mentions.push(createMention(item.resource, label, start, item.type));
-    existingKeys.add(key);
   });
 
   return {
     text,
     mentions: mentions.sort((a, b) => a.start - b.start),
   };
+}
+
+function replaceMentionResource(
+  text: string,
+  mentions: ComposerMention[],
+  mention: ComposerMention,
+  context: IResTypeContext,
+  fallbackLabel: string
+): string {
+  const label = context.resource.name || fallbackLabel;
+  const tokenText = createResourceMentionText(label);
+  const previousEnd = mention.end;
+  const delta = tokenText.length - (mention.end - mention.start);
+  const nextText =
+    text.slice(0, mention.start) + tokenText + text.slice(mention.end);
+
+  mention.id = resourceContextKey(context);
+  mention.label = label;
+  mention.end = mention.start + tokenText.length;
+  mention.type = context.type;
+  mention.resource = context.resource;
+  mentions.forEach(item => {
+    if (item === mention || item.start < previousEnd) return;
+    item.start += delta;
+    item.end += delta;
+  });
+  return nextText;
 }
 
 function removeMention(

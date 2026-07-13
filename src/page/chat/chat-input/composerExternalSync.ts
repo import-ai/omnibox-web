@@ -4,7 +4,10 @@ import {
   mentionKey,
   sameMentions,
 } from './composerDocument';
-import { toggleComposerTool } from './composerOperations';
+import {
+  deduplicateComposerResources,
+  toggleComposerTool,
+} from './composerOperations';
 import type { ComposerState } from './composerState';
 import {
   isVisibleComposerTool,
@@ -13,6 +16,7 @@ import {
   updateToolRangesForTextChange,
   type VisibleComposerTool,
 } from './composerToolTokens';
+import { normalizeResourceContexts } from './resourceContexts';
 import type { IResTypeContext } from './types';
 import { ToolType } from './types';
 
@@ -62,8 +66,11 @@ export function syncComposerResources(
   resources: IResTypeContext[],
   fallbackLabel: string
 ): ComposerState {
-  let next = state;
-  const selectedResourceIds = new Set(resources.map(item => item.resource.id));
+  let next = deduplicateComposerResources(state);
+  const normalizedResources = normalizeResourceContexts(resources);
+  const selectedResourceIds = new Set(
+    normalizedResources.map(item => item.resource.id)
+  );
   const staleMentionKeys = next.mentions
     .filter(mention => !selectedResourceIds.has(mention.resource.id))
     .map(mentionKey);
@@ -85,7 +92,7 @@ export function syncComposerResources(
     };
   });
 
-  resources.forEach(resource => {
+  normalizedResources.forEach(resource => {
     const document = appendMissingResourceMentions(
       { text: next.displayText, mentions: next.mentions },
       [resource],

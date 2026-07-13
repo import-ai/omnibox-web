@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 
+import { composerTextLayoutClassName } from './composerLayout';
 import ComposerOverlay from './ComposerOverlay';
 import type { ComposerState } from './composerState';
 import { IResTypeContext, ToolType } from './types';
@@ -56,7 +57,8 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           rows={1}
           placeholder={t('chat.textarea.placeholder')}
           className={cn(
-            'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent p-0 text-sm leading-7 text-transparent outline-none',
+            'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent p-0 text-transparent outline-none',
+            composerTextLayoutClassName,
             'caret-foreground placeholder:text-[#9CA3AF] selection:bg-[#117bfa]/20 selection:text-transparent dark:placeholder:text-gray-400'
           )}
           onBlur={composer.rememberSelection}

@@ -2,12 +2,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
+import { normalizeResourceContexts } from './chat-input/resourceContexts';
 import type {
   IResTypeContext,
   PrivateSearchResourceType,
 } from './chat-input/types';
 
 interface ChatState {
+  inputResetNonce: number;
   selectedResources: IResTypeContext[];
   addContext: (
     resource: IResTypeContext['resource'],
@@ -15,24 +17,21 @@ interface ChatState {
   ) => void;
   removeContext: (resourceId: string) => void;
   clearContext: () => void;
+  requestChatInputReset: () => void;
   setContext: (resources: IResTypeContext[]) => void;
 }
 
 export const useChatStore = create<ChatState>()(
   persist(
     immer(set => ({
+      inputResetNonce: 0,
       selectedResources: [],
       addContext: (resource, type) =>
         set(state => {
-          const existingIndex = state.selectedResources.findIndex(
-            item => item.resource.id === resource.id
-          );
-
-          if (existingIndex >= 0) {
-            state.selectedResources[existingIndex] = { type, resource };
-          } else {
-            state.selectedResources.push({ type, resource });
-          }
+          state.selectedResources = normalizeResourceContexts([
+            ...state.selectedResources,
+            { type, resource },
+          ]);
         }),
       removeContext: resourceId =>
         set(state => {
@@ -40,8 +39,16 @@ export const useChatStore = create<ChatState>()(
             item => item.resource.id !== resourceId
           );
         }),
-      clearContext: () => set({ selectedResources: [] }),
-      setContext: resources => set({ selectedResources: resources }),
+      clearContext: () =>
+        set(state => {
+          state.selectedResources = [];
+        }),
+      requestChatInputReset: () =>
+        set(state => {
+          state.inputResetNonce += 1;
+        }),
+      setContext: resources =>
+        set({ selectedResources: normalizeResourceContexts(resources) }),
     })),
     {
       name: 'chat_context',
@@ -49,12 +56,20 @@ export const useChatStore = create<ChatState>()(
         if (Array.isArray(persistedState)) {
           return {
             ...currentState,
-            selectedResources: persistedState,
+            selectedResources: normalizeResourceContexts(persistedState),
           };
         }
+        const partialState =
+          persistedState && typeof persistedState === 'object'
+            ? (persistedState as Partial<ChatState>)
+            : {};
         return {
           ...currentState,
-          ...(persistedState as Partial<ChatState>),
+          ...partialState,
+          inputResetNonce: currentState.inputResetNonce,
+          selectedResources: normalizeResourceContexts(
+            partialState.selectedResources ?? currentState.selectedResources
+          ),
         };
       },
       partialize: state => ({ selectedResources: state.selectedResources }),

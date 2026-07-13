@@ -4,6 +4,7 @@ import {
   appendMissingResourceMentions,
   createResourceMentionText,
   deleteResourceMention,
+  getResourceContextType,
   insertResourceMention,
   mentionsToResources,
   updateMentionsForTextChange,
@@ -20,6 +21,30 @@ function resource(id: string, name: string): ResourceMeta {
 }
 
 describe('composer document', () => {
+  it('treats containers with children as folder context', () => {
+    expect(
+      getResourceContextType({
+        id: 'r1',
+        name: '荔枝的爱好',
+        parent_id: null,
+        resource_type: 'doc',
+        has_children: true,
+      })
+    ).toBe('folder');
+  });
+
+  it('treats leaf resources without children as resource context', () => {
+    expect(
+      getResourceContextType({
+        id: 'r1',
+        name: 'plan.md',
+        parent_id: null,
+        resource_type: 'doc',
+        has_children: false,
+      })
+    ).toBe('resource');
+  });
+
   it('inserts a resource mention at the selection and exposes selected resources', () => {
     const doc = insertResourceMention(
       { text: 'read  now', mentions: [] },
@@ -156,5 +181,28 @@ describe('composer document', () => {
       start: 0,
       end: createResourceMentionText('plan.md').length,
     });
+  });
+
+  it('publishes one latest context for mentions with the same resource id', () => {
+    const inserted = insertResourceMention(
+      { text: '', mentions: [] },
+      resource('r1', 'plan.md'),
+      { start: 0, end: 0 },
+      'Untitled'
+    );
+    const original = inserted.mentions[0];
+    const folderContext = {
+      ...original,
+      id: 'r1:folder',
+      type: 'folder' as const,
+      resource: resource('r1', 'updated-plan.md'),
+    };
+
+    expect(mentionsToResources([original, folderContext])).toEqual([
+      {
+        type: 'folder',
+        resource: resource('r1', 'updated-plan.md'),
+      },
+    ]);
   });
 });

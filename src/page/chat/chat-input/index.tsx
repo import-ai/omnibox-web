@@ -2,6 +2,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -18,6 +19,7 @@ import {
   SendMessageParams,
   ToolType,
 } from '@/page/chat/chat-input/types';
+import { useChatStore } from '@/page/chat/chatStore';
 import {
   Interrupt,
   MessageDetail,
@@ -88,6 +90,9 @@ export default function ChatArea(props: IProps) {
   } = props;
 
   const draftScope = approvalModeResetKey ?? navigatePrefix;
+  const inputResetNonce = useChatStore(state => state.inputResetNonce);
+  const syncedInputResetNonceRef = useRef(inputResetNonce);
+  const isResettingInput = inputResetNonce !== syncedInputResetNonceRef.current;
   const [initialDraft] = useState(() => getChatInputDraft(draftScope));
   const [tools, setTools] = useState<ToolType[]>(initialDraft?.tools ?? []);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
@@ -108,9 +113,15 @@ export default function ChatArea(props: IProps) {
   const [useInitialDraftResources, setUseInitialDraftResources] = useState(
     Boolean(initialDraft)
   );
-  const composerSelectedResources = useInitialDraftResources
-    ? (initialDraft?.selectedResources ?? [])
-    : selectedResources;
+  const composerSelectedResources = isResettingInput
+    ? []
+    : useInitialDraftResources
+      ? (initialDraft?.selectedResources ?? [])
+      : selectedResources;
+  const composerTools = isResettingInput ? [] : tools;
+  const composerInitialState = isResettingInput
+    ? undefined
+    : initialDraft?.composerState;
   const toolRestoreStateRef = useRef(
     createToolRestoreState(suppressInitialToolRestore)
   );
@@ -128,6 +139,27 @@ export default function ChatArea(props: IProps) {
       )
     : undefined;
 
+  useLayoutEffect(() => {
+    if (!isResettingInput) return;
+
+    syncedInputResetNonceRef.current = inputResetNonce;
+    setTools([]);
+    setQuery('');
+    queryEditedRef.current = true;
+    initialDraftPendingRef.current = false;
+    setUseInitialDraftResources(false);
+    toolRestoreStateRef.current = markToolsManuallyChanged(
+      createToolRestoreState(suppressInitialToolRestore)
+    );
+    inputRef.current?.clear();
+    clearChatInputDraft(draftScope);
+  }, [
+    draftScope,
+    inputResetNonce,
+    isResettingInput,
+    suppressInitialToolRestore,
+  ]);
+
   useEffect(() => {
     const result = resolveToolRestore(
       restoredTools,
@@ -141,7 +173,7 @@ export default function ChatArea(props: IProps) {
       toolRestoreStateRef.current = markToolsManuallyChanged(result.nextState);
       return;
     }
-    if (result.toolsToRestore) {
+    if (result.toolsToRestore !== undefined) {
       setTools(result.toolsToRestore);
     }
   }, [restoredTools, suppressInitialToolRestore]);
@@ -273,9 +305,9 @@ export default function ChatArea(props: IProps) {
       <ChatInput
         ref={inputRef}
         value={query}
-        initialComposerState={initialDraft?.composerState}
+        initialComposerState={composerInitialState}
         onComposerStateChange={handleComposerStateChange}
-        tools={tools}
+        tools={composerTools}
         selectedResources={composerSelectedResources}
         onChange={handleQueryChange}
         onToolsChange={handleToolsChange}
@@ -286,7 +318,7 @@ export default function ChatArea(props: IProps) {
       <div className="flex items-center justify-between">
         <div className="flex min-w-0 items-center gap-2">
           <ChatTool
-            tools={tools}
+            tools={composerTools}
             renderResourcePicker={renderResourcePicker ?? defaultResourcePicker}
             onBeforeOpen={() => inputRef.current?.rememberSelection()}
             onToolToggle={tool => inputRef.current?.toggleTool(tool)}

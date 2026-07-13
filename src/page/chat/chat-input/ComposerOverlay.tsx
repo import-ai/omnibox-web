@@ -1,12 +1,17 @@
 import { type ReactNode, type RefObject, useMemo } from 'react';
 
+import { cn } from '@/lib/utils';
+
 import {
   type ComposerMention,
   createResourceMentionText,
+  resourceTokenSpacer,
 } from './composerDocument';
+import { composerTextLayoutClassName } from './composerLayout';
 import {
   type ComposerToolRange,
   createToolTokenText,
+  toolTokenSpacer,
 } from './composerToolTokens';
 import { InlineChatToken } from './InlineChatToken';
 
@@ -36,6 +41,7 @@ function mentionNode(mention: ComposerMention): ReactNode {
       icon="resource"
       resource={mention.resource}
       contextType={mention.type}
+      spacer={resourceTokenSpacer}
     >
       {mention.label}
     </InlineChatToken>
@@ -44,7 +50,11 @@ function mentionNode(mention: ComposerMention): ReactNode {
 
 function toolNode(range: ComposerToolRange): ReactNode {
   return (
-    <InlineChatToken key={`${range.tool}-${range.start}`} icon={range.tool}>
+    <InlineChatToken
+      key={`${range.tool}-${range.start}`}
+      icon={range.tool}
+      spacer={toolTokenSpacer}
+    >
       {range.label}
     </InlineChatToken>
   );
@@ -126,7 +136,10 @@ export default function ComposerOverlay(props: ComposerOverlayProps) {
     <div
       ref={overlayRef}
       aria-hidden
-      className="pointer-events-none absolute inset-0 z-0 overflow-hidden whitespace-pre-wrap break-words text-sm leading-7"
+      className={cn(
+        'pointer-events-none absolute inset-0 z-0 overflow-hidden',
+        composerTextLayoutClassName
+      )}
     >
       {content}
     </div>

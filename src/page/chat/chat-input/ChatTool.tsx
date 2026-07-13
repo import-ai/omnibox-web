@@ -1,7 +1,7 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Check, FileSearch, Globe, Lightbulb, Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/DropdownMenu';
 import type { ResourceMeta } from '@/interface';
 import { ToolType } from '@/page/chat/chat-input/types';
+
+import { focusResourceDialogOnOpen } from './chatToolFocus';
 
 const datasource = [
   {
@@ -55,6 +57,8 @@ export default function ChatTool(props: IProps) {
   } = props;
   const { t } = useTranslation();
   const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
+  const resourceDialogRef = useRef<HTMLDivElement>(null);
+  const resourceDialogOpenedByPointerRef = useRef(false);
 
   return (
     <>
@@ -82,6 +86,12 @@ export default function ChatTool(props: IProps) {
           {renderResourcePicker && (
             <DropdownMenuItem
               className="cursor-pointer gap-2 rounded-lg px-2 py-2"
+              onPointerDown={() => {
+                resourceDialogOpenedByPointerRef.current = true;
+              }}
+              onKeyDown={() => {
+                resourceDialogOpenedByPointerRef.current = false;
+              }}
               onClick={() => setResourceDialogOpen(true)}
             >
               <FileSearch className="size-4 text-muted-foreground" />
@@ -102,8 +112,26 @@ export default function ChatTool(props: IProps) {
         </DropdownMenuContent>
       </DropdownMenu>
       {renderResourcePicker && (
-        <Dialog open={resourceDialogOpen} onOpenChange={setResourceDialogOpen}>
-          <DialogContent className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pb-5 pt-8 dark:bg-neutral-900">
+        <Dialog
+          open={resourceDialogOpen}
+          onOpenChange={open => {
+            setResourceDialogOpen(open);
+            if (!open) resourceDialogOpenedByPointerRef.current = false;
+          }}
+        >
+          <DialogContent
+            ref={resourceDialogRef}
+            tabIndex={-1}
+            onOpenAutoFocus={event => {
+              focusResourceDialogOnOpen(
+                event,
+                resourceDialogRef.current,
+                resourceDialogOpenedByPointerRef.current
+              );
+              resourceDialogOpenedByPointerRef.current = false;
+            }}
+            className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pb-5 pt-8 outline-none dark:bg-neutral-900"
+          >
             <DialogHeader>
               <VisuallyHidden>
                 <DialogTitle>{t('chat.tools.select_resource')}</DialogTitle>
