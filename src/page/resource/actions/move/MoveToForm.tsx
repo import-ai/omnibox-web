@@ -115,7 +115,9 @@ export default function MoveToForm(props: IFormProps) {
       ).then(
         resources =>
           resources
-            .map(child => decorateResource(child, Boolean(resource.disabled)))
+            .map((child: ResourcePickerResource) =>
+              decorateResource(child, Boolean(resource.disabled))
+            )
             .filter(Boolean) as ResourcePickerResource[]
       ),
     [decorateResource, namespaceId]
@@ -126,7 +128,9 @@ export default function MoveToForm(props: IFormProps) {
       searchResources(namespaceId, query).then(
         resources =>
           resources
-            .map(resource => decorateResource(resource))
+            .map((resource: ResourcePickerResource) =>
+              decorateResource(resource)
+            )
             .filter(Boolean) as ResourcePickerResource[]
       ),
     [decorateResource, namespaceId]
