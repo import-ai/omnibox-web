@@ -113,7 +113,7 @@ describe('composer document', () => {
     ]);
   });
 
-  it('drops a mention when its label text is edited', () => {
+  it('rejects a text change that edits a resource mention', () => {
     const previousText = `read ${createResourceMentionText('plan.md')}`;
     const mentions = [
       {
@@ -132,7 +132,7 @@ describe('composer document', () => {
         `read ${createResourceMentionText('plans.md')}`,
         mentions
       )
-    ).toEqual([]);
+    ).toBeNull();
   });
 
   it('updates an existing resource mention context instead of appending a duplicate for the same resource', () => {

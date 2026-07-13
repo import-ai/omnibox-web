@@ -105,4 +105,41 @@ describe('chat input tool restoration', () => {
     expect(sentMessageResult.toolsToRestore).toBeUndefined();
     expect(sentMessageResult.nextState.signature).toBe('u2:web_search');
   });
+
+  it('keeps a submitted message suppressed while its attrs arrive in stages', () => {
+    const initialResult = resolveToolRestore(
+      getRestoredTools([userMessage('u1', [])], 'conversation-1'),
+      createToolRestoreState(),
+      false
+    );
+    const afterSubmitState = suppressNextToolRestore(
+      initialResult.nextState,
+      false
+    );
+    const partialMessage = userMessage('u2', []);
+    partialMessage.attrs = { composer: { display_parts: [] } };
+
+    const partialResult = resolveToolRestore(
+      getRestoredTools(
+        [userMessage('u1', []), partialMessage],
+        'conversation-1'
+      ),
+      afterSubmitState,
+      false
+    );
+    const completeResult = resolveToolRestore(
+      getRestoredTools(
+        [
+          userMessage('u1', []),
+          userMessage('u2', [ToolType.WEB_SEARCH, ToolType.REASONING]),
+        ],
+        'conversation-1'
+      ),
+      partialResult.nextState,
+      false
+    );
+
+    expect(partialResult.toolsToRestore).toBeUndefined();
+    expect(completeResult.toolsToRestore).toBeUndefined();
+  });
 });

@@ -1,143 +1,74 @@
-import {
-  type Dispatch,
-  type MutableRefObject,
-  type SetStateAction,
-  useEffect,
-} from 'react';
+import { type MutableRefObject, useEffect } from 'react';
 
+import type { ComposerMention } from './composerDocument';
 import {
-  appendMissingResourceMentions,
-  type ComposerMention,
-  sameMentions,
-  type TextSelection,
-  updateMentionsForTextChange,
-} from './composerDocument';
-import {
-  type ComposerToolRange,
-  syncToolRangesWithTools,
-  updateToolRangesForTextChange,
-  type VisibleComposerTool,
+  sameComposerState,
+  syncComposerResources,
+  syncComposerTools,
+} from './composerExternalSync';
+import { createComposerState } from './composerState';
+import type {
+  ComposerToolRange,
+  VisibleComposerTool,
 } from './composerToolTokens';
 import { IResTypeContext, ToolType } from './types';
+import type { PublishComposerState } from './useComposerPublisher';
 
 interface UseComposerSyncEffectsParams {
   displayText: string;
   getToolLabel: (tool: VisibleComposerTool) => string;
   lastPublishedQueryRef: MutableRefObject<string>;
   mentions: ComposerMention[];
-  publishComposerState: (
-    nextText: string,
-    nextMentions: ComposerMention[],
-    nextToolRanges: ComposerToolRange[],
-    selection?: TextSelection
-  ) => void;
+  publishComposerState: PublishComposerState;
   selectedResources: IResTypeContext[];
-  selectionRef: MutableRefObject<TextSelection>;
-  setDisplayText: Dispatch<SetStateAction<string>>;
-  setMentions: Dispatch<SetStateAction<ComposerMention[]>>;
-  setToolRanges: Dispatch<SetStateAction<ComposerToolRange[]>>;
   toolRanges: ComposerToolRange[];
   tools: ToolType[];
   untitledLabel: string;
   value: string;
 }
 
-export function useChatInputComposerEffects(
-  params: UseComposerSyncEffectsParams
-) {
-  const {
-    displayText,
-    getToolLabel,
-    lastPublishedQueryRef,
-    mentions,
-    publishComposerState,
-    selectedResources,
-    selectionRef,
-    setDisplayText,
-    setMentions,
-    setToolRanges,
-    toolRanges,
-    tools,
-    untitledLabel,
-    value,
-  } = params;
-
+export function useChatInputComposerEffects({
+  displayText,
+  getToolLabel,
+  lastPublishedQueryRef,
+  mentions,
+  publishComposerState,
+  selectedResources,
+  toolRanges,
+  tools,
+  untitledLabel,
+  value,
+}: UseComposerSyncEffectsParams) {
   useEffect(() => {
-    if (value === lastPublishedQueryRef.current) return;
-    lastPublishedQueryRef.current = value;
-    selectionRef.current = { start: value.length, end: value.length };
-    setDisplayText(value);
-    setMentions([]);
-    setToolRanges([]);
-  }, [
-    lastPublishedQueryRef,
-    selectionRef,
-    setDisplayText,
-    setMentions,
-    setToolRanges,
-    value,
-  ]);
-
-  useEffect(() => {
-    const synced = syncToolRangesWithTools(
-      { text: displayText, tools: toolRanges },
-      tools,
-      getToolLabel
-    );
-    if (!synced) return;
-
-    const nextMentions = updateMentionsForTextChange(
-      displayText,
-      synced.text,
-      mentions
-    );
-    publishComposerState(
-      synced.text,
-      nextMentions,
-      synced.tools,
-      synced.selection
-    );
-  }, [
-    displayText,
-    getToolLabel,
-    mentions,
-    publishComposerState,
-    toolRanges,
-    tools,
-  ]);
-
-  useEffect(() => {
-    if (displayText.length === 0 && selectedResources.length === 0) {
-      if (mentions.length > 0) setMentions([]);
-      return;
-    }
-
-    const document = appendMissingResourceMentions(
-      { text: displayText, mentions },
+    const currentState = { displayText, mentions, toolRanges };
+    const valueChanged = value !== lastPublishedQueryRef.current;
+    const baseState = valueChanged ? createComposerState(value) : currentState;
+    const toolsSynced = syncComposerTools(baseState, tools, getToolLabel);
+    const nextState = syncComposerResources(
+      toolsSynced,
       selectedResources,
       untitledLabel
     );
-    if (
-      document.text === displayText &&
-      sameMentions(document.mentions, mentions)
-    ) {
-      return;
-    }
+    if (!valueChanged && sameComposerState(currentState, nextState)) return;
 
-    const nextToolRanges = updateToolRangesForTextChange(
-      displayText,
-      document.text,
-      toolRanges
-    );
-    if (!nextToolRanges) return;
-    publishComposerState(document.text, document.mentions, nextToolRanges);
+    const selection =
+      nextState.displayText === displayText
+        ? undefined
+        : {
+            start: nextState.displayText.length,
+            end: nextState.displayText.length,
+          };
+    publishComposerState(nextState, selection);
   }, [
     displayText,
+    getToolLabel,
+    lastPublishedQueryRef,
     mentions,
     publishComposerState,
     selectedResources,
-    setMentions,
     toolRanges,
+    tools,
     untitledLabel,
+    value,
   ]);
 }

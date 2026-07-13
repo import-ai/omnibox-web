@@ -25,6 +25,7 @@ import {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
+import { cacheMessageDisplayParts } from '@/page/chat/messages/messageDisplayPartsCache';
 
 function getPrivateSearchResources(
   context: IResTypeContext[]
@@ -202,6 +203,7 @@ export function ask(
         chatResponse.response_type === 'bos' &&
         chatResponse.role === OpenAIMessageRole.USER
       ) {
+        cacheMessageDisplayParts(chatResponse.id, pendingDisplayParts);
         messageOperator.update(
           {
             response_type: 'delta',

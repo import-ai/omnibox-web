@@ -105,12 +105,17 @@ export function updateMentionsForTextChange(
   previousText: string,
   nextText: string,
   mentions: ComposerMention[]
-): ComposerMention[] {
+): ComposerMention[] | null {
   const change = getTextChange(previousText, nextText);
-  return mentions
-    .map(mention => shiftMention(mention, change, nextText))
-    .filter((mention): mention is ComposerMention => Boolean(mention))
-    .sort((a, b) => a.start - b.start);
+  const shifted: ComposerMention[] = [];
+
+  for (const mention of mentions) {
+    const nextMention = shiftMention(mention, change, nextText);
+    if (!nextMention) return null;
+    shifted.push(nextMention);
+  }
+
+  return shifted.sort((a, b) => a.start - b.start);
 }
 
 export function deleteResourceMention(
@@ -160,6 +165,13 @@ export function insertResourceMention(
     text,
     document.mentions
   );
+  if (!shiftedMentions) {
+    return {
+      ...document,
+      replacedRange: range,
+      selection: { start: range.end, end: range.end },
+    };
+  }
   const mention = createMention(resource, label, range.start);
 
   return {

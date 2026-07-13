@@ -88,6 +88,7 @@ export default function SharedChatConversationPage() {
     tools,
     selectedResources,
     mode,
+    displayParts,
     decisions,
   }: SendMessageParams) => {
     const v = query.trim();
@@ -111,7 +112,8 @@ export default function SharedChatConversationPage() {
           shareId,
           password || undefined,
           undefined,
-          decisions ? { decisions } : undefined
+          decisions ? { decisions } : undefined,
+          displayParts
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();
@@ -299,6 +301,7 @@ export default function SharedChatConversationPage() {
       <div className="flex justify-center px-4">
         <div className="flex-1 max-w-3xl w-full">
           <ChatArea
+            key={conversation.id}
             messages={messages}
             navigatePrefix={`/s/${shareId}`}
             initialApprovalMode={initialApprovalMode}

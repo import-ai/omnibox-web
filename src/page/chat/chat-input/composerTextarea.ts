@@ -4,14 +4,14 @@ import {
   useLayoutEffect,
 } from 'react';
 
-import type { TextSelection } from './composerDocument';
 import {
-  type ComposerToolRange,
-  selectionIntersectsToolRange,
-  snapSelectionToToolBoundary,
-  toolRangeAfterCaret,
-  toolRangeBeforeCaret,
-} from './composerToolTokens';
+  atomicRangeAfterCaret,
+  atomicRangeBeforeCaret,
+  selectionIntersectsAtomicRange,
+  snapSelectionToAtomicBoundary,
+} from './composerAtomicRanges';
+import type { ComposerMention, TextSelection } from './composerDocument';
+import { type ComposerToolRange } from './composerToolTokens';
 
 const minTextareaHeight = 60;
 const maxTextareaHeight = 200;
@@ -86,14 +86,16 @@ export function useComposerTextareaLayout({
   }, [displayText, pendingSelectionRef, selectionRef, textareaRef]);
 }
 
-export function restoreRejectedToolEdit(
+export function restoreRejectedComposerEdit(
   textarea: HTMLTextAreaElement,
   displayText: string,
+  mentions: ComposerMention[],
   toolRanges: ComposerToolRange[],
   selectionRef: MutableRefObject<TextSelection>
 ) {
-  const selection = snapSelectionToToolBoundary(
+  const selection = snapSelectionToAtomicBoundary(
     getTextareaSelection(textarea),
+    mentions,
     toolRanges
   );
   textarea.value = displayText;
@@ -101,8 +103,9 @@ export function restoreRejectedToolEdit(
   selectionRef.current = selection;
 }
 
-export function handleAtomicToolKeyDown(
+export function handleAtomicTokenKeyDown(
   event: KeyboardEvent<HTMLTextAreaElement>,
+  mentions: ComposerMention[],
   toolRanges: ComposerToolRange[],
   selectionRef: MutableRefObject<TextSelection>
 ): boolean {
@@ -110,10 +113,17 @@ export function handleAtomicToolKeyDown(
   const selection = getTextareaSelection(textarea);
   const collapsed = selection.start === selection.end;
 
-  if (!collapsed && selectionIntersectsToolRange(selection, toolRanges)) {
+  if (
+    !collapsed &&
+    selectionIntersectsAtomicRange(selection, mentions, toolRanges)
+  ) {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return false;
     event.preventDefault();
-    const nextSelection = snapSelectionToToolBoundary(selection, toolRanges);
+    const nextSelection = snapSelectionToAtomicBoundary(
+      selection,
+      mentions,
+      toolRanges
+    );
     setTextareaSelection(textarea, nextSelection);
     selectionRef.current = nextSelection;
     return true;
@@ -123,18 +133,19 @@ export function handleAtomicToolKeyDown(
     return false;
   }
 
-  return handleCollapsedAtomicKey(event, toolRanges, selectionRef);
+  return handleCollapsedAtomicKey(event, mentions, toolRanges, selectionRef);
 }
 
 function handleCollapsedAtomicKey(
   event: KeyboardEvent<HTMLTextAreaElement>,
+  mentions: ComposerMention[],
   toolRanges: ComposerToolRange[],
   selectionRef: MutableRefObject<TextSelection>
 ): boolean {
   const textarea = event.currentTarget;
   const position = getTextareaSelection(textarea).start;
-  const before = toolRangeBeforeCaret(position, toolRanges);
-  const after = toolRangeAfterCaret(position, toolRanges);
+  const before = atomicRangeBeforeCaret(position, mentions, toolRanges);
+  const after = atomicRangeAfterCaret(position, mentions, toolRanges);
 
   if (event.key === 'ArrowLeft' && before) {
     event.preventDefault();

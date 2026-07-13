@@ -119,6 +119,7 @@ export default function ChatHomePage() {
           </h1>
           {config.commercial && <AgentTrial namespaceId={namespaceId} />}
           <ChatArea
+            key={`home:${namespaceId}`}
             messages={[]}
             namespaceId={namespaceId}
             navigatePrefix={`/${namespaceId}`}

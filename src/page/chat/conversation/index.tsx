@@ -61,6 +61,7 @@ export default function ChatConversationPage() {
             <AgentTrial namespaceId={namespaceId} messages={messages} />
           )}
           <ChatArea
+            key={conversation.id}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             messages={messages}

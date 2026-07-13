@@ -6,6 +6,10 @@ jest.mock('@/lib/streamTransport', () => ({
   createStreamTransport: jest.fn(),
 }));
 
+jest.mock('@/lib/request', () => ({
+  http: {},
+}));
+
 import { createStreamTransport } from '@/lib/streamTransport';
 import {
   AgentRequestChannel,
@@ -15,8 +19,25 @@ import {
 } from '@/page/chat/chat-input/types';
 import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import { OpenAIMessageRole } from '@/page/chat/core/types/chatResponse';
+import { getCachedMessageDisplayParts } from '@/page/chat/messages/messageDisplayPartsCache';
 
 import { ask, prepareBody } from './utils';
+
+const sessionValues = new Map<string, string>();
+const sessionStorageMock: Storage = {
+  get length() {
+    return sessionValues.size;
+  },
+  clear: () => sessionValues.clear(),
+  getItem: key => sessionValues.get(key) ?? null,
+  key: index => Array.from(sessionValues.keys())[index] ?? null,
+  removeItem: key => sessionValues.delete(key),
+  setItem: (key, value) => sessionValues.set(key, value),
+};
+Object.defineProperty(globalThis, 'sessionStorage', {
+  configurable: true,
+  value: sessionStorageMock,
+});
 
 function selectedResource(): IResTypeContext {
   return {
@@ -34,6 +55,7 @@ function selectedResource(): IResTypeContext {
 describe('chat request body tools', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
   });
 
   it('includes web search when the web search token is selected', () => {
@@ -98,7 +120,7 @@ describe('chat request body tools', () => {
     ]);
   });
 
-  it('keeps composer display parts in frontend message attrs only', async () => {
+  it('keeps composer display parts in frontend attrs and the refresh cache', async () => {
     const displayParts: ChatMessageDisplayPart[] = [
       { type: 'tool', tool: ToolType.WEB_SEARCH },
       { type: 'text', text: '你好' },
@@ -107,6 +129,7 @@ describe('chat request body tools', () => {
       update: jest.fn(),
       add: jest.fn(),
       done: jest.fn(),
+      stop: jest.fn(),
       error: jest.fn(),
       activate: jest.fn(),
       getSiblings: jest.fn(() => []),
@@ -153,5 +176,6 @@ describe('chat request body tools', () => {
       }),
       'u1'
     );
+    expect(getCachedMessageDisplayParts('u1')).toEqual(displayParts);
   });
 });

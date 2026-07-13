@@ -18,6 +18,7 @@ import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings.ts';
 import { fetchResourcesByIds } from '@/service/resource';
 import { fetchShareResource } from '@/service/share';
 
+import { getCachedMessageDisplayParts } from '../messageDisplayPartsCache';
 import {
   createUserMessageCopyHtml,
   getUserMessageResources,
@@ -72,7 +73,9 @@ export function UserMessage(props: IProps) {
   const createdAt = message.created_at
     ? format(new Date(message.created_at), 'yyyy-MM-dd HH:mm:ss')
     : null;
-  const displayParts = message.attrs?.composer?.display_parts;
+  const displayParts =
+    message.attrs?.composer?.display_parts ??
+    getCachedMessageDisplayParts(message.id);
   const resources = getUserMessageResources(message.attrs?.tools);
   const displayResources =
     displayParts
@@ -109,7 +112,12 @@ export function UserMessage(props: IProps) {
           ),
         }));
       })
-      .catch(() => {});
+      .catch(error => {
+        console.error({
+          message: 'Failed to load user message resource metadata',
+          error,
+        });
+      });
     return () => {
       cancelled = true;
     };

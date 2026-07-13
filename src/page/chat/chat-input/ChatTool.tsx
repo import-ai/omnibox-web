@@ -58,11 +58,7 @@ export default function ChatTool(props: IProps) {
 
   return (
     <>
-      <DropdownMenu
-        onOpenChange={open => {
-          if (open) onBeforeOpen();
-        }}
-      >
+      <DropdownMenu>
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>

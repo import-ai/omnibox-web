@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 import ComposerOverlay from './ComposerOverlay';
+import type { ComposerState } from './composerState';
 import { IResTypeContext, ToolType } from './types';
 import {
   type ChatInputHandle,
@@ -15,9 +16,11 @@ export type { ChatInputHandle } from './useChatInputComposer';
 interface IProps {
   value: string;
   disabled: boolean;
+  initialComposerState?: ComposerState;
   tools: ToolType[];
   selectedResources: IResTypeContext[];
   onChange: (value: string) => void;
+  onComposerStateChange: (state: ComposerState) => void;
   onToolsChange: (value: ToolType[]) => void;
   onSelectedResourcesChange: (value: IResTypeContext[]) => void;
   onSend: () => void;

@@ -11,6 +11,7 @@ export interface RestoredTools {
   tools: ToolType[];
   ready: boolean;
   hasUserMessage: boolean;
+  userMessageId: string | null;
 }
 
 export interface ToolRestoreState {
@@ -18,6 +19,7 @@ export interface ToolRestoreState {
   signature: string | null;
   toolsManuallyChanged: boolean;
   skipNextRestore: boolean;
+  suppressedUserMessageId: string | null;
 }
 
 export interface ToolRestoreResult {
@@ -33,6 +35,7 @@ export function createToolRestoreState(
     signature: null,
     toolsManuallyChanged: false,
     skipNextRestore,
+    suppressedUserMessageId: null,
   };
 }
 
@@ -73,6 +76,7 @@ export function getRestoredTools(
       tools: [],
       ready: true,
       hasUserMessage: false,
+      userMessageId: null,
     };
   }
 
@@ -86,6 +90,7 @@ export function getRestoredTools(
       Boolean(userMessage.attrs) ||
       userMessage.status !== MessageStatus.PENDING,
     hasUserMessage: true,
+    userMessageId: userMessage.id,
   };
 }
 
@@ -122,8 +127,16 @@ export function resolveToolRestore(
       nextState: {
         ...nextState,
         skipNextRestore: false,
+        suppressedUserMessageId: restoredTools.userMessageId,
       },
     };
+  }
+
+  if (
+    restoredTools.userMessageId &&
+    nextState.suppressedUserMessageId === restoredTools.userMessageId
+  ) {
+    return { nextState };
   }
 
   return {
@@ -159,5 +172,6 @@ function syncConversationKey(
     signature: null,
     toolsManuallyChanged: false,
     skipNextRestore: suppressInitialRestore,
+    suppressedUserMessageId: null,
   };
 }

@@ -34,6 +34,7 @@ export default function SharedChatHomePage() {
     tools,
     selectedResources,
     mode,
+    displayParts,
     approvalMode,
   }: SendMessageParams) => {
     http
@@ -46,6 +47,7 @@ export default function SharedChatHomePage() {
             query,
             tools,
             selectedResources,
+            displayParts,
             approvalMode,
             conversation: {
               id: conversation.id,
@@ -63,6 +65,7 @@ export default function SharedChatHomePage() {
           <Typewriter text={t(i18n)} typeSpeed={32} />
         </h1>
         <ChatArea
+          key={`share-home:${shareId}`}
           messages={[]}
           navigatePrefix={`/s/${shareId}`}
           approvalModeResetKey={`share-home:${shareId}`}

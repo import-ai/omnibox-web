@@ -4,7 +4,6 @@ import { useCallback } from 'react';
 import {
   type ComposerMention,
   deleteResourceMention,
-  type TextSelection,
   updateMentionsForTextChange,
 } from './composerDocument';
 import { deleteComposerSelection } from './composerSelection';
@@ -15,13 +14,7 @@ import {
   updateToolRangesForTextChange,
 } from './composerToolTokens';
 import type { ToolType } from './types';
-
-type PublishComposerState = (
-  nextText: string,
-  nextMentions: ComposerMention[],
-  nextToolRanges: ComposerToolRange[],
-  selection?: TextSelection
-) => void;
+import type { PublishComposerState } from './useComposerPublisher';
 
 interface UseComposerDeletionHandlersParams {
   displayText: string;
@@ -32,7 +25,23 @@ interface UseComposerDeletionHandlersParams {
   tools: ToolType[];
 }
 
-export function useComposerDeletionHandlers({
+export function useComposerDeletionHandlers(
+  params: UseComposerDeletionHandlersParams
+) {
+  const deleteSelectedRange = useDeleteSelectedRange(params);
+  const deleteResourceAtSelection = useDeleteResourceAtSelection(params);
+  const deleteToolAtSelection = useDeleteToolAtSelection(params);
+
+  return useCallback(
+    (event: KeyboardEvent<HTMLTextAreaElement>) =>
+      deleteSelectedRange(event) ||
+      deleteResourceAtSelection(event) ||
+      deleteToolAtSelection(event),
+    [deleteResourceAtSelection, deleteSelectedRange, deleteToolAtSelection]
+  );
+}
+
+function useDeleteSelectedRange({
   displayText,
   mentions,
   onToolsChange,
@@ -40,7 +49,7 @@ export function useComposerDeletionHandlers({
   toolRanges,
   tools,
 }: UseComposerDeletionHandlersParams) {
-  const deleteSelectedRange = useCallback(
+  return useCallback(
     (event: KeyboardEvent<HTMLTextAreaElement>) => {
       if (!isPlainDeletionKey(event)) return false;
       const selection = getTextareaSelection(event.currentTarget);
@@ -54,9 +63,11 @@ export function useComposerDeletionHandlers({
 
       event.preventDefault();
       publishComposerState(
-        result.text,
-        result.mentions,
-        result.tools,
+        {
+          displayText: result.text,
+          mentions: result.mentions,
+          toolRanges: result.tools,
+        },
         result.selection
       );
       if (result.removedTools.length > 0) {
@@ -74,8 +85,15 @@ export function useComposerDeletionHandlers({
       tools,
     ]
   );
+}
 
-  const deleteResourceAtSelection = useCallback(
+function useDeleteResourceAtSelection({
+  displayText,
+  mentions,
+  publishComposerState,
+  toolRanges,
+}: UseComposerDeletionHandlersParams) {
+  return useCallback(
     (event: KeyboardEvent<HTMLTextAreaElement>) => {
       if (!isPlainDeletionKey(event)) return false;
       const result = deleteResourceMention(
@@ -94,17 +112,28 @@ export function useComposerDeletionHandlers({
 
       event.preventDefault();
       publishComposerState(
-        result.text,
-        result.mentions,
-        nextToolRanges,
+        {
+          displayText: result.text,
+          mentions: result.mentions,
+          toolRanges: nextToolRanges,
+        },
         result.selection
       );
       return true;
     },
     [displayText, mentions, publishComposerState, toolRanges]
   );
+}
 
-  const deleteToolAtSelection = useCallback(
+function useDeleteToolAtSelection({
+  displayText,
+  mentions,
+  onToolsChange,
+  publishComposerState,
+  toolRanges,
+  tools,
+}: UseComposerDeletionHandlersParams) {
+  return useCallback(
     (event: KeyboardEvent<HTMLTextAreaElement>) => {
       if (!isPlainDeletionKey(event)) return false;
       const result = deleteToolRange(
@@ -120,10 +149,13 @@ export function useComposerDeletionHandlers({
         result.text,
         mentions
       );
+      if (!nextMentions) return false;
       publishComposerState(
-        result.text,
-        nextMentions,
-        result.tools,
+        {
+          displayText: result.text,
+          mentions: nextMentions,
+          toolRanges: result.tools,
+        },
         result.selection
       );
       onToolsChange(tools.filter(tool => tool !== result.tool));
@@ -137,14 +169,6 @@ export function useComposerDeletionHandlers({
       toolRanges,
       tools,
     ]
-  );
-
-  return useCallback(
-    (event: KeyboardEvent<HTMLTextAreaElement>) =>
-      deleteSelectedRange(event) ||
-      deleteResourceAtSelection(event) ||
-      deleteToolAtSelection(event),
-    [deleteResourceAtSelection, deleteSelectedRange, deleteToolAtSelection]
   );
 }
 

@@ -44,9 +44,10 @@ describe('composer selection deletion', () => {
       withTool.text,
       second.mentions
     );
+    expect(mentions).not.toBeNull();
 
     const deleted = deleteComposerSelection(
-      { text: withTool.text, mentions, tools: withTool.tools },
+      { text: withTool.text, mentions: mentions ?? [], tools: withTool.tools },
       { start: 0, end: withTool.text.length }
     );
 
@@ -83,10 +84,11 @@ describe('composer selection deletion', () => {
       tool.text,
       second.mentions
     );
-    const [firstMention, secondMention] = mentions;
+    expect(mentions).not.toBeNull();
+    const [firstMention, secondMention] = mentions ?? [];
 
     const deleted = deleteComposerSelection(
-      { text: tool.text, mentions, tools: tool.tools },
+      { text: tool.text, mentions: mentions ?? [], tools: tool.tools },
       { start: firstMention.start + 1, end: secondMention.end - 1 }
     );
 

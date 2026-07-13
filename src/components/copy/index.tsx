@@ -22,9 +22,10 @@ export default function CopyMain(props: IProps) {
       ...(htmlContent
         ? {
             onCopy: clipboardData => {
-              clipboardData.clearData();
-              clipboardData.setData('text/plain', content);
-              clipboardData.setData('text/html', htmlContent);
+              const data = clipboardData as DataTransfer;
+              data.clearData();
+              data.setData('text/plain', content);
+              data.setData('text/html', htmlContent);
             },
           }
         : { format: 'text/plain' }),
