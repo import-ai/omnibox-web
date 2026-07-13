@@ -26,7 +26,7 @@ export default function RecommendedQuestions({
     if (!namespaceId) return;
     const source = axios.CancelToken.source();
     http
-      .get(`/namespaces/${namespaceId}/recommended-questions`, {
+      .get(`/namespaces/${namespaceId}/wizard/recommended-questions`, {
         cancelToken: source.token,
         mute: true,
       })

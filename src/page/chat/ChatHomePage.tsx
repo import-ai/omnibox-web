@@ -161,11 +161,13 @@ export default function ChatHomePage() {
             initialQuery={defaultHomeInput}
             sendMessage={sendMessage}
           />
-          <RecommendedQuestions
-            namespaceId={namespaceId}
-            loadingQuestionId={loadingRecommendedQuestionId}
-            onSelect={handleQuestionSelect}
-          />
+          {config.commercial && (
+            <RecommendedQuestions
+              namespaceId={namespaceId}
+              loadingQuestionId={loadingRecommendedQuestionId}
+              onSelect={handleQuestionSelect}
+            />
+          )}
         </div>
         <FeatureCards />
       </div>
