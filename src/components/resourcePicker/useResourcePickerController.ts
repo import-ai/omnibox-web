@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 
 import {
+  expandAllResourceNodes,
   getInitialChildrenLoadTargets,
   getInitialExpandedIds,
 } from './resourcePickerState';
@@ -11,6 +12,7 @@ type ChildrenById = Record<string, ResourcePickerResource[]>;
 
 interface ResourceTreeParams {
   defaultExpandedRootIds: string[];
+  expandAllInitially?: boolean;
   loadChildren: (
     resource: ResourcePickerResource
   ) => Promise<ResourcePickerResource[]>;
@@ -54,6 +56,37 @@ function useResourceTreeInitialization(
     const nextChildren: ChildrenById = {};
     collectInitialChildren(params.roots, nextChildren);
     let cancelled = false;
+
+    if (params.expandAllInitially) {
+      setChildrenById(nextChildren);
+      setExpandedIds(new Set());
+      setLoadingIds(new Set());
+
+      expandAllResourceNodes(params.roots, params.loadChildren, nextChildren, {
+        onNodeLoadStart: resourceId => {
+          if (cancelled) return;
+          setLoadingIds(current => new Set(current).add(resourceId));
+        },
+        onNodeLoadEnd: resourceId => {
+          if (cancelled) return;
+          removeLoadingId(resourceId, setLoadingIds);
+        },
+        onUpdate: ({ childrenById, expandedIds }) => {
+          if (cancelled) return;
+          setChildrenById(childrenById);
+          setExpandedIds(expandedIds);
+        },
+      }).catch(error => {
+        if (!cancelled) {
+          console.error('Failed to expand resource picker tree', error);
+        }
+      });
+
+      return () => {
+        cancelled = true;
+      };
+    }
+
     const expandedIds = getInitialExpandedIds(
       params.roots,
       params.defaultExpandedRootIds
@@ -92,6 +125,7 @@ function useResourceTreeInitialization(
     };
   }, [
     params.defaultExpandedRootIds,
+    params.expandAllInitially,
     params.loadChildren,
     params.roots,
     setChildrenById,

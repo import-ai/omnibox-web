@@ -4,7 +4,6 @@ import type { ResourceMeta } from '@/interface';
 import { fetchShareChildren } from '@/service/share';
 
 import { ResourcePicker } from './ResourcePicker';
-import { shouldAutoExpandSharedRoot } from './resourcePickerState';
 import type { ResourcePickerResource } from './resourcePickerTypes';
 
 export function ShareResourcePicker({
@@ -27,13 +26,6 @@ export function ShareResourcePicker({
     ],
     [canBrowseResources, rootResource]
   );
-  const defaultExpandedRootIds = useMemo(
-    () =>
-      shouldAutoExpandSharedRoot(rootResource, canBrowseResources)
-        ? [rootResource.id]
-        : [],
-    [canBrowseResources, rootResource]
-  );
   const loadChildren = useCallback(
     (resource: ResourcePickerResource) =>
       canBrowseResources
@@ -44,7 +36,7 @@ export function ShareResourcePicker({
 
   return (
     <ResourcePicker
-      defaultExpandedRootIds={defaultExpandedRootIds}
+      expandAllInitially={canBrowseResources}
       roots={roots}
       loadChildren={loadChildren}
       onSelect={onSelect}
