@@ -33,7 +33,7 @@ function ResourceSelectButton({
       variant="ghost"
       disabled={resource.disabled}
       className={cn(
-        'flex h-auto min-w-0 flex-1 items-center justify-start whitespace-normal rounded-md px-1 py-2 font-normal',
+        'flex h-auto w-full min-w-0 max-w-full items-center justify-start overflow-hidden rounded-md px-1 py-2 font-normal',
         resource.disabled && 'opacity-50'
       )}
       onClick={onSelect}
@@ -98,12 +98,16 @@ export function ResourcePickerRow({
       {resource.disabledTooltip ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="min-w-0 flex-1">{selectButton}</span>
+            <span className="flex min-w-0 flex-1 overflow-hidden">
+              {selectButton}
+            </span>
           </TooltipTrigger>
           <TooltipContent>{resource.disabledTooltip}</TooltipContent>
         </Tooltip>
       ) : (
-        selectButton
+        <span className="flex min-w-0 flex-1 overflow-hidden">
+          {selectButton}
+        </span>
       )}
     </div>
   );

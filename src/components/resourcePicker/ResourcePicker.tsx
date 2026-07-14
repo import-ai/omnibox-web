@@ -1,7 +1,9 @@
+import type { KeyboardEventHandler, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SearchField } from '@/components/search/SearchField';
 import { Spinner } from '@/components/ui/Spinner';
+import { cn } from '@/lib/utils';
 
 import { ResourcePickerTree } from './ResourcePickerTree';
 import type { ResourcePickerResource } from './resourcePickerTypes';
@@ -20,6 +22,12 @@ interface ResourcePickerProps {
     resource: ResourcePickerResource
   ) => Promise<ResourcePickerResource[]>;
   searchResources?: (query: string) => Promise<ResourcePickerResource[]>;
+  searchPlaceholder?: string;
+  searchContainerClassName?: string;
+  searchInputClassName?: string;
+  searchOnKeyDown?: KeyboardEventHandler<HTMLInputElement>;
+  beforeList?: ReactNode;
+  listClassName?: string;
   onSelect: (resource: ResourcePickerResource) => void;
 }
 
@@ -31,6 +39,12 @@ export function ResourcePicker({
   roots,
   loadChildren,
   searchResources,
+  searchPlaceholder,
+  searchContainerClassName,
+  searchInputClassName,
+  searchOnKeyDown,
+  beforeList,
+  listClassName,
   onSelect,
 }: ResourcePickerProps) {
   const { t } = useTranslation();
@@ -54,12 +68,20 @@ export function ResourcePicker({
           onValueChange={controller.setSearch}
           debounceMs={1000}
           loading={controller.searchLoading}
-          placeholder={t('search.placeholder')}
+          placeholder={searchPlaceholder ?? t('search.placeholder')}
           clearLabel={t('search.clear')}
-          containerClassName="mb-2"
+          onKeyDown={searchOnKeyDown}
+          containerClassName={cn('mb-2', searchContainerClassName)}
+          inputClassName={searchInputClassName}
         />
       )}
-      <div className="min-h-60 w-full min-w-0 max-h-80 overflow-y-auto overflow-x-hidden pb-2">
+      {beforeList}
+      <div
+        className={cn(
+          'min-h-60 w-full min-w-0 max-h-80 overflow-y-auto overflow-x-hidden pb-2',
+          listClassName
+        )}
+      >
         {controller.searchFailed ? (
           <div
             role="alert"

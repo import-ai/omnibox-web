@@ -12,7 +12,7 @@ import each from '@/lib/each';
 import { cn } from '@/lib/utils';
 import { fetchResource, fetchRootResources } from '@/service/resource';
 
-import { ChooseResource } from './Choose';
+import { ChooseResourceTree } from './ChooseResourceTree';
 
 interface IProps {
   loading: boolean;
@@ -108,19 +108,20 @@ export function ResourceSelect(props: IProps) {
       <DropdownMenuContent
         side="bottom"
         align="end"
+        onCloseAutoFocus={event => {
+          event.preventDefault();
+        }}
         onOpenAutoFocus={event => {
           event.preventDefault();
         }}
         className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl border-none dark:bg-neutral-800"
       >
         {open && (
-          <ChooseResource
-            loading={loading}
-            onChange={handleChange}
+          <ChooseResourceTree
             namespaceId={namespaceId}
-            resourceId={resourceId}
             disabledIds={disabledIds}
             disabledTooltip={disabledTooltip}
+            onChange={handleChange}
           />
         )}
       </DropdownMenuContent>
