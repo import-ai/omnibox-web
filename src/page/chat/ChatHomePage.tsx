@@ -96,15 +96,8 @@ export default function ChatHomePage() {
     approvalMode,
     recommendedQuestionId,
   }: SendMessageParams) => {
-    const createConversationPayload = recommendedQuestionId
-      ? { recommended_question_id: recommendedQuestionId }
-      : {};
-
     return http
-      .post(
-        `/namespaces/${namespaceId}/conversations`,
-        createConversationPayload
-      )
+      .post(`/namespaces/${namespaceId}/conversations`)
       .then((conversation: ConversationEntity) => {
         sessionStorage.setItem(
           'chat-create-payload',
@@ -114,6 +107,7 @@ export default function ChatHomePage() {
             tools,
             selectedResources,
             approvalMode,
+            recommendedQuestionId,
             conversation: {
               id: conversation.id,
             } as ConversationDetail,

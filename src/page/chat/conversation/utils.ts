@@ -161,7 +161,8 @@ export function ask(
   shareId: string | undefined,
   sharePassword: string | undefined,
   enable_thinking?: boolean,
-  tool_call?: ChatRequestBody['tool_call']
+  tool_call?: ChatRequestBody['tool_call'],
+  recommendedQuestionId?: string
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -178,6 +179,9 @@ export function ask(
   chatReq.share_password = sharePassword;
   if (tool_call) {
     chatReq.tool_call = tool_call;
+  }
+  if (recommendedQuestionId) {
+    chatReq.recommended_question_id = recommendedQuestionId;
   }
   return createStreamTransport(
     url,
