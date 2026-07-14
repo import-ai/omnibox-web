@@ -25,7 +25,9 @@ export default defineConfig(({ mode }) => {
         injectRegister: false,
         manifest: false,
         workbox: {
-          maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+          // Editor + diagram deps can still produce multi-MB chunks after split;
+          // keep a headroom so Workbox does not fail the production build.
+          maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         },
       }),
     ],
@@ -44,6 +46,35 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           experimentalMinChunkSize: 50000,
+          manualChunks(id) {
+            if (!id.includes('node_modules')) {
+              return;
+            }
+
+            // Keep the rich-text editor and its heavy deps out of the main app chunk
+            // so Workbox precache and first paint stay under control.
+            if (id.includes('@import-ai/omnibox-editor')) {
+              return 'omnibox-editor';
+            }
+            if (
+              id.includes('@tiptap') ||
+              id.includes('prosemirror') ||
+              id.includes('/yjs/') ||
+              id.includes('y-protocols') ||
+              id.includes('y-prosemirror')
+            ) {
+              return 'tiptap';
+            }
+            if (id.includes('mermaid') || id.includes('cytoscape')) {
+              return 'mermaid';
+            }
+            if (id.includes('echarts') || id.includes('zrender')) {
+              return 'echarts';
+            }
+            if (id.includes('katex')) {
+              return 'katex';
+            }
+          },
         },
       },
     },
