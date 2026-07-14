@@ -47,12 +47,14 @@ export default function RecommendedQuestions({
           key={item.id}
           variant="outline"
           size="sm"
-          className="rounded-full px-3 font-normal text-muted-foreground hover:text-foreground"
+          className="h-auto min-h-8 max-w-full whitespace-normal rounded-full px-3 py-1.5 font-normal leading-snug text-muted-foreground hover:text-foreground sm:max-w-xl"
           disabled={!!loadingQuestionId}
           loading={loadingQuestionId === item.id}
           onClick={() => onSelect(item)}
         >
-          {item.question}
+          <span className="min-w-0 break-words text-center">
+            {item.question}
+          </span>
         </Button>
       ))}
     </div>
