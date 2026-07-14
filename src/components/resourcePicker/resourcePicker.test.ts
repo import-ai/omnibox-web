@@ -73,6 +73,34 @@ describe('resource picker defaults', () => {
     expect(loadChildren).toHaveBeenCalledTimes(2);
   });
 
+  it('reuses provided children cache instead of refetching loaded nodes', async () => {
+    const loadChildren = jest.fn(async () => [
+      resource('should-not-load', 'file'),
+    ]);
+    const cachedBranch = resource('branch', 'link', true);
+    const cachedLeaf = resource('leaf', 'file');
+    const cachedNested = resource('nested', 'doc');
+
+    const result = await expandAllResourceNodes(
+      [resource('root', 'folder', true)],
+      loadChildren,
+      {
+        root: [cachedBranch, cachedLeaf],
+        branch: [cachedNested],
+      }
+    );
+
+    expect(loadChildren).not.toHaveBeenCalled();
+    expect(Array.from(result.expandedIds)).toEqual(['root', 'branch']);
+    expect(result.childrenById.root?.map(item => item.id)).toEqual([
+      'branch',
+      'leaf',
+    ]);
+    expect(result.childrenById.branch?.map(item => item.id)).toEqual([
+      'nested',
+    ]);
+  });
+
   it('continues expanding siblings when one branch fails to load', async () => {
     const loadChildren = jest.fn(async (node: ReturnType<typeof resource>) => {
       if (node.id === 'root') {

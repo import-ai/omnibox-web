@@ -13,6 +13,7 @@ type ChildrenById = Record<string, ResourcePickerResource[]>;
 interface ResourceTreeParams {
   defaultExpandedRootIds: string[];
   expandAllInitially?: boolean;
+  initialChildrenById?: Record<string, ResourcePickerResource[]>;
   loadChildren: (
     resource: ResourcePickerResource
   ) => Promise<ResourcePickerResource[]>;
@@ -53,7 +54,9 @@ function useResourceTreeInitialization(
   setLoadingIds: Dispatch<SetStateAction<Set<string>>>
 ) {
   useEffect(() => {
-    const nextChildren: ChildrenById = {};
+    const nextChildren: ChildrenById = {
+      ...(params.initialChildrenById ?? {}),
+    };
     collectInitialChildren(params.roots, nextChildren);
     let cancelled = false;
 
@@ -126,6 +129,7 @@ function useResourceTreeInitialization(
   }, [
     params.defaultExpandedRootIds,
     params.expandAllInitially,
+    params.initialChildrenById,
     params.loadChildren,
     params.roots,
     setChildrenById,

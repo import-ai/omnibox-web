@@ -8,7 +8,6 @@ import {
   removeToolRange,
   shiftToolRangesForReplacement,
   snapSelectionToToolBoundary,
-  syncToolRangesWithTools,
   toolRangeAfterCaret,
   toolRangeBeforeCaret,
   toolRangeForDeletion,
@@ -125,69 +124,6 @@ describe('composer tool tokens', () => {
         end: resourceTokenLength + webSearchToken.length,
       },
     ]);
-  });
-
-  it('recovers a missing tool range when the token text is already present', () => {
-    const reasoningToken = createToolTokenText('深度思考');
-    const webSearchToken = createToolTokenText('联网搜索');
-    const synced = syncToolRangesWithTools(
-      {
-        text: `${reasoningToken}${webSearchToken}`,
-        tools: [
-          {
-            tool: ToolType.REASONING,
-            label: '深度思考',
-            start: 0,
-            end: reasoningToken.length,
-          },
-        ],
-      },
-      [ToolType.REASONING, ToolType.WEB_SEARCH],
-      tool => (tool === ToolType.REASONING ? '深度思考' : '联网搜索')
-    );
-
-    expect(synced?.text).toBe(`${reasoningToken}${webSearchToken}`);
-    expect(
-      synced?.tools.map(range => synced.text.slice(range.start, range.end))
-    ).toEqual([reasoningToken, webSearchToken]);
-    expect(
-      queryFromComposerDisplayText(synced?.text ?? '', [], synced?.tools ?? [])
-    ).toBe('');
-  });
-
-  it('repairs an existing tool range when its backing text is no longer a token', () => {
-    const webSearchToken = createToolTokenText('联网搜索');
-    const reasoningLabel = '深度思考';
-    const reasoningToken = createToolTokenText(reasoningLabel);
-    const synced = syncToolRangesWithTools(
-      {
-        text: `${webSearchToken}${reasoningLabel}`,
-        tools: [
-          {
-            tool: ToolType.WEB_SEARCH,
-            label: '联网搜索',
-            start: 0,
-            end: webSearchToken.length,
-          },
-          {
-            tool: ToolType.REASONING,
-            label: reasoningLabel,
-            start: webSearchToken.length,
-            end: webSearchToken.length + reasoningLabel.length,
-          },
-        ],
-      },
-      [ToolType.WEB_SEARCH, ToolType.REASONING],
-      tool => (tool === ToolType.REASONING ? reasoningLabel : '联网搜索')
-    );
-
-    expect(synced?.text).toBe(`${webSearchToken}${reasoningToken}`);
-    expect(
-      synced?.tools.map(range => synced.text.slice(range.start, range.end))
-    ).toEqual([webSearchToken, reasoningToken]);
-    expect(
-      queryFromComposerDisplayText(synced?.text ?? '', [], synced?.tools ?? [])
-    ).toBe('');
   });
 
   it('shifts tool ranges when text is inserted before the token', () => {

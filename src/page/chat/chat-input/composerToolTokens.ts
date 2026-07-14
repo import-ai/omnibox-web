@@ -1,11 +1,9 @@
 import type { TextSelection } from './composerDocument';
 import {
-  clamp,
   getTextChange,
   normalizeSelection,
   type TextChange,
 } from './composerTextRanges';
-import { claimExistingTokenText } from './composerToolRangeRepair';
 import { ToolType } from './types';
 
 export type VisibleComposerTool = Exclude<ToolType, ToolType.PRIVATE_SEARCH>;
@@ -150,58 +148,6 @@ export function deleteToolRange(
   };
 }
 
-export function syncToolRangesWithTools(
-  document: ComposerToolDocument,
-  tools: ToolType[],
-  getLabel: (tool: VisibleComposerTool) => string
-): ComposerToolEditResult | null {
-  const visibleTools = tools.filter(isVisibleComposerTool);
-  let next: ComposerToolEditResult = {
-    ...document,
-    selection: { start: document.text.length, end: document.text.length },
-  };
-
-  document.tools
-    .filter(range => !visibleTools.includes(range.tool))
-    .forEach(range => {
-      next = removeToolRange(next, range.tool);
-    });
-
-  visibleTools.forEach(tool => {
-    const label = getLabel(tool);
-    const existing = next.tools.find(range => range.tool === tool);
-    if (existing?.label === label && isToolRangeValid(next.text, existing)) {
-      return;
-    }
-    if (existing?.label === label) {
-      next = repairInvalidToolRange(next, existing, tool, label);
-      return;
-    }
-    if (existing) next = removeToolRange(next, tool);
-    const claimed = claimExistingTokenText(
-      next.text,
-      next.tools,
-      tool,
-      label,
-      createToolTokenText(label)
-    );
-    if (claimed) {
-      next = {
-        ...next,
-        tools: [...next.tools, claimed].sort((a, b) => a.start - b.start),
-        selection: { start: claimed.end, end: claimed.end },
-      };
-      return;
-    }
-    next = insertToolRange(next, tool, label, next.selection);
-  });
-
-  return next.text === document.text &&
-    sameToolRanges(next.tools, document.tools)
-    ? null
-    : next;
-}
-
 export function updateToolRangesForTextChange(
   previousText: string,
   nextText: string,
@@ -336,43 +282,6 @@ function isToolRangeValid(text: string, range: ComposerToolRange): boolean {
   return (
     text.slice(range.start, range.end) === createToolTokenText(range.label)
   );
-}
-
-function repairInvalidToolRange(
-  document: ComposerToolEditResult,
-  range: ComposerToolRange,
-  tool: VisibleComposerTool,
-  label: string
-): ComposerToolEditResult {
-  const start = clamp(range.start, 0, document.text.length);
-  const end = clamp(range.end, start, document.text.length);
-  const tokenText = createToolTokenText(label);
-  const text =
-    document.text.slice(0, start) + tokenText + document.text.slice(end);
-  const delta = tokenText.length - (end - start);
-  const repairedRange = {
-    tool,
-    label,
-    start,
-    end: start + tokenText.length,
-  };
-  const tools = document.tools
-    .filter(item => item !== range)
-    .map(item =>
-      item.start >= end
-        ? {
-            ...item,
-            start: item.start + delta,
-            end: item.end + delta,
-          }
-        : item
-    );
-
-  return {
-    text,
-    tools: [...tools, repairedRange].sort((a, b) => a.start - b.start),
-    selection: { start: repairedRange.end, end: repairedRange.end },
-  };
 }
 
 export function shiftToolRangesForReplacement(

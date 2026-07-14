@@ -20,11 +20,6 @@ export enum ChatMode {
   WRITE = 'write',
 }
 
-export enum InputMode {
-  TEXT = 'text',
-  DECISION = 'decision',
-}
-
 export interface IChatTool {
   name: ToolType;
 }

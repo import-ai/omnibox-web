@@ -21,6 +21,74 @@ interface ChatState {
   setContext: (resources: IResTypeContext[]) => void;
 }
 
+export const CHAT_CONTEXT_STORAGE_KEY = 'chat_context';
+
+/** Migrates legacy raw-array `chat_context` values into Zustand persist shape. */
+export function readChatContextStorage(raw: string | null): {
+  state: Pick<ChatState, 'selectedResources'>;
+  version?: number;
+} | null {
+  if (!raw) return null;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+
+  if (Array.isArray(parsed)) {
+    return {
+      state: {
+        selectedResources: normalizeResourceContexts(parsed),
+      },
+      version: 0,
+    };
+  }
+
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  const storageValue = parsed as {
+    state?: Partial<ChatState> | IResTypeContext[];
+    version?: number;
+    selectedResources?: IResTypeContext[];
+  };
+
+  let selectedResources: IResTypeContext[] = [];
+  if (Array.isArray(storageValue.state)) {
+    selectedResources = storageValue.state;
+  } else if (Array.isArray(storageValue.state?.selectedResources)) {
+    selectedResources = storageValue.state.selectedResources;
+  } else if (Array.isArray(storageValue.selectedResources)) {
+    selectedResources = storageValue.selectedResources;
+  }
+
+  return {
+    state: {
+      selectedResources: normalizeResourceContexts(selectedResources),
+    },
+    version: storageValue.version,
+  };
+}
+
+const chatContextStorage = {
+  getItem: (name: string) =>
+    readChatContextStorage(
+      typeof localStorage === 'undefined' ? null : localStorage.getItem(name)
+    ),
+  setItem: (
+    name: string,
+    value: { state: Pick<ChatState, 'selectedResources'>; version?: number }
+  ) => {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(name, JSON.stringify(value));
+  },
+  removeItem: (name: string) => {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.removeItem(name);
+  },
+};
+
 export const useChatStore = create<ChatState>()(
   persist(
     immer(set => ({
@@ -51,7 +119,8 @@ export const useChatStore = create<ChatState>()(
         set({ selectedResources: normalizeResourceContexts(resources) }),
     })),
     {
-      name: 'chat_context',
+      name: CHAT_CONTEXT_STORAGE_KEY,
+      storage: chatContextStorage,
       merge: (persistedState, currentState) => {
         if (Array.isArray(persistedState)) {
           return {
@@ -65,8 +134,6 @@ export const useChatStore = create<ChatState>()(
             : {};
         return {
           ...currentState,
-          ...partialState,
-          inputResetNonce: currentState.inputResetNonce,
           selectedResources: normalizeResourceContexts(
             partialState.selectedResources ?? currentState.selectedResources
           ),

@@ -14,6 +14,7 @@ const emptyDefaultExpandedRootIds: string[] = [];
 interface ResourcePickerProps {
   defaultExpandedRootIds?: string[];
   expandAllInitially?: boolean;
+  initialChildrenById?: Record<string, ResourcePickerResource[]>;
   roots: ResourcePickerResource[];
   loadChildren: (
     resource: ResourcePickerResource
@@ -26,6 +27,7 @@ interface ResourcePickerProps {
 export function ResourcePicker({
   defaultExpandedRootIds = emptyDefaultExpandedRootIds,
   expandAllInitially = false,
+  initialChildrenById,
   roots,
   loadChildren,
   searchResources,
@@ -33,7 +35,13 @@ export function ResourcePicker({
 }: ResourcePickerProps) {
   const { t } = useTranslation();
   const controller = useResourcePickerController(
-    { defaultExpandedRootIds, expandAllInitially, loadChildren, roots },
+    {
+      defaultExpandedRootIds,
+      expandAllInitially,
+      initialChildrenById,
+      loadChildren,
+      roots,
+    },
     { searchResources }
   );
   const visibleResources = controller.search ? controller.searchResults : roots;
