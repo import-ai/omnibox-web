@@ -1,4 +1,5 @@
 import {
+  sanitizeEditorJsonForSave,
   serializeResourceEditorContent,
   shouldSaveOmniboxEditorJson,
 } from './contentSerialization';
@@ -50,6 +51,70 @@ describe('serializeResourceEditorContent', () => {
         false
       )
     ).toBe(JSON.stringify(jsonContent));
+  });
+
+  it('drops unfinished imageUpload placeholders from saved JSON', () => {
+    const withPlaceholder = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'hello' }],
+        },
+        {
+          type: 'imageUpload',
+          attrs: { accept: 'image/*', limit: 1, maxSize: 0 },
+        },
+      ],
+    };
+
+    expect(
+      serializeResourceEditorContent(
+        {
+          json: withPlaceholder,
+          markdown: 'hello',
+        },
+        true
+      )
+    ).toBe(
+      JSON.stringify({
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'hello' }],
+          },
+        ],
+      })
+    );
+  });
+});
+
+describe('sanitizeEditorJsonForSave', () => {
+  it('removes imageUpload nodes while keeping completed images', () => {
+    expect(
+      sanitizeEditorJsonForSave({
+        type: 'doc',
+        content: [
+          {
+            type: 'imageUpload',
+            attrs: { accept: 'image/*', limit: 1, maxSize: 0 },
+          },
+          {
+            type: 'image',
+            attrs: { src: 'attachments/a.png' },
+          },
+        ],
+      })
+    ).toEqual({
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: { src: 'attachments/a.png' },
+        },
+      ],
+    });
   });
 });
 

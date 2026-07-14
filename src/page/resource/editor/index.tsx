@@ -78,14 +78,9 @@ type ResourceOmniboxEditorProps = Omit<
 const ResourceOmniboxEditor =
   OmniboxEditor as React.ComponentType<ResourceOmniboxEditorProps>;
 
-const AUTO_SAVE_INTERVAL = 5000;
 const SAVE_OMNIBOX_EDITOR_JSON = shouldSaveOmniboxEditorJson(
   import.meta.env.VITE_OMNIBOX_EDITOR_SAVE_JSON
 );
-
-function createResourceEditorSnapshot(name: string, content: string) {
-  return JSON.stringify({ name, content });
-}
 
 function saveResourceEditorCache(
   resourceId: string,
@@ -94,115 +89,6 @@ function saveResourceEditorCache(
 ) {
   updateCacheTitle(resourceId, title);
   updateCacheContent(resourceId, content);
-}
-
-function useLatestRef<T>(value: T) {
-  const ref = useRef(value);
-
-  useEffect(() => {
-    ref.current = value;
-  }, [value]);
-
-  return ref;
-}
-
-function useAutoSaveResource({
-  app,
-  contentRef,
-  dirtyRef,
-  enabled,
-  namespaceId,
-  onResource,
-  resource,
-  title,
-}: {
-  app: ReturnType<typeof useTheme>['app'];
-  contentRef: React.MutableRefObject<string>;
-  dirtyRef: React.MutableRefObject<boolean>;
-  enabled: boolean;
-  namespaceId: string;
-  onResource: (resource: Resource) => void;
-  resource: Resource;
-  title: string;
-}) {
-  const savingRef = useRef(false);
-  const titleRef = useLatestRef(title);
-  const onResourceRef = useLatestRef(onResource);
-  const savedSnapshotRef = useRef(
-    createResourceEditorSnapshot(resource.name || '', resource.content || '')
-  );
-
-  useEffect(() => {
-    savedSnapshotRef.current = createResourceEditorSnapshot(
-      resource.name || '',
-      resource.content || ''
-    );
-  }, [resource.content, resource.id, resource.name]);
-
-  const autoSave = useCallback(async () => {
-    if (!enabled || savingRef.current || !dirtyRef.current) {
-      return;
-    }
-
-    const name = titleRef.current.trim();
-    const content = contentRef.current;
-    const snapshot = createResourceEditorSnapshot(name, content);
-
-    if (snapshot === savedSnapshotRef.current) {
-      dirtyRef.current = false;
-      return;
-    }
-
-    savingRef.current = true;
-
-    try {
-      const delta = await http.patch<Resource>(
-        `/namespaces/${namespaceId}/resources/${resource.id}`,
-        {
-          name,
-          content,
-          namespaceId,
-        },
-        { mute: true }
-      );
-      savedSnapshotRef.current = snapshot;
-      app.fire('update_resource', delta);
-      onResourceRef.current(delta);
-      const currentSnapshot = createResourceEditorSnapshot(
-        titleRef.current.trim(),
-        contentRef.current
-      );
-      dirtyRef.current = currentSnapshot !== snapshot;
-      if (!dirtyRef.current) {
-        clearCache(resource.id);
-      }
-    } catch {
-      // Keep the local cache and retry on the next autosave tick.
-    } finally {
-      savingRef.current = false;
-    }
-  }, [
-    app,
-    contentRef,
-    dirtyRef,
-    enabled,
-    namespaceId,
-    onResourceRef,
-    resource.id,
-    titleRef,
-  ]);
-
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
-    const timer = window.setInterval(autoSave, AUTO_SAVE_INTERVAL);
-
-    return () => {
-      window.clearInterval(timer);
-    };
-  }, [autoSave, enabled]);
 }
 
 function format(_files: File[], responseText: string): string {
@@ -291,21 +177,11 @@ function OmniboxResourceEditor(props: IEditorProps) {
         dirtyRef.current = true;
       }
       markdownRef.current = content;
+      // Local draft only — server is updated on explicit Save.
       updateCacheContent(resource.id, content);
     },
     [resource.id]
   );
-
-  useAutoSaveResource({
-    app,
-    contentRef: markdownRef,
-    dirtyRef,
-    enabled: true,
-    namespaceId,
-    onResource,
-    resource,
-    title,
-  });
 
   const uploadImage = useCallback<UploadFunction>(
     async (file, onProgress, abortSignal) => {
@@ -435,14 +311,23 @@ function OmniboxResourceEditor(props: IEditorProps) {
   }, [resource.id, title]);
 
   return (
-    <div className="pb-[30vh]">
-      <Input
-        type="text"
-        value={title}
-        onChange={handleChange}
-        placeholder="Enter title"
-        className="mb-4 p-2 border rounded"
-      />
+    <div
+      className="resource-editable-page pb-[30vh]"
+      style={
+        {
+          '--resource-editor-content-width': `${OMNIBOX_EDITOR_CONTENT_WIDTH}px`,
+        } as React.CSSProperties
+      }
+    >
+      <div className="resource-editable-title">
+        <Input
+          type="text"
+          value={title}
+          onChange={handleChange}
+          placeholder="Enter title"
+          className="mb-4 p-2 border rounded"
+        />
+      </div>
       <div className="resource-editable-editor">
         <ResourceOmniboxEditor
           key={resource.id}
@@ -453,11 +338,13 @@ function OmniboxResourceEditor(props: IEditorProps) {
           contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
           showHeader={false}
           showToc={true}
+          tocColors={{
+            inactive: theme.content === 'dark' ? '#ffffff' : '#000000',
+          }}
           linkBase={linkBase}
           imageUpload={uploadImage}
           mentionUsers={mentionUsers}
           onUpdate={handleEditorUpdate}
-          debug={true}
         />
       </div>
     </div>
@@ -595,17 +482,6 @@ function VditorResourceEditor(props: IEditorProps) {
       setVd(undefined);
     };
   }, [initialCache, resource]);
-
-  useAutoSaveResource({
-    app,
-    contentRef,
-    dirtyRef,
-    enabled: Boolean(vd),
-    namespaceId,
-    onResource,
-    resource,
-    title,
-  });
 
   useEffect(() => {
     if (!vd) {

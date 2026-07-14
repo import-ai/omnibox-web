@@ -34,6 +34,11 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
+    // Linked package ships prebuilt dist CSS (layers flattened). Do not force
+    // Vite to compile editor src CSS through web's Tailwind v3 pipeline.
+    optimizeDeps: {
+      exclude: ['@import-ai/omnibox-editor'],
+    },
     build: {
       chunkSizeWarningLimit: 1000,
       rollupOptions: {

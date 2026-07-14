@@ -21,12 +21,15 @@ export default function ResourcePage() {
   const [large, onLarge] = useState(window.innerWidth > 1500);
   const app = useApp();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const useEditorContentWidth =
+  const isOmniboxResource =
     ENABLE_OMNIBOX_EDITOR &&
-    (props.editPage ||
-      (!!props.resource &&
-        props.resource.resource_type !== 'folder' &&
-        props.resource.resource_type !== 'smart_folder'));
+    !!props.resource &&
+    props.resource.resource_type !== 'folder' &&
+    props.resource.resource_type !== 'smart_folder';
+  // Edit mode needs full width so the TOC can sit in the left gutter.
+  // View mode keeps the original centered content width.
+  const useFullWidthForEdit = isOmniboxResource && props.editPage;
+  const useEditorContentWidth = isOmniboxResource && !props.editPage;
 
   useEffect(() => {
     function handleSize() {
@@ -69,15 +72,23 @@ export default function ResourcePage() {
         <div
           className={cn('flex min-w-0 w-full max-w-full flex-col', {
             'max-w-[680px]':
-              !wide && !useEditorContentWidth && (open || !large),
+              !wide &&
+              !useEditorContentWidth &&
+              !useFullWidthForEdit &&
+              (open || !large),
             'max-w-[800px]':
-              !wide && !useEditorContentWidth && (!open || large),
+              !wide &&
+              !useEditorContentWidth &&
+              !useFullWidthForEdit &&
+              (!open || large),
             'max-w-7xl': wide,
           })}
           style={
-            !wide && useEditorContentWidth
-              ? { maxWidth: OMNIBOX_EDITOR_CONTENT_WIDTH }
-              : undefined
+            !wide && useFullWidthForEdit
+              ? { maxWidth: '100%' }
+              : !wide && useEditorContentWidth
+                ? { maxWidth: OMNIBOX_EDITOR_CONTENT_WIDTH }
+                : undefined
           }
         >
           <Wrapper {...props} />

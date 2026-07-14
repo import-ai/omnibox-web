@@ -18,6 +18,10 @@ import {
   OMNIBOX_EDITOR_CONTENT_WIDTH,
 } from '@/page/resource/editor/const';
 
+import {
+  findFirstSearchMatchElement,
+  highlightSearchText,
+} from './searchHighlight';
 import { embedImage } from './utils';
 
 interface IProps {
@@ -45,85 +49,67 @@ function getResourceEditorContent(
   return contentToTiptapJson(embedImage(resource), { linkBase });
 }
 
+function useSearchHighlight(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  search: string | null,
+  /** When this identity changes, allow re-highlight (e.g. document content). */
+  contentKey: unknown
+) {
+  const appliedKeyRef = useRef<string | null>(null);
+
+  const applySearchHighlight = useCallback(() => {
+    const container = containerRef.current;
+    if (!search || !container) {
+      return false;
+    }
+
+    const key = `${search}::${String(contentKey ?? '')}`;
+    // Re-run is allowed until the first successful highlight for this key,
+    // so late editor mounts still get marks without nesting on re-entry.
+    if (appliedKeyRef.current === key) {
+      const existing = findFirstSearchMatchElement(container, search);
+      if (existing) {
+        existing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return true;
+      }
+    }
+
+    const matchCount = highlightSearchText(container, search);
+    if (matchCount === 0) {
+      return false;
+    }
+
+    appliedKeyRef.current = key;
+    const first = findFirstSearchMatchElement(container, search);
+    first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return true;
+  }, [containerRef, contentKey, search]);
+
+  useEffect(() => {
+    appliedKeyRef.current = null;
+  }, [contentKey, search]);
+
+  return applySearchHighlight;
+}
+
 function MarkdownRender(props: IProps) {
   const { resource, linkBase, style } = props;
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
   const containerRef = useRef<HTMLDivElement>(null);
-  const highlightSearchText = (container: HTMLElement, searchText: string) => {
-    const walker = document.createTreeWalker(
-      container,
-      NodeFilter.SHOW_TEXT,
-      null
-    );
-    const nodesToHighlight: { node: Node; text: string }[] = [];
-    let node;
+  const contentKey = embedImage(resource);
+  const applySearchHighlight = useSearchHighlight(
+    containerRef,
+    search,
+    contentKey
+  );
 
-    while ((node = walker.nextNode())) {
-      if (
-        node.textContent &&
-        node.textContent.toLowerCase().includes(searchText.toLowerCase())
-      ) {
-        nodesToHighlight.push({ node, text: node.textContent });
-      }
-    }
-
-    nodesToHighlight.forEach(({ node, text }) => {
-      const parent = node.parentElement;
-      if (!parent) {
-        return;
-      }
-
-      const regex = new RegExp(`(${searchText})`, 'gi');
-      const highlightedHTML = text.replace(
-        regex,
-        '<mark style="background-color:#ffeb3b;padding:2px 0;">$1</mark>'
-      );
-
-      const span = document.createElement('span');
-      span.innerHTML = highlightedHTML;
-      parent.replaceChild(span, node);
+  const onRendered = useCallback(() => {
+    // Markdown may paint after onRendered; one frame is enough.
+    window.requestAnimationFrame(() => {
+      applySearchHighlight();
     });
-  };
-  const scrollToSearchResult = useCallback(() => {
-    if (!search || !containerRef.current) {
-      return;
-    }
-
-    setTimeout(() => {
-      const container = containerRef.current;
-      if (!container) {
-        return;
-      }
-      const allTextNodes: Node[] = [];
-      const walker = document.createTreeWalker(
-        container,
-        NodeFilter.SHOW_TEXT,
-        null
-      );
-
-      let node;
-      while ((node = walker.nextNode())) {
-        if (
-          node.textContent &&
-          node.textContent.toLowerCase().includes(search.toLowerCase())
-        ) {
-          allTextNodes.push(node);
-        }
-      }
-
-      if (allTextNodes.length > 0) {
-        const firstMatch = allTextNodes[0].parentElement;
-        if (firstMatch) {
-          firstMatch.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-          });
-          highlightSearchText(container, search);
-        }
-      }
-    }, 100);
-  }, [search]);
+  }, [applySearchHighlight]);
 
   return (
     <div ref={containerRef} className="pb-[30vh]">
@@ -131,7 +117,7 @@ function MarkdownRender(props: IProps) {
         style={style}
         content={embedImage(resource)}
         linkBase={linkBase}
-        onRendered={scrollToSearchResult}
+        onRendered={onRendered}
       />
     </div>
   );
@@ -148,80 +134,11 @@ function OmniboxRender(props: IProps) {
     () => getResourceEditorContent(resource, linkBase),
     [linkBase, resource]
   );
-  const highlightSearchText = (container: HTMLElement, searchText: string) => {
-    const walker = document.createTreeWalker(
-      container,
-      NodeFilter.SHOW_TEXT,
-      null
-    );
-    const nodesToHighlight: { node: Node; text: string }[] = [];
-    let node;
-
-    while ((node = walker.nextNode())) {
-      if (
-        node.textContent &&
-        node.textContent.toLowerCase().includes(searchText.toLowerCase())
-      ) {
-        nodesToHighlight.push({ node, text: node.textContent });
-      }
-    }
-
-    nodesToHighlight.forEach(({ node, text }) => {
-      const parent = node.parentElement;
-      if (!parent) {
-        return;
-      }
-
-      const regex = new RegExp(`(${searchText})`, 'gi');
-      const highlightedHTML = text.replace(
-        regex,
-        '<mark style="background-color:#ffeb3b;padding:2px 0;">$1</mark>'
-      );
-
-      const span = document.createElement('span');
-      span.innerHTML = highlightedHTML;
-      parent.replaceChild(span, node);
-    });
-  };
-  const scrollToSearchResult = useCallback(() => {
-    if (!search || !containerRef.current) {
-      return;
-    }
-
-    setTimeout(() => {
-      const container = containerRef.current;
-      if (!container) {
-        return;
-      }
-      const allTextNodes: Node[] = [];
-      const walker = document.createTreeWalker(
-        container,
-        NodeFilter.SHOW_TEXT,
-        null
-      );
-
-      let node;
-      while ((node = walker.nextNode())) {
-        if (
-          node.textContent &&
-          node.textContent.toLowerCase().includes(search.toLowerCase())
-        ) {
-          allTextNodes.push(node);
-        }
-      }
-
-      if (allTextNodes.length > 0) {
-        const firstMatch = allTextNodes[0].parentElement;
-        if (firstMatch) {
-          firstMatch.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-          });
-          highlightSearchText(container, search);
-        }
-      }
-    }, 100);
-  }, [search]);
+  const applySearchHighlight = useSearchHighlight(
+    containerRef,
+    search,
+    content
+  );
 
   useEffect(() => {
     if (!search) {
@@ -229,19 +146,36 @@ function OmniboxRender(props: IProps) {
     }
 
     const container = containerRef.current;
-
     if (!container) {
       return;
     }
 
     let frame = 0;
     let timeout = 0;
+    let highlighting = false;
+
+    const tryHighlight = () => {
+      if (highlighting) {
+        return;
+      }
+      highlighting = true;
+      try {
+        applySearchHighlight();
+      } finally {
+        // Defer unlock so mutations from highlight itself are ignored.
+        window.requestAnimationFrame(() => {
+          highlighting = false;
+        });
+      }
+    };
 
     const scrollWhenReady = () => {
       window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(scrollToSearchResult);
+      frame = window.requestAnimationFrame(tryHighlight);
     };
 
+    // Watch editor mount only. Highlight DOM writes are ignored while
+    // `highlighting` is true, and successful apply is idempotent.
     const observer = new MutationObserver(scrollWhenReady);
     observer.observe(container, { childList: true, subtree: true });
     scrollWhenReady();
@@ -255,7 +189,7 @@ function OmniboxRender(props: IProps) {
       window.clearTimeout(timeout);
       observer.disconnect();
     };
-  }, [content, scrollToSearchResult]);
+  }, [content, search, applySearchHighlight]);
 
   return (
     <div
@@ -274,7 +208,6 @@ function OmniboxRender(props: IProps) {
         contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
         showHeader={false}
         showToc={false}
-        debug={true}
       />
     </div>
   );

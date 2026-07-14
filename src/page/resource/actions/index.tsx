@@ -46,6 +46,7 @@ import { downloadFile } from '@/lib/downloadFile';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 import { getMarkdownDownloadContent } from '@/page/resource/downloadMarkdown';
+import { clearCache } from '@/page/resource/editor/cache';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 import {
@@ -185,6 +186,8 @@ export default function Actions(props: IActionProps) {
     if (!resource) {
       return;
     }
+    // Drop local draft so the next edit session loads last saved server content.
+    clearCache(resource.id);
     navigate(`/${namespaceId}/${resource.id}`, {
       state: loc.state,
     });
@@ -217,12 +220,37 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'copy_content' && resource.content) {
-      const returnValue = copy(resource.content, {
-        format: 'text/plain',
-      });
-      toast(t(returnValue ? 'copy.success' : 'copy.fail'), {
-        position: 'bottom-right',
-      });
+      // Always copy markdown plain text so editor paste can restore structure.
+      // Prefer the async Clipboard API (plain only). Fall back to
+      // copy-to-clipboard with text/plain forced.
+      const markdown = getMarkdownDownloadContent(resource.content);
+      void (async () => {
+        let ok = false;
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(markdown);
+            ok = true;
+          }
+        } catch {
+          // fall through
+        }
+        if (!ok) {
+          ok = copy(markdown, {
+            format: 'text/plain',
+            onCopy: clipboardData => {
+              try {
+                clipboardData?.setData('text/plain', markdown);
+                clipboardData?.setData('text/html', '');
+              } catch {
+                // ignore
+              }
+            },
+          });
+        }
+        toast(t(ok ? 'copy.success' : 'copy.fail'), {
+          position: 'bottom-right',
+        });
+      })();
       setOpen(false);
       return;
     }

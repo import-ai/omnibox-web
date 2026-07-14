@@ -58,8 +58,18 @@ export default function ShareActions({
     }
 
     if (id === 'copy_content' && resource.content) {
-      const returnValue = copy(resource.content, {
+      // Always copy markdown plain text so editor paste can restore structure.
+      const markdown = getMarkdownDownloadContent(resource.content);
+      const returnValue = copy(markdown, {
         format: 'text/plain',
+        onCopy: clipboardData => {
+          try {
+            clipboardData?.setData('text/plain', markdown);
+            clipboardData?.setData('text/html', '');
+          } catch {
+            // ignore
+          }
+        },
       });
       toast(t(returnValue ? 'copy.success' : 'copy.fail'), {
         position: 'bottom-right',

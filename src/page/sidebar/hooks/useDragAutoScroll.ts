@@ -1,8 +1,14 @@
 import { useEffect } from 'react';
 
 const EDGE_SIZE = 60;
+const HORIZONTAL_PAD = 24;
 const MAX_SCROLL_SPEED = 600;
 
+/**
+ * Auto-scroll a sidebar list while dragging near its top/bottom edges.
+ * Only activates when the pointer is horizontally over the sidebar so that
+ * editor block drags (document-level dragover) do not scroll the resource tree.
+ */
 export function useDragAutoScroll(ref: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const element = ref.current;
@@ -51,6 +57,17 @@ export function useDragAutoScroll(ref: React.RefObject<HTMLElement | null>) {
       if (!element) return;
       const rect = element.getBoundingClientRect();
       const clientY = e.clientY;
+      const clientX = e.clientX;
+
+      // Ignore drags over the main editor / content area.
+      const isNearSidebarX =
+        clientX >= rect.left - HORIZONTAL_PAD &&
+        clientX <= rect.right + HORIZONTAL_PAD;
+      if (!isNearSidebarX) {
+        stopAutoScroll();
+        prevClientY = clientY;
+        return;
+      }
 
       const isAboveTop = clientY < rect.top + EDGE_SIZE;
       const isBelowBottom = clientY > rect.bottom - EDGE_SIZE;

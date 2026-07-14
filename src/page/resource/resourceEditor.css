@@ -4,11 +4,63 @@
     [content-end full-end];
 }
 
-.resource-editable-editor .omnibox-editor-layout {
+/*
+ * Full-width page grid: left gutter | centered content | right gutter.
+ * TOC sits in full-start → content-start (the large left margin).
+ */
+.resource-editable-page {
+  --resource-editor-content-width: 680px;
+  display: grid;
+  width: 100%;
   grid-template-columns:
-    [full-start content-start] minmax(0, 1fr)
-    [content-end] minmax(3.5rem, 4.5rem)
+    [full-start] minmax(0, 1fr)
+    [content-start] minmax(0, var(--resource-editor-content-width))
+    [content-end] minmax(0, 1fr)
     [full-end];
+}
+
+.resource-editable-title {
+  grid-column: content-start / content-end;
+  min-width: 0;
+}
+
+.resource-editable-editor {
+  grid-column: full-start / full-end;
+  min-width: 0;
+}
+
+/* Undo/redo bar sits above the editor grid; align icons with content column. */
+.resource-editable-editor .omnibox-editor-history-bar {
+  display: grid;
+  grid-template-columns:
+    [full-start] minmax(5.5rem, 1fr)
+    [content-start] minmax(0, var(--resource-editor-content-width))
+    [content-end] minmax(0, 1fr)
+    [full-end];
+  align-items: center;
+  padding-inline: 0;
+  margin-bottom: 0.25rem;
+  border-bottom: 0;
+}
+
+.resource-editable-editor .omnibox-editor-history-controls {
+  grid-column: content-start / content-end;
+  justify-self: end;
+}
+
+.resource-editable-editor .omnibox-editor-layout {
+  /* Keep a real left gutter so the TOC rail cannot collapse to 0 width. */
+  grid-template-columns:
+    [full-start] minmax(5.5rem, 1fr)
+    [content-start] minmax(0, var(--resource-editor-content-width))
+    [content-end] minmax(0, 1fr)
+    [full-end];
+}
+
+/* Near content, with a clear gap so the rail doesn't crowd headings. */
+.resource-editable-editor .toc-sidebar-wrapper {
+  margin-left: auto;
+  margin-right: 2.5rem;
 }
 
 .resource-readonly-editor
@@ -47,4 +99,32 @@
 .resource-readonly-editor .language-graphviz {
   margin-bottom: 16px;
   text-align: center;
+}
+
+/*
+ * Search-from-query highlights: same yellow as the editor color menu
+ * ("高亮颜色" yellow = --tt-color-highlight-yellow).
+ * Light #fef9c3 · Dark #6b6524 — text keeps theme color (not forced black).
+ */
+.resource-readonly-editor mark.search-query-mark,
+.resource-editable-editor mark.search-query-mark,
+.markdown-body mark.search-query-mark {
+  background-color: #fef9c3;
+  color: inherit;
+  padding: 0.05em 0;
+  border-radius: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.dark .resource-readonly-editor mark.search-query-mark,
+.dark .resource-editable-editor mark.search-query-mark,
+.dark .markdown-body mark.search-query-mark {
+  background-color: #6b6524;
+}
+
+/* Prefer the live token when inside the editor root (tracks theme vars). */
+.resource-readonly-editor .omnibox-editor-root mark.search-query-mark,
+.resource-editable-editor .omnibox-editor-root mark.search-query-mark {
+  background-color: var(--tt-color-highlight-yellow, #fef9c3);
 }
