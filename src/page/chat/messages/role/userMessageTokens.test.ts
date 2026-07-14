@@ -5,9 +5,12 @@ import {
   ToolType,
 } from '../../chat-input/types';
 import {
+  collectUserMessageResourceIds,
   createUserMessageCopyHtml,
+  formatUserContextResourceLabel,
   getUserMessageResources,
   getUserMessageToolTokens,
+  hasVisibleUserMessageResources,
   resourceMetaFromPrivateSearchResource,
   splitUserMessageResourceTokens,
 } from './userMessageTokens';
@@ -133,5 +136,66 @@ describe('user message resource tokens', () => {
     ).toBe(
       '<span contenteditable="false" data-chat-token="tool" data-tool-name="web_search" data-label="联网搜索" title="联网搜索">联网搜索</span><span contenteditable="false" data-chat-token="tool" data-tool-name="reasoning" data-label="深度思考" title="深度思考">深度思考</span><span contenteditable="false" data-chat-token="resource" data-label="doc.md" data-resource-id="1" data-resource-name="doc.md" data-resource-type="file" data-parent-id="" data-context-type="resource" title="doc.md">doc.md</span>帮我总结'
     );
+  });
+
+  it('detects visible resources from display parts including folders', () => {
+    expect(
+      hasVisibleUserMessageResources('总结一下', undefined, [
+        {
+          type: 'resource',
+          resource: { id: '1', name: 'docs', type: 'folder' },
+        },
+        { type: 'text', text: '总结一下' },
+      ])
+    ).toBe(true);
+  });
+
+  it('detects visible resources from content name matching', () => {
+    expect(
+      hasVisibleUserMessageResources('ask doc.txt', [
+        {
+          name: ToolType.PRIVATE_SEARCH,
+          resources: [{ id: '1', name: 'doc.txt', type: 'resource' }],
+        },
+      ])
+    ).toBe(true);
+  });
+
+  it('returns false when tools have resources but bubble has no pills', () => {
+    expect(
+      hasVisibleUserMessageResources('hello', [
+        {
+          name: ToolType.PRIVATE_SEARCH,
+          resources: [{ id: '1', name: 'doc.txt', type: 'resource' }],
+        },
+      ])
+    ).toBe(false);
+  });
+
+  it('collects selected resource ids for name lookup', () => {
+    expect(
+      collectUserMessageResourceIds(
+        [{ id: '1', name: 'doc.txt', type: 'resource' }],
+        ['OKLzi2M2lWfgvhJb', '/private/docs']
+      )
+    ).toEqual(['1', 'OKLzi2M2lWfgvhJb']);
+  });
+
+  it('formats user context labels with resource names', () => {
+    const t = ((key: string) => key) as never;
+    expect(
+      formatUserContextResourceLabel(
+        'OKLzi2M2lWfgvhJb',
+        { OKLzi2M2lWfgvhJb: '第一层 abc' },
+        t
+      )
+    ).toBe('第一层 abc');
+  });
+
+  it('hides unresolved resource ids until names are available', () => {
+    const t = ((key: string) => key) as never;
+    expect(
+      formatUserContextResourceLabel('OKLzi2M2lWfgvhJb', {}, t)
+    ).toBeNull();
   });
 });

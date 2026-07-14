@@ -1,4 +1,7 @@
+import type { TFunction } from 'i18next';
+
 import type { ResourceMeta } from '@/interface';
+import { pathI18n, trimMiddle } from '@/lib/toolArgs.ts';
 
 import {
   type ChatMessageDisplayPart,
@@ -51,6 +54,74 @@ export function getUserMessageResources(tools?: ChatTool[]) {
   return Array.from(resourcesByName.values()).sort(
     (a, b) => b.name.length - a.name.length
   );
+}
+
+/** Whether the user bubble already renders resource/folder pills. */
+export function hasVisibleUserMessageResources(
+  content: string | undefined,
+  tools?: ChatTool[],
+  displayParts?: ChatMessageDisplayPart[] | null
+): boolean {
+  if (displayParts?.some(part => part.type === 'resource')) {
+    return true;
+  }
+
+  const resources = getUserMessageResources(tools);
+  if (resources.length === 0) return false;
+
+  const text = content ?? '';
+  return resources.some(resource => text.includes(resource.name));
+}
+
+/** IDs to resolve for message pills / user_context tip labels. */
+export function collectUserMessageResourceIds(
+  resources: PrivateSearchResource[],
+  selectedResources?: string[]
+): string[] {
+  const selectedIds = (selectedResources ?? []).filter(
+    value => !!value && !value.includes('/')
+  );
+
+  return Array.from(
+    new Set([
+      ...resources.map(resource => resource.id).filter(Boolean),
+      ...selectedIds,
+    ])
+  ).sort();
+}
+
+export function buildResourceNameById(
+  resources: PrivateSearchResource[],
+  metaById: Record<string, Pick<ResourceMeta, 'name'> | undefined>
+): Record<string, string> {
+  const nameById: Record<string, string> = {};
+
+  for (const resource of resources) {
+    if (resource.id && resource.name) {
+      nameById[resource.id] = resource.name;
+    }
+  }
+
+  for (const [id, meta] of Object.entries(metaById)) {
+    if (meta?.name) {
+      nameById[id] = meta.name;
+    }
+  }
+
+  return nameById;
+}
+
+/** Prefer resource name; fall back to path i18n. Unresolved IDs return null. */
+export function formatUserContextResourceLabel(
+  value: string,
+  nameById: Record<string, string>,
+  t: TFunction
+): string | null {
+  const name = nameById[value];
+  if (name) return trimMiddle(name);
+  // Paths keep path i18n; bare IDs wait for metadata instead of flashing the id.
+  if (value.includes('/')) return trimMiddle(pathI18n(value, t));
+  return null;
 }
 
 /**

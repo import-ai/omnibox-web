@@ -9,7 +9,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 import type { ResourceMeta } from '@/interface';
-import { pathI18n, trimMiddle } from '@/lib/toolArgs.ts';
 import { cn } from '@/lib/utils';
 import { InlineChatToken } from '@/page/chat/chat-input/InlineChatToken';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
@@ -20,9 +19,13 @@ import { fetchShareResource } from '@/service/share';
 
 import { getCachedMessageDisplayParts } from '../messageDisplayPartsCache';
 import {
+  buildResourceNameById,
+  collectUserMessageResourceIds,
   createUserMessageCopyHtml,
+  formatUserContextResourceLabel,
   getUserMessageResources,
   getUserMessageToolTokens,
+  hasVisibleUserMessageResources,
   resourceMetaFromPrivateSearchResource,
   splitDisplayPartsByLine,
   splitUserMessageResourceTokens,
@@ -81,15 +84,25 @@ export function UserMessage(props: IProps) {
     displayParts
       ?.filter(part => part.type === 'resource')
       .map(part => part.resource) ?? [];
+  const showSelectedResourcesTip =
+    !!selectedResources?.length &&
+    !hasVisibleUserMessageResources(
+      openAIMessage.content,
+      message.attrs?.tools,
+      displayParts
+    );
   const toolTokens = getUserMessageToolTokens(
     message.attrs?.tools,
     message.attrs?.enable_thinking
   );
-  const resourceIdsKey = Array.from(
-    new Set([...resources, ...displayResources].map(resource => resource.id))
-  )
-    .sort()
-    .join(',');
+  const resourceIdsKey = collectUserMessageResourceIds(
+    [...resources, ...displayResources],
+    selectedResources
+  ).join(',');
+  const resourceNameById = buildResourceNameById(
+    [...resources, ...displayResources],
+    resourceMetaById
+  );
 
   useEffect(() => {
     const namespaceId = params.namespace_id;
@@ -238,7 +251,7 @@ export function UserMessage(props: IProps) {
           ))
         )}
       </div>
-      {selectedResources && selectedResources.length > 0 && (
+      {showSelectedResourcesTip && selectedResources && (
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="text-muted-foreground text-xs my-0.5 cursor-default">
@@ -248,9 +261,14 @@ export function UserMessage(props: IProps) {
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            {selectedResources.slice(0, 3).map((path, idx) => (
-              <p key={idx}>{trimMiddle(pathI18n(path, t))}</p> // TODO Scrollable
-            ))}
+            {selectedResources.slice(0, 3).map((value, idx) => {
+              const label = formatUserContextResourceLabel(
+                value,
+                resourceNameById,
+                t
+              );
+              return label ? <p key={idx}>{label}</p> : null;
+            })}
             {selectedResources.length > 3 && <p>...</p>}
           </TooltipContent>
         </Tooltip>
