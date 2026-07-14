@@ -36,10 +36,10 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
-    // Linked package ships prebuilt dist CSS (layers flattened). Do not force
-    // Vite to compile editor src CSS through web's Tailwind v3 pipeline.
+    // Let Vite prebundle the editor (and its CJS deps like use-sync-external-store).
+    // Do not exclude it — raw CJS then hits the browser and breaks named imports.
     optimizeDeps: {
-      exclude: ['@import-ai/omnibox-editor'],
+      include: ['@import-ai/omnibox-editor'],
     },
     build: {
       chunkSizeWarningLimit: 1000,

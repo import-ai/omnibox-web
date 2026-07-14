@@ -57,10 +57,9 @@
     [full-end];
 }
 
-/* Near content, with a clear gap so the rail doesn't crowd headings. */
 .resource-editable-editor .toc-sidebar-wrapper {
-  margin-left: auto;
-  margin-right: 2.5rem;
+  margin-left: 0;
+  margin-right: auto;
 }
 
 .resource-readonly-editor
