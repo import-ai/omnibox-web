@@ -1,5 +1,9 @@
 import { IBase } from '@/interface.ts';
-import type { ChatTool, DecisionType } from '@/page/chat/chat-input/types';
+import type {
+  ChatMessageDisplayPart,
+  ChatTool,
+  DecisionType,
+} from '@/page/chat/chat-input/types';
 import type {
   Citation,
   MessageStatus,
@@ -37,6 +41,10 @@ export interface MessageAttrs {
   };
   user_context?: {
     selected_resources?: string[];
+  };
+  // frontend only
+  composer?: {
+    display_parts?: ChatMessageDisplayPart[];
   };
   tool_call?: {
     status: string;

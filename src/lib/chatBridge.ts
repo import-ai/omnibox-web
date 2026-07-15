@@ -1,6 +1,22 @@
 import { normalizeResourceMeta, ResourceMetaLike } from '@/lib/resourceMeta';
+import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import type { PrivateSearchResourceType } from '@/page/chat/chat-input/types';
 import { useChatStore } from '@/page/chat/chatStore';
+
+export function getChatHomeDraftScope(namespaceId: string) {
+  return `home:${namespaceId}`;
+}
+
+/**
+ * Clears chat context and unsent home input when leaving a namespace.
+ * Also bumps a reset nonce so the composer drops tool tokens before draft sync.
+ */
+export function resetChatForNamespaceSwitch(namespaceId: string) {
+  clearChatInputDraft(getChatHomeDraftScope(namespaceId));
+  const store = useChatStore.getState();
+  store.requestChatInputReset();
+  store.clearContext();
+}
 
 /**
  * Cross-module bridge: sidebar → chat context.

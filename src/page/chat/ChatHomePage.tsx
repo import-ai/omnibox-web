@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Typewriter } from '@/components/typewriter';
 import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
+import { getChatHomeDraftScope } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
 import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import {
@@ -38,6 +39,7 @@ export default function ChatHomePage() {
   const creatingRecommendedQuestionRef = useRef(false);
   const [loadingRecommendedQuestionId, setLoadingRecommendedQuestionId] =
     useState<string | null>(null);
+  const chatHomeDraftScope = getChatHomeDraftScope(namespaceId);
 
   useEffect(() => {
     creatingRecommendedQuestionRef.current = false;
@@ -98,6 +100,7 @@ export default function ChatHomePage() {
     tools,
     selectedResources,
     mode,
+    displayParts,
     approvalMode,
     recommendedQuestionId,
   }: SendMessageParams) => {
@@ -111,6 +114,7 @@ export default function ChatHomePage() {
             query,
             tools,
             selectedResources,
+            displayParts,
             approvalMode,
             recommendedQuestionId,
             conversation: {
@@ -151,9 +155,11 @@ export default function ChatHomePage() {
           </h1>
           {config.commercial && <AgentTrial namespaceId={namespaceId} />}
           <ChatArea
+            key={chatHomeDraftScope}
             messages={[]}
+            namespaceId={namespaceId}
             navigatePrefix={`/${namespaceId}`}
-            approvalModeResetKey={`home:${namespaceId}`}
+            approvalModeResetKey={chatHomeDraftScope}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             loading={false}
