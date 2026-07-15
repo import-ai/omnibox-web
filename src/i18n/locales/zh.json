@@ -42,6 +42,13 @@
     "expand": "展开侧边栏",
     "collapse": "收起侧边栏"
   },
+  "resource_picker": {
+    "expand_resource": "展开{{name}}",
+    "collapse_resource": "收起{{name}}",
+    "empty": "暂无可用资源",
+    "no_results": "没有匹配的资源",
+    "search_failed": "无法加载搜索结果"
+  },
   "upload": {
     "success_one": "成功上传 {{count}} 个文件",
     "success_other": "成功上传 {{count}} 个文件",
@@ -684,6 +691,9 @@
       }
     },
     "tools": {
+      "add": "添加",
+      "more": "更多",
+      "select_resource": "选择资源",
       "web_search": "联网搜索",
       "private_search": "本地搜索",
       "reasoning": "深度思考",

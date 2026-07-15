@@ -14,7 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import useApp from '@/hooks/useApp';
-import { useChatStore } from '@/page/chat/chatStore';
+import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
+import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 
 import { PlusIcon } from './PlusIcon';
 
@@ -34,7 +35,6 @@ export default function Actions(props: IProps) {
     conversationsPage,
     namespaceId,
   } = props;
-  const clearContext = useChatStore(state => state.clearContext);
   const app = useApp();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -51,7 +51,8 @@ export default function Actions(props: IProps) {
     navigate(`/${namespaceId}/chat/conversations`);
   };
   const onChatCreate = () => {
-    clearContext();
+    if (conversationId) clearChatInputDraft(conversationId);
+    resetChatForNamespaceSwitch(namespaceId);
     navigate(`/${namespaceId}/chat`);
   };
   const handleAction = (id: string) => {

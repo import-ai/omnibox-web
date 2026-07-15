@@ -1,164 +1,36 @@
-import { Check, ChevronDown, Hand, ShieldCheck, ShieldX } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { type ReactNode, useCallback, useState } from 'react';
 
-import { Button } from '@/components/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu';
+import { WorkspaceResourcePicker } from '@/components/resourcePicker';
+import type { ResourceMeta } from '@/interface';
 import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ApprovalMode,
   ChatMode,
-  InputMode,
   IResTypeContext,
   SendMessageParams,
-  ToolType,
 } from '@/page/chat/chat-input/types';
-import {
-  MessageStatus,
-  OpenAIMessageRole,
-} from '@/page/chat/core/types/chatResponse.ts';
-import {
-  Interrupt,
-  MessageDetail,
-} from '@/page/chat/core/types/conversation.ts';
+import { MessageDetail } from '@/page/chat/core/types/conversation.ts';
 import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
 
+import ApprovalModeSelect from './ApprovalModeSelect';
 import ChatAction from './ChatAction';
-import ChatContext from './ChatContext';
 import ChatInput from './ChatInput';
 import ChatTool from './ChatTool';
-
-interface RestoredTools {
-  conversationKey: string;
-  signature: string;
-  tools: ToolType[];
-  ready: boolean;
-}
-
-function getRestoredTools(messages: MessageDetail[]): RestoredTools {
-  const conversationKey = messages[0]?.id ?? 'empty';
-  const userMessage = messages
-    .slice()
-    .reverse()
-    .find(message => message.message.role === OpenAIMessageRole.USER);
-
-  if (!userMessage) {
-    return {
-      conversationKey,
-      signature: 'empty',
-      tools: [],
-      ready: true,
-    };
-  }
-
-  const tools: ToolType[] = [];
-  if (
-    userMessage.attrs?.tools?.some(tool => tool.name === ToolType.WEB_SEARCH)
-  ) {
-    tools.push(ToolType.WEB_SEARCH);
-  }
-  if (userMessage.attrs?.enable_thinking) {
-    tools.push(ToolType.REASONING);
-  }
-
-  return {
-    conversationKey,
-    signature: `${userMessage.id}:${tools.join(',')}`,
-    tools,
-    ready:
-      Boolean(userMessage.attrs) ||
-      userMessage.status !== MessageStatus.PENDING,
-  };
-}
-
-function formatTokenCount(tokens: number): string {
-  if (tokens >= 1000) {
-    return `${Math.round(tokens / 1000)}k`;
-  }
-  return String(tokens);
-}
-
-function ContextCapacityIndicator({
-  capacity,
-}: {
-  capacity: NonNullable<ReturnType<typeof getLatestContextCompactCapacity>>;
-}) {
-  const { t } = useTranslation();
-  const radius = 8;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - capacity.percent / 100);
-  const remainingPercent = 100 - capacity.percent;
-  const usageLabel = t('chat.messages.context_capacity.ratio', {
-    used: capacity.percent,
-    remaining: remainingPercent,
-  });
-
-  return (
-    <Tooltip delayDuration={150}>
-      <TooltipTrigger asChild>
-        <span
-          role="img"
-          tabIndex={0}
-          className="flex size-8 cursor-help items-center justify-center text-muted-foreground"
-          aria-label={usageLabel}
-        >
-          <svg
-            aria-hidden="true"
-            className="size-4 -rotate-90"
-            viewBox="0 0 20 20"
-          >
-            <circle
-              cx="10"
-              cy="10"
-              r={radius}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              className="opacity-25"
-            />
-            <circle
-              cx="10"
-              cy="10"
-              r={radius}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeDasharray={circumference}
-              strokeDashoffset={offset}
-              strokeLinecap="round"
-            />
-          </svg>
-        </span>
-      </TooltipTrigger>
-      <TooltipContent
-        className="max-w-[calc(100vw-2rem)] whitespace-nowrap text-center"
-        side="top"
-      >
-        <div>{usageLabel}</div>
-        <div>
-          {t('chat.messages.context_capacity.tokens', {
-            estimated: formatTokenCount(capacity.estimatedTokens),
-            trigger: formatTokenCount(capacity.triggerTokens),
-          })}
-        </div>
-      </TooltipContent>
-    </Tooltip>
-  );
-}
+import ContextCapacityIndicator from './ContextCapacityIndicator';
+import { useChatAreaDraftLifecycle } from './useChatAreaDraftLifecycle';
 
 interface IProps {
   messages: MessageDetail[];
+  namespaceId?: string;
   navigatePrefix: string;
   selectedResources: IResTypeContext[];
-  setSelectedResources: any;
+  setSelectedResources: (resources: IResTypeContext[]) => void;
+  renderResourcePicker?: (
+    onSelect: (resource: ResourceMeta) => void
+  ) => ReactNode;
   initialApprovalMode?: ApprovalMode;
   approvalModeResetKey?: string;
+  suppressInitialToolRestore?: boolean;
   loading: boolean;
   waitingForAssistantDelta?: boolean;
   initialQuery?: string;
@@ -172,76 +44,17 @@ interface IProps {
   onStop?: () => void;
 }
 
-function ApprovalModeSelect({
-  approvalMode,
-  setApprovalMode,
-}: {
-  approvalMode: ApprovalMode;
-  setApprovalMode: (mode: ApprovalMode) => void;
-}) {
-  const { t } = useTranslation();
-  const options = [
-    { value: 'manual', Icon: Hand },
-    { value: 'auto_approve', Icon: ShieldCheck },
-    { value: 'auto_reject', Icon: ShieldX },
-  ] as const;
-  const TriggerIcon = options.find(
-    option => option.value === approvalMode
-  )?.Icon;
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="shrink-0 px-2 text-xs font-normal rounded-full md:pl-2 md:pr-1"
-        >
-          {TriggerIcon && <TriggerIcon className="size-4" />}
-          <span className="hidden md:block">
-            {t(`chat.decision.mode.${approvalMode}`)}
-          </span>
-          <ChevronDown className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        side="top"
-        align="start"
-        className="w-72 rounded-xl p-1.5"
-      >
-        {options.map(({ value, Icon }) => (
-          <DropdownMenuItem
-            key={value}
-            className="grid cursor-pointer grid-cols-[24px_minmax(0,1fr)_18px] items-center gap-2 rounded-md px-2 py-2"
-            onClick={() => setApprovalMode(value)}
-          >
-            <Icon className="size-4 text-muted-foreground" />
-            <span className="min-w-0">
-              <span className="block text-sm font-medium leading-5">
-                {t(`chat.decision.mode.${value}`)}
-              </span>
-              <span className="block whitespace-normal text-xs leading-4 text-muted-foreground">
-                {t(`chat.decision.mode_description.${value}`)}
-              </span>
-            </span>
-            {approvalMode === value && (
-              <Check className="size-4 text-muted-foreground" />
-            )}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 export default function ChatArea(props: IProps) {
   const {
     messages,
+    namespaceId,
     navigatePrefix,
     selectedResources,
     setSelectedResources,
+    renderResourcePicker,
     initialApprovalMode,
     approvalModeResetKey,
+    suppressInitialToolRestore = false,
     loading,
     waitingForAssistantDelta = false,
     initialQuery,
@@ -249,122 +62,73 @@ export default function ChatArea(props: IProps) {
     onStop,
   } = props;
 
-  const [tools, setTools] = useState<ToolType[]>([]);
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const [selectedApprovalMode, setSelectedApprovalMode] = useState<
-    ApprovalMode | undefined
-  >(initialApprovalMode);
-  const [query, setQuery] = useState(initialQuery ?? '');
-  const defaultQueryRef = useRef(initialQuery ?? '');
-  const approvalMode: ApprovalMode =
-    selectedApprovalMode ??
-    (defaultQueryRef.current && query === defaultQueryRef.current
-      ? 'auto_approve'
-      : 'manual');
-  const queryEditedRef = useRef(false);
-  const toolsManuallyChangedRef = useRef(false);
-  const restoredToolsConversationKeyRef = useRef<string | null>(null);
-  const restoredToolsSignatureRef = useRef<string | null>(null);
-  const restoredTools = useMemo(() => getRestoredTools(messages), [messages]);
+  const {
+    approvalMode,
+    clearComposerAfterSend,
+    composerInitialState,
+    composerSelectedResources,
+    composerTools,
+    handleComposerStateChange,
+    handleQueryChange,
+    handleToolsChange,
+    inputRef,
+    query,
+    setSelectedApprovalMode,
+    tools,
+  } = useChatAreaDraftLifecycle({
+    messages,
+    navigatePrefix,
+    selectedResources,
+    setSelectedResources,
+    initialApprovalMode,
+    approvalModeResetKey,
+    suppressInitialToolRestore,
+    initialQuery,
+  });
   const contextCompactCapacity = getLatestContextCompactCapacity(messages);
+  const defaultResourcePicker = namespaceId
+    ? (onSelect: (resource: ResourceMeta) => void) => (
+        <WorkspaceResourcePicker
+          namespaceId={namespaceId}
+          onSelect={onSelect}
+        />
+      )
+    : undefined;
 
-  useEffect(() => {
-    if (!restoredTools.ready) {
-      return;
-    }
-
-    if (
-      restoredToolsConversationKeyRef.current !== restoredTools.conversationKey
-    ) {
-      restoredToolsConversationKeyRef.current = restoredTools.conversationKey;
-      restoredToolsSignatureRef.current = null;
-      toolsManuallyChangedRef.current = false;
-    }
-
-    if (toolsManuallyChangedRef.current) {
-      return;
-    }
-
-    if (restoredToolsSignatureRef.current === restoredTools.signature) {
-      return;
-    }
-
-    restoredToolsSignatureRef.current = restoredTools.signature;
-    setTools(restoredTools.tools);
-  }, [restoredTools]);
-
-  useEffect(() => {
-    if (!initialQuery || queryEditedRef.current) {
-      return;
-    }
-
-    setQuery(currentQuery => {
-      if (currentQuery) {
-        return currentQuery;
-      }
-
-      defaultQueryRef.current = initialQuery;
-      return initialQuery;
-    });
-  }, [initialQuery]);
-
-  const handleQueryChange = useCallback((value: string) => {
-    queryEditedRef.current = true;
-    setQuery(value);
-  }, []);
-
-  const handleToolsChange = useCallback((nextTools: ToolType[]) => {
-    toolsManuallyChangedRef.current = true;
-    setTools(nextTools);
-  }, []);
-
-  useEffect(() => {
-    setSelectedApprovalMode(initialApprovalMode);
-  }, [approvalModeResetKey, initialApprovalMode]);
-
-  const lastMessage = useMemo<MessageDetail | undefined>(() => {
-    return messages.at(-1);
-  }, [messages]);
-
-  const interrupts = useMemo<Interrupt[]>((): Interrupt[] => {
-    return lastMessage?.attrs?.tool_call?.interrupts ?? [];
-  }, [lastMessage?.attrs?.tool_call?.interrupts]);
-
-  const inputMode = useMemo(() => {
-    return interrupts.length > 0 ? InputMode.DECISION : InputMode.TEXT;
-  }, [interrupts]);
-
-  const disabled = useMemo(() => {
-    return (
-      loading ||
-      (inputMode === InputMode.TEXT && (!query || query.trim().length === 0))
-    );
-  }, [loading, query, inputMode]);
+  const interrupts = messages.at(-1)?.attrs?.tool_call?.interrupts ?? [];
+  const disabled =
+    loading ||
+    (interrupts.length === 0 && (!query || query.trim().length === 0));
 
   const handleSend = useCallback(() => {
     const v = query.trim();
     if (v) {
-      queryEditedRef.current = true;
-      setQuery('');
-      toolsManuallyChangedRef.current = false;
+      const localTools = [...tools];
       const localContext = structuredClone(selectedResources);
-      setSelectedResources([]);
+      const displayParts = inputRef.current?.getDisplayParts();
+      const localDisplayParts = displayParts?.some(part => part.type !== 'text')
+        ? displayParts
+        : undefined;
+      clearComposerAfterSend();
       sendMessage({
         query: v,
         selectedResources: localContext,
-        tools,
+        tools: localTools,
         mode,
         approvalMode,
+        displayParts: localDisplayParts,
       });
     }
   }, [
+    approvalMode,
+    clearComposerAfterSend,
+    inputRef,
+    mode,
     query,
     selectedResources,
-    setSelectedResources,
-    tools,
-    mode,
-    approvalMode,
     sendMessage,
+    tools,
   ]);
 
   return interrupts.length > 0 ? (
@@ -376,23 +140,29 @@ export default function ChatArea(props: IProps) {
     />
   ) : (
     <div className="max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]">
-      <ChatContext
-        value={selectedResources}
-        onChange={setSelectedResources}
-        navigatePrefix={navigatePrefix}
-      />
       <ChatInput
+        ref={inputRef}
         value={query}
+        initialComposerState={composerInitialState}
+        onComposerStateChange={handleComposerStateChange}
+        tools={composerTools}
+        selectedResources={composerSelectedResources}
         onChange={handleQueryChange}
+        onToolsChange={handleToolsChange}
+        onSelectedResourcesChange={setSelectedResources}
         onSend={handleSend}
         disabled={disabled}
       />
       <div className="flex items-center justify-between">
         <div className="flex min-w-0 items-center gap-2">
           <ChatTool
-            tools={tools}
-            context={selectedResources}
-            onToolsChange={handleToolsChange}
+            tools={composerTools}
+            renderResourcePicker={renderResourcePicker ?? defaultResourcePicker}
+            onBeforeOpen={() => inputRef.current?.rememberSelection()}
+            onToolToggle={tool => inputRef.current?.toggleTool(tool)}
+            onResourceSelect={resource =>
+              inputRef.current?.insertResource(resource)
+            }
           />
           <ApprovalModeSelect
             approvalMode={approvalMode}
