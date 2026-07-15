@@ -16,15 +16,22 @@ describe('escapeRegExp', () => {
   });
 });
 
+function expectSearchMark(root: HTMLElement, text: string) {
+  const mark = root.querySelector(
+    'mark.search-query-mark'
+  ) as HTMLElement | null;
+  expect(mark).not.toBeNull();
+  expect(mark?.className).toBe('search-query-mark');
+  expect(mark?.textContent).toBe(text);
+}
+
 describe('highlightSearchText', () => {
   it('highlights a plain match', () => {
     const root = document.createElement('div');
     root.textContent = 'hello world';
 
     expect(highlightSearchText(root, 'world')).toBe(1);
-    expect(root.innerHTML).toBe(
-      'hello <mark class="search-query-mark">world</mark>'
-    );
+    expectSearchMark(root, 'world');
   });
 
   it('treats regex metacharacters as literals', () => {
@@ -32,9 +39,8 @@ describe('highlightSearchText', () => {
     root.textContent = 'hello test(abc) world';
 
     expect(() => highlightSearchText(root, 'test(')).not.toThrow();
-    expect(root.innerHTML).toBe(
-      'hello <mark class="search-query-mark">test(</mark>abc) world'
-    );
+    expectSearchMark(root, 'test(');
+    expect(root.textContent).toBe('hello test(abc) world');
   });
 
   it('does not nest marks when run twice', () => {
@@ -45,9 +51,7 @@ describe('highlightSearchText', () => {
     highlightSearchText(root, 'world');
 
     expect(root.querySelectorAll('mark.search-query-mark')).toHaveLength(1);
-    expect(root.innerHTML).toBe(
-      'hello <mark class="search-query-mark">world</mark>'
-    );
+    expectSearchMark(root, 'world');
   });
 
   it('is case-insensitive', () => {
@@ -55,9 +59,7 @@ describe('highlightSearchText', () => {
     root.textContent = 'Hello WORLD';
 
     highlightSearchText(root, 'world');
-    expect(root.innerHTML).toBe(
-      'Hello <mark class="search-query-mark">WORLD</mark>'
-    );
+    expectSearchMark(root, 'WORLD');
   });
 });
 

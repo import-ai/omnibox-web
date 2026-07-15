@@ -117,36 +117,30 @@ function OmniboxResourceEditor(props: IEditorProps) {
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const cachedTitle = cache?.title || resource.name || '';
+  // Match Vditor: folders can open /edit for title, but must not mount the body editor.
+  const isFolder = resource.resource_type === 'folder';
   const linkBase = useMemo(
     () => `/${namespaceId}/${resource.id}`,
     [namespaceId, resource.id]
   );
-  // Snapshot the content once per resource. Pinning it to the resource id means
-  // later changes to `resource.content` (autosave echoes, cross-tab
-  // `update_resource` events, etc.) never produce a new `content` prop for the
-  // editor — otherwise the editor calls `setContent` and the caret jumps to the
-  // end. The editor remounts via `key={resource.id}` when switching documents,
-  // and `Wrapper` only mounts it once the resource has finished loading.
-  // Depends only on resource.id by design — see comment above. `cache` is
-  // memoized on resource.id and `resource.content` is intentionally not a
-  // dependency so the editor is never re-seeded mid-edit.
+
   const initialContent = useMemo(
     () => cache?.content || resource.content || '',
     [resource.id]
   );
   const editorContent = useMemo(
-    () => contentToTiptapJson(initialContent, { linkBase }),
-    [initialContent, linkBase]
+    () => (isFolder ? null : contentToTiptapJson(initialContent, { linkBase })),
+    [initialContent, isFolder, linkBase]
   );
   const serializedEditorContent = useMemo(
     () =>
-      initialContent
+      !isFolder && initialContent && editorContent
         ? contentToMarkdown(editorContent, {
             linkBase,
             debug: false,
           })
         : '',
-    [initialContent, editorContent, linkBase]
+    [initialContent, editorContent, isFolder, linkBase]
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -315,23 +309,25 @@ function OmniboxResourceEditor(props: IEditorProps) {
         />
       </div>
       <div className="resource-editable-editor">
-        <ResourceOmniboxEditor
-          key={resource.id}
-          content={editorContent}
-          locale={i18n.language}
-          theme={theme.content}
-          variant="embedded"
-          contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
-          showHeader={false}
-          showToc={true}
-          tocColors={{
-            inactive: theme.content === 'dark' ? '#ffffff' : '#000000',
-          }}
-          linkBase={linkBase}
-          imageUpload={uploadImage}
-          mentionUsers={mentionUsers}
-          onUpdate={handleEditorUpdate}
-        />
+        {!isFolder && editorContent ? (
+          <ResourceOmniboxEditor
+            key={resource.id}
+            content={editorContent}
+            locale={i18n.language}
+            theme={theme.content}
+            variant="embedded"
+            contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
+            showHeader={false}
+            showToc={true}
+            tocColors={{
+              inactive: theme.content === 'dark' ? '#ffffff' : '#000000',
+            }}
+            linkBase={linkBase}
+            imageUpload={uploadImage}
+            mentionUsers={mentionUsers}
+            onUpdate={handleEditorUpdate}
+          />
+        ) : null}
       </div>
     </div>
   );

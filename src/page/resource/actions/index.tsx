@@ -45,7 +45,6 @@ import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
-import { clearCache } from '@/page/resource/editor/cache';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 import {
@@ -185,8 +184,8 @@ export default function Actions(props: IActionProps) {
     if (!resource) {
       return;
     }
-    // Drop local draft so the next edit session loads last saved server content.
-    clearCache(resource.id);
+    // Keep the local draft (same as production Vditor). Discard only leaves
+    // edit mode without a server save; the next Edit restores last draft.
     navigate(`/${namespaceId}/${resource.id}`, {
       state: loc.state,
     });

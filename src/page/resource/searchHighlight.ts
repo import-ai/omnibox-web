@@ -73,6 +73,7 @@ export function highlightSearchText(
 
       const mark = document.createElement('mark');
       mark.className = SEARCH_MARK_CLASS;
+      // Color comes from resourceEditor.css (editor highlight yellow tokens).
       mark.textContent = matched;
       fragment.appendChild(mark);
       matchCount += 1;

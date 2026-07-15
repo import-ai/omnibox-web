@@ -29,25 +29,6 @@
   min-width: 0;
 }
 
-/* Undo/redo bar sits above the editor grid; align icons with content column. */
-.resource-editable-editor .omnibox-editor-history-bar {
-  display: grid;
-  grid-template-columns:
-    [full-start] minmax(5.5rem, 1fr)
-    [content-start] minmax(0, var(--resource-editor-content-width))
-    [content-end] minmax(0, 1fr)
-    [full-end];
-  align-items: center;
-  padding-inline: 0;
-  margin-bottom: 0.25rem;
-  border-bottom: 0;
-}
-
-.resource-editable-editor .omnibox-editor-history-controls {
-  grid-column: content-start / content-end;
-  justify-self: end;
-}
-
 .resource-editable-editor .omnibox-editor-layout {
   /* Keep a real left gutter so the TOC rail cannot collapse to 0 width. */
   grid-template-columns:
@@ -101,29 +82,49 @@
 }
 
 /*
- * Search-from-query highlights: same yellow as the editor color menu
- * ("高亮颜色" yellow = --tt-color-highlight-yellow).
- * Light #fef9c3 · Dark #6b6524 — text keeps theme color (not forced black).
+ * Search-from-query highlights — same as editor "高亮颜色" yellow:
+ * light #fef9c3 · dark #6b6524 (--tt-color-highlight-yellow).
+ * !important beats editor `.tiptap mark` theme rules.
  */
 .resource-readonly-editor mark.search-query-mark,
 .resource-editable-editor mark.search-query-mark,
-.markdown-body mark.search-query-mark {
-  background-color: #fef9c3;
+.markdown-body mark.search-query-mark,
+.resource-readonly-editor .omnibox-editor-root mark.search-query-mark,
+.resource-editable-editor .omnibox-editor-root mark.search-query-mark,
+.resource-readonly-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.resource-editable-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark {
+  background-color: #fef9c3 !important;
   color: inherit;
-  padding: 0.05em 0;
-  border-radius: 2px;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  padding: 2px 0;
+  border-radius: 0;
 }
 
 .dark .resource-readonly-editor mark.search-query-mark,
 .dark .resource-editable-editor mark.search-query-mark,
-.dark .markdown-body mark.search-query-mark {
-  background-color: #6b6524;
-}
-
-/* Prefer the live token when inside the editor root (tracks theme vars). */
-.resource-readonly-editor .omnibox-editor-root mark.search-query-mark,
-.resource-editable-editor .omnibox-editor-root mark.search-query-mark {
-  background-color: var(--tt-color-highlight-yellow, #fef9c3);
+.dark .markdown-body mark.search-query-mark,
+.dark .resource-readonly-editor .omnibox-editor-root mark.search-query-mark,
+.dark .resource-editable-editor .omnibox-editor-root mark.search-query-mark,
+.resource-readonly-editor .omnibox-editor-root.dark mark.search-query-mark,
+.resource-editable-editor .omnibox-editor-root.dark mark.search-query-mark,
+.dark
+  .resource-readonly-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.dark
+  .resource-editable-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.resource-readonly-editor
+  .omnibox-editor-root.dark
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.resource-editable-editor
+  .omnibox-editor-root.dark
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark {
+  background-color: #6b6524 !important;
 }
