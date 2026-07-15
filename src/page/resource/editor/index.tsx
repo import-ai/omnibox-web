@@ -44,7 +44,6 @@ import {
 import {
   type EditorUpdatePayload,
   serializeResourceEditorContent,
-  shouldSaveOmniboxEditorJson,
 } from '@/page/resource/editor/contentSerialization';
 
 interface IEditorProps {
@@ -77,10 +76,6 @@ type ResourceOmniboxEditorProps = Omit<
 
 const ResourceOmniboxEditor =
   OmniboxEditor as React.ComponentType<ResourceOmniboxEditorProps>;
-
-const SAVE_OMNIBOX_EDITOR_JSON = shouldSaveOmniboxEditorJson(
-  import.meta.env.VITE_OMNIBOX_EDITOR_SAVE_JSON
-);
 
 function saveResourceEditorCache(
   resourceId: string,
@@ -146,16 +141,10 @@ function OmniboxResourceEditor(props: IEditorProps) {
   const serializedEditorContent = useMemo(
     () =>
       initialContent
-        ? serializeResourceEditorContent(
-            {
-              json: editorContent,
-              markdown: contentToMarkdown(editorContent, {
-                linkBase,
-                debug: false,
-              }),
-            },
-            SAVE_OMNIBOX_EDITOR_JSON
-          )
+        ? contentToMarkdown(editorContent, {
+            linkBase,
+            debug: false,
+          })
         : '',
     [initialContent, editorContent, linkBase]
   );
@@ -169,10 +158,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
 
   const handleEditorUpdate = useCallback(
     (payload: EditorUpdatePayload) => {
-      const content = serializeResourceEditorContent(
-        payload,
-        SAVE_OMNIBOX_EDITOR_JSON
-      );
+      const content = serializeResourceEditorContent(payload);
       if (content !== markdownRef.current) {
         dirtyRef.current = true;
       }

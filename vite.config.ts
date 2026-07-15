@@ -38,6 +38,9 @@ export default defineConfig(({ mode }) => {
     },
     // Let Vite prebundle the editor (and its CJS deps like use-sync-external-store).
     // Do not exclude it — raw CJS then hits the browser and breaks named imports.
+    // When developing against a local `link:` editor package, stale prebundles
+    // silently drop markdown fixes (e.g. mention shortcodes). Touching the
+    // linked package version / clearing `node_modules/.vite` forces a refresh.
     optimizeDeps: {
       include: ['@import-ai/omnibox-editor'],
     },

@@ -45,7 +45,6 @@ import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
-import { getMarkdownDownloadContent } from '@/page/resource/downloadMarkdown';
 import { clearCache } from '@/page/resource/editor/cache';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
@@ -223,7 +222,7 @@ export default function Actions(props: IActionProps) {
       // Always copy markdown plain text so editor paste can restore structure.
       // Prefer the async Clipboard API (plain only). Fall back to
       // copy-to-clipboard with text/plain forced.
-      const markdown = getMarkdownDownloadContent(resource.content);
+      const markdown = resource.content;
       void (async () => {
         let ok = false;
         try {
@@ -341,7 +340,7 @@ export default function Actions(props: IActionProps) {
       // generate file name: use resource.name, if empty, use "untitled"
       const baseName = resource.name || t('untitled');
       const fileName = baseName.endsWith('.md') ? baseName : `${baseName}.md`;
-      const markdownContent = getMarkdownDownloadContent(resource.content);
+      const markdownContent = resource.content;
 
       const imageLinks = parseImageLinks(markdownContent);
       const imageArray = imageLinks.map(item => `${resource.id}/${item}`);

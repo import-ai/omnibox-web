@@ -245,9 +245,6 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     setLoadingRecents(true);
 
     // summary=true is required for recent API to include `content` at all.
-    // But it byte-truncates the field: Tiptap JSON often loses every "text"
-    // value inside attrs, so previews go blank. For those rows we re-fetch
-    // the full resource (small N=10) and use complete content for the list.
     http
       .get(
         `/namespaces/${namespaceId}/resources/recent?limit=10&summary=true`,
@@ -256,50 +253,9 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           mute: true,
         }
       )
-      .then(async (items: ResourceMeta[] = []) => {
+      .then((items: ResourceMeta[] = []) => {
         if (cancelled) return;
-        const list = (items || []) as SearchRecentResource[];
-
-        const needsFullContent = (content?: string) => {
-          const raw = content?.trim() ?? '';
-          if (!raw.startsWith('{')) return false;
-          try {
-            const parsed = JSON.parse(raw);
-            if (
-              parsed &&
-              typeof parsed === 'object' &&
-              (parsed as { type?: string }).type === 'doc'
-            ) {
-              return false;
-            }
-          } catch {
-            // Truncated JSON — need full resource.
-          }
-          return true;
-        };
-
-        const hydrated = await Promise.all(
-          list.map(async item => {
-            if (!needsFullContent(item.content)) {
-              return item;
-            }
-            try {
-              const full = (await http.get(
-                `/namespaces/${namespaceId}/resources/${item.id}`,
-                { cancelToken: source.token, mute: true }
-              )) as { content?: string };
-              const fullContent =
-                typeof full?.content === 'string' ? full.content : item.content;
-              return { ...item, content: fullContent };
-            } catch {
-              return item;
-            }
-          })
-        );
-
-        if (!cancelled) {
-          setRecents(hydrated);
-        }
+        setRecents((items || []) as SearchRecentResource[]);
       })
       .catch(() => void 0)
       .finally(() => {
