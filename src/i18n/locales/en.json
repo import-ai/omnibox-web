@@ -42,6 +42,13 @@
     "expand": "Expand Sidebar",
     "collapse": "Collapse Sidebar"
   },
+  "resource_picker": {
+    "expand_resource": "Expand {{name}}",
+    "collapse_resource": "Collapse {{name}}",
+    "empty": "No resources available",
+    "no_results": "No matching resources",
+    "search_failed": "Unable to load search results"
+  },
   "upload": {
     "success_one": "{{count}} file uploaded successfully",
     "success_other": "{{count}} files uploaded successfully",
@@ -683,6 +690,9 @@
       }
     },
     "tools": {
+      "add": "Add",
+      "more": "More",
+      "select_resource": "Select Resource",
       "web_search": "Web Search",
       "private_search": "OmniBox",
       "reasoning": "Reasoning",

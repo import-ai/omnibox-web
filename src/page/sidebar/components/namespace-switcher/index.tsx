@@ -23,8 +23,8 @@ import useConfig from '@/hooks/useConfig';
 import useNamespaces from '@/hooks/useNamespaces';
 import useProNamespaces from '@/hooks/useProNamespaces';
 import { Namespace } from '@/interface';
+import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { cn } from '@/lib/utils';
-import { useChatStore } from '@/page/chat/chatStore';
 import { SettingButton } from '@/page/settings/SettingButton';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { Logout } from '@/page/user/Logout';
@@ -65,7 +65,7 @@ export function Switcher(props: IProps) {
     if (item.id === namespaceId) {
       return;
     }
-    useChatStore.getState().clearContext();
+    resetChatForNamespaceSwitch(namespaceId);
     useSidebarStore.getState().clear();
     navigate(`/${item.id}/chat`);
   };
