@@ -20,11 +20,6 @@ export enum ChatMode {
   WRITE = 'write',
 }
 
-export enum InputMode {
-  TEXT = 'text',
-  DECISION = 'decision',
-}
-
 export interface IChatTool {
   name: ToolType;
 }
@@ -37,7 +32,25 @@ export interface PrivateSearchResource {
   name: string;
   id: string;
   type: PrivateSearchResourceType;
+  resource_type?: ResourceMeta['resource_type'];
+  attrs?: ResourceMeta['attrs'];
 }
+
+export type VisibleToolType = Exclude<ToolType, ToolType.PRIVATE_SEARCH>;
+
+export type ChatMessageDisplayPart =
+  | {
+      type: 'text';
+      text: string;
+    }
+  | {
+      type: 'tool';
+      tool: VisibleToolType;
+    }
+  | {
+      type: 'resource';
+      resource: PrivateSearchResource;
+    };
 
 export interface PrivateSearch extends IChatTool {
   name: ToolType.PRIVATE_SEARCH;
@@ -67,6 +80,7 @@ export interface ChatRequestBody {
   query: string;
   tools?: ChatTool[];
   parent_message_id?: string;
+  recommended_question_id?: string;
   enable_thinking: boolean;
   lang?: '简体中文' | 'English';
   namespace_id?: string;
@@ -93,8 +107,10 @@ export interface SendMessageParams {
   tools: ToolType[];
   selectedResources: IResTypeContext[];
   mode: ChatMode;
+  displayParts?: ChatMessageDisplayPart[];
   decisions?: Decision[];
   approvalMode?: ApprovalMode;
+  recommendedQuestionId?: string;
 }
 
 export interface ChatCreatePayload extends SendMessageParams {
@@ -107,4 +123,5 @@ export interface ConversationEntity {
   userId: string;
   title: string;
   shareId: string;
+  recommendedQuestionId: string | null;
 }

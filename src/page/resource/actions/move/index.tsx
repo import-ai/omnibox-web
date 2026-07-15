@@ -1,9 +1,8 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useTranslation } from 'react-i18next';
 
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog';
@@ -27,15 +26,13 @@ export default function MoveTo(props: IProps) {
     disabledTargetTooltip,
     sourceResourceType,
   } = props;
+  const { t } = useTranslation();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-popover dark:bg-neutral-900 w-[480px] max-w-[90%] px-4 pt-6 pb-5 overflow-hidden">
         <DialogHeader>
-          <VisuallyHidden>
-            <DialogTitle></DialogTitle>
-            <DialogDescription></DialogDescription>
-          </VisuallyHidden>
+          <DialogTitle>{t('actions.move_to')}</DialogTitle>
         </DialogHeader>
         <Form
           resourceIds={resourceIds}

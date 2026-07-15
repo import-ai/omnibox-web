@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { ShareResourcePicker } from '@/components/resourcePicker';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizardLang';
@@ -34,13 +35,15 @@ import { Messages } from '@/page/chat/messages';
 import { MessageIndex } from '@/page/chat/messages/MessageIndex';
 import { useShareContext } from '@/page/share';
 
+const SHARED_CHAT_CREATE_PAYLOAD_KEY = 'shared-chat-create-payload';
+
 export default function SharedChatConversationPage() {
   const params = useParams();
   const shareId = params.share_id || '';
   const conversationId = params.conversation_id || '';
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
   const regeneratingRef = useRef(false);
-  const { selectedResources, setSelectedResources, mode, password } =
+  const { shareInfo, selectedResources, setSelectedResources, mode, password } =
     useShareContext();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
@@ -51,6 +54,11 @@ export default function SharedChatConversationPage() {
   >(null);
   const [initialApprovalMode, setInitialApprovalMode] =
     useState<ApprovalMode>();
+  const [suppressInitialToolRestore, setSuppressInitialToolRestore] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      Boolean(window.sessionStorage.getItem(SHARED_CHAT_CREATE_PAYLOAD_KEY))
+  );
   const channel = AgentRequestChannel.WEB_SHARE;
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
@@ -80,6 +88,7 @@ export default function SharedChatConversationPage() {
     tools,
     selectedResources,
     mode,
+    displayParts,
     decisions,
   }: SendMessageParams) => {
     const v = query.trim();
@@ -103,7 +112,8 @@ export default function SharedChatConversationPage() {
           shareId,
           password || undefined,
           undefined,
-          decisions ? { decisions } : undefined
+          decisions ? { decisions } : undefined,
+          displayParts
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();
@@ -205,11 +215,12 @@ export default function SharedChatConversationPage() {
 
   useEffect(() => {
     if (!conversationId) return;
-    const state = sessionStorage.getItem('shared-chat-create-payload');
+    const state = sessionStorage.getItem(SHARED_CHAT_CREATE_PAYLOAD_KEY);
     const chatCreatePayload: ChatCreatePayload = state
       ? JSON.parse(state)
       : null;
     setInitialApprovalMode(chatCreatePayload?.approvalMode);
+    setSuppressInitialToolRestore(Boolean(chatCreatePayload));
     const loadConversation = () =>
       http
         .get(`/shares/${shareId}/conversations/${conversationId}`)
@@ -242,7 +253,7 @@ export default function SharedChatConversationPage() {
         resumeFN?.destroy();
       };
     }
-    sessionStorage.removeItem('shared-chat-create-payload');
+    sessionStorage.removeItem(SHARED_CHAT_CREATE_PAYLOAD_KEY);
     void sendMessage(chatCreatePayload);
   }, [shareId, conversationId]);
 
@@ -290,12 +301,26 @@ export default function SharedChatConversationPage() {
       <div className="flex justify-center px-4">
         <div className="flex-1 max-w-3xl w-full">
           <ChatArea
+            key={conversation.id}
             messages={messages}
             navigatePrefix={`/s/${shareId}`}
             initialApprovalMode={initialApprovalMode}
             approvalModeResetKey={conversation.id}
+            suppressInitialToolRestore={suppressInitialToolRestore}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
+            renderResourcePicker={
+              shareInfo
+                ? onSelect => (
+                    <ShareResourcePicker
+                      shareId={shareId}
+                      rootResource={shareInfo.resource}
+                      canBrowseResources={shareInfo.all_resources}
+                      onSelect={resource => onSelect(resource)}
+                    />
+                  )
+                : undefined
+            }
             loading={mergedLoading}
             waitingForAssistantDelta={waitingForAssistantDelta}
             sendMessage={sendMessage}

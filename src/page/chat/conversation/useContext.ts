@@ -38,6 +38,8 @@ import useGlobalContext from '@/page/chat/useSelectedResources.ts';
 
 import { getTitleFromConversationDetail } from '../utils';
 
+const CHAT_CREATE_PAYLOAD_KEY = 'chat-create-payload';
+
 export default function useContext() {
   const app = useApp();
   const params = useParams();
@@ -54,6 +56,11 @@ export default function useContext() {
   >(null);
   const [initialApprovalMode, setInitialApprovalMode] =
     useState<ApprovalMode>();
+  const [suppressInitialToolRestore, setSuppressInitialToolRestore] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      Boolean(window.sessionStorage.getItem(CHAT_CREATE_PAYLOAD_KEY))
+  );
   const { selectedResources, setSelectedResources } = useGlobalContext();
   const [conversation, setConversation] = useState<ConversationDetail>({
     id: conversationId,
@@ -82,7 +89,9 @@ export default function useContext() {
     tools,
     selectedResources,
     mode,
+    displayParts,
     decisions,
+    recommendedQuestionId,
   }: SendMessageParams) => {
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
@@ -107,7 +116,9 @@ export default function useContext() {
           undefined,
           undefined,
           undefined,
-          decisions ? { decisions } : undefined
+          decisions ? { decisions } : undefined,
+          displayParts,
+          recommendedQuestionId
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();
@@ -121,11 +132,12 @@ export default function useContext() {
 
   useEffect(() => {
     if (!conversationId) return;
-    const state = sessionStorage.getItem('chat-create-payload');
+    const state = sessionStorage.getItem(CHAT_CREATE_PAYLOAD_KEY);
     const chatCreatePayload: ChatCreatePayload | undefined = state
       ? JSON.parse(state)
       : undefined;
     setInitialApprovalMode(chatCreatePayload?.approvalMode);
+    setSuppressInitialToolRestore(Boolean(chatCreatePayload));
     const loadConversation = () =>
       http
         .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
@@ -162,7 +174,7 @@ export default function useContext() {
         resumeFN?.destroy();
       };
     }
-    sessionStorage.removeItem('chat-create-payload');
+    sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
     void sendMessage(chatCreatePayload);
   }, [namespaceId, conversationId]);
 
@@ -295,6 +307,7 @@ export default function useContext() {
     selectedResources,
     setSelectedResources,
     initialApprovalMode,
+    suppressInitialToolRestore,
     namespaceId,
     conversation,
     messageOperator,
