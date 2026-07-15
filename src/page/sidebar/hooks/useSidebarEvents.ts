@@ -296,6 +296,11 @@ export function useSidebarEvents(namespaceId: string) {
       })
     );
     hooks.push(
+      app.on('refresh_smart_folder_entitlements', () => {
+        useSidebarStore.getState().refetchSmartFolderEntitlements();
+      })
+    );
+    hooks.push(
       app.on('refresh_loaded_smart_folders', () => {
         refreshLoadedSmartFolders(namespaceId, app);
       })
