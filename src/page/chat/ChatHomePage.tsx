@@ -40,6 +40,11 @@ export default function ChatHomePage() {
     useState<string | null>(null);
 
   useEffect(() => {
+    creatingRecommendedQuestionRef.current = false;
+    setLoadingRecommendedQuestionId(null);
+  }, [namespaceId]);
+
+  useEffect(() => {
     let active = true;
 
     if (!namespaceId) {
@@ -157,6 +162,7 @@ export default function ChatHomePage() {
           />
           {config.commercial && (
             <RecommendedQuestions
+              key={namespaceId}
               namespaceId={namespaceId}
               loadingQuestionId={loadingRecommendedQuestionId}
               onSelect={handleQuestionSelect}

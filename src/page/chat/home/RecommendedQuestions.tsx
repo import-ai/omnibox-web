@@ -23,7 +23,12 @@ export default function RecommendedQuestions({
   const [questions, setQuestions] = useState<RecommendedQuestionItem[]>([]);
 
   useEffect(() => {
-    if (!namespaceId) return;
+    setQuestions([]);
+    if (!namespaceId) {
+      return;
+    }
+
+    let active = true;
     const source = axios.CancelToken.source();
     http
       .get(`/namespaces/${namespaceId}/wizard/recommended-questions`, {
@@ -31,9 +36,21 @@ export default function RecommendedQuestions({
         mute: true,
       })
       .then((data: { questions?: RecommendedQuestionItem[] }) => {
+        if (!active) {
+          return;
+        }
         setQuestions(data?.questions || []);
+      })
+      .catch(error => {
+        if (active && !axios.isCancel(error)) {
+          setQuestions([]);
+        }
       });
-    return () => source.cancel();
+
+    return () => {
+      active = false;
+      source.cancel();
+    };
   }, [namespaceId]);
 
   if (questions.length === 0) {
