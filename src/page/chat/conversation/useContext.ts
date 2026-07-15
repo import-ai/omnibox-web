@@ -91,6 +91,7 @@ export default function useContext() {
     mode,
     displayParts,
     decisions,
+    recommendedQuestionId,
   }: SendMessageParams) => {
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
@@ -116,7 +117,8 @@ export default function useContext() {
           undefined,
           undefined,
           decisions ? { decisions } : undefined,
-          displayParts
+          displayParts,
+          recommendedQuestionId
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();

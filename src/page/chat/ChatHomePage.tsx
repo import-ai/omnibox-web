@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -10,6 +10,7 @@ import { http } from '@/lib/request';
 import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import {
   ChatCreatePayload,
+  ChatMode,
   ConversationEntity,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
@@ -17,6 +18,9 @@ import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 
 import ChatArea from './chat-input';
 import FeatureCards from './home/FeatureCards';
+import RecommendedQuestions, {
+  RecommendedQuestionItem,
+} from './home/RecommendedQuestions';
 import useSelectedResources from './useSelectedResources.ts';
 import { getGreeting } from './utils';
 
@@ -32,7 +36,15 @@ export default function ChatHomePage() {
   const { config } = useConfig();
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
+  const creatingRecommendedQuestionRef = useRef(false);
+  const [loadingRecommendedQuestionId, setLoadingRecommendedQuestionId] =
+    useState<string | null>(null);
   const chatHomeDraftScope = getChatHomeDraftScope(namespaceId);
+
+  useEffect(() => {
+    creatingRecommendedQuestionRef.current = false;
+    setLoadingRecommendedQuestionId(null);
+  }, [namespaceId]);
 
   useEffect(() => {
     let active = true;
@@ -90,8 +102,9 @@ export default function ChatHomePage() {
     mode,
     displayParts,
     approvalMode,
+    recommendedQuestionId,
   }: SendMessageParams) => {
-    http
+    return http
       .post(`/namespaces/${namespaceId}/conversations`)
       .then((conversation: ConversationEntity) => {
         sessionStorage.setItem(
@@ -103,6 +116,7 @@ export default function ChatHomePage() {
             selectedResources,
             displayParts,
             approvalMode,
+            recommendedQuestionId,
             conversation: {
               id: conversation.id,
             } as ConversationDetail,
@@ -110,6 +124,26 @@ export default function ChatHomePage() {
         );
         navigate(`/${namespaceId}/chat/${conversation.id}`);
       });
+  };
+  const handleQuestionSelect = (item: RecommendedQuestionItem) => {
+    if (creatingRecommendedQuestionRef.current) {
+      return;
+    }
+
+    creatingRecommendedQuestionRef.current = true;
+    setLoadingRecommendedQuestionId(item.id);
+
+    sendMessage({
+      query: item.question,
+      tools: [],
+      selectedResources: [],
+      mode: ChatMode.ASK,
+      approvalMode: 'manual',
+      recommendedQuestionId: item.id,
+    }).catch(() => {
+      creatingRecommendedQuestionRef.current = false;
+      setLoadingRecommendedQuestionId(null);
+    });
   };
 
   return (
@@ -132,6 +166,14 @@ export default function ChatHomePage() {
             initialQuery={defaultHomeInput}
             sendMessage={sendMessage}
           />
+          {config.commercial && (
+            <RecommendedQuestions
+              key={namespaceId}
+              namespaceId={namespaceId}
+              loadingQuestionId={loadingRecommendedQuestionId}
+              onSelect={handleQuestionSelect}
+            />
+          )}
         </div>
         <FeatureCards />
       </div>
