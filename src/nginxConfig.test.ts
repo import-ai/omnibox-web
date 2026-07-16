@@ -62,5 +62,7 @@ describe('nginx routes', () => {
     expect(config).toContain('location = /404.html');
     expect(notFoundPage).toContain('/images/deleteIcon.png');
     expect(notFoundPage).toContain('href="/"');
+    expect(notFoundPage).toContain("localStorage.getItem('i18nextLng')");
+    expect(notFoundPage).toContain('404 页面未找到');
   });
 });

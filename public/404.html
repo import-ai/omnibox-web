@@ -5,7 +5,7 @@
     <meta name="google" content="notranslate" />
     <meta name="robots" content="noindex" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404 | OmniBox</title>
+    <title>404 Not Found | OmniBox</title>
     <link rel="icon" href="/favicon.ico" />
     <style>
       :root {
@@ -90,9 +90,24 @@
   <body>
     <main>
       <img src="/images/deleteIcon.png" alt="" />
-      <h1>404 Not Found</h1>
-      <p>The requested page does not exist.</p>
-      <a href="/">Back to home</a>
+      <h1 id="title">404 Not Found</h1>
+      <p id="description">Please check the link.</p>
+      <a id="home" href="/">Back to Front</a>
     </main>
+    <script>
+      (function () {
+        var lang = localStorage.getItem('i18nextLng') || navigator.language;
+        var isZh = lang.toLowerCase().startsWith('zh');
+
+        if (isZh) {
+          document.documentElement.lang = 'zh-CN';
+          document.title = '404 页面未找到 | 小黑';
+          document.getElementById('title').textContent = '404 页面未找到';
+          document.getElementById('description').textContent =
+            '请检查您的链接。';
+          document.getElementById('home').textContent = '返回首页';
+        }
+      })();
+    </script>
   </body>
 </html>
