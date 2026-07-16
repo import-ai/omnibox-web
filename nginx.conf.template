@@ -26,6 +26,15 @@ map $upstream_http_cache_control $cache_control_value {
     default $upstream_http_cache_control;
 }
 
+# Keep browser entry routes in sync with src/App.tsx.
+map $uri $is_spa_route {
+    default 0;
+    "~*^/(?:welcome|oauth/authorize|user/(?:login|sign-up|verify-otp|accept-invite|account/delete/confirm|auth/(?:confirm(?:/google)?|miniprogram))|invite/confirm)/?$" 1;
+    "~*^/invite/[0-9A-Za-z]{6}/[0-9A-Za-z]{6}/?$" 1;
+    "~*^/[0-9A-Za-z]{6}(?:/[0-9A-Za-z]{16}(?:/edit)?|/chat(?:/conversations|/[0-9]+)?)?/?$" 1;
+    "~*^/s/[0-9A-Za-z]{10}(?:/[0-9A-Za-z]{16}|/chat(?:/[0-9]+)?)?/?$" 1;
+}
+
 # Rules for WeCom (Enterprise WeChat) crawling: User-Agent must contain "wxwork", URL must not include "wework_cfm_code", and Referer must be empty
 map "$http_user_agent:$request_uri:$http_referer" $is_wxwork_crawler {
     default 0;
@@ -63,7 +72,7 @@ server {
         access_log off;
     }
 
-    location ~ "^/s/([0-9A-Za-z]{10})(/([0-9A-Za-z]{16}))?$" {
+    location ~* "^/s/([0-9A-Za-z]{10})(/([0-9A-Za-z]{16}))?/?$" {
         set $share_id $1;
         set $resource_id $3;
 
@@ -81,7 +90,7 @@ server {
         add_header Expires 0;
     }
 
-    location ~ "^/([0-9A-Za-z]{6})/([0-9A-Za-z]{16})$" {
+    location ~* "^/([0-9A-Za-z]{6})/([0-9A-Za-z]{16})/?$" {
         set $namespace_id $1;
         set $resource_id $2;
 
@@ -102,7 +111,19 @@ server {
 
     location / {
         root /usr/share/nginx/html;
-        try_files $uri $uri/ /index.html;
+        try_files $uri $uri/ @spa;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
+    }
+
+    location @spa {
+        if ($is_spa_route = 0) {
+            return 404;
+        }
+
+        root /usr/share/nginx/html;
+        try_files /index.html =404;
         add_header Cache-Control "no-store, no-cache, must-revalidate";
         add_header Pragma "no-cache";
         add_header Expires 0;

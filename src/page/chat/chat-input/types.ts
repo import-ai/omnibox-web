@@ -80,6 +80,7 @@ export interface ChatRequestBody {
   query: string;
   tools?: ChatTool[];
   parent_message_id?: string;
+  recommended_question_id?: string;
   enable_thinking: boolean;
   lang?: '简体中文' | 'English';
   namespace_id?: string;
@@ -109,6 +110,7 @@ export interface SendMessageParams {
   displayParts?: ChatMessageDisplayPart[];
   decisions?: Decision[];
   approvalMode?: ApprovalMode;
+  recommendedQuestionId?: string;
 }
 
 export interface ChatCreatePayload extends SendMessageParams {
@@ -121,4 +123,5 @@ export interface ConversationEntity {
   userId: string;
   title: string;
   shareId: string;
+  recommendedQuestionId: string | null;
 }
