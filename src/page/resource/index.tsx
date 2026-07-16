@@ -10,6 +10,7 @@ import {
   ENABLE_OMNIBOX_EDITOR,
   OMNIBOX_EDITOR_CONTENT_WIDTH,
 } from '@/page/resource/editor/const';
+import { useResourceBodyDragAutoScroll } from '@/page/resource/useResourceBodyDragAutoScroll';
 
 import Header from './header';
 import Wrapper from './Wrapper';
@@ -30,6 +31,9 @@ export default function ResourcePage() {
   // View mode keeps the original centered content width.
   const useFullWidthForEdit = isOmniboxResource && props.editPage;
   const useEditorContentWidth = isOmniboxResource && !props.editPage;
+
+  // Editor body only — do not share listeners with sidebar tree DnD.
+  useResourceBodyDragAutoScroll(scrollContainerRef, useFullWidthForEdit);
 
   useEffect(() => {
     function handleSize() {
@@ -67,7 +71,7 @@ export default function ResourcePage() {
       <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
       <div
         ref={scrollContainerRef}
-        className="flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4"
+        className="no-scrollbar flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4"
       >
         <div
           className={cn('flex min-w-0 w-full max-w-full flex-col', {
