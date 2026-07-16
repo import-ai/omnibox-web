@@ -25,9 +25,7 @@ export default defineConfig(({ mode }) => {
         injectRegister: false,
         manifest: false,
         workbox: {
-          // Editor + diagram deps can still produce multi-MB chunks after split;
-          // keep a headroom so Workbox does not fail the production build.
-          maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         },
       }),
     ],
@@ -36,48 +34,11 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
-    // Let Vite prebundle the editor (and its CJS deps like use-sync-external-store).
-    // Do not exclude it — raw CJS then hits the browser and breaks named imports.
-    // When developing against a local `link:` editor package, stale prebundles
-    // silently drop markdown fixes (e.g. mention shortcodes). Touching the
-    // linked package version / clearing `node_modules/.vite` forces a refresh.
-    optimizeDeps: {
-      include: ['@import-ai/omnibox-editor'],
-    },
     build: {
       chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
           experimentalMinChunkSize: 50000,
-          manualChunks(id) {
-            if (!id.includes('node_modules')) {
-              return;
-            }
-
-            // Keep the rich-text editor and its heavy deps out of the main app chunk
-            // so Workbox precache and first paint stay under control.
-            if (id.includes('@import-ai/omnibox-editor')) {
-              return 'omnibox-editor';
-            }
-            if (
-              id.includes('@tiptap') ||
-              id.includes('prosemirror') ||
-              id.includes('/yjs/') ||
-              id.includes('y-protocols') ||
-              id.includes('y-prosemirror')
-            ) {
-              return 'tiptap';
-            }
-            if (id.includes('mermaid') || id.includes('cytoscape')) {
-              return 'mermaid';
-            }
-            if (id.includes('echarts') || id.includes('zrender')) {
-              return 'echarts';
-            }
-            if (id.includes('katex')) {
-              return 'katex';
-            }
-          },
         },
       },
     },
