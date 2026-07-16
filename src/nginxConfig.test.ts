@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { runInNewContext } from 'node:vm';
 
 const config = readFileSync('nginx.conf.template', 'utf8');
 const notFoundPage = readFileSync('public/404.html', 'utf8');
@@ -64,5 +65,32 @@ describe('nginx routes', () => {
     expect(notFoundPage).toContain('href="/"');
     expect(notFoundPage).toContain("localStorage.getItem('i18nextLng')");
     expect(notFoundPage).toContain('404 页面未找到');
+  });
+
+  it('falls back to the browser language when storage is unavailable', () => {
+    const script = notFoundPage.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+    const elements = {
+      title: { textContent: '' },
+      description: { textContent: '' },
+      home: { textContent: '' },
+    };
+    const document = {
+      documentElement: { lang: 'en' },
+      title: '',
+      getElementById: (id: string) => elements[id as keyof typeof elements],
+    };
+
+    runInNewContext(script!, {
+      document,
+      navigator: { language: 'zh-CN' },
+      localStorage: {
+        getItem: () => {
+          throw new Error('Storage unavailable');
+        },
+      },
+    });
+
+    expect(document.documentElement.lang).toBe('zh-CN');
+    expect(elements.title.textContent).toBe('404 页面未找到');
   });
 });

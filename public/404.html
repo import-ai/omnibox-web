@@ -96,7 +96,10 @@
     </main>
     <script>
       (function () {
-        var lang = localStorage.getItem('i18nextLng') || navigator.language;
+        var lang = navigator.language || 'en';
+        try {
+          lang = localStorage.getItem('i18nextLng') || lang;
+        } catch {}
         var isZh = lang.toLowerCase().startsWith('zh');
 
         if (isZh) {
