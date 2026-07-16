@@ -2,7 +2,13 @@ import type { Resource, SpaceType } from '@/interface';
 
 import type { RootResource, SidebarSet } from '../types';
 import { initialDialogsState } from '../types';
-import { createNode, ensureUI, patchNodeFromResource } from '../utils';
+import {
+  collapseEmptyNode,
+  createNode,
+  ensureUI,
+  patchNodeFromResource,
+  traverseDescendants,
+} from '../utils';
 
 export function buildBaseActions(set: SidebarSet) {
   const resetTransientState = (s: Parameters<Parameters<typeof set>[0]>[0]) => {
@@ -116,7 +122,7 @@ export function buildBaseActions(set: SidebarSet) {
         const deletedIds = new Set<string>();
 
         for (const cid of parent.children) {
-          if (!newIds.has(cid)) {
+          if (!newIds.has(cid) && s.nodes[cid]?.parentId === parentId) {
             const deleteRecursive = (id: string) => {
               const node = s.nodes[id];
               if (!node) return;
@@ -138,6 +144,22 @@ export function buildBaseActions(set: SidebarSet) {
           } else {
             const n = s.nodes[res.id];
             if (n) {
+              if (n.parentId !== parentId) {
+                const oldParentId = n.parentId;
+                const oldParent = oldParentId
+                  ? s.nodes[oldParentId]
+                  : undefined;
+                if (oldParent) {
+                  oldParent.children = oldParent.children.filter(
+                    id => id !== res.id
+                  );
+                  collapseEmptyNode(s, oldParent.id);
+                }
+                n.parentId = parentId;
+                traverseDescendants(s.nodes, n.id, node => {
+                  node.spaceType = parent.spaceType;
+                });
+              }
               patchNodeFromResource(n, res);
             }
           }
