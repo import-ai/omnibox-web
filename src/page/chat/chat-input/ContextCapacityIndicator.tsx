@@ -12,54 +12,13 @@ function formatTokenCount(tokens: number): string {
   return String(tokens);
 }
 
-function CapacityRing({
-  percent,
-  usageLabel,
-}: {
-  percent: number;
-  usageLabel: string;
-}) {
-  const radius = 8;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - percent / 100);
-
-  return (
-    <span
-      role="img"
-      tabIndex={0}
-      className="flex size-8 cursor-help items-center justify-center text-muted-foreground"
-      aria-label={usageLabel}
-    >
-      <svg aria-hidden="true" className="size-4 -rotate-90" viewBox="0 0 20 20">
-        <circle
-          cx="10"
-          cy="10"
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          className="opacity-25"
-        />
-        <circle
-          cx="10"
-          cy="10"
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-        />
-      </svg>
-    </span>
-  );
-}
-
 export default function ContextCapacityIndicator({
   capacity,
 }: ContextCapacityIndicatorProps) {
   const { t } = useTranslation();
+  const radius = 8;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - capacity.percent / 100);
   const remainingPercent = 100 - capacity.percent;
   const usageLabel = t('chat.messages.context_capacity.ratio', {
     used: capacity.percent,
@@ -69,7 +28,39 @@ export default function ContextCapacityIndicator({
   return (
     <Tooltip delayDuration={150}>
       <TooltipTrigger asChild>
-        <CapacityRing percent={capacity.percent} usageLabel={usageLabel} />
+        <span
+          role="img"
+          tabIndex={0}
+          className="flex size-8 cursor-help items-center justify-center text-muted-foreground"
+          aria-label={usageLabel}
+        >
+          <svg
+            aria-hidden="true"
+            className="size-4 -rotate-90"
+            viewBox="0 0 20 20"
+          >
+            <circle
+              cx="10"
+              cy="10"
+              r={radius}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              className="opacity-25"
+            />
+            <circle
+              cx="10"
+              cy="10"
+              r={radius}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
       </TooltipTrigger>
       <TooltipContent
         className="max-w-[calc(100vw-2rem)] whitespace-nowrap text-center"
