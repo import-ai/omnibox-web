@@ -35,6 +35,14 @@ import { safeParseURL } from '@/lib/utils';
 
 import { TextIcon } from './TextIcon';
 
+/**
+ * Required resource fields:
+ * - all resources: `resource_type`
+ * - file-specific icons: `attrs.original_name` or `attrs.mimetype`
+ * - link-specific icons: `attrs.url` (or legacy top-level `url`)
+ *
+ * `id` and `name` are not read by this component.
+ */
 export interface IProps {
   expand: boolean;
   resource: ResourceMeta;

@@ -8,19 +8,30 @@ import { Button } from '@/components/ui/Button';
 
 interface IProps {
   content: string;
+  htmlContent?: string;
   tooltip?: string;
 }
 
 export default function CopyMain(props: IProps) {
-  const { content, tooltip } = props;
+  const { content, htmlContent, tooltip } = props;
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
+
   const handleCopy = () => {
-    if (
-      copy(content, {
-        format: 'text/plain',
-      })
-    ) {
+    const success = copy(content, {
+      ...(htmlContent
+        ? {
+            onCopy: clipboardData => {
+              const data = clipboardData as DataTransfer;
+              data.clearData();
+              data.setData('text/plain', content);
+              data.setData('text/html', htmlContent);
+            },
+          }
+        : { format: 'text/plain' }),
+    });
+
+    if (success) {
       setCopied(true);
       setTimeout(() => {
         setCopied(false);

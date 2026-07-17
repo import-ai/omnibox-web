@@ -42,6 +42,13 @@
     "expand": "Expand Sidebar",
     "collapse": "Collapse Sidebar"
   },
+  "resource_picker": {
+    "expand_resource": "Expand {{name}}",
+    "collapse_resource": "Collapse {{name}}",
+    "empty": "No resources available",
+    "no_results": "No matching resources",
+    "search_failed": "Unable to load search results"
+  },
   "upload": {
     "success_one": "{{count}} file uploaded successfully",
     "success_other": "{{count}} files uploaded successfully",
@@ -606,6 +613,7 @@
           "edit_resource": "Edit Resource",
           "write_file": "Create Resource",
           "create_resource": "Create Resource",
+          "create_smart_folder": "Create Smart Folder",
           "glob": "Glob",
           "grep": "Grep",
           "task": "Task",
@@ -629,6 +637,8 @@
           "get_agent_asset_resource_id": "Get Agent Asset",
           "wait": "Wait",
           "frontend_operations": "Frontend Operating",
+          "get_smart_folder_config": "Get Smart Folder Config",
+          "update_smart_folder_config": "Update Smart Folder Config",
           "unknown": "Unknown"
         },
         "function_args": {
@@ -683,6 +693,9 @@
       }
     },
     "tools": {
+      "add": "Add",
+      "more": "More",
+      "select_resource": "Select Resource",
       "web_search": "Web Search",
       "private_search": "OmniBox",
       "reasoning": "Reasoning",
@@ -777,7 +790,7 @@
     },
     "permission_scope": "Permission Scope",
     "permission_scope_tooltip": "The root resource for this API key, which will limit this key to access only that resource and its sub-resources.",
-    "root_resource_id_placeholder": "Enter resource name to search",
+    "root_resource_id_placeholder": "Select permission scope",
     "note": "Note",
     "note_placeholder": "Enter a note, up to 128 characters",
     "note_length_error": "Note cannot exceed {{max}} characters",

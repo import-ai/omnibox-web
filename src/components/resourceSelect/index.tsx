@@ -2,17 +2,18 @@ import { ChevronDown, LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { ResourcePickerResource } from '@/components/resourcePicker';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import type { Resource } from '@/interface';
-import each from '@/lib/each';
 import { cn } from '@/lib/utils';
 import { fetchResource, fetchRootResources } from '@/service/resource';
 
-import { ChooseResource } from './Choose';
+import { ChooseResourceTree } from './ChooseResourceTree';
 
 interface IProps {
   loading: boolean;
@@ -39,49 +40,41 @@ export function ResourceSelect(props: IProps) {
   const { t } = useTranslation();
   const [open, onOpen] = useState(false);
   const [fetching, onFetching] = useState(false);
-  const [data, onData] = useState<Partial<Resource>>({
-    id: '',
-    name: '',
-  });
+  const [data, onData] = useState<Resource | null>(null);
 
   const handleOpen = () => {
     onOpen(true);
   };
-  const handleChange = (val: string, key?: string) => {
-    onChange(val, key);
+  const handleChange = (resource: ResourcePickerResource) => {
+    onData(resource);
+    onChange(resource.id, 'resourceId');
     onOpen(false);
   };
 
   useEffect(() => {
-    if (loading || !namespaceId || !resourceId) {
+    if (loading || !namespaceId) {
+      return;
+    }
+    if (!resourceId) {
+      onData(null);
       return;
     }
     onFetching(true);
     fetchRootResources(namespaceId)
       .then(root => {
-        onFetching(false);
-        let match = false;
-        each(Object.keys(root), spaceType => {
-          const item = root[spaceType];
-          if (item.id === resourceId) {
-            onData({
-              id: resourceId,
-              name: spaceType === 'private' ? t('private') : t('teamspace'),
-            });
-            match = true;
-            return true;
-          }
-          return;
-        });
+        const match = Object.entries(root).find(
+          ([, item]) => item.id === resourceId
+        );
         if (match) {
+          const [spaceType, item] = match;
+          onData({
+            ...item,
+            name: spaceType === 'private' ? t('private') : t('teamspace'),
+          });
           return;
         }
-        onFetching(true);
-        fetchResource(namespaceId, resourceId).then(response => {
-          onData({
-            id: resourceId,
-            name: response.name || t('untitled'),
-          });
+        return fetchResource(namespaceId, resourceId).then(response => {
+          onData({ ...response, name: response.name || t('untitled') });
         });
       })
       .finally(() => {
@@ -98,8 +91,9 @@ export function ResourceSelect(props: IProps) {
           className
         )}
       >
-        <span className="min-w-0 flex-1 max-w-80 truncate text-left text-sm text-neutral-900 dark:text-white">
-          {data.name || placeholder}
+        {data && <ResourceTypeIcon resource={data} />}
+        <span className="min-w-0 flex-1 truncate text-left text-sm text-neutral-900 dark:text-white">
+          {data?.name || placeholder}
         </span>
         {fetching ? (
           <LoaderCircle className="size-4 shrink-0 animate-spin opacity-50 transition-transform" />
@@ -110,19 +104,21 @@ export function ResourceSelect(props: IProps) {
       <DropdownMenuContent
         side="bottom"
         align="end"
+        onCloseAutoFocus={event => {
+          event.preventDefault();
+        }}
         onOpenAutoFocus={event => {
           event.preventDefault();
         }}
-        className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl border-none dark:bg-neutral-800"
+        className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl border border-border shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
       >
         {open && (
-          <ChooseResource
-            loading={loading}
-            onChange={handleChange}
+          <ChooseResourceTree
             namespaceId={namespaceId}
             resourceId={resourceId}
             disabledIds={disabledIds}
             disabledTooltip={disabledTooltip}
+            onChange={handleChange}
           />
         )}
       </DropdownMenuContent>

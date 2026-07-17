@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en" translate="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate" />
+    <meta name="robots" content="noindex" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 Not Found | OmniBox</title>
+    <link rel="icon" href="/favicon.ico" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #ffffff;
+        color: #171717;
+      }
+
+      main {
+        display: flex;
+        max-width: 384px;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 24px;
+        text-align: center;
+      }
+
+      img {
+        width: clamp(120px, 18vw, 200px);
+        aspect-ratio: 1;
+        margin-bottom: 8px;
+        object-fit: contain;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 500;
+        line-height: 28px;
+      }
+
+      p {
+        margin: 0;
+        color: #737373;
+        font-size: 14px;
+        line-height: 20px;
+      }
+
+      a {
+        margin-top: 16px;
+        color: #2563eb;
+        font-size: 14px;
+        text-underline-offset: 4px;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #262626;
+          color: #fafafa;
+        }
+
+        p {
+          color: #a3a3a3;
+        }
+
+        a {
+          color: #60a5fa;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/images/deleteIcon.png" alt="" />
+      <h1 id="title">404 Not Found</h1>
+      <p id="description">Please check the link.</p>
+      <a id="home" href="/">Back to Front</a>
+    </main>
+    <script>
+      (function () {
+        var lang = navigator.language || 'en';
+        try {
+          lang = localStorage.getItem('i18nextLng') || lang;
+        } catch {}
+        var isZh = lang.toLowerCase().startsWith('zh');
+
+        if (isZh) {
+          document.documentElement.lang = 'zh-CN';
+          document.title = '404 页面未找到 | 小黑';
+          document.getElementById('title').textContent = '404 页面未找到';
+          document.getElementById('description').textContent =
+            '请检查您的链接。';
+          document.getElementById('home').textContent = '返回首页';
+        }
+      })();
+    </script>
+  </body>
+</html>

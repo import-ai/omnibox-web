@@ -25,6 +25,7 @@ export default function ChatConversationPage() {
     selectedResources,
     setSelectedResources,
     initialApprovalMode,
+    suppressInitialToolRestore,
     onRegenerate,
     onEdit,
     onStop,
@@ -60,12 +61,15 @@ export default function ChatConversationPage() {
             <AgentTrial namespaceId={namespaceId} messages={messages} />
           )}
           <ChatArea
+            key={conversation.id}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             messages={messages}
+            namespaceId={namespaceId}
             navigatePrefix={`/${namespaceId}`}
             initialApprovalMode={initialApprovalMode}
             approvalModeResetKey={conversation.id}
+            suppressInitialToolRestore={suppressInitialToolRestore}
             sendMessage={sendMessage}
             loading={loading}
             waitingForAssistantDelta={waitingForAssistantDelta}
