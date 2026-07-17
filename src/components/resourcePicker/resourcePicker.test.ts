@@ -5,6 +5,7 @@ import {
   expandResourceNodesByIds,
   getInitialChildrenLoadTargets,
   getInitialExpandedIds,
+  getInitialRootExpansionIds,
   shouldExpandResourceNode,
 } from './resourcePickerState';
 
@@ -151,5 +152,48 @@ describe('resource picker defaults', () => {
     ).toEqual(['selected-resource']);
     expect(result.childrenById['other-parent']).toBeUndefined();
     expect(loadChildren).toHaveBeenCalledTimes(2);
+  });
+
+  it('expands requested ancestors without has_children metadata', async () => {
+    const root: ResourceMeta = {
+      ...resource('root', 'folder'),
+      has_children: undefined,
+    };
+    const parent: ResourceMeta = {
+      ...resource('selected-parent', 'folder'),
+      has_children: undefined,
+    };
+    const loadChildren = jest.fn(async (node: ResourceMeta) => {
+      if (node.id === 'root') return [parent];
+      return [resource('selected-resource', 'doc')];
+    });
+
+    const result = await expandResourceNodesByIds(
+      [root],
+      ['root', 'selected-parent'],
+      loadChildren
+    );
+
+    expect(Array.from(result.expandedIds)).toEqual(['root', 'selected-parent']);
+    expect(loadChildren).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not expand unrelated roots while a selected path is unavailable', () => {
+    const roots = [
+      resource('private-root', 'folder'),
+      resource('team-root', 'folder'),
+    ];
+
+    expect(getInitialRootExpansionIds(roots, 'selected-resource')).toEqual([]);
+    expect(
+      getInitialRootExpansionIds(roots, 'selected-resource', [
+        { id: 'private-root' },
+        { id: 'selected-resource' },
+      ])
+    ).toEqual(['private-root']);
+    expect(getInitialRootExpansionIds(roots, '')).toEqual([
+      'private-root',
+      'team-root',
+    ]);
   });
 });

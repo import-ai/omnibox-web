@@ -50,6 +50,19 @@ interface ExpandAllResourceNodesOptions<T extends ExpandableResource> {
   }) => void;
 }
 
+export function getInitialRootExpansionIds<T extends { id: string }>(
+  roots: T[],
+  selectedResourceId: string,
+  selectedResourcePath?: Array<{ id: string }>
+) {
+  if (!selectedResourceId) return roots.map(root => root.id);
+
+  const selectedRootId = selectedResourcePath?.[0]?.id;
+  return selectedRootId && roots.some(root => root.id === selectedRootId)
+    ? [selectedRootId]
+    : [];
+}
+
 export async function expandResourceNodesByIds<T extends ExpandableResource>(
   roots: T[],
   resourceIds: Iterable<string>,
@@ -72,9 +85,7 @@ export async function expandResourceNodesByIds<T extends ExpandableResource>(
   };
 
   const expandRecursive = async (resource: T): Promise<void> => {
-    if (!targetIds.has(resource.id) || !shouldExpandResourceNode(resource)) {
-      return;
-    }
+    if (!targetIds.has(resource.id)) return;
 
     if (!childrenById[resource.id]) {
       options.onNodeLoadStart?.(resource.id);

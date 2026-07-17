@@ -5,6 +5,7 @@ import {
   ResourcePicker,
   type ResourcePickerResource,
 } from '@/components/resourcePicker';
+import { getInitialRootExpansionIds } from '@/components/resourcePicker/resourcePickerState';
 import { DropdownMenuSeparator } from '@/components/ui/DropdownMenu';
 import type { PathItem } from '@/interface';
 import {
@@ -90,8 +91,8 @@ export function ChooseResourceTree({
   }, [decorateResource, namespaceId, t]);
 
   const defaultExpandedRootIds = useMemo(
-    () => roots.map(root => root.id),
-    [roots]
+    () => getInitialRootExpansionIds(roots, resourceId, selectedResourcePath),
+    [resourceId, roots, selectedResourcePath]
   );
   const defaultExpandedIds = useMemo(
     () =>

@@ -1,5 +1,5 @@
 import { ChevronDown, LoaderCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { ResourcePickerResource } from '@/components/resourcePicker';
@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
-import type { Resource } from '@/interface';
+import type { PathItem } from '@/interface';
 import { cn } from '@/lib/utils';
 import { fetchResource, fetchRootResources } from '@/service/resource';
 
@@ -26,6 +26,8 @@ interface IProps {
   onChange: (val: string, key?: string) => void;
 }
 
+type SelectedResource = ResourcePickerResource & { path?: PathItem[] };
+
 export function ResourceSelect(props: IProps) {
   const {
     className,
@@ -40,12 +42,24 @@ export function ResourceSelect(props: IProps) {
   const { t } = useTranslation();
   const [open, onOpen] = useState(false);
   const [fetching, onFetching] = useState(false);
-  const [data, onData] = useState<Resource | null>(null);
+  const [data, onData] = useState<SelectedResource | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const requestControllerRef = useRef<AbortController | null>(null);
+  const [triggerWidth, setTriggerWidth] = useState<number>();
 
-  const handleOpen = () => {
-    onOpen(true);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen && resourceId && !data && !fetching) {
+      setReloadToken(current => current + 1);
+      return;
+    }
+    if (nextOpen) {
+      setTriggerWidth(triggerRef.current?.getBoundingClientRect().width);
+    }
+    onOpen(nextOpen);
   };
   const handleChange = (resource: ResourcePickerResource) => {
+    requestControllerRef.current?.abort();
     onData(resource);
     onChange(resource.id, 'resourceId');
     onOpen(false);
@@ -53,39 +67,76 @@ export function ResourceSelect(props: IProps) {
 
   useEffect(() => {
     if (loading || !namespaceId) {
+      requestControllerRef.current?.abort();
+      if (!namespaceId) onData(null);
+      onFetching(false);
       return;
     }
     if (!resourceId) {
+      requestControllerRef.current?.abort();
       onData(null);
+      onFetching(false);
       return;
     }
+
+    const controller = new AbortController();
+    requestControllerRef.current?.abort();
+    requestControllerRef.current = controller;
+    onData(current => (current?.id === resourceId ? current : null));
     onFetching(true);
-    fetchRootResources(namespaceId)
+    fetchRootResources(namespaceId, controller.signal)
       .then(root => {
+        if (controller.signal.aborted) return;
         const match = Object.entries(root).find(
           ([, item]) => item.id === resourceId
         );
         if (match) {
           const [spaceType, item] = match;
+          const name = spaceType === 'private' ? t('private') : t('teamspace');
           onData({
             ...item,
-            name: spaceType === 'private' ? t('private') : t('teamspace'),
+            name,
+            path: [{ id: item.id, name }],
           });
           return;
         }
-        return fetchResource(namespaceId, resourceId).then(response => {
-          onData({ ...response, name: response.name || t('untitled') });
-        });
+        return fetchResource(namespaceId, resourceId, controller.signal).then(
+          response => {
+            if (!controller.signal.aborted) {
+              onData({ ...response, name: response.name || t('untitled') });
+            }
+          }
+        );
+      })
+      .catch(error => {
+        if (!controller.signal.aborted) {
+          onData(null);
+          console.error('Failed to load selected resource', error);
+        }
       })
       .finally(() => {
-        onFetching(false);
+        if (!controller.signal.aborted) onFetching(false);
       });
-  }, [t, loading, namespaceId, resourceId]);
+
+    return () => controller.abort();
+  }, [t, loading, namespaceId, reloadToken, resourceId]);
+
+  useEffect(() => {
+    const trigger = triggerRef.current;
+    if (!open || !trigger) return;
+
+    const updateWidth = () =>
+      setTriggerWidth(trigger.getBoundingClientRect().width);
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(trigger);
+    return () => observer.disconnect();
+  }, [open]);
 
   return (
-    <DropdownMenu open={open} onOpenChange={onOpen}>
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger
-        onClick={handleOpen}
+        ref={triggerRef}
         className={cn(
           'flex h-9 min-w-0 flex-1 items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-0 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#303030]',
           className
@@ -107,10 +158,16 @@ export function ResourceSelect(props: IProps) {
         onCloseAutoFocus={event => {
           event.preventDefault();
         }}
-        onOpenAutoFocus={event => {
-          event.preventDefault();
-        }}
-        className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] max-w-[var(--radix-dropdown-menu-trigger-width)] overflow-hidden rounded-xl border border-border shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+        style={
+          triggerWidth
+            ? {
+                width: triggerWidth,
+                minWidth: triggerWidth,
+                maxWidth: triggerWidth,
+              }
+            : undefined
+        }
+        className="overflow-hidden rounded-xl border border-border shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
       >
         {open && (
           <ChooseResourceTree

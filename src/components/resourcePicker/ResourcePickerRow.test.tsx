@@ -70,7 +70,8 @@ describe('ResourcePickerRow', () => {
 
     expect(html).toContain('max-w-full');
     expect(html).toContain('overflow-hidden');
-    expect(html).toContain('flex-1 truncate');
+    expect(html).toContain('grid-cols-[auto_minmax(0,1fr)_auto]');
+    expect(html).toContain('min-w-0 truncate');
     expect(html).toMatch(/lucide-check[^>]*shrink-0/);
   });
 });
