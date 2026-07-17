@@ -6,6 +6,7 @@ import {
   type ResourcePickerResource,
 } from '@/components/resourcePicker';
 import { DropdownMenuSeparator } from '@/components/ui/DropdownMenu';
+import type { PathItem } from '@/interface';
 import {
   fetchChildren,
   fetchRootResources,
@@ -16,6 +17,7 @@ import {
 interface ChooseResourceTreeProps {
   namespaceId: string;
   resourceId: string;
+  selectedResourcePath?: PathItem[];
   disabledIds?: string[];
   disabledTooltip?: string;
   onChange: (resource: ResourcePickerResource) => void;
@@ -25,6 +27,7 @@ interface ChooseResourceTreeProps {
 export function ChooseResourceTree({
   namespaceId,
   resourceId,
+  selectedResourcePath,
   disabledIds,
   disabledTooltip,
   onChange,
@@ -90,6 +93,13 @@ export function ChooseResourceTree({
     () => roots.map(root => root.id),
     [roots]
   );
+  const defaultExpandedIds = useMemo(
+    () =>
+      (selectedResourcePath ?? [])
+        .map(item => item.id)
+        .filter(id => id !== resourceId),
+    [resourceId, selectedResourcePath]
+  );
 
   const loadChildren = useCallback(
     (resource: ResourcePickerResource) =>
@@ -119,6 +129,7 @@ export function ChooseResourceTree({
   return (
     <ResourcePicker
       roots={roots}
+      defaultExpandedIds={defaultExpandedIds}
       defaultExpandedRootIds={defaultExpandedRootIds}
       loadChildren={loadChildren}
       searchResources={search}
@@ -129,7 +140,7 @@ export function ChooseResourceTree({
         event.stopPropagation();
       }}
       beforeList={<DropdownMenuSeparator />}
-      listClassName="no-scrollbar min-h-0 max-h-72 pb-0"
+      listClassName="min-h-0 max-h-72 pb-0 pr-1 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
       selectedResourceId={resourceId}
       onSelect={onChange}
     />

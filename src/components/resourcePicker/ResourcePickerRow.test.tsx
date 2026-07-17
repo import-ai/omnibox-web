@@ -50,4 +50,27 @@ describe('ResourcePickerRow', () => {
     expect(html).toContain('aria-pressed="false"');
     expect(html).not.toContain('lucide-check');
   });
+
+  it('keeps a long selected title inside the remaining row width', () => {
+    const html = renderToStaticMarkup(
+      <ResourcePickerRow
+        canExpand={false}
+        depth={2}
+        expanded={false}
+        loading={false}
+        onSelect={jest.fn()}
+        onToggle={jest.fn()}
+        resource={{
+          ...resource,
+          name: 'A very long resource title that must not resize the picker',
+        }}
+        selected
+      />
+    );
+
+    expect(html).toContain('max-w-full');
+    expect(html).toContain('overflow-hidden');
+    expect(html).toContain('flex-1 truncate');
+    expect(html).toMatch(/lucide-check[^>]*shrink-0/);
+  });
 });

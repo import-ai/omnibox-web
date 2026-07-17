@@ -12,8 +12,10 @@ import { useResourcePickerController } from './useResourcePickerController';
 export type { ResourcePickerResource } from './resourcePickerTypes';
 
 const emptyDefaultExpandedRootIds: string[] = [];
+const emptyDefaultExpandedIds: string[] = [];
 
 interface ResourcePickerProps {
+  defaultExpandedIds?: string[];
   defaultExpandedRootIds?: string[];
   expandAllInitially?: boolean;
   initialChildrenById?: Record<string, ResourcePickerResource[]>;
@@ -34,6 +36,7 @@ interface ResourcePickerProps {
 
 /** Renders a searchable, asynchronously expandable resource tree. */
 export function ResourcePicker({
+  defaultExpandedIds = emptyDefaultExpandedIds,
   defaultExpandedRootIds = emptyDefaultExpandedRootIds,
   expandAllInitially = false,
   initialChildrenById,
@@ -52,6 +55,7 @@ export function ResourcePicker({
   const { t } = useTranslation();
   const controller = useResourcePickerController(
     {
+      defaultExpandedIds,
       defaultExpandedRootIds,
       expandAllInitially,
       initialChildrenById,

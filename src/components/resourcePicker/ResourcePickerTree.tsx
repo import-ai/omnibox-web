@@ -28,7 +28,7 @@ export function ResourcePickerTree({
     const children = childrenById[resource.id] ?? resource.children ?? [];
     const expanded = expandedIds.has(resource.id);
     return (
-      <div key={resource.id}>
+      <div key={resource.id} className="min-w-0 max-w-full overflow-hidden">
         <ResourcePickerRow
           canExpand={Boolean(resource.has_children || children.length > 0)}
           depth={depth}

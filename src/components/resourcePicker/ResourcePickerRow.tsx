@@ -77,7 +77,7 @@ export function ResourcePickerRow({
 
   return (
     <div
-      className="flex min-w-0 items-center"
+      className="flex w-full min-w-0 max-w-full items-center overflow-hidden"
       style={{ paddingLeft: depth * 16 + 4, paddingRight: 8 }}
     >
       {canExpand ? (

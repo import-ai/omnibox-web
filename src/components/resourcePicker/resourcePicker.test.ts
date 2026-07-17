@@ -2,6 +2,7 @@ import type { ResourceMeta } from '@/interface';
 
 import {
   expandAllResourceNodes,
+  expandResourceNodesByIds,
   getInitialChildrenLoadTargets,
   getInitialExpandedIds,
   shouldExpandResourceNode,
@@ -122,5 +123,33 @@ describe('resource picker defaults', () => {
 
     expect(Array.from(result.expandedIds)).toEqual(['root', 'good']);
     expect(result.childrenById.good?.map(item => item.id)).toEqual(['nested']);
+  });
+
+  it('expands only the requested ancestor path', async () => {
+    const loadChildren = jest.fn(async (node: ReturnType<typeof resource>) => {
+      if (node.id === 'root') {
+        return [
+          resource('selected-parent', 'folder', true),
+          resource('other-parent', 'folder', true),
+        ];
+      }
+      if (node.id === 'selected-parent') {
+        return [resource('selected-resource', 'doc')];
+      }
+      return [resource('other-resource', 'doc')];
+    });
+
+    const result = await expandResourceNodesByIds(
+      [resource('root', 'folder', true)],
+      ['root', 'selected-parent'],
+      loadChildren
+    );
+
+    expect(Array.from(result.expandedIds)).toEqual(['root', 'selected-parent']);
+    expect(
+      result.childrenById['selected-parent']?.map(item => item.id)
+    ).toEqual(['selected-resource']);
+    expect(result.childrenById['other-parent']).toBeUndefined();
+    expect(loadChildren).toHaveBeenCalledTimes(2);
   });
 });

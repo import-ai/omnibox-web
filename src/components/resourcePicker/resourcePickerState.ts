@@ -50,6 +50,57 @@ interface ExpandAllResourceNodesOptions<T extends ExpandableResource> {
   }) => void;
 }
 
+export async function expandResourceNodesByIds<T extends ExpandableResource>(
+  roots: T[],
+  resourceIds: Iterable<string>,
+  loadChildren: (resource: T) => Promise<T[]>,
+  initialChildrenById: Record<string, T[]> = {},
+  options: ExpandAllResourceNodesOptions<T> = {}
+): Promise<{
+  childrenById: Record<string, T[]>;
+  expandedIds: Set<string>;
+}> {
+  const targetIds = new Set(resourceIds);
+  const childrenById = { ...initialChildrenById };
+  const expandedIds = new Set<string>();
+
+  const publish = () => {
+    options.onUpdate?.({
+      childrenById: { ...childrenById },
+      expandedIds: new Set(expandedIds),
+    });
+  };
+
+  const expandRecursive = async (resource: T): Promise<void> => {
+    if (!targetIds.has(resource.id) || !shouldExpandResourceNode(resource)) {
+      return;
+    }
+
+    if (!childrenById[resource.id]) {
+      options.onNodeLoadStart?.(resource.id);
+      try {
+        childrenById[resource.id] = await loadChildren(resource);
+      } catch (error) {
+        console.error('Failed to expand resource picker path', error);
+        return;
+      } finally {
+        options.onNodeLoadEnd?.(resource.id);
+      }
+    }
+
+    expandedIds.add(resource.id);
+    publish();
+
+    await Promise.allSettled(
+      (childrenById[resource.id] ?? []).map(expandRecursive)
+    );
+  };
+
+  await Promise.all(roots.map(expandRecursive));
+
+  return { childrenById, expandedIds };
+}
+
 /** Recursively expands every node with children, matching share sidebar behavior. */
 export async function expandAllResourceNodes<T extends ExpandableResource>(
   roots: T[],

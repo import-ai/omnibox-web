@@ -110,12 +110,15 @@ export function ResourceSelect(props: IProps) {
         onOpenAutoFocus={event => {
           event.preventDefault();
         }}
-        className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl border border-border shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+        className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] max-w-[var(--radix-dropdown-menu-trigger-width)] overflow-hidden rounded-xl border border-border shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
       >
         {open && (
           <ChooseResourceTree
             namespaceId={namespaceId}
             resourceId={resourceId}
+            selectedResourcePath={
+              data?.id === resourceId ? data.path : undefined
+            }
             disabledIds={disabledIds}
             disabledTooltip={disabledTooltip}
             onChange={handleChange}

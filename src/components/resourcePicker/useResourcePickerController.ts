@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import {
   expandAllResourceNodes,
+  expandResourceNodesByIds,
   getInitialChildrenLoadTargets,
   getInitialExpandedIds,
 } from './resourcePickerState';
@@ -11,6 +12,7 @@ import type { ResourcePickerResource } from './resourcePickerTypes';
 type ChildrenById = Record<string, ResourcePickerResource[]>;
 
 interface ResourceTreeParams {
+  defaultExpandedIds?: string[];
   defaultExpandedRootIds: string[];
   expandAllInitially?: boolean;
   initialChildrenById?: Record<string, ResourcePickerResource[]>;
@@ -90,6 +92,42 @@ function useResourceTreeInitialization(
       };
     }
 
+    if (params.defaultExpandedIds?.length) {
+      setChildrenById(nextChildren);
+      setExpandedIds(new Set());
+      setLoadingIds(new Set());
+
+      expandResourceNodesByIds(
+        params.roots,
+        [...params.defaultExpandedRootIds, ...params.defaultExpandedIds],
+        params.loadChildren,
+        nextChildren,
+        {
+          onNodeLoadStart: resourceId => {
+            if (cancelled) return;
+            setLoadingIds(current => new Set(current).add(resourceId));
+          },
+          onNodeLoadEnd: resourceId => {
+            if (cancelled) return;
+            removeLoadingId(resourceId, setLoadingIds);
+          },
+          onUpdate: ({ childrenById, expandedIds }) => {
+            if (cancelled) return;
+            setChildrenById(childrenById);
+            setExpandedIds(expandedIds);
+          },
+        }
+      ).catch(error => {
+        if (!cancelled) {
+          console.error('Failed to expand resource picker path', error);
+        }
+      });
+
+      return () => {
+        cancelled = true;
+      };
+    }
+
     const expandedIds = getInitialExpandedIds(
       params.roots,
       params.defaultExpandedRootIds
@@ -128,6 +166,7 @@ function useResourceTreeInitialization(
     };
   }, [
     params.defaultExpandedRootIds,
+    params.defaultExpandedIds,
     params.expandAllInitially,
     params.initialChildrenById,
     params.loadChildren,
