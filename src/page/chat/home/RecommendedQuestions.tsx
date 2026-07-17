@@ -64,7 +64,7 @@ export default function RecommendedQuestions({
           key={item.id}
           variant="outline"
           size="sm"
-          className="h-auto min-h-8 max-w-full whitespace-normal rounded-full px-3 py-1.5 font-normal leading-snug text-muted-foreground hover:text-foreground sm:max-w-xl"
+          className="h-auto min-h-8 max-w-full whitespace-normal rounded-full px-3 py-1.5 font-normal text-muted-foreground hover:text-foreground disabled:border-neutral-200 disabled:bg-white disabled:text-muted-foreground dark:disabled:border-neutral-800 dark:disabled:bg-transparent dark:disabled:text-muted-foreground sm:max-w-xl"
           disabled={!!loadingQuestionId}
           loading={loadingQuestionId === item.id}
           onClick={() => onSelect(item)}
