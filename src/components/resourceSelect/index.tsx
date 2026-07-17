@@ -18,6 +18,7 @@ interface IProps {
   loading: boolean;
   resourceId: string;
   namespaceId: string;
+  placeholder?: string;
   className?: string;
   disabledIds?: string[];
   disabledTooltip?: string;
@@ -30,6 +31,7 @@ export function ResourceSelect(props: IProps) {
     loading,
     namespaceId,
     resourceId,
+    placeholder,
     disabledIds,
     disabledTooltip,
     onChange,
@@ -97,7 +99,7 @@ export function ResourceSelect(props: IProps) {
         )}
       >
         <span className="min-w-0 flex-1 max-w-80 truncate text-left text-sm text-neutral-900 dark:text-white">
-          {data.name}
+          {data.name || placeholder}
         </span>
         {fetching ? (
           <LoaderCircle className="size-4 shrink-0 animate-spin opacity-50 transition-transform" />
