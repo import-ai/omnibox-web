@@ -636,6 +636,7 @@
           "list_resource_tasks": "List Resource Tasks",
           "load_docs": "Read Docs",
           "get_agent_asset_resource_id": "Get Agent Asset",
+          "get_current_info": "Get Current Info",
           "wait": "Wait",
           "frontend_operations": "Frontend Operating",
           "get_smart_folder_config": "Get Smart Folder Config",

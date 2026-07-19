@@ -637,6 +637,7 @@
           "list_resource_tasks": "查询资源任务",
           "load_docs": "查看文档",
           "get_agent_asset_resource_id": "加载资源",
+          "get_current_info": "获取当前信息",
           "wait": "等待",
           "frontend_operations": "前端操作",
           "get_smart_folder_config": "查看智能文件夹配置",
