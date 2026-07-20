@@ -12,8 +12,17 @@ const SEARCH_PREVIEW_LIMIT = 120;
 const BASIC_SEARCH_CONDITION_LIMIT = 3;
 export const SEARCH_PAGE_SIZE = 20;
 
+/** Search/recent list preview — content is persisted markdown. */
+export function toSearchPreviewText(content?: string) {
+  return content?.trim() ?? '';
+}
+
 export function buildSearchPreview(content?: string) {
-  const normalized = content?.trim() ?? '';
+  const normalized = toSearchPreviewText(content);
+
+  if (!normalized) {
+    return '';
+  }
 
   if (normalized.length <= SEARCH_PREVIEW_LIMIT) {
     return normalized;

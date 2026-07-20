@@ -1,0 +1,130 @@
+.resource-readonly-editor .omnibox-editor-layout {
+  grid-template-columns:
+    [full-start content-start] minmax(0, 1fr)
+    [content-end full-end];
+}
+
+/*
+ * Full-width page grid: left gutter | centered content | right gutter.
+ * TOC sits in full-start → content-start (the large left margin).
+ */
+.resource-editable-page {
+  --resource-editor-content-width: 680px;
+  display: grid;
+  width: 100%;
+  grid-template-columns:
+    [full-start] minmax(0, 1fr)
+    [content-start] minmax(0, var(--resource-editor-content-width))
+    [content-end] minmax(0, 1fr)
+    [full-end];
+}
+
+.resource-editable-title {
+  grid-column: content-start / content-end;
+  min-width: 0;
+}
+
+.resource-editable-editor {
+  grid-column: full-start / full-end;
+  min-width: 0;
+}
+
+.resource-editable-editor .omnibox-editor-layout {
+  /* Keep a real left gutter so the TOC rail cannot collapse to 0 width. */
+  grid-template-columns:
+    [full-start] minmax(5.5rem, 1fr)
+    [content-start] minmax(0, var(--resource-editor-content-width))
+    [content-end] minmax(0, 1fr)
+    [full-end];
+}
+
+.resource-editable-editor .toc-sidebar-wrapper {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.resource-readonly-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor,
+.resource-editable-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding-inline: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.resource-readonly-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor:focus,
+.resource-editable-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor:focus {
+  border: 0;
+}
+
+.resource-readonly-editor .language-echarts,
+.resource-readonly-editor .language-mindmap {
+  height: 420px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.resource-readonly-editor .language-mermaid,
+.resource-readonly-editor .language-markmap,
+.resource-readonly-editor .language-flowchart,
+.resource-readonly-editor .language-graphviz {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/*
+ * Search-from-query highlights — same as editor "高亮颜色" yellow:
+ * light #fef9c3 · dark #6b6524 (--tt-color-highlight-yellow).
+ * !important beats editor `.tiptap mark` theme rules.
+ */
+.resource-readonly-editor mark.search-query-mark,
+.resource-editable-editor mark.search-query-mark,
+.markdown-body mark.search-query-mark,
+.resource-readonly-editor .omnibox-editor-root mark.search-query-mark,
+.resource-editable-editor .omnibox-editor-root mark.search-query-mark,
+.resource-readonly-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.resource-editable-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark {
+  background-color: #fef9c3 !important;
+  color: inherit;
+  padding: 2px 0;
+  border-radius: 0;
+}
+
+.dark .resource-readonly-editor mark.search-query-mark,
+.dark .resource-editable-editor mark.search-query-mark,
+.dark .markdown-body mark.search-query-mark,
+.dark .resource-readonly-editor .omnibox-editor-root mark.search-query-mark,
+.dark .resource-editable-editor .omnibox-editor-root mark.search-query-mark,
+.resource-readonly-editor .omnibox-editor-root.dark mark.search-query-mark,
+.resource-editable-editor .omnibox-editor-root.dark mark.search-query-mark,
+.dark
+  .resource-readonly-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.dark
+  .resource-editable-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.resource-readonly-editor
+  .omnibox-editor-root.dark
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.resource-editable-editor
+  .omnibox-editor-root.dark
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark {
+  background-color: #6b6524 !important;
+}
