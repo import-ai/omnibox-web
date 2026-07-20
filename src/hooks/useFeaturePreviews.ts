@@ -11,6 +11,10 @@ export interface FeaturePreview {
   enabled: boolean;
 }
 
+interface FeaturePreviewsResponse {
+  features: Record<FeaturePreviewFeature, boolean>;
+}
+
 export default function useFeaturePreviews(namespaceId: string) {
   const [featurePreviews, setFeaturePreviews] = useState<FeaturePreview[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,10 +24,15 @@ export default function useFeaturePreviews(namespaceId: string) {
 
     try {
       setLoading(true);
-      const response = await http.get(
+      const response: FeaturePreviewsResponse = await http.get(
         `/namespaces/${namespaceId}/feature-previews`
       );
-      setFeaturePreviews(response);
+      setFeaturePreviews(
+        Object.entries(response.features).map(([feature, enabled]) => ({
+          feature: feature as FeaturePreviewFeature,
+          enabled,
+        }))
+      );
     } finally {
       setLoading(false);
     }
