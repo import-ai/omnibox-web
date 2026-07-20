@@ -9,6 +9,7 @@ interface ResourcePickerTreeProps {
   onSelect: (resource: ResourcePickerResource) => void;
   resources: ResourcePickerResource[];
   searchActive: boolean;
+  selectedResourceId?: string;
   toggleExpand: (resource: ResourcePickerResource) => Promise<void>;
 }
 
@@ -20,19 +21,21 @@ export function ResourcePickerTree({
   onSelect,
   resources,
   searchActive,
+  selectedResourceId,
   toggleExpand,
 }: ResourcePickerTreeProps) {
   return resources.map(resource => {
     const children = childrenById[resource.id] ?? resource.children ?? [];
     const expanded = expandedIds.has(resource.id);
     return (
-      <div key={resource.id}>
+      <div key={resource.id} className="min-w-0 max-w-full overflow-hidden">
         <ResourcePickerRow
           canExpand={Boolean(resource.has_children || children.length > 0)}
           depth={depth}
           expanded={expanded}
           loading={loadingIds.has(resource.id)}
           resource={resource}
+          selected={resource.id === selectedResourceId}
           onSelect={() => {
             if (!resource.disabled) onSelect(resource);
           }}
@@ -47,6 +50,7 @@ export function ResourcePickerTree({
             onSelect={onSelect}
             resources={children}
             searchActive={searchActive}
+            selectedResourceId={selectedResourceId}
             toggleExpand={toggleExpand}
           />
         )}

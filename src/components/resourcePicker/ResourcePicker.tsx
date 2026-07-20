@@ -1,4 +1,5 @@
 import type { KeyboardEventHandler, ReactNode } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SearchField } from '@/components/search/SearchField';
@@ -12,8 +13,10 @@ import { useResourcePickerController } from './useResourcePickerController';
 export type { ResourcePickerResource } from './resourcePickerTypes';
 
 const emptyDefaultExpandedRootIds: string[] = [];
+const emptyDefaultExpandedIds: string[] = [];
 
 interface ResourcePickerProps {
+  defaultExpandedIds?: string[];
   defaultExpandedRootIds?: string[];
   expandAllInitially?: boolean;
   initialChildrenById?: Record<string, ResourcePickerResource[]>;
@@ -28,11 +31,13 @@ interface ResourcePickerProps {
   searchOnKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   beforeList?: ReactNode;
   listClassName?: string;
+  selectedResourceId?: string;
   onSelect: (resource: ResourcePickerResource) => void;
 }
 
 /** Renders a searchable, asynchronously expandable resource tree. */
 export function ResourcePicker({
+  defaultExpandedIds = emptyDefaultExpandedIds,
   defaultExpandedRootIds = emptyDefaultExpandedRootIds,
   expandAllInitially = false,
   initialChildrenById,
@@ -45,11 +50,15 @@ export function ResourcePicker({
   searchOnKeyDown,
   beforeList,
   listClassName,
+  selectedResourceId,
   onSelect,
 }: ResourcePickerProps) {
   const { t } = useTranslation();
+  const listRef = useRef<HTMLDivElement>(null);
+  const locatedResourceIdRef = useRef<string | undefined>(undefined);
   const controller = useResourcePickerController(
     {
+      defaultExpandedIds,
       defaultExpandedRootIds,
       expandAllInitially,
       initialChildrenById,
@@ -59,6 +68,33 @@ export function ResourcePicker({
     { searchResources }
   );
   const visibleResources = controller.search ? controller.searchResults : roots;
+
+  useEffect(() => {
+    if (!selectedResourceId) {
+      locatedResourceIdRef.current = undefined;
+      return;
+    }
+    if (
+      controller.search ||
+      locatedResourceIdRef.current === selectedResourceId
+    ) {
+      return;
+    }
+
+    const selectedRow = listRef.current?.querySelector<HTMLElement>(
+      '[aria-pressed="true"]'
+    );
+    if (!selectedRow) return;
+
+    selectedRow.scrollIntoView({ block: 'center', inline: 'nearest' });
+    locatedResourceIdRef.current = selectedResourceId;
+  }, [
+    controller.childrenById,
+    controller.expandedIds,
+    controller.search,
+    roots,
+    selectedResourceId,
+  ]);
 
   return (
     <div className="min-w-0">
@@ -77,6 +113,7 @@ export function ResourcePicker({
       )}
       {beforeList}
       <div
+        ref={listRef}
         className={cn(
           'min-h-60 w-full min-w-0 max-h-80 overflow-y-auto overflow-x-hidden pb-2',
           listClassName
@@ -109,6 +146,7 @@ export function ResourcePicker({
             onSelect={onSelect}
             resources={visibleResources}
             searchActive={Boolean(controller.search)}
+            selectedResourceId={selectedResourceId}
             toggleExpand={controller.toggleExpand}
           />
         )}
