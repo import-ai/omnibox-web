@@ -41,6 +41,11 @@ export function UserMessage(props: IProps) {
   const { message, messageOperator, onEdit } = props;
   const { t } = useTranslation();
   const params = useParams();
+  const resourceLinkPrefix = params.share_id
+    ? `/s/${params.share_id}`
+    : params.namespace_id
+      ? `/${params.namespace_id}`
+      : '';
   const openAIMessage = message.message;
   const lines = openAIMessage.content?.split('\n') || [];
   const [resourceMetaById, setResourceMetaById] = useState<
@@ -210,6 +215,11 @@ export function UserMessage(props: IProps) {
                     icon="resource"
                     resource={tokenResource}
                     contextType={part.resource.type}
+                    href={
+                      resourceLinkPrefix
+                        ? `${resourceLinkPrefix}/${part.resource.id}`
+                        : undefined
+                    }
                   >
                     {part.resource.name}
                   </InlineChatToken>
@@ -234,6 +244,11 @@ export function UserMessage(props: IProps) {
                       icon="resource"
                       resource={tokenResource?.resource}
                       contextType={tokenResource?.contextType}
+                      href={
+                        resourceLinkPrefix && tokenResource
+                          ? `${resourceLinkPrefix}/${tokenResource.resource.id}`
+                          : undefined
+                      }
                     >
                       {segment.text}
                     </InlineChatToken>
