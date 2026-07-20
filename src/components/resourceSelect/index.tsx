@@ -51,7 +51,6 @@ export function ResourceSelect(props: IProps) {
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen && resourceId && !data && !fetching) {
       setReloadToken(current => current + 1);
-      return;
     }
     if (nextOpen) {
       setTriggerWidth(triggerRef.current?.getBoundingClientRect().width);
