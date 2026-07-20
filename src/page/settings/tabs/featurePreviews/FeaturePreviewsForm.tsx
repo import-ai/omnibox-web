@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { Spinner } from '@/components/ui/Spinner';
 import { Switch } from '@/components/ui/Switch';
 import useFeaturePreviews, {
   FeaturePreviewFeature,
@@ -31,6 +32,14 @@ export function FeaturePreviewsForm() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex size-full items-center justify-center">
+        <Spinner className="size-6 text-gray-400" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2.5">
@@ -54,9 +63,7 @@ export function FeaturePreviewsForm() {
         <Switch
           checked={editorV2Enabled}
           onCheckedChange={handleEditorV2Toggle}
-          disabled={
-            loading || savingFeature === FeaturePreviewFeature.EDITOR_V2
-          }
+          disabled={savingFeature === FeaturePreviewFeature.EDITOR_V2}
           className="shrink-0"
         />
       </div>
