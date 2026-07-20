@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/button';
+import { ResourceSelect } from '@/components/resourceSelect';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   AlertDialog,
@@ -41,8 +42,6 @@ import {
   type CreateAPIKeyDto,
 } from '@/interface';
 import { cn } from '@/lib/utils';
-
-import ResourceSearch from '../../components/ResourceSearch';
 
 function APIKeyInfoRow({
   label,
@@ -472,7 +471,7 @@ export function APIKeyForm() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               {renderNoteField('api_key_note')}
 
               <div className="space-y-2">
@@ -496,10 +495,12 @@ export function APIKeyForm() {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <ResourceSearch
+                <ResourceSelect
                   namespaceId={namespaceId}
-                  value={formData.root_resource_id}
-                  onValueChange={resourceId =>
+                  resourceId={formData.root_resource_id}
+                  loading={creating}
+                  className="w-full"
+                  onChange={resourceId =>
                     setFormData(prev => ({
                       ...prev,
                       root_resource_id: resourceId,
@@ -543,7 +544,7 @@ export function APIKeyForm() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               {renderNoteField('update_api_key_note')}
 
               <div className="space-y-2">
@@ -567,10 +568,12 @@ export function APIKeyForm() {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <ResourceSearch
+                <ResourceSelect
                   namespaceId={namespaceId}
-                  value={formData.root_resource_id}
-                  onValueChange={resourceId =>
+                  resourceId={formData.root_resource_id}
+                  loading={updating}
+                  className="w-full"
+                  onChange={resourceId =>
                     setFormData(prev => ({
                       ...prev,
                       root_resource_id: resourceId,

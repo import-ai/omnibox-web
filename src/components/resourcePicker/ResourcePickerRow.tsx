@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Arrow } from '@/assets/icons/Arrow';
@@ -17,23 +18,29 @@ interface ResourcePickerRowProps {
   onSelect: () => void;
   onToggle: () => void;
   resource: ResourcePickerResource;
+  selected: boolean;
 }
 
 function ResourceSelectButton({
   expanded,
   onSelect,
   resource,
-}: Pick<ResourcePickerRowProps, 'expanded' | 'onSelect' | 'resource'>) {
+  selected,
+}: Pick<
+  ResourcePickerRowProps,
+  'expanded' | 'onSelect' | 'resource' | 'selected'
+>) {
   const { t } = useTranslation();
   const name = resource.name || t('untitled');
 
   return (
     <Button
       type="button"
-      variant="ghost"
+      variant={selected ? 'secondary' : 'ghost'}
       disabled={resource.disabled}
+      aria-pressed={selected}
       className={cn(
-        'flex h-auto w-full min-w-0 max-w-full items-center justify-start overflow-hidden rounded-md px-1 py-2 font-normal',
+        'grid h-auto w-full min-w-0 max-w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 overflow-hidden rounded-md px-1 py-2 font-normal',
         resource.disabled && 'opacity-50'
       )}
       onClick={onSelect}
@@ -41,7 +48,8 @@ function ResourceSelectButton({
       <span className="size-4 shrink-0 [&>svg]:size-4">
         <ResourceIcon expand={expanded} resource={resource} />
       </span>
-      <span className="ml-2 min-w-0 flex-1 truncate text-left">{name}</span>
+      <span className="min-w-0 truncate text-left">{name}</span>
+      {selected && <Check className="size-4 shrink-0 text-primary" />}
     </Button>
   );
 }
@@ -54,6 +62,7 @@ export function ResourcePickerRow({
   onSelect,
   onToggle,
   resource,
+  selected,
 }: ResourcePickerRowProps) {
   const { t } = useTranslation();
   const name = resource.name || t('untitled');
@@ -62,12 +71,13 @@ export function ResourcePickerRow({
       expanded={expanded}
       onSelect={onSelect}
       resource={resource}
+      selected={selected}
     />
   );
 
   return (
     <div
-      className="flex min-w-0 items-center"
+      className="flex w-full min-w-0 max-w-full items-center overflow-hidden"
       style={{ paddingLeft: depth * 16 + 4, paddingRight: 8 }}
     >
       {canExpand ? (

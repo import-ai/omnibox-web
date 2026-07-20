@@ -798,7 +798,7 @@
     },
     "permission_scope": "权限范围",
     "permission_scope_tooltip": "此API密钥的根文档，将限制此密钥只能访问该文档及其子文档。",
-    "root_resource_id_placeholder": "输入文档名以搜索",
+    "root_resource_id_placeholder": "请选择权限范围",
     "note": "备注",
     "note_placeholder": "请输入备注，最多 128 个字符",
     "note_length_error": "备注不能超过 {{max}} 个字符",
