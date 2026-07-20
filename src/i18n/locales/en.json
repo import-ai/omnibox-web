@@ -357,6 +357,7 @@
     "namespace": "Namespace",
     "api_key": "API Keys",
     "applications": "Applications",
+    "feature_previews": "Feature Preview",
     "content": "Content",
     "account": "Account",
     "space": "Space",
@@ -475,6 +476,12 @@
         "description": "Are you sure you want to unbind {{ name }}? This will disconnect the application from your workspace.",
         "button": "Confirm Unbind"
       }
+    }
+  },
+  "feature_previews": {
+    "editor_v2": {
+      "title": "Editor 2.0",
+      "description": "A modern editor with a brand-new experience"
     }
   },
   "manage": {

@@ -1,5 +1,6 @@
 import {
   BrainCircuit,
+  FlaskConical,
   KeyRound,
   List,
   MonitorCog,
@@ -78,6 +79,11 @@ export function SettingsSidebar({
       label: t('setting.api_key'),
       value: 'apikey',
       icon: <KeyRound className="size-4" />,
+    },
+    {
+      label: t('setting.feature_previews'),
+      value: 'featurePreviews',
+      icon: <FlaskConical className="size-4" />,
     },
   ];
 
