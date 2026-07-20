@@ -31,8 +31,8 @@ map $uri $is_spa_route {
     default 0;
     "~*^/(?:welcome|oauth/authorize|user/(?:login|sign-up|verify-otp|accept-invite|account/delete/confirm|auth/(?:confirm(?:/google)?|miniprogram))|invite/confirm)/?$" 1;
     "~*^/invite/[0-9A-Za-z]{6}/[0-9A-Za-z]{6}/?$" 1;
-    "~*^/[0-9A-Za-z]{6}(?:/[0-9A-Za-z]{16}(?:/edit)?|/chat(?:/conversations|/[0-9]+)?)?/?$" 1;
-    "~*^/s/[0-9A-Za-z]{10}(?:/[0-9A-Za-z]{16}|/chat(?:/[0-9]+)?)?/?$" 1;
+    "~*^/[0-9A-Za-z]{6}(?:/[0-9A-Za-z]{16}(?:/edit)?|/chat(?:/conversations|/[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12})?)?/?$" 1;
+    "~*^/s/[0-9A-Za-z]{10}(?:/[0-9A-Za-z]{16}|/chat(?:/[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12})?)?/?$" 1;
 }
 
 # Rules for WeCom (Enterprise WeChat) crawling: User-Agent must contain "wxwork", URL must not include "wework_cfm_code", and Referer must be empty
@@ -70,6 +70,14 @@ server {
         try_files $uri $uri/ =404;
         add_header Cache-Control "public, max-age=31536000, immutable";
         access_log off;
+    }
+
+    location = /404.html {
+        internal;
+        root /usr/share/nginx/html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires 0 always;
     }
 
     location ~* "^/s/([0-9A-Za-z]{10})(/([0-9A-Za-z]{16}))?/?$" {
@@ -118,6 +126,8 @@ server {
     }
 
     location @spa {
+        error_page 404 /404.html;
+
         if ($is_spa_route = 0) {
             return 404;
         }

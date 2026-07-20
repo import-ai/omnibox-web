@@ -45,23 +45,37 @@ interface IndexedResourceSearchResult {
   resource_type: ResourceType;
 }
 
-export function fetchChildren(namespaceId: string, id: string) {
+export function fetchChildren(
+  namespaceId: string,
+  id: string
+): Promise<Resource[]> {
   return http.get<Resource[]>(
     `/namespaces/${namespaceId}/resources/${id}/children`
   );
 }
 
-export function fetchRootResources(namespaceId: string) {
-  return http.get<RootResourcesResponse>(`/namespaces/${namespaceId}/root`);
+export function fetchRootResources(
+  namespaceId: string,
+  signal?: AbortSignal
+): Promise<RootResourcesResponse> {
+  return http.get<RootResourcesResponse>(`/namespaces/${namespaceId}/root`, {
+    signal,
+  });
 }
 
-export function fetchSmartFolderChildren(namespaceId: string, id: string) {
+export function fetchSmartFolderChildren(
+  namespaceId: string,
+  id: string
+): Promise<Resource[]> {
   return http.get<Resource[]>(
     `/namespaces/${namespaceId}/smart-folders/${id}/children`
   );
 }
 
-export function searchResources(namespaceId: string, query: string) {
+export function searchResources(
+  namespaceId: string,
+  query: string
+): Promise<ResourceMeta[]> {
   const params = new URLSearchParams();
   if (query) {
     params.set('query', query);
@@ -104,11 +118,16 @@ export function moveResource(
   );
 }
 
-export function fetchResource(namespaceId: string, targetId: string) {
+export function fetchResource(
+  namespaceId: string,
+  targetId: string,
+  signal?: AbortSignal
+): Promise<Resource> {
   return http.get<Resource>(
     `/namespaces/${namespaceId}/resources/${targetId}`,
     {
       mute: true,
+      signal,
     }
   );
 }
