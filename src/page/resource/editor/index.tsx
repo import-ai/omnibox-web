@@ -37,7 +37,6 @@ import {
   updateCacheTitle,
 } from '@/page/resource/editor/cache';
 import {
-  ENABLE_OMNIBOX_EDITOR,
   OMNIBOX_EDITOR_CONTENT_WIDTH,
   toolbar,
 } from '@/page/resource/editor/const';
@@ -45,6 +44,10 @@ import {
   type EditorUpdatePayload,
   serializeResourceEditorContent,
 } from '@/page/resource/editor/contentSerialization';
+import {
+  selectUseOmniboxEditor,
+  useResourceStore,
+} from '@/page/resource/resourceStore';
 
 interface IEditorProps {
   namespaceId: string;
@@ -491,7 +494,9 @@ function VditorResourceEditor(props: IEditorProps) {
 }
 
 export default function Editor(props: IEditorProps) {
-  return ENABLE_OMNIBOX_EDITOR ? (
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+
+  return useOmniboxEditor ? (
     <OmniboxResourceEditor {...props} />
   ) : (
     <VditorResourceEditor {...props} />

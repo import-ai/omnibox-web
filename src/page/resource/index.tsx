@@ -6,10 +6,11 @@ import useApp from '@/hooks/useApp';
 import useResource from '@/hooks/userResource';
 import useWide from '@/hooks/useWide';
 import { cn } from '@/lib/utils';
+import { OMNIBOX_EDITOR_CONTENT_WIDTH } from '@/page/resource/editor/const';
 import {
-  ENABLE_OMNIBOX_EDITOR,
-  OMNIBOX_EDITOR_CONTENT_WIDTH,
-} from '@/page/resource/editor/const';
+  selectUseOmniboxEditor,
+  useResourceStore,
+} from '@/page/resource/resourceStore';
 import { useResourceBodyDragAutoScroll } from '@/page/resource/useResourceBodyDragAutoScroll';
 
 import Header from './header';
@@ -22,8 +23,9 @@ export default function ResourcePage() {
   const [large, onLarge] = useState(window.innerWidth > 1500);
   const app = useApp();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const isOmniboxResource =
-    ENABLE_OMNIBOX_EDITOR &&
+    useOmniboxEditor &&
     !!props.resource &&
     props.resource.resource_type !== 'folder' &&
     props.resource.resource_type !== 'smart_folder';

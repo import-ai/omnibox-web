@@ -13,10 +13,11 @@ import { useSearchParams } from 'react-router-dom';
 import { Markdown } from '@/components/markdown';
 import useTheme from '@/hooks/useTheme';
 import { Resource, SharedResource } from '@/interface';
+import { OMNIBOX_EDITOR_CONTENT_WIDTH } from '@/page/resource/editor/const';
 import {
-  ENABLE_OMNIBOX_EDITOR,
-  OMNIBOX_EDITOR_CONTENT_WIDTH,
-} from '@/page/resource/editor/const';
+  selectUseOmniboxEditor,
+  useResourceStore,
+} from '@/page/resource/resourceStore';
 
 import {
   findFirstSearchMatchElement,
@@ -214,7 +215,9 @@ function OmniboxRender(props: IProps) {
 }
 
 export default function Render(props: IProps) {
-  return ENABLE_OMNIBOX_EDITOR ? (
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+
+  return useOmniboxEditor ? (
     <OmniboxRender {...props} />
   ) : (
     <MarkdownRender {...props} />
