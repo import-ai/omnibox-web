@@ -1,6 +1,9 @@
 import type { ResourceMeta } from '@/interface';
 
-import { insertResourceMention } from './composerDocument';
+import {
+  createResourceMentionText,
+  insertResourceMention,
+} from './composerDocument';
 import {
   displayPartsFromComposerText,
   queryFromComposerDisplayText,
@@ -63,6 +66,8 @@ describe('composer query', () => {
       'Untitled'
     );
 
+    expect(withResource.text).toBe(`${createResourceMentionText('plan.md')} `);
+
     expect(
       queryFromComposerDisplayText(
         `${withResource.text}这个资源讲了什么？`,
@@ -111,7 +116,7 @@ describe('composer query', () => {
           attrs: { original_name: 'plan.md' },
         },
       },
-      { type: 'text', text: '总结' },
+      { type: 'text', text: ' 总结' },
     ]);
   });
 });
