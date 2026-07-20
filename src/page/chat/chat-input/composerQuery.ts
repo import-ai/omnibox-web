@@ -14,6 +14,11 @@ type QueryDecoration = {
   replacement: string;
 };
 
+function resourceQueryText(mention: ComposerMention): string {
+  const label = mention.label.replace(/[[\]\\]/g, '\\$&');
+  return `[${label}](#${mention.resource.id})`;
+}
+
 function validResourceDecorations(
   text: string,
   mentions: ComposerMention[]
@@ -27,7 +32,7 @@ function validResourceDecorations(
     .map(mention => ({
       start: mention.start,
       end: mention.end,
-      replacement: mention.label,
+      replacement: resourceQueryText(mention),
     }));
 }
 

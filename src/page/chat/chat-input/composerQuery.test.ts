@@ -19,7 +19,7 @@ function resource(id: string, name: string): ResourceMeta {
 }
 
 describe('composer query', () => {
-  it('keeps resource labels in query while removing layout spacers and tool tokens', () => {
+  it('serializes resource labels as links while removing layout spacers and tool tokens', () => {
     const withResource = insertResourceMention(
       { text: 'read  now', mentions: [] },
       resource('r1', 'plan.md'),
@@ -39,7 +39,20 @@ describe('composer query', () => {
         withResource.mentions,
         withTool.tools
       )
-    ).toBe('read plan.md now');
+    ).toBe('read [plan.md](#r1) now');
+  });
+
+  it('escapes markdown syntax in resource labels', () => {
+    const withResource = insertResourceMention(
+      { text: 'read  now', mentions: [] },
+      resource('r1', 'plan [draft]\\v2.md'),
+      { start: 5, end: 5 },
+      'Untitled'
+    );
+
+    expect(
+      queryFromComposerDisplayText(withResource.text, withResource.mentions, [])
+    ).toBe('read [plan \\[draft\\]\\\\v2.md](#r1) now');
   });
 
   it('exports display parts in the same order as the composer text', () => {
