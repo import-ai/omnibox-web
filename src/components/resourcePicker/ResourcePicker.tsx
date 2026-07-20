@@ -1,4 +1,5 @@
 import type { KeyboardEventHandler, ReactNode } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SearchField } from '@/components/search/SearchField';
@@ -53,6 +54,8 @@ export function ResourcePicker({
   onSelect,
 }: ResourcePickerProps) {
   const { t } = useTranslation();
+  const listRef = useRef<HTMLDivElement>(null);
+  const locatedResourceIdRef = useRef<string | undefined>(undefined);
   const controller = useResourcePickerController(
     {
       defaultExpandedIds,
@@ -65,6 +68,33 @@ export function ResourcePicker({
     { searchResources }
   );
   const visibleResources = controller.search ? controller.searchResults : roots;
+
+  useEffect(() => {
+    if (!selectedResourceId) {
+      locatedResourceIdRef.current = undefined;
+      return;
+    }
+    if (
+      controller.search ||
+      locatedResourceIdRef.current === selectedResourceId
+    ) {
+      return;
+    }
+
+    const selectedRow = listRef.current?.querySelector<HTMLElement>(
+      '[aria-pressed="true"]'
+    );
+    if (!selectedRow) return;
+
+    selectedRow.scrollIntoView({ block: 'center', inline: 'nearest' });
+    locatedResourceIdRef.current = selectedResourceId;
+  }, [
+    controller.childrenById,
+    controller.expandedIds,
+    controller.search,
+    roots,
+    selectedResourceId,
+  ]);
 
   return (
     <div className="min-w-0">
@@ -83,6 +113,7 @@ export function ResourcePicker({
       )}
       {beforeList}
       <div
+        ref={listRef}
         className={cn(
           'min-h-60 w-full min-w-0 max-h-80 overflow-y-auto overflow-x-hidden pb-2',
           listClassName
