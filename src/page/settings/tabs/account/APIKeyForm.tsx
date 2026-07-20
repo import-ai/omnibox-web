@@ -471,7 +471,7 @@ export function APIKeyForm() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               {renderNoteField('api_key_note')}
 
               <div className="space-y-2">
@@ -544,7 +544,7 @@ export function APIKeyForm() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               {renderNoteField('update_api_key_note')}
 
               <div className="space-y-2">
