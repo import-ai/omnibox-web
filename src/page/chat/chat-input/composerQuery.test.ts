@@ -55,6 +55,23 @@ describe('composer query', () => {
     ).toBe('read [plan \\[draft\\]\\\\v2.md](#r1) now');
   });
 
+  it('separates a resource link from text typed immediately after it', () => {
+    const withResource = insertResourceMention(
+      { text: '', mentions: [] },
+      resource('r1', 'plan.md'),
+      { start: 0, end: 0 },
+      'Untitled'
+    );
+
+    expect(
+      queryFromComposerDisplayText(
+        `${withResource.text}这个资源讲了什么？`,
+        withResource.mentions,
+        []
+      )
+    ).toBe('[plan.md](#r1) 这个资源讲了什么？');
+  });
+
   it('exports display parts in the same order as the composer text', () => {
     const withWebSearch = insertToolRange(
       { text: '总结', tools: [] },

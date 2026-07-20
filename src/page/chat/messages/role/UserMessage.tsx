@@ -152,7 +152,6 @@ export function UserMessage(props: IProps) {
       },
     ])
   );
-  const resourceNames = resources.map(resource => resource.name);
   const copyHtml = createUserMessageCopyHtml(
     openAIMessage.content || '',
     message.attrs?.tools,
@@ -231,7 +230,7 @@ export function UserMessage(props: IProps) {
         ) : (
           lines.map((line, idx) => (
             <span key={idx} className="break-words [overflow-wrap:anywhere]">
-              {splitUserMessageResourceTokens(line, resourceNames).map(
+              {splitUserMessageResourceTokens(line, resources).map(
                 (segment, segmentIndex) => {
                   if (segment.type !== 'resource') {
                     return segment.text;
