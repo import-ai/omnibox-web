@@ -1,5 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 
+import { TooltipProvider } from '@/components/tooltip';
+
 import { ResourcePickerRow } from './ResourcePickerRow';
 
 jest.mock('react-i18next', () => ({
@@ -73,5 +75,29 @@ describe('ResourcePickerRow', () => {
     expect(html).toContain('grid-cols-[auto_minmax(0,1fr)_auto]');
     expect(html).toContain('min-w-0 truncate');
     expect(html).toMatch(/lucide-check[^>]*shrink-0/);
+  });
+
+  it('shows the disabled state and cursor for unavailable resources', () => {
+    const html = renderToStaticMarkup(
+      <TooltipProvider>
+        <ResourcePickerRow
+          canExpand={false}
+          depth={0}
+          expanded={false}
+          loading={false}
+          onSelect={jest.fn()}
+          onToggle={jest.fn()}
+          resource={{
+            ...resource,
+            disabled: true,
+            disabledTooltip: 'Smart folders do not support this operation.',
+          }}
+          selected={false}
+        />
+      </TooltipProvider>
+    );
+
+    expect(html).toContain('disabled=""');
+    expect(html).toContain('cursor-not-allowed');
   });
 });

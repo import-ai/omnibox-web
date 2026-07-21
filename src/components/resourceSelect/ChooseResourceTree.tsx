@@ -21,8 +21,14 @@ interface ChooseResourceTreeProps {
   selectedResourcePath?: PathItem[];
   disabledIds?: string[];
   disabledTooltip?: string;
+  disableSmartFolders?: boolean;
+  smartFolderDisabledTooltip?: string;
   onChange: (resource: ResourcePickerResource) => void;
 }
+
+type ChooseResourceTreeResource = ResourcePickerResource & {
+  descendantsDisabled?: boolean;
+};
 
 /** Destination tree for ResourceSelect — same picker UX as Move to, pick closes the menu. */
 export function ChooseResourceTree({
@@ -31,10 +37,12 @@ export function ChooseResourceTree({
   selectedResourcePath,
   disabledIds,
   disabledTooltip,
+  disableSmartFolders,
+  smartFolderDisabledTooltip,
   onChange,
 }: ChooseResourceTreeProps) {
   const { t } = useTranslation();
-  const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
+  const [roots, setRoots] = useState<ChooseResourceTreeResource[]>([]);
   const disabledResourceIds = useMemo(
     () => new Set(disabledIds ?? []),
     [disabledIds]
@@ -44,9 +52,11 @@ export function ChooseResourceTree({
     (
       resource: ResourcePickerResource,
       parentDisabled = false
-    ): ResourcePickerResource | null => {
+    ): ChooseResourceTreeResource | null => {
       const operatingResource =
         parentDisabled || disabledResourceIds.has(resource.id);
+      const smartFolderDisabled =
+        disableSmartFolders && resource.resource_type === 'smart_folder';
       const children = resource.children
         ?.map(child => decorateResource(child, operatingResource))
         .filter(Boolean) as ResourcePickerResource[] | undefined;
@@ -54,11 +64,21 @@ export function ChooseResourceTree({
       return {
         ...resource,
         children,
-        disabled: operatingResource,
-        disabledTooltip: operatingResource ? disabledTooltip : undefined,
+        disabled: operatingResource || smartFolderDisabled,
+        descendantsDisabled: operatingResource,
+        disabledTooltip: smartFolderDisabled
+          ? smartFolderDisabledTooltip
+          : operatingResource
+            ? disabledTooltip
+            : undefined,
       };
     },
-    [disabledResourceIds, disabledTooltip]
+    [
+      disabledResourceIds,
+      disabledTooltip,
+      disableSmartFolders,
+      smartFolderDisabledTooltip,
+    ]
   );
 
   useEffect(() => {
@@ -110,7 +130,14 @@ export function ChooseResourceTree({
       ).then(
         resources =>
           resources
-            .map(child => decorateResource(child, Boolean(resource.disabled)))
+            .map(child =>
+              decorateResource(
+                child,
+                Boolean(
+                  (resource as ChooseResourceTreeResource).descendantsDisabled
+                )
+              )
+            )
             .filter(Boolean) as ResourcePickerResource[]
       ),
     [decorateResource, namespaceId]
