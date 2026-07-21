@@ -49,7 +49,7 @@ export default function ShareActions({
   const handleAction = (id: string) => {
     if (id === 'copy_link') {
       const returnValue = copy(location.href);
-      toast(t(returnValue ? 'copy.success' : 'copy.fail'), {
+      toast(t(returnValue ? 'actions.copy_link_success' : 'copy.fail'), {
         position: 'bottom-right',
       });
       setOpen(false);
@@ -60,7 +60,7 @@ export default function ShareActions({
       const returnValue = copy(resource.content, {
         format: 'text/plain',
       });
-      toast(t(returnValue ? 'copy.success' : 'copy.fail'), {
+      toast(t(returnValue ? 'actions.copy_content_success' : 'copy.fail'), {
         position: 'bottom-right',
       });
       setOpen(false);

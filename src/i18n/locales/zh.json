@@ -99,9 +99,10 @@
   },
   "actions": {
     "copy_link": "复制链接",
-    "copy_link_success": "您的链接复制成功",
+    "copy_link_success": "链接复制成功",
     "copy_link_failed": "您的链接复制失败",
     "copy_content": "复制正文",
+    "copy_content_success": "内容复制成功",
     "duplicate": "创建副本",
     "download": "源文件",
     "move_to": "移动到",

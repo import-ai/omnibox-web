@@ -99,9 +99,10 @@
   },
   "actions": {
     "copy_link": "Copy Link",
-    "copy_link_success": "Your link has been copied successfully",
+    "copy_link_success": "Link copied successfully",
     "copy_link_failed": "Failed to copy your link",
     "copy_content": "Copy content",
+    "copy_content_success": "Content copied successfully",
     "duplicate": "Create a copy",
     "download": "Source file",
     "move_to": "Move to",
