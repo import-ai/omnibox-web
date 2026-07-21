@@ -49,6 +49,11 @@ import {
   useResourceStore,
 } from '@/page/resource/resourceStore';
 
+import {
+  normalizeTitleInput,
+  ResourceTitleTextarea,
+} from './ResourceTitleTextarea';
+
 interface IEditorProps {
   namespaceId: string;
   resource: Resource;
@@ -108,7 +113,7 @@ function format(_files: File[], responseText: string): string {
 
 function OmniboxResourceEditor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const markdownRef = useRef('');
   const navigate = useNavigate();
   const loc = useLocation();
@@ -146,8 +151,8 @@ function OmniboxResourceEditor(props: IEditorProps) {
     [initialContent, editorContent, isFolder, linkBase]
   );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value;
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newTitle = normalizeTitleInput(e.target.value);
     dirtyRef.current = true;
     onTitle(newTitle);
     updateCacheTitle(resource.id, newTitle);
@@ -303,12 +308,11 @@ function OmniboxResourceEditor(props: IEditorProps) {
       }
     >
       <div className="resource-editable-title">
-        <Input
-          type="text"
+        <ResourceTitleTextarea
           value={title}
           onChange={handleChange}
-          placeholder="Enter title"
-          className="mb-4 p-2 border rounded"
+          placeholder={t('resource.title_placeholder')}
+          aria-label={t('resource.title')}
         />
       </div>
       <div className="resource-editable-editor">

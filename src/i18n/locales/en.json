@@ -57,6 +57,8 @@
   },
   "resource": {
     "name": "Resource",
+    "title": "Title",
+    "title_placeholder": "Enter title",
     "folder": {
       "children_count": "{{ count }} files"
     },

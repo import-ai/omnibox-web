@@ -57,6 +57,8 @@
   },
   "resource": {
     "name": "文件",
+    "title": "标题",
+    "title_placeholder": "请输入标题",
     "folder": {
       "children_count": "{{ count }} 个文件"
     },
