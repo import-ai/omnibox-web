@@ -26,6 +26,10 @@ interface ChooseResourceTreeProps {
   onChange: (resource: ResourcePickerResource) => void;
 }
 
+type ChooseResourceTreeResource = ResourcePickerResource & {
+  descendantsDisabled?: boolean;
+};
+
 /** Destination tree for ResourceSelect — same picker UX as Move to, pick closes the menu. */
 export function ChooseResourceTree({
   namespaceId,
@@ -38,7 +42,7 @@ export function ChooseResourceTree({
   onChange,
 }: ChooseResourceTreeProps) {
   const { t } = useTranslation();
-  const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
+  const [roots, setRoots] = useState<ChooseResourceTreeResource[]>([]);
   const disabledResourceIds = useMemo(
     () => new Set(disabledIds ?? []),
     [disabledIds]
@@ -48,7 +52,7 @@ export function ChooseResourceTree({
     (
       resource: ResourcePickerResource,
       parentDisabled = false
-    ): ResourcePickerResource | null => {
+    ): ChooseResourceTreeResource | null => {
       const operatingResource =
         parentDisabled || disabledResourceIds.has(resource.id);
       const smartFolderDisabled =
@@ -61,6 +65,7 @@ export function ChooseResourceTree({
         ...resource,
         children,
         disabled: operatingResource || smartFolderDisabled,
+        descendantsDisabled: operatingResource,
         disabledTooltip: smartFolderDisabled
           ? smartFolderDisabledTooltip
           : operatingResource
@@ -125,7 +130,14 @@ export function ChooseResourceTree({
       ).then(
         resources =>
           resources
-            .map(child => decorateResource(child, Boolean(resource.disabled)))
+            .map(child =>
+              decorateResource(
+                child,
+                Boolean(
+                  (resource as ChooseResourceTreeResource).descendantsDisabled
+                )
+              )
+            )
             .filter(Boolean) as ResourcePickerResource[]
       ),
     [decorateResource, namespaceId]
