@@ -108,8 +108,8 @@ export function InlineChatToken({
   }
 
   return (
-    <span className={inlineChatTokenClassName}>
-      <span className="relative inline-block align-baseline">
+    <span className={`${inlineChatTokenClassName} mr-[0.15em]`}>
+      <span className="relative mr-[-0.15em] inline-block align-baseline">
         <span className="text-transparent">{spacer}</span>
         <span className="absolute inset-0 inline-flex items-center justify-center">
           <TokenIcon
