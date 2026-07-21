@@ -64,6 +64,7 @@ export function InlineChatToken({
   resource,
   contextType,
   spacer,
+  href,
   children,
 }: {
   icon: InlineChatTokenIcon;
@@ -71,11 +72,12 @@ export function InlineChatToken({
   contextType?: PrivateSearchResourceType;
   /** Composer overlay uses a fixed spacer; omit for read-only message display. */
   spacer?: string;
+  href?: string;
   children: ReactNode;
 }) {
   if (!spacer) {
-    return (
-      <span className={inlineChatTokenClassName}>
+    const content = (
+      <>
         <span className="mr-1 inline-flex align-[-0.125em] [&>svg]:size-4">
           <TokenIcon
             icon={icon}
@@ -84,8 +86,23 @@ export function InlineChatToken({
           />
         </span>
         {children}
-      </span>
+      </>
     );
+
+    if (href) {
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${inlineChatTokenClassName} hover:underline`}
+        >
+          {content}
+        </a>
+      );
+    }
+
+    return <span className={inlineChatTokenClassName}>{content}</span>;
   }
 
   return (

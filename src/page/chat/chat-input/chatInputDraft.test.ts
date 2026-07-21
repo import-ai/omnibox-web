@@ -66,7 +66,7 @@ describe('chat input draft', () => {
 
     const restored = getChatInputDraft('home:n1', storage);
     expect(restored).toEqual({
-      query: 'plan.md',
+      query: '[plan.md](#r1) ',
       tools: [ToolType.REASONING, ToolType.WEB_SEARCH],
       composerState,
       selectedResources: [{ type: 'resource', resource: resource() }],
@@ -81,7 +81,7 @@ describe('chat input draft', () => {
         if (part.type === 'tool') return part.tool;
         return part.type;
       })
-    ).toEqual(['r1', ToolType.REASONING, ToolType.WEB_SEARCH]);
+    ).toEqual(['r1', 'text', ToolType.REASONING, ToolType.WEB_SEARCH]);
 
     clearChatInputDraft('home:n1', storage);
     expect(getChatInputDraft('home:n1', storage)).toBeUndefined();
