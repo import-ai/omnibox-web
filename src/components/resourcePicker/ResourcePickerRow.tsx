@@ -74,6 +74,10 @@ export function ResourcePickerRow({
       selected={selected}
     />
   );
+  const selectButtonWrapperClassName = cn(
+    'flex min-w-0 flex-1 overflow-hidden',
+    resource.disabled && 'cursor-not-allowed'
+  );
 
   return (
     <div
@@ -108,16 +112,12 @@ export function ResourcePickerRow({
       {resource.disabledTooltip ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="flex min-w-0 flex-1 overflow-hidden">
-              {selectButton}
-            </span>
+            <span className={selectButtonWrapperClassName}>{selectButton}</span>
           </TooltipTrigger>
           <TooltipContent>{resource.disabledTooltip}</TooltipContent>
         </Tooltip>
       ) : (
-        <span className="flex min-w-0 flex-1 overflow-hidden">
-          {selectButton}
-        </span>
+        <span className={selectButtonWrapperClassName}>{selectButton}</span>
       )}
     </div>
   );
