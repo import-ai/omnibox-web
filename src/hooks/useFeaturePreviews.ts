@@ -16,23 +16,15 @@ interface FeaturePreviewsResponse {
   features: Record<FeaturePreviewFeature, boolean>;
 }
 
-export default function useFeaturePreviews(namespaceId: string) {
+export default function useFeaturePreviews() {
   const [featurePreviews, setFeaturePreviews] = useState<FeaturePreview[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchFeaturePreviews = useCallback(async () => {
-    if (!namespaceId) {
-      setFeaturePreviews([]);
-      useResourceStore.getState().resetFeaturePreviews();
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
-      const response: FeaturePreviewsResponse = await http.get(
-        `/namespaces/${namespaceId}/feature-previews`
-      );
+      const response: FeaturePreviewsResponse =
+        await http.get('/feature-previews');
       useResourceStore.getState().setFeaturePreviews(response.features);
       setFeaturePreviews(
         Object.entries(response.features).map(([feature, enabled]) => ({
@@ -43,19 +35,16 @@ export default function useFeaturePreviews(namespaceId: string) {
     } finally {
       setLoading(false);
     }
-  }, [namespaceId]);
+  }, []);
 
   const updateFeaturePreview = async (
     feature: FeaturePreviewFeature,
     enabled: boolean
   ): Promise<FeaturePreview> => {
-    const response: FeaturePreview = await http.put(
-      `/namespaces/${namespaceId}/feature-previews`,
-      {
-        feature,
-        enabled,
-      }
-    );
+    const response: FeaturePreview = await http.put('/feature-previews', {
+      feature,
+      enabled,
+    });
     useResourceStore.getState().setFeaturePreview(feature, response.enabled);
     setFeaturePreviews(previews => {
       const exists = previews.some(preview => preview.feature === feature);

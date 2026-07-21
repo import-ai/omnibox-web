@@ -56,18 +56,16 @@ export default function AutoTag() {
   };
 
   return (
-    <div className="flex w-full items-center justify-between gap-2">
-      <div className="flex min-w-0 items-start gap-2">
-        <Tags className="mt-0.5 size-4 shrink-0 text-muted-foreground lg:size-5" />
-        <div className="flex min-w-0 flex-col gap-1 lg:gap-2">
-          <span className="text-sm font-semibold text-foreground lg:text-base">
-            {t('manage.auto_tag_setting')}
-          </span>
-          <span className="text-xs text-muted-foreground lg:text-sm">
-            {t('manage.auto_tag_description')}
-          </span>
-        </div>
-      </div>
+    <div className="grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+      <Tags className="size-4 text-muted-foreground" />
+      <span className="min-w-0">
+        <span className="block text-sm font-medium leading-5 text-foreground">
+          {t('manage.auto_tag_setting')}
+        </span>
+        <span className="block whitespace-normal text-xs leading-4 text-muted-foreground">
+          {t('manage.auto_tag_description')}
+        </span>
+      </span>
       <Switch
         checked={isEnabled}
         onCheckedChange={handleToggle}

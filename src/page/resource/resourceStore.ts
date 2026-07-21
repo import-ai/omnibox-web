@@ -7,7 +7,6 @@ export interface ResourceState {
 export interface ResourceActions {
   setFeaturePreviews: (features: Record<string, boolean>) => void;
   setFeaturePreview: (feature: string, enabled: boolean) => void;
-  resetFeaturePreviews: () => void;
 }
 
 export type ResourceStore = ResourceState & ResourceActions;
@@ -26,7 +25,6 @@ export const useResourceStore = create<ResourceStore>()(set => ({
         [feature]: enabled,
       },
     })),
-  resetFeaturePreviews: () => set(initialState),
 }));
 
 export function selectUseOmniboxEditor(state: ResourceState): boolean {
