@@ -25,9 +25,13 @@
     "empty": "空空如也",
     "loading_more": "正在加载...",
     "no_more": "已展示近 30 天的全部消息",
+    "back": "返回",
+    "notification_type": "通知类型",
+    "created_at": "创建时间",
     "tags": {
       "wechat_bot": "微信助手",
-      "community": "黑友社区"
+      "community": "黑友社区",
+      "system": "系统通知"
     }
   },
   "welcome": {

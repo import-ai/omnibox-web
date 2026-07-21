@@ -21,6 +21,7 @@ const iconMap = {
 const notificationTagLabelKeyMap = {
   wechat_bot: 'notification_modal.tags.wechat_bot',
   community: 'notification_modal.tags.community',
+  system: 'notification_modal.tags.system',
 } as const;
 
 export function getNotificationTagLabel(

@@ -25,9 +25,13 @@
     "empty": "Nothing here",
     "loading_more": "Loading...",
     "no_more": "Showing all messages from the last 30 days",
+    "back": "Back",
+    "notification_type": "Notification type",
+    "created_at": "Created at",
     "tags": {
       "wechat_bot": "WeChat Assistant",
-      "community": "Community"
+      "community": "Community",
+      "system": "System notification"
     }
   },
   "welcome": {
