@@ -6,10 +6,18 @@
 
 /*
  * Full-width page grid: left gutter | centered content | right gutter.
- * TOC sits in full-start → content-start (the large left margin).
+ * TOC sits in full-start → content-start (the left margin).
+ * Title and editor body MUST share the same column template so they stay
+ * aligned while the viewport shrinks.
+ *
+ * Package hides TOC below 768px. Do not force a left-only min rail — that
+ * shifts body right and leaves a large empty gap. When wide enough, reserve
+ * equal min gutters so TOC has room without off-centering content.
  */
 .resource-editable-page {
   --resource-editor-content-width: 680px;
+  /* 680px content + 5.5rem TOC rail + 5.5rem balancing right rail */
+  --resource-editor-toc-rail: 5.5rem;
   display: grid;
   width: 100%;
   grid-template-columns:
@@ -30,12 +38,22 @@
 }
 
 .resource-editable-editor .omnibox-editor-layout {
-  /* Keep a real left gutter so the TOC rail cannot collapse to 0 width. */
   grid-template-columns:
-    [full-start] minmax(5.5rem, 1fr)
+    [full-start] minmax(0, 1fr)
     [content-start] minmax(0, var(--resource-editor-content-width))
     [content-end] minmax(0, 1fr)
     [full-end];
+}
+
+@media (min-width: 856px) {
+  .resource-editable-page,
+  .resource-editable-editor .omnibox-editor-layout {
+    grid-template-columns:
+      [full-start] minmax(var(--resource-editor-toc-rail), 1fr)
+      [content-start] minmax(0, var(--resource-editor-content-width))
+      [content-end] minmax(var(--resource-editor-toc-rail), 1fr)
+      [full-end];
+  }
 }
 
 .resource-editable-editor .toc-sidebar-wrapper {
