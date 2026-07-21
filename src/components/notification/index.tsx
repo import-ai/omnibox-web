@@ -13,6 +13,7 @@ import type {
   NotificationFilter,
   NotificationItem,
 } from './types';
+import { mergeNotificationDetail } from './utils';
 
 function Notification({ onClose }: { onClose?: () => void }) {
   const { t } = useTranslation();
@@ -92,7 +93,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
       const notificationDetail = await fetchNotificationDetail(item.id);
 
       setDetail({
-        ...notificationDetail,
+        ...mergeNotificationDetail(notificationDetail, item),
         status:
           shouldMarkRead && notificationDetail.status === 'unread'
             ? 'read'
