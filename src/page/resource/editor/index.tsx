@@ -484,7 +484,7 @@ function VditorResourceEditor(props: IEditorProps) {
   }, [vd, theme]);
 
   return (
-    <div className="pb-[30vh]">
+    <div className="mx-auto w-full max-w-[680px] pb-[30vh]">
       <Input
         type="text"
         value={title}
@@ -499,7 +499,6 @@ function VditorResourceEditor(props: IEditorProps) {
 
 export default function Editor(props: IEditorProps) {
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
-
   return useOmniboxEditor ? (
     <OmniboxResourceEditor {...props} />
   ) : (

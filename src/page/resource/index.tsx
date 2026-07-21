@@ -29,13 +29,16 @@ export default function ResourcePage() {
     !!props.resource &&
     props.resource.resource_type !== 'folder' &&
     props.resource.resource_type !== 'smart_folder';
-  // Edit mode needs full width so the TOC can sit in the left gutter.
-  // View mode keeps the original centered content width.
-  const useFullWidthForEdit = isOmniboxResource && props.editPage;
+  // Edit pages must be full-width so Omnibox TOC can sit next to the app
+  // sidebar. (DevTools showed max-w-[680px] trapping TOC beside the body.)
+  // Body/title stay 680px via resource-editable-page / Vditor inner styles.
+  const useFullWidthForEdit = props.editPage;
   const useEditorContentWidth = isOmniboxResource && !props.editPage;
 
-  // Editor body only — do not share listeners with sidebar tree DnD.
-  useResourceBodyDragAutoScroll(scrollContainerRef, useFullWidthForEdit);
+  useResourceBodyDragAutoScroll(
+    scrollContainerRef,
+    useFullWidthForEdit && isOmniboxResource
+  );
 
   useEffect(() => {
     function handleSize() {
@@ -73,7 +76,11 @@ export default function ResourcePage() {
       <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
       <div
         ref={scrollContainerRef}
-        className="no-scrollbar flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4"
+        className={cn(
+          'no-scrollbar flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4',
+          // Pull TOC flush toward the app sidebar in Omnibox edit mode.
+          useFullWidthForEdit && 'pl-2'
+        )}
       >
         <div
           className={cn('flex min-w-0 w-full max-w-full flex-col', {

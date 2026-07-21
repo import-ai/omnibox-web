@@ -4,61 +4,96 @@
     [content-end full-end];
 }
 
-/*
- * Full-width page grid: left gutter | centered content | right gutter.
- * TOC sits in full-start → content-start (the left margin).
- * Title and editor body MUST share the same column template so they stay
- * aligned while the viewport shrinks.
- *
- * Package hides TOC below 768px. Do not force a left-only min rail — that
- * shifts body right and leaves a large empty gap. When wide enough, reserve
- * equal min gutters so TOC has room without off-centering content.
- */
 .resource-editable-page {
   --resource-editor-content-width: 680px;
-  /* 680px content + 5.5rem TOC rail + 5.5rem balancing right rail */
-  --resource-editor-toc-rail: 5.5rem;
-  display: grid;
+  position: relative;
   width: 100%;
-  grid-template-columns:
-    [full-start] minmax(0, 1fr)
-    [content-start] minmax(0, var(--resource-editor-content-width))
-    [content-end] minmax(0, 1fr)
-    [full-end];
+  /* Leave a slim rail on the left so TOC does not overlap the title. */
+  padding-left: 1.5rem;
+  box-sizing: border-box;
 }
 
 .resource-editable-title {
-  grid-column: content-start / content-end;
+  width: 100%;
+  max-width: var(--resource-editor-content-width);
+  margin-inline: auto;
   min-width: 0;
 }
 
 .resource-editable-editor {
-  grid-column: full-start / full-end;
+  position: static;
+  width: 100%;
   min-width: 0;
 }
 
-.resource-editable-editor .omnibox-editor-layout {
-  grid-template-columns:
-    [full-start] minmax(0, 1fr)
-    [content-start] minmax(0, var(--resource-editor-content-width))
-    [content-end] minmax(0, 1fr)
-    [full-end];
+/* Center body text; do NOT create a positioning context. */
+.resource-editable-page .omnibox-editor-root,
+.resource-editable-page .omnibox-editor-wrapper,
+.resource-editable-page .omnibox-editor-layout,
+.resource-editable-page .omnibox-editor-layout--embedded,
+.resource-editable-page .omnibox-editor-content {
+  position: static !important;
 }
 
-@media (min-width: 856px) {
-  .resource-editable-page,
-  .resource-editable-editor .omnibox-editor-layout {
-    grid-template-columns:
-      [full-start] minmax(var(--resource-editor-toc-rail), 1fr)
-      [content-start] minmax(0, var(--resource-editor-content-width))
-      [content-end] minmax(var(--resource-editor-toc-rail), 1fr)
-      [full-end];
+.resource-editable-page .omnibox-editor-layout,
+.resource-editable-page .omnibox-editor-layout--embedded {
+  display: block !important;
+  width: 100% !important;
+  max-width: var(--resource-editor-content-width);
+  margin-inline: auto;
+}
+
+.resource-editable-page .omnibox-editor-content {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100%;
+  margin-inline: 0;
+}
+
+/*
+ * Pin TOC to the page shell (full-width ancestor with position:relative).
+ * !important beats package `.omnibox-editor-root .toc-sidebar` rules.
+ */
+.resource-editable-page .toc-sidebar,
+.resource-editable-page .omnibox-editor-root .toc-sidebar {
+  position: absolute !important;
+  left: 0 !important;
+  right: auto !important;
+  /* Align with body text under the title, not the title itself. */
+  top: 5.5rem !important;
+  bottom: 0 !important;
+  width: 1.25rem !important;
+  min-width: 1.25rem !important;
+  max-width: 1.25rem !important;
+  margin: 0 !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  justify-self: auto !important;
+  align-items: flex-start !important;
+  z-index: 20 !important;
+  pointer-events: none !important;
+}
+
+.resource-editable-page .toc-sidebar-wrapper,
+.resource-editable-page .omnibox-editor-root .toc-sidebar-wrapper {
+  position: sticky !important;
+  /* Below the page title block; bump if still too high. */
+  top: 11rem !important;
+  left: 0 !important;
+  margin: 0 !important;
+  width: max-content !important;
+  pointer-events: auto !important;
+}
+
+@media (max-width: 768px) {
+  .resource-editable-page {
+    padding-left: 0;
   }
-}
 
-.resource-editable-editor .toc-sidebar-wrapper {
-  margin-left: 0;
-  margin-right: auto;
+  .resource-editable-page .toc-sidebar,
+  .resource-editable-page .omnibox-editor-root .toc-sidebar {
+    display: none !important;
+  }
 }
 
 .resource-readonly-editor
