@@ -14,6 +14,11 @@ type QueryDecoration = {
   replacement: string;
 };
 
+export function createResourceQueryText(label: string, id: string): string {
+  const escapedLabel = label.replace(/[[\]\\]/g, '\\$&');
+  return `[${escapedLabel}](#${id})`;
+}
+
 function validResourceDecorations(
   text: string,
   mentions: ComposerMention[]
@@ -24,11 +29,18 @@ function validResourceDecorations(
         text.slice(mention.start, mention.end) ===
         createResourceMentionText(mention.label)
     )
-    .map(mention => ({
-      start: mention.start,
-      end: mention.end,
-      replacement: mention.label,
-    }));
+    .map(mention => {
+      const needsTrailingSpace =
+        mention.end < text.length && !/\s/.test(text[mention.end]);
+      return {
+        start: mention.start,
+        end: mention.end,
+        replacement: `${createResourceQueryText(
+          mention.label,
+          mention.resource.id
+        )}${needsTrailingSpace ? ' ' : ''}`,
+      };
+    });
 }
 
 function validToolDecorations(

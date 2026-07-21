@@ -12,6 +12,7 @@ import {
 } from './composerOperations';
 import { displayPartsFromComposerText } from './composerQuery';
 import { createComposerState } from './composerState';
+import { createToolTokenText } from './composerToolTokens';
 import { ToolType } from './types';
 
 function resource(id: string, name: string): ResourceMeta {
@@ -25,6 +26,30 @@ function resource(id: string, name: string): ResourceMeta {
 }
 
 describe('composer operations', () => {
+  it('keeps later token ranges aligned when reusing an existing space', () => {
+    const initial = createComposerState('read  now');
+    const withTool = toggleComposerTool(
+      initial,
+      ToolType.WEB_SEARCH,
+      'Web Search',
+      { start: 6, end: 6 }
+    );
+    expect(withTool).not.toBeNull();
+
+    const withResource = insertComposerResource(
+      withTool?.state ?? initial,
+      resource('r1', 'plan.md'),
+      { start: 5, end: 5 },
+      'Untitled'
+    );
+    const tokenText = createResourceMentionText('plan.md');
+
+    expect(withResource.state.displayText).toBe(
+      `read ${tokenText} ${createToolTokenText('Web Search')}now`
+    );
+    expect(withResource.state.toolRanges[0].start).toBe(6 + tokenText.length);
+  });
+
   it('keeps toolbar token order while the textarea loses focus', () => {
     const initial = createComposerState('你好你是谁');
     const first = toggleComposerTool(initial, ToolType.WEB_SEARCH, '联网搜索', {
@@ -83,7 +108,13 @@ describe('composer operations', () => {
         withResource.state.mentions,
         withResource.state.toolRanges
       ).map(part => (part.type === 'tool' ? part.tool : part.type))
-    ).toEqual(['text', ToolType.WEB_SEARCH, ToolType.REASONING, 'resource']);
+    ).toEqual([
+      'text',
+      ToolType.WEB_SEARCH,
+      ToolType.REASONING,
+      'resource',
+      'text',
+    ]);
     expect(withResource.state.mentions).toHaveLength(1);
   });
 
@@ -115,7 +146,13 @@ describe('composer operations', () => {
         reasoning?.state.mentions ?? [],
         reasoning?.state.toolRanges ?? []
       ).map(part => (part.type === 'tool' ? part.tool : part.type))
-    ).toEqual(['text', 'resource', ToolType.WEB_SEARCH, ToolType.REASONING]);
+    ).toEqual([
+      'text',
+      'resource',
+      'text',
+      ToolType.WEB_SEARCH,
+      ToolType.REASONING,
+    ]);
   });
 
   it('keeps one resource token at its original position when selected again', () => {
@@ -152,7 +189,7 @@ describe('composer operations', () => {
         if (part.type === 'tool') return part.tool;
         return part.type;
       })
-    ).toEqual(['text', 'r1', ToolType.WEB_SEARCH]);
+    ).toEqual(['text', 'r1', 'text', ToolType.WEB_SEARCH]);
     expect(repeated.selection).toEqual(webSearch?.selection);
   });
 
@@ -200,7 +237,7 @@ describe('composer operations', () => {
         if (part.type === 'tool') return part.tool;
         return part.type;
       })
-    ).toEqual(['text', 'r1', ToolType.REASONING]);
+    ).toEqual(['text', 'r1', 'text', ToolType.REASONING]);
     expect(updated.selection).toEqual({
       start: (reasoning?.selection.start ?? 0) + tokenLengthDelta,
       end: (reasoning?.selection.end ?? 0) + tokenLengthDelta,
@@ -249,7 +286,7 @@ describe('composer operations', () => {
         if (part.type === 'tool') return part.tool;
         return part.type;
       })
-    ).toEqual(['text', 'r1', ToolType.REASONING]);
+    ).toEqual(['text', 'r1', 'text', ToolType.REASONING]);
   });
 
   it('removes externally deleted resources without disturbing remaining tokens', () => {
@@ -290,6 +327,6 @@ describe('composer operations', () => {
         if (part.type === 'tool') return part.tool;
         return part.type;
       })
-    ).toEqual(['text', ToolType.REASONING, 'r2']);
+    ).toEqual(['text', ToolType.REASONING, 'r2', 'text']);
   });
 });
