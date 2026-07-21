@@ -52,11 +52,21 @@ function validToolDecorations(
       range =>
         text.slice(range.start, range.end) === createToolTokenText(range.label)
     )
-    .map(range => ({
-      start: range.start,
-      end: range.end,
-      replacement: '',
-    }));
+    .map(range => {
+      const end =
+        range.end < text.length && text[range.end] === ' '
+          ? range.end + 1
+          : range.end;
+      const preservesWordBoundary =
+        range.start > 0 &&
+        !/\s/.test(text[range.start - 1]) &&
+        end < text.length;
+      return {
+        start: range.start,
+        end,
+        replacement: preservesWordBoundary ? ' ' : '',
+      };
+    });
 }
 
 function resourceDisplayPart(mention: ComposerMention): ChatMessageDisplayPart {
@@ -95,7 +105,10 @@ function validDisplayDecorations(
       )
       .map(range => ({
         start: range.start,
-        end: range.end,
+        end:
+          range.end < text.length && text[range.end] === ' '
+            ? range.end + 1
+            : range.end,
         part: {
           type: 'tool',
           tool: range.tool,

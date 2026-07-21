@@ -45,7 +45,7 @@ describe('composer operations', () => {
     const tokenText = createResourceMentionText('plan.md');
 
     expect(withResource.state.displayText).toBe(
-      `read ${tokenText} ${createToolTokenText('Web Search')}now`
+      `read ${tokenText} ${createToolTokenText('Web Search')} now`
     );
     expect(withResource.state.toolRanges[0].start).toBe(6 + tokenText.length);
   });

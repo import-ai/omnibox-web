@@ -98,7 +98,8 @@ describe('InlineChatToken', () => {
     expect(html).toContain('absolute');
     expect(html).not.toContain('break-all');
     expect(html).not.toContain('mr-1');
-    expect(html).not.toContain('mx-0.5');
+    expect(html).toContain('mr-[0.15em]');
+    expect(html).toContain('mr-[-0.15em]');
     expect(html).not.toContain('overflow-wrap:anywhere');
   });
 });
