@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
-import { Bookmark, ChevronLeft, Clock } from 'lucide-react';
+import { Bookmark, ChevronLeft, ChevronUp, Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Markdown } from '@/components/markdown';
@@ -29,11 +30,14 @@ export function SystemNotificationDetailDialog({
   onOpenChange,
 }: SystemNotificationDetailDialogProps) {
   const { t } = useTranslation();
-  const visibleTags = detail?.tags.slice(0, MAX_VISIBLE_TAGS) ?? [];
-  const hiddenTagCount = Math.max(
-    (detail?.tags.length ?? 0) - MAX_VISIBLE_TAGS,
-    0
-  );
+  const [isTagsExpanded, setIsTagsExpanded] = useState(false);
+  const tags = detail?.tags ?? [];
+  const visibleTags = isTagsExpanded ? tags : tags.slice(0, MAX_VISIBLE_TAGS);
+  const hiddenTagCount = Math.max(tags.length - MAX_VISIBLE_TAGS, 0);
+
+  useEffect(() => {
+    setIsTagsExpanded(false);
+  }, [detail?.id, open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -73,9 +77,23 @@ export function SystemNotificationDetailDialog({
                       </span>
                     ))}
                     {hiddenTagCount > 0 ? (
-                      <span className="inline-flex items-center rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600 dark:border-neutral-700 dark:text-neutral-300">
-                        +{hiddenTagCount}
-                      </span>
+                      <button
+                        type="button"
+                        aria-expanded={isTagsExpanded}
+                        aria-label={t(
+                          isTagsExpanded
+                            ? 'notification_modal.collapse_tags'
+                            : 'notification_modal.expand_tags'
+                        )}
+                        className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-xs text-neutral-600 transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                        onClick={() => setIsTagsExpanded(value => !value)}
+                      >
+                        {isTagsExpanded ? (
+                          <ChevronUp className="size-4" />
+                        ) : (
+                          `+${hiddenTagCount}`
+                        )}
+                      </button>
                     ) : null}
                   </div>
                 </div>
