@@ -113,6 +113,10 @@ export function BatchCreateDialog({
               resourceId={targetId}
               disabledIds={disabledTargetIds}
               disabledTooltip={t('batch.operating_resource')}
+              disableSmartFolders
+              smartFolderDisabledTooltip={t(
+                'batch.smart_folder_unsupported_action'
+              )}
               loading={loading}
               onChange={setTargetId}
             />

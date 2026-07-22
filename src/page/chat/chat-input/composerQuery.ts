@@ -14,6 +14,11 @@ type QueryDecoration = {
   replacement: string;
 };
 
+export function createResourceQueryText(label: string, id: string): string {
+  const escapedLabel = label.replace(/[[\]\\]/g, '\\$&');
+  return `[${escapedLabel}](#${id})`;
+}
+
 function validResourceDecorations(
   text: string,
   mentions: ComposerMention[]
@@ -24,11 +29,18 @@ function validResourceDecorations(
         text.slice(mention.start, mention.end) ===
         createResourceMentionText(mention.label)
     )
-    .map(mention => ({
-      start: mention.start,
-      end: mention.end,
-      replacement: mention.label,
-    }));
+    .map(mention => {
+      const needsTrailingSpace =
+        mention.end < text.length && !/\s/.test(text[mention.end]);
+      return {
+        start: mention.start,
+        end: mention.end,
+        replacement: `${createResourceQueryText(
+          mention.label,
+          mention.resource.id
+        )}${needsTrailingSpace ? ' ' : ''}`,
+      };
+    });
 }
 
 function validToolDecorations(
@@ -40,11 +52,21 @@ function validToolDecorations(
       range =>
         text.slice(range.start, range.end) === createToolTokenText(range.label)
     )
-    .map(range => ({
-      start: range.start,
-      end: range.end,
-      replacement: '',
-    }));
+    .map(range => {
+      const end =
+        range.end < text.length && text[range.end] === ' '
+          ? range.end + 1
+          : range.end;
+      const preservesWordBoundary =
+        range.start > 0 &&
+        !/\s/.test(text[range.start - 1]) &&
+        end < text.length;
+      return {
+        start: range.start,
+        end,
+        replacement: preservesWordBoundary ? ' ' : '',
+      };
+    });
 }
 
 function resourceDisplayPart(mention: ComposerMention): ChatMessageDisplayPart {
@@ -83,7 +105,10 @@ function validDisplayDecorations(
       )
       .map(range => ({
         start: range.start,
-        end: range.end,
+        end:
+          range.end < text.length && text[range.end] === ' '
+            ? range.end + 1
+            : range.end,
         part: {
           type: 'tool',
           tool: range.tool,

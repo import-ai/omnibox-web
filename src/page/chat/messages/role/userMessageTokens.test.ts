@@ -34,14 +34,40 @@ describe('user message resource tokens', () => {
   it('splits message text into text and resource token segments', () => {
     expect(
       splitUserMessageResourceTokens('ask very-long-doc.txt now', [
-        'doc.txt',
-        'very-long-doc.txt',
+        { id: '1', name: 'doc.txt', type: 'resource' },
+        { id: '2', name: 'very-long-doc.txt', type: 'resource' },
       ])
     ).toEqual([
       { type: 'text', text: 'ask ' },
       { type: 'resource', text: 'very-long-doc.txt' },
       { type: 'text', text: ' now' },
     ]);
+  });
+
+  it('consumes resource markdown wrappers in persisted messages', () => {
+    const resources: PrivateSearchResource[] = [
+      {
+        id: 'r1',
+        name: 'plan [draft]\\v2.md',
+        type: 'resource',
+      },
+    ];
+
+    expect(
+      splitUserMessageResourceTokens(
+        'ask [plan \\[draft\\]\\\\v2.md](#r1) now',
+        resources
+      )
+    ).toEqual([
+      { type: 'text', text: 'ask ' },
+      { type: 'resource', text: 'plan [draft]\\v2.md' },
+      { type: 'text', text: ' now' },
+    ]);
+    expect(
+      createUserMessageCopyHtml('ask [plan \\[draft\\]\\\\v2.md](#r1) now', [
+        { name: ToolType.PRIVATE_SEARCH, resources },
+      ])
+    ).not.toContain('](#r1)');
   });
 
   it('creates copy html with resource token metadata', () => {

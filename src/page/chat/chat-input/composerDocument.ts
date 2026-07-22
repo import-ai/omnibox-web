@@ -158,10 +158,14 @@ export function insertResourceMention(
   const label = resource.name || fallbackLabel;
   const tokenText = createResourceMentionText(label);
   const range = normalizeSelection(selection, document.text.length);
+  const replacedRange = {
+    start: range.start,
+    end: range.end + (document.text[range.end] === ' ' ? 1 : 0),
+  };
   const text =
-    document.text.slice(0, range.start) +
-    tokenText +
-    document.text.slice(range.end);
+    document.text.slice(0, replacedRange.start) +
+    `${tokenText} ` +
+    document.text.slice(replacedRange.end);
   const shiftedMentions = updateMentionsForTextChange(
     document.text,
     text,
@@ -179,10 +183,10 @@ export function insertResourceMention(
   return {
     text,
     mentions: [...shiftedMentions, mention].sort((a, b) => a.start - b.start),
-    replacedRange: range,
+    replacedRange,
     selection: {
-      start: mention.end,
-      end: mention.end,
+      start: mention.end + 1,
+      end: mention.end + 1,
     },
   };
 }

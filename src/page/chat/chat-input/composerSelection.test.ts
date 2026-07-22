@@ -92,7 +92,7 @@ describe('composer selection deletion', () => {
       { start: firstMention.start + 1, end: secondMention.end - 1 }
     );
 
-    expect(deleted?.text).toBe(`A  C${createToolTokenText('Thinking')}`);
+    expect(deleted?.text).toBe(`A  C${createToolTokenText('Thinking')} `);
     expect(deleted?.mentions).toEqual([]);
     expect(deleted?.tools).toMatchObject([
       {

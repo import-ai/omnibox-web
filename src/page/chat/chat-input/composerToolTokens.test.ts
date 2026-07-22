@@ -24,7 +24,7 @@ describe('composer tool tokens', () => {
       { start: 2, end: 2 }
     );
 
-    expect(doc.text).toBe(`你好${createToolTokenText('Web Search')}`);
+    expect(doc.text).toBe(`你好${createToolTokenText('Web Search')} `);
     expect(doc.selection).toEqual({
       start: doc.text.length,
       end: doc.text.length,
@@ -34,7 +34,7 @@ describe('composer tool tokens', () => {
         tool: ToolType.WEB_SEARCH,
         label: 'Web Search',
         start: 2,
-        end: doc.text.length,
+        end: doc.text.length - 1,
       },
     ]);
     expect(queryFromComposerDisplayText(doc.text, [], doc.tools)).toBe('你好');
@@ -55,7 +55,7 @@ describe('composer tool tokens', () => {
     );
 
     expect(withWebSearch.text).toBe(
-      `${createToolTokenText('深度思考')}${createToolTokenText('联网搜索')}`
+      `${createToolTokenText('深度思考')} ${createToolTokenText('联网搜索')} `
     );
     expect(
       withWebSearch.tools.map(range =>
@@ -85,7 +85,7 @@ describe('composer tool tokens', () => {
     );
 
     expect(withReasoning.text).toBe(
-      `${createToolTokenText('深度思考')}${createToolTokenText('联网搜索')}`
+      `${createToolTokenText('深度思考')} ${createToolTokenText('联网搜索')} `
     );
     expect(
       withReasoning.tools.map(range =>
@@ -222,10 +222,10 @@ describe('composer tool tokens', () => {
     );
     const removed = removeToolRange(inserted, ToolType.REASONING);
 
-    expect(removed.text).toBe('你好世界');
+    expect(removed.text).toBe('你好 世界');
     expect(removed.tools).toEqual([]);
     expect(queryFromComposerDisplayText(removed.text, [], removed.tools)).toBe(
-      '你好世界'
+      '你好 世界'
     );
   });
 
@@ -236,14 +236,43 @@ describe('composer tool tokens', () => {
       'Web Search',
       { start: 2, end: 2 }
     );
-    const removed = deleteToolRange(inserted, inserted.selection, 'Backspace');
+    const range = inserted.tools[0];
+    const removed = deleteToolRange(
+      inserted,
+      { start: range.end, end: range.end },
+      'Backspace'
+    );
 
     expect(removed).toMatchObject({
-      text: '你好世界',
+      text: '你好 世界',
       tool: ToolType.WEB_SEARCH,
       tools: [],
       selection: { start: 2, end: 2 },
     });
+  });
+
+  it('keeps the tool atomic after its trailing space is deleted', () => {
+    const inserted = insertToolRange(
+      { text: '', tools: [] },
+      ToolType.REASONING,
+      '深度思考',
+      { start: 0, end: 0 }
+    );
+    const text = inserted.text.slice(0, -1);
+    const tools = updateToolRangesForTextChange(
+      inserted.text,
+      text,
+      inserted.tools
+    );
+    expect(tools).not.toBeNull();
+
+    const deleted = deleteToolRange(
+      { text, tools: tools ?? [] },
+      { start: text.length, end: text.length },
+      'Backspace'
+    );
+
+    expect(deleted).toMatchObject({ text: '', tools: [] });
   });
 
   it('treats private search as submit metadata instead of a visible token', () => {

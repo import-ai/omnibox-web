@@ -68,7 +68,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
     if (shareUrl) {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        toast(t('copy.success'), { position: 'bottom-right' });
+        toast(t('actions.copy_link_success'), { position: 'bottom-right' });
       } catch (error: any) {
         toast(error.message, { position: 'bottom-right' });
       }

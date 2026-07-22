@@ -54,7 +54,8 @@ describe('composer document', () => {
     );
 
     expect(doc.text).toBe(`read ${createResourceMentionText('plan.md')} now`);
-    expect(doc.selection).toEqual({ start: 15, end: 15 });
+    expect(doc.replacedRange).toEqual({ start: 5, end: 6 });
+    expect(doc.selection).toEqual({ start: 16, end: 16 });
     expect(doc.mentions).toMatchObject([
       {
         label: 'plan.md',
@@ -71,6 +72,23 @@ describe('composer document', () => {
     ]);
   });
 
+  it('inserts a visible trailing space and places the caret after it', () => {
+    const doc = insertResourceMention(
+      { text: '', mentions: [] },
+      resource('r1', 'plan.md'),
+      { start: 0, end: 0 },
+      'Untitled'
+    );
+    const tokenText = createResourceMentionText('plan.md');
+
+    expect(doc.text).toBe(`${tokenText} `);
+    expect(doc.mentions[0]).toMatchObject({ start: 0, end: tokenText.length });
+    expect(doc.selection).toEqual({
+      start: tokenText.length + 1,
+      end: tokenText.length + 1,
+    });
+  });
+
   it('deletes a selected resource mention as an atomic range', () => {
     const inserted = insertResourceMention(
       { text: 'read  now', mentions: [] },
@@ -80,7 +98,10 @@ describe('composer document', () => {
     );
     const deleted = deleteResourceMention(
       inserted,
-      inserted.selection,
+      {
+        start: inserted.mentions[0].end,
+        end: inserted.mentions[0].end,
+      },
       'Backspace'
     );
 
@@ -91,6 +112,30 @@ describe('composer document', () => {
       selection: { start: 5, end: 5 },
     });
     expect(mentionsToResources(deleted?.mentions ?? [])).toEqual([]);
+  });
+
+  it('keeps the token atomic after its trailing space is deleted', () => {
+    const inserted = insertResourceMention(
+      { text: '', mentions: [] },
+      resource('r1', 'plan.md'),
+      { start: 0, end: 0 },
+      'Untitled'
+    );
+    const text = inserted.text.slice(0, -1);
+    const mentions = updateMentionsForTextChange(
+      inserted.text,
+      text,
+      inserted.mentions
+    );
+    expect(mentions).not.toBeNull();
+
+    const deleted = deleteResourceMention(
+      { text, mentions: mentions ?? [] },
+      { start: text.length, end: text.length },
+      'Backspace'
+    );
+
+    expect(deleted).toMatchObject({ text: '', mentions: [] });
   });
 
   it('finds a resource mention targeted by delete from the left boundary', () => {
