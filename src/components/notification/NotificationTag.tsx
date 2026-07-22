@@ -1,9 +1,22 @@
-import { Bell, BotMessageSquare } from 'lucide-react';
+import {
+  Bell,
+  BotMessageSquare,
+  CircleHelp,
+  Megaphone,
+  Package,
+  ScrollText,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { NotificationItem } from './types';
 
-type NotificationTagIcon = 'assistant' | 'default';
+type NotificationTagIcon =
+  | 'assistant'
+  | 'default'
+  | 'system'
+  | 'marketing'
+  | 'changelog'
+  | 'survey';
 
 interface NotificationTagProps {
   item: NotificationItem;
@@ -16,7 +29,18 @@ const tagClassName =
 const iconMap = {
   assistant: BotMessageSquare,
   default: Bell,
+  system: Package,
+  marketing: Megaphone,
+  changelog: ScrollText,
+  survey: CircleHelp,
 } satisfies Record<NotificationTagIcon, typeof BotMessageSquare>;
+
+const notificationTagIconKeyMap = {
+  system: 'system',
+  marketing: 'marketing',
+  changelog: 'changelog',
+  survey: 'survey',
+} as const satisfies Record<string, NotificationTagIcon>;
 
 const notificationTagLabelKeyMap = {
   wechat_bot: 'notification_modal.tags.wechat_bot',
@@ -38,8 +62,16 @@ export function getNotificationTagLabel(
 }
 
 export function getNotificationTagIconKey(
-  item: NotificationItem
+  item: NotificationItem,
+  tag: string
 ): NotificationTagIcon {
+  const tagIconKey =
+    notificationTagIconKeyMap[tag as keyof typeof notificationTagIconKeyMap];
+
+  if (tagIconKey) {
+    return tagIconKey;
+  }
+
   const source = typeof item.attrs.source === 'string' ? item.attrs.source : '';
 
   if (!source) {
@@ -53,7 +85,7 @@ export function getNotificationTagIconKey(
 
 export function NotificationTag({ item, tag }: NotificationTagProps) {
   const { t } = useTranslation();
-  const Icon = iconMap[getNotificationTagIconKey(item)];
+  const Icon = iconMap[getNotificationTagIconKey(item, tag)];
   const label = getNotificationTagLabel(tag, t);
 
   return (

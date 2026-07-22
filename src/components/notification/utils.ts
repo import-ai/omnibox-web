@@ -3,7 +3,7 @@ import type { NotificationDetail, NotificationItem } from './types';
 export const notificationDialogContentClassName =
   'grid-rows-[auto_minmax(0,1fr)] h-[calc(100vh-32px)] max-h-[820px] w-[calc(100vw-32px)] max-w-[960px] gap-0 overflow-hidden border border-neutral-200 bg-white px-6 py-5 dark:border-neutral-800 dark:bg-neutral-900 sm:rounded-2xl';
 
-export const notificationMetaWidthClassName = 'w-[112px] sm:w-[140px]';
+export const notificationMetaWidthClassName = 'w-[112px] sm:w-[220px]';
 
 export const notificationMetaColumnClassName =
   'flex min-w-0 flex-col items-end gap-1 text-right';
