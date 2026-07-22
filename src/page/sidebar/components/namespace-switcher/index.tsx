@@ -47,7 +47,7 @@ export function Switcher(props: IProps) {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { config, loading: configLoading } = useConfig();
-  useFeaturePreviews(namespaceId);
+  useFeaturePreviews();
 
   const commercial = config.commercial;
   const openSourceNamespace = useNamespaces({

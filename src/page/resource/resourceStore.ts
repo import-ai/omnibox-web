@@ -1,26 +1,37 @@
 import { create } from 'zustand';
 
 export interface ResourceState {
+  featurePreviewsUserId: string | null;
   featurePreviews: Record<string, boolean>;
 }
 
 export interface ResourceActions {
-  setFeaturePreviews: (features: Record<string, boolean>) => void;
-  setFeaturePreview: (feature: string, enabled: boolean) => void;
+  setFeaturePreviews: (
+    userId: string,
+    features: Record<string, boolean>
+  ) => void;
+  setFeaturePreview: (
+    userId: string,
+    feature: string,
+    enabled: boolean
+  ) => void;
   resetFeaturePreviews: () => void;
 }
 
 export type ResourceStore = ResourceState & ResourceActions;
 
 export const initialState: ResourceState = {
+  featurePreviewsUserId: null,
   featurePreviews: {},
 };
 
 export const useResourceStore = create<ResourceStore>()(set => ({
   ...initialState,
-  setFeaturePreviews: featurePreviews => set({ featurePreviews }),
-  setFeaturePreview: (feature, enabled) =>
+  setFeaturePreviews: (featurePreviewsUserId, featurePreviews) =>
+    set({ featurePreviewsUserId, featurePreviews }),
+  setFeaturePreview: (featurePreviewsUserId, feature, enabled) =>
     set(state => ({
+      featurePreviewsUserId,
       featurePreviews: {
         ...state.featurePreviews,
         [feature]: enabled,
@@ -30,5 +41,8 @@ export const useResourceStore = create<ResourceStore>()(set => ({
 }));
 
 export function selectUseOmniboxEditor(state: ResourceState): boolean {
-  return state.featurePreviews.editor_v2;
+  return (
+    state.featurePreviewsUserId === localStorage.getItem('uid') &&
+    state.featurePreviews.editor_v2
+  );
 }
