@@ -11,6 +11,7 @@ export default function AutoTag() {
   // Default to true (enabled) to match backend default behavior
   const [isEnabled, setIsEnabled] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const loadPreference = async () => {
@@ -34,6 +35,7 @@ export default function AutoTag() {
 
   const handleToggle = async (checked: boolean) => {
     setIsEnabled(checked);
+    setSaving(true);
     try {
       await http.post('/user/option', {
         name: 'enable_ai_tag_extraction',
@@ -42,6 +44,8 @@ export default function AutoTag() {
     } catch {
       // Revert on error
       setIsEnabled(!checked);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -67,6 +71,7 @@ export default function AutoTag() {
       <Switch
         checked={isEnabled}
         onCheckedChange={handleToggle}
+        disabled={saving}
         className="shrink-0"
       />
     </div>
