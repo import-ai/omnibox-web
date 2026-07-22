@@ -2,6 +2,7 @@ import { Tags } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Spinner } from '@/components/ui/Spinner';
 import { Switch } from '@/components/ui/Switch';
 import { http } from '@/lib/request';
 
@@ -55,6 +56,14 @@ export default function AutoTag() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex min-h-24 w-full items-center justify-center">
+        <Spinner className="size-6 text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
       <Tags className="size-4 text-muted-foreground" />
@@ -69,7 +78,6 @@ export default function AutoTag() {
       <Switch
         checked={isEnabled}
         onCheckedChange={handleToggle}
-        disabled={loading}
         className="shrink-0"
       />
     </div>
