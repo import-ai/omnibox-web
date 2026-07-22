@@ -45,6 +45,7 @@ import {
   serializeResourceEditorContent,
 } from '@/page/resource/editor/contentSerialization';
 
+import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
 import {
   normalizeTitleInput,
   ResourceTitleTextarea,
@@ -494,8 +495,7 @@ function VditorResourceEditor(props: IEditorProps) {
 }
 
 export default function Editor(props: IEditorProps) {
-  // const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
-  const useOmniboxEditor = true;
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   return useOmniboxEditor ? (
     <OmniboxResourceEditor {...props} />
   ) : (
