@@ -61,6 +61,18 @@ import { useSidebarStore } from '@/page/sidebar/store';
 import MoveTo from './move';
 import ShareAction from './share';
 
+function normalizeAttachmentLink(
+  imageLink: string,
+  resourceId: string
+): string {
+  const prefix = `/${resourceId}/`;
+  if (imageLink.startsWith(prefix)) {
+    const parts = imageLink.split('/');
+    return parts.slice(3).join('/');
+  }
+  return imageLink.replace(/^\/*attachments\//i, 'attachments/');
+}
+
 const hasTeamspaceCache = new Map<string, boolean>();
 
 export interface IActionProps extends IUseResource {
@@ -218,9 +230,6 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'copy_content' && resource.content) {
-      // Always copy markdown plain text so editor paste can restore structure.
-      // Prefer the async Clipboard API (plain only). Fall back to
-      // copy-to-clipboard with text/plain forced.
       const markdown = resource.content;
       void (async () => {
         let ok = false;
@@ -235,7 +244,7 @@ export default function Actions(props: IActionProps) {
         if (!ok) {
           ok = copy(markdown, {
             format: 'text/plain',
-            onCopy: clipboardData => {
+            onCopy: (clipboardData: any) => {
               try {
                 clipboardData?.setData('text/plain', markdown);
                 clipboardData?.setData('text/html', '');
@@ -342,7 +351,10 @@ export default function Actions(props: IActionProps) {
       const markdownContent = resource.content;
 
       const imageLinks = parseImageLinks(markdownContent);
-      const imageArray = imageLinks.map(item => `${resource.id}/${item}`);
+      const imageArray = imageLinks.map(item => {
+        const rel = normalizeAttachmentLink(item, resource.id);
+        return `${resource.id}/${rel}`;
+      });
 
       // if no image, download markdown file
       if (imageArray.length === 0) {

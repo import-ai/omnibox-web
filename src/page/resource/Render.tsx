@@ -88,6 +88,11 @@ function useSearchHighlight(
 
   useEffect(() => {
     appliedKeyRef.current = null;
+    const container = containerRef.current;
+    if (container) {
+      const marks = container.querySelectorAll('mark.search-query-mark');
+      marks.forEach(mark => mark.remove());
+    }
   }, [contentKey, search]);
 
   return applySearchHighlight;

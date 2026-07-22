@@ -4,8 +4,6 @@ import '@/styles/vditor-patch.css';
 import '../resourceEditor.css';
 
 import {
-  contentToMarkdown,
-  contentToTiptapJson,
   OmniboxEditor,
   type OmniboxEditorMentionUser,
   type TiptapJsonContent,
@@ -134,18 +132,8 @@ function OmniboxResourceEditor(props: IEditorProps) {
     [resource.id]
   );
   const editorContent = useMemo(
-    () => (isFolder ? null : contentToTiptapJson(initialContent, { linkBase })),
-    [initialContent, isFolder, linkBase]
-  );
-  const serializedEditorContent = useMemo(
-    () =>
-      !isFolder && initialContent && editorContent
-        ? contentToMarkdown(editorContent, {
-            linkBase,
-            debug: false,
-          })
-        : '',
-    [initialContent, editorContent, isFolder, linkBase]
+    () => (isFolder ? null : initialContent),
+    [initialContent, isFolder]
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -250,8 +238,8 @@ function OmniboxResourceEditor(props: IEditorProps) {
 
   useEffect(() => {
     onTitle(cachedTitle);
-    markdownRef.current = serializedEditorContent;
-  }, [cachedTitle, serializedEditorContent]);
+    markdownRef.current = initialContent;
+  }, [cachedTitle, initialContent]);
 
   useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
