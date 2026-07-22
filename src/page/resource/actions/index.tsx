@@ -65,11 +65,18 @@ function normalizeAttachmentLink(
   imageLink: string,
   resourceId: string
 ): string {
+  const editorPrefix = `/${resourceId}/attachments/`;
+  if (imageLink.includes(editorPrefix)) {
+    return 'attachments/' + imageLink.split('/').pop()!;
+  }
+
   const prefix = `/${resourceId}/`;
   if (imageLink.startsWith(prefix)) {
     const parts = imageLink.split('/');
     return parts.slice(3).join('/');
   }
+
+  // fallback: ensure starts with "attachments/"
   return imageLink.replace(/^\/*attachments\//i, 'attachments/');
 }
 

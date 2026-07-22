@@ -90,10 +90,20 @@ function useSearchHighlight(
     appliedKeyRef.current = null;
     const container = containerRef.current;
     if (container) {
-      const marks = container.querySelectorAll('mark.search-query-mark');
-      marks.forEach(mark => mark.remove());
+      unwrapSearchMarks(container);
     }
   }, [contentKey, search]);
+
+  function unwrapSearchMarks(container: HTMLElement) {
+    const marks = container.querySelectorAll('mark.search-query-mark');
+    marks.forEach(mark => {
+      const text = mark.textContent;
+      if (text) {
+        const textNode = document.createTextNode(text);
+        mark.replaceWith(textNode);
+      }
+    });
+  }
 
   return applySearchHighlight;
 }
