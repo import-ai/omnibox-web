@@ -27,17 +27,6 @@ export default function AutoTag() {
         // Option doesn't exist (404) or other error, use default
       }
       setIsEnabled(enabled);
-      // Save default to backend if not exists
-      if (enabled) {
-        try {
-          await http.post('/user/option', {
-            name: 'enable_ai_tag_extraction',
-            value: 'true',
-          });
-        } catch {
-          // Ignore save error
-        }
-      }
       setLoading(false);
     };
     loadPreference();
