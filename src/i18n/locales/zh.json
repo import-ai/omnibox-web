@@ -31,7 +31,10 @@
     "tags": {
       "wechat_bot": "微信助手",
       "community": "黑友社区",
-      "system": "系统通知"
+      "system": "系统通知",
+      "marketing": "营销活动",
+      "changelog": "更新日志",
+      "survey": "问卷调研"
     }
   },
   "welcome": {

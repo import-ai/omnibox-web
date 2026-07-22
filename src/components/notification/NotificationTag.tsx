@@ -22,6 +22,9 @@ const notificationTagLabelKeyMap = {
   wechat_bot: 'notification_modal.tags.wechat_bot',
   community: 'notification_modal.tags.community',
   system: 'notification_modal.tags.system',
+  marketing: 'notification_modal.tags.marketing',
+  changelog: 'notification_modal.tags.changelog',
+  survey: 'notification_modal.tags.survey',
 } as const;
 
 export function getNotificationTagLabel(

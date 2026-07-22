@@ -31,7 +31,10 @@
     "tags": {
       "wechat_bot": "WeChat Assistant",
       "community": "Community",
-      "system": "System notification"
+      "system": "System notification",
+      "marketing": "Marketing campaign",
+      "changelog": "Changelog",
+      "survey": "Survey"
     }
   },
   "welcome": {
