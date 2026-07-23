@@ -61,6 +61,25 @@ import { useSidebarStore } from '@/page/sidebar/store';
 import MoveTo from './move';
 import ShareAction from './share';
 
+function normalizeAttachmentLink(
+  imageLink: string,
+  resourceId: string
+): string {
+  const editorPrefix = `/${resourceId}/attachments/`;
+  if (imageLink.includes(editorPrefix)) {
+    return 'attachments/' + imageLink.split('/').pop()!;
+  }
+
+  const prefix = `/${resourceId}/`;
+  if (imageLink.startsWith(prefix)) {
+    const parts = imageLink.split('/');
+    return parts.slice(3).join('/');
+  }
+
+  // fallback: ensure starts with "attachments/"
+  return imageLink.replace(/^\/*attachments\//i, 'attachments/');
+}
+
 const hasTeamspaceCache = new Map<string, boolean>();
 
 export interface IActionProps extends IUseResource {
@@ -184,6 +203,8 @@ export default function Actions(props: IActionProps) {
     if (!resource) {
       return;
     }
+    // Keep the local draft (same as production Vditor). Discard only leaves
+    // edit mode without a server save; the next Edit restores last draft.
     navigate(`/${namespaceId}/${resource.id}`, {
       state: loc.state,
     });
@@ -216,12 +237,34 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'copy_content' && resource.content) {
-      const returnValue = copy(resource.content, {
-        format: 'text/plain',
-      });
-      toast(t(returnValue ? 'actions.copy_content_success' : 'copy.fail'), {
-        position: 'bottom-right',
-      });
+      const markdown = resource.content;
+      void (async () => {
+        let ok = false;
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(markdown);
+            ok = true;
+          }
+        } catch {
+          // fall through
+        }
+        if (!ok) {
+          ok = copy(markdown, {
+            format: 'text/plain',
+            onCopy: (clipboardData: any) => {
+              try {
+                clipboardData?.setData('text/plain', markdown);
+                clipboardData?.setData('text/html', '');
+              } catch {
+                // ignore
+              }
+            },
+          });
+        }
+        toast(t(ok ? 'actions.copy_content_success' : 'copy.fail'), {
+          position: 'bottom-right',
+        });
+      })();
       setOpen(false);
       return;
     }
@@ -312,13 +355,17 @@ export default function Actions(props: IActionProps) {
       // generate file name: use resource.name, if empty, use "untitled"
       const baseName = resource.name || t('untitled');
       const fileName = baseName.endsWith('.md') ? baseName : `${baseName}.md`;
+      const markdownContent = resource.content;
 
-      const imageLinks = parseImageLinks(resource.content);
-      const imageArray = imageLinks.map(item => `${resource.id}/${item}`);
+      const imageLinks = parseImageLinks(markdownContent);
+      const imageArray = imageLinks.map(item => {
+        const rel = normalizeAttachmentLink(item, resource.id);
+        return `${resource.id}/${rel}`;
+      });
 
       // if no image, download markdown file
       if (imageArray.length === 0) {
-        const blob = new Blob([resource.content], { type: 'text/markdown' });
+        const blob = new Blob([markdownContent], { type: 'text/markdown' });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -372,7 +419,7 @@ export default function Actions(props: IActionProps) {
       Promise.all(imagePromises)
         .then(() => {
           // add markdown file to zip (no modification, keep original)
-          zip.file(fileName, resource.content || '');
+          zip.file(fileName, markdownContent);
 
           // generate zip file
           return zip.generateAsync({ type: 'blob' });

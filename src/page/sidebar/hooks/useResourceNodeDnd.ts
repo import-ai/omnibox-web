@@ -123,7 +123,7 @@ export function useResourceNodeDnd(
       type: 'card',
       item: () => {
         if (!selectionMode || !isSelected) {
-          return node;
+          return { ...node, type: 'card' as const };
         }
         return {
           type: 'batch',

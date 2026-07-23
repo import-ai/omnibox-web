@@ -20,6 +20,7 @@ import {
   useSidebar,
 } from '@/components/ui/Sidebar';
 import useConfig from '@/hooks/useConfig';
+import useFeaturePreviews from '@/hooks/useFeaturePreviews';
 import useNamespaces from '@/hooks/useNamespaces';
 import useProNamespaces from '@/hooks/useProNamespaces';
 import { Namespace } from '@/interface';
@@ -46,6 +47,8 @@ export function Switcher(props: IProps) {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { config, loading: configLoading } = useConfig();
+  useFeaturePreviews();
+
   const commercial = config.commercial;
   const openSourceNamespace = useNamespaces({
     disabled: configLoading || commercial,

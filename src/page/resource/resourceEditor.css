@@ -1,0 +1,183 @@
+.resource-readonly-editor .omnibox-editor-layout {
+  grid-template-columns:
+    [full-start content-start] minmax(0, 1fr)
+    [content-end full-end];
+}
+
+.resource-editable-page {
+  --resource-editor-content-width: 680px;
+  position: relative;
+  width: 100%;
+  /* Leave a slim rail on the left so TOC does not overlap the title. */
+  padding-left: 1.5rem;
+  box-sizing: border-box;
+}
+
+.resource-editable-title {
+  width: 100%;
+  max-width: var(--resource-editor-content-width);
+  margin-inline: auto;
+  min-width: 0;
+}
+
+.resource-editable-editor {
+  position: static;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Center body text; do NOT create a positioning context. */
+.resource-editable-page .omnibox-editor-root,
+.resource-editable-page .omnibox-editor-wrapper,
+.resource-editable-page .omnibox-editor-layout,
+.resource-editable-page .omnibox-editor-layout--embedded,
+.resource-editable-page .omnibox-editor-content {
+  position: static !important;
+}
+
+.resource-editable-page .omnibox-editor-layout,
+.resource-editable-page .omnibox-editor-layout--embedded {
+  display: block !important;
+  width: 100% !important;
+  max-width: var(--resource-editor-content-width);
+  margin-inline: auto;
+}
+
+.resource-editable-page .omnibox-editor-content {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100%;
+  margin-inline: 0;
+}
+
+/*
+ * Pin TOC to the page shell (full-width ancestor with position:relative).
+ * !important beats package `.omnibox-editor-root .toc-sidebar` rules.
+ */
+.resource-editable-page .toc-sidebar,
+.resource-editable-page .omnibox-editor-root .toc-sidebar {
+  position: absolute !important;
+  left: 0 !important;
+  right: auto !important;
+  /* Align with body text under the title, not the title itself. */
+  top: 5.5rem !important;
+  bottom: 0 !important;
+  width: 1.25rem !important;
+  min-width: 1.25rem !important;
+  max-width: 1.25rem !important;
+  margin: 0 !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  justify-self: auto !important;
+  align-items: flex-start !important;
+  z-index: 20 !important;
+  pointer-events: none !important;
+}
+
+.resource-editable-page .toc-sidebar-wrapper,
+.resource-editable-page .omnibox-editor-root .toc-sidebar-wrapper {
+  position: sticky !important;
+  /* Below the page title block; bump if still too high. */
+  top: 11rem !important;
+  left: 0 !important;
+  margin: 0 !important;
+  width: max-content !important;
+  pointer-events: auto !important;
+}
+
+@media (max-width: 768px) {
+  .resource-editable-page {
+    padding-left: 0;
+  }
+
+  .resource-editable-page .toc-sidebar,
+  .resource-editable-page .omnibox-editor-root .toc-sidebar {
+    display: none !important;
+  }
+}
+
+.resource-readonly-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor,
+.resource-editable-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding-inline: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.resource-readonly-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor:focus,
+.resource-editable-editor
+  .omnibox-editor-content
+  .tiptap.ProseMirror.omnibox-editor:focus {
+  border: 0;
+}
+
+.resource-readonly-editor .language-echarts,
+.resource-readonly-editor .language-mindmap {
+  height: 420px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.resource-readonly-editor .language-mermaid,
+.resource-readonly-editor .language-markmap,
+.resource-readonly-editor .language-flowchart,
+.resource-readonly-editor .language-graphviz {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/*
+ * Search-from-query highlights — same as editor "高亮颜色" yellow:
+ * light #fef9c3 · dark #6b6524 (--tt-color-highlight-yellow).
+ * !important beats editor `.tiptap mark` theme rules.
+ */
+.resource-readonly-editor mark.search-query-mark,
+.resource-editable-editor mark.search-query-mark,
+.markdown-body mark.search-query-mark,
+.resource-readonly-editor .omnibox-editor-root mark.search-query-mark,
+.resource-editable-editor .omnibox-editor-root mark.search-query-mark,
+.resource-readonly-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.resource-editable-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark {
+  background-color: #fef9c3 !important;
+  color: inherit;
+  padding: 2px 0;
+  border-radius: 0;
+}
+
+.dark .resource-readonly-editor mark.search-query-mark,
+.dark .resource-editable-editor mark.search-query-mark,
+.dark .markdown-body mark.search-query-mark,
+.dark .resource-readonly-editor .omnibox-editor-root mark.search-query-mark,
+.dark .resource-editable-editor .omnibox-editor-root mark.search-query-mark,
+.resource-readonly-editor .omnibox-editor-root.dark mark.search-query-mark,
+.resource-editable-editor .omnibox-editor-root.dark mark.search-query-mark,
+.dark
+  .resource-readonly-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.dark
+  .resource-editable-editor
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.resource-readonly-editor
+  .omnibox-editor-root.dark
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark,
+.resource-editable-editor
+  .omnibox-editor-root.dark
+  .tiptap.ProseMirror.omnibox-editor
+  mark.search-query-mark {
+  background-color: #6b6524 !important;
+}
