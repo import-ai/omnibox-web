@@ -301,10 +301,10 @@ function OmniboxResourceEditor(props: IEditorProps) {
         />
       </div>
       <div className="resource-editable-editor">
-        {!isFolder && editorContent ? (
+        {!isFolder ? (
           <ResourceOmniboxEditor
             key={resource.id}
-            content={editorContent}
+            content={editorContent ?? ''}
             locale={i18n.language}
             theme={theme.content}
             variant="embedded"
