@@ -5,7 +5,12 @@ import useQuota from '@/hooks/useQuota';
 import { ExpandButton } from './ExpandButton';
 import { Expiration } from './Expiration';
 import { StorageSection } from './StorageSection';
-import { formatStorage, formatTime, formatTimeAsMinutes } from './utils';
+import {
+  formatStorage,
+  formatTime,
+  formatTimeAsMinutes,
+  getSubscriptionPlanLabelKey,
+} from './utils';
 
 interface RemainQuotaProps {
   namespaceId: string;
@@ -20,10 +25,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
     t('quota.tooltip_format', { label, value });
   const pageVal = (n: number) => `${n} ${t('quota.page_unit')}`;
 
-  const isPremium = !!data.basic.expire_date;
-  const subscriptionLabel = isPremium
-    ? t('quota.premium_plan')
-    : t('quota.basic_plan');
+  const subscriptionLabel = t(getSubscriptionPlanLabelKey(data.premium));
 
   const buildTotalTooltip = (
     subscriptionTotal: number,

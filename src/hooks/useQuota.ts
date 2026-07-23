@@ -29,11 +29,11 @@ export interface UsageData {
   };
   basic: {
     expired: boolean;
-    expire_date: Date | null;
+    expire_date: string | null;
   };
   premium?: {
     expired: boolean;
-    expire_date: Date | null;
+    expire_date: string | null;
   };
   show_members_usage: boolean;
 }
