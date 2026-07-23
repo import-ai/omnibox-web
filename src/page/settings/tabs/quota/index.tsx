@@ -1,11 +1,17 @@
 import { useTranslation } from 'react-i18next';
 
+import { Spinner } from '@/components/ui/Spinner';
 import useQuota from '@/hooks/useQuota';
 
 import { ExpandButton } from './ExpandButton';
 import { Expiration } from './Expiration';
 import { StorageSection } from './StorageSection';
-import { formatStorage, formatTime, formatTimeAsMinutes } from './utils';
+import {
+  formatStorage,
+  formatTime,
+  formatTimeAsMinutes,
+  getSubscriptionPlanLabelKey,
+} from './utils';
 
 interface RemainQuotaProps {
   namespaceId: string;
@@ -13,17 +19,27 @@ interface RemainQuotaProps {
 
 export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const { t } = useTranslation();
-  const { data } = useQuota(namespaceId);
+  const { data, loading } = useQuota(namespaceId);
+
+  if (loading) {
+    return (
+      <div className="my-5 flex h-40 items-center justify-center">
+        <Spinner className="size-6 text-gray-400" />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
   const showOtherMembersUsage = data.show_members_usage;
 
   const segTooltip = (label: string, value: string) =>
     t('quota.tooltip_format', { label, value });
   const pageVal = (n: number) => `${n} ${t('quota.page_unit')}`;
 
-  const isPremium = !!data.basic.expire_date;
-  const subscriptionLabel = isPremium
-    ? t('quota.premium_plan')
-    : t('quota.basic_plan');
+  const subscriptionLabel = t(getSubscriptionPlanLabelKey(data.premium));
 
   const buildTotalTooltip = (
     subscriptionTotal: number,
