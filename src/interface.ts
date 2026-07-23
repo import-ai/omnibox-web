@@ -13,11 +13,7 @@ export interface Theme {
 }
 
 export type Permission =
-  | 'no_access'
-  | 'can_view'
-  | 'can_comment'
-  | 'can_edit'
-  | 'full_access';
+  'no_access' | 'can_view' | 'can_comment' | 'can_edit' | 'full_access';
 
 export interface User extends IBase {
   id: string;

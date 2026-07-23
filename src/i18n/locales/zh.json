@@ -66,6 +66,8 @@
   },
   "resource": {
     "name": "文件",
+    "title": "标题",
+    "title_placeholder": "请输入标题",
     "folder": {
       "children_count": "{{ count }} 个文件"
     },
@@ -368,7 +370,8 @@
     "namespace": "空间设置",
     "api_key": "API 密钥",
     "applications": "应用管理",
-    "content": "内容",
+    "feature_management": "功能管理",
+    "feature_previews": "新功能尝鲜",
     "account": "账号",
     "space": "空间",
     "general": "通用",
@@ -486,6 +489,12 @@
         "description": "确定要解绑 {{ name }} 吗？这将断开应用与空间的连接。",
         "button": "确认解绑"
       }
+    }
+  },
+  "feature_previews": {
+    "editor_v2": {
+      "title": "编辑器 2.0",
+      "description": "全新版本的现代编辑器"
     }
   },
   "manage": {

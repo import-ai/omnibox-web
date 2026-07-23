@@ -43,13 +43,7 @@ export interface OpenAIMessage {
 }
 
 export type ChatResponseType =
-  | 'bos'
-  | 'delta'
-  | 'eos'
-  | 'done'
-  | 'error'
-  | 'metrics'
-  | 'stopped';
+  'bos' | 'delta' | 'eos' | 'done' | 'error' | 'metrics' | 'stopped';
 
 export interface ChatBaseResponse {
   response_type: ChatResponseType;

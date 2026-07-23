@@ -7,9 +7,7 @@ import type { ResourceMeta } from '@/interface';
 import { type PrivateSearchResourceType, ToolType } from './types';
 
 export type InlineChatTokenIcon =
-  | 'resource'
-  | ToolType.WEB_SEARCH
-  | ToolType.REASONING;
+  'resource' | ToolType.WEB_SEARCH | ToolType.REASONING;
 
 export const inlineChatTokenClassName =
   'inline align-baseline text-[#117bfa] dark:text-[#60a5fb]';
@@ -66,6 +64,7 @@ export function InlineChatToken({
   resource,
   contextType,
   spacer,
+  href,
   children,
 }: {
   icon: InlineChatTokenIcon;
@@ -73,11 +72,12 @@ export function InlineChatToken({
   contextType?: PrivateSearchResourceType;
   /** Composer overlay uses a fixed spacer; omit for read-only message display. */
   spacer?: string;
+  href?: string;
   children: ReactNode;
 }) {
   if (!spacer) {
-    return (
-      <span className={inlineChatTokenClassName}>
+    const content = (
+      <>
         <span className="mr-1 inline-flex align-[-0.125em] [&>svg]:size-4">
           <TokenIcon
             icon={icon}
@@ -86,13 +86,28 @@ export function InlineChatToken({
           />
         </span>
         {children}
-      </span>
+      </>
     );
+
+    if (href) {
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${inlineChatTokenClassName} hover:underline`}
+        >
+          {content}
+        </a>
+      );
+    }
+
+    return <span className={inlineChatTokenClassName}>{content}</span>;
   }
 
   return (
-    <span className={inlineChatTokenClassName}>
-      <span className="relative inline-block align-baseline">
+    <span className={`${inlineChatTokenClassName} mr-[0.15em]`}>
+      <span className="relative mr-[-0.15em] inline-block align-baseline">
         <span className="text-transparent">{spacer}</span>
         <span className="absolute inset-0 inline-flex items-center justify-center">
           <TokenIcon

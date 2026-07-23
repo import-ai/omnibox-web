@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next';
 import type { ResourceMeta } from '@/interface';
 import { pathI18n, trimMiddle } from '@/lib/toolArgs.ts';
 
+import { createResourceQueryText } from '../../chat-input/composerQuery';
 import {
   type ChatMessageDisplayPart,
   type ChatTool,
@@ -161,21 +162,35 @@ export function resourceMetaFromPrivateSearchResource(
 
 export function splitUserMessageResourceTokens(
   text: string,
-  resourceNames: string[]
+  resources: PrivateSearchResource[]
 ): UserMessageTokenSegment[] {
-  if (resourceNames.length === 0 || text.length === 0) {
+  if (resources.length === 0 || text.length === 0) {
     return [{ type: 'text', text }];
   }
 
-  const resourceNameSet = new Set(resourceNames);
-  const pattern = new RegExp(`(${resourceNames.map(escapeRegExp).join('|')})`);
+  const resourceByToken = new Map<string, PrivateSearchResource>();
+  resources.forEach(resource => {
+    resourceByToken.set(
+      createResourceQueryText(resource.name, resource.id),
+      resource
+    );
+    if (!resourceByToken.has(resource.name)) {
+      resourceByToken.set(resource.name, resource);
+    }
+  });
+  const tokens = Array.from(resourceByToken.keys()).sort(
+    (a, b) => b.length - a.length
+  );
+  const pattern = new RegExp(`(${tokens.map(escapeRegExp).join('|')})`);
   return text
     .split(pattern)
     .filter(Boolean)
-    .map<UserMessageTokenSegment>(part => ({
-      type: resourceNameSet.has(part) ? 'resource' : 'text',
-      text: part,
-    }));
+    .map<UserMessageTokenSegment>(part => {
+      const resource = resourceByToken.get(part);
+      return resource
+        ? { type: 'resource', text: resource.name }
+        : { type: 'text', text: part };
+    });
 }
 
 function escapeRegExp(value: string) {
@@ -310,12 +325,10 @@ export function createUserMessageCopyHtml(
   const resourceByName = new Map(
     resources.map(resource => [resource.name, resource])
   );
-  const resourceNames = resources.map(resource => resource.name);
-
   const lines = text.split('\n');
   return lines
     .map((line, index) => {
-      const lineHtml = splitUserMessageResourceTokens(line, resourceNames)
+      const lineHtml = splitUserMessageResourceTokens(line, resources)
         .map(segment => {
           if (segment.type === 'text') return escapeHtml(segment.text);
           const resource = resourceByName.get(segment.text);

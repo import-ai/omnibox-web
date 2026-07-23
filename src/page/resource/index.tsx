@@ -6,6 +6,12 @@ import useApp from '@/hooks/useApp';
 import useResource from '@/hooks/userResource';
 import useWide from '@/hooks/useWide';
 import { cn } from '@/lib/utils';
+import { OMNIBOX_EDITOR_CONTENT_WIDTH } from '@/page/resource/editor/const';
+import {
+  selectUseOmniboxEditor,
+  useResourceStore,
+} from '@/page/resource/resourceStore';
+import { useResourceBodyDragAutoScroll } from '@/page/resource/useResourceBodyDragAutoScroll';
 
 import Header from './header';
 import Wrapper from './Wrapper';
@@ -17,6 +23,22 @@ export default function ResourcePage() {
   const [large, onLarge] = useState(window.innerWidth > 1500);
   const app = useApp();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const isOmniboxResource =
+    useOmniboxEditor &&
+    !!props.resource &&
+    props.resource.resource_type !== 'folder' &&
+    props.resource.resource_type !== 'smart_folder';
+  // Edit pages must be full-width so Omnibox TOC can sit next to the app
+  // sidebar. (DevTools showed max-w-[680px] trapping TOC beside the body.)
+  // Body/title stay 680px via resource-editable-page / Vditor inner styles.
+  const useFullWidthForEdit = props.editPage;
+  const useEditorContentWidth = isOmniboxResource && !props.editPage;
+
+  useResourceBodyDragAutoScroll(
+    scrollContainerRef,
+    useFullWidthForEdit && isOmniboxResource
+  );
 
   useEffect(() => {
     function handleSize() {
@@ -54,14 +76,33 @@ export default function ResourcePage() {
       <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
       <div
         ref={scrollContainerRef}
-        className="flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4"
+        className={cn(
+          'no-scrollbar flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4',
+          // Pull TOC flush toward the app sidebar in Omnibox edit mode.
+          useFullWidthForEdit && 'pl-2'
+        )}
       >
         <div
           className={cn('flex min-w-0 w-full max-w-full flex-col', {
-            'max-w-[680px]': !wide && (open || !large),
-            'max-w-[800px]': !wide && (!open || large),
+            'max-w-[680px]':
+              !wide &&
+              !useEditorContentWidth &&
+              !useFullWidthForEdit &&
+              (open || !large),
+            'max-w-[800px]':
+              !wide &&
+              !useEditorContentWidth &&
+              !useFullWidthForEdit &&
+              (!open || large),
             'max-w-7xl': wide,
           })}
+          style={
+            !wide && useFullWidthForEdit
+              ? { maxWidth: '100%' }
+              : !wide && useEditorContentWidth
+                ? { maxWidth: OMNIBOX_EDITOR_CONTENT_WIDTH }
+                : undefined
+          }
         >
           <Wrapper {...props} />
         </div>

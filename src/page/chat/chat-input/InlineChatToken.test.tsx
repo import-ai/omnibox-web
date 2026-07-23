@@ -64,6 +64,24 @@ describe('InlineChatToken', () => {
     expect(html).toContain('note.md');
   });
 
+  it('opens a read-only resource token link in a new tab', () => {
+    const html = renderToStaticMarkup(
+      <InlineChatToken
+        icon="resource"
+        resource={markdownResource()}
+        contextType="resource"
+        href="/n1/r1"
+      >
+        note.md
+      </InlineChatToken>
+    );
+
+    expect(html).toContain('<a');
+    expect(html).toContain('href="/n1/r1"');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('rel="noopener noreferrer"');
+  });
+
   it('uses the editable spacer for layout while the icon stays out of flow', () => {
     const html = renderToStaticMarkup(
       <InlineChatToken
@@ -80,7 +98,8 @@ describe('InlineChatToken', () => {
     expect(html).toContain('absolute');
     expect(html).not.toContain('break-all');
     expect(html).not.toContain('mr-1');
-    expect(html).not.toContain('mx-0.5');
+    expect(html).toContain('mr-[0.15em]');
+    expect(html).toContain('mr-[-0.15em]');
     expect(html).not.toContain('overflow-wrap:anywhere');
   });
 });

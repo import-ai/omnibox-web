@@ -78,16 +78,21 @@ export function insertToolRange(
   }
 
   const tokenText = createToolTokenText(label);
+  const replacedRange = {
+    start: range.start,
+    end: range.end + (document.text[range.end] === ' ' ? 1 : 0),
+  };
+  const replacementText = `${tokenText} `;
   const text =
-    document.text.slice(0, range.start) +
-    tokenText +
-    document.text.slice(range.end);
+    document.text.slice(0, replacedRange.start) +
+    replacementText +
+    document.text.slice(replacedRange.end);
   const shiftedTools = shiftToolRangesForReplacement(
     document.tools,
-    range,
-    tokenText.length
+    replacedRange,
+    replacementText.length
   );
-  const start = range.start;
+  const start = replacedRange.start;
 
   return {
     text,
@@ -96,8 +101,8 @@ export function insertToolRange(
       { tool, label, start, end: start + tokenText.length },
     ].sort((a, b) => a.start - b.start),
     selection: {
-      start: start + tokenText.length,
-      end: start + tokenText.length,
+      start: start + replacementText.length,
+      end: start + replacementText.length,
     },
   };
 }

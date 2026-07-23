@@ -50,7 +50,7 @@ export default function SharedResourcePage() {
           'max-w-7xl': wide,
         })}
       >
-        <h1 className="mb-4 min-w-0 max-w-full text-4xl font-bold break-all">
+        <h1 className="mb-4 min-w-0 max-w-full text-[34px] font-bold break-all">
           {resource.name || t('untitled')}
         </h1>
         <Attributes

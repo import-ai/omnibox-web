@@ -29,7 +29,7 @@ export default function Page(props: IProps) {
 
   return (
     <div data-resource-export-content="true">
-      <h1 className="mb-4 min-w-0 max-w-full break-all text-4xl font-bold">
+      <h1 className="mb-4 min-w-0 max-w-full break-all text-[34px] font-bold">
         {resource.name || t('untitled')}
       </h1>
       <Attributes
@@ -57,7 +57,7 @@ export default function Page(props: IProps) {
       ) : (
         <Render
           resource={resource}
-          linkBase={resource.id}
+          linkBase={`/${namespaceId}/${resource.id}`}
           style={{ overflow: 'inherit' }}
         />
       )}
