@@ -11,12 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { NotificationItem } from './types';
 
 type NotificationTagIcon =
-  | 'assistant'
-  | 'default'
-  | 'system'
-  | 'marketing'
-  | 'changelog'
-  | 'survey';
+  'assistant' | 'default' | 'system' | 'marketing' | 'changelog' | 'survey';
 
 interface NotificationTagProps {
   item: NotificationItem;
