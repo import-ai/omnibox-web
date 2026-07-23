@@ -7,11 +7,13 @@ import { NotificationDetailDialog } from './NotificationDetailDialog';
 import { NotificationEmptyState } from './NotificationEmptyState';
 import { NotificationListItem } from './NotificationListItem';
 import { NotificationToolbar } from './NotificationToolbar';
+import { SystemNotificationDetailDialog } from './SystemNotificationDetailDialog';
 import type {
   NotificationDetail,
   NotificationFilter,
   NotificationItem,
 } from './types';
+import { mergeNotificationDetail } from './utils';
 
 function Notification({ onClose }: { onClose?: () => void }) {
   const { t } = useTranslation();
@@ -91,7 +93,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
       const notificationDetail = await fetchNotificationDetail(item.id);
 
       setDetail({
-        ...notificationDetail,
+        ...mergeNotificationDetail(notificationDetail, item),
         status:
           shouldMarkRead && notificationDetail.status === 'unread'
             ? 'read'
@@ -158,11 +160,19 @@ function Notification({ onClose }: { onClose?: () => void }) {
         )}
       </div>
 
-      <NotificationDetailDialog
-        detail={detail}
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-      />
+      {detail?.notification_type === 'system' ? (
+        <SystemNotificationDetailDialog
+          detail={detail}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+        />
+      ) : (
+        <NotificationDetailDialog
+          detail={detail}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+        />
+      )}
     </div>
   );
 }

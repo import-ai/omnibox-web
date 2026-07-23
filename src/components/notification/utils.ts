@@ -1,12 +1,24 @@
-export const notificationDialogContentClassName =
-  'grid-rows-[auto_minmax(0,1fr)] w-[calc(100vw-32px)] max-w-[694px] h-[calc(100vh-32px)] max-h-[690px] gap-2 overflow-hidden sm:rounded-2xl border border-neutral-200 bg-white px-4 py-5 dark:border-neutral-800 dark:bg-neutral-900';
+import type { NotificationDetail, NotificationItem } from './types';
 
-export const notificationMetaWidthClassName = 'w-[112px] sm:w-[140px]';
+export const notificationDialogContentClassName =
+  'grid-rows-[auto_minmax(0,1fr)] h-[calc(100vh-32px)] max-h-[820px] w-[calc(100vw-32px)] max-w-[960px] gap-0 overflow-hidden border border-neutral-200 bg-white px-6 py-5 dark:border-neutral-800 dark:bg-neutral-900 sm:rounded-2xl';
+
+export const notificationMetaWidthClassName = 'w-[112px] sm:w-[220px]';
 
 export const notificationMetaColumnClassName =
   'flex min-w-0 flex-col items-end gap-1 text-right';
 
 export const NOTIFICATION_POLL_INTERVAL_MS = 10_000;
+
+export function mergeNotificationDetail(
+  detail: NotificationDetail,
+  item: NotificationItem
+): NotificationDetail {
+  return {
+    ...detail,
+    notification_type: item.notification_type,
+  };
+}
 
 export function getNotificationHasMore(pagination: {
   offset: number;

@@ -4,6 +4,7 @@ export interface NotificationItemDto {
   id: string;
   title: string;
   summary: string;
+  notification_type: string;
   status: 'unread' | 'read';
   readed_at: string | null;
   tags: string[];
@@ -26,9 +27,12 @@ export interface NotificationDetailDto {
   id: string;
   title: string;
   content: string;
+  notification_type: string;
   tags: string[];
   status: 'unread' | 'read';
   readed_at: string | null;
+  target: NotificationItemDto['target'];
+  attrs: Record<string, unknown>;
   created_at: string;
 }
 

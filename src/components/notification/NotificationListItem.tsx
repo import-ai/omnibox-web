@@ -15,19 +15,25 @@ interface NotificationListItemProps {
   item: NotificationItem;
   onClick?: (item: NotificationItem) => void;
 }
+
+const MAX_VISIBLE_TAGS = 2;
+
 export function NotificationListItem({
   item,
   onClick,
 }: NotificationListItemProps) {
   const { i18n } = useTranslation();
   const locale = i18n.language.startsWith('zh-') ? zhCN : enUS;
+  const visibleTags = item.tags.slice(0, MAX_VISIBLE_TAGS);
+  const hiddenTagCount = Math.max(item.tags.length - MAX_VISIBLE_TAGS, 0);
+
   return (
     <div
       data-notification-item="true"
       className="w-full rounded-lg bg-white px-2 py-3 cursor-pointer transition-colors duration-200 hover:cursor-pointer hover:bg-neutral-100 active:cursor-pointer active:bg-neutral-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:active:bg-neutral-700 [&_*]:cursor-pointer"
       onClick={() => onClick?.(item)}
     >
-      <div className="grid grid-cols-[minmax(0,1fr)_112px] items-start gap-x-2 sm:grid-cols-[minmax(0,1fr)_140px] sm:gap-x-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_112px] items-start gap-x-2 sm:grid-cols-[minmax(0,1fr)_220px] sm:gap-x-4">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-start">
             <div
@@ -53,8 +59,8 @@ export function NotificationListItem({
           )}
         >
           {item.tags.length > 0 ? (
-            <div className="flex max-w-full flex-wrap items-center justify-end gap-2 overflow-hidden">
-              {item.tags.map(tag => {
+            <div className="flex max-w-full flex-wrap items-center justify-end gap-1 overflow-hidden">
+              {visibleTags.map(tag => {
                 return (
                   <NotificationTag
                     key={`${item.id}-${tag}`}
@@ -63,6 +69,11 @@ export function NotificationListItem({
                   />
                 );
               })}
+              {hiddenTagCount > 0 ? (
+                <span className="inline-flex max-h-6 items-center rounded-sm border border-neutral-200 bg-white px-1.5 py-1 text-xs font-normal text-muted-foreground dark:border-neutral-500 dark:bg-neutral-900">
+                  +{hiddenTagCount}
+                </span>
+              ) : null}
             </div>
           ) : null}
           <div className="flex max-w-full items-center justify-center gap-2 text-sm text-muted-foreground">
