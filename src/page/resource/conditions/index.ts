@@ -25,10 +25,7 @@ export type ResourceConditionOperator =
   | 'between_dates';
 
 export type ResourceConditionRelativeDateUnit =
-  | 'day'
-  | 'week'
-  | 'month'
-  | 'year';
+  'day' | 'week' | 'month' | 'year';
 
 export type ResourceConditionNamespaceTier = 'basic' | 'premium' | undefined;
 

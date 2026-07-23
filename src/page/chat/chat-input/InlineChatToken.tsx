@@ -7,9 +7,7 @@ import type { ResourceMeta } from '@/interface';
 import { type PrivateSearchResourceType, ToolType } from './types';
 
 export type InlineChatTokenIcon =
-  | 'resource'
-  | ToolType.WEB_SEARCH
-  | ToolType.REASONING;
+  'resource' | ToolType.WEB_SEARCH | ToolType.REASONING;
 
 export const inlineChatTokenClassName =
   'inline align-baseline text-[#117bfa] dark:text-[#60a5fb]';
