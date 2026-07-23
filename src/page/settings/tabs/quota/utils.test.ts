@@ -12,7 +12,13 @@ describe('getSubscriptionPlanLabelKey', () => {
     expect(getSubscriptionPlanLabelKey(undefined)).toBe('quota.basic_plan');
   });
 
-  it('uses the premium label when a premium plan exists', () => {
+  it('keeps the basic label when a previous premium plan has expired', () => {
+    expect(
+      getSubscriptionPlanLabelKey({ expired: true, expire_date: null })
+    ).toBe('quota.basic_plan');
+  });
+
+  it('uses the premium label when an active premium plan exists', () => {
     expect(
       getSubscriptionPlanLabelKey({ expired: false, expire_date: null })
     ).toBe('quota.premium_plan');

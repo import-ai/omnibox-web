@@ -46,7 +46,9 @@ export function formatTimeAsMinutes(seconds: number) {
 }
 
 export function getSubscriptionPlanLabelKey(premium?: UsageExpirationLike) {
-  return premium ? 'quota.premium_plan' : 'quota.basic_plan';
+  return premium && !premium.expired
+    ? 'quota.premium_plan'
+    : 'quota.basic_plan';
 }
 
 export function formatExpiration(

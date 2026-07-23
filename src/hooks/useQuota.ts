@@ -68,10 +68,6 @@ export default function useQuota(namespaceId: string) {
       expired: false,
       expire_date: null,
     },
-    premium: {
-      expired: false,
-      expire_date: null,
-    },
     show_members_usage: false,
   });
 
