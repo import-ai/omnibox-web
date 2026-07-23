@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { Spinner } from '@/components/ui/Spinner';
 import useQuota from '@/hooks/useQuota';
 
 import { ExpandButton } from './ExpandButton';
@@ -18,7 +19,20 @@ interface RemainQuotaProps {
 
 export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   const { t } = useTranslation();
-  const { data } = useQuota(namespaceId);
+  const { data, loading } = useQuota(namespaceId);
+
+  if (loading) {
+    return (
+      <div className="my-5 flex h-40 items-center justify-center">
+        <Spinner className="size-6 text-gray-400" />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
   const showOtherMembersUsage = data.show_members_usage;
 
   const segTooltip = (label: string, value: string) =>

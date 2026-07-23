@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useEffect, useState } from 'react';
 
 import { http } from '@/lib/request';
@@ -38,44 +39,51 @@ export interface UsageData {
   show_members_usage: boolean;
 }
 
+interface QuotaState {
+  namespaceId: string;
+  data: UsageData | null;
+  loading: boolean;
+}
+
 export default function useQuota(namespaceId: string) {
-  const [data, setData] = useState<UsageData>({
-    storage_bytes: {
-      upload: 0,
-      file: 0,
-      other_users: 0,
-      total: 0,
-      subscription_total: 0,
-      onetime_total: 0,
-    },
-    video_audio_parse: {
-      video: 0,
-      audio: 0,
-      other_users: 0,
-      total: 0,
-      subscription_total: 0,
-      onetime_total: 0,
-    },
-    doc_parse: {
-      pdf: 0,
-      image: 0,
-      other_users: 0,
-      total: 0,
-      subscription_total: 0,
-      onetime_total: 0,
-    },
-    basic: {
-      expired: false,
-      expire_date: null,
-    },
-    show_members_usage: false,
+  const [state, setState] = useState<QuotaState>({
+    namespaceId,
+    data: null,
+    loading: true,
   });
 
   useEffect(() => {
-    http.get(`/namespaces/${namespaceId}/usages`).then(setData);
-  }, []);
+    const source = axios.CancelToken.source();
+    let active = true;
+
+    setState({ namespaceId, data: null, loading: true });
+    http
+      .get(`/namespaces/${namespaceId}/usages`, {
+        cancelToken: source.token,
+      })
+      .then((data: UsageData) => {
+        if (active) {
+          setState({ namespaceId, data, loading: false });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setState({ namespaceId, data: null, loading: false });
+        }
+      });
+
+    return () => {
+      active = false;
+      source.cancel();
+    };
+  }, [namespaceId]);
+
+  if (state.namespaceId !== namespaceId) {
+    return { data: null, loading: true };
+  }
 
   return {
-    data,
+    data: state.data,
+    loading: state.loading,
   };
 }
