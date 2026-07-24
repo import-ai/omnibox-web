@@ -28,16 +28,16 @@ export function FeaturePreviewsForm() {
   };
 
   return (
-    <div className="flex flex-col pt-4">
+    <div className="flex flex-col">
       <h3 className="text-base font-semibold text-foreground">
         {t('setting.feature_previews')}
       </h3>
       {loading ? (
-        <div className="mt-6 flex min-h-24 w-full items-center justify-center">
+        <div className="mt-3 flex min-h-24 w-full items-center justify-center">
           <Spinner className="size-6 text-muted-foreground" />
         </div>
       ) : (
-        <div className="mt-6 grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+        <div className="mt-3 grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
           <PenLine className="size-4 text-muted-foreground" />
           <span className="min-w-0">
             <span className="block text-sm font-medium leading-5 text-foreground">
