@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Bookmark, ChevronLeft, ChevronUp, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronUp, Clock, Tag } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,7 +13,10 @@ import {
 } from '@/components/ui/Dialog';
 import { cn } from '@/lib/utils';
 
-import { getNotificationTagLabel } from './NotificationTag';
+import {
+  getNotificationTagLabel,
+  NotificationTagIcon,
+} from './NotificationTag';
 import type { NotificationDetail } from './types';
 import { notificationDialogContentClassName } from './utils';
 
@@ -69,7 +72,7 @@ export function SystemNotificationDetailDialog({
             <>
               <div className="mb-5 space-y-3 text-sm text-muted-foreground">
                 <div className="flex min-w-0 items-center gap-3">
-                  <Bookmark className="size-4 shrink-0" />
+                  <Tag className="size-4 shrink-0" />
                   <span className="shrink-0">
                     {t('notification_modal.notification_type')}
                   </span>
@@ -77,9 +80,12 @@ export function SystemNotificationDetailDialog({
                     {visibleTags.map(tag => (
                       <span
                         key={tag}
-                        className="inline-flex max-w-40 items-center truncate rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
+                        className="inline-flex max-w-40 items-center gap-1 truncate rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
                       >
-                        {getNotificationTagLabel(tag, t)}
+                        <NotificationTagIcon item={detail} tag={tag} />
+                        <span className="truncate">
+                          {getNotificationTagLabel(tag, t)}
+                        </span>
                       </span>
                     ))}
                     {hiddenTagCount > 0 ? (

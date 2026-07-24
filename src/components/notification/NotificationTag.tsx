@@ -18,6 +18,12 @@ interface NotificationTagProps {
   tag: string;
 }
 
+interface NotificationTagIconProps {
+  item: Pick<NotificationItem, 'attrs'>;
+  tag: string;
+  className?: string;
+}
+
 const tagClassName =
   'inline-flex max-h-6 items-center gap-1 rounded-sm border border-10 border-border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-muted-foreground dark:border-neutral-500 dark:bg-neutral-900';
 
@@ -57,7 +63,7 @@ export function getNotificationTagLabel(
 }
 
 export function getNotificationTagIconKey(
-  item: NotificationItem,
+  item: Pick<NotificationItem, 'attrs'>,
   tag: string
 ): NotificationTagIcon {
   const tagIconKey =
@@ -78,14 +84,23 @@ export function getNotificationTagIconKey(
     : 'default';
 }
 
+export function NotificationTagIcon({
+  item,
+  tag,
+  className = 'size-3.5 shrink-0',
+}: NotificationTagIconProps) {
+  const Icon = iconMap[getNotificationTagIconKey(item, tag)];
+
+  return <Icon className={className} />;
+}
+
 export function NotificationTag({ item, tag }: NotificationTagProps) {
   const { t } = useTranslation();
-  const Icon = iconMap[getNotificationTagIconKey(item, tag)];
   const label = getNotificationTagLabel(tag, t);
 
   return (
     <div data-notification-id={item.id} className={tagClassName}>
-      <Icon className="size-3.5 shrink-0" />
+      <NotificationTagIcon item={item} tag={tag} />
       <span className="text-xs font-normal text-muted-foreground">{label}</span>
     </div>
   );
