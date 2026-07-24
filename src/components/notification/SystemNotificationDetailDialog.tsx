@@ -111,7 +111,11 @@ export function SystemNotificationDetailDialog({
                   </time>
                 </div>
               </div>
-              <Markdown content={detail.content} openLinksInNewWindow />
+              <Markdown
+                content={detail.content}
+                loadNotificationAssets
+                openLinksInNewWindow
+              />
             </>
           ) : null}
         </div>
