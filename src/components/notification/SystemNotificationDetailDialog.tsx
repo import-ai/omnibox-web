@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog';
+import { cn } from '@/lib/utils';
 
 import { getNotificationTagLabel } from './NotificationTag';
 import type { NotificationDetail } from './types';
@@ -41,14 +42,19 @@ export function SystemNotificationDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={notificationDialogContentClassName}>
+      <DialogContent
+        className={cn(
+          notificationDialogContentClassName,
+          '[&>button]:right-6 [&>button]:top-5 [&>button]:inline-flex [&>button]:size-8 [&>button]:items-center [&>button]:justify-center'
+        )}
+      >
         <DialogHeader className="border-b border-neutral-200 pb-4 pr-8 text-left dark:border-neutral-800">
           <div className="flex min-w-0 items-center gap-3">
             <DialogClose asChild>
               <button
                 type="button"
                 aria-label={t('notification_modal.back')}
-                className="shrink-0 rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <ChevronLeft className="size-6" />
               </button>
