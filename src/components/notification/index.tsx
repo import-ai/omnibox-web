@@ -62,8 +62,12 @@ function Notification({ onClose }: { onClose?: () => void }) {
   const handleOpenDetail = useCallback(
     async (item: NotificationItem) => {
       const shouldMarkRead = item.status === 'unread';
-      const { url, target } = item?.target || {};
+      const { url } = item?.target || {};
       const source = item?.target?.type;
+
+      if (source === 'link' && url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
 
       if (shouldMarkRead) {
         await markNotificationRead(item);
@@ -82,7 +86,6 @@ function Notification({ onClose }: { onClose?: () => void }) {
         }
         case 'link':
           if (url) {
-            window.open(url, target);
             return;
           }
           break;

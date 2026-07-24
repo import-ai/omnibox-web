@@ -16,7 +16,7 @@ interface NotificationListItemProps {
   onClick?: (item: NotificationItem) => void;
 }
 
-const MAX_VISIBLE_TAGS = 2;
+const MAX_VISIBLE_TAGS = 1;
 
 export function NotificationListItem({
   item,
