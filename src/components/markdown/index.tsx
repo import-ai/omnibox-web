@@ -14,6 +14,7 @@ import { addReferrerPolicyForString } from '@/lib/addReferrerPolicy';
 interface IProps {
   content: string;
   linkBase?: string;
+  openLinksInNewWindow?: boolean;
   style?: React.CSSProperties;
   onRendered?: () => void;
 }
@@ -35,7 +36,13 @@ export function markdownPreviewConfig(theme: Theme) {
 }
 
 export function Markdown(props: IProps) {
-  const { style, content, linkBase, onRendered } = props;
+  const {
+    style,
+    content,
+    linkBase,
+    openLinksInNewWindow = false,
+    onRendered,
+  } = props;
   const { theme } = useTheme();
   const navigate = useNavigate();
   const element = useRef<HTMLDivElement>(null);
@@ -51,7 +58,7 @@ export function Markdown(props: IProps) {
         return;
       }
       const href = link.getAttribute('href');
-      if (!href || !href.startsWith('/')) {
+      if (!href || openLinksInNewWindow || !href.startsWith('/')) {
         return;
       }
       event.preventDefault();
@@ -63,7 +70,7 @@ export function Markdown(props: IProps) {
         element.current.removeEventListener('click', clickFN);
       }
     };
-  }, []);
+  }, [navigate, openLinksInNewWindow]);
 
   useEffect(() => {
     if (element.current) {
@@ -81,13 +88,19 @@ export function Markdown(props: IProps) {
           linkBase,
         },
         after: () => {
+          if (openLinksInNewWindow) {
+            element.current?.querySelectorAll('a').forEach(link => {
+              link.target = '_blank';
+              link.rel = 'noopener noreferrer';
+            });
+          }
           if (onRendered) {
             onRendered();
           }
         },
       });
     }
-  }, [content, theme, onRendered]);
+  }, [content, theme, onRendered, openLinksInNewWindow]);
 
   return <div style={style} className="reset-list" ref={element} />;
 }
