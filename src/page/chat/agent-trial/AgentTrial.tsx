@@ -34,16 +34,31 @@ export function AgentTrial({
   );
 
   return (
-    <div className="flex flex-wrap items-center justify-end mb-1 gap-3 text-sm">
-      <UpgradeTrialUsageTooltip
-        textKey="chat.trial.text"
-        textValues={{ related_time: recoveryTime }}
-        tooltipItems={[t('chat.trial.tooltip.base')]}
-      />
+    <div className="flex min-w-0 items-center justify-end mb-1 gap-3 text-sm">
+      <div className="min-w-0 flex-1 text-right sm:hidden">
+        <UpgradeTrialUsageTooltip
+          textKey="chat.trial.compact_text"
+          tooltipItems={[
+            t('chat.trial.tooltip.recovery', {
+              related_time: recoveryTime,
+            }),
+          ]}
+          tooltipSide="top"
+          triggerClassName="inline-block max-w-full truncate text-muted-foreground cursor-pointer align-middle"
+        />
+      </div>
+      <div className="hidden min-w-0 text-right sm:block">
+        <UpgradeTrialUsageTooltip
+          textKey="chat.trial.text"
+          textValues={{ related_time: recoveryTime }}
+          tooltipItems={[t('chat.trial.tooltip.base')]}
+        />
+      </div>
       <UpgradeActionButton
         namespaceId={namespaceId}
         hasPermission={hasUpgradePermission}
         disabledReason={t('chat.trial.not_owner')}
+        className="h-5 shrink-0 text-sm"
       />
     </div>
   );

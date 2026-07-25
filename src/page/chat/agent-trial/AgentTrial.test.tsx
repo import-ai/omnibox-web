@@ -16,9 +16,13 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('@/components/upgrade-action-button', () => ({
-  UpgradeTrialUsageTooltip: ({ textKey }: { textKey: string }) => (
-    <span>{textKey}</span>
-  ),
+  UpgradeTrialUsageTooltip: ({
+    textKey,
+    tooltipItems,
+  }: {
+    textKey: string;
+    tooltipItems: string[];
+  }) => <span>{`${textKey}:${tooltipItems.join('|')}`}</span>,
   UpgradeActionButton: () => <button>upgrade</button>,
 }));
 
@@ -86,7 +90,10 @@ describe('AgentTrial', () => {
       root.render(<AgentTrial namespaceId="namespace-a" />)
     );
 
+    expect(container.textContent).toContain('chat.trial.compact_text');
+    expect(container.textContent).toContain('chat.trial.tooltip.recovery');
     expect(container.textContent).toContain('chat.trial.text');
+    expect(container.textContent).toContain('chat.trial.tooltip.base');
     expect(container.textContent).toContain('upgrade');
   });
 });

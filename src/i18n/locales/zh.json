@@ -732,9 +732,11 @@
       }
     },
     "trial": {
-      "text": "Agent 2.1 试用次数已用尽，已自动切换至 Agent 1.1，将在{{related_time}}后恢复",
+      "text": "Agent 2.1 试用次数暂时用尽，已切换至 Agent 1.1，{{related_time}}后可继续试用 Agent 2.1",
+      "compact_text": "当前已切换至 Agent 1.1",
       "tooltip": {
-        "base": "系统会统计过去 24 小时内的使用次数"
+        "base": "系统会统计过去 24 小时内的使用次数",
+        "recovery": "{{related_time}}后可继续试用 Agent 2.1"
       },
       "not_owner": "请联系空间所有者进行升级"
     },

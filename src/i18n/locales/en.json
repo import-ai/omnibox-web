@@ -731,9 +731,11 @@
       }
     },
     "trial": {
-      "text": "Agent 2.1 trial limit reached. Switched to Agent 1.1. Resets in {{related_time}}.",
+      "text": "Agent 2.1 trial limit reached. Using Agent 1.1. Try Agent 2.1 again in {{related_time}}.",
+      "compact_text": "Switched to Agent 1.1",
       "tooltip": {
-        "base": "Usage is calculated over a rolling 24-hour window"
+        "base": "Usage is calculated over a rolling 24-hour window",
+        "recovery": "Try Agent 2.1 again in {{related_time}}"
       },
       "not_owner": "Please contact space owner to upgrade"
     },
