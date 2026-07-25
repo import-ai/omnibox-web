@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { http } from '@/lib/request';
 import {
@@ -20,6 +20,12 @@ export function useAgentUsage(namespaceId: string, messages: MessageDetail[]) {
   >();
 
   const [assistantMessageIds, setAssistantMessageIds] = useState<string[]>([]);
+
+  const fetchAgentUsage = useCallback(() => {
+    return http
+      .get(`/namespaces/${namespaceId}/usages/agent`)
+      .then(setAgentUsage);
+  }, [namespaceId]);
 
   useEffect(() => {
     let lastUserMessage: MessageDetail | undefined = undefined;
@@ -47,8 +53,31 @@ export function useAgentUsage(namespaceId: string, messages: MessageDetail[]) {
   }, [messages, setAssistantMessageIds]);
 
   useEffect(() => {
-    http.get(`/namespaces/${namespaceId}/usages/agent`).then(setAgentUsage);
-  }, [namespaceId, assistantMessageIds.length]);
+    void fetchAgentUsage();
+  }, [assistantMessageIds.length, fetchAgentUsage]);
+
+  useEffect(() => {
+    if (!agentUsage || agentUsage.agent_trial_remain !== 0) {
+      return;
+    }
+
+    const firstMessageTime = new Date(agentUsage.first_message_date).getTime();
+    if (!Number.isFinite(firstMessageTime)) {
+      return;
+    }
+
+    const recoveryTime = firstMessageTime + 24 * 60 * 60 * 1000;
+    const timeout = window.setTimeout(
+      () => void fetchAgentUsage(),
+      Math.max(recoveryTime - Date.now(), 0) + 1000
+    );
+
+    return () => window.clearTimeout(timeout);
+  }, [
+    agentUsage?.agent_trial_remain,
+    agentUsage?.first_message_date,
+    fetchAgentUsage,
+  ]);
 
   return {
     agentUsage,
