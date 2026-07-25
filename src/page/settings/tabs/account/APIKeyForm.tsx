@@ -1,5 +1,5 @@
 import { CircleHelp, Copy, Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -42,6 +42,13 @@ import {
   type CreateAPIKeyDto,
 } from '@/interface';
 import { cn } from '@/lib/utils';
+import { fetchResourcesByIds, fetchRootResources } from '@/service/resource';
+
+import {
+  APIKeyPermissionScope,
+  type APIKeyPermissionScopeData,
+  buildAPIKeyPermissionScopes,
+} from './APIKeyPermissionScope';
 
 function APIKeyInfoRow({
   label,
@@ -201,6 +208,40 @@ export function APIKeyForm() {
   const [formData, setFormData] = useState<APIKeyFormData>(() =>
     createEmptyFormData()
   );
+  const [permissionScopes, setPermissionScopes] = useState<
+    Record<string, APIKeyPermissionScopeData>
+  >({});
+  const permissionScopeIdsKey = [
+    ...new Set(apiKeys.map(key => key.attrs.root_resource_id).filter(Boolean)),
+  ]
+    .sort()
+    .join(',');
+
+  useEffect(() => {
+    setPermissionScopes({});
+    if (!namespaceId || !permissionScopeIdsKey) return;
+
+    let cancelled = false;
+    const resourceIds = permissionScopeIdsKey.split(',');
+
+    void Promise.allSettled([
+      fetchResourcesByIds(namespaceId, resourceIds),
+      fetchRootResources(namespaceId),
+    ]).then(([resourcesResult, rootsResult]) => {
+      if (cancelled) return;
+
+      const resources =
+        resourcesResult.status === 'fulfilled' ? resourcesResult.value : [];
+      const roots = rootsResult.status === 'fulfilled' ? rootsResult.value : {};
+      setPermissionScopes(
+        buildAPIKeyPermissionScopes(resourceIds, resources, roots)
+      );
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [namespaceId, permissionScopeIdsKey]);
 
   const handleCreateAPIKey = async () => {
     if (formData.note.length > API_KEY_NOTE_MAX_LENGTH) {
@@ -716,10 +757,15 @@ export function APIKeyForm() {
                 </div>
               </div>
 
-              <APIKeyInfoRow label={t('api_key.permission_scope')}>
-                <span className="text-sm font-semibold text-foreground">
-                  {key.attrs.root_resource_id}
-                </span>
+              <APIKeyInfoRow
+                label={t('api_key.permission_scope')}
+                className="min-w-0"
+              >
+                <APIKeyPermissionScope
+                  namespaceId={namespaceId}
+                  resourceId={key.attrs.root_resource_id}
+                  scope={permissionScopes[key.attrs.root_resource_id]}
+                />
               </APIKeyInfoRow>
 
               {key.attrs.note && (
