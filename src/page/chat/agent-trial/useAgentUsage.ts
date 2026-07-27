@@ -40,7 +40,9 @@ export function useAgentUsage(namespaceId: string, messages: MessageDetail[]) {
       return http
         .get<AgentUsageResponseDto>(
           `/namespaces/${namespaceId}/usages/agent`,
-          mute ? { mute: true } : undefined
+          mute
+            ? { mute: true, timeout: AGENT_TRIAL_RECOVERY_RETRY_MS }
+            : undefined
         )
         .then(data => {
           if (fetchGeneration !== fetchGenerationRef.current) {
@@ -99,23 +101,22 @@ export function useAgentUsage(namespaceId: string, messages: MessageDetail[]) {
       return;
     }
 
-    let interval: number | undefined;
-    const refreshUsage = () => {
-      void fetchAgentUsage(true).catch(() => undefined);
+    let stopped = false;
+    let timeout: number;
+    const refreshUsage = async () => {
+      const usage = await fetchAgentUsage(true).catch(() => undefined);
+      if (!stopped && (!usage || usage.agent_trial_remain === 0)) {
+        timeout = window.setTimeout(
+          refreshUsage,
+          AGENT_TRIAL_RECOVERY_RETRY_MS
+        );
+      }
     };
-    const timeout = window.setTimeout(() => {
-      refreshUsage();
-      interval = window.setInterval(
-        refreshUsage,
-        AGENT_TRIAL_RECOVERY_RETRY_MS
-      );
-    }, recoveryDelay);
+    timeout = window.setTimeout(refreshUsage, recoveryDelay);
 
     return () => {
+      stopped = true;
       window.clearTimeout(timeout);
-      if (interval !== undefined) {
-        window.clearInterval(interval);
-      }
     };
   }, [
     agentUsage?.agent_trial_remain,

@@ -58,7 +58,7 @@ describe('useAgentUsage', () => {
       .mockRejectedValueOnce(new Error('temporary failure'))
       .mockResolvedValueOnce({
         agent_trial_limit: 10,
-        agent_trial_remain: 1,
+        agent_trial_remain: 2,
         first_message_date: '2026-07-24T01:00:00Z',
         last_message_date: '2026-07-24T09:00:00Z',
       });
@@ -95,5 +95,56 @@ describe('useAgentUsage', () => {
     });
 
     expect(mockGet).toHaveBeenCalledTimes(4);
+  });
+
+  it('waits for a slow recovery request before scheduling another retry', async () => {
+    let resolveRecovery!: (usage: {
+      agent_trial_limit: number;
+      agent_trial_remain: number;
+      first_message_date: string;
+      last_message_date: string;
+    }) => void;
+    const recovery = new Promise(resolve => {
+      resolveRecovery = resolve;
+    });
+    mockGet
+      .mockResolvedValueOnce({
+        agent_trial_limit: 10,
+        agent_trial_remain: 0,
+        first_message_date: '2026-07-24T00:00:00Z',
+        last_message_date: '2026-07-24T09:00:00Z',
+      })
+      .mockReturnValueOnce(recovery);
+
+    await act(async () => root.render(<Harness />));
+    await act(async () => Promise.resolve());
+
+    await act(async () => {
+      jest.advanceTimersByTime(60 * 60 * 1000 + 1000);
+      await Promise.resolve();
+    });
+    expect(mockGet).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      jest.advanceTimersByTime(30 * 1000);
+      await Promise.resolve();
+    });
+    expect(mockGet).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      resolveRecovery({
+        agent_trial_limit: 10,
+        agent_trial_remain: 1,
+        first_message_date: '2026-07-24T01:00:00Z',
+        last_message_date: '2026-07-24T09:00:00Z',
+      });
+      await recovery;
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(30 * 1000);
+      await Promise.resolve();
+    });
+    expect(mockGet).toHaveBeenCalledTimes(2);
   });
 });
