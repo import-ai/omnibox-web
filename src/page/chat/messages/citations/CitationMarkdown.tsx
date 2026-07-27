@@ -29,7 +29,7 @@ import {
   citationUrlTransform,
   copyPreprocess,
   findCitationById,
-  findResourceIdByHash,
+  getResourceIdFromHash,
   isCitationId,
   replaceCiteTag,
   trimIncompletedCitation,
@@ -99,8 +99,7 @@ export function CitationMarkdown(props: IProps) {
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
       const { node } = props;
       const resourceMatch = href?.match(resourceLinkRegex);
-      const resourceId =
-        resourceMatch?.[1] ?? findResourceIdByHash(citations, href);
+      const resourceId = resourceMatch?.[1] ?? getResourceIdFromHash(href);
       if (resourceId && resourceLinkPrefix) {
         return (
           <a

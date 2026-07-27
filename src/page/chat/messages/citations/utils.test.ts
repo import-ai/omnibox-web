@@ -2,7 +2,7 @@ import {
   citationUrlTransform,
   copyPreprocess,
   findCitationById,
-  findResourceIdByHash,
+  getResourceIdFromHash,
   isCitationId,
   replaceCiteTag,
   replaceReasoningCiteMarkers,
@@ -115,30 +115,14 @@ describe('citation id helpers', () => {
 });
 
 describe('resource hash links', () => {
-  const citations = [
-    {
-      id: 'C1-resource',
-      title: 'Resource',
-      snippet: 'Snippet',
-      link: 'resource-id',
-    },
-    {
-      id: 'C2-web',
-      title: 'Web',
-      snippet: 'Snippet',
-      link: 'https://example.com',
-    },
-  ];
-
-  it('resolves a hash that matches a cited resource', () => {
-    expect(findResourceIdByHash(citations, '#resource-id')).toBe('resource-id');
+  it('resolves a 16-character resource id', () => {
+    expect(getResourceIdFromHash('#uoSb7IKdmXeSQP6I')).toBe('uoSb7IKdmXeSQP6I');
   });
 
-  it('leaves normal anchors and web citations unchanged', () => {
-    expect(findResourceIdByHash(citations, '#section')).toBeUndefined();
-    expect(
-      findResourceIdByHash(citations, '#https://example.com')
-    ).toBeUndefined();
+  it('leaves normal anchors and citation markers unchanged', () => {
+    expect(getResourceIdFromHash('#section')).toBeUndefined();
+    expect(getResourceIdFromHash('#cite-1')).toBeUndefined();
+    expect(getResourceIdFromHash('#0123456789abcde_')).toBeUndefined();
   });
 });
 

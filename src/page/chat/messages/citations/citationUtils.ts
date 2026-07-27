@@ -103,18 +103,8 @@ export function findCitationById(
   return { citation: citations[index], index };
 }
 
-export function findResourceIdByHash(
-  citations: Citation[],
-  href: string | undefined
-): string | undefined {
-  if (!href || !/^#[\w-]+$/.test(href)) {
-    return undefined;
-  }
-
-  const resourceId = href.slice(1);
-  return citations.some(citation => citation.link === resourceId)
-    ? resourceId
-    : undefined;
+export function getResourceIdFromHash(href: string | undefined) {
+  return href?.match(/^#([0-9A-Za-z]{16})$/)?.[1];
 }
 
 export function citationUrlTransform(url: string): string {
