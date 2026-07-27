@@ -94,6 +94,10 @@
       "title": "新建文件夹",
       "name": "名称",
       "placeholder": "请输入文件夹名称"
+    },
+    "edit_dialog": {
+      "title": "编辑文件夹",
+      "submit": "保存"
     }
   },
   "error": {
