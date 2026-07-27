@@ -12,11 +12,13 @@ export interface APIKeyPermissionScopeData {
 export function buildAPIKeyPermissionScopes(
   resourceIds: string[],
   resources: Resource[],
-  roots: RootResourcesResponse
+  roots?: RootResourcesResponse
 ) {
   const scopes = Object.fromEntries(
     resourceIds.map(resourceId => [resourceId, {}])
   ) as Record<string, APIKeyPermissionScopeData>;
+
+  if (!roots) return scopes;
 
   resources.forEach(resource => {
     if (scopes[resource.id]) scopes[resource.id].name = resource.name;

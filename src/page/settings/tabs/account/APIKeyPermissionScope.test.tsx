@@ -33,6 +33,24 @@ describe('APIKeyPermissionScope', () => {
     });
   });
 
+  it('does not expose resource links when roots cannot be resolved', () => {
+    const scopes = buildAPIKeyPermissionScopes(
+      ['private-root'],
+      [{ id: 'private-root', name: 'Private root' } as Resource],
+      undefined
+    );
+    const html = renderToStaticMarkup(
+      <APIKeyPermissionScope
+        namespaceId="namespace"
+        resourceId="private-root"
+        scope={scopes['private-root']}
+      />
+    );
+
+    expect(html).toContain('Resource not found');
+    expect(html).not.toContain('<a');
+  });
+
   it.each([
     ['private', 'Personal'],
     ['teamspace', 'Teamspace'],

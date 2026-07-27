@@ -232,7 +232,8 @@ export function APIKeyForm() {
 
       const resources =
         resourcesResult.status === 'fulfilled' ? resourcesResult.value : [];
-      const roots = rootsResult.status === 'fulfilled' ? rootsResult.value : {};
+      const roots =
+        rootsResult.status === 'fulfilled' ? rootsResult.value : undefined;
       setPermissionScopes(
         buildAPIKeyPermissionScopes(resourceIds, resources, roots)
       );
