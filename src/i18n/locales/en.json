@@ -94,6 +94,10 @@
       "title": "New Folder",
       "name": "Name",
       "placeholder": "Enter folder name"
+    },
+    "edit_dialog": {
+      "title": "Edit Folder",
+      "submit": "Save"
     }
   },
   "error": {

@@ -106,7 +106,9 @@ export function deleteResource(namespaceId: string, id: string) {
 }
 
 export function renameResource(namespaceId: string, id: string, name: string) {
-  return http.patch(`/namespaces/${namespaceId}/resources/${id}`, { name });
+  return http.patch<Resource>(`/namespaces/${namespaceId}/resources/${id}`, {
+    name,
+  });
 }
 
 export function moveResource(
