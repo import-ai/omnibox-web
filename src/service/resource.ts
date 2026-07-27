@@ -1,5 +1,5 @@
 import { Resource, ResourceMeta, ResourceType } from '@/interface';
-import { http } from '@/lib/request';
+import { http, type RequestConfig } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 
 export type RootResourcesResponse = Record<
@@ -56,11 +56,12 @@ export function fetchChildren(
 
 export function fetchRootResources(
   namespaceId: string,
-  signal?: AbortSignal
+  config?: RequestConfig
 ): Promise<RootResourcesResponse> {
-  return http.get<RootResourcesResponse>(`/namespaces/${namespaceId}/root`, {
-    signal,
-  });
+  return http.get<RootResourcesResponse>(
+    `/namespaces/${namespaceId}/root`,
+    config
+  );
 }
 
 export function fetchSmartFolderChildren(
@@ -132,9 +133,14 @@ export function fetchResource(
   );
 }
 
-export function fetchResourcesByIds(namespaceId: string, ids: string[]) {
+export function fetchResourcesByIds(
+  namespaceId: string,
+  ids: string[],
+  config?: RequestConfig
+) {
   return http.get<Resource[]>(
-    `/namespaces/${namespaceId}/resources?id=${ids.join(',')}`
+    `/namespaces/${namespaceId}/resources?id=${ids.join(',')}`,
+    config
   );
 }
 
