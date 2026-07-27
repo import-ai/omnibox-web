@@ -2,7 +2,11 @@ import { useTranslation } from 'react-i18next';
 
 import { Spinner } from '@/components/ui/Spinner';
 import type { Resource } from '@/interface';
-import type { RootResourcesResponse } from '@/service/resource';
+import {
+  fetchResourcesByIds,
+  fetchRootResources,
+  type RootResourcesResponse,
+} from '@/service/resource';
 
 export interface APIKeyPermissionScopeData {
   name?: string;
@@ -28,6 +32,24 @@ export function buildAPIKeyPermissionScopes(
   });
 
   return scopes;
+}
+
+export async function fetchAPIKeyPermissionScopes(
+  namespaceId: string,
+  resourceIds: string[],
+  signal?: AbortSignal
+) {
+  const config = { mute: true, signal };
+  const [resourcesResult, rootsResult] = await Promise.allSettled([
+    fetchResourcesByIds(namespaceId, resourceIds, config),
+    fetchRootResources(namespaceId, config),
+  ]);
+  const resources =
+    resourcesResult.status === 'fulfilled' ? resourcesResult.value : [];
+  const roots =
+    rootsResult.status === 'fulfilled' ? rootsResult.value : undefined;
+
+  return buildAPIKeyPermissionScopes(resourceIds, resources, roots);
 }
 
 export function APIKeyPermissionScope({

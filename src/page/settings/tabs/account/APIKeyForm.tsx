@@ -42,12 +42,11 @@ import {
   type CreateAPIKeyDto,
 } from '@/interface';
 import { cn } from '@/lib/utils';
-import { fetchResourcesByIds, fetchRootResources } from '@/service/resource';
 
 import {
   APIKeyPermissionScope,
   type APIKeyPermissionScopeData,
-  buildAPIKeyPermissionScopes,
+  fetchAPIKeyPermissionScopes,
 } from './APIKeyPermissionScope';
 
 function APIKeyInfoRow({
@@ -222,25 +221,21 @@ export function APIKeyForm() {
     if (!namespaceId || !permissionScopeIdsKey) return;
 
     let cancelled = false;
+    const controller = new AbortController();
     const resourceIds = permissionScopeIdsKey.split(',');
 
-    void Promise.allSettled([
-      fetchResourcesByIds(namespaceId, resourceIds),
-      fetchRootResources(namespaceId),
-    ]).then(([resourcesResult, rootsResult]) => {
+    void fetchAPIKeyPermissionScopes(
+      namespaceId,
+      resourceIds,
+      controller.signal
+    ).then(scopes => {
       if (cancelled) return;
-
-      const resources =
-        resourcesResult.status === 'fulfilled' ? resourcesResult.value : [];
-      const roots =
-        rootsResult.status === 'fulfilled' ? rootsResult.value : undefined;
-      setPermissionScopes(
-        buildAPIKeyPermissionScopes(resourceIds, resources, roots)
-      );
+      setPermissionScopes(scopes);
     });
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [namespaceId, permissionScopeIdsKey]);
 
