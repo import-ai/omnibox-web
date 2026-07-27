@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
@@ -14,17 +14,29 @@ import { Label } from '@/components/ui/Label';
 
 interface CreateFolderDialogProps {
   open: boolean;
+  initialName?: string;
+  title?: string;
+  confirmText?: string;
   onOpenChange: (open: boolean) => void;
   onConfirm: (folderName: string) => Promise<unknown>;
 }
 
 export function CreateFolderDialog({
   open,
+  initialName = '',
+  title,
+  confirmText,
   onOpenChange,
   onConfirm,
 }: CreateFolderDialogProps) {
   const { t } = useTranslation();
   const [folderName, setFolderName] = useState('');
+
+  useEffect(() => {
+    if (open) {
+      setFolderName(initialName);
+    }
+  }, [initialName, open]);
 
   const handleConfirm = async () => {
     if (!folderName.trim()) {
@@ -61,7 +73,7 @@ export function CreateFolderDialog({
     >
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t('folder.create_dialog.title')}</DialogTitle>
+          <DialogTitle>{title || t('folder.create_dialog.title')}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4">
           <div className="flex flex-col gap-2">
@@ -84,7 +96,7 @@ export function CreateFolderDialog({
             {t('cancel')}
           </Button>
           <Button onClick={handleConfirm} disabled={!folderName.trim()}>
-            {t('create')}
+            {confirmText || t('create')}
           </Button>
         </DialogFooter>
       </DialogContent>
