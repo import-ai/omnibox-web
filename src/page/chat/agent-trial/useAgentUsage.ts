@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { http } from '@/lib/request';
 import {
@@ -14,17 +14,48 @@ export interface AgentUsageResponseDto {
   last_message_date: string;
 }
 
+const AGENT_TRIAL_RECOVERY_RETRY_MS = 30 * 1000;
+
+function getAgentTrialRecoveryDelay(firstMessageDate: string) {
+  const firstMessageTime = new Date(firstMessageDate).getTime();
+  if (!Number.isFinite(firstMessageTime)) {
+    return undefined;
+  }
+
+  const recoveryTime = firstMessageTime + 24 * 60 * 60 * 1000;
+  return Math.max(recoveryTime - Date.now(), 0) + 1000;
+}
+
 export function useAgentUsage(namespaceId: string, messages: MessageDetail[]) {
   const [agentUsage, setAgentUsage] = useState<
     AgentUsageResponseDto | undefined
   >();
 
   const [assistantMessageIds, setAssistantMessageIds] = useState<string[]>([]);
+  const fetchGenerationRef = useRef(0);
 
-  const fetchAgentUsage = useCallback(() => {
-    return http
-      .get(`/namespaces/${namespaceId}/usages/agent`)
-      .then(setAgentUsage);
+  const fetchAgentUsage = useCallback(
+    (mute = false) => {
+      const fetchGeneration = ++fetchGenerationRef.current;
+      return http
+        .get<AgentUsageResponseDto>(
+          `/namespaces/${namespaceId}/usages/agent`,
+          mute ? { mute: true } : undefined
+        )
+        .then(data => {
+          if (fetchGeneration !== fetchGenerationRef.current) {
+            return undefined;
+          }
+          setAgentUsage(data);
+          return data;
+        });
+    },
+    [namespaceId]
+  );
+
+  useEffect(() => {
+    fetchGenerationRef.current += 1;
+    setAgentUsage(undefined);
   }, [namespaceId]);
 
   useEffect(() => {
@@ -61,18 +92,31 @@ export function useAgentUsage(namespaceId: string, messages: MessageDetail[]) {
       return;
     }
 
-    const firstMessageTime = new Date(agentUsage.first_message_date).getTime();
-    if (!Number.isFinite(firstMessageTime)) {
+    const recoveryDelay = getAgentTrialRecoveryDelay(
+      agentUsage.first_message_date
+    );
+    if (recoveryDelay === undefined) {
       return;
     }
 
-    const recoveryTime = firstMessageTime + 24 * 60 * 60 * 1000;
-    const timeout = window.setTimeout(
-      () => void fetchAgentUsage(),
-      Math.max(recoveryTime - Date.now(), 0) + 1000
-    );
+    let interval: number | undefined;
+    const refreshUsage = () => {
+      void fetchAgentUsage(true).catch(() => undefined);
+    };
+    const timeout = window.setTimeout(() => {
+      refreshUsage();
+      interval = window.setInterval(
+        refreshUsage,
+        AGENT_TRIAL_RECOVERY_RETRY_MS
+      );
+    }, recoveryDelay);
 
-    return () => window.clearTimeout(timeout);
+    return () => {
+      window.clearTimeout(timeout);
+      if (interval !== undefined) {
+        window.clearInterval(interval);
+      }
+    };
   }, [
     agentUsage?.agent_trial_remain,
     agentUsage?.first_message_date,

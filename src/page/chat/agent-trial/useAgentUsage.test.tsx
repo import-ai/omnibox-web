@@ -41,7 +41,7 @@ describe('useAgentUsage', () => {
     jest.clearAllMocks();
   });
 
-  it('refreshes usage when the first exhausted trial use recovers', async () => {
+  it('retries until the first exhausted trial use recovers', async () => {
     mockGet
       .mockResolvedValueOnce({
         agent_trial_limit: 10,
@@ -49,6 +49,13 @@ describe('useAgentUsage', () => {
         first_message_date: '2026-07-24T00:00:00Z',
         last_message_date: '2026-07-24T09:00:00Z',
       })
+      .mockResolvedValueOnce({
+        agent_trial_limit: 10,
+        agent_trial_remain: 0,
+        first_message_date: '2026-07-24T00:00:00Z',
+        last_message_date: '2026-07-24T09:00:00Z',
+      })
+      .mockRejectedValueOnce(new Error('temporary failure'))
       .mockResolvedValueOnce({
         agent_trial_limit: 10,
         agent_trial_remain: 1,
@@ -67,5 +74,26 @@ describe('useAgentUsage', () => {
     });
 
     expect(mockGet).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      jest.advanceTimersByTime(30 * 1000);
+      await Promise.resolve();
+    });
+
+    expect(mockGet).toHaveBeenCalledTimes(3);
+
+    await act(async () => {
+      jest.advanceTimersByTime(30 * 1000);
+      await Promise.resolve();
+    });
+
+    expect(mockGet).toHaveBeenCalledTimes(4);
+
+    await act(async () => {
+      jest.advanceTimersByTime(30 * 1000);
+      await Promise.resolve();
+    });
+
+    expect(mockGet).toHaveBeenCalledTimes(4);
   });
 });
