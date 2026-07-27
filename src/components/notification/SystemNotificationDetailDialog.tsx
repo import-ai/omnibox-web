@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronUp, Clock, Tags } from 'lucide-react';
+import { ChevronLeft, ChevronUp, Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -72,7 +72,11 @@ export function SystemNotificationDetailDialog({
             <>
               <div className="mb-5 space-y-3 text-sm text-muted-foreground">
                 <div className="flex min-w-0 items-center gap-3">
-                  <Tags className="size-4 shrink-0" />
+                  <NotificationTagIcon
+                    item={detail}
+                    tag={tags[0] ?? ''}
+                    className="size-4 shrink-0"
+                  />
                   <span className="shrink-0">
                     {t('notification_modal.notification_type')}
                   </span>
