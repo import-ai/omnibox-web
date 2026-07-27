@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 
-interface CreateFolderDialogProps {
+interface FolderNameDialogProps {
   open: boolean;
   initialName?: string;
   title?: string;
@@ -21,16 +21,17 @@ interface CreateFolderDialogProps {
   onConfirm: (folderName: string) => Promise<unknown>;
 }
 
-export function CreateFolderDialog({
+export function FolderNameDialog({
   open,
   initialName = '',
   title,
   confirmText,
   onOpenChange,
   onConfirm,
-}: CreateFolderDialogProps) {
+}: FolderNameDialogProps) {
   const { t } = useTranslation();
   const [folderName, setFolderName] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -39,19 +40,23 @@ export function CreateFolderDialog({
   }, [initialName, open]);
 
   const handleConfirm = async () => {
-    if (!folderName.trim()) {
+    if (!folderName.trim() || submitting) {
       return;
     }
+    setSubmitting(true);
     try {
       await onConfirm(folderName.trim());
       setFolderName('');
       onOpenChange(false);
     } catch {
       // Keep dialog open when request fails.
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleCancel = () => {
+    if (submitting) return;
     setFolderName('');
     onOpenChange(false);
   };
@@ -67,6 +72,7 @@ export function CreateFolderDialog({
     <Dialog
       open={open}
       onOpenChange={open => {
+        if (!open && submitting) return;
         onOpenChange(open);
         if (!open) setFolderName('');
       }}
@@ -88,14 +94,23 @@ export function CreateFolderDialog({
               placeholder={t('folder.create_dialog.placeholder')}
               className="border-line"
               autoFocus
+              disabled={submitting}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            disabled={submitting}
+          >
             {t('cancel')}
           </Button>
-          <Button onClick={handleConfirm} disabled={!folderName.trim()}>
+          <Button
+            onClick={handleConfirm}
+            disabled={!folderName.trim() || submitting}
+            loading={submitting}
+          >
             {confirmText || t('create')}
           </Button>
         </DialogFooter>

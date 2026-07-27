@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
 import { Button } from '@/components/ui/Button';
@@ -47,7 +48,6 @@ import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
-import { CreateFolderDialog } from '@/page/sidebar/components/resource-tree/CreateFolderDialog';
 import {
   CreateSmartFolderPayload,
   CreateSmartFolderRequest,
@@ -750,7 +750,7 @@ export default function Actions(props: IActionProps) {
         />
       )}
       {resource?.resource_type === 'folder' && (
-        <CreateFolderDialog
+        <FolderNameDialog
           open={folderEditOpen}
           initialName={resource.name || ''}
           title={t('folder.edit_dialog.title')}

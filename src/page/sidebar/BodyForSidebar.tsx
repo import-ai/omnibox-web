@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
@@ -34,7 +35,6 @@ import { BatchCreateDialog } from './components/BatchCreateDialog';
 import BatchDeleteDialog from './components/BatchDeleteDialog';
 import BatchMoveDialog from './components/BatchMoveDialog';
 import ResourceTree from './components/resource-tree';
-import { CreateFolderDialog } from './components/resource-tree/CreateFolderDialog';
 import { Toolbar } from './components/toolbar';
 import { useBatchOperations } from './hooks/useBatchOperations';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
@@ -532,7 +532,7 @@ export function BodyForSidebar(props: IProps) {
         }}
         onConfirm={handleConfirmSmartFolderDelete}
       />
-      <CreateFolderDialog
+      <FolderNameDialog
         open={!!createFolderTargetId}
         onOpenChange={open => {
           if (!open) {
