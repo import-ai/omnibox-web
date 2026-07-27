@@ -45,6 +45,7 @@ export function AgentTrial({
           ]}
           tooltipSide="top"
           triggerClassName="inline-block max-w-full truncate text-muted-foreground cursor-pointer align-middle"
+          openOnClick
         />
       </div>
       <div className="hidden min-w-0 text-right sm:block">
