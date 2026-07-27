@@ -56,6 +56,17 @@ export function APIKeyPermissionScope({
     );
   }
 
+  if (scope.rootType === 'private' || scope.rootType === 'teamspace') {
+    return (
+      <span
+        title={label}
+        className="inline-block max-w-full truncate align-bottom text-sm font-semibold text-foreground"
+      >
+        {label}
+      </span>
+    );
+  }
+
   return (
     <a
       href={`/${namespaceId}/${resourceId}`}

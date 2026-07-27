@@ -33,20 +33,38 @@ describe('APIKeyPermissionScope', () => {
     });
   });
 
-  it('renders a translated root as a truncated resource link', () => {
+  it.each([
+    ['private', 'Personal'],
+    ['teamspace', 'Teamspace'],
+  ])('renders the %s root as truncated text', (rootType, label) => {
     const html = renderToStaticMarkup(
       <APIKeyPermissionScope
         namespaceId="namespace"
         resourceId="private-root"
-        scope={{ rootType: 'private' }}
+        scope={{ rootType }}
       />
     );
 
-    expect(html).toContain('href="/namespace/private-root"');
-    expect(html).toContain('target="_blank"');
-    expect(html).toContain('title="Personal"');
+    expect(html).not.toContain('<a');
+    expect(html).toContain(`title="${label}"`);
     expect(html).toContain('max-w-full truncate');
-    expect(html).toContain('>Personal</a>');
+    expect(html).toContain(`>${label}</span>`);
+  });
+
+  it('renders a resource as a truncated link', () => {
+    const html = renderToStaticMarkup(
+      <APIKeyPermissionScope
+        namespaceId="namespace"
+        resourceId="resource"
+        scope={{ name: 'Project notes' }}
+      />
+    );
+
+    expect(html).toContain('href="/namespace/resource"');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('title="Project notes"');
+    expect(html).toContain('max-w-full truncate');
+    expect(html).toContain('>Project notes</a>');
   });
 
   it('renders an inaccessible resource without a link', () => {
