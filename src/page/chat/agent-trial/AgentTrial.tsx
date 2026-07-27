@@ -21,61 +21,45 @@ export function AgentTrial({
   const { role } = useNamespaceRole(namespaceId);
   const hasUpgradePermission: boolean = role === 'owner';
 
-  if (agentUsage) {
-    if (agentUsage.agent_trial_remain >= 0) {
-      let toolTipContents: string[] = [
-        t('chat.trial.tooltip.base'),
-        t('chat.trial.tooltip.fallback'),
-      ];
-      if (agentUsage.agent_trial_remain !== agentUsage.agent_trial_limit) {
-        const firstMessageDate = new Date(agentUsage.first_message_date);
-        const firstRelatedTime = getRelatedTime(
-          new Date(firstMessageDate.getTime() + 24 * 60 * 60 * 1000),
-          i18n,
-          false
-        );
-
-        const lastMessageDate = new Date(agentUsage.last_message_date);
-        const lastRelatedTime = getRelatedTime(
-          new Date(lastMessageDate.getTime() + 24 * 60 * 60 * 1000),
-          i18n,
-          false
-        );
-
-        if (lastRelatedTime !== firstRelatedTime) {
-          toolTipContents.push(
-            t('chat.trial.tooltip.related_time', {
-              related_time: firstRelatedTime,
-              quota: agentUsage.agent_trial_remain + 1,
-            })
-          );
-        }
-        toolTipContents.push(
-          t('chat.trial.tooltip.related_time', {
-            related_time: lastRelatedTime,
-            quota: agentUsage.agent_trial_limit,
-          })
-        );
-      }
-
-      return (
-        <div className="flex justify-end mb-1 gap-3 text-sm">
-          <UpgradeTrialUsageTooltip
-            textKey="chat.trial.text"
-            textValues={{
-              agent_trial_remain: agentUsage.agent_trial_remain,
-              agent_trial_limit: agentUsage.agent_trial_limit,
-            }}
-            tooltipItems={toolTipContents}
-          />
-          <UpgradeActionButton
-            namespaceId={namespaceId}
-            hasPermission={hasUpgradePermission}
-            disabledReason={t('chat.trial.not_owner')}
-          />
-        </div>
-      );
-    }
+  if (!agentUsage || agentUsage.agent_trial_remain !== 0) {
+    return null;
   }
-  return null;
+
+  const recoveryTime = getRelatedTime(
+    new Date(
+      new Date(agentUsage.first_message_date).getTime() + 24 * 60 * 60 * 1000
+    ),
+    i18n,
+    false
+  );
+
+  return (
+    <div className="flex min-w-0 items-center justify-end mb-1 gap-3 text-sm">
+      <div className="min-w-0 flex-1 text-right sm:hidden">
+        <UpgradeTrialUsageTooltip
+          textKey="chat.trial.compact_text"
+          tooltipItems={[
+            t('chat.trial.tooltip.recovery', {
+              related_time: recoveryTime,
+            }),
+          ]}
+          tooltipSide="top"
+          triggerClassName="inline-block max-w-full truncate text-muted-foreground cursor-pointer align-middle"
+        />
+      </div>
+      <div className="hidden min-w-0 text-right sm:block">
+        <UpgradeTrialUsageTooltip
+          textKey="chat.trial.text"
+          textValues={{ related_time: recoveryTime }}
+          tooltipItems={[t('chat.trial.tooltip.base')]}
+        />
+      </div>
+      <UpgradeActionButton
+        namespaceId={namespaceId}
+        hasPermission={hasUpgradePermission}
+        disabledReason={t('chat.trial.not_owner')}
+        className="h-5 shrink-0 text-sm"
+      />
+    </div>
+  );
 }
