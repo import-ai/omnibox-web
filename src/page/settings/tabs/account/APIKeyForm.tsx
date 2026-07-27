@@ -1,5 +1,5 @@
 import { CircleHelp, Copy, Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -42,6 +42,12 @@ import {
   type CreateAPIKeyDto,
 } from '@/interface';
 import { cn } from '@/lib/utils';
+
+import {
+  APIKeyPermissionScope,
+  type APIKeyPermissionScopeData,
+  fetchAPIKeyPermissionScopes,
+} from './APIKeyPermissionScope';
 
 function APIKeyInfoRow({
   label,
@@ -201,6 +207,37 @@ export function APIKeyForm() {
   const [formData, setFormData] = useState<APIKeyFormData>(() =>
     createEmptyFormData()
   );
+  const [permissionScopes, setPermissionScopes] = useState<
+    Record<string, APIKeyPermissionScopeData>
+  >({});
+  const permissionScopeIdsKey = [
+    ...new Set(apiKeys.map(key => key.attrs.root_resource_id).filter(Boolean)),
+  ]
+    .sort()
+    .join(',');
+
+  useEffect(() => {
+    setPermissionScopes({});
+    if (!namespaceId || !permissionScopeIdsKey) return;
+
+    let cancelled = false;
+    const controller = new AbortController();
+    const resourceIds = permissionScopeIdsKey.split(',');
+
+    void fetchAPIKeyPermissionScopes(
+      namespaceId,
+      resourceIds,
+      controller.signal
+    ).then(scopes => {
+      if (cancelled) return;
+      setPermissionScopes(scopes);
+    });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [namespaceId, permissionScopeIdsKey]);
 
   const handleCreateAPIKey = async () => {
     if (formData.note.length > API_KEY_NOTE_MAX_LENGTH) {
@@ -716,10 +753,15 @@ export function APIKeyForm() {
                 </div>
               </div>
 
-              <APIKeyInfoRow label={t('api_key.permission_scope')}>
-                <span className="text-sm font-semibold text-foreground">
-                  {key.attrs.root_resource_id}
-                </span>
+              <APIKeyInfoRow
+                label={t('api_key.permission_scope')}
+                className="min-w-0"
+              >
+                <APIKeyPermissionScope
+                  namespaceId={namespaceId}
+                  resourceId={key.attrs.root_resource_id}
+                  scope={permissionScopes[key.attrs.root_resource_id]}
+                />
               </APIKeyInfoRow>
 
               {key.attrs.note && (
