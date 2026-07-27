@@ -544,20 +544,16 @@ export function BodyForSidebar(props: IProps) {
             return;
           }
           const store = useSidebarStore.getState();
-          try {
-            const id = await store.create(
-              createFolderTargetId,
-              'folder',
-              folderName
-            );
-            store.activate(id);
-            store.closeCreateFolderDialog();
-            navigate(`/${namespaceId}/${id}`, {
-              state: { fromSidebar: true },
-            });
-          } catch {
-            // request.ts handles backend error toasts.
-          }
+          const id = await store.create(
+            createFolderTargetId,
+            'folder',
+            folderName
+          );
+          store.activate(id);
+          store.closeCreateFolderDialog();
+          navigate(`/${namespaceId}/${id}`, {
+            state: { fromSidebar: true },
+          });
         }}
       />
       <BatchCreateDialog
