@@ -3,11 +3,6 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/Popover';
 import { getUpgradeLink } from '@/lib/upgradeLink';
 import { cn } from '@/lib/utils';
 
@@ -20,7 +15,6 @@ interface UpgradeTrialUsageTooltipProps {
   tooltipItems: string[];
   tooltipSide?: TooltipSide;
   triggerClassName?: string;
-  openOnClick?: boolean;
 }
 
 interface UpgradeActionButtonProps {
@@ -36,36 +30,21 @@ export function UpgradeTrialUsageTooltip({
   tooltipItems,
   tooltipSide = 'left',
   triggerClassName = 'text-muted-foreground cursor-default',
-  openOnClick = false,
 }: UpgradeTrialUsageTooltipProps) {
   const { t } = useTranslation();
-  const trigger = (
-    <button type="button" className={cn(triggerClassName, 'text-sm')}>
-      {t(textKey, textValues)}
-    </button>
-  );
-  const content = tooltipItems.map((item, index) => {
-    return <p key={`${item}-${index}`}>{item}</p>;
-  });
-
-  if (openOnClick) {
-    return (
-      <Popover>
-        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-        <PopoverContent
-          side={tooltipSide}
-          className="w-auto max-w-xs border-0 bg-primary px-3 py-1.5 text-xs text-primary-foreground dark:bg-neutral-800 dark:text-neutral-100"
-        >
-          {content}
-        </PopoverContent>
-      </Popover>
-    );
-  }
 
   return (
     <Tooltip delayDuration={0}>
-      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-      <TooltipContent side={tooltipSide}>{content}</TooltipContent>
+      <TooltipTrigger asChild>
+        <button type="button" className={cn(triggerClassName, 'text-sm')}>
+          {t(textKey, textValues)}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side={tooltipSide}>
+        {tooltipItems.map((item, index) => {
+          return <p key={`${item}-${index}`}>{item}</p>;
+        })}
+      </TooltipContent>
     </Tooltip>
   );
 }
