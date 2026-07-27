@@ -188,6 +188,40 @@ export function useNodeMenu(
       };
     }
 
+    if (node.resourceType === 'rss_folder') {
+      return {
+        disabled: false,
+        items: [
+          {
+            key: 'rename',
+            icon: SquarePen,
+            label: t('actions.rename'),
+            onSelect: onRename,
+          },
+          {
+            key: 'edit',
+            icon: Pencil,
+            label: t('actions.edit_rss_folder'),
+            onClick: actions.handleEdit,
+          },
+          {
+            key: 'move_to',
+            icon: Move,
+            label: t('actions.move_to'),
+            onClick: actions.handleMoveTo,
+          },
+          { key: 'separator_1', separator: true },
+          {
+            key: 'delete',
+            icon: Trash2,
+            label: t('actions.move_to_trash'),
+            destructive: true,
+            onClick: actions.handleDelete,
+          },
+        ],
+      };
+    }
+
     return {
       disabled: false,
       items: [

@@ -10,6 +10,7 @@ import type { Resource } from '@/interface';
 import { addToChatContext } from '@/lib/chatBridge';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
+import type { RssFolderResponse } from '@/page/sidebar/components/rss-folder';
 import {
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
@@ -90,8 +91,12 @@ export function useNodeActions(
     ? getSmartFolderSourceParentId(getNodeResource(node))
     : undefined;
 
+  const isNoContainerFolder =
+    node?.resourceType === 'smart_folder' ||
+    node?.resourceType === 'rss_folder';
+
   const handleCreateFile = () => {
-    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
+    if (isNoContainerFolder || isSmartFolderChild) {
       return;
     }
 
@@ -111,7 +116,7 @@ export function useNodeActions(
   };
 
   const handleCreateFolderDirect = () => {
-    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
+    if (isNoContainerFolder || isSmartFolderChild) {
       return;
     }
 
@@ -127,7 +132,7 @@ export function useNodeActions(
   };
 
   const handleCreateFolderWithDialog = () => {
-    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
+    if (isNoContainerFolder || isSmartFolderChild) {
       return;
     }
 
@@ -149,6 +154,25 @@ export function useNodeActions(
             rootScope: response.root_scope || 'private',
             matchMode: response.match_mode || 'all',
             conditions: response.conditions || [],
+          });
+        });
+      return;
+    }
+
+    if (node?.resourceType === 'rss_folder') {
+      if (!canModifyNode) {
+        toast.error(t('permission.edit_required'));
+        return;
+      }
+      http
+        .get(`/namespaces/${namespaceId}/rss-folders/${nodeId}/config`)
+        .then((response: RssFolderResponse) => {
+          useSidebarStore.getState().openEditRssFolderDialog(nodeId, {
+            name: response.resource.name || '',
+            links: (response.links || []).map(link => ({
+              url: link.url,
+              name: link.name,
+            })),
           });
         });
       return;
@@ -215,7 +239,7 @@ export function useNodeActions(
   };
 
   const handleUpload = () => {
-    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
+    if (isNoContainerFolder || isSmartFolderChild) {
       return;
     }
 

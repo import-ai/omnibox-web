@@ -47,7 +47,8 @@ export default function Page(props: IProps) {
           loadAll
           smartFolderParentId={resource.id}
         />
-      ) : resource.resource_type === 'folder' ? (
+      ) : resource.resource_type === 'folder' ||
+        resource.resource_type === 'rss_folder' ? (
         <Folder
           resourceId={resource.id}
           apiPrefix={`/namespaces/${namespaceId}/resources`}

@@ -14,6 +14,7 @@ interface SpaceSectionProps {
   onBatchCreate: () => void;
   onAddToChat: () => void;
   onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
+  onCreateRssFolder: (spaceType: SpaceType) => void;
   smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
 }
 
@@ -27,6 +28,7 @@ export default function SpaceSection({
   onBatchCreate,
   onAddToChat,
   onCreateSmartFolder,
+  onCreateRssFolder,
   smartFolderQuotaExhausted,
 }: SpaceSectionProps) {
   const rootId = useRootId(spaceType);
@@ -51,6 +53,7 @@ export default function SpaceSection({
       onBatchCreate={onBatchCreate}
       onAddToChat={onAddToChat}
       onCreateSmartFolder={onCreateSmartFolder}
+      onCreateRssFolder={onCreateRssFolder}
       smartFolderQuotaExhausted={smartFolderQuotaExhausted}
     />
   );

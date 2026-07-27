@@ -13,6 +13,11 @@ import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
+import type {
+  CreateRssFolderPayload,
+  RssFolderResponse,
+} from '@/page/sidebar/components/rss-folder';
+import { CreateRssFolderDialog } from '@/page/sidebar/components/rss-folder/CreateRssFolderDialog';
 import {
   CreateSmartFolderRequest,
   getSmartFolderSourceParentId,
@@ -137,6 +142,9 @@ export function BodyForSidebar(props: IProps) {
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
   const [defaultSmartFolderOwnerScope, setDefaultSmartFolderOwnerScope] =
     useState<SmartFolderOwnerScope | undefined>();
+  const [createRssFolderOpen, setCreateRssFolderOpen] = useState(false);
+  const [rssFolderSpaceType, setRssFolderSpaceType] =
+    useState<SpaceType>('private');
   const [refreshingResources, setRefreshingResources] = useState(false);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
@@ -154,6 +162,7 @@ export function BodyForSidebar(props: IProps) {
     s => s.dialogs.createFolderTargetId
   );
   const editSmartFolderDialog = useSidebarStore(s => s.dialogs.editSmartFolder);
+  const editRssFolderDialog = useSidebarStore(s => s.dialogs.editRssFolder);
   const smartFolderTrashDialog = useSidebarStore(
     s => s.dialogs.smartFolderTrash
   );
@@ -163,6 +172,9 @@ export function BodyForSidebar(props: IProps) {
   const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
   const editSmartFolderNode = editSmartFolderDialog.nodeId
     ? nodes[editSmartFolderDialog.nodeId]
+    : undefined;
+  const editRssFolderNode = editRssFolderDialog.nodeId
+    ? nodes[editRssFolderDialog.nodeId]
     : undefined;
 
   const smartFolderCounts = useMemo(() => {
@@ -217,6 +229,11 @@ export function BodyForSidebar(props: IProps) {
   const handleCreateSmartFolder = (ownerScope: SmartFolderOwnerScope) => {
     setDefaultSmartFolderOwnerScope(ownerScope);
     setCreateSmartFolderOpen(true);
+  };
+
+  const handleCreateRssFolder = (spaceType: SpaceType) => {
+    setRssFolderSpaceType(spaceType);
+    setCreateRssFolderOpen(true);
   };
 
   const handleLocateResource = () => {
@@ -363,6 +380,68 @@ export function BodyForSidebar(props: IProps) {
       });
   };
 
+  const handleConfirmCreateRssFolder = (
+    payload: CreateRssFolderPayload
+  ): Promise<void> => {
+    const targetRoot =
+      rssFolderSpaceType === 'teamspace' ? teamspaceRoot : privateRoot;
+
+    return http
+      .post<RssFolderResponse>(
+        `/namespaces/${namespaceId}/rss-folders`,
+        {
+          ...payload,
+          parent_id: targetRoot?.id,
+        },
+        { muteCodes: ['rss_feed_invalid'] }
+      )
+      .then((response: RssFolderResponse) => {
+        const store = useSidebarStore.getState();
+        return store.restore(response.resource).then(id => {
+          const parentId = response.resource.parent_id;
+          if (parentId) {
+            return fetchChildren(namespaceId, parentId).then(children => {
+              store.refreshChildren(parentId, children);
+              return store.expandPathTo(id).then(() => id);
+            });
+          }
+          return store.expandPathTo(id).then(() => id);
+        });
+      })
+      .then(id => {
+        useSidebarStore.getState().activate(id);
+        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        window.setTimeout(() => {
+          scrollToResource(id);
+        }, 0);
+        toast.success(t('rss_folder.create.success'));
+      });
+  };
+
+  const handleUpdateRssFolder = (
+    payload: CreateRssFolderPayload
+  ): Promise<void> => {
+    const nodeId = editRssFolderDialog.nodeId;
+    if (!nodeId) {
+      return Promise.reject();
+    }
+
+    return http
+      .patch(
+        `/namespaces/${namespaceId}/rss-folders/${nodeId}/config`,
+        payload,
+        {
+          muteCodes: ['rss_feed_invalid'],
+        }
+      )
+      .then((response: RssFolderResponse) => {
+        const store = useSidebarStore.getState();
+        store.patch(nodeId, { name: response.resource.name });
+        app.fire('update_resource', response.resource);
+        toast.success(t('rss_folder.edit.success'));
+      });
+  };
+
   const handleUpdateSmartFolder = (
     payload: CreateSmartFolderRequest
   ): Promise<void> => {
@@ -476,6 +555,7 @@ export function BodyForSidebar(props: IProps) {
         onBatchCreate={batch.openCreateDialog}
         onAddToChat={batch.addSelectedToChat}
         onCreateSmartFolder={handleCreateSmartFolder}
+        onCreateRssFolder={handleCreateRssFolder}
         smartFolderQuotaExhausted={smartFolderQuotaExhausted}
       />
       <CreateSmartFolderDialog
@@ -521,6 +601,36 @@ export function BodyForSidebar(props: IProps) {
           }
         }}
         onConfirm={handleUpdateSmartFolder}
+      />
+      <CreateRssFolderDialog
+        open={createRssFolderOpen}
+        onOpenChange={setCreateRssFolderOpen}
+        onConfirm={handleConfirmCreateRssFolder}
+        currentNamespace={currentNamespace}
+        siblingResources={getSiblingResources(
+          nodes,
+          rssFolderSpaceType === 'teamspace'
+            ? teamspaceRoot?.id
+            : privateRoot?.id
+        )}
+      />
+      <CreateRssFolderDialog
+        open={editRssFolderDialog.open}
+        currentResourceId={editRssFolderDialog.nodeId || undefined}
+        initialValue={editRssFolderDialog.initialValue}
+        title={t('rss_folder.edit.title')}
+        confirmText={t('rss_folder.edit.submit')}
+        currentNamespace={currentNamespace}
+        siblingResources={getSiblingResources(
+          nodes,
+          editRssFolderNode?.parentId
+        )}
+        onOpenChange={open => {
+          if (!open) {
+            useSidebarStore.getState().closeEditRssFolderDialog();
+          }
+        }}
+        onConfirm={handleUpdateRssFolder}
       />
       <SmartFolderTrashConfirmDialog
         open={smartFolderTrashDialog.open}

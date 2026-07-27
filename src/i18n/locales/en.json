@@ -126,6 +126,7 @@
     "upload_to_folder": "Upload to this folder",
     "create_file": "Create File",
     "create_folder": "Create Folder",
+    "create_rss_folder": "Create RSS Folder",
     "upload_file": "Upload File",
     "download_as": "Download",
     "download_as_tooltip": "Download as {{ format }} format",
@@ -137,6 +138,7 @@
     "rename": "Rename",
     "create_smart_folder": "Create Smart Folder",
     "edit_smart_folder_conditions": "Edit",
+    "edit_rss_folder": "Edit",
     "refresh": "Refresh",
     "locate_resource": "Locate",
     "locate_resource_unavailable": "No resource to locate",
@@ -1169,6 +1171,42 @@
       "title": "Move {{count}} smart folder to trash?",
       "description": "Moving a smart folder to the Recycle Bin will not affect its internal resources. After being moved, it can be retrieved from the Recycle Bin, and it will be automatically deleted after {{days}} days."
     }
+  },
+  "rss_folder": {
+    "create": {
+      "title": "Create RSS Folder",
+      "name": "Name",
+      "placeholder": "Enter an RSS folder name",
+      "link": "Feed link",
+      "link_name": "Feed name",
+      "url_placeholder": "Enter a feed source (RSS links only for now)",
+      "link_name_placeholder": "Leave empty to use the feed's title",
+      "add_link": "Add link",
+      "remaining_links": "Feed links remaining: {{remaining}} / {{total}}",
+      "link_limit_tooltip": "Premium supports up to 10 feed links",
+      "limit_reached_basic": "Link limit reached ({{limit}}). Upgrade to unlock 10 links.",
+      "limit_reached_premium": "Link limit reached ({{limit}}).",
+      "unsaved_title": "Your RSS folder settings are unsaved. Exit anyway?",
+      "unsaved_description": "Your changes will be lost after exiting.",
+      "success": "RSS folder created"
+    },
+    "edit": {
+      "title": "Edit RSS Folder",
+      "submit": "Save",
+      "success": "RSS folder updated"
+    },
+    "validation": {
+      "name_required": "Enter an RSS folder name",
+      "name_too_long": "Name can't exceed 128 characters.",
+      "name_exists": "A resource with this name already exists here.",
+      "url_required": "Enter a feed link",
+      "invalid_url": "Enter a valid link",
+      "invalid_feed": "Unable to recognize an RSS feed. Check the link format or make sure the content is public."
+    },
+    "move": {
+      "unsupported_target": "Can't move to RSS folders."
+    },
+    "cannot_be_parent": "Resources can't be created inside RSS folders."
   },
   "download": {
     "failed": "Download failed, please try again later"

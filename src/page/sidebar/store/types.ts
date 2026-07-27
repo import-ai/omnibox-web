@@ -1,5 +1,6 @@
 import type { PathItem, SpaceType } from '@/interface';
 import { Permission, Resource, ResourceType, TagDto } from '@/interface';
+import type { CreateRssFolderPayload } from '@/page/sidebar/components/rss-folder';
 import type { CreateSmartFolderPayload } from '@/page/sidebar/components/smart-folder';
 
 export type RootResource = Resource & { children?: Resource[] };
@@ -39,6 +40,11 @@ export interface DialogsState {
     open: boolean;
     nodeId: string | null;
     initialValue: CreateSmartFolderPayload | null;
+  };
+  editRssFolder: {
+    open: boolean;
+    nodeId: string | null;
+    initialValue: CreateRssFolderPayload | null;
   };
   smartFolderTrash: {
     open: boolean;
@@ -108,6 +114,11 @@ export interface SidebarActions {
     initialValue: CreateSmartFolderPayload
   ) => void;
   closeEditSmartFolderDialog: () => void;
+  openEditRssFolderDialog: (
+    nodeId: string,
+    initialValue: CreateRssFolderPayload
+  ) => void;
+  closeEditRssFolderDialog: () => void;
   openSmartFolderTrashDialog: (nodeId: string) => void;
   closeSmartFolderTrashDialog: () => void;
   refetchSmartFolderEntitlements: () => void;
@@ -154,6 +165,11 @@ export const initialDialogsState: DialogsState = {
   batchMove: false,
   batchDelete: false,
   editSmartFolder: {
+    open: false,
+    nodeId: null,
+    initialValue: null,
+  },
+  editRssFolder: {
     open: false,
     nodeId: null,
     initialValue: null,

@@ -67,6 +67,24 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       });
     },
 
+    openEditRssFolderDialog: (nodeId, initialValue) => {
+      set(s => {
+        s.dialogs.editRssFolder = {
+          open: true,
+          nodeId,
+          initialValue,
+        };
+      });
+    },
+
+    closeEditRssFolderDialog: () => {
+      set(s => {
+        s.dialogs.editRssFolder.open = false;
+        s.dialogs.editRssFolder.nodeId = null;
+        s.dialogs.editRssFolder.initialValue = null;
+      });
+    },
+
     openSmartFolderTrashDialog: nodeId => {
       set(s => {
         s.dialogs.smartFolderTrash = {
