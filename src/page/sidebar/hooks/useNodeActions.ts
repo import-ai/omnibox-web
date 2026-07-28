@@ -27,6 +27,8 @@ export interface UseNodeActionsReturn {
 
   moveTo: boolean;
   setMoveTo: (v: boolean) => void;
+  folderEditOpen: boolean;
+  setFolderEditOpen: (open: boolean) => void;
 
   handleCreateFile: () => void;
   /** Creates a folder directly without a name dialog (context-menu path) */
@@ -34,6 +36,7 @@ export interface UseNodeActionsReturn {
   /** Opens the create-folder dialog (dropdown-menu path) */
   handleCreateFolderWithDialog: () => void;
   handleEdit: () => void;
+  handleRenameFolder: (name: string) => Promise<void>;
   handleLocateSource: () => void;
   handleUpload: () => void;
   handleDelete: () => void;
@@ -79,6 +82,7 @@ export function useNodeActions(
   const loc = useLocation();
 
   const [moveTo, setMoveTo] = useState(false);
+  const [folderEditOpen, setFolderEditOpen] = useState(false);
   const isSmartFolderChild = node ? isSmartFolderChildResource(node) : false;
   const canModifyNode =
     (node?.currentPermission || 'full_access') === 'can_edit' ||
@@ -135,6 +139,11 @@ export function useNodeActions(
   };
 
   const handleEdit = () => {
+    if (node?.resourceType === 'folder') {
+      setFolderEditOpen(true);
+      return;
+    }
+
     if (node?.resourceType === 'smart_folder') {
       if (!canModifyNode) {
         toast.error(t('permission.edit_required'));
@@ -158,6 +167,22 @@ export function useNodeActions(
       state: isSmartFolderChild ? { sidebarActiveKey: nodeId } : undefined,
     });
     if (isMobile) setOpenMobile(false);
+  };
+
+  const handleRenameFolder = (name: string) => {
+    return useSidebarStore
+      .getState()
+      .rename(sourceResourceId, name)
+      .then(() => {
+        if (isSmartFolderChild) {
+          useSidebarStore.getState().patch(nodeId, { name });
+          app.fire('refresh_smart_folder_children', node?.parentId);
+        }
+        app.fire('update_resource', {
+          id: sourceResourceId,
+          name,
+        } as Resource);
+      });
   };
 
   const handleLocateSource = () => {
@@ -253,10 +278,13 @@ export function useNodeActions(
     node,
     moveTo,
     setMoveTo,
+    folderEditOpen,
+    setFolderEditOpen,
     handleCreateFile,
     handleCreateFolderDirect,
     handleCreateFolderWithDialog,
     handleEdit,
+    handleRenameFolder,
     handleLocateSource,
     handleUpload,
     handleDelete,
