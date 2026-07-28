@@ -1,6 +1,8 @@
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { FolderNameDialog } from '@/components/FolderNameDialog';
 import {
   Tooltip,
   TooltipContent,
@@ -43,6 +45,7 @@ export function NodeActionsContent({
   upload,
   onRename,
 }: NodeActionsContentProps) {
+  const { t } = useTranslation();
   const isTouch = useIsTouch();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -145,6 +148,16 @@ export function NodeActionsContent({
           namespaceId={namespaceId}
           sourceResourceType={node.resourceType}
           onFinished={actions.handleMoveFinished}
+        />
+      )}
+      {node.resourceType === 'folder' && (
+        <FolderNameDialog
+          open={actions.folderEditOpen}
+          initialName={node.name || ''}
+          title={t('folder.edit_dialog.title')}
+          confirmText={t('folder.edit_dialog.submit')}
+          onOpenChange={actions.setFolderEditOpen}
+          onConfirm={actions.handleRenameFolder}
         />
       )}
     </>
