@@ -49,6 +49,11 @@ import { uploadFiles } from '@/lib/uploadFiles';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 import {
+  CreateRssFolderPayload,
+  RssFolderResponse,
+} from '@/page/sidebar/components/rss-folder';
+import { CreateRssFolderDialog } from '@/page/sidebar/components/rss-folder/CreateRssFolderDialog';
+import {
   CreateSmartFolderPayload,
   CreateSmartFolderRequest,
   SmartFolderResponse,
@@ -118,6 +123,9 @@ export default function Actions(props: IActionProps) {
   const [smartFolderTrashOpen, setSmartFolderTrashOpen] = useState(false);
   const [smartFolderInitial, setSmartFolderInitial] =
     useState<CreateSmartFolderPayload | null>(null);
+  const [rssFolderOpen, setRssFolderOpen] = useState(false);
+  const [rssFolderInitial, setRssFolderInitial] =
+    useState<CreateRssFolderPayload | null>(null);
   const [hasTeamspace, setHasTeamspace] = useState(
     () => hasTeamspaceCache.get(namespaceId) ?? true
   );
@@ -177,6 +185,25 @@ export default function Actions(props: IActionProps) {
         });
       return;
     }
+    if (resource.resource_type === 'rss_folder') {
+      if (!canModifyResource) {
+        toast.error(t('permission.edit_required'));
+        return;
+      }
+      http
+        .get(`/namespaces/${namespaceId}/rss-folders/${resource.id}/config`)
+        .then((response: RssFolderResponse) => {
+          setRssFolderInitial({
+            name: response.resource.name || '',
+            links: (response.links || []).map(link => ({
+              url: link.url,
+              name: link.name,
+            })),
+          });
+          setRssFolderOpen(true);
+        });
+      return;
+    }
     navigate(`/${namespaceId}/${resource.id}/edit`, {
       state: loc.state,
     });
@@ -212,6 +239,24 @@ export default function Actions(props: IActionProps) {
           app.fire('scroll_to_resource', resource.id, movedParentId);
         }
         toast.success(t('smart_folder.edit.success'));
+      });
+  };
+
+  const handleUpdateRssFolder = (payload: CreateRssFolderPayload) => {
+    if (!resource) return Promise.reject();
+
+    return http
+      .patch(
+        `/namespaces/${namespaceId}/rss-folders/${resource.id}/config`,
+        payload,
+        { muteCodes: ['rss_feed_invalid'] }
+      )
+      .then((response: RssFolderResponse) => {
+        useSidebarStore
+          .getState()
+          .patch(resource.id, { name: response.resource.name });
+        app.fire('update_resource', response.resource);
+        toast.success(t('rss_folder.edit.success'));
       });
   };
   const handleExitEdit = () => {
@@ -770,6 +815,18 @@ export default function Actions(props: IActionProps) {
           currentNamespace={currentNamespace}
           onOpenChange={setSmartFolderOpen}
           onConfirm={handleUpdateSmartFolder}
+        />
+      )}
+      {resource?.resource_type === 'rss_folder' && (
+        <CreateRssFolderDialog
+          open={rssFolderOpen}
+          currentResourceId={resource.id}
+          initialValue={rssFolderInitial}
+          title={t('rss_folder.edit.title')}
+          confirmText={t('rss_folder.edit.submit')}
+          currentNamespace={currentNamespace}
+          onOpenChange={setRssFolderOpen}
+          onConfirm={handleUpdateRssFolder}
         />
       )}
       {resource?.resource_type === 'smart_folder' && (

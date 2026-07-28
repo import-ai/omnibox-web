@@ -1,4 +1,10 @@
-import { Resource, ResourceMeta, ResourceType, RssItem } from '@/interface';
+import {
+  Resource,
+  ResourceMeta,
+  ResourceType,
+  RssItem,
+  RssItemDetail,
+} from '@/interface';
 import { http, type RequestConfig } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 
@@ -76,10 +82,23 @@ export function fetchSmartFolderChildren(
 export function fetchRssItems(
   namespaceId: string,
   id: string,
-  signal?: AbortSignal
+  options?: { limit?: number; signal?: AbortSignal }
 ): Promise<RssItem[]> {
+  const query = options?.limit !== undefined ? `?limit=${options.limit}` : '';
   return http.get<RssItem[]>(
-    `/namespaces/${namespaceId}/rss-folders/${id}/items`,
+    `/namespaces/${namespaceId}/rss-folders/${id}/items${query}`,
+    { signal: options?.signal }
+  );
+}
+
+export function fetchRssItem(
+  namespaceId: string,
+  folderId: string,
+  itemId: string,
+  signal?: AbortSignal
+): Promise<RssItemDetail> {
+  return http.get<RssItemDetail>(
+    `/namespaces/${namespaceId}/rss-folders/${folderId}/items/${itemId}`,
     { signal }
   );
 }

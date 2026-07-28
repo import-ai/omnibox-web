@@ -38,6 +38,7 @@ import { isBatchSelectableNode } from '@/page/sidebar/store/utils';
 import Action from './NodeActions';
 import ContextMenuMain from './NodeContextMenu';
 import ResourceNode from './ResourceNode';
+import RssItemList from './RssItemList';
 
 const FOCUS_DELAY = 50;
 const BLUR_ENABLE_DELAY = 200;
@@ -467,6 +468,13 @@ export function ResourceNodeContent({
                   onAddToChat={onAddToChat}
                 />
               ))}
+            {isExpanded && node.resourceType === 'rss_folder' && (
+              <RssItemList
+                folderId={nodeId}
+                namespaceId={namespaceId}
+                depth={depth + 1}
+              />
+            )}
           </SidebarMenuSub>
         </CollapsibleContent>
       </Collapsible>

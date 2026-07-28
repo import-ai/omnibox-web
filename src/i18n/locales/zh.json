@@ -1175,6 +1175,12 @@
   },
   "rss_folder": {
     "empty": "暂无内容",
+    "reader": {
+      "back": "返回订阅",
+      "open_original": "查看原文",
+      "not_ready": "内容正在处理中，请稍后再试。",
+      "not_found": "该订阅内容已不可用。"
+    },
     "create": {
       "title": "创建订阅文件夹",
       "name": "名称",

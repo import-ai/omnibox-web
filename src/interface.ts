@@ -280,11 +280,16 @@ export interface ResourceSummary {
 export interface RssItem {
   id: string;
   link_id: string;
+  link_name: string | null;
   title: string;
   url: string | null;
   summary: string | null;
   published_at: string | null;
   created_at: string;
+}
+
+export interface RssItemDetail extends RssItem {
+  parsed_content: string | null;
 }
 
 export interface PublicShareInfo {

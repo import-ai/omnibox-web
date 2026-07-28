@@ -1174,6 +1174,12 @@
   },
   "rss_folder": {
     "empty": "No items yet",
+    "reader": {
+      "back": "Back to feed",
+      "open_original": "Open original",
+      "not_ready": "This article is still being processed. Please try again later.",
+      "not_found": "This RSS item is no longer available."
+    },
     "create": {
       "title": "Create RSS Folder",
       "name": "Name",
