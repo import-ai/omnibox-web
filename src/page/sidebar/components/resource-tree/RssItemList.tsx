@@ -30,7 +30,7 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
   const reload = useCallback(
     (signal?: AbortSignal) => {
       setLoading(true);
-      return fetchRssItems(namespaceId, folderId, { limit: 10, signal })
+      return fetchRssItems(namespaceId, folderId, { limit: 50, signal })
         .then((res: RssItem[]) => setItems(res))
         .catch(() => {
           // Cancelled or failed; leave the list empty.
@@ -91,7 +91,8 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
             <div
               className={cn(
                 'group/sidebar-item my-px flex items-center rounded-md hover:bg-sidebar-accent',
-                activeItemId === item.id && 'bg-sidebar-accent'
+                activeItemId === item.id &&
+                  'bg-[#E2E2E6] dark:bg-[#363637] hover:bg-[#E2E2E6]'
               )}
             >
               <Tooltip delayDuration={0}>

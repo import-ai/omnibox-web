@@ -169,48 +169,32 @@ export function useCreateRssFolderDialogState({
     }
     setNameError('');
 
-    const filledRowIndices = rows
-      .map((row, index) => ({ row, index }))
-      .filter(({ row }) => row.url.trim())
-      .map(({ index }) => index);
-    if (filledRowIndices.length <= 0) {
+    // Every link row must contain a non-empty, valid URL. Empty rows are no
+    // longer silently dropped — they block saving and surface an inline error
+    // so the user removes or fills them.
+    const rowErrors = rows.map(row => {
+      const url = row.url.trim();
+      if (!url) {
+        return t('rss_folder.validation.url_required');
+      }
+      if (!isValidFeedUrl(url)) {
+        return t('rss_folder.validation.invalid_url');
+      }
+      return undefined;
+    });
+    if (rowErrors.some(Boolean)) {
       setRows(prev =>
-        prev.map((row, index) =>
-          index === 0
-            ? { ...row, error: t('rss_folder.validation.url_required') }
-            : row
-        )
+        prev.map((row, index) => ({ ...row, error: rowErrors[index] }))
       );
       return null;
     }
 
-    const invalidRowIndices = new Set(
-      rows
-        .map((row, index) => ({ row, index }))
-        .filter(({ row }) => {
-          const url = row.url.trim();
-          return url && !isValidFeedUrl(url);
-        })
-        .map(({ index }) => index)
-    );
-    setRows(prev =>
-      prev.map((row, index) => ({
-        ...row,
-        error: invalidRowIndices.has(index)
-          ? t('rss_folder.validation.invalid_url')
-          : undefined,
-      }))
-    );
-    if (invalidRowIndices.size > 0) {
-      return null;
-    }
-
-    payloadRowIndicesRef.current = filledRowIndices;
+    payloadRowIndicesRef.current = rows.map((_, index) => index);
     return {
       name: trimmedName,
-      links: filledRowIndices.map(index => ({
-        url: rows[index].url.trim(),
-        name: rows[index].name.trim() || undefined,
+      links: rows.map(row => ({
+        url: row.url.trim(),
+        name: row.name.trim() || undefined,
       })),
     };
   };

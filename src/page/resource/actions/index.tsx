@@ -17,7 +17,7 @@ import {
 // import { Resource } from '@/interface';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { FolderNameDialog } from '@/components/FolderNameDialog';
@@ -100,6 +100,7 @@ export default function Actions(props: IActionProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const loc = useLocation();
+  const { rss_item_id: rssItemId } = useParams();
   const isMobile = useIsMobile();
   const { deleteResource } = useDeleteResource();
   const { config, loading: configLoading } = useConfig();
@@ -139,8 +140,17 @@ export default function Actions(props: IActionProps) {
     (resource?.current_permission || 'full_access') === 'full_access';
   const isFolder = resource?.resource_type === 'folder';
   const isSmartFolder = resource?.resource_type === 'smart_folder';
-  const canUseFileLikeActions = !isFolder && !isSmartFolder;
-  const canUseRegularResourceActions = !isSmartFolder;
+  const isRssFolder = resource?.resource_type === 'rss_folder';
+  // On the RSS item route the resolved resource is still the folder, so the
+  // presence of an item id tells us whether we're viewing the folder itself or
+  // reading one of its items.
+  const isRssItemView = isRssFolder && Boolean(rssItemId);
+  const isRssFolderView = isRssFolder && !rssItemId;
+  // RSS folders mirror smart folders (copy link / trash / wide only); RSS items
+  // keep the file-like actions (copy content / download) but drop duplicate,
+  // move, and trash.
+  const canUseFileLikeActions = !isFolder && !isSmartFolder && !isRssFolderView;
+  const canUseRegularResourceActions = !isSmartFolder && !isRssFolder;
 
   useEffect(() => {
     if (!namespaceId) return;
@@ -580,10 +590,12 @@ export default function Actions(props: IActionProps) {
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <div className="hidden font-medium text-muted-foreground md:inline-block">
-        {getTime(resource, i18n)}
-      </div>
-      {resource && (
+      {!isRssItemView && (
+        <div className="hidden font-medium text-muted-foreground md:inline-block">
+          {getTime(resource, i18n)}
+        </div>
+      )}
+      {resource && !isRssItemView && (
         <PermissionWrapper
           requiredPermission={0}
           forbidden={forbidden}
@@ -597,7 +609,7 @@ export default function Actions(props: IActionProps) {
           <ShareAction spaceType={resource.space_type} />
         </PermissionWrapper>
       )}
-      {resource && (
+      {resource && !isRssItemView && (
         <PermissionWrapper
           requiredPermission={1}
           forbidden={forbidden}
@@ -721,17 +733,19 @@ export default function Actions(props: IActionProps) {
               <span>{t('actions.move_to')}</span>
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem
-            className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
-            onClick={() => handleAction('move_to_trash')}
-          >
-            {loading === 'move_to_trash' ? (
-              <Spinner />
-            ) : (
-              <Trash2 className="size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]" />
-            )}
-            <span>{t('actions.move_to_trash')}</span>
-          </DropdownMenuItem>
+          {!isRssItemView && (
+            <DropdownMenuItem
+              className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
+              onClick={() => handleAction('move_to_trash')}
+            >
+              {loading === 'move_to_trash' ? (
+                <Spinner />
+              ) : (
+                <Trash2 className="size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]" />
+              )}
+              <span>{t('actions.move_to_trash')}</span>
+            </DropdownMenuItem>
+          )}
           {!isMobile && <DropdownMenuSeparator />}
           {!isMobile && (
             <>
