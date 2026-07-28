@@ -277,6 +277,16 @@ export interface ResourceSummary {
   updated_at: string;
 }
 
+export interface RssItem {
+  id: string;
+  link_id: string;
+  title: string;
+  url: string | null;
+  summary: string | null;
+  published_at: string | null;
+  created_at: string;
+}
+
 export interface PublicShareInfo {
   id: string;
   all_resources: boolean;

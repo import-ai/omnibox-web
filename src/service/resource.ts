@@ -1,4 +1,4 @@
-import { Resource, ResourceMeta, ResourceType } from '@/interface';
+import { Resource, ResourceMeta, ResourceType, RssItem } from '@/interface';
 import { http, type RequestConfig } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 
@@ -70,6 +70,17 @@ export function fetchSmartFolderChildren(
 ): Promise<Resource[]> {
   return http.get<Resource[]>(
     `/namespaces/${namespaceId}/smart-folders/${id}/children`
+  );
+}
+
+export function fetchRssItems(
+  namespaceId: string,
+  id: string,
+  signal?: AbortSignal
+): Promise<RssItem[]> {
+  return http.get<RssItem[]>(
+    `/namespaces/${namespaceId}/rss-folders/${id}/items`,
+    { signal }
   );
 }
 

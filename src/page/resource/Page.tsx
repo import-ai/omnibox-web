@@ -5,6 +5,7 @@ import { Resource } from '@/interface';
 import Editor from '@/page/resource/editor';
 import Folder from '@/page/resource/folder';
 import Render from '@/page/resource/Render';
+import RssItems from '@/page/resource/rss';
 
 interface IProps {
   editPage: boolean;
@@ -47,8 +48,13 @@ export default function Page(props: IProps) {
           loadAll
           smartFolderParentId={resource.id}
         />
-      ) : resource.resource_type === 'folder' ||
-        resource.resource_type === 'rss_folder' ? (
+      ) : resource.resource_type === 'rss_folder' ? (
+        <RssItems
+          resourceId={resource.id}
+          namespaceId={namespaceId}
+          emptyText={t('rss_folder.empty')}
+        />
+      ) : resource.resource_type === 'folder' ? (
         <Folder
           resourceId={resource.id}
           apiPrefix={`/namespaces/${namespaceId}/resources`}

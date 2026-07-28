@@ -1173,6 +1173,7 @@
     }
   },
   "rss_folder": {
+    "empty": "No items yet",
     "create": {
       "title": "Create RSS Folder",
       "name": "Name",

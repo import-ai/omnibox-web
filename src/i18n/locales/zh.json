@@ -1174,6 +1174,7 @@
     }
   },
   "rss_folder": {
+    "empty": "暂无内容",
     "create": {
       "title": "创建订阅文件夹",
       "name": "名称",
