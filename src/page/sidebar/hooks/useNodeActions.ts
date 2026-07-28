@@ -139,7 +139,7 @@ export function useNodeActions(
   };
 
   const handleEdit = () => {
-    if (node?.resourceType === 'folder' && !isSmartFolderChild) {
+    if (node?.resourceType === 'folder') {
       setFolderEditOpen(true);
       return;
     }
@@ -172,10 +172,14 @@ export function useNodeActions(
   const handleRenameFolder = (name: string) => {
     return useSidebarStore
       .getState()
-      .rename(nodeId, name)
+      .rename(sourceResourceId, name)
       .then(() => {
+        if (isSmartFolderChild) {
+          useSidebarStore.getState().patch(nodeId, { name });
+          app.fire('refresh_smart_folder_children', node?.parentId);
+        }
         app.fire('update_resource', {
-          id: nodeId,
+          id: sourceResourceId,
           name,
         } as Resource);
       });

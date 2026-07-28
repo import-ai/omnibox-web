@@ -15,6 +15,7 @@ import { useNodeActions, UseNodeActionsReturn } from './useNodeActions';
 const navigate = jest.fn();
 const fire = jest.fn();
 const rename = jest.fn();
+const patch = jest.fn();
 let node: TreeNode;
 
 jest.mock('react-i18next', () => ({
@@ -60,7 +61,7 @@ jest.mock('@/page/sidebar/components/smart-folder', () => ({
 jest.mock('@/page/sidebar/store', () => ({
   useNode: () => node,
   useSidebarStore: {
-    getState: () => ({ rename }),
+    getState: () => ({ patch, rename }),
   },
 }));
 
@@ -126,7 +127,7 @@ describe('useNodeActions', () => {
     });
   });
 
-  it('keeps smart folder child folders on the source edit route', async () => {
+  it('opens the dialog and renames the source for smart folder child folders', async () => {
     node = {
       ...folder,
       id: 'smart-folder-child-smart-folder-source-folder',
@@ -140,9 +141,21 @@ describe('useNodeActions', () => {
     await act(async () => root.render(<Probe />));
     await act(async () => current.handleEdit());
 
-    expect(current.folderEditOpen).toBe(false);
-    expect(navigate).toHaveBeenCalledWith('/namespace/source-folder/edit', {
-      state: { sidebarActiveKey: node.id },
+    expect(current.folderEditOpen).toBe(true);
+    expect(navigate).not.toHaveBeenCalled();
+
+    await act(async () => current.handleRenameFolder('Renamed'));
+
+    expect(rename).toHaveBeenCalledWith('source-folder', 'Renamed');
+    expect(patch).toHaveBeenCalledWith(node.id, { name: 'Renamed' });
+    expect(fire).toHaveBeenNthCalledWith(
+      1,
+      'refresh_smart_folder_children',
+      'smart-folder'
+    );
+    expect(fire).toHaveBeenNthCalledWith(2, 'update_resource', {
+      id: 'source-folder',
+      name: 'Renamed',
     });
   });
 });
