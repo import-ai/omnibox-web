@@ -4,6 +4,10 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import {
+  getSmartFolderSourceResourceId,
+  isSmartFolderChildResource,
+} from '@/page/sidebar/components/smart-folder';
 import type { TreeNode } from '@/page/sidebar/store/types';
 
 import { useNodeActions, UseNodeActionsReturn } from './useNodeActions';
@@ -49,8 +53,8 @@ jest.mock('@/lib/request', () => ({
 
 jest.mock('@/page/sidebar/components/smart-folder', () => ({
   getSmartFolderSourceParentId: () => undefined,
-  getSmartFolderSourceResourceId: (resource: { id: string }) => resource.id,
-  isSmartFolderChildResource: () => false,
+  getSmartFolderSourceResourceId: jest.fn(),
+  isSmartFolderChildResource: jest.fn(),
 }));
 
 jest.mock('@/page/sidebar/store', () => ({
@@ -86,13 +90,17 @@ describe('useNodeActions', () => {
   let current: UseNodeActionsReturn;
 
   function Probe() {
-    current = useNodeActions('folder', 'namespace');
+    current = useNodeActions(node.id, 'namespace');
     return null;
   }
 
   beforeEach(() => {
     jest.clearAllMocks();
     node = { ...folder };
+    jest
+      .mocked(getSmartFolderSourceResourceId)
+      .mockImplementation((resource: { id: string }) => resource.id);
+    jest.mocked(isSmartFolderChildResource).mockReturnValue(false);
     rename.mockResolvedValue(undefined);
     container = document.createElement('div');
     root = createRoot(container);
@@ -115,6 +123,26 @@ describe('useNodeActions', () => {
     expect(fire).toHaveBeenCalledWith('update_resource', {
       id: 'folder',
       name: 'Renamed',
+    });
+  });
+
+  it('keeps smart folder child folders on the source edit route', async () => {
+    node = {
+      ...folder,
+      id: 'smart-folder-child-smart-folder-source-folder',
+      parentId: 'smart-folder',
+    };
+    jest
+      .mocked(getSmartFolderSourceResourceId)
+      .mockReturnValue('source-folder');
+    jest.mocked(isSmartFolderChildResource).mockReturnValue(true);
+
+    await act(async () => root.render(<Probe />));
+    await act(async () => current.handleEdit());
+
+    expect(current.folderEditOpen).toBe(false);
+    expect(navigate).toHaveBeenCalledWith('/namespace/source-folder/edit', {
+      state: { sidebarActiveKey: node.id },
     });
   });
 });

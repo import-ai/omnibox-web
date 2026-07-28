@@ -139,7 +139,7 @@ export function useNodeActions(
   };
 
   const handleEdit = () => {
-    if (node?.resourceType === 'folder') {
+    if (node?.resourceType === 'folder' && !isSmartFolderChild) {
       setFolderEditOpen(true);
       return;
     }
