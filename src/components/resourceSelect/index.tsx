@@ -87,7 +87,7 @@ export function ResourceSelect(props: IProps) {
     requestControllerRef.current = controller;
     onData(current => (current?.id === resourceId ? current : null));
     onFetching(true);
-    fetchRootResources(namespaceId, controller.signal)
+    fetchRootResources(namespaceId, { signal: controller.signal })
       .then(root => {
         if (controller.signal.aborted) return;
         const match = Object.entries(root).find(
