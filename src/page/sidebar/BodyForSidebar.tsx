@@ -161,6 +161,9 @@ export function BodyForSidebar(props: IProps) {
   const createFolderTargetId = useSidebarStore(
     s => s.dialogs.createFolderTargetId
   );
+  const createRssFolderTargetId = useSidebarStore(
+    s => s.dialogs.createRssFolderTargetId
+  );
   const editSmartFolderDialog = useSidebarStore(s => s.dialogs.editSmartFolder);
   const editRssFolderDialog = useSidebarStore(s => s.dialogs.editRssFolder);
   const smartFolderTrashDialog = useSidebarStore(
@@ -380,18 +383,16 @@ export function BodyForSidebar(props: IProps) {
       });
   };
 
-  const handleConfirmCreateRssFolder = (
-    payload: CreateRssFolderPayload
+  const createRssFolderAt = (
+    payload: CreateRssFolderPayload,
+    parentId: string | undefined
   ): Promise<void> => {
-    const targetRoot =
-      rssFolderSpaceType === 'teamspace' ? teamspaceRoot : privateRoot;
-
     return http
       .post<RssFolderResponse>(
         `/namespaces/${namespaceId}/rss-folders`,
         {
           ...payload,
-          parent_id: targetRoot?.id,
+          parent_id: parentId,
         },
         { muteCodes: ['rss_feed_invalid'] }
       )
@@ -416,6 +417,21 @@ export function BodyForSidebar(props: IProps) {
         }, 0);
         toast.success(t('rss_folder.create.success'));
       });
+  };
+
+  const handleConfirmCreateRssFolder = (
+    payload: CreateRssFolderPayload
+  ): Promise<void> => {
+    const targetRoot =
+      rssFolderSpaceType === 'teamspace' ? teamspaceRoot : privateRoot;
+
+    return createRssFolderAt(payload, targetRoot?.id);
+  };
+
+  const handleConfirmCreateRssFolderInNode = (
+    payload: CreateRssFolderPayload
+  ): Promise<void> => {
+    return createRssFolderAt(payload, createRssFolderTargetId ?? undefined);
   };
 
   const handleUpdateRssFolder = (
@@ -612,6 +628,20 @@ export function BodyForSidebar(props: IProps) {
           rssFolderSpaceType === 'teamspace'
             ? teamspaceRoot?.id
             : privateRoot?.id
+        )}
+      />
+      <CreateRssFolderDialog
+        open={!!createRssFolderTargetId}
+        onOpenChange={open => {
+          if (!open) {
+            useSidebarStore.getState().closeCreateRssFolderDialog();
+          }
+        }}
+        onConfirm={handleConfirmCreateRssFolderInNode}
+        currentNamespace={currentNamespace}
+        siblingResources={getSiblingResources(
+          nodes,
+          createRssFolderTargetId ?? undefined
         )}
       />
       <CreateRssFolderDialog

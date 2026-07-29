@@ -11,9 +11,11 @@ import {
   SquarePen,
   Trash2,
 } from 'lucide-react';
+import type { ComponentType, SVGProps } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 
 import { useSidebarStore } from '../store';
@@ -24,9 +26,11 @@ export type CreateFolderMode = 'direct' | 'dialog';
 
 export type MenuItem = MenuActionItem | MenuSeparatorItem;
 
+export type MenuIcon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
+
 export interface MenuActionItem {
   key: string;
-  icon: LucideIcon;
+  icon: MenuIcon;
   label: string;
   separator?: false;
   destructive?: boolean;
@@ -239,6 +243,12 @@ export function useNodeMenu(
             createFolderMode === 'direct'
               ? actions.handleCreateFolderDirect
               : actions.handleCreateFolderWithDialog,
+        },
+        {
+          key: 'create_rss_folder',
+          icon: RssFolderDefaultIcon,
+          label: t('actions.create_rss_folder'),
+          onClick: actions.handleCreateRssFolder,
         },
         {
           key: 'upload_file',

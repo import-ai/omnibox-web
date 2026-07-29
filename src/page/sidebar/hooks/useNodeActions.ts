@@ -36,6 +36,8 @@ export interface UseNodeActionsReturn {
   handleCreateFolderDirect: () => void;
   /** Opens the create-folder dialog (dropdown-menu path) */
   handleCreateFolderWithDialog: () => void;
+  /** Opens the create-subscription-folder dialog under this node */
+  handleCreateRssFolder: () => void;
   handleEdit: () => void;
   handleRenameFolder: (name: string) => Promise<void>;
   handleLocateSource: () => void;
@@ -141,6 +143,14 @@ export function useNodeActions(
     }
 
     useSidebarStore.getState().openCreateFolderDialog(nodeId);
+  };
+
+  const handleCreateRssFolder = () => {
+    if (isNoContainerFolder || isSmartFolderChild) {
+      return;
+    }
+
+    useSidebarStore.getState().openCreateRssFolderDialog(nodeId);
   };
 
   const handleEdit = () => {
@@ -307,6 +317,7 @@ export function useNodeActions(
     handleCreateFile,
     handleCreateFolderDirect,
     handleCreateFolderWithDialog,
+    handleCreateRssFolder,
     handleEdit,
     handleRenameFolder,
     handleLocateSource,

@@ -25,6 +25,18 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       });
     },
 
+    openCreateRssFolderDialog: (parentId: string) => {
+      set(s => {
+        s.dialogs.createRssFolderTargetId = parentId;
+      });
+    },
+
+    closeCreateRssFolderDialog: () => {
+      set(s => {
+        s.dialogs.createRssFolderTargetId = null;
+      });
+    },
+
     setCurrentUploadTargetId: (id: string | null) => {
       set(s => {
         s.dialogs.currentUploadTargetId = id;
