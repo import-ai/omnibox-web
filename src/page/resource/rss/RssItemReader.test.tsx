@@ -78,6 +78,28 @@ describe('RssItemReader', () => {
     expect(sourceLink?.getAttribute('target')).toBe('_blank');
   });
 
+  it('renders the link and published time when present', async () => {
+    mockedFetchRssItem.mockResolvedValue({
+      id: 'item-1',
+      link_id: 'link-1',
+      link_name: 'Example',
+      title: 'Article',
+      url: 'https://example.com/article',
+      summary: null,
+      published_at: '2026-07-22T00:09:09Z',
+      created_at: '2026-07-28T00:00:00Z',
+      parsed_content: '# Parsed article',
+    });
+
+    await renderReader();
+
+    expect(container.textContent).toContain('resource.attrs.url');
+    expect(container.textContent).toContain('rss_folder.reader.published_at');
+    expect(container.textContent).toMatch(
+      /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/
+    );
+  });
+
   it('shows the not-ready state while parsed content is null', async () => {
     mockedFetchRssItem.mockResolvedValue({
       id: 'item-1',

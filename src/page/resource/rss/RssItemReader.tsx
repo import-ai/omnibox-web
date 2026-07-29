@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { PublishedTimeAttribute } from '@/components/attributes/PublishedTimeAttribute';
+import { UrlAttribute } from '@/components/attributes/UrlAttribute';
 import Loading from '@/components/loading';
 import { Markdown } from '@/components/markdown';
 import { RssItemDetail } from '@/interface';
@@ -61,6 +63,14 @@ export default function RssItemReader({
       <h1 className="mb-6 min-w-0 max-w-full break-all text-[34px] font-bold">
         {item.title || t('untitled')}
       </h1>
+      {(item.url || item.published_at) && (
+        <div className="mb-6 space-y-2 text-sm">
+          {item.url && <UrlAttribute url={item.url} />}
+          {item.published_at && (
+            <PublishedTimeAttribute publishedAt={item.published_at} />
+          )}
+        </div>
+      )}
       {item.parsed_content === null ? (
         <div className="mt-12 text-center text-muted-foreground">
           {t('rss_folder.reader.not_ready')}

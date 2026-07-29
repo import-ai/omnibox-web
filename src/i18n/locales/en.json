@@ -1178,7 +1178,8 @@
       "back": "Back to feed",
       "open_original": "Open original",
       "not_ready": "This article is still being processed. Please try again later.",
-      "not_found": "This RSS item is no longer available."
+      "not_found": "This RSS item is no longer available.",
+      "published_at": "Published"
     },
     "create": {
       "title": "Create RSS Folder",
