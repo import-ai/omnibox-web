@@ -10,12 +10,16 @@ interface IProps {
   namespaceId: string;
   resourceId: string;
   itemId: string;
+  // Lets the shared view supply a share-scoped fetch; defaults to the
+  // authenticated namespace endpoint.
+  fetchItem?: (signal?: AbortSignal) => Promise<RssItemDetail>;
 }
 
 export default function RssItemReader({
   namespaceId,
   resourceId,
   itemId,
+  fetchItem,
 }: IProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
@@ -26,7 +30,10 @@ export default function RssItemReader({
     const controller = new AbortController();
     setLoading(true);
     setNotFound(false);
-    fetchRssItem(namespaceId, resourceId, itemId, controller.signal)
+    const request = fetchItem
+      ? fetchItem(controller.signal)
+      : fetchRssItem(namespaceId, resourceId, itemId, controller.signal);
+    request
       .then(setItem)
       .catch(error => {
         if (error?.response?.status === 404) {
@@ -35,7 +42,7 @@ export default function RssItemReader({
       })
       .finally(() => setLoading(false));
     return () => controller.abort();
-  }, [itemId, namespaceId, resourceId]);
+  }, [itemId, namespaceId, resourceId, fetchItem]);
 
   if (loading) {
     return <Loading />;

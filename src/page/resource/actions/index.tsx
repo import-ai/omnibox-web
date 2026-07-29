@@ -63,7 +63,7 @@ import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-f
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { renameResource } from '@/service/resource';
+import { fetchRssItem, renameResource } from '@/service/resource';
 
 import MoveTo from './move';
 import ShareAction from './share';
@@ -85,6 +85,19 @@ function normalizeAttachmentLink(
 
   // fallback: ensure starts with "attachments/"
   return imageLink.replace(/^\/*attachments\//i, 'attachments/');
+}
+
+function downloadMarkdownFile(fileName: string, content: string) {
+  const blob = new Blob([content], { type: 'text/markdown' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName.endsWith('.md') ? fileName : `${fileName}.md`;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
 }
 
 const hasTeamspaceCache = new Map<string, boolean>();
@@ -399,7 +412,16 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'download_as_png') {
       onLoading('download_as_png');
-      exportResourceAsPng(resource.name || t('untitled'))
+      // On the RSS item route `resource` is the folder, so the DOM export node
+      // (rendered by RssItemReader) carries the item title in its <h1>.
+      const exportName = isRssItemView
+        ? document
+            .querySelector('[data-resource-export-content="true"] h1')
+            ?.textContent?.trim() ||
+          resource.name ||
+          t('untitled')
+        : resource.name || t('untitled');
+      exportResourceAsPng(exportName)
         .then(() => {
           setOpen(false);
         })
@@ -414,6 +436,33 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'download_as_markdown') {
+      // On the RSS item route `resource` is the folder; fetch the item and use
+      // its parsed markdown + title. RSS content references external absolute
+      // image URLs, so the attachment-zip path below does not apply here.
+      if (isRssItemView && rssItemId) {
+        onLoading('download_as_markdown');
+        fetchRssItem(namespaceId, resource.id, rssItemId)
+          .then(item => {
+            if (!item.parsed_content) {
+              toast(t('resource.no_content'), {
+                position: 'bottom-right',
+              });
+              return;
+            }
+            downloadMarkdownFile(
+              item.title || t('untitled'),
+              item.parsed_content
+            );
+            setOpen(false);
+          })
+          .catch(() =>
+            toast(t('download.failed'), {
+              position: 'bottom-right',
+            })
+          )
+          .finally(() => onLoading(''));
+        return;
+      }
       if (!resource.content) {
         toast(t('resource.no_content'), {
           position: 'bottom-right',
@@ -435,16 +484,7 @@ export default function Actions(props: IActionProps) {
 
       // if no image, download markdown file
       if (imageArray.length === 0) {
-        const blob = new Blob([markdownContent], { type: 'text/markdown' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
+        downloadMarkdownFile(fileName, markdownContent);
         setOpen(false);
         return;
       }

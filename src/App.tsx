@@ -151,6 +151,10 @@ const router = createBrowserRouter([
             element: <SharedResourcePage />,
           },
           {
+            path: ':resource_id/rss-items/:rss_item_id',
+            element: <SharedResourcePage />,
+          },
+          {
             path: 'chat',
             element: <SharedChatHomePage />,
           },

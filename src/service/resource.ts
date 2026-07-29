@@ -82,9 +82,16 @@ export function fetchSmartFolderChildren(
 export function fetchRssItems(
   namespaceId: string,
   id: string,
-  options?: { limit?: number; signal?: AbortSignal }
+  options?: { limit?: number; offset?: number; signal?: AbortSignal }
 ): Promise<RssItem[]> {
-  const query = options?.limit !== undefined ? `?limit=${options.limit}` : '';
+  const params = new URLSearchParams();
+  if (options?.limit !== undefined) {
+    params.set('limit', String(options.limit));
+  }
+  if (options?.offset !== undefined) {
+    params.set('offset', String(options.offset));
+  }
+  const query = params.toString() ? `?${params}` : '';
   return http.get<RssItem[]>(
     `/namespaces/${namespaceId}/rss-folders/${id}/items${query}`,
     { signal: options?.signal }
