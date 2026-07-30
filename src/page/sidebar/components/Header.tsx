@@ -128,7 +128,7 @@ export function Header(props: IProps) {
               href="https://www.omnibox.pro/community/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-sidebar-foreground"
             >
               <Users className="size-4 text-neutral-400" />
               <span>{t('notification_modal.tags.community')}</span>
