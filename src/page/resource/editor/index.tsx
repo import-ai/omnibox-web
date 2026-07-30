@@ -67,14 +67,23 @@ interface UploadResponse {
   failed: string[];
 }
 
+/** Minimal editor surface used to move focus from the title into the body. */
+type BodyEditorFocus = {
+  isDestroyed: boolean;
+  commands: {
+    focus: (position?: 'start' | 'end' | boolean | number | null) => boolean;
+  };
+};
+
 type ResourceOmniboxEditorProps = Omit<
   React.ComponentProps<typeof OmniboxEditor>,
-  'content' | 'onUpdate'
+  'content' | 'onUpdate' | 'onReady'
 > & {
   content?: string | TiptapJsonContent;
   locale?: string;
   theme?: string;
   onUpdate?: (payload: EditorUpdatePayload) => void;
+  onReady?: (editor: BodyEditorFocus) => void;
 };
 
 const ResourceOmniboxEditor =
@@ -110,6 +119,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
   const { i18n, t } = useTranslation();
   const markdownRef = useRef('');
+  const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
   const navigate = useNavigate();
   const loc = useLocation();
   const { app, theme } = useTheme();
@@ -155,6 +165,24 @@ function OmniboxResourceEditor(props: IEditorProps) {
     },
     [resource.id]
   );
+
+  const handleEditorReady = useCallback((editor: BodyEditorFocus) => {
+    bodyEditorRef.current = editor;
+  }, []);
+
+  /** Title Enter: jump into the first line of the body editor. */
+  const handleTitleEnter = useCallback(() => {
+    if (isFolder) {
+      return;
+    }
+
+    const editor = bodyEditorRef.current;
+    if (!editor || editor.isDestroyed) {
+      return;
+    }
+
+    editor.commands.focus('start');
+  }, [isFolder]);
 
   const uploadImage = useCallback<UploadFunction>(
     async (file, onProgress, abortSignal) => {
@@ -242,6 +270,12 @@ function OmniboxResourceEditor(props: IEditorProps) {
   }, [cachedTitle, initialContent]);
 
   useEffect(() => {
+    return () => {
+      bodyEditorRef.current = null;
+    };
+  }, [resource.id]);
+
+  useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
       const name = title.trim();
       const content = markdownRef.current;
@@ -296,6 +330,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
         <ResourceTitleTextarea
           value={title}
           onChange={handleChange}
+          onEnter={handleTitleEnter}
           placeholder={t('resource.title_placeholder')}
           aria-label={t('resource.title')}
         />
@@ -317,6 +352,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
             linkBase={linkBase}
             imageUpload={uploadImage}
             mentionUsers={mentionUsers}
+            onReady={handleEditorReady}
             onUpdate={handleEditorUpdate}
           />
         ) : null}
