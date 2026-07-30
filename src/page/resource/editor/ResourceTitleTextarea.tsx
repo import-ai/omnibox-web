@@ -6,7 +6,10 @@ import {
 } from '@/components/autosize-textarea';
 import { cn } from '@/lib/utils';
 
+import { shouldNavigateTitleToBody } from './titleNavigation';
+
 type ResourceTitleTextareaProps = ComponentProps<typeof AutosizeTextarea> & {
+  /** Enter / ArrowDown / ArrowRight-at-end → move focus into the body editor. */
   onEnter?: () => void;
 };
 
@@ -16,6 +19,8 @@ export function normalizeTitleInput(title: string) {
   return title.replace(/\r?\n/g, ' ');
 }
 
+export { shouldNavigateTitleToBody };
+
 export const ResourceTitleTextarea = React.forwardRef<
   AutosizeTextAreaRef,
   ResourceTitleTextareaProps
@@ -24,9 +29,18 @@ export const ResourceTitleTextarea = React.forwardRef<
   ref
 ) {
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-      event.preventDefault();
-      onEnter?.();
+    if (onEnter) {
+      const target = event.currentTarget;
+      if (
+        shouldNavigateTitleToBody(event, {
+          start: target.selectionStart,
+          end: target.selectionEnd,
+          length: target.value.length,
+        })
+      ) {
+        event.preventDefault();
+        onEnter();
+      }
     }
 
     onKeyDown?.(event);
