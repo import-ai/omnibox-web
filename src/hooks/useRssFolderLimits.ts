@@ -62,11 +62,24 @@ export default function useRssFolderLimits(props?: IProps) {
 
       const pending = pendingRequests.get(cacheKey);
       if (pending) {
-        pending.then(result => {
-          if (result && mountedRef.current) {
-            onData(result);
-          }
-        });
+        // Attach to the in-flight request and reflect its loading state; the
+        // .catch keeps a rejected shared request from surfacing as an unhandled
+        // rejection here (the originating caller handles the error).
+        if (mountedRef.current) {
+          onLoading(true);
+        }
+        pending
+          .then(result => {
+            if (result && mountedRef.current) {
+              onData(result);
+            }
+          })
+          .catch(() => undefined)
+          .finally(() => {
+            if (mountedRef.current) {
+              onLoading(false);
+            }
+          });
         return;
       }
 
