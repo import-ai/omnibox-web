@@ -6,7 +6,6 @@ import useApp from '@/hooks/useApp';
 import useResource from '@/hooks/userResource';
 import useWide from '@/hooks/useWide';
 import { cn } from '@/lib/utils';
-import { OMNIBOX_EDITOR_CONTENT_WIDTH } from '@/page/resource/editor/const';
 import {
   selectUseOmniboxEditor,
   useResourceStore,
@@ -29,15 +28,11 @@ export default function ResourcePage() {
     !!props.resource &&
     props.resource.resource_type !== 'folder' &&
     props.resource.resource_type !== 'smart_folder';
-  // Edit pages must be full-width so Omnibox TOC can sit next to the app
-  // sidebar. (DevTools showed max-w-[680px] trapping TOC beside the body.)
-  // Body/title stay 680px via resource-editable-page / Vditor inner styles.
-  const useFullWidthForEdit = props.editPage;
-  const useEditorContentWidth = isOmniboxResource && !props.editPage;
+  const useFullWidth = isOmniboxResource;
 
   useResourceBodyDragAutoScroll(
     scrollContainerRef,
-    useFullWidthForEdit && isOmniboxResource
+    useFullWidth && props.editPage
   );
 
   useEffect(() => {
@@ -79,30 +74,16 @@ export default function ResourcePage() {
         className={cn(
           'no-scrollbar flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4',
           // Pull TOC flush toward the app sidebar in Omnibox edit mode.
-          useFullWidthForEdit && 'pl-2'
+          props.editPage && 'pl-2'
         )}
       >
         <div
           className={cn('flex min-w-0 w-full max-w-full flex-col', {
-            'max-w-[680px]':
-              !wide &&
-              !useEditorContentWidth &&
-              !useFullWidthForEdit &&
-              (open || !large),
-            'max-w-[800px]':
-              !wide &&
-              !useEditorContentWidth &&
-              !useFullWidthForEdit &&
-              (!open || large),
+            'max-w-[680px]': !wide && !useFullWidth && (open || !large),
+            'max-w-[800px]': !wide && !useFullWidth && (!open || large),
             'max-w-7xl': wide,
           })}
-          style={
-            !wide && useFullWidthForEdit
-              ? { maxWidth: '100%' }
-              : !wide && useEditorContentWidth
-                ? { maxWidth: OMNIBOX_EDITOR_CONTENT_WIDTH }
-                : undefined
-          }
+          style={!wide && useFullWidth ? { maxWidth: '100%' } : undefined}
         >
           <Wrapper {...props} />
         </div>

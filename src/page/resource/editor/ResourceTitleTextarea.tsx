@@ -1,24 +1,28 @@
-import type { ComponentProps, KeyboardEvent } from 'react';
+import React, { type ComponentProps, type KeyboardEvent } from 'react';
 
-import { AutosizeTextarea } from '@/components/autosize-textarea';
+import {
+  AutosizeTextarea,
+  type AutosizeTextAreaRef,
+} from '@/components/autosize-textarea';
 import { cn } from '@/lib/utils';
 
 type ResourceTitleTextareaProps = ComponentProps<typeof AutosizeTextarea> & {
-  /** Called when Enter is pressed (and not composing IME). */
   onEnter?: () => void;
 };
+
+export type { AutosizeTextAreaRef };
 
 export function normalizeTitleInput(title: string) {
   return title.replace(/\r?\n/g, ' ');
 }
 
-export function ResourceTitleTextarea({
-  className,
-  onKeyDown,
-  onEnter,
-  rows = 1,
-  ...props
-}: ResourceTitleTextareaProps) {
+export const ResourceTitleTextarea = React.forwardRef<
+  AutosizeTextAreaRef,
+  ResourceTitleTextareaProps
+>(function ResourceTitleTextarea(
+  { className, onKeyDown, onEnter, rows = 1, ...props },
+  ref
+) {
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
       event.preventDefault();
@@ -30,6 +34,7 @@ export function ResourceTitleTextarea({
 
   return (
     <AutosizeTextarea
+      ref={ref}
       {...props}
       rows={rows}
       onKeyDown={handleKeyDown}
@@ -39,4 +44,4 @@ export function ResourceTitleTextarea({
       )}
     />
   );
-}
+});

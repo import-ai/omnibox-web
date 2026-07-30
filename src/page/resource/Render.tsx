@@ -223,7 +223,7 @@ function OmniboxRender(props: IProps) {
         variant="embedded"
         contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
         showHeader={false}
-        showToc={false}
+        showToc={true}
       />
     </div>
   );

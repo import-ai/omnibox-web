@@ -1,14 +1,14 @@
-.resource-readonly-editor .omnibox-editor-layout {
-  grid-template-columns:
-    [full-start content-start] minmax(0, 1fr)
-    [content-end full-end];
+.resource-readonly-page-header {
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+  min-width: 0;
 }
 
 .resource-editable-page {
   --resource-editor-content-width: 680px;
   position: relative;
   width: 100%;
-  /* Leave a slim rail on the left so TOC does not overlap the title. */
   padding-left: 1.5rem;
   box-sizing: border-box;
 }
@@ -26,7 +26,6 @@
   min-width: 0;
 }
 
-/* Center body text; do NOT create a positioning context. */
 .resource-editable-page .omnibox-editor-root,
 .resource-editable-page .omnibox-editor-wrapper,
 .resource-editable-page .omnibox-editor-layout,
@@ -50,16 +49,11 @@
   margin-inline: 0;
 }
 
-/*
- * Pin TOC to the page shell (full-width ancestor with position:relative).
- * !important beats package `.omnibox-editor-root .toc-sidebar` rules.
- */
 .resource-editable-page .toc-sidebar,
 .resource-editable-page .omnibox-editor-root .toc-sidebar {
   position: absolute !important;
   left: 0 !important;
   right: auto !important;
-  /* Align with body text under the title, not the title itself. */
   top: 5.5rem !important;
   bottom: 0 !important;
   width: 1.25rem !important;
@@ -77,7 +71,6 @@
 .resource-editable-page .toc-sidebar-wrapper,
 .resource-editable-page .omnibox-editor-root .toc-sidebar-wrapper {
   position: sticky !important;
-  /* Below the page title block; bump if still too high. */
   top: 11rem !important;
   left: 0 !important;
   margin: 0 !important;
@@ -134,11 +127,6 @@
   text-align: center;
 }
 
-/*
- * Search-from-query highlights — same as editor "高亮颜色" yellow:
- * light #fef9c3 · dark #6b6524 (--tt-color-highlight-yellow).
- * !important beats editor `.tiptap mark` theme rules.
- */
 .resource-readonly-editor mark.search-query-mark,
 .resource-editable-editor mark.search-query-mark,
 .markdown-body mark.search-query-mark,
