@@ -1,4 +1,4 @@
-import { Bell, BellDot, History, Search } from 'lucide-react';
+import { Bell, BellDot, History, Search, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
@@ -121,6 +121,19 @@ export function Header(props: IProps) {
           >
             {close => <Notification onClose={close} />}
           </ActionDialog>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <a
+              href="https://www.omnibox.pro/community/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+            >
+              <Users className="size-4 text-neutral-400" />
+              <span>{t('notification_modal.tags.community')}</span>
+            </a>
+          </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
     </>
