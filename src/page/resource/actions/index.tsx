@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
 import { Button } from '@/components/ui/Button';
@@ -57,6 +58,7 @@ import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-f
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
+import { renameResource } from '@/service/resource';
 
 import MoveTo from './move';
 import ShareAction from './share';
@@ -111,6 +113,7 @@ export default function Actions(props: IActionProps) {
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);
   const [progress, setProgress] = useState('');
+  const [folderEditOpen, setFolderEditOpen] = useState(false);
   const [smartFolderOpen, setSmartFolderOpen] = useState(false);
   const [smartFolderTrashOpen, setSmartFolderTrashOpen] = useState(false);
   const [smartFolderInitial, setSmartFolderInitial] =
@@ -151,6 +154,10 @@ export default function Actions(props: IActionProps) {
     if (!resource) {
       return;
     }
+    if (resource.resource_type === 'folder') {
+      setFolderEditOpen(true);
+      return;
+    }
     if (resource.resource_type === 'smart_folder') {
       if (!canModifyResource) {
         toast.error(t('permission.edit_required'));
@@ -172,6 +179,14 @@ export default function Actions(props: IActionProps) {
     }
     navigate(`/${namespaceId}/${resource.id}/edit`, {
       state: loc.state,
+    });
+  };
+
+  const handleRenameFolder = (name: string) => {
+    if (!resource) return Promise.reject();
+
+    return renameResource(namespaceId, resource.id, name).then(delta => {
+      app.fire('update_resource', delta);
     });
   };
 
@@ -732,6 +747,16 @@ export default function Actions(props: IActionProps) {
           resourceIds={moveResourceIds}
           sourceResourceType={resource.resource_type}
           onFinished={handleMoveFinished}
+        />
+      )}
+      {resource?.resource_type === 'folder' && (
+        <FolderNameDialog
+          open={folderEditOpen}
+          initialName={resource.name || ''}
+          title={t('folder.edit_dialog.title')}
+          confirmText={t('folder.edit_dialog.submit')}
+          onOpenChange={setFolderEditOpen}
+          onConfirm={handleRenameFolder}
         />
       )}
       {resource?.resource_type === 'smart_folder' && (
