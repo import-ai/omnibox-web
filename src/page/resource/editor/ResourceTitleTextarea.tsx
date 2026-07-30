@@ -53,7 +53,7 @@ export const ResourceTitleTextarea = React.forwardRef<
       rows={rows}
       onKeyDown={handleKeyDown}
       className={cn(
-        'mb-4 min-w-0 w-full resize-none overflow-hidden whitespace-pre-wrap break-words rounded-none border-0 bg-transparent px-0 py-0 text-[34px] font-bold leading-tight text-foreground shadow-none outline-none placeholder:text-muted-foreground/45 focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-transparent',
+        'mb-4 min-w-0 w-full resize-none overflow-hidden whitespace-pre-wrap break-words rounded-none border-0 bg-transparent px-0 py-0 text-[34px] font-bold leading-tight text-foreground caret-[#0090ff] shadow-none outline-none placeholder:text-muted-foreground/45 focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-transparent dark:caret-[#3da8ff]',
         className
       )}
     />
