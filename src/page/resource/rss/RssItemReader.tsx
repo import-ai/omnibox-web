@@ -30,20 +30,39 @@ export default function RssItemReader({
 
   useEffect(() => {
     const controller = new AbortController();
+    // Guards against a superseded request settling after the item switched: the
+    // cleanup flips `active` off, so a late resolve/reject/abort from the old
+    // request can no longer touch loading, item, or notFound and leave the reader
+    // showing the previous article (or stuck out of its loading state).
+    let active = true;
     setLoading(true);
     setNotFound(false);
+    // Drop the previous article immediately so a slow or failing new request can
+    // never render stale content underneath the loading state.
+    setItem(null);
     const request = fetchItem
       ? fetchItem(controller.signal)
       : fetchRssItem(namespaceId, resourceId, itemId, controller.signal);
     request
-      .then(setItem)
+      .then(result => {
+        if (active) {
+          setItem(result);
+        }
+      })
       .catch(error => {
-        if (error?.response?.status === 404) {
+        if (active && error?.response?.status === 404) {
           setNotFound(true);
         }
       })
-      .finally(() => setLoading(false));
-    return () => controller.abort();
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [itemId, namespaceId, resourceId, fetchItem]);
 
   if (loading) {
