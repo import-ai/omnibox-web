@@ -1,10 +1,13 @@
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import Attributes from '@/components/attributes';
 import { Resource } from '@/interface';
 import Editor from '@/page/resource/editor';
 import Folder from '@/page/resource/folder';
 import Render from '@/page/resource/Render';
+import RssItems from '@/page/resource/rss';
+import RssItemReader from '@/page/resource/rss/RssItemReader';
 
 interface IProps {
   editPage: boolean;
@@ -16,6 +19,7 @@ interface IProps {
 export default function Page(props: IProps) {
   const { editPage, resource, onResource, namespaceId } = props;
   const { t } = useTranslation();
+  const { rss_item_id: rssItemId } = useParams();
 
   if (editPage) {
     return (
@@ -23,6 +27,16 @@ export default function Page(props: IProps) {
         resource={resource}
         onResource={onResource}
         namespaceId={namespaceId}
+      />
+    );
+  }
+
+  if (resource.resource_type === 'rss_folder' && rssItemId) {
+    return (
+      <RssItemReader
+        namespaceId={namespaceId}
+        resourceId={resource.id}
+        itemId={rssItemId}
       />
     );
   }
@@ -46,6 +60,12 @@ export default function Page(props: IProps) {
           navigationPrefix={`/${namespaceId}`}
           loadAll
           smartFolderParentId={resource.id}
+        />
+      ) : resource.resource_type === 'rss_folder' ? (
+        <RssItems
+          resourceId={resource.id}
+          namespaceId={namespaceId}
+          emptyText={t('rss_folder.empty')}
         />
       ) : resource.resource_type === 'folder' ? (
         <Folder

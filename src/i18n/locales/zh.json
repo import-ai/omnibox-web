@@ -126,6 +126,7 @@
     "upload_to_folder": "上传到该文件夹",
     "create_file": "创建文件",
     "create_folder": "创建文件夹",
+    "create_rss_folder": "创建订阅文件夹",
     "upload_file": "上传文件",
     "download_as": "下载",
     "download_as_tooltip": "{{ format }} 格式",
@@ -137,6 +138,7 @@
     "rename": "重命名",
     "create_smart_folder": "创建智能文件夹",
     "edit_smart_folder_conditions": "编辑",
+    "edit_rss_folder": "编辑",
     "refresh": "刷新",
     "locate_resource": "定位",
     "locate_resource_unavailable": "当前无资源可定位",
@@ -1170,6 +1172,51 @@
       "title": "确认将 {{count}} 个智能文件夹移动到回收站？",
       "description": "智能文件夹移动到回收站不会影响其内部资源，移动后可在回收站找回，{{days}} 天后将自动删除。"
     }
+  },
+  "rss_folder": {
+    "empty": "暂无内容",
+    "reader": {
+      "back": "返回订阅",
+      "open_original": "查看原文",
+      "not_ready": "内容正在处理中，请稍后再试。",
+      "not_found": "该订阅内容已不可用。",
+      "published_at": "发布时间"
+    },
+    "create": {
+      "title": "创建订阅文件夹",
+      "name": "名称",
+      "placeholder": "请输入订阅文件夹名称",
+      "link": "订阅链接",
+      "link_name": "订阅名称",
+      "url_placeholder": "请输入订阅源，目前仅支持Rss链接",
+      "link_name_placeholder": "留空则使用默认标题",
+      "add_link": "添加链接",
+      "remaining_links": "订阅链接剩余：{{remaining}} / {{total}}",
+      "link_limit_tooltip": "高级版支持10条订阅链接",
+      "limit_reached_basic": "添加链接已达上限（{{limit}}条），升级可解锁10条",
+      "limit_reached_premium": "添加链接已达上限（{{limit}}条）",
+      "unsaved_title": "您的订阅文件夹配置未保存，确定退出吗？",
+      "unsaved_description": "退出后，本次修改将不会保存。",
+      "success": "订阅文件夹已创建"
+    },
+    "edit": {
+      "title": "编辑订阅文件夹",
+      "submit": "保存",
+      "success": "订阅文件夹已更新"
+    },
+    "validation": {
+      "name_required": "请输入订阅文件夹名称",
+      "name_too_long": "名称不能超过128个字符。",
+      "name_exists": "资源名称在该目录下已存在。",
+      "url_required": "请输入订阅链接",
+      "invalid_url": "请输入有效的链接",
+      "invalid_feed": "无法识别 RSS，请检查链接格式或内容是否公开"
+    },
+    "move": {
+      "unsupported_target": "不支持移动到订阅文件夹"
+    },
+    "cannot_be_parent": "订阅文件夹内不能创建资源",
+    "unsupported_operation": "订阅文件夹暂不支持该操作"
   },
   "download": {
     "failed": "下载失败，请稍后重试"

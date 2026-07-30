@@ -57,6 +57,8 @@ export function ChooseResourceTree({
         parentDisabled || disabledResourceIds.has(resource.id);
       const smartFolderDisabled =
         disableSmartFolders && resource.resource_type === 'smart_folder';
+      const rssFolderDisabled =
+        disableSmartFolders && resource.resource_type === 'rss_folder';
       const children = resource.children
         ?.map(child => decorateResource(child, operatingResource))
         .filter(Boolean) as ResourcePickerResource[] | undefined;
@@ -64,13 +66,15 @@ export function ChooseResourceTree({
       return {
         ...resource,
         children,
-        disabled: operatingResource || smartFolderDisabled,
+        disabled: operatingResource || smartFolderDisabled || rssFolderDisabled,
         descendantsDisabled: operatingResource,
-        disabledTooltip: smartFolderDisabled
-          ? smartFolderDisabledTooltip
-          : operatingResource
-            ? disabledTooltip
-            : undefined,
+        disabledTooltip: rssFolderDisabled
+          ? t('rss_folder.cannot_be_parent')
+          : smartFolderDisabled
+            ? smartFolderDisabledTooltip
+            : operatingResource
+              ? disabledTooltip
+              : undefined,
       };
     },
     [
@@ -78,6 +82,7 @@ export function ChooseResourceTree({
       disabledTooltip,
       disableSmartFolders,
       smartFolderDisabledTooltip,
+      t,
     ]
   );
 

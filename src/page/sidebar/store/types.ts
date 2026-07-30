@@ -1,5 +1,6 @@
 import type { PathItem, SpaceType } from '@/interface';
 import { Permission, Resource, ResourceType, TagDto } from '@/interface';
+import type { CreateRssFolderPayload } from '@/page/sidebar/components/rss-folder';
 import type { CreateSmartFolderPayload } from '@/page/sidebar/components/smart-folder';
 
 export type RootResource = Resource & { children?: Resource[] };
@@ -30,6 +31,7 @@ export interface NodeUI {
 
 export interface DialogsState {
   createFolderTargetId: string | null;
+  createRssFolderTargetId: string | null;
   currentUploadTargetId: string | null;
   upload: Record<string, string>;
   batchCreate: boolean;
@@ -39,6 +41,11 @@ export interface DialogsState {
     open: boolean;
     nodeId: string | null;
     initialValue: CreateSmartFolderPayload | null;
+  };
+  editRssFolder: {
+    open: boolean;
+    nodeId: string | null;
+    initialValue: CreateRssFolderPayload | null;
   };
   smartFolderTrash: {
     open: boolean;
@@ -99,6 +106,8 @@ export interface SidebarActions {
   setRenamingId: (id: string | null) => void;
   openCreateFolderDialog: (parentId: string) => void;
   closeCreateFolderDialog: () => void;
+  openCreateRssFolderDialog: (parentId: string) => void;
+  closeCreateRssFolderDialog: () => void;
   setCurrentUploadTargetId: (id: string | null) => void;
   setBatchCreateDialog: (open: boolean) => void;
   setBatchMoveDialog: (open: boolean) => void;
@@ -108,6 +117,11 @@ export interface SidebarActions {
     initialValue: CreateSmartFolderPayload
   ) => void;
   closeEditSmartFolderDialog: () => void;
+  openEditRssFolderDialog: (
+    nodeId: string,
+    initialValue: CreateRssFolderPayload
+  ) => void;
+  closeEditRssFolderDialog: () => void;
   openSmartFolderTrashDialog: (nodeId: string) => void;
   closeSmartFolderTrashDialog: () => void;
   refetchSmartFolderEntitlements: () => void;
@@ -148,12 +162,18 @@ export type SidebarGet = () => SidebarStore;
 
 export const initialDialogsState: DialogsState = {
   createFolderTargetId: null,
+  createRssFolderTargetId: null,
   currentUploadTargetId: null,
   upload: {},
   batchCreate: false,
   batchMove: false,
   batchDelete: false,
   editSmartFolder: {
+    open: false,
+    nodeId: null,
+    initialValue: null,
+  },
+  editRssFolder: {
     open: false,
     nodeId: null,
     initialValue: null,

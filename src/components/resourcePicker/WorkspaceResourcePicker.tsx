@@ -39,11 +39,31 @@ export function WorkspaceResourcePicker({
   const { t } = useTranslation();
   const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
 
+  // Subscription (RSS) folders can't be picked as chat context, so we surface
+  // them as disabled with an explanatory tooltip instead of a silent no-op.
+  const decorateResource = useCallback(
+    (resource: ResourcePickerResource): ResourcePickerResource => {
+      const rssFolderDisabled = resource.resource_type === 'rss_folder';
+      return {
+        ...resource,
+        children: resource.children?.map(decorateResource),
+        disabled: rssFolderDisabled || resource.disabled,
+        disabledTooltip: rssFolderDisabled
+          ? t('rss_folder.unsupported_operation')
+          : resource.disabledTooltip,
+      };
+    },
+    [t]
+  );
+
   useEffect(() => {
     let cancelled = false;
     fetchRootResources(namespaceId)
       .then(response => {
-        if (!cancelled) setRoots(workspaceRootsToPickerResources(response, t));
+        if (!cancelled)
+          setRoots(
+            workspaceRootsToPickerResources(response, t).map(decorateResource)
+          );
       })
       .catch(error => {
         if (!cancelled) {
@@ -58,14 +78,18 @@ export function WorkspaceResourcePicker({
 
   const loadChildren = useCallback(
     (resource: ResourcePickerResource) =>
-      resource.resource_type === 'smart_folder'
+      (resource.resource_type === 'smart_folder'
         ? fetchSmartFolderChildren(namespaceId, resource.id)
-        : fetchChildren(namespaceId, resource.id),
-    [namespaceId]
+        : fetchChildren(namespaceId, resource.id)
+      ).then(resources => resources.map(decorateResource)),
+    [decorateResource, namespaceId]
   );
   const searchResources = useCallback(
-    (query: string) => searchWorkspaceResources(namespaceId, query),
-    [namespaceId]
+    (query: string) =>
+      searchWorkspaceResources(namespaceId, query).then(resources =>
+        resources.map(decorateResource)
+      ),
+    [decorateResource, namespaceId]
   );
 
   return (
