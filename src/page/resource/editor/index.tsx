@@ -45,6 +45,7 @@ import {
 
 import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
 import {
+  type AutosizeTextAreaRef,
   normalizeTitleInput,
   ResourceTitleTextarea,
 } from './ResourceTitleTextarea';
@@ -67,14 +68,23 @@ interface UploadResponse {
   failed: string[];
 }
 
+type BodyEditorFocus = {
+  isDestroyed: boolean;
+  commands: {
+    focus: (position?: 'start' | 'end' | boolean | number | null) => boolean;
+  };
+};
+
 type ResourceOmniboxEditorProps = Omit<
   React.ComponentProps<typeof OmniboxEditor>,
-  'content' | 'onUpdate'
+  'content' | 'onUpdate' | 'onReady'
 > & {
   content?: string | TiptapJsonContent;
   locale?: string;
   theme?: string;
   onUpdate?: (payload: EditorUpdatePayload) => void;
+  onReady?: (editor: BodyEditorFocus) => void;
+  onNavigateToTitle?: () => void;
 };
 
 const ResourceOmniboxEditor =
@@ -110,6 +120,8 @@ function OmniboxResourceEditor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
   const { i18n, t } = useTranslation();
   const markdownRef = useRef('');
+  const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
+  const titleRef = useRef<AutosizeTextAreaRef | null>(null);
   const navigate = useNavigate();
   const loc = useLocation();
   const { app, theme } = useTheme();
@@ -120,7 +132,6 @@ function OmniboxResourceEditor(props: IEditorProps) {
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const cachedTitle = cache?.title || resource.name || '';
-  // Match Vditor: folders can open /edit for title, but must not mount the body editor.
   const isFolder = resource.resource_type === 'folder';
   const linkBase = useMemo(
     () => `/${namespaceId}/${resource.id}`,
@@ -150,11 +161,27 @@ function OmniboxResourceEditor(props: IEditorProps) {
         dirtyRef.current = true;
       }
       markdownRef.current = content;
-      // Local draft only — server is updated on explicit Save.
       updateCacheContent(resource.id, content);
     },
     [resource.id]
   );
+
+  const handleEditorReady = useCallback((editor: BodyEditorFocus) => {
+    bodyEditorRef.current = editor;
+  }, []);
+
+  const handleTitleEnter = useCallback(() => {
+    if (isFolder) {
+      return;
+    }
+
+    const editor = bodyEditorRef.current;
+    if (!editor || editor.isDestroyed) {
+      return;
+    }
+
+    editor.commands.focus('start');
+  }, [isFolder]);
 
   const uploadImage = useCallback<UploadFunction>(
     async (file, onProgress, abortSignal) => {
@@ -242,6 +269,20 @@ function OmniboxResourceEditor(props: IEditorProps) {
   }, [cachedTitle, initialContent]);
 
   useEffect(() => {
+    return () => {
+      bodyEditorRef.current = null;
+    };
+  }, [resource.id]);
+
+  const handleNavigateToTitle = useCallback(() => {
+    const ta = titleRef.current?.textArea;
+    if (ta) {
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+    }
+  }, []);
+
+  useEffect(() => {
     return app.on('save', (onSuccess?: () => void) => {
       const name = title.trim();
       const content = markdownRef.current;
@@ -294,8 +335,10 @@ function OmniboxResourceEditor(props: IEditorProps) {
     >
       <div className="resource-editable-title">
         <ResourceTitleTextarea
+          ref={titleRef}
           value={title}
           onChange={handleChange}
+          onEnter={handleTitleEnter}
           placeholder={t('resource.title_placeholder')}
           aria-label={t('resource.title')}
         />
@@ -317,7 +360,9 @@ function OmniboxResourceEditor(props: IEditorProps) {
             linkBase={linkBase}
             imageUpload={uploadImage}
             mentionUsers={mentionUsers}
+            onReady={handleEditorReady}
             onUpdate={handleEditorUpdate}
+            onNavigateToTitle={handleNavigateToTitle}
           />
         ) : null}
       </div>

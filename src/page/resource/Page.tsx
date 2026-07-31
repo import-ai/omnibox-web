@@ -3,9 +3,14 @@ import { useParams } from 'react-router-dom';
 
 import Attributes from '@/components/attributes';
 import { Resource } from '@/interface';
+import { cn } from '@/lib/utils';
 import Editor from '@/page/resource/editor';
 import Folder from '@/page/resource/folder';
 import Render from '@/page/resource/Render';
+import {
+  selectUseOmniboxEditor,
+  useResourceStore,
+} from '@/page/resource/resourceStore';
 import RssItems from '@/page/resource/rss';
 import RssItemReader from '@/page/resource/rss/RssItemReader';
 
@@ -19,6 +24,12 @@ interface IProps {
 export default function Page(props: IProps) {
   const { editPage, resource, onResource, namespaceId } = props;
   const { t } = useTranslation();
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const constrainHeader =
+    useOmniboxEditor &&
+    resource.resource_type !== 'folder' &&
+    resource.resource_type !== 'smart_folder' &&
+    resource.resource_type !== 'rss_folder';
   const { rss_item_id: rssItemId } = useParams();
 
   if (editPage) {
@@ -43,14 +54,16 @@ export default function Page(props: IProps) {
 
   return (
     <div data-resource-export-content="true">
-      <h1 className="mb-4 min-w-0 max-w-full break-all text-[34px] font-bold">
-        {resource.name || t('untitled')}
-      </h1>
-      <Attributes
-        namespaceId={namespaceId}
-        resource={resource}
-        onResource={onResource}
-      />
+      <div className={cn(constrainHeader && 'resource-readonly-page-header')}>
+        <h1 className="mb-4 min-w-0 max-w-full break-all text-[34px] font-bold">
+          {resource.name || t('untitled')}
+        </h1>
+        <Attributes
+          namespaceId={namespaceId}
+          resource={resource}
+          onResource={onResource}
+        />
+      </div>
       {resource.resource_type === 'smart_folder' ? (
         <Folder
           resourceId={resource.id}
