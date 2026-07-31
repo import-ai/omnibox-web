@@ -27,7 +27,8 @@ export default function ResourcePage() {
     useOmniboxEditor &&
     !!props.resource &&
     props.resource.resource_type !== 'folder' &&
-    props.resource.resource_type !== 'smart_folder';
+    props.resource.resource_type !== 'smart_folder' &&
+    props.resource.resource_type !== 'rss_folder';
   const useFullWidth = isOmniboxResource;
 
   useResourceBodyDragAutoScroll(

@@ -28,7 +28,8 @@ export default function Page(props: IProps) {
   const constrainHeader =
     useOmniboxEditor &&
     resource.resource_type !== 'folder' &&
-    resource.resource_type !== 'smart_folder';
+    resource.resource_type !== 'smart_folder' &&
+    resource.resource_type !== 'rss_folder';
   const { rss_item_id: rssItemId } = useParams();
 
   if (editPage) {
