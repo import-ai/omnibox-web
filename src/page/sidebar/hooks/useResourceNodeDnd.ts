@@ -75,7 +75,10 @@ export function useResourceNodeDnd(
 
   const canDropItem = (item: DndItem) => {
     const targetNode = nodes[nodeId];
-    if (targetNode?.resourceType === 'smart_folder') {
+    if (
+      targetNode?.resourceType === 'smart_folder' ||
+      targetNode?.resourceType === 'rss_folder'
+    ) {
       return false;
     }
     if (isSmartFolderChildResource(targetNode)) {

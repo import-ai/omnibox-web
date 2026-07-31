@@ -22,6 +22,7 @@ interface ResourceTreeProps {
   onBatchCreate: () => void;
   onAddToChat: () => void;
   onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
+  onCreateRssFolder: (spaceType: SpaceType) => void;
   smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
 }
 
@@ -34,6 +35,7 @@ export default function ResourceTree({
   onBatchCreate,
   onAddToChat,
   onCreateSmartFolder,
+  onCreateRssFolder,
   smartFolderQuotaExhausted,
 }: ResourceTreeProps) {
   const isMobile = useIsMobile();
@@ -59,6 +61,7 @@ export default function ResourceTree({
             onBatchCreate={onBatchCreate}
             onAddToChat={onAddToChat}
             onCreateSmartFolder={onCreateSmartFolder}
+            onCreateRssFolder={onCreateRssFolder}
             smartFolderQuotaExhausted={smartFolderQuotaExhausted}
           />
         ))}

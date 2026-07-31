@@ -4,6 +4,10 @@ export function isSmartFolderResource(resourceType?: ResourceType) {
   return resourceType === 'smart_folder';
 }
 
+export function isRssFolderResource(resourceType?: ResourceType) {
+  return resourceType === 'rss_folder';
+}
+
 export function shouldDisableMoveTarget(
   sourceResourceType: ResourceType | undefined,
   targetResourceType: ResourceType | undefined
@@ -13,7 +17,8 @@ export function shouldDisableMoveTarget(
   }
 
   return (
+    isRssFolderResource(targetResourceType) ||
     isSmartFolderResource(sourceResourceType) !==
-    isSmartFolderResource(targetResourceType)
+      isSmartFolderResource(targetResourceType)
   );
 }

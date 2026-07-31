@@ -111,6 +111,7 @@ export function useDndHandlers({
     const targetNode = useSidebarStore.getState().nodes[targetId];
     if (
       targetNode?.resourceType === 'smart_folder' ||
+      targetNode?.resourceType === 'rss_folder' ||
       isSmartFolderChildResource(targetNode)
     ) {
       return;
@@ -151,6 +152,7 @@ export function useDndHandlers({
     const dragNode = nodes[dragId];
     const targetNode = nodes[targetId];
     if (dragNode?.parentId === targetId) return;
+    if (targetNode?.resourceType === 'rss_folder') return;
     if (
       isSmartFolderChildResource(dragNode) ||
       isSmartFolderChildResource(targetNode)

@@ -25,6 +25,18 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       });
     },
 
+    openCreateRssFolderDialog: (parentId: string) => {
+      set(s => {
+        s.dialogs.createRssFolderTargetId = parentId;
+      });
+    },
+
+    closeCreateRssFolderDialog: () => {
+      set(s => {
+        s.dialogs.createRssFolderTargetId = null;
+      });
+    },
+
     setCurrentUploadTargetId: (id: string | null) => {
       set(s => {
         s.dialogs.currentUploadTargetId = id;
@@ -64,6 +76,24 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         s.dialogs.editSmartFolder.open = false;
         s.dialogs.editSmartFolder.nodeId = null;
         s.dialogs.editSmartFolder.initialValue = null;
+      });
+    },
+
+    openEditRssFolderDialog: (nodeId, initialValue) => {
+      set(s => {
+        s.dialogs.editRssFolder = {
+          open: true,
+          nodeId,
+          initialValue,
+        };
+      });
+    },
+
+    closeEditRssFolderDialog: () => {
+      set(s => {
+        s.dialogs.editRssFolder.open = false;
+        s.dialogs.editRssFolder.nodeId = null;
+        s.dialogs.editRssFolder.initialValue = null;
       });
     },
 

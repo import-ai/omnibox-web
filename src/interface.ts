@@ -80,7 +80,8 @@ export interface TagDto {
 }
 
 export type SpaceType = 'private' | 'teamspace';
-export type ResourceType = 'doc' | 'file' | 'link' | 'folder' | 'smart_folder';
+export type ResourceType =
+  'doc' | 'file' | 'link' | 'folder' | 'smart_folder' | 'rss_folder';
 
 export interface PathItem {
   id: string;
@@ -274,6 +275,21 @@ export interface ResourceSummary {
   has_children: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface RssItem {
+  id: string;
+  link_id: string;
+  link_name: string | null;
+  title: string;
+  url: string | null;
+  summary: string | null;
+  published_at: string | null;
+  created_at: string;
+}
+
+export interface RssItemDetail extends RssItem {
+  parsed_content: string | null;
 }
 
 export interface PublicShareInfo {

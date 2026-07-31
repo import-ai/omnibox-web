@@ -247,7 +247,11 @@ export default function SharePage() {
     );
   }
   if (shareInfo) {
-    const showSidebar = (shareInfo.all_resources || showChat) ?? true;
+    // RSS folders host their items inside the sidebar, so an rss-folder share
+    // always shows the sidebar even when it isn't an all-resources share.
+    const isRssFolderShare = shareInfo.resource?.resource_type === 'rss_folder';
+    const showSidebar =
+      (shareInfo.all_resources || showChat || isRssFolderShare) ?? true;
     return (
       <ShareContext.Provider
         value={{

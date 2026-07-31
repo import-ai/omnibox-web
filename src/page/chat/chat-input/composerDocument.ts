@@ -44,6 +44,7 @@ export function getResourceContextType(
 ): PrivateSearchResourceType {
   return resource.resource_type === 'folder' ||
     resource.resource_type === 'smart_folder' ||
+    resource.resource_type === 'rss_folder' ||
     resource.has_children
     ? 'folder'
     : 'resource';

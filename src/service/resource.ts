@@ -1,4 +1,10 @@
-import { Resource, ResourceMeta, ResourceType } from '@/interface';
+import {
+  Resource,
+  ResourceMeta,
+  ResourceType,
+  RssItem,
+  RssItemDetail,
+} from '@/interface';
 import { http, type RequestConfig } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 
@@ -70,6 +76,37 @@ export function fetchSmartFolderChildren(
 ): Promise<Resource[]> {
   return http.get<Resource[]>(
     `/namespaces/${namespaceId}/smart-folders/${id}/children`
+  );
+}
+
+export function fetchRssItems(
+  namespaceId: string,
+  id: string,
+  options?: { limit?: number; offset?: number; signal?: AbortSignal }
+): Promise<RssItem[]> {
+  const params = new URLSearchParams();
+  if (options?.limit !== undefined) {
+    params.set('limit', String(options.limit));
+  }
+  if (options?.offset !== undefined) {
+    params.set('offset', String(options.offset));
+  }
+  const query = params.toString() ? `?${params}` : '';
+  return http.get<RssItem[]>(
+    `/namespaces/${namespaceId}/rss-folders/${id}/items${query}`,
+    { signal: options?.signal }
+  );
+}
+
+export function fetchRssItem(
+  namespaceId: string,
+  folderId: string,
+  itemId: string,
+  signal?: AbortSignal
+): Promise<RssItemDetail> {
+  return http.get<RssItemDetail>(
+    `/namespaces/${namespaceId}/rss-folders/${folderId}/items/${itemId}`,
+    { signal }
   );
 }
 

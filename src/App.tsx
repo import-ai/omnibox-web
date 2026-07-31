@@ -111,6 +111,10 @@ const router = createBrowserRouter([
             element: <ResourcePage />,
           },
           {
+            path: ':resource_id/rss-items/:rss_item_id',
+            element: <ResourcePage />,
+          },
+          {
             path: ':resource_id/edit',
             element: <ResourcePage />,
           },
@@ -144,6 +148,10 @@ const router = createBrowserRouter([
           },
           {
             path: ':resource_id',
+            element: <SharedResourcePage />,
+          },
+          {
+            path: ':resource_id/rss-items/:rss_item_id',
             element: <SharedResourcePage />,
           },
           {

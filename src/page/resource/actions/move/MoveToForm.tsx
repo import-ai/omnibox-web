@@ -14,7 +14,7 @@ import {
   searchResources,
 } from '@/service/resource';
 
-import { shouldDisableMoveTarget } from './utils';
+import { isRssFolderResource, shouldDisableMoveTarget } from './utils';
 
 export interface IFormProps {
   resourceIds: string[];
@@ -70,7 +70,9 @@ export default function MoveToForm(props: IFormProps) {
         children,
         disabled,
         disabledTooltip: mixedSmartFolder
-          ? t('smart_folder.move.unsupported_mixed_target')
+          ? isRssFolderResource(resource.resource_type)
+            ? t('rss_folder.move.unsupported_target')
+            : t('smart_folder.move.unsupported_mixed_target')
           : operatingResource
             ? disabledTargetTooltip
             : undefined,

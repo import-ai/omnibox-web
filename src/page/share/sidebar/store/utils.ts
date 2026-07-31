@@ -2,6 +2,15 @@ import { Resource } from '@/interface';
 
 import type { SidebarState, SpaceType, TreeNode } from './types';
 
+// RSS folders expose their polled items (not resource children) when expanded,
+// so they always render as expandable regardless of the backend has_children.
+function getResourceHasChildren(resource: Resource): boolean {
+  if (resource.resource_type === 'rss_folder') {
+    return true;
+  }
+  return resource.has_children ?? false;
+}
+
 export function createNode(
   resource: Resource,
   parentId: string | null,
@@ -17,7 +26,7 @@ export function createNode(
     attrs: resource.attrs,
     tags: resource.tags,
     path: resource.path,
-    hasChildren: resource.has_children ?? false,
+    hasChildren: getResourceHasChildren(resource),
     currentPermission: resource.current_permission,
     globalPermission: resource.global_permission,
     createdAt: resource.created_at || '',
@@ -122,7 +131,7 @@ export function patchNodeFromResource(
   resource: Resource
 ): void {
   node.name = resource.name || '';
-  node.hasChildren = resource.has_children ?? false;
+  node.hasChildren = getResourceHasChildren(resource);
   node.updatedAt = resource.updated_at || '';
   node.resourceType = resource.resource_type;
 }
