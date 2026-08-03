@@ -129,7 +129,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                       htmlFor={`rss-folder-link-${index}`}
                       className={resourceConditionFieldLabelClass}
                     >
-                      {t('rss_folder.create.link')}
+                      {t('rss_folder.create.link', { index: index + 1 })}
                     </Label>
                     <Input
                       id={`rss-folder-link-${index}`}
