@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 
 interface IProps {
   children: React.ReactNode;
+  sideContent?: React.ReactNode;
 }
 
 const showButtonThreshold = 24;
@@ -71,6 +72,11 @@ export default function Scrollbar(props: IProps) {
 
   return (
     <div className="relative flex shrink grow min-h-0">
+      {props.sideContent && (
+        <div className="absolute left-14 top-[calc(50svh-3.5rem)] z-10 -translate-y-1/2">
+          {props.sideContent}
+        </div>
+      )}
       <div
         ref={rootRef}
         className="flex shrink grow justify-center p-4 w-full min-h-0 overflow-y-auto [scrollbar-gutter:stable_both-edges]"
