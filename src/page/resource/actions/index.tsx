@@ -65,6 +65,7 @@ import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { fetchRssItem, renameResource } from '@/service/resource';
 
+import { getCopyContent } from './copyContent';
 import MoveTo from './move';
 import ShareAction from './share';
 
@@ -319,35 +320,48 @@ export default function Actions(props: IActionProps) {
       setOpen(false);
       return;
     }
-    if (id === 'copy_content' && resource.content) {
-      const markdown = resource.content;
-      void (async () => {
-        let ok = false;
-        try {
-          if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(markdown);
-            ok = true;
+    if (id === 'copy_content') {
+      void getCopyContent(
+        namespaceId,
+        resource.id,
+        resource.content,
+        isRssItemView ? rssItemId : undefined
+      )
+        .then(async markdown => {
+          if (!markdown) {
+            toast(t('resource.no_content'), {
+              position: 'bottom-right',
+            });
+            return;
           }
-        } catch {
-          // fall through
-        }
-        if (!ok) {
-          ok = copy(markdown, {
-            format: 'text/plain',
-            onCopy: (clipboardData: any) => {
-              try {
-                clipboardData?.setData('text/plain', markdown);
-                clipboardData?.setData('text/html', '');
-              } catch {
-                // ignore
-              }
-            },
+
+          let ok = false;
+          try {
+            if (navigator.clipboard?.writeText) {
+              await navigator.clipboard.writeText(markdown);
+              ok = true;
+            }
+          } catch {
+            // fall through
+          }
+          if (!ok) {
+            ok = copy(markdown, {
+              format: 'text/plain',
+              onCopy: (clipboardData: any) => {
+                try {
+                  clipboardData?.setData('text/plain', markdown);
+                  clipboardData?.setData('text/html', '');
+                } catch {
+                  // ignore
+                }
+              },
+            });
+          }
+          toast(t(ok ? 'actions.copy_content_success' : 'copy.fail'), {
+            position: 'bottom-right',
           });
-        }
-        toast(t(ok ? 'actions.copy_content_success' : 'copy.fail'), {
-          position: 'bottom-right',
-        });
-      })();
+        })
+        .catch(() => undefined);
       setOpen(false);
       return;
     }
