@@ -48,10 +48,10 @@ export default function BreadcrumbMain(props: IProps) {
   if (path.length <= 1) {
     return null;
   }
-  const activePath =
-    rssItemId && rssItem?.id === rssItemId
-      ? [...path, { id: rssItem.id, name: rssItem.title || '' }]
-      : path;
+  const hasLoadedRssItem = Boolean(rssItemId && rssItem?.id === rssItemId);
+  const activePath = hasLoadedRssItem
+    ? [...path, { id: rssItem.id, name: rssItem.title || '' }]
+    : path;
   const data = activePath.slice(1); // Remove first item (root)
 
   // If 3 or fewer items, display all normally
@@ -63,7 +63,7 @@ export default function BreadcrumbMain(props: IProps) {
           {data.map((item, index) => (
             <React.Fragment key={item.id}>
               {index > 0 && <BreadcrumbSeparator />}
-              {index >= size ? (
+              {index >= size && (!rssItemId || hasLoadedRssItem) ? (
                 <BreadcrumbItem>
                   <BreadcrumbPage
                     title={item.name || t('untitled')}
@@ -138,14 +138,30 @@ export default function BreadcrumbMain(props: IProps) {
           </DropdownMenu>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage
-            title={currentItem.name || t('untitled')}
-            className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
-          >
-            {currentItem.name || t('untitled')}
-          </BreadcrumbPage>
-        </BreadcrumbItem>
+        {rssItemId && !hasLoadedRssItem ? (
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Button
+                variant="ghost"
+                className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+                onClick={() => {
+                  navigate(`/${namespaceId}/${currentItem.id}`);
+                }}
+              >
+                {currentItem.name || t('untitled')}
+              </Button>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        ) : (
+          <BreadcrumbItem>
+            <BreadcrumbPage
+              title={currentItem.name || t('untitled')}
+              className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+            >
+              {currentItem.name || t('untitled')}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        )}
       </BreadcrumbList>
     </Breadcrumb>
   );

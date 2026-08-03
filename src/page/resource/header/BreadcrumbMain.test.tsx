@@ -65,7 +65,7 @@ describe('BreadcrumbMain', () => {
     await act(async () => root.unmount());
   });
 
-  it('makes the RSS folder clickable after the current item loads', async () => {
+  it('keeps the RSS folder clickable while the current item loads', async () => {
     await act(async () => {
       root.render(
         <BreadcrumbMain
@@ -78,6 +78,14 @@ describe('BreadcrumbMain', () => {
       );
     });
 
+    let folderButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'RSS Folder'
+    );
+    folderButton?.click();
+
+    expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1');
+    navigate.mockClear();
+
     await act(async () => {
       onRssItemLoaded?.({ id: 'item-1', title: 'Article' } as RssItemDetail);
     });
@@ -85,11 +93,35 @@ describe('BreadcrumbMain', () => {
     expect(container.textContent).toContain('RSS Folder');
     expect(container.textContent).toContain('Article');
 
-    const folderButton = Array.from(container.querySelectorAll('button')).find(
+    folderButton = Array.from(container.querySelectorAll('button')).find(
       button => button.textContent === 'RSS Folder'
     );
     folderButton?.click();
 
     expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1');
+  });
+
+  it('keeps a deeply nested RSS folder clickable while the item loads', async () => {
+    await act(async () => {
+      root.render(
+        <BreadcrumbMain
+          namespaceId="namespace-1"
+          path={[
+            { id: 'root-1', name: 'Root' },
+            { id: 'folder-1', name: 'Folder 1' },
+            { id: 'folder-2', name: 'Folder 2' },
+            { id: 'folder-3', name: 'Folder 3' },
+            { id: 'rss-folder', name: 'RSS Folder' },
+          ]}
+        />
+      );
+    });
+
+    const folderButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'RSS Folder'
+    );
+    folderButton?.click();
+
+    expect(navigate).toHaveBeenCalledWith('/namespace-1/rss-folder');
   });
 });
