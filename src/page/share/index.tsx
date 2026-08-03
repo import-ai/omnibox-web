@@ -158,6 +158,7 @@ export default function SharePage() {
       .get(`/shares/${shareId}`, {
         cancelToken: source.token,
         mute: true,
+        retryWithoutAuth: true,
       })
       .then(data => {
         setShareInfo(data);
