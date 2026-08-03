@@ -5,6 +5,7 @@ import { PublishedTimeAttribute } from '@/components/attributes/PublishedTimeAtt
 import { UrlAttribute } from '@/components/attributes/UrlAttribute';
 import Loading from '@/components/loading';
 import { Markdown } from '@/components/markdown';
+import useApp from '@/hooks/useApp';
 import { RssItemDetail } from '@/interface';
 import { fetchRssItem } from '@/service/resource';
 
@@ -24,6 +25,7 @@ export default function RssItemReader({
   fetchItem,
 }: IProps) {
   const { t } = useTranslation();
+  const app = useApp();
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [item, setItem] = useState<RssItemDetail | null>(null);
@@ -47,6 +49,7 @@ export default function RssItemReader({
       .then(result => {
         if (active) {
           setItem(result);
+          app.fire('rss_item_loaded', result);
         }
       })
       .catch(error => {
@@ -63,7 +66,7 @@ export default function RssItemReader({
       active = false;
       controller.abort();
     };
-  }, [itemId, namespaceId, resourceId, fetchItem]);
+  }, [app, itemId, namespaceId, resourceId, fetchItem]);
 
   if (loading) {
     return <Loading />;

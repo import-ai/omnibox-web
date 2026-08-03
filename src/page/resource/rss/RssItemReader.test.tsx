@@ -9,6 +9,9 @@ import { fetchRssItem } from '@/service/resource';
 
 import RssItemReader from './RssItemReader';
 
+const fire = jest.fn();
+const mockApp = { fire };
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
@@ -19,6 +22,10 @@ jest.mock('@/components/markdown', () => ({
   Markdown: ({ content }: { content: string }) => (
     <div data-testid="markdown">{content}</div>
   ),
+}));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => mockApp,
 }));
 jest.mock('@/service/resource', () => ({
   fetchRssItem: jest.fn(),
@@ -73,6 +80,10 @@ describe('RssItemReader', () => {
 
     expect(container.textContent).toContain('Article');
     expect(container.textContent).toContain('# Parsed article');
+    expect(fire).toHaveBeenCalledWith(
+      'rss_item_loaded',
+      expect.objectContaining({ id: 'item-1', title: 'Article' })
+    );
     const sourceLink = container.querySelector(
       'a[href="https://example.com/article"]'
     );
