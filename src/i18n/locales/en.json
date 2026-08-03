@@ -1191,7 +1191,7 @@
       "link_name_placeholder": "Leave empty to use the feed's title",
       "add_link": "Add link",
       "remaining_links": "Feed links remaining: {{remaining}} / {{total}}",
-      "link_limit_tooltip": "Premium supports up to 10 feed links",
+      "link_limit_tooltip": "Pro supports up to 10 feed links",
       "limit_reached_basic": "Link limit reached ({{limit}}). Upgrade to unlock 10 links.",
       "limit_reached_premium": "Link limit reached ({{limit}}).",
       "unsaved_title": "Your RSS folder settings are unsaved. Exit anyway?",
