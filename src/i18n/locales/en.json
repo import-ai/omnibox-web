@@ -1185,7 +1185,7 @@
       "title": "Create RSS Folder",
       "name": "Name",
       "placeholder": "Enter an RSS folder name",
-      "link": "Feed link",
+      "link": "Feed link {{index}}",
       "link_name": "Feed name",
       "url_placeholder": "Enter a feed source (RSS links only for now)",
       "link_name_placeholder": "Leave empty to use the feed's title",
