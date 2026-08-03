@@ -159,11 +159,6 @@ export default function RssItems(props: IProps) {
                       {item.title || t('untitled')}
                     </h3>
                   </div>
-                  {item.summary && (
-                    <p className="mt-1 text-muted-foreground text-sm line-clamp-2 leading-relaxed">
-                      {item.summary}
-                    </p>
-                  )}
                   <p className="mt-1 text-muted-foreground text-xs font-light">
                     {formatItemDate(item)}
                     {item.link_name && (
