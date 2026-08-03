@@ -118,6 +118,7 @@
     "copy_link_failed": "Failed to copy your link",
     "copy_content": "Copy content",
     "copy_content_success": "Content copied successfully",
+    "no_content_to_copy": "No content available to copy",
     "duplicate": "Create a copy",
     "download": "Source file",
     "move_to": "Move to",

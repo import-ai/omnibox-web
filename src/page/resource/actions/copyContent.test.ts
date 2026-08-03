@@ -1,45 +1,80 @@
-import { fetchRssItem } from '@/service/resource';
+/** @jest-environment jsdom */
 
-import { getCopyContent } from './copyContent';
+import copy from 'copy-to-clipboard';
+import { toast } from 'sonner';
 
-jest.mock('@/service/resource', () => ({
-  fetchRssItem: jest.fn(),
+import { copyContentToClipboard } from './copyContent';
+
+jest.mock('copy-to-clipboard', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
+jest.mock('sonner', () => ({ toast: jest.fn() }));
 
-const mockedFetchRssItem = jest.mocked(fetchRssItem);
+const mockedCopy = jest.mocked(copy);
+const mockedToast = jest.mocked(toast);
+const t = (key: string) => key;
 
-describe('getCopyContent', () => {
+describe('copyContentToClipboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: undefined,
+    });
   });
 
-  it('returns the existing resource content outside an RSS item view', async () => {
-    await expect(
-      getCopyContent('namespace-1', 'resource-1', '# Resource')
-    ).resolves.toBe('# Resource');
-    expect(mockedFetchRssItem).not.toHaveBeenCalled();
-  });
-
-  it('fetches parsed content for an RSS item view', async () => {
-    mockedFetchRssItem.mockResolvedValue({
-      id: 'item-1',
-      link_id: 'link-1',
-      link_name: 'Example',
-      title: 'Article',
-      url: 'https://example.com/article',
-      summary: null,
-      published_at: null,
-      created_at: '2026-08-03T00:00:00Z',
-      parsed_content: '# RSS article',
+  it('writes content with the Clipboard API and shows success', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
     });
 
-    await expect(
-      getCopyContent('namespace-1', 'folder-1', undefined, 'item-1')
-    ).resolves.toBe('# RSS article');
-    expect(mockedFetchRssItem).toHaveBeenCalledWith(
-      'namespace-1',
-      'folder-1',
-      'item-1'
+    await copyContentToClipboard('# RSS article', t);
+
+    expect(writeText).toHaveBeenCalledWith('# RSS article');
+    expect(mockedCopy).not.toHaveBeenCalled();
+    expect(mockedToast).toHaveBeenCalledWith('actions.copy_content_success', {
+      position: 'bottom-right',
+    });
+  });
+
+  it('falls back when the Clipboard API rejects', async () => {
+    const writeText = jest.fn().mockRejectedValue(new Error('denied'));
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    mockedCopy.mockReturnValue(true);
+
+    await copyContentToClipboard('# RSS article', t);
+
+    expect(mockedCopy).toHaveBeenCalledWith(
+      '# RSS article',
+      expect.objectContaining({ format: 'text/plain' })
     );
+    expect(mockedToast).toHaveBeenCalledWith('actions.copy_content_success', {
+      position: 'bottom-right',
+    });
+  });
+
+  it('shows a copy-specific message when content is empty', async () => {
+    await copyContentToClipboard(null, t);
+
+    expect(mockedCopy).not.toHaveBeenCalled();
+    expect(mockedToast).toHaveBeenCalledWith('actions.no_content_to_copy', {
+      position: 'bottom-right',
+    });
+  });
+
+  it('shows failure when neither clipboard method succeeds', async () => {
+    mockedCopy.mockReturnValue(false);
+
+    await copyContentToClipboard('# RSS article', t);
+
+    expect(mockedToast).toHaveBeenCalledWith('copy.fail', {
+      position: 'bottom-right',
+    });
   });
 });

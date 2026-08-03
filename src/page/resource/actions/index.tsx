@@ -65,7 +65,7 @@ import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { fetchRssItem, renameResource } from '@/service/resource';
 
-import { getCopyContent } from './copyContent';
+import { copyContentToClipboard } from './copyContent';
 import MoveTo from './move';
 import ShareAction from './share';
 
@@ -106,11 +106,23 @@ const hasTeamspaceCache = new Map<string, boolean>();
 export interface IActionProps extends IUseResource {
   wide: boolean;
   onWide: (wide: boolean) => void;
+  rssItemCopyContent?: {
+    itemId: string;
+    content: string | null | undefined;
+  };
 }
 
 export default function Actions(props: IActionProps) {
-  const { app, wide, onWide, forbidden, resource, editPage, namespaceId } =
-    props;
+  const {
+    app,
+    wide,
+    onWide,
+    forbidden,
+    resource,
+    editPage,
+    namespaceId,
+    rssItemCopyContent,
+  } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const loc = useLocation();
@@ -321,47 +333,12 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'copy_content') {
-      void getCopyContent(
-        namespaceId,
-        resource.id,
-        resource.content,
-        isRssItemView ? rssItemId : undefined
-      )
-        .then(async markdown => {
-          if (!markdown) {
-            toast(t('resource.no_content'), {
-              position: 'bottom-right',
-            });
-            return;
-          }
-
-          let ok = false;
-          try {
-            if (navigator.clipboard?.writeText) {
-              await navigator.clipboard.writeText(markdown);
-              ok = true;
-            }
-          } catch {
-            // fall through
-          }
-          if (!ok) {
-            ok = copy(markdown, {
-              format: 'text/plain',
-              onCopy: (clipboardData: any) => {
-                try {
-                  clipboardData?.setData('text/plain', markdown);
-                  clipboardData?.setData('text/html', '');
-                } catch {
-                  // ignore
-                }
-              },
-            });
-          }
-          toast(t(ok ? 'actions.copy_content_success' : 'copy.fail'), {
-            position: 'bottom-right',
-          });
-        })
-        .catch(() => undefined);
+      const markdown = isRssItemView
+        ? rssItemCopyContent?.itemId === rssItemId
+          ? rssItemCopyContent.content
+          : undefined
+        : resource.content;
+      void copyContentToClipboard(markdown, t).catch(() => undefined);
       setOpen(false);
       return;
     }
