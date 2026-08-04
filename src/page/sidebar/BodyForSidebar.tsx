@@ -39,7 +39,10 @@ import { Toolbar } from './components/toolbar';
 import { useBatchOperations } from './hooks/useBatchOperations';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
-import { fetchChildrenForSidebarRefresh } from './sidebarBehavior';
+import {
+  fetchChildrenForSidebarRefresh,
+  getExpandedNodeIdsForSidebarRefresh,
+} from './sidebarBehavior';
 import { TreeNode, useSidebarStore } from './store';
 import { getBatchSelectionSummary } from './store/utils';
 
@@ -265,25 +268,15 @@ export function BodyForSidebar(props: IProps) {
     if (refreshingResources) return;
 
     const state = useSidebarStore.getState();
-    const rootIdSet = new Set(Object.values(state.rootIds).filter(Boolean));
-    const expandedLoadedIds = Object.entries(state.ui)
-      .filter(([id, ui]) => {
-        const node = state.nodes[id];
-        return (
-          !!node &&
-          ui.expanded &&
-          ui.loaded &&
-          (node.hasChildren ||
-            node.resourceType === 'folder' ||
-            node.resourceType === 'smart_folder') &&
-          !rootIdSet.has(id)
-        );
-      })
-      .map(([id]) => id);
-    expandedLoadedIds.sort(
+    const expandedIds = getExpandedNodeIdsForSidebarRefresh(
+      state.nodes,
+      state.ui,
+      state.rootIds
+    );
+    expandedIds.sort(
       (a, b) => getNodeDepth(state.nodes, a) - getNodeDepth(state.nodes, b)
     );
-    const expandedIdSet = new Set(expandedLoadedIds);
+    const expandedIdSet = new Set(expandedIds);
     const locateSnapshot = getLocateSnapshot(
       state.nodes,
       state.activeId || resourceId
@@ -295,7 +288,7 @@ export function BodyForSidebar(props: IProps) {
       const store = useSidebarStore.getState();
       store.init(items);
 
-      for (const id of expandedLoadedIds) {
+      for (const id of expandedIds) {
         const node = useSidebarStore.getState().nodes[id];
         if (!node) continue;
 
@@ -316,7 +309,7 @@ export function BodyForSidebar(props: IProps) {
         });
       });
 
-      expandedLoadedIds.forEach(id => {
+      expandedIds.forEach(id => {
         if (
           useSidebarStore.getState().nodes[id]?.resourceType === 'rss_folder'
         ) {
