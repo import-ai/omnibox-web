@@ -4,7 +4,7 @@ import type {
   AxiosRequestConfig,
   AxiosResponse,
 } from 'axios';
-import axios, { AxiosHeaders } from 'axios';
+import axios from 'axios';
 import i18next from 'i18next';
 import { isUndefined } from 'lodash-es';
 import { toast } from 'sonner';
@@ -19,8 +19,6 @@ export interface RequestConfig extends AxiosRequestConfig {
   // Suppress the global error toast only for these response error codes,
   // letting all other errors fall through to the global handler.
   muteCodes?: string[];
-  // Retry once without stored credentials when an expired token is optional.
-  retryWithoutAuth?: boolean;
 }
 
 const request: AxiosInstance = axios.create({
@@ -120,13 +118,6 @@ request.interceptors.response.use(
       toast.error(errorMessage, { position: 'bottom-right' });
     }
     if (errorCode === 'token_expired') {
-      if (config.retryWithoutAuth) {
-        removeGlobalCredential();
-        config.retryWithoutAuth = false;
-        config.headers = AxiosHeaders.from(config.headers);
-        config.headers.delete('Authorization');
-        return request(config);
-      }
       handleTokenError(true);
     } else if (errorCode === 'invalid_token') {
       handleTokenError(false);

@@ -15,6 +15,13 @@ export function isAuthStorageKey(key: string | null): boolean {
   return Boolean(key && AUTH_STORAGE_KEYS.has(key));
 }
 
+export function shouldSyncUserOptions(
+  uid: string | null,
+  shareId?: string
+): boolean {
+  return Boolean(uid && !shareId);
+}
+
 export function getAuthChangeRedirectPath(
   pathname: string,
   previousUid: string | null,
