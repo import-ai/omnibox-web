@@ -65,6 +65,7 @@ import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { fetchRssItem, renameResource } from '@/service/resource';
 
+import CloseCurrentResource from './CloseCurrentResource';
 import { copyContentToClipboard } from './copyContent';
 import MoveTo from './move';
 import ShareAction from './share';
@@ -763,6 +764,9 @@ export default function Actions(props: IActionProps) {
               )}
               <span>{t('actions.move_to')}</span>
             </DropdownMenuItem>
+          )}
+          {resource && !editPage && (
+            <CloseCurrentResource namespaceId={namespaceId} />
           )}
           {!isRssItemView && (
             <DropdownMenuItem

@@ -71,7 +71,7 @@ export default function Scrollbar(props: IProps) {
   }, [scrollToBottom, updateScrollToBottomVisible]);
 
   return (
-    <div className="relative flex shrink grow min-h-0">
+    <div className="relative flex min-h-0 min-w-0 shrink grow">
       {props.sideContent && (
         <div className="absolute left-3 top-[calc(50svh-3.5rem)] z-10 -translate-y-1/2">
           {props.sideContent}
@@ -79,7 +79,7 @@ export default function Scrollbar(props: IProps) {
       )}
       <div
         ref={rootRef}
-        className="flex shrink grow justify-center p-4 w-full min-h-0 overflow-y-auto [scrollbar-gutter:stable_both-edges]"
+        className="flex min-h-0 min-w-0 w-full shrink grow justify-center overflow-y-auto p-4 [scrollbar-gutter:stable_both-edges]"
       >
         <div
           ref={containerRef}

@@ -1,6 +1,7 @@
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
+import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
 
 import Actions, { IActionProps } from '../actions';
 import Breadcrumb from './BreadcrumbMain';
@@ -21,8 +22,11 @@ export default function Header(props: IActionProps) {
           })}
         />
       </div>
-      <div className="ml-auto pr-3">
+      <div className="ml-auto flex items-center gap-1 pr-3">
         <Actions {...props} />
+        {resource && (
+          <CopilotToggleButton hideWhenOpen namespaceId={namespaceId} />
+        )}
       </div>
     </header>
   );

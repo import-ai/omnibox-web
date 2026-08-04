@@ -9,9 +9,15 @@ import {
   BreadcrumbList,
 } from '@/components/ui/Breadcrumb';
 import useApp from '@/hooks/useApp';
+import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizardLang.ts';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
+import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
 
 import Actions from './Actions';
 import Title from './title';
@@ -28,6 +34,19 @@ export default function ChatHeader() {
   const conversationsPage = loc.pathname.endsWith('/chat/conversations');
   const homePage =
     loc.pathname.endsWith('/chat') && !conversationId && !conversationsPage;
+  const copilotWorkspace = useCopilotStore(state =>
+    getCopilotWorkspace(state, namespaceId)
+  );
+  const previewingCitation = Boolean(
+    conversationId && copilotWorkspace.previewResourceId
+  );
+  const actionConversationId = previewingCitation
+    ? copilotWorkspace.view === 'conversation'
+      ? (copilotWorkspace.conversationId ?? conversationId)
+      : ''
+    : conversationId;
+  const showCopilotHome = useCopilotStore(state => state.showHome);
+  const showCopilotHistory = useCopilotStore(state => state.showHistory);
 
   useEffect(() => {
     return app.on('chat:title:update', (val: string) => {
@@ -78,8 +97,12 @@ export default function ChatHeader() {
   return (
     <header className="rounded-2xl sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
       <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
-        <SidebarTriggerButton collapse />
-        {conversationId && (
+        {previewingCitation ? (
+          <CopilotToggleButton namespaceId={namespaceId} />
+        ) : (
+          <SidebarTriggerButton collapse />
+        )}
+        {conversationId && !previewingCitation && (
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -95,10 +118,24 @@ export default function ChatHeader() {
       </div>
       <div className="ml-auto pr-3">
         <Actions
+          compact={previewingCitation}
           homePage={homePage}
           chatTitle={chatTitle}
           namespaceId={namespaceId}
-          conversationId={conversationId}
+          onChatCreate={
+            previewingCitation
+              ? () => {
+                  resetChatForNamespaceSwitch(namespaceId);
+                  showCopilotHome(namespaceId);
+                }
+              : undefined
+          }
+          onChatHistory={
+            previewingCitation
+              ? () => showCopilotHistory(namespaceId)
+              : undefined
+          }
+          conversationId={actionConversationId}
           conversationsPage={conversationsPage}
         />
       </div>

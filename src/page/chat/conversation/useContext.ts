@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
@@ -13,6 +12,7 @@ import {
   ChatMode,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import {
   ask,
   extractOriginalMessageSettings,
@@ -42,12 +42,10 @@ const CHAT_CREATE_PAYLOAD_KEY = 'chat-create-payload';
 
 export default function useContext() {
   const app = useApp();
-  const params = useParams();
   const { i18n } = useTranslation();
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
   const regeneratingRef = useRef(false);
-  const namespaceId = params.namespace_id || '';
-  const conversationId = params.conversation_id || '';
+  const { conversationId, namespaceId } = useChatRouteParams();
   const [loading, setLoading] = useState<boolean>(false);
   const [waitingForAssistantDelta, setWaitingForAssistantDelta] =
     useState(false);
