@@ -73,7 +73,7 @@ export default function Scrollbar(props: IProps) {
   return (
     <div className="relative flex shrink grow min-h-0">
       {props.sideContent && (
-        <div className="absolute left-6 top-[calc(50svh-3.5rem)] z-10 -translate-y-1/2">
+        <div className="absolute left-3 top-[calc(50svh-3.5rem)] z-10 -translate-y-1/2">
           {props.sideContent}
         </div>
       )}
