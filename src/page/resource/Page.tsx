@@ -58,6 +58,7 @@ export default function Page(props: IProps) {
         namespaceId={namespaceId}
         resourceId={resource.id}
         itemId={rssItemId}
+        notifyItemLoaded
         onCopyContentChange={onRssItemCopyContentChange}
       />
     );
