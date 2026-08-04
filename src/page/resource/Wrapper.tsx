@@ -4,7 +4,7 @@ import AuthPage from '@/page/auth';
 
 import Page from './Page';
 
-export default function Wrapper(props: IUseResource) {
+export default function Wrapper(props: IUseResource & { wide: boolean }) {
   const {
     loading,
     forbidden,
@@ -13,6 +13,7 @@ export default function Wrapper(props: IUseResource) {
     editPage,
     onResource,
     namespaceId,
+    wide,
   } = props;
 
   if (loading) {
@@ -27,6 +28,7 @@ export default function Wrapper(props: IUseResource) {
           resource={resource}
           onResource={onResource}
           namespaceId={namespaceId}
+          wide={wide}
         />
       )}
     </AuthPage>

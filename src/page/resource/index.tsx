@@ -74,19 +74,24 @@ export default function ResourcePage() {
         ref={scrollContainerRef}
         className={cn(
           'no-scrollbar flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4',
-          // Pull TOC flush toward the app sidebar in Omnibox edit mode.
-          props.editPage && 'pl-2'
+          // Pull the Omnibox TOC flush toward the app sidebar.
+          useFullWidth && 'pl-2'
         )}
       >
         <div
           className={cn('flex min-w-0 w-full max-w-full flex-col', {
             'max-w-[680px]': !wide && !useFullWidth && (open || !large),
             'max-w-[800px]': !wide && !useFullWidth && (!open || large),
-            'max-w-7xl': wide,
           })}
-          style={!wide && useFullWidth ? { maxWidth: '100%' } : undefined}
+          style={
+            useFullWidth
+              ? { maxWidth: '100%' }
+              : wide
+                ? { maxWidth: '80rem' }
+                : undefined
+          }
         >
-          <Wrapper {...props} />
+          <Wrapper {...props} wide={wide} />
         </div>
       </div>
     </SidebarInset>

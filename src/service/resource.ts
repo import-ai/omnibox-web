@@ -13,6 +13,31 @@ export type RootResourcesResponse = Record<
   Resource & { children?: Resource[] }
 >;
 
+export type ResourceSortBy = 'updated_at' | 'created_at' | 'title' | 'manual';
+export type ResourceSortOrder = 'asc' | 'desc';
+
+export interface ResourceSortOptions {
+  sort_by: ResourceSortBy;
+  sort_order: ResourceSortOrder;
+}
+
+export interface ManualResourceOrder {
+  parent_id: string;
+  resource_ids: string[];
+}
+
+export interface UpdateManualSortPayload {
+  root_resource_id: string;
+  resource_id?: string;
+  target_parent_id?: string;
+  orders: ManualResourceOrder[];
+}
+
+export interface InitializeManualSortResponse {
+  initialized_at: string;
+  overwritten: boolean;
+}
+
 export interface CreatePayload {
   parentId: string;
   resourceType: ResourceType;
@@ -53,20 +78,24 @@ interface IndexedResourceSearchResult {
 
 export function fetchChildren(
   namespaceId: string,
-  id: string
+  id: string,
+  sort?: ResourceSortOptions,
+  config?: RequestConfig
 ): Promise<Resource[]> {
   return http.get<Resource[]>(
-    `/namespaces/${namespaceId}/resources/${id}/children`
+    `/namespaces/${namespaceId}/resources/${id}/children`,
+    sort ? { ...config, params: { ...config?.params, ...sort } } : config
   );
 }
 
 export function fetchRootResources(
   namespaceId: string,
-  config?: RequestConfig
+  config?: RequestConfig,
+  sort?: ResourceSortOptions
 ): Promise<RootResourcesResponse> {
   return http.get<RootResourcesResponse>(
     `/namespaces/${namespaceId}/root`,
-    config
+    sort ? { ...config, params: { ...config?.params, ...sort } } : config
   );
 }
 
@@ -155,6 +184,28 @@ export function moveResource(
 ) {
   return http.post(
     `/namespaces/${namespaceId}/resources/${dragId}/move/${dropId}`
+  );
+}
+
+export function initializeManualSort(
+  namespaceId: string,
+  rootResourceId: string,
+  sort: ResourceSortOptions,
+  overwrite = false
+) {
+  return http.post<InitializeManualSortResponse>(
+    `/namespaces/${namespaceId}/resources/${rootResourceId}/manual-sort`,
+    { ...sort, overwrite }
+  );
+}
+
+export function updateManualSort(
+  namespaceId: string,
+  payload: UpdateManualSortPayload
+) {
+  return http.put<void>(
+    `/namespaces/${namespaceId}/resources/manual-sort`,
+    payload
   );
 }
 

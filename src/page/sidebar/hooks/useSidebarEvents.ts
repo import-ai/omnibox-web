@@ -7,6 +7,7 @@ import useApp from '@/hooks/useApp';
 import { Resource, ResourceType } from '@/interface';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import { useSidebarStore } from '@/page/sidebar/store';
+import { getNodeResourceSort } from '@/page/sidebar/store/utils';
 import {
   fetchChildren,
   fetchResource,
@@ -149,11 +150,20 @@ export function useSidebarEvents(namespaceId: string) {
         content: resource.content,
         hasChildren: resource.has_children,
       });
+      const store = useSidebarStore.getState();
+      const parentId = resource.parent_id || store.nodes[resource.id]?.parentId;
+      if (parentId && store.nodes[parentId]?.resourceType !== 'smart_folder') {
+        await handleRefreshResourceChildren(parentId);
+      }
       refreshLoadedSmartFolders(namespaceId, app);
     };
 
     const handleRefreshResourceChildren = async (resourceId: string) => {
-      const children = await fetchChildren(namespaceId, resourceId);
+      const children = await fetchChildren(
+        namespaceId,
+        resourceId,
+        getNodeResourceSort(useSidebarStore.getState(), resourceId)
+      );
       useSidebarStore.getState().refreshChildren(resourceId, children);
     };
 

@@ -1,9 +1,13 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { TouchBackend } from 'react-dnd-touch-backend';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Toaster } from '@/components/ui/Toaster';
+import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
 import { track } from '@/lib/sendTrackEvent';
@@ -22,6 +26,7 @@ export default function Layout() {
   const namespaceId = params.namespace_id;
   const shareId = params.share_id;
   const [uid, setUid] = useState(localStorage.getItem('uid'));
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -179,9 +184,9 @@ export default function Layout() {
   }, [loc.search, uid, i18n]);
 
   return (
-    <>
+    <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
       <Toaster />
       <Outlet />
-    </>
+    </DndProvider>
   );
 }

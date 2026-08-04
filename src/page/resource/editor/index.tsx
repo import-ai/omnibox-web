@@ -36,6 +36,7 @@ import {
 } from '@/page/resource/editor/cache';
 import {
   OMNIBOX_EDITOR_CONTENT_WIDTH,
+  OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
   toolbar,
 } from '@/page/resource/editor/const';
 import {
@@ -54,6 +55,7 @@ interface IEditorProps {
   namespaceId: string;
   resource: Resource;
   onResource: (resource: Resource) => void;
+  wide: boolean;
 }
 
 interface UploadedFile {
@@ -117,7 +119,10 @@ function format(_files: File[], responseText: string): string {
 }
 
 function OmniboxResourceEditor(props: IEditorProps) {
-  const { resource, onResource, namespaceId } = props;
+  const { resource, onResource, namespaceId, wide } = props;
+  const editorContentWidth = wide
+    ? OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH
+    : OMNIBOX_EDITOR_CONTENT_WIDTH;
   const { i18n, t } = useTranslation();
   const markdownRef = useRef('');
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
@@ -329,7 +334,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
       className="resource-editable-page pb-[30vh]"
       style={
         {
-          '--resource-editor-content-width': `${OMNIBOX_EDITOR_CONTENT_WIDTH}px`,
+          '--resource-editor-content-width': `${editorContentWidth}px`,
         } as React.CSSProperties
       }
     >
@@ -351,7 +356,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
             locale={i18n.language}
             theme={theme.content}
             variant="embedded"
-            contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
+            contentWidth={editorContentWidth}
             showHeader={false}
             showToc={true}
             tocColors={{
@@ -371,7 +376,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
 }
 
 function VditorResourceEditor(props: IEditorProps) {
-  const { resource, onResource, namespaceId } = props;
+  const { resource, onResource, namespaceId, wide } = props;
   const { i18n } = useTranslation();
   const root = useRef<any>(null);
   const navigate = useNavigate();
@@ -514,7 +519,14 @@ function VditorResourceEditor(props: IEditorProps) {
   }, [vd, theme]);
 
   return (
-    <div className="mx-auto w-full max-w-[680px] pb-[30vh]">
+    <div
+      className="mx-auto w-full pb-[30vh]"
+      style={{
+        maxWidth: wide
+          ? OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH
+          : OMNIBOX_EDITOR_CONTENT_WIDTH,
+      }}
+    >
       <Input
         type="text"
         value={title}

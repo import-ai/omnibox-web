@@ -13,7 +13,10 @@ import { useSearchParams } from 'react-router-dom';
 import { Markdown } from '@/components/markdown';
 import useTheme from '@/hooks/useTheme';
 import { Resource, SharedResource } from '@/interface';
-import { OMNIBOX_EDITOR_CONTENT_WIDTH } from '@/page/resource/editor/const';
+import {
+  OMNIBOX_EDITOR_CONTENT_WIDTH,
+  OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
+} from '@/page/resource/editor/const';
 import {
   selectUseOmniboxEditor,
   useResourceStore,
@@ -29,6 +32,7 @@ interface IProps {
   resource: Resource | SharedResource;
   linkBase?: string;
   style?: React.CSSProperties;
+  wide?: boolean;
 }
 
 type ResourceOmniboxEditorProps = Omit<
@@ -140,7 +144,7 @@ function MarkdownRender(props: IProps) {
 }
 
 function OmniboxRender(props: IProps) {
-  const { resource, linkBase, style } = props;
+  const { resource, linkBase, style, wide = false } = props;
   const { i18n } = useTranslation();
   const { theme } = useTheme();
   const [searchParams] = useSearchParams();
@@ -221,7 +225,11 @@ function OmniboxRender(props: IProps) {
         locale={i18n.language}
         theme={theme.content}
         variant="embedded"
-        contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
+        contentWidth={
+          wide
+            ? OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH
+            : OMNIBOX_EDITOR_CONTENT_WIDTH
+        }
         showHeader={false}
         showToc={true}
       />

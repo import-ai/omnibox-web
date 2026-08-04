@@ -6,6 +6,7 @@ import {
   restoreResource,
 } from '@/service/resource';
 
+import { refreshSortedChildren } from '../refreshSortedChildren';
 import type { SidebarGet, SidebarSet } from '../types';
 import {
   collapseEmptyNode,
@@ -14,6 +15,8 @@ import {
   ensureUI,
   findNextActiveId,
   getDescendantIds,
+  getNodeResourceSort,
+  insertUnspecifiedChild,
   isDescendant,
   traverseDescendants,
 } from '../utils';
@@ -35,6 +38,8 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
       if (name?.trim()) payload.name = name.trim();
 
       const response = await createResource(get().namespaceId, payload);
+      const manualSort =
+        getNodeResourceSort(get(), parentId).sort_by === 'manual';
 
       set(s => {
         const node = createNode(response, parentId, parent.spaceType);
@@ -42,12 +47,16 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
 
         const p = s.nodes[parentId];
         if (p) {
-          p.children.unshift(node.id);
+          p.children = insertUnspecifiedChild(p.children, node.id, manualSort);
           p.hasChildren = true;
           const pui = ensureUI(s, parentId);
           pui.expanded = true;
         }
       });
+
+      if (!manualSort) {
+        await refreshSortedChildren(get, parentId);
+      }
 
       return response.id;
     },
@@ -89,12 +98,16 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
     },
 
     rename: async (id: string, name: string) => {
+      const parentId = get().nodes[id]?.parentId;
       await renameResource(get().namespaceId, id, name);
 
       set(s => {
         const node = s.nodes[id];
         if (node) node.name = name;
       });
+      if (parentId) {
+        await refreshSortedChildren(get, parentId);
+      }
     },
 
     move: async (dragId: string, dropId: string, localOnly?: boolean) => {
@@ -115,6 +128,8 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
         : false;
       const oldTargetChildren = [...(drop.children ?? [])];
       const oldTargetHasChildren = drop.hasChildren;
+      const manualSort =
+        get().resourceSorts[drop.spaceType].sort_by === 'manual';
 
       const oldDescendantSpaceTypes = new Map<string, SpaceType>();
       const oldDescendantExpanded = new Map<string, boolean>();
@@ -137,10 +152,11 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
         const newParent = s.nodes[dropId];
         if (!newParent) return;
         newParent.hasChildren = true;
-        newParent.children = [
+        newParent.children = insertUnspecifiedChild(
+          newParent.children,
           dragId,
-          ...newParent.children.filter(cid => cid !== dragId),
-        ];
+          manualSort
+        );
 
         const draftDrag = s.nodes[dragId];
         if (!draftDrag) return;
@@ -200,6 +216,13 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
 
         throw new Error('Move failed');
       }
+      if (!manualSort) {
+        await Promise.all(
+          [...new Set([oldParentId, dropId].filter(Boolean))].map(parentId =>
+            refreshSortedChildren(get, parentId as string)
+          )
+        );
+      }
     },
 
     restore: async (resourceOrId: string | Resource): Promise<string> => {
@@ -216,6 +239,7 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
           resource.path?.[0]?.id ?? ''
         ) ||
         'private';
+      const manualSort = get().resourceSorts[spaceType].sort_by === 'manual';
 
       set(s => {
         s.spaceExpanded[spaceType] = true;
@@ -228,7 +252,11 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
 
         const parent = parentId ? s.nodes[parentId] : null;
         if (parent && !parent.children.includes(node.id)) {
-          parent.children.unshift(node.id);
+          parent.children = insertUnspecifiedChild(
+            parent.children,
+            node.id,
+            manualSort
+          );
           parent.hasChildren = true;
           if (parentId) {
             const pui = ensureUI(s, parentId);
@@ -236,6 +264,10 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
           }
         }
       });
+
+      if (resource.parent_id && !manualSort) {
+        await refreshSortedChildren(get, resource.parent_id);
+      }
 
       get().activate(resource.id);
       return resource.id;

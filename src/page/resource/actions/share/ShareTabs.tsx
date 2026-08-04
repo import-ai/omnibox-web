@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { ResourceType } from '@/interface';
 
 import Invite from './permissions/InviteForm';
 import Table from './permissions/table';
@@ -9,10 +10,11 @@ import { ShareTabContent } from './share';
 
 export interface ShareTabsProps {
   showPermissions?: boolean;
+  resourceType: ResourceType;
 }
 
 export default function ShareTabs(props: ShareTabsProps) {
-  const { showPermissions } = props;
+  const { showPermissions, resourceType } = props;
   const { t } = useTranslation();
   const params = useParams();
   const resource_id = params.resource_id || '';
@@ -44,6 +46,7 @@ export default function ShareTabs(props: ShareTabsProps) {
         <ShareTabContent
           resource_id={resource_id}
           namespace_id={namespace_id}
+          resource_type={resourceType}
         />
       </TabsContent>
     </Tabs>

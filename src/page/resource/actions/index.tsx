@@ -646,7 +646,10 @@ export default function Actions(props: IActionProps) {
           }
           // spaceType={resource.space_type}
         >
-          <ShareAction spaceType={resource.space_type} />
+          <ShareAction
+            spaceType={resource.space_type}
+            resourceType={resource.resource_type}
+          />
         </PermissionWrapper>
       )}
       {resource && !isRssItemView && (

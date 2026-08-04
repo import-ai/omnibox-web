@@ -9,23 +9,27 @@ import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
 import {
   parseShareInfo,
+  ResourceType,
   ShareInfo,
   ShareType,
   UpdateShareInfoReq,
 } from '@/interface';
 import { http } from '@/lib/request';
+import type { ResourceSortOptions } from '@/service/resource';
 
 import { Expire } from './Expire';
 import { Password } from './Password';
+import { ShareSortSelector } from './ShareSortSelector';
 import { ShareTypeSelector } from './ShareTypeSelector';
 
 interface ShareTabContentProps {
   resource_id: string;
   namespace_id: string;
+  resource_type: ResourceType;
 }
 
 export function ShareTabContent(props: ShareTabContentProps) {
-  const { resource_id, namespace_id } = props;
+  const { resource_id, namespace_id, resource_type } = props;
   const { t } = useTranslation();
   const [shareInfo, setShareInfo] = useState<ShareInfo | null>(null);
 
@@ -64,6 +68,10 @@ export function ShareTabContent(props: ShareTabContentProps) {
     updateShareInfo({ all_resources: !onlyCurrent });
   };
 
+  const handleSortChange = (sort: ResourceSortOptions) => {
+    updateShareInfo(sort);
+  };
+
   const handleCopy = async () => {
     if (shareUrl) {
       try {
@@ -90,6 +98,10 @@ export function ShareTabContent(props: ShareTabContentProps) {
   const handlePasswordChange = (password: string | null) => {
     updateShareInfo({ password });
   };
+
+  const isFolder = ['folder', 'smart_folder', 'rss_folder'].includes(
+    resource_type
+  );
 
   return (
     <div className="pb-2">
@@ -124,8 +136,23 @@ export function ShareTabContent(props: ShareTabContentProps) {
             </span>
             <Switch
               checked={!(shareInfo?.all_resources ?? false)}
-              disabled={!shareInfo?.enabled}
+              disabled={!shareInfo?.enabled || isFolder}
               onCheckedChange={handleOnlyCurrent}
+            />
+          </div>
+          <div className="flex items-center gap-2 justify-between mt-4 h-6">
+            <span className="text-sm flex items-center gap-1">
+              {t('share.share.sort.label')}
+              <HelpTooltip content={t('share.share.sort.tooltip')} />
+            </span>
+            <ShareSortSelector
+              disabled={!shareInfo.enabled || !shareInfo.all_resources}
+              manualSortAvailable={shareInfo.manual_sort_available}
+              sort={{
+                sort_by: shareInfo.sort_by,
+                sort_order: shareInfo.sort_order,
+              }}
+              onChange={handleSortChange}
             />
           </div>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">

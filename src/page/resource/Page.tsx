@@ -5,6 +5,7 @@ import Attributes from '@/components/attributes';
 import { Resource } from '@/interface';
 import { cn } from '@/lib/utils';
 import Editor from '@/page/resource/editor';
+import { OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH } from '@/page/resource/editor/const';
 import Folder from '@/page/resource/folder';
 import Render from '@/page/resource/Render';
 import {
@@ -18,11 +19,12 @@ interface IProps {
   editPage: boolean;
   resource: Resource;
   namespaceId: string;
+  wide: boolean;
   onResource: (resource: Resource) => void;
 }
 
 export default function Page(props: IProps) {
-  const { editPage, resource, onResource, namespaceId } = props;
+  const { editPage, resource, onResource, namespaceId, wide } = props;
   const { t } = useTranslation();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const constrainHeader =
@@ -30,6 +32,9 @@ export default function Page(props: IProps) {
     resource.resource_type !== 'folder' &&
     resource.resource_type !== 'smart_folder' &&
     resource.resource_type !== 'rss_folder';
+  const constrainFolderContent =
+    resource.resource_type === 'folder' ||
+    resource.resource_type === 'smart_folder';
   const { rss_item_id: rssItemId } = useParams();
 
   if (editPage) {
@@ -38,6 +43,7 @@ export default function Page(props: IProps) {
         resource={resource}
         onResource={onResource}
         namespaceId={namespaceId}
+        wide={wide}
       />
     );
   }
@@ -53,8 +59,20 @@ export default function Page(props: IProps) {
   }
 
   return (
-    <div data-resource-export-content="true">
-      <div className={cn(constrainHeader && 'resource-readonly-page-header')}>
+    <div
+      data-resource-export-content="true"
+      className={cn(
+        constrainFolderContent && !wide && 'mx-auto w-full max-w-[680px]'
+      )}
+    >
+      <div
+        className={cn(constrainHeader && 'resource-readonly-page-header')}
+        style={
+          constrainHeader && wide
+            ? { maxWidth: OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH }
+            : undefined
+        }
+      >
         <h1 className="mb-4 min-w-0 max-w-full break-all text-[34px] font-bold">
           {resource.name || t('untitled')}
         </h1>
@@ -92,6 +110,7 @@ export default function Page(props: IProps) {
           resource={resource}
           linkBase={`/${namespaceId}/${resource.id}`}
           style={{ overflow: 'inherit' }}
+          wide={wide}
         />
       )}
     </div>

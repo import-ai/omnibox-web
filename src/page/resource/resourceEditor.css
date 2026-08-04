@@ -78,6 +78,11 @@
   pointer-events: auto !important;
 }
 
+.resource-readonly-editor .toc-sidebar {
+  padding-top: 1rem;
+  box-sizing: border-box;
+}
+
 @media (max-width: 768px) {
   .resource-editable-page {
     padding-left: 0;
