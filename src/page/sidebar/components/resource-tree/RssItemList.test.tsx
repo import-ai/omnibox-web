@@ -4,14 +4,14 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
-import { fetchRssItems } from '@/service/resource';
+import { fetchRssItem, fetchRssItems } from '@/service/resource';
 
 import RssItemList from './RssItemList';
 
 const navigate = jest.fn();
 const mockRouterState = {
   location: { state: undefined as { fromSidebar?: boolean } | undefined },
-  params: {} as { rss_item_id?: string },
+  params: {} as { resource_id?: string; rss_item_id?: string },
 };
 
 jest.mock('react-i18next', () => ({
@@ -44,9 +44,11 @@ jest.mock('@/hooks/useApp', () => ({
   default: () => ({ on: () => jest.fn() }),
 }));
 jest.mock('@/service/resource', () => ({
+  fetchRssItem: jest.fn(),
   fetchRssItems: jest.fn(),
 }));
 
+const mockedFetchRssItem = jest.mocked(fetchRssItem);
 const mockedFetchRssItems = jest.mocked(fetchRssItems);
 
 (
@@ -113,7 +115,10 @@ describe('RssItemList', () => {
   });
 
   it('scrolls the active item into view after a direct page load', async () => {
-    mockRouterState.params = { rss_item_id: 'item-1' };
+    mockRouterState.params = {
+      resource_id: 'folder-1',
+      rss_item_id: 'item-1',
+    };
 
     await act(async () => {
       root.render(
@@ -129,7 +134,10 @@ describe('RssItemList', () => {
 
   it('does not scroll when the item was opened from the sidebar', async () => {
     mockRouterState.location = { state: { fromSidebar: true } };
-    mockRouterState.params = { rss_item_id: 'item-1' };
+    mockRouterState.params = {
+      resource_id: 'folder-1',
+      rss_item_id: 'item-1',
+    };
 
     await act(async () => {
       root.render(
@@ -145,5 +153,58 @@ describe('RssItemList', () => {
     });
 
     expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it('loads and scrolls to an active item outside the initial list', async () => {
+    mockRouterState.params = {
+      resource_id: 'folder-1',
+      rss_item_id: 'item-51',
+    };
+    mockedFetchRssItem.mockResolvedValue({
+      id: 'item-51',
+      link_id: 'link-1',
+      link_name: 'Example',
+      title: 'Older article',
+      url: 'https://example.com/older-article',
+      summary: null,
+      published_at: null,
+      created_at: '2026-08-03T00:00:00Z',
+      parsed_content: null,
+    });
+
+    await act(async () => {
+      root.render(
+        <RssItemList folderId="folder-1" namespaceId="namespace-1" depth={1} />
+      );
+    });
+
+    expect(mockedFetchRssItem).toHaveBeenCalledWith(
+      'namespace-1',
+      'folder-1',
+      'item-51',
+      expect.any(AbortSignal)
+    );
+    expect(
+      container.querySelector('[data-rss-item-id="item-51"]')
+    ).not.toBeNull();
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  });
+
+  it('does not load an active item for another rss folder', async () => {
+    mockRouterState.params = {
+      resource_id: 'folder-2',
+      rss_item_id: 'item-51',
+    };
+
+    await act(async () => {
+      root.render(
+        <RssItemList folderId="folder-1" namespaceId="namespace-1" depth={1} />
+      );
+    });
+
+    expect(mockedFetchRssItem).not.toHaveBeenCalled();
   });
 });

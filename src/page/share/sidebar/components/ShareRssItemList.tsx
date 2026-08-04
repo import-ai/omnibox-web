@@ -9,7 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { RssItem } from '@/interface';
 import { cn } from '@/lib/utils';
 import { useRssItemAutoScroll } from '@/page/sidebar/hooks/useRssItemAutoScroll';
-import { fetchShareRssItems } from '@/service/share';
+import { fetchShareRssItem, fetchShareRssItems } from '@/service/share';
 
 interface IProps {
   folderId: string;
@@ -21,12 +21,23 @@ interface IProps {
 export default function ShareRssItemList({ folderId, shareId }: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { rss_item_id: activeItemId } = useParams();
+  const { resource_id: activeFolderId, rss_item_id: activeItemId } =
+    useParams();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<RssItem[]>([]);
+  const [activeItemFallback, setActiveItemFallback] = useState<RssItem | null>(
+    null
+  );
+  const activeItemInList = items.some(item => item.id === activeItemId);
+  const displayedItems =
+    activeItemFallback !== null &&
+    activeItemFallback.id === activeItemId &&
+    !activeItemInList
+      ? [...items, activeItemFallback]
+      : items;
   useRssItemAutoScroll(
     activeItemId,
-    items.some(item => item.id === activeItemId)
+    displayedItems.some(item => item.id === activeItemId)
   );
   // Align item rows with leaf resource nodes in the shared sidebar.
   const paddingLeft = 28;
@@ -50,6 +61,36 @@ export default function ShareRssItemList({ folderId, shareId }: IProps) {
     return () => controller.abort();
   }, [reload]);
 
+  useEffect(() => {
+    if (
+      loading ||
+      !activeItemId ||
+      activeFolderId !== folderId ||
+      activeItemInList
+    ) {
+      setActiveItemFallback(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    setActiveItemFallback(null);
+    fetchShareRssItem(shareId, folderId, activeItemId, controller.signal)
+      .then(item => {
+        if (!controller.signal.aborted) setActiveItemFallback(item);
+      })
+      .catch(() => {
+        // The detail view handles invalid or inaccessible item errors.
+      });
+    return () => controller.abort();
+  }, [
+    activeFolderId,
+    activeItemId,
+    activeItemInList,
+    folderId,
+    loading,
+    shareId,
+  ]);
+
   if (loading) {
     return (
       <SidebarMenuItem>
@@ -63,7 +104,7 @@ export default function ShareRssItemList({ folderId, shareId }: IProps) {
     );
   }
 
-  if (items.length === 0) {
+  if (displayedItems.length === 0) {
     return (
       <SidebarMenuItem>
         <div
@@ -78,7 +119,7 @@ export default function ShareRssItemList({ folderId, shareId }: IProps) {
 
   return (
     <>
-      {items.map(item => {
+      {displayedItems.map(item => {
         const title = item.title || t('untitled');
         return (
           <SidebarMenuItem key={item.id}>
