@@ -56,6 +56,14 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
     });
   }, [app, folderId, reload]);
 
+  useEffect(() => {
+    return app.on('refresh_rss_items', (refreshedFolderId: string) => {
+      if (refreshedFolderId === folderId) {
+        reload();
+      }
+    });
+  }, [app, folderId, reload]);
+
   if (loading) {
     return (
       <SidebarMenuItem>
