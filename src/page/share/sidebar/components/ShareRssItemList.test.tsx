@@ -9,13 +9,18 @@ import { fetchShareRssItems } from '@/service/share';
 import ShareRssItemList from './ShareRssItemList';
 
 const navigate = jest.fn();
+const mockRouterState = {
+  location: { state: undefined as { fromSidebar?: boolean } | undefined },
+  params: {} as { rss_item_id?: string },
+};
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 jest.mock('react-router-dom', () => ({
+  useLocation: () => mockRouterState.location,
   useNavigate: () => navigate,
-  useParams: () => ({}),
+  useParams: () => mockRouterState.params,
 }));
 jest.mock('@/components/ResourceTypeIcon', () => () => null);
 jest.mock('@/components/tooltip', () => ({
@@ -47,11 +52,25 @@ const mockedFetchShareRssItems = jest.mocked(fetchShareRssItems);
 describe('ShareRssItemList', () => {
   let container: HTMLDivElement;
   let root: Root;
+  let scrollIntoView: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouterState.location = { state: undefined };
+    mockRouterState.params = {};
     container = document.createElement('div');
+    document.body.appendChild(container);
     root = createRoot(container);
+    scrollIntoView = jest.fn();
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      callback(0);
+      return 1;
+    });
+    jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
     mockedFetchShareRssItems.mockResolvedValue([
       {
         id: 'item-1',
@@ -68,6 +87,8 @@ describe('ShareRssItemList', () => {
 
   afterEach(async () => {
     await act(async () => root.unmount());
+    container.remove();
+    jest.restoreAllMocks();
   });
 
   it('marks item navigation as originating from the sidebar', async () => {
@@ -83,5 +104,34 @@ describe('ShareRssItemList', () => {
       '/s/share-1/folder-1/rss-items/item-1',
       { state: { fromSidebar: true } }
     );
+  });
+
+  it('scrolls the active item into view after a direct page load', async () => {
+    mockRouterState.params = { rss_item_id: 'item-1' };
+
+    await act(async () => {
+      root.render(<ShareRssItemList folderId="folder-1" shareId="share-1" />);
+    });
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  });
+
+  it('does not scroll when the item was opened from the sidebar', async () => {
+    mockRouterState.location = { state: { fromSidebar: true } };
+    mockRouterState.params = { rss_item_id: 'item-1' };
+
+    await act(async () => {
+      root.render(<ShareRssItemList folderId="folder-1" shareId="share-1" />);
+    });
+
+    mockRouterState.location = { state: undefined };
+    await act(async () => {
+      root.render(<ShareRssItemList folderId="folder-1" shareId="share-1" />);
+    });
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
   });
 });

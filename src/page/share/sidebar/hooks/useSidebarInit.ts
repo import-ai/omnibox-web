@@ -17,10 +17,12 @@ export function useSidebarInit(props: IProps) {
   const { shareId, rootResource, currentResourceId, canBrowseResources } =
     props;
   const navigate = useNavigate();
+  const location = useLocation();
   // Auto-navigate to first resource when no resourceId and not on chat page
   const hasAutoNavigatedRef = useRef(false);
   const autoExpandedAllKeyRef = useRef<string | null>(null);
-  const chatPage = useLocation().pathname.includes('/chat');
+  const chatPage = location.pathname.includes('/chat');
+  const rssItemPage = location.pathname.includes('/rss-items/');
 
   // Derive initialization state from rootIds.
   // setNamespaceId() clears rootIds when namespace switches, so this is reliable.
@@ -63,8 +65,6 @@ export function useSidebarInit(props: IProps) {
       } as unknown as Resource & { children: Resource[] },
     });
   }, [canBrowseResources, rootResource, shareId]);
-
-  const location = useLocation();
 
   // Auto-expand path when resourceId changes (only after roots are loaded)
   useEffect(() => {
@@ -131,7 +131,7 @@ export function useSidebarInit(props: IProps) {
     const scrollTargetId = persistedActiveKey ?? currentResourceId;
 
     store.expandPathTo(expandId, { expandTarget }).then(() => {
-      if (cancelled) return;
+      if (cancelled || rssItemPage) return;
       requestAnimationFrame(() => {
         if (cancelled) return;
         const element = document.querySelector(

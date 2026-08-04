@@ -8,6 +8,7 @@ import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/Sidebar';
 import { Spinner } from '@/components/ui/Spinner';
 import { RssItem } from '@/interface';
 import { cn } from '@/lib/utils';
+import { useRssItemAutoScroll } from '@/page/sidebar/hooks/useRssItemAutoScroll';
 import { fetchShareRssItems } from '@/service/share';
 
 interface IProps {
@@ -23,6 +24,10 @@ export default function ShareRssItemList({ folderId, shareId }: IProps) {
   const { rss_item_id: activeItemId } = useParams();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<RssItem[]>([]);
+  useRssItemAutoScroll(
+    activeItemId,
+    items.some(item => item.id === activeItemId)
+  );
   // Align item rows with leaf resource nodes in the shared sidebar.
   const paddingLeft = 28;
 
@@ -97,6 +102,7 @@ export default function ShareRssItemList({ folderId, shareId }: IProps) {
                     }
                   >
                     <div
+                      data-rss-item-id={item.id}
                       className="list flex cursor-pointer"
                       style={{ paddingLeft }}
                     >

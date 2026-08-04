@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { Resource, RssItem } from '@/interface';
 import { cn } from '@/lib/utils';
+import { useRssItemAutoScroll } from '@/page/sidebar/hooks/useRssItemAutoScroll';
 import { fetchRssItems } from '@/service/resource';
 
 interface IProps {
@@ -24,6 +25,10 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
   const { rss_item_id: activeItemId } = useParams();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<RssItem[]>([]);
+  useRssItemAutoScroll(
+    activeItemId,
+    items.some(item => item.id === activeItemId)
+  );
   // Match the indent of a leaf resource node at this depth.
   const paddingLeft = depth * 20 + 28;
 
@@ -108,6 +113,7 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
                     }
                   >
                     <div
+                      data-rss-item-id={item.id}
                       className="list flex cursor-pointer"
                       style={{ paddingLeft }}
                     >
