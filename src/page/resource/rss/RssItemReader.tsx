@@ -13,6 +13,7 @@ interface IProps {
   namespaceId: string;
   resourceId: string;
   itemId: string;
+  notifyItemLoaded?: boolean;
   // Lets the shared view supply a share-scoped fetch; defaults to the
   // authenticated namespace endpoint.
   fetchItem?: (signal?: AbortSignal) => Promise<RssItemDetail>;
@@ -22,6 +23,7 @@ export default function RssItemReader({
   namespaceId,
   resourceId,
   itemId,
+  notifyItemLoaded = false,
   fetchItem,
 }: IProps) {
   const { t } = useTranslation();
@@ -49,7 +51,12 @@ export default function RssItemReader({
       .then(result => {
         if (active) {
           setItem(result);
-          app.fire('rss_item_loaded', result);
+          if (notifyItemLoaded) {
+            app.fire('rss_item_loaded', {
+              id: result.id,
+              title: result.title,
+            });
+          }
         }
       })
       .catch(error => {
@@ -66,7 +73,7 @@ export default function RssItemReader({
       active = false;
       controller.abort();
     };
-  }, [app, itemId, namespaceId, resourceId, fetchItem]);
+  }, [app, itemId, namespaceId, resourceId, notifyItemLoaded, fetchItem]);
 
   if (loading) {
     return <Loading />;

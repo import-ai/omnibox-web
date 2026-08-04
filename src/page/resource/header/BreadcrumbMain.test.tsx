@@ -3,15 +3,14 @@
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
-import type { RssItemDetail } from '@/interface';
-
 import BreadcrumbMain from './BreadcrumbMain';
 
 const navigate = jest.fn();
 const unsubscribe = jest.fn();
-let onRssItemLoaded: ((item: RssItemDetail) => void) | undefined;
+type RssItemBreadcrumb = { id: string; title: string };
+let onRssItemLoaded: ((item: RssItemBreadcrumb) => void) | undefined;
 const mockApp = {
-  on: (event: string, callback: (item: RssItemDetail) => void) => {
+  on: (event: string, callback: (item: RssItemBreadcrumb) => void) => {
     if (event === 'rss_item_loaded') {
       onRssItemLoaded = callback;
     }
@@ -87,7 +86,7 @@ describe('BreadcrumbMain', () => {
     navigate.mockClear();
 
     await act(async () => {
-      onRssItemLoaded?.({ id: 'item-1', title: 'Article' } as RssItemDetail);
+      onRssItemLoaded?.({ id: 'item-1', title: 'Article' });
     });
 
     expect(container.textContent).toContain('RSS Folder');

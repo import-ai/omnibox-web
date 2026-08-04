@@ -29,16 +29,18 @@ interface IProps {
   path?: PathItem[];
 }
 
+type RssItemBreadcrumb = Pick<RssItemDetail, 'id' | 'title'>;
+
 export default function BreadcrumbMain(props: IProps) {
   const { className, namespaceId, path = [] } = props;
   const app = useApp();
   const navigate = useNavigate();
   const { rss_item_id: rssItemId } = useParams();
   const { t } = useTranslation();
-  const [rssItem, setRssItem] = useState<RssItemDetail | null>(null);
+  const [rssItem, setRssItem] = useState<RssItemBreadcrumb | null>(null);
 
   useEffect(() => {
-    return app.on('rss_item_loaded', (item: RssItemDetail) => {
+    return app.on('rss_item_loaded', (item: RssItemBreadcrumb) => {
       if (item.id === rssItemId) {
         setRssItem(item);
       }

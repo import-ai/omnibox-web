@@ -58,6 +58,7 @@ describe('RssItemReader', () => {
           namespaceId="namespace-1"
           resourceId="folder-1"
           itemId="item-1"
+          notifyItemLoaded
         />
       );
     });
@@ -80,10 +81,10 @@ describe('RssItemReader', () => {
 
     expect(container.textContent).toContain('Article');
     expect(container.textContent).toContain('# Parsed article');
-    expect(fire).toHaveBeenCalledWith(
-      'rss_item_loaded',
-      expect.objectContaining({ id: 'item-1', title: 'Article' })
-    );
+    expect(fire).toHaveBeenCalledWith('rss_item_loaded', {
+      id: 'item-1',
+      title: 'Article',
+    });
     const sourceLink = container.querySelector(
       'a[href="https://example.com/article"]'
     );
@@ -135,6 +136,26 @@ describe('RssItemReader', () => {
       parsed_content: `# ${title}`,
     };
   }
+
+  it('does not publish an item event for a shared fetch by default', async () => {
+    const fetchItem = jest
+      .fn()
+      .mockResolvedValue(itemFixture('item-1', 'Shared Article'));
+
+    await act(async () => {
+      root.render(
+        <RssItemReader
+          namespaceId="share-1"
+          resourceId="folder-1"
+          itemId="item-1"
+          fetchItem={fetchItem}
+        />
+      );
+    });
+
+    expect(container.textContent).toContain('Shared Article');
+    expect(fire).not.toHaveBeenCalled();
+  });
 
   async function renderItem(itemId: string) {
     await act(async () => {
