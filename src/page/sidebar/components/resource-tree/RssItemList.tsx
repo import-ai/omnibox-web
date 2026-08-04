@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -26,6 +26,7 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
     useParams();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<RssItem[]>([]);
+  const requestControllerRef = useRef<AbortController | null>(null);
   const [activeItemFallback, setActiveItemFallback] = useState<RssItem | null>(
     null
   );
@@ -43,23 +44,38 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
   // Match the indent of a leaf resource node at this depth.
   const paddingLeft = depth * 20 + 28;
 
-  const reload = useCallback(
-    (signal?: AbortSignal) => {
-      setLoading(true);
-      return fetchRssItems(namespaceId, folderId, { limit: 50, signal })
-        .then((res: RssItem[]) => setItems(res))
-        .catch(() => {
-          // Cancelled or failed; leave the list empty.
-        })
-        .finally(() => setLoading(false));
-    },
-    [namespaceId, folderId]
-  );
+  const reload = useCallback(() => {
+    requestControllerRef.current?.abort();
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
+    setLoading(true);
+    return fetchRssItems(namespaceId, folderId, {
+      limit: 50,
+      signal: controller.signal,
+    })
+      .then((res: RssItem[]) => {
+        if (requestControllerRef.current === controller) {
+          setItems(res);
+        }
+      })
+      .catch(() => {
+        // request.ts handles backend error toasts.
+      })
+      .finally(() => {
+        if (requestControllerRef.current === controller) {
+          requestControllerRef.current = null;
+          setLoading(false);
+        }
+      });
+  }, [namespaceId, folderId]);
 
   useEffect(() => {
-    const controller = new AbortController();
-    reload(controller.signal);
-    return () => controller.abort();
+    reload();
+    return () => {
+      const controller = requestControllerRef.current;
+      requestControllerRef.current = null;
+      controller?.abort();
+    };
   }, [reload]);
 
   useEffect(() => {
@@ -97,6 +113,14 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
   useEffect(() => {
     return app.on('update_resource', (delta: Resource) => {
       if (delta.id === folderId) {
+        reload();
+      }
+    });
+  }, [app, folderId, reload]);
+
+  useEffect(() => {
+    return app.on('refresh_rss_items', (refreshedFolderId: string) => {
+      if (refreshedFolderId === folderId) {
         reload();
       }
     });
