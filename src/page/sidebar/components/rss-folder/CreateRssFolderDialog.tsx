@@ -24,6 +24,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
     t,
     namespaceId,
     inputRef,
+    linkListRef,
     name,
     rows,
     nameError,
@@ -117,7 +118,10 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
             )}
           </div>
 
-          <div className="no-scrollbar max-h-72 space-y-4 overflow-y-auto">
+          <div
+            ref={linkListRef}
+            className="no-scrollbar max-h-72 space-y-4 overflow-y-auto sm:max-h-[300px]"
+          >
             {rows.map((row, index) => (
               <div key={index}>
                 {index > 0 && (
