@@ -20,6 +20,10 @@ export default function ResourcePage() {
   const props = useResource();
   const { open } = useSidebar();
   const [large, onLarge] = useState(window.innerWidth > 1500);
+  const [rssItemCopyContent, setRssItemCopyContent] = useState<{
+    itemId: string;
+    content: string | null | undefined;
+  }>();
   const app = useApp();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
@@ -68,7 +72,12 @@ export default function ResourcePage() {
 
   return (
     <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)] min-w-0 overflow-hidden">
-      <Header {...props} wide={wide} onWide={onWide} />
+      <Header
+        {...props}
+        wide={wide}
+        onWide={onWide}
+        rssItemCopyContent={rssItemCopyContent}
+      />
       <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
       <div
         ref={scrollContainerRef}
@@ -91,7 +100,10 @@ export default function ResourcePage() {
                 : undefined
           }
         >
-          <Wrapper {...props} wide={wide} />
+          <Wrapper
+            {...props}
+            onRssItemCopyContentChange={setRssItemCopyContent}
+          />
         </div>
       </div>
     </SidebarInset>

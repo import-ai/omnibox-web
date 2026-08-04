@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -18,23 +18,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
-import { PathItem } from '@/interface';
+import { PathItem, RssItemBreadcrumb } from '@/interface';
 import { cn } from '@/lib/utils';
 
 interface IProps {
   className?: string;
   path?: PathItem[];
+  fallbackId?: string;
   fallbackName?: string;
+  loadedItem?: RssItemBreadcrumb | null;
 }
 
 export default function ShareBreadcrumb(props: IProps) {
-  const { className, path = [], fallbackName } = props;
+  const { className, path = [], fallbackId, fallbackName, loadedItem } = props;
   const navigate = useNavigate();
   const params = useParams();
   const { t } = useTranslation();
   const shareId = params.share_id;
+  const rssItemId = params.rss_item_id;
 
-  const data = path;
+  const basePath =
+    path.length > 0 || !fallbackId
+      ? path
+      : [{ id: fallbackId, name: fallbackName || '' }];
+  const hasLoadedRssItem = Boolean(rssItemId && loadedItem?.id === rssItemId);
+  const data = hasLoadedRssItem
+    ? [...basePath, { id: loadedItem.id, name: loadedItem.title || '' }]
+    : basePath;
 
   if (data.length <= 0) {
     return (
@@ -62,7 +72,7 @@ export default function ShareBreadcrumb(props: IProps) {
           {data.map((item, index) => (
             <React.Fragment key={item.id}>
               {index > 0 && <BreadcrumbSeparator />}
-              {index >= size ? (
+              {index >= size && (!rssItemId || hasLoadedRssItem) ? (
                 <BreadcrumbItem>
                   <BreadcrumbPage
                     title={item.name || t('untitled')}
@@ -137,14 +147,30 @@ export default function ShareBreadcrumb(props: IProps) {
           </DropdownMenu>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage
-            title={currentItem.name || t('untitled')}
-            className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
-          >
-            {currentItem.name || t('untitled')}
-          </BreadcrumbPage>
-        </BreadcrumbItem>
+        {rssItemId && !hasLoadedRssItem ? (
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Button
+                variant="ghost"
+                className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+                onClick={() => {
+                  navigate(`/s/${shareId}/${currentItem.id}`);
+                }}
+              >
+                {currentItem.name || t('untitled')}
+              </Button>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        ) : (
+          <BreadcrumbItem>
+            <BreadcrumbPage
+              title={currentItem.name || t('untitled')}
+              className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+            >
+              {currentItem.name || t('untitled')}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        )}
       </BreadcrumbList>
     </Breadcrumb>
   );

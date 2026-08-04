@@ -9,6 +9,9 @@ import { fetchRssItem } from '@/service/resource';
 
 import RssItemReader from './RssItemReader';
 
+const fire = jest.fn();
+const mockApp = { fire };
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
@@ -19,6 +22,10 @@ jest.mock('@/components/markdown', () => ({
   Markdown: ({ content }: { content: string }) => (
     <div data-testid="markdown">{content}</div>
   ),
+}));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => mockApp,
 }));
 jest.mock('@/service/resource', () => ({
   fetchRssItem: jest.fn(),
@@ -44,19 +51,22 @@ describe('RssItemReader', () => {
     await act(async () => root.unmount());
   });
 
-  async function renderReader() {
+  async function renderReader(onCopyContentChange?: jest.Mock) {
     await act(async () => {
       root.render(
         <RssItemReader
           namespaceId="namespace-1"
           resourceId="folder-1"
           itemId="item-1"
+          notifyItemLoaded
+          onCopyContentChange={onCopyContentChange}
         />
       );
     });
   }
 
   it('renders parsed Markdown and keeps an original-source action', async () => {
+    const onCopyContentChange = jest.fn();
     mockedFetchRssItem.mockResolvedValue({
       id: 'item-1',
       link_id: 'link-1',
@@ -69,10 +79,22 @@ describe('RssItemReader', () => {
       parsed_content: '# Parsed article',
     });
 
-    await renderReader();
+    await renderReader(onCopyContentChange);
 
     expect(container.textContent).toContain('Article');
     expect(container.textContent).toContain('# Parsed article');
+    expect(fire).toHaveBeenCalledWith('rss_item_loaded', {
+      id: 'item-1',
+      title: 'Article',
+    });
+    expect(onCopyContentChange).toHaveBeenNthCalledWith(1, {
+      itemId: 'item-1',
+      content: undefined,
+    });
+    expect(onCopyContentChange).toHaveBeenLastCalledWith({
+      itemId: 'item-1',
+      content: '# Parsed article',
+    });
     const sourceLink = container.querySelector(
       'a[href="https://example.com/article"]'
     );
@@ -124,6 +146,32 @@ describe('RssItemReader', () => {
       parsed_content: `# ${title}`,
     };
   }
+
+  it('does not publish an item event for a shared fetch by default', async () => {
+    const fetchItem = jest
+      .fn()
+      .mockResolvedValue(itemFixture('item-1', 'Shared Article'));
+    const onItemLoaded = jest.fn();
+
+    await act(async () => {
+      root.render(
+        <RssItemReader
+          namespaceId="share-1"
+          resourceId="folder-1"
+          itemId="item-1"
+          fetchItem={fetchItem}
+          onItemLoaded={onItemLoaded}
+        />
+      );
+    });
+
+    expect(container.textContent).toContain('Shared Article');
+    expect(fire).not.toHaveBeenCalled();
+    expect(onItemLoaded).toHaveBeenCalledWith({
+      id: 'item-1',
+      title: 'Shared Article',
+    });
+  });
 
   async function renderItem(itemId: string) {
     await act(async () => {
