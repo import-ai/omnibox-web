@@ -14,6 +14,10 @@ interface IProps {
   resourceId: string;
   itemId: string;
   notifyItemLoaded?: boolean;
+  onCopyContentChange?: (value: {
+    itemId: string;
+    content: string | null | undefined;
+  }) => void;
   // Lets the shared view supply a share-scoped fetch; defaults to the
   // authenticated namespace endpoint.
   fetchItem?: (signal?: AbortSignal) => Promise<RssItemDetail>;
@@ -25,6 +29,7 @@ export default function RssItemReader({
   itemId,
   notifyItemLoaded = false,
   fetchItem,
+  onCopyContentChange,
 }: IProps) {
   const { t } = useTranslation();
   const app = useApp();
@@ -41,6 +46,7 @@ export default function RssItemReader({
     let active = true;
     setLoading(true);
     setNotFound(false);
+    onCopyContentChange?.({ itemId, content: undefined });
     // Drop the previous article immediately so a slow or failing new request can
     // never render stale content underneath the loading state.
     setItem(null);
@@ -57,6 +63,10 @@ export default function RssItemReader({
               title: result.title,
             });
           }
+          onCopyContentChange?.({
+            itemId,
+            content: result.parsed_content,
+          });
         }
       })
       .catch(error => {
@@ -73,7 +83,15 @@ export default function RssItemReader({
       active = false;
       controller.abort();
     };
-  }, [app, itemId, namespaceId, resourceId, notifyItemLoaded, fetchItem]);
+  }, [
+    app,
+    itemId,
+    namespaceId,
+    resourceId,
+    notifyItemLoaded,
+    fetchItem,
+    onCopyContentChange,
+  ]);
 
   if (loading) {
     return <Loading />;

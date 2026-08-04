@@ -4,7 +4,14 @@ import AuthPage from '@/page/auth';
 
 import Page from './Page';
 
-export default function Wrapper(props: IUseResource) {
+interface IProps extends IUseResource {
+  onRssItemCopyContentChange?: (value: {
+    itemId: string;
+    content: string | null | undefined;
+  }) => void;
+}
+
+export default function Wrapper(props: IProps) {
   const {
     loading,
     forbidden,
@@ -13,6 +20,7 @@ export default function Wrapper(props: IUseResource) {
     editPage,
     onResource,
     namespaceId,
+    onRssItemCopyContentChange,
   } = props;
 
   if (loading) {
@@ -27,6 +35,7 @@ export default function Wrapper(props: IUseResource) {
           resource={resource}
           onResource={onResource}
           namespaceId={namespaceId}
+          onRssItemCopyContentChange={onRssItemCopyContentChange}
         />
       )}
     </AuthPage>

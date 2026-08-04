@@ -118,6 +118,7 @@
     "copy_link_failed": "您的链接复制失败",
     "copy_content": "复制正文",
     "copy_content_success": "内容复制成功",
+    "no_content_to_copy": "暂无可复制的内容",
     "duplicate": "创建副本",
     "download": "源文件",
     "move_to": "移动到",
@@ -450,8 +451,8 @@
     },
     "unsupported_app": "不支持的应用类型：{{ app_id }}",
     "status": {
-      "bound": "已连接",
-      "unbound": "未连接",
+      "bound": "已绑定",
+      "unbound": "未绑定",
       "binding_in_progress": "待验证"
     },
     "already_bound": {
