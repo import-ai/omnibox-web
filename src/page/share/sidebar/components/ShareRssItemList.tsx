@@ -90,7 +90,10 @@ export default function ShareRssItemList({ folderId, shareId }: IProps) {
                     asChild
                     className="h-auto gap-1 bg-transparent py-1.5 transition-none hover:bg-transparent"
                     onClick={() =>
-                      navigate(`/s/${shareId}/${folderId}/rss-items/${item.id}`)
+                      navigate(
+                        `/s/${shareId}/${folderId}/rss-items/${item.id}`,
+                        { state: { fromSidebar: true } }
+                      )
                     }
                   >
                     <div

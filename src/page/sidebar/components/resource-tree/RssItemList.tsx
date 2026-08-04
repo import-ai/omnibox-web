@@ -102,7 +102,8 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
                     className="h-auto gap-1 bg-transparent py-1.5 transition-none hover:bg-transparent"
                     onClick={() =>
                       navigate(
-                        `/${namespaceId}/${folderId}/rss-items/${item.id}`
+                        `/${namespaceId}/${folderId}/rss-items/${item.id}`,
+                        { state: { fromSidebar: true } }
                       )
                     }
                   >
