@@ -18,7 +18,7 @@ import { useShareContext } from '../share';
 export default function SharedResourcePage() {
   const { t } = useTranslation();
   const { rss_item_id: rssItemId } = useParams();
-  const { notFound, shareInfo, resource, wide } = useShareContext();
+  const { notFound, shareInfo, resource, setRssItem, wide } = useShareContext();
   const { open } = useSidebar();
   const [large, onLarge] = useState(window.innerWidth > 1500);
 
@@ -68,6 +68,7 @@ export default function SharedResourcePage() {
             fetchItem={signal =>
               fetchShareRssItem(shareInfo.id, resource.id, rssItemId!, signal)
             }
+            onItemLoaded={setRssItem}
           />
         ) : (
           <>

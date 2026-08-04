@@ -151,6 +151,7 @@ describe('RssItemReader', () => {
     const fetchItem = jest
       .fn()
       .mockResolvedValue(itemFixture('item-1', 'Shared Article'));
+    const onItemLoaded = jest.fn();
 
     await act(async () => {
       root.render(
@@ -159,12 +160,17 @@ describe('RssItemReader', () => {
           resourceId="folder-1"
           itemId="item-1"
           fetchItem={fetchItem}
+          onItemLoaded={onItemLoaded}
         />
       );
     });
 
     expect(container.textContent).toContain('Shared Article');
     expect(fire).not.toHaveBeenCalled();
+    expect(onItemLoaded).toHaveBeenCalledWith({
+      id: 'item-1',
+      title: 'Shared Article',
+    });
   });
 
   async function renderItem(itemId: string) {

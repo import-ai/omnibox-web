@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import useApp from '@/hooks/useApp';
-import { PathItem, RssItemDetail } from '@/interface';
+import { PathItem, RssItemBreadcrumb } from '@/interface';
 import { cn } from '@/lib/utils';
 
 interface IProps {
@@ -28,8 +28,6 @@ interface IProps {
   namespaceId: string;
   path?: PathItem[];
 }
-
-type RssItemBreadcrumb = Pick<RssItemDetail, 'id' | 'title'>;
 
 export default function BreadcrumbMain(props: IProps) {
   const { className, namespaceId, path = [] } = props;

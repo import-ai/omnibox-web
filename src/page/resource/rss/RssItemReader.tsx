@@ -6,7 +6,7 @@ import { UrlAttribute } from '@/components/attributes/UrlAttribute';
 import Loading from '@/components/loading';
 import { Markdown } from '@/components/markdown';
 import useApp from '@/hooks/useApp';
-import { RssItemDetail } from '@/interface';
+import { RssItemBreadcrumb, RssItemDetail } from '@/interface';
 import { fetchRssItem } from '@/service/resource';
 
 interface IProps {
@@ -14,6 +14,7 @@ interface IProps {
   resourceId: string;
   itemId: string;
   notifyItemLoaded?: boolean;
+  onItemLoaded?: (item: RssItemBreadcrumb) => void;
   onCopyContentChange?: (value: {
     itemId: string;
     content: string | null | undefined;
@@ -29,6 +30,7 @@ export default function RssItemReader({
   itemId,
   notifyItemLoaded = false,
   fetchItem,
+  onItemLoaded,
   onCopyContentChange,
 }: IProps) {
   const { t } = useTranslation();
@@ -57,12 +59,14 @@ export default function RssItemReader({
       .then(result => {
         if (active) {
           setItem(result);
+          const breadcrumbItem = {
+            id: result.id,
+            title: result.title,
+          };
           if (notifyItemLoaded) {
-            app.fire('rss_item_loaded', {
-              id: result.id,
-              title: result.title,
-            });
+            app.fire('rss_item_loaded', breadcrumbItem);
           }
+          onItemLoaded?.(breadcrumbItem);
           onCopyContentChange?.({
             itemId,
             content: result.parsed_content,
@@ -90,6 +94,7 @@ export default function RssItemReader({
     resourceId,
     notifyItemLoaded,
     fetchItem,
+    onItemLoaded,
     onCopyContentChange,
   ]);
 
