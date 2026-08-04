@@ -70,9 +70,21 @@
 
 .resource-editable-page .toc-sidebar-wrapper,
 .resource-editable-page .omnibox-editor-root .toc-sidebar-wrapper {
-  position: sticky !important;
-  top: 11rem !important;
-  left: 0 !important;
+  position: fixed !important;
+  top: 50svh !important;
+  left: auto !important;
+  transform: translateY(calc(-50% + 0.75rem)) !important;
+  margin: 0 !important;
+  width: max-content !important;
+  pointer-events: auto !important;
+}
+
+.resource-readonly-editor .toc-sidebar-wrapper,
+.resource-readonly-editor .omnibox-editor-root .toc-sidebar-wrapper {
+  position: fixed !important;
+  top: 50svh !important;
+  left: auto !important;
+  transform: translate(-0.5rem, calc(-50% + 0.75rem)) !important;
   margin: 0 !important;
   width: max-content !important;
   pointer-events: auto !important;
