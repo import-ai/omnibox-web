@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
@@ -18,9 +18,17 @@ import { useShareContext } from '../share';
 export default function SharedResourcePage() {
   const { t } = useTranslation();
   const { rss_item_id: rssItemId } = useParams();
-  const { notFound, shareInfo, resource, wide } = useShareContext();
+  const { notFound, shareInfo, resource, setRssItem, wide } = useShareContext();
   const { open } = useSidebar();
   const [large, onLarge] = useState(window.innerWidth > 1500);
+  const shareId = shareInfo?.id;
+  const resourceId = resource?.id;
+
+  const fetchRssItem = useCallback(
+    (signal?: AbortSignal) =>
+      fetchShareRssItem(shareId!, resourceId!, rssItemId!, signal),
+    [resourceId, rssItemId, shareId]
+  );
 
   useEffect(() => {
     if (resource?.name) {
@@ -65,9 +73,8 @@ export default function SharedResourcePage() {
             namespaceId={shareInfo.id}
             resourceId={resource.id}
             itemId={rssItemId!}
-            fetchItem={signal =>
-              fetchShareRssItem(shareInfo.id, resource.id, rssItemId!, signal)
-            }
+            fetchItem={fetchRssItem}
+            onItemLoaded={setRssItem}
           />
         ) : (
           <>

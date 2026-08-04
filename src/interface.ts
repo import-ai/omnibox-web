@@ -292,6 +292,8 @@ export interface RssItemDetail extends RssItem {
   parsed_content: string | null;
 }
 
+export type RssItemBreadcrumb = Pick<RssItemDetail, 'id' | 'title'>;
+
 export interface PublicShareInfo {
   id: string;
   all_resources: boolean;

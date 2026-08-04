@@ -5,13 +5,16 @@ import { PublishedTimeAttribute } from '@/components/attributes/PublishedTimeAtt
 import { UrlAttribute } from '@/components/attributes/UrlAttribute';
 import Loading from '@/components/loading';
 import { Markdown } from '@/components/markdown';
-import { RssItemDetail } from '@/interface';
+import useApp from '@/hooks/useApp';
+import { RssItemBreadcrumb, RssItemDetail } from '@/interface';
 import { fetchRssItem } from '@/service/resource';
 
 interface IProps {
   namespaceId: string;
   resourceId: string;
   itemId: string;
+  notifyItemLoaded?: boolean;
+  onItemLoaded?: (item: RssItemBreadcrumb) => void;
   onCopyContentChange?: (value: {
     itemId: string;
     content: string | null | undefined;
@@ -25,10 +28,13 @@ export default function RssItemReader({
   namespaceId,
   resourceId,
   itemId,
+  notifyItemLoaded = false,
   fetchItem,
+  onItemLoaded,
   onCopyContentChange,
 }: IProps) {
   const { t } = useTranslation();
+  const app = useApp();
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [item, setItem] = useState<RssItemDetail | null>(null);
@@ -53,6 +59,14 @@ export default function RssItemReader({
       .then(result => {
         if (active) {
           setItem(result);
+          const breadcrumbItem = {
+            id: result.id,
+            title: result.title,
+          };
+          if (notifyItemLoaded) {
+            app.fire('rss_item_loaded', breadcrumbItem);
+          }
+          onItemLoaded?.(breadcrumbItem);
           onCopyContentChange?.({
             itemId,
             content: result.parsed_content,
@@ -73,7 +87,16 @@ export default function RssItemReader({
       active = false;
       controller.abort();
     };
-  }, [itemId, namespaceId, resourceId, fetchItem, onCopyContentChange]);
+  }, [
+    app,
+    itemId,
+    namespaceId,
+    resourceId,
+    notifyItemLoaded,
+    fetchItem,
+    onItemLoaded,
+    onCopyContentChange,
+  ]);
 
   if (loading) {
     return <Loading />;
