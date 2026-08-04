@@ -120,7 +120,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
 
           <div
             ref={linkListRef}
-            className="no-scrollbar max-h-72 space-y-4 overflow-y-auto"
+            className="no-scrollbar max-h-72 space-y-4 overflow-y-auto sm:max-h-[300px]"
           >
             {rows.map((row, index) => (
               <div key={index}>

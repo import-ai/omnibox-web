@@ -52,18 +52,32 @@ describe('useCreateRssFolderDialogState', () => {
     jest.restoreAllMocks();
   });
 
-  it('scrolls the link list to the latest row after adding a link', async () => {
+  it('scrolls only after the added link overflows the list', async () => {
     await act(async () => root.render(<Probe />));
 
     const list = current.linkListRef.current!;
     const scrollTo = jest.fn();
     list.scrollTo = scrollTo;
-    Object.defineProperty(list, 'scrollHeight', { value: 600 });
+    Object.defineProperties(list, {
+      clientHeight: { configurable: true, value: 300 },
+      scrollHeight: { configurable: true, value: 189 },
+    });
 
     await act(async () => current.addLink());
     expect(current.rows).toHaveLength(2);
-
     runAnimationFrame(0);
-    expect(scrollTo).toHaveBeenCalledWith({ top: 600, behavior: 'smooth' });
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    Object.defineProperty(list, 'scrollHeight', { value: 300 });
+    await act(async () => current.addLink());
+    expect(current.rows).toHaveLength(3);
+    runAnimationFrame(0);
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    Object.defineProperty(list, 'scrollHeight', { value: 395 });
+    await act(async () => current.addLink());
+    expect(current.rows).toHaveLength(4);
+    runAnimationFrame(0);
+    expect(scrollTo).toHaveBeenCalledWith({ top: 395, behavior: 'smooth' });
   });
 });

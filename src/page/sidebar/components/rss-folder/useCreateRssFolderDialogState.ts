@@ -133,7 +133,9 @@ export function useCreateRssFolderDialogState({
     shouldScrollToLatestLinkRef.current = false;
     window.requestAnimationFrame(() => {
       const list = linkListRef.current;
-      list?.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
+      if (list && list.scrollHeight > list.clientHeight) {
+        list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
+      }
     });
   }, [rows]);
 
