@@ -450,8 +450,8 @@
     },
     "unsupported_app": "Unsupported application type: {{ app_id }}",
     "status": {
-      "bound": "Connected",
-      "unbound": "Not Connected",
+      "bound": "Bound",
+      "unbound": "Not Bound",
       "binding_in_progress": "Pending Verification"
     },
     "already_bound": {
