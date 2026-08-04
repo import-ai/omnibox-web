@@ -73,7 +73,7 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
   }
 
   return (
-    <nav aria-label="Message index" className="hidden w-10 lg:block">
+    <nav aria-label="Message index" className="hidden w-10 xl:block">
       <div className="flex max-h-[calc(100vh-16rem)] flex-col items-start overflow-y-auto py-2">
         {items.map((item, index) => {
           const active =
