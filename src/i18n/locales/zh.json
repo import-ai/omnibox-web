@@ -451,8 +451,8 @@
     },
     "unsupported_app": "不支持的应用类型：{{ app_id }}",
     "status": {
-      "bound": "已连接",
-      "unbound": "未连接",
+      "bound": "已绑定",
+      "unbound": "未绑定",
       "binding_in_progress": "待验证"
     },
     "already_bound": {

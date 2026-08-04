@@ -17,7 +17,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/AlertDialog';
-import { Badge } from '@/components/ui/Badge';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import useApplications from '@/hooks/useApplications';
@@ -263,6 +262,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         ) : (
           applications.map((application: Application) => {
             const state = getApplicationState(application);
+            const isBound = state === 'bound';
 
             let appDisplayName: string;
             let hasError = false;
@@ -278,10 +278,10 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
             return (
               <div
                 key={application.app_id}
-                className="flex w-full items-center justify-between"
+                className="flex w-full items-center justify-between gap-2"
               >
-                <div className="flex items-center gap-1">
-                  <span className="text-base font-semibold text-foreground">
+                <div className="flex min-w-0 flex-1 items-center gap-1">
+                  <span className="truncate text-base font-semibold text-foreground">
                     {appDisplayName}
                   </span>
                   {!hasError && (
@@ -299,12 +299,19 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                       </TooltipContent>
                     </Tooltip>
                   )}
+                  {!hasError && (
+                    <span className="ml-2 shrink-0 whitespace-nowrap text-sm text-muted-foreground lg:text-base">
+                      {t(
+                        `applications.status.${isBound ? 'bound' : 'unbound'}`
+                      )}
+                    </span>
+                  )}
                   {hasError && (
-                    <Badge variant="destructive" className="ml-2 text-red-600">
+                    <span className="ml-2 min-w-0 truncate text-sm text-muted-foreground lg:text-base">
                       {t('applications.unsupported_app', {
                         app_id: application.app_id,
                       })}
-                    </Badge>
+                    </span>
                   )}
                 </div>
 
@@ -317,7 +324,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                   >
                     {t('applications.unbind.button')}
                   </Button>
-                ) : state === 'bound' ? (
+                ) : isBound ? (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
@@ -368,7 +375,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         currentAppId === application.app_id && (
                           <Spinner className="mr-2" />
                         )}
-                      {t('applications.bind.continue_button')}
+                      {t('applications.bind.button')}
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
