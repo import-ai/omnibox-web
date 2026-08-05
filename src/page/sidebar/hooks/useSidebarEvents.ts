@@ -6,6 +6,7 @@ import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/useApp';
 import { Resource, ResourceType } from '@/interface';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
+import { isCurrentRssItemRoute } from '@/page/sidebar/sidebarBehavior';
 import { useSidebarStore } from '@/page/sidebar/store';
 import {
   fetchChildren,
@@ -168,16 +169,20 @@ export function useSidebarEvents(namespaceId: string) {
         .getState()
         .expandPathTo(targetId, { expandTarget: true });
       useSidebarStore.getState().activate(targetId);
-      const currentState = window.history.state?.usr;
-      navigate(`/${namespaceId}/${targetId}`, {
-        replace: true,
-        state: {
-          ...(currentState && typeof currentState === 'object'
-            ? currentState
-            : {}),
-          sidebarActiveKey: targetId,
-        },
-      });
+      if (
+        !isCurrentRssItemRoute(window.location.pathname, namespaceId, targetId)
+      ) {
+        const currentState = window.history.state?.usr;
+        navigate(`/${namespaceId}/${targetId}`, {
+          replace: true,
+          state: {
+            ...(currentState && typeof currentState === 'object'
+              ? currentState
+              : {}),
+            sidebarActiveKey: targetId,
+          },
+        });
+      }
       scrollToResource(targetId);
     };
 
