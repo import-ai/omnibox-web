@@ -112,10 +112,9 @@ export function isSmartFolderChildResource(
   return getSmartFolderSidebarAttrs(resource)?.smart_folder_child === true;
 }
 
-export function withSmartFolderChildSidebarAttrs(
-  resource: SmartFolderChildResource,
-  parentId: string
-) {
+export function withSmartFolderChildSidebarAttrs<
+  T extends SmartFolderChildResource,
+>(resource: T, parentId: string) {
   return {
     ...resource,
     id: getSmartFolderChildSidebarKey(parentId, resource.id),

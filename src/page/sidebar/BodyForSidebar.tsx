@@ -25,17 +25,12 @@ import {
   isSmartFolderChildResource,
   SmartFolderOwnerScope,
   SmartFolderResponse,
-  withSmartFolderChildSidebarAttrs,
 } from '@/page/sidebar/components/smart-folder';
 import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/CreateSmartFolderDialog';
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import type { ResourceSortOptions } from '@/service/resource';
-import {
-  fetchChildren,
-  fetchSmartFolderChildren,
-  initializeManualSort,
-} from '@/service/resource';
+import { fetchChildren, initializeManualSort } from '@/service/resource';
 
 import { BatchCreateDialog } from './components/BatchCreateDialog';
 import BatchDeleteDialog from './components/BatchDeleteDialog';
@@ -46,6 +41,10 @@ import { Toolbar } from './components/toolbar';
 import { useBatchOperations } from './hooks/useBatchOperations';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
+import {
+  fetchChildrenForSidebarRefresh,
+  getExpandedNodeIdsForSidebarRefresh,
+} from './sidebarBehavior';
 import { TreeNode, useSidebarStore } from './store';
 import { getBatchSelectionSummary, getNodeResourceSort } from './store/utils';
 import { locateSidebarResource } from './utils';
@@ -290,41 +289,31 @@ export function BodyForSidebar(props: IProps) {
     const rootId = state.rootIds[spaceType];
     if (!rootId) return;
 
-    const expandedLoadedIds = Object.entries(state.ui)
-      .filter(([id, ui]) => {
-        const node = state.nodes[id];
-        return (
-          !!node &&
-          node.spaceType === spaceType &&
-          ui.expanded &&
-          ui.loaded &&
-          (node.hasChildren ||
-            node.resourceType === 'folder' ||
-            node.resourceType === 'smart_folder') &&
-          id !== rootId
-        );
-      })
-      .map(([id]) => id);
-    expandedLoadedIds.sort(
+    const expandedIds = getExpandedNodeIdsForSidebarRefresh(
+      state.nodes,
+      state.ui,
+      state.rootIds
+    ).filter(id => state.nodes[id]?.spaceType === spaceType);
+    expandedIds.sort(
       (a, b) => getNodeDepth(state.nodes, a) - getNodeDepth(state.nodes, b)
     );
     const store = useSidebarStore.getState();
     const rootChildren = await fetchChildren(namespaceId, rootId, sort);
     store.refreshChildren(rootId, rootChildren);
 
-    for (const id of expandedLoadedIds) {
+    for (const id of expandedIds) {
       const node = useSidebarStore.getState().nodes[id];
       if (!node) continue;
 
-      const rawChildren =
-        node.resourceType === 'smart_folder'
-          ? await fetchSmartFolderChildren(namespaceId, id)
-          : await fetchChildren(namespaceId, id, sort);
-      const children = rawChildren.map(child =>
-        node.resourceType === 'smart_folder'
-          ? withSmartFolderChildSidebarAttrs(child, id)
-          : child
+      const children = await fetchChildrenForSidebarRefresh(
+        namespaceId,
+        node,
+        sort
       );
+      if (!children) {
+        app.fire('refresh_rss_items', id);
+        continue;
+      }
       store.refreshChildren(id, children);
     }
   };
@@ -333,6 +322,7 @@ export function BodyForSidebar(props: IProps) {
     if (refreshingResources) return;
 
     const state = useSidebarStore.getState();
+
     const locateSnapshot = getLocateSnapshot(
       state.nodes,
       state.activeId || resourceId
@@ -345,6 +335,7 @@ export function BodyForSidebar(props: IProps) {
           refreshSpaceResources(spaceType)
         )
       );
+
       if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }

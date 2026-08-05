@@ -61,6 +61,8 @@ export function useCreateRssFolderDialogState({
   const namespaceId = params.namespace_id;
   const { data: limits } = useRssFolderLimits({ namespaceId });
   const inputRef = useRef<HTMLInputElement>(null);
+  const linkListRef = useRef<HTMLDivElement>(null);
+  const shouldScrollToLatestLinkRef = useRef(false);
   const [name, setName] = useState('');
   const [rows, setRows] = useState<RssLinkRow[]>([createEmptyRow()]);
   const [nameError, setNameError] = useState('');
@@ -123,7 +125,26 @@ export function useCreateRssFolderDialogState({
     );
   };
 
+  useEffect(() => {
+    if (!shouldScrollToLatestLinkRef.current) {
+      return;
+    }
+
+    shouldScrollToLatestLinkRef.current = false;
+    window.requestAnimationFrame(() => {
+      const list = linkListRef.current;
+      if (list && list.scrollHeight > list.clientHeight) {
+        list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
+      }
+    });
+  }, [rows]);
+
   const addLink = () => {
+    if (!canAddLink) {
+      return;
+    }
+
+    shouldScrollToLatestLinkRef.current = true;
     setRows(prev =>
       prev.length < maxLinkCount ? [...prev, createEmptyRow()] : prev
     );
@@ -280,6 +301,7 @@ export function useCreateRssFolderDialogState({
     t,
     namespaceId,
     inputRef,
+    linkListRef,
     name,
     rows,
     nameError,
