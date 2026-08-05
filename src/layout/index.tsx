@@ -12,7 +12,11 @@ import { useCopilotStore } from '@/page/copilot/copilotStore';
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
 
-import { getAuthChangeRedirectPath, isAuthStorageKey } from './authStorage';
+import {
+  getAuthChangeRedirectPath,
+  isAuthStorageKey,
+  shouldSyncUserOptions,
+} from './authStorage';
 
 function clearUserWorkspaceState() {
   useResourceStore.getState().resetFeaturePreviews();
@@ -137,12 +141,13 @@ export default function Layout() {
   useEffect(() => {
     const searchParams = new URLSearchParams(loc.search);
     const langParam = searchParams.get('lang');
+    const syncUserOptions = shouldSyncUserOptions(uid, shareId);
 
     if (langParam) {
       const lang = langParam.includes('en') ? 'en-US' : 'zh-CN';
       if (lang !== i18n.language) {
         i18n.changeLanguage(lang).then(() => {
-          if (uid) {
+          if (syncUserOptions) {
             http.post('/user/option', {
               name: 'language',
               value: lang,
@@ -152,7 +157,7 @@ export default function Layout() {
       }
     }
 
-    if (!uid) {
+    if (!syncUserOptions) {
       return;
     }
 
@@ -182,7 +187,7 @@ export default function Layout() {
       });
 
     return () => source.cancel();
-  }, [loc.search, uid, i18n]);
+  }, [loc.search, uid, shareId, i18n]);
 
   return (
     <>
