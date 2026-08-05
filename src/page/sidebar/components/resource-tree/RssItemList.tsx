@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -9,7 +9,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { Resource, RssItem } from '@/interface';
 import { cn } from '@/lib/utils';
-import { fetchRssItems } from '@/service/resource';
+import { useRssItemAutoScroll } from '@/page/sidebar/hooks/useRssItemAutoScroll';
+import { fetchRssItem, fetchRssItems } from '@/service/resource';
 
 interface IProps {
   folderId: string;
@@ -21,36 +22,105 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
   const { t } = useTranslation();
   const app = useApp();
   const navigate = useNavigate();
-  const { rss_item_id: activeItemId } = useParams();
+  const { resource_id: activeFolderId, rss_item_id: activeItemId } =
+    useParams();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<RssItem[]>([]);
+  const requestControllerRef = useRef<AbortController | null>(null);
+  const [activeItemFallback, setActiveItemFallback] = useState<RssItem | null>(
+    null
+  );
+  const activeItemInList = items.some(item => item.id === activeItemId);
+  const displayedItems =
+    activeItemFallback !== null &&
+    activeItemFallback.id === activeItemId &&
+    !activeItemInList
+      ? [...items, activeItemFallback]
+      : items;
+  useRssItemAutoScroll(
+    activeItemId,
+    displayedItems.some(item => item.id === activeItemId)
+  );
   // Match the indent of a leaf resource node at this depth.
   const paddingLeft = depth * 20 + 28;
 
-  const reload = useCallback(
-    (signal?: AbortSignal) => {
-      setLoading(true);
-      return fetchRssItems(namespaceId, folderId, { limit: 50, signal })
-        .then((res: RssItem[]) => setItems(res))
-        .catch(() => {
-          // Cancelled or failed; leave the list empty.
-        })
-        .finally(() => setLoading(false));
-    },
-    [namespaceId, folderId]
-  );
+  const reload = useCallback(() => {
+    requestControllerRef.current?.abort();
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
+    setLoading(true);
+    return fetchRssItems(namespaceId, folderId, {
+      limit: 50,
+      signal: controller.signal,
+    })
+      .then((res: RssItem[]) => {
+        if (requestControllerRef.current === controller) {
+          setItems(res);
+        }
+      })
+      .catch(() => {
+        // request.ts handles backend error toasts.
+      })
+      .finally(() => {
+        if (requestControllerRef.current === controller) {
+          requestControllerRef.current = null;
+          setLoading(false);
+        }
+      });
+  }, [namespaceId, folderId]);
 
   useEffect(() => {
-    const controller = new AbortController();
-    reload(controller.signal);
-    return () => controller.abort();
+    reload();
+    return () => {
+      const controller = requestControllerRef.current;
+      requestControllerRef.current = null;
+      controller?.abort();
+    };
   }, [reload]);
+
+  useEffect(() => {
+    if (
+      loading ||
+      !activeItemId ||
+      activeFolderId !== folderId ||
+      activeItemInList
+    ) {
+      setActiveItemFallback(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    setActiveItemFallback(null);
+    fetchRssItem(namespaceId, folderId, activeItemId, controller.signal)
+      .then(item => {
+        if (!controller.signal.aborted) setActiveItemFallback(item);
+      })
+      .catch(() => {
+        // The detail view handles invalid or inaccessible item errors.
+      });
+    return () => controller.abort();
+  }, [
+    activeFolderId,
+    activeItemId,
+    activeItemInList,
+    folderId,
+    loading,
+    namespaceId,
+  ]);
 
   // Editing the folder's links changes which items it has, so refetch when this
   // folder is updated.
   useEffect(() => {
     return app.on('update_resource', (delta: Resource) => {
       if (delta.id === folderId) {
+        reload();
+      }
+    });
+  }, [app, folderId, reload]);
+
+  useEffect(() => {
+    return app.on('refresh_rss_items', (refreshedFolderId: string) => {
+      if (refreshedFolderId === folderId) {
         reload();
       }
     });
@@ -69,7 +139,7 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
     );
   }
 
-  if (items.length === 0) {
+  if (displayedItems.length === 0) {
     return (
       <SidebarMenuItem>
         <div
@@ -84,7 +154,7 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
 
   return (
     <>
-      {items.map(item => {
+      {displayedItems.map(item => {
         const title = item.title || t('untitled');
         return (
           <SidebarMenuItem key={item.id}>
@@ -102,11 +172,13 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
                     className="h-auto gap-1 bg-transparent py-1.5 transition-none hover:bg-transparent"
                     onClick={() =>
                       navigate(
-                        `/${namespaceId}/${folderId}/rss-items/${item.id}`
+                        `/${namespaceId}/${folderId}/rss-items/${item.id}`,
+                        { state: { fromSidebar: true } }
                       )
                     }
                   >
                     <div
+                      data-rss-item-id={item.id}
                       className="list flex cursor-pointer"
                       style={{ paddingLeft }}
                     >

@@ -5,13 +5,20 @@ import { PublishedTimeAttribute } from '@/components/attributes/PublishedTimeAtt
 import { UrlAttribute } from '@/components/attributes/UrlAttribute';
 import Loading from '@/components/loading';
 import { Markdown } from '@/components/markdown';
-import { RssItemDetail } from '@/interface';
+import useApp from '@/hooks/useApp';
+import { RssItemBreadcrumb, RssItemDetail } from '@/interface';
 import { fetchRssItem } from '@/service/resource';
 
 interface IProps {
   namespaceId: string;
   resourceId: string;
   itemId: string;
+  notifyItemLoaded?: boolean;
+  onItemLoaded?: (item: RssItemBreadcrumb) => void;
+  onCopyContentChange?: (value: {
+    itemId: string;
+    content: string | null | undefined;
+  }) => void;
   // Lets the shared view supply a share-scoped fetch; defaults to the
   // authenticated namespace endpoint.
   fetchItem?: (signal?: AbortSignal) => Promise<RssItemDetail>;
@@ -21,9 +28,13 @@ export default function RssItemReader({
   namespaceId,
   resourceId,
   itemId,
+  notifyItemLoaded = false,
   fetchItem,
+  onItemLoaded,
+  onCopyContentChange,
 }: IProps) {
   const { t } = useTranslation();
+  const app = useApp();
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [item, setItem] = useState<RssItemDetail | null>(null);
@@ -37,6 +48,7 @@ export default function RssItemReader({
     let active = true;
     setLoading(true);
     setNotFound(false);
+    onCopyContentChange?.({ itemId, content: undefined });
     // Drop the previous article immediately so a slow or failing new request can
     // never render stale content underneath the loading state.
     setItem(null);
@@ -47,6 +59,18 @@ export default function RssItemReader({
       .then(result => {
         if (active) {
           setItem(result);
+          const breadcrumbItem = {
+            id: result.id,
+            title: result.title,
+          };
+          if (notifyItemLoaded) {
+            app.fire('rss_item_loaded', breadcrumbItem);
+          }
+          onItemLoaded?.(breadcrumbItem);
+          onCopyContentChange?.({
+            itemId,
+            content: result.parsed_content,
+          });
         }
       })
       .catch(error => {
@@ -63,7 +87,16 @@ export default function RssItemReader({
       active = false;
       controller.abort();
     };
-  }, [itemId, namespaceId, resourceId, fetchItem]);
+  }, [
+    app,
+    itemId,
+    namespaceId,
+    resourceId,
+    notifyItemLoaded,
+    fetchItem,
+    onItemLoaded,
+    onCopyContentChange,
+  ]);
 
   if (loading) {
     return <Loading />;

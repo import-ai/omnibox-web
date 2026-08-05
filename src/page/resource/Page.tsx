@@ -19,10 +19,20 @@ interface IProps {
   resource: Resource;
   namespaceId: string;
   onResource: (resource: Resource) => void;
+  onRssItemCopyContentChange?: (value: {
+    itemId: string;
+    content: string | null | undefined;
+  }) => void;
 }
 
 export default function Page(props: IProps) {
-  const { editPage, resource, onResource, namespaceId } = props;
+  const {
+    editPage,
+    resource,
+    onResource,
+    namespaceId,
+    onRssItemCopyContentChange,
+  } = props;
   const { t } = useTranslation();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const constrainHeader =
@@ -48,6 +58,8 @@ export default function Page(props: IProps) {
         namespaceId={namespaceId}
         resourceId={resource.id}
         itemId={rssItemId}
+        notifyItemLoaded
+        onCopyContentChange={onRssItemCopyContentChange}
       />
     );
   }
