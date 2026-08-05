@@ -5,6 +5,12 @@ import { toast } from 'sonner';
 
 import { HelpTooltip } from '@/components/help-tooltip';
 import { Input } from '@/components/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
 import {
@@ -112,6 +118,14 @@ export function ShareTabContent(props: ShareTabContentProps) {
     updateShareInfo({ password });
   };
 
+  const currentFileOnlySwitch = (
+    <Switch
+      checked={isFolder ? false : !(shareInfo?.all_resources ?? false)}
+      disabled={!shareInfo?.enabled || isFolder}
+      onCheckedChange={handleOnlyCurrent}
+    />
+  );
+
   return (
     <div className="pb-2">
       <div className="flex gap-2 items-center">
@@ -143,11 +157,22 @@ export function ShareTabContent(props: ShareTabContentProps) {
                 content={t('share.share.current_file_only_tooltip')}
               />
             </span>
-            <Switch
-              checked={isFolder ? false : !(shareInfo?.all_resources ?? false)}
-              disabled={!shareInfo?.enabled || isFolder}
-              onCheckedChange={handleOnlyCurrent}
-            />
+            {isFolder ? (
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex cursor-help">
+                      {currentFileOnlySwitch}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {t('share.share.folder_current_file_unsupported')}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              currentFileOnlySwitch
+            )}
           </div>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
             <span className="text-sm flex items-center gap-1">

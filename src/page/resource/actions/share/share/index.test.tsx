@@ -27,6 +27,14 @@ jest.mock('@/components/help-tooltip', () => ({
 jest.mock('@/components/input', () => ({
   Input: () => null,
 }));
+jest.mock('@/components/tooltip', () => ({
+  Tooltip: ({ children }: { children?: ReactNode }) => children,
+  TooltipContent: ({ children }: { children?: ReactNode }) => (
+    <span data-testid="tooltip-content">{children}</span>
+  ),
+  TooltipProvider: ({ children }: { children?: ReactNode }) => children,
+  TooltipTrigger: ({ children }: { children?: ReactNode }) => children,
+}));
 jest.mock('@/components/ui/Button', () => ({
   Button: ({ children }: { children?: ReactNode }) => children,
 }));
@@ -96,6 +104,9 @@ describe('ShareTabContent', () => {
       const currentFileSwitch = switches[1] as HTMLButtonElement;
       expect(currentFileSwitch.disabled).toBe(true);
       expect(currentFileSwitch.getAttribute('aria-checked')).toBe('false');
+      expect(
+        container.querySelector('[data-testid="tooltip-content"]')?.textContent
+      ).toBe('share.share.folder_current_file_unsupported');
     }
   );
 
@@ -115,5 +126,8 @@ describe('ShareTabContent', () => {
     const currentFileSwitch = switches[1] as HTMLButtonElement;
     expect(currentFileSwitch.disabled).toBe(false);
     expect(currentFileSwitch.getAttribute('aria-checked')).toBe('true');
+    expect(
+      container.querySelector('[data-testid="tooltip-content"]')
+    ).toBeNull();
   });
 });
