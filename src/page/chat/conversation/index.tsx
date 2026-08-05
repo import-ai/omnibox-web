@@ -34,7 +34,10 @@ export default function ChatConversationPage() {
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <Scrollbar sideContent={<MessageIndex messages={messages} />}>
+      <Scrollbar
+        resetKey={conversation.id}
+        sideContent={<MessageIndex messages={messages} />}
+      >
         {messages.length <= 0 ? (
           <div className="space-y-4 flex justify-end items-center">
             <Button disabled size="sm" variant="secondary">
