@@ -1,8 +1,44 @@
 const SEARCH_MARK_CLASS = 'search-query-mark';
 
+export interface SearchTextPart {
+  match: boolean;
+  text: string;
+}
+
 /** Escape user query so it is matched as a literal string, not a regex pattern. */
 export function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function splitSearchText(
+  text: string,
+  searchText: string
+): SearchTextPart[] {
+  const query = searchText.trim();
+  if (!query) {
+    return [{ match: false, text }];
+  }
+
+  const regex = new RegExp(escapeRegExp(query), 'gi');
+  const parts: SearchTextPart[] = [];
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(regex)) {
+    const matched = match[0];
+    if (!matched) continue;
+
+    if (match.index > lastIndex) {
+      parts.push({ match: false, text: text.slice(lastIndex, match.index) });
+    }
+    parts.push({ match: true, text: matched });
+    lastIndex = match.index + matched.length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push({ match: false, text: text.slice(lastIndex) });
+  }
+
+  return parts.length > 0 ? parts : [{ match: false, text }];
 }
 
 function isInsideSearchMark(node: Node): boolean {
@@ -23,7 +59,6 @@ export function highlightSearchText(
     return 0;
   }
 
-  const regex = new RegExp(escapeRegExp(query), 'gi');
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
       if (!node.textContent || isInsideSearchMark(node)) {
@@ -45,44 +80,24 @@ export function highlightSearchText(
 
   for (const textNode of nodesToHighlight) {
     const text = textNode.textContent ?? '';
-    regex.lastIndex = 0;
-
-    if (!regex.test(text)) {
+    const parts = splitSearchText(text, query);
+    if (!parts.some(part => part.match)) {
       continue;
     }
-    regex.lastIndex = 0;
 
     const fragment = document.createDocumentFragment();
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-
-    while ((match = regex.exec(text)) !== null) {
-      const start = match.index;
-      const matched = match[0];
-      if (!matched) {
-        // Avoid zero-length match infinite loops.
-        regex.lastIndex += 1;
-        continue;
-      }
-
-      if (start > lastIndex) {
-        fragment.appendChild(
-          document.createTextNode(text.slice(lastIndex, start))
-        );
+    parts.forEach(part => {
+      if (!part.match) {
+        fragment.appendChild(document.createTextNode(part.text));
+        return;
       }
 
       const mark = document.createElement('mark');
       mark.className = SEARCH_MARK_CLASS;
-      // Color comes from resourceEditor.css (editor highlight yellow tokens).
-      mark.textContent = matched;
+      mark.textContent = part.text;
       fragment.appendChild(mark);
       matchCount += 1;
-      lastIndex = start + matched.length;
-    }
-
-    if (lastIndex < text.length) {
-      fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
-    }
+    });
 
     textNode.parentNode?.replaceChild(fragment, textNode);
   }
