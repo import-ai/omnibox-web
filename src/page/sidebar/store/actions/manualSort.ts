@@ -43,11 +43,7 @@ export function buildManualSortActions(set: SidebarSet, get: SidebarGet) {
       const targetNode = state.nodes[drop.targetId];
       if (!dragNode || !targetNode || !dragNode.parentId) return;
 
-      if (
-        drop.position === 'inside' &&
-        targetNode.resourceType === 'folder' &&
-        !state.ui[targetNode.id]?.loaded
-      ) {
+      if (drop.position === 'inside' && !state.ui[targetNode.id]?.loaded) {
         const children = await fetchChildren(state.namespaceId, targetNode.id, {
           sort_by: 'manual',
           sort_order: 'asc',

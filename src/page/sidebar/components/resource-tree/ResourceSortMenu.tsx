@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, Check } from 'lucide-react';
+import { ArrowUpDown, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -22,16 +22,11 @@ interface ResourceSortMenuProps {
   onChange: (value: ResourceSortOptions) => void;
 }
 
-const sortOptions: ResourceSortBy[] = [
+const automaticSortOptions: ResourceSortBy[] = [
   'updated_at',
   'created_at',
   'title',
-  'manual',
 ];
-
-function getDefaultOrder(sortBy: ResourceSortBy): ResourceSortOrder {
-  return sortBy === 'title' ? 'asc' : 'desc';
-}
 
 export function ResourceSortMenu({
   value,
@@ -40,22 +35,6 @@ export function ResourceSortMenu({
 }: ResourceSortMenuProps) {
   const { t } = useTranslation();
 
-  const handleSelect = (sortBy: ResourceSortBy) => {
-    if (sortBy !== value.sort_by) {
-      onChange({
-        sort_by: sortBy,
-        sort_order: getDefaultOrder(sortBy),
-      });
-      return;
-    }
-    if (sortBy !== 'manual') {
-      onChange({
-        sort_by: sortBy,
-        sort_order: value.sort_order === 'asc' ? 'desc' : 'asc',
-      });
-    }
-  };
-
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger disabled={disabled} className={menuItemClass}>
@@ -63,36 +42,68 @@ export function ResourceSortMenu({
         {t('sidebar.sort.menu')}
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent className="w-44">
-        {sortOptions.map(sortBy => {
+        {automaticSortOptions.map(sortBy => {
           const selected = value.sort_by === sortBy;
+          const orders: Array<{
+            label: string;
+            value: ResourceSortOrder;
+          }> =
+            sortBy === 'title'
+              ? [
+                  { label: t('sidebar.sort.order.az'), value: 'asc' },
+                  { label: t('sidebar.sort.order.za'), value: 'desc' },
+                ]
+              : [
+                  { label: t('sidebar.sort.order.newest'), value: 'desc' },
+                  { label: t('sidebar.sort.order.oldest'), value: 'asc' },
+                ];
           return (
-            <DropdownMenuItem
-              key={sortBy}
-              className={cn(
-                'h-9 justify-between',
-                selected && sortBy === 'manual' && 'bg-accent'
-              )}
-              disabled={disabled}
-              aria-current={selected ? 'true' : undefined}
-              onSelect={event => {
-                event.preventDefault();
-                handleSelect(sortBy);
-              }}
-            >
-              {t(`sidebar.sort.${sortBy}`)}
-              {selected &&
-                sortBy !== 'manual' &&
-                (value.sort_order === 'asc' ? (
-                  <ArrowUp className="text-blue-500" />
-                ) : (
-                  <ArrowDown className="text-blue-500" />
-                ))}
-              {selected && sortBy === 'manual' && (
-                <Check className="text-blue-500" />
-              )}
-            </DropdownMenuItem>
+            <DropdownMenuSub key={sortBy}>
+              <DropdownMenuSubTrigger
+                disabled={disabled}
+                aria-current={selected ? 'true' : undefined}
+                className={cn('h-9', selected && 'bg-accent')}
+              >
+                {t(`sidebar.sort.${sortBy}`)}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-36">
+                {orders.map(order => {
+                  const orderSelected =
+                    selected && value.sort_order === order.value;
+                  return (
+                    <DropdownMenuItem
+                      key={order.value}
+                      disabled={disabled}
+                      aria-current={orderSelected ? 'true' : undefined}
+                      className="h-9 justify-between"
+                      onSelect={() =>
+                        onChange({
+                          sort_by: sortBy,
+                          sort_order: order.value,
+                        })
+                      }
+                    >
+                      {order.label}
+                      {orderSelected && <Check className="text-blue-500" />}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
           );
         })}
+        <DropdownMenuItem
+          disabled={disabled}
+          aria-current={value.sort_by === 'manual' ? 'true' : undefined}
+          className={cn(
+            'h-9 justify-between',
+            value.sort_by === 'manual' && 'bg-accent'
+          )}
+          onSelect={() => onChange({ sort_by: 'manual', sort_order: 'asc' })}
+        >
+          {t('sidebar.sort.manual')}
+          {value.sort_by === 'manual' && <Check className="text-blue-500" />}
+        </DropdownMenuItem>
       </DropdownMenuSubContent>
     </DropdownMenuSub>
   );

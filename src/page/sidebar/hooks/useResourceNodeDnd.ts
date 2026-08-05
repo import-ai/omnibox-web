@@ -162,7 +162,8 @@ export function useResourceNodeDnd(
     }
     const ratio = (clientOffset.y - rect.top) / rect.height;
     const canContain =
-      targetNode.resourceType === 'folder' &&
+      targetNode.resourceType !== 'smart_folder' &&
+      targetNode.resourceType !== 'rss_folder' &&
       dragNode.resourceType !== 'smart_folder';
     const position: ManualDropPosition =
       canContain && ratio >= 0.25 && ratio <= 0.75
@@ -292,6 +293,16 @@ export function useResourceNodeDnd(
       if (!canDropItem(item)) return;
       if (item.id && dropPositionRef.current) {
         const store = useSidebarStore.getState();
+        if (
+          dropPositionRef.current === 'inside' &&
+          store.resourceSorts[node.spaceType].sort_by !== 'manual'
+        ) {
+          targetRectRef.current = null;
+          lineRef.current = null;
+          setCurrentDropPosition(null);
+          handleDrop(item, monitor);
+          return;
+        }
         const pendingDrop = {
           dragId: item.id,
           targetId: nodeId,

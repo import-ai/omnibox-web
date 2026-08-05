@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -12,12 +12,15 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { cn } from '@/lib/utils';
 import type { ResourceSortBy, ResourceSortOptions } from '@/service/resource';
 
-import { getNextShareSort } from './shareSort';
+import { getShareSortOrderOptions } from './shareSort';
 
 interface ShareSortSelectorProps {
   disabled: boolean;
@@ -26,11 +29,10 @@ interface ShareSortSelectorProps {
   onChange: (sort: ResourceSortOptions) => void;
 }
 
-const sortOptions: ResourceSortBy[] = [
+const automaticSortOptions: ResourceSortBy[] = [
   'updated_at',
   'created_at',
   'title',
-  'manual',
 ];
 
 export function ShareSortSelector({
@@ -40,52 +42,27 @@ export function ShareSortSelector({
   onChange,
 }: ShareSortSelectorProps) {
   const { t } = useTranslation();
-
-  const selectSort = (sortBy: ResourceSortBy) => {
-    onChange(getNextShareSort(sort, sortBy));
-  };
-
-  const renderOption = (sortBy: ResourceSortBy) => {
-    const selected = sort.sort_by === sortBy;
-    const manualDisabled = sortBy === 'manual' && !manualSortAvailable;
-    const DirectionIcon = sort.sort_order === 'desc' ? ArrowDown : ArrowUp;
-    const item = (
-      <DropdownMenuItem
-        key={sortBy}
-        aria-disabled={manualDisabled}
-        className={cn(
-          'h-9 justify-between',
-          manualDisabled && 'cursor-not-allowed opacity-50'
-        )}
-        onSelect={event => {
-          if (manualDisabled) {
-            event.preventDefault();
-            return;
-          }
-          selectSort(sortBy);
-        }}
-      >
-        {t(`sidebar.sort.${sortBy}`)}
-        {selected &&
-          (sortBy === 'manual' ? (
-            <Check className="size-4 text-blue-500" />
-          ) : (
-            <DirectionIcon className="size-4 text-blue-500" />
-          ))}
-      </DropdownMenuItem>
-    );
-
-    if (!manualDisabled) return item;
-
-    return (
-      <Tooltip key={sortBy}>
-        <TooltipTrigger asChild>{item}</TooltipTrigger>
-        <TooltipContent side="left" className="max-w-52">
-          {t('share.share.sort.manual_unavailable')}
-        </TooltipContent>
-      </Tooltip>
-    );
-  };
+  const manualItem = (
+    <DropdownMenuItem
+      aria-disabled={!manualSortAvailable}
+      aria-current={sort.sort_by === 'manual' ? 'true' : undefined}
+      className={cn(
+        'h-9 justify-between',
+        sort.sort_by === 'manual' && 'bg-accent',
+        !manualSortAvailable && 'cursor-not-allowed opacity-50'
+      )}
+      onSelect={event => {
+        if (!manualSortAvailable) {
+          event.preventDefault();
+          return;
+        }
+        onChange({ sort_by: 'manual', sort_order: 'asc' });
+      }}
+    >
+      {t('sidebar.sort.manual')}
+      {sort.sort_by === 'manual' && <Check className="size-4 text-blue-500" />}
+    </DropdownMenuItem>
+  );
 
   return (
     <TooltipProvider>
@@ -103,7 +80,54 @@ export function ShareSortSelector({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-44">
-          {sortOptions.map(renderOption)}
+          {automaticSortOptions.map(sortBy => {
+            const selected = sort.sort_by === sortBy;
+            const orders = getShareSortOrderOptions(sortBy);
+            return (
+              <DropdownMenuSub key={sortBy}>
+                <DropdownMenuSubTrigger
+                  aria-current={selected ? 'true' : undefined}
+                  className={cn('h-9', selected && 'bg-accent')}
+                >
+                  {t(`sidebar.sort.${sortBy}`)}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-36">
+                  {orders.map(order => {
+                    const orderSelected =
+                      selected && sort.sort_order === order.value;
+                    return (
+                      <DropdownMenuItem
+                        key={order.value}
+                        aria-current={orderSelected ? 'true' : undefined}
+                        className="h-9 justify-between"
+                        onSelect={() =>
+                          onChange({
+                            sort_by: sortBy,
+                            sort_order: order.value,
+                          })
+                        }
+                      >
+                        {t(`sidebar.sort.order.${order.labelKey}`)}
+                        {orderSelected && (
+                          <Check className="size-4 text-blue-500" />
+                        )}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            );
+          })}
+          {manualSortAvailable ? (
+            manualItem
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>{manualItem}</TooltipTrigger>
+              <TooltipContent side="left" className="max-w-52">
+                {t('share.share.sort.manual_unavailable')}
+              </TooltipContent>
+            </Tooltip>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </TooltipProvider>
