@@ -169,7 +169,7 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
-                    className="h-auto gap-1 bg-transparent py-1.5 transition-none hover:bg-transparent"
+                    className="h-auto gap-1 bg-transparent py-1.5 transition-none hover:bg-transparent group-has-[[data-sidebar=menu-action]]/menu-item:pr-1"
                     onClick={() =>
                       navigate(
                         `/${namespaceId}/${folderId}/rss-items/${item.id}`,

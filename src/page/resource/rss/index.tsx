@@ -135,41 +135,44 @@ export default function RssItems(props: IProps) {
   }
 
   return (
-    <div className="space-y-4 pb-[30vh]">
+    <div className="space-y-6 pb-[30vh]">
       {data.length > 0 ? (
         <>
-          {data.map((item, index) => {
-            return (
-              <div key={item.id}>
+          <div>
+            {data.map((item, index) => {
+              return (
                 <div
                   className="group cursor-pointer"
+                  key={item.id}
                   onClick={() =>
                     navigate(
                       `${itemNavigationPrefix}/${resourceId}/rss-items/${item.id}`
                     )
                   }
                 >
-                  <div className="flex items-start gap-2">
-                    {item.link_name && (
-                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-[4px] border text-[10px] font-normal leading-none">
-                        {item.link_name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                    <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500">
-                      {item.title || t('untitled')}
-                    </h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {item.link_name && (
+                        <span className="flex size-5 shrink-0 items-center justify-center rounded-[4px] border text-[10px] font-normal leading-none text-muted-foreground">
+                          {item.link_name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500 truncate">
+                        {item.title || t('untitled')}
+                      </h3>
+                    </div>
                   </div>
-                  <p className="mt-1 text-muted-foreground text-xs font-light">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
                     {formatItemDate(item)}
                     {item.link_name && (
                       <span className="ml-1.5">{item.link_name}</span>
                     )}
                   </p>
+                  {index < data.length - 1 && <Separator className="my-4" />}
                 </div>
-                {index < data.length - 1 && <Separator className="my-4" />}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
           {hasMore && (
             <div className="pb-4 flex justify-center">
               <Button
