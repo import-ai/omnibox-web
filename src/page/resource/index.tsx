@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 import { Separator } from '@/components/ui/Separator';
 import { SidebarInset, useSidebar } from '@/components/ui/Sidebar';
@@ -6,6 +7,10 @@ import useApp from '@/hooks/useApp';
 import useResource from '@/hooks/userResource';
 import useWide from '@/hooks/useWide';
 import { cn } from '@/lib/utils';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
 import {
   selectUseOmniboxEditor,
   useResourceStore,
@@ -19,6 +24,11 @@ export default function ResourcePage() {
   const { wide, onWide } = useWide();
   const props = useResource();
   const { open } = useSidebar();
+  const params = useParams();
+  const namespaceId = params.namespace_id || '';
+  const copilotOpen = useCopilotStore(
+    state => getCopilotWorkspace(state, namespaceId).open
+  );
   const [large, onLarge] = useState(window.innerWidth > 1500);
   const [rssItemCopyContent, setRssItemCopyContent] = useState<{
     itemId: string;
@@ -71,7 +81,13 @@ export default function ResourcePage() {
   }, [app]);
 
   return (
-    <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)] min-w-0 overflow-hidden">
+    <SidebarInset
+      className={cn(
+        'bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)] min-w-0 overflow-hidden',
+        // Workspace already provides p-2 + gap-2 when Copilot is open.
+        copilotOpen ? 'm-0 md:h-full' : 'm-[8px]'
+      )}
+    >
       <Header
         {...props}
         wide={wide}

@@ -73,7 +73,7 @@ describe('copilot store', () => {
     );
   });
 
-  it('closes the panel and active resource preview together', () => {
+  it('keeps the citation preview when the panel is collapsed', () => {
     const store = useCopilotStore.getState();
 
     store.previewResource('namespace-a', 'Abcd1234Efgh5678');
@@ -84,7 +84,34 @@ describe('copilot store', () => {
     ).toEqual(
       expect.objectContaining({
         open: false,
-        previewResourceId: null,
+        previewResourceId: 'Abcd1234Efgh5678',
+      })
+    );
+  });
+
+  it('toggles the panel without clearing an active citation preview', () => {
+    const store = useCopilotStore.getState();
+
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+    store.toggle('namespace-a');
+
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toEqual(
+      expect.objectContaining({
+        open: false,
+        previewResourceId: 'Abcd1234Efgh5678',
+      })
+    );
+
+    store.toggle('namespace-a');
+
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toEqual(
+      expect.objectContaining({
+        open: true,
+        previewResourceId: 'Abcd1234Efgh5678',
       })
     );
   });

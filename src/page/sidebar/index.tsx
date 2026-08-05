@@ -8,6 +8,7 @@ import {
   useSidebar,
 } from '@/components/ui/Sidebar';
 import { useIsMobile } from '@/hooks/useMobile';
+import { useCopilotStore } from '@/page/copilot/copilotStore';
 import SettingModal from '@/page/settings';
 
 import { BodyForSidebar } from './BodyForSidebar';
@@ -22,7 +23,12 @@ export default function MainSidebar() {
   const resourceId = params.resource_id || '';
   const namespaceId = params.namespace_id || '';
   const { setOpenMobile } = useSidebar();
+  const resetCopilot = useCopilotStore(state => state.reset);
   const handleActiveKey = (id: string) => {
+    if (id === 'chat' || id === 'chat/conversations') {
+      // Leave any citation/resource Copilot split and show the full chat page.
+      resetCopilot(namespaceId);
+    }
     if (id === 'chat') {
       navigate(`/${namespaceId}/chat`);
     } else {

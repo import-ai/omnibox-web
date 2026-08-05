@@ -1,8 +1,9 @@
-import { PanelLeft } from 'lucide-react';
+import { PanelRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
+import { Separator } from '@/components/ui/Separator';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 
@@ -24,7 +25,7 @@ export default function CopilotToggleButton({
 
   if (open && hideWhenOpen) return null;
 
-  return (
+  const button = (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
@@ -35,10 +36,22 @@ export default function CopilotToggleButton({
           type="button"
           variant="ghost"
         >
-          <PanelLeft />
+          <PanelRight />
         </Button>
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>
+  );
+
+  if (!hideWhenOpen) return button;
+
+  return (
+    <>
+      <Separator
+        orientation="vertical"
+        className="mx-1 h-4 !bg-[#F2F2F2] dark:!bg-[#303132]"
+      />
+      {button}
+    </>
   );
 }

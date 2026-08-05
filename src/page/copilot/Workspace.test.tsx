@@ -119,6 +119,24 @@ describe('Copilot Workspace', () => {
     });
   });
 
+  it('keeps the citation preview after collapsing Copilot on a chat route', async () => {
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-a');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+
+    await act(async () => root.render(<Workspace />));
+    act(() => store.toggle('namespace-a'));
+
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toMatchObject({
+      conversationId: 'conversation-a',
+      open: false,
+      previewResourceId: 'Abcd1234Efgh5678',
+      view: 'conversation',
+    });
+  });
+
   it('resets Copilot when navigating between resources with a preview open', async () => {
     const store = useCopilotStore.getState();
     store.showConversation('namespace-a', 'conversation-a');
@@ -132,6 +150,28 @@ describe('Copilot Workspace', () => {
     mockUseLocation.mockReturnValue({
       key: 'resource-b',
       pathname: '/namespace-a/Qwer1234Tyui5678',
+    });
+    await act(async () => root.render(<Workspace />));
+
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toMatchObject({
+      conversationId: null,
+      open: false,
+      previewResourceId: null,
+      view: 'home',
+    });
+  });
+
+  it('resets Copilot when opening the full chat history page', async () => {
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-a');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+
+    await act(async () => root.render(<Workspace />));
+    mockUseLocation.mockReturnValue({
+      key: 'history',
+      pathname: '/namespace-a/chat/conversations',
     });
     await act(async () => root.render(<Workspace />));
 

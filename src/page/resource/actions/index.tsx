@@ -127,7 +127,7 @@ export default function Actions(props: IActionProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const loc = useLocation();
-  const { rss_item_id: rssItemId } = useParams();
+  const { rss_item_id: rssItemId, resource_id: routeResourceId } = useParams();
   const isMobile = useIsMobile();
   const { deleteResource } = useDeleteResource();
   const { config, loading: configLoading } = useConfig();
@@ -322,7 +322,13 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'copy_link') {
-      const returnValue = copy(location.href);
+      // Citation preview keeps the chat route, so build a resource URL when the
+      // open resource is not the current route target.
+      const resourceUrl =
+        resource && routeResourceId !== resource.id
+          ? `${window.location.origin}/${namespaceId}/${resource.id}`
+          : location.href;
+      const returnValue = copy(resourceUrl);
       toast(t(returnValue ? 'actions.copy_link_success' : 'copy.fail'), {
         position: 'bottom-right',
       });
@@ -638,7 +644,11 @@ export default function Actions(props: IActionProps) {
           }
           // spaceType={resource.space_type}
         >
-          <ShareAction spaceType={resource.space_type} />
+          <ShareAction
+            spaceType={resource.space_type}
+            resourceId={resource.id}
+            namespaceId={namespaceId}
+          />
         </PermissionWrapper>
       )}
       {resource && !isRssItemView && (

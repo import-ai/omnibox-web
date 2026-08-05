@@ -42,10 +42,16 @@ export default function Workspace() {
   const reset = useCopilotStore(state => state.reset);
   const chatRoot = `/${namespaceId}/chat`;
   const isChatHome = location.pathname === chatRoot;
+  const isChatHistory = location.pathname === `${chatRoot}/conversations`;
   const isChatRoute =
     isChatHome || location.pathname.startsWith(`${chatRoot}/`);
   const showPreview = Boolean(workspace.previewResourceId);
   const previewReplacesResource = showPreview && !isChatRoute;
+  // Keep the cited resource as the main pane when Copilot is collapsed.
+  const showChatBesidePreview = showPreview && isChatRoute && workspace.open;
+  const showCopilotBesideResource = !isChatRoute && workspace.open;
+  // One shared 8px gutter between panes, matching page chrome spacing.
+  const sideBySide = showChatBesidePreview || showCopilotBesideResource;
 
   useLayoutEffect(() => {
     const routeChanged = previousPathnameRef.current !== location.pathname;
@@ -67,28 +73,38 @@ export default function Workspace() {
   ]);
 
   useEffect(() => {
-    if (isChatHome) reset(namespaceId);
-  }, [isChatHome, location.key, namespaceId, reset]);
+    // Full-page chat home / history should never keep a split Copilot preview.
+    if (isChatHome || isChatHistory) reset(namespaceId);
+  }, [isChatHome, isChatHistory, location.key, namespaceId, reset]);
 
   useEffect(() => {
     if (workspace.open) setCopilotMounted(true);
   }, [workspace.open]);
 
   return (
-    <div className="flex min-w-0 flex-1 overflow-hidden">
+    <div
+      className={cn(
+        'flex min-w-0 flex-1 overflow-hidden',
+        sideBySide && 'gap-2 p-2'
+      )}
+    >
       {showPreview && workspace.previewResourceId && (
         <Suspense fallback={<WorkspaceFallback />}>
           <CitationResourcePreview
             namespaceId={namespaceId}
             resourceId={workspace.previewResourceId}
+            flush={sideBySide}
           />
         </Suspense>
       )}
       <div
         className={cn(
           'flex min-w-0 flex-1',
-          showPreview && isChatRoute && 'md:w-[380px] md:flex-none',
-          showPreview && isChatRoute && isMobile && 'hidden',
+          showChatBesidePreview && 'md:w-[380px] md:flex-none',
+          showPreview &&
+            isChatRoute &&
+            (isMobile || !workspace.open) &&
+            'hidden',
           previewReplacesResource && 'hidden'
         )}
       >
@@ -96,7 +112,7 @@ export default function Workspace() {
       </div>
       {!isChatRoute && copilotMounted && (
         <Suspense fallback={null}>
-          <CopilotPanel namespaceId={namespaceId} />
+          <CopilotPanel namespaceId={namespaceId} flush={sideBySide} />
         </Suspense>
       )}
     </div>

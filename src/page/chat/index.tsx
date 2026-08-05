@@ -23,9 +23,18 @@ export default function Chat() {
     !previewingCitation ||
     (workspace.view === 'conversation' &&
       workspace.conversationId === conversationId);
+  // Workspace already provides p-2 + gap-2 beside the citation preview.
+  const besideCitationPreview = previewingCitation && workspace.open;
 
   return (
-    <SidebarInset className="m-0 min-w-0 overflow-hidden bg-white rounded-none md:m-[8px] md:rounded-2xl dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)]">
+    <SidebarInset
+      className={cn(
+        'min-w-0 overflow-hidden bg-white dark:bg-background min-h-0 h-full md:rounded-2xl',
+        besideCitationPreview
+          ? 'm-0 rounded-none md:h-full'
+          : 'm-0 rounded-none md:m-[8px] md:h-[calc(100svh-16px)]'
+      )}
+    >
       <Header />
       <div
         className={cn(

@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Markdown, { ExtraProps } from 'react-markdown';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
@@ -21,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme.ts';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import Save from '@/page/chat/components/SaveMain';
 import { Citation, MessageStatus } from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
@@ -34,6 +35,10 @@ import {
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const resourceLinkRegex = /^#resource-([\w-]+)$/;
@@ -77,11 +82,28 @@ export function CitationMarkdown(props: IProps) {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
+  const location = useLocation();
   const params = useParams();
+  const { namespaceId: routeNamespaceId, conversationId } =
+    useChatRouteParams();
+  const namespaceId = routeNamespaceId || params.namespace_id || '';
+  const copilotOpen = useCopilotStore(
+    state => getCopilotWorkspace(state, namespaceId).open
+  );
+  const chatRoot = namespaceId ? `/${namespaceId}/chat` : '';
+  const isChatRoute =
+    Boolean(chatRoot) &&
+    (location.pathname === chatRoot ||
+      location.pathname.startsWith(`${chatRoot}/`));
+  // Resource + Copilot split: open the linked resource in the left pane.
+  // Standalone chat keeps opening a new tab.
+  const openResourceInLeftPane = Boolean(
+    copilotOpen && !isChatRoute && !params.share_id && namespaceId
+  );
   const resourceLinkPrefix = params.share_id
     ? `/s/${params.share_id}`
-    : params.namespace_id
-      ? `/${params.namespace_id}`
+    : namespaceId
+      ? `/${namespaceId}`
       : '';
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
@@ -101,11 +123,21 @@ export function CitationMarkdown(props: IProps) {
       const resourceMatch = href?.match(resourceLinkRegex);
       const resourceId = resourceMatch?.[1] ?? getResourceIdFromHash(href);
       if (resourceId && resourceLinkPrefix) {
+        const resourceHref = `${resourceLinkPrefix}/${resourceId}`;
         return (
           <a
-            href={`${resourceLinkPrefix}/${resourceId}`}
-            target="_blank"
+            href={resourceHref}
+            target={openResourceInLeftPane ? undefined : '_blank'}
             rel="noopener noreferrer"
+            onClick={event => {
+              if (!openResourceInLeftPane) return;
+              event.preventDefault();
+              const store = useCopilotStore.getState();
+              if (conversationId) {
+                store.showConversation(namespaceId, conversationId);
+              }
+              store.previewResource(namespaceId, resourceId);
+            }}
           >
             {children}
           </a>

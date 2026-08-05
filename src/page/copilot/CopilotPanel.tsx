@@ -1,5 +1,5 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { History, PanelLeft } from 'lucide-react';
+import { History, PanelRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +22,8 @@ import CopilotView from './CopilotView';
 
 interface CopilotPanelProps {
   namespaceId: string;
+  /** Parent Workspace already provides page padding + gutter. */
+  flush?: boolean;
 }
 
 function IconAction(props: {
@@ -49,7 +51,7 @@ function IconAction(props: {
   );
 }
 
-function CopilotPanelContent({ namespaceId }: CopilotPanelProps) {
+function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   const { t } = useTranslation();
   const close = useCopilotStore(state => state.close);
   const showHome = useCopilotStore(state => state.showHome);
@@ -64,11 +66,11 @@ function CopilotPanelContent({ namespaceId }: CopilotPanelProps) {
     <div className="flex h-full min-h-0 flex-col bg-white dark:bg-background md:w-[380px] md:min-w-[380px]">
       <header className="flex h-12 shrink-0 items-center px-3">
         <IconAction
-          className="size-7 text-neutral-400 hover:bg-[#E6E6EC] hover:text-neutral-400 dark:hover:bg-accent"
+          className="size-7 text-[#585D65] dark:text-white"
           label={t('copilot.collapse')}
           onClick={() => close(namespaceId)}
         >
-          <PanelLeft />
+          <PanelRight />
         </IconAction>
         <div className="ml-auto flex items-center gap-1">
           <IconAction
@@ -94,7 +96,10 @@ function CopilotPanelContent({ namespaceId }: CopilotPanelProps) {
   );
 }
 
-export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
+export default function CopilotPanel({
+  namespaceId,
+  flush = false,
+}: CopilotPanelProps) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const open = useCopilotStore(
@@ -136,9 +141,10 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
       aria-hidden={!open}
       aria-label={t('copilot.title')}
       className={cn(
-        'my-2 flex shrink-0 overflow-hidden rounded-2xl border bg-white motion-safe:transition-[width,margin-right,border-color] motion-safe:duration-200 motion-safe:ease-linear dark:bg-background',
+        'flex shrink-0 overflow-hidden rounded-2xl border bg-white motion-safe:transition-[width,margin,border-color] motion-safe:duration-200 motion-safe:ease-linear dark:bg-background',
+        flush ? 'm-0' : 'my-2',
         ready && open
-          ? 'mr-2 w-[380px] border-border'
+          ? cn('w-[380px] border-border', !flush && 'mr-2')
           : 'pointer-events-none mr-0 w-0 border-transparent'
       )}
       ref={setPanelElement}

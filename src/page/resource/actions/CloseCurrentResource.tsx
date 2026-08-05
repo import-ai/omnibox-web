@@ -23,9 +23,11 @@ export default function CloseCurrentResource({
     getCopilotWorkspace(state, namespaceId)
   );
   const closeCopilot = useCopilotStore(state => state.close);
+  const closePreview = useCopilotStore(state => state.closePreview);
 
   const handleClose = () => {
     const destination = getExpandedCopilotPath(namespaceId, workspace);
+    closePreview(namespaceId);
     closeCopilot(namespaceId);
     navigate(destination);
   };

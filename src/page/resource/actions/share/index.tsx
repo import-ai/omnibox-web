@@ -13,10 +13,12 @@ import ShareTabs from './ShareTabs';
 
 export interface ShareActionProps {
   spaceType: string;
+  resourceId?: string;
+  namespaceId?: string;
 }
 
 export default function ShareAction(props: ShareActionProps) {
-  const { spaceType } = props;
+  const { spaceType, resourceId, namespaceId } = props;
   const { t } = useTranslation();
   const isMobile = useIsMobile();
 
@@ -34,7 +36,11 @@ export default function ShareAction(props: ShareActionProps) {
         alignOffset={isMobile ? 0 : -106}
         className="w-full sm:w-[456px] p-0 overflow-hidden"
       >
-        <ShareTabs showPermissions={spaceType === 'teamspace'} />
+        <ShareTabs
+          showPermissions={spaceType === 'teamspace'}
+          resourceId={resourceId}
+          namespaceId={namespaceId}
+        />
       </PopoverContent>
     </Popover>
   );

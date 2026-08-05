@@ -77,7 +77,6 @@ export const useCopilotStore = create<CopilotState>()(
         set(state => ({
           workspaces: patchWorkspace(state, namespaceId, {
             open: false,
-            previewResourceId: null,
           }),
         })),
       toggle: namespaceId =>
@@ -86,9 +85,6 @@ export const useCopilotStore = create<CopilotState>()(
           return {
             workspaces: patchWorkspace(state, namespaceId, {
               open: !current.open,
-              previewResourceId: current.open
-                ? null
-                : current.previewResourceId,
             }),
           };
         }),

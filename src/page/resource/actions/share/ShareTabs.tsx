@@ -9,14 +9,16 @@ import { ShareTabContent } from './share';
 
 export interface ShareTabsProps {
   showPermissions?: boolean;
+  resourceId?: string;
+  namespaceId?: string;
 }
 
 export default function ShareTabs(props: ShareTabsProps) {
-  const { showPermissions } = props;
+  const { showPermissions, resourceId, namespaceId } = props;
   const { t } = useTranslation();
   const params = useParams();
-  const resource_id = params.resource_id || '';
-  const namespace_id = params.namespace_id || '';
+  const resource_id = resourceId || params.resource_id || '';
+  const namespace_id = namespaceId || params.namespace_id || '';
 
   return (
     <Tabs defaultValue={showPermissions ? 'permissions' : 'share'}>

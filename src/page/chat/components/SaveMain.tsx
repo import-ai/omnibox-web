@@ -9,6 +9,7 @@ import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
+import { useCopilotStore } from '@/page/copilot/copilotStore';
 
 interface IProps {
   content: string;
@@ -22,13 +23,16 @@ export default function SaveMain(props: IProps) {
   const params = useParams();
   const namespaceId = params.namespace_id || '';
   const shareId = params.share_id || '';
+  const closeCopilot = useCopilotStore(state => state.close);
   const [loading, onLoading] = useState(false);
+
   const handleCreate = () => {
+    if (loading) return;
     onLoading(true);
     // Ensure the title is correct
     http
       .get(`/namespaces/${namespaceId}/conversations/${conversation.id}`)
-      .then(conversationDetail => {
+      .then(conversationDetail =>
         http.get(`/namespaces/${namespaceId}/private`).then(privateRoot =>
           http
             .post(`/namespaces/${namespaceId}/resources`, {
@@ -39,8 +43,12 @@ export default function SaveMain(props: IProps) {
             })
             .then(response => {
               app.fire('generate_resource', privateRoot.id, response);
+              closeCopilot(namespaceId);
             })
-        );
+        )
+      )
+      .finally(() => {
+        onLoading(false);
       });
   };
 
@@ -55,6 +63,7 @@ export default function SaveMain(props: IProps) {
           size="icon"
           variant="ghost"
           className="p-0 w-7 h-7"
+          disabled={loading}
           onClick={handleCreate}
         >
           {loading ? <Loader2 className="animate-spin" /> : <Save />}
