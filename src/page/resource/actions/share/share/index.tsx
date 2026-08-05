@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
 import {
   parseShareInfo,
+  ResourceType,
   ShareInfo,
   ShareType,
   UpdateShareInfoReq,
@@ -22,12 +23,20 @@ import { ShareTypeSelector } from './ShareTypeSelector';
 interface ShareTabContentProps {
   resource_id: string;
   namespace_id: string;
+  resourceType: ResourceType;
 }
 
+const folderResourceTypes: ResourceType[] = [
+  'folder',
+  'smart_folder',
+  'rss_folder',
+];
+
 export function ShareTabContent(props: ShareTabContentProps) {
-  const { resource_id, namespace_id } = props;
+  const { resource_id, namespace_id, resourceType } = props;
   const { t } = useTranslation();
   const [shareInfo, setShareInfo] = useState<ShareInfo | null>(null);
+  const isFolder = folderResourceTypes.includes(resourceType);
 
   useEffect(() => {
     if (!namespace_id || !resource_id) {
@@ -36,9 +45,18 @@ export function ShareTabContent(props: ShareTabContentProps) {
     http
       .get(`namespaces/${namespace_id}/resources/${resource_id}/share`)
       .then(data => {
-        setShareInfo(parseShareInfo(data));
+        const currentShareInfo = parseShareInfo(data);
+        if (isFolder && !currentShareInfo.all_resources) {
+          return http
+            .patch(
+              `namespaces/${namespace_id}/resources/${resource_id}/share`,
+              { all_resources: true }
+            )
+            .then(data => setShareInfo(parseShareInfo(data)));
+        }
+        setShareInfo(currentShareInfo);
       });
-  }, [namespace_id, resource_id]);
+  }, [isFolder, namespace_id, resource_id]);
 
   const updateShareInfo = (data: UpdateShareInfoReq) => {
     http
@@ -53,7 +71,10 @@ export function ShareTabContent(props: ShareTabContentProps) {
     : '';
 
   const handleEnable = (enabled: boolean) => {
-    updateShareInfo({ enabled });
+    updateShareInfo({
+      enabled,
+      ...(isFolder ? { all_resources: true } : {}),
+    });
   };
 
   const handleRequireLogin = (enabled: boolean) => {
@@ -123,8 +144,8 @@ export function ShareTabContent(props: ShareTabContentProps) {
               />
             </span>
             <Switch
-              checked={!(shareInfo?.all_resources ?? false)}
-              disabled={!shareInfo?.enabled}
+              checked={isFolder ? false : !(shareInfo?.all_resources ?? false)}
+              disabled={!shareInfo?.enabled || isFolder}
               onCheckedChange={handleOnlyCurrent}
             />
           </div>
