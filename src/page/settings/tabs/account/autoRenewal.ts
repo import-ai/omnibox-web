@@ -1,10 +1,5 @@
 export type AutoRenewalStatus =
-  | 'signing'
-  | 'active'
-  | 'canceling'
-  | 'canceled'
-  | 'failed'
-  | 'past_due';
+  'signing' | 'active' | 'canceling' | 'canceled' | 'failed' | 'past_due';
 
 export interface AutoRenewal {
   id: string;
