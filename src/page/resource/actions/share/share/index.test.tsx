@@ -39,12 +39,21 @@ jest.mock('@/components/ui/Button', () => ({
   Button: ({ children }: { children?: ReactNode }) => children,
 }));
 jest.mock('@/components/ui/Switch', () => ({
-  Switch: ({ checked, disabled }: { checked: boolean; disabled?: boolean }) => (
+  Switch: ({
+    checked,
+    disabled,
+    onCheckedChange,
+  }: {
+    checked: boolean;
+    disabled?: boolean;
+    onCheckedChange?: (checked: boolean) => void;
+  }) => (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
       disabled={disabled}
+      onClick={() => onCheckedChange?.(!checked)}
     />
   ),
 }));
@@ -109,6 +118,60 @@ describe('ShareTabContent', () => {
       ).toBe('share.share.folder_current_file_unsupported');
     }
   );
+
+  it('disables sharing while the folder setting is normalized', async () => {
+    let resolvePatch: (value: typeof shareInfo) => void = () => undefined;
+    mockPatch.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          resolvePatch = resolve;
+        })
+    );
+
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-1"
+          resourceType="folder"
+        />
+      );
+    });
+
+    const shareSwitch = container.querySelector(
+      '[role="switch"]'
+    ) as HTMLButtonElement;
+    expect(shareSwitch.disabled).toBe(true);
+    shareSwitch.click();
+    expect(mockPatch).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolvePatch({ ...shareInfo, all_resources: true });
+    });
+
+    expect(shareSwitch.disabled).toBe(false);
+    expect(shareSwitch.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('restores the loaded share state when normalization fails', async () => {
+    mockPatch.mockRejectedValueOnce(new Error('normalization failed'));
+
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-1"
+          resourceType="folder"
+        />
+      );
+    });
+
+    const shareSwitch = container.querySelector(
+      '[role="switch"]'
+    ) as HTMLButtonElement;
+    expect(shareSwitch.disabled).toBe(false);
+    expect(shareSwitch.getAttribute('aria-checked')).toBe('true');
+  });
 
   it('keeps the current-file option available for a document', async () => {
     await act(async () => {
