@@ -30,6 +30,14 @@ jest.mock('@/components/input', () => ({
     <input data-testid="share-url" value={value} disabled={disabled} readOnly />
   ),
 }));
+jest.mock('@/components/tooltip', () => ({
+  Tooltip: ({ children }: { children?: ReactNode }) => children,
+  TooltipContent: ({ children }: { children?: ReactNode }) => (
+    <span data-testid="tooltip-content">{children}</span>
+  ),
+  TooltipProvider: ({ children }: { children?: ReactNode }) => children,
+  TooltipTrigger: ({ children }: { children?: ReactNode }) => children,
+}));
 jest.mock('@/components/ui/Button', () => ({
   Button: ({
     children,
@@ -137,9 +145,9 @@ describe('ShareTabContent', () => {
       const currentFileSwitch = switches[1] as HTMLButtonElement;
       expect(currentFileSwitch.disabled).toBe(true);
       expect(currentFileSwitch.getAttribute('aria-checked')).toBe('false');
-      expect(container.textContent).toContain(
-        'share.share.folder_current_file_unsupported'
-      );
+      expect(
+        container.querySelector('[data-testid="tooltip-content"]')?.textContent
+      ).toBe('share.share.folder_current_file_unsupported');
     }
   );
 
@@ -248,6 +256,54 @@ describe('ShareTabContent', () => {
     ).toBe('false');
   });
 
+  it('waits for a pending update before retrying normalization', async () => {
+    let resolveUpdate: (value: typeof shareInfo) => void = () => undefined;
+    mockGet.mockResolvedValueOnce(shareInfo).mockResolvedValueOnce({
+      ...shareInfo,
+      enabled: false,
+      all_resources: true,
+    });
+    mockPatch
+      .mockRejectedValueOnce(new Error('normalization failed'))
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            resolveUpdate = resolve;
+          })
+      );
+
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-1"
+          resourceType="folder"
+        />
+      );
+    });
+
+    const shareSwitch = container.querySelector(
+      '[role="switch"]'
+    ) as HTMLButtonElement;
+    await act(async () => {
+      shareSwitch.click();
+      await Promise.resolve();
+    });
+    const retryButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'common.retry'
+    );
+    await act(async () => retryButton?.click());
+    expect(mockGet).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveUpdate({ ...shareInfo, enabled: false, all_resources: true });
+    });
+
+    expect(mockGet).toHaveBeenCalledTimes(2);
+    expect(mockPatch).toHaveBeenCalledTimes(2);
+    expect(shareSwitch.getAttribute('aria-checked')).toBe('false');
+  });
+
   it('keeps the current-file option available for a document', async () => {
     await act(async () => {
       root.render(
@@ -264,9 +320,9 @@ describe('ShareTabContent', () => {
     const currentFileSwitch = switches[1] as HTMLButtonElement;
     expect(currentFileSwitch.disabled).toBe(false);
     expect(currentFileSwitch.getAttribute('aria-checked')).toBe('true');
-    expect(container.textContent).not.toContain(
-      'share.share.folder_current_file_unsupported'
-    );
+    expect(
+      container.querySelector('[data-testid="tooltip-content"]')
+    ).toBeNull();
   });
 
   it('loads sharing from the explicit resource snapshot', async () => {

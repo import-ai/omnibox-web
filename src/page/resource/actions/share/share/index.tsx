@@ -5,6 +5,12 @@ import { toast } from 'sonner';
 
 import { HelpTooltip } from '@/components/help-tooltip';
 import { Input } from '@/components/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
 import {
@@ -61,6 +67,10 @@ export function ShareTabContent(props: ShareTabContentProps) {
       let currentShareInfo: ShareInfo | null = null;
 
       try {
+        await updateQueueRef.current;
+        if (!active || resourceKeyRef.current !== resourceKey) {
+          return;
+        }
         const data = await http.get(
           `namespaces/${namespace_id}/resources/${resource_id}/share`
         );
@@ -227,20 +237,28 @@ export function ShareTabContent(props: ShareTabContentProps) {
       )}
       {shareInfo?.enabled && (
         <>
-          <div className="mt-4">
-            <div className="flex h-6 items-center justify-between gap-2">
-              <span className="text-sm flex items-center gap-1">
-                <Trans i18nKey="share.share.current_file_only" />
-                <HelpTooltip
-                  content={t('share.share.current_file_only_tooltip')}
-                />
-              </span>
-              {currentFileOnlySwitch}
-            </div>
-            {isFolder && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t('share.share.folder_current_file_unsupported')}
-              </p>
+          <div className="flex items-center gap-2 justify-between mt-4 h-6">
+            <span className="text-sm flex items-center gap-1">
+              <Trans i18nKey="share.share.current_file_only" />
+              <HelpTooltip
+                content={t('share.share.current_file_only_tooltip')}
+              />
+            </span>
+            {isFolder ? (
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex cursor-help">
+                      {currentFileOnlySwitch}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {t('share.share.folder_current_file_unsupported')}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              currentFileOnlySwitch
             )}
           </div>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
