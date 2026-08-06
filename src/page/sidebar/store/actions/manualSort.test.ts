@@ -4,7 +4,44 @@ jest.mock('@/service/resource', () => ({
   updateManualSort: jest.fn(),
 }));
 
-import { buildManualOrder } from './manualSort';
+import type { ResourceType, SpaceType } from '@/interface';
+import {
+  fetchChildren,
+  moveResource,
+  updateManualSort,
+} from '@/service/resource';
+
+import type { SidebarStore, TreeNode } from '../types';
+import { buildManualOrder, buildManualSortActions } from './manualSort';
+
+const mockedFetchChildren = jest.mocked(fetchChildren);
+const mockedMoveResource = jest.mocked(moveResource);
+const mockedUpdateManualSort = jest.mocked(updateManualSort);
+
+function node(
+  id: string,
+  parentId: string | null,
+  spaceType: SpaceType,
+  children: string[] = [],
+  resourceType: ResourceType = 'folder'
+): TreeNode {
+  return {
+    id,
+    parentId,
+    spaceType,
+    name: id,
+    resourceType,
+    hasChildren: children.length > 0,
+    createdAt: '',
+    updatedAt: '',
+    manualSortInitializedAt: null,
+    children,
+  };
+}
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 it('moves a resource before or after a sibling without duplicating it', () => {
   const children = ['a', 'b', 'c', 'd'];
@@ -21,4 +58,58 @@ it('moves a resource before or after a sibling without duplicating it', () => {
     'a',
     'd',
   ]);
+});
+
+it('keeps a successful cross-space move when manual sort syncing fails', async () => {
+  const state = {
+    namespaceId: 'namespace',
+    nodes: {
+      private: node('private', null, 'private', ['source']),
+      teamspace: node('teamspace', null, 'teamspace', ['target']),
+      source: node('source', 'private', 'private', ['drag']),
+      target: node('target', 'teamspace', 'teamspace', ['existing']),
+      drag: node('drag', 'source', 'private', [], 'doc'),
+      existing: node('existing', 'target', 'teamspace', [], 'doc'),
+    },
+    ui: {
+      target: { expanded: true, loading: false, loaded: true },
+    },
+    rootIds: { private: 'private', teamspace: 'teamspace' },
+    resourceSorts: {
+      private: { sort_by: 'manual', sort_order: 'asc' },
+      teamspace: { sort_by: 'manual', sort_order: 'asc' },
+    },
+  } as SidebarStore;
+  state.nodes.teamspace.manualSortInitializedAt = '2026-08-05T00:00:00.000Z';
+  const actions = buildManualSortActions(
+    update => update(state),
+    () => state
+  );
+  mockedMoveResource.mockResolvedValue(undefined);
+  mockedUpdateManualSort
+    .mockRejectedValueOnce(new Error('Sort sync failed'))
+    .mockResolvedValue(undefined);
+  mockedFetchChildren.mockRejectedValue(new Error('Refresh failed'));
+
+  await expect(
+    actions.applyManualDrop({
+      dragId: 'drag',
+      targetId: 'target',
+      position: 'inside',
+    })
+  ).resolves.toBeUndefined();
+
+  expect(state.nodes.source.children).toEqual([]);
+  expect(state.nodes.target.children).toEqual(['existing', 'drag']);
+  expect(state.nodes.drag.parentId).toBe('target');
+  expect(state.nodes.drag.spaceType).toBe('teamspace');
+  expect(mockedUpdateManualSort).toHaveBeenCalledWith(
+    'namespace',
+    {
+      root_resource_id: 'teamspace',
+      orders: [{ parent_id: 'target', resource_ids: ['existing', 'drag'] }],
+    },
+    { mute: true }
+  );
+  expect(mockedUpdateManualSort).toHaveBeenCalledTimes(1);
 });

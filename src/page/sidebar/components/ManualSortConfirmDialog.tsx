@@ -14,6 +14,7 @@ import {
 interface ManualSortConfirmDialogProps {
   open: boolean;
   loading: boolean;
+  hasExistingManualSort: boolean;
   onCancel: () => void;
   onConfirm: () => Promise<void>;
   spaceName: string;
@@ -22,6 +23,7 @@ interface ManualSortConfirmDialogProps {
 export function ManualSortConfirmDialog({
   open,
   loading,
+  hasExistingManualSort,
   onCancel,
   onConfirm,
   spaceName,
@@ -34,7 +36,12 @@ export function ManualSortConfirmDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>{t('sidebar.sort.confirm_title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            {t('sidebar.sort.confirm_description', { space: spaceName })}
+            {t(
+              hasExistingManualSort
+                ? 'sidebar.sort.confirm_description'
+                : 'sidebar.sort.confirm_initial_description',
+              { space: spaceName }
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

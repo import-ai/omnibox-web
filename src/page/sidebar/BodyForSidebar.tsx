@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -354,6 +354,10 @@ export function BodyForSidebar(props: IProps) {
     const sourceSort = store.resourceSorts[spaceType];
     const rootId = store.rootIds[spaceType];
     if (!rootId) return;
+    const locateSnapshot = getLocateSnapshot(
+      store.nodes,
+      store.activeId || resourceId
+    );
 
     store.setResourceSort(spaceType, sort);
     setSortingSpace(spaceType);
@@ -369,6 +373,9 @@ export function BodyForSidebar(props: IProps) {
         });
       }
       await refreshSpaceResources(spaceType, sort);
+      if (locateSnapshot) {
+        await locateSidebarResource(locateSnapshot.id);
+      }
     } catch {
       store.setResourceSort(spaceType, sourceSort);
       // request.ts handles backend error toasts.
@@ -406,24 +413,11 @@ export function BodyForSidebar(props: IProps) {
       await useSidebarStore.getState().applyManualDrop(pending);
       useSidebarStore.getState().setPendingManualDrop(null);
     } catch {
-      if (!overwrite) {
-        useSidebarStore.getState().setPendingManualDrop(null);
-      }
+      // request.ts handles backend error toasts.
     } finally {
       setSortingSpace(null);
     }
   };
-
-  useEffect(() => {
-    if (pendingManualDrop && !pendingManualRecordExists && !sortingSpace) {
-      void handleConfirmManualSort(false);
-    }
-  }, [
-    pendingManualDrop,
-    pendingManualRecordExists,
-    sortingSpace,
-    handleConfirmManualSort,
-  ]);
 
   const handleConfirmCreateSmartFolder = (
     payload: CreateSmartFolderRequest
@@ -668,10 +662,11 @@ export function BodyForSidebar(props: IProps) {
         onResourceSortChange={handleResourceSortChange}
       />
       <ManualSortConfirmDialog
-        open={!!pendingManualDrop && pendingManualRecordExists}
+        open={!!pendingManualDrop}
         loading={!!sortingSpace}
+        hasExistingManualSort={pendingManualRecordExists}
         onCancel={() => useSidebarStore.getState().setPendingManualDrop(null)}
-        onConfirm={() => handleConfirmManualSort(true)}
+        onConfirm={() => handleConfirmManualSort(pendingManualRecordExists)}
         spaceName={
           pendingManualSpace === 'teamspace'
             ? t('sidebar.sort.teamspace')

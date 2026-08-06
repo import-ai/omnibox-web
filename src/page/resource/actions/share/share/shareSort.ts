@@ -7,7 +7,7 @@ export function getShareSortOrderOptions(sortBy: ResourceSortBy) {
         { labelKey: 'za' as const, value: 'desc' as const },
       ]
     : [
-        { labelKey: 'newest' as const, value: 'desc' as const },
         { labelKey: 'oldest' as const, value: 'asc' as const },
+        { labelKey: 'newest' as const, value: 'desc' as const },
       ];
 }

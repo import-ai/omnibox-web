@@ -201,12 +201,13 @@ export function initializeManualSort(
 
 export function updateManualSort(
   namespaceId: string,
-  payload: UpdateManualSortPayload
+  payload: UpdateManualSortPayload,
+  config?: RequestConfig
 ) {
-  return http.put<void>(
-    `/namespaces/${namespaceId}/resources/manual-sort`,
-    payload
-  );
+  const url = `/namespaces/${namespaceId}/resources/manual-sort`;
+  return config
+    ? http.put<void>(url, payload, config)
+    : http.put<void>(url, payload);
 }
 
 export function fetchResource(

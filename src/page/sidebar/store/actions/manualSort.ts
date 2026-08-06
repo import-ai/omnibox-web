@@ -4,6 +4,7 @@ import {
   updateManualSort,
 } from '@/service/resource';
 
+import { refreshSortedChildren } from '../refreshSortedChildren';
 import type {
   PendingManualDrop,
   SidebarGet,
@@ -100,6 +101,26 @@ export function buildManualSortActions(set: SidebarSet, get: SidebarGet) {
               { parent_id: targetParent.id, resource_ids: nextTargetChildren },
             ];
 
+      const commitMove = () => {
+        set(current => {
+          const currentDrag = current.nodes[currentDragNode.id];
+          const currentSource = current.nodes[sourceParent.id];
+          const currentTarget = current.nodes[targetParent.id];
+          if (!currentDrag || !currentSource || !currentTarget) return;
+
+          if (currentSource.id !== currentTarget.id) {
+            currentSource.children = sourceChildren;
+            collapseEmptyNode(current, currentSource.id);
+            currentDrag.parentId = currentTarget.id;
+            traverseDescendants(current.nodes, currentDrag.id, node => {
+              node.spaceType = currentTarget.spaceType;
+            });
+          }
+          currentTarget.children = nextTargetChildren;
+          currentTarget.hasChildren = nextTargetChildren.length > 0;
+        });
+      };
+
       if (rootId === targetRootId) {
         await updateManualSort(state.namespaceId, {
           root_resource_id: rootId,
@@ -111,41 +132,47 @@ export function buildManualSortActions(set: SidebarSet, get: SidebarGet) {
             : {}),
           orders,
         });
+        commitMove();
       } else {
         await moveResource(
           state.namespaceId,
           currentDragNode.id,
           targetParent.id
         );
-        await Promise.all([
-          updateManualSort(state.namespaceId, {
-            root_resource_id: rootId,
-            orders: [orders[0]],
-          }),
-          updateManualSort(state.namespaceId, {
-            root_resource_id: targetRootId,
-            orders: [orders[orders.length - 1]],
-          }),
-        ]);
-      }
-
-      set(current => {
-        const currentDrag = current.nodes[currentDragNode.id];
-        const currentSource = current.nodes[sourceParent.id];
-        const currentTarget = current.nodes[targetParent.id];
-        if (!currentDrag || !currentSource || !currentTarget) return;
-
-        if (currentSource.id !== currentTarget.id) {
-          currentSource.children = sourceChildren;
-          collapseEmptyNode(current, currentSource.id);
-          currentDrag.parentId = currentTarget.id;
-          traverseDescendants(current.nodes, currentDrag.id, node => {
-            node.spaceType = currentTarget.spaceType;
-          });
+        commitMove();
+        const sortRequests: Promise<void>[] = [];
+        if (state.nodes[rootId]?.manualSortInitializedAt) {
+          sortRequests.push(
+            updateManualSort(
+              state.namespaceId,
+              {
+                root_resource_id: rootId,
+                orders: [orders[0]],
+              },
+              { mute: true }
+            )
+          );
         }
-        currentTarget.children = nextTargetChildren;
-        currentTarget.hasChildren = nextTargetChildren.length > 0;
-      });
+        if (state.nodes[targetRootId]?.manualSortInitializedAt) {
+          sortRequests.push(
+            updateManualSort(
+              state.namespaceId,
+              {
+                root_resource_id: targetRootId,
+                orders: [orders[orders.length - 1]],
+              },
+              { mute: true }
+            )
+          );
+        }
+        const sortResults = await Promise.allSettled(sortRequests);
+        if (sortResults.some(result => result.status === 'rejected')) {
+          await Promise.all([
+            refreshSortedChildren(get, sourceParent.id),
+            refreshSortedChildren(get, targetParent.id),
+          ]);
+        }
+      }
     },
   };
 }

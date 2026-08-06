@@ -12,9 +12,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { cn } from '@/lib/utils';
@@ -35,6 +32,15 @@ const automaticSortOptions: ResourceSortBy[] = [
   'title',
 ];
 
+const flatAutomaticSortOptions = automaticSortOptions.flatMap(sortBy =>
+  getShareSortOrderOptions(sortBy).map(order => ({
+    sort_by: sortBy,
+    sort_order: order.value,
+    fieldKey: `sidebar.sort.${sortBy}`,
+    orderKey: `sidebar.sort.order.${order.labelKey}`,
+  }))
+);
+
 export function ShareSortSelector({
   disabled,
   manualSortAvailable,
@@ -42,12 +48,16 @@ export function ShareSortSelector({
   onChange,
 }: ShareSortSelectorProps) {
   const { t } = useTranslation();
+  const selectedAutomaticOption = flatAutomaticSortOptions.find(
+    option =>
+      option.sort_by === sort.sort_by && option.sort_order === sort.sort_order
+  );
   const manualItem = (
     <DropdownMenuItem
       aria-disabled={!manualSortAvailable}
       aria-current={sort.sort_by === 'manual' ? 'true' : undefined}
       className={cn(
-        'h-9 justify-between',
+        'h-9 cursor-pointer gap-2 text-popover-foreground',
         sort.sort_by === 'manual' && 'bg-accent',
         !manualSortAvailable && 'cursor-not-allowed opacity-50'
       )}
@@ -59,8 +69,14 @@ export function ShareSortSelector({
         onChange({ sort_by: 'manual', sort_order: 'asc' });
       }}
     >
-      {t('sidebar.sort.manual')}
-      {sort.sort_by === 'manual' && <Check className="size-4 text-blue-500" />}
+      <span className="flex w-full items-center justify-between gap-x-3">
+        <span>{t('sidebar.sort.manual')}</span>
+        <span className="flex size-4">
+          {sort.sort_by === 'manual' && (
+            <Check className="size-4 text-blue-500" />
+          )}
+        </span>
+      </span>
     </DropdownMenuItem>
   );
 
@@ -71,51 +87,47 @@ export function ShareSortSelector({
           <Button
             variant="outline"
             disabled={disabled}
-            className="h-6 w-36 justify-between px-2 text-xs font-normal"
+            className="h-6 w-44 justify-between bg-transparent px-3 py-2 text-sm font-normal dark:bg-[#303030]"
           >
             <span className="truncate">
-              {t(`sidebar.sort.${sort.sort_by}`)}
+              {selectedAutomaticOption
+                ? `${t(selectedAutomaticOption.fieldKey)} ${t(
+                    selectedAutomaticOption.orderKey
+                  )}`
+                : t('sidebar.sort.manual')}
             </span>
-            <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
+            <ChevronDown className="size-4 shrink-0 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-44">
-          {automaticSortOptions.map(sortBy => {
-            const selected = sort.sort_by === sortBy;
-            const orders = getShareSortOrderOptions(sortBy);
+        <DropdownMenuContent align="end" className="w-max">
+          {flatAutomaticSortOptions.map(option => {
+            const selected =
+              sort.sort_by === option.sort_by &&
+              sort.sort_order === option.sort_order;
+
             return (
-              <DropdownMenuSub key={sortBy}>
-                <DropdownMenuSubTrigger
-                  aria-current={selected ? 'true' : undefined}
-                  className={cn('h-9', selected && 'bg-accent')}
-                >
-                  {t(`sidebar.sort.${sortBy}`)}
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-36">
-                  {orders.map(order => {
-                    const orderSelected =
-                      selected && sort.sort_order === order.value;
-                    return (
-                      <DropdownMenuItem
-                        key={order.value}
-                        aria-current={orderSelected ? 'true' : undefined}
-                        className="h-9 justify-between"
-                        onSelect={() =>
-                          onChange({
-                            sort_by: sortBy,
-                            sort_order: order.value,
-                          })
-                        }
-                      >
-                        {t(`sidebar.sort.order.${order.labelKey}`)}
-                        {orderSelected && (
-                          <Check className="size-4 text-blue-500" />
-                        )}
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
+              <DropdownMenuItem
+                key={`${option.sort_by}-${option.sort_order}`}
+                aria-current={selected ? 'true' : undefined}
+                className={cn(
+                  'h-9 cursor-pointer gap-2 text-popover-foreground',
+                  selected && 'bg-accent'
+                )}
+                onSelect={() =>
+                  onChange({
+                    sort_by: option.sort_by,
+                    sort_order: option.sort_order,
+                  })
+                }
+              >
+                <span className="grid w-full grid-cols-[max-content_max-content_max-content] items-center gap-x-3">
+                  <span>{t(option.fieldKey)}</span>
+                  <span>{t(option.orderKey)}</span>
+                  <span className="flex size-4">
+                    {selected && <Check className="size-4 text-blue-500" />}
+                  </span>
+                </span>
+              </DropdownMenuItem>
             );
           })}
           {manualSortAvailable ? (

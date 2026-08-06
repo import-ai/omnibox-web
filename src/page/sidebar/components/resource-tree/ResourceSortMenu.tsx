@@ -8,11 +8,7 @@ import {
   DropdownMenuSubTrigger,
 } from '@/components/ui/DropdownMenu';
 import { cn } from '@/lib/utils';
-import type {
-  ResourceSortBy,
-  ResourceSortOptions,
-  ResourceSortOrder,
-} from '@/service/resource';
+import type { ResourceSortOptions } from '@/service/resource';
 
 import { menuIconClass, menuItemClass } from './shared';
 
@@ -22,10 +18,45 @@ interface ResourceSortMenuProps {
   onChange: (value: ResourceSortOptions) => void;
 }
 
-const automaticSortOptions: ResourceSortBy[] = [
-  'updated_at',
-  'created_at',
-  'title',
+const automaticSortOptions: Array<
+  ResourceSortOptions & { fieldKey: string; orderKey: string }
+> = [
+  {
+    sort_by: 'updated_at',
+    sort_order: 'asc',
+    fieldKey: 'sidebar.sort.updated_at',
+    orderKey: 'sidebar.sort.order.oldest',
+  },
+  {
+    sort_by: 'updated_at',
+    sort_order: 'desc',
+    fieldKey: 'sidebar.sort.updated_at',
+    orderKey: 'sidebar.sort.order.newest',
+  },
+  {
+    sort_by: 'created_at',
+    sort_order: 'asc',
+    fieldKey: 'sidebar.sort.created_at',
+    orderKey: 'sidebar.sort.order.oldest',
+  },
+  {
+    sort_by: 'created_at',
+    sort_order: 'desc',
+    fieldKey: 'sidebar.sort.created_at',
+    orderKey: 'sidebar.sort.order.newest',
+  },
+  {
+    sort_by: 'title',
+    sort_order: 'asc',
+    fieldKey: 'sidebar.sort.title',
+    orderKey: 'sidebar.sort.order.az',
+  },
+  {
+    sort_by: 'title',
+    sort_order: 'desc',
+    fieldKey: 'sidebar.sort.title',
+    orderKey: 'sidebar.sort.order.za',
+  },
 ];
 
 export function ResourceSortMenu({
@@ -41,68 +72,53 @@ export function ResourceSortMenu({
         <ArrowUpDown className={menuIconClass} />
         {t('sidebar.sort.menu')}
       </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent className="w-44">
-        {automaticSortOptions.map(sortBy => {
-          const selected = value.sort_by === sortBy;
-          const orders: Array<{
-            label: string;
-            value: ResourceSortOrder;
-          }> =
-            sortBy === 'title'
-              ? [
-                  { label: t('sidebar.sort.order.az'), value: 'asc' },
-                  { label: t('sidebar.sort.order.za'), value: 'desc' },
-                ]
-              : [
-                  { label: t('sidebar.sort.order.newest'), value: 'desc' },
-                  { label: t('sidebar.sort.order.oldest'), value: 'asc' },
-                ];
+      <DropdownMenuSubContent className="w-max">
+        {automaticSortOptions.map(option => {
+          const selected =
+            value.sort_by === option.sort_by &&
+            value.sort_order === option.sort_order;
+
           return (
-            <DropdownMenuSub key={sortBy}>
-              <DropdownMenuSubTrigger
-                disabled={disabled}
-                aria-current={selected ? 'true' : undefined}
-                className={cn('h-9', selected && 'bg-accent')}
-              >
-                {t(`sidebar.sort.${sortBy}`)}
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="w-36">
-                {orders.map(order => {
-                  const orderSelected =
-                    selected && value.sort_order === order.value;
-                  return (
-                    <DropdownMenuItem
-                      key={order.value}
-                      disabled={disabled}
-                      aria-current={orderSelected ? 'true' : undefined}
-                      className="h-9 justify-between"
-                      onSelect={() =>
-                        onChange({
-                          sort_by: sortBy,
-                          sort_order: order.value,
-                        })
-                      }
-                    >
-                      {order.label}
-                      {orderSelected && <Check className="text-blue-500" />}
-                    </DropdownMenuItem>
-                  );
-                })}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
+            <DropdownMenuItem
+              key={`${option.sort_by}-${option.sort_order}`}
+              disabled={disabled}
+              aria-current={selected ? 'true' : undefined}
+              className={cn(menuItemClass, 'h-9', selected && 'bg-accent')}
+              onSelect={() =>
+                onChange({
+                  sort_by: option.sort_by,
+                  sort_order: option.sort_order,
+                })
+              }
+            >
+              <span className="grid w-full grid-cols-[max-content_max-content_max-content] items-center gap-x-3">
+                <span>{t(option.fieldKey)}</span>
+                <span>{t(option.orderKey)}</span>
+                <span className="flex size-4">
+                  {selected && <Check className="size-4 text-blue-500" />}
+                </span>
+              </span>
+            </DropdownMenuItem>
           );
         })}
         <DropdownMenuItem
           disabled={disabled}
           aria-current={value.sort_by === 'manual' ? 'true' : undefined}
           className={cn(
-            'h-9 justify-between',
+            menuItemClass,
+            'h-9',
             value.sort_by === 'manual' && 'bg-accent'
           )}
           onSelect={() => onChange({ sort_by: 'manual', sort_order: 'asc' })}
         >
-          {t('sidebar.sort.manual')}
-          {value.sort_by === 'manual' && <Check className="text-blue-500" />}
+          <span className="flex w-full items-center justify-between gap-x-3">
+            <span>{t('sidebar.sort.manual')}</span>
+            <span className="flex size-4">
+              {value.sort_by === 'manual' && (
+                <Check className="size-4 text-blue-500" />
+              )}
+            </span>
+          </span>
         </DropdownMenuItem>
       </DropdownMenuSubContent>
     </DropdownMenuSub>

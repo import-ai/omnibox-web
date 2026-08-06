@@ -6,11 +6,16 @@ import {
   type ResourcePickerResource,
 } from '@/components/resourcePicker';
 import { getInitialRootExpansionIds } from '@/components/resourcePicker/resourcePickerState';
+import {
+  fetchSortedWorkspaceRootResources,
+  getWorkspacePickerSort,
+  setWorkspacePickerSpace,
+} from '@/components/resourcePicker/workspaceResourcePickerSort';
 import { DropdownMenuSeparator } from '@/components/ui/DropdownMenu';
-import type { PathItem } from '@/interface';
+import type { PathItem, SpaceType } from '@/interface';
+import { useSidebarStore } from '@/page/sidebar/store';
 import {
   fetchChildren,
-  fetchRootResources,
   fetchSmartFolderChildren,
   searchResources,
 } from '@/service/resource';
@@ -43,6 +48,7 @@ export function ChooseResourceTree({
 }: ChooseResourceTreeProps) {
   const { t } = useTranslation();
   const [roots, setRoots] = useState<ChooseResourceTreeResource[]>([]);
+  const resourceSorts = useSidebarStore(state => state.resourceSorts);
   const disabledResourceIds = useMemo(
     () => new Set(disabledIds ?? []),
     [disabledIds]
@@ -88,18 +94,23 @@ export function ChooseResourceTree({
 
   useEffect(() => {
     let cancelled = false;
-    fetchRootResources(namespaceId)
+    fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
       .then(response => {
         if (cancelled) return;
         setRoots(
-          Object.keys(response).flatMap(spaceType => {
+          (Object.keys(response) as SpaceType[]).flatMap(spaceType => {
             const root = response[spaceType];
             if (!root.id) return [];
-            const decorated = decorateResource({
-              ...root,
-              name: t(spaceType),
-              children: root.children ?? [],
-            });
+            const decorated = decorateResource(
+              setWorkspacePickerSpace(
+                {
+                  ...root,
+                  name: t(spaceType),
+                  children: root.children ?? [],
+                },
+                spaceType
+              )
+            );
             return decorated ? [decorated] : [];
           })
         );
@@ -113,7 +124,7 @@ export function ChooseResourceTree({
     return () => {
       cancelled = true;
     };
-  }, [decorateResource, namespaceId, t]);
+  }, [decorateResource, namespaceId, resourceSorts, t]);
 
   const defaultExpandedRootIds = useMemo(
     () => getInitialRootExpansionIds(roots, resourceId, selectedResourcePath),
@@ -128,24 +139,31 @@ export function ChooseResourceTree({
   );
 
   const loadChildren = useCallback(
-    (resource: ResourcePickerResource) =>
-      (resource.resource_type === 'smart_folder'
-        ? fetchSmartFolderChildren(namespaceId, resource.id)
-        : fetchChildren(namespaceId, resource.id)
+    (resource: ResourcePickerResource) => {
+      const spaceType = resource.picker_space_type ?? 'private';
+      return (
+        resource.resource_type === 'smart_folder'
+          ? fetchSmartFolderChildren(namespaceId, resource.id)
+          : fetchChildren(
+              namespaceId,
+              resource.id,
+              getWorkspacePickerSort(resource, resourceSorts)
+            )
       ).then(
         resources =>
           resources
             .map(child =>
               decorateResource(
-                child,
+                setWorkspacePickerSpace(child, spaceType),
                 Boolean(
                   (resource as ChooseResourceTreeResource).descendantsDisabled
                 )
               )
             )
             .filter(Boolean) as ResourcePickerResource[]
-      ),
-    [decorateResource, namespaceId]
+      );
+    },
+    [decorateResource, namespaceId, resourceSorts]
   );
 
   const search = useCallback(
