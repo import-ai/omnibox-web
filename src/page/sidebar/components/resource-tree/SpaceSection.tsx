@@ -70,7 +70,7 @@ export default function SpaceSection({
       onCreateRssFolder={onCreateRssFolder}
       smartFolderQuotaExhausted={smartFolderQuotaExhausted}
       resourceSort={resourceSort}
-      sorting={sortingSpace === spaceType}
+      sorting={sortingSpace !== null}
       onResourceSortChange={sort => onResourceSortChange(spaceType, sort)}
     />
   );

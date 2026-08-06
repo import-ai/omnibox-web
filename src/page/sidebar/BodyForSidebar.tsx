@@ -350,6 +350,7 @@ export function BodyForSidebar(props: IProps) {
     spaceType: SpaceType,
     sort: ResourceSortOptions
   ) => {
+    if (sortingSpace) return;
     const store = useSidebarStore.getState();
     const sourceSort = store.resourceSorts[spaceType];
     const rootId = store.rootIds[spaceType];
