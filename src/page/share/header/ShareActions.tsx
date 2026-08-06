@@ -57,8 +57,18 @@ export default function ShareActions({
     }
 
     if (id === 'copy_content' && resource.content) {
-      const returnValue = copy(resource.content, {
+      // Always copy markdown plain text so editor paste can restore structure.
+      const markdown = resource.content;
+      const returnValue = copy(markdown, {
         format: 'text/plain',
+        onCopy: clipboardData => {
+          try {
+            clipboardData?.setData('text/plain', markdown);
+            clipboardData?.setData('text/html', '');
+          } catch {
+            // ignore
+          }
+        },
       });
       toast(t(returnValue ? 'actions.copy_content_success' : 'copy.fail'), {
         position: 'bottom-right',
@@ -79,8 +89,9 @@ export default function ShareActions({
       // generate file name: use resource.name, if empty, use "untitled"
       const baseName = resource.name || t('untitled');
       const fileName = baseName.endsWith('.md') ? baseName : `${baseName}.md`;
+      const markdownContent = resource.content;
 
-      const blob = new Blob([resource.content], { type: 'text/markdown' });
+      const blob = new Blob([markdownContent], { type: 'text/markdown' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

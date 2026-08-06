@@ -119,6 +119,19 @@ body.batch-drop-not-allowed * {
   }
 }
 
+/* Force-hide scrollbars while editor block drag is active. */
+html.is-dragging-hide-scrollbars,
+html.is-dragging-hide-scrollbars * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+html.is-dragging-hide-scrollbars *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 html {
   height: 100vh;
   height: calc(var(--vh, 1vh) * 100);

@@ -1,5 +1,11 @@
-import { Resource, ResourceMeta, ResourceType } from '@/interface';
-import { http } from '@/lib/request';
+import {
+  Resource,
+  ResourceMeta,
+  ResourceType,
+  RssItem,
+  RssItemDetail,
+} from '@/interface';
+import { http, type RequestConfig } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 
 export type RootResourcesResponse = Record<
@@ -56,11 +62,12 @@ export function fetchChildren(
 
 export function fetchRootResources(
   namespaceId: string,
-  signal?: AbortSignal
+  config?: RequestConfig
 ): Promise<RootResourcesResponse> {
-  return http.get<RootResourcesResponse>(`/namespaces/${namespaceId}/root`, {
-    signal,
-  });
+  return http.get<RootResourcesResponse>(
+    `/namespaces/${namespaceId}/root`,
+    config
+  );
 }
 
 export function fetchSmartFolderChildren(
@@ -69,6 +76,37 @@ export function fetchSmartFolderChildren(
 ): Promise<Resource[]> {
   return http.get<Resource[]>(
     `/namespaces/${namespaceId}/smart-folders/${id}/children`
+  );
+}
+
+export function fetchRssItems(
+  namespaceId: string,
+  id: string,
+  options?: { limit?: number; offset?: number; signal?: AbortSignal }
+): Promise<RssItem[]> {
+  const params = new URLSearchParams();
+  if (options?.limit !== undefined) {
+    params.set('limit', String(options.limit));
+  }
+  if (options?.offset !== undefined) {
+    params.set('offset', String(options.offset));
+  }
+  const query = params.toString() ? `?${params}` : '';
+  return http.get<RssItem[]>(
+    `/namespaces/${namespaceId}/rss-folders/${id}/items${query}`,
+    { signal: options?.signal }
+  );
+}
+
+export function fetchRssItem(
+  namespaceId: string,
+  folderId: string,
+  itemId: string,
+  signal?: AbortSignal
+): Promise<RssItemDetail> {
+  return http.get<RssItemDetail>(
+    `/namespaces/${namespaceId}/rss-folders/${folderId}/items/${itemId}`,
+    { signal }
   );
 }
 
@@ -82,10 +120,10 @@ export function searchResources(
   }
   params.set('type', 'resource');
   return http
-    .get<
-      IndexedResourceSearchResult[]
-    >(`/namespaces/${namespaceId}/search?${params.toString()}`)
-    .then((resources: IndexedResourceSearchResult[]) =>
+    .get<IndexedResourceSearchResult[]>(
+      `/namespaces/${namespaceId}/search?${params.toString()}`
+    )
+    .then(resources =>
       resources.map<ResourceMeta>(resource => ({
         id: resource.resource_id,
         name: resource.title,
@@ -105,7 +143,9 @@ export function deleteResource(namespaceId: string, id: string) {
 }
 
 export function renameResource(namespaceId: string, id: string, name: string) {
-  return http.patch(`/namespaces/${namespaceId}/resources/${id}`, { name });
+  return http.patch<Resource>(`/namespaces/${namespaceId}/resources/${id}`, {
+    name,
+  });
 }
 
 export function moveResource(
@@ -132,9 +172,14 @@ export function fetchResource(
   );
 }
 
-export function fetchResourcesByIds(namespaceId: string, ids: string[]) {
+export function fetchResourcesByIds(
+  namespaceId: string,
+  ids: string[],
+  config?: RequestConfig
+) {
   return http.get<Resource[]>(
-    `/namespaces/${namespaceId}/resources?id=${ids.join(',')}`
+    `/namespaces/${namespaceId}/resources?id=${ids.join(',')}`,
+    config
   );
 }
 

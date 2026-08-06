@@ -16,30 +16,52 @@ export const useAutosizeTextArea = ({
   maxHeight = Number.MAX_SAFE_INTEGER,
   minHeight = 0,
 }: UseAutosizeTextAreaProps) => {
-  const [init, setInit] = React.useState(true);
+  const initRef = React.useRef(true);
+
   React.useEffect(() => {
-    // We need to reset the height momentarily to get the correct scrollHeight for the textarea
-    const offsetBorder = 2;
     const textAreaElement = textAreaRef.current;
-    if (textAreaElement) {
-      if (init) {
+    if (!textAreaElement) {
+      return;
+    }
+
+    const offsetBorder = 2;
+
+    const syncHeight = () => {
+      if (initRef.current) {
         textAreaElement.style.minHeight = `${minHeight + offsetBorder}px`;
         if (maxHeight > minHeight) {
           textAreaElement.style.maxHeight = `${maxHeight}px`;
         }
-        setInit(false);
+        initRef.current = false;
       }
+      // Reset height so scrollHeight reflects the current width/wrapping.
       textAreaElement.style.height = `${minHeight + offsetBorder}px`;
       const scrollHeight = textAreaElement.scrollHeight;
-      // We then set the height directly, outside of the render loop
-      // Trying to set this with state or a ref will product an incorrect value.
-      if (scrollHeight > maxHeight) {
-        textAreaElement.style.height = `${maxHeight}px`;
-      } else {
-        textAreaElement.style.height = `${scrollHeight + offsetBorder}px`;
+      textAreaElement.style.height =
+        scrollHeight > maxHeight
+          ? `${maxHeight}px`
+          : `${scrollHeight + offsetBorder}px`;
+    };
+
+    syncHeight();
+
+    // Recalculate when width changes (window resize, sidebar, etc.).
+    // Ignore height-only notifications from our own style writes.
+    let lastWidth = textAreaElement.clientWidth;
+    const resizeObserver = new ResizeObserver(entries => {
+      const width = entries[0]?.contentRect.width;
+      if (width === undefined || width === lastWidth) {
+        return;
       }
-    }
-  }, [textAreaRef.current, triggerAutoSize]);
+      lastWidth = width;
+      syncHeight();
+    });
+    resizeObserver.observe(textAreaElement);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [maxHeight, minHeight, textAreaRef, triggerAutoSize]);
 };
 
 export type AutosizeTextAreaRef = {

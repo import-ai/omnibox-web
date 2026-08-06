@@ -19,7 +19,7 @@ interface BatchDragItem {
 }
 
 interface CardDragItem extends TreeNode {
-  type?: 'card';
+  type: 'card';
 }
 
 type SidebarDragItem = BatchDragItem | CardDragItem;
@@ -31,8 +31,10 @@ export function SidebarDragLayer() {
     currentOffset: monitor.getClientOffset(),
     isDragging: monitor.isDragging(),
   }));
+  const isSidebarDrag = item?.type === 'batch' || item?.type === 'card';
   const batchDragging = isDragging && item?.type === 'batch';
-  const previewNode = item?.type === 'batch' ? item.preview : item;
+  const previewNode =
+    item?.type === 'batch' ? item.preview : item?.type === 'card' ? item : null;
 
   useEffect(() => {
     useSidebarStore.getState().setBatchDragging(batchDragging);
@@ -62,7 +64,13 @@ export function SidebarDragLayer() {
     };
   }, [batchDragging, currentOffset, item]);
 
-  if (!isDragging || !item || !previewNode || !currentOffset) {
+  if (
+    !isDragging ||
+    !isSidebarDrag ||
+    !item ||
+    !previewNode ||
+    !currentOffset
+  ) {
     return null;
   }
 

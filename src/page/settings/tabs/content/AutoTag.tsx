@@ -2,6 +2,7 @@ import { Tags } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Spinner } from '@/components/ui/Spinner';
 import { Switch } from '@/components/ui/Switch';
 import { http } from '@/lib/request';
 
@@ -10,6 +11,7 @@ export default function AutoTag() {
   // Default to true (enabled) to match backend default behavior
   const [isEnabled, setIsEnabled] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const loadPreference = async () => {
@@ -26,17 +28,6 @@ export default function AutoTag() {
         // Option doesn't exist (404) or other error, use default
       }
       setIsEnabled(enabled);
-      // Save default to backend if not exists
-      if (enabled) {
-        try {
-          await http.post('/user/option', {
-            name: 'enable_ai_tag_extraction',
-            value: 'true',
-          });
-        } catch {
-          // Ignore save error
-        }
-      }
       setLoading(false);
     };
     loadPreference();
@@ -44,6 +35,7 @@ export default function AutoTag() {
 
   const handleToggle = async (checked: boolean) => {
     setIsEnabled(checked);
+    setSaving(true);
     try {
       await http.post('/user/option', {
         name: 'enable_ai_tag_extraction',
@@ -52,26 +44,34 @@ export default function AutoTag() {
     } catch {
       // Revert on error
       setIsEnabled(!checked);
+    } finally {
+      setSaving(false);
     }
   };
 
-  return (
-    <div className="flex w-full items-center justify-between gap-2">
-      <div className="flex min-w-0 items-start gap-2">
-        <Tags className="mt-0.5 size-4 shrink-0 text-muted-foreground lg:size-5" />
-        <div className="flex min-w-0 flex-col gap-1 lg:gap-2">
-          <span className="text-sm font-semibold text-foreground lg:text-base">
-            {t('manage.auto_tag_setting')}
-          </span>
-          <span className="text-xs text-muted-foreground lg:text-sm">
-            {t('manage.auto_tag_description')}
-          </span>
-        </div>
+  if (loading) {
+    return (
+      <div className="flex min-h-24 w-full items-center justify-center">
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
+    );
+  }
+
+  return (
+    <div className="grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+      <Tags className="size-4 text-muted-foreground" />
+      <span className="min-w-0">
+        <span className="block text-sm font-medium leading-5 text-foreground">
+          {t('manage.auto_tag_setting')}
+        </span>
+        <span className="block whitespace-normal text-xs leading-4 text-muted-foreground">
+          {t('manage.auto_tag_description')}
+        </span>
+      </span>
       <Switch
         checked={isEnabled}
         onCheckedChange={handleToggle}
-        disabled={loading}
+        disabled={saving}
         className="shrink-0"
       />
     </div>

@@ -10,6 +10,7 @@ import type { Resource } from '@/interface';
 import { addToChatContext } from '@/lib/chatBridge';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
+import type { RssFolderResponse } from '@/page/sidebar/components/rss-folder';
 import {
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
@@ -27,13 +28,18 @@ export interface UseNodeActionsReturn {
 
   moveTo: boolean;
   setMoveTo: (v: boolean) => void;
+  folderEditOpen: boolean;
+  setFolderEditOpen: (open: boolean) => void;
 
   handleCreateFile: () => void;
   /** Creates a folder directly without a name dialog (context-menu path) */
   handleCreateFolderDirect: () => void;
   /** Opens the create-folder dialog (dropdown-menu path) */
   handleCreateFolderWithDialog: () => void;
+  /** Opens the create-subscription-folder dialog under this node */
+  handleCreateRssFolder: () => void;
   handleEdit: () => void;
+  handleRenameFolder: (name: string) => Promise<void>;
   handleLocateSource: () => void;
   handleUpload: () => void;
   handleDelete: () => void;
@@ -79,6 +85,7 @@ export function useNodeActions(
   const loc = useLocation();
 
   const [moveTo, setMoveTo] = useState(false);
+  const [folderEditOpen, setFolderEditOpen] = useState(false);
   const isSmartFolderChild = node ? isSmartFolderChildResource(node) : false;
   const canModifyNode =
     (node?.currentPermission || 'full_access') === 'can_edit' ||
@@ -90,8 +97,12 @@ export function useNodeActions(
     ? getSmartFolderSourceParentId(getNodeResource(node))
     : undefined;
 
+  const isNoContainerFolder =
+    node?.resourceType === 'smart_folder' ||
+    node?.resourceType === 'rss_folder';
+
   const handleCreateFile = () => {
-    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
+    if (isNoContainerFolder || isSmartFolderChild) {
       return;
     }
 
@@ -111,7 +122,7 @@ export function useNodeActions(
   };
 
   const handleCreateFolderDirect = () => {
-    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
+    if (isNoContainerFolder || isSmartFolderChild) {
       return;
     }
 
@@ -127,14 +138,27 @@ export function useNodeActions(
   };
 
   const handleCreateFolderWithDialog = () => {
-    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
+    if (isNoContainerFolder || isSmartFolderChild) {
       return;
     }
 
     useSidebarStore.getState().openCreateFolderDialog(nodeId);
   };
 
+  const handleCreateRssFolder = () => {
+    if (isNoContainerFolder || isSmartFolderChild) {
+      return;
+    }
+
+    useSidebarStore.getState().openCreateRssFolderDialog(nodeId);
+  };
+
   const handleEdit = () => {
+    if (node?.resourceType === 'folder') {
+      setFolderEditOpen(true);
+      return;
+    }
+
     if (node?.resourceType === 'smart_folder') {
       if (!canModifyNode) {
         toast.error(t('permission.edit_required'));
@@ -154,10 +178,45 @@ export function useNodeActions(
       return;
     }
 
+    if (node?.resourceType === 'rss_folder') {
+      if (!canModifyNode) {
+        toast.error(t('permission.edit_required'));
+        return;
+      }
+      http
+        .get(`/namespaces/${namespaceId}/rss-folders/${nodeId}/config`)
+        .then((response: RssFolderResponse) => {
+          useSidebarStore.getState().openEditRssFolderDialog(nodeId, {
+            name: response.resource.name || '',
+            links: (response.links || []).map(link => ({
+              url: link.url,
+              name: link.name,
+            })),
+          });
+        });
+      return;
+    }
+
     navigate(`/${namespaceId}/${sourceResourceId}/edit`, {
       state: isSmartFolderChild ? { sidebarActiveKey: nodeId } : undefined,
     });
     if (isMobile) setOpenMobile(false);
+  };
+
+  const handleRenameFolder = (name: string) => {
+    return useSidebarStore
+      .getState()
+      .rename(sourceResourceId, name)
+      .then(() => {
+        if (isSmartFolderChild) {
+          useSidebarStore.getState().patch(nodeId, { name });
+          app.fire('refresh_smart_folder_children', node?.parentId);
+        }
+        app.fire('update_resource', {
+          id: sourceResourceId,
+          name,
+        } as Resource);
+      });
   };
 
   const handleLocateSource = () => {
@@ -215,7 +274,7 @@ export function useNodeActions(
   };
 
   const handleUpload = () => {
-    if (node?.resourceType === 'smart_folder' || isSmartFolderChild) {
+    if (isNoContainerFolder || isSmartFolderChild) {
       return;
     }
 
@@ -253,10 +312,14 @@ export function useNodeActions(
     node,
     moveTo,
     setMoveTo,
+    folderEditOpen,
+    setFolderEditOpen,
     handleCreateFile,
     handleCreateFolderDirect,
     handleCreateFolderWithDialog,
+    handleCreateRssFolder,
     handleEdit,
+    handleRenameFolder,
     handleLocateSource,
     handleUpload,
     handleDelete,

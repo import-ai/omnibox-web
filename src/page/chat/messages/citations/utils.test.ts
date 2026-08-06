@@ -2,6 +2,7 @@ import {
   citationUrlTransform,
   copyPreprocess,
   findCitationById,
+  getResourceIdFromHash,
   isCitationId,
   replaceCiteTag,
   replaceReasoningCiteMarkers,
@@ -110,6 +111,18 @@ describe('citation id helpers', () => {
     );
     expect(citationUrlTransform('javascript:alert(1)')).toBe('');
     expect(citationUrlTransform('web:abcdef123456')).toBe('');
+  });
+});
+
+describe('resource hash links', () => {
+  it('resolves a 16-character resource id', () => {
+    expect(getResourceIdFromHash('#uoSb7IKdmXeSQP6I')).toBe('uoSb7IKdmXeSQP6I');
+  });
+
+  it('leaves normal anchors and citation markers unchanged', () => {
+    expect(getResourceIdFromHash('#section')).toBeUndefined();
+    expect(getResourceIdFromHash('#cite-1')).toBeUndefined();
+    expect(getResourceIdFromHash('#0123456789abcde_')).toBeUndefined();
   });
 });
 

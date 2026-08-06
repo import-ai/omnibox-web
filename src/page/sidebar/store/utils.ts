@@ -6,7 +6,12 @@ import type { SidebarState, TreeNode } from './types';
 type ResourceWithChildrenState = Resource & { hasChildren?: boolean };
 
 function getResourceHasChildren(resource: ResourceWithChildrenState): boolean {
-  if (resource.resource_type === 'smart_folder') {
+  // Smart and RSS folders have virtual children (matched resources / polled
+  // items), so they always render as expandable regardless of the backend flag.
+  if (
+    resource.resource_type === 'smart_folder' ||
+    resource.resource_type === 'rss_folder'
+  ) {
     return true;
   }
 

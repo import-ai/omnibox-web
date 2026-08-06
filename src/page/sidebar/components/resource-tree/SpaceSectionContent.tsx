@@ -8,6 +8,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
 import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import {
   Tooltip,
@@ -63,6 +64,7 @@ interface SpaceSectionContentProps {
   onBatchCreate: () => void;
   onAddToChat: () => void;
   onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
+  onCreateRssFolder: (spaceType: SpaceType) => void;
   smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
 }
 
@@ -79,6 +81,7 @@ export function SpaceSectionContent({
   onBatchCreate,
   onAddToChat,
   onCreateSmartFolder,
+  onCreateRssFolder,
   smartFolderQuotaExhausted,
 }: SpaceSectionContentProps) {
   const { t } = useTranslation();
@@ -135,6 +138,10 @@ export function SpaceSectionContent({
 
   const handleCreateSmartFolder = () => {
     onCreateSmartFolder(spaceType);
+  };
+
+  const handleCreateRssFolder = () => {
+    onCreateRssFolder(spaceType);
   };
 
   return (
@@ -216,6 +223,13 @@ export function SpaceSectionContent({
                     <FolderPlus className={menuIconClass} />
                     {t('actions.create_folder')}
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={menuItemClass}
+                    onClick={handleCreateRssFolder}
+                  >
+                    <RssFolderDefaultIcon className={menuIconClass} />
+                    {t('actions.create_rss_folder')}
+                  </DropdownMenuItem>
                   <DisabledMenuTooltip content={smartFolderDisabledTip}>
                     <DropdownMenuItem
                       className={cn(
@@ -262,6 +276,13 @@ export function SpaceSectionContent({
           >
             <FolderPlus className={menuIconClass} />
             {t('actions.create_folder')}
+          </ContextMenuItem>
+          <ContextMenuItem
+            className={menuItemClass}
+            onClick={handleCreateRssFolder}
+          >
+            <RssFolderDefaultIcon className={menuIconClass} />
+            {t('actions.create_rss_folder')}
           </ContextMenuItem>
           <DisabledMenuTooltip content={smartFolderDisabledTip}>
             <ContextMenuItem

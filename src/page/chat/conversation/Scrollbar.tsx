@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 
 interface IProps {
   children: React.ReactNode;
+  resetKey?: string;
+  sideContent?: React.ReactNode;
 }
 
 const showButtonThreshold = 24;
@@ -16,6 +18,7 @@ export default function Scrollbar(props: IProps) {
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const shouldStickToBottomRef = useRef(true);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const scrollToBottomLabel = t('chat.messages.actions.scroll_to_bottom');
 
@@ -27,6 +30,7 @@ export default function Scrollbar(props: IProps) {
 
     const distanceToBottom =
       root.scrollHeight - root.scrollTop - root.clientHeight;
+    shouldStickToBottomRef.current = distanceToBottom < stickToBottomThreshold;
     setShowScrollToBottom(distanceToBottom > showButtonThreshold);
   }, []);
 
@@ -37,6 +41,7 @@ export default function Scrollbar(props: IProps) {
     }
 
     root.scrollTo({ top: root.scrollHeight, behavior });
+    shouldStickToBottomRef.current = true;
     setShowScrollToBottom(false);
   }, []);
 
@@ -47,14 +52,14 @@ export default function Scrollbar(props: IProps) {
       return;
     }
 
+    shouldStickToBottomRef.current = true;
+
     const stickToBottom = () => {
-      if (
-        root.scrollHeight - root.scrollTop - root.clientHeight <
-        stickToBottomThreshold
-      ) {
+      if (shouldStickToBottomRef.current) {
         scrollToBottom();
+      } else {
+        updateScrollToBottomVisible();
       }
-      updateScrollToBottomVisible();
     };
 
     const observer = new ResizeObserver(() => {
@@ -67,10 +72,15 @@ export default function Scrollbar(props: IProps) {
       observer.disconnect();
       root.removeEventListener('scroll', updateScrollToBottomVisible);
     };
-  }, [scrollToBottom, updateScrollToBottomVisible]);
+  }, [props.resetKey, scrollToBottom, updateScrollToBottomVisible]);
 
   return (
     <div className="relative flex shrink grow min-h-0">
+      {props.sideContent && (
+        <div className="absolute left-3 top-[calc(50svh-3.5rem)] z-10 -translate-y-1/2">
+          {props.sideContent}
+        </div>
+      )}
       <div
         ref={rootRef}
         className="flex shrink grow justify-center p-4 w-full min-h-0 overflow-y-auto [scrollbar-gutter:stable_both-edges]"

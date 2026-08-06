@@ -8,8 +8,7 @@ export interface ComposerState {
 }
 
 export type ComposerStateAction =
-  | { type: 'replace'; state: ComposerState }
-  | { type: 'reset'; text: string };
+  { type: 'replace'; state: ComposerState } | { type: 'reset'; text: string };
 
 export function createComposerState(text = ''): ComposerState {
   return {

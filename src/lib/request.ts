@@ -13,7 +13,7 @@ import { API_BASE_URL } from '@/const';
 import { detectBrowserLanguage } from '@/lib/detectLanguage';
 import { removeGlobalCredential } from '@/page/user/util';
 
-interface RequestConfig extends AxiosRequestConfig {
+export interface RequestConfig extends AxiosRequestConfig {
   // Whether to show error messages, default is true
   mute?: boolean;
   // Suppress the global error toast only for these response error codes,

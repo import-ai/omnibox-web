@@ -287,8 +287,10 @@ export default function SharedChatConversationPage() {
 
   return (
     <div className="flex flex-1 flex-col min-h-0">
-      <Scrollbar>
-        <MessageIndex messages={messages} />
+      <Scrollbar
+        resetKey={conversation.id}
+        sideContent={<MessageIndex messages={messages} />}
+      >
         <Messages
           messages={messages}
           conversation={conversation}

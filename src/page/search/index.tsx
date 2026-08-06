@@ -241,7 +241,10 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     }
 
     const source = axios.CancelToken.source();
+    let cancelled = false;
     setLoadingRecents(true);
+
+    // summary=true is required for recent API to include `content` at all.
     http
       .get(
         `/namespaces/${namespaceId}/resources/recent?limit=10&summary=true`,
@@ -250,13 +253,19 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           mute: true,
         }
       )
-      .then((items: ResourceMeta[] = []) =>
-        setRecents((items || []) as SearchRecentResource[])
-      )
+      .then((items: ResourceMeta[] = []) => {
+        if (cancelled) return;
+        setRecents((items || []) as SearchRecentResource[]);
+      })
       .catch(() => void 0)
-      .finally(() => setLoadingRecents(false));
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingRecents(false);
+        }
+      });
 
     return () => {
+      cancelled = true;
       source.cancel();
       setLoadingRecents(false);
     };

@@ -7,11 +7,13 @@ import { NotificationDetailDialog } from './NotificationDetailDialog';
 import { NotificationEmptyState } from './NotificationEmptyState';
 import { NotificationListItem } from './NotificationListItem';
 import { NotificationToolbar } from './NotificationToolbar';
+import { SystemNotificationDetailDialog } from './SystemNotificationDetailDialog';
 import type {
   NotificationDetail,
   NotificationFilter,
   NotificationItem,
 } from './types';
+import { mergeNotificationDetail } from './utils';
 
 function Notification({ onClose }: { onClose?: () => void }) {
   const { t } = useTranslation();
@@ -60,8 +62,12 @@ function Notification({ onClose }: { onClose?: () => void }) {
   const handleOpenDetail = useCallback(
     async (item: NotificationItem) => {
       const shouldMarkRead = item.status === 'unread';
-      const { url, target } = item?.target || {};
+      const { url } = item?.target || {};
       const source = item?.target?.type;
+
+      if (source === 'link' && url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
 
       if (shouldMarkRead) {
         await markNotificationRead(item);
@@ -80,7 +86,6 @@ function Notification({ onClose }: { onClose?: () => void }) {
         }
         case 'link':
           if (url) {
-            window.open(url, target);
             return;
           }
           break;
@@ -91,7 +96,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
       const notificationDetail = await fetchNotificationDetail(item.id);
 
       setDetail({
-        ...notificationDetail,
+        ...mergeNotificationDetail(notificationDetail, item),
         status:
           shouldMarkRead && notificationDetail.status === 'unread'
             ? 'read'
@@ -158,11 +163,19 @@ function Notification({ onClose }: { onClose?: () => void }) {
         )}
       </div>
 
-      <NotificationDetailDialog
-        detail={detail}
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-      />
+      {detail?.notification_type === 'system' ? (
+        <SystemNotificationDetailDialog
+          detail={detail}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+        />
+      ) : (
+        <NotificationDetailDialog
+          detail={detail}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+        />
+      )}
     </div>
   );
 }

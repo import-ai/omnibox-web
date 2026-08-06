@@ -25,9 +25,18 @@
     "empty": "Nothing here",
     "loading_more": "Loading...",
     "no_more": "Showing all messages from the last 30 days",
+    "back": "Back",
+    "expand_tags": "Show all tags",
+    "collapse_tags": "Collapse tags",
+    "notification_type": "Tags",
+    "created_at": "Created at",
     "tags": {
       "wechat_bot": "WeChat Assistant",
-      "community": "Community"
+      "community": "Community",
+      "system": "System",
+      "marketing": "Campaign",
+      "changelog": "Changelog",
+      "survey": "Survey"
     }
   },
   "welcome": {
@@ -57,6 +66,8 @@
   },
   "resource": {
     "name": "Resource",
+    "title": "Title",
+    "title_placeholder": "Enter title",
     "folder": {
       "children_count": "{{ count }} files"
     },
@@ -83,6 +94,10 @@
       "title": "New Folder",
       "name": "Name",
       "placeholder": "Enter folder name"
+    },
+    "edit_dialog": {
+      "title": "Edit Folder",
+      "submit": "Save"
     }
   },
   "error": {
@@ -103,6 +118,7 @@
     "copy_link_failed": "Failed to copy your link",
     "copy_content": "Copy content",
     "copy_content_success": "Content copied successfully",
+    "no_content_to_copy": "No content available to copy",
     "duplicate": "Create a copy",
     "download": "Source file",
     "move_to": "Move to",
@@ -111,6 +127,7 @@
     "upload_to_folder": "Upload to this folder",
     "create_file": "Create File",
     "create_folder": "Create Folder",
+    "create_rss_folder": "Create RSS Folder",
     "upload_file": "Upload File",
     "download_as": "Download",
     "download_as_tooltip": "Download as {{ format }} format",
@@ -122,6 +139,7 @@
     "rename": "Rename",
     "create_smart_folder": "Create Smart Folder",
     "edit_smart_folder_conditions": "Edit",
+    "edit_rss_folder": "Edit",
     "refresh": "Refresh",
     "locate_resource": "Locate",
     "locate_resource_unavailable": "No resource to locate",
@@ -374,7 +392,8 @@
     "namespace": "Namespace",
     "api_key": "API Keys",
     "applications": "Applications",
-    "content": "Content",
+    "feature_management": "Feature Management",
+    "feature_previews": "Feature Previews",
     "account": "Account",
     "space": "Space",
     "general": "General",
@@ -447,8 +466,8 @@
     },
     "unsupported_app": "Unsupported application type: {{ app_id }}",
     "status": {
-      "bound": "Connected",
-      "unbound": "Not Connected",
+      "bound": "Bound",
+      "unbound": "Not Bound",
       "binding_in_progress": "Pending Verification"
     },
     "already_bound": {
@@ -492,6 +511,12 @@
         "description": "Are you sure you want to unbind {{ name }}? This will disconnect the application from your workspace.",
         "button": "Confirm Unbind"
       }
+    }
+  },
+  "feature_previews": {
+    "editor_v2": {
+      "title": "Editor 2.0",
+      "description": "A modern editor with a brand-new experience"
     }
   },
   "manage": {
@@ -652,6 +677,7 @@
           "list_resource_tasks": "List Resource Tasks",
           "load_docs": "Read Docs",
           "get_agent_asset_resource_id": "Get Agent Asset",
+          "get_current_info": "Get Current Info",
           "wait": "Wait",
           "frontend_operations": "Frontend Operating",
           "get_smart_folder_config": "Get Smart Folder Config",
@@ -728,11 +754,11 @@
       }
     },
     "trial": {
-      "text": "Agent 2.1 trial uses: {{agent_trial_remain}} / {{agent_trial_limit}}",
+      "text": "Agent 2.1 trial limit reached. Using Agent 1.1. Try Agent 2.1 again in {{related_time}}.",
+      "compact_text": "Switched to Agent 1.1",
       "tooltip": {
         "base": "Usage is calculated over a rolling 24-hour window",
-        "fallback": "When trial uses run out, chats will switch to Agent 1.1",
-        "related_time": "Trial uses will recover to {{quota}} in {{related_time}}"
+        "recovery": "Try Agent 2.1 again in {{related_time}}"
       },
       "not_owner": "Please contact space owner to upgrade"
     },
@@ -807,6 +833,8 @@
     },
     "permission_scope": "Permission Scope",
     "permission_scope_tooltip": "The root resource for this API key, which will limit this key to access only that resource and its sub-resources.",
+    "personal": "Personal",
+    "resource_not_found": "Resource not found",
     "root_resource_id_placeholder": "Select permission scope",
     "note": "Note",
     "note_placeholder": "Enter a note, up to 128 characters",
@@ -1160,6 +1188,51 @@
       "title": "Move {{count}} smart folder to trash?",
       "description": "Moving a smart folder to the Recycle Bin will not affect its internal resources. After being moved, it can be retrieved from the Recycle Bin, and it will be automatically deleted after {{days}} days."
     }
+  },
+  "rss_folder": {
+    "empty": "No items yet",
+    "reader": {
+      "back": "Back to feed",
+      "open_original": "Open original",
+      "not_ready": "This article is still being processed. Please try again later.",
+      "not_found": "This RSS item is no longer available.",
+      "published_at": "Published"
+    },
+    "create": {
+      "title": "Create RSS Folder",
+      "name": "Name",
+      "placeholder": "Enter an RSS folder name",
+      "link": "Feed link {{index}}",
+      "link_name": "Feed name",
+      "url_placeholder": "Enter a feed source (RSS links only for now)",
+      "link_name_placeholder": "Leave empty to use the feed's title",
+      "add_link": "Add link",
+      "remaining_links": "Feed links remaining: {{remaining}} / {{total}}",
+      "link_limit_tooltip": "Pro supports up to 10 feed links",
+      "limit_reached_basic": "Link limit reached ({{limit}}). Upgrade to unlock 10 links.",
+      "limit_reached_premium": "Link limit reached ({{limit}}).",
+      "unsaved_title": "Your RSS folder settings are unsaved. Exit anyway?",
+      "unsaved_description": "Your changes will be lost after exiting.",
+      "success": "RSS folder created"
+    },
+    "edit": {
+      "title": "Edit RSS Folder",
+      "submit": "Save",
+      "success": "RSS folder updated"
+    },
+    "validation": {
+      "name_required": "Enter an RSS folder name",
+      "name_too_long": "Name can't exceed 128 characters.",
+      "name_exists": "A resource with this name already exists here.",
+      "url_required": "Enter a feed link",
+      "invalid_url": "Enter a valid link",
+      "invalid_feed": "Unable to recognize an RSS feed. Check the link format or make sure the content is public."
+    },
+    "move": {
+      "unsupported_target": "Can't move to RSS folders."
+    },
+    "cannot_be_parent": "Resources can't be created inside RSS folders.",
+    "unsupported_operation": "RSS folders don't support this operation yet."
   },
   "download": {
     "failed": "Download failed, please try again later"

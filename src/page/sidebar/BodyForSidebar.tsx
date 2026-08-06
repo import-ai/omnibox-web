@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
@@ -12,6 +13,11 @@ import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
+import type {
+  CreateRssFolderPayload,
+  RssFolderResponse,
+} from '@/page/sidebar/components/rss-folder';
+import { CreateRssFolderDialog } from '@/page/sidebar/components/rss-folder/CreateRssFolderDialog';
 import {
   CreateSmartFolderRequest,
   getSmartFolderSourceParentId,
@@ -19,26 +25,24 @@ import {
   isSmartFolderChildResource,
   SmartFolderOwnerScope,
   SmartFolderResponse,
-  withSmartFolderChildSidebarAttrs,
 } from '@/page/sidebar/components/smart-folder';
 import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/CreateSmartFolderDialog';
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
-import {
-  fetchChildren,
-  fetchRootResources,
-  fetchSmartFolderChildren,
-} from '@/service/resource';
+import { fetchChildren, fetchRootResources } from '@/service/resource';
 
 import { BatchCreateDialog } from './components/BatchCreateDialog';
 import BatchDeleteDialog from './components/BatchDeleteDialog';
 import BatchMoveDialog from './components/BatchMoveDialog';
 import ResourceTree from './components/resource-tree';
-import { CreateFolderDialog } from './components/resource-tree/CreateFolderDialog';
 import { Toolbar } from './components/toolbar';
 import { useBatchOperations } from './hooks/useBatchOperations';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
+import {
+  fetchChildrenForSidebarRefresh,
+  getExpandedNodeIdsForSidebarRefresh,
+} from './sidebarBehavior';
 import { TreeNode, useSidebarStore } from './store';
 import { getBatchSelectionSummary } from './store/utils';
 
@@ -137,6 +141,9 @@ export function BodyForSidebar(props: IProps) {
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
   const [defaultSmartFolderOwnerScope, setDefaultSmartFolderOwnerScope] =
     useState<SmartFolderOwnerScope | undefined>();
+  const [createRssFolderOpen, setCreateRssFolderOpen] = useState(false);
+  const [rssFolderSpaceType, setRssFolderSpaceType] =
+    useState<SpaceType>('private');
   const [refreshingResources, setRefreshingResources] = useState(false);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
@@ -153,7 +160,11 @@ export function BodyForSidebar(props: IProps) {
   const createFolderTargetId = useSidebarStore(
     s => s.dialogs.createFolderTargetId
   );
+  const createRssFolderTargetId = useSidebarStore(
+    s => s.dialogs.createRssFolderTargetId
+  );
   const editSmartFolderDialog = useSidebarStore(s => s.dialogs.editSmartFolder);
+  const editRssFolderDialog = useSidebarStore(s => s.dialogs.editRssFolder);
   const smartFolderTrashDialog = useSidebarStore(
     s => s.dialogs.smartFolderTrash
   );
@@ -163,6 +174,9 @@ export function BodyForSidebar(props: IProps) {
   const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
   const editSmartFolderNode = editSmartFolderDialog.nodeId
     ? nodes[editSmartFolderDialog.nodeId]
+    : undefined;
+  const editRssFolderNode = editRssFolderDialog.nodeId
+    ? nodes[editRssFolderDialog.nodeId]
     : undefined;
 
   const smartFolderCounts = useMemo(() => {
@@ -219,6 +233,11 @@ export function BodyForSidebar(props: IProps) {
     setCreateSmartFolderOpen(true);
   };
 
+  const handleCreateRssFolder = (spaceType: SpaceType) => {
+    setRssFolderSpaceType(spaceType);
+    setCreateRssFolderOpen(true);
+  };
+
   const handleLocateResource = () => {
     if (!canLocateCurrentResource) return;
 
@@ -249,25 +268,15 @@ export function BodyForSidebar(props: IProps) {
     if (refreshingResources) return;
 
     const state = useSidebarStore.getState();
-    const rootIdSet = new Set(Object.values(state.rootIds).filter(Boolean));
-    const expandedLoadedIds = Object.entries(state.ui)
-      .filter(([id, ui]) => {
-        const node = state.nodes[id];
-        return (
-          !!node &&
-          ui.expanded &&
-          ui.loaded &&
-          (node.hasChildren ||
-            node.resourceType === 'folder' ||
-            node.resourceType === 'smart_folder') &&
-          !rootIdSet.has(id)
-        );
-      })
-      .map(([id]) => id);
-    expandedLoadedIds.sort(
+    const expandedIds = getExpandedNodeIdsForSidebarRefresh(
+      state.nodes,
+      state.ui,
+      state.rootIds
+    );
+    expandedIds.sort(
       (a, b) => getNodeDepth(state.nodes, a) - getNodeDepth(state.nodes, b)
     );
-    const expandedIdSet = new Set(expandedLoadedIds);
+    const expandedIdSet = new Set(expandedIds);
     const locateSnapshot = getLocateSnapshot(
       state.nodes,
       state.activeId || resourceId
@@ -279,19 +288,15 @@ export function BodyForSidebar(props: IProps) {
       const store = useSidebarStore.getState();
       store.init(items);
 
-      for (const id of expandedLoadedIds) {
+      for (const id of expandedIds) {
         const node = useSidebarStore.getState().nodes[id];
         if (!node) continue;
 
-        const rawChildren =
-          node.resourceType === 'smart_folder'
-            ? await fetchSmartFolderChildren(namespaceId, id)
-            : await fetchChildren(namespaceId, id);
-        const children = rawChildren.map(child =>
-          node.resourceType === 'smart_folder'
-            ? withSmartFolderChildSidebarAttrs(child, id)
-            : child
+        const children = await fetchChildrenForSidebarRefresh(
+          namespaceId,
+          node
         );
+        if (!children) continue;
         store.refreshChildren(id, children);
       }
 
@@ -302,6 +307,14 @@ export function BodyForSidebar(props: IProps) {
         Object.entries(draft.ui).forEach(([id, ui]) => {
           ui.expanded = refreshedRootIdSet.has(id) || expandedIdSet.has(id);
         });
+      });
+
+      expandedIds.forEach(id => {
+        if (
+          useSidebarStore.getState().nodes[id]?.resourceType === 'rss_folder'
+        ) {
+          app.fire('refresh_rss_items', id);
+        }
       });
 
       if (locateSnapshot) {
@@ -360,6 +373,81 @@ export function BodyForSidebar(props: IProps) {
         }, 0);
         useSidebarStore.getState().refetchSmartFolderEntitlements();
         toast.success(t('smart_folder.create.success'));
+      });
+  };
+
+  const createRssFolderAt = (
+    payload: CreateRssFolderPayload,
+    parentId: string | undefined
+  ): Promise<void> => {
+    return http
+      .post<RssFolderResponse>(
+        `/namespaces/${namespaceId}/rss-folders`,
+        {
+          ...payload,
+          parent_id: parentId,
+        },
+        { muteCodes: ['rss_feed_invalid'] }
+      )
+      .then((response: RssFolderResponse) => {
+        const store = useSidebarStore.getState();
+        return store.restore(response.resource).then(id => {
+          const parentId = response.resource.parent_id;
+          if (parentId) {
+            return fetchChildren(namespaceId, parentId).then(children => {
+              store.refreshChildren(parentId, children);
+              return store.expandPathTo(id).then(() => id);
+            });
+          }
+          return store.expandPathTo(id).then(() => id);
+        });
+      })
+      .then(id => {
+        useSidebarStore.getState().activate(id);
+        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        window.setTimeout(() => {
+          scrollToResource(id);
+        }, 0);
+        toast.success(t('rss_folder.create.success'));
+      });
+  };
+
+  const handleConfirmCreateRssFolder = (
+    payload: CreateRssFolderPayload
+  ): Promise<void> => {
+    const targetRoot =
+      rssFolderSpaceType === 'teamspace' ? teamspaceRoot : privateRoot;
+
+    return createRssFolderAt(payload, targetRoot?.id);
+  };
+
+  const handleConfirmCreateRssFolderInNode = (
+    payload: CreateRssFolderPayload
+  ): Promise<void> => {
+    return createRssFolderAt(payload, createRssFolderTargetId ?? undefined);
+  };
+
+  const handleUpdateRssFolder = (
+    payload: CreateRssFolderPayload
+  ): Promise<void> => {
+    const nodeId = editRssFolderDialog.nodeId;
+    if (!nodeId) {
+      return Promise.reject();
+    }
+
+    return http
+      .patch(
+        `/namespaces/${namespaceId}/rss-folders/${nodeId}/config`,
+        payload,
+        {
+          muteCodes: ['rss_feed_invalid'],
+        }
+      )
+      .then((response: RssFolderResponse) => {
+        const store = useSidebarStore.getState();
+        store.patch(nodeId, { name: response.resource.name });
+        app.fire('update_resource', response.resource);
+        toast.success(t('rss_folder.edit.success'));
       });
   };
 
@@ -476,6 +564,7 @@ export function BodyForSidebar(props: IProps) {
         onBatchCreate={batch.openCreateDialog}
         onAddToChat={batch.addSelectedToChat}
         onCreateSmartFolder={handleCreateSmartFolder}
+        onCreateRssFolder={handleCreateRssFolder}
         smartFolderQuotaExhausted={smartFolderQuotaExhausted}
       />
       <CreateSmartFolderDialog
@@ -522,6 +611,50 @@ export function BodyForSidebar(props: IProps) {
         }}
         onConfirm={handleUpdateSmartFolder}
       />
+      <CreateRssFolderDialog
+        open={createRssFolderOpen}
+        onOpenChange={setCreateRssFolderOpen}
+        onConfirm={handleConfirmCreateRssFolder}
+        currentNamespace={currentNamespace}
+        siblingResources={getSiblingResources(
+          nodes,
+          rssFolderSpaceType === 'teamspace'
+            ? teamspaceRoot?.id
+            : privateRoot?.id
+        )}
+      />
+      <CreateRssFolderDialog
+        open={!!createRssFolderTargetId}
+        onOpenChange={open => {
+          if (!open) {
+            useSidebarStore.getState().closeCreateRssFolderDialog();
+          }
+        }}
+        onConfirm={handleConfirmCreateRssFolderInNode}
+        currentNamespace={currentNamespace}
+        siblingResources={getSiblingResources(
+          nodes,
+          createRssFolderTargetId ?? undefined
+        )}
+      />
+      <CreateRssFolderDialog
+        open={editRssFolderDialog.open}
+        currentResourceId={editRssFolderDialog.nodeId || undefined}
+        initialValue={editRssFolderDialog.initialValue}
+        title={t('rss_folder.edit.title')}
+        confirmText={t('rss_folder.edit.submit')}
+        currentNamespace={currentNamespace}
+        siblingResources={getSiblingResources(
+          nodes,
+          editRssFolderNode?.parentId
+        )}
+        onOpenChange={open => {
+          if (!open) {
+            useSidebarStore.getState().closeEditRssFolderDialog();
+          }
+        }}
+        onConfirm={handleUpdateRssFolder}
+      />
       <SmartFolderTrashConfirmDialog
         open={smartFolderTrashDialog.open}
         retentionDays={entitlements?.trashRetentionDays}
@@ -532,7 +665,7 @@ export function BodyForSidebar(props: IProps) {
         }}
         onConfirm={handleConfirmSmartFolderDelete}
       />
-      <CreateFolderDialog
+      <FolderNameDialog
         open={!!createFolderTargetId}
         onOpenChange={open => {
           if (!open) {
@@ -544,20 +677,16 @@ export function BodyForSidebar(props: IProps) {
             return;
           }
           const store = useSidebarStore.getState();
-          try {
-            const id = await store.create(
-              createFolderTargetId,
-              'folder',
-              folderName
-            );
-            store.activate(id);
-            store.closeCreateFolderDialog();
-            navigate(`/${namespaceId}/${id}`, {
-              state: { fromSidebar: true },
-            });
-          } catch {
-            // request.ts handles backend error toasts.
-          }
+          const id = await store.create(
+            createFolderTargetId,
+            'folder',
+            folderName
+          );
+          store.activate(id);
+          store.closeCreateFolderDialog();
+          navigate(`/${namespaceId}/${id}`, {
+            state: { fromSidebar: true },
+          });
         }}
       />
       <BatchCreateDialog

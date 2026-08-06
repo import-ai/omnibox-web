@@ -66,9 +66,7 @@ export default class App extends Hook {
       const themeOptions = ['system', 'light', 'dark'];
       const index = themeOptions.indexOf(this.theme.skin);
       skinArgs = themeOptions[(index + 1) % themeOptions.length] as
-        | 'light'
-        | 'system'
-        | 'dark';
+        'light' | 'system' | 'dark';
     }
     const theme = this.applyTheme(skinArgs);
     localStorage.setItem('theme', JSON.stringify(theme));

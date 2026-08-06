@@ -17,10 +17,12 @@ export function useSidebarInit(props: IProps) {
   const { shareId, rootResource, currentResourceId, canBrowseResources } =
     props;
   const navigate = useNavigate();
+  const location = useLocation();
   // Auto-navigate to first resource when no resourceId and not on chat page
   const hasAutoNavigatedRef = useRef(false);
   const autoExpandedAllKeyRef = useRef<string | null>(null);
-  const chatPage = useLocation().pathname.includes('/chat');
+  const chatPage = location.pathname.includes('/chat');
+  const rssItemPage = location.pathname.includes('/rss-items/');
 
   // Derive initialization state from rootIds.
   // setNamespaceId() clears rootIds when namespace switches, so this is reliable.
@@ -48,9 +50,14 @@ export function useSidebarInit(props: IProps) {
         children: [
           {
             ...rootResource,
-            has_children: canBrowseResources
-              ? rootResource.has_children
-              : false,
+            // RSS folders host their items in the sidebar, so keep the root
+            // expandable even when this isn't an all-resources share.
+            has_children:
+              rootResource.resource_type === 'rss_folder'
+                ? true
+                : canBrowseResources
+                  ? rootResource.has_children
+                  : false,
             space_type: 'share',
             parent_id: virtualRootId,
           } as unknown as Resource,
@@ -58,8 +65,6 @@ export function useSidebarInit(props: IProps) {
       } as unknown as Resource & { children: Resource[] },
     });
   }, [canBrowseResources, rootResource, shareId]);
-
-  const location = useLocation();
 
   // Auto-expand path when resourceId changes (only after roots are loaded)
   useEffect(() => {
@@ -126,7 +131,7 @@ export function useSidebarInit(props: IProps) {
     const scrollTargetId = persistedActiveKey ?? currentResourceId;
 
     store.expandPathTo(expandId, { expandTarget }).then(() => {
-      if (cancelled) return;
+      if (cancelled || rssItemPage) return;
       requestAnimationFrame(() => {
         if (cancelled) return;
         const element = document.querySelector(
@@ -151,13 +156,22 @@ export function useSidebarInit(props: IProps) {
   ]);
 
   useEffect(() => {
-    if (!initialized || !canBrowseResources) return;
+    // Auto-expand the shared subtree (all-resources shares), or just the root
+    // RSS folder so its items show inline even in a single-folder share.
+    const isRssFolderRoot = rootResource.resource_type === 'rss_folder';
+    if (!initialized || (!canBrowseResources && !isRssFolderRoot)) return;
     const key = `${shareId}:${rootResource.id}`;
     if (autoExpandedAllKeyRef.current === key) return;
 
     autoExpandedAllKeyRef.current = key;
     useSidebarStore.getState().expandAllFrom(rootResource.id);
-  }, [initialized, canBrowseResources, rootResource.id, shareId]);
+  }, [
+    initialized,
+    canBrowseResources,
+    rootResource.id,
+    rootResource.resource_type,
+    shareId,
+  ]);
 
   useEffect(() => {
     if (!initialized || currentResourceId || chatPage) return;

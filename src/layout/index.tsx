@@ -8,9 +8,14 @@ import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
 import { track } from '@/lib/sendTrackEvent';
 import { useChatStore } from '@/page/chat/chatStore';
+import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
 
-import { getAuthChangeRedirectPath, isAuthStorageKey } from './authStorage';
+import {
+  getAuthChangeRedirectPath,
+  isAuthStorageKey,
+  shouldSyncUserOptions,
+} from './authStorage';
 
 export default function Layout() {
   const loc = useLocation();
@@ -34,6 +39,9 @@ export default function Layout() {
         onToggleTheme(themeInStorage.skin);
       } else if (isAuthStorageKey(event.key)) {
         const storedUid = localStorage.getItem('uid');
+        if (storedUid !== uid) {
+          useResourceStore.getState().resetFeaturePreviews();
+        }
         setUid(storedUid);
         useChatStore.getState().clearContext();
         useSidebarStore.getState().clear();
@@ -56,6 +64,7 @@ export default function Layout() {
   useEffect(() => {
     const storedUid = localStorage.getItem('uid');
     if (storedUid !== uid) {
+      useResourceStore.getState().resetFeaturePreviews();
       setUid(storedUid);
     }
   }, [loc]);
@@ -126,12 +135,13 @@ export default function Layout() {
   useEffect(() => {
     const searchParams = new URLSearchParams(loc.search);
     const langParam = searchParams.get('lang');
+    const syncUserOptions = shouldSyncUserOptions(uid, shareId);
 
     if (langParam) {
       const lang = langParam.includes('en') ? 'en-US' : 'zh-CN';
       if (lang !== i18n.language) {
         i18n.changeLanguage(lang).then(() => {
-          if (uid) {
+          if (syncUserOptions) {
             http.post('/user/option', {
               name: 'language',
               value: lang,
@@ -141,7 +151,7 @@ export default function Layout() {
       }
     }
 
-    if (!uid) {
+    if (!syncUserOptions) {
       return;
     }
 
@@ -171,7 +181,7 @@ export default function Layout() {
       });
 
     return () => source.cancel();
-  }, [loc.search, uid, i18n]);
+  }, [loc.search, uid, shareId, i18n]);
 
   return (
     <>

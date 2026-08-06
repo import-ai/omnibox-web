@@ -36,9 +36,9 @@ export function UpgradeTrialUsageTooltip({
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger asChild>
-        <span className={cn(triggerClassName, 'text-sm')}>
+        <button type="button" className={cn(triggerClassName, 'text-sm')}>
           {t(textKey, textValues)}
-        </span>
+        </button>
       </TooltipTrigger>
       <TooltipContent side={tooltipSide}>
         {tooltipItems.map((item, index) => {

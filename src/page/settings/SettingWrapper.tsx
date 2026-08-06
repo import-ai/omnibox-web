@@ -16,6 +16,7 @@ import SettingForm from './tabs/account/SettingForm';
 import { ApplicationsForm } from './tabs/applications';
 import CommonForm from './tabs/basic';
 import Content from './tabs/content';
+import { FeaturePreviewsForm } from './tabs/featurePreviews';
 import ProfileForm from './tabs/profile';
 
 interface SettingWrapperProps {
@@ -79,6 +80,10 @@ export default function SettingWrapper({
     {
       value: 'content',
       children: <Content />,
+    },
+    {
+      value: 'featurePreviews',
+      children: <FeaturePreviewsForm />,
     },
     {
       value: 'about',

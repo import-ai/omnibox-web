@@ -25,6 +25,8 @@ import { GithubIcon } from '@/assets/icons/GithubIcon';
 import { ITHomeIcon } from '@/assets/icons/ItHomeIcon';
 import { OKJikeIcon } from '@/assets/icons/OkJikeIcon';
 import { RedNoteIcon } from '@/assets/icons/RedNoteIcon';
+import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
+import { RssFolderOpenIcon } from '@/assets/icons/RssFolderOpenIcon';
 import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import { SmartFolderOpenIcon } from '@/assets/icons/SmartFolderOpenIcon';
 import { Tiktok } from '@/assets/icons/Tiktok';
@@ -258,6 +260,9 @@ export default function ResourceIcon(props: IProps) {
   }
   if (resource.resource_type === 'smart_folder') {
     return expand ? <SmartFolderOpenIcon /> : <SmartFolderDefaultIcon />;
+  }
+  if (resource.resource_type === 'rss_folder') {
+    return expand ? <RssFolderOpenIcon /> : <RssFolderDefaultIcon />;
   }
   if (resource.resource_type === 'file') {
     return getIconForFile(resource);

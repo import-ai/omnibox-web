@@ -1,7 +1,21 @@
+import '@import-ai/omnibox-editor/style.css';
 import 'vditor/dist/index.css';
 import '@/styles/vditor-patch.css';
+import '../resourceEditor.css';
 
-import React, { useEffect, useRef, useState } from 'react';
+import {
+  OmniboxEditor,
+  type OmniboxEditorMentionUser,
+  type TiptapJsonContent,
+  type UploadFunction,
+} from '@import-ai/omnibox-editor';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Vditor from 'vditor';
@@ -10,7 +24,7 @@ import { Input } from '@/components/input';
 import { markdownPreviewConfig } from '@/components/markdown';
 import { VDITOR_CDN } from '@/const';
 import useTheme from '@/hooks/useTheme';
-import { Resource } from '@/interface';
+import type { Member, Resource } from '@/interface';
 import { addReferrerPolicyForElement } from '@/lib/addReferrerPolicy';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
@@ -20,7 +34,21 @@ import {
   updateCacheContent,
   updateCacheTitle,
 } from '@/page/resource/editor/cache';
-import { toolbar } from '@/page/resource/editor/const';
+import {
+  OMNIBOX_EDITOR_CONTENT_WIDTH,
+  toolbar,
+} from '@/page/resource/editor/const';
+import {
+  type EditorUpdatePayload,
+  serializeResourceEditorContent,
+} from '@/page/resource/editor/contentSerialization';
+
+import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
+import {
+  type AutosizeTextAreaRef,
+  normalizeTitleInput,
+  ResourceTitleTextarea,
+} from './ResourceTitleTextarea';
 
 interface IEditorProps {
   namespaceId: string;
@@ -40,6 +68,37 @@ interface UploadResponse {
   failed: string[];
 }
 
+type BodyEditorFocus = {
+  isDestroyed: boolean;
+  commands: {
+    focus: (position?: 'start' | 'end' | boolean | number | null) => boolean;
+  };
+};
+
+type ResourceOmniboxEditorProps = Omit<
+  React.ComponentProps<typeof OmniboxEditor>,
+  'content' | 'onUpdate' | 'onReady'
+> & {
+  content?: string | TiptapJsonContent;
+  locale?: string;
+  theme?: string;
+  onUpdate?: (payload: EditorUpdatePayload) => void;
+  onReady?: (editor: BodyEditorFocus) => void;
+  onNavigateToTitle?: () => void;
+};
+
+const ResourceOmniboxEditor =
+  OmniboxEditor as React.ComponentType<ResourceOmniboxEditorProps>;
+
+function saveResourceEditorCache(
+  resourceId: string,
+  title: string,
+  content: string
+) {
+  updateCacheTitle(resourceId, title);
+  updateCacheContent(resourceId, content);
+}
+
 function format(_files: File[], responseText: string): string {
   const response: UploadResponse = JSON.parse(responseText);
   const uploadedMap: Record<string, string> = {};
@@ -57,19 +116,278 @@ function format(_files: File[], responseText: string): string {
   return JSON.stringify(processedResponse);
 }
 
-export default function Editor(props: IEditorProps) {
+function OmniboxResourceEditor(props: IEditorProps) {
+  const { resource, onResource, namespaceId } = props;
+  const { i18n, t } = useTranslation();
+  const markdownRef = useRef('');
+  const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
+  const titleRef = useRef<AutosizeTextAreaRef | null>(null);
+  const navigate = useNavigate();
+  const loc = useLocation();
+  const { app, theme } = useTheme();
+  const [title, onTitle] = useState('');
+  const [mentionUsers, setMentionUsers] = useState<OmniboxEditorMentionUser[]>(
+    []
+  );
+  const cache = useMemo(() => getCache(resource.id), [resource.id]);
+  const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
+  const cachedTitle = cache?.title || resource.name || '';
+  const isFolder = resource.resource_type === 'folder';
+  const linkBase = useMemo(
+    () => `/${namespaceId}/${resource.id}`,
+    [namespaceId, resource.id]
+  );
+
+  const initialContent = useMemo(
+    () => cache?.content || resource.content || '',
+    [resource.id]
+  );
+  const editorContent = useMemo(
+    () => (isFolder ? null : initialContent),
+    [initialContent, isFolder]
+  );
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newTitle = normalizeTitleInput(e.target.value);
+    dirtyRef.current = true;
+    onTitle(newTitle);
+    updateCacheTitle(resource.id, newTitle);
+  };
+
+  const handleEditorUpdate = useCallback(
+    (payload: EditorUpdatePayload) => {
+      const content = serializeResourceEditorContent(payload);
+      if (content !== markdownRef.current) {
+        dirtyRef.current = true;
+      }
+      markdownRef.current = content;
+      updateCacheContent(resource.id, content);
+    },
+    [resource.id]
+  );
+
+  const handleEditorReady = useCallback((editor: BodyEditorFocus) => {
+    bodyEditorRef.current = editor;
+  }, []);
+
+  const handleTitleEnter = useCallback(() => {
+    if (isFolder) {
+      return;
+    }
+
+    const editor = bodyEditorRef.current;
+    if (!editor || editor.isDestroyed) {
+      return;
+    }
+
+    editor.commands.focus('start');
+  }, [isFolder]);
+
+  const uploadImage = useCallback<UploadFunction>(
+    async (file, onProgress, abortSignal) => {
+      const token = localStorage.getItem('token') || '';
+      const formData = new FormData();
+      formData.append('file[]', file);
+
+      const response = await fetch(
+        `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
+        {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          body: formData,
+          signal: abortSignal,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = (await response.json()) as UploadResponse;
+      const uploaded = data.uploaded[0];
+      if (!uploaded) {
+        throw new Error(data.failed[0] || 'Upload failed');
+      }
+
+      onProgress?.({ progress: 100 });
+      return `${linkBase}/attachments/${uploaded.link}`;
+    },
+    [linkBase, namespaceId, resource.id]
+  );
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadMentionUsers() {
+      try {
+        const members = await http.get<Member[]>(
+          `/namespaces/${namespaceId}/members`,
+          { mute: true }
+        );
+
+        if (ignore) {
+          return;
+        }
+
+        setMentionUsers(
+          (Array.isArray(members) ? members : []).reduce<
+            OmniboxEditorMentionUser[]
+          >((users, member) => {
+            const id = member.user_id;
+            const name = member.username || member.email || id;
+
+            if (!id || !name) {
+              return users;
+            }
+
+            users.push({
+              id,
+              name,
+              position: member.role,
+            });
+
+            return users;
+          }, [])
+        );
+      } catch {
+        if (!ignore) {
+          setMentionUsers([]);
+        }
+      }
+    }
+
+    loadMentionUsers();
+
+    return () => {
+      ignore = true;
+    };
+  }, [namespaceId]);
+
+  useEffect(() => {
+    onTitle(cachedTitle);
+    markdownRef.current = initialContent;
+  }, [cachedTitle, initialContent]);
+
+  useEffect(() => {
+    return () => {
+      bodyEditorRef.current = null;
+    };
+  }, [resource.id]);
+
+  const handleNavigateToTitle = useCallback(() => {
+    const ta = titleRef.current?.textArea;
+    if (ta) {
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+    }
+  }, []);
+
+  useEffect(() => {
+    return app.on('save', (onSuccess?: () => void) => {
+      const name = title.trim();
+      const content = markdownRef.current;
+      if (!content && !name) {
+        navigate(`/${namespaceId}/${resource.id}`, {
+          state: loc.state,
+        });
+        return;
+      }
+      http
+        .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
+          name,
+          content,
+          namespaceId: namespaceId,
+        })
+        .then((delta: Resource) => {
+          app.fire('update_resource', delta);
+          onResource(delta);
+          dirtyRef.current = false;
+          clearCache(resource.id);
+          navigate(`/${namespaceId}/${resource.id}`, {
+            state: loc.state,
+          });
+          onSuccess && onSuccess();
+        });
+    });
+  }, [app, title, namespaceId, resource.id, loc.state, navigate, onResource]);
+
+  useEffect(() => {
+    const keydownFN = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveResourceEditorCache(resource.id, title, markdownRef.current);
+      }
+    };
+    document.addEventListener('keydown', keydownFN);
+    return () => {
+      document.removeEventListener('keydown', keydownFN);
+    };
+  }, [resource.id, title]);
+
+  return (
+    <div
+      className="resource-editable-page pb-[30vh]"
+      style={
+        {
+          '--resource-editor-content-width': `${OMNIBOX_EDITOR_CONTENT_WIDTH}px`,
+        } as React.CSSProperties
+      }
+    >
+      <div className="resource-editable-title">
+        <ResourceTitleTextarea
+          ref={titleRef}
+          value={title}
+          onChange={handleChange}
+          onEnter={handleTitleEnter}
+          placeholder={t('resource.title_placeholder')}
+          aria-label={t('resource.title')}
+        />
+      </div>
+      <div className="resource-editable-editor">
+        {!isFolder ? (
+          <ResourceOmniboxEditor
+            key={resource.id}
+            content={editorContent ?? ''}
+            locale={i18n.language}
+            theme={theme.content}
+            variant="embedded"
+            contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
+            showHeader={false}
+            showToc={true}
+            tocColors={{
+              inactive: theme.content === 'dark' ? '#ffffff' : '#000000',
+            }}
+            linkBase={linkBase}
+            imageUpload={uploadImage}
+            mentionUsers={mentionUsers}
+            onReady={handleEditorReady}
+            onUpdate={handleEditorUpdate}
+            onNavigateToTitle={handleNavigateToTitle}
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function VditorResourceEditor(props: IEditorProps) {
   const { resource, onResource, namespaceId } = props;
   const { i18n } = useTranslation();
-  const busy = useRef(false);
   const root = useRef<any>(null);
   const navigate = useNavigate();
   const loc = useLocation();
   const { app, theme } = useTheme();
   const [vd, setVd] = useState<Vditor>();
   const [title, onTitle] = useState('');
+  const contentRef = useRef('');
+  const initialCache = useMemo(() => getCache(resource.id), [resource.id]);
+  const dirtyRef = useRef(
+    Boolean(initialCache?.title || initialCache?.content)
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
+    dirtyRef.current = true;
     onTitle(newTitle);
     updateCacheTitle(resource.id, newTitle);
   };
@@ -93,6 +411,7 @@ export default function Editor(props: IEditorProps) {
         .then((delta: Resource) => {
           app.fire('update_resource', delta);
           onResource(delta);
+          dirtyRef.current = false;
           clearCache(resource.id);
           navigate(`/${namespaceId}/${resource.id}`, {
             state: loc.state,
@@ -109,32 +428,19 @@ export default function Editor(props: IEditorProps) {
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        const content = vd.getValue();
-        if (busy.current) {
-          return;
-        }
-        busy.current = true;
-        http
-          .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
-            content,
-            namespaceId: namespaceId,
-          })
-          .then(() => {
-            busy.current = false;
-          });
+        saveResourceEditorCache(resource.id, title, vd.getValue());
       }
     };
     document.addEventListener('keydown', keydownFN);
     return () => {
       document.removeEventListener('keydown', keydownFN);
     };
-  }, [vd, resource]);
+  }, [resource.id, title, vd]);
 
   useEffect(() => {
     const token = localStorage.getItem('token') || '';
-    const cache = getCache(resource.id);
-    const cachedTitle = cache?.title || resource.name || '';
-    const cachedContent = cache?.content || resource.content || '';
+    const cachedTitle = initialCache?.title || resource.name || '';
+    const cachedContent = initialCache?.content || resource.content || '';
 
     onTitle(cachedTitle);
 
@@ -158,17 +464,22 @@ export default function Editor(props: IEditorProps) {
       upload: {
         url: `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
         accept: 'image/*,.wav',
-        max: 1024 * 1024 * 5, // 5MB
+        max: 1024 * 1024 * 5,
         headers: {
           Authorization: `Bearer ${token}`,
         },
         format,
       },
       input: (value: string) => {
+        if (value !== contentRef.current) {
+          dirtyRef.current = true;
+        }
+        contentRef.current = value;
         updateCacheContent(resource.id, value);
       },
       after: () => {
         vditor.setValue(cachedContent);
+        contentRef.current = cachedContent;
         vditor.setTheme(
           theme.content === 'dark' ? 'dark' : 'classic',
           theme.content,
@@ -189,7 +500,7 @@ export default function Editor(props: IEditorProps) {
       vd?.destroy();
       setVd(undefined);
     };
-  }, [resource]);
+  }, [initialCache, resource]);
 
   useEffect(() => {
     if (!vd) {
@@ -203,7 +514,7 @@ export default function Editor(props: IEditorProps) {
   }, [vd, theme]);
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-[680px] pb-[30vh]">
       <Input
         type="text"
         value={title}
@@ -213,5 +524,14 @@ export default function Editor(props: IEditorProps) {
       />
       <div ref={root} className="vditor reset-list" />
     </div>
+  );
+}
+
+export default function Editor(props: IEditorProps) {
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  return useOmniboxEditor ? (
+    <OmniboxResourceEditor {...props} />
+  ) : (
+    <VditorResourceEditor {...props} />
   );
 }

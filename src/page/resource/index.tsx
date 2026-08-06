@@ -6,6 +6,11 @@ import useApp from '@/hooks/useApp';
 import useResource from '@/hooks/userResource';
 import useWide from '@/hooks/useWide';
 import { cn } from '@/lib/utils';
+import {
+  selectUseOmniboxEditor,
+  useResourceStore,
+} from '@/page/resource/resourceStore';
+import { useResourceBodyDragAutoScroll } from '@/page/resource/useResourceBodyDragAutoScroll';
 
 import Header from './header';
 import Wrapper from './Wrapper';
@@ -15,8 +20,25 @@ export default function ResourcePage() {
   const props = useResource();
   const { open } = useSidebar();
   const [large, onLarge] = useState(window.innerWidth > 1500);
+  const [rssItemCopyContent, setRssItemCopyContent] = useState<{
+    itemId: string;
+    content: string | null | undefined;
+  }>();
   const app = useApp();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const isOmniboxResource =
+    useOmniboxEditor &&
+    !!props.resource &&
+    props.resource.resource_type !== 'folder' &&
+    props.resource.resource_type !== 'smart_folder' &&
+    props.resource.resource_type !== 'rss_folder';
+  const useFullWidth = isOmniboxResource;
+
+  useResourceBodyDragAutoScroll(
+    scrollContainerRef,
+    useFullWidth && props.editPage
+  );
 
   useEffect(() => {
     function handleSize() {
@@ -50,20 +72,33 @@ export default function ResourcePage() {
 
   return (
     <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)] min-w-0 overflow-hidden">
-      <Header {...props} wide={wide} onWide={onWide} />
+      <Header
+        {...props}
+        wide={wide}
+        onWide={onWide}
+        rssItemCopyContent={rssItemCopyContent}
+      />
       <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
       <div
         ref={scrollContainerRef}
-        className="flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4"
+        className={cn(
+          'no-scrollbar flex min-w-0 flex-1 justify-center overflow-y-auto overflow-x-hidden p-4',
+          // Pull TOC flush toward the app sidebar in Omnibox edit mode.
+          props.editPage && 'pl-2'
+        )}
       >
         <div
           className={cn('flex min-w-0 w-full max-w-full flex-col', {
-            'max-w-[680px]': !wide && (open || !large),
-            'max-w-[800px]': !wide && (!open || large),
+            'max-w-[680px]': !wide && !useFullWidth && (open || !large),
+            'max-w-[800px]': !wide && !useFullWidth && (!open || large),
             'max-w-7xl': wide,
           })}
+          style={!wide && useFullWidth ? { maxWidth: '100%' } : undefined}
         >
-          <Wrapper {...props} />
+          <Wrapper
+            {...props}
+            onRssItemCopyContentChange={setRssItemCopyContent}
+          />
         </div>
       </div>
     </SidebarInset>
