@@ -31,15 +31,25 @@ export default function ChatHeader() {
   const [chatTitle, setChatTitle] = useState(i18nTitle);
   const namespaceId = params.namespace_id || '';
   const conversationId = params.conversation_id || '';
-  const conversationsPage = loc.pathname.endsWith('/chat/conversations');
-  const homePage =
-    loc.pathname.endsWith('/chat') && !conversationId && !conversationsPage;
+  const routeConversationsPage = loc.pathname.endsWith('/chat/conversations');
+  const routeHomePage =
+    loc.pathname.endsWith('/chat') &&
+    !conversationId &&
+    !routeConversationsPage;
   const copilotWorkspace = useCopilotStore(state =>
     getCopilotWorkspace(state, namespaceId)
   );
   const previewingCitation = Boolean(
     conversationId && copilotWorkspace.previewResourceId
   );
+  // Citation split reuses ChatHeader but content follows copilotStore (same as
+  // CopilotPanel). Prefer store view so Actions match resource-detail Copilot.
+  const homePage = previewingCitation
+    ? copilotWorkspace.view === 'home'
+    : routeHomePage;
+  const conversationsPage = previewingCitation
+    ? copilotWorkspace.view === 'history'
+    : routeConversationsPage;
   const actionConversationId = previewingCitation
     ? copilotWorkspace.view === 'conversation'
       ? (copilotWorkspace.conversationId ?? conversationId)
@@ -67,6 +77,11 @@ export default function ChatHeader() {
         setChatTitle(i18nTitle);
         return;
       }
+      // Drain cached fires from Copilot (no ChatHeader) without posting a
+      // malformed /conversations/title URL when landing on chat home.
+      if (!conversationId || !namespaceId) {
+        return;
+      }
       if (i18nTitle !== chatTitle) {
         return;
       }
@@ -85,14 +100,14 @@ export default function ChatHeader() {
   }, [i18nTitle, chatTitle, conversationId, namespaceId]);
 
   useEffect(() => {
-    if (conversationsPage) {
+    if (routeConversationsPage) {
       setDocumentTitle(t('chat.conversations.history'));
-    } else if (homePage) {
+    } else if (routeHomePage) {
       setDocumentTitle(t('chat.page_title'));
     } else {
       setDocumentTitle(chatTitle);
     }
-  }, [chatTitle, conversationsPage, homePage]);
+  }, [chatTitle, routeConversationsPage, routeHomePage]);
 
   return (
     <header className="rounded-2xl sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">

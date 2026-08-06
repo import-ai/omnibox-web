@@ -7,7 +7,7 @@ import { useSidebar } from '@/components/ui/Sidebar';
 import useApp from '@/hooks/useApp';
 import { useIsMobile } from '@/hooks/useMobile';
 import type { Resource } from '@/interface';
-import { addToChatContext } from '@/lib/chatBridge';
+import { addToChatContext, openCopilotForChatContext } from '@/lib/chatBridge';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
 import type { RssFolderResponse } from '@/page/sidebar/components/rss-folder';
@@ -238,9 +238,11 @@ export function useNodeActions(
     if (loc.pathname.includes('/chat')) {
       doAdd();
     } else {
-      navigate(`/${namespaceId}/chat`);
-      setTimeout(doAdd, 100);
+      // Stay on the resource page and surface Copilot with the new context.
+      openCopilotForChatContext(namespaceId);
+      doAdd();
     }
+    if (isMobile) setOpenMobile(false);
   };
 
   const handleAddToChat = () => addToContext('resource');

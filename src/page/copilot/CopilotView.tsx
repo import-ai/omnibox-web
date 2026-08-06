@@ -37,7 +37,6 @@ export default function CopilotView({ namespaceId }: CopilotViewProps) {
     return (
       <Suspense fallback={<ViewFallback />}>
         <ChatConversationsPage
-          compact
           namespaceId={namespaceId}
           onConversationSelect={conversationId =>
             showConversation(namespaceId, conversationId)
@@ -52,6 +51,7 @@ export default function CopilotView({ namespaceId }: CopilotViewProps) {
   return (
     <Suspense fallback={<ViewFallback />}>
       <ChatRouteParamsProvider
+        compact
         conversationId={workspace.conversationId}
         namespaceId={namespaceId}
       >

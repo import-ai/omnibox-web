@@ -291,10 +291,13 @@ export default function useContext() {
   const firstUserMessage = findFirstMessageWithMissingParent(messages);
 
   useEffect(() => {
-    if (firstUserMessage?.message.content) {
-      app.fire('chat:title', firstUserMessage.message.content);
+    // Only request title generation for untitled conversations. Copilot history
+    // loads otherwise cache chat:title and break chat-home Header (empty id).
+    if (!firstUserMessage?.message.content || conversation.title) {
+      return;
     }
-  }, [firstUserMessage?.message.content, app]);
+    app.fire('chat:title', firstUserMessage.message.content);
+  }, [firstUserMessage?.message.content, conversation.title, app]);
 
   return {
     loading: mergedLoading,

@@ -59,7 +59,7 @@ export default function CitationResourcePreview({
       )}
     >
       <header className="flex min-h-12 shrink-0 flex-wrap items-center gap-2 px-3">
-        <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+        <span className="min-w-0 flex-1 truncate text-sm text-foreground">
           {resource?.name ?? t('copilot.preview')}
         </span>
         {resource && (

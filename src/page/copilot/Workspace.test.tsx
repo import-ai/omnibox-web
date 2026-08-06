@@ -8,15 +8,16 @@ import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 import Workspace from './Workspace';
 
 const mockUseLocation = jest.fn();
+let mockIsMobile = false;
 
 jest.mock('react-router-dom', () => ({
-  Outlet: () => null,
+  Outlet: () => <div data-testid="route-outlet" />,
   useLocation: () => mockUseLocation(),
   useParams: () => ({ namespace_id: 'namespace-a' }),
 }));
 
 jest.mock('@/hooks/useMobile', () => ({
-  useIsMobile: () => false,
+  useIsMobile: () => mockIsMobile,
 }));
 
 jest.mock('./CitationResourcePreview', () => ({
@@ -26,7 +27,7 @@ jest.mock('./CitationResourcePreview', () => ({
 
 jest.mock('./CopilotPanel', () => ({
   __esModule: true,
-  default: () => null,
+  default: () => <div data-testid="copilot-panel" />,
 }));
 
 (
@@ -40,6 +41,7 @@ describe('Copilot Workspace', () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
+    mockIsMobile = false;
     useCopilotStore.setState({ workspaces: {} });
     mockUseLocation.mockReturnValue({
       key: 'chat',
@@ -119,6 +121,36 @@ describe('Copilot Workspace', () => {
     });
   });
 
+  it('uses the existing chat route as the only conversation surface beside a citation preview', async () => {
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-a');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+
+    await act(async () => root.render(<Workspace />));
+
+    expect(
+      container.querySelector('[data-testid="route-outlet"]')
+    ).not.toBeNull();
+    expect(container.querySelector('[data-testid="copilot-panel"]')).toBeNull();
+  });
+
+  it('uses the existing chat route as the mobile Copilot surface', async () => {
+    mockIsMobile = true;
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-a');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+
+    await act(async () => root.render(<Workspace />));
+
+    const routeOutlet = container.querySelector('[data-testid="route-outlet"]');
+    expect(routeOutlet?.parentElement?.classList.contains('fixed')).toBe(true);
+    expect(routeOutlet?.parentElement?.classList.contains('inset-0')).toBe(
+      true
+    );
+    expect(routeOutlet?.parentElement?.classList.contains('w-full')).toBe(true);
+    expect(container.querySelector('[data-testid="copilot-panel"]')).toBeNull();
+  });
+
   it('keeps the citation preview after collapsing Copilot on a chat route', async () => {
     const store = useCopilotStore.getState();
     store.showConversation('namespace-a', 'conversation-a');
@@ -135,6 +167,12 @@ describe('Copilot Workspace', () => {
       previewResourceId: 'Abcd1234Efgh5678',
       view: 'conversation',
     });
+    expect(
+      container
+        .querySelector('[data-testid="route-outlet"]')
+        ?.parentElement?.hasAttribute('inert')
+    ).toBe(true);
+    expect(container.querySelector('[data-testid="copilot-panel"]')).toBeNull();
   });
 
   it('resets Copilot when navigating between resources with a preview open', async () => {
@@ -160,6 +198,28 @@ describe('Copilot Workspace', () => {
       open: false,
       previewResourceId: null,
       view: 'home',
+    });
+  });
+
+  it('keeps Copilot open when editing the previewed resource', async () => {
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-a');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+
+    await act(async () => root.render(<Workspace />));
+    mockUseLocation.mockReturnValue({
+      key: 'edit',
+      pathname: '/namespace-a/Abcd1234Efgh5678/edit',
+    });
+    await act(async () => root.render(<Workspace />));
+
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toMatchObject({
+      conversationId: 'conversation-a',
+      open: true,
+      previewResourceId: null,
+      view: 'conversation',
     });
   });
 

@@ -42,6 +42,7 @@ jest.mock('@/hooks/useMobile', () => ({
 
 jest.mock('@/lib/chatBridge', () => ({
   addToChatContext: jest.fn(),
+  openCopilotForChatContext: jest.fn(),
 }));
 
 jest.mock('@/lib/deleteResource', () => ({

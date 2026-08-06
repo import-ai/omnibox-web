@@ -43,6 +43,9 @@ export function syncOverlayScroll(
 
 export function resizeComposer(textarea: HTMLTextAreaElement | null) {
   if (!textarea) return;
+  // Copilot panel open animates width 0 → N. Measuring at width 0 inflates
+  // scrollHeight (whitespace-pre-wrap) and the inline height would stick.
+  if (textarea.clientWidth <= 0) return;
   textarea.style.height = 'auto';
   const contentHeight = textarea.scrollHeight;
   const nextHeight = Math.min(
@@ -70,8 +73,19 @@ export function useComposerTextareaLayout({
   toolRanges: ComposerToolRange[];
 }) {
   useLayoutEffect(() => {
-    resizeComposer(textareaRef.current);
-    syncOverlayScroll(textareaRef.current, overlayRef.current);
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const syncLayout = () => {
+      resizeComposer(textarea);
+      syncOverlayScroll(textarea, overlayRef.current);
+    };
+    syncLayout();
+
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(syncLayout);
+    observer.observe(textarea);
+    return () => observer.disconnect();
   }, [displayText, overlayRef, textareaRef, toolRanges]);
 
   useLayoutEffect(() => {

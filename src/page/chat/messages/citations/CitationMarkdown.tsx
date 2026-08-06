@@ -95,10 +95,14 @@ export function CitationMarkdown(props: IProps) {
     Boolean(chatRoot) &&
     (location.pathname === chatRoot ||
       location.pathname.startsWith(`${chatRoot}/`));
-  // Resource + Copilot split: open the linked resource in the left pane.
-  // Standalone chat keeps opening a new tab.
-  const openResourceInLeftPane = Boolean(
-    copilotOpen && !isChatRoute && !params.share_id && namespaceId
+  // Chat route: wake Copilot and show the linked resource on its left.
+  // Resource + Copilot split: swap the left pane to the linked resource.
+  // Share pages keep opening a new tab.
+  const openResourceInCopilotSplit = Boolean(
+    !params.share_id &&
+    namespaceId &&
+    conversationId &&
+    (isChatRoute || (copilotOpen && !isChatRoute))
   );
   const resourceLinkPrefix = params.share_id
     ? `/s/${params.share_id}`
@@ -127,15 +131,13 @@ export function CitationMarkdown(props: IProps) {
         return (
           <a
             href={resourceHref}
-            target={openResourceInLeftPane ? undefined : '_blank'}
+            target={openResourceInCopilotSplit ? undefined : '_blank'}
             rel="noopener noreferrer"
             onClick={event => {
-              if (!openResourceInLeftPane) return;
+              if (!openResourceInCopilotSplit) return;
               event.preventDefault();
               const store = useCopilotStore.getState();
-              if (conversationId) {
-                store.showConversation(namespaceId, conversationId);
-              }
+              store.showConversation(namespaceId, conversationId);
               store.previewResource(namespaceId, resourceId);
             }}
           >

@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
@@ -21,13 +22,13 @@ export default function SaveMain(props: IProps) {
   const app = useApp();
   const { t } = useTranslation();
   const params = useParams();
-  const namespaceId = params.namespace_id || '';
+  const { namespaceId: routeNamespaceId } = useChatRouteParams();
+  const namespaceId = routeNamespaceId || params.namespace_id || '';
   const shareId = params.share_id || '';
-  const closeCopilot = useCopilotStore(state => state.close);
   const [loading, onLoading] = useState(false);
 
   const handleCreate = () => {
-    if (loading) return;
+    if (loading || !namespaceId) return;
     onLoading(true);
     // Ensure the title is correct
     http
@@ -42,8 +43,10 @@ export default function SaveMain(props: IProps) {
               name: getTitleFromConversationDetail(conversationDetail),
             })
             .then(response => {
+              // Keep Copilot open; clear citation preview so the saved doc can
+              // occupy the main pane beside Copilot via generate_resource.
+              useCopilotStore.getState().closePreview(namespaceId);
               app.fire('generate_resource', privateRoot.id, response);
-              closeCopilot(namespaceId);
             })
         )
       )

@@ -9,6 +9,7 @@ import {
 import CopilotView from '@/page/copilot/CopilotView';
 
 import Page from './ChatPage';
+import { ChatRouteParamsProvider } from './ChatRouteParamsContext';
 import Header from './header';
 
 export default function Chat() {
@@ -36,13 +37,21 @@ export default function Chat() {
       )}
     >
       <Header />
+      {/* Keep the route conversation mounted while Copilot home/history overlays
+          it, so streaming / scroll state survives showHome / showHistory. */}
       <div
         className={cn(
           'flex min-h-0 min-w-0 flex-1 flex-col',
           !showRoutePage && 'hidden'
         )}
       >
-        <Page />
+        <ChatRouteParamsProvider
+          compact={besideCitationPreview}
+          conversationId={conversationId}
+          namespaceId={namespaceId}
+        >
+          <Page />
+        </ChatRouteParamsProvider>
       </div>
       {!showRoutePage && <CopilotView namespaceId={namespaceId} />}
     </SidebarInset>

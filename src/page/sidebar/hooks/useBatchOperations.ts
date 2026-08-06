@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import useApp from '@/hooks/useApp';
+import { openCopilotForChatContext } from '@/lib/chatBridge';
 
 import { useSelectedCount, useSelectionState, useSidebarStore } from '../store';
 import { getTopLevelSelectedIds } from '../store/utils';
@@ -277,7 +278,8 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
       position: 'bottom-right',
     });
     if (!location.pathname.includes('/chat')) {
-      navigate(`/${namespaceId}/chat`);
+      // Stay on the resource page and surface Copilot with the new context.
+      openCopilotForChatContext(namespaceId);
     }
   };
 
