@@ -141,33 +141,34 @@ export default function RssItems(props: IProps) {
           <div>
             {data.map((item, index) => {
               return (
-                <div
-                  className="group cursor-pointer"
-                  key={item.id}
-                  onClick={() =>
-                    navigate(
-                      `${itemNavigationPrefix}/${resourceId}/rss-items/${item.id}`
-                    )
-                  }
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      {item.link_name && (
-                        <span className="flex size-5 shrink-0 items-center justify-center rounded-[4px] border text-[10px] font-normal leading-none text-muted-foreground">
-                          {item.link_name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500 truncate">
-                        {item.title || t('untitled')}
-                      </h3>
+                <div key={item.id}>
+                  <div
+                    className="group cursor-pointer"
+                    onClick={() =>
+                      navigate(
+                        `${itemNavigationPrefix}/${resourceId}/rss-items/${item.id}`
+                      )
+                    }
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {item.link_name && (
+                          <span className="flex size-5 shrink-0 items-center justify-center rounded-[4px] border text-[10px] font-normal leading-none text-muted-foreground">
+                            {item.link_name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <h3 className="min-w-0 flex-1 text-lg font-medium line-clamp-2 group-hover:text-blue-500">
+                          {item.title || t('untitled')}
+                        </h3>
+                      </div>
                     </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {formatItemDate(item)}
+                      {item.link_name && (
+                        <span className="ml-1.5">{item.link_name}</span>
+                      )}
+                    </p>
                   </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {formatItemDate(item)}
-                    {item.link_name && (
-                      <span className="ml-1.5">{item.link_name}</span>
-                    )}
-                  </p>
                   {index < data.length - 1 && <Separator className="my-4" />}
                 </div>
               );
