@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 
 import { Separator } from '@/components/ui/Separator';
 import { SidebarInset, useSidebar } from '@/components/ui/Sidebar';
@@ -18,7 +18,7 @@ import Wrapper from './Wrapper';
 export default function ResourcePage() {
   const { wide, onWide } = useWide();
   const props = useResource();
-  const { open } = useSidebar();
+  const { open, width: sidebarWidth } = useSidebar();
   const [large, onLarge] = useState(window.innerWidth > 1500);
   const [rssItemCopyContent, setRssItemCopyContent] = useState<{
     itemId: string;
@@ -71,7 +71,14 @@ export default function ResourcePage() {
   }, [app]);
 
   return (
-    <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)] min-w-0 overflow-hidden">
+    <SidebarInset
+      className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)] min-w-0 overflow-hidden"
+      style={
+        {
+          '--resource-toc-left': `${(open ? sidebarWidth : 0) + 16}px`,
+        } as CSSProperties
+      }
+    >
       <Header
         {...props}
         wide={wide}
@@ -102,6 +109,7 @@ export default function ResourcePage() {
         >
           <Wrapper
             {...props}
+            wide={wide}
             onRssItemCopyContentChange={setRssItemCopyContent}
           />
         </div>

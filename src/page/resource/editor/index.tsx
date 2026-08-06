@@ -120,9 +120,6 @@ function format(_files: File[], responseText: string): string {
 
 function OmniboxResourceEditor(props: IEditorProps) {
   const { resource, onResource, namespaceId, wide } = props;
-  const editorContentWidth = wide
-    ? OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH
-    : OMNIBOX_EDITOR_CONTENT_WIDTH;
   const { i18n, t } = useTranslation();
   const markdownRef = useRef('');
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
@@ -331,10 +328,14 @@ function OmniboxResourceEditor(props: IEditorProps) {
 
   return (
     <div
-      className="resource-editable-page pb-[30vh]"
+      className={`resource-editable-page pb-[30vh] ${
+        wide ? 'resource-editable-page--wide' : ''
+      }`}
       style={
         {
-          '--resource-editor-content-width': `${editorContentWidth}px`,
+          '--resource-editor-content-width': wide
+            ? `${OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH}px`
+            : `${OMNIBOX_EDITOR_CONTENT_WIDTH}px`,
         } as React.CSSProperties
       }
     >
@@ -356,7 +357,11 @@ function OmniboxResourceEditor(props: IEditorProps) {
             locale={i18n.language}
             theme={theme.content}
             variant="embedded"
-            contentWidth={editorContentWidth}
+            contentWidth={
+              wide
+                ? OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH
+                : OMNIBOX_EDITOR_CONTENT_WIDTH
+            }
             showHeader={false}
             showToc={true}
             tocColors={{
@@ -520,12 +525,9 @@ function VditorResourceEditor(props: IEditorProps) {
 
   return (
     <div
-      className="mx-auto w-full pb-[30vh]"
-      style={{
-        maxWidth: wide
-          ? OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH
-          : OMNIBOX_EDITOR_CONTENT_WIDTH,
-      }}
+      className={`mx-auto w-full pb-[30vh] ${
+        wide ? 'max-w-full' : 'max-w-[680px]'
+      }`}
     >
       <Input
         type="text"

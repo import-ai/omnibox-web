@@ -77,12 +77,14 @@ export default function BreadcrumbMain(props: IProps) {
                   <BreadcrumbLink asChild>
                     <Button
                       variant="ghost"
-                      className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+                      className="h-6 max-w-[240px] justify-start overflow-hidden px-2 py-0 font-normal text-foreground"
                       onClick={() => {
                         navigate(`/${namespaceId}/${item.id}`);
                       }}
                     >
-                      {item.name || t('untitled')}
+                      <span className="min-w-0 truncate text-left">
+                        {item.name || t('untitled')}
+                      </span>
                     </Button>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
@@ -106,12 +108,14 @@ export default function BreadcrumbMain(props: IProps) {
           <BreadcrumbLink asChild>
             <Button
               variant="ghost"
-              className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+              className="h-6 max-w-[240px] justify-start overflow-hidden px-2 py-0 font-normal text-foreground"
               onClick={() => {
                 navigate(`/${namespaceId}/${rootItem.id}`);
               }}
             >
-              {rootItem.name || t('untitled')}
+              <span className="min-w-0 truncate text-left">
+                {rootItem.name || t('untitled')}
+              </span>
             </Button>
           </BreadcrumbLink>
         </BreadcrumbItem>
@@ -143,12 +147,14 @@ export default function BreadcrumbMain(props: IProps) {
             <BreadcrumbLink asChild>
               <Button
                 variant="ghost"
-                className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+                className="h-6 max-w-[240px] justify-start overflow-hidden px-2 py-0 font-normal text-foreground"
                 onClick={() => {
                   navigate(`/${namespaceId}/${currentItem.id}`);
                 }}
               >
-                {currentItem.name || t('untitled')}
+                <span className="min-w-0 truncate text-left">
+                  {currentItem.name || t('untitled')}
+                </span>
               </Button>
             </BreadcrumbLink>
           </BreadcrumbItem>

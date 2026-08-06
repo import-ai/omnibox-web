@@ -1,11 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 import Attributes from '@/components/attributes';
 import { Resource } from '@/interface';
 import { cn } from '@/lib/utils';
 import Editor from '@/page/resource/editor';
-import { OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH } from '@/page/resource/editor/const';
 import Folder from '@/page/resource/folder';
 import Render from '@/page/resource/Render';
 import {
@@ -14,6 +13,7 @@ import {
 } from '@/page/resource/resourceStore';
 import RssItems from '@/page/resource/rss';
 import RssItemReader from '@/page/resource/rss/RssItemReader';
+import { splitSearchText } from '@/page/resource/searchHighlight';
 
 interface IProps {
   editPage: boolean;
@@ -47,6 +47,9 @@ export default function Page(props: IProps) {
     resource.resource_type === 'folder' ||
     resource.resource_type === 'smart_folder';
   const { rss_item_id: rssItemId } = useParams();
+  const [searchParams] = useSearchParams();
+  const search = searchParams.get('query') ?? '';
+  const title = resource.name || t('untitled');
 
   if (editPage) {
     return (
@@ -79,15 +82,21 @@ export default function Page(props: IProps) {
       )}
     >
       <div
-        className={cn(constrainHeader && 'resource-readonly-page-header')}
-        style={
-          constrainHeader && wide
-            ? { maxWidth: OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH }
-            : undefined
-        }
+        className={cn(
+          constrainHeader && 'resource-readonly-page-header',
+          constrainHeader && wide && 'resource-readonly-page-header--wide'
+        )}
       >
-        <h1 className="mb-4 min-w-0 max-w-full break-all text-[34px] font-bold">
-          {resource.name || t('untitled')}
+        <h1 className="resource-search-title mb-4 min-w-0 max-w-full break-all text-[34px] font-bold">
+          {splitSearchText(title, search).map((part, index) =>
+            part.match ? (
+              <mark className="search-query-mark" key={index}>
+                {part.text}
+              </mark>
+            ) : (
+              part.text
+            )
+          )}
         </h1>
         <Attributes
           namespaceId={namespaceId}
@@ -121,9 +130,9 @@ export default function Page(props: IProps) {
       ) : (
         <Render
           resource={resource}
+          wide={wide}
           linkBase={`/${namespaceId}/${resource.id}`}
           style={{ overflow: 'inherit' }}
-          wide={wide}
         />
       )}
     </div>

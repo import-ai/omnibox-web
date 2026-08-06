@@ -5,11 +5,11 @@ import AuthPage from '@/page/auth';
 import Page from './Page';
 
 interface IProps extends IUseResource {
+  wide: boolean;
   onRssItemCopyContentChange?: (value: {
     itemId: string;
     content: string | null | undefined;
   }) => void;
-  wide: boolean;
 }
 
 export default function Wrapper(props: IProps) {
