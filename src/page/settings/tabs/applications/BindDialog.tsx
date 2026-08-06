@@ -1,7 +1,10 @@
+import { Send } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logoUrl from '@/assets/logo.svg';
+import { Button } from '@/components/button';
+import CopyMain from '@/components/copy';
 import {
   Dialog,
   DialogContent,
@@ -39,7 +42,8 @@ export function BindDialog({
 
   const POLLING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
-  const qrCodeUrl = getQrCodeUrl(appId);
+  const qrCodeUrl = getQrCodeUrl(appId, bindingCode);
+  const isTelegram = appId === 'telegram_bot';
   const platformName = t(`applications.app_names.${appId}`, {
     defaultValue: appId,
   });
@@ -115,7 +119,12 @@ export function BindDialog({
           {/* QR Code Section */}
           <div className="flex flex-col items-center space-y-4">
             <h3 className="text-lg font-medium">
-              {t('applications.bind.step1', { platform_name: platformName })}
+              {t(
+                isTelegram
+                  ? 'applications.bind.telegram_step1'
+                  : 'applications.bind.step1',
+                { platform_name: platformName }
+              )}
             </h3>
             {qrCodeDataUrl ? (
               <div className="relative">
@@ -139,25 +148,48 @@ export function BindDialog({
                 </div>
               </div>
             )}
+            {isTelegram && (
+              <Button asChild className="w-full max-w-48">
+                <a href={qrCodeUrl} target="_blank" rel="noreferrer">
+                  <Send className="size-4" />
+                  {t('applications.bind.open_telegram')}
+                </a>
+              </Button>
+            )}
           </div>
 
           {/* Code Section */}
           <div className="flex flex-col space-y-4">
             <h3 className="text-lg font-medium">
-              {t('applications.bind.step2', { platform_name: platformName })}
+              {t(
+                isTelegram
+                  ? 'applications.bind.telegram_step2'
+                  : 'applications.bind.step2',
+                { platform_name: platformName }
+              )}
             </h3>
             <div className="p-4">
               <p className="mb-2 text-sm text-muted-foreground">
                 {t('applications.bind.code_label')}
               </p>
-              <div className="rounded border bg-background p-2 font-mono text-lg font-semibold">
-                {bindingCode}
+              <div className="flex items-center justify-between gap-2 rounded border bg-background p-2 font-mono text-lg font-semibold">
+                <span>{bindingCode}</span>
+                <CopyMain
+                  content={bindingCode}
+                  tooltip={t('applications.bind.copy_code')}
+                />
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              {t('applications.bind.code_instruction', {
-                platform_name: platformName,
-              })}
+              {t(
+                isTelegram
+                  ? 'applications.bind.telegram_code_instruction'
+                  : 'applications.bind.code_instruction',
+                {
+                  code: bindingCode,
+                  platform_name: platformName,
+                }
+              )}
             </p>
           </div>
         </div>

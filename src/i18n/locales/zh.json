@@ -442,11 +442,13 @@
     "app_names": {
       "wechat_bot": "微信助手",
       "qq_bot": " QQ 助手",
+      "telegram_bot": "Telegram 助手",
       "wechat_clawbot": "微信 ClawBot"
     },
     "scan_via": {
       "wechat_bot": "微信",
       "qq_bot": "QQ",
+      "telegram_bot": "Telegram",
       "wechat_clawbot": "微信"
     },
     "unsupported_app": "不支持的应用类型：{{ app_id }}",
@@ -466,8 +468,13 @@
       "description": "按照以下步骤连接你的应用",
       "step1": "第 1 步：添加{{ platform_name }}",
       "step2": "第 2 步：发送代码给{{ platform_name }}",
+      "telegram_step1": "第 1 步：打开 Telegram 或扫描二维码",
+      "telegram_step2": "第 2 步：确认绑定",
+      "open_telegram": "打开 Telegram",
       "code_label": "绑定代码：",
+      "copy_code": "复制绑定代码",
       "code_instruction": "将此代码发送给{{ platform_name }}以完成绑定",
+      "telegram_code_instruction": "如果无法自动打开，请在 Telegram 中向 @omnibox_tg_bot 发送 /start {{ code }}。",
       "initiated": "绑定流程已启动",
       "continue": "继续绑定流程",
       "error": "启动绑定失败",
