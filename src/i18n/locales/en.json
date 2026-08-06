@@ -61,6 +61,7 @@
       "confirm_initial_description": "After switching, resources in “{{space}}” will follow the order you just arranged.",
       "confirm_description": "You have sorted manually before. This will overwrite your previous manual order in “{{space}}”.",
       "confirm_action": "Switch",
+      "sync_failed": "The move succeeded, but the manual order could not be saved.",
       "private": "Personal",
       "teamspace": "Team",
       "order": {

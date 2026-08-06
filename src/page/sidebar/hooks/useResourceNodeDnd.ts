@@ -1,6 +1,8 @@
 import { type RefObject, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { getEmptyImage, NativeTypes } from 'react-dnd-html5-backend';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 
@@ -42,6 +44,7 @@ export function useResourceNodeDnd(
   isEditing: boolean,
   options: UseResourceNodeDndOptions
 ): UseResourceNodeDndReturn {
+  const { t } = useTranslation();
   const {
     namespaceId,
     onNodeDrop,
@@ -309,9 +312,15 @@ export function useResourceNodeDnd(
           position: dropPositionRef.current,
         };
         if (store.resourceSorts[node.spaceType].sort_by === 'manual') {
-          void store.applyManualDrop(pendingDrop).catch(() => {
-            // request.ts handles backend error toasts.
-          });
+          void store
+            .applyManualDrop(pendingDrop, () => {
+              toast.error(t('sidebar.sort.sync_failed'), {
+                position: 'bottom-right',
+              });
+            })
+            .catch(() => {
+              // request.ts handles backend error toasts.
+            });
         } else {
           store.setPendingManualDrop(pendingDrop);
         }

@@ -410,7 +410,11 @@ export function BodyForSidebar(props: IProps) {
       const manualSort = { sort_by: 'manual', sort_order: 'asc' } as const;
       store.setResourceSort(spaceType, manualSort);
       await refreshSpaceResources(spaceType, manualSort);
-      await useSidebarStore.getState().applyManualDrop(pending);
+      await useSidebarStore.getState().applyManualDrop(pending, () => {
+        toast.error(t('sidebar.sort.sync_failed'), {
+          position: 'bottom-right',
+        });
+      });
       useSidebarStore.getState().setPendingManualDrop(null);
     } catch {
       // request.ts handles backend error toasts.

@@ -114,7 +114,10 @@ export interface SidebarActions {
   setResourceSort: (spaceType: SpaceType, sort: ResourceSortOptions) => void;
   setPendingManualDrop: (drop: PendingManualDrop | null) => void;
   setManualDropIndicator: (indicator: ManualDropIndicator | null) => void;
-  applyManualDrop: (drop: PendingManualDrop) => Promise<void>;
+  applyManualDrop: (
+    drop: PendingManualDrop,
+    onSortSyncFailure?: () => void
+  ) => Promise<void>;
   init: (roots: Record<string, RootResource>) => void;
   expand: (id: string) => Promise<void>;
   collapse: (id: string) => void;

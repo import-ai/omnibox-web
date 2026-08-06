@@ -38,7 +38,10 @@ export function buildManualSortActions(set: SidebarSet, get: SidebarGet) {
       });
     },
 
-    applyManualDrop: async (drop: PendingManualDrop) => {
+    applyManualDrop: async (
+      drop: PendingManualDrop,
+      onSortSyncFailure?: () => void
+    ) => {
       let state = get();
       const dragNode = state.nodes[drop.dragId];
       const targetNode = state.nodes[drop.targetId];
@@ -92,6 +95,8 @@ export function buildManualSortActions(set: SidebarSet, get: SidebarGet) {
       const rootId = getRootId(currentDragNode, state.rootIds);
       const targetRootId = getRootId(currentTargetNode, state.rootIds);
       if (!rootId || !targetRootId) return;
+      const sourceSpaceType = currentDragNode.spaceType;
+      const targetSpaceType = currentTargetNode.spaceType;
 
       const orders =
         sourceParent.id === targetParent.id
@@ -141,7 +146,11 @@ export function buildManualSortActions(set: SidebarSet, get: SidebarGet) {
         );
         commitMove();
         const sortRequests: Promise<void>[] = [];
-        if (state.nodes[rootId]?.manualSortInitializedAt) {
+        const sourceIsManual =
+          state.resourceSorts[sourceSpaceType]?.sort_by === 'manual';
+        const targetIsManual =
+          state.resourceSorts[targetSpaceType]?.sort_by === 'manual';
+        if (sourceIsManual && state.nodes[rootId]?.manualSortInitializedAt) {
           sortRequests.push(
             updateManualSort(
               state.namespaceId,
@@ -153,7 +162,10 @@ export function buildManualSortActions(set: SidebarSet, get: SidebarGet) {
             )
           );
         }
-        if (state.nodes[targetRootId]?.manualSortInitializedAt) {
+        if (
+          targetIsManual &&
+          state.nodes[targetRootId]?.manualSortInitializedAt
+        ) {
           sortRequests.push(
             updateManualSort(
               state.namespaceId,
@@ -171,6 +183,7 @@ export function buildManualSortActions(set: SidebarSet, get: SidebarGet) {
             refreshSortedChildren(get, sourceParent.id),
             refreshSortedChildren(get, targetParent.id),
           ]);
+          onSortSyncFailure?.();
         }
       }
     },

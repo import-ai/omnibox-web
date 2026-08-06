@@ -61,6 +61,7 @@
       "confirm_initial_description": "切换后，将按照您拖拽后的顺序排列“{{space}}”中的资源。",
       "confirm_description": "您曾经手动排序过，该操作将覆盖您之前在“{{space}}”中的手动排序。",
       "confirm_action": "确认切换",
+      "sync_failed": "移动成功，但手动排序未能保存。",
       "private": "个人",
       "teamspace": "团队",
       "order": {
