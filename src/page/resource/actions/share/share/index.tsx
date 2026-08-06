@@ -39,6 +39,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
   const [normalizationFailed, setNormalizationFailed] = useState(false);
   const [reloadVersion, setReloadVersion] = useState(0);
   const requestVersionRef = useRef(0);
+  const updateQueueRef = useRef<Promise<void>>(Promise.resolve());
   const isFolder = folderResourceTypes.includes(resourceType);
   const resourceKey = `${namespace_id}/${resource_id}`;
   const resourceKeyRef = useRef(resourceKey);
@@ -112,18 +113,22 @@ export function ShareTabContent(props: ShareTabContentProps) {
 
   const updateShareInfo = (data: UpdateShareInfoReq) => {
     const requestResourceKey = resourceKey;
-    const requestVersion = ++requestVersionRef.current;
-    http
-      .patch(`namespaces/${namespace_id}/resources/${resource_id}/share`, data)
-      .then(data => {
+    updateQueueRef.current = updateQueueRef.current
+      .then(async () => {
+        const requestVersion = ++requestVersionRef.current;
+        const response = await http.patch(
+          `namespaces/${namespace_id}/resources/${resource_id}/share`,
+          data
+        );
         if (
           resourceKeyRef.current === requestResourceKey &&
           requestVersionRef.current === requestVersion
         ) {
-          setShareInfo(parseShareInfo(data));
+          setShareInfo(parseShareInfo(response));
           setNormalizationFailed(false);
         }
-      });
+      })
+      .catch(() => undefined);
   };
 
   const shareUrl =

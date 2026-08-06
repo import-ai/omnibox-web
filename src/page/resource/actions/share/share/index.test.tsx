@@ -5,6 +5,7 @@ import { createRoot, type Root } from 'react-dom/client';
 
 import { ResourceType } from '@/interface';
 
+import ShareTabs from '../ShareTabs';
 import { ShareTabContent } from '.';
 
 const mockGet = jest.fn();
@@ -62,6 +63,23 @@ jest.mock('@/components/ui/Switch', () => ({
       onClick={() => onCheckedChange?.(!checked)}
     />
   ),
+}));
+jest.mock('@/components/ui/Tabs', () => ({
+  Tabs: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  TabsContent: ({ children, value }: { children: ReactNode; value: string }) =>
+    value === 'share' ? <div>{children}</div> : null,
+  TabsList: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  TabsTrigger: ({ children }: { children: ReactNode }) => (
+    <button type="button">{children}</button>
+  ),
+}));
+jest.mock('../permissions/InviteForm', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock('../permissions/table', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 jest.mock('./Expire', () => ({ Expire: () => null }));
 jest.mock('./Password', () => ({ Password: () => null }));
@@ -249,6 +267,95 @@ describe('ShareTabContent', () => {
     expect(container.textContent).not.toContain(
       'share.share.folder_current_file_unsupported'
     );
+  });
+
+  it('loads sharing from the explicit resource snapshot', async () => {
+    await act(async () => {
+      root.render(
+        <ShareTabs
+          namespaceId="namespace-snapshot"
+          resourceId="resource-snapshot"
+          resourceType="doc"
+        />
+      );
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(
+      'namespaces/namespace-snapshot/resources/resource-snapshot/share'
+    );
+  });
+
+  it('serializes updates for the same resource', async () => {
+    let resolveFirstPatch: (value: typeof shareInfo) => void = () => undefined;
+    let resolveSecondPatch: (value: typeof shareInfo) => void = () => undefined;
+    mockGet.mockResolvedValueOnce({ ...shareInfo, all_resources: true });
+    mockPatch
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            resolveFirstPatch = resolve;
+          })
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            resolveSecondPatch = resolve;
+          })
+      );
+
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-1"
+          resourceType="doc"
+        />
+      );
+    });
+
+    const switches = container.querySelectorAll('[role="switch"]');
+    const currentFileSwitch = switches[1] as HTMLButtonElement;
+    const requireLoginSwitch = switches[2] as HTMLButtonElement;
+    await act(async () => {
+      requireLoginSwitch.click();
+      currentFileSwitch.click();
+      await Promise.resolve();
+    });
+
+    expect(mockPatch).toHaveBeenCalledTimes(1);
+    expect(mockPatch).toHaveBeenNthCalledWith(
+      1,
+      'namespaces/namespace-1/resources/resource-1/share',
+      { require_login: true }
+    );
+
+    await act(async () => {
+      resolveFirstPatch({
+        ...shareInfo,
+        all_resources: true,
+        require_login: true,
+      });
+      await Promise.resolve();
+    });
+
+    expect(mockPatch).toHaveBeenCalledTimes(2);
+    expect(mockPatch).toHaveBeenNthCalledWith(
+      2,
+      'namespaces/namespace-1/resources/resource-1/share',
+      { all_resources: false }
+    );
+
+    await act(async () => {
+      resolveSecondPatch({
+        ...shareInfo,
+        all_resources: false,
+        require_login: true,
+      });
+    });
+
+    const updatedSwitches = container.querySelectorAll('[role="switch"]');
+    expect(updatedSwitches[1].getAttribute('aria-checked')).toBe('true');
+    expect(updatedSwitches[2].getAttribute('aria-checked')).toBe('true');
   });
 
   it('ignores an update response from the previous resource', async () => {
