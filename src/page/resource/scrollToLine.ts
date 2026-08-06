@@ -17,6 +17,18 @@ function normalizeMarkdownLine(line: string): string {
     .trim();
 }
 
+function countOccurrences(text: string, search: string): number {
+  let count = 0;
+  let from = 0;
+
+  while ((from = text.indexOf(search, from)) !== -1) {
+    count += 1;
+    from += search.length;
+  }
+
+  return count;
+}
+
 function getLineTarget(content: string, lineNumber: number) {
   const lines = content.split(/\r?\n/);
   if (lineNumber > lines.length) return null;
@@ -29,10 +41,11 @@ function getLineTarget(content: string, lineNumber: number) {
   }
   if (!text) return null;
 
-  const occurrence = lines
-    .slice(0, targetIndex + 1)
-    .map(normalizeMarkdownLine)
-    .filter(line => line === text).length;
+  const occurrence =
+    lines
+      .slice(0, targetIndex)
+      .map(normalizeMarkdownLine)
+      .reduce((count, line) => count + countOccurrences(line, text), 0) + 1;
 
   return { occurrence, text };
 }
@@ -76,7 +89,7 @@ export function scrollRenderedContentToLine(
   const segment =
     segments.find(
       item =>
-        offset >= item.start && offset <= item.start + item.node.data.length
+        offset >= item.start && offset < item.start + item.node.data.length
     ) ?? null;
   if (!segment) return false;
 

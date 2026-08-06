@@ -41,4 +41,33 @@ describe('scrollRenderedContentToLine', () => {
       true
     );
   });
+
+  it('skips a target substring in an earlier line', () => {
+    const container = document.createElement('div');
+    container.innerHTML =
+      '<p id="earlier">prefix target</p><p id="target">target</p>';
+    let scrolledParentId = '';
+    Element.prototype.scrollIntoView = jest.fn(function (this: Element) {
+      scrolledParentId = this.parentElement?.id ?? '';
+    });
+
+    expect(
+      scrollRenderedContentToLine(container, 'prefix target\ntarget', 2)
+    ).toBe(true);
+    expect(scrolledParentId).toBe('target');
+  });
+
+  it('scrolls to the requested repeated line', () => {
+    const container = document.createElement('div');
+    container.innerHTML = '<p id="first">target</p><p id="second">target</p>';
+    let scrolledParentId = '';
+    Element.prototype.scrollIntoView = jest.fn(function (this: Element) {
+      scrolledParentId = this.parentElement?.id ?? '';
+    });
+
+    expect(scrollRenderedContentToLine(container, 'target\ntarget', 2)).toBe(
+      true
+    );
+    expect(scrolledParentId).toBe('second');
+  });
 });
