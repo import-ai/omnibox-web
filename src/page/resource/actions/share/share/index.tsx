@@ -1,16 +1,10 @@
 import { Copy } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { HelpTooltip } from '@/components/help-tooltip';
 import { Input } from '@/components/input';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
 import {
@@ -42,11 +36,19 @@ export function ShareTabContent(props: ShareTabContentProps) {
   const { resource_id, namespace_id, resourceType } = props;
   const { t } = useTranslation();
   const [shareInfo, setShareInfo] = useState<ShareInfo | null>(null);
+  const [normalizationFailed, setNormalizationFailed] = useState(false);
+  const [reloadVersion, setReloadVersion] = useState(0);
+  const requestVersionRef = useRef(0);
   const isFolder = folderResourceTypes.includes(resourceType);
+  const resourceKey = `${namespace_id}/${resource_id}`;
+  const resourceKeyRef = useRef(resourceKey);
+  resourceKeyRef.current = resourceKey;
 
   useEffect(() => {
     let active = true;
+    const requestVersion = ++requestVersionRef.current;
     setShareInfo(null);
+    setNormalizationFailed(false);
 
     if (!namespace_id || !resource_id) {
       return () => {
@@ -62,7 +64,14 @@ export function ShareTabContent(props: ShareTabContentProps) {
           `namespaces/${namespace_id}/resources/${resource_id}/share`
         );
         currentShareInfo = parseShareInfo(data);
-        if (isFolder && !currentShareInfo.all_resources) {
+        if (
+          isFolder &&
+          currentShareInfo.enabled &&
+          !currentShareInfo.all_resources
+        ) {
+          if (!active || resourceKeyRef.current !== resourceKey) {
+            return;
+          }
           const data = await http.patch(
             `namespaces/${namespace_id}/resources/${resource_id}/share`,
             { all_resources: true }
@@ -70,12 +79,26 @@ export function ShareTabContent(props: ShareTabContentProps) {
           currentShareInfo = parseShareInfo(data);
         }
 
-        if (active) {
+        if (
+          active &&
+          resourceKeyRef.current === resourceKey &&
+          requestVersionRef.current === requestVersion
+        ) {
           setShareInfo(currentShareInfo);
         }
       } catch {
-        if (active && currentShareInfo) {
+        if (
+          active &&
+          currentShareInfo &&
+          resourceKeyRef.current === resourceKey &&
+          requestVersionRef.current === requestVersion
+        ) {
           setShareInfo(currentShareInfo);
+          setNormalizationFailed(
+            isFolder &&
+              currentShareInfo.enabled &&
+              !currentShareInfo.all_resources
+          );
         }
       }
     };
@@ -85,19 +108,28 @@ export function ShareTabContent(props: ShareTabContentProps) {
     return () => {
       active = false;
     };
-  }, [isFolder, namespace_id, resource_id]);
+  }, [isFolder, namespace_id, reloadVersion, resource_id, resourceKey]);
 
   const updateShareInfo = (data: UpdateShareInfoReq) => {
+    const requestResourceKey = resourceKey;
+    const requestVersion = ++requestVersionRef.current;
     http
       .patch(`namespaces/${namespace_id}/resources/${resource_id}/share`, data)
       .then(data => {
-        setShareInfo(parseShareInfo(data));
+        if (
+          resourceKeyRef.current === requestResourceKey &&
+          requestVersionRef.current === requestVersion
+        ) {
+          setShareInfo(parseShareInfo(data));
+          setNormalizationFailed(false);
+        }
       });
   };
 
-  const shareUrl = shareInfo?.enabled
-    ? `${location.origin}/s/${shareInfo.id}`
-    : '';
+  const shareUrl =
+    shareInfo?.enabled && !normalizationFailed
+      ? `${location.origin}/s/${shareInfo.id}`
+      : '';
 
   const handleEnable = (enabled: boolean) => {
     updateShareInfo({
@@ -143,7 +175,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
 
   const currentFileOnlySwitch = (
     <Switch
-      checked={isFolder ? false : !(shareInfo?.all_resources ?? false)}
+      checked={!(shareInfo?.all_resources ?? false)}
       disabled={!shareInfo?.enabled || isFolder}
       onCheckedChange={handleOnlyCurrent}
     />
@@ -172,30 +204,38 @@ export function ShareTabContent(props: ShareTabContentProps) {
           onCheckedChange={handleEnable}
         />
       </div>
+      {normalizationFailed && (
+        <div
+          role="alert"
+          className="mt-3 flex items-center justify-between gap-3 text-xs text-destructive"
+        >
+          <span>{t('share.share.folder_share_update_failed')}</span>
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto shrink-0 p-0 text-destructive"
+            onClick={() => setReloadVersion(version => version + 1)}
+          >
+            {t('common.retry')}
+          </Button>
+        </div>
+      )}
       {shareInfo?.enabled && (
         <>
-          <div className="flex items-center gap-2 justify-between mt-4 h-6">
-            <span className="text-sm flex items-center gap-1">
-              <Trans i18nKey="share.share.current_file_only" />
-              <HelpTooltip
-                content={t('share.share.current_file_only_tooltip')}
-              />
-            </span>
-            {isFolder ? (
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex cursor-help">
-                      {currentFileOnlySwitch}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {t('share.share.folder_current_file_unsupported')}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            ) : (
-              currentFileOnlySwitch
+          <div className="mt-4">
+            <div className="flex h-6 items-center justify-between gap-2">
+              <span className="text-sm flex items-center gap-1">
+                <Trans i18nKey="share.share.current_file_only" />
+                <HelpTooltip
+                  content={t('share.share.current_file_only_tooltip')}
+                />
+              </span>
+              {currentFileOnlySwitch}
+            </div>
+            {isFolder && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t('share.share.folder_current_file_unsupported')}
+              </p>
             )}
           </div>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
@@ -205,14 +245,14 @@ export function ShareTabContent(props: ShareTabContentProps) {
             </span>
             <Switch
               checked={shareInfo?.require_login ?? false}
-              disabled={!shareInfo?.enabled}
+              disabled={!shareInfo?.enabled || normalizationFailed}
               onCheckedChange={handleRequireLogin}
             />
           </div>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
             <span className="text-sm">{t('share.share.expire.title')}</span>
             <Expire
-              disabled={!shareInfo?.enabled}
+              disabled={!shareInfo?.enabled || normalizationFailed}
               expiresAt={shareInfo ? shareInfo.expires_at : null}
               onNeverSelected={() => handleExpireDateChange(null)}
               onDateSelected={handleExpireDateChange}
@@ -222,7 +262,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
             <span className="text-sm">{t('share.share.ai_chat')}</span>
             <ShareTypeSelector
-              disabled={!shareInfo?.enabled}
+              disabled={!shareInfo?.enabled || normalizationFailed}
               shareType={shareInfo?.share_type || 'doc_only'}
               onChange={handleShareTypeChange}
             />
@@ -230,7 +270,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
             <span className="text-sm">{t('share.share.password')}</span>
             <Password
-              disabled={!shareInfo?.enabled}
+              disabled={!shareInfo?.enabled || normalizationFailed}
               passwordEnabled={!!shareInfo?.password_enabled}
               onSave={handlePasswordChange}
             />

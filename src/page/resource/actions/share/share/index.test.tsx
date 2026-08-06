@@ -25,18 +25,24 @@ jest.mock('@/components/help-tooltip', () => ({
   HelpTooltip: () => null,
 }));
 jest.mock('@/components/input', () => ({
-  Input: () => null,
-}));
-jest.mock('@/components/tooltip', () => ({
-  Tooltip: ({ children }: { children?: ReactNode }) => children,
-  TooltipContent: ({ children }: { children?: ReactNode }) => (
-    <span data-testid="tooltip-content">{children}</span>
+  Input: ({ value, disabled }: { value?: string; disabled?: boolean }) => (
+    <input data-testid="share-url" value={value} disabled={disabled} readOnly />
   ),
-  TooltipProvider: ({ children }: { children?: ReactNode }) => children,
-  TooltipTrigger: ({ children }: { children?: ReactNode }) => children,
 }));
 jest.mock('@/components/ui/Button', () => ({
-  Button: ({ children }: { children?: ReactNode }) => children,
+  Button: ({
+    children,
+    disabled,
+    onClick,
+  }: {
+    children?: ReactNode;
+    disabled?: boolean;
+    onClick?: () => void;
+  }) => (
+    <button type="button" disabled={disabled} onClick={onClick}>
+      {children}
+    </button>
+  ),
 }));
 jest.mock('@/components/ui/Switch', () => ({
   Switch: ({
@@ -113,11 +119,32 @@ describe('ShareTabContent', () => {
       const currentFileSwitch = switches[1] as HTMLButtonElement;
       expect(currentFileSwitch.disabled).toBe(true);
       expect(currentFileSwitch.getAttribute('aria-checked')).toBe('false');
-      expect(
-        container.querySelector('[data-testid="tooltip-content"]')?.textContent
-      ).toBe('share.share.folder_current_file_unsupported');
+      expect(container.textContent).toContain(
+        'share.share.folder_current_file_unsupported'
+      );
     }
   );
+
+  it('does not normalize a disabled folder share', async () => {
+    mockGet.mockResolvedValueOnce({ ...shareInfo, enabled: false });
+
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-1"
+          resourceType="folder"
+        />
+      );
+    });
+
+    expect(mockPatch).not.toHaveBeenCalled();
+    const shareSwitch = container.querySelector(
+      '[role="switch"]'
+    ) as HTMLButtonElement;
+    expect(shareSwitch.disabled).toBe(false);
+    expect(shareSwitch.getAttribute('aria-checked')).toBe('false');
+  });
 
   it('disables sharing while the folder setting is normalized', async () => {
     let resolvePatch: (value: typeof shareInfo) => void = () => undefined;
@@ -153,7 +180,7 @@ describe('ShareTabContent', () => {
     expect(shareSwitch.getAttribute('aria-checked')).toBe('true');
   });
 
-  it('restores the loaded share state when normalization fails', async () => {
+  it('shows the real share state and retries when normalization fails', async () => {
     mockPatch.mockRejectedValueOnce(new Error('normalization failed'));
 
     await act(async () => {
@@ -171,6 +198,36 @@ describe('ShareTabContent', () => {
     ) as HTMLButtonElement;
     expect(shareSwitch.disabled).toBe(false);
     expect(shareSwitch.getAttribute('aria-checked')).toBe('true');
+    const switches = container.querySelectorAll('[role="switch"]');
+    const currentFileSwitch = switches[1] as HTMLButtonElement;
+    const requireLoginSwitch = switches[2] as HTMLButtonElement;
+    expect(currentFileSwitch.disabled).toBe(true);
+    expect(currentFileSwitch.getAttribute('aria-checked')).toBe('true');
+    expect(requireLoginSwitch.disabled).toBe(true);
+    expect(
+      (container.querySelector('[data-testid="share-url"]') as HTMLInputElement)
+        .value
+    ).toBe('');
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain(
+      'share.share.folder_share_update_failed'
+    );
+
+    const retryButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'common.retry'
+    );
+    await act(async () => retryButton?.click());
+
+    expect(mockPatch).toHaveBeenCalledTimes(2);
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+    expect(
+      (container.querySelector('[data-testid="share-url"]') as HTMLInputElement)
+        .value
+    ).toContain('/s/share-1');
+    expect(
+      container
+        .querySelectorAll('[role="switch"]')[1]
+        .getAttribute('aria-checked')
+    ).toBe('false');
   });
 
   it('keeps the current-file option available for a document', async () => {
@@ -189,8 +246,111 @@ describe('ShareTabContent', () => {
     const currentFileSwitch = switches[1] as HTMLButtonElement;
     expect(currentFileSwitch.disabled).toBe(false);
     expect(currentFileSwitch.getAttribute('aria-checked')).toBe('true');
+    expect(container.textContent).not.toContain(
+      'share.share.folder_current_file_unsupported'
+    );
+  });
+
+  it('ignores an update response from the previous resource', async () => {
+    let resolvePatch: (value: typeof shareInfo) => void = () => undefined;
+    mockGet.mockImplementation((url: string) =>
+      Promise.resolve(
+        url.includes('resource-2')
+          ? {
+              ...shareInfo,
+              id: 'share-2',
+              resource_id: 'resource-2',
+              all_resources: true,
+            }
+          : { ...shareInfo, all_resources: true }
+      )
+    );
+    mockPatch.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          resolvePatch = resolve;
+        })
+    );
+
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-1"
+          resourceType="doc"
+        />
+      );
+    });
+
+    const requireLoginSwitch = container.querySelectorAll(
+      '[role="switch"]'
+    )[2] as HTMLButtonElement;
+    act(() => requireLoginSwitch.click());
+
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-2"
+          resourceType="doc"
+        />
+      );
+    });
+
+    await act(async () => {
+      resolvePatch({ ...shareInfo, require_login: true });
+    });
+
     expect(
-      container.querySelector('[data-testid="tooltip-content"]')
-    ).toBeNull();
+      (container.querySelector('[data-testid="share-url"]') as HTMLInputElement)
+        .value
+    ).toContain('/s/share-2');
+  });
+
+  it('does not normalize a folder after moving to another resource', async () => {
+    let resolveGet: (value: typeof shareInfo) => void = () => undefined;
+    mockGet
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            resolveGet = resolve;
+          })
+      )
+      .mockResolvedValueOnce({
+        ...shareInfo,
+        id: 'share-2',
+        resource_id: 'resource-2',
+        all_resources: true,
+      });
+
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-1"
+          resourceType="folder"
+        />
+      );
+    });
+
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-2"
+          resourceType="doc"
+        />
+      );
+    });
+
+    await act(async () => {
+      resolveGet(shareInfo);
+    });
+
+    expect(mockPatch).not.toHaveBeenCalled();
+    expect(
+      (container.querySelector('[data-testid="share-url"]') as HTMLInputElement)
+        .value
+    ).toContain('/s/share-2');
   });
 });
