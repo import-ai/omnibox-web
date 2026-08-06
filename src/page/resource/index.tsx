@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { Separator } from '@/components/ui/Separator';
@@ -23,7 +23,7 @@ import Wrapper from './Wrapper';
 export default function ResourcePage() {
   const { wide, onWide } = useWide();
   const props = useResource();
-  const { open } = useSidebar();
+  const { open, width: sidebarWidth } = useSidebar();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
   const copilotOpen = useCopilotStore(
@@ -87,6 +87,11 @@ export default function ResourcePage() {
         // Workspace already provides p-2 + gap-2 when Copilot is open.
         copilotOpen ? 'm-0 md:h-full' : 'm-[8px]'
       )}
+      style={
+        {
+          '--resource-toc-left': `${(open ? sidebarWidth : 0) + 16}px`,
+        } as CSSProperties
+      }
     >
       <Header
         {...props}
@@ -113,6 +118,7 @@ export default function ResourcePage() {
         >
           <Wrapper
             {...props}
+            wide={wide}
             onRssItemCopyContentChange={setRssItemCopyContent}
           />
         </div>
