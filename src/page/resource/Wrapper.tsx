@@ -5,6 +5,7 @@ import AuthPage from '@/page/auth';
 import Page from './Page';
 
 interface IProps extends IUseResource {
+  wide: boolean;
   onRssItemCopyContentChange?: (value: {
     itemId: string;
     content: string | null | undefined;
@@ -20,6 +21,7 @@ export default function Wrapper(props: IProps) {
     editPage,
     onResource,
     namespaceId,
+    wide,
     onRssItemCopyContentChange,
   } = props;
 
@@ -35,6 +37,7 @@ export default function Wrapper(props: IProps) {
           resource={resource}
           onResource={onResource}
           namespaceId={namespaceId}
+          wide={wide}
           onRssItemCopyContentChange={onRssItemCopyContentChange}
         />
       )}
