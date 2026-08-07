@@ -993,6 +993,8 @@
     "discord": "Discord",
     "wechat": "QR Code",
     "feedback": "Feedback",
+    "upgrade_version": "Upgrade",
+    "view_pricing": "View pricing",
     "join": "Scan with WeChat to join the group"
   },
   "trash": {
