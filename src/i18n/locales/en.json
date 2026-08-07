@@ -62,7 +62,9 @@
     "success_one": "{{count}} file uploaded successfully",
     "success_other": "{{count}} files uploaded successfully",
     "invalid_ext": "Invalid file type",
-    "failed": "Failed to upload file, please try again later"
+    "failed": "Failed to upload file, please try again later",
+    "file_picker_unavailable": "The file picker didn't open",
+    "file_picker_recovery": "Update or restart Chrome. You can drag files here to upload in the meantime."
   },
   "resource": {
     "name": "Resource",

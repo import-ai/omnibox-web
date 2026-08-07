@@ -1,4 +1,5 @@
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
+import { openFilePicker } from '@/lib/openFilePicker';
 
 import { useSidebarStore } from './store';
 
@@ -15,7 +16,5 @@ export function triggerGlobalFileUpload(targetId: string) {
   const input = document.getElementById(
     'global-sidebar-file-input'
   ) as HTMLInputElement | null;
-  if (input) {
-    input.click();
-  }
+  openFilePicker(input);
 }
