@@ -952,6 +952,8 @@
       "save": "保存",
       "current_file_only": "仅分享当前文件",
       "current_file_only_tooltip": "启用时，仅分享当前文件。\n禁用时，会连同所有子文件一起分享。",
+      "folder_current_file_unsupported": "文件夹不支持此选项",
+      "folder_share_update_failed": "未能同步文件夹的分享范围，请重试后再复制分享链接。",
       "require_login": "需要登录",
       "require_login_tooltip": "启用时，用户必须登录才能查看此共享资源。\n禁用时，用户无需登录即可查看此共享资源。",
       "ai_chat": "AI 问答",
