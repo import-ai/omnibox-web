@@ -5,6 +5,7 @@ import {
   escapeRegExp,
   findFirstSearchMatchElement,
   highlightSearchText,
+  splitSearchText,
 } from './searchHighlight';
 
 describe('escapeRegExp', () => {
@@ -60,6 +61,26 @@ describe('highlightSearchText', () => {
 
     highlightSearchText(root, 'world');
     expectSearchMark(root, 'WORLD');
+  });
+});
+
+describe('splitSearchText', () => {
+  it('splits every case-insensitive title match', () => {
+    expect(splitSearchText('Hello hello world', 'hello')).toEqual([
+      { match: true, text: 'Hello' },
+      { match: false, text: ' ' },
+      { match: true, text: 'hello' },
+      { match: false, text: ' world' },
+    ]);
+  });
+
+  it('returns plain text when the query is empty or absent', () => {
+    expect(splitSearchText('Resource title', ' ')).toEqual([
+      { match: false, text: 'Resource title' },
+    ]);
+    expect(splitSearchText('Resource title', 'missing')).toEqual([
+      { match: false, text: 'Resource title' },
+    ]);
   });
 });
 

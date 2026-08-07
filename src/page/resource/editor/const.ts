@@ -1,4 +1,5 @@
 export const OMNIBOX_EDITOR_CONTENT_WIDTH = 680;
+export const OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH = 1280;
 
 export const toolbar = [
   'headings',

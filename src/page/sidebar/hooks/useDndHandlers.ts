@@ -10,7 +10,7 @@ import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-fold
 import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
 import { getTopLevelSelectedIds, isDescendant } from '../store/utils';
-import { isValidFileType } from '../utils';
+import { isValidFileType, locateSidebarResource } from '../utils';
 import {
   getCurrentResourceId,
   getPreviousParentIds,
@@ -45,6 +45,7 @@ export interface DndItem {
   id?: string;
   ids?: string[];
   disabledTargetIds?: string[];
+  disabledTargetIdSet?: Set<string>;
   count?: number;
   preview?: TreeNode;
   resourceType?: string;
@@ -130,9 +131,9 @@ export function useDndHandlers({
     return useSidebarStore
       .getState()
       .uploadFiles(targetId, fileList.files)
-      .then(id => {
-        useSidebarStore.getState().activate(id);
+      .then(async id => {
         navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        await locateSidebarResource(id);
         toast.success(t('upload.success', { count: fileList.files.length }), {
           position: 'bottom-right',
         });

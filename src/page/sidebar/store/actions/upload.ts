@@ -1,7 +1,8 @@
 import { uploadResource } from '@/service/resource';
 
+import { refreshSortedChildren } from '../refreshSortedChildren';
 import type { SidebarGet, SidebarSet } from '../types';
-import { createNode, ensureUI } from '../utils';
+import { createNode, ensureUI, insertUnspecifiedChild } from '../utils';
 
 export function buildUploadActions(set: SidebarSet, get: SidebarGet) {
   const lastProgressTimes = new Map<string, number>();
@@ -31,6 +32,8 @@ export function buildUploadActions(set: SidebarSet, get: SidebarGet) {
         });
 
         const resources = Array.isArray(response) ? response : [response];
+        const manualSort =
+          get().resourceSorts[parent.spaceType].sort_by === 'manual';
 
         set(s => {
           for (const res of resources) {
@@ -38,12 +41,20 @@ export function buildUploadActions(set: SidebarSet, get: SidebarGet) {
             s.nodes[node.id] = node;
             const p = s.nodes[parentId];
             if (p) {
-              p.children.unshift(node.id);
+              p.children = insertUnspecifiedChild(
+                p.children,
+                node.id,
+                manualSort
+              );
               p.hasChildren = true;
               ensureUI(s, parentId).expanded = true;
             }
           }
         });
+
+        if (!manualSort) {
+          await refreshSortedChildren(get, parentId);
+        }
 
         const last = resources[resources.length - 1];
         return last.id;

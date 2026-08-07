@@ -1,6 +1,8 @@
 import type { Resource, SpaceType } from '@/interface';
+import type { ResourceSortOptions } from '@/service/resource';
 
-import type { RootResource, SidebarSet } from '../types';
+import { parseResourceSorts } from '../resourceSort';
+import type { ManualDropIndicator, RootResource, SidebarSet } from '../types';
 import { initialDialogsState } from '../types';
 import {
   collapseEmptyNode,
@@ -11,6 +13,9 @@ import {
 } from '../utils';
 
 export function buildBaseActions(set: SidebarSet) {
+  const storageKey = (namespaceId: string) =>
+    `sidebar-resource-sort:${namespaceId}`;
+
   const resetTransientState = (s: Parameters<Parameters<typeof set>[0]>[0]) => {
     s.selectedIds = {};
     s.selectionMode = false;
@@ -19,14 +24,48 @@ export function buildBaseActions(set: SidebarSet) {
   };
 
   return {
+    setManualDropIndicator: (indicator: ManualDropIndicator | null) => {
+      set(s => {
+        if (
+          s.manualDropIndicator?.targetId === indicator?.targetId &&
+          s.manualDropIndicator?.position === indicator?.position &&
+          s.manualDropIndicator?.line?.left === indicator?.line?.left &&
+          s.manualDropIndicator?.line?.top === indicator?.line?.top &&
+          s.manualDropIndicator?.line?.width === indicator?.line?.width
+        ) {
+          return;
+        }
+        s.manualDropIndicator = indicator;
+      });
+    },
+
+    setResourceSort: (
+      spaceType: SpaceType,
+      resourceSort: ResourceSortOptions
+    ) => {
+      set(s => {
+        s.resourceSorts[spaceType] = resourceSort;
+        if (s.namespaceId) {
+          localStorage.setItem(
+            storageKey(s.namespaceId),
+            JSON.stringify(s.resourceSorts)
+          );
+        }
+      });
+    },
+
     setNamespaceId: (id: string) => {
       set(s => {
         s.namespaceId = id;
+        s.resourceSorts = parseResourceSorts(
+          localStorage.getItem(storageKey(id))
+        );
         s.nodes = {};
         s.ui = {};
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
         s.renamingId = null;
+        s.manualDropIndicator = null;
         s.dialogs = { ...initialDialogsState };
         s.autoExpandedKeys = {};
         resetTransientState(s);
@@ -87,6 +126,7 @@ export function buildBaseActions(set: SidebarSet) {
         s.rootIds = { private: '', teamspace: '' };
         s.activeId = null;
         s.renamingId = null;
+        s.manualDropIndicator = null;
         s.dialogs = { ...initialDialogsState };
         s.autoExpandedKeys = {};
         resetTransientState(s);
@@ -95,7 +135,12 @@ export function buildBaseActions(set: SidebarSet) {
 
     patch: (
       id: string,
-      updates: { name?: string; content?: string; hasChildren?: boolean }
+      updates: {
+        name?: string;
+        content?: string;
+        hasChildren?: boolean;
+        manualSortInitializedAt?: string | null;
+      }
     ) => {
       set(s => {
         const node = s.nodes[id];
@@ -104,6 +149,9 @@ export function buildBaseActions(set: SidebarSet) {
         if (updates.content !== undefined) node.content = updates.content;
         if (updates.hasChildren !== undefined) {
           node.hasChildren = updates.hasChildren;
+        }
+        if (updates.manualSortInitializedAt !== undefined) {
+          node.manualSortInitializedAt = updates.manualSortInitializedAt;
         }
       });
     },

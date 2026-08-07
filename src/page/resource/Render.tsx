@@ -13,12 +13,17 @@ import { useSearchParams } from 'react-router-dom';
 import { Markdown } from '@/components/markdown';
 import useTheme from '@/hooks/useTheme';
 import { Resource, SharedResource } from '@/interface';
-import { OMNIBOX_EDITOR_CONTENT_WIDTH } from '@/page/resource/editor/const';
+import { cn } from '@/lib/utils';
+import {
+  OMNIBOX_EDITOR_CONTENT_WIDTH,
+  OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
+} from '@/page/resource/editor/const';
 import {
   selectUseOmniboxEditor,
   useResourceStore,
 } from '@/page/resource/resourceStore';
 
+import { parseScrollToLine, scrollRenderedContentToLine } from './scrollToLine';
 import {
   findFirstSearchMatchElement,
   highlightSearchText,
@@ -27,6 +32,7 @@ import { embedImage } from './utils';
 
 interface IProps {
   resource: Resource | SharedResource;
+  wide?: boolean;
   linkBase?: string;
   style?: React.CSSProperties;
 }
@@ -112,6 +118,7 @@ function MarkdownRender(props: IProps) {
   const { resource, linkBase, style } = props;
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
+  const scrollToLine = parseScrollToLine(searchParams.get('line'));
   const containerRef = useRef<HTMLDivElement>(null);
   const contentKey = embedImage(resource);
   const applySearchHighlight = useSearchHighlight(
@@ -124,8 +131,15 @@ function MarkdownRender(props: IProps) {
     // Markdown may paint after onRendered; one frame is enough.
     window.requestAnimationFrame(() => {
       applySearchHighlight();
+      if (containerRef.current && scrollToLine) {
+        scrollRenderedContentToLine(
+          containerRef.current,
+          contentKey,
+          scrollToLine
+        );
+      }
     });
-  }, [applySearchHighlight]);
+  }, [applySearchHighlight, contentKey, scrollToLine]);
 
   return (
     <div ref={containerRef} className="pb-[30vh]">
@@ -140,78 +154,26 @@ function MarkdownRender(props: IProps) {
 }
 
 function OmniboxRender(props: IProps) {
-  const { resource, linkBase, style } = props;
+  const { resource, linkBase, style, wide = false } = props;
   const { i18n } = useTranslation();
   const { theme } = useTheme();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
+  const scrollToLine = parseScrollToLine(searchParams.get('line'));
   const containerRef = useRef<HTMLDivElement>(null);
   const content = useMemo(
     () => getResourceEditorContent(resource, linkBase),
     [linkBase, resource]
   );
-  const applySearchHighlight = useSearchHighlight(
-    containerRef,
-    search,
-    content
-  );
-
-  useEffect(() => {
-    if (!search) {
-      return;
-    }
-
-    const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-
-    let frame = 0;
-    let timeout = 0;
-    let highlighting = false;
-
-    const tryHighlight = () => {
-      if (highlighting) {
-        return;
-      }
-      highlighting = true;
-      try {
-        applySearchHighlight();
-      } finally {
-        // Defer unlock so mutations from highlight itself are ignored.
-        window.requestAnimationFrame(() => {
-          highlighting = false;
-        });
-      }
-    };
-
-    const scrollWhenReady = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(tryHighlight);
-    };
-
-    // Watch editor mount only. Highlight DOM writes are ignored while
-    // `highlighting` is true, and successful apply is idempotent.
-    const observer = new MutationObserver(scrollWhenReady);
-    observer.observe(container, { childList: true, subtree: true });
-    scrollWhenReady();
-    timeout = window.setTimeout(() => {
-      scrollWhenReady();
-      observer.disconnect();
-    }, 1500);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.clearTimeout(timeout);
-      observer.disconnect();
-    };
-  }, [content, search, applySearchHighlight]);
 
   return (
     <div
       ref={containerRef}
       style={style}
-      className="resource-readonly-editor pb-[30vh]"
+      className={cn(
+        'resource-readonly-editor pb-[30vh]',
+        wide && 'resource-readonly-editor--wide'
+      )}
     >
       <ResourceOmniboxEditor
         key={resource.id}
@@ -221,9 +183,15 @@ function OmniboxRender(props: IProps) {
         locale={i18n.language}
         theme={theme.content}
         variant="embedded"
-        contentWidth={OMNIBOX_EDITOR_CONTENT_WIDTH}
+        contentWidth={
+          wide
+            ? OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH
+            : OMNIBOX_EDITOR_CONTENT_WIDTH
+        }
         showHeader={false}
         showToc={true}
+        searchTerm={search ?? undefined}
+        scrollToLine={scrollToLine}
       />
     </div>
   );
