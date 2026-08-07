@@ -91,6 +91,7 @@ jest.mock('../permissions/table', () => ({
 }));
 jest.mock('./Expire', () => ({ Expire: () => null }));
 jest.mock('./Password', () => ({ Password: () => null }));
+jest.mock('./ShareSortSelector', () => ({ ShareSortSelector: () => null }));
 jest.mock('./ShareTypeSelector', () => ({ ShareTypeSelector: () => null }));
 
 (
