@@ -6,7 +6,7 @@
 }
 
 .resource-readonly-page-header--wide {
-  max-width: 100%;
+  max-width: 1280px;
 }
 
 .resource-editable-page {
@@ -100,6 +100,11 @@
 .resource-editable-page--wide .omnibox-editor-root .toc-sidebar-wrapper {
   left: var(--resource-toc-left, 1.5rem) !important;
   transform: translateY(calc(-50% + 0.75rem)) !important;
+}
+
+.resource-readonly-editor .toc-sidebar {
+  padding-top: 1rem;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {

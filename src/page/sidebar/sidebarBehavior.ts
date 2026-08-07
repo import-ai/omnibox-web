@@ -1,6 +1,7 @@
-import type { SpaceType } from '@/interface';
+import type { Resource, SpaceType } from '@/interface';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import type { NodeUI, TreeNode } from '@/page/sidebar/store';
+import type { ResourceSortOptions } from '@/service/resource';
 import { fetchChildren, fetchSmartFolderChildren } from '@/service/resource';
 
 export function getExpandedNodeIdsForSidebarRefresh(
@@ -29,14 +30,15 @@ export function getExpandedNodeIdsForSidebarRefresh(
 
 export async function fetchChildrenForSidebarRefresh(
   namespaceId: string,
-  node: TreeNode
-) {
+  node: TreeNode,
+  sort?: ResourceSortOptions
+): Promise<Resource[] | null> {
   if (node.resourceType === 'rss_folder') return null;
 
   const children =
     node.resourceType === 'smart_folder'
       ? await fetchSmartFolderChildren(namespaceId, node.id)
-      : await fetchChildren(namespaceId, node.id);
+      : await fetchChildren(namespaceId, node.id, sort);
 
   return node.resourceType === 'smart_folder'
     ? children.map(child => withSmartFolderChildSidebarAttrs(child, node.id))

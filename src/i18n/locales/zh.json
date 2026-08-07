@@ -49,7 +49,28 @@
   },
   "sidebar": {
     "expand": "展开侧边栏",
-    "collapse": "收起侧边栏"
+    "collapse": "收起侧边栏",
+    "sort": {
+      "tooltip": "资源排序",
+      "menu": "排序方式",
+      "updated_at": "更新时间",
+      "created_at": "创建时间",
+      "title": "资源名称",
+      "manual": "手动排序",
+      "confirm_title": "切换到手动排序吗？",
+      "confirm_initial_description": "切换后，将按照您拖拽后的顺序排列“{{space}}”中的资源。",
+      "confirm_description": "您曾经手动排序过，该操作将覆盖您之前在“{{space}}”中的手动排序。",
+      "confirm_action": "确认切换",
+      "sync_failed": "移动成功，但手动排序未能保存。",
+      "private": "个人",
+      "teamspace": "团队",
+      "order": {
+        "newest": "从新到旧",
+        "oldest": "从旧到新",
+        "az": "A-Z",
+        "za": "Z-A"
+      }
+    }
   },
   "resource_picker": {
     "expand_resource": "展开{{name}}",
@@ -62,7 +83,9 @@
     "success_one": "成功上传 {{count}} 个文件",
     "success_other": "成功上传 {{count}} 个文件",
     "invalid_ext": "当前文件格式不支持",
-    "failed": "上传文件失败，请稍后再试"
+    "failed": "上传文件失败，请稍后再试",
+    "file_picker_unavailable": "文件选择器未能打开",
+    "file_picker_recovery": "请更新或重启 Chrome，也可暂时将文件拖入页面上传。"
   },
   "resource": {
     "name": "文件",
@@ -952,6 +975,13 @@
       "save": "保存",
       "current_file_only": "仅分享当前文件",
       "current_file_only_tooltip": "启用时，仅分享当前文件。\n禁用时，会连同所有子文件一起分享。",
+      "sort": {
+        "label": "排序方式",
+        "tooltip": "分享页面中的手动排序会随资源列表中的手动排序变化而变化。\n其他排序方式与资源列表互不影响。",
+        "manual_unavailable": "需先在侧边栏中完成一次手动排序。"
+      },
+      "folder_current_file_unsupported": "文件夹不支持此选项",
+      "folder_share_update_failed": "未能同步文件夹的分享范围，请重试后再复制分享链接。",
       "require_login": "需要登录",
       "require_login_tooltip": "启用时，用户必须登录才能查看此共享资源。\n禁用时，用户无需登录即可查看此共享资源。",
       "ai_chat": "AI 问答",

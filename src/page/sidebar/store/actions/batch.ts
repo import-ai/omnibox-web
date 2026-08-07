@@ -6,6 +6,7 @@ import {
   batchMoveResources,
 } from '@/service/resource';
 
+import { refreshSortedChildren } from '../refreshSortedChildren';
 import type {
   BatchOperationResult,
   SidebarGet,
@@ -22,6 +23,7 @@ import {
   getIdsInVisibleRange,
   getSelectedAncestorId,
   getTopLevelSelectedIds,
+  insertUnspecifiedChild,
   isBatchSelectableNode,
   isDescendant,
   traverseDescendants,
@@ -33,6 +35,15 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
     if (!s.selectionMode) {
       s.lastSelectedId = null;
     }
+  };
+
+  const refreshIfAutomaticallySorted = async (parentId: string) => {
+    const state = get();
+    const parent = state.nodes[parentId];
+    if (!parent || state.resourceSorts[parent.spaceType].sort_by === 'manual') {
+      return;
+    }
+    await refreshSortedChildren(get, parentId);
   };
 
   return {
@@ -270,6 +281,9 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       ) => {
         const newParent = s.nodes[targetId];
         const newParentUI = newParent ? ensureUI(s, targetId) : null;
+        const manualSort = newParent
+          ? s.resourceSorts[newParent.spaceType].sort_by === 'manual'
+          : false;
 
         for (const id of moveIds) {
           const node = s.nodes[id];
@@ -297,7 +311,11 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
 
           if (newParent) {
             if (!newParent.children.includes(id)) {
-              newParent.children.unshift(id);
+              newParent.children = insertUnspecifiedChild(
+                newParent.children,
+                id,
+                manualSort
+              );
             }
             newParent.hasChildren = true;
             if (newParentUI) {
@@ -424,6 +442,10 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         throw requestError;
       }
 
+      if (result.success.length > 0) {
+        await refreshIfAutomaticallySorted(targetId);
+      }
+
       return result;
     },
 
@@ -467,7 +489,13 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
           node.hasChildren = node.children.length > 0;
 
           if (parent && !parent.children.includes(node.id)) {
-            parent.children.unshift(node.id);
+            const manualSort =
+              s.resourceSorts[parent.spaceType].sort_by === 'manual';
+            parent.children = insertUnspecifiedChild(
+              parent.children,
+              node.id,
+              manualSort
+            );
             parent.hasChildren = true;
             const parentUI = ensureUI(s, parentId);
             parentUI.expanded = true;
@@ -497,6 +525,10 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
         }
         finishBatchSelection(s);
       });
+
+      if (folder.id && folder.resource_type) {
+        await refreshIfAutomaticallySorted(parentId);
+      }
 
       return {
         success: successIds,

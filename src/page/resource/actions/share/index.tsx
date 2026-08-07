@@ -8,15 +8,19 @@ import {
   PopoverTrigger,
 } from '@/components/ui/Popover';
 import { useIsMobile } from '@/hooks/useMobile';
+import { ResourceType } from '@/interface';
 
 import ShareTabs from './ShareTabs';
 
 export interface ShareActionProps {
+  namespaceId: string;
+  resourceId: string;
   spaceType: string;
+  resourceType: ResourceType;
 }
 
 export default function ShareAction(props: ShareActionProps) {
-  const { spaceType } = props;
+  const { namespaceId, resourceId, spaceType, resourceType } = props;
   const { t } = useTranslation();
   const isMobile = useIsMobile();
 
@@ -34,7 +38,12 @@ export default function ShareAction(props: ShareActionProps) {
         alignOffset={isMobile ? 0 : -106}
         className="w-full sm:w-[456px] p-0 overflow-hidden"
       >
-        <ShareTabs showPermissions={spaceType === 'teamspace'} />
+        <ShareTabs
+          namespaceId={namespaceId}
+          resourceId={resourceId}
+          showPermissions={spaceType === 'teamspace'}
+          resourceType={resourceType}
+        />
       </PopoverContent>
     </Popover>
   );

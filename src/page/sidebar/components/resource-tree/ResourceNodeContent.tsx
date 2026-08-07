@@ -121,9 +121,9 @@ export function ResourceNodeContent({
     dragRef,
     dropRef,
     dragStyle,
-    isOver,
     isDisabledOver,
     isFileDragOver,
+    dropPosition,
   } = useResourceNodeDnd(nodeId, node, isEditing, {
     namespaceId,
     selectionMode,
@@ -341,15 +341,16 @@ export function ResourceNodeContent({
             <div
               ref={dropRef}
               data-resource-id={nodeId}
+              data-resource-drop-id={nodeId}
               className={cn(
-                'group/sidebar-item my-px rounded-md hover:bg-sidebar-accent',
+                'group/sidebar-item relative my-px rounded-md hover:bg-sidebar-accent',
                 'flex items-center',
                 (isActive || isEditing) &&
                   'hover:bg-[#E2E2E6] bg-[#E2E2E6] dark:bg-[#363637]',
                 selectionMode && 'pl-2',
                 isSelectionHighlighted &&
                   'bg-[#E2E2E6] dark:bg-[#363637] hover:bg-[#E2E2E6]',
-                (isFileDragOver || isOver) &&
+                (isFileDragOver || dropPosition === 'inside') &&
                   'bg-sidebar-accent text-sidebar-accent-foreground',
                 isDisabledOver && 'cursor-not-allowed [&_*]:cursor-not-allowed'
               )}
