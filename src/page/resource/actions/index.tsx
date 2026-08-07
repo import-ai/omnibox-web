@@ -44,6 +44,7 @@ import useProNamespaces from '@/hooks/useProNamespaces';
 import { IUseResource } from '@/hooks/userResource';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
+import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
@@ -399,7 +400,7 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'import') {
-      fileInputRef.current?.click();
+      openFilePicker(fileInputRef.current);
       return;
     }
     if (id === 'download_as_png') {
