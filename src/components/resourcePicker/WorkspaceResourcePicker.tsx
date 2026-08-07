@@ -2,29 +2,37 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { SpaceType } from '@/interface';
+import { useSidebarStore } from '@/page/sidebar/store';
 import {
   fetchChildren,
-  fetchRootResources,
   fetchSmartFolderChildren,
   searchResources as searchWorkspaceResources,
 } from '@/service/resource';
 
 import { ResourcePicker } from './ResourcePicker';
 import type { ResourcePickerResource } from './resourcePickerTypes';
+import {
+  fetchSortedWorkspaceRootResources,
+  getWorkspacePickerSort,
+  setWorkspacePickerSpace,
+} from './workspaceResourcePickerSort';
 
 function workspaceRootsToPickerResources(
-  response: Awaited<ReturnType<typeof fetchRootResources>>,
+  response: Awaited<ReturnType<typeof fetchSortedWorkspaceRootResources>>,
   t: (key: string) => string
 ) {
-  return Object.keys(response).flatMap(spaceType => {
+  return (Object.keys(response) as SpaceType[]).flatMap(spaceType => {
     const root = response[spaceType];
     if (!root.id) return [];
     return [
-      {
-        ...root,
-        name: t(spaceType as SpaceType),
-        children: root.children ?? [],
-      },
+      setWorkspacePickerSpace(
+        {
+          ...root,
+          name: t(spaceType),
+          children: root.children ?? [],
+        },
+        spaceType
+      ),
     ];
   });
 }
@@ -38,6 +46,7 @@ export function WorkspaceResourcePicker({
 }) {
   const { t } = useTranslation();
   const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
+  const resourceSorts = useSidebarStore(state => state.resourceSorts);
 
   // Subscription (RSS) folders can't be picked as chat context, so we surface
   // them as disabled with an explanatory tooltip instead of a silent no-op.
@@ -58,7 +67,7 @@ export function WorkspaceResourcePicker({
 
   useEffect(() => {
     let cancelled = false;
-    fetchRootResources(namespaceId)
+    fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
       .then(response => {
         if (!cancelled)
           setRoots(
@@ -74,15 +83,26 @@ export function WorkspaceResourcePicker({
     return () => {
       cancelled = true;
     };
-  }, [namespaceId, t]);
+  }, [decorateResource, namespaceId, resourceSorts, t]);
 
   const loadChildren = useCallback(
-    (resource: ResourcePickerResource) =>
-      (resource.resource_type === 'smart_folder'
-        ? fetchSmartFolderChildren(namespaceId, resource.id)
-        : fetchChildren(namespaceId, resource.id)
-      ).then(resources => resources.map(decorateResource)),
-    [decorateResource, namespaceId]
+    (resource: ResourcePickerResource) => {
+      const spaceType = resource.picker_space_type ?? 'private';
+      return (
+        resource.resource_type === 'smart_folder'
+          ? fetchSmartFolderChildren(namespaceId, resource.id)
+          : fetchChildren(
+              namespaceId,
+              resource.id,
+              getWorkspacePickerSort(resource, resourceSorts)
+            )
+      ).then(resources =>
+        resources.map(child =>
+          decorateResource(setWorkspacePickerSpace(child, spaceType))
+        )
+      );
+    },
+    [decorateResource, namespaceId, resourceSorts]
   );
   const searchResources = useCallback(
     (query: string) =>

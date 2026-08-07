@@ -1,10 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { Resource } from '@/interface';
-import { http } from '@/lib/request';
 import { getSmartFolderParentIdFromChildKey } from '@/page/sidebar/components/smart-folder';
 import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
+import { fetchRootResources } from '@/service/resource';
 
 interface IProps {
   resourceId: string;
@@ -39,12 +38,26 @@ export function useSidebarInit(props: IProps) {
     if (!localStorage.getItem('uid')) return;
 
     const controller = new AbortController();
-    http
-      .get<Record<string, Resource>>(`/namespaces/${namespaceId}/root`, {
-        signal: controller.signal,
-      })
-      .then(items => {
-        useSidebarStore.getState().init(items);
+    const sorts = useSidebarStore.getState().resourceSorts;
+    Promise.all([
+      fetchRootResources(
+        namespaceId,
+        { signal: controller.signal },
+        sorts.private
+      ),
+      fetchRootResources(
+        namespaceId,
+        { signal: controller.signal },
+        sorts.teamspace
+      ),
+    ])
+      .then(([privateRoots, teamspaceRoots]) => {
+        useSidebarStore.getState().init({
+          ...privateRoots,
+          ...(teamspaceRoots.teamspace
+            ? { teamspace: teamspaceRoots.teamspace }
+            : {}),
+        });
       })
       .catch(err => {
         console.error('[sidebar] failed to fetch root resources:', err);

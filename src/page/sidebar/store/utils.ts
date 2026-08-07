@@ -39,8 +39,26 @@ export function createNode(
     globalPermission: resource.global_permission,
     createdAt: resource.created_at || '',
     updatedAt: resource.updated_at || '',
+    manualSortInitializedAt: resource.manual_sort_initialized_at ?? null,
     children: [],
   };
+}
+
+export function insertUnspecifiedChild(
+  children: string[],
+  childId: string,
+  manualSort: boolean
+): string[] {
+  const siblings = children.filter(id => id !== childId);
+  return manualSort ? [...siblings, childId] : [childId, ...siblings];
+}
+
+export function getNodeResourceSort(
+  state: Pick<SidebarState, 'nodes' | 'resourceSorts'>,
+  nodeId: string
+) {
+  const spaceType = state.nodes[nodeId]?.spaceType ?? 'private';
+  return state.resourceSorts[spaceType];
 }
 
 export function collectParentIds(
@@ -170,6 +188,8 @@ export function patchNodeFromResource(
   node.name = resource.name || '';
   node.hasChildren = getResourceHasChildren(resourceWithChildrenState);
   node.updatedAt = resource.updated_at || '';
+  node.manualSortInitializedAt =
+    resource.manual_sort_initialized_at ?? node.manualSortInitializedAt;
   node.resourceType = resource.resource_type;
 }
 

@@ -36,6 +36,7 @@ import {
 } from '@/page/resource/editor/cache';
 import {
   OMNIBOX_EDITOR_CONTENT_WIDTH,
+  OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
   toolbar,
 } from '@/page/resource/editor/const';
 import {
@@ -333,7 +334,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
       style={
         {
           '--resource-editor-content-width': wide
-            ? '100%'
+            ? `${OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH}px`
             : `${OMNIBOX_EDITOR_CONTENT_WIDTH}px`,
         } as React.CSSProperties
       }
@@ -356,7 +357,11 @@ function OmniboxResourceEditor(props: IEditorProps) {
             locale={i18n.language}
             theme={theme.content}
             variant="embedded"
-            contentWidth={wide ? '100%' : OMNIBOX_EDITOR_CONTENT_WIDTH}
+            contentWidth={
+              wide
+                ? OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH
+                : OMNIBOX_EDITOR_CONTENT_WIDTH
+            }
             showHeader={false}
             showToc={true}
             tocColors={{

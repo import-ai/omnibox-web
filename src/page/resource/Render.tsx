@@ -14,7 +14,10 @@ import { Markdown } from '@/components/markdown';
 import useTheme from '@/hooks/useTheme';
 import { Resource, SharedResource } from '@/interface';
 import { cn } from '@/lib/utils';
-import { OMNIBOX_EDITOR_CONTENT_WIDTH } from '@/page/resource/editor/const';
+import {
+  OMNIBOX_EDITOR_CONTENT_WIDTH,
+  OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
+} from '@/page/resource/editor/const';
 import {
   selectUseOmniboxEditor,
   useResourceStore,
@@ -180,7 +183,11 @@ function OmniboxRender(props: IProps) {
         locale={i18n.language}
         theme={theme.content}
         variant="embedded"
-        contentWidth={wide ? '100%' : OMNIBOX_EDITOR_CONTENT_WIDTH}
+        contentWidth={
+          wide
+            ? OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH
+            : OMNIBOX_EDITOR_CONTENT_WIDTH
+        }
         showHeader={false}
         showToc={true}
         searchTerm={search ?? undefined}

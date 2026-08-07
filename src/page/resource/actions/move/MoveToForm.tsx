@@ -5,11 +5,20 @@ import {
   ResourcePicker,
   type ResourcePickerResource,
 } from '@/components/resourcePicker';
-import type { Resource, ResourceMeta } from '@/interface';
-import type { ResourceType } from '@/interface';
+import {
+  fetchSortedWorkspaceRootResources,
+  getWorkspacePickerSort,
+  setWorkspacePickerSpace,
+} from '@/components/resourcePicker/workspaceResourcePickerSort';
+import type {
+  Resource,
+  ResourceMeta,
+  ResourceType,
+  SpaceType,
+} from '@/interface';
+import { useSidebarStore } from '@/page/sidebar/store';
 import {
   fetchChildren,
-  fetchRootResources,
   fetchSmartFolderChildren,
   searchResources,
 } from '@/service/resource';
@@ -43,6 +52,7 @@ export default function MoveToForm(props: IFormProps) {
   } = props;
   const { t } = useTranslation();
   const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
+  const resourceSorts = useSidebarStore(state => state.resourceSorts);
   const disabledResourceIds = useMemo(
     () => new Set(disabledTargetIds ?? resourceIds),
     [disabledTargetIds, resourceIds]
@@ -89,40 +99,57 @@ export default function MoveToForm(props: IFormProps) {
 
   useEffect(() => {
     let cancelled = false;
-    fetchRootResources(namespaceId).then(response => {
-      if (cancelled) return;
-      setRoots(
-        Object.keys(response).flatMap(spaceType => {
-          const root = response[spaceType];
-          if (!root.id) return [];
-          const decorated = decorateResource({
-            ...root,
-            name: t(spaceType),
-            children: root.children ?? [],
-          });
-          return decorated ? [decorated] : [];
-        })
-      );
-    });
+    fetchSortedWorkspaceRootResources(namespaceId, resourceSorts).then(
+      response => {
+        if (cancelled) return;
+        setRoots(
+          (Object.keys(response) as SpaceType[]).flatMap(spaceType => {
+            const root = response[spaceType];
+            if (!root.id) return [];
+            const decorated = decorateResource(
+              setWorkspacePickerSpace(
+                {
+                  ...root,
+                  name: t(spaceType),
+                  children: root.children ?? [],
+                },
+                spaceType
+              )
+            );
+            return decorated ? [decorated] : [];
+          })
+        );
+      }
+    );
     return () => {
       cancelled = true;
     };
-  }, [decorateResource, namespaceId, t]);
+  }, [decorateResource, namespaceId, resourceSorts, t]);
 
   const loadChildren = useCallback(
-    (resource: ResourcePickerResource) =>
-      (resource.resource_type === 'smart_folder'
-        ? fetchSmartFolderChildren(namespaceId, resource.id)
-        : fetchChildren(namespaceId, resource.id)
+    (resource: ResourcePickerResource) => {
+      const spaceType = resource.picker_space_type ?? 'private';
+      return (
+        resource.resource_type === 'smart_folder'
+          ? fetchSmartFolderChildren(namespaceId, resource.id)
+          : fetchChildren(
+              namespaceId,
+              resource.id,
+              getWorkspacePickerSort(resource, resourceSorts)
+            )
       ).then(
         resources =>
           resources
             .map((child: ResourcePickerResource) =>
-              decorateResource(child, Boolean(resource.disabled))
+              decorateResource(
+                setWorkspacePickerSpace(child, spaceType),
+                Boolean(resource.disabled)
+              )
             )
             .filter(Boolean) as ResourcePickerResource[]
-      ),
-    [decorateResource, namespaceId]
+      );
+    },
+    [decorateResource, namespaceId, resourceSorts]
   );
 
   const search = useCallback(
