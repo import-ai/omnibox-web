@@ -604,7 +604,7 @@
     "owner_full_access_required": "The owner must retain full access",
     "edit_required": "You only have view permission and cannot edit this resource.",
     "delete_required": "You only have view permission and cannot delete this resource.",
-    "you": "You"
+    "you": "(You)"
   },
   "copy": {
     "title": "Copy",

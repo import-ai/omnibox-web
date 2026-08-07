@@ -7,7 +7,11 @@ import Group from './groups';
 import Member from './MemberMain';
 import useContext from './useContext';
 
-export default function ManagePeople() {
+interface ManagePeopleProps {
+  canManageMembers: boolean;
+}
+
+export default function ManagePeople({ canManageMembers }: ManagePeopleProps) {
   const { t } = useTranslation();
   const {
     tab,
@@ -19,7 +23,7 @@ export default function ManagePeople() {
     loading,
     namespace_id,
     namespaceName,
-  } = useContext();
+  } = useContext(canManageMembers);
 
   if (loading) {
     return (
@@ -38,12 +42,14 @@ export default function ManagePeople() {
         >
           {t('manage.member')} {data.member.length}
         </TabsTrigger>
-        <TabsTrigger
-          value="group"
-          className="h-9 max-w-[100px] flex-1 text-xs font-bold text-muted-foreground data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none lg:h-11 lg:max-w-[120px] lg:text-sm"
-        >
-          {t('manage.group')} {data.group.length}
-        </TabsTrigger>
+        {canManageMembers && (
+          <TabsTrigger
+            value="group"
+            className="h-9 max-w-[100px] flex-1 text-xs font-bold text-muted-foreground data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none lg:h-11 lg:max-w-[120px] lg:text-sm"
+          >
+            {t('manage.group')} {data.group.length}
+          </TabsTrigger>
+        )}
       </TabsList>
       <TabsContent value="member" className="mt-0 pt-2 lg:pt-4">
         <Member
@@ -52,6 +58,7 @@ export default function ManagePeople() {
           onSearch={onSearch}
           namespace_id={namespace_id}
           namespaceName={namespaceName}
+          canManageMembers={canManageMembers}
           data={
             search
               ? data.member.filter(
@@ -63,20 +70,22 @@ export default function ManagePeople() {
           }
         />
       </TabsContent>
-      <TabsContent value="group" className="mt-0 pt-2 lg:pt-4">
-        <Group
-          search={search}
-          refetch={refetch}
-          onSearch={onSearch}
-          member={data.member}
-          namespace_id={namespace_id}
-          data={
-            search
-              ? data.group.filter(item => item.title.indexOf(search) >= 0)
-              : data.group
-          }
-        />
-      </TabsContent>
+      {canManageMembers && (
+        <TabsContent value="group" className="mt-0 pt-2 lg:pt-4">
+          <Group
+            search={search}
+            refetch={refetch}
+            onSearch={onSearch}
+            member={data.member}
+            namespace_id={namespace_id}
+            data={
+              search
+                ? data.group.filter(item => item.title.indexOf(search) >= 0)
+                : data.group
+            }
+          />
+        </TabsContent>
+      )}
     </Tabs>
   );
 }
