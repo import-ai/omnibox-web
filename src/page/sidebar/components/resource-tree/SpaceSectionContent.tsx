@@ -1,8 +1,8 @@
 import {
   ChevronRight,
   FilePlus,
+  FileUp,
   FolderPlus,
-  MonitorUp,
   MoreHorizontal,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -268,7 +268,7 @@ export function SpaceSectionContent({
                     className={menuItemClass}
                     onClick={handleUploadClick}
                   >
-                    <MonitorUp className={menuIconClass} />
+                    <FileUp className={menuIconClass} />
                     {t('actions.upload_file')}
                   </DropdownMenuItem>
                   <ResourceSortMenu
@@ -325,7 +325,7 @@ export function SpaceSectionContent({
             className={menuItemClass}
             onClick={handleUploadClick}
           >
-            <MonitorUp className={menuIconClass} />
+            <FileUp className={menuIconClass} />
             {t('actions.upload_file')}
           </ContextMenuItem>
         </ContextMenuContent>
