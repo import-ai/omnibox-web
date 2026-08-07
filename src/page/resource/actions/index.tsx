@@ -119,6 +119,7 @@ export default function Actions(props: IActionProps) {
     onWide,
     forbidden,
     resource,
+    resourceId,
     editPage,
     namespaceId,
     rssItemCopyContent,
@@ -626,7 +627,7 @@ export default function Actions(props: IActionProps) {
           {getTime(resource, i18n)}
         </div>
       )}
-      {resource && !isRssItemView && (
+      {resource && resource.id === resourceId && !isRssItemView && (
         <PermissionWrapper
           requiredPermission={0}
           forbidden={forbidden}
@@ -638,6 +639,8 @@ export default function Actions(props: IActionProps) {
           // spaceType={resource.space_type}
         >
           <ShareAction
+            namespaceId={namespaceId}
+            resourceId={resource.id}
             spaceType={resource.space_type}
             resourceType={resource.resource_type}
           />

@@ -13,12 +13,14 @@ import { ResourceType } from '@/interface';
 import ShareTabs from './ShareTabs';
 
 export interface ShareActionProps {
+  namespaceId: string;
+  resourceId: string;
   spaceType: string;
   resourceType: ResourceType;
 }
 
 export default function ShareAction(props: ShareActionProps) {
-  const { spaceType, resourceType } = props;
+  const { namespaceId, resourceId, spaceType, resourceType } = props;
   const { t } = useTranslation();
   const isMobile = useIsMobile();
 
@@ -37,6 +39,8 @@ export default function ShareAction(props: ShareActionProps) {
         className="w-full sm:w-[456px] p-0 overflow-hidden"
       >
         <ShareTabs
+          namespaceId={namespaceId}
+          resourceId={resourceId}
           showPermissions={spaceType === 'teamspace'}
           resourceType={resourceType}
         />

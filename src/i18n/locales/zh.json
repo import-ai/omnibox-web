@@ -978,6 +978,8 @@
         "tooltip": "分享中页面中的手动排序会随着资源列表手动排序的改变而改变\n其它排序方式与资源列表互不影响",
         "manual_unavailable": "需先在侧边栏中手动排序一次"
       },
+      "folder_current_file_unsupported": "文件夹不支持此选项",
+      "folder_share_update_failed": "未能同步文件夹的分享范围，请重试后再复制分享链接。",
       "require_login": "需要登录",
       "require_login_tooltip": "启用时，用户必须登录才能查看此共享资源。\n禁用时，用户无需登录即可查看此共享资源。",
       "ai_chat": "AI 问答",
