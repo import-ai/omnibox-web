@@ -2,40 +2,71 @@ import { RiDiscordLine } from '@remixicon/react';
 import { CircleHelp, MessageCircleWarning } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { CrownIcon } from '@/assets/icons/CrownIcon';
+import { UpgradeIcon } from '@/assets/icons/UpgradeIcon';
 import { WechatGroupQrCode } from '@/assets/icons/WechatGroupQrCode';
 import { Wechat } from '@/assets/icons/WechatStroke';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { SidebarFooter } from '@/components/ui/Sidebar';
 import { DISCORD_LINK } from '@/const';
+import type { Namespace } from '@/interface';
+import { getUpgradeLink } from '@/lib/upgradeLink';
 
-export function FooterSidebar() {
+import { getPricingEntryVariant } from './pricingEntry';
+
+interface IProps {
+  commercial?: boolean;
+  currentNamespace?: Namespace;
+  namespaceId: string;
+}
+
+export function FooterSidebar(props: IProps) {
+  const { commercial, currentNamespace, namespaceId } = props;
   const { t, i18n } = useTranslation();
-
-  return (
-    <SidebarFooter className="flex-row flex-wrap items-center justify-around gap-6 px-6 pb-2">
-      {[
-        {
-          icon: <CircleHelp />,
-          label: t('footer.docs'),
-          value: '/docs/',
-        },
-        {
-          icon: <RiDiscordLine />,
-          label: t('footer.discord'),
-          value: DISCORD_LINK,
-        },
-        {
-          icon: <Wechat />,
-          label: t('footer.wechat'),
-          value: '/wechat',
-        },
-        {
+  const pricingEntryVariant = getPricingEntryVariant(currentNamespace);
+  const pricingOrFeedbackEntry =
+    commercial === false
+      ? {
           icon: <MessageCircleWarning />,
           label: t('footer.feedback'),
           value: '/community/',
-        },
-      ].map(item =>
+        }
+      : pricingEntryVariant
+        ? {
+            icon:
+              pricingEntryVariant === 'upgrade' ? (
+                <UpgradeIcon className="text-blue-500" />
+              ) : (
+                <CrownIcon />
+              ),
+            label: t(`footer.${pricingEntryVariant}`),
+            value: getUpgradeLink(i18n, namespaceId),
+          }
+        : undefined;
+
+  const footerEntries = [
+    {
+      icon: <CircleHelp />,
+      label: t('footer.docs'),
+      value: '/docs/',
+    },
+    {
+      icon: <RiDiscordLine />,
+      label: t('footer.discord'),
+      value: DISCORD_LINK,
+    },
+    {
+      icon: <Wechat />,
+      label: t('footer.wechat'),
+      value: '/wechat',
+    },
+    ...(pricingOrFeedbackEntry ? [pricingOrFeedbackEntry] : []),
+  ];
+
+  return (
+    <SidebarFooter className="flex-row flex-wrap items-center justify-around gap-6 px-6 pb-2">
+      {footerEntries.map(item =>
         item.value === '/wechat' ? (
           <Tooltip key={item.value}>
             <TooltipTrigger asChild>
@@ -74,6 +105,7 @@ export function FooterSidebar() {
           </Tooltip>
         )
       )}
+      {!pricingOrFeedbackEntry && <span aria-hidden className="size-8" />}
     </SidebarFooter>
   );
 }

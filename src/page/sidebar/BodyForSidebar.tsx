@@ -7,10 +7,8 @@ import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
-import useConfig from '@/hooks/useConfig';
-import useProNamespaces from '@/hooks/useProNamespaces';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
-import { ResourceMeta, SpaceType } from '@/interface';
+import { type Namespace, ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
 import type {
@@ -50,6 +48,7 @@ import { getBatchSelectionSummary, getNodeResourceSort } from './store/utils';
 import { locateSidebarResource } from './utils';
 
 interface IProps {
+  currentNamespace?: Namespace;
   resourceId: string;
   namespaceId: string;
 }
@@ -134,7 +133,7 @@ function getLocateSnapshot(
 }
 
 export function BodyForSidebar(props: IProps) {
-  const { namespaceId, resourceId } = props;
+  const { currentNamespace, namespaceId, resourceId } = props;
   const app = useApp();
   useSidebarInit({ namespaceId, resourceId });
   useSidebarEvents(namespaceId);
@@ -151,10 +150,6 @@ export function BodyForSidebar(props: IProps) {
   const [sortingSpace, setSortingSpace] = useState<SpaceType | null>(null);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
-  const { config, loading: configLoading } = useConfig();
-  const { data: proNamespaces } = useProNamespaces({
-    disabled: configLoading || !config.commercial,
-  });
   const roots = useSidebarStore(state => state.rootIds);
   const nodes = useSidebarStore(state => state.nodes);
   const activeId = useSidebarStore(state => state.activeId);
@@ -186,7 +181,6 @@ export function BodyForSidebar(props: IProps) {
   const privateRoot = roots.private ? nodes[roots.private] : undefined;
   const teamspaceRoot = roots.teamspace ? nodes[roots.teamspace] : undefined;
   const hasTeamspace = !!teamspaceRoot?.id;
-  const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
   const editSmartFolderNode = editSmartFolderDialog.nodeId
     ? nodes[editSmartFolderDialog.nodeId]
     : undefined;
