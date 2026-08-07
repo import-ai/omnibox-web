@@ -10,7 +10,6 @@ import { http } from '@/lib/request';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
-import { useCopilotStore } from '@/page/copilot/copilotStore';
 
 interface IProps {
   content: string;
@@ -43,10 +42,9 @@ export default function SaveMain(props: IProps) {
               name: getTitleFromConversationDetail(conversationDetail),
             })
             .then(response => {
-              // Keep Copilot open; clear citation preview so the saved doc can
-              // occupy the main pane beside Copilot via generate_resource.
-              useCopilotStore.getState().closePreview(namespaceId);
-              app.fire('generate_resource', privateRoot.id, response);
+              app.fire('generate_resource', privateRoot.id, response, {
+                preserveCopilot: true,
+              });
             })
         )
       )

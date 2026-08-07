@@ -40,7 +40,11 @@ describe('CloseCurrentResource', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    useCopilotStore.setState({ workspaces: {} });
+    sessionStorage.clear();
+    useCopilotStore.setState({
+      workspaces: {},
+      pendingExpandFromResource: {},
+    });
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -52,10 +56,10 @@ describe('CloseCurrentResource', () => {
     jest.clearAllMocks();
   });
 
-  it('closes the panel and expands the active conversation', async () => {
-    useCopilotStore
-      .getState()
-      .showConversation('namespace-a', 'conversation-a');
+  it('navigates to the expanded conversation without clearing preview first', async () => {
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-a');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
     await act(async () =>
       root.render(<CloseCurrentResource namespaceId="namespace-a" />)
     );
@@ -67,11 +71,17 @@ describe('CloseCurrentResource', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       '/namespace-a/chat/conversation-a'
     );
+    // Preview stays until Workspace sees the chat route, so the underlying
+    // resource Outlet cannot flash between teardown and navigation.
+    expect(useCopilotStore.getState().pendingExpandFromResource).toEqual({
+      'namespace-a': true,
+    });
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
     ).toMatchObject({
       conversationId: 'conversation-a',
-      open: false,
+      open: true,
+      previewResourceId: 'Abcd1234Efgh5678',
       view: 'conversation',
     });
   });

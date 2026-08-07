@@ -8,14 +8,24 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+} from '@/components/ui/Breadcrumb';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { cn } from '@/lib/utils';
 import Actions from '@/page/chat/header/Actions';
+import Title from '@/page/chat/header/title';
+import { useChatTitle } from '@/page/chat/header/useChatTitle';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 import CopilotToggleButton from './CopilotToggleButton';
 import CopilotView from './CopilotView';
-import { useCopilotPanelLayout } from './useCopilotPanelLayout';
+import {
+  COPILOT_PANEL_TRANSITION_MS,
+  useCopilotPanelLayout,
+} from './useCopilotPanelLayout';
 
 interface CopilotPanelProps {
   namespaceId: string;
@@ -33,18 +43,32 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   const conversationsPage = workspace.view === 'history';
   const conversationId =
     workspace.view === 'conversation' ? (workspace.conversationId ?? '') : '';
+  const { chatTitle } = useChatTitle(namespaceId, conversationId);
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-white dark:bg-background">
       <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 flex-wrap items-center gap-2 rounded-2xl bg-white dark:bg-background">
-        <div className="flex flex-1 items-center gap-1 px-3 sm:gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
           <CopilotToggleButton namespaceId={namespaceId} />
+          {conversationId && (
+            <Breadcrumb className="min-w-0">
+              <BreadcrumbList>
+                <BreadcrumbItem className="min-w-0">
+                  <Title
+                    data={chatTitle}
+                    namespaceId={namespaceId}
+                    conversationId={conversationId}
+                  />
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
         </div>
-        <div className="ml-auto pr-3">
+        <div className="ml-auto shrink-0 pr-3">
           <Actions
             compact
             homePage={homePage}
-            chatTitle=""
+            chatTitle={chatTitle}
             namespaceId={namespaceId}
             conversationId={conversationId}
             conversationsPage={conversationsPage}
@@ -87,7 +111,7 @@ function useFocusRestore(open: boolean) {
 
 function useOverlayInteraction(
   active: boolean,
-  panelRef: RefObject<HTMLElement>,
+  panelRef: RefObject<HTMLElement | null>,
   onClose: () => void
 ) {
   useEffect(() => {
@@ -127,10 +151,16 @@ function useOverlayInteraction(
   }, [active, onClose, panelRef]);
 }
 
-export default function CopilotPanel({
-  namespaceId,
-  flush = false,
-}: CopilotPanelProps) {
+/** Freeze width while closing so content cannot reflow mid-animation. */
+function useFrozenPanelWidth(open: boolean, width: number) {
+  const [frozenWidth, setFrozenWidth] = useState(width);
+  useEffect(() => {
+    if (open) setFrozenWidth(width);
+  }, [open, width]);
+  return open ? width : frozenWidth;
+}
+
+export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
   const { t } = useTranslation();
   const open = useCopilotStore(
     state => getCopilotWorkspace(state, namespaceId).open
@@ -138,21 +168,23 @@ export default function CopilotPanel({
   const close = useCopilotStore(state => state.close);
   const [ready, setReady] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
+  const gapRef = useRef<HTMLDivElement>(null);
   const { layout, setPanelElement: observePanelElement } =
     useCopilotPanelLayout();
-  const modal = layout.mode !== 'split';
+  const split = layout.mode === 'split';
+  const modal = !split;
   const visible = ready && open;
+  const panelWidth = useFrozenPanelWidth(visible, layout.panelWidth);
   const handleClose = useCallback(
     () => close(namespaceId),
     [close, namespaceId]
   );
-  const setPanelElement = useCallback(
-    (element: HTMLElement | null) => {
-      panelRef.current = element;
-      observePanelElement(element);
-    },
-    [observePanelElement]
-  );
+
+  useEffect(() => {
+    // Split: measure workspace via the empty gap (Sidebar-style spacer).
+    // Overlay: measure via the fixed panel itself.
+    observePanelElement(split ? gapRef.current : panelRef.current);
+  }, [observePanelElement, split, visible]);
 
   useEffect(() => {
     panelRef.current?.toggleAttribute('inert', !open);
@@ -166,16 +198,23 @@ export default function CopilotPanel({
   useFocusRestore(open);
   useOverlayInteraction(open && modal, panelRef, handleClose);
 
-  const style: CSSProperties =
-    layout.mode === 'split'
-      ? {
-          marginRight: visible && !flush ? 8 : 0,
-          width: visible ? layout.panelWidth : 0,
-        }
-      : {
-          maxWidth: '100dvw',
-          width: layout.mode === 'fullscreen' ? '100dvw' : layout.panelWidth,
-        };
+  // Match left Sidebar: panel keeps a constant pixel width; only transform /
+  // off-canvas position animates. Never transition width on the panel itself.
+  const panelStyle: CSSProperties = split
+    ? {
+        width: panelWidth,
+        minWidth: panelWidth,
+        maxWidth: panelWidth,
+        top: 8,
+        right: 8,
+        bottom: 8,
+        transitionDuration: `${COPILOT_PANEL_TRANSITION_MS}ms`,
+      }
+    : {
+        width: layout.mode === 'fullscreen' ? '100dvw' : panelWidth,
+        maxWidth: '100dvw',
+        transitionDuration: `${COPILOT_PANEL_TRANSITION_MS}ms`,
+      };
 
   return (
     <>
@@ -187,30 +226,46 @@ export default function CopilotPanel({
           type="button"
         />
       )}
+      {/* Empty flex spacer only — same role as Sidebar's offcanvas gap. */}
+      {split && (
+        <div
+          aria-hidden
+          className="pointer-events-none shrink-0 ease-linear transition-[width]"
+          ref={gapRef}
+          style={{
+            width: visible ? panelWidth : 0,
+            transitionDuration: `${COPILOT_PANEL_TRANSITION_MS}ms`,
+          }}
+        />
+      )}
+      {/*
+        Fixed panel (like Sidebar's fixed offcanvas pane): width never animates,
+        so text wrapping stays put while the pane slides away.
+      */}
       <aside
         aria-hidden={!open}
         aria-label={t('copilot.title')}
         aria-modal={modal ? true : undefined}
         className={cn(
-          'flex min-w-0 shrink-0 overflow-hidden bg-white motion-safe:transition-[width,margin,transform] motion-safe:duration-200 motion-safe:ease-linear dark:bg-background',
-          layout.mode === 'split'
-            ? cn('relative rounded-2xl', flush ? 'm-0' : 'my-2')
-            : 'fixed inset-y-0 right-0 z-50 h-[100dvh] shadow-lg',
-          layout.mode === 'fullscreen' ? 'rounded-none' : 'rounded-l-2xl',
-          visible
-            ? 'visible translate-x-0'
+          'flex min-h-0 flex-col overflow-hidden bg-white ease-linear transition-transform dark:bg-background',
+          split
+            ? 'fixed z-20 rounded-2xl'
             : cn(
-                'pointer-events-none',
-                modal ? 'invisible translate-x-full' : 'translate-x-0'
-              )
+                'fixed inset-y-0 right-0 z-50 h-[100dvh] shadow-lg',
+                layout.mode === 'fullscreen' ? 'rounded-none' : 'rounded-l-2xl'
+              ),
+          visible ? 'translate-x-0' : 'pointer-events-none translate-x-full',
+          !visible && modal && 'invisible'
         )}
         data-layout={layout.mode}
-        ref={setPanelElement}
+        ref={panelRef}
         role={modal ? 'dialog' : 'complementary'}
-        style={style}
+        style={panelStyle}
         tabIndex={modal ? -1 : undefined}
       >
-        <CopilotPanelContent namespaceId={namespaceId} />
+        <div className="flex h-full min-h-0 w-full min-w-[100%] max-w-[100%] flex-col">
+          <CopilotPanelContent namespaceId={namespaceId} />
+        </div>
       </aside>
     </>
   );

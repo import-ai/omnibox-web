@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import type { ResourceConditionMatchMode } from '@/page/resource/conditions';
 import { getConditionLimitValue } from '@/page/resource/conditions/resourceConditionUtils';
 import { useResourceConditions } from '@/page/resource/conditions/useResourceConditions';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import { SearchFilterPanel } from './SearchFilterPanel';
 import {
@@ -141,8 +142,9 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   }, []);
 
   const handleNavigate = useCallback(
-    (path: string) => {
-      navigate(path);
+    (path: string, target: 'chat' | 'resource') => {
+      if (target === 'resource') navigateToResource(navigate, path);
+      else navigate(path);
       onOpenChange(false);
     },
     [navigate, onOpenChange]

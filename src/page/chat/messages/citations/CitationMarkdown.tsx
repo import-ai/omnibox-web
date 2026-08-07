@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Markdown, { ExtraProps } from 'react-markdown';
-import { useLocation, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme.ts';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
+import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 import Save from '@/page/chat/components/SaveMain';
 import { Citation, MessageStatus } from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
@@ -35,10 +36,6 @@ import {
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
-import {
-  getCopilotWorkspace,
-  useCopilotStore,
-} from '@/page/copilot/copilotStore';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const resourceLinkRegex = /^#resource-([\w-]+)$/;
@@ -82,28 +79,9 @@ export function CitationMarkdown(props: IProps) {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
-  const location = useLocation();
   const params = useParams();
-  const { namespaceId: routeNamespaceId, conversationId } =
-    useChatRouteParams();
+  const { namespaceId: routeNamespaceId } = useChatRouteParams();
   const namespaceId = routeNamespaceId || params.namespace_id || '';
-  const copilotOpen = useCopilotStore(
-    state => getCopilotWorkspace(state, namespaceId).open
-  );
-  const chatRoot = namespaceId ? `/${namespaceId}/chat` : '';
-  const isChatRoute =
-    Boolean(chatRoot) &&
-    (location.pathname === chatRoot ||
-      location.pathname.startsWith(`${chatRoot}/`));
-  // Chat route: wake Copilot and show the linked resource on its left.
-  // Resource + Copilot split: swap the left pane to the linked resource.
-  // Share pages keep opening a new tab.
-  const openResourceInCopilotSplit = Boolean(
-    !params.share_id &&
-    namespaceId &&
-    conversationId &&
-    (isChatRoute || (copilotOpen && !isChatRoute))
-  );
   const resourceLinkPrefix = params.share_id
     ? `/s/${params.share_id}`
     : namespaceId
@@ -129,20 +107,9 @@ export function CitationMarkdown(props: IProps) {
       if (resourceId && resourceLinkPrefix) {
         const resourceHref = `${resourceLinkPrefix}/${resourceId}`;
         return (
-          <a
-            href={resourceHref}
-            target={openResourceInCopilotSplit ? undefined : '_blank'}
-            rel="noopener noreferrer"
-            onClick={event => {
-              if (!openResourceInCopilotSplit) return;
-              event.preventDefault();
-              const store = useCopilotStore.getState();
-              store.showConversation(namespaceId, conversationId);
-              store.previewResource(namespaceId, resourceId);
-            }}
-          >
+          <ChatResourceLink href={resourceHref} resourceId={resourceId}>
             {children}
-          </a>
+          </ChatResourceLink>
         );
       }
       const citeMatch = href?.match(citeLinkRegex);

@@ -12,7 +12,7 @@ const workspace = (
 });
 
 describe('getExpandedCopilotPath', () => {
-  it('opens the chat home when Copilot is not currently visible', () => {
+  it('still expands the active conversation when the panel is collapsed', () => {
     expect(
       getExpandedCopilotPath(
         'namespace-a',
@@ -22,7 +22,7 @@ describe('getExpandedCopilotPath', () => {
           conversationId: 'conversation-a',
         })
       )
-    ).toBe('/namespace-a/chat');
+    ).toBe('/namespace-a/chat/conversation-a');
   });
 
   it('expands the Copilot home into the chat home', () => {

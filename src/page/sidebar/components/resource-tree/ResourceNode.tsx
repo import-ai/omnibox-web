@@ -1,18 +1,7 @@
-import { Namespace } from '@/interface';
 import { useNode } from '@/page/sidebar/store';
 
 import { ResourceNodeContent } from './ResourceNodeContent';
-
-interface ResourceNodeProps {
-  nodeId: string;
-  depth?: number;
-  hasTeamspace: boolean;
-  currentNamespace?: Namespace;
-  onBatchDelete: () => void;
-  onBatchMove: () => void;
-  onBatchCreate: () => void;
-  onAddToChat: () => void;
-}
+import type { ResourceNodeProps } from './resourceNodeTypes';
 
 export default function ResourceNode({
   nodeId,

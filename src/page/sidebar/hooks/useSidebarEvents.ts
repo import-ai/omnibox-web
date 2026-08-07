@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/useApp';
 import { Resource, ResourceType } from '@/interface';
+import { useCopilotStore } from '@/page/copilot/copilotStore';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import { isCurrentRssItemRoute } from '@/page/sidebar/sidebarBehavior';
 import { useSidebarStore } from '@/page/sidebar/store';
@@ -21,6 +23,10 @@ function extractResourceId(
 ): string | undefined {
   const match = pathname.match(new RegExp(`^/${namespaceId}/([^/]+)`));
   return match?.[1];
+}
+
+interface GeneratedResourceOptions {
+  preserveCopilot?: boolean;
 }
 
 async function resolveResourceList(
@@ -119,7 +125,8 @@ export function useSidebarEvents(namespaceId: string) {
     const hooks: Array<() => void> = [];
     const handleGeneratedResource = async (
       resourceIdOrParentId: string,
-      resource?: Resource | Resource[]
+      resource?: Resource | Resource[],
+      options?: GeneratedResourceOptions
     ) => {
       const resources = await resolveResourceList(
         namespaceId,
@@ -134,7 +141,10 @@ export function useSidebarEvents(namespaceId: string) {
       }
       const last = resources[resources.length - 1];
       useSidebarStore.getState().activate(last.id);
-      navigate(`/${namespaceId}/${last.id}`, {
+      if (options?.preserveCopilot) {
+        useCopilotStore.getState().requestResourceHandoff(namespaceId, last.id);
+      }
+      navigateToResource(navigate, `/${namespaceId}/${last.id}`, {
         state: { fromSidebar: true },
       });
       refreshLoadedSmartFolders(namespaceId, app);
@@ -183,7 +193,7 @@ export function useSidebarEvents(namespaceId: string) {
         !isCurrentRssItemRoute(window.location.pathname, namespaceId, targetId)
       ) {
         const currentState = window.history.state?.usr;
-        navigate(`/${namespaceId}/${targetId}`, {
+        navigateToResource(navigate, `/${namespaceId}/${targetId}`, {
           replace: true,
           state: {
             ...(currentState && typeof currentState === 'object'
@@ -201,8 +211,12 @@ export function useSidebarEvents(namespaceId: string) {
     hooks.push(
       app.on(
         'generate_resource',
-        (resourceIdOrParentId: string, resource?: Resource | Resource[]) => {
-          handleGeneratedResource(resourceIdOrParentId, resource);
+        (
+          resourceIdOrParentId: string,
+          resource?: Resource | Resource[],
+          options?: GeneratedResourceOptions
+        ) => {
+          handleGeneratedResource(resourceIdOrParentId, resource, options);
         }
       )
     );
@@ -230,7 +244,7 @@ export function useSidebarEvents(namespaceId: string) {
             .remove(id, currentResourceId);
 
           if (result.nextId) {
-            navigate(`/${namespaceId}/${result.nextId}`);
+            navigateToResource(navigate, `/${namespaceId}/${result.nextId}`);
           } else if (result.navigateToChat) {
             navigate(`/${namespaceId}/chat`);
           }
@@ -252,7 +266,7 @@ export function useSidebarEvents(namespaceId: string) {
                     currentNs
                   );
                   if (!nowResourceId || nowResourceId === id) {
-                    navigate(`/${currentNs}/${restoredId}`);
+                    navigateToResource(navigate, `/${currentNs}/${restoredId}`);
                   } else {
                     handleScrollToResource(restoredId);
                   }
@@ -326,7 +340,7 @@ export function useSidebarEvents(namespaceId: string) {
         (async () => {
           const id = await useSidebarStore.getState().restore(resource);
           useSidebarStore.getState().activate(id);
-          navigate(`/${namespaceId}/${id}`);
+          navigateToResource(navigate, `/${namespaceId}/${id}`);
           refreshLoadedSmartFolders(namespaceId, app);
           if (resource.resource_type === 'smart_folder') {
             useSidebarStore.getState().refetchSmartFolderEntitlements();

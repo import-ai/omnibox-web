@@ -22,13 +22,16 @@ export default function CloseCurrentResource({
   const workspace = useCopilotStore(state =>
     getCopilotWorkspace(state, namespaceId)
   );
-  const closeCopilot = useCopilotStore(state => state.close);
-  const closePreview = useCopilotStore(state => state.closePreview);
+  const requestExpandFromResource = useCopilotStore(
+    state => state.requestExpandFromResource
+  );
 
   const handleClose = () => {
     const destination = getExpandedCopilotPath(namespaceId, workspace);
-    closePreview(namespaceId);
-    closeCopilot(namespaceId);
+    // Keep the citation preview covering the underlying resource route until
+    // the chat route commits. Clearing preview first would unhide that Outlet
+    // (e.g. resource A) for a frame before navigation lands on the conversation.
+    requestExpandFromResource(namespaceId);
     navigate(destination);
   };
 

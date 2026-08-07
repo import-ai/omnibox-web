@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type MouseEvent, useState } from 'react';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -10,8 +10,8 @@ import {
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import type { Citation } from '@/page/chat/core/types/chatResponse';
 import { formatCitation } from '@/page/chat/messages/citations/utils';
+import { useChatResourceNavigation } from '@/page/chat/useChatResourceNavigation';
 import { resolveCitationTarget } from '@/page/copilot/citationTarget';
-import { useCopilotStore } from '@/page/copilot/copilotStore';
 
 export interface CitationIconProps {
   index: number;
@@ -22,14 +22,17 @@ export function CitationHoverIcon(props: CitationIconProps) {
   const { citation, index } = props;
   const { name, link } = formatCitation(citation);
   const { conversationId, namespaceId } = useChatRouteParams();
+  const { openResource } = useChatResourceNavigation();
   const [hoverCardOpen, setHoverCardOpen] = useState(false);
 
-  const openCitation = () => {
+  const openCitation = (event: MouseEvent<HTMLElement>) => {
     const target = resolveCitationTarget(citation.link, namespaceId);
-    if (target.kind === 'resource' && namespaceId && conversationId) {
-      const store = useCopilotStore.getState();
-      store.showConversation(namespaceId, conversationId);
-      store.previewResource(namespaceId, target.resourceId);
+    if (
+      target.kind === 'resource' &&
+      namespaceId &&
+      conversationId &&
+      openResource(event, target.resourceId)
+    ) {
       return;
     }
     if (target.kind !== 'unavailable' && link) {
@@ -47,7 +50,7 @@ export function CitationHoverIcon(props: CitationIconProps) {
             e.stopPropagation();
             e.currentTarget.blur();
             setHoverCardOpen(false);
-            openCitation();
+            openCitation(e);
           }}
         >
           <Badge

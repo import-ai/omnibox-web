@@ -19,6 +19,29 @@ jest.mock('@/page/chat/header/Actions', () => ({
   default: () => <button type="button">actions</button>,
 }));
 
+jest.mock('@/page/chat/header/title', () => ({
+  __esModule: true,
+  default: ({ data }: { data: string }) => (
+    <span data-testid="copilot-title">{data}</span>
+  ),
+}));
+
+jest.mock('@/page/chat/header/useChatTitle', () => ({
+  useChatTitle: () => ({ chatTitle: 'Panel title', i18nTitle: 'New' }),
+}));
+
+jest.mock('@/components/ui/Breadcrumb', () => ({
+  Breadcrumb: ({ children }: { children: React.ReactNode }) => (
+    <nav>{children}</nav>
+  ),
+  BreadcrumbList: ({ children }: { children: React.ReactNode }) => (
+    <ol>{children}</ol>
+  ),
+  BreadcrumbItem: ({ children }: { children: React.ReactNode }) => (
+    <li>{children}</li>
+  ),
+}));
+
 jest.mock('./CopilotToggleButton', () => ({
   __esModule: true,
   default: () => <button type="button">toggle</button>,
@@ -106,6 +129,9 @@ describe('CopilotPanel', () => {
     const panel = container.querySelector('aside');
     expect(copilotViewMounts).toBe(1);
     expect(panel?.dataset.layout).toBe('overlay');
+    expect(
+      container.querySelector('[data-testid="copilot-title"]')?.textContent
+    ).toBe('Panel title');
 
     act(() => resizeWorkspace(1200));
     expect(panel?.dataset.layout).toBe('split');

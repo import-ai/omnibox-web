@@ -6,7 +6,11 @@ describe('copilot store', () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
-    useCopilotStore.setState({ workspaces: {} });
+    useCopilotStore.setState({
+      workspaces: {},
+      pendingExpandFromResource: {},
+      pendingResourceHandoffs: {},
+    });
   });
 
   it('keeps panel state isolated by namespace', () => {
@@ -52,6 +56,31 @@ describe('copilot store', () => {
         previewResourceId: 'Abcd1234Efgh5678',
       })
     );
+  });
+
+  it('opens a resource beside its conversation in one state update', () => {
+    const store = useCopilotStore.getState();
+    let updateCount = 0;
+    const unsubscribe = useCopilotStore.subscribe(() => {
+      updateCount += 1;
+    });
+
+    store.showResourceBesideConversation(
+      'namespace-a',
+      'conversation-1',
+      'Abcd1234Efgh5678'
+    );
+    unsubscribe();
+
+    expect(updateCount).toBe(1);
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toEqual({
+      open: true,
+      view: 'conversation',
+      conversationId: 'conversation-1',
+      previewResourceId: 'Abcd1234Efgh5678',
+    });
   });
 
   it('starts a new chat while keeping the resource preview visible', () => {
@@ -129,9 +158,45 @@ describe('copilot store', () => {
     const store = useCopilotStore.getState();
     store.showConversation('namespace-a', 'conversation-1');
     store.showHistory('namespace-b');
+    store.requestExpandFromResource('namespace-a');
 
     store.clearAll();
 
     expect(useCopilotStore.getState().workspaces).toEqual({});
+    expect(useCopilotStore.getState().pendingExpandFromResource).toEqual({});
+    expect(useCopilotStore.getState().pendingResourceHandoffs).toEqual({});
+  });
+
+  it('tracks a pending expand-from-resource without clearing the preview', () => {
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-1');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+    store.requestExpandFromResource('namespace-a');
+
+    expect(useCopilotStore.getState().pendingExpandFromResource).toEqual({
+      'namespace-a': true,
+    });
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+        .previewResourceId
+    ).toBe('Abcd1234Efgh5678');
+
+    store.clearPendingExpandFromResource('namespace-a');
+    expect(useCopilotStore.getState().pendingExpandFromResource).toEqual({});
+  });
+
+  it('tracks a resource handoff without clearing the current preview', () => {
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-1');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+    store.requestResourceHandoff('namespace-a', 'Zyxw9876Vuts5432');
+
+    expect(useCopilotStore.getState().pendingResourceHandoffs).toEqual({
+      'namespace-a': 'Zyxw9876Vuts5432',
+    });
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+        .previewResourceId
+    ).toBe('Abcd1234Efgh5678');
   });
 });

@@ -8,16 +8,26 @@ import { useCopilotStore } from '@/page/copilot/copilotStore';
 
 import Chat from './index';
 
+const mockParams = {
+  conversation_id: 'conversation-a',
+  namespace_id: 'namespace-a',
+};
+
 jest.mock('react-router-dom', () => ({
-  useParams: () => ({
-    conversation_id: 'conversation-a',
-    namespace_id: 'namespace-a',
-  }),
+  useParams: () => mockParams,
 }));
 
 jest.mock('@/components/ui/Sidebar', () => ({
-  SidebarInset: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
+  SidebarInset: ({
+    children,
+    className,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <div className={className} data-testid="chat-shell">
+      {children}
+    </div>
   ),
 }));
 
@@ -47,7 +57,12 @@ describe('Chat', () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
-    useCopilotStore.setState({ workspaces: {} });
+    useCopilotStore.setState({
+      workspaces: {},
+      pendingExpandFromResource: {},
+      pendingResourceHandoffs: {},
+    });
+    mockParams.conversation_id = 'conversation-a';
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -85,5 +100,35 @@ describe('Chat', () => {
     expect(
       container.querySelector('[data-testid="copilot-view"]')
     ).not.toBeNull();
+  });
+
+  it('uses the full-page chat layout while a resource expansion is committing', async () => {
+    const store = useCopilotStore.getState();
+    store.showResourceBesideConversation(
+      'namespace-a',
+      'conversation-a',
+      'Abcd1234Efgh5678'
+    );
+    store.requestExpandFromResource('namespace-a');
+
+    await act(async () => root.render(<Chat />));
+
+    const shell = container.querySelector('[data-testid="chat-shell"]');
+    expect(shell?.classList.contains('md:m-[8px]')).toBe(true);
+    expect(shell?.classList.contains('md:h-full')).toBe(false);
+  });
+
+  it('renders chat home instead of a persisted citation view', async () => {
+    mockParams.conversation_id = '';
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-a');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+
+    await act(async () => root.render(<Chat />));
+
+    expect(
+      container.querySelector('[data-testid="route-chat-page"]')
+    ).not.toBeNull();
+    expect(container.querySelector('[data-testid="copilot-view"]')).toBeNull();
   });
 });

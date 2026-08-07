@@ -10,6 +10,9 @@ export interface CopilotPanelLayout {
 /** Shared max width for resource-side Copilot and chat citation split. */
 export const COPILOT_PANEL_MAX_WIDTH = 380;
 
+/** Keep in sync with Sidebar offcanvas (`duration-200`). */
+export const COPILOT_PANEL_TRANSITION_MS = 200;
+
 const OVERLAY_MIN_WIDTH = 768;
 const SPLIT_MIN_WIDTH = 1100;
 const OVERLAY_WIDTH = COPILOT_PANEL_MAX_WIDTH;

@@ -12,19 +12,36 @@ export interface CopilotWorkspaceState {
 
 interface CopilotState {
   workspaces: Record<string, CopilotWorkspaceState>;
+  /**
+   * Transient per-namespace flag (not persisted). Set while promoting Copilot
+   * to full-page chat so the underlying resource Outlet stays covered until the
+   * chat route commits.
+   */
+  pendingExpandFromResource: Record<string, boolean>;
+  /** Target resource kept covered until its route commits. Not persisted. */
+  pendingResourceHandoffs: Record<string, string>;
   open: (namespaceId: string) => void;
   close: (namespaceId: string) => void;
   toggle: (namespaceId: string) => void;
   showHome: (namespaceId: string) => void;
   showHistory: (namespaceId: string) => void;
   showConversation: (namespaceId: string, conversationId: string) => void;
+  showResourceBesideConversation: (
+    namespaceId: string,
+    conversationId: string,
+    resourceId: string
+  ) => void;
   previewResource: (namespaceId: string, resourceId: string) => void;
   closePreview: (namespaceId: string) => void;
+  requestExpandFromResource: (namespaceId: string) => void;
+  clearPendingExpandFromResource: (namespaceId: string) => void;
+  requestResourceHandoff: (namespaceId: string, resourceId: string) => void;
+  clearPendingResourceHandoff: (namespaceId: string) => void;
   reset: (namespaceId: string) => void;
   clearAll: () => void;
 }
 
-const defaultWorkspace: CopilotWorkspaceState = {
+export const defaultCopilotWorkspace: CopilotWorkspaceState = {
   open: false,
   view: 'home',
   conversationId: null,
@@ -35,7 +52,7 @@ export function getCopilotWorkspace(
   state: Pick<CopilotState, 'workspaces'>,
   namespaceId: string
 ): CopilotWorkspaceState {
-  return state.workspaces[namespaceId] ?? defaultWorkspace;
+  return state.workspaces[namespaceId] ?? defaultCopilotWorkspace;
 }
 
 function patchWorkspace(
@@ -65,10 +82,32 @@ const storage = createJSONStorage(() => ({
   },
 }));
 
+function withoutPendingExpand(
+  pendingExpandFromResource: Record<string, boolean>,
+  namespaceId: string
+) {
+  if (!pendingExpandFromResource[namespaceId]) return pendingExpandFromResource;
+  const next = { ...pendingExpandFromResource };
+  delete next[namespaceId];
+  return next;
+}
+
+function withoutResourceHandoff(
+  pendingResourceHandoffs: Record<string, string>,
+  namespaceId: string
+) {
+  if (!pendingResourceHandoffs[namespaceId]) return pendingResourceHandoffs;
+  const next = { ...pendingResourceHandoffs };
+  delete next[namespaceId];
+  return next;
+}
+
 export const useCopilotStore = create<CopilotState>()(
   persist(
     set => ({
       workspaces: {},
+      pendingExpandFromResource: {},
+      pendingResourceHandoffs: {},
       open: namespaceId =>
         set(state => ({
           workspaces: patchWorkspace(state, namespaceId, { open: true }),
@@ -112,6 +151,19 @@ export const useCopilotStore = create<CopilotState>()(
             conversationId,
           }),
         })),
+      showResourceBesideConversation: (
+        namespaceId,
+        conversationId,
+        resourceId
+      ) =>
+        set(state => ({
+          workspaces: patchWorkspace(state, namespaceId, {
+            open: true,
+            view: 'conversation',
+            conversationId,
+            previewResourceId: resourceId,
+          }),
+        })),
       previewResource: (namespaceId, resourceId) =>
         set(state => ({
           workspaces: patchWorkspace(state, namespaceId, {
@@ -125,13 +177,56 @@ export const useCopilotStore = create<CopilotState>()(
             previewResourceId: null,
           }),
         })),
+      requestExpandFromResource: namespaceId =>
+        set(state => ({
+          pendingExpandFromResource: {
+            ...state.pendingExpandFromResource,
+            [namespaceId]: true,
+          },
+        })),
+      clearPendingExpandFromResource: namespaceId =>
+        set(state => ({
+          pendingExpandFromResource: withoutPendingExpand(
+            state.pendingExpandFromResource,
+            namespaceId
+          ),
+        })),
+      requestResourceHandoff: (namespaceId, resourceId) =>
+        set(state => ({
+          pendingResourceHandoffs: {
+            ...state.pendingResourceHandoffs,
+            [namespaceId]: resourceId,
+          },
+        })),
+      clearPendingResourceHandoff: namespaceId =>
+        set(state => ({
+          pendingResourceHandoffs: withoutResourceHandoff(
+            state.pendingResourceHandoffs,
+            namespaceId
+          ),
+        })),
       reset: namespaceId =>
         set(state => {
           const workspaces = { ...state.workspaces };
           delete workspaces[namespaceId];
-          return { workspaces };
+          return {
+            workspaces,
+            pendingExpandFromResource: withoutPendingExpand(
+              state.pendingExpandFromResource,
+              namespaceId
+            ),
+            pendingResourceHandoffs: withoutResourceHandoff(
+              state.pendingResourceHandoffs,
+              namespaceId
+            ),
+          };
         }),
-      clearAll: () => set({ workspaces: {} }),
+      clearAll: () =>
+        set({
+          workspaces: {},
+          pendingExpandFromResource: {},
+          pendingResourceHandoffs: {},
+        }),
     }),
     {
       name: 'copilot-workspaces',

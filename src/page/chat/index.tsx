@@ -19,7 +19,12 @@ export default function Chat() {
   const workspace = useCopilotStore(state =>
     getCopilotWorkspace(state, namespaceId)
   );
-  const previewingCitation = Boolean(workspace.previewResourceId);
+  const pendingExpandFromResource = useCopilotStore(
+    state => !!state.pendingExpandFromResource[namespaceId]
+  );
+  const previewingCitation = Boolean(
+    conversationId && workspace.previewResourceId && !pendingExpandFromResource
+  );
   const showRoutePage =
     !previewingCitation ||
     (workspace.view === 'conversation' &&
@@ -37,23 +42,19 @@ export default function Chat() {
       )}
     >
       <Header />
-      {/* Keep the route conversation mounted while Copilot home/history overlays
-          it, so streaming / scroll state survives showHome / showHistory. */}
-      <div
-        className={cn(
-          'flex min-h-0 min-w-0 flex-1 flex-col',
-          !showRoutePage && 'hidden'
-        )}
-      >
-        <ChatRouteParamsProvider
-          compact={besideCitationPreview}
-          conversationId={conversationId}
-          namespaceId={namespaceId}
-        >
-          <Page />
-        </ChatRouteParamsProvider>
-      </div>
-      {!showRoutePage && <CopilotView namespaceId={namespaceId} />}
+      {showRoutePage ? (
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <ChatRouteParamsProvider
+            compact={besideCitationPreview}
+            conversationId={conversationId}
+            namespaceId={namespaceId}
+          >
+            <Page />
+          </ChatRouteParamsProvider>
+        </div>
+      ) : (
+        <CopilotView namespaceId={namespaceId} />
+      )}
     </SidebarInset>
   );
 }

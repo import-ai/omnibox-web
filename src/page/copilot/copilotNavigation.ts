@@ -7,13 +7,12 @@ export function getExpandedCopilotPath(
 ) {
   const chatRoot = `/${namespaceId}/chat`;
 
-  if (!workspace.open || workspace.view === 'home') {
-    return chatRoot;
-  }
+  // Prefer the active view even when the panel is collapsed (open=false) so
+  // "close current resource" still promotes the conversation under a citation.
   if (workspace.view === 'history') {
     return `${chatRoot}/conversations`;
   }
-  if (workspace.conversationId) {
+  if (workspace.view === 'conversation' && workspace.conversationId) {
     return `${chatRoot}/${workspace.conversationId}`;
   }
   return chatRoot;

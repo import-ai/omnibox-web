@@ -106,6 +106,7 @@ function downloadMarkdownFile(fileName: string, content: string) {
 const hasTeamspaceCache = new Map<string, boolean>();
 
 export interface IActionProps extends IUseResource {
+  rssItemId?: string | null;
   wide: boolean;
   onWide: (wide: boolean) => void;
   rssItemCopyContent?: {
@@ -124,12 +125,18 @@ export default function Actions(props: IActionProps) {
     resourceId,
     editPage,
     namespaceId,
+    rssItemId: explicitRssItemId,
     rssItemCopyContent,
   } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const loc = useLocation();
-  const { rss_item_id: rssItemId, resource_id: routeResourceId } = useParams();
+  const { rss_item_id: routeRssItemId, resource_id: routeResourceId } =
+    useParams();
+  const rssItemId =
+    explicitRssItemId === undefined
+      ? routeRssItemId
+      : explicitRssItemId || undefined;
   const isMobile = useIsMobile();
   const { deleteResource } = useDeleteResource();
   const { config, loading: configLoading } = useConfig();

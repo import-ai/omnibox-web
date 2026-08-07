@@ -12,6 +12,7 @@ import { useIsMobile } from '@/hooks/useMobile';
 import useNamespaces from '@/hooks/useNamespaces';
 import useProNamespaces from '@/hooks/useProNamespaces';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import SettingModal from '@/page/settings';
 
 import { BodyForSidebar } from './BodyForSidebar';
@@ -48,7 +49,7 @@ export default function MainSidebar() {
     if (id === 'chat') {
       navigate(`/${namespaceId}/chat`);
     } else {
-      navigate(`/${namespaceId}/${id}`);
+      navigateToResource(navigate, `/${namespaceId}/${id}`);
     }
     if (isMobile) {
       setOpenMobile(false);

@@ -30,7 +30,7 @@ export default function CopilotToggleButton({
       <TooltipTrigger asChild>
         <Button
           aria-label={label}
-          className="size-7"
+          className="h-7 w-7 shrink-0"
           onClick={() => toggle(namespaceId)}
           size="icon"
           type="button"

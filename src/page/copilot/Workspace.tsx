@@ -9,15 +9,43 @@ import {
 } from 'react';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
 
-import { Skeleton } from '@/components/ui/Skeleton';
+import Loading from '@/components/loading';
 import { useIsMobile } from '@/hooks/useMobile';
 import { cn } from '@/lib/utils';
 
-import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
-import { useCopilotPanelLayout } from './useCopilotPanelLayout';
+import {
+  defaultCopilotWorkspace,
+  getCopilotWorkspace,
+  useCopilotStore,
+} from './copilotStore';
+import {
+  COPILOT_PANEL_TRANSITION_MS,
+  useCopilotPanelLayout,
+} from './useCopilotPanelLayout';
 
 const CitationResourcePreview = lazy(() => import('./CitationResourcePreview'));
 const CopilotPanel = lazy(() => import('./CopilotPanel'));
+
+/** Stay true through normal close animations, with an immediate route-handoff escape. */
+function useDeferredOpen(open: boolean, closeImmediately = false) {
+  const [deferredOpen, setDeferredOpen] = useState(open);
+  useLayoutEffect(() => {
+    if (!open && closeImmediately) setDeferredOpen(false);
+  }, [closeImmediately, open]);
+  useEffect(() => {
+    if (open) {
+      setDeferredOpen(true);
+      return;
+    }
+    if (closeImmediately) return;
+    const timer = window.setTimeout(
+      () => setDeferredOpen(false),
+      COPILOT_PANEL_TRANSITION_MS
+    );
+    return () => window.clearTimeout(timer);
+  }, [closeImmediately, open]);
+  return !open && closeImmediately ? false : deferredOpen;
+}
 
 interface WorkspaceLifecycleProps {
   isChatHistory: boolean;
@@ -27,6 +55,8 @@ interface WorkspaceLifecycleProps {
   locationKey: string;
   namespaceId: string;
   pathname: string;
+  pendingExpandFromResource: boolean;
+  pendingResourceHandoff: string | null;
   previewResourceId: string | null;
   showChatBesidePreview: boolean;
   workspaceOpen: boolean;
@@ -45,18 +75,6 @@ interface WorkspaceContentProps {
   workspaceOpen: boolean;
 }
 
-function WorkspaceFallback() {
-  return (
-    <div
-      className="m-2 flex min-w-0 flex-1 flex-col gap-3 rounded-2xl bg-background p-4"
-      role="status"
-    >
-      <Skeleton className="h-7 w-1/3" />
-      <Skeleton className="h-32 w-full" />
-    </div>
-  );
-}
-
 function useWorkspaceLifecycle({
   isChatHistory,
   isChatHome,
@@ -65,6 +83,8 @@ function useWorkspaceLifecycle({
   locationKey,
   namespaceId,
   pathname,
+  pendingExpandFromResource,
+  pendingResourceHandoff,
   previewResourceId,
   showChatBesidePreview,
   workspaceOpen,
@@ -73,29 +93,81 @@ function useWorkspaceLifecycle({
   const [copilotMounted, setCopilotMounted] = useState(workspaceOpen);
   const reset = useCopilotStore(state => state.reset);
   const closePreview = useCopilotStore(state => state.closePreview);
+  const clearPendingExpandFromResource = useCopilotStore(
+    state => state.clearPendingExpandFromResource
+  );
+  const clearPendingResourceHandoff = useCopilotStore(
+    state => state.clearPendingResourceHandoff
+  );
   const close = useCopilotStore(state => state.close);
 
   useLayoutEffect(() => {
     const routeChanged = previousPathnameRef.current !== pathname;
-    if (namespaceId && routeChanged && !isChatRoute && previewResourceId) {
-      const isEditingPreview =
-        pathname === `/${namespaceId}/${previewResourceId}/edit`;
-      if (isEditingPreview) closePreview(namespaceId);
-      else reset(namespaceId);
+    if (namespaceId && routeChanged && !isChatRoute) {
+      const handoffCommitted =
+        pendingResourceHandoff &&
+        pathname === `/${namespaceId}/${pendingResourceHandoff}`;
+      if (handoffCommitted) {
+        closePreview(namespaceId);
+        clearPendingResourceHandoff(namespaceId);
+      } else if (previewResourceId) {
+        const isEditingPreview =
+          pathname === `/${namespaceId}/${previewResourceId}/edit`;
+        if (isEditingPreview) closePreview(namespaceId);
+        else reset(namespaceId);
+      }
     }
     previousPathnameRef.current = pathname;
   }, [
+    clearPendingResourceHandoff,
     closePreview,
     isChatRoute,
     namespaceId,
     pathname,
+    pendingResourceHandoff,
     previewResourceId,
     reset,
+  ]);
+
+  // Finish "close current resource" only after the chat route is active so the
+  // previously hidden resource Outlet never paints between preview teardown and
+  // navigation.
+  useLayoutEffect(() => {
+    if (!isChatRoute || !pendingExpandFromResource) return;
+    closePreview(namespaceId);
+    clearPendingExpandFromResource(namespaceId);
+  }, [
+    clearPendingExpandFromResource,
+    closePreview,
+    isChatRoute,
+    namespaceId,
+    pendingExpandFromResource,
   ]);
 
   useEffect(() => {
     if (isChatHome || isChatHistory) reset(namespaceId);
   }, [isChatHistory, isChatHome, locationKey, namespaceId, reset]);
+
+  // After "close current resource" navigates to full-page chat, drop the panel
+  // flag once the chat route is active (no intermediate resource-only frame).
+  useEffect(() => {
+    if (
+      !isChatRoute ||
+      !workspaceOpen ||
+      previewResourceId ||
+      pendingExpandFromResource
+    ) {
+      return;
+    }
+    close(namespaceId);
+  }, [
+    close,
+    isChatRoute,
+    namespaceId,
+    pendingExpandFromResource,
+    previewResourceId,
+    workspaceOpen,
+  ]);
 
   useEffect(() => {
     if (workspaceOpen) setCopilotMounted(true);
@@ -128,12 +200,12 @@ function WorkspaceContent({
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-1 overflow-hidden',
+        'relative flex min-w-0 flex-1 overflow-hidden',
         sideBySide && 'gap-2 p-2'
       )}
     >
       {previewResourceId && (
-        <Suspense fallback={<WorkspaceFallback />}>
+        <Suspense fallback={<Loading />}>
           <CitationResourcePreview
             namespaceId={namespaceId}
             resourceId={previewResourceId}
@@ -141,32 +213,60 @@ function WorkspaceContent({
           />
         </Suspense>
       )}
-      <div
-        className={cn(
-          'flex min-w-0',
-          chatPreviewRoute
-            ? 'shrink-0 overflow-hidden motion-safe:transition-[width,transform] motion-safe:duration-200 motion-safe:ease-linear'
-            : 'flex-1',
-          chatPreviewRoute &&
-            !isMobile &&
-            (workspaceOpen ? 'flex-none' : 'pointer-events-none flex-none'),
-          chatPreviewRoute &&
-            isMobile &&
-            (workspaceOpen
-              ? 'fixed inset-0 z-50 w-full bg-background'
-              : 'invisible fixed inset-0 z-50 w-full translate-x-full bg-background'),
-          previewReplacesResource && 'hidden'
-        )}
-        aria-hidden={chatPreviewRoute && !workspaceOpen}
-        ref={setChatRouteElement}
-        style={
-          chatPreviewRoute && !isMobile
-            ? { width: workspaceOpen ? chatPanelWidth : 0 }
-            : undefined
-        }
-      >
-        <Outlet />
-      </div>
+      {/*
+        Chat citation split: empty width spacer + absolute sliding pane
+        (Sidebar offcanvas pattern). Avoid clipping the pane inside the spacer.
+      */}
+      {chatPreviewRoute && !isMobile ? (
+        <>
+          <div
+            aria-hidden
+            className="pointer-events-none shrink-0 ease-linear transition-[width]"
+            ref={setChatRouteElement}
+            style={{
+              width: workspaceOpen ? chatPanelWidth : 0,
+              transitionDuration: `${COPILOT_PANEL_TRANSITION_MS}ms`,
+            }}
+          />
+          <div
+            aria-hidden={!workspaceOpen}
+            className={cn(
+              'fixed bottom-2 right-2 top-2 z-20 flex min-h-0 flex-col ease-linear transition-transform',
+              workspaceOpen
+                ? 'translate-x-0'
+                : 'pointer-events-none translate-x-full'
+            )}
+            ref={element => {
+              element?.toggleAttribute('inert', !workspaceOpen);
+            }}
+            style={{
+              width: chatPanelWidth,
+              minWidth: chatPanelWidth,
+              maxWidth: chatPanelWidth,
+              transitionDuration: `${COPILOT_PANEL_TRANSITION_MS}ms`,
+            }}
+          >
+            <Outlet />
+          </div>
+        </>
+      ) : (
+        <div
+          className={cn(
+            'flex min-w-0',
+            chatPreviewRoute ? 'shrink-0' : 'flex-1',
+            chatPreviewRoute &&
+              isMobile &&
+              (workspaceOpen
+                ? 'fixed inset-0 z-50 w-full bg-background'
+                : 'invisible fixed inset-0 z-50 w-full translate-x-full bg-background'),
+            previewReplacesResource && 'hidden'
+          )}
+          aria-hidden={chatPreviewRoute && !workspaceOpen}
+          ref={setChatRouteElement}
+        >
+          <Outlet />
+        </div>
+      )}
       {keepCopilotMounted && (
         <Suspense fallback={null}>
           <CopilotPanel namespaceId={namespaceId} flush={sideBySide} />
@@ -184,20 +284,41 @@ export default function Workspace() {
   const workspace = useCopilotStore(state =>
     getCopilotWorkspace(state, namespaceId)
   );
+  const pendingExpandFromResource = useCopilotStore(
+    state => !!state.pendingExpandFromResource[namespaceId]
+  );
+  const pendingResourceHandoff = useCopilotStore(
+    state => state.pendingResourceHandoffs[namespaceId] ?? null
+  );
   const { layout, setPanelElement } = useCopilotPanelLayout();
   const chatRoot = `/${namespaceId}/chat`;
   const isChatHome = location.pathname === chatRoot;
   const isChatHistory = location.pathname === `${chatRoot}/conversations`;
   const isChatRoute =
     isChatHome || location.pathname.startsWith(`${chatRoot}/`);
-  const showPreview = Boolean(workspace.previewResourceId);
-  const previewReplacesResource = showPreview && !isChatRoute;
-  const chatPreviewRoute = showPreview && isChatRoute;
-  const showChatBesidePreview = showPreview && isChatRoute && workspace.open;
-  const showCopilotBesideResource = !isChatRoute && workspace.open;
-  const showCopilotSidePanel =
-    showChatBesidePreview || showCopilotBesideResource;
-  const sideBySide = showCopilotSidePanel;
+  const routeResetsWorkspace = isChatHome || isChatHistory;
+  const renderWorkspace = routeResetsWorkspace
+    ? defaultCopilotWorkspace
+    : workspace;
+  const showPreview = Boolean(renderWorkspace.previewResourceId);
+  // Keep the resource Outlet covered while expanding, even if preview was
+  // already cleared, and suppress citation-split chrome on the chat landing frame.
+  const previewReplacesResource =
+    (showPreview || pendingExpandFromResource) && !isChatRoute;
+  const chatPreviewRoute =
+    showPreview && isChatRoute && !pendingExpandFromResource;
+  const visiblePreviewResourceId =
+    showPreview && !(pendingExpandFromResource && isChatRoute)
+      ? renderWorkspace.previewResourceId
+      : null;
+  const showChatBesidePreview = chatPreviewRoute && renderWorkspace.open;
+  const showCopilotBesideResource = !isChatRoute && renderWorkspace.open;
+  const wantsSideBySide = showChatBesidePreview || showCopilotBesideResource;
+  // Keep page padding through the close animation so layout doesn't jump.
+  const sideBySide = useDeferredOpen(
+    wantsSideBySide,
+    isChatRoute && pendingExpandFromResource
+  );
   const copilotMounted = useWorkspaceLifecycle({
     isChatHistory,
     isChatHome,
@@ -206,6 +327,8 @@ export default function Workspace() {
     locationKey: location.key,
     namespaceId,
     pathname: location.pathname,
+    pendingExpandFromResource,
+    pendingResourceHandoff,
     previewResourceId: workspace.previewResourceId,
     showChatBesidePreview,
     workspaceOpen: workspace.open,
@@ -215,9 +338,17 @@ export default function Workspace() {
   const setChatRouteElement = useCallback(
     (element: HTMLDivElement | null) => {
       setPanelElement(element);
-      element?.toggleAttribute('inert', chatPreviewRoute && !workspace.open);
+      // Desktop citation split marks inert on the sliding pane instead.
+      if (isMobile || !chatPreviewRoute) {
+        element?.toggleAttribute(
+          'inert',
+          chatPreviewRoute && !renderWorkspace.open
+        );
+      } else {
+        element?.removeAttribute('inert');
+      }
     },
-    [chatPreviewRoute, setPanelElement, workspace.open]
+    [chatPreviewRoute, isMobile, renderWorkspace.open, setPanelElement]
   );
 
   return (
@@ -228,10 +359,10 @@ export default function Workspace() {
       keepCopilotMounted={keepCopilotMounted}
       namespaceId={namespaceId}
       previewReplacesResource={previewReplacesResource}
-      previewResourceId={workspace.previewResourceId}
+      previewResourceId={visiblePreviewResourceId}
       setChatRouteElement={setChatRouteElement}
       sideBySide={sideBySide}
-      workspaceOpen={workspace.open}
+      workspaceOpen={renderWorkspace.open}
     />
   );
 }

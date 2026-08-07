@@ -11,6 +11,7 @@ import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { type Namespace, ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import type {
   CreateRssFolderPayload,
   RssFolderResponse,
@@ -450,7 +451,9 @@ export function BodyForSidebar(props: IProps) {
       })
       .then(id => {
         useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        navigateToResource(navigate, `/${namespaceId}/${id}`, {
+          state: { fromSidebar: true },
+        });
         window.setTimeout(() => {
           scrollToResource(id);
         }, 0);
@@ -491,7 +494,9 @@ export function BodyForSidebar(props: IProps) {
       })
       .then(id => {
         useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        navigateToResource(navigate, `/${namespaceId}/${id}`, {
+          state: { fromSidebar: true },
+        });
         window.setTimeout(() => {
           scrollToResource(id);
         }, 0);
@@ -613,7 +618,9 @@ export function BodyForSidebar(props: IProps) {
       const id = await useSidebarStore
         .getState()
         .uploadFiles(currentUploadTargetId, files);
-      navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+      navigateToResource(navigate, `/${namespaceId}/${id}`, {
+        state: { fromSidebar: true },
+      });
       await locateSidebarResource(id);
       toast.success(t('upload.success', { count: files.length }));
     } catch (err) {
@@ -789,7 +796,7 @@ export function BodyForSidebar(props: IProps) {
           );
           store.activate(id);
           store.closeCreateFolderDialog();
-          navigate(`/${namespaceId}/${id}`, {
+          navigateToResource(navigate, `/${namespaceId}/${id}`, {
             state: { fromSidebar: true },
           });
           await locateSidebarResource(id);

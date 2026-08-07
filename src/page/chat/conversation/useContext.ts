@@ -37,8 +37,16 @@ import {
 import useGlobalContext from '@/page/chat/useSelectedResources.ts';
 
 import { getTitleFromConversationDetail } from '../utils';
+import {
+  getCachedConversation,
+  setCachedConversation,
+} from './conversationCache';
 
 const CHAT_CREATE_PAYLOAD_KEY = 'chat-create-payload';
+
+function emptyConversation(conversationId: string): ConversationDetail {
+  return { id: conversationId, mapping: {} };
+}
 
 export default function useContext() {
   const app = useApp();
@@ -60,10 +68,11 @@ export default function useContext() {
       Boolean(window.sessionStorage.getItem(CHAT_CREATE_PAYLOAD_KEY))
   );
   const { selectedResources, setSelectedResources } = useGlobalContext();
-  const [conversation, setConversation] = useState<ConversationDetail>({
-    id: conversationId,
-    mapping: {},
-  });
+  // Hydrate from cache so Copilot → full-page remount keeps messages/title.
+  const [conversation, setConversation] = useState<ConversationDetail>(
+    () =>
+      getCachedConversation(conversationId) ?? emptyConversation(conversationId)
+  );
   const channel = AgentRequestChannel.WEB;
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
@@ -78,6 +87,21 @@ export default function useContext() {
     }
     return result;
   }, [conversation]);
+
+  useEffect(() => {
+    if (conversation.id !== conversationId) {
+      setConversation(
+        getCachedConversation(conversationId) ??
+          emptyConversation(conversationId)
+      );
+    }
+  }, [conversation.id, conversationId]);
+
+  useEffect(() => {
+    if (!conversation.id) return;
+    setCachedConversation(conversation);
+  }, [conversation]);
+
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(conversation, setConversation);
   }, [conversation, setConversation]);
@@ -142,7 +166,10 @@ export default function useContext() {
         .then((response: ConversationDetail) => {
           const conversationTitle = getTitleFromConversationDetail(response);
           if (conversationTitle) {
-            app.fire('chat:title:update', conversationTitle);
+            app.fire('chat:title:update', {
+              conversationId,
+              title: conversationTitle,
+            });
           }
           setConversation(response);
           return response;
@@ -293,11 +320,23 @@ export default function useContext() {
   useEffect(() => {
     // Only request title generation for untitled conversations. Copilot history
     // loads otherwise cache chat:title and break chat-home Header (empty id).
-    if (!firstUserMessage?.message.content || conversation.title) {
+    if (
+      !conversationId ||
+      !firstUserMessage?.message.content ||
+      conversation.title
+    ) {
       return;
     }
-    app.fire('chat:title', firstUserMessage.message.content);
-  }, [firstUserMessage?.message.content, conversation.title, app]);
+    app.fire('chat:title', {
+      conversationId,
+      text: firstUserMessage.message.content,
+    });
+  }, [
+    app,
+    conversation.title,
+    conversationId,
+    firstUserMessage?.message.content,
+  ]);
 
   return {
     loading: mergedLoading,
