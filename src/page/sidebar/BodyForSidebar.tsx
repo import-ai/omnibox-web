@@ -7,10 +7,8 @@ import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
-import useConfig from '@/hooks/useConfig';
-import useProNamespaces from '@/hooks/useProNamespaces';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
-import { ResourceMeta, SpaceType } from '@/interface';
+import { type Namespace, ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
 import type {
@@ -29,11 +27,13 @@ import {
 import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/CreateSmartFolderDialog';
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
-import { fetchChildren, fetchRootResources } from '@/service/resource';
+import type { ResourceSortOptions } from '@/service/resource';
+import { fetchChildren, initializeManualSort } from '@/service/resource';
 
 import { BatchCreateDialog } from './components/BatchCreateDialog';
 import BatchDeleteDialog from './components/BatchDeleteDialog';
 import BatchMoveDialog from './components/BatchMoveDialog';
+import { ManualSortConfirmDialog } from './components/ManualSortConfirmDialog';
 import ResourceTree from './components/resource-tree';
 import { Toolbar } from './components/toolbar';
 import { useBatchOperations } from './hooks/useBatchOperations';
@@ -44,9 +44,11 @@ import {
   getExpandedNodeIdsForSidebarRefresh,
 } from './sidebarBehavior';
 import { TreeNode, useSidebarStore } from './store';
-import { getBatchSelectionSummary } from './store/utils';
+import { getBatchSelectionSummary, getNodeResourceSort } from './store/utils';
+import { locateSidebarResource } from './utils';
 
 interface IProps {
+  currentNamespace?: Namespace;
   resourceId: string;
   namespaceId: string;
 }
@@ -131,7 +133,7 @@ function getLocateSnapshot(
 }
 
 export function BodyForSidebar(props: IProps) {
-  const { namespaceId, resourceId } = props;
+  const { currentNamespace, namespaceId, resourceId } = props;
   const app = useApp();
   useSidebarInit({ namespaceId, resourceId });
   useSidebarEvents(namespaceId);
@@ -145,12 +147,9 @@ export function BodyForSidebar(props: IProps) {
   const [rssFolderSpaceType, setRssFolderSpaceType] =
     useState<SpaceType>('private');
   const [refreshingResources, setRefreshingResources] = useState(false);
+  const [sortingSpace, setSortingSpace] = useState<SpaceType | null>(null);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
-  const { config, loading: configLoading } = useConfig();
-  const { data: proNamespaces } = useProNamespaces({
-    disabled: configLoading || !config.commercial,
-  });
   const roots = useSidebarStore(state => state.rootIds);
   const nodes = useSidebarStore(state => state.nodes);
   const activeId = useSidebarStore(state => state.activeId);
@@ -168,10 +167,20 @@ export function BodyForSidebar(props: IProps) {
   const smartFolderTrashDialog = useSidebarStore(
     s => s.dialogs.smartFolderTrash
   );
+  const pendingManualDrop = useSidebarStore(s => s.dialogs.pendingManualDrop);
+  const pendingManualTarget = pendingManualDrop
+    ? nodes[pendingManualDrop.targetId]
+    : undefined;
+  const pendingManualSpace = pendingManualTarget?.spaceType;
+  const pendingManualRoot = pendingManualSpace
+    ? nodes[roots[pendingManualSpace]]
+    : undefined;
+  const pendingManualRecordExists = Boolean(
+    pendingManualRoot?.manualSortInitializedAt
+  );
   const privateRoot = roots.private ? nodes[roots.private] : undefined;
   const teamspaceRoot = roots.teamspace ? nodes[roots.teamspace] : undefined;
   const hasTeamspace = !!teamspaceRoot?.id;
-  const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
   const editSmartFolderNode = editSmartFolderDialog.nodeId
     ? nodes[editSmartFolderDialog.nodeId]
     : undefined;
@@ -264,19 +273,50 @@ export function BodyForSidebar(props: IProps) {
     app.fire('scroll_to_resource', sourceResourceId, sourceParentId);
   };
 
-  const handleRefreshSidebarResources = async () => {
-    if (refreshingResources) return;
-
+  const refreshSpaceResources = async (
+    spaceType: SpaceType,
+    sort: ResourceSortOptions = useSidebarStore.getState().resourceSorts[
+      spaceType
+    ]
+  ) => {
     const state = useSidebarStore.getState();
+    const rootId = state.rootIds[spaceType];
+    if (!rootId) return;
+
     const expandedIds = getExpandedNodeIdsForSidebarRefresh(
       state.nodes,
       state.ui,
       state.rootIds
-    );
+    ).filter(id => state.nodes[id]?.spaceType === spaceType);
     expandedIds.sort(
       (a, b) => getNodeDepth(state.nodes, a) - getNodeDepth(state.nodes, b)
     );
-    const expandedIdSet = new Set(expandedIds);
+    const store = useSidebarStore.getState();
+    const rootChildren = await fetchChildren(namespaceId, rootId, sort);
+    store.refreshChildren(rootId, rootChildren);
+
+    for (const id of expandedIds) {
+      const node = useSidebarStore.getState().nodes[id];
+      if (!node) continue;
+
+      const children = await fetchChildrenForSidebarRefresh(
+        namespaceId,
+        node,
+        sort
+      );
+      if (!children) {
+        app.fire('refresh_rss_items', id);
+        continue;
+      }
+      store.refreshChildren(id, children);
+    }
+  };
+
+  const handleRefreshSidebarResources = async () => {
+    if (refreshingResources) return;
+
+    const state = useSidebarStore.getState();
+
     const locateSnapshot = getLocateSnapshot(
       state.nodes,
       state.activeId || resourceId
@@ -284,58 +324,97 @@ export function BodyForSidebar(props: IProps) {
 
     setRefreshingResources(true);
     try {
-      const items = await fetchRootResources(namespaceId);
-      const store = useSidebarStore.getState();
-      store.init(items);
-
-      for (const id of expandedIds) {
-        const node = useSidebarStore.getState().nodes[id];
-        if (!node) continue;
-
-        const children = await fetchChildrenForSidebarRefresh(
-          namespaceId,
-          node
-        );
-        if (!children) continue;
-        store.refreshChildren(id, children);
-      }
-
-      useSidebarStore.setState(draft => {
-        const refreshedRootIdSet = new Set(
-          Object.values(draft.rootIds).filter(Boolean)
-        );
-        Object.entries(draft.ui).forEach(([id, ui]) => {
-          ui.expanded = refreshedRootIdSet.has(id) || expandedIdSet.has(id);
-        });
-      });
-
-      expandedIds.forEach(id => {
-        if (
-          useSidebarStore.getState().nodes[id]?.resourceType === 'rss_folder'
-        ) {
-          app.fire('refresh_rss_items', id);
-        }
-      });
+      await Promise.all(
+        (['private', 'teamspace'] as SpaceType[]).map(spaceType =>
+          refreshSpaceResources(spaceType)
+        )
+      );
 
       if (locateSnapshot) {
-        const targetId = locateSnapshot.smartFolderId || locateSnapshot.id;
-        await useSidebarStore.getState().expandPathTo(targetId, {
-          expandTarget: !!locateSnapshot.smartFolderId,
-        });
-        const refreshedStore = useSidebarStore.getState();
-        const refreshedNode = refreshedStore.nodes[locateSnapshot.id];
-        if (!refreshedNode) return;
-        refreshedStore.toggleSpace(
-          locateSnapshot.spaceType || refreshedNode.spaceType,
-          true
-        );
-        refreshedStore.activate(locateSnapshot.id);
-        scrollToResource(locateSnapshot.id);
+        await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
       // request.ts handles backend error toasts.
     } finally {
       setRefreshingResources(false);
+    }
+  };
+
+  const handleResourceSortChange = async (
+    spaceType: SpaceType,
+    sort: ResourceSortOptions
+  ) => {
+    if (sortingSpace) return;
+    const store = useSidebarStore.getState();
+    const sourceSort = store.resourceSorts[spaceType];
+    const rootId = store.rootIds[spaceType];
+    if (!rootId) return;
+    const locateSnapshot = getLocateSnapshot(
+      store.nodes,
+      store.activeId || resourceId
+    );
+
+    store.setResourceSort(spaceType, sort);
+    setSortingSpace(spaceType);
+    try {
+      if (sort.sort_by === 'manual') {
+        const result = await initializeManualSort(
+          namespaceId,
+          rootId,
+          sourceSort
+        );
+        store.patch(rootId, {
+          manualSortInitializedAt: result.initialized_at,
+        });
+      }
+      await refreshSpaceResources(spaceType, sort);
+      if (locateSnapshot) {
+        await locateSidebarResource(locateSnapshot.id);
+      }
+    } catch {
+      store.setResourceSort(spaceType, sourceSort);
+      // request.ts handles backend error toasts.
+    } finally {
+      setSortingSpace(null);
+    }
+  };
+
+  const handleConfirmManualSort = async (overwrite = true) => {
+    const store = useSidebarStore.getState();
+    const pending = store.dialogs.pendingManualDrop;
+    if (!pending) return;
+
+    const targetNode = store.nodes[pending.targetId];
+    const spaceType = targetNode?.spaceType;
+    if (!spaceType) return;
+    const rootId = store.rootIds[spaceType];
+    const sourceSort = store.resourceSorts[spaceType];
+    if (!rootId) return;
+
+    setSortingSpace(spaceType);
+    try {
+      const result = await initializeManualSort(
+        namespaceId,
+        rootId,
+        sourceSort,
+        overwrite
+      );
+      store.patch(rootId, {
+        manualSortInitializedAt: result.initialized_at,
+      });
+      const manualSort = { sort_by: 'manual', sort_order: 'asc' } as const;
+      store.setResourceSort(spaceType, manualSort);
+      await refreshSpaceResources(spaceType, manualSort);
+      await useSidebarStore.getState().applyManualDrop(pending, () => {
+        toast.error(t('sidebar.sort.sync_failed'), {
+          position: 'bottom-right',
+        });
+      });
+      useSidebarStore.getState().setPendingManualDrop(null);
+    } catch {
+      // request.ts handles backend error toasts.
+    } finally {
+      setSortingSpace(null);
     }
   };
 
@@ -355,7 +434,11 @@ export function BodyForSidebar(props: IProps) {
         return store.restore(response.resource).then(id => {
           const parentId = response.resource.parent_id;
           if (parentId) {
-            return fetchChildren(namespaceId, parentId).then(children => {
+            return fetchChildren(
+              namespaceId,
+              parentId,
+              getNodeResourceSort(useSidebarStore.getState(), parentId)
+            ).then(children => {
               store.refreshChildren(parentId, children);
               return store
                 .expandPathTo(id, { expandTarget: true })
@@ -394,7 +477,11 @@ export function BodyForSidebar(props: IProps) {
         return store.restore(response.resource).then(id => {
           const parentId = response.resource.parent_id;
           if (parentId) {
-            return fetchChildren(namespaceId, parentId).then(children => {
+            return fetchChildren(
+              namespaceId,
+              parentId,
+              getNodeResourceSort(useSidebarStore.getState(), parentId)
+            ).then(children => {
               store.refreshChildren(parentId, children);
               return store.expandPathTo(id).then(() => id);
             });
@@ -481,7 +568,11 @@ export function BodyForSidebar(props: IProps) {
           return;
         }
 
-        return fetchChildren(namespaceId, movedParentId).then(children => {
+        return fetchChildren(
+          namespaceId,
+          movedParentId,
+          getNodeResourceSort(useSidebarStore.getState(), movedParentId)
+        ).then(children => {
           store.refreshChildren(movedParentId, children);
           return store.expandPathTo(nodeId, { expandTarget: true }).then(() => {
             store.activate(nodeId);
@@ -522,8 +613,8 @@ export function BodyForSidebar(props: IProps) {
       const id = await useSidebarStore
         .getState()
         .uploadFiles(currentUploadTargetId, files);
-      useSidebarStore.getState().activate(id);
       navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+      await locateSidebarResource(id);
       toast.success(t('upload.success', { count: files.length }));
     } catch (err) {
       const message =
@@ -553,7 +644,7 @@ export function BodyForSidebar(props: IProps) {
         onLocateResource={handleLocateResource}
         locateResourceDisabled={!canLocateCurrentResource}
         onRefreshResources={handleRefreshSidebarResources}
-        refreshingResources={refreshingResources}
+        refreshingResources={refreshingResources || !!sortingSpace}
       />
       <ResourceTree
         namespaceId={namespaceId}
@@ -566,6 +657,20 @@ export function BodyForSidebar(props: IProps) {
         onCreateSmartFolder={handleCreateSmartFolder}
         onCreateRssFolder={handleCreateRssFolder}
         smartFolderQuotaExhausted={smartFolderQuotaExhausted}
+        sortingSpace={sortingSpace}
+        onResourceSortChange={handleResourceSortChange}
+      />
+      <ManualSortConfirmDialog
+        open={!!pendingManualDrop}
+        loading={!!sortingSpace}
+        hasExistingManualSort={pendingManualRecordExists}
+        onCancel={() => useSidebarStore.getState().setPendingManualDrop(null)}
+        onConfirm={() => handleConfirmManualSort(pendingManualRecordExists)}
+        spaceName={
+          pendingManualSpace === 'teamspace'
+            ? t('sidebar.sort.teamspace')
+            : t('sidebar.sort.private')
+        }
       />
       <CreateSmartFolderDialog
         open={createSmartFolderOpen}
@@ -687,6 +792,7 @@ export function BodyForSidebar(props: IProps) {
           navigate(`/${namespaceId}/${id}`, {
             state: { fromSidebar: true },
           });
+          await locateSidebarResource(id);
         }}
       />
       <BatchCreateDialog

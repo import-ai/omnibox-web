@@ -19,10 +19,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/Sidebar';
-import useConfig from '@/hooks/useConfig';
 import useFeaturePreviews from '@/hooks/useFeaturePreviews';
-import useNamespaces from '@/hooks/useNamespaces';
-import useProNamespaces from '@/hooks/useProNamespaces';
 import { Namespace } from '@/interface';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { cn } from '@/lib/utils';
@@ -38,32 +35,21 @@ import { NamespaceTierBadge } from './NamespaceTierBadge';
 
 interface IProps {
   namespaceId: string;
+  namespaces: Namespace[];
 }
 
 export function Switcher(props: IProps) {
-  const { namespaceId } = props;
+  const { namespaceId, namespaces } = props;
   const { open } = useSidebar();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { config, loading: configLoading } = useConfig();
   useFeaturePreviews();
 
-  const commercial = config.commercial;
-  const openSourceNamespace = useNamespaces({
-    disabled: configLoading || commercial,
-  });
-  const proNamespace = useProNamespaces({
-    disabled: configLoading || !commercial,
-  });
-  const { data } = useMemo(
-    () => (commercial ? proNamespace : openSourceNamespace),
-    [commercial, proNamespace, openSourceNamespace]
-  );
   const current = useMemo(() => {
-    const found = data.find(item => item.id === namespaceId);
+    const found = namespaces.find(item => item.id === namespaceId);
     return found || { name: 'Unknown', id: '' };
-  }, [data, namespaceId]);
+  }, [namespaceId, namespaces]);
   const handleNamespaceSelect = (item: Namespace) => {
     if (item.id === namespaceId) {
       return;
@@ -125,7 +111,7 @@ export function Switcher(props: IProps) {
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <NamespaceList
-                namespaces={data}
+                namespaces={namespaces}
                 currentId={namespaceId}
                 onSelect={handleNamespaceSelect}
               />

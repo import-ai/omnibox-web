@@ -1,24 +1,22 @@
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { ResourceType } from '@/interface';
 
 import Invite from './permissions/InviteForm';
 import Table from './permissions/table';
 import { ShareTabContent } from './share';
 
 export interface ShareTabsProps {
+  namespaceId: string;
+  resourceId: string;
   showPermissions?: boolean;
-  resourceId?: string;
-  namespaceId?: string;
+  resourceType: ResourceType;
 }
 
 export default function ShareTabs(props: ShareTabsProps) {
-  const { showPermissions, resourceId, namespaceId } = props;
+  const { namespaceId, resourceId, showPermissions, resourceType } = props;
   const { t } = useTranslation();
-  const params = useParams();
-  const resource_id = resourceId || params.resource_id || '';
-  const namespace_id = namespaceId || params.namespace_id || '';
 
   return (
     <Tabs defaultValue={showPermissions ? 'permissions' : 'share'}>
@@ -39,13 +37,15 @@ export default function ShareTabs(props: ShareTabsProps) {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="permissions" className="px-4 pt-4 pb-2">
-        <Invite resource_id={resource_id} namespace_id={namespace_id} />
-        <Table resource_id={resource_id} namespace_id={namespace_id} />
+        <Invite resource_id={resourceId} namespace_id={namespaceId} />
+        <Table resource_id={resourceId} namespace_id={namespaceId} />
       </TabsContent>
       <TabsContent value="share" className="px-4 pt-4 pb-2">
         <ShareTabContent
-          resource_id={resource_id}
-          namespace_id={namespace_id}
+          key={`${namespaceId}/${resourceId}`}
+          resource_id={resourceId}
+          namespace_id={namespaceId}
+          resourceType={resourceType}
         />
       </TabsContent>
     </Tabs>

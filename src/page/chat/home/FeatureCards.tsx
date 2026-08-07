@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ChevronRight, File, MessageCircle } from 'lucide-react';
+import { ChevronRight, FileUp, MessageCircle } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -25,6 +25,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
 import { IResourceData, Resource, ResourceMeta } from '@/interface';
+import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 import { getTime } from '@/page/resource/utils';
@@ -176,9 +177,9 @@ export default function FeatureCards() {
                       variant="outline"
                       size="sm"
                       className="w-24"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => openFilePicker(fileInputRef.current)}
                     >
-                      <File className="size-4 text-red-500" />
+                      <FileUp className="size-4 text-red-500" />
                       {t('chat.home.upload.local')}
                     </Button>
                   </TooltipTrigger>

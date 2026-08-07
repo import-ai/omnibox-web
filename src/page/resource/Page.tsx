@@ -43,6 +43,9 @@ export default function Page(props: IProps) {
     resource.resource_type !== 'folder' &&
     resource.resource_type !== 'smart_folder' &&
     resource.resource_type !== 'rss_folder';
+  const constrainFolderContent =
+    resource.resource_type === 'folder' ||
+    resource.resource_type === 'smart_folder';
   const { rss_item_id: rssItemId } = useParams();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query') ?? '';
@@ -72,7 +75,12 @@ export default function Page(props: IProps) {
   }
 
   return (
-    <div data-resource-export-content="true">
+    <div
+      data-resource-export-content="true"
+      className={cn(
+        constrainFolderContent && !wide && 'mx-auto w-full max-w-[680px]'
+      )}
+    >
       <div
         className={cn(
           constrainHeader && 'resource-readonly-page-header',

@@ -44,6 +44,7 @@ import useProNamespaces from '@/hooks/useProNamespaces';
 import { IUseResource } from '@/hooks/userResource';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
+import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
@@ -120,6 +121,7 @@ export default function Actions(props: IActionProps) {
     onWide,
     forbidden,
     resource,
+    resourceId,
     editPage,
     namespaceId,
     rssItemCopyContent,
@@ -405,7 +407,7 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'import') {
-      fileInputRef.current?.click();
+      openFilePicker(fileInputRef.current);
       return;
     }
     if (id === 'download_as_png') {
@@ -633,7 +635,7 @@ export default function Actions(props: IActionProps) {
           {getTime(resource, i18n)}
         </div>
       )}
-      {resource && !isRssItemView && (
+      {resource && resource.id === resourceId && !isRssItemView && (
         <PermissionWrapper
           requiredPermission={0}
           forbidden={forbidden}
@@ -645,9 +647,10 @@ export default function Actions(props: IActionProps) {
           // spaceType={resource.space_type}
         >
           <ShareAction
-            spaceType={resource.space_type}
-            resourceId={resource.id}
             namespaceId={namespaceId}
+            resourceId={resource.id}
+            spaceType={resource.space_type}
+            resourceType={resource.resource_type}
           />
         </PermissionWrapper>
       )}

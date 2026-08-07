@@ -19,7 +19,10 @@ import {
 } from '@/page/sidebar/components/smart-folder';
 import { useNode, useSidebarStore } from '@/page/sidebar/store';
 import type { TreeNode } from '@/page/sidebar/store/types';
-import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
+import {
+  locateSidebarResource,
+  triggerGlobalFileUpload,
+} from '@/page/sidebar/utils';
 
 import { getCurrentResourceId, syncSingleMoveResult } from './batchMoveSync';
 
@@ -109,11 +112,11 @@ export function useNodeActions(
     useSidebarStore
       .getState()
       .create(nodeId, 'doc')
-      .then(id => {
-        useSidebarStore.getState().activate(id);
+      .then(async id => {
         navigate(`/${namespaceId}/${id}/edit`, {
           state: { fromSidebar: true },
         });
+        await locateSidebarResource(id);
         if (isMobile) setOpenMobile(false);
       })
       .catch(() => {
@@ -129,7 +132,8 @@ export function useNodeActions(
     useSidebarStore
       .getState()
       .create(nodeId, 'folder')
-      .then(() => {
+      .then(async id => {
+        await locateSidebarResource(id);
         if (isMobile) setOpenMobile(false);
       })
       .catch(() => {
@@ -296,7 +300,8 @@ export function useNodeActions(
     await useSidebarStore
       .getState()
       .move(resourceId, targetId)
-      .then(() => {
+      .then(async () => {
+        await locateSidebarResource(resourceId);
         syncSingleMoveResult({
           app,
           currentResourceId: getCurrentResourceId(loc.pathname, namespaceId),

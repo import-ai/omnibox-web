@@ -1,8 +1,8 @@
 import {
   ChevronRight,
   FilePlus,
+  FileUp,
   FolderPlus,
-  MonitorUp,
   MoreHorizontal,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -45,10 +45,15 @@ import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-fold
 import { useSpaceDrop } from '@/page/sidebar/hooks/useSpaceDrop';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
+import {
+  locateSidebarResource,
+  triggerGlobalFileUpload,
+} from '@/page/sidebar/utils';
+import type { ResourceSortOptions } from '@/service/resource';
 
 import { DisabledMenuTooltip } from './DisabledMenuTooltip';
 import ResourceNode from './ResourceNode';
+import { ResourceSortMenu } from './ResourceSortMenu';
 import { menuIconClass, menuItemClass } from './shared';
 
 interface SpaceSectionContentProps {
@@ -66,6 +71,9 @@ interface SpaceSectionContentProps {
   onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
   onCreateRssFolder: (spaceType: SpaceType) => void;
   smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
+  resourceSort: ResourceSortOptions;
+  sorting: boolean;
+  onResourceSortChange: (sort: ResourceSortOptions) => void;
 }
 
 export function SpaceSectionContent({
@@ -83,6 +91,9 @@ export function SpaceSectionContent({
   onCreateSmartFolder,
   onCreateRssFolder,
   smartFolderQuotaExhausted,
+  resourceSort,
+  sorting,
+  onResourceSortChange,
 }: SpaceSectionContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -125,11 +136,11 @@ export function SpaceSectionContent({
     useSidebarStore
       .getState()
       .create(rootId, 'doc')
-      .then(id => {
-        useSidebarStore.getState().activate(id);
+      .then(async id => {
         navigate(`/${namespaceId}/${id}/edit`, {
           state: { fromSidebar: true },
         });
+        await locateSidebarResource(id);
       })
       .catch(() => {
         // request.ts handles backend error toasts.
@@ -257,9 +268,14 @@ export function SpaceSectionContent({
                     className={menuItemClass}
                     onClick={handleUploadClick}
                   >
-                    <MonitorUp className={menuIconClass} />
+                    <FileUp className={menuIconClass} />
                     {t('actions.upload_file')}
                   </DropdownMenuItem>
+                  <ResourceSortMenu
+                    value={resourceSort}
+                    disabled={sorting}
+                    onChange={onResourceSortChange}
+                  />
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -309,7 +325,7 @@ export function SpaceSectionContent({
             className={menuItemClass}
             onClick={handleUploadClick}
           >
-            <MonitorUp className={menuIconClass} />
+            <FileUp className={menuIconClass} />
             {t('actions.upload_file')}
           </ContextMenuItem>
         </ContextMenuContent>
