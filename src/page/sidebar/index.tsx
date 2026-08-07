@@ -7,7 +7,10 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/Sidebar';
+import useConfig from '@/hooks/useConfig';
 import { useIsMobile } from '@/hooks/useMobile';
+import useNamespaces from '@/hooks/useNamespaces';
+import useProNamespaces from '@/hooks/useProNamespaces';
 import SettingModal from '@/page/settings';
 
 import { BodyForSidebar } from './BodyForSidebar';
@@ -22,6 +25,19 @@ export default function MainSidebar() {
   const resourceId = params.resource_id || '';
   const namespaceId = params.namespace_id || '';
   const { setOpenMobile } = useSidebar();
+  const { config, loading: configLoading } = useConfig();
+  const openSourceNamespaces = useNamespaces({
+    disabled: configLoading || config.commercial,
+  });
+  const proNamespaces = useProNamespaces({
+    disabled: configLoading || !config.commercial,
+  });
+  const namespaces = config.commercial
+    ? proNamespaces.data
+    : openSourceNamespaces.data;
+  const currentProNamespace = proNamespaces.data.find(
+    item => item.id === namespaceId
+  );
   const handleActiveKey = (id: string) => {
     if (id === 'chat') {
       navigate(`/${namespaceId}/chat`);
@@ -37,11 +53,19 @@ export default function MainSidebar() {
     <React.Fragment>
       <Sidebar className="border-none">
         <SidebarHeader className="gap-2.5 pr-0 pt-4">
-          <Switcher namespaceId={namespaceId} />
+          <Switcher namespaceId={namespaceId} namespaces={namespaces} />
           <Header onActiveKey={handleActiveKey} />
         </SidebarHeader>
-        <BodyForSidebar resourceId={resourceId} namespaceId={namespaceId} />
-        <FooterSidebar />
+        <BodyForSidebar
+          currentNamespace={currentProNamespace}
+          resourceId={resourceId}
+          namespaceId={namespaceId}
+        />
+        <FooterSidebar
+          commercial={configLoading ? undefined : config.commercial}
+          currentNamespace={currentProNamespace}
+          namespaceId={namespaceId}
+        />
         <SidebarRail className="opacity-0" />
       </Sidebar>
       <SettingModal />
