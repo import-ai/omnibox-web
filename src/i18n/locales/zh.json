@@ -994,8 +994,8 @@
     "discord": "Discord",
     "wechat": "二维码",
     "feedback": "意见反馈",
-    "upgrade_version": "升级版本",
-    "view_pricing": "查看定价",
+    "upgrade": "升级",
+    "renew": "续费",
     "join": "微信扫码加入社群"
   },
   "trash": {

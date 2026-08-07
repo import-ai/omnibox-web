@@ -1,11 +1,9 @@
 import { type Namespace, NamespaceTier } from '@/interface';
 
-export function getPricingEntryLabelKey(
-  namespace?: Pick<Namespace, 'expired' | 'tier'>
-) {
-  if (!namespace) return 'footer.view_pricing';
+export function getPricingEntryVariant(
+  namespace?: Pick<Namespace, 'tier'>
+): 'renew' | 'upgrade' | undefined {
+  if (!namespace) return undefined;
 
-  return namespace.tier === NamespaceTier.PREMIUM && !namespace.expired
-    ? 'footer.view_pricing'
-    : 'footer.upgrade_version';
+  return namespace.tier === NamespaceTier.BASIC ? 'upgrade' : 'renew';
 }

@@ -1,27 +1,18 @@
 import { NamespaceTier } from '@/interface';
 
-import { getPricingEntryLabelKey } from './pricingEntry';
+import { getPricingEntryVariant } from './pricingEntry';
 
-describe('getPricingEntryLabelKey', () => {
-  it('shows upgrade for basic and expired spaces, and pricing for active premium spaces', () => {
-    expect(getPricingEntryLabelKey({ tier: NamespaceTier.BASIC })).toBe(
-      'footer.upgrade_version'
+describe('getPricingEntryVariant', () => {
+  it('uses upgrade for basic spaces and renew for premium spaces', () => {
+    expect(getPricingEntryVariant({ tier: NamespaceTier.BASIC })).toBe(
+      'upgrade'
     );
-    expect(
-      getPricingEntryLabelKey({
-        tier: NamespaceTier.PREMIUM,
-        expired: true,
-      })
-    ).toBe('footer.upgrade_version');
-    expect(
-      getPricingEntryLabelKey({
-        tier: NamespaceTier.PREMIUM,
-        expired: false,
-      })
-    ).toBe('footer.view_pricing');
+    expect(getPricingEntryVariant({ tier: NamespaceTier.PREMIUM })).toBe(
+      'renew'
+    );
   });
 
-  it('uses neutral pricing copy while namespace data is unavailable', () => {
-    expect(getPricingEntryLabelKey()).toBe('footer.view_pricing');
+  it('does not choose an entry while namespace data is unavailable', () => {
+    expect(getPricingEntryVariant()).toBeUndefined();
   });
 });
