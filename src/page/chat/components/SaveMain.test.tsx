@@ -55,7 +55,6 @@ describe('SaveMain', () => {
     useCopilotStore.setState({
       workspaces: {},
       pendingExpandFromResource: {},
-      pendingResourceHandoffs: {},
     });
     useCopilotStore
       .getState()
@@ -110,8 +109,7 @@ describe('SaveMain', () => {
     expect(fire).toHaveBeenCalledWith(
       'generate_resource',
       'private-root',
-      expect.objectContaining({ id: 'Zyxw9876Vuts5432' }),
-      { preserveCopilot: true }
+      expect.objectContaining({ id: 'Zyxw9876Vuts5432' })
     );
   });
 });

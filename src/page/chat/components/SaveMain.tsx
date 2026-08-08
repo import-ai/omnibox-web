@@ -42,9 +42,7 @@ export default function SaveMain(props: IProps) {
               name: getTitleFromConversationDetail(conversationDetail),
             })
             .then(response => {
-              app.fire('generate_resource', privateRoot.id, response, {
-                preserveCopilot: true,
-              });
+              app.fire('generate_resource', privateRoot.id, response);
             })
         )
       )

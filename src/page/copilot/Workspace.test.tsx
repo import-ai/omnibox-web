@@ -46,7 +46,6 @@ describe('Copilot Workspace', () => {
     useCopilotStore.setState({
       workspaces: {},
       pendingExpandFromResource: {},
-      pendingResourceHandoffs: {},
     });
     mockUseLocation.mockReturnValue({
       key: 'chat',
@@ -63,7 +62,7 @@ describe('Copilot Workspace', () => {
     jest.clearAllMocks();
   });
 
-  it('resets Copilot when navigating from a citation preview to a resource', async () => {
+  it('keeps Copilot open when navigating from a citation preview to a resource', async () => {
     const store = useCopilotStore.getState();
     store.showConversation('namespace-a', 'conversation-a');
     store.previewResource('namespace-a', 'Abcd1234Efgh5678');
@@ -78,17 +77,11 @@ describe('Copilot Workspace', () => {
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
     ).toMatchObject({
-      conversationId: null,
-      open: false,
+      conversationId: 'conversation-a',
+      open: true,
       previewResourceId: null,
-      view: 'home',
+      view: 'conversation',
     });
-
-    act(() => useCopilotStore.getState().toggle('namespace-a'));
-
-    expect(
-      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
-    ).toMatchObject({ conversationId: null, open: true, view: 'home' });
   });
 
   it('keeps a manually opened Copilot visible on a resource route', async () => {
@@ -180,7 +173,7 @@ describe('Copilot Workspace', () => {
     expect(container.querySelector('[data-testid="copilot-panel"]')).toBeNull();
   });
 
-  it('resets Copilot when navigating between resources with a preview open', async () => {
+  it('keeps Copilot open when navigating between resources with a preview open', async () => {
     const store = useCopilotStore.getState();
     store.showConversation('namespace-a', 'conversation-a');
     mockUseLocation.mockReturnValue({
@@ -199,10 +192,10 @@ describe('Copilot Workspace', () => {
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
     ).toMatchObject({
-      conversationId: null,
-      open: false,
+      conversationId: 'conversation-a',
+      open: true,
       previewResourceId: null,
-      view: 'home',
+      view: 'conversation',
     });
   });
 
@@ -272,11 +265,10 @@ describe('Copilot Workspace', () => {
     });
   });
 
-  it('commits a saved-resource handoff without closing Copilot', async () => {
+  it('keeps Copilot open when navigating to a newly saved resource from a preview', async () => {
     const store = useCopilotStore.getState();
     store.showConversation('namespace-a', 'conversation-a');
     store.previewResource('namespace-a', 'Abcd1234Efgh5678');
-    store.requestResourceHandoff('namespace-a', 'Zyxw9876Vuts5432');
     mockUseLocation.mockReturnValue({
       key: 'resource-a',
       pathname: '/namespace-a/Qwer1234Tyui5678',
@@ -289,7 +281,6 @@ describe('Copilot Workspace', () => {
     });
     await act(async () => root.render(<Workspace />));
 
-    expect(useCopilotStore.getState().pendingResourceHandoffs).toEqual({});
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
     ).toMatchObject({

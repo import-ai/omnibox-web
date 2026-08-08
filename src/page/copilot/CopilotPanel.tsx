@@ -166,7 +166,9 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
     state => getCopilotWorkspace(state, namespaceId).open
   );
   const close = useCopilotStore(state => state.close);
-  const [ready, setReady] = useState(false);
+  // Mounting while already open (e.g. leaving chat citation for a resource)
+  // should not replay the slide-in; only animate when opening from closed.
+  const [ready, setReady] = useState(() => open);
   const panelRef = useRef<HTMLElement>(null);
   const gapRef = useRef<HTMLDivElement>(null);
   const { layout, setPanelElement: observePanelElement } =
@@ -191,9 +193,10 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
   }, [open]);
 
   useEffect(() => {
+    if (ready) return;
     const frame = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [ready]);
 
   useFocusRestore(open);
   useOverlayInteraction(open && modal, panelRef, handleClose);

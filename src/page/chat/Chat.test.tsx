@@ -60,7 +60,6 @@ describe('Chat', () => {
     useCopilotStore.setState({
       workspaces: {},
       pendingExpandFromResource: {},
-      pendingResourceHandoffs: {},
     });
     mockParams.conversation_id = 'conversation-a';
     container = document.createElement('div');

@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/useApp';
 import { Resource, ResourceType } from '@/interface';
-import { useCopilotStore } from '@/page/copilot/copilotStore';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import { isCurrentRssItemRoute } from '@/page/sidebar/sidebarBehavior';
@@ -23,10 +22,6 @@ function extractResourceId(
 ): string | undefined {
   const match = pathname.match(new RegExp(`^/${namespaceId}/([^/]+)`));
   return match?.[1];
-}
-
-interface GeneratedResourceOptions {
-  preserveCopilot?: boolean;
 }
 
 async function resolveResourceList(
@@ -125,8 +120,7 @@ export function useSidebarEvents(namespaceId: string) {
     const hooks: Array<() => void> = [];
     const handleGeneratedResource = async (
       resourceIdOrParentId: string,
-      resource?: Resource | Resource[],
-      options?: GeneratedResourceOptions
+      resource?: Resource | Resource[]
     ) => {
       const resources = await resolveResourceList(
         namespaceId,
@@ -141,9 +135,6 @@ export function useSidebarEvents(namespaceId: string) {
       }
       const last = resources[resources.length - 1];
       useSidebarStore.getState().activate(last.id);
-      if (options?.preserveCopilot) {
-        useCopilotStore.getState().requestResourceHandoff(namespaceId, last.id);
-      }
       navigateToResource(navigate, `/${namespaceId}/${last.id}`, {
         state: { fromSidebar: true },
       });

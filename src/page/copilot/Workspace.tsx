@@ -56,7 +56,6 @@ interface WorkspaceLifecycleProps {
   namespaceId: string;
   pathname: string;
   pendingExpandFromResource: boolean;
-  pendingResourceHandoff: string | null;
   previewResourceId: string | null;
   showChatBesidePreview: boolean;
   workspaceOpen: boolean;
@@ -84,7 +83,6 @@ function useWorkspaceLifecycle({
   namespaceId,
   pathname,
   pendingExpandFromResource,
-  pendingResourceHandoff,
   previewResourceId,
   showChatBesidePreview,
   workspaceOpen,
@@ -96,38 +94,17 @@ function useWorkspaceLifecycle({
   const clearPendingExpandFromResource = useCopilotStore(
     state => state.clearPendingExpandFromResource
   );
-  const clearPendingResourceHandoff = useCopilotStore(
-    state => state.clearPendingResourceHandoff
-  );
   const close = useCopilotStore(state => state.close);
 
   useLayoutEffect(() => {
     const routeChanged = previousPathnameRef.current !== pathname;
-    if (namespaceId && routeChanged && !isChatRoute) {
-      const handoffCommitted =
-        pendingResourceHandoff &&
-        pathname === `/${namespaceId}/${pendingResourceHandoff}`;
-      if (handoffCommitted) {
-        closePreview(namespaceId);
-        clearPendingResourceHandoff(namespaceId);
-      } else if (previewResourceId) {
-        const isEditingPreview =
-          pathname === `/${namespaceId}/${previewResourceId}/edit`;
-        if (isEditingPreview) closePreview(namespaceId);
-        else reset(namespaceId);
-      }
+    if (namespaceId && routeChanged && !isChatRoute && previewResourceId) {
+      // Leave citation preview when the route changes (sidebar switch, edit,
+      // save). Keep the Copilot conversation open beside the new page.
+      closePreview(namespaceId);
     }
     previousPathnameRef.current = pathname;
-  }, [
-    clearPendingResourceHandoff,
-    closePreview,
-    isChatRoute,
-    namespaceId,
-    pathname,
-    pendingResourceHandoff,
-    previewResourceId,
-    reset,
-  ]);
+  }, [closePreview, isChatRoute, namespaceId, pathname, previewResourceId]);
 
   // Finish "close current resource" only after the chat route is active so the
   // previously hidden resource Outlet never paints between preview teardown and
@@ -287,9 +264,6 @@ export default function Workspace() {
   const pendingExpandFromResource = useCopilotStore(
     state => !!state.pendingExpandFromResource[namespaceId]
   );
-  const pendingResourceHandoff = useCopilotStore(
-    state => state.pendingResourceHandoffs[namespaceId] ?? null
-  );
   const { layout, setPanelElement } = useCopilotPanelLayout();
   const chatRoot = `/${namespaceId}/chat`;
   const isChatHome = location.pathname === chatRoot;
@@ -328,13 +302,18 @@ export default function Workspace() {
     namespaceId,
     pathname: location.pathname,
     pendingExpandFromResource,
-    pendingResourceHandoff,
     previewResourceId: workspace.previewResourceId,
     showChatBesidePreview,
     workspaceOpen: workspace.open,
   });
   // Chat routes keep their existing Outlet as the only conversation instance.
   const keepCopilotMounted = copilotMounted && !isChatRoute;
+  // Prefetch so the first chat-citation → resource handoff does not flash an
+  // empty Suspense gap while CopilotPanel's chunk loads.
+  useEffect(() => {
+    if (!chatPreviewRoute || !renderWorkspace.open) return;
+    void import('./CopilotPanel');
+  }, [chatPreviewRoute, renderWorkspace.open]);
   const setChatRouteElement = useCallback(
     (element: HTMLDivElement | null) => {
       setPanelElement(element);
