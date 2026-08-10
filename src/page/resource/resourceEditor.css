@@ -100,6 +100,18 @@
   padding-left: 16.5rem;
 }
 
+.resource-editable-page--wide:has(
+    .toc-sidebar-nav:not(.toc-sidebar-nav--hidden)
+  )
+  .toc-sidebar,
+.resource-editable-page--wide:has(
+    .toc-sidebar-nav:not(.toc-sidebar-nav--hidden)
+  )
+  .omnibox-editor-root
+  .toc-sidebar {
+  left: calc(16.5rem - 1.25rem) !important;
+}
+
 .resource-readonly-editor--wide:has(
   .toc-sidebar-nav:not(.toc-sidebar-nav--hidden)
 ) {
@@ -116,10 +128,20 @@
   )
   .omnibox-editor-root
   .toc-sidebar-wrapper {
-  transform: translate(
-    calc(-16.5rem - 0.5rem),
-    calc(-50% + 0.75rem)
-  ) !important;
+  transform: translate(-1.25rem, calc(-50% + 0.75rem)) !important;
+}
+
+.resource-readonly-editor--wide .toc-sidebar-nav,
+.resource-editable-page--wide .toc-sidebar-nav {
+  left: auto;
+  right: 100%;
+  transform: translateX(10px);
+}
+
+.resource-readonly-editor--wide .toc-sidebar-popover,
+.resource-editable-page--wide .toc-sidebar-popover {
+  margin-right: 0.25rem;
+  margin-left: 0;
 }
 
 [data-resource-export-content='true']:has(
