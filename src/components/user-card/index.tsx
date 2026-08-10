@@ -32,7 +32,7 @@ export default function UserCard(props: IProps) {
           </span>
           {you && (
             <span className="ml-2 flex-shrink-0 text-muted-foreground">
-              ({t('permission.you')})
+              {t('permission.you')}
             </span>
           )}
         </div>

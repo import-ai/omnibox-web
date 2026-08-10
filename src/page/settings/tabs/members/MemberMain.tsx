@@ -22,18 +22,24 @@ interface MemberProps {
   data: Array<Member>;
   namespace_id: string;
   namespaceName?: string;
+  canManageMembers: boolean;
   onSearch: (value: string) => void;
 }
 
 export default function MemberMain(props: MemberProps) {
-  const { search, data, namespace_id, namespaceName, refetch, onSearch } =
-    props;
+  const {
+    search,
+    data,
+    namespace_id,
+    namespaceName,
+    canManageMembers,
+    refetch,
+    onSearch,
+  } = props;
   const { t } = useTranslation();
   const uid = localStorage.getItem('uid');
   const currentUserMember = data.find(item => item.user_id === uid);
   const currentUserRole = currentUserMember?.role;
-  const isOwnerOrAdmin =
-    currentUserRole === 'owner' || currentUserRole === 'admin';
 
   return (
     <div className="space-y-2 lg:space-y-4">
@@ -46,14 +52,16 @@ export default function MemberMain(props: MemberProps) {
           containerClassName="h-7 min-h-7 w-[150px] rounded-md border-border lg:h-9 lg:min-h-9 lg:w-[435px]"
           inputClassName="h-7 lg:h-9"
         />
-        <Invite onFinish={refetch}>
-          <Button
-            variant="default"
-            className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-          >
-            {t('manage.add')}
-          </Button>
-        </Invite>
+        {canManageMembers && (
+          <Invite onFinish={refetch}>
+            <Button
+              variant="default"
+              className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+            >
+              {t('manage.add')}
+            </Button>
+          </Invite>
+        )}
       </div>
       <div className="max-w-[83vw] overflow-auto sm:max-w-full">
         <div className="min-w-[320px]">
@@ -85,11 +93,12 @@ export default function MemberMain(props: MemberProps) {
                     <UserCard
                       email={item.email || ''}
                       username={item.username}
+                      you={item.user_id === uid}
                     />
                   </div>
                   <div className="w-[90px] whitespace-nowrap px-2 lg:w-[124px]">
                     <PermissionAction
-                      disabled={!isOwnerOrAdmin || !canModifyTarget}
+                      disabled={!canManageMembers || !canModifyTarget}
                       value={item.permission}
                       refetch={refetch}
                       user_id={item.user_id}
@@ -100,7 +109,7 @@ export default function MemberMain(props: MemberProps) {
                   </div>
                   <div className="w-[90px] whitespace-nowrap px-2 lg:w-[127px]">
                     <Action
-                      disabled={!isOwnerOrAdmin}
+                      disabled={!canManageMembers}
                       id={item.user_id}
                       value={item.role}
                       currentUserRole={currentUserRole}

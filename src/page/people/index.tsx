@@ -8,12 +8,19 @@ import Table from '@/page/settings/tabs/members';
 
 import Invite from './InvitePeople';
 
-export default function PeopleManage() {
+interface PeopleManageProps {
+  canManageMembers: boolean;
+}
+
+export default function PeopleManage({ canManageMembers }: PeopleManageProps) {
   const params = useParams();
   const namespaceId = params.namespace_id!;
 
   const [invitationId, setInvitationId] = useState('');
   const refetch = () => {
+    if (!canManageMembers) {
+      return;
+    }
     const source = axios.CancelToken.source();
     http
       .get(`namespaces/${namespaceId}/invitations?type=namespace`, {
@@ -31,17 +38,21 @@ export default function PeopleManage() {
     };
   };
 
-  useEffect(refetch, []);
+  useEffect(refetch, [canManageMembers, namespaceId]);
 
   return (
     <div>
-      <Invite
-        namespaceId={namespaceId}
-        invitationId={invitationId}
-        refetch={refetch}
-      />
-      <Separator className="my-2 lg:my-4" />
-      <Table />
+      {canManageMembers && (
+        <>
+          <Invite
+            namespaceId={namespaceId}
+            invitationId={invitationId}
+            refetch={refetch}
+          />
+          <Separator className="my-2 lg:my-4" />
+        </>
+      )}
+      <Table canManageMembers={canManageMembers} />
     </div>
   );
 }

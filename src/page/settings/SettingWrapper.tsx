@@ -58,8 +58,7 @@ export default function SettingWrapper({
     },
     {
       value: 'people',
-      children: <PeopleForm />,
-      requireOwner: true,
+      children: <PeopleForm canManageMembers={userIsOwnerOrAdmin} />,
     },
     {
       value: 'tasks',
@@ -94,27 +93,22 @@ export default function SettingWrapper({
   useEffect(() => {
     const source = axios.CancelToken.source();
     http
-      .get(
-        `/namespaces/${namespaceId}/members/${localStorage.getItem('uid')}`,
-        {
-          cancelToken: source.token,
-          mute: true,
-        }
-      )
+      .get(`/namespaces/${namespaceId}/me`, {
+        cancelToken: source.token,
+        mute: true,
+      })
       .then(res => {
         setUserIsOwner(res.role === 'owner');
         setUserIsOwnerOrAdmin(res.role === 'owner' || res.role === 'admin');
       })
-      .catch(err => {
-        if (err?.response?.data?.code === 'user_not_owner') {
-          setUserIsOwner(false);
-          setUserIsOwnerOrAdmin(false);
-        }
+      .catch(() => {
+        setUserIsOwner(false);
+        setUserIsOwnerOrAdmin(false);
       });
     return () => {
       source.cancel();
     };
-  }, []);
+  }, [namespaceId]);
 
   return (
     <SettingsToastProvider>
@@ -125,7 +119,6 @@ export default function SettingWrapper({
             value={activeKey}
             onChange={onActiveKey}
             username={user?.username || ''}
-            userIsOwnerOrAdmin={userIsOwnerOrAdmin}
           />
         </div>
 
@@ -140,11 +133,7 @@ export default function SettingWrapper({
 
         {/* Content area */}
         <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-white px-5 py-4 [scrollbar-gutter:stable] dark:bg-neutral-800 lg:p-4 lg:pl-10 lg:pt-10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900 [&::-webkit-scrollbar]:w-1.5">
-          {
-            items
-              .filter(item => !item.requireOwner || userIsOwnerOrAdmin)
-              .find(item => item.value === activeKey)?.children
-          }
+          {items.find(item => item.value === activeKey)?.children}
         </div>
       </div>
     </SettingsToastProvider>

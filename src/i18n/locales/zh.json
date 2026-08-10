@@ -615,7 +615,7 @@
     "owner_full_access_required": "所有者需要拥有全部权限",
     "edit_required": "您只有查看权限，无法编辑此资源。",
     "delete_required": "您只有查看权限，无法删除此资源。",
-    "you": "你"
+    "you": "（你）"
   },
   "copy": {
     "title": "复制",
