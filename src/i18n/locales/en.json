@@ -987,7 +987,9 @@
       "sort": {
         "label": "Sort order",
         "tooltip": "Manual sorting on shared pages follows changes made in the resource list.\nOther sorting methods are independent from the resource list.",
-        "manual_unavailable": "Sort manually in the sidebar first."
+        "manual_unavailable": "Sort manually in the sidebar first.",
+        "smart_folder_unsupported": "Smart folders do not support this action.",
+        "rss_folder_unsupported": "RSS folders do not support this action."
       },
       "folder_current_file_unsupported": "Folders do not support this option.",
       "folder_share_update_failed": "Failed to include all folder resources. Retry before copying the share link.",
