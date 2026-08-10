@@ -246,9 +246,9 @@
     "member_count": "{{ size }} 名成员",
     "conflict": "已有相同名称的空间",
     "no_special_chars": "空间名不允许使用特殊符号",
-    "quota_exceeded": "已超过额度",
-    "quota_exceeded_desc": "当前空间额度已耗尽，请扩容",
-    "quota_expand_button": "扩容",
+    "quota_exceeded": "已达免费创建上限",
+    "quota_exceeded_desc": "每个账号可免费创建 1 个空间，更多空间需单独购买。",
+    "quota_expand_button": "购买并创建",
     "usage": "用量",
     "leave": {
       "title": "离开空间",

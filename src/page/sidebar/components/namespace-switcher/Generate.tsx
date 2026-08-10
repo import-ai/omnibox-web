@@ -58,7 +58,7 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
             >
               <Button
                 variant="default"
-                className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
+                className="h-[30px] w-auto shrink-0 px-3 text-xs font-medium"
               >
                 {t('namespace.quota_expand_button')}
                 <SquareArrowOutUpRight />
