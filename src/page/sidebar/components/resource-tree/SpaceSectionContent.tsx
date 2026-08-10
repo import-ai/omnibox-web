@@ -328,6 +328,12 @@ export function SpaceSectionContent({
             <FileUp className={menuIconClass} />
             {t('actions.upload_file')}
           </ContextMenuItem>
+          <ResourceSortMenu
+            variant="context"
+            value={resourceSort}
+            disabled={sorting}
+            onChange={onResourceSortChange}
+          />
         </ContextMenuContent>
       </ContextMenu>
       {isOpen && (
