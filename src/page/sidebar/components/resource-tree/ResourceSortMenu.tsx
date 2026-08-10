@@ -2,6 +2,12 @@ import { ArrowUpDown, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
+  ContextMenuItem,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+} from '@/components/ui/ContextMenu';
+import {
   DropdownMenuItem,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -16,6 +22,7 @@ interface ResourceSortMenuProps {
   value: ResourceSortOptions;
   disabled: boolean;
   onChange: (value: ResourceSortOptions) => void;
+  variant?: 'context' | 'dropdown';
 }
 
 const automaticSortOptions: Array<
@@ -63,23 +70,30 @@ export function ResourceSortMenu({
   value,
   disabled,
   onChange,
+  variant = 'dropdown',
 }: ResourceSortMenuProps) {
   const { t } = useTranslation();
+  const MenuItem = variant === 'context' ? ContextMenuItem : DropdownMenuItem;
+  const MenuSub = variant === 'context' ? ContextMenuSub : DropdownMenuSub;
+  const MenuSubContent =
+    variant === 'context' ? ContextMenuSubContent : DropdownMenuSubContent;
+  const MenuSubTrigger =
+    variant === 'context' ? ContextMenuSubTrigger : DropdownMenuSubTrigger;
 
   return (
-    <DropdownMenuSub>
-      <DropdownMenuSubTrigger disabled={disabled} className={menuItemClass}>
+    <MenuSub>
+      <MenuSubTrigger disabled={disabled} className={menuItemClass}>
         <ArrowUpDown className={menuIconClass} />
         {t('sidebar.sort.menu')}
-      </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent className="w-max">
+      </MenuSubTrigger>
+      <MenuSubContent className="w-max">
         {automaticSortOptions.map(option => {
           const selected =
             value.sort_by === option.sort_by &&
             value.sort_order === option.sort_order;
 
           return (
-            <DropdownMenuItem
+            <MenuItem
               key={`${option.sort_by}-${option.sort_order}`}
               disabled={disabled}
               aria-current={selected ? 'true' : undefined}
@@ -98,10 +112,10 @@ export function ResourceSortMenu({
                   {selected && <Check className="size-4 text-blue-500" />}
                 </span>
               </span>
-            </DropdownMenuItem>
+            </MenuItem>
           );
         })}
-        <DropdownMenuItem
+        <MenuItem
           disabled={disabled}
           aria-current={value.sort_by === 'manual' ? 'true' : undefined}
           className={cn(
@@ -119,8 +133,8 @@ export function ResourceSortMenu({
               )}
             </span>
           </span>
-        </DropdownMenuItem>
-      </DropdownMenuSubContent>
-    </DropdownMenuSub>
+        </MenuItem>
+      </MenuSubContent>
+    </MenuSub>
   );
 }
