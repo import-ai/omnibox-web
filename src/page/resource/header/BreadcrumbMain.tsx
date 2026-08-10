@@ -22,18 +22,29 @@ import {
 import useApp from '@/hooks/useApp';
 import { PathItem, RssItemBreadcrumb } from '@/interface';
 import { cn } from '@/lib/utils';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 interface IProps {
   className?: string;
   namespaceId: string;
   path?: PathItem[];
+  rssItemId?: string | null;
 }
 
 export default function BreadcrumbMain(props: IProps) {
-  const { className, namespaceId, path = [] } = props;
+  const {
+    className,
+    namespaceId,
+    path = [],
+    rssItemId: explicitRssItemId,
+  } = props;
   const app = useApp();
   const navigate = useNavigate();
-  const { rss_item_id: rssItemId } = useParams();
+  const { rss_item_id: routeRssItemId } = useParams();
+  const rssItemId =
+    explicitRssItemId === undefined
+      ? routeRssItemId
+      : explicitRssItemId || undefined;
   const { t } = useTranslation();
   const [rssItem, setRssItem] = useState<RssItemBreadcrumb | null>(null);
 
@@ -79,7 +90,10 @@ export default function BreadcrumbMain(props: IProps) {
                       variant="ghost"
                       className="h-6 max-w-[240px] justify-start overflow-hidden px-2 py-0 font-normal text-foreground"
                       onClick={() => {
-                        navigate(`/${namespaceId}/${item.id}`);
+                        navigateToResource(
+                          navigate,
+                          `/${namespaceId}/${item.id}`
+                        );
                       }}
                     >
                       <span className="min-w-0 truncate text-left">
@@ -110,7 +124,7 @@ export default function BreadcrumbMain(props: IProps) {
               variant="ghost"
               className="h-6 max-w-[240px] justify-start overflow-hidden px-2 py-0 font-normal text-foreground"
               onClick={() => {
-                navigate(`/${namespaceId}/${rootItem.id}`);
+                navigateToResource(navigate, `/${namespaceId}/${rootItem.id}`);
               }}
             >
               <span className="min-w-0 truncate text-left">
@@ -131,7 +145,7 @@ export default function BreadcrumbMain(props: IProps) {
                 <DropdownMenuItem
                   key={item.id}
                   onClick={() => {
-                    navigate(`/${namespaceId}/${item.id}`);
+                    navigateToResource(navigate, `/${namespaceId}/${item.id}`);
                   }}
                   className="cursor-pointer"
                 >
@@ -149,7 +163,10 @@ export default function BreadcrumbMain(props: IProps) {
                 variant="ghost"
                 className="h-6 max-w-[240px] justify-start overflow-hidden px-2 py-0 font-normal text-foreground"
                 onClick={() => {
-                  navigate(`/${namespaceId}/${currentItem.id}`);
+                  navigateToResource(
+                    navigate,
+                    `/${namespaceId}/${currentItem.id}`
+                  );
                 }}
               >
                 <span className="min-w-0 truncate text-left">
