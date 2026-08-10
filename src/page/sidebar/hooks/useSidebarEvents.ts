@@ -7,9 +7,9 @@ import useApp from '@/hooks/useApp';
 import { Resource, ResourceType } from '@/interface';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
-import { isCurrentRssItemRoute } from '@/page/sidebar/sidebarBehavior';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { getNodeResourceSort } from '@/page/sidebar/store/utils';
+import { locateSidebarResource } from '@/page/sidebar/utils';
 import {
   fetchChildren,
   fetchResource,
@@ -39,15 +39,6 @@ async function resolveResourceList(
     return [];
   }
   return [await fetchResource(namespaceId, resourceIdOrParentId)];
-}
-
-function scrollToResource(resourceId: string) {
-  requestAnimationFrame(() => {
-    const element = document.querySelector(
-      `[data-resource-id="${resourceId}"]`
-    );
-    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
 }
 
 async function refreshSmartFolderChildren(
@@ -176,25 +167,7 @@ export function useSidebarEvents(namespaceId: string) {
       if (parentId) {
         await handleRefreshResourceChildren(parentId);
       }
-      await useSidebarStore
-        .getState()
-        .expandPathTo(targetId, { expandTarget: true });
-      useSidebarStore.getState().activate(targetId);
-      if (
-        !isCurrentRssItemRoute(window.location.pathname, namespaceId, targetId)
-      ) {
-        const currentState = window.history.state?.usr;
-        navigateToResource(navigate, `/${namespaceId}/${targetId}`, {
-          replace: true,
-          state: {
-            ...(currentState && typeof currentState === 'object'
-              ? currentState
-              : {}),
-            sidebarActiveKey: targetId,
-          },
-        });
-      }
-      scrollToResource(targetId);
+      await locateSidebarResource(targetId);
     };
 
     // The event bus treats a listener return value as the next listener's
