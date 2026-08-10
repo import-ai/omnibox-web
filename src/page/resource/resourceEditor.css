@@ -117,18 +117,9 @@
   transform: translateY(calc(-50% + 0.75rem)) !important;
 }
 
-.resource-readonly-editor--wide .toc-sidebar-nav,
-.resource-editable-page--wide .toc-sidebar-nav {
-  left: auto;
-  right: 100%;
-  transform: translateX(10px);
-}
-
-.resource-readonly-editor--wide .toc-sidebar-popover,
-.resource-editable-page--wide .toc-sidebar-popover {
-  margin-right: 0.25rem;
-  margin-left: 0;
-}
+/* Keep popover opening to the right of the rail. Left-open hides it under the
+   resource sidebar when the rail is docked there. Content clearance is handled
+   by the wide-mode left gutter above, not by flipping the popover. */
 
 .resource-readonly-editor .toc-sidebar {
   padding-top: 1rem;
