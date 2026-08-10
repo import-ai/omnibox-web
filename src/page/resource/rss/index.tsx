@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
 import useApp from '@/hooks/useApp';
 import { Resource, RssItem } from '@/interface';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { fetchRssItems } from '@/service/resource';
 
 const PAGE_SIZE = 20;
@@ -144,7 +145,8 @@ export default function RssItems(props: IProps) {
                 <div
                   className="group cursor-pointer"
                   onClick={() =>
-                    navigate(
+                    navigateToResource(
+                      navigate,
                       `${itemNavigationPrefix}/${resourceId}/rss-items/${item.id}`
                     )
                   }

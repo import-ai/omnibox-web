@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import useApp from '@/hooks/useApp';
+import { openCopilotForChatContext } from '@/lib/chatBridge';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import { useSelectedCount, useSelectionState, useSidebarStore } from '../store';
 import { getTopLevelSelectedIds } from '../store/utils';
@@ -129,7 +131,7 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         );
       }
       if (result.nextId) {
-        navigate(`/${namespaceId}/${result.nextId}`, {
+        navigateToResource(navigate, `/${namespaceId}/${result.nextId}`, {
           state: { fromSidebar: true },
         });
         app.fire('scroll_to_resource', result.nextId);
@@ -244,7 +246,7 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
 
       if (result.resourceId) {
         useSidebarStore.getState().activate(result.resourceId);
-        navigate(`/${namespaceId}/${result.resourceId}`, {
+        navigateToResource(navigate, `/${namespaceId}/${result.resourceId}`, {
           state: { fromSidebar: true },
         });
         app.fire('scroll_to_resource', result.resourceId);
@@ -277,7 +279,8 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
       position: 'bottom-right',
     });
     if (!location.pathname.includes('/chat')) {
-      navigate(`/${namespaceId}/chat`);
+      // Stay on the resource page and surface Copilot with the new context.
+      openCopilotForChatContext(namespaceId);
     }
   };
 

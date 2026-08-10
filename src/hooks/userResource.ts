@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { SITE_NAME } from '@/const';
-import App from '@/hooks/app.class';
+import type App from '@/hooks/app.class';
 import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
@@ -21,6 +21,17 @@ export interface IUseResource {
   namespaceId: string;
   resource: Resource | null;
   onResource: (resource: Resource) => void;
+}
+
+/** Resolves a title only when the loaded resource belongs to the active route. */
+export function resolveResourceDocumentTitle(
+  resourceId: string,
+  resource: Resource | null,
+  untitled: string
+) {
+  if (!resourceId) return SITE_NAME;
+  if (resource?.id !== resourceId) return null;
+  return resource.name || untitled;
 }
 
 export default function useResource() {
@@ -67,12 +78,13 @@ export default function useResource() {
   }, [resourceId]);
 
   useEffect(() => {
-    if (!resource) {
-      setDocumentTitle(SITE_NAME);
-      return;
-    }
-    setDocumentTitle(resource.name ? resource.name : t('untitled'));
-  }, [resource]);
+    const title = resolveResourceDocumentTitle(
+      resourceId,
+      resource,
+      t('untitled')
+    );
+    if (title !== null) setDocumentTitle(title);
+  }, [resource, resourceId, t]);
 
   // Monitor the update_resource event and synchronize the update of the resource name on the current page
   useEffect(() => {

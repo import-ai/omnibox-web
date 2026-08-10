@@ -1,6 +1,12 @@
 import Cookies from 'js-cookie';
 
+import { clearConversationCache } from '@/page/chat/conversation/conversationCache';
+
 export function setGlobalCredential(userId: string, token: string) {
+  const previousUserId = localStorage.getItem('uid');
+  if (previousUserId !== userId) {
+    clearConversationCache();
+  }
   localStorage.setItem('uid', userId);
   localStorage.setItem('token', token);
   let jwtExpiration: Date;
@@ -22,6 +28,7 @@ export function setGlobalCredential(userId: string, token: string) {
 }
 
 export function removeGlobalCredential() {
+  clearConversationCache();
   localStorage.removeItem('uid');
   localStorage.removeItem('token');
   Cookies.remove('token', { path: '/' });

@@ -72,6 +72,15 @@
       }
     }
   },
+  "copilot": {
+    "title": "Copilot",
+    "description": "在当前工作区中继续 AI 对话",
+    "expand": "展开 Copilot",
+    "collapse": "收起 Copilot",
+    "preview": "引用预览",
+    "close_preview": "关闭引用预览",
+    "preview_error": "无法加载引用资源，请稍后重试"
+  },
   "resource_picker": {
     "expand_resource": "展开{{name}}",
     "collapse_resource": "收起{{name}}",
@@ -89,6 +98,7 @@
   },
   "resource": {
     "name": "文件",
+    "close_current": "关闭当前资源",
     "title": "标题",
     "title_placeholder": "请输入标题",
     "folder": {

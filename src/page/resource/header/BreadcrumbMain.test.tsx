@@ -82,7 +82,9 @@ describe('BreadcrumbMain', () => {
     );
     folderButton?.click();
 
-    expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1');
+    expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1', {
+      flushSync: true,
+    });
     navigate.mockClear();
 
     await act(async () => {
@@ -97,7 +99,9 @@ describe('BreadcrumbMain', () => {
     );
     folderButton?.click();
 
-    expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1');
+    expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1', {
+      flushSync: true,
+    });
   });
 
   it('keeps a deeply nested RSS folder clickable while the item loads', async () => {
@@ -121,7 +125,9 @@ describe('BreadcrumbMain', () => {
     );
     folderButton?.click();
 
-    expect(navigate).toHaveBeenCalledWith('/namespace-1/rss-folder');
+    expect(navigate).toHaveBeenCalledWith('/namespace-1/rss-folder', {
+      flushSync: true,
+    });
   });
 
   it('truncates long folder names from the end', async () => {
