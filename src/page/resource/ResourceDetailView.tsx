@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Separator } from '@/components/ui/Separator';
 import { SidebarInset, useSidebar } from '@/components/ui/Sidebar';
@@ -33,7 +33,7 @@ export default function ResourceDetailView({
   ...resourceProps
 }: ResourceDetailViewProps) {
   const { wide, onWide } = useWide();
-  const { open, width: sidebarWidth } = useSidebar();
+  const { open } = useSidebar();
   const {
     app,
     editPage,
@@ -120,11 +120,6 @@ export default function ResourceDetailView({
         'h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-white dark:bg-background md:h-[calc(100svh-16px)]',
         flushLayout ? 'm-0 md:h-full' : 'm-[8px]'
       )}
-      style={
-        {
-          '--resource-toc-left': `${(open ? sidebarWidth : 0) + 16}px`,
-        } as CSSProperties
-      }
     >
       <Header
         {...currentResourceProps}
@@ -145,7 +140,8 @@ export default function ResourceDetailView({
           className={cn('flex w-full min-w-0 max-w-full flex-col', {
             'max-w-[680px]': !wide && !useFullWidth && (open || !large),
             'max-w-[800px]': !wide && !useFullWidth && (!open || large),
-            'max-w-7xl': wide,
+            'max-w-7xl': wide && !useFullWidth,
+            'max-w-[96.5rem]': wide && useFullWidth,
           })}
           style={!wide && useFullWidth ? { maxWidth: '100%' } : undefined}
         >
