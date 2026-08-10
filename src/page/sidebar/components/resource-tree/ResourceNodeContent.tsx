@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -19,13 +19,12 @@ import {
   useSidebar,
 } from '@/components/ui/Sidebar';
 import { Spinner } from '@/components/ui/Spinner';
-import useApp from '@/hooks/useApp';
 import { useIsMobile } from '@/hooks/useMobile';
-import { Namespace, Resource } from '@/interface';
 import { cn } from '@/lib/utils';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { getSmartFolderSourceResourceId } from '@/page/sidebar/components/smart-folder';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/useResourceNodeDnd';
-import type { TreeNode } from '@/page/sidebar/store';
+import { useResourceNodeRename } from '@/page/sidebar/hooks/useResourceNodeRename';
 import {
   useIsSelected,
   useNodeIsDimmedBySelection,
@@ -38,23 +37,10 @@ import { isBatchSelectableNode } from '@/page/sidebar/store/utils';
 import Action from './NodeActions';
 import ContextMenuMain from './NodeContextMenu';
 import ResourceNode from './ResourceNode';
+import type { ResourceNodeContentProps } from './resourceNodeTypes';
 import RssItemList from './RssItemList';
 
-const FOCUS_DELAY = 50;
-const BLUR_ENABLE_DELAY = 200;
 const CLICK_DEBOUNCE_DELAY = 250;
-
-interface ResourceNodeContentProps {
-  node: TreeNode;
-  nodeId: string;
-  depth: number;
-  hasTeamspace: boolean;
-  currentNamespace?: Namespace;
-  onBatchDelete: () => void;
-  onBatchMove: () => void;
-  onBatchCreate: () => void;
-  onAddToChat: () => void;
-}
 
 export function ResourceNodeContent({
   node,
@@ -67,7 +53,6 @@ export function ResourceNodeContent({
   onBatchCreate,
   onAddToChat,
 }: ResourceNodeContentProps) {
-  const app = useApp();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -84,12 +69,7 @@ export function ResourceNodeContent({
   const isFullySelected = useNodeIsFullySelected(nodeId);
   const isDimmedBySelection = useNodeIsDimmedBySelection(nodeId);
 
-  const inputRef = useRef<HTMLInputElement>(null);
   const clickTimeoutRef = useRef<number | null>(null);
-  const isBlurEnabledRef = useRef(false);
-  const isEditingRef = useRef(false);
-
-  const [editName, setEditName] = useState('');
 
   const smartFolderSourceResourceId = getSmartFolderSourceResourceId({
     id: node.id,
@@ -116,28 +96,33 @@ export function ResourceNodeContent({
   const contentIndent = depth * 20;
   const nodeIndent = node.hasChildren ? 4 : 28;
   const isSelectable = isBatchSelectableNode(node);
+  const {
+    editName,
+    handleBlur,
+    handleKeyDown,
+    inputRef,
+    setEditName,
+    startRename,
+  } = useResourceNodeRename({
+    isEditing,
+    node,
+    nodeId,
+    sourceResourceId,
+  });
 
   const {
     dragRef,
     dropRef,
     dragStyle,
-    isOver,
     isDisabledOver,
     isFileDragOver,
+    dropPosition,
   } = useResourceNodeDnd(nodeId, node, isEditing, {
     namespaceId,
     selectionMode,
     isSelected,
     selectedIds: selectedIdList,
   });
-
-  useEffect(() => {
-    isEditingRef.current = isEditing;
-  }, [isEditing]);
-
-  useEffect(() => {
-    setEditName(node.name || '');
-  }, [node.name]);
 
   const handleNavigate = (id: string, edit?: boolean) => {
     const state = {
@@ -146,11 +131,11 @@ export function ResourceNodeContent({
     };
 
     if (edit) {
-      navigate(`/${namespaceId}/${id}/edit`, { state });
+      navigateToResource(navigate, `/${namespaceId}/${id}/edit`, { state });
     } else if (id === 'chat') {
       navigate(`/${namespaceId}/chat`);
     } else {
-      navigate(`/${namespaceId}/${id}`, { state });
+      navigateToResource(navigate, `/${namespaceId}/${id}`, { state });
     }
     if (isMobile) {
       setOpenMobile(false);
@@ -208,72 +193,6 @@ export function ResourceNodeContent({
     }, CLICK_DEBOUNCE_DELAY);
   };
 
-  const startRename = useCallback(() => {
-    useSidebarStore.getState().setRenamingId(nodeId);
-  }, [nodeId]);
-
-  const handleSave = useCallback(async () => {
-    if (!isEditingRef.current) return;
-    isBlurEnabledRef.current = false;
-    isEditingRef.current = false;
-    const trimmedName = editName.trim();
-    useSidebarStore.getState().setRenamingId(null);
-    const renameId = sourceResourceId || nodeId;
-    if (trimmedName && trimmedName !== node.name) {
-      try {
-        await useSidebarStore.getState().rename(renameId, trimmedName);
-        if (sourceResourceId) {
-          useSidebarStore.getState().patch(nodeId, { name: trimmedName });
-          app.fire('refresh_smart_folder_children', node.parentId);
-        }
-        app.fire('update_resource', {
-          id: renameId,
-          name: trimmedName,
-        } as unknown as Resource);
-      } catch {
-        setEditName(node.name || '');
-      }
-    } else {
-      setEditName(node.name || '');
-    }
-  }, [app, editName, node.name, node.parentId, nodeId, sourceResourceId]);
-
-  useEffect(() => {
-    if (!isEditing) return;
-
-    isBlurEnabledRef.current = false;
-
-    const focusTimer = window.setTimeout(() => {
-      if (inputRef.current && isEditingRef.current) {
-        inputRef.current.focus();
-        inputRef.current.select();
-      }
-    }, FOCUS_DELAY);
-
-    const blurTimer = window.setTimeout(() => {
-      if (isEditingRef.current) {
-        isBlurEnabledRef.current = true;
-      }
-    }, BLUR_ENABLE_DELAY);
-
-    return () => {
-      clearTimeout(focusTimer);
-      clearTimeout(blurTimer);
-      isBlurEnabledRef.current = false;
-    };
-  }, [isEditing]);
-
-  useEffect(() => {
-    if (renamingId === nodeId) {
-      setEditName(node.name || '');
-      return;
-    }
-
-    isBlurEnabledRef.current = false;
-    isEditingRef.current = false;
-    setEditName(node.name || '');
-  }, [node.name, nodeId, renamingId]);
-
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -294,23 +213,6 @@ export function ResourceNodeContent({
         nodeId,
         event.shiftKey ? lastSelectedId || undefined : undefined
       );
-  };
-
-  const handleBlur = () => {
-    if (!isEditing || !isBlurEnabledRef.current) return;
-    handleSave();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleSave();
-    } else if (e.key === 'Escape') {
-      isBlurEnabledRef.current = false;
-      isEditingRef.current = false;
-      useSidebarStore.getState().setRenamingId(null);
-      setEditName(node.name || '');
-    }
   };
 
   const upload = useSidebarStore(s => s.dialogs.upload[nodeId]);
@@ -341,15 +243,16 @@ export function ResourceNodeContent({
             <div
               ref={dropRef}
               data-resource-id={nodeId}
+              data-resource-drop-id={nodeId}
               className={cn(
-                'group/sidebar-item my-px rounded-md hover:bg-sidebar-accent',
+                'group/sidebar-item relative my-px rounded-md hover:bg-sidebar-accent',
                 'flex items-center',
                 (isActive || isEditing) &&
                   'hover:bg-[#E2E2E6] bg-[#E2E2E6] dark:bg-[#363637]',
                 selectionMode && 'pl-2',
                 isSelectionHighlighted &&
                   'bg-[#E2E2E6] dark:bg-[#363637] hover:bg-[#E2E2E6]',
-                (isFileDragOver || isOver) &&
+                (isFileDragOver || dropPosition === 'inside') &&
                   'bg-sidebar-accent text-sidebar-accent-foreground',
                 isDisabledOver && 'cursor-not-allowed [&_*]:cursor-not-allowed'
               )}

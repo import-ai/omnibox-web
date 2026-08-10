@@ -44,6 +44,7 @@ import useProNamespaces from '@/hooks/useProNamespaces';
 import { IUseResource } from '@/hooks/userResource';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
+import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
@@ -65,6 +66,7 @@ import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { fetchRssItem, renameResource } from '@/service/resource';
 
+import CloseCurrentResource from './CloseCurrentResource';
 import { copyContentToClipboard } from './copyContent';
 import MoveTo from './move';
 import ShareAction from './share';
@@ -104,6 +106,7 @@ function downloadMarkdownFile(fileName: string, content: string) {
 const hasTeamspaceCache = new Map<string, boolean>();
 
 export interface IActionProps extends IUseResource {
+  rssItemId?: string | null;
   wide: boolean;
   onWide: (wide: boolean) => void;
   rssItemCopyContent?: {
@@ -119,14 +122,21 @@ export default function Actions(props: IActionProps) {
     onWide,
     forbidden,
     resource,
+    resourceId,
     editPage,
     namespaceId,
+    rssItemId: explicitRssItemId,
     rssItemCopyContent,
   } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const loc = useLocation();
-  const { rss_item_id: rssItemId } = useParams();
+  const { rss_item_id: routeRssItemId, resource_id: routeResourceId } =
+    useParams();
+  const rssItemId =
+    explicitRssItemId === undefined
+      ? routeRssItemId
+      : explicitRssItemId || undefined;
   const isMobile = useIsMobile();
   const { deleteResource } = useDeleteResource();
   const { config, loading: configLoading } = useConfig();
@@ -321,7 +331,13 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'copy_link') {
-      const returnValue = copy(location.href);
+      // Citation preview keeps the chat route, so build a resource URL when the
+      // open resource is not the current route target.
+      const resourceUrl =
+        resource && routeResourceId !== resource.id
+          ? `${window.location.origin}/${namespaceId}/${resource.id}`
+          : location.href;
+      const returnValue = copy(resourceUrl);
       toast(t(returnValue ? 'actions.copy_link_success' : 'copy.fail'), {
         position: 'bottom-right',
       });
@@ -398,7 +414,7 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'import') {
-      fileInputRef.current?.click();
+      openFilePicker(fileInputRef.current);
       return;
     }
     if (id === 'download_as_png') {
@@ -626,7 +642,7 @@ export default function Actions(props: IActionProps) {
           {getTime(resource, i18n)}
         </div>
       )}
-      {resource && !isRssItemView && (
+      {resource && resource.id === resourceId && !isRssItemView && (
         <PermissionWrapper
           requiredPermission={0}
           forbidden={forbidden}
@@ -637,7 +653,12 @@ export default function Actions(props: IActionProps) {
           }
           // spaceType={resource.space_type}
         >
-          <ShareAction spaceType={resource.space_type} />
+          <ShareAction
+            namespaceId={namespaceId}
+            resourceId={resource.id}
+            spaceType={resource.space_type}
+            resourceType={resource.resource_type}
+          />
         </PermissionWrapper>
       )}
       {resource && !isRssItemView && (
@@ -763,6 +784,9 @@ export default function Actions(props: IActionProps) {
               )}
               <span>{t('actions.move_to')}</span>
             </DropdownMenuItem>
+          )}
+          {resource && !editPage && (
+            <CloseCurrentResource namespaceId={namespaceId} />
           )}
           {!isRssItemView && (
             <DropdownMenuItem

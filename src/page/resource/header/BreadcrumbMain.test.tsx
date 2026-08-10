@@ -82,7 +82,9 @@ describe('BreadcrumbMain', () => {
     );
     folderButton?.click();
 
-    expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1');
+    expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1', {
+      flushSync: true,
+    });
     navigate.mockClear();
 
     await act(async () => {
@@ -97,7 +99,9 @@ describe('BreadcrumbMain', () => {
     );
     folderButton?.click();
 
-    expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1');
+    expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1', {
+      flushSync: true,
+    });
   });
 
   it('keeps a deeply nested RSS folder clickable while the item loads', async () => {
@@ -121,6 +125,37 @@ describe('BreadcrumbMain', () => {
     );
     folderButton?.click();
 
-    expect(navigate).toHaveBeenCalledWith('/namespace-1/rss-folder');
+    expect(navigate).toHaveBeenCalledWith('/namespace-1/rss-folder', {
+      flushSync: true,
+    });
+  });
+
+  it('truncates long folder names from the end', async () => {
+    const longFolderName =
+      'A very long nested folder name that should keep its beginning';
+
+    await act(async () => {
+      root.render(
+        <BreadcrumbMain
+          namespaceId="namespace-1"
+          path={[
+            { id: 'root-1', name: 'Root' },
+            { id: 'folder-1', name: longFolderName },
+            { id: 'resource-1', name: 'Current resource' },
+          ]}
+        />
+      );
+    });
+
+    const folderButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === longFolderName
+    );
+    const folderName = folderButton?.querySelector('span');
+
+    expect(folderButton?.classList.contains('justify-start')).toBe(true);
+    expect(folderButton?.classList.contains('overflow-hidden')).toBe(true);
+    expect(folderName?.classList.contains('min-w-0')).toBe(true);
+    expect(folderName?.classList.contains('truncate')).toBe(true);
+    expect(folderName?.classList.contains('text-left')).toBe(true);
   });
 });

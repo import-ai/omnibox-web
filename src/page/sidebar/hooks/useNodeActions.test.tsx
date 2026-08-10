@@ -9,11 +9,14 @@ import {
   isSmartFolderChildResource,
 } from '@/page/sidebar/components/smart-folder';
 import type { TreeNode } from '@/page/sidebar/store/types';
+import { locateSidebarResource } from '@/page/sidebar/utils';
 
 import { useNodeActions, UseNodeActionsReturn } from './useNodeActions';
 
 const navigate = jest.fn();
 const fire = jest.fn();
+const create = jest.fn();
+const move = jest.fn();
 const rename = jest.fn();
 const patch = jest.fn();
 let node: TreeNode;
@@ -42,6 +45,7 @@ jest.mock('@/hooks/useMobile', () => ({
 
 jest.mock('@/lib/chatBridge', () => ({
   addToChatContext: jest.fn(),
+  openCopilotForChatContext: jest.fn(),
 }));
 
 jest.mock('@/lib/deleteResource', () => ({
@@ -61,11 +65,18 @@ jest.mock('@/page/sidebar/components/smart-folder', () => ({
 jest.mock('@/page/sidebar/store', () => ({
   useNode: () => node,
   useSidebarStore: {
-    getState: () => ({ patch, rename }),
+    getState: () => ({
+      create,
+      move,
+      nodes: { [node.id]: node },
+      patch,
+      rename,
+    }),
   },
 }));
 
 jest.mock('@/page/sidebar/utils', () => ({
+  locateSidebarResource: jest.fn(),
   triggerGlobalFileUpload: jest.fn(),
 }));
 
@@ -102,6 +113,9 @@ describe('useNodeActions', () => {
       .mocked(getSmartFolderSourceResourceId)
       .mockImplementation((resource: { id: string }) => resource.id);
     jest.mocked(isSmartFolderChildResource).mockReturnValue(false);
+    jest.mocked(locateSidebarResource).mockResolvedValue(undefined);
+    create.mockResolvedValue('created');
+    move.mockResolvedValue(undefined);
     rename.mockResolvedValue(undefined);
     container = document.createElement('div');
     root = createRoot(container);
@@ -157,5 +171,20 @@ describe('useNodeActions', () => {
       id: 'source-folder',
       name: 'Renamed',
     });
+  });
+
+  it('locates resources created or moved from node actions', async () => {
+    await act(async () => root.render(<Probe />));
+
+    current.handleCreateFile();
+    await act(async () => Promise.resolve());
+    expect(locateSidebarResource).toHaveBeenLastCalledWith('created');
+
+    current.handleCreateFolderDirect();
+    await act(async () => Promise.resolve());
+    expect(locateSidebarResource).toHaveBeenCalledTimes(2);
+
+    await act(async () => current.handleMoveFinished(['folder'], 'target'));
+    expect(locateSidebarResource).toHaveBeenLastCalledWith('folder');
   });
 });

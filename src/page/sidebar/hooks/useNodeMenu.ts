@@ -1,11 +1,11 @@
 import {
   Crosshair,
   FilePlus,
+  FileUp,
   FolderPlus,
   type LucideIcon,
   MessageSquarePlus,
   MessageSquareQuote,
-  MonitorUp,
   Move,
   Pencil,
   SquarePen,
@@ -252,7 +252,7 @@ export function useNodeMenu(
         },
         {
           key: 'upload_file',
-          icon: MonitorUp,
+          icon: FileUp,
           label: t('actions.upload_file'),
           onClick: actions.handleUpload,
         },

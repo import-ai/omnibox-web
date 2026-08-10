@@ -2,8 +2,28 @@ import type { PathItem, SpaceType } from '@/interface';
 import { Permission, Resource, ResourceType, TagDto } from '@/interface';
 import type { CreateRssFolderPayload } from '@/page/sidebar/components/rss-folder';
 import type { CreateSmartFolderPayload } from '@/page/sidebar/components/smart-folder';
+import type { ResourceSortOptions } from '@/service/resource';
+
+import type { ResourceSorts } from './resourceSort';
 
 export type RootResource = Resource & { children?: Resource[] };
+export type ManualDropPosition = 'before' | 'inside' | 'after';
+
+export interface PendingManualDrop {
+  dragId: string;
+  targetId: string;
+  position: ManualDropPosition;
+}
+
+export interface ManualDropIndicator {
+  targetId: string;
+  position: ManualDropPosition;
+  line: {
+    left: number;
+    top: number;
+    width: number;
+  } | null;
+}
 
 export interface TreeNode {
   id: string;
@@ -20,6 +40,7 @@ export interface TreeNode {
   globalPermission?: Permission;
   createdAt: string;
   updatedAt: string;
+  manualSortInitializedAt: string | null;
   children: string[];
 }
 
@@ -51,6 +72,7 @@ export interface DialogsState {
     open: boolean;
     nodeId: string | null;
   };
+  pendingManualDrop: PendingManualDrop | null;
 }
 
 export interface BatchOperationResult {
@@ -78,6 +100,8 @@ export interface SidebarState {
   lastSelectedId: string | null;
   batchDragging: boolean;
   smartFolderEntitlementsVersion: number;
+  resourceSorts: ResourceSorts;
+  manualDropIndicator: ManualDropIndicator | null;
 }
 
 export interface RemoveResult {
@@ -87,6 +111,13 @@ export interface RemoveResult {
 
 export interface SidebarActions {
   setNamespaceId: (id: string) => void;
+  setResourceSort: (spaceType: SpaceType, sort: ResourceSortOptions) => void;
+  setPendingManualDrop: (drop: PendingManualDrop | null) => void;
+  setManualDropIndicator: (indicator: ManualDropIndicator | null) => void;
+  applyManualDrop: (
+    drop: PendingManualDrop,
+    onSortSyncFailure?: () => void
+  ) => Promise<void>;
   init: (roots: Record<string, RootResource>) => void;
   expand: (id: string) => Promise<void>;
   collapse: (id: string) => void;
@@ -132,7 +163,12 @@ export interface SidebarActions {
   ) => Promise<void>;
   patch: (
     id: string,
-    updates: Partial<Pick<TreeNode, 'name' | 'content' | 'hasChildren'>>
+    updates: Partial<
+      Pick<
+        TreeNode,
+        'name' | 'content' | 'hasChildren' | 'manualSortInitializedAt'
+      >
+    >
   ) => void;
   refreshChildren: (parentId: string, resources: Resource[]) => void;
   restore: (resourceOrId: Resource | string) => Promise<string>;
@@ -182,6 +218,7 @@ export const initialDialogsState: DialogsState = {
     open: false,
     nodeId: null,
   },
+  pendingManualDrop: null,
 };
 
 export const initialState: SidebarState = {
@@ -199,4 +236,9 @@ export const initialState: SidebarState = {
   lastSelectedId: null,
   batchDragging: false,
   smartFolderEntitlementsVersion: 0,
+  resourceSorts: {
+    private: { sort_by: 'updated_at', sort_order: 'desc' },
+    teamspace: { sort_by: 'updated_at', sort_order: 'desc' },
+  },
+  manualDropIndicator: null,
 };

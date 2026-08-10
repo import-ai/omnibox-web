@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 import Attributes from '@/components/attributes';
 import { Resource } from '@/interface';
@@ -13,12 +13,15 @@ import {
 } from '@/page/resource/resourceStore';
 import RssItems from '@/page/resource/rss';
 import RssItemReader from '@/page/resource/rss/RssItemReader';
+import { splitSearchText } from '@/page/resource/searchHighlight';
 
 interface IProps {
   editPage: boolean;
   resource: Resource;
   namespaceId: string;
+  wide: boolean;
   onResource: (resource: Resource) => void;
+  rssItemId?: string | null;
   onRssItemCopyContentChange?: (value: {
     itemId: string;
     content: string | null | undefined;
@@ -31,6 +34,8 @@ export default function Page(props: IProps) {
     resource,
     onResource,
     namespaceId,
+    wide,
+    rssItemId: explicitRssItemId,
     onRssItemCopyContentChange,
   } = props;
   const { t } = useTranslation();
@@ -40,7 +45,17 @@ export default function Page(props: IProps) {
     resource.resource_type !== 'folder' &&
     resource.resource_type !== 'smart_folder' &&
     resource.resource_type !== 'rss_folder';
-  const { rss_item_id: rssItemId } = useParams();
+  const constrainFolderContent =
+    resource.resource_type === 'folder' ||
+    resource.resource_type === 'smart_folder';
+  const { rss_item_id: routeRssItemId } = useParams();
+  const rssItemId =
+    explicitRssItemId === undefined
+      ? routeRssItemId
+      : explicitRssItemId || undefined;
+  const [searchParams] = useSearchParams();
+  const search = searchParams.get('query') ?? '';
+  const title = resource.name || t('untitled');
 
   if (editPage) {
     return (
@@ -48,6 +63,7 @@ export default function Page(props: IProps) {
         resource={resource}
         onResource={onResource}
         namespaceId={namespaceId}
+        wide={wide}
       />
     );
   }
@@ -65,10 +81,28 @@ export default function Page(props: IProps) {
   }
 
   return (
-    <div data-resource-export-content="true">
-      <div className={cn(constrainHeader && 'resource-readonly-page-header')}>
-        <h1 className="mb-4 min-w-0 max-w-full break-all text-[34px] font-bold">
-          {resource.name || t('untitled')}
+    <div
+      data-resource-export-content="true"
+      className={cn(
+        constrainFolderContent && !wide && 'mx-auto w-full max-w-[680px]'
+      )}
+    >
+      <div
+        className={cn(
+          constrainHeader && 'resource-readonly-page-header',
+          constrainHeader && wide && 'resource-readonly-page-header--wide'
+        )}
+      >
+        <h1 className="resource-search-title mb-4 min-w-0 max-w-full break-all text-[34px] font-bold">
+          {splitSearchText(title, search).map((part, index) =>
+            part.match ? (
+              <mark className="search-query-mark" key={index}>
+                {part.text}
+              </mark>
+            ) : (
+              part.text
+            )
+          )}
         </h1>
         <Attributes
           namespaceId={namespaceId}
@@ -102,6 +136,7 @@ export default function Page(props: IProps) {
       ) : (
         <Render
           resource={resource}
+          wide={wide}
           linkBase={`/${namespaceId}/${resource.id}`}
           style={{ overflow: 'inherit' }}
         />

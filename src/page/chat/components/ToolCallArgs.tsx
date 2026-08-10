@@ -5,6 +5,8 @@ import { useParams } from 'react-router-dom';
 import type { Resource } from '@/interface';
 import type { ProcessedArg } from '@/lib/toolArgs';
 import { trimMiddle } from '@/lib/toolArgs';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
+import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 import { useRootId } from '@/page/sidebar/store';
 import { fetchResourcesByIds } from '@/service/resource';
 import { fetchShareResource } from '@/service/share';
@@ -21,6 +23,7 @@ interface IProps {
 export function ToolCallArgs({ args }: IProps) {
   const { t } = useTranslation();
   const params = useParams();
+  const { namespaceId } = useChatRouteParams();
 
   // Resolved resource names for resource-id args (id -> name).
   const [resourceNames, setResourceNames] = useState<Record<string, string>>(
@@ -33,8 +36,8 @@ export function ToolCallArgs({ args }: IProps) {
   const teamspaceRootId = useRootId('teamspace');
   const resourceLinkPrefix = params.share_id
     ? `/s/${params.share_id}`
-    : params.namespace_id
-      ? `/${params.namespace_id}`
+    : namespaceId
+      ? `/${namespaceId}`
       : '';
 
   const resourceIdsKey = Array.from(
@@ -105,16 +108,15 @@ export function ToolCallArgs({ args }: IProps) {
         if (arg.resourceId && resourceLinkPrefix) {
           const fullName = resourceNames[arg.resourceId];
           return (
-            <a
+            <ChatResourceLink
               key={'arg_' + argIndex}
               href={`${resourceLinkPrefix}/${arg.resourceId}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              resourceId={arg.resourceId}
               title={fullName}
               className="bg-muted text-primary underline underline-offset-2 border border-border px-1.5 py-0.5 rounded text-xs font-mono hover:opacity-80"
             >
               {fullName ? trimMiddle(fullName) : arg.display}
-            </a>
+            </ChatResourceLink>
           );
         }
         return (

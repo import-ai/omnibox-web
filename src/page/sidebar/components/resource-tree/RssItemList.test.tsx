@@ -162,7 +162,7 @@ describe('RssItemList', () => {
 
     expect(navigate).toHaveBeenCalledWith(
       '/namespace-1/folder-1/rss-items/item-1',
-      { state: { fromSidebar: true } }
+      { flushSync: true, state: { fromSidebar: true } }
     );
   });
 

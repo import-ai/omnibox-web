@@ -49,7 +49,37 @@
   },
   "sidebar": {
     "expand": "Expand Sidebar",
-    "collapse": "Collapse Sidebar"
+    "collapse": "Collapse Sidebar",
+    "sort": {
+      "tooltip": "Sort resources",
+      "menu": "Sort",
+      "updated_at": "Update time",
+      "created_at": "Creation time",
+      "title": "Resource name",
+      "manual": "Manual sort",
+      "confirm_title": "Switch to manual sorting?",
+      "confirm_initial_description": "After switching, resources in “{{space}}” will follow the order you just arranged.",
+      "confirm_description": "You have sorted manually before. This will overwrite your previous manual order in “{{space}}”.",
+      "confirm_action": "Switch",
+      "sync_failed": "The move succeeded, but the manual order could not be saved.",
+      "private": "Personal",
+      "teamspace": "Team",
+      "order": {
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "az": "A-Z",
+        "za": "Z-A"
+      }
+    }
+  },
+  "copilot": {
+    "title": "Copilot",
+    "description": "Continue the AI conversation in this workspace",
+    "expand": "Expand Copilot",
+    "collapse": "Collapse Copilot",
+    "preview": "Citation preview",
+    "close_preview": "Close citation preview",
+    "preview_error": "Unable to load this resource. Please try again."
   },
   "resource_picker": {
     "expand_resource": "Expand {{name}}",
@@ -62,10 +92,13 @@
     "success_one": "{{count}} file uploaded successfully",
     "success_other": "{{count}} files uploaded successfully",
     "invalid_ext": "Invalid file type",
-    "failed": "Failed to upload file, please try again later"
+    "failed": "Failed to upload file, please try again later",
+    "file_picker_unavailable": "The file picker didn't open",
+    "file_picker_recovery": "Update or restart Chrome. You can drag files here to upload in the meantime."
   },
   "resource": {
     "name": "Resource",
+    "close_current": "Close current resource",
     "title": "Title",
     "title_placeholder": "Enter title",
     "folder": {
@@ -212,9 +245,9 @@
     "member_count": "{{ size }} members",
     "conflict": "There's already a namespace with the same name",
     "no_special_chars": "Special characters are not allowed in namespace name",
-    "quota_exceeded": "Quota Exceeded",
-    "quota_exceeded_desc": "Current space quota is exhausted, please expand",
-    "quota_expand_button": "Expand",
+    "quota_exceeded": "Free Space Creation Limit Reached",
+    "quota_exceeded_desc": "Each account can create one space for free. Additional spaces must be purchased.",
+    "quota_expand_button": "Purchase and Create",
     "usage": "Usage",
     "leave": {
       "title": "Leave Space",
@@ -588,7 +621,7 @@
     "owner_full_access_required": "The owner must retain full access",
     "edit_required": "You only have view permission and cannot edit this resource.",
     "delete_required": "You only have view permission and cannot delete this resource.",
-    "you": "You"
+    "you": "(You)"
   },
   "copy": {
     "title": "Copy",
@@ -958,6 +991,15 @@
       "save": "Save",
       "current_file_only": "Current file only",
       "current_file_only_tooltip": "When enabled, only shares the current file.\nWhen disabled, shares with all sub-files.",
+      "sort": {
+        "label": "Sort order",
+        "tooltip": "Manual sorting on shared pages follows changes made in the resource list.\nOther sorting methods are independent from the resource list.",
+        "manual_unavailable": "Sort manually in the sidebar first.",
+        "smart_folder_unsupported": "Smart folders do not support this action.",
+        "rss_folder_unsupported": "RSS folders do not support this action."
+      },
+      "folder_current_file_unsupported": "Folders do not support this option.",
+      "folder_share_update_failed": "Failed to include all folder resources. Retry before copying the share link.",
       "require_login": "Require login to view",
       "require_login_tooltip": "When enabled, users must log in to view this shared resource.\nWhen disabled, users can view this shared resource without logging in.",
       "ai_chat": "AI Chat",
@@ -1000,6 +1042,8 @@
     "discord": "Discord",
     "wechat": "QR Code",
     "feedback": "Feedback",
+    "upgrade": "Upgrade",
+    "renew": "Renew",
     "join": "Scan with WeChat to join the group"
   },
   "trash": {
