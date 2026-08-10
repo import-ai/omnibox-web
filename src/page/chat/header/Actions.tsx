@@ -20,20 +20,26 @@ import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import { PlusIcon } from './PlusIcon';
 
 interface IProps {
+  compact?: boolean;
   homePage: boolean;
   chatTitle: string;
   conversationId: string;
   conversationsPage: boolean;
   namespaceId: string;
+  onChatCreate?: () => void;
+  onChatHistory?: () => void;
 }
 
 export default function Actions(props: IProps) {
   const {
     homePage,
+    compact = false,
     chatTitle,
     conversationId,
     conversationsPage,
     namespaceId,
+    onChatCreate: onChatCreateOverride,
+    onChatHistory: onChatHistoryOverride,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
@@ -48,9 +54,17 @@ export default function Actions(props: IProps) {
     navigate(`/${namespaceId}/chat/${response.id}`);
   };
   const onChatHistory = () => {
+    if (onChatHistoryOverride) {
+      onChatHistoryOverride();
+      return;
+    }
     navigate(`/${namespaceId}/chat/conversations`);
   };
   const onChatCreate = () => {
+    if (onChatCreateOverride) {
+      onChatCreateOverride();
+      return;
+    }
     if (conversationId) clearChatInputDraft(conversationId);
     resetChatForNamespaceSwitch(namespaceId);
     navigate(`/${namespaceId}/chat`);
@@ -83,7 +97,7 @@ export default function Actions(props: IProps) {
           <TooltipContent>{t('chat.conversations.new_chat')}</TooltipContent>
         </Tooltip>
       )}
-      {!conversationsPage && !conversationId && (
+      {!conversationsPage && (compact || !conversationId) && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -98,7 +112,7 @@ export default function Actions(props: IProps) {
           <TooltipContent>{t('chat.conversations.history')}</TooltipContent>
         </Tooltip>
       )}
-      {conversationId && (
+      {conversationId && !compact && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

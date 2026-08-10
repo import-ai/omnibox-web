@@ -5,9 +5,9 @@ import { useParams } from 'react-router-dom';
 import { http } from '@/lib/request';
 import { ConversationSummary } from '@/page/chat/core/types/conversation';
 
-export default function useContext() {
+export default function useContext(namespaceIdOverride?: string) {
   const params = useParams();
-  const namespaceId = params.namespace_id || '';
+  const namespaceId = namespaceIdOverride || params.namespace_id || '';
   const [loading, onLoading] = useState(false);
   const [current, onCurrent] = useState(1);
   const [pageSize] = useState(10);

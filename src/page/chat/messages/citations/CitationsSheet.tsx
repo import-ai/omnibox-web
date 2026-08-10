@@ -1,5 +1,6 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
@@ -23,6 +24,7 @@ interface IProps {
 export function CitationsSheet(props: IProps) {
   const { index, citations } = props;
   const { t, i18n } = useTranslation();
+  const [open, setOpen] = useState(false);
   const isEnglish = i18n.language === 'en-US';
   const plural = isEnglish && citations.length > 1 ? 's' : '';
 
@@ -31,7 +33,7 @@ export function CitationsSheet(props: IProps) {
   }
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
           variant="outline"
@@ -56,6 +58,7 @@ export function CitationsSheet(props: IProps) {
               key={index + i}
               index={index + i}
               citation={citation}
+              onOpenResource={() => setOpen(false)}
             />
           ))}
         </div>

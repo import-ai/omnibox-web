@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { getSmartFolderParentIdFromChildKey } from '@/page/sidebar/components/smart-folder';
 import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
 import { fetchRootResources } from '@/service/resource';
@@ -125,7 +126,7 @@ export function useSidebarInit(props: IProps) {
     }
     if (firstNode?.id) {
       hasAutoNavigatedRef.current = true;
-      navigate(`/${namespaceId}/${firstNode.id}`);
+      navigateToResource(navigate, `/${namespaceId}/${firstNode.id}`);
     }
   }, [initialized, resourceId, chatPage, namespaceId, navigate]);
 

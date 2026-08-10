@@ -2,6 +2,10 @@ import { normalizeResourceMeta, ResourceMetaLike } from '@/lib/resourceMeta';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import type { PrivateSearchResourceType } from '@/page/chat/chat-input/types';
 import { useChatStore } from '@/page/chat/chatStore';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
 
 export function getChatHomeDraftScope(namespaceId: string) {
   return `home:${namespaceId}`;
@@ -16,6 +20,20 @@ export function resetChatForNamespaceSwitch(namespaceId: string) {
   const store = useChatStore.getState();
   store.requestChatInputReset();
   store.clearContext();
+}
+
+/**
+ * Opens Copilot beside the current resource page so added context is visible.
+ * Keeps an active conversation; otherwise lands on Copilot home.
+ */
+export function openCopilotForChatContext(namespaceId: string) {
+  const store = useCopilotStore.getState();
+  const workspace = getCopilotWorkspace(store, namespaceId);
+  if (workspace.view === 'conversation' && workspace.conversationId) {
+    store.open(namespaceId);
+    return;
+  }
+  store.showHome(namespaceId);
 }
 
 /**

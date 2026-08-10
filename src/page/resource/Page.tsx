@@ -21,6 +21,7 @@ interface IProps {
   namespaceId: string;
   wide: boolean;
   onResource: (resource: Resource) => void;
+  rssItemId?: string | null;
   onRssItemCopyContentChange?: (value: {
     itemId: string;
     content: string | null | undefined;
@@ -34,6 +35,7 @@ export default function Page(props: IProps) {
     onResource,
     namespaceId,
     wide,
+    rssItemId: explicitRssItemId,
     onRssItemCopyContentChange,
   } = props;
   const { t } = useTranslation();
@@ -46,7 +48,11 @@ export default function Page(props: IProps) {
   const constrainFolderContent =
     resource.resource_type === 'folder' ||
     resource.resource_type === 'smart_folder';
-  const { rss_item_id: rssItemId } = useParams();
+  const { rss_item_id: routeRssItemId } = useParams();
+  const rssItemId =
+    explicitRssItemId === undefined
+      ? routeRssItemId
+      : explicitRssItemId || undefined;
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query') ?? '';
   const title = resource.name || t('untitled');

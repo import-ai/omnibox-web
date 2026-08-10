@@ -72,6 +72,15 @@
       }
     }
   },
+  "copilot": {
+    "title": "Copilot",
+    "description": "Continue the AI conversation in this workspace",
+    "expand": "Expand Copilot",
+    "collapse": "Collapse Copilot",
+    "preview": "Citation preview",
+    "close_preview": "Close citation preview",
+    "preview_error": "Unable to load this resource. Please try again."
+  },
   "resource_picker": {
     "expand_resource": "Expand {{name}}",
     "collapse_resource": "Collapse {{name}}",
@@ -89,6 +98,7 @@
   },
   "resource": {
     "name": "Resource",
+    "close_current": "Close current resource",
     "title": "Title",
     "title_placeholder": "Enter title",
     "folder": {

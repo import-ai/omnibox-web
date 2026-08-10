@@ -21,6 +21,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme.ts';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
+import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 import Save from '@/page/chat/components/SaveMain';
 import { Citation, MessageStatus } from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
@@ -78,10 +80,12 @@ export function CitationMarkdown(props: IProps) {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
   const params = useParams();
+  const { namespaceId: routeNamespaceId } = useChatRouteParams();
+  const namespaceId = routeNamespaceId || params.namespace_id || '';
   const resourceLinkPrefix = params.share_id
     ? `/s/${params.share_id}`
-    : params.namespace_id
-      ? `/${params.namespace_id}`
+    : namespaceId
+      ? `/${namespaceId}`
       : '';
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
@@ -101,14 +105,11 @@ export function CitationMarkdown(props: IProps) {
       const resourceMatch = href?.match(resourceLinkRegex);
       const resourceId = resourceMatch?.[1] ?? getResourceIdFromHash(href);
       if (resourceId && resourceLinkPrefix) {
+        const resourceHref = `${resourceLinkPrefix}/${resourceId}`;
         return (
-          <a
-            href={`${resourceLinkPrefix}/${resourceId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <ChatResourceLink href={resourceHref} resourceId={resourceId}>
             {children}
-          </a>
+          </ChatResourceLink>
         );
       }
       const citeMatch = href?.match(citeLinkRegex);
