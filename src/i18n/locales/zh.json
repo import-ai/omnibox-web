@@ -72,6 +72,15 @@
       }
     }
   },
+  "copilot": {
+    "title": "Copilot",
+    "description": "在当前工作区中继续 AI 对话",
+    "expand": "展开 Copilot",
+    "collapse": "收起 Copilot",
+    "preview": "引用预览",
+    "close_preview": "关闭引用预览",
+    "preview_error": "无法加载引用资源，请稍后重试"
+  },
   "resource_picker": {
     "expand_resource": "展开{{name}}",
     "collapse_resource": "收起{{name}}",
@@ -89,6 +98,7 @@
   },
   "resource": {
     "name": "文件",
+    "close_current": "关闭当前资源",
     "title": "标题",
     "title_placeholder": "请输入标题",
     "folder": {
@@ -978,7 +988,9 @@
       "sort": {
         "label": "排序方式",
         "tooltip": "分享页面中的手动排序会随资源列表中的手动排序变化而变化。\n其他排序方式与资源列表互不影响。",
-        "manual_unavailable": "需先在侧边栏中完成一次手动排序。"
+        "manual_unavailable": "需先在侧边栏中完成一次手动排序。",
+        "smart_folder_unsupported": "智能文件夹不支持该操作",
+        "rss_folder_unsupported": "订阅文件夹不支持该操作"
       },
       "folder_current_file_unsupported": "文件夹不支持此选项",
       "folder_share_update_failed": "未能同步文件夹的分享范围，请重试后再复制分享链接。",

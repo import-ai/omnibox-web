@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import type { ResourceMeta } from '@/interface';
+import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 
 import { type PrivateSearchResourceType, ToolType } from './types';
 
@@ -65,6 +66,7 @@ export function InlineChatToken({
   contextType,
   spacer,
   href,
+  resourceId,
   children,
 }: {
   icon: InlineChatTokenIcon;
@@ -73,6 +75,7 @@ export function InlineChatToken({
   /** Composer overlay uses a fixed spacer; omit for read-only message display. */
   spacer?: string;
   href?: string;
+  resourceId?: string;
   children: ReactNode;
 }) {
   if (!spacer) {
@@ -90,6 +93,17 @@ export function InlineChatToken({
     );
 
     if (href) {
+      if (resourceId) {
+        return (
+          <ChatResourceLink
+            className={`${inlineChatTokenClassName} hover:underline`}
+            href={href}
+            resourceId={resourceId}
+          >
+            {content}
+          </ChatResourceLink>
+        );
+      }
       return (
         <a
           href={href}

@@ -12,13 +12,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Separator } from '@/components/ui/Separator';
+import { cn } from '@/lib/utils';
 
 import { groupItemsByTimestamp } from '../utils';
 import EditHistory from './edit';
 import RemoveHistory from './RemoveHistory';
 import useContext from './useContext';
 
-export default function ChatConversationsPage() {
+interface ChatConversationsPageProps {
+  compact?: boolean;
+  namespaceId?: string;
+  onConversationSelect?: (conversationId: string) => void;
+}
+
+export default function ChatConversationsPage({
+  compact = false,
+  namespaceId: namespaceIdOverride,
+  onConversationSelect,
+}: ChatConversationsPageProps = {}) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const {
@@ -36,10 +47,10 @@ export default function ChatConversationsPage() {
     onRemoveDone,
     onPagerChange,
     onRemoveChange,
-  } = useContext();
+  } = useContext(namespaceIdOverride);
 
   return (
-    <div className="flex flex-1 justify-center p-4 overflow-auto">
+    <div className="flex flex-1 justify-center overflow-auto p-4">
       <div className="flex flex-col h-full max-w-3xl w-full">
         <EditHistory
           data={edit}
@@ -54,7 +65,7 @@ export default function ChatConversationsPage() {
           onOpenChange={onRemoveChange}
         />
         <div className="mb-6">
-          <h1 className="text-2xl font-medium mb-4">
+          <h1 className={cn('font-medium', compact ? 'text-xl' : 'text-2xl')}>
             {t('chat.conversations.history')}
           </h1>
         </div>
@@ -81,11 +92,20 @@ export default function ChatConversationsPage() {
                           className="cursor-pointer group"
                           key={item.id}
                           onClick={() => {
-                            navigate(`/${namespaceId}/chat/${item.id}`);
+                            if (onConversationSelect) {
+                              onConversationSelect(item.id);
+                            } else {
+                              navigate(`/${namespaceId}/chat/${item.id}`);
+                            }
                           }}
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-medium line-clamp-2  group-hover:text-blue-500">
+                            <h3
+                              className={cn(
+                                'line-clamp-2 font-medium group-hover:text-blue-500',
+                                compact ? 'text-sm' : 'text-lg'
+                              )}
+                            >
                               {conversationTitle}
                             </h3>
                             <DropdownMenu>

@@ -72,6 +72,15 @@
       }
     }
   },
+  "copilot": {
+    "title": "Copilot",
+    "description": "Continue the AI conversation in this workspace",
+    "expand": "Expand Copilot",
+    "collapse": "Collapse Copilot",
+    "preview": "Citation preview",
+    "close_preview": "Close citation preview",
+    "preview_error": "Unable to load this resource. Please try again."
+  },
   "resource_picker": {
     "expand_resource": "Expand {{name}}",
     "collapse_resource": "Collapse {{name}}",
@@ -89,6 +98,7 @@
   },
   "resource": {
     "name": "Resource",
+    "close_current": "Close current resource",
     "title": "Title",
     "title_placeholder": "Enter title",
     "folder": {
@@ -977,7 +987,9 @@
       "sort": {
         "label": "Sort order",
         "tooltip": "Manual sorting on shared pages follows changes made in the resource list.\nOther sorting methods are independent from the resource list.",
-        "manual_unavailable": "Sort manually in the sidebar first."
+        "manual_unavailable": "Sort manually in the sidebar first.",
+        "smart_folder_unsupported": "Smart folders do not support this action.",
+        "rss_folder_unsupported": "RSS folders do not support this action."
       },
       "folder_current_file_unsupported": "Folders do not support this option.",
       "folder_share_update_failed": "Failed to include all folder resources. Retry before copying the share link.",

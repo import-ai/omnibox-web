@@ -45,7 +45,7 @@ interface SearchResultListProps {
   loadingMore: boolean;
   onAnchorClick: MouseEventHandler<HTMLAnchorElement>;
   onLoadMore: () => void;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string, target: 'chat' | 'resource') => void;
   recents: SearchRecentResource[];
   resources: SearchResourceResult[];
   showRecents: boolean;
@@ -269,7 +269,7 @@ export function SearchResultList({
                       if (shouldSkipNavigate()) {
                         return;
                       }
-                      onNavigate(recentPath);
+                      onNavigate(recentPath, 'resource');
                     }}
                   >
                     <SearchResultAnchor
@@ -323,7 +323,7 @@ export function SearchResultList({
                   if (shouldSkipNavigate()) {
                     return;
                   }
-                  onNavigate(resourcePath);
+                  onNavigate(resourcePath, 'resource');
                 }}
               >
                 <SearchResultAnchor
@@ -363,7 +363,7 @@ export function SearchResultList({
                   if (shouldSkipNavigate()) {
                     return;
                   }
-                  onNavigate(chatPath);
+                  onNavigate(chatPath, 'chat');
                 }}
               >
                 <SearchResultAnchor

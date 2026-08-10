@@ -7,9 +7,14 @@ import { toggleComposerTool } from '@/page/chat/chat-input/composerOperations';
 import { createComposerState } from '@/page/chat/chat-input/composerState';
 import { ToolType } from '@/page/chat/chat-input/types';
 import { useChatStore } from '@/page/chat/chatStore';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
 
 import {
   getChatHomeDraftScope,
+  openCopilotForChatContext,
   resetChatForNamespaceSwitch,
 } from './chatBridge';
 
@@ -67,5 +72,40 @@ describe('resetChatForNamespaceSwitch', () => {
     expect(getChatInputDraft(scope, storage)).toBeUndefined();
     expect(useChatStore.getState().selectedResources).toEqual([]);
     expect(useChatStore.getState().inputResetNonce).toBe(1);
+  });
+});
+
+describe('openCopilotForChatContext', () => {
+  beforeEach(() => {
+    useCopilotStore.setState({ workspaces: {} });
+  });
+
+  it('reopens an active conversation without switching to home', () => {
+    useCopilotStore
+      .getState()
+      .showConversation('namespace-a', 'conversation-a');
+    useCopilotStore.getState().close('namespace-a');
+
+    openCopilotForChatContext('namespace-a');
+
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toMatchObject({
+      open: true,
+      view: 'conversation',
+      conversationId: 'conversation-a',
+    });
+  });
+
+  it('opens Copilot home when there is no active conversation', () => {
+    openCopilotForChatContext('namespace-a');
+
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toMatchObject({
+      open: true,
+      view: 'home',
+      conversationId: null,
+    });
   });
 });
