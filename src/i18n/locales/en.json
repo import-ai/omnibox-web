@@ -245,9 +245,9 @@
     "member_count": "{{ size }} members",
     "conflict": "There's already a namespace with the same name",
     "no_special_chars": "Special characters are not allowed in namespace name",
-    "quota_exceeded": "Quota Exceeded",
-    "quota_exceeded_desc": "Current space quota is exhausted, please expand",
-    "quota_expand_button": "Expand",
+    "quota_exceeded": "Free Space Creation Limit Reached",
+    "quota_exceeded_desc": "Each account can create one space for free. Additional spaces must be purchased.",
+    "quota_expand_button": "Purchase and Create",
     "usage": "Usage",
     "leave": {
       "title": "Leave Space",
