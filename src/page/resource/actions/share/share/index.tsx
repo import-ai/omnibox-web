@@ -49,6 +49,12 @@ export function ShareTabContent(props: ShareTabContentProps) {
   const requestVersionRef = useRef(0);
   const updateQueueRef = useRef<Promise<void>>(Promise.resolve());
   const isFolder = folderResourceTypes.includes(resourceType);
+  const sortUnsupportedTooltipKey =
+    resourceType === 'smart_folder'
+      ? 'share.share.sort.smart_folder_unsupported'
+      : resourceType === 'rss_folder'
+        ? 'share.share.sort.rss_folder_unsupported'
+        : null;
   const resourceKey = `${namespace_id}/${resource_id}`;
   const resourceKeyRef = useRef(resourceKey);
   resourceKeyRef.current = resourceKey;
@@ -201,6 +207,17 @@ export function ShareTabContent(props: ShareTabContentProps) {
       onCheckedChange={handleOnlyCurrent}
     />
   );
+  const shareSortSelector = shareInfo?.enabled ? (
+    <ShareSortSelector
+      disabled={!shareInfo.all_resources || !!sortUnsupportedTooltipKey}
+      manualSortAvailable={shareInfo.manual_sort_available}
+      sort={{
+        sort_by: shareInfo.sort_by,
+        sort_order: shareInfo.sort_order,
+      }}
+      onChange={handleSortChange}
+    />
+  ) : null;
 
   return (
     <div className="pb-2">
@@ -272,15 +289,22 @@ export function ShareTabContent(props: ShareTabContentProps) {
               {t('share.share.sort.label')}
               <HelpTooltip content={t('share.share.sort.tooltip')} />
             </span>
-            <ShareSortSelector
-              disabled={!shareInfo.enabled || !shareInfo.all_resources}
-              manualSortAvailable={shareInfo.manual_sort_available}
-              sort={{
-                sort_by: shareInfo.sort_by,
-                sort_order: shareInfo.sort_order,
-              }}
-              onChange={handleSortChange}
-            />
+            {sortUnsupportedTooltipKey ? (
+              <TooltipProvider>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex cursor-not-allowed">
+                      {shareSortSelector}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {t(sortUnsupportedTooltipKey)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              shareSortSelector
+            )}
           </div>
           <div className="flex items-center gap-2 justify-between mt-4 h-6">
             <span className="text-sm flex items-center gap-1">
