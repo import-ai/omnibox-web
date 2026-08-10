@@ -198,6 +198,9 @@ export function useSidebarEvents(namespaceId: string) {
           const isDeletedSmartFolder =
             resourceType === 'smart_folder' ||
             deletedNode?.resourceType === 'smart_folder';
+          const isDeletedRssFolder =
+            resourceType === 'rss_folder' ||
+            deletedNode?.resourceType === 'rss_folder';
           const smartFolderIdsToRefresh = getLoadedSmartFolderIds();
           const currentResourceId = extractResourceId(
             window.location.pathname,
@@ -214,6 +217,9 @@ export function useSidebarEvents(namespaceId: string) {
           }
           if (isDeletedSmartFolder) {
             useSidebarStore.getState().refetchSmartFolderEntitlements();
+          }
+          if (isDeletedRssFolder) {
+            useSidebarStore.getState().refetchRssFolderLimits();
           }
 
           showActionToast(t('resource.moved_to_trash'), {
@@ -237,6 +243,9 @@ export function useSidebarEvents(namespaceId: string) {
                   refreshLoadedSmartFolders(currentNs, app);
                   if (isDeletedSmartFolder) {
                     useSidebarStore.getState().refetchSmartFolderEntitlements();
+                  }
+                  if (isDeletedRssFolder) {
+                    useSidebarStore.getState().refetchRssFolderLimits();
                   }
                 })
                 .catch(err => {
@@ -308,6 +317,9 @@ export function useSidebarEvents(namespaceId: string) {
           refreshLoadedSmartFolders(namespaceId, app);
           if (resource.resource_type === 'smart_folder') {
             useSidebarStore.getState().refetchSmartFolderEntitlements();
+          }
+          if (resource.resource_type === 'rss_folder') {
+            useSidebarStore.getState().refetchRssFolderLimits();
           }
         })();
       })

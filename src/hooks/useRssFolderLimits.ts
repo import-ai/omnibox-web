@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { http } from '@/lib/request';
 import { RssFolderLimits } from '@/page/sidebar/components/rss-folder';
+import { useSidebarStore } from '@/page/sidebar/store';
 
 interface IProps {
   namespaceId?: string;
@@ -12,6 +13,10 @@ interface IProps {
 type RssFolderLimitsResponse = {
   tier: RssFolderLimits['tier'];
   link_limit?: number;
+  folder_private_limit?: number;
+  folder_team_limit?: number;
+  folder_private_used?: number;
+  folder_team_used?: number;
 };
 
 const cachedLimits = new Map<string, RssFolderLimits>();
@@ -23,14 +28,20 @@ function normalizeRssFolderLimits(
   return {
     tier: response.tier,
     linkLimit: response.link_limit ?? 1,
+    folderPrivateLimit: response.folder_private_limit ?? 1,
+    folderTeamLimit: response.folder_team_limit ?? 1,
+    folderPrivateUsed: response.folder_private_used ?? 0,
+    folderTeamUsed: response.folder_team_used ?? 0,
   };
 }
 
 export default function useRssFolderLimits(props?: IProps) {
   const { namespaceId, disabled = false } = props || {};
   const mountedRef = useRef(false);
+  const refetchVersionRef = useRef(0);
   const [loading, onLoading] = useState(false);
   const [data, onData] = useState<RssFolderLimits>();
+  const limitsVersion = useSidebarStore(state => state.rssFolderLimitsVersion);
   const currentUserId = localStorage.getItem('uid') || '';
   const cacheKey =
     namespaceId && currentUserId ? `${currentUserId}:${namespaceId}` : '';
@@ -125,12 +136,14 @@ export default function useRssFolderLimits(props?: IProps) {
       return;
     }
 
-    const cancelRequest = refetch();
+    const force = refetchVersionRef.current !== limitsVersion;
+    refetchVersionRef.current = limitsVersion;
+    const cancelRequest = refetch(force);
 
     return () => {
       cancelRequest?.();
     };
-  }, [disabled, namespaceId, refetch]);
+  }, [disabled, limitsVersion, namespaceId, refetch]);
 
   return { data, loading, refetch };
 }

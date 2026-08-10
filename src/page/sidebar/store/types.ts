@@ -100,6 +100,7 @@ export interface SidebarState {
   lastSelectedId: string | null;
   batchDragging: boolean;
   smartFolderEntitlementsVersion: number;
+  rssFolderLimitsVersion: number;
   resourceSorts: ResourceSorts;
   manualDropIndicator: ManualDropIndicator | null;
 }
@@ -156,6 +157,7 @@ export interface SidebarActions {
   openSmartFolderTrashDialog: (nodeId: string) => void;
   closeSmartFolderTrashDialog: () => void;
   refetchSmartFolderEntitlements: () => void;
+  refetchRssFolderLimits: () => void;
 
   expandPathTo: (
     targetId: string,
@@ -236,6 +238,7 @@ export const initialState: SidebarState = {
   lastSelectedId: null,
   batchDragging: false,
   smartFolderEntitlementsVersion: 0,
+  rssFolderLimitsVersion: 0,
   resourceSorts: {
     private: { sort_by: 'updated_at', sort_order: 'desc' },
     teamspace: { sort_by: 'updated_at', sort_order: 'desc' },

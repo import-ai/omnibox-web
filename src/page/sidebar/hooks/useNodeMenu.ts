@@ -16,7 +16,12 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
+import useRssFolderLimits from '@/hooks/useRssFolderLimits';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
+import {
+  getRssFolderQuotaExhausted,
+  getRssFolderQuotaTooltipKey,
+} from '@/page/sidebar/rssFolderQuota';
 
 import { useSidebarStore } from '../store';
 import { getBatchSelectionSummary } from '../store/utils';
@@ -67,6 +72,16 @@ export function useNodeMenu(
   const selectionMode = useSidebarStore(state => state.selectionMode);
   const selectedIds = useSidebarStore(state => state.selectedIds);
   const nodes = useSidebarStore(state => state.nodes);
+  const namespaceId = useSidebarStore(state => state.namespaceId);
+  const rootIds = useSidebarStore(state => state.rootIds);
+  const { data: rssFolderLimits } = useRssFolderLimits({
+    namespaceId: namespaceId || undefined,
+  });
+  const hasTeamspace = !!(rootIds.teamspace && nodes[rootIds.teamspace]);
+  const rssFolderQuotaExhausted = useMemo(
+    () => getRssFolderQuotaExhausted(rssFolderLimits),
+    [rssFolderLimits]
+  );
 
   return useMemo<{
     disabled: boolean;
@@ -226,6 +241,13 @@ export function useNodeMenu(
       };
     }
 
+    const rssFolderDisabled = rssFolderQuotaExhausted[node.spaceType] === true;
+    const rssFolderTooltipKey = getRssFolderQuotaTooltipKey(
+      hasTeamspace,
+      rssFolderQuotaExhausted,
+      node.spaceType
+    );
+
     return {
       disabled: false,
       items: [
@@ -248,6 +270,8 @@ export function useNodeMenu(
           key: 'create_rss_folder',
           icon: RssFolderDefaultIcon,
           label: t('actions.create_rss_folder'),
+          disabled: rssFolderDisabled,
+          disabledTip: rssFolderTooltipKey ? t(rssFolderTooltipKey) : undefined,
           onClick: actions.handleCreateRssFolder,
         },
         {
@@ -297,6 +321,8 @@ export function useNodeMenu(
     selectedIds,
     selectionMode,
     batchActions,
+    hasTeamspace,
+    rssFolderQuotaExhausted,
   ]);
 }
 

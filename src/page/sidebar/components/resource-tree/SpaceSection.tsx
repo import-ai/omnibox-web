@@ -1,5 +1,6 @@
 import { Namespace, SpaceType } from '@/interface';
 import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
+import type { RssFolderQuotaExhausted } from '@/page/sidebar/rssFolderQuota';
 import {
   useIsSpaceExpanded,
   useNode,
@@ -22,6 +23,7 @@ interface SpaceSectionProps {
   onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
   onCreateRssFolder: (spaceType: SpaceType) => void;
   smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
+  rssFolderQuotaExhausted: RssFolderQuotaExhausted;
   sortingSpace: SpaceType | null;
   onResourceSortChange: (
     spaceType: SpaceType,
@@ -41,6 +43,7 @@ export default function SpaceSection({
   onCreateSmartFolder,
   onCreateRssFolder,
   smartFolderQuotaExhausted,
+  rssFolderQuotaExhausted,
   sortingSpace,
   onResourceSortChange,
 }: SpaceSectionProps) {
@@ -69,6 +72,7 @@ export default function SpaceSection({
       onCreateSmartFolder={onCreateSmartFolder}
       onCreateRssFolder={onCreateRssFolder}
       smartFolderQuotaExhausted={smartFolderQuotaExhausted}
+      rssFolderQuotaExhausted={rssFolderQuotaExhausted}
       resourceSort={resourceSort}
       sorting={sortingSpace !== null}
       onResourceSortChange={sort => onResourceSortChange(spaceType, sort)}
