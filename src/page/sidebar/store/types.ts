@@ -112,6 +112,7 @@ export interface RemoveResult {
 export interface SidebarActions {
   setNamespaceId: (id: string) => void;
   setResourceSort: (spaceType: SpaceType, sort: ResourceSortOptions) => void;
+  setResourceSorts: (sorts: ResourceSorts) => void;
   setPendingManualDrop: (drop: PendingManualDrop | null) => void;
   setManualDropIndicator: (indicator: ManualDropIndicator | null) => void;
   applyManualDrop: (

@@ -29,6 +29,7 @@ import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-f
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import type { ResourceSortOptions } from '@/service/resource';
 import { fetchChildren, initializeManualSort } from '@/service/resource';
+import { updateResourceSortPreference } from '@/service/resourceSortPreference';
 
 import { BatchCreateDialog } from './components/BatchCreateDialog';
 import BatchDeleteDialog from './components/BatchDeleteDialog';
@@ -367,6 +368,7 @@ export function BodyForSidebar(props: IProps) {
           manualSortInitializedAt: result.initialized_at,
         });
       }
+      await updateResourceSortPreference(namespaceId, spaceType, sort);
       await refreshSpaceResources(spaceType, sort);
       if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
@@ -404,6 +406,7 @@ export function BodyForSidebar(props: IProps) {
       });
       const manualSort = { sort_by: 'manual', sort_order: 'asc' } as const;
       store.setResourceSort(spaceType, manualSort);
+      await updateResourceSortPreference(namespaceId, spaceType, manualSort);
       await refreshSpaceResources(spaceType, manualSort);
       await useSidebarStore.getState().applyManualDrop(pending, () => {
         toast.error(t('sidebar.sort.sync_failed'), {

@@ -3,7 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { getSmartFolderParentIdFromChildKey } from '@/page/sidebar/components/smart-folder';
 import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
+import type { ResourceSorts } from '@/page/sidebar/store/resourceSort';
 import { fetchRootResources } from '@/service/resource';
+import { fetchResourceSortPreferences } from '@/service/resourceSortPreference';
 
 interface IProps {
   resourceId: string;
@@ -38,20 +40,53 @@ export function useSidebarInit(props: IProps) {
     if (!localStorage.getItem('uid')) return;
 
     const controller = new AbortController();
-    const sorts = useSidebarStore.getState().resourceSorts;
-    Promise.all([
-      fetchRootResources(
-        namespaceId,
-        { signal: controller.signal },
-        sorts.private
-      ),
-      fetchRootResources(
-        namespaceId,
-        { signal: controller.signal },
-        sorts.teamspace
-      ),
-    ])
-      .then(([privateRoots, teamspaceRoots]) => {
+    const localSorts = useSidebarStore.getState().resourceSorts;
+    fetchResourceSortPreferences(namespaceId, {
+      signal: controller.signal,
+      mute: true,
+    })
+      .then(
+        preferences =>
+          ({
+            private: {
+              sort_by: preferences.private.sort_by,
+              sort_order: preferences.private.sort_order,
+            },
+            teamspace: {
+              sort_by: preferences.teamspace.sort_by,
+              sort_order: preferences.teamspace.sort_order,
+            },
+          }) satisfies ResourceSorts
+      )
+      .catch(() => localSorts)
+      .then((sorts: ResourceSorts) => {
+        if (controller.signal.aborted) return;
+        useSidebarStore.getState().setResourceSorts({
+          private: {
+            sort_by: sorts.private.sort_by,
+            sort_order: sorts.private.sort_order,
+          },
+          teamspace: {
+            sort_by: sorts.teamspace.sort_by,
+            sort_order: sorts.teamspace.sort_order,
+          },
+        });
+        return Promise.all([
+          fetchRootResources(
+            namespaceId,
+            { signal: controller.signal },
+            sorts.private
+          ),
+          fetchRootResources(
+            namespaceId,
+            { signal: controller.signal },
+            sorts.teamspace
+          ),
+        ]);
+      })
+      .then(result => {
+        if (!result || controller.signal.aborted) return;
+        const [privateRoots, teamspaceRoots] = result;
         useSidebarStore.getState().init({
           ...privateRoots,
           ...(teamspaceRoots.teamspace
