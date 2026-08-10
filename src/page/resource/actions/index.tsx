@@ -11,6 +11,7 @@ import {
   MoveHorizontal,
   Pencil,
   PencilOff,
+  RefreshCw,
   Save,
   Trash2,
 } from 'lucide-react';
@@ -41,6 +42,7 @@ import useConfig from '@/hooks/useConfig';
 import { useDeleteResource } from '@/hooks/useDeleteResource';
 import { useIsMobile } from '@/hooks/useMobile';
 import useProNamespaces from '@/hooks/useProNamespaces';
+import useResourceParseFailure from '@/hooks/useResourceParseFailure';
 import { IUseResource } from '@/hooks/userResource';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
@@ -64,7 +66,12 @@ import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-f
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { fetchRssItem, renameResource } from '@/service/resource';
+import {
+  fetchResource,
+  fetchRssItem,
+  renameResource,
+  retryResourceParse,
+} from '@/service/resource';
 
 import CloseCurrentResource from './CloseCurrentResource';
 import { copyContentToClipboard } from './copyContent';
@@ -125,6 +132,7 @@ export default function Actions(props: IActionProps) {
     resourceId,
     editPage,
     namespaceId,
+    onResource,
     rssItemId: explicitRssItemId,
     rssItemCopyContent,
   } = props;
@@ -187,6 +195,14 @@ export default function Actions(props: IActionProps) {
   // move, and trash.
   const canUseFileLikeActions = !isFolder && !isSmartFolder && !isRssFolderView;
   const canUseRegularResourceActions = !isSmartFolder && !isRssFolder;
+  const isParsedResource =
+    resource?.resource_type === 'file' || resource?.resource_type === 'link';
+  const { failed: parseFailed, refresh: refreshParseFailure } =
+    useResourceParseFailure({
+      namespaceId,
+      resourceId: resource?.id,
+      disabled: !isParsedResource || !canModifyResource || isRssItemView,
+    });
 
   useEffect(() => {
     if (!namespaceId) return;
@@ -376,6 +392,28 @@ export default function Actions(props: IActionProps) {
       downloadFile(namespaceId, resource.id, resource.attrs?.original_name)
         .then(() => {
           setOpen(false);
+        })
+        .finally(() => {
+          onLoading('');
+        });
+      return;
+    }
+    if (id === 'retry_parse') {
+      onLoading('retry_parse');
+      retryResourceParse(namespaceId, resource.id)
+        .then(() => {
+          toast.success(t('actions.retry_parse_success'));
+          setOpen(false);
+          refreshParseFailure();
+          return fetchResource(namespaceId, resource.id).then(updated => {
+            onResource(updated);
+            app.fire('update_resource', updated);
+          });
+        })
+        .catch(error => {
+          toast.error(
+            error?.response?.data?.message || t('actions.retry_parse_error')
+          );
         })
         .finally(() => {
           onLoading('');
@@ -771,6 +809,23 @@ export default function Actions(props: IActionProps) {
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
+          )}
+          {parseFailed && (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              disabled={loading === 'retry_parse'}
+              onSelect={event => {
+                event.preventDefault();
+                handleAction('retry_parse');
+              }}
+            >
+              {loading === 'retry_parse' ? (
+                <Spinner />
+              ) : (
+                <RefreshCw className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              )}
+              <span>{t('actions.retry_parse')}</span>
+            </DropdownMenuItem>
           )}
           {canUseRegularResourceActions && (
             <DropdownMenuItem

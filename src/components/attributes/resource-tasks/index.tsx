@@ -1,6 +1,7 @@
-import { ListChecks, ListVideo } from 'lucide-react';
+import { ListChecks, ListVideo, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { DoneIcon } from '@/assets/icons/DoneIcon';
 import { ProgressIcon } from '@/assets/icons/ProgressIcon';
@@ -16,11 +17,21 @@ import { RESOURCE_TASKS_INTERVAL } from '@/const.ts';
 import useApp from '@/hooks/useApp';
 import { Resource, Task } from '@/interface';
 import { http } from '@/lib/request';
+import { fetchResource, retryResourceParse } from '@/service/resource';
 
 import { ATTRIBUTE_STYLES } from '../constants';
-import { CONTENT_MODIFYING_FUNCTIONS, DISPLAY_FUNCTIONS } from './const';
+import {
+  CONTENT_MODIFYING_FUNCTIONS,
+  DISPLAY_FUNCTIONS,
+  FAILED_TASK_STATUSES,
+} from './const';
 import { TaskTag } from './TaskTag';
-import { hasActiveContentModifyingTasks } from './utils';
+import {
+  getFailedTasks,
+  getTaskBadgeConfig,
+  hasActiveContentModifyingTasks,
+  hasFailedParse,
+} from './utils';
 
 interface ResourceTasksProps {
   resource: Resource;
@@ -38,6 +49,7 @@ export default function ResourceTasks({
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
   const fetchTasks = async () => {
     try {
@@ -51,6 +63,24 @@ export default function ResourceTasks({
       console.error('Fetch resource tasks error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRetry = async () => {
+    setRetrying(true);
+    try {
+      await retryResourceParse(namespaceId, resource.id);
+      toast.success(t('actions.retry_parse_success'));
+      await fetchTasks();
+      const updated = await fetchResource(namespaceId, resource.id);
+      onResource(updated);
+      app.fire('update_resource', updated);
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || t('actions.retry_parse_error')
+      );
+    } finally {
+      setRetrying(false);
     }
   };
 
@@ -151,21 +181,20 @@ export default function ResourceTasks({
     return null;
   }
 
-  // Show only tasks with specified functions that are recent or active
+  // Show only tasks with specified functions that are recent, active or failed.
+  // Failures stay visible regardless of age: the resource is still blank.
   const relevantTasks = tasks.filter(task => {
     const isDisplayFunction = DISPLAY_FUNCTIONS.includes(task.function);
     const isActive = task.status === 'running' || task.status === 'pending';
     const isRecent =
       new Date(task.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000);
-    return isDisplayFunction && (isActive || isRecent);
+    return (
+      isDisplayFunction &&
+      (isActive || isRecent || FAILED_TASK_STATUSES.includes(task.status))
+    );
   });
 
   if (relevantTasks.length === 0) {
-    return null;
-  }
-
-  // If all tasks finished, display nothing
-  if (!hasActiveContentModifyingTasks(relevantTasks)) {
     return null;
   }
 
@@ -175,6 +204,17 @@ export default function ResourceTasks({
   const finishedTasks = relevantTasks.filter(
     task => task.status === 'finished'
   );
+  const failedTasks = getFailedTasks(relevantTasks);
+  const canRetry = hasFailedParse(tasks);
+  const FailedIcon = getTaskBadgeConfig(failedTasks[0]?.status || 'error').icon;
+
+  // Nothing is running and nothing failed: the resource speaks for itself
+  if (
+    !hasActiveContentModifyingTasks(relevantTasks) &&
+    failedTasks.length === 0
+  ) {
+    return null;
+  }
 
   return (
     <div className={ATTRIBUTE_STYLES.container}>
@@ -263,6 +303,43 @@ export default function ResourceTasks({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+          {failedTasks.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="secondary"
+                  className="h-6 gap-0.5 rounded-lg border border-red-600 bg-transparent px-2 py-0 text-xs text-red-600 dark:border-red-500 dark:text-red-500"
+                >
+                  <FailedIcon className="size-3.5" />
+                  {t('tasks.status_label_failed')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="bottom"
+                className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
+              >
+                {failedTasks.map(task => (
+                  <DropdownMenuItem
+                    key={task.id}
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <TaskTag type={task.function as any} />
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {canRetry && (
+            <Button
+              variant="secondary"
+              disabled={retrying}
+              onClick={handleRetry}
+              className="h-6 gap-0.5 rounded-lg border border-neutral-500 bg-transparent px-2 py-0 text-xs text-neutral-500 dark:border-neutral-300 dark:text-neutral-300"
+            >
+              {retrying ? <Spinner /> : <RefreshCw className="size-3" />}
+              {t('common.retry')}
+            </Button>
           )}
         </span>
         {hasActiveContentModifyingTasks(relevantTasks) && (
