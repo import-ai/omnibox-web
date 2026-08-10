@@ -12,6 +12,7 @@ import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
 import { track } from '@/lib/sendTrackEvent';
 import { useChatStore } from '@/page/chat/chatStore';
+import { clearConversationCache } from '@/page/chat/conversation/conversationCache';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
@@ -23,6 +24,7 @@ import {
 } from './authStorage';
 
 function clearUserWorkspaceState() {
+  clearConversationCache();
   useResourceStore.getState().resetFeaturePreviews();
   useChatStore.getState().clearContext();
   useSidebarStore.getState().clear();
@@ -105,6 +107,7 @@ export default function Layout() {
       searchParams.get('from') === 'extension_login' &&
       uid
     ) {
+      clearConversationCache();
       localStorage.removeItem('uid');
       localStorage.removeItem('token');
       return;

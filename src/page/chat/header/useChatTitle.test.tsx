@@ -5,7 +5,7 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
 import {
-  clearCachedConversation,
+  clearConversationCache,
   setCachedConversation,
 } from '@/page/chat/conversation/conversationCache';
 
@@ -29,6 +29,7 @@ const mockApp = {
 };
 
 const mockPost = jest.fn();
+const cacheScope = { userId: 'user-a', namespaceId: 'namespace-a' };
 
 jest.mock('@/hooks/useApp', () => ({
   __esModule: true,
@@ -78,10 +79,10 @@ describe('useChatTitle', () => {
 
   beforeEach(() => {
     listeners.clear();
+    localStorage.setItem('uid', 'user-a');
     mockPost.mockReset();
     mockPost.mockResolvedValue({ title: 'Generated title' });
-    clearCachedConversation('conversation-a');
-    clearCachedConversation('conversation-b');
+    clearConversationCache();
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -112,7 +113,7 @@ describe('useChatTitle', () => {
   };
 
   it('hydrates from conversation cache', async () => {
-    setCachedConversation({
+    setCachedConversation(cacheScope, {
       id: 'conversation-a',
       title: 'Cached title',
       mapping: {},
@@ -169,7 +170,7 @@ describe('useChatTitle', () => {
   });
 
   it('does not render the previous title while switching conversations', async () => {
-    setCachedConversation({
+    setCachedConversation(cacheScope, {
       id: 'conversation-a',
       title: 'Conversation A',
       mapping: {},
@@ -204,6 +205,22 @@ describe('useChatTitle', () => {
     await act(async () => {
       resolveTitle({ title: 'Generated A' });
       await Promise.resolve();
+    });
+
+    expect(latestTitle).toBe('');
+  });
+
+  it('clears the active title when conversation authorization fails', async () => {
+    setCachedConversation(cacheScope, {
+      id: 'conversation-a',
+      title: 'User A secret',
+      mapping: {},
+    });
+    await renderHook('conversation-a');
+    expect(latestTitle).toBe('User A secret');
+
+    await act(async () => {
+      mockApp.fire('chat:title:clear', { conversationId: 'conversation-a' });
     });
 
     expect(latestTitle).toBe('');

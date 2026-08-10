@@ -3,12 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
-import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizardLang';
 import {
   AgentRequestChannel,
   ApprovalMode,
-  ChatCreatePayload,
   ChatMode,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
@@ -17,9 +15,7 @@ import {
   ask,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
-  getStreamEventId,
   isTerminalMessageStatus,
-  resumeStream,
   stopStream,
 } from '@/page/chat/conversation/utils.ts';
 import {
@@ -30,23 +26,17 @@ import {
   MessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/core/types/conversation';
+import { MessageDetail } from '@/page/chat/core/types/conversation';
 import useGlobalContext from '@/page/chat/useSelectedResources.ts';
 
-import { getTitleFromConversationDetail } from '../utils';
 import {
-  getCachedConversation,
-  setCachedConversation,
+  type ConversationCacheScope,
+  getCurrentUserId,
 } from './conversationCache';
-
-const CHAT_CREATE_PAYLOAD_KEY = 'chat-create-payload';
-
-function emptyConversation(conversationId: string): ConversationDetail {
-  return { id: conversationId, mapping: {} };
-}
+import useConversationBootstrap, {
+  CHAT_CREATE_PAYLOAD_KEY,
+} from './useConversationBootstrap';
+import useScopedConversationState from './useScopedConversationState';
 
 export default function useContext() {
   const app = useApp();
@@ -54,6 +44,11 @@ export default function useContext() {
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
   const regeneratingRef = useRef(false);
   const { conversationId, namespaceId } = useChatRouteParams();
+  const userId = getCurrentUserId();
+  const cacheScope = useMemo<ConversationCacheScope>(
+    () => ({ userId, namespaceId }),
+    [namespaceId, userId]
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [waitingForAssistantDelta, setWaitingForAssistantDelta] =
     useState(false);
@@ -68,10 +63,9 @@ export default function useContext() {
       Boolean(window.sessionStorage.getItem(CHAT_CREATE_PAYLOAD_KEY))
   );
   const { selectedResources, setSelectedResources } = useGlobalContext();
-  // Hydrate from cache so Copilot → full-page remount keeps messages/title.
-  const [conversation, setConversation] = useState<ConversationDetail>(
-    () =>
-      getCachedConversation(conversationId) ?? emptyConversation(conversationId)
+  const [conversation, setConversation] = useScopedConversationState(
+    cacheScope,
+    conversationId
   );
   const channel = AgentRequestChannel.WEB;
   const messages = useMemo((): MessageDetail[] => {
@@ -86,20 +80,6 @@ export default function useContext() {
       currentNode = message.parent_id;
     }
     return result;
-  }, [conversation]);
-
-  useEffect(() => {
-    if (conversation.id !== conversationId) {
-      setConversation(
-        getCachedConversation(conversationId) ??
-          emptyConversation(conversationId)
-      );
-    }
-  }, [conversation.id, conversationId]);
-
-  useEffect(() => {
-    if (!conversation.id) return;
-    setCachedConversation(conversation);
   }, [conversation]);
 
   const messageOperator = useMemo((): MessageOperator => {
@@ -152,56 +132,19 @@ export default function useContext() {
     }
   };
 
-  useEffect(() => {
-    if (!conversationId) return;
-    const state = sessionStorage.getItem(CHAT_CREATE_PAYLOAD_KEY);
-    const chatCreatePayload: ChatCreatePayload | undefined = state
-      ? JSON.parse(state)
-      : undefined;
-    setInitialApprovalMode(chatCreatePayload?.approvalMode);
-    setSuppressInitialToolRestore(Boolean(chatCreatePayload));
-    const loadConversation = () =>
-      http
-        .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
-        .then((response: ConversationDetail) => {
-          const conversationTitle = getTitleFromConversationDetail(response);
-          if (conversationTitle) {
-            app.fire('chat:title:update', {
-              conversationId,
-              title: conversationTitle,
-            });
-          }
-          setConversation(response);
-          return response;
-        });
-
-    if (!chatCreatePayload) {
-      let destroyed = false;
-      let resumeFN: ReturnType<typeof resumeStream> | undefined;
-      void loadConversation().then(conversation => {
-        if (destroyed) return;
-        resumeFN = resumeStream(
-          conversationId,
-          messageOperator,
-          `/api/v1/namespaces/${namespaceId}/wizard/stream/resume`,
-          getStreamEventId(conversation)
-        );
-        askAbortRef.current = resumeFN.cancel;
-        void resumeFN.start().finally(() => {
-          if (askAbortRef.current === resumeFN?.cancel) {
-            askAbortRef.current = null;
-          }
-          void loadConversation();
-        });
-      });
-      return () => {
-        destroyed = true;
-        resumeFN?.destroy();
-      };
-    }
-    sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
-    void sendMessage(chatCreatePayload);
-  }, [namespaceId, conversationId]);
+  useConversationBootstrap({
+    app,
+    askAbortRef,
+    cacheScope,
+    conversationId,
+    messageOperator,
+    namespaceId,
+    sendMessage,
+    setConversation,
+    setInitialApprovalMode,
+    setSuppressInitialToolRestore,
+    userId,
+  });
 
   const mergedLoading =
     loading || !isTerminalMessageStatus(messages.at(-1)?.status);
