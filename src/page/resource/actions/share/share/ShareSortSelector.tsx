@@ -83,22 +83,24 @@ export function ShareSortSelector({
   return (
     <TooltipProvider>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            disabled={disabled}
-            className="h-6 w-44 justify-between bg-transparent px-3 py-2 text-sm font-normal dark:bg-[#303030]"
-          >
-            <span className="truncate">
-              {selectedAutomaticOption
-                ? `${t(selectedAutomaticOption.fieldKey)} ${t(
-                    selectedAutomaticOption.orderKey
-                  )}`
-                : t('sidebar.sort.manual')}
-            </span>
-            <ChevronDown className="size-4 shrink-0 opacity-50" />
-          </Button>
-        </DropdownMenuTrigger>
+        <span className={cn('inline-flex', disabled && 'cursor-not-allowed')}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              disabled={disabled}
+              className="h-6 w-44 justify-between bg-transparent px-3 py-2 text-sm font-normal dark:bg-[#303030]"
+            >
+              <span className="truncate">
+                {selectedAutomaticOption
+                  ? `${t(selectedAutomaticOption.fieldKey)} ${t(
+                      selectedAutomaticOption.orderKey
+                    )}`
+                  : t('sidebar.sort.manual')}
+              </span>
+              <ChevronDown className="size-4 shrink-0 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+        </span>
         <DropdownMenuContent align="end" className="w-max">
           {flatAutomaticSortOptions.map(option => {
             const selected =
