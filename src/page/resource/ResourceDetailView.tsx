@@ -137,7 +137,8 @@ export default function ResourceDetailView({
       <div
         className={cn(
           'no-scrollbar flex min-w-0 flex-1 justify-center overflow-x-hidden overflow-y-auto p-4',
-          editPage && 'pl-2'
+          // Wide mode needs the default left padding so body clears the TOC rail.
+          editPage && !wide && 'pl-2'
         )}
         ref={scrollContainerRef}
       >

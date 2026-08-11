@@ -19,6 +19,25 @@ export function triggerGlobalFileUpload(targetId: string) {
   openFilePicker(input);
 }
 
+/** Drop smart-folder selection key so locate can highlight the source row. */
+export function clearSidebarActiveKeyFromState(state: unknown): {
+  changed: boolean;
+  nextState: unknown;
+} {
+  if (!state || typeof state !== 'object' || Array.isArray(state)) {
+    return { changed: false, nextState: state };
+  }
+  if (!('sidebarActiveKey' in state)) {
+    return { changed: false, nextState: state };
+  }
+  const rest = { ...(state as Record<string, unknown>) };
+  delete rest.sidebarActiveKey;
+  return {
+    changed: true,
+    nextState: Object.keys(rest).length > 0 ? rest : null,
+  };
+}
+
 export async function locateSidebarResource(resourceId: string) {
   await useSidebarStore
     .getState()
