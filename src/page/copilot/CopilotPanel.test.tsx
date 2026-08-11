@@ -79,6 +79,15 @@ function resizeWorkspace(width: number) {
   );
 }
 
+function setViewportWidth(width: number) {
+  Object.defineProperty(window, 'innerWidth', {
+    configurable: true,
+    value: width,
+    writable: true,
+  });
+  window.dispatchEvent(new Event('resize'));
+}
+
 describe('CopilotPanel', () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -120,6 +129,7 @@ describe('CopilotPanel', () => {
 
   it('keeps one conversation subtree mounted while closing and changing layouts', async () => {
     act(() => {
+      setViewportWidth(900);
       useCopilotStore.getState().showConversation('namespace-a', 'chat-a');
     });
     await act(async () =>
@@ -133,7 +143,10 @@ describe('CopilotPanel', () => {
       container.querySelector('[data-testid="copilot-title"]')?.textContent
     ).toBe('Panel title');
 
-    act(() => resizeWorkspace(1200));
+    act(() => {
+      setViewportWidth(1200);
+      resizeWorkspace(1200);
+    });
     expect(panel?.dataset.layout).toBe('split');
     expect(copilotViewMounts).toBe(1);
 
@@ -154,7 +167,10 @@ describe('CopilotPanel', () => {
     document.body.appendChild(trigger);
     document.body.style.overflow = 'clip';
     trigger.focus();
-    act(() => useCopilotStore.getState().open('namespace-a'));
+    act(() => {
+      setViewportWidth(900);
+      useCopilotStore.getState().open('namespace-a');
+    });
 
     await act(async () =>
       root.render(<CopilotPanel namespaceId="namespace-a" />)
