@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/useApp';
@@ -9,7 +9,10 @@ import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { getNodeResourceSort } from '@/page/sidebar/store/utils';
-import { locateSidebarResource } from '@/page/sidebar/utils';
+import {
+  clearSidebarActiveKeyFromState,
+  locateSidebarResource,
+} from '@/page/sidebar/utils';
 import {
   fetchChildren,
   fetchResource,
@@ -106,6 +109,9 @@ export function useSidebarEvents(namespaceId: string) {
   const app = useApp();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationRef = useRef(location);
+  locationRef.current = location;
 
   useEffect(() => {
     const hooks: Array<() => void> = [];
@@ -168,6 +174,27 @@ export function useSidebarEvents(namespaceId: string) {
         await handleRefreshResourceChildren(parentId);
       }
       await locateSidebarResource(targetId);
+
+      // Smart-folder children keep selection via location.state.sidebarActiveKey.
+      // Locate switches to the source resource, so clear that key or the old
+      // smart-folder row stays highlighted after we scroll to the original path.
+      const currentLocation = locationRef.current;
+      const { changed, nextState } = clearSidebarActiveKeyFromState(
+        currentLocation.state
+      );
+      if (changed) {
+        navigate(
+          {
+            pathname: currentLocation.pathname,
+            search: currentLocation.search,
+            hash: currentLocation.hash,
+          },
+          {
+            replace: true,
+            state: nextState,
+          }
+        );
+      }
     };
 
     // The event bus treats a listener return value as the next listener's
