@@ -50,6 +50,7 @@ export default function useContext() {
     [namespaceId, userId]
   );
   const [loading, setLoading] = useState<boolean>(false);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [waitingForAssistantDelta, setWaitingForAssistantDelta] =
     useState(false);
   const [regeneratingParentId, setRegeneratingParentId] = useState<
@@ -69,6 +70,7 @@ export default function useContext() {
   );
   const channel = AgentRequestChannel.WEB;
   const messages = useMemo((): MessageDetail[] => {
+    if (conversation.id !== conversationId) return [];
     const result: MessageDetail[] = [];
     let currentNode: string | undefined = conversation.current_node;
     while (currentNode) {
@@ -80,8 +82,7 @@ export default function useContext() {
       currentNode = message.parent_id;
     }
     return result;
-  }, [conversation]);
-
+  }, [conversation, conversationId]);
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(conversation, setConversation);
   }, [conversation, setConversation]);
@@ -140,6 +141,7 @@ export default function useContext() {
     messageOperator,
     namespaceId,
     sendMessage,
+    setAccessDenied,
     setConversation,
     setInitialApprovalMode,
     setSuppressInitialToolRestore,
@@ -283,6 +285,7 @@ export default function useContext() {
 
   return {
     loading: mergedLoading,
+    accessDenied,
     waitingForAssistantDelta,
     regeneratingParentId,
     sendMessage,

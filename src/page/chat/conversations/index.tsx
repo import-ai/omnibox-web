@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/DropdownMenu';
 import { Separator } from '@/components/ui/Separator';
 import { cn } from '@/lib/utils';
+import UnauthorizedPage from '@/page/auth/UnauthorizedPage';
 
 import { groupItemsByTimestamp } from '../utils';
 import EditHistory from './edit';
@@ -40,6 +41,7 @@ export default function ChatConversationsPage({
     current,
     pageSize,
     loading,
+    accessDenied,
     onRemove,
     onEditDone,
     namespaceId,
@@ -48,6 +50,10 @@ export default function ChatConversationsPage({
     onPagerChange,
     onRemoveChange,
   } = useContext(namespaceIdOverride);
+
+  if (accessDenied) {
+    return <UnauthorizedPage />;
+  }
 
   return (
     <div className="flex flex-1 justify-center overflow-auto p-4">
