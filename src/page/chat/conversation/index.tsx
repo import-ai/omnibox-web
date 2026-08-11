@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import useConfig from '@/hooks/useConfig';
+import UnauthorizedPage from '@/page/auth/UnauthorizedPage';
 import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import ChatArea from '@/page/chat/chat-input';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
@@ -18,6 +19,7 @@ export default function ChatConversationPage() {
   const { compact } = useChatRouteParams();
   const {
     loading,
+    accessDenied,
     waitingForAssistantDelta,
     regeneratingParentId,
     messages,
@@ -33,6 +35,10 @@ export default function ChatConversationPage() {
     onStop,
     sendMessage,
   } = useContext();
+
+  if (accessDenied) {
+    return <UnauthorizedPage />;
+  }
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">

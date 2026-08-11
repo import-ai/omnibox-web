@@ -6,6 +6,7 @@ import { Namespace, SpaceType } from '@/interface';
 import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
 import { SidebarDragLayer } from '@/page/sidebar/hooks/UseBatchDrag';
 import { useDragAutoScroll } from '@/page/sidebar/hooks/useDragAutoScroll';
+import type { RssFolderQuotaExhausted } from '@/page/sidebar/rssFolderQuota';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { TrashPanel } from '@/page/trash';
 import type { ResourceSortOptions } from '@/service/resource';
@@ -23,6 +24,7 @@ interface ResourceTreeProps {
   onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
   onCreateRssFolder: (spaceType: SpaceType) => void;
   smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
+  rssFolderQuotaExhausted: RssFolderQuotaExhausted;
   sortingSpace: SpaceType | null;
   onResourceSortChange: (
     spaceType: SpaceType,
@@ -58,6 +60,7 @@ export default function ResourceTree({
   onCreateSmartFolder,
   onCreateRssFolder,
   smartFolderQuotaExhausted,
+  rssFolderQuotaExhausted,
   sortingSpace,
   onResourceSortChange,
 }: ResourceTreeProps) {
@@ -85,6 +88,7 @@ export default function ResourceTree({
             onCreateSmartFolder={onCreateSmartFolder}
             onCreateRssFolder={onCreateRssFolder}
             smartFolderQuotaExhausted={smartFolderQuotaExhausted}
+            rssFolderQuotaExhausted={rssFolderQuotaExhausted}
             sortingSpace={sortingSpace}
             onResourceSortChange={onResourceSortChange}
           />

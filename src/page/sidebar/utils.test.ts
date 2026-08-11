@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 import { insertUnspecifiedChild } from './store/utils';
-import { locateSidebarResource } from './utils';
+import { clearSidebarActiveKeyFromState, locateSidebarResource } from './utils';
 
 const mockExpandPathTo = jest.fn();
 const mockToggleSpace = jest.fn();
@@ -16,6 +16,10 @@ const mockSidebarState = {
 };
 
 jest.mock('@/const', () => ({ ALLOW_FILE_EXTENSIONS: '' }));
+
+jest.mock('@/lib/openFilePicker', () => ({
+  openFilePicker: jest.fn(),
+}));
 
 jest.mock('@/page/sidebar/components/smart-folder', () => ({
   isSmartFolderChildResource: jest.fn(),
@@ -55,6 +59,39 @@ describe('locateSidebarResource', () => {
     expect(mockToggleSpace).toHaveBeenCalledWith('private', true);
     expect(mockActivate).toHaveBeenCalledWith('target');
     expect(container.scrollTop).toBe(160);
+  });
+});
+
+describe('clearSidebarActiveKeyFromState', () => {
+  it('removes sidebarActiveKey and keeps other state fields', () => {
+    expect(
+      clearSidebarActiveKeyFromState({
+        fromSidebar: true,
+        sidebarActiveKey: 'smart-folder-child-sf-source',
+      })
+    ).toEqual({
+      changed: true,
+      nextState: { fromSidebar: true },
+    });
+  });
+
+  it('returns null when sidebarActiveKey was the only field', () => {
+    expect(
+      clearSidebarActiveKeyFromState({
+        sidebarActiveKey: 'smart-folder-child-sf-source',
+      })
+    ).toEqual({ changed: true, nextState: null });
+  });
+
+  it('is a no-op without sidebarActiveKey', () => {
+    expect(clearSidebarActiveKeyFromState({ fromSidebar: true })).toEqual({
+      changed: false,
+      nextState: { fromSidebar: true },
+    });
+    expect(clearSidebarActiveKeyFromState(null)).toEqual({
+      changed: false,
+      nextState: null,
+    });
   });
 });
 

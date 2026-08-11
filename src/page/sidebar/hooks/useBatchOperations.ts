@@ -102,6 +102,11 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
           id => previousNodes[id]?.resourceType === 'smart_folder'
         )
       );
+      const selectedRssFolderIds = new Set(
+        topLevelSelectedIds.filter(
+          id => previousNodes[id]?.resourceType === 'rss_folder'
+        )
+      );
       const result = await useSidebarStore
         .getState()
         .batchRemove(topLevelSelectedIds, currentResourceId);
@@ -110,6 +115,9 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         app.fire('refresh_loaded_smart_folders');
         if (result.success.some(id => selectedSmartFolderIds.has(id))) {
           useSidebarStore.getState().refetchSmartFolderEntitlements();
+        }
+        if (result.success.some(id => selectedRssFolderIds.has(id))) {
+          useSidebarStore.getState().refetchRssFolderLimits();
         }
       }
       if (result.failed.length > 0) {
