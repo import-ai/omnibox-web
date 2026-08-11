@@ -9,6 +9,7 @@ export default function useContext(namespaceIdOverride?: string) {
   const params = useParams();
   const namespaceId = namespaceIdOverride || params.namespace_id || '';
   const [loading, onLoading] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [current, onCurrent] = useState(1);
   const [pageSize] = useState(10);
   const [data, onData] = useState<{
@@ -40,11 +41,18 @@ export default function useContext(namespaceIdOverride?: string) {
     showLoading && onLoading(true);
     const source = axios.CancelToken.source();
     http
-      .get(
-        `/namespaces/${namespaceId}/conversations?offset=${(current - 1) * pageSize}&limit=${pageSize}&order=desc`,
-        { cancelToken: source.token }
+      .get(`/namespaces/${namespaceId}/me`, { cancelToken: source.token })
+      .then(() =>
+        http.get(
+          `/namespaces/${namespaceId}/conversations?offset=${(current - 1) * pageSize}&limit=${pageSize}&order=desc`,
+          { cancelToken: source.token }
+        )
       )
       .then(onData)
+      .catch(() => {
+        onData({ total: 0, data: [] });
+        setAccessDenied(true);
+      })
       .finally(() => {
         showLoading && onLoading(false);
       });
@@ -71,6 +79,7 @@ export default function useContext(namespaceIdOverride?: string) {
   };
 
   useEffect(() => {
+    setAccessDenied(false);
     refetch(true);
   }, [namespaceId, current, pageSize]);
 
@@ -79,6 +88,7 @@ export default function useContext(namespaceIdOverride?: string) {
     edit,
     current,
     loading,
+    accessDenied,
     pageSize,
     onEdit,
     remove,

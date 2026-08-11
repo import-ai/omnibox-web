@@ -23,6 +23,7 @@ import {
 } from './conversationCache';
 import {
   type ConversationLoadPhase,
+  isConversationAccessDenied,
   shouldClearVisibleConversation,
   shouldInvalidateConversation,
 } from './conversationLoadPolicy';
@@ -37,6 +38,7 @@ interface ConversationBootstrapOptions {
   messageOperator: MessageOperator;
   namespaceId: string;
   sendMessage: (params: SendMessageParams) => Promise<void>;
+  setAccessDenied: Dispatch<SetStateAction<boolean>>;
   setConversation: Dispatch<SetStateAction<ConversationDetail>>;
   setInitialApprovalMode: Dispatch<SetStateAction<ApprovalMode | undefined>>;
   setSuppressInitialToolRestore: Dispatch<SetStateAction<boolean>>;
@@ -122,6 +124,12 @@ async function loadConversation(
     setConversation(response);
     return response;
   } catch (error) {
+    if (
+      isActiveRequest(options, runtime) &&
+      isConversationAccessDenied(error)
+    ) {
+      options.setAccessDenied(true);
+    }
     invalidateFailedConversation(
       options,
       runtime,
@@ -159,6 +167,7 @@ function resumeLoadedConversation(
 
 function startConversationBootstrap(options: ConversationBootstrapOptions) {
   if (!options.conversationId) return;
+  options.setAccessDenied(false);
   const state = sessionStorage.getItem(CHAT_CREATE_PAYLOAD_KEY);
   const payload: ChatCreatePayload | undefined = state
     ? JSON.parse(state)
