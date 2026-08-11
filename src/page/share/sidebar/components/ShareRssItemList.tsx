@@ -148,7 +148,7 @@ export default function ShareRssItemList({ folderId, shareId }: IProps) {
                       style={{ paddingLeft }}
                     >
                       {item.link_name ? (
-                        <span className="flex size-4 shrink-0 items-center justify-center rounded-[3px] border text-[9px] font-normal leading-none">
+                        <span className="flex size-4 shrink-0 items-center justify-center rounded-[3px] border border-muted-foreground/60 text-[10px] font-medium leading-none">
                           {item.link_name.charAt(0).toUpperCase()}
                         </span>
                       ) : (
