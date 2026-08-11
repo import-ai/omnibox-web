@@ -22,24 +22,6 @@ export const CONTENT_MODIFYING_FUNCTIONS: TaskType[] = [
 
 export const DISPLAY_FUNCTIONS = CONTENT_MODIFYING_FUNCTIONS;
 
-// Functions that turn a raw resource into its markdown content. Mirrors the
-// backend's PARSE_FUNCTIONS: only these leave a resource blank when they fail.
-export const PARSE_FUNCTIONS: TaskType[] = [
-  'collect',
-  'collect_url',
-  'web_analysis',
-  'file_reader',
-  'file_reader_text',
-  'file_reader_ppt',
-  'file_reader_word',
-  'file_reader_pdf',
-  'file_reader_audio',
-  'file_reader_video',
-  'file_reader_image',
-  'generate_video_note',
-  'generate_audio_note',
-];
-
 export const FAILED_TASK_STATUSES: TaskStatus[] = [
   'error',
   'timeout',

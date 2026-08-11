@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { hasFailedParse } from '@/components/attributes/resource-tasks/utils';
+import { hasFailedTasks } from '@/components/attributes/resource-tasks/utils';
 import { fetchResourceTasks } from '@/service/resource';
 
 interface IProps {
@@ -10,11 +10,11 @@ interface IProps {
 }
 
 /**
- * Tells whether the resource's parsing is known to have failed, so the toolbar
+ * Tells whether the resource has any failed task left to retry, so the toolbar
  * can offer a retry only when there is something to retry. The sidebar has no
- * parse status, which is why this lives on the resource page.
+ * task status, which is why this lives on the resource page.
  */
-export default function useResourceParseFailure(props: IProps) {
+export default function useResourceFailedTasks(props: IProps) {
   const { namespaceId, resourceId, disabled = false } = props;
   const mountedRef = useRef(false);
   const [failed, onFailed] = useState(false);
@@ -35,7 +35,7 @@ export default function useResourceParseFailure(props: IProps) {
     fetchResourceTasks(namespaceId, resourceId, { mute: true })
       .then(tasks => {
         if (mountedRef.current) {
-          onFailed(hasFailedParse(tasks || []));
+          onFailed(hasFailedTasks(tasks || []));
         }
       })
       .catch(() => undefined);

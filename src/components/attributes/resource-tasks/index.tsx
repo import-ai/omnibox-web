@@ -17,7 +17,7 @@ import { RESOURCE_TASKS_INTERVAL } from '@/const.ts';
 import useApp from '@/hooks/useApp';
 import { Resource, Task } from '@/interface';
 import { http } from '@/lib/request';
-import { fetchResource, retryResourceParse } from '@/service/resource';
+import { fetchResource, retryResourceTasks } from '@/service/resource';
 
 import { ATTRIBUTE_STYLES } from '../constants';
 import {
@@ -30,7 +30,7 @@ import {
   getFailedTasks,
   getTaskBadgeConfig,
   hasActiveContentModifyingTasks,
-  hasFailedParse,
+  hasFailedTasks,
 } from './utils';
 
 interface ResourceTasksProps {
@@ -69,16 +69,14 @@ export default function ResourceTasks({
   const handleRetry = async () => {
     setRetrying(true);
     try {
-      await retryResourceParse(namespaceId, resource.id);
-      toast.success(t('actions.retry_parse_success'));
+      await retryResourceTasks(namespaceId, resource.id);
+      toast.success(t('actions.retry_success'));
       await fetchTasks();
       const updated = await fetchResource(namespaceId, resource.id);
       onResource(updated);
       app.fire('update_resource', updated);
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || t('actions.retry_parse_error')
-      );
+      toast.error(err?.response?.data?.message || t('actions.retry_error'));
     } finally {
       setRetrying(false);
     }
@@ -204,8 +202,9 @@ export default function ResourceTasks({
   const finishedTasks = relevantTasks.filter(
     task => task.status === 'finished'
   );
-  const failedTasks = getFailedTasks(relevantTasks);
-  const canRetry = hasFailedParse(tasks);
+  // Resolved against the full task list so a retry hides the failure it replaced
+  const failedTasks = getFailedTasks(relevantTasks, tasks);
+  const canRetry = hasFailedTasks(tasks);
   const FailedIcon = getTaskBadgeConfig(failedTasks[0]?.status || 'error').icon;
 
   // Nothing is running and nothing failed: the resource speaks for itself

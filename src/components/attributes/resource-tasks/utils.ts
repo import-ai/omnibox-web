@@ -1,11 +1,7 @@
 import { Task, TaskStatus } from '@/interface';
 import { statusConfig } from '@/page/settings/tabs/members/tasks/TaskStatusBadge';
 
-import {
-  CONTENT_MODIFYING_FUNCTIONS,
-  FAILED_TASK_STATUSES,
-  PARSE_FUNCTIONS,
-} from './const';
+import { CONTENT_MODIFYING_FUNCTIONS, FAILED_TASK_STATUSES } from './const';
 
 export const formatFunction = (
   functionName: string,
@@ -28,21 +24,44 @@ export const hasActiveContentModifyingTasks = (taskList: Task[]): boolean => {
   );
 };
 
-export const getFailedTasks = (taskList: Task[]): Task[] => {
-  return taskList.filter(task => FAILED_TASK_STATUSES.includes(task.status));
+/**
+ * Ids of failures that a later task was emitted to replace.
+ *
+ * The backend stamps `retried_from_task_id` on every task it emits from a
+ * retry, so supersession is an exact pointer, never a guess: a failure that was
+ * never retried stays visible no matter what else ran afterwards.
+ */
+export const getSupersededTaskIds = (taskList: Task[]): Set<string> => {
+  return new Set(
+    taskList
+      .map(task => task.retried_from_task_id)
+      .filter((id): id is string => !!id)
+  );
 };
 
 /**
- * Whether the resource's parsing is known to have failed: the most recent
- * parsing attempt ended in a failure and nothing is running to supersede it.
- * Mirrors the eligibility the retry-parse endpoint enforces.
+ * Failed tasks still worth showing: the ones no retry has replaced.
+ *
+ * Supersession is resolved against `allTasks`, which must be the full task
+ * list. Resolving it against an already display-filtered `taskList` would miss
+ * a retry the display filter dropped and leave the stale failure on screen.
  */
-export const hasFailedParse = (taskList: Task[]): boolean => {
-  const [latest] = taskList
-    .filter(task => PARSE_FUNCTIONS.includes(task.function))
-    .sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-  return !!latest && FAILED_TASK_STATUSES.includes(latest.status);
+export const getFailedTasks = (
+  taskList: Task[],
+  allTasks: Task[] = taskList
+): Task[] => {
+  const superseded = getSupersededTaskIds(allTasks);
+  return taskList.filter(
+    task =>
+      FAILED_TASK_STATUSES.includes(task.status) && !superseded.has(task.id)
+  );
+};
+
+/**
+ * Whether the resource has anything to retry: any failed task, of any function,
+ * that no retry has already replaced. Mirrors the eligibility the retry
+ * endpoint enforces.
+ */
+export const hasFailedTasks = (taskList: Task[]): boolean => {
+  return getFailedTasks(taskList).length > 0;
 };

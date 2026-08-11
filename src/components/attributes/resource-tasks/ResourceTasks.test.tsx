@@ -6,7 +6,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import type { Resource, Task, TaskStatus, TaskType } from '@/interface';
 
 const httpGet = jest.fn();
-const retryResourceParse = jest.fn();
+const retryResourceTasks = jest.fn();
 const fetchResource = jest.fn();
 
 jest.mock('react-i18next', () => ({
@@ -25,7 +25,7 @@ jest.mock('@/lib/request', () => ({
   },
 }));
 jest.mock('@/service/resource', () => ({
-  retryResourceParse: (...args: unknown[]) => retryResourceParse(...args),
+  retryResourceTasks: (...args: unknown[]) => retryResourceTasks(...args),
   fetchResource: (...args: unknown[]) => fetchResource(...args),
 }));
 jest.mock('@/const.ts', () => ({ RESOURCE_TASKS_INTERVAL: 60_000 }));
@@ -49,9 +49,14 @@ import ResourceTasks from './index';
 
 const resource = { id: 'resource-1', name: 'Blank file' } as Resource;
 
-function task(fn: TaskType, status: TaskStatus, daysAgo = 0): Task {
+function task(
+  fn: TaskType,
+  status: TaskStatus,
+  daysAgo = 0,
+  retriedFrom: string | null = null
+): Task {
   return {
-    id: `task-${fn}-${status}`,
+    id: `task-${fn}-${status}-${daysAgo}`,
     status,
     function: fn,
     created_at: new Date(Date.now() - daysAgo * 86_400_000).toISOString(),
@@ -59,7 +64,13 @@ function task(fn: TaskType, status: TaskStatus, daysAgo = 0): Task {
     started_at: null,
     ended_at: null,
     canceled_at: null,
+    retried_from_task_id: retriedFrom,
   } as Task;
+}
+
+/** A retry of `original`, carrying the pointer the backend stamps on it. */
+function retryOf(original: Task, status: TaskStatus, daysAgo = 0): Task {
+  return task(original.function, status, daysAgo, original.id);
 }
 
 describe('ResourceTasks', () => {
@@ -107,19 +118,66 @@ describe('ResourceTasks', () => {
     expect(container.textContent).toBe('');
   });
 
-  it('hides the retry button while a newer parse task is running', async () => {
+  it('hides the retry button and the superseded failure while the retry runs', async () => {
+    const failure = task('file_reader_pdf', 'error', 1);
+    await render([failure, retryOf(failure, 'running')]);
+
+    expect(container.textContent).toContain('tasks.status_label_running');
+    expect(container.textContent).not.toContain('tasks.status_label_failed');
+    expect(container.textContent).not.toContain('common.retry');
+  });
+
+  it('shows the pending retry instead of the failure it replaced', async () => {
+    const failure = task('file_reader_text', 'insufficient_quota', 30);
+    await render([failure, retryOf(failure, 'pending')]);
+
+    expect(container.textContent).toContain('tasks.status_label_pending');
+    expect(container.textContent).not.toContain('tasks.status_label_failed');
+  });
+
+  it('renders nothing once the retry finished successfully', async () => {
+    const failure = task('file_reader_text', 'insufficient_quota', 30);
+    await render([failure, retryOf(failure, 'finished')]);
+
+    expect(container.textContent).toBe('');
+  });
+
+  it('shows only the newest failure when the retry failed again', async () => {
+    const first = task('file_reader_pdf', 'error', 30);
+    const second = retryOf(first, 'timeout', 10);
+    await render([first, second, retryOf(second, 'insufficient_quota')]);
+
+    expect(container.textContent).toContain('tasks.status_label_failed');
+    expect(container.textContent).toContain('common.retry');
+    expect(
+      container.textContent?.match(/tasks\.functions\.file_reader_pdf/g)
+    ).toHaveLength(1);
+  });
+
+  it('keeps a failure that was never retried visible under a newer same-function task', async () => {
     await render([
-      task('file_reader_pdf', 'error', 1),
-      task('file_reader_pdf', 'running'),
+      task('file_reader_pdf', 'error', 30),
+      task('file_reader_pdf', 'finished', 1),
     ]);
 
     expect(container.textContent).toContain('tasks.status_label_failed');
-    expect(container.textContent).not.toContain('common.retry');
+    expect(container.textContent).toContain('common.retry');
+  });
+
+  it('offers a retry for a failed non-parse task', async () => {
+    await render([
+      task('collect_url', 'finished', 1),
+      task('extract_tags', 'error', 1),
+    ]);
+
+    expect(container.textContent).toContain('tasks.status_label_failed');
+    expect(container.textContent).toContain('tasks.functions.extract_tags');
+    expect(container.textContent).toContain('common.retry');
   });
 
   it('posts a retry and refreshes the resource', async () => {
     await render([task('collect_url', 'error', 3)]);
-    retryResourceParse.mockResolvedValue({ id: 'task-new' });
+    retryResourceTasks.mockResolvedValue([{ id: 'task-new' }]);
     fetchResource.mockResolvedValue(resource);
 
     const retryButton = Array.from(container.querySelectorAll('button')).find(
@@ -129,7 +187,7 @@ describe('ResourceTasks', () => {
       retryButton?.click();
     });
 
-    expect(retryResourceParse).toHaveBeenCalledWith(
+    expect(retryResourceTasks).toHaveBeenCalledWith(
       'namespace-1',
       'resource-1'
     );

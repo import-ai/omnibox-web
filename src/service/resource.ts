@@ -247,9 +247,9 @@ export function fetchResourceTasks(
   );
 }
 
-export function retryResourceParse(namespaceId: string, id: string) {
-  return http.post<Task>(
-    `/namespaces/${namespaceId}/resources/${id}/retry-parse`,
+export function retryResourceTasks(namespaceId: string, id: string) {
+  return http.post<Task[]>(
+    `/namespaces/${namespaceId}/resources/${id}/retry`,
     undefined,
     { mute: true }
   );

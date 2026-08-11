@@ -42,7 +42,7 @@ import useConfig from '@/hooks/useConfig';
 import { useDeleteResource } from '@/hooks/useDeleteResource';
 import { useIsMobile } from '@/hooks/useMobile';
 import useProNamespaces from '@/hooks/useProNamespaces';
-import useResourceParseFailure from '@/hooks/useResourceParseFailure';
+import useResourceFailedTasks from '@/hooks/useResourceFailedTasks';
 import { IUseResource } from '@/hooks/userResource';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
@@ -70,7 +70,7 @@ import {
   fetchResource,
   fetchRssItem,
   renameResource,
-  retryResourceParse,
+  retryResourceTasks,
 } from '@/service/resource';
 
 import CloseCurrentResource from './CloseCurrentResource';
@@ -195,13 +195,14 @@ export default function Actions(props: IActionProps) {
   // move, and trash.
   const canUseFileLikeActions = !isFolder && !isSmartFolder && !isRssFolderView;
   const canUseRegularResourceActions = !isSmartFolder && !isRssFolder;
-  const isParsedResource =
+  // Only files and links run background tasks that can be retried
+  const isRetryableResource =
     resource?.resource_type === 'file' || resource?.resource_type === 'link';
-  const { failed: parseFailed, refresh: refreshParseFailure } =
-    useResourceParseFailure({
+  const { failed: tasksFailed, refresh: refreshFailedTasks } =
+    useResourceFailedTasks({
       namespaceId,
       resourceId: resource?.id,
-      disabled: !isParsedResource || !canModifyResource || isRssItemView,
+      disabled: !isRetryableResource || !canModifyResource || isRssItemView,
     });
 
   useEffect(() => {
@@ -398,13 +399,13 @@ export default function Actions(props: IActionProps) {
         });
       return;
     }
-    if (id === 'retry_parse') {
-      onLoading('retry_parse');
-      retryResourceParse(namespaceId, resource.id)
+    if (id === 'retry') {
+      onLoading('retry');
+      retryResourceTasks(namespaceId, resource.id)
         .then(() => {
-          toast.success(t('actions.retry_parse_success'));
+          toast.success(t('actions.retry_success'));
           setOpen(false);
-          refreshParseFailure();
+          refreshFailedTasks();
           return fetchResource(namespaceId, resource.id).then(updated => {
             onResource(updated);
             app.fire('update_resource', updated);
@@ -412,7 +413,7 @@ export default function Actions(props: IActionProps) {
         })
         .catch(error => {
           toast.error(
-            error?.response?.data?.message || t('actions.retry_parse_error')
+            error?.response?.data?.message || t('actions.retry_error')
           );
         })
         .finally(() => {
@@ -810,21 +811,21 @@ export default function Actions(props: IActionProps) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           )}
-          {parseFailed && (
+          {tasksFailed && (
             <DropdownMenuItem
               className="cursor-pointer gap-2"
-              disabled={loading === 'retry_parse'}
+              disabled={loading === 'retry'}
               onSelect={event => {
                 event.preventDefault();
-                handleAction('retry_parse');
+                handleAction('retry');
               }}
             >
-              {loading === 'retry_parse' ? (
+              {loading === 'retry' ? (
                 <Spinner />
               ) : (
                 <RefreshCw className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
               )}
-              <span>{t('actions.retry_parse')}</span>
+              <span>{t('actions.retry')}</span>
             </DropdownMenuItem>
           )}
           {canUseRegularResourceActions && (

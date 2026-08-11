@@ -178,9 +178,9 @@
     "locate_resource_unavailable": "No resource to locate",
     "locate_resource_success": "Located the target resource.",
     "locate_source_resource": "Locate Source File",
-    "retry_parse": "Retry",
-    "retry_parse_success": "Parsing retry submitted",
-    "retry_parse_error": "Retry failed"
+    "retry": "Retry",
+    "retry_success": "Failed tasks resubmitted",
+    "retry_error": "Retry failed"
   },
   "form": {
     "or": "or",

@@ -178,9 +178,9 @@
     "locate_resource_unavailable": "当前无资源可定位",
     "locate_resource_success": "已定位到目标资源。",
     "locate_source_resource": "定位到源文件",
-    "retry_parse": "重试",
-    "retry_parse_success": "已重新提交解析任务",
-    "retry_parse_error": "重试失败"
+    "retry": "重试",
+    "retry_success": "已重新提交失败任务",
+    "retry_error": "重试失败"
   },
   "form": {
     "or": "或",
