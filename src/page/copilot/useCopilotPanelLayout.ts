@@ -13,8 +13,10 @@ export const COPILOT_PANEL_MAX_WIDTH = 380;
 /** Keep in sync with Sidebar offcanvas (`duration-200`). */
 export const COPILOT_PANEL_TRANSITION_MS = 200;
 
-const OVERLAY_MIN_WIDTH = 768;
-const SPLIT_MIN_WIDTH = 1100;
+/** Phone viewport: full-screen drawer. Aligns with `useIsMobile`. */
+const PHONE_MAX_WIDTH = 768;
+/** Tablet / iPad viewport: side drawer. Desktop (`>= 1024`) stays split. */
+const TABLET_MAX_WIDTH = 1024;
 const OVERLAY_WIDTH = COPILOT_PANEL_MAX_WIDTH;
 const SPLIT_MIN_PANEL_WIDTH = 340;
 const SPLIT_MAX_PANEL_WIDTH = COPILOT_PANEL_MAX_WIDTH;
@@ -24,24 +26,38 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-/** Resolves the Copilot presentation from the available workspace width. */
+function normalizeWidth(width: number) {
+  return Number.isFinite(width) ? Math.max(0, width) : 0;
+}
+
+/**
+ * Resolves Copilot presentation.
+ * Mode follows viewport (phone / iPad / desktop); split panel width follows
+ * workspace width so a narrowed desktop content area stays split.
+ */
 export function getCopilotPanelLayout(
-  availableWidth: number
+  viewportWidth: number,
+  workspaceWidth = viewportWidth
 ): CopilotPanelLayout {
-  const width = Number.isFinite(availableWidth)
-    ? Math.max(0, availableWidth)
-    : 0;
-  if (width < OVERLAY_MIN_WIDTH) {
-    return { mode: 'fullscreen', panelWidth: width };
+  const viewport = normalizeWidth(viewportWidth);
+  const workspace = normalizeWidth(
+    workspaceWidth > 0 ? workspaceWidth : viewportWidth
+  );
+
+  if (viewport < PHONE_MAX_WIDTH) {
+    return { mode: 'fullscreen', panelWidth: viewport };
   }
-  if (width < SPLIT_MIN_WIDTH) {
-    return { mode: 'overlay', panelWidth: Math.min(width, OVERLAY_WIDTH) };
+  if (viewport < TABLET_MAX_WIDTH) {
+    return {
+      mode: 'overlay',
+      panelWidth: Math.min(viewport, OVERLAY_WIDTH),
+    };
   }
   return {
     mode: 'split',
     panelWidth: Math.round(
       clamp(
-        width * SPLIT_WIDTH_RATIO,
+        workspace * SPLIT_WIDTH_RATIO,
         SPLIT_MIN_PANEL_WIDTH,
         SPLIT_MAX_PANEL_WIDTH
       )
@@ -50,9 +66,8 @@ export function getCopilotPanelLayout(
 }
 
 function getInitialLayout() {
-  return getCopilotPanelLayout(
-    typeof window === 'undefined' ? 0 : window.innerWidth
-  );
+  const viewport = typeof window === 'undefined' ? 0 : window.innerWidth;
+  return getCopilotPanelLayout(viewport);
 }
 
 export function useCopilotPanelLayout() {
@@ -64,30 +79,41 @@ export function useCopilotPanelLayout() {
 
   useEffect(() => {
     if (!host) return;
-    const update = (width: number) => {
-      const next = getCopilotPanelLayout(width);
+
+    let workspaceWidth =
+      host.getBoundingClientRect().width || window.innerWidth;
+
+    const apply = () => {
+      const next = getCopilotPanelLayout(window.innerWidth, workspaceWidth);
       setLayout(current =>
         current.mode === next.mode && current.panelWidth === next.panelWidth
           ? current
           : next
       );
     };
-    const measure = () => {
-      update(host.getBoundingClientRect().width || window.innerWidth);
+
+    const onViewportResize = () => apply();
+    const onWorkspaceResize = (width: number) => {
+      workspaceWidth = width > 0 ? width : window.innerWidth;
+      apply();
     };
 
-    measure();
+    apply();
+    window.addEventListener('resize', onViewportResize);
+
     if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', measure);
-      return () => window.removeEventListener('resize', measure);
+      return () => window.removeEventListener('resize', onViewportResize);
     }
 
     const observer = new ResizeObserver(entries => {
       const width = entries[0]?.contentRect.width;
-      if (typeof width === 'number') update(width);
+      if (typeof width === 'number') onWorkspaceResize(width);
     });
     observer.observe(host);
-    return () => observer.disconnect();
+    return () => {
+      window.removeEventListener('resize', onViewportResize);
+      observer.disconnect();
+    };
   }, [host]);
 
   return { layout, setPanelElement };

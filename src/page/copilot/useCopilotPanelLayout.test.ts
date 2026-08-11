@@ -5,18 +5,25 @@ describe('getCopilotPanelLayout', () => {
     [375, 'fullscreen', 375],
     [767, 'fullscreen', 767],
     [768, 'overlay', 380],
-    [1099, 'overlay', 380],
-    [1100, 'split', 352],
+    [1023, 'overlay', 380],
+    [1024, 'split', 340],
     [1600, 'split', 380],
   ] as const)(
-    'uses the adaptive layout for a %dpx workspace',
-    (availableWidth, mode, panelWidth) => {
-      expect(getCopilotPanelLayout(availableWidth)).toEqual({
+    'uses viewport %dpx for mode selection',
+    (viewportWidth, mode, panelWidth) => {
+      expect(getCopilotPanelLayout(viewportWidth)).toEqual({
         mode,
         panelWidth,
       });
     }
   );
+
+  it('keeps desktop split when workspace width is narrow', () => {
+    expect(getCopilotPanelLayout(1440, 900)).toEqual({
+      mode: 'split',
+      panelWidth: 340,
+    });
+  });
 
   it('normalizes invalid widths without producing a negative panel size', () => {
     expect(getCopilotPanelLayout(Number.NaN)).toEqual({
