@@ -177,7 +177,10 @@
     "locate_resource": "Locate",
     "locate_resource_unavailable": "No resource to locate",
     "locate_resource_success": "Located the target resource.",
-    "locate_source_resource": "Locate Source File"
+    "locate_source_resource": "Locate Source File",
+    "retry": "Retry",
+    "retry_success": "Unfinished tasks resubmitted",
+    "retry_error": "Retry failed"
   },
   "form": {
     "or": "or",
@@ -918,6 +921,8 @@
     "status_label_pending": "Pending",
     "status_label_running": "Running",
     "status_label_finished": "Finished",
+    "status_label_failed": "Failed",
+    "status_label_canceled": "Canceled",
     "confirm_cancel_title": "Confirm Cancel",
     "confirm_cancel_description": "The task will be stopped immediately. This action cannot be undone.",
     "continue_running": "Continue Running",

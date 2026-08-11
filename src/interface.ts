@@ -356,6 +356,9 @@ export interface Task {
   started_at: string | null;
   ended_at: string | null;
   canceled_at: string | null;
+  // Set when this task was emitted to replace a failed one: the id of that
+  // failure, which the UI then stops showing.
+  retried_from_task_id: string | null;
   can_cancel?: boolean;
   can_rerun?: boolean;
   can_redirect?: boolean;
