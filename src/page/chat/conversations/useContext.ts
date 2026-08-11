@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { http } from '@/lib/request';
+import { isConversationAccessDenied } from '@/page/chat/conversation/conversationLoadPolicy';
 import { ConversationSummary } from '@/page/chat/core/types/conversation';
 
 export default function useContext(namespaceIdOverride?: string) {
@@ -48,10 +49,16 @@ export default function useContext(namespaceIdOverride?: string) {
           { cancelToken: source.token }
         )
       )
-      .then(onData)
-      .catch(() => {
-        onData({ total: 0, data: [] });
-        setAccessDenied(true);
+      .then(response => {
+        setAccessDenied(false);
+        onData(response);
+      })
+      .catch(error => {
+        if (axios.isCancel(error)) return;
+        if (isConversationAccessDenied(error)) {
+          onData({ total: 0, data: [] });
+          setAccessDenied(true);
+        }
       })
       .finally(() => {
         showLoading && onLoading(false);
@@ -80,7 +87,7 @@ export default function useContext(namespaceIdOverride?: string) {
 
   useEffect(() => {
     setAccessDenied(false);
-    refetch(true);
+    return refetch(true);
   }, [namespaceId, current, pageSize]);
 
   return {

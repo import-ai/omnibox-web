@@ -1,4 +1,5 @@
 import {
+  isConversationAccessDenied,
   isConversationAuthenticationFailure,
   shouldClearVisibleConversation,
   shouldInvalidateConversation,
@@ -39,6 +40,21 @@ describe('conversationLoadPolicy', () => {
       isConversationAuthenticationFailure({ response: { status: 403 } })
     ).toBe(false);
   });
+
+  it.each([403, 404, 410])(
+    'treats status %s as conversation access denied',
+    status => {
+      expect(isConversationAccessDenied({ response: { status } })).toBe(true);
+    }
+  );
+
+  it.each([undefined, 401, 408, 429, 500, 503])(
+    'does not treat status %s as conversation access denied',
+    status => {
+      const error = status === undefined ? new Error('offline') : { status };
+      expect(isConversationAccessDenied(error)).toBe(false);
+    }
+  );
 
   it.each([
     {
