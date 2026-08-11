@@ -17,6 +17,12 @@ export function isConversationAuthenticationFailure(error: unknown) {
   return getErrorStatus(error) === 401;
 }
 
+/** Render the access-denied state for failures that must not expose conversation data. */
+export function isConversationAccessDenied(error: unknown) {
+  const status = getErrorStatus(error);
+  return status === 403 || status === 404 || status === 410;
+}
+
 interface VisibleConversationFailureContext {
   currentUserId: string;
   destroyed: boolean;
