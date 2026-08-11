@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import ResourceIcon from '@/assets/icons/ResourceIcon';
 import Loading from '@/components/loading';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
@@ -10,6 +11,8 @@ import useApp from '@/hooks/useApp';
 import { Resource, RssItem } from '@/interface';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { fetchRssItems } from '@/service/resource';
+
+import { groupTimestampedItemsByTimestamp } from '../utils';
 
 const PAGE_SIZE = 20;
 
@@ -28,11 +31,14 @@ interface IProps {
   navigationPrefix?: string;
 }
 
-// Renders published date if we have it, otherwise falls back to the time the
-// item was first seen. RSS pubDate strings are RFC-822; the browser parses them.
+// Published date if we have it, otherwise the time the item was first seen.
+// RSS pubDate strings are RFC-822; the browser parses them.
+function itemTimestamp(item: RssItem): string {
+  return item.published_at || item.created_at;
+}
+
 function formatItemDate(item: RssItem): string {
-  const raw = item.published_at || item.created_at;
-  const date = new Date(raw);
+  const date = new Date(itemTimestamp(item));
   if (Number.isNaN(date.getTime())) {
     return '';
   }
@@ -42,7 +48,7 @@ function formatItemDate(item: RssItem): string {
 export default function RssItems(props: IProps) {
   const { resourceId, namespaceId, emptyText, fetchItems, navigationPrefix } =
     props;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const app = useApp();
   const navigate = useNavigate();
   const [loading, onLoading] = useState(true);
@@ -136,42 +142,75 @@ export default function RssItems(props: IProps) {
   }
 
   return (
-    <div className="space-y-4 pb-[30vh]">
+    <div className="space-y-6 pb-[30vh]">
       {data.length > 0 ? (
         <>
-          {data.map((item, index) => {
-            return (
-              <div key={item.id}>
-                <div
-                  className="group cursor-pointer"
-                  onClick={() =>
-                    navigateToResource(
-                      navigate,
-                      `${itemNavigationPrefix}/${resourceId}/rss-items/${item.id}`
-                    )
-                  }
-                >
-                  <div className="flex items-start gap-2">
-                    {item.link_name && (
-                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-[4px] border text-[10px] font-normal leading-none">
-                        {item.link_name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                    <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500">
-                      {item.title || t('untitled')}
-                    </h3>
-                  </div>
-                  <p className="mt-1 text-muted-foreground text-xs font-light">
-                    {formatItemDate(item)}
-                    {item.link_name && (
-                      <span className="ml-1.5">{item.link_name}</span>
-                    )}
+          {groupTimestampedItemsByTimestamp(data, i18n, itemTimestamp).map(
+            ([key, items]) => (
+              <div key={key}>
+                <div className="pb-4">
+                  <p className="text-sm text-muted-foreground font-light ml-0.5">
+                    {key}
                   </p>
                 </div>
-                {index < data.length - 1 && <Separator className="my-4" />}
+                {items.map((item, index) => {
+                  const iconResource = {
+                    id: item.id,
+                    name: item.title,
+                    resource_type: 'link',
+                    parent_id: resourceId,
+                    space_type: 'private',
+                    has_children: false,
+                    attrs: item.url ? { url: item.url } : {},
+                  } as unknown as Resource;
+                  return (
+                    <div key={item.id}>
+                      <div
+                        className="group cursor-pointer"
+                        onClick={() =>
+                          navigateToResource(
+                            navigate,
+                            `${itemNavigationPrefix}/${resourceId}/rss-items/${item.id}`
+                          )
+                        }
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-start gap-2 min-w-0">
+                            {item.link_name ? (
+                              <span className="flex h-7 shrink-0 items-center">
+                                <span className="flex size-5 items-center justify-center rounded-[4px] border border-muted-foreground/60 text-[11px] font-medium leading-none">
+                                  {item.link_name.charAt(0).toUpperCase()}
+                                </span>
+                              </span>
+                            ) : (
+                              <div className="flex h-7 shrink-0 items-center [&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
+                                <ResourceIcon
+                                  expand={false}
+                                  resource={iconResource}
+                                />
+                              </div>
+                            )}
+                            <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500">
+                              {item.title || t('untitled')}
+                            </h3>
+                          </div>
+                        </div>
+                        <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+                          {formatItemDate(item)}
+                          {item.link_name && (
+                            <span className="ml-1.5">{item.link_name}</span>
+                          )}
+                        </p>
+                      </div>
+                      {index < items.length - 1 && (
+                        <Separator className="my-4" />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            )
+          )}
           {hasMore && (
             <div className="pb-4 flex justify-center">
               <Button
