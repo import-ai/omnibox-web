@@ -11,6 +11,7 @@ import {
   MoveHorizontal,
   Pencil,
   PencilOff,
+  RefreshCw,
   Save,
   Trash2,
 } from 'lucide-react';
@@ -20,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { useResourceTasks } from '@/components/attributes/resource-tasks/ResourceTasksContext';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
@@ -187,6 +189,18 @@ export default function Actions(props: IActionProps) {
   // move, and trash.
   const canUseFileLikeActions = !isFolder && !isSmartFolder && !isRssFolderView;
   const canUseRegularResourceActions = !isSmartFolder && !isRssFolder;
+  // Shared with the related-tasks panel so a failure discovered by polling
+  // lights the toolbar retry without a page reload.
+  const {
+    hasRetryable,
+    retrying: tasksRetrying,
+    retry: retryTasks,
+  } = useResourceTasks();
+  const showToolbarRetry =
+    hasRetryable &&
+    canModifyResource &&
+    !isRssItemView &&
+    (resource?.resource_type === 'file' || resource?.resource_type === 'link');
 
   useEffect(() => {
     if (!namespaceId) return;
@@ -374,6 +388,17 @@ export default function Actions(props: IActionProps) {
     if (id === 'download') {
       onLoading(id);
       downloadFile(namespaceId, resource.id, resource.attrs?.original_name)
+        .then(() => {
+          setOpen(false);
+        })
+        .finally(() => {
+          onLoading('');
+        });
+      return;
+    }
+    if (id === 'retry') {
+      onLoading('retry');
+      retryTasks()
         .then(() => {
           setOpen(false);
         })
@@ -771,6 +796,23 @@ export default function Actions(props: IActionProps) {
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
+          )}
+          {showToolbarRetry && (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              disabled={loading === 'retry' || tasksRetrying}
+              onSelect={event => {
+                event.preventDefault();
+                handleAction('retry');
+              }}
+            >
+              {loading === 'retry' || tasksRetrying ? (
+                <Spinner />
+              ) : (
+                <RefreshCw className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              )}
+              <span>{t('actions.retry')}</span>
+            </DropdownMenuItem>
           )}
           {canUseRegularResourceActions && (
             <DropdownMenuItem

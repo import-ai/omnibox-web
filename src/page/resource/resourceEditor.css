@@ -12,6 +12,9 @@
 
 .resource-readonly-page-header--wide {
   max-width: 1280px;
+  box-sizing: border-box;
+  /* Match body gutter so title clears the fixed TOC rail on narrow wide-mode. */
+  padding-left: 2.75rem;
 }
 
 .resource-editable-page {
@@ -20,6 +23,18 @@
   width: 100%;
   padding-left: 1.5rem;
   box-sizing: border-box;
+}
+
+/* Wide mode keeps TOC dots at the resource sidebar edge, but body/title need a
+   left gutter so they do not sit under the fixed progress rail when the viewport
+   is tight and the content column fills remaining width. */
+.resource-editable-page--wide {
+  padding-left: 2.75rem;
+}
+
+.resource-readonly-editor--wide {
+  box-sizing: border-box;
+  padding-left: 2.75rem;
 }
 
 .resource-editable-title {
@@ -121,7 +136,10 @@
 }
 
 @media (max-width: 768px) {
-  .resource-editable-page {
+  .resource-editable-page,
+  .resource-editable-page--wide,
+  .resource-readonly-editor--wide,
+  .resource-readonly-page-header--wide {
     padding-left: 0;
   }
 

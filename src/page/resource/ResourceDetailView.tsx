@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
 
+import { ResourceTasksProvider } from '@/components/attributes/resource-tasks/ResourceTasksContext';
 import { Separator } from '@/components/ui/Separator';
 import { SidebarInset, useSidebar } from '@/components/ui/Sidebar';
 import type { IUseResource } from '@/hooks/userResource';
@@ -115,49 +116,57 @@ export default function ResourceDetailView({
   const flushLayout = flush || copilotLayoutOpen;
 
   return (
-    <SidebarInset
-      className={cn(
-        'h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-white dark:bg-background md:h-[calc(100svh-16px)]',
-        flushLayout ? 'm-0 md:h-full' : 'm-[8px]'
-      )}
-      style={
-        {
-          '--resource-toc-left': `${(open ? sidebarWidth : 0) + 16}px`,
-        } as CSSProperties
-      }
+    <ResourceTasksProvider
+      namespaceId={namespaceId}
+      resourceId={currentResource?.id ?? resourceId}
+      resourceType={currentResource?.resource_type}
+      onResource={currentResourceProps.onResource}
     >
-      <Header
-        {...currentResourceProps}
-        onWide={onWide}
-        rssItemCopyContent={rssItemCopyContent}
-        rssItemId={rssItemId}
-        wide={wide}
-      />
-      <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
-      <div
+      <SidebarInset
         className={cn(
-          'no-scrollbar flex min-w-0 flex-1 justify-center overflow-x-hidden overflow-y-auto p-4',
-          editPage && 'pl-2'
+          'h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-white dark:bg-background md:h-[calc(100svh-16px)]',
+          flushLayout ? 'm-0 md:h-full' : 'm-[8px]'
         )}
-        ref={scrollContainerRef}
+        style={
+          {
+            '--resource-toc-left': `${(open ? sidebarWidth : 0) + 16}px`,
+          } as CSSProperties
+        }
       >
+        <Header
+          {...currentResourceProps}
+          onWide={onWide}
+          rssItemCopyContent={rssItemCopyContent}
+          rssItemId={rssItemId}
+          wide={wide}
+        />
+        <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
         <div
-          className={cn('flex w-full min-w-0 max-w-full flex-col', {
-            'max-w-[680px]': !wide && !useFullWidth && (open || !large),
-            'max-w-[800px]': !wide && !useFullWidth && (!open || large),
-            'max-w-7xl': wide,
-          })}
-          style={!wide && useFullWidth ? { maxWidth: '100%' } : undefined}
+          className={cn(
+            'no-scrollbar flex min-w-0 flex-1 justify-center overflow-x-hidden overflow-y-auto p-4',
+            // Wide mode needs the default left padding so body clears the TOC rail.
+            editPage && !wide && 'pl-2'
+          )}
+          ref={scrollContainerRef}
         >
-          <Wrapper
-            {...currentResourceProps}
-            error={error}
-            onRssItemCopyContentChange={setRssItemCopyContent}
-            rssItemId={rssItemId}
-            wide={wide}
-          />
+          <div
+            className={cn('flex w-full min-w-0 max-w-full flex-col', {
+              'max-w-[680px]': !wide && !useFullWidth && (open || !large),
+              'max-w-[800px]': !wide && !useFullWidth && (!open || large),
+              'max-w-7xl': wide,
+            })}
+            style={!wide && useFullWidth ? { maxWidth: '100%' } : undefined}
+          >
+            <Wrapper
+              {...currentResourceProps}
+              error={error}
+              onRssItemCopyContentChange={setRssItemCopyContent}
+              rssItemId={rssItemId}
+              wide={wide}
+            />
+          </div>
         </div>
-      </div>
-    </SidebarInset>
+      </SidebarInset>
+    </ResourceTasksProvider>
   );
 }

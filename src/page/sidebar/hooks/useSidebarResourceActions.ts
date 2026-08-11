@@ -183,6 +183,7 @@ async function createRssFolder(
     { muteCodes: ['rss_feed_invalid'] }
   );
   await restoreCreatedResource(context, response.resource);
+  useSidebarStore.getState().refetchRssFolderLimits();
   toast.success(context.t('rss_folder.create.success'));
 }
 

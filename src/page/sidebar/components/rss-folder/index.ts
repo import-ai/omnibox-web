@@ -51,4 +51,8 @@ export type RssFolderTier = 'basic' | 'premium';
 export interface RssFolderLimits {
   tier: RssFolderTier;
   linkLimit: number;
+  folderPrivateLimit: number;
+  folderTeamLimit: number;
+  folderPrivateUsed: number;
+  folderTeamUsed: number;
 }

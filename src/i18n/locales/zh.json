@@ -177,7 +177,10 @@
     "locate_resource": "定位",
     "locate_resource_unavailable": "当前无资源可定位",
     "locate_resource_success": "已定位到目标资源。",
-    "locate_source_resource": "定位到源文件"
+    "locate_source_resource": "定位到源文件",
+    "retry": "重试",
+    "retry_success": "已重新提交未完成任务",
+    "retry_error": "重试失败"
   },
   "form": {
     "or": "或",
@@ -919,6 +922,8 @@
     "status_label_pending": "等待中",
     "status_label_running": "进行中",
     "status_label_finished": "已完成",
+    "status_label_failed": "解析失败",
+    "status_label_canceled": "已取消",
     "confirm_cancel_title": "确认取消",
     "confirm_cancel_description": "取消后将立即停止执行，操作不可撤销",
     "continue_running": "继续运行",
@@ -1245,6 +1250,9 @@
       "add_link": "添加链接",
       "remaining_links": "订阅链接剩余：{{remaining}} / {{total}}",
       "link_limit_tooltip": "高级版支持 10 条订阅链接",
+      "personal_quota_exhausted": "个人额度已用尽，升级版本不限创建",
+      "team_quota_exhausted": "团队额度已用尽，升级版本不限创建",
+      "all_quota_exhausted": "额度均已用尽，升级版本不限创建",
       "limit_reached_basic": "添加链接已达上限（{{limit}} 条），升级可解锁 10 条",
       "limit_reached_premium": "添加链接已达上限（{{limit}} 条）",
       "unsaved_title": "您的订阅文件夹配置未保存，确定退出吗？",

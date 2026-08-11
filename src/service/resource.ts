@@ -4,6 +4,7 @@ import {
   ResourceType,
   RssItem,
   RssItemDetail,
+  Task,
 } from '@/interface';
 import { http, type RequestConfig } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
@@ -232,6 +233,25 @@ export function fetchResourcesByIds(
   return http.get<Resource[]>(
     `/namespaces/${namespaceId}/resources?id=${ids.join(',')}`,
     config
+  );
+}
+
+export function fetchResourceTasks(
+  namespaceId: string,
+  id: string,
+  config?: RequestConfig
+): Promise<Task[]> {
+  return http.get<Task[]>(
+    `/namespaces/${namespaceId}/resources/${id}/tasks`,
+    config
+  );
+}
+
+export function retryResourceTasks(namespaceId: string, id: string) {
+  return http.post<Task[]>(
+    `/namespaces/${namespaceId}/resources/${id}/retry`,
+    undefined,
+    { mute: true }
   );
 }
 

@@ -47,7 +47,8 @@ export default function Page(props: IProps) {
     resource.resource_type !== 'rss_folder';
   const constrainFolderContent =
     resource.resource_type === 'folder' ||
-    resource.resource_type === 'smart_folder';
+    resource.resource_type === 'smart_folder' ||
+    resource.resource_type === 'rss_folder';
   const { rss_item_id: routeRssItemId } = useParams();
   const rssItemId =
     explicitRssItemId === undefined
