@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { RESOURCE_TASKS_REFRESH_EVENT } from '@/components/attributes/resource-tasks/const';
+import { useResourceTasks } from '@/components/attributes/resource-tasks/ResourceTasksContext';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
@@ -43,7 +43,6 @@ import useConfig from '@/hooks/useConfig';
 import { useDeleteResource } from '@/hooks/useDeleteResource';
 import { useIsMobile } from '@/hooks/useMobile';
 import useProNamespaces from '@/hooks/useProNamespaces';
-import useResourceRetryableTasks from '@/hooks/useResourceRetryableTasks';
 import { IUseResource } from '@/hooks/userResource';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
@@ -67,12 +66,7 @@ import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-f
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
-import {
-  fetchResource,
-  fetchRssItem,
-  renameResource,
-  retryResourceTasks,
-} from '@/service/resource';
+import { fetchRssItem, renameResource } from '@/service/resource';
 
 import CloseCurrentResource from './CloseCurrentResource';
 import { copyContentToClipboard } from './copyContent';
@@ -133,7 +127,6 @@ export default function Actions(props: IActionProps) {
     resourceId,
     editPage,
     namespaceId,
-    onResource,
     rssItemId: explicitRssItemId,
     rssItemCopyContent,
   } = props;
@@ -196,14 +189,18 @@ export default function Actions(props: IActionProps) {
   // move, and trash.
   const canUseFileLikeActions = !isFolder && !isSmartFolder && !isRssFolderView;
   const canUseRegularResourceActions = !isSmartFolder && !isRssFolder;
-  // Only files and links run background tasks that can be retried
-  const isRetryableResource =
-    resource?.resource_type === 'file' || resource?.resource_type === 'link';
-  const { retryable: tasksRetryable } = useResourceRetryableTasks({
-    namespaceId,
-    resourceId: resource?.id,
-    disabled: !isRetryableResource || !canModifyResource || isRssItemView,
-  });
+  // Shared with the related-tasks panel so a failure discovered by polling
+  // lights the toolbar retry without a page reload.
+  const {
+    hasRetryable,
+    retrying: tasksRetrying,
+    retry: retryTasks,
+  } = useResourceTasks();
+  const showToolbarRetry =
+    hasRetryable &&
+    canModifyResource &&
+    !isRssItemView &&
+    (resource?.resource_type === 'file' || resource?.resource_type === 'link');
 
   useEffect(() => {
     if (!namespaceId) return;
@@ -401,22 +398,9 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'retry') {
       onLoading('retry');
-      retryResourceTasks(namespaceId, resource.id)
+      retryTasks()
         .then(() => {
-          toast.success(t('actions.retry_success'));
           setOpen(false);
-          // Both this entry and the task panel re-read the tasks from here, so
-          // the superseded failure stops being shown as retryable everywhere
-          app.fire(RESOURCE_TASKS_REFRESH_EVENT, resource.id);
-          return fetchResource(namespaceId, resource.id).then(updated => {
-            onResource(updated);
-            app.fire('update_resource', updated);
-          });
-        })
-        .catch(error => {
-          toast.error(
-            error?.response?.data?.message || t('actions.retry_error')
-          );
         })
         .finally(() => {
           onLoading('');
@@ -813,16 +797,16 @@ export default function Actions(props: IActionProps) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           )}
-          {tasksRetryable && (
+          {showToolbarRetry && (
             <DropdownMenuItem
               className="cursor-pointer gap-2"
-              disabled={loading === 'retry'}
+              disabled={loading === 'retry' || tasksRetrying}
               onSelect={event => {
                 event.preventDefault();
                 handleAction('retry');
               }}
             >
-              {loading === 'retry' ? (
+              {loading === 'retry' || tasksRetrying ? (
                 <Spinner />
               ) : (
                 <RefreshCw className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />

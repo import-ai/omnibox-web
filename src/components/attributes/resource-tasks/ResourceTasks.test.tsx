@@ -5,7 +5,7 @@ import { createRoot, type Root } from 'react-dom/client';
 
 import type { Resource, Task, TaskStatus, TaskType } from '@/interface';
 
-const httpGet = jest.fn();
+const fetchResourceTasks = jest.fn();
 const retryResourceTasks = jest.fn();
 const fetchResource = jest.fn();
 
@@ -31,12 +31,8 @@ jest.mock('@/hooks/useApp', () => {
   };
   return { __esModule: true, default: () => app };
 });
-jest.mock('@/lib/request', () => ({
-  http: {
-    get: (...args: unknown[]) => httpGet(...args),
-  },
-}));
 jest.mock('@/service/resource', () => ({
+  fetchResourceTasks: (...args: unknown[]) => fetchResourceTasks(...args),
   retryResourceTasks: (...args: unknown[]) => retryResourceTasks(...args),
   fetchResource: (...args: unknown[]) => fetchResource(...args),
 }));
@@ -55,6 +51,10 @@ jest.mock('@/components/ui/DropdownMenu', () => {
 
 import { RESOURCE_TASKS_REFRESH_EVENT } from './const';
 import ResourceTasks from './index';
+import {
+  ResourceTasksProvider,
+  useResourceTasks,
+} from './ResourceTasksContext';
 
 const app = (
   jest.requireMock('@/hooks/useApp') as {
@@ -66,7 +66,11 @@ const app = (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
-const resource = { id: 'resource-1', name: 'Blank file' } as Resource;
+const resource = {
+  id: 'resource-1',
+  name: 'Blank file',
+  resource_type: 'file',
+} as Resource;
 
 function task(
   fn: TaskType,
@@ -97,14 +101,21 @@ describe('ResourceTasks', () => {
   let root: Root;
 
   const render = async (tasks: Task[]) => {
-    httpGet.mockResolvedValue(tasks);
+    fetchResourceTasks.mockResolvedValue(tasks);
     await act(async () => {
       root.render(
-        <ResourceTasks
-          resource={resource}
+        <ResourceTasksProvider
           namespaceId="namespace-1"
+          resourceId={resource.id}
+          resourceType={resource.resource_type}
           onResource={jest.fn()}
-        />
+        >
+          <ResourceTasks
+            resource={resource}
+            namespaceId="namespace-1"
+            onResource={jest.fn()}
+          />
+        </ResourceTasksProvider>
       );
     });
   };
@@ -237,7 +248,10 @@ describe('ResourceTasks', () => {
     retryResourceTasks.mockResolvedValue([{ id: 'task-new' }]);
     fetchResource.mockResolvedValue(resource);
     // What the backend answers once the retry landed
-    httpGet.mockResolvedValue([failure, retryOf(failure, 'pending')]);
+    fetchResourceTasks.mockResolvedValue([
+      failure,
+      retryOf(failure, 'pending'),
+    ]);
 
     const retryButton = Array.from(container.querySelectorAll('button')).find(
       button => button.textContent?.includes('common.retry')
@@ -256,7 +270,10 @@ describe('ResourceTasks', () => {
     await render([canceled]);
     expect(container.textContent).toContain('common.retry');
 
-    httpGet.mockResolvedValue([canceled, retryOf(canceled, 'pending')]);
+    fetchResourceTasks.mockResolvedValue([
+      canceled,
+      retryOf(canceled, 'pending'),
+    ]);
     await act(async () => {
       app.fire(RESOURCE_TASKS_REFRESH_EVENT, resource.id);
     });
@@ -270,7 +287,10 @@ describe('ResourceTasks', () => {
     const failure = task('collect_url', 'error', 3);
     await render([failure]);
 
-    httpGet.mockResolvedValue([failure, retryOf(failure, 'pending')]);
+    fetchResourceTasks.mockResolvedValue([
+      failure,
+      retryOf(failure, 'pending'),
+    ]);
     await act(async () => {
       app.fire(RESOURCE_TASKS_REFRESH_EVENT, 'another-resource');
     });
@@ -296,5 +316,44 @@ describe('ResourceTasks', () => {
       'resource-1'
     );
     expect(fetchResource).toHaveBeenCalledWith('namespace-1', 'resource-1');
+  });
+
+  it('shares retryable state between the panel and a toolbar probe', async () => {
+    function ToolbarProbe() {
+      const { hasRetryable } = useResourceTasks();
+      return <span>{hasRetryable ? 'toolbar-retry' : 'toolbar-idle'}</span>;
+    }
+
+    fetchResourceTasks.mockResolvedValue([task('file_reader_text', 'running')]);
+    await act(async () => {
+      root.render(
+        <ResourceTasksProvider
+          namespaceId="namespace-1"
+          resourceId={resource.id}
+          resourceType={resource.resource_type}
+          onResource={jest.fn()}
+        >
+          <ResourceTasks
+            resource={resource}
+            namespaceId="namespace-1"
+            onResource={jest.fn()}
+          />
+          <ToolbarProbe />
+        </ResourceTasksProvider>
+      );
+    });
+
+    expect(container.textContent).toContain('toolbar-idle');
+    expect(container.textContent).not.toContain('common.retry');
+
+    fetchResourceTasks.mockResolvedValue([
+      task('file_reader_text', 'insufficient_quota'),
+    ]);
+    await act(async () => {
+      app.fire(RESOURCE_TASKS_REFRESH_EVENT, resource.id);
+    });
+
+    expect(container.textContent).toContain('toolbar-retry');
+    expect(container.textContent).toContain('common.retry');
   });
 });

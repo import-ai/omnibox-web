@@ -1,7 +1,5 @@
 import { ListChecks, ListVideo, RefreshCw } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 
 import { DoneIcon } from '@/assets/icons/DoneIcon';
 import { ProgressIcon } from '@/assets/icons/ProgressIcon';
@@ -13,150 +11,30 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Spinner } from '@/components/ui/Spinner';
-import { RESOURCE_TASKS_INTERVAL } from '@/const.ts';
-import useApp from '@/hooks/useApp';
-import { Resource, Task } from '@/interface';
-import { http } from '@/lib/request';
-import { fetchResource, retryResourceTasks } from '@/service/resource';
+import { Resource } from '@/interface';
 
 import { ATTRIBUTE_STYLES } from '../constants';
-import {
-  CONTENT_MODIFYING_FUNCTIONS,
-  DISPLAY_FUNCTIONS,
-  RESOURCE_TASKS_REFRESH_EVENT,
-  RETRYABLE_TASK_STATUSES,
-} from './const';
+import { DISPLAY_FUNCTIONS, RETRYABLE_TASK_STATUSES } from './const';
+import { useResourceTasks } from './ResourceTasksContext';
 import { TaskTag } from './TaskTag';
 import {
   getCanceledTasks,
   getFailedTasks,
   getTaskBadgeConfig,
   hasActiveContentModifyingTasks,
-  hasRetryableTasks,
 } from './utils';
 
+// Props stay for the Attributes call site; state lives in ResourceTasksProvider.
 interface ResourceTasksProps {
   resource: Resource;
   namespaceId: string;
   onResource: (resource: Resource) => void;
 }
 
-export default function ResourceTasks({
-  resource,
-  namespaceId,
-  onResource,
-}: ResourceTasksProps) {
+export default function ResourceTasks({}: ResourceTasksProps) {
   const { t } = useTranslation();
-  const app = useApp();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retrying, setRetrying] = useState(false);
-
-  const fetchTasks = async () => {
-    try {
-      setError(null);
-      const response = await http.get(
-        `/namespaces/${namespaceId}/resources/${resource.id}/tasks`
-      );
-      setTasks(response || []);
-    } catch (err) {
-      setError(t('tasks.fetch_error'));
-      console.error('Fetch resource tasks error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRetry = async () => {
-    setRetrying(true);
-    try {
-      await retryResourceTasks(namespaceId, resource.id);
-      toast.success(t('actions.retry_success'));
-      // Refresh through the event, so the toolbar entry drops its retry at the
-      // same moment this panel drops the superseded task
-      app.fire(RESOURCE_TASKS_REFRESH_EVENT, resource.id);
-      const updated = await fetchResource(namespaceId, resource.id);
-      onResource(updated);
-      app.fire('update_resource', updated);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || t('actions.retry_error'));
-    } finally {
-      setRetrying(false);
-    }
-  };
-
-  // Initial fetch
-  useEffect(() => {
-    fetchTasks();
-  }, [resource.id, namespaceId]);
-
-  // A retry from anywhere re-emits tasks, which supersedes what is on screen
-  useEffect(() => {
-    return app.on(RESOURCE_TASKS_REFRESH_EVENT, (resourceId: string) => {
-      if (resourceId === resource.id) {
-        fetchTasks();
-      }
-    });
-  }, [app, resource.id, namespaceId]);
-
-  // Auto-refresh logic for content-modifying tasks
-  useEffect(() => {
-    if (!hasActiveContentModifyingTasks(tasks)) {
-      return;
-    }
-
-    const interval = setInterval(async () => {
-      const previousActiveTasks = tasks.filter(
-        task =>
-          CONTENT_MODIFYING_FUNCTIONS.includes(task.function) &&
-          (task.status === 'running' || task.status === 'pending')
-      );
-
-      await fetchTasks();
-
-      // Fetch updated tasks to compare
-      try {
-        const response = await http.get(
-          `/namespaces/${namespaceId}/resources/${resource.id}/tasks`
-        );
-        const updatedTasks = response || [];
-
-        // Check if any previously active content-modifying task has finished
-        const wasActiveNowFinished = previousActiveTasks.some(prevTask => {
-          const updatedTask = updatedTasks.find(
-            (t: Task) => t.id === prevTask.id
-          );
-          return (
-            updatedTask &&
-            CONTENT_MODIFYING_FUNCTIONS.includes(updatedTask.function) &&
-            updatedTask.status !== 'running' &&
-            updatedTask.status !== 'pending'
-          );
-        });
-
-        if (wasActiveNowFinished) {
-          // Refresh the resource content
-          try {
-            const resourceResponse = await http.get(
-              `/namespaces/${namespaceId}/resources/${resource.id}`
-            );
-            if (resourceResponse) {
-              onResource(resourceResponse);
-              // Fire event to update sidebar
-              app.fire('update_resource', resourceResponse);
-            }
-          } catch (err) {
-            console.error('Failed to refresh resource:', err);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to check task updates:', err);
-      }
-    }, RESOURCE_TASKS_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [tasks, resource.id, namespaceId, onResource, app]);
+  const { tasks, loading, error, retrying, hasRetryable, retry } =
+    useResourceTasks();
 
   if (loading) {
     return (
@@ -210,7 +88,6 @@ export default function ResourceTasks({
     return null;
   }
 
-  // Group tasks by status
   const pendingTasks = relevantTasks.filter(task => task.status === 'pending');
   const runningTasks = relevantTasks.filter(task => task.status === 'running');
   const finishedTasks = relevantTasks.filter(
@@ -219,7 +96,6 @@ export default function ResourceTasks({
   // Resolved against the full task list so a retry hides the task it replaced
   const failedTasks = getFailedTasks(relevantTasks, tasks);
   const canceledTasks = getCanceledTasks(relevantTasks, tasks);
-  const canRetry = hasRetryableTasks(tasks);
   const FailedIcon = getTaskBadgeConfig(failedTasks[0]?.status || 'error').icon;
   const CanceledIcon = getTaskBadgeConfig('canceled').icon;
 
@@ -373,11 +249,13 @@ export default function ResourceTasks({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          {canRetry && (
+          {hasRetryable && (
             <Button
               variant="secondary"
               disabled={retrying}
-              onClick={handleRetry}
+              onClick={() => {
+                void retry();
+              }}
               className="h-6 gap-0.5 rounded-lg border border-neutral-500 bg-transparent px-2 py-0 text-xs text-neutral-500 dark:border-neutral-300 dark:text-neutral-300"
             >
               {retrying ? <Spinner /> : <RefreshCw className="size-3" />}

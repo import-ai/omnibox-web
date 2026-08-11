@@ -6,9 +6,14 @@ import { createRoot, type Root } from 'react-dom/client';
 import type { Task, TaskStatus, TaskType } from '@/interface';
 
 const fetchResourceTasks = jest.fn();
+const retryResourceTasks = jest.fn();
+const fetchResource = jest.fn();
 
-jest.mock('@/service/resource', () => ({
-  fetchResourceTasks: (...args: unknown[]) => fetchResourceTasks(...args),
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+jest.mock('sonner', () => ({
+  toast: { success: jest.fn(), error: jest.fn() },
 }));
 jest.mock('@/hooks/useApp', () => {
   const listeners: Record<string, ((...args: any[]) => void)[]> = {};
@@ -26,10 +31,18 @@ jest.mock('@/hooks/useApp', () => {
   };
   return { __esModule: true, default: () => app };
 });
+jest.mock('@/service/resource', () => ({
+  fetchResourceTasks: (...args: unknown[]) => fetchResourceTasks(...args),
+  retryResourceTasks: (...args: unknown[]) => retryResourceTasks(...args),
+  fetchResource: (...args: unknown[]) => fetchResource(...args),
+}));
+jest.mock('@/const.ts', () => ({ RESOURCE_TASKS_INTERVAL: 60_000 }));
 
-import { RESOURCE_TASKS_REFRESH_EVENT } from '@/components/attributes/resource-tasks/const';
-
-import useResourceRetryableTasks from './useResourceRetryableTasks';
+import { RESOURCE_TASKS_REFRESH_EVENT } from './const';
+import {
+  ResourceTasksProvider,
+  useResourceTasks,
+} from './ResourceTasksContext';
 
 const app = (
   jest.requireMock('@/hooks/useApp') as {
@@ -59,22 +72,33 @@ function task(
   } as Task;
 }
 
-describe('useResourceRetryableTasks', () => {
+function Probe() {
+  const { hasRetryable, loading } = useResourceTasks();
+  if (loading) {
+    return <span>loading</span>;
+  }
+  return <span>{hasRetryable ? 'retryable' : 'nothing'}</span>;
+}
+
+describe('ResourceTasksProvider', () => {
   let container: HTMLDivElement;
   let root: Root;
 
-  function Probe() {
-    const { retryable } = useResourceRetryableTasks({
-      namespaceId: 'namespace-1',
-      resourceId: 'resource-1',
-    });
-    return <span>{retryable ? 'retryable' : 'nothing'}</span>;
-  }
-
-  const render = async (tasks: Task[]) => {
+  const render = async (
+    tasks: Task[],
+    resourceType: string | null = 'file'
+  ) => {
     fetchResourceTasks.mockResolvedValue(tasks);
     await act(async () => {
-      root.render(<Probe />);
+      root.render(
+        <ResourceTasksProvider
+          namespaceId="namespace-1"
+          resourceId="resource-1"
+          resourceType={resourceType}
+        >
+          <Probe />
+        </ResourceTasksProvider>
+      );
     });
   };
 
@@ -105,7 +129,25 @@ describe('useResourceRetryableTasks', () => {
     expect(container.textContent).toBe('nothing');
   });
 
-  it('drops the retry when a retry elsewhere announces new tasks', async () => {
+  it('disables tracking for non-file/link resources', async () => {
+    fetchResourceTasks.mockResolvedValue([task('file_reader_pdf', 'error')]);
+    await act(async () => {
+      root.render(
+        <ResourceTasksProvider
+          namespaceId="namespace-1"
+          resourceId="resource-1"
+          resourceType="folder"
+        >
+          <Probe />
+        </ResourceTasksProvider>
+      );
+    });
+
+    expect(container.textContent).toBe('nothing');
+    expect(fetchResourceTasks).not.toHaveBeenCalled();
+  });
+
+  it('drops the retry when a retry supersedes the failure', async () => {
     const failure = task('collect_url', 'error');
     await render([failure]);
     expect(container.textContent).toBe('retryable');
@@ -119,21 +161,5 @@ describe('useResourceRetryableTasks', () => {
     });
 
     expect(container.textContent).toBe('nothing');
-  });
-
-  it('ignores a refresh announced for another resource', async () => {
-    const failure = task('collect_url', 'error');
-    await render([failure]);
-
-    fetchResourceTasks.mockResolvedValue([
-      failure,
-      task('collect_url', 'pending', failure.id),
-    ]);
-    await act(async () => {
-      app.fire(RESOURCE_TASKS_REFRESH_EVENT, 'another-resource');
-    });
-
-    expect(container.textContent).toBe('retryable');
-    expect(fetchResourceTasks).toHaveBeenCalledTimes(1);
   });
 });
