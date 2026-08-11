@@ -5,6 +5,11 @@
   min-width: 0;
 }
 
+/* Positioning context for the absolute TOC rail shell. */
+.resource-readonly-editor {
+  position: relative;
+}
+
 .resource-readonly-page-header--wide {
   max-width: 1280px;
 }
@@ -54,44 +59,57 @@
 }
 
 .resource-editable-page .toc-sidebar,
-.resource-editable-page .omnibox-editor-root .toc-sidebar {
+.resource-editable-page .omnibox-editor-root .toc-sidebar,
+.resource-readonly-editor .toc-sidebar,
+.resource-readonly-editor .omnibox-editor-root .toc-sidebar {
   position: absolute !important;
   left: 0 !important;
   right: auto !important;
-  top: 5.5rem !important;
+  top: 0 !important;
   bottom: 0 !important;
   width: 1.25rem !important;
   min-width: 1.25rem !important;
   max-width: 1.25rem !important;
   margin: 0 !important;
+  padding-top: 0 !important;
   grid-column: auto !important;
   grid-row: auto !important;
   justify-self: auto !important;
-  align-items: flex-start !important;
-  z-index: 20 !important;
+  /* Flex-center the rail in the full-height shell as a fallback when fixed
+   * centering is disrupted by a transformed ancestor. */
+  display: flex !important;
+  align-items: center !important;
+  align-content: center !important;
+  z-index: 200 !important;
   pointer-events: none !important;
+  box-sizing: border-box;
+}
+
+.resource-editable-page .toc-sidebar,
+.resource-editable-page .omnibox-editor-root .toc-sidebar {
+  top: 5.5rem !important;
 }
 
 .resource-editable-page .toc-sidebar-wrapper,
-.resource-editable-page .omnibox-editor-root .toc-sidebar-wrapper {
-  position: fixed !important;
-  top: 50svh !important;
-  left: auto !important;
-  transform: translateY(calc(-50% + 0.75rem)) !important;
-  margin: 0 !important;
-  width: max-content !important;
-  pointer-events: auto !important;
-}
-
+.resource-editable-page .omnibox-editor-root .toc-sidebar-wrapper,
 .resource-readonly-editor .toc-sidebar-wrapper,
 .resource-readonly-editor .omnibox-editor-root .toc-sidebar-wrapper {
   position: fixed !important;
   top: 50svh !important;
   left: auto !important;
-  transform: translate(-0.5rem, calc(-50% + 0.75rem)) !important;
+  /* Keep the outline cluster on the vertical midpoint of the screen. */
+  transform: translateY(-50%) !important;
   margin: 0 !important;
   width: max-content !important;
+  /* Do not set overflow here: a non-visible axis forces the other to auto and
+   * clips the absolutely positioned popover that opens to the right. */
   pointer-events: auto !important;
+  z-index: 200 !important;
+}
+
+.resource-readonly-editor .toc-sidebar-wrapper,
+.resource-readonly-editor .omnibox-editor-root .toc-sidebar-wrapper {
+  transform: translate(-0.5rem, -50%) !important;
 }
 
 .resource-readonly-editor--wide .toc-sidebar-wrapper,
@@ -99,12 +117,7 @@
 .resource-editable-page--wide .toc-sidebar-wrapper,
 .resource-editable-page--wide .omnibox-editor-root .toc-sidebar-wrapper {
   left: var(--resource-toc-left, 1.5rem) !important;
-  transform: translateY(calc(-50% + 0.75rem)) !important;
-}
-
-.resource-readonly-editor .toc-sidebar {
-  padding-top: 1rem;
-  box-sizing: border-box;
+  transform: translateY(-50%) !important;
 }
 
 @media (max-width: 768px) {
@@ -113,7 +126,9 @@
   }
 
   .resource-editable-page .toc-sidebar,
-  .resource-editable-page .omnibox-editor-root .toc-sidebar {
+  .resource-editable-page .omnibox-editor-root .toc-sidebar,
+  .resource-readonly-editor .toc-sidebar,
+  .resource-readonly-editor .omnibox-editor-root .toc-sidebar {
     display: none !important;
   }
 }
