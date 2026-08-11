@@ -35,3 +35,13 @@ export const RETRYABLE_TASK_STATUSES: TaskStatus[] = [
   ...FAILED_TASK_STATUSES,
   'canceled',
 ];
+
+/**
+ * Fired with a resource id whenever that resource's tasks changed behind the
+ * app's back — a retry re-emits tasks, which supersedes the ones on screen.
+ *
+ * Both retry entry points (the task panel and the resource toolbar) read the
+ * same task list, so both listen and neither refreshes itself directly:
+ * whichever one triggers the retry, both end up on the same state.
+ */
+export const RESOURCE_TASKS_REFRESH_EVENT = 'refresh_resource_tasks';

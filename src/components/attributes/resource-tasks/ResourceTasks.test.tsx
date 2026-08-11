@@ -15,10 +15,22 @@ jest.mock('react-i18next', () => ({
 jest.mock('sonner', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
-jest.mock('@/hooks/useApp', () => ({
-  __esModule: true,
-  default: () => ({ fire: jest.fn() }),
-}));
+jest.mock('@/hooks/useApp', () => {
+  const listeners: Record<string, ((...args: any[]) => void)[]> = {};
+  const app = {
+    fire: (event: string, ...args: any[]) =>
+      (listeners[event] || []).forEach(handler => handler(...args)),
+    on: (event: string, handler: (...args: any[]) => void) => {
+      listeners[event] = [...(listeners[event] || []), handler];
+      return () => {
+        listeners[event] = (listeners[event] || []).filter(
+          item => item !== handler
+        );
+      };
+    },
+  };
+  return { __esModule: true, default: () => app };
+});
 jest.mock('@/lib/request', () => ({
   http: {
     get: (...args: unknown[]) => httpGet(...args),
@@ -41,7 +53,14 @@ jest.mock('@/components/ui/DropdownMenu', () => {
   };
 });
 
+import { RESOURCE_TASKS_REFRESH_EVENT } from './const';
 import ResourceTasks from './index';
+
+const app = (
+  jest.requireMock('@/hooks/useApp') as {
+    default: () => { fire: (event: string, ...args: unknown[]) => void };
+  }
+).default();
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -207,6 +226,56 @@ describe('ResourceTasks', () => {
 
     expect(container.textContent).toContain('tasks.status_label_failed');
     expect(container.textContent).toContain('tasks.functions.extract_tags');
+    expect(container.textContent).toContain('common.retry');
+  });
+
+  it('drops the failure it just retried without a reload', async () => {
+    const failure = task('collect_url', 'error', 3);
+    await render([failure]);
+    expect(container.textContent).toContain('common.retry');
+
+    retryResourceTasks.mockResolvedValue([{ id: 'task-new' }]);
+    fetchResource.mockResolvedValue(resource);
+    // What the backend answers once the retry landed
+    httpGet.mockResolvedValue([failure, retryOf(failure, 'pending')]);
+
+    const retryButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent?.includes('common.retry')
+    );
+    await act(async () => {
+      retryButton?.click();
+    });
+
+    expect(container.textContent).toContain('tasks.status_label_pending');
+    expect(container.textContent).not.toContain('tasks.status_label_failed');
+    expect(container.textContent).not.toContain('common.retry');
+  });
+
+  it('refetches when a retry elsewhere announces new tasks', async () => {
+    const canceled = task('file_reader_pdf', 'canceled', 30);
+    await render([canceled]);
+    expect(container.textContent).toContain('common.retry');
+
+    httpGet.mockResolvedValue([canceled, retryOf(canceled, 'pending')]);
+    await act(async () => {
+      app.fire(RESOURCE_TASKS_REFRESH_EVENT, resource.id);
+    });
+
+    expect(container.textContent).toContain('tasks.status_label_pending');
+    expect(container.textContent).not.toContain('tasks.status_label_canceled');
+    expect(container.textContent).not.toContain('common.retry');
+  });
+
+  it('ignores a refresh announced for another resource', async () => {
+    const failure = task('collect_url', 'error', 3);
+    await render([failure]);
+
+    httpGet.mockResolvedValue([failure, retryOf(failure, 'pending')]);
+    await act(async () => {
+      app.fire(RESOURCE_TASKS_REFRESH_EVENT, 'another-resource');
+    });
+
+    expect(container.textContent).toContain('tasks.status_label_failed');
     expect(container.textContent).toContain('common.retry');
   });
 

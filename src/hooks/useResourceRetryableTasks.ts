@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { RESOURCE_TASKS_REFRESH_EVENT } from '@/components/attributes/resource-tasks/const';
 import { hasRetryableTasks } from '@/components/attributes/resource-tasks/utils';
+import useApp from '@/hooks/useApp';
 import { fetchResourceTasks } from '@/service/resource';
 
 interface IProps {
@@ -16,6 +18,7 @@ interface IProps {
  */
 export default function useResourceRetryableTasks(props: IProps) {
   const { namespaceId, resourceId, disabled = false } = props;
+  const app = useApp();
   const mountedRef = useRef(false);
   const [retryable, onRetryable] = useState(false);
 
@@ -45,5 +48,15 @@ export default function useResourceRetryableTasks(props: IProps) {
     refresh();
   }, [refresh]);
 
-  return { retryable, refresh };
+  // A retry from the task panel re-emits tasks and supersedes the ones this
+  // entry offered, so the toolbar has to re-read them
+  useEffect(() => {
+    return app.on(RESOURCE_TASKS_REFRESH_EVENT, (id: string) => {
+      if (id === resourceId) {
+        refresh();
+      }
+    });
+  }, [app, resourceId, refresh]);
+
+  return { retryable };
 }

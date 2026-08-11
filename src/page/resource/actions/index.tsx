@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { RESOURCE_TASKS_REFRESH_EVENT } from '@/components/attributes/resource-tasks/const';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
@@ -198,12 +199,11 @@ export default function Actions(props: IActionProps) {
   // Only files and links run background tasks that can be retried
   const isRetryableResource =
     resource?.resource_type === 'file' || resource?.resource_type === 'link';
-  const { retryable: tasksRetryable, refresh: refreshRetryableTasks } =
-    useResourceRetryableTasks({
-      namespaceId,
-      resourceId: resource?.id,
-      disabled: !isRetryableResource || !canModifyResource || isRssItemView,
-    });
+  const { retryable: tasksRetryable } = useResourceRetryableTasks({
+    namespaceId,
+    resourceId: resource?.id,
+    disabled: !isRetryableResource || !canModifyResource || isRssItemView,
+  });
 
   useEffect(() => {
     if (!namespaceId) return;
@@ -405,7 +405,9 @@ export default function Actions(props: IActionProps) {
         .then(() => {
           toast.success(t('actions.retry_success'));
           setOpen(false);
-          refreshRetryableTasks();
+          // Both this entry and the task panel re-read the tasks from here, so
+          // the superseded failure stops being shown as retryable everywhere
+          app.fire(RESOURCE_TASKS_REFRESH_EVENT, resource.id);
           return fetchResource(namespaceId, resource.id).then(updated => {
             onResource(updated);
             app.fire('update_resource', updated);

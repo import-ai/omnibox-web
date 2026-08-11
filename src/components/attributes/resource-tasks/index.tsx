@@ -23,6 +23,7 @@ import { ATTRIBUTE_STYLES } from '../constants';
 import {
   CONTENT_MODIFYING_FUNCTIONS,
   DISPLAY_FUNCTIONS,
+  RESOURCE_TASKS_REFRESH_EVENT,
   RETRYABLE_TASK_STATUSES,
 } from './const';
 import { TaskTag } from './TaskTag';
@@ -72,7 +73,9 @@ export default function ResourceTasks({
     try {
       await retryResourceTasks(namespaceId, resource.id);
       toast.success(t('actions.retry_success'));
-      await fetchTasks();
+      // Refresh through the event, so the toolbar entry drops its retry at the
+      // same moment this panel drops the superseded task
+      app.fire(RESOURCE_TASKS_REFRESH_EVENT, resource.id);
       const updated = await fetchResource(namespaceId, resource.id);
       onResource(updated);
       app.fire('update_resource', updated);
@@ -87,6 +90,15 @@ export default function ResourceTasks({
   useEffect(() => {
     fetchTasks();
   }, [resource.id, namespaceId]);
+
+  // A retry from anywhere re-emits tasks, which supersedes what is on screen
+  useEffect(() => {
+    return app.on(RESOURCE_TASKS_REFRESH_EVENT, (resourceId: string) => {
+      if (resourceId === resource.id) {
+        fetchTasks();
+      }
+    });
+  }, [app, resource.id, namespaceId]);
 
   // Auto-refresh logic for content-modifying tasks
   useEffect(() => {
