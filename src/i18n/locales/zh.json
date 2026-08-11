@@ -179,7 +179,7 @@
     "locate_resource_success": "已定位到目标资源。",
     "locate_source_resource": "定位到源文件",
     "retry": "重试",
-    "retry_success": "已重新提交失败任务",
+    "retry_success": "已重新提交未完成任务",
     "retry_error": "重试失败"
   },
   "form": {
@@ -923,6 +923,7 @@
     "status_label_running": "进行中",
     "status_label_finished": "已完成",
     "status_label_failed": "解析失败",
+    "status_label_canceled": "已取消",
     "confirm_cancel_title": "确认取消",
     "confirm_cancel_description": "取消后将立即停止执行，操作不可撤销",
     "continue_running": "继续运行",

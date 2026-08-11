@@ -1,7 +1,11 @@
 import { Task, TaskStatus } from '@/interface';
 import { statusConfig } from '@/page/settings/tabs/members/tasks/TaskStatusBadge';
 
-import { CONTENT_MODIFYING_FUNCTIONS, FAILED_TASK_STATUSES } from './const';
+import {
+  CONTENT_MODIFYING_FUNCTIONS,
+  FAILED_TASK_STATUSES,
+  RETRYABLE_TASK_STATUSES,
+} from './const';
 
 export const formatFunction = (
   functionName: string,
@@ -40,28 +44,46 @@ export const getSupersededTaskIds = (taskList: Task[]): Set<string> => {
 };
 
 /**
- * Failed tasks still worth showing: the ones no retry has replaced.
+ * Tasks in one of `statuses` that no retry has replaced.
  *
  * Supersession is resolved against `allTasks`, which must be the full task
  * list. Resolving it against an already display-filtered `taskList` would miss
- * a retry the display filter dropped and leave the stale failure on screen.
+ * a retry the display filter dropped and leave the stale task on screen.
  */
-export const getFailedTasks = (
+const getUnretriedTasks = (
   taskList: Task[],
-  allTasks: Task[] = taskList
+  statuses: TaskStatus[],
+  allTasks: Task[]
 ): Task[] => {
   const superseded = getSupersededTaskIds(allTasks);
   return taskList.filter(
-    task =>
-      FAILED_TASK_STATUSES.includes(task.status) && !superseded.has(task.id)
+    task => statuses.includes(task.status) && !superseded.has(task.id)
   );
 };
 
+/** Failures still worth showing: the ones no retry has replaced. */
+export const getFailedTasks = (
+  taskList: Task[],
+  allTasks: Task[] = taskList
+): Task[] => getUnretriedTasks(taskList, FAILED_TASK_STATUSES, allTasks);
+
+/** Canceled runs still worth showing: the ones no retry has replaced. */
+export const getCanceledTasks = (
+  taskList: Task[],
+  allTasks: Task[] = taskList
+): Task[] => getUnretriedTasks(taskList, ['canceled'], allTasks);
+
+/** Everything a retry would re-run: unretried failures and cancellations. */
+export const getRetryableTasks = (
+  taskList: Task[],
+  allTasks: Task[] = taskList
+): Task[] => getUnretriedTasks(taskList, RETRYABLE_TASK_STATUSES, allTasks);
+
 /**
- * Whether the resource has anything to retry: any failed task, of any function,
- * that no retry has already replaced. Mirrors the eligibility the retry
- * endpoint enforces.
+ * Whether the resource has anything to retry: any failed or canceled task, of
+ * any function, that no retry has already replaced. Mirrors the eligibility the
+ * retry endpoint enforces.
  */
-export const hasFailedTasks = (taskList: Task[]): boolean => {
-  return getFailedTasks(taskList).length > 0;
+export const hasRetryableTasks = (taskList: Task[]): boolean => {
+  return getRetryableTasks(taskList).length > 0;
 };

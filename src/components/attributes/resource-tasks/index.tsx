@@ -23,14 +23,15 @@ import { ATTRIBUTE_STYLES } from '../constants';
 import {
   CONTENT_MODIFYING_FUNCTIONS,
   DISPLAY_FUNCTIONS,
-  FAILED_TASK_STATUSES,
+  RETRYABLE_TASK_STATUSES,
 } from './const';
 import { TaskTag } from './TaskTag';
 import {
+  getCanceledTasks,
   getFailedTasks,
   getTaskBadgeConfig,
   hasActiveContentModifyingTasks,
-  hasFailedTasks,
+  hasRetryableTasks,
 } from './utils';
 
 interface ResourceTasksProps {
@@ -179,8 +180,9 @@ export default function ResourceTasks({
     return null;
   }
 
-  // Show only tasks with specified functions that are recent, active or failed.
-  // Failures stay visible regardless of age: the resource is still blank.
+  // Show only tasks with specified functions that are recent, active, failed or
+  // canceled. Whatever a retry could re-run stays visible regardless of age:
+  // the resource is still missing that work.
   const relevantTasks = tasks.filter(task => {
     const isDisplayFunction = DISPLAY_FUNCTIONS.includes(task.function);
     const isActive = task.status === 'running' || task.status === 'pending';
@@ -188,7 +190,7 @@ export default function ResourceTasks({
       new Date(task.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000);
     return (
       isDisplayFunction &&
-      (isActive || isRecent || FAILED_TASK_STATUSES.includes(task.status))
+      (isActive || isRecent || RETRYABLE_TASK_STATUSES.includes(task.status))
     );
   });
 
@@ -202,15 +204,19 @@ export default function ResourceTasks({
   const finishedTasks = relevantTasks.filter(
     task => task.status === 'finished'
   );
-  // Resolved against the full task list so a retry hides the failure it replaced
+  // Resolved against the full task list so a retry hides the task it replaced
   const failedTasks = getFailedTasks(relevantTasks, tasks);
-  const canRetry = hasFailedTasks(tasks);
+  const canceledTasks = getCanceledTasks(relevantTasks, tasks);
+  const canRetry = hasRetryableTasks(tasks);
   const FailedIcon = getTaskBadgeConfig(failedTasks[0]?.status || 'error').icon;
+  const CanceledIcon = getTaskBadgeConfig('canceled').icon;
 
-  // Nothing is running and nothing failed: the resource speaks for itself
+  // Nothing is running and nothing is left to re-run: the resource speaks for
+  // itself
   if (
     !hasActiveContentModifyingTasks(relevantTasks) &&
-    failedTasks.length === 0
+    failedTasks.length === 0 &&
+    canceledTasks.length === 0
   ) {
     return null;
   }
@@ -319,6 +325,32 @@ export default function ResourceTasks({
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
                 {failedTasks.map(task => (
+                  <DropdownMenuItem
+                    key={task.id}
+                    className="p-0 focus:bg-transparent"
+                  >
+                    <TaskTag type={task.function as any} />
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {canceledTasks.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="secondary"
+                  className="h-6 gap-0.5 rounded-lg border border-neutral-500 bg-transparent px-2 py-0 text-xs text-neutral-500 focus-visible:outline-none dark:border-neutral-300 dark:text-neutral-300"
+                >
+                  <CanceledIcon className="size-3.5" />
+                  {t('tasks.status_label_canceled')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="bottom"
+                className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
+              >
+                {canceledTasks.map(task => (
                   <DropdownMenuItem
                     key={task.id}
                     className="p-0 focus:bg-transparent"

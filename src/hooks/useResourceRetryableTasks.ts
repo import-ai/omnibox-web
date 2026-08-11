@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { hasFailedTasks } from '@/components/attributes/resource-tasks/utils';
+import { hasRetryableTasks } from '@/components/attributes/resource-tasks/utils';
 import { fetchResourceTasks } from '@/service/resource';
 
 interface IProps {
@@ -10,14 +10,14 @@ interface IProps {
 }
 
 /**
- * Tells whether the resource has any failed task left to retry, so the toolbar
- * can offer a retry only when there is something to retry. The sidebar has no
- * task status, which is why this lives on the resource page.
+ * Tells whether the resource has any failed or canceled task left to re-run, so
+ * the toolbar can offer a retry only when there is something to retry. The
+ * sidebar has no task status, which is why this lives on the resource page.
  */
-export default function useResourceFailedTasks(props: IProps) {
+export default function useResourceRetryableTasks(props: IProps) {
   const { namespaceId, resourceId, disabled = false } = props;
   const mountedRef = useRef(false);
-  const [failed, onFailed] = useState(false);
+  const [retryable, onRetryable] = useState(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -29,13 +29,13 @@ export default function useResourceFailedTasks(props: IProps) {
 
   const refresh = useCallback(() => {
     if (disabled || !namespaceId || !resourceId) {
-      onFailed(false);
+      onRetryable(false);
       return;
     }
     fetchResourceTasks(namespaceId, resourceId, { mute: true })
       .then(tasks => {
         if (mountedRef.current) {
-          onFailed(hasFailedTasks(tasks || []));
+          onRetryable(hasRetryableTasks(tasks || []));
         }
       })
       .catch(() => undefined);
@@ -45,5 +45,5 @@ export default function useResourceFailedTasks(props: IProps) {
     refresh();
   }, [refresh]);
 
-  return { failed, refresh };
+  return { retryable, refresh };
 }

@@ -109,6 +109,41 @@ describe('ResourceTasks', () => {
     expect(container.textContent).toContain('common.retry');
   });
 
+  it('renders the canceled group and a retry button for a canceled task', async () => {
+    await render([task('file_reader_pdf', 'canceled', 30)]);
+
+    expect(container.textContent).toContain('tasks.status_label_canceled');
+    expect(container.textContent).not.toContain('tasks.status_label_failed');
+    expect(container.textContent).toContain('common.retry');
+  });
+
+  it('offers a retry for a canceled task next to a successful parse', async () => {
+    await render([
+      task('collect_url', 'finished', 1),
+      task('extract_tags', 'canceled', 1),
+    ]);
+
+    expect(container.textContent).toContain('tasks.status_label_canceled');
+    expect(container.textContent).toContain('tasks.functions.extract_tags');
+    expect(container.textContent).toContain('common.retry');
+  });
+
+  it('hides the retry button and the superseded cancellation while its retry runs', async () => {
+    const canceled = task('file_reader_pdf', 'canceled', 1);
+    await render([canceled, retryOf(canceled, 'running')]);
+
+    expect(container.textContent).toContain('tasks.status_label_running');
+    expect(container.textContent).not.toContain('tasks.status_label_canceled');
+    expect(container.textContent).not.toContain('common.retry');
+  });
+
+  it('renders nothing once the retry of a canceled task finished', async () => {
+    const canceled = task('file_reader_text', 'canceled', 30);
+    await render([canceled, retryOf(canceled, 'finished')]);
+
+    expect(container.textContent).toBe('');
+  });
+
   it('renders nothing when everything finished', async () => {
     await render([
       task('file_reader_text', 'finished'),

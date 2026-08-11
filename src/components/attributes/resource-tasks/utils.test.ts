@@ -1,6 +1,12 @@
 import { Task, TaskStatus, TaskType } from '@/interface';
 
-import { getFailedTasks, getSupersededTaskIds, hasFailedTasks } from './utils';
+import {
+  getCanceledTasks,
+  getFailedTasks,
+  getRetryableTasks,
+  getSupersededTaskIds,
+  hasRetryableTasks,
+} from './utils';
 
 let seq = 0;
 
@@ -48,42 +54,104 @@ describe('getSupersededTaskIds', () => {
   });
 });
 
-describe('hasFailedTasks', () => {
-  it.each<TaskStatus>(['error', 'timeout', 'insufficient_quota'])(
-    'reports a failure for a %s task',
+describe('hasRetryableTasks', () => {
+  it.each<TaskStatus>(['error', 'timeout', 'insufficient_quota', 'canceled'])(
+    'reports a %s task as retryable',
     status => {
-      expect(hasFailedTasks([task('file_reader_pdf', status, 1)])).toBe(true);
+      expect(hasRetryableTasks([task('file_reader_pdf', status, 1)])).toBe(
+        true
+      );
     }
   );
 
   it('reports failures of non-parse tasks too', () => {
-    expect(hasFailedTasks([task('upsert_index', 'error', 1)])).toBe(true);
-    expect(hasFailedTasks([task('extract_tags', 'timeout', 1)])).toBe(true);
+    expect(hasRetryableTasks([task('upsert_index', 'error', 1)])).toBe(true);
+    expect(hasRetryableTasks([task('extract_tags', 'timeout', 1)])).toBe(true);
   });
 
-  it('ignores a canceled task', () => {
-    expect(hasFailedTasks([task('delete_index', 'canceled', 1)])).toBe(false);
+  it('reports a canceled non-parse task too', () => {
+    expect(hasRetryableTasks([task('delete_index', 'canceled', 1)])).toBe(true);
   });
 
-  it('reports no failure once the failure has been retried', () => {
+  it('reports nothing once the failure has been retried', () => {
     const failure = task('file_reader_pdf', 'error', 10);
 
-    expect(hasFailedTasks([failure, retryOf(failure, 'pending')])).toBe(false);
+    expect(hasRetryableTasks([failure, retryOf(failure, 'pending')])).toBe(
+      false
+    );
+  });
+
+  it('reports nothing once the cancellation has been retried', () => {
+    const canceled = task('file_reader_pdf', 'canceled', 10);
+
+    expect(hasRetryableTasks([canceled, retryOf(canceled, 'running')])).toBe(
+      false
+    );
   });
 
   it('reports a failure again when the retry itself failed', () => {
     const failure = task('file_reader_pdf', 'error', 10);
 
-    expect(hasFailedTasks([failure, retryOf(failure, 'timeout')])).toBe(true);
+    expect(hasRetryableTasks([failure, retryOf(failure, 'timeout')])).toBe(
+      true
+    );
   });
 
-  it('reports no failure without any task', () => {
-    expect(hasFailedTasks([])).toBe(false);
+  it('reports a retryable task again when the retry was canceled', () => {
+    const failure = task('file_reader_pdf', 'error', 10);
+
+    expect(hasRetryableTasks([failure, retryOf(failure, 'canceled')])).toBe(
+      true
+    );
+  });
+
+  it('reports nothing without any task', () => {
+    expect(hasRetryableTasks([])).toBe(false);
+  });
+});
+
+describe('getRetryableTasks', () => {
+  it('keeps failed and canceled tasks and drops the rest', () => {
+    const retryable = getRetryableTasks([
+      task('file_reader_pdf', 'insufficient_quota', 4),
+      task('upsert_index', 'finished', 3),
+      task('delete_index', 'canceled', 2),
+      task('extract_tags', 'running', 1),
+    ]);
+
+    expect(retryable.map(item => item.status)).toEqual([
+      'insufficient_quota',
+      'canceled',
+    ]);
+  });
+
+  it('drops a cancellation that a retry points at', () => {
+    const canceled = task('collect_url', 'canceled', 10);
+
+    expect(getRetryableTasks([canceled, retryOf(canceled, 'pending')])).toEqual(
+      []
+    );
+  });
+});
+
+describe('getCanceledTasks', () => {
+  it('keeps only cancellations no retry replaced', () => {
+    const canceled = task('extract_tags', 'canceled', 10);
+    const retried = task('upsert_index', 'canceled', 9);
+
+    expect(
+      getCanceledTasks([
+        canceled,
+        retried,
+        task('file_reader_pdf', 'error', 8),
+        retryOf(retried, 'pending'),
+      ])
+    ).toEqual([canceled]);
   });
 });
 
 describe('getFailedTasks', () => {
-  it('keeps only failed statuses', () => {
+  it('keeps only failed statuses, leaving cancellations to their own group', () => {
     const failed = getFailedTasks([
       task('file_reader_pdf', 'insufficient_quota', 3),
       task('upsert_index', 'finished', 2),

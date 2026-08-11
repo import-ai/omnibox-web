@@ -27,3 +27,11 @@ export const FAILED_TASK_STATUSES: TaskStatus[] = [
   'timeout',
   'insufficient_quota',
 ];
+
+// Terminal statuses a retry can still do something about. A canceled task left
+// the resource just as unprocessed as a failed one, so retrying must pick it up
+// too. Mirrors RETRYABLE_TASK_STATUSES on the backend.
+export const RETRYABLE_TASK_STATUSES: TaskStatus[] = [
+  ...FAILED_TASK_STATUSES,
+  'canceled',
+];

@@ -42,7 +42,7 @@ import useConfig from '@/hooks/useConfig';
 import { useDeleteResource } from '@/hooks/useDeleteResource';
 import { useIsMobile } from '@/hooks/useMobile';
 import useProNamespaces from '@/hooks/useProNamespaces';
-import useResourceFailedTasks from '@/hooks/useResourceFailedTasks';
+import useResourceRetryableTasks from '@/hooks/useResourceRetryableTasks';
 import { IUseResource } from '@/hooks/userResource';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
@@ -198,8 +198,8 @@ export default function Actions(props: IActionProps) {
   // Only files and links run background tasks that can be retried
   const isRetryableResource =
     resource?.resource_type === 'file' || resource?.resource_type === 'link';
-  const { failed: tasksFailed, refresh: refreshFailedTasks } =
-    useResourceFailedTasks({
+  const { retryable: tasksRetryable, refresh: refreshRetryableTasks } =
+    useResourceRetryableTasks({
       namespaceId,
       resourceId: resource?.id,
       disabled: !isRetryableResource || !canModifyResource || isRssItemView,
@@ -405,7 +405,7 @@ export default function Actions(props: IActionProps) {
         .then(() => {
           toast.success(t('actions.retry_success'));
           setOpen(false);
-          refreshFailedTasks();
+          refreshRetryableTasks();
           return fetchResource(namespaceId, resource.id).then(updated => {
             onResource(updated);
             app.fire('update_resource', updated);
@@ -811,7 +811,7 @@ export default function Actions(props: IActionProps) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           )}
-          {tasksFailed && (
+          {tasksRetryable && (
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               disabled={loading === 'retry'}

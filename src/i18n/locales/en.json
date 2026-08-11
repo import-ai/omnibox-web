@@ -179,7 +179,7 @@
     "locate_resource_success": "Located the target resource.",
     "locate_source_resource": "Locate Source File",
     "retry": "Retry",
-    "retry_success": "Failed tasks resubmitted",
+    "retry_success": "Unfinished tasks resubmitted",
     "retry_error": "Retry failed"
   },
   "form": {
@@ -922,6 +922,7 @@
     "status_label_running": "Running",
     "status_label_finished": "Finished",
     "status_label_failed": "Failed",
+    "status_label_canceled": "Canceled",
     "confirm_cancel_title": "Confirm Cancel",
     "confirm_cancel_description": "The task will be stopped immediately. This action cannot be undone.",
     "continue_running": "Continue Running",
