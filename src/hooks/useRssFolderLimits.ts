@@ -63,6 +63,12 @@ export default function useRssFolderLimits(props?: IProps) {
         return;
       }
 
+      // Drop stale cache on forced refetch so a cancelled in-flight request
+      // cannot leave create/delete menus stuck on the previous used count.
+      if (force) {
+        cachedLimits.delete(cacheKey);
+      }
+
       const cached = cachedLimits.get(cacheKey);
       if (!force && cached) {
         if (mountedRef.current) {
@@ -72,7 +78,8 @@ export default function useRssFolderLimits(props?: IProps) {
       }
 
       const pending = pendingRequests.get(cacheKey);
-      if (pending) {
+      // force must not reuse a pre-create in-flight response.
+      if (pending && !force) {
         // Attach to the in-flight request and reflect its loading state; the
         // .catch keeps a rejected shared request from surfacing as an unhandled
         // rejection here (the originating caller handles the error).

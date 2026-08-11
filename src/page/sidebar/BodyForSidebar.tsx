@@ -41,7 +41,10 @@ import { Toolbar } from './components/toolbar';
 import { useBatchOperations } from './hooks/useBatchOperations';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
-import { getRssFolderQuotaExhausted } from './rssFolderQuota';
+import {
+  countRssFoldersBySpace,
+  getRssFolderQuotaExhausted,
+} from './rssFolderQuota';
 import {
   fetchChildrenForSidebarRefresh,
   getExpandedNodeIdsForSidebarRefresh,
@@ -240,9 +243,13 @@ export function BodyForSidebar(props: IProps) {
     smartFolderCounts.privateCount,
     smartFolderCounts.teamCount,
   ]);
+  const rssFolderLocalCounts = useMemo(
+    () => countRssFoldersBySpace(nodes),
+    [nodes]
+  );
   const rssFolderQuotaExhausted = useMemo(
-    () => getRssFolderQuotaExhausted(rssFolderLimits),
-    [rssFolderLimits]
+    () => getRssFolderQuotaExhausted(rssFolderLimits, rssFolderLocalCounts),
+    [rssFolderLimits, rssFolderLocalCounts]
   );
 
   const handleCreateSmartFolder = (ownerScope: SmartFolderOwnerScope) => {

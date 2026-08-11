@@ -19,6 +19,7 @@ import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
 import useRssFolderLimits from '@/hooks/useRssFolderLimits';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 import {
+  countRssFoldersBySpace,
   getRssFolderQuotaExhausted,
   getRssFolderQuotaTooltipKey,
 } from '@/page/sidebar/rssFolderQuota';
@@ -78,9 +79,13 @@ export function useNodeMenu(
     namespaceId: namespaceId || undefined,
   });
   const hasTeamspace = !!(rootIds.teamspace && nodes[rootIds.teamspace]);
+  const rssFolderLocalCounts = useMemo(
+    () => countRssFoldersBySpace(nodes),
+    [nodes]
+  );
   const rssFolderQuotaExhausted = useMemo(
-    () => getRssFolderQuotaExhausted(rssFolderLimits),
-    [rssFolderLimits]
+    () => getRssFolderQuotaExhausted(rssFolderLimits, rssFolderLocalCounts),
+    [rssFolderLimits, rssFolderLocalCounts]
   );
 
   return useMemo<{

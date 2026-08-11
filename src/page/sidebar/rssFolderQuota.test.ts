@@ -1,6 +1,7 @@
 import type { RssFolderLimits } from '@/page/sidebar/components/rss-folder';
 
 import {
+  countRssFoldersBySpace,
   getRssFolderQuotaExhausted,
   getRssFolderQuotaTooltipKey,
 } from './rssFolderQuota';
@@ -53,6 +54,34 @@ describe('getRssFolderQuotaExhausted', () => {
         })
       )
     ).toEqual({ private: false, teamspace: false });
+  });
+
+  it('uses the higher of API used and local tree counts', () => {
+    expect(
+      getRssFolderQuotaExhausted(makeLimits({ folderPrivateUsed: 0 }), {
+        private: 1,
+        teamspace: 0,
+      })
+    ).toEqual({ private: true, teamspace: false });
+    expect(
+      getRssFolderQuotaExhausted(makeLimits({ folderPrivateUsed: 1 }), {
+        private: 0,
+        teamspace: 0,
+      })
+    ).toEqual({ private: true, teamspace: false });
+  });
+});
+
+describe('countRssFoldersBySpace', () => {
+  it('counts loaded rss folders per space type', () => {
+    expect(
+      countRssFoldersBySpace({
+        a: { resourceType: 'rss_folder', spaceType: 'private' },
+        b: { resourceType: 'rss_folder', spaceType: 'private' },
+        c: { resourceType: 'rss_folder', spaceType: 'teamspace' },
+        d: { resourceType: 'folder', spaceType: 'private' },
+      })
+    ).toEqual({ private: 2, teamspace: 1 });
   });
 });
 

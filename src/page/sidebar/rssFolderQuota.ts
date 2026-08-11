@@ -3,20 +3,44 @@ import type { RssFolderLimits } from '@/page/sidebar/components/rss-folder';
 
 export type RssFolderQuotaExhausted = Record<SpaceType, boolean>;
 
+export type RssFolderSpaceCounts = Record<SpaceType, number>;
+
+// Count loaded sidebar nodes so create/delete can update the menu before the
+// limits API refetch lands. Callers should Math.max this with API used counts.
+export function countRssFoldersBySpace(
+  nodes: Record<string, { resourceType: string; spaceType: SpaceType }>
+): RssFolderSpaceCounts {
+  const counts: RssFolderSpaceCounts = { private: 0, teamspace: 0 };
+  for (const node of Object.values(nodes)) {
+    if (node.resourceType === 'rss_folder') {
+      counts[node.spaceType] += 1;
+    }
+  }
+  return counts;
+}
+
 export function getRssFolderQuotaExhausted(
-  limits?: RssFolderLimits
+  limits?: RssFolderLimits,
+  localCounts?: RssFolderSpaceCounts
 ): RssFolderQuotaExhausted {
   if (!limits) {
     return { private: false, teamspace: false };
   }
 
+  // Prefer the higher of API used vs loaded tree so a just-created folder
+  // disables the menu immediately even if the limits cache is still stale.
+  const privateUsed = Math.max(
+    limits.folderPrivateUsed,
+    localCounts?.private ?? 0
+  );
+  const teamUsed = Math.max(limits.folderTeamUsed, localCounts?.teamspace ?? 0);
+
   return {
     private:
       limits.folderPrivateLimit >= 0 &&
-      limits.folderPrivateUsed >= limits.folderPrivateLimit,
+      privateUsed >= limits.folderPrivateLimit,
     teamspace:
-      limits.folderTeamLimit >= 0 &&
-      limits.folderTeamUsed >= limits.folderTeamLimit,
+      limits.folderTeamLimit >= 0 && teamUsed >= limits.folderTeamLimit,
   };
 }
 
