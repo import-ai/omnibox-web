@@ -120,5 +120,11 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
         s.smartFolderEntitlementsVersion += 1;
       });
     },
+
+    refetchRssFolderLimits: () => {
+      set(s => {
+        s.rssFolderLimitsVersion += 1;
+      });
+    },
   };
 }

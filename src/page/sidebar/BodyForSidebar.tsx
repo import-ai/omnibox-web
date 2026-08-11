@@ -7,6 +7,7 @@ import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
+import useRssFolderLimits from '@/hooks/useRssFolderLimits';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { type Namespace, ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
@@ -40,6 +41,10 @@ import { Toolbar } from './components/toolbar';
 import { useBatchOperations } from './hooks/useBatchOperations';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
+import {
+  countRssFoldersBySpace,
+  getRssFolderQuotaExhausted,
+} from './rssFolderQuota';
 import {
   fetchChildrenForSidebarRefresh,
   getExpandedNodeIdsForSidebarRefresh,
@@ -151,6 +156,7 @@ export function BodyForSidebar(props: IProps) {
   const [sortingSpace, setSortingSpace] = useState<SpaceType | null>(null);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
+  const { data: rssFolderLimits } = useRssFolderLimits({ namespaceId });
   const roots = useSidebarStore(state => state.rootIds);
   const nodes = useSidebarStore(state => state.nodes);
   const activeId = useSidebarStore(state => state.activeId);
@@ -237,6 +243,14 @@ export function BodyForSidebar(props: IProps) {
     smartFolderCounts.privateCount,
     smartFolderCounts.teamCount,
   ]);
+  const rssFolderLocalCounts = useMemo(
+    () => countRssFoldersBySpace(nodes),
+    [nodes]
+  );
+  const rssFolderQuotaExhausted = useMemo(
+    () => getRssFolderQuotaExhausted(rssFolderLimits, rssFolderLocalCounts),
+    [rssFolderLimits, rssFolderLocalCounts]
+  );
 
   const handleCreateSmartFolder = (ownerScope: SmartFolderOwnerScope) => {
     setDefaultSmartFolderOwnerScope(ownerScope);
@@ -500,6 +514,7 @@ export function BodyForSidebar(props: IProps) {
         window.setTimeout(() => {
           scrollToResource(id);
         }, 0);
+        useSidebarStore.getState().refetchRssFolderLimits();
         toast.success(t('rss_folder.create.success'));
       });
   };
@@ -664,6 +679,7 @@ export function BodyForSidebar(props: IProps) {
         onCreateSmartFolder={handleCreateSmartFolder}
         onCreateRssFolder={handleCreateRssFolder}
         smartFolderQuotaExhausted={smartFolderQuotaExhausted}
+        rssFolderQuotaExhausted={rssFolderQuotaExhausted}
         sortingSpace={sortingSpace}
         onResourceSortChange={handleResourceSortChange}
       />
