@@ -174,24 +174,28 @@ export default function RssItems(props: IProps) {
                           )
                         }
                       >
-                        <div className="flex items-start gap-2">
-                          {item.link_name ? (
-                            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-[4px] border border-muted-foreground/60 text-[11px] font-medium leading-none">
-                              {item.link_name.charAt(0).toUpperCase()}
-                            </span>
-                          ) : (
-                            <div className="mt-0.5 shrink-0 [&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
-                              <ResourceIcon
-                                expand={false}
-                                resource={iconResource}
-                              />
-                            </div>
-                          )}
-                          <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500">
-                            {item.title || t('untitled')}
-                          </h3>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-start gap-2 min-w-0">
+                            {item.link_name ? (
+                              <span className="flex h-7 shrink-0 items-center">
+                                <span className="flex size-5 items-center justify-center rounded-[4px] border border-muted-foreground/60 text-[11px] font-medium leading-none">
+                                  {item.link_name.charAt(0).toUpperCase()}
+                                </span>
+                              </span>
+                            ) : (
+                              <div className="flex h-7 shrink-0 items-center [&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
+                                <ResourceIcon
+                                  expand={false}
+                                  resource={iconResource}
+                                />
+                              </div>
+                            )}
+                            <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500">
+                              {item.title || t('untitled')}
+                            </h3>
+                          </div>
                         </div>
-                        <p className="mt-1 text-muted-foreground text-sm">
+                        <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
                           {formatItemDate(item)}
                           {item.link_name && (
                             <span className="ml-1.5">{item.link_name}</span>
