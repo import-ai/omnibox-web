@@ -138,7 +138,6 @@ export default function ChatConversationsPage({
                                   className="cursor-pointer text-red-500 hover:bg-gray-100 dark:hover:bg-gray-400"
                                   onClick={event => {
                                     event.stopPropagation();
-                                    event.preventDefault();
                                     onRemove({
                                       id: item.id,
                                       title: conversationTitle,
