@@ -125,7 +125,6 @@ export default function ChatConversationsPage({
                                   className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
                                   onClick={event => {
                                     event.stopPropagation();
-                                    event.preventDefault();
                                     onEdit({
                                       id: item.id,
                                       title: conversationTitle,
