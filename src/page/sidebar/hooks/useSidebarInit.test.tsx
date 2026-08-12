@@ -229,8 +229,7 @@ describe('useSidebarInit Copilot resource sync', () => {
   it('aborts a stale Copilot preview locate when the preview closes', async () => {
     let resolveLocate: (() => void) | undefined;
     let locateOptions:
-      | { signal?: AbortSignal; shouldApply?: () => boolean }
-      | undefined;
+      { signal?: AbortSignal; shouldApply?: () => boolean } | undefined;
     locateSidebarResource.mockImplementation(
       (
         _resourceId: string,
