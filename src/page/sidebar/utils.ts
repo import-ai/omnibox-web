@@ -38,30 +38,25 @@ export function clearSidebarActiveKeyFromState(state: unknown): {
   };
 }
 
-export async function locateSidebarResource(resourceId: string) {
-  await useSidebarStore
-    .getState()
-    .expandPathTo(resourceId, { expandTarget: true });
-  const store = useSidebarStore.getState();
-  const node = store.nodes[resourceId];
-  if (node) {
-    store.toggleSpace(node.spaceType, true);
-  }
-  store.activate(resourceId);
-
+async function centerSidebarElement(
+  selector: string,
+  {
+    attempts = 60,
+  }: {
+    attempts?: number;
+  } = {}
+) {
   await new Promise<void>(resolve => {
-    let attempts = 60;
+    let remainingAttempts = attempts;
     let previousTop: number | null = null;
     let stableFrames = 0;
     const scroll = () => {
-      const element = document.querySelector(
-        `[data-resource-id="${resourceId}"]`
-      );
+      const element = document.querySelector(selector);
       if (element) {
         const top = Math.round(element.getBoundingClientRect().top);
         stableFrames = top === previousTop ? stableFrames + 1 : 0;
         previousTop = top;
-        if (stableFrames >= 1 || attempts === 1) {
+        if (stableFrames >= 1 || remainingAttempts === 1) {
           const container = element.closest<HTMLElement>(
             '[data-sidebar="content"]'
           );
@@ -79,8 +74,8 @@ export async function locateSidebarResource(resourceId: string) {
           return;
         }
       }
-      attempts -= 1;
-      if (attempts > 0) {
+      remainingAttempts -= 1;
+      if (remainingAttempts > 0) {
         requestAnimationFrame(scroll);
       } else {
         resolve();
@@ -90,53 +85,26 @@ export async function locateSidebarResource(resourceId: string) {
   });
 }
 
-/** Expand an RSS folder and center the active history item after reloads. */
-export async function locateSidebarRssItem(folderId: string, itemId: string) {
-  await useSidebarStore
-    .getState()
-    .expandPathTo(folderId, { expandTarget: true });
+async function expandAndActivateSidebarNode(nodeId: string) {
+  await useSidebarStore.getState().expandPathTo(nodeId, { expandTarget: true });
   const store = useSidebarStore.getState();
-  const node = store.nodes[folderId];
+  const node = store.nodes[nodeId];
   if (node) {
     store.toggleSpace(node.spaceType, true);
   }
-  store.activate(folderId);
+  store.activate(nodeId);
+}
 
-  await new Promise<void>(resolve => {
-    let attempts = 120;
-    let previousTop: number | null = null;
-    let stableFrames = 0;
-    const scroll = () => {
-      const element = document.querySelector(`[data-rss-item-id="${itemId}"]`);
-      if (element) {
-        const top = Math.round(element.getBoundingClientRect().top);
-        stableFrames = top === previousTop ? stableFrames + 1 : 0;
-        previousTop = top;
-        if (stableFrames >= 1 || attempts === 1) {
-          const container = element.closest<HTMLElement>(
-            '[data-sidebar="content"]'
-          );
-          if (container) {
-            const elementRect = element.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            container.scrollTop +=
-              elementRect.top -
-              containerRect.top -
-              (container.clientHeight - elementRect.height) / 2;
-          } else {
-            element.scrollIntoView({ block: 'center' });
-          }
-          resolve();
-          return;
-        }
-      }
-      attempts -= 1;
-      if (attempts > 0) {
-        requestAnimationFrame(scroll);
-      } else {
-        resolve();
-      }
-    };
-    requestAnimationFrame(scroll);
+export async function locateSidebarResource(resourceId: string) {
+  await expandAndActivateSidebarNode(resourceId);
+  await centerSidebarElement(`[data-resource-id="${resourceId}"]`);
+}
+
+/** Expand an RSS folder and center the active history item after reloads. */
+export async function locateSidebarRssItem(folderId: string, itemId: string) {
+  await expandAndActivateSidebarNode(folderId);
+  // History rows may remount after refresh_rss_items, so wait a bit longer.
+  await centerSidebarElement(`[data-rss-item-id="${itemId}"]`, {
+    attempts: 120,
   });
 }

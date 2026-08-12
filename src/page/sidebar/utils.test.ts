@@ -35,7 +35,28 @@ jest.mock('./store', () => ({
   },
 }));
 
+async function flushLocate(
+  locating: Promise<void>,
+  frames: FrameRequestCallback[]
+) {
+  // expandPathTo resolves first; centerSidebarElement schedules rAF after that.
+  await Promise.resolve();
+  await Promise.resolve();
+  frames.shift()?.(0);
+  frames.shift()?.(16);
+  await locating;
+}
+
 describe('locateSidebarResource', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    mockSidebarState.nodes = {
+      target: { spaceType: 'private' },
+    };
+  });
+
   it('waits for a stable position and scrolls the sidebar container', async () => {
     const frames: FrameRequestCallback[] = [];
     jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
@@ -54,11 +75,7 @@ describe('locateSidebarResource', () => {
     container.appendChild(target);
     document.body.appendChild(container);
 
-    const locating = locateSidebarResource('target');
-    await Promise.resolve();
-    frames.shift()?.(0);
-    frames.shift()?.(16);
-    await locating;
+    await flushLocate(locateSidebarResource('target'), frames);
 
     expect(mockToggleSpace).toHaveBeenCalledWith('private', true);
     expect(mockActivate).toHaveBeenCalledWith('target');
@@ -67,6 +84,15 @@ describe('locateSidebarResource', () => {
 });
 
 describe('locateSidebarRssItem', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    mockSidebarState.nodes = {
+      target: { spaceType: 'private' },
+    };
+  });
+
   it('waits for the rss item row and scrolls the sidebar container', async () => {
     const frames: FrameRequestCallback[] = [];
     jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
@@ -88,11 +114,7 @@ describe('locateSidebarRssItem', () => {
     container.appendChild(target);
     document.body.appendChild(container);
 
-    const locating = locateSidebarRssItem('folder', 'item-1');
-    await Promise.resolve();
-    frames.shift()?.(0);
-    frames.shift()?.(16);
-    await locating;
+    await flushLocate(locateSidebarRssItem('folder', 'item-1'), frames);
 
     expect(mockExpandPathTo).toHaveBeenCalledWith('folder', {
       expandTarget: true,

@@ -353,9 +353,9 @@ export function BodyForSidebar(props: IProps) {
         )
       );
 
-      if (rssItemId && resourceId) {
-        await locateSidebarRssItem(resourceId, rssItemId);
-      } else if (locateSnapshot) {
+      // RSS history rows remount via refresh_rss_items and re-locate themselves
+      // through useRssItemAutoScroll. Only resource nodes need an explicit jump.
+      if (!rssItemId && locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
