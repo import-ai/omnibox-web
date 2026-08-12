@@ -37,9 +37,16 @@ export function resolveCitationTarget(
 
   try {
     const url = new URL(trimmedLink);
-    return allowedExternalProtocols.has(url.protocol)
-      ? { kind: 'external', href: trimmedLink }
-      : { kind: 'unavailable' };
+    if (!allowedExternalProtocols.has(url.protocol)) {
+      return { kind: 'unavailable' };
+    }
+    const path = url.pathname.replace(/^\/+|\/+$/g, '');
+    const segments = path.split('/');
+    if (segments.length === 2 && segments[0] === namespaceId) {
+      const resourceId = matchResourceId(segments[1]);
+      if (resourceId) return { kind: 'resource', resourceId };
+    }
+    return { kind: 'external', href: trimmedLink };
   } catch {
     return { kind: 'unavailable' };
   }

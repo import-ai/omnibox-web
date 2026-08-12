@@ -14,11 +14,14 @@ import { useChatResourceNavigation } from './useChatResourceNavigation';
 let routeParams: {
   conversation_id?: string;
   namespace_id?: string;
+  resource_id?: string;
   share_id?: string;
 };
+let routePathname = '/namespace-a/chat/conversation-a';
 
 jest.mock('react-router-dom', () => ({
   useParams: () => routeParams,
+  useLocation: () => ({ pathname: routePathname }),
 }));
 
 const RESOURCE_ID = 'Abcd1234Efgh5678';
@@ -51,6 +54,7 @@ describe('useChatResourceNavigation', () => {
       conversation_id: 'conversation-a',
       namespace_id: 'namespace-a',
     };
+    routePathname = '/namespace-a/chat/conversation-a';
     sessionStorage.clear();
     useCopilotStore.setState({ workspaces: {} });
     container = document.createElement('div');
@@ -119,10 +123,62 @@ describe('useChatResourceNavigation', () => {
 
   it('keeps links without a conversation identity opening in a new tab', async () => {
     routeParams = { namespace_id: 'namespace-a' };
+    routePathname = '/namespace-a';
 
     const link = await renderLink();
 
     expect(link.dataset.canOpen).toBe('false');
     expect(link.getAttribute('target')).toBe('_blank');
+  });
+
+  it('opens a resource in the left pane when Copilot is open beside a resource page', async () => {
+    routeParams = {
+      namespace_id: 'namespace-a',
+      resource_id: 'OldResource12abcd',
+    };
+    routePathname = '/namespace-a/OldResource12abcd';
+    useCopilotStore
+      .getState()
+      .showConversation('namespace-a', 'conversation-a');
+
+    const link = await renderLink();
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    expect(link.dataset.canOpen).toBe('true');
+    expect(link.getAttribute('target')).toBeNull();
+
+    await act(async () => link.dispatchEvent(click));
+
+    expect(click.defaultPrevented).toBe(true);
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toMatchObject({
+      open: true,
+      view: 'conversation',
+      conversationId: 'conversation-a',
+      previewResourceId: RESOURCE_ID,
+    });
+  });
+
+  it('previews a resource when Copilot is open on a resource page without a conversation', async () => {
+    routeParams = {
+      namespace_id: 'namespace-a',
+      resource_id: 'OldResource12abcd',
+    };
+    routePathname = '/namespace-a/OldResource12abcd';
+    useCopilotStore.getState().open('namespace-a');
+
+    const link = await renderLink();
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    await act(async () => link.dispatchEvent(click));
+
+    expect(click.defaultPrevented).toBe(true);
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toMatchObject({
+      open: true,
+      previewResourceId: RESOURCE_ID,
+    });
   });
 });

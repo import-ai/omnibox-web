@@ -9,15 +9,20 @@ import { useCopilotStore } from '@/page/copilot/copilotStore';
 import { CitationHoverIcon } from './CitationHoverIcon';
 
 jest.mock('react-router-dom', () => ({
-  useParams: () => ({
-    conversation_id: 'conversation-a',
-    namespace_id: 'namespace-a',
-  }),
+  useParams: () => routeParams,
+  useLocation: () => ({ pathname: routePathname }),
 }));
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
+
+let routeParams: {
+  conversation_id?: string;
+  namespace_id?: string;
+  resource_id?: string;
+};
+let routePathname = '/namespace-a/chat/conversation-a';
 
 describe('CitationHoverIcon', () => {
   let container: HTMLDivElement;
@@ -43,6 +48,11 @@ describe('CitationHoverIcon', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     localStorage.clear();
+    routeParams = {
+      conversation_id: 'conversation-a',
+      namespace_id: 'namespace-a',
+    };
+    routePathname = '/namespace-a/chat/conversation-a';
     useCopilotStore.setState({ workspaces: {} });
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -106,5 +116,26 @@ describe('CitationHoverIcon', () => {
 
     expect(openSpy).not.toHaveBeenCalled();
     openSpy.mockRestore();
+  });
+
+  it('opens an internal citation beside Copilot on a resource page', async () => {
+    routeParams = {
+      namespace_id: 'namespace-a',
+      resource_id: 'OldResource12abcd',
+    };
+    routePathname = '/namespace-a/OldResource12abcd';
+    useCopilotStore
+      .getState()
+      .showConversation('namespace-a', 'conversation-a');
+
+    const trigger = await renderCitation();
+    await act(async () => trigger.click());
+
+    expect(useCopilotStore.getState().workspaces['namespace-a']).toMatchObject({
+      conversationId: 'conversation-a',
+      open: true,
+      previewResourceId: 'Abcd1234Efgh5678',
+      view: 'conversation',
+    });
   });
 });
