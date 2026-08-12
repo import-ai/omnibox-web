@@ -101,7 +101,7 @@ export function useSidebarInit(props: IProps) {
           `[data-resource-id="${scrollTargetId}"]`
         );
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.scrollIntoView({ behavior: 'auto', block: 'center' });
         }
       });
     });
