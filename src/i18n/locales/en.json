@@ -252,22 +252,6 @@
     "quota_exceeded_desc": "Each account can create one space for free. Additional spaces must be purchased.",
     "quota_expand_button": "Purchase and Create",
     "usage": "Usage",
-    "auto_renewal": {
-      "loading": "Checking automatic renewal status",
-      "enabled": "Automatic renewal: Monthly plan enabled.",
-      "next_billing": "Next billing date: {{date}}.",
-      "amount": "Recurring amount: {{amount}} / month.",
-      "cancel": "Turn Off Automatic Renewal",
-      "canceling": "Turning Off Automatic Renewal",
-      "disabled": "Automatic renewal: Off.",
-      "available_until": "Your current benefits remain available until {{date}}. They will not renew after that date.",
-      "confirm_title": "Turn off automatic renewal?",
-      "confirm_description": "Future automatic charges will stop. Your current benefits remain available until {{date}}.",
-      "confirm_cancel": "Turn Off",
-      "cancel_success": "Automatic renewal is off",
-      "cancel_failed": "Could not turn off automatic renewal. Please try again later.",
-      "cancel_timeout": "Confirmation timed out. Check your automatic renewal status again later."
-    },
     "leave": {
       "title": "Leave Space",
       "description": "Leave this workspace. Your private data will be deleted.",
