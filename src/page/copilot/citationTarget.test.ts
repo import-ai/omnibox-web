@@ -19,7 +19,8 @@ describe('resolveCitationTarget', () => {
     expect(
       resolveCitationTarget(
         `https://app.omnibox.test/namespace-a/${resourceId}`,
-        'namespace-a'
+        'namespace-a',
+        { currentOrigin: 'https://app.omnibox.test' }
       )
     ).toEqual({
       kind: 'resource',
@@ -31,11 +32,25 @@ describe('resolveCitationTarget', () => {
     expect(
       resolveCitationTarget(
         `https://app.omnibox.test/namespace-b/${resourceId}`,
-        'namespace-a'
+        'namespace-a',
+        { currentOrigin: 'https://app.omnibox.test' }
       )
     ).toEqual({
       kind: 'external',
       href: `https://app.omnibox.test/namespace-b/${resourceId}`,
+    });
+  });
+
+  it('keeps an absolute same-path URL from another host as external', () => {
+    expect(
+      resolveCitationTarget(
+        `https://evil.example/namespace-a/${resourceId}`,
+        'namespace-a',
+        { currentOrigin: 'https://app.omnibox.test' }
+      )
+    ).toEqual({
+      kind: 'external',
+      href: `https://evil.example/namespace-a/${resourceId}`,
     });
   });
 

@@ -38,10 +38,26 @@ export function clearSidebarActiveKeyFromState(state: unknown): {
   };
 }
 
-export async function locateSidebarResource(resourceId: string) {
+export type LocateSidebarResourceOptions = {
+  signal?: AbortSignal;
+  shouldApply?: () => boolean;
+};
+
+function canApplyLocate(options?: LocateSidebarResourceOptions) {
+  if (options?.signal?.aborted) return false;
+  if (options?.shouldApply && !options.shouldApply()) return false;
+  return true;
+}
+
+export async function locateSidebarResource(
+  resourceId: string,
+  options?: LocateSidebarResourceOptions
+) {
   await useSidebarStore
     .getState()
     .expandPathTo(resourceId, { expandTarget: true });
+  if (!canApplyLocate(options)) return;
+
   const store = useSidebarStore.getState();
   const node = store.nodes[resourceId];
   if (node) {
@@ -54,6 +70,10 @@ export async function locateSidebarResource(resourceId: string) {
     let previousTop: number | null = null;
     let stableFrames = 0;
     const scroll = () => {
+      if (!canApplyLocate(options)) {
+        resolve();
+        return;
+      }
       const element = document.querySelector(
         `[data-resource-id="${resourceId}"]`
       );

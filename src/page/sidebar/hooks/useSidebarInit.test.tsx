@@ -11,7 +11,7 @@ const activate = jest.fn((id: string | null) => {
   mockSidebarState.activeId = id;
 });
 const expandPathTo = jest.fn().mockResolvedValue(undefined);
-const locateSidebarResource = jest.fn().mockResolvedValue(undefined);
+const locateSidebarResource = jest.fn(() => Promise.resolve(undefined));
 const setNamespaceId = jest.fn();
 const mockSidebarState = {
   activeId: null as string | null,
@@ -119,7 +119,13 @@ describe('useSidebarInit Copilot resource sync', () => {
       await Promise.resolve();
     });
 
-    expect(locateSidebarResource).toHaveBeenCalledWith('preview-resource');
+    expect(locateSidebarResource).toHaveBeenCalledWith(
+      'preview-resource',
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        shouldApply: expect.any(Function),
+      })
+    );
     expect(activate).toHaveBeenCalledWith('preview-resource');
     expect(navigate).toHaveBeenCalledWith(location.pathname, {
       replace: true,
@@ -137,7 +143,13 @@ describe('useSidebarInit Copilot resource sync', () => {
       await Promise.resolve();
     });
 
-    expect(locateSidebarResource).toHaveBeenLastCalledWith('second-resource');
+    expect(locateSidebarResource).toHaveBeenLastCalledWith(
+      'second-resource',
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        shouldApply: expect.any(Function),
+      })
+    );
     expect(activate).toHaveBeenLastCalledWith('second-resource');
 
     await act(async () => {
@@ -170,5 +182,79 @@ describe('useSidebarInit Copilot resource sync', () => {
       expandTarget: true,
     });
     expect(activate).toHaveBeenLastCalledWith('route-resource');
+  });
+
+  it('aborts a stale Copilot preview locate when the preview changes', async () => {
+    const deferred: Array<{
+      resourceId: string;
+      options?: { signal?: AbortSignal; shouldApply?: () => boolean };
+      resolve: () => void;
+    }> = [];
+    locateSidebarResource.mockImplementation(
+      (
+        resourceId: string,
+        options?: { signal?: AbortSignal; shouldApply?: () => boolean }
+      ) =>
+        new Promise<void>(resolve => {
+          deferred.push({ resourceId, options, resolve });
+        })
+    );
+
+    await act(async () => {
+      root.render(<Probe previewResourceId="first-resource" />);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      root.render(<Probe previewResourceId="second-resource" />);
+      await Promise.resolve();
+    });
+
+    expect(deferred).toHaveLength(2);
+    expect(deferred[0].options?.signal?.aborted).toBe(true);
+    expect(deferred[0].options?.shouldApply?.()).toBe(false);
+    expect(deferred[1].options?.signal?.aborted).toBe(false);
+    expect(deferred[1].options?.shouldApply?.()).toBe(true);
+
+    await act(async () => {
+      deferred[0].resolve();
+      deferred[1].resolve();
+      await Promise.resolve();
+    });
+
+    expect(activate).toHaveBeenLastCalledWith('second-resource');
+  });
+
+  it('aborts a stale Copilot preview locate when the preview closes', async () => {
+    let resolveLocate: (() => void) | undefined;
+    let locateOptions:
+      { signal?: AbortSignal; shouldApply?: () => boolean } | undefined;
+    locateSidebarResource.mockImplementation(
+      (
+        _resourceId: string,
+        options?: { signal?: AbortSignal; shouldApply?: () => boolean }
+      ) =>
+        new Promise<void>(resolve => {
+          locateOptions = options;
+          resolveLocate = resolve;
+        })
+    );
+
+    await act(async () => {
+      root.render(<Probe previewResourceId="preview-resource" />);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      root.render(<Probe previewResourceId={null} />);
+    });
+
+    expect(locateOptions?.signal?.aborted).toBe(true);
+    expect(locateOptions?.shouldApply?.()).toBe(false);
+
+    await act(async () => {
+      resolveLocate?.();
+      await Promise.resolve();
+    });
+
+    expect(activate).toHaveBeenLastCalledWith(null);
   });
 });

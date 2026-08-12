@@ -81,8 +81,15 @@ export function useSidebarInit(props: IProps) {
     if (chatPage && !previewResourceId) return;
 
     if (previewResourceId) {
-      locateSidebarResource(previewResourceId);
-      return;
+      const controller = new AbortController();
+      const targetId = previewResourceId;
+      void locateSidebarResource(targetId, {
+        signal: controller.signal,
+        shouldApply: () => !controller.signal.aborted,
+      });
+      return () => {
+        controller.abort();
+      };
     }
 
     const isFromSidebar = location.state?.fromSidebar === true;
