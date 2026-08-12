@@ -30,7 +30,10 @@ export function ResourcePickerTree({
     return (
       <div key={resource.id} className="min-w-0 max-w-full overflow-hidden">
         <ResourcePickerRow
-          canExpand={Boolean(resource.has_children || children.length > 0)}
+          canExpand={Boolean(
+            (!resource.disabled || expanded) &&
+            (resource.has_children || children.length > 0)
+          )}
           depth={depth}
           expanded={expanded}
           loading={loadingIds.has(resource.id)}

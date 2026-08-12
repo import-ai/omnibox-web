@@ -22,6 +22,7 @@ import {
   fetchSmartFolderChildren,
   searchResources,
 } from '@/service/resource';
+import { rssTreeChildrenParams } from '@/service/resourceSort';
 
 import { isManagedChildrenFolder, shouldDisableMoveTarget } from './utils';
 
@@ -137,7 +138,8 @@ export default function MoveToForm(props: IFormProps) {
           : fetchChildren(
               namespaceId,
               resource.id,
-              getWorkspacePickerSort(resource, resourceSorts)
+              getWorkspacePickerSort(resource, resourceSorts),
+              { params: rssTreeChildrenParams(resource.resource_type) }
             )
       ).then(
         resources =>

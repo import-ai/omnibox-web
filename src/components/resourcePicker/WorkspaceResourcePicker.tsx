@@ -8,6 +8,7 @@ import {
   fetchSmartFolderChildren,
   searchResources as searchWorkspaceResources,
 } from '@/service/resource';
+import { rssTreeChildrenParams } from '@/service/resourceSort';
 
 import { ResourcePicker } from './ResourcePicker';
 import type { ResourcePickerResource } from './resourcePickerTypes';
@@ -94,7 +95,8 @@ export function WorkspaceResourcePicker({
           : fetchChildren(
               namespaceId,
               resource.id,
-              getWorkspacePickerSort(resource, resourceSorts)
+              getWorkspacePickerSort(resource, resourceSorts),
+              { params: rssTreeChildrenParams(resource.resource_type) }
             )
       ).then(resources =>
         resources.map(child =>

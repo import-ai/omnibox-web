@@ -19,6 +19,7 @@ import {
   fetchSmartFolderChildren,
   searchResources,
 } from '@/service/resource';
+import { rssTreeChildrenParams } from '@/service/resourceSort';
 
 interface ChooseResourceTreeProps {
   namespaceId: string;
@@ -155,7 +156,8 @@ export function ChooseResourceTree({
           : fetchChildren(
               namespaceId,
               resource.id,
-              getWorkspacePickerSort(resource, resourceSorts)
+              getWorkspacePickerSort(resource, resourceSorts),
+              { params: rssTreeChildrenParams(resource.resource_type) }
             )
       ).then(
         resources =>

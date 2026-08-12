@@ -1,8 +1,15 @@
 import { Resource } from '@/interface';
-import { http } from '@/lib/request';
+import { http, type RequestConfig } from '@/lib/request';
 
-export function fetchShareChildren(shareId: string, id: string) {
-  return http.get<Resource[]>(`/shares/${shareId}/resources/${id}/children`);
+export function fetchShareChildren(
+  shareId: string,
+  id: string,
+  config?: RequestConfig
+) {
+  return http.get<Resource[]>(
+    `/shares/${shareId}/resources/${id}/children`,
+    config
+  );
 }
 
 export function fetchShareResource(shareId: string, targetId: string) {
