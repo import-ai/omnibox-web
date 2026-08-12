@@ -253,6 +253,22 @@
     "quota_exceeded_desc": "每个账号可免费创建 1 个空间，更多空间需单独购买。",
     "quota_expand_button": "购买并创建",
     "usage": "用量",
+    "auto_renewal": {
+      "loading": "正在查询自动续费状态",
+      "enabled": "自动续费：已开启连续包月。",
+      "next_billing": "预计下次扣费日期：{{date}}。",
+      "amount": "后续自动续费金额：{{amount}} / 月。",
+      "cancel": "关闭自动续费",
+      "canceling": "正在关闭自动续费",
+      "disabled": "自动续费：已关闭。",
+      "available_until": "当前权益可用至：{{date}}。到期后不再自动续费。",
+      "confirm_title": "确认关闭自动续费吗？",
+      "confirm_description": "关闭后将不再自动扣费，当前权益可继续使用至 {{date}}。",
+      "confirm_cancel": "确认关闭",
+      "cancel_success": "自动续费已关闭",
+      "cancel_failed": "关闭失败，请稍后重试",
+      "cancel_timeout": "关闭结果确认超时，请稍后查看自动续费状态"
+    },
     "leave": {
       "title": "离开空间",
       "description": "离开此空间。您的私人数据将被删除。",
