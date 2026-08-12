@@ -70,6 +70,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           onKeyUp={composer.rememberSelection}
           onScroll={composer.handleScroll}
           onSelect={composer.rememberSelection}
+          spellCheck={false}
         />
       </div>
     );
