@@ -353,9 +353,11 @@ export function BodyForSidebar(props: IProps) {
         )
       );
 
-      // RSS history rows remount via refresh_rss_items and re-locate themselves
-      // through useRssItemAutoScroll. Only resource nodes need an explicit jump.
-      if (!rssItemId && locateSnapshot) {
+      // Expand/activate first so collapsed folders recover. History rows may
+      // also remount via refresh_rss_items and re-locate through auto-scroll.
+      if (rssItemId && resourceId) {
+        await locateSidebarRssItem(resourceId, rssItemId);
+      } else if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
@@ -393,7 +395,9 @@ export function BodyForSidebar(props: IProps) {
         });
       }
       await refreshSpaceResources(spaceType, sort);
-      if (locateSnapshot) {
+      if (rssItemId && resourceId) {
+        await locateSidebarRssItem(resourceId, rssItemId);
+      } else if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {

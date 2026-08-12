@@ -1,7 +1,10 @@
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { openFilePicker } from '@/lib/openFilePicker';
 
+import { centerSidebarElementOnce } from './sidebarScroll';
 import { useSidebarStore } from './store';
+
+export { centerSidebarElementOnce } from './sidebarScroll';
 
 export const isValidFileType = (fileName: string): boolean => {
   const allowedExtensions = ALLOW_FILE_EXTENSIONS.split(',').map(ext =>
@@ -57,19 +60,7 @@ async function centerSidebarElement(
         stableFrames = top === previousTop ? stableFrames + 1 : 0;
         previousTop = top;
         if (stableFrames >= 1 || remainingAttempts === 1) {
-          const container = element.closest<HTMLElement>(
-            '[data-sidebar="content"]'
-          );
-          if (container) {
-            const elementRect = element.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            container.scrollTop +=
-              elementRect.top -
-              containerRect.top -
-              (container.clientHeight - elementRect.height) / 2;
-          } else {
-            element.scrollIntoView({ block: 'center' });
-          }
+          centerSidebarElementOnce(selector);
           resolve();
           return;
         }

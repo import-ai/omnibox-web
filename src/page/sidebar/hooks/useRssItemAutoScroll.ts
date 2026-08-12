@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 
+import { centerSidebarElementOnce } from '@/page/sidebar/sidebarScroll';
+
 interface ScrollRequest {
   itemId?: string;
   enabled: boolean;
@@ -40,10 +42,7 @@ export function useRssItemAutoScroll(
     if (!activeItemId || !itemRendered || !requestRef.current.enabled) return;
 
     const animationFrame = requestAnimationFrame(() => {
-      const element = document.querySelector(
-        `[data-rss-item-id="${activeItemId}"]`
-      );
-      element?.scrollIntoView({ behavior: 'auto', block: 'center' });
+      centerSidebarElementOnce(`[data-rss-item-id="${activeItemId}"]`);
       requestRef.current.enabled = false;
     });
 
