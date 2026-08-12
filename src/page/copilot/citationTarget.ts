@@ -21,10 +21,23 @@ function resolveRelativeResource(link: string, namespaceId: string) {
   return matchResourceId(segments[1]);
 }
 
+export type ResolveCitationTargetOptions = {
+  currentOrigin?: string;
+};
+
+function resolveCurrentOrigin(options?: ResolveCitationTargetOptions) {
+  if (options?.currentOrigin) return options.currentOrigin;
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+  return '';
+}
+
 /** Classifies a citation link without navigating or mutating browser state. */
 export function resolveCitationTarget(
   link: string,
-  namespaceId: string
+  namespaceId: string,
+  options?: ResolveCitationTargetOptions
 ): CitationTarget {
   const trimmedLink = link.trim();
   if (!trimmedLink) return { kind: 'unavailable' };
@@ -37,9 +50,22 @@ export function resolveCitationTarget(
 
   try {
     const url = new URL(trimmedLink);
-    return allowedExternalProtocols.has(url.protocol)
-      ? { kind: 'external', href: trimmedLink }
-      : { kind: 'unavailable' };
+    if (!allowedExternalProtocols.has(url.protocol)) {
+      return { kind: 'unavailable' };
+    }
+    const currentOrigin = resolveCurrentOrigin(options);
+    const path = url.pathname.replace(/^\/+|\/+$/g, '');
+    const segments = path.split('/');
+    if (
+      currentOrigin &&
+      url.origin === currentOrigin &&
+      segments.length === 2 &&
+      segments[0] === namespaceId
+    ) {
+      const resourceId = matchResourceId(segments[1]);
+      if (resourceId) return { kind: 'resource', resourceId };
+    }
+    return { kind: 'external', href: trimmedLink };
   } catch {
     return { kind: 'unavailable' };
   }
