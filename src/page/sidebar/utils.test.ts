@@ -1,7 +1,11 @@
 /** @jest-environment jsdom */
 
 import { insertUnspecifiedChild } from './store/utils';
-import { clearSidebarActiveKeyFromState, locateSidebarResource } from './utils';
+import {
+  clearSidebarActiveKeyFromState,
+  locateSidebarResource,
+  locateSidebarRssItem,
+} from './utils';
 
 const mockExpandPathTo = jest.fn();
 const mockToggleSpace = jest.fn();
@@ -31,7 +35,28 @@ jest.mock('./store', () => ({
   },
 }));
 
+async function flushLocate(
+  locating: Promise<void>,
+  frames: FrameRequestCallback[]
+) {
+  // expandPathTo resolves first; centerSidebarElement schedules rAF after that.
+  await Promise.resolve();
+  await Promise.resolve();
+  frames.shift()?.(0);
+  frames.shift()?.(16);
+  await locating;
+}
+
 describe('locateSidebarResource', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    mockSidebarState.nodes = {
+      target: { spaceType: 'private' },
+    };
+  });
+
   it('waits for a stable position and scrolls the sidebar container', async () => {
     const frames: FrameRequestCallback[] = [];
     jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
@@ -50,11 +75,7 @@ describe('locateSidebarResource', () => {
     container.appendChild(target);
     document.body.appendChild(container);
 
-    const locating = locateSidebarResource('target');
-    await Promise.resolve();
-    frames.shift()?.(0);
-    frames.shift()?.(16);
-    await locating;
+    await flushLocate(locateSidebarResource('target'), frames);
 
     expect(mockToggleSpace).toHaveBeenCalledWith('private', true);
     expect(mockActivate).toHaveBeenCalledWith('target');
@@ -88,6 +109,48 @@ describe('locateSidebarResource', () => {
     expect(mockToggleSpace).not.toHaveBeenCalled();
     expect(mockActivate).not.toHaveBeenCalled();
     expect(frames).toHaveLength(0);
+  });
+});
+
+describe('locateSidebarRssItem', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    mockSidebarState.nodes = {
+      target: { spaceType: 'private' },
+    };
+  });
+
+  it('waits for the rss item row and scrolls the sidebar container', async () => {
+    const frames: FrameRequestCallback[] = [];
+    jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      frames.push(callback);
+      return frames.length;
+    });
+    mockExpandPathTo.mockResolvedValue(undefined);
+    mockSidebarState.nodes = {
+      folder: { spaceType: 'private' },
+    };
+
+    const container = document.createElement('div');
+    container.dataset.sidebar = 'content';
+    Object.defineProperty(container, 'clientHeight', { value: 100 });
+    container.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+    const target = document.createElement('div');
+    target.dataset.rssItemId = 'item-1';
+    target.getBoundingClientRect = () => ({ top: 240, height: 20 }) as DOMRect;
+    container.appendChild(target);
+    document.body.appendChild(container);
+
+    await flushLocate(locateSidebarRssItem('folder', 'item-1'), frames);
+
+    expect(mockExpandPathTo).toHaveBeenCalledWith('folder', {
+      expandTarget: true,
+    });
+    expect(mockToggleSpace).toHaveBeenCalledWith('private', true);
+    expect(mockActivate).toHaveBeenCalledWith('folder');
+    expect(container.scrollTop).toBe(200);
   });
 });
 

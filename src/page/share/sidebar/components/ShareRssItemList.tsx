@@ -37,7 +37,7 @@ export default function ShareRssItemList({ folderId, shareId }: IProps) {
       : items;
   useRssItemAutoScroll(
     activeItemId,
-    displayedItems.some(item => item.id === activeItemId)
+    !loading && displayedItems.some(item => item.id === activeItemId)
   );
   // Align item rows with leaf resource nodes in the shared sidebar.
   const paddingLeft = 28;

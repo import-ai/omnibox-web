@@ -72,14 +72,16 @@ jest.mock('@/service/resource', () => ({
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
 function Probe({
-  previewResourceId,
+  previewResourceId = null,
   resourceId = '',
+  namespaceId = 'namespace',
 }: {
-  previewResourceId: string | null;
+  previewResourceId?: string | null;
   resourceId?: string;
+  namespaceId?: string;
 }) {
   useSidebarInit({
-    namespaceId: 'namespace',
+    namespaceId,
     previewResourceId,
     resourceId,
   });
@@ -227,7 +229,8 @@ describe('useSidebarInit Copilot resource sync', () => {
   it('aborts a stale Copilot preview locate when the preview closes', async () => {
     let resolveLocate: (() => void) | undefined;
     let locateOptions:
-      { signal?: AbortSignal; shouldApply?: () => boolean } | undefined;
+      | { signal?: AbortSignal; shouldApply?: () => boolean }
+      | undefined;
     locateSidebarResource.mockImplementation(
       (
         _resourceId: string,
@@ -256,5 +259,87 @@ describe('useSidebarInit Copilot resource sync', () => {
     });
 
     expect(activate).toHaveBeenLastCalledWith(null);
+  });
+});
+
+describe('useSidebarInit direct open scroll', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+  let resourceElement: HTMLDivElement;
+  let scrollIntoView: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    mockSidebarState.activeId = null;
+    location = {
+      pathname: '/namespace-1/resource-1',
+      state: null,
+    };
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    resourceElement = document.createElement('div');
+    resourceElement.dataset.resourceId = 'resource-1';
+    document.body.appendChild(resourceElement);
+    root = createRoot(container);
+    scrollIntoView = jest.fn();
+    Object.defineProperty(resourceElement, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      callback(0);
+      return 1;
+    });
+  });
+
+  afterEach(async () => {
+    await act(async () => root.unmount());
+    container.remove();
+    resourceElement.remove();
+    jest.restoreAllMocks();
+  });
+
+  it('positions a directly opened resource without smooth scrolling', async () => {
+    await act(async () => {
+      root.render(
+        <Probe
+          namespaceId="namespace-1"
+          previewResourceId={null}
+          resourceId="resource-1"
+        />
+      );
+    });
+
+    expect(expandPathTo).toHaveBeenCalledWith('resource-1', {
+      expandTarget: true,
+    });
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'auto',
+      block: 'center',
+    });
+  });
+
+  it('keeps the current scroll position for sidebar navigation', async () => {
+    location = {
+      pathname: '/namespace-1/resource-1',
+      state: { fromSidebar: true },
+    };
+
+    await act(async () => {
+      root.render(
+        <Probe
+          namespaceId="namespace-1"
+          previewResourceId={null}
+          resourceId="resource-1"
+        />
+      );
+    });
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith('/namespace-1/resource-1', {
+      replace: true,
+      state: { fromSidebar: undefined },
+    });
   });
 });

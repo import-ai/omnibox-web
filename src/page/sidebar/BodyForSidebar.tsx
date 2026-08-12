@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { FolderNameDialog } from '@/components/FolderNameDialog';
@@ -51,7 +51,7 @@ import {
 } from './sidebarBehavior';
 import { TreeNode, useSidebarStore } from './store';
 import { getBatchSelectionSummary, getNodeResourceSort } from './store/utils';
-import { locateSidebarResource } from './utils';
+import { locateSidebarResource, locateSidebarRssItem } from './utils';
 
 interface IProps {
   currentNamespace?: Namespace;
@@ -147,6 +147,7 @@ export function BodyForSidebar(props: IProps) {
   useSidebarEvents(namespaceId);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { rss_item_id: rssItemId } = useParams();
   const globalFileInputRef = useRef<HTMLInputElement>(null);
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
   const [defaultSmartFolderOwnerScope, setDefaultSmartFolderOwnerScope] =
@@ -267,6 +268,13 @@ export function BodyForSidebar(props: IProps) {
   const handleLocateResource = () => {
     if (!canLocateCurrentResource) return;
 
+    // RSS item pages keep resourceId as the folder id. Locate the history row
+    // itself instead of only scrolling to the folder node.
+    if (rssItemId && resourceId) {
+      void locateSidebarRssItem(resourceId, rssItemId);
+      return;
+    }
+
     const targetId =
       previewResourceId || useSidebarStore.getState().activeId || resourceId;
     if (!targetId || targetId === 'chat') return;
@@ -348,7 +356,11 @@ export function BodyForSidebar(props: IProps) {
         )
       );
 
-      if (locateSnapshot) {
+      // Expand/activate first so collapsed folders recover. History rows may
+      // also remount via refresh_rss_items and re-locate through auto-scroll.
+      if (rssItemId && resourceId) {
+        await locateSidebarRssItem(resourceId, rssItemId);
+      } else if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
@@ -386,7 +398,9 @@ export function BodyForSidebar(props: IProps) {
         });
       }
       await refreshSpaceResources(spaceType, sort);
-      if (locateSnapshot) {
+      if (rssItemId && resourceId) {
+        await locateSidebarRssItem(resourceId, rssItemId);
+      } else if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
