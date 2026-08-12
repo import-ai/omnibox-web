@@ -179,7 +179,40 @@ describe('RssItemList', () => {
     });
 
     expect(scrollIntoView).toHaveBeenCalledWith({
-      behavior: 'smooth',
+      behavior: 'auto',
+      block: 'center',
+    });
+  });
+
+  it('scrolls again after a toolbar refresh reloads the same item', async () => {
+    mockRouterState.params = {
+      resource_id: 'folder-1',
+      rss_item_id: 'item-1',
+    };
+    const refresh = deferred<RssItem[]>();
+    mockedFetchRssItems
+      .mockResolvedValueOnce([item('item-1', 'Article')])
+      .mockReturnValueOnce(refresh.promise);
+
+    await act(async () => {
+      root.render(
+        <RssItemList folderId="folder-1" namespaceId="namespace-1" depth={1} />
+      );
+    });
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      listeners.get('refresh_rss_items')?.('folder-1');
+    });
+    expect(container.textContent).toContain('loading');
+
+    await act(async () => {
+      refresh.resolve([item('item-1', 'Article')]);
+    });
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+    expect(scrollIntoView).toHaveBeenLastCalledWith({
+      behavior: 'auto',
       block: 'center',
     });
   });
@@ -240,7 +273,7 @@ describe('RssItemList', () => {
       container.querySelector('[data-rss-item-id="item-51"]')
     ).not.toBeNull();
     expect(scrollIntoView).toHaveBeenCalledWith({
-      behavior: 'smooth',
+      behavior: 'auto',
       block: 'center',
     });
   });
