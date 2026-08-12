@@ -16,7 +16,7 @@ import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/na
 import { getSmartFolderChildSidebarKey } from '@/page/sidebar/components/smart-folder';
 import type { ResourceSortOptions } from '@/service/resourceSort';
 
-import { groupTimestampedItemsByTimestamp } from '../utils';
+import { groupTimestampedItemsByTimestamp, itemTimestamp } from '../utils';
 import { FolderContent } from './FolderContent';
 
 interface IProps {
@@ -207,82 +207,89 @@ export default function Folder(props: IProps) {
     <div className="space-y-6 pb-[30vh]">
       {data.length > 0 ? (
         <>
-          {groupTimestampedItemsByTimestamp(data, i18n).map(([key, items]) => (
-            <div key={key}>
-              <div className="pb-4">
-                <p className="text-sm text-muted-foreground font-light ml-0.5">
-                  {key}
-                </p>
-              </div>
-              {items.map((item, index) => {
-                const iconResource = {
-                  id: item.id,
-                  name: item.name,
-                  resource_type: item.resource_type,
-                  parent_id: '',
-                  space_type: 'private',
-                  has_children: !!item.has_children,
-                  attrs: (item as any).attrs || {},
-                } as unknown as Resource;
-                return (
-                  <div
-                    className="cursor-pointer group"
-                    key={item.id}
-                    onClick={() => {
-                      navigateToResource(
-                        navigate,
-                        `${navigationPrefix}/${item.id}`,
-                        {
-                          state: smartFolderParentId
-                            ? navigationPrefix.startsWith('/s/')
-                              ? getShareSmartFolderChildNavigationState(
-                                  smartFolderParentId,
-                                  item.id
-                                )
-                              : {
-                                  sidebarActiveKey:
-                                    getSmartFolderChildSidebarKey(
-                                      smartFolderParentId,
-                                      item.id
-                                    ),
-                                }
-                            : undefined,
-                        }
-                      );
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="[&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
-                          <ResourceIcon
-                            expand={false}
-                            resource={iconResource}
-                          />
+          {groupTimestampedItemsByTimestamp(data, i18n, itemTimestamp).map(
+            ([key, items]) => (
+              <div key={key}>
+                <div className="pb-4">
+                  <p className="text-sm text-muted-foreground font-light ml-0.5">
+                    {key}
+                  </p>
+                </div>
+                {items.map((item, index) => {
+                  const iconResource = {
+                    id: item.id,
+                    name: item.name,
+                    resource_type: item.resource_type,
+                    parent_id: '',
+                    space_type: 'private',
+                    has_children: !!item.has_children,
+                    attrs: (item as any).attrs || {},
+                  } as unknown as Resource;
+                  return (
+                    <div
+                      className="cursor-pointer group"
+                      key={item.id}
+                      onClick={() => {
+                        navigateToResource(
+                          navigate,
+                          `${navigationPrefix}/${item.id}`,
+                          {
+                            state: smartFolderParentId
+                              ? navigationPrefix.startsWith('/s/')
+                                ? getShareSmartFolderChildNavigationState(
+                                    smartFolderParentId,
+                                    item.id
+                                  )
+                                : {
+                                    sidebarActiveKey:
+                                      getSmartFolderChildSidebarKey(
+                                        smartFolderParentId,
+                                        item.id
+                                      ),
+                                  }
+                              : undefined,
+                          }
+                        );
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="[&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
+                            <ResourceIcon
+                              expand={false}
+                              resource={iconResource}
+                            />
+                          </div>
+                          <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500 truncate">
+                            {item.name || t('untitled')}
+                          </h3>
                         </div>
-                        <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500 truncate">
-                          {item.name || t('untitled')}
-                        </h3>
                       </div>
+                      {item.resource_type === 'folder' ? (
+                        <FolderContent
+                          resource={item}
+                          apiPrefix={folderContentApiPrefix}
+                          namespaceId={namespaceId}
+                        />
+                      ) : (
+                        <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+                          {itemTimestamp(item)
+                            ? format(
+                                itemTimestamp(item)!,
+                                'yyyy-MM-dd HH:mm:ss'
+                              )
+                            : ''}
+                        </p>
+                      )}
+                      {index < items.length - 1 && (
+                        <Separator className="my-4" />
+                      )}
                     </div>
-                    {item.resource_type === 'folder' ? (
-                      <FolderContent
-                        resource={item}
-                        apiPrefix={folderContentApiPrefix}
-                        namespaceId={namespaceId}
-                      />
-                    ) : (
-                      <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
-                        {item.updated_at
-                          ? format(item.updated_at, 'yyyy-MM-dd HH:mm:ss')
-                          : ''}
-                      </p>
-                    )}
-                    {index < items.length - 1 && <Separator className="my-4" />}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                  );
+                })}
+              </div>
+            )
+          )}
           {!loadAll && hasMore && (
             <div className="pb-4 flex justify-center">
               <Button

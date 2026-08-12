@@ -186,3 +186,18 @@ export function parseImageLinks(markdownContent: string): string[] {
 }
 
 export const groupTimestampedItemsByTimestamp = groupItemsByTimestamp;
+
+/**
+ * The date a folder row is filed under. An rss item is created at its publish
+ * time and updated whenever the poller refreshes its body, so grouping it by
+ * `updated_at` would file a 2019 article under "Today" the moment it is
+ * re-parsed — and rss folders list their items by publish date, so the groups
+ * would not even come out in order.
+ */
+export function itemTimestamp(item: {
+  resource_type?: string;
+  created_at?: string;
+  updated_at?: string;
+}): string | undefined {
+  return item.resource_type === 'rss_item' ? item.created_at : item.updated_at;
+}

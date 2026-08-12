@@ -1,6 +1,6 @@
 import { PathItem, Resource, SpaceType } from '@/interface';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
-import { RSS_ITEM_SORT } from '@/service/resourceSort';
+import { RSS_ITEM_SORT, rssTreeChildrenParams } from '@/service/resourceSort';
 
 import type { SidebarState, TreeNode } from './types';
 
@@ -74,6 +74,15 @@ export function getNodeResourceSort(
   }
   const spaceType = state.nodes[nodeId]?.spaceType ?? 'private';
   return state.resourceSorts[spaceType];
+}
+
+// Request params for loading a node's children into the tree: an rss folder is
+// capped, everything else is listed in full.
+export function getNodeChildrenParams(
+  state: Pick<SidebarState, 'nodes'>,
+  nodeId: string
+) {
+  return rssTreeChildrenParams(state.nodes[nodeId]?.resourceType);
 }
 
 export function collectParentIds(

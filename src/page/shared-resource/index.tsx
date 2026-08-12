@@ -75,6 +75,11 @@ export default function SharedResourcePage() {
             namespaceId={shareInfo.id}
             emptyText={t('rss_folder.empty')}
             navigationPrefix={`/s/${shareInfo.id}`}
+            // The share endpoint returns a folder's children in one response
+            // (no limit/offset), so paging them would re-request — and
+            // re-append — the same rows. It already orders an rss folder
+            // newest-published first.
+            loadAll
           />
         ) : resource.resource_type === 'folder' ? (
           <Folder

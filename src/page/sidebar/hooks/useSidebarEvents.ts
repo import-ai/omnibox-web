@@ -8,7 +8,10 @@ import { Resource, ResourceType } from '@/interface';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { getNodeResourceSort } from '@/page/sidebar/store/utils';
+import {
+  getNodeChildrenParams,
+  getNodeResourceSort,
+} from '@/page/sidebar/store/utils';
 import {
   clearSidebarActiveKeyFromState,
   locateSidebarResource,
@@ -161,7 +164,10 @@ export function useSidebarEvents(namespaceId: string) {
       const children = await fetchChildren(
         namespaceId,
         resourceId,
-        getNodeResourceSort(useSidebarStore.getState(), resourceId)
+        getNodeResourceSort(useSidebarStore.getState(), resourceId),
+        {
+          params: getNodeChildrenParams(useSidebarStore.getState(), resourceId),
+        }
       );
       useSidebarStore.getState().refreshChildren(resourceId, children);
     };

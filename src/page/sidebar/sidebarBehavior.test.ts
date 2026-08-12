@@ -1,6 +1,6 @@
 import type { SpaceType } from '@/interface';
 import { fetchChildren, fetchSmartFolderChildren } from '@/service/resource';
-import { RSS_ITEM_SORT } from '@/service/resourceSort';
+import { RSS_ITEM_SORT, RSS_ITEM_TREE_LIMIT } from '@/service/resourceSort';
 
 import {
   fetchChildrenForSidebarRefresh,
@@ -46,10 +46,12 @@ it('refreshes RSS folder children newest-published first', async () => {
       sort_order: 'asc',
     })
   ).resolves.toEqual(children);
+  // A feed's branch shows its newest page rather than the whole archive.
   expect(mockedFetchChildren).toHaveBeenCalledWith(
     'namespace',
     'rss-folder',
-    RSS_ITEM_SORT
+    RSS_ITEM_SORT,
+    { params: { limit: RSS_ITEM_TREE_LIMIT } }
   );
   expect(mockedFetchSmartFolderChildren).not.toHaveBeenCalled();
 });
@@ -63,7 +65,8 @@ it('keeps the space sort for regular folders', async () => {
   expect(mockedFetchChildren).toHaveBeenCalledWith(
     'namespace',
     'rss-folder',
-    sort
+    sort,
+    { params: undefined }
   );
 });
 

@@ -13,6 +13,7 @@ import {
   createNode,
   detectSpaceType,
   ensureUI,
+  getNodeChildrenParams,
   getNodeResourceSort,
   patchNodeFromResource,
 } from '../utils';
@@ -47,7 +48,8 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
               : await fetchChildren(
                   get().namespaceId,
                   id,
-                  getNodeResourceSort(get(), id)
+                  getNodeResourceSort(get(), id),
+                  { params: getNodeChildrenParams(get(), id) }
                 );
           const children = rawChildren.map(child =>
             node.resourceType === 'smart_folder'

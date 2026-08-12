@@ -3,7 +3,7 @@ import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smar
 import type { NodeUI, TreeNode } from '@/page/sidebar/store';
 import { fetchChildren, fetchSmartFolderChildren } from '@/service/resource';
 import type { ResourceSortOptions } from '@/service/resourceSort';
-import { RSS_ITEM_SORT } from '@/service/resourceSort';
+import { RSS_ITEM_SORT, rssTreeChildrenParams } from '@/service/resourceSort';
 
 export function getExpandedNodeIdsForSidebarRefresh(
   nodes: Record<string, TreeNode>,
@@ -40,7 +40,8 @@ export async function fetchChildrenForSidebarRefresh(
       : await fetchChildren(
           namespaceId,
           node.id,
-          node.resourceType === 'rss_folder' ? RSS_ITEM_SORT : sort
+          node.resourceType === 'rss_folder' ? RSS_ITEM_SORT : sort,
+          { params: rssTreeChildrenParams(node.resourceType) }
         );
 
   return node.resourceType === 'smart_folder'
