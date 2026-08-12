@@ -81,6 +81,77 @@ describe('locateSidebarResource', () => {
     expect(mockActivate).toHaveBeenCalledWith('target');
     expect(container.scrollTop).toBe(160);
   });
+
+  it('skips activate and scroll when the locate is aborted', async () => {
+    const frames: FrameRequestCallback[] = [];
+    jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      frames.push(callback);
+      return frames.length;
+    });
+    let resolveExpand: (() => void) | undefined;
+    mockExpandPathTo.mockImplementation(
+      () =>
+        new Promise<void>(resolve => {
+          resolveExpand = resolve;
+        })
+    );
+    mockToggleSpace.mockClear();
+    mockActivate.mockClear();
+
+    const controller = new AbortController();
+    const locating = locateSidebarResource('target', {
+      signal: controller.signal,
+    });
+    controller.abort();
+    resolveExpand?.();
+    await locating;
+
+    expect(mockToggleSpace).not.toHaveBeenCalled();
+    expect(mockActivate).not.toHaveBeenCalled();
+    expect(frames).toHaveLength(0);
+  });
+});
+
+describe('locateSidebarRssItem', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    mockSidebarState.nodes = {
+      target: { spaceType: 'private' },
+    };
+  });
+
+  it('waits for the rss item row and scrolls the sidebar container', async () => {
+    const frames: FrameRequestCallback[] = [];
+    jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      frames.push(callback);
+      return frames.length;
+    });
+    mockExpandPathTo.mockResolvedValue(undefined);
+    mockSidebarState.nodes = {
+      folder: { spaceType: 'private' },
+    };
+
+    const container = document.createElement('div');
+    container.dataset.sidebar = 'content';
+    Object.defineProperty(container, 'clientHeight', { value: 100 });
+    container.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+    const target = document.createElement('div');
+    target.dataset.rssItemId = 'item-1';
+    target.getBoundingClientRect = () => ({ top: 240, height: 20 }) as DOMRect;
+    container.appendChild(target);
+    document.body.appendChild(container);
+
+    await flushLocate(locateSidebarRssItem('folder', 'item-1'), frames);
+
+    expect(mockExpandPathTo).toHaveBeenCalledWith('folder', {
+      expandTarget: true,
+    });
+    expect(mockToggleSpace).toHaveBeenCalledWith('private', true);
+    expect(mockActivate).toHaveBeenCalledWith('folder');
+    expect(container.scrollTop).toBe(200);
+  });
 });
 
 describe('locateSidebarRssItem', () => {

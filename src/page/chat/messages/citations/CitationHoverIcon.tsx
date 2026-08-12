@@ -21,7 +21,7 @@ export interface CitationIconProps {
 export function CitationHoverIcon(props: CitationIconProps) {
   const { citation, index } = props;
   const { name, link } = formatCitation(citation);
-  const { conversationId, namespaceId } = useChatRouteParams();
+  const { namespaceId } = useChatRouteParams();
   const { openResource } = useChatResourceNavigation();
   const [hoverCardOpen, setHoverCardOpen] = useState(false);
 
@@ -30,7 +30,6 @@ export function CitationHoverIcon(props: CitationIconProps) {
     if (
       target.kind === 'resource' &&
       namespaceId &&
-      conversationId &&
       openResource(event, target.resourceId)
     ) {
       return;
