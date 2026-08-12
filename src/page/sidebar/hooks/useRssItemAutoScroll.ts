@@ -14,13 +14,27 @@ export function useRssItemAutoScroll(
   const requestRef = useRef<ScrollRequest>({ enabled: false });
 
   useLayoutEffect(() => {
-    if (requestRef.current.itemId === activeItemId) return;
+    if (!activeItemId) {
+      requestRef.current = { enabled: false };
+      return;
+    }
 
-    requestRef.current = {
-      itemId: activeItemId,
-      enabled: Boolean(activeItemId) && location.state?.fromSidebar !== true,
-    };
-  }, [activeItemId, location.state?.fromSidebar]);
+    if (location.state?.fromSidebar === true) {
+      requestRef.current = { itemId: activeItemId, enabled: false };
+      return;
+    }
+
+    if (requestRef.current.itemId !== activeItemId) {
+      requestRef.current = { itemId: activeItemId, enabled: true };
+      return;
+    }
+
+    // Same item can unmount during toolbar/page refresh reloads. Re-enable so
+    // the active entry is positioned again once it reappears.
+    if (!itemRendered) {
+      requestRef.current.enabled = true;
+    }
+  }, [activeItemId, itemRendered, location.state?.fromSidebar]);
 
   useEffect(() => {
     if (!activeItemId || !itemRendered || !requestRef.current.enabled) return;
@@ -29,7 +43,7 @@ export function useRssItemAutoScroll(
       const element = document.querySelector(
         `[data-rss-item-id="${activeItemId}"]`
       );
-      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element?.scrollIntoView({ behavior: 'auto', block: 'center' });
       requestRef.current.enabled = false;
     });
 
