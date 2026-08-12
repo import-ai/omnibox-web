@@ -7,12 +7,12 @@ import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
-import useConfig from '@/hooks/useConfig';
-import useProNamespaces from '@/hooks/useProNamespaces';
+import useRssFolderLimits from '@/hooks/useRssFolderLimits';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
-import { ResourceMeta, SpaceType } from '@/interface';
+import { type Namespace, ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import type {
   CreateRssFolderPayload,
   RssFolderResponse,
@@ -42,6 +42,10 @@ import { useBatchOperations } from './hooks/useBatchOperations';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
 import {
+  countRssFoldersBySpace,
+  getRssFolderQuotaExhausted,
+} from './rssFolderQuota';
+import {
   fetchChildrenForSidebarRefresh,
   getExpandedNodeIdsForSidebarRefresh,
 } from './sidebarBehavior';
@@ -50,6 +54,7 @@ import { getBatchSelectionSummary, getNodeResourceSort } from './store/utils';
 import { locateSidebarResource } from './utils';
 
 interface IProps {
+  currentNamespace?: Namespace;
   resourceId: string;
   namespaceId: string;
 }
@@ -134,7 +139,7 @@ function getLocateSnapshot(
 }
 
 export function BodyForSidebar(props: IProps) {
-  const { namespaceId, resourceId } = props;
+  const { currentNamespace, namespaceId, resourceId } = props;
   const app = useApp();
   useSidebarInit({ namespaceId, resourceId });
   useSidebarEvents(namespaceId);
@@ -151,10 +156,7 @@ export function BodyForSidebar(props: IProps) {
   const [sortingSpace, setSortingSpace] = useState<SpaceType | null>(null);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
-  const { config, loading: configLoading } = useConfig();
-  const { data: proNamespaces } = useProNamespaces({
-    disabled: configLoading || !config.commercial,
-  });
+  const { data: rssFolderLimits } = useRssFolderLimits({ namespaceId });
   const roots = useSidebarStore(state => state.rootIds);
   const nodes = useSidebarStore(state => state.nodes);
   const activeId = useSidebarStore(state => state.activeId);
@@ -186,7 +188,6 @@ export function BodyForSidebar(props: IProps) {
   const privateRoot = roots.private ? nodes[roots.private] : undefined;
   const teamspaceRoot = roots.teamspace ? nodes[roots.teamspace] : undefined;
   const hasTeamspace = !!teamspaceRoot?.id;
-  const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
   const editSmartFolderNode = editSmartFolderDialog.nodeId
     ? nodes[editSmartFolderDialog.nodeId]
     : undefined;
@@ -242,6 +243,14 @@ export function BodyForSidebar(props: IProps) {
     smartFolderCounts.privateCount,
     smartFolderCounts.teamCount,
   ]);
+  const rssFolderLocalCounts = useMemo(
+    () => countRssFoldersBySpace(nodes),
+    [nodes]
+  );
+  const rssFolderQuotaExhausted = useMemo(
+    () => getRssFolderQuotaExhausted(rssFolderLimits, rssFolderLocalCounts),
+    [rssFolderLimits, rssFolderLocalCounts]
+  );
 
   const handleCreateSmartFolder = (ownerScope: SmartFolderOwnerScope) => {
     setDefaultSmartFolderOwnerScope(ownerScope);
@@ -456,7 +465,9 @@ export function BodyForSidebar(props: IProps) {
       })
       .then(id => {
         useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        navigateToResource(navigate, `/${namespaceId}/${id}`, {
+          state: { fromSidebar: true },
+        });
         window.setTimeout(() => {
           scrollToResource(id);
         }, 0);
@@ -497,10 +508,13 @@ export function BodyForSidebar(props: IProps) {
       })
       .then(id => {
         useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        navigateToResource(navigate, `/${namespaceId}/${id}`, {
+          state: { fromSidebar: true },
+        });
         window.setTimeout(() => {
           scrollToResource(id);
         }, 0);
+        useSidebarStore.getState().refetchRssFolderLimits();
         toast.success(t('rss_folder.create.success'));
       });
   };
@@ -619,7 +633,9 @@ export function BodyForSidebar(props: IProps) {
       const id = await useSidebarStore
         .getState()
         .uploadFiles(currentUploadTargetId, files);
-      navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+      navigateToResource(navigate, `/${namespaceId}/${id}`, {
+        state: { fromSidebar: true },
+      });
       await locateSidebarResource(id);
       toast.success(t('upload.success', { count: files.length }));
     } catch (err) {
@@ -663,6 +679,7 @@ export function BodyForSidebar(props: IProps) {
         onCreateSmartFolder={handleCreateSmartFolder}
         onCreateRssFolder={handleCreateRssFolder}
         smartFolderQuotaExhausted={smartFolderQuotaExhausted}
+        rssFolderQuotaExhausted={rssFolderQuotaExhausted}
         sortingSpace={sortingSpace}
         onResourceSortChange={handleResourceSortChange}
       />
@@ -795,7 +812,7 @@ export function BodyForSidebar(props: IProps) {
           );
           store.activate(id);
           store.closeCreateFolderDialog();
-          navigate(`/${namespaceId}/${id}`, {
+          navigateToResource(navigate, `/${namespaceId}/${id}`, {
             state: { fromSidebar: true },
           });
           await locateSidebarResource(id);

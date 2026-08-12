@@ -1,25 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
-import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizardLang';
 import {
   AgentRequestChannel,
   ApprovalMode,
-  ChatCreatePayload,
   ChatMode,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import {
   ask,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
-  getStreamEventId,
   isTerminalMessageStatus,
-  resumeStream,
   stopStream,
 } from '@/page/chat/conversation/utils.ts';
 import {
@@ -30,25 +26,31 @@ import {
   MessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/core/types/conversation';
+import { MessageDetail } from '@/page/chat/core/types/conversation';
 import useGlobalContext from '@/page/chat/useSelectedResources.ts';
 
-import { getTitleFromConversationDetail } from '../utils';
-
-const CHAT_CREATE_PAYLOAD_KEY = 'chat-create-payload';
+import {
+  type ConversationCacheScope,
+  getCurrentUserId,
+} from './conversationCache';
+import useConversationBootstrap, {
+  CHAT_CREATE_PAYLOAD_KEY,
+} from './useConversationBootstrap';
+import useScopedConversationState from './useScopedConversationState';
 
 export default function useContext() {
   const app = useApp();
-  const params = useParams();
   const { i18n } = useTranslation();
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
   const regeneratingRef = useRef(false);
-  const namespaceId = params.namespace_id || '';
-  const conversationId = params.conversation_id || '';
+  const { conversationId, namespaceId } = useChatRouteParams();
+  const userId = getCurrentUserId();
+  const cacheScope = useMemo<ConversationCacheScope>(
+    () => ({ userId, namespaceId }),
+    [namespaceId, userId]
+  );
   const [loading, setLoading] = useState<boolean>(false);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [waitingForAssistantDelta, setWaitingForAssistantDelta] =
     useState(false);
   const [regeneratingParentId, setRegeneratingParentId] = useState<
@@ -62,12 +64,13 @@ export default function useContext() {
       Boolean(window.sessionStorage.getItem(CHAT_CREATE_PAYLOAD_KEY))
   );
   const { selectedResources, setSelectedResources } = useGlobalContext();
-  const [conversation, setConversation] = useState<ConversationDetail>({
-    id: conversationId,
-    mapping: {},
-  });
+  const [conversation, setConversation] = useScopedConversationState(
+    cacheScope,
+    conversationId
+  );
   const channel = AgentRequestChannel.WEB;
   const messages = useMemo((): MessageDetail[] => {
+    if (conversation.id !== conversationId) return [];
     const result: MessageDetail[] = [];
     let currentNode: string | undefined = conversation.current_node;
     while (currentNode) {
@@ -79,7 +82,7 @@ export default function useContext() {
       currentNode = message.parent_id;
     }
     return result;
-  }, [conversation]);
+  }, [conversation, conversationId]);
   const messageOperator = useMemo((): MessageOperator => {
     return createMessageOperator(conversation, setConversation);
   }, [conversation, setConversation]);
@@ -130,53 +133,20 @@ export default function useContext() {
     }
   };
 
-  useEffect(() => {
-    if (!conversationId) return;
-    const state = sessionStorage.getItem(CHAT_CREATE_PAYLOAD_KEY);
-    const chatCreatePayload: ChatCreatePayload | undefined = state
-      ? JSON.parse(state)
-      : undefined;
-    setInitialApprovalMode(chatCreatePayload?.approvalMode);
-    setSuppressInitialToolRestore(Boolean(chatCreatePayload));
-    const loadConversation = () =>
-      http
-        .get(`/namespaces/${namespaceId}/conversations/${conversationId}`)
-        .then((response: ConversationDetail) => {
-          const conversationTitle = getTitleFromConversationDetail(response);
-          if (conversationTitle) {
-            app.fire('chat:title:update', conversationTitle);
-          }
-          setConversation(response);
-          return response;
-        });
-
-    if (!chatCreatePayload) {
-      let destroyed = false;
-      let resumeFN: ReturnType<typeof resumeStream> | undefined;
-      void loadConversation().then(conversation => {
-        if (destroyed) return;
-        resumeFN = resumeStream(
-          conversationId,
-          messageOperator,
-          `/api/v1/namespaces/${namespaceId}/wizard/stream/resume`,
-          getStreamEventId(conversation)
-        );
-        askAbortRef.current = resumeFN.cancel;
-        void resumeFN.start().finally(() => {
-          if (askAbortRef.current === resumeFN?.cancel) {
-            askAbortRef.current = null;
-          }
-          void loadConversation();
-        });
-      });
-      return () => {
-        destroyed = true;
-        resumeFN?.destroy();
-      };
-    }
-    sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
-    void sendMessage(chatCreatePayload);
-  }, [namespaceId, conversationId]);
+  useConversationBootstrap({
+    app,
+    askAbortRef,
+    cacheScope,
+    conversationId,
+    messageOperator,
+    namespaceId,
+    sendMessage,
+    setAccessDenied,
+    setConversation,
+    setInitialApprovalMode,
+    setSuppressInitialToolRestore,
+    userId,
+  });
 
   const mergedLoading =
     loading || !isTerminalMessageStatus(messages.at(-1)?.status);
@@ -293,13 +263,29 @@ export default function useContext() {
   const firstUserMessage = findFirstMessageWithMissingParent(messages);
 
   useEffect(() => {
-    if (firstUserMessage?.message.content) {
-      app.fire('chat:title', firstUserMessage.message.content);
+    // Only request title generation for untitled conversations. Copilot history
+    // loads otherwise cache chat:title and break chat-home Header (empty id).
+    if (
+      !conversationId ||
+      !firstUserMessage?.message.content ||
+      conversation.title
+    ) {
+      return;
     }
-  }, [firstUserMessage?.message.content, app]);
+    app.fire('chat:title', {
+      conversationId,
+      text: firstUserMessage.message.content,
+    });
+  }, [
+    app,
+    conversation.title,
+    conversationId,
+    firstUserMessage?.message.content,
+  ]);
 
   return {
     loading: mergedLoading,
+    accessDenied,
     waitingForAssistantDelta,
     regeneratingParentId,
     sendMessage,

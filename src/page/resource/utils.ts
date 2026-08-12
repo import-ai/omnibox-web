@@ -37,9 +37,11 @@ function convert(year: number, month: number, i18next: I18nType): string {
   }).format(date);
 }
 
-export function groupItemsByTimestamp<T extends { updated_at?: string }>(
+export function groupItemsByTimestamp<T>(
   items: Array<T>,
-  i18next: I18nType
+  i18next: I18nType,
+  getTimestamp: (item: T) => string | null | undefined = item =>
+    (item as { updated_at?: string }).updated_at
 ): [string, Array<T>][] {
   const now = new Date();
   const today = new Date(now);
@@ -55,7 +57,7 @@ export function groupItemsByTimestamp<T extends { updated_at?: string }>(
   const monthGroups: { key: string; date: Date }[] = [];
 
   items.forEach(item => {
-    const itemDate = new Date(item.updated_at || 0);
+    const itemDate = new Date(getTimestamp(item) || 0);
     const itemYear = itemDate.getFullYear();
     const itemMonth = itemDate.getMonth() + 1;
 

@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import useConfig from '@/hooks/useConfig';
+import UnauthorizedPage from '@/page/auth/UnauthorizedPage';
 import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
 import ChatArea from '@/page/chat/chat-input';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import useContext from '@/page/chat/conversation/useContext';
 import { Messages } from '@/page/chat/messages';
 import { MessageIndex } from '@/page/chat/messages/MessageIndex';
@@ -14,8 +16,10 @@ import Scrollbar from './Scrollbar';
 export default function ChatConversationPage() {
   const { t } = useTranslation();
   const { config } = useConfig();
+  const { compact } = useChatRouteParams();
   const {
     loading,
+    accessDenied,
     waitingForAssistantDelta,
     regeneratingParentId,
     messages,
@@ -32,11 +36,15 @@ export default function ChatConversationPage() {
     sendMessage,
   } = useContext();
 
+  if (accessDenied) {
+    return <UnauthorizedPage />;
+  }
+
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <Scrollbar
         resetKey={conversation.id}
-        sideContent={<MessageIndex messages={messages} />}
+        sideContent={compact ? undefined : <MessageIndex messages={messages} />}
       >
         {messages.length <= 0 ? (
           <div className="space-y-4 flex justify-end items-center">
@@ -55,8 +63,8 @@ export default function ChatConversationPage() {
           />
         )}
       </Scrollbar>
-      <div className="flex justify-center px-4">
-        <div className="max-w-3xl w-full">
+      <div className="flex min-w-0 justify-center px-4">
+        <div className="min-w-0 w-full max-w-3xl">
           {config.commercial && (
             <AgentTrial namespaceId={namespaceId} messages={messages} />
           )}

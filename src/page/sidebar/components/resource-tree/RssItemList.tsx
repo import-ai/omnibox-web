@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { Resource, RssItem } from '@/interface';
 import { cn } from '@/lib/utils';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { useRssItemAutoScroll } from '@/page/sidebar/hooks/useRssItemAutoScroll';
 import { fetchRssItem, fetchRssItems } from '@/service/resource';
 
@@ -171,7 +172,8 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
                     asChild
                     className="h-auto gap-1 bg-transparent py-1.5 transition-none hover:bg-transparent"
                     onClick={() =>
-                      navigate(
+                      navigateToResource(
+                        navigate,
                         `/${namespaceId}/${folderId}/rss-items/${item.id}`,
                         { state: { fromSidebar: true } }
                       )
@@ -183,7 +185,7 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
                       style={{ paddingLeft }}
                     >
                       {item.link_name ? (
-                        <span className="flex size-4 shrink-0 items-center justify-center rounded-[3px] border text-[9px] font-normal leading-none">
+                        <span className="flex size-4 shrink-0 items-center justify-center rounded-[3px] border border-muted-foreground/60 text-[10px] font-medium leading-none">
                           {item.link_name.charAt(0).toUpperCase()}
                         </span>
                       ) : (

@@ -214,6 +214,7 @@ export function UserMessage(props: IProps) {
                     icon="resource"
                     resource={tokenResource}
                     contextType={part.resource.type}
+                    resourceId={part.resource.id}
                     href={
                       resourceLinkPrefix
                         ? `${resourceLinkPrefix}/${part.resource.id}`
@@ -243,6 +244,7 @@ export function UserMessage(props: IProps) {
                       icon="resource"
                       resource={tokenResource?.resource}
                       contextType={tokenResource?.contextType}
+                      resourceId={tokenResource?.resource.id}
                       href={
                         resourceLinkPrefix && tokenResource
                           ? `${resourceLinkPrefix}/${tokenResource.resource.id}`

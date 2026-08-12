@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
 
@@ -20,15 +21,18 @@ export default function SaveMain(props: IProps) {
   const app = useApp();
   const { t } = useTranslation();
   const params = useParams();
-  const namespaceId = params.namespace_id || '';
+  const { namespaceId: routeNamespaceId } = useChatRouteParams();
+  const namespaceId = routeNamespaceId || params.namespace_id || '';
   const shareId = params.share_id || '';
   const [loading, onLoading] = useState(false);
+
   const handleCreate = () => {
+    if (loading || !namespaceId) return;
     onLoading(true);
     // Ensure the title is correct
     http
       .get(`/namespaces/${namespaceId}/conversations/${conversation.id}`)
-      .then(conversationDetail => {
+      .then(conversationDetail =>
         http.get(`/namespaces/${namespaceId}/private`).then(privateRoot =>
           http
             .post(`/namespaces/${namespaceId}/resources`, {
@@ -40,7 +44,10 @@ export default function SaveMain(props: IProps) {
             .then(response => {
               app.fire('generate_resource', privateRoot.id, response);
             })
-        );
+        )
+      )
+      .finally(() => {
+        onLoading(false);
       });
   };
 
@@ -55,6 +62,7 @@ export default function SaveMain(props: IProps) {
           size="icon"
           variant="ghost"
           className="p-0 w-7 h-7"
+          disabled={loading}
           onClick={handleCreate}
         >
           {loading ? <Loader2 className="animate-spin" /> : <Save />}
