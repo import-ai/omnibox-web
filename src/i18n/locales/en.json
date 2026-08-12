@@ -108,6 +108,7 @@
     "deleted_description": "This resource has been deleted",
     "moved_to_trash": "Moved to trash",
     "no_content": "Resource has no content to download",
+    "read_only_target": "Read-only resources can't contain other resources.",
     "untitled": "Untitled",
     "attrs": {
       "tag": "Tag",
@@ -1232,10 +1233,6 @@
   "rss_folder": {
     "empty": "No items yet",
     "reader": {
-      "back": "Back to feed",
-      "open_original": "Open original",
-      "not_ready": "This article is still being processed. Please try again later.",
-      "not_found": "This RSS item is no longer available.",
       "published_at": "Published"
     },
     "create": {

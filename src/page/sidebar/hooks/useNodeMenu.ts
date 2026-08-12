@@ -154,6 +154,14 @@ export function useNodeMenu(
       };
     }
 
+    // Backend-managed resources (rss items) offer no mutating actions.
+    if (node.readOnly) {
+      return {
+        disabled: false,
+        items: buildAddToChatItems(actions, t),
+      };
+    }
+
     if (isSmartFolderChildResource(node)) {
       return {
         disabled: false,

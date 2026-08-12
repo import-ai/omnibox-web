@@ -36,6 +36,8 @@ export interface TreeNode {
   tags?: TagDto[];
   path?: PathItem[];
   hasChildren: boolean;
+  /** Backend-managed resource (rss item): no rename, move, delete or drag. */
+  readOnly: boolean;
   currentPermission?: Permission;
   globalPermission?: Permission;
   createdAt: string;

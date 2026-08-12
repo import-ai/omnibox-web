@@ -38,7 +38,6 @@ import Action from './NodeActions';
 import ContextMenuMain from './NodeContextMenu';
 import ResourceNode from './ResourceNode';
 import type { ResourceNodeContentProps } from './resourceNodeTypes';
-import RssItemList from './RssItemList';
 
 const CLICK_DEBOUNCE_DELAY = 250;
 
@@ -84,11 +83,7 @@ export function ResourceNodeContent({
     typeof location.state?.sidebarActiveKey === 'string'
       ? location.state.sidebarActiveKey
       : activeId;
-  // While reading an RSS item, its folder is still the active sidebar key, but
-  // the highlight should belong to the item row, not the folder.
-  const isViewingRssItemOfThisFolder =
-    Boolean(params.rss_item_id) && params.resource_id === nodeId;
-  const isActive = nodeId === activeSidebarKey && !isViewingRssItemOfThisFolder;
+  const isActive = nodeId === activeSidebarKey;
   const isEditing = nodeId === renamingId;
   const isSelectionHighlighted = isSelected || isFullySelected;
   const isExpanded = nodeUI?.expanded === true;
@@ -157,8 +152,8 @@ export function ResourceNodeContent({
     if (node.hasChildren) {
       if (isActive) {
         // When the folder is active but we've navigated into one of its
-        // sub-pages (e.g. an RSS item reader), a click should jump back to the
-        // folder's own detail page rather than just toggling the tree.
+        // sub-pages, a click should jump back to the folder's own detail page
+        // rather than just toggling the tree.
         if (location.pathname === `/${namespaceId}/${targetId}`) {
           handleExpand();
         } else {
@@ -196,7 +191,7 @@ export function ResourceNodeContent({
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (selectionMode) return;
+    if (selectionMode || node.readOnly) return;
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
@@ -386,13 +381,6 @@ export function ResourceNodeContent({
                   onAddToChat={onAddToChat}
                 />
               ))}
-            {isExpanded && node.resourceType === 'rss_folder' && (
-              <RssItemList
-                folderId={nodeId}
-                namespaceId={namespaceId}
-                depth={depth + 1}
-              />
-            )}
           </SidebarMenuSub>
         </CollapsibleContent>
       </Collapsible>

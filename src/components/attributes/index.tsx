@@ -1,6 +1,7 @@
 import { CreatedTimeAttribute } from '@/components/attributes/CreatedTimeAttribute';
 import { FilenameAttribute } from '@/components/attributes/FilenameAttribute';
 import { Metadata } from '@/components/attributes/Metadata';
+import { PublishedTimeAttribute } from '@/components/attributes/PublishedTimeAttribute';
 import { UrlAttribute } from '@/components/attributes/UrlAttribute';
 import Tag from '@/components/tags';
 import { Resource } from '@/interface';
@@ -17,6 +18,24 @@ export default function Attributes(props: IProps) {
   const { resource, namespaceId, onResource, readOnly } = props;
   const shouldRenderResourceTasks =
     !!onResource && resource.resource_type !== 'smart_folder';
+
+  // RSS items are read-only: only the feed metadata carried in attrs is shown.
+  // Link to the article itself when the feed entry carries its own url.
+  if (resource.resource_type === 'rss_item') {
+    const url = resource.attrs?.article_url || resource.attrs?.url;
+    const publishedAt = resource.attrs?.published_at;
+
+    if (!url && !publishedAt) {
+      return null;
+    }
+
+    return (
+      <div className="space-y-2 mb-6 text-sm">
+        {url && <UrlAttribute url={url} />}
+        {publishedAt && <PublishedTimeAttribute publishedAt={publishedAt} />}
+      </div>
+    );
+  }
 
   if (
     resource.resource_type === 'link' &&

@@ -1,17 +1,15 @@
 import { PathItem, Resource, SpaceType } from '@/interface';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
+import { RSS_ITEM_SORT } from '@/service/resourceSort';
 
 import type { SidebarState, TreeNode } from './types';
 
 type ResourceWithChildrenState = Resource & { hasChildren?: boolean };
 
 function getResourceHasChildren(resource: ResourceWithChildrenState): boolean {
-  // Smart and RSS folders have virtual children (matched resources / polled
-  // items), so they always render as expandable regardless of the backend flag.
-  if (
-    resource.resource_type === 'smart_folder' ||
-    resource.resource_type === 'rss_folder'
-  ) {
+  // Smart folders have virtual children (matched resources), so they always
+  // render as expandable regardless of the backend flag.
+  if (resource.resource_type === 'smart_folder') {
     return true;
   }
 
@@ -35,6 +33,7 @@ export function createNode(
     tags: resource.tags,
     path: resource.path,
     hasChildren: getResourceHasChildren(resourceWithChildrenState),
+    readOnly: resource.read_only === true,
     currentPermission: resource.current_permission,
     globalPermission: resource.global_permission,
     createdAt: resource.created_at || '',
@@ -42,6 +41,18 @@ export function createNode(
     manualSortInitializedAt: resource.manual_sort_initialized_at ?? null,
     children: [],
   };
+}
+
+/**
+ * Folders whose children are produced by the backend (smart folders match
+ * resources, rss folders own their items) never accept user-placed children.
+ */
+export function isManagedChildrenNode(
+  node?: Pick<TreeNode, 'resourceType'> | null
+): boolean {
+  return (
+    node?.resourceType === 'smart_folder' || node?.resourceType === 'rss_folder'
+  );
 }
 
 export function insertUnspecifiedChild(
@@ -57,6 +68,10 @@ export function getNodeResourceSort(
   state: Pick<SidebarState, 'nodes' | 'resourceSorts'>,
   nodeId: string
 ) {
+  // RSS items are ordered by their feed publish date, not by the space sort.
+  if (state.nodes[nodeId]?.resourceType === 'rss_folder') {
+    return RSS_ITEM_SORT;
+  }
   const spaceType = state.nodes[nodeId]?.spaceType ?? 'private';
   return state.resourceSorts[spaceType];
 }
@@ -187,6 +202,7 @@ export function patchNodeFromResource(
   const resourceWithChildrenState = resource as ResourceWithChildrenState;
   node.name = resource.name || '';
   node.hasChildren = getResourceHasChildren(resourceWithChildrenState);
+  node.readOnly = resource.read_only ?? node.readOnly;
   node.updatedAt = resource.updated_at || '';
   node.manualSortInitializedAt =
     resource.manual_sort_initialized_at ?? node.manualSortInitializedAt;
@@ -248,7 +264,7 @@ export function collapseEmptyNode(
 }
 
 export function isBatchSelectableNode(node?: TreeNode | null): boolean {
-  return !isSmartFolderChildResource(node);
+  return !isSmartFolderChildResource(node) && node?.readOnly !== true;
 }
 
 export function getSelectedAncestorId(

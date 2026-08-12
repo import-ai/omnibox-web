@@ -17,7 +17,6 @@ export default function Header(props: IActionProps) {
         <Breadcrumb
           namespaceId={namespaceId}
           path={resource?.path}
-          rssItemId={props.rssItemId}
           className={cn({
             'ml-2': open,
           })}

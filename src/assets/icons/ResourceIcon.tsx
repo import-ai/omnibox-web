@@ -270,5 +270,9 @@ export default function ResourceIcon(props: IProps) {
   if (resource.resource_type === 'link') {
     return getIconForLink(resource);
   }
+  // RSS items carry the article's source url, so they read like links.
+  if (resource.resource_type === 'rss_item') {
+    return resource.attrs?.url ? getIconForLink(resource) : DefaultIcon.doc;
+  }
   return DefaultIcon.doc;
 }

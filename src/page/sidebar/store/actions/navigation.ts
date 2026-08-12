@@ -34,20 +34,6 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
       const nodeUI = get().ui[id];
       if (!node || nodeUI?.loading) return;
 
-      // RSS folders have no child resources; their items are polled feed
-      // entries rendered by a dedicated component. Expanding just opens the
-      // node — no resource children to fetch.
-      if (node.resourceType === 'rss_folder') {
-        set(s => {
-          const ui = ensureUI(s, id);
-          ui.loading = false;
-          ui.loaded = true;
-          ui.expanded = true;
-          s.autoExpandedKeys[`${s.namespaceId}:${id}`] = true;
-        });
-        return;
-      }
-
       const promise = (async () => {
         set(s => {
           const ui = ensureUI(s, id);

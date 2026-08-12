@@ -108,6 +108,7 @@
     "deleted_description": "此资源已被删除",
     "moved_to_trash": "已移动到回收站",
     "no_content": "资源没有内容可下载",
+    "read_only_target": "只读资源不能包含其他资源",
     "untitled": "未命名",
     "attrs": {
       "tag": "标签",
@@ -1233,10 +1234,6 @@
   "rss_folder": {
     "empty": "暂无内容",
     "reader": {
-      "back": "返回订阅",
-      "open_original": "查看原文",
-      "not_ready": "内容正在处理中，请稍后再试。",
-      "not_found": "该订阅内容已不可用。",
       "published_at": "发布时间"
     },
     "create": {

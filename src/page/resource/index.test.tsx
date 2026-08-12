@@ -7,27 +7,14 @@ import ResourcePage from '.';
 
 const mockUseResource = jest.fn();
 
-jest.mock('react-router-dom', () => ({
-  useParams: () => ({ rss_item_id: 'rss-item-a' }),
-}));
 jest.mock('@/hooks/userResource', () => ({
   __esModule: true,
   default: () => mockUseResource(),
 }));
 jest.mock('./ResourceDetailView', () => ({
   __esModule: true,
-  default: ({
-    rssItemId,
-    resourceId,
-  }: {
-    rssItemId: string | null;
-    resourceId: string;
-  }) => (
-    <div
-      data-resource-id={resourceId}
-      data-rss-item-id={rssItemId ?? 'none'}
-      data-testid="resource-detail-view"
-    />
+  default: ({ resourceId }: { resourceId: string }) => (
+    <div data-resource-id={resourceId} data-testid="resource-detail-view" />
   ),
 }));
 
@@ -67,6 +54,5 @@ describe('ResourcePage', () => {
       '[data-testid="resource-detail-view"]'
     );
     expect(view?.getAttribute('data-resource-id')).toBe('resource-a');
-    expect(view?.getAttribute('data-rss-item-id')).toBe('rss-item-a');
   });
 });

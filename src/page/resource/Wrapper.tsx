@@ -8,12 +8,7 @@ import Page from './Page';
 
 interface IProps extends IUseResource {
   error?: boolean;
-  rssItemId?: string | null;
   wide: boolean;
-  onRssItemCopyContentChange?: (value: {
-    itemId: string;
-    content: string | null | undefined;
-  }) => void;
 }
 
 export default function Wrapper(props: IProps) {
@@ -26,9 +21,7 @@ export default function Wrapper(props: IProps) {
     onResource,
     namespaceId,
     error,
-    rssItemId,
     wide,
-    onRssItemCopyContentChange,
   } = props;
 
   if (loading) {
@@ -47,9 +40,7 @@ export default function Wrapper(props: IProps) {
           resource={resource}
           onResource={onResource}
           namespaceId={namespaceId}
-          rssItemId={rssItemId}
           wide={wide}
-          onRssItemCopyContentChange={onRssItemCopyContentChange}
         />
       )}
     </AuthPage>

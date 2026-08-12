@@ -14,6 +14,7 @@ import { http } from '@/lib/request';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
 import { getSmartFolderChildSidebarKey } from '@/page/sidebar/components/smart-folder';
+import type { ResourceSortOptions } from '@/service/resourceSort';
 
 import { groupTimestampedItemsByTimestamp } from '../utils';
 import { FolderContent } from './FolderContent';
@@ -26,6 +27,8 @@ interface IProps {
   navigationPrefix: string;
   loadAll?: boolean;
   smartFolderParentId?: string;
+  /** Overrides the backend's default child ordering (e.g. rss items). */
+  sort?: ResourceSortOptions;
 }
 
 const PAGE_SIZE = 10;
@@ -39,6 +42,7 @@ export default function Folder(props: IProps) {
     navigationPrefix,
     loadAll,
     smartFolderParentId,
+    sort,
   } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -49,6 +53,9 @@ export default function Folder(props: IProps) {
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const isSmartFolder = !!smartFolderParentId;
+  const sortQuery = sort
+    ? `&sort_by=${sort.sort_by}&sort_order=${sort.sort_order}`
+    : '';
   const folderContentApiPrefix = apiPrefix.includes('/smart-folders')
     ? `/namespaces/${namespaceId}/resources`
     : apiPrefix;
@@ -60,8 +67,8 @@ export default function Folder(props: IProps) {
       setOffset(0);
       setHasMore(true);
       const requestUrl = loadAll
-        ? `${apiPrefix}/${resourceId}/children?summary=true`
-        : `${apiPrefix}/${resourceId}/children?summary=true&offset=0&limit=${PAGE_SIZE}`;
+        ? `${apiPrefix}/${resourceId}/children?summary=true${sortQuery}`
+        : `${apiPrefix}/${resourceId}/children?summary=true&offset=0&limit=${PAGE_SIZE}${sortQuery}`;
 
       return http
         .get(requestUrl, {
@@ -82,7 +89,7 @@ export default function Folder(props: IProps) {
           onLoading(false);
         });
     },
-    [apiPrefix, isSmartFolder, loadAll, resourceId]
+    [apiPrefix, isSmartFolder, loadAll, resourceId, sortQuery]
   );
 
   const reloadSmartFolderChildren = useCallback(() => {
@@ -125,7 +132,7 @@ export default function Folder(props: IProps) {
     const newOffset = offset + PAGE_SIZE;
     http
       .get(
-        `${apiPrefix}/${resourceId}/children?summary=true&offset=${newOffset}&limit=${PAGE_SIZE}`
+        `${apiPrefix}/${resourceId}/children?summary=true&offset=${newOffset}&limit=${PAGE_SIZE}${sortQuery}`
       )
       .then((res: Array<ResourceSummary>) => {
         onData(prevData => [...prevData, ...res]);
@@ -135,7 +142,7 @@ export default function Folder(props: IProps) {
       .finally(() => {
         onLoadingMore(false);
       });
-  }, [loadAll, loadingMore, hasMore, offset, apiPrefix, resourceId]);
+  }, [loadAll, loadingMore, hasMore, offset, apiPrefix, resourceId, sortQuery]);
 
   useEffect(() => {
     if (!smartFolderParentId) return;

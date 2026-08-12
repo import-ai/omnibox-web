@@ -66,7 +66,7 @@ import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-f
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { fetchRssItem, renameResource } from '@/service/resource';
+import { renameResource } from '@/service/resource';
 
 import CloseCurrentResource from './CloseCurrentResource';
 import { copyContentToClipboard } from './copyContent';
@@ -108,13 +108,8 @@ function downloadMarkdownFile(fileName: string, content: string) {
 const hasTeamspaceCache = new Map<string, boolean>();
 
 export interface IActionProps extends IUseResource {
-  rssItemId?: string | null;
   wide: boolean;
   onWide: (wide: boolean) => void;
-  rssItemCopyContent?: {
-    itemId: string;
-    content: string | null | undefined;
-  };
 }
 
 export default function Actions(props: IActionProps) {
@@ -127,18 +122,11 @@ export default function Actions(props: IActionProps) {
     resourceId,
     editPage,
     namespaceId,
-    rssItemId: explicitRssItemId,
-    rssItemCopyContent,
   } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const loc = useLocation();
-  const { rss_item_id: routeRssItemId, resource_id: routeResourceId } =
-    useParams();
-  const rssItemId =
-    explicitRssItemId === undefined
-      ? routeRssItemId
-      : explicitRssItemId || undefined;
+  const { resource_id: routeResourceId } = useParams();
   const isMobile = useIsMobile();
   const { deleteResource } = useDeleteResource();
   const { config, loading: configLoading } = useConfig();
@@ -179,16 +167,15 @@ export default function Actions(props: IActionProps) {
   const isFolder = resource?.resource_type === 'folder';
   const isSmartFolder = resource?.resource_type === 'smart_folder';
   const isRssFolder = resource?.resource_type === 'rss_folder';
-  // On the RSS item route the resolved resource is still the folder, so the
-  // presence of an item id tells us whether we're viewing the folder itself or
-  // reading one of its items.
-  const isRssItemView = isRssFolder && Boolean(rssItemId);
-  const isRssFolderView = isRssFolder && !rssItemId;
-  // RSS folders mirror smart folders (copy link / trash / wide only); RSS items
-  // keep the file-like actions (copy content / download) but drop duplicate,
-  // move, and trash.
-  const canUseFileLikeActions = !isFolder && !isSmartFolder && !isRssFolderView;
-  const canUseRegularResourceActions = !isSmartFolder && !isRssFolder;
+  // Backend-managed resources (rss items) render read-only: no edit, rename,
+  // move, duplicate or trash.
+  const readOnly = resource?.read_only === true;
+  // RSS folders mirror smart folders (copy link / trash / wide only); read-only
+  // resources keep the file-like actions (copy content / download) but drop
+  // duplicate, move, and trash.
+  const canUseFileLikeActions = !isFolder && !isSmartFolder && !isRssFolder;
+  const canUseRegularResourceActions =
+    !isSmartFolder && !isRssFolder && !readOnly;
   // Shared with the related-tasks panel so a failure discovered by polling
   // lights the toolbar retry without a page reload.
   const {
@@ -199,7 +186,6 @@ export default function Actions(props: IActionProps) {
   const showToolbarRetry =
     hasRetryable &&
     canModifyResource &&
-    !isRssItemView &&
     (resource?.resource_type === 'file' || resource?.resource_type === 'link');
 
   useEffect(() => {
@@ -363,12 +349,7 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'copy_content') {
-      const markdown = isRssItemView
-        ? rssItemCopyContent?.itemId === rssItemId
-          ? rssItemCopyContent.content
-          : undefined
-        : resource.content;
-      void copyContentToClipboard(markdown, t).catch(() => undefined);
+      void copyContentToClipboard(resource.content, t).catch(() => undefined);
       setOpen(false);
       return;
     }
@@ -444,16 +425,7 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'download_as_png') {
       onLoading('download_as_png');
-      // On the RSS item route `resource` is the folder, so the DOM export node
-      // (rendered by RssItemReader) carries the item title in its <h1>.
-      const exportName = isRssItemView
-        ? document
-            .querySelector('[data-resource-export-content="true"] h1')
-            ?.textContent?.trim() ||
-          resource.name ||
-          t('untitled')
-        : resource.name || t('untitled');
-      exportResourceAsPng(exportName)
+      exportResourceAsPng(resource.name || t('untitled'))
         .then(() => {
           setOpen(false);
         })
@@ -468,33 +440,6 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'download_as_markdown') {
-      // On the RSS item route `resource` is the folder; fetch the item and use
-      // its parsed markdown + title. RSS content references external absolute
-      // image URLs, so the attachment-zip path below does not apply here.
-      if (isRssItemView && rssItemId) {
-        onLoading('download_as_markdown');
-        fetchRssItem(namespaceId, resource.id, rssItemId)
-          .then(item => {
-            if (!item.parsed_content) {
-              toast(t('resource.no_content'), {
-                position: 'bottom-right',
-              });
-              return;
-            }
-            downloadMarkdownFile(
-              item.title || t('untitled'),
-              item.parsed_content
-            );
-            setOpen(false);
-          })
-          .catch(() =>
-            toast(t('download.failed'), {
-              position: 'bottom-right',
-            })
-          )
-          .finally(() => onLoading(''));
-        return;
-      }
       if (!resource.content) {
         toast(t('resource.no_content'), {
           position: 'bottom-right',
@@ -508,7 +453,10 @@ export default function Actions(props: IActionProps) {
       const fileName = baseName.endsWith('.md') ? baseName : `${baseName}.md`;
       const markdownContent = resource.content;
 
-      const imageLinks = parseImageLinks(markdownContent);
+      // Externally hosted images (rss content) are left as-is in the markdown.
+      const imageLinks = parseImageLinks(markdownContent).filter(
+        item => !/^https?:\/\//i.test(item)
+      );
       const imageArray = imageLinks.map(item => {
         const rel = normalizeAttachmentLink(item, resource.id);
         return `${resource.id}/${rel}`;
@@ -662,12 +610,10 @@ export default function Actions(props: IActionProps) {
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      {!isRssItemView && (
-        <div className="hidden font-medium text-muted-foreground md:inline-block">
-          {getTime(resource, i18n)}
-        </div>
-      )}
-      {resource && resource.id === resourceId && !isRssItemView && (
+      <div className="hidden font-medium text-muted-foreground md:inline-block">
+        {getTime(resource, i18n)}
+      </div>
+      {resource && resource.id === resourceId && (
         <PermissionWrapper
           requiredPermission={0}
           forbidden={forbidden}
@@ -686,7 +632,7 @@ export default function Actions(props: IActionProps) {
           />
         </PermissionWrapper>
       )}
-      {resource && !isRssItemView && (
+      {resource && !readOnly && (
         <PermissionWrapper
           requiredPermission={1}
           forbidden={forbidden}
@@ -830,7 +776,7 @@ export default function Actions(props: IActionProps) {
           {resource && !editPage && (
             <CloseCurrentResource namespaceId={namespaceId} />
           )}
-          {!isRssItemView && (
+          {!readOnly && (
             <DropdownMenuItem
               className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
               onClick={() => handleAction('move_to_trash')}

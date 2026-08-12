@@ -3,12 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { Separator } from '@/components/ui/Separator';
 import { SidebarInset } from '@/components/ui/Sidebar';
-import {
-  PublicShareInfo,
-  ResourceMeta,
-  RssItemBreadcrumb,
-  SharedResource,
-} from '@/interface';
+import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 
 import Header from './header';
 import ShareSidebar from './sidebar/index';
@@ -24,7 +19,6 @@ interface IProps {
   isChatActive: boolean;
   shareInfo: PublicShareInfo;
   resource?: SharedResource | null;
-  rssItem?: RssItemBreadcrumb | null;
   wide?: boolean;
   onWide?: (wide: boolean) => void;
   showSidebar?: boolean;
@@ -39,7 +33,6 @@ export function ShareLayout(props: IProps) {
     currentResourcePath,
     handleAddToContext,
     resource,
-    rssItem,
     wide,
     onWide,
     showSidebar = true,
@@ -73,7 +66,6 @@ export function ShareLayout(props: IProps) {
           <>
             <Header
               resource={resource}
-              rssItem={rssItem}
               wide={wide}
               onWide={onWide}
               showSidebarTrigger={showSidebar}

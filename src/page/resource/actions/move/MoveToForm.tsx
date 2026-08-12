@@ -23,7 +23,7 @@ import {
   searchResources,
 } from '@/service/resource';
 
-import { isRssFolderResource, shouldDisableMoveTarget } from './utils';
+import { isManagedChildrenFolder, shouldDisableMoveTarget } from './utils';
 
 export interface IFormProps {
   resourceIds: string[];
@@ -66,11 +66,11 @@ export default function MoveToForm(props: IFormProps) {
         parentDisabled || disabledResourceIds.has(resource.id);
       if (operatingResource && !showDisabledTargets) return null;
 
-      const mixedSmartFolder = shouldDisableMoveTarget(
-        sourceResourceType,
-        resource.resource_type
-      );
-      const disabled = operatingResource || mixedSmartFolder;
+      const unsupportedTarget =
+        shouldDisableMoveTarget(sourceResourceType, resource.resource_type) ||
+        // Backend-managed resources (rss items) hold no user resources.
+        resource.read_only === true;
+      const disabled = operatingResource || unsupportedTarget;
       const children = resource.children
         ?.map(child => decorateResource(child, operatingResource))
         .filter(Boolean) as ResourcePickerResource[] | undefined;
@@ -79,10 +79,12 @@ export default function MoveToForm(props: IFormProps) {
         ...resource,
         children,
         disabled,
-        disabledTooltip: mixedSmartFolder
-          ? isRssFolderResource(resource.resource_type)
+        disabledTooltip: unsupportedTarget
+          ? isManagedChildrenFolder(resource.resource_type)
             ? t('rss_folder.move.unsupported_target')
-            : t('smart_folder.move.unsupported_mixed_target')
+            : resource.read_only
+              ? t('resource.read_only_target')
+              : t('smart_folder.move.unsupported_mixed_target')
           : operatingResource
             ? disabledTargetTooltip
             : undefined,

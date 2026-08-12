@@ -1,8 +1,9 @@
 import type { Resource, SpaceType } from '@/interface';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import type { NodeUI, TreeNode } from '@/page/sidebar/store';
-import type { ResourceSortOptions } from '@/service/resource';
 import { fetchChildren, fetchSmartFolderChildren } from '@/service/resource';
+import type { ResourceSortOptions } from '@/service/resourceSort';
+import { RSS_ITEM_SORT } from '@/service/resourceSort';
 
 export function getExpandedNodeIdsForSidebarRefresh(
   nodes: Record<string, TreeNode>,
@@ -17,7 +18,7 @@ export function getExpandedNodeIdsForSidebarRefresh(
       return (
         !!node &&
         nodeUI.expanded &&
-        (nodeUI.loaded || node.resourceType === 'rss_folder') &&
+        nodeUI.loaded &&
         (node.hasChildren ||
           node.resourceType === 'folder' ||
           node.resourceType === 'smart_folder' ||
@@ -32,29 +33,17 @@ export async function fetchChildrenForSidebarRefresh(
   namespaceId: string,
   node: TreeNode,
   sort?: ResourceSortOptions
-): Promise<Resource[] | null> {
-  if (node.resourceType === 'rss_folder') return null;
-
+): Promise<Resource[]> {
   const children =
     node.resourceType === 'smart_folder'
       ? await fetchSmartFolderChildren(namespaceId, node.id)
-      : await fetchChildren(namespaceId, node.id, sort);
+      : await fetchChildren(
+          namespaceId,
+          node.id,
+          node.resourceType === 'rss_folder' ? RSS_ITEM_SORT : sort
+        );
 
   return node.resourceType === 'smart_folder'
     ? children.map(child => withSmartFolderChildSidebarAttrs(child, node.id))
     : children;
-}
-
-export function isCurrentRssItemRoute(
-  pathname: string,
-  namespaceId: string,
-  folderId: string
-) {
-  const segments = pathname.split('/').filter(Boolean);
-  return (
-    segments[0] === namespaceId &&
-    segments[1] === folderId &&
-    segments[2] === 'rss-items' &&
-    Boolean(segments[3])
-  );
 }

@@ -4,7 +4,7 @@ import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { LanguageToggle } from '@/components/toggle/LanguageToggle';
 import { ThemeToggle } from '@/components/toggle/ThemeToggle';
 import { useSidebar } from '@/components/ui/Sidebar';
-import { PathItem, RssItemBreadcrumb } from '@/interface';
+import { PathItem } from '@/interface';
 import { cn } from '@/lib/utils';
 import { getTime } from '@/page/resource/utils';
 
@@ -20,7 +20,6 @@ interface ShareHeaderProps {
     created_at?: string;
     path?: PathItem[];
   } | null;
-  rssItem?: RssItemBreadcrumb | null;
   wide?: boolean;
   onWide?: (wide: boolean) => void;
   showSidebarTrigger?: boolean;
@@ -28,7 +27,6 @@ interface ShareHeaderProps {
 
 export default function ShareHeader({
   resource,
-  rssItem,
   wide,
   onWide,
   showSidebarTrigger = true,
@@ -46,7 +44,6 @@ export default function ShareHeader({
           path={resource?.path}
           fallbackId={resource?.id}
           fallbackName={resource?.name}
-          loadedItem={rssItem}
           className={cn({
             'ml-2': open,
           })}

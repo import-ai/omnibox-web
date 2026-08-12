@@ -12,7 +12,7 @@ jest.mock('react-i18next', () => ({
 }));
 jest.mock('react-router-dom', () => ({
   useNavigate: () => navigate,
-  useParams: () => ({ share_id: 'share-1', rss_item_id: 'item-1' }),
+  useParams: () => ({ share_id: 'share-1' }),
 }));
 jest.mock('@/components/ui/Breadcrumb', () => ({
   Breadcrumb: 'nav',
@@ -48,15 +48,15 @@ describe('ShareBreadcrumb', () => {
     await act(async () => root.unmount());
   });
 
-  it('appends the shared RSS item and keeps its folder clickable', async () => {
+  it('renders a shared rss item path and keeps its folder clickable', async () => {
     await act(async () => {
       root.render(
         <ShareBreadcrumb
           path={[
             { id: 'root-1', name: 'Root' },
             { id: 'folder-1', name: 'RSS Folder' },
+            { id: 'item-1', name: 'Shared Article' },
           ]}
-          loadedItem={{ id: 'item-1', title: 'Shared Article' }}
         />
       );
     });
@@ -72,7 +72,7 @@ describe('ShareBreadcrumb', () => {
     expect(navigate).toHaveBeenCalledWith('/s/share-1/folder-1');
   });
 
-  it('keeps a directly shared RSS folder clickable while the item loads', async () => {
+  it('falls back to the shared resource itself when it has no path', async () => {
     await act(async () => {
       root.render(
         <ShareBreadcrumb fallbackId="folder-1" fallbackName="RSS Folder" />
@@ -80,12 +80,7 @@ describe('ShareBreadcrumb', () => {
     });
 
     expect(container.textContent).toContain('RSS Folder');
-
-    const folderButton = Array.from(container.querySelectorAll('button')).find(
-      button => button.textContent === 'RSS Folder'
-    );
-    folderButton?.click();
-
-    expect(navigate).toHaveBeenCalledWith('/s/share-1/folder-1');
+    // The shared root is the current page, so it is not a link.
+    expect(container.querySelectorAll('button')).toHaveLength(0);
   });
 });

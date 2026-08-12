@@ -90,12 +90,3 @@ export async function locateSidebarResource(resourceId: string) {
   await expandAndActivateSidebarNode(resourceId);
   await centerSidebarElement(`[data-resource-id="${resourceId}"]`);
 }
-
-/** Expand an RSS folder and center the active history item after reloads. */
-export async function locateSidebarRssItem(folderId: string, itemId: string) {
-  await expandAndActivateSidebarNode(folderId);
-  // History rows may remount after refresh_rss_items, so wait a bit longer.
-  await centerSidebarElement(`[data-rss-item-id="${itemId}"]`, {
-    attempts: 120,
-  });
-}

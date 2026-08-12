@@ -36,6 +36,7 @@ function node(
     name: id,
     resourceType,
     hasChildren: children.length > 0,
+    readOnly: false,
     createdAt: '',
     updatedAt: '',
     manualSortInitializedAt: null,

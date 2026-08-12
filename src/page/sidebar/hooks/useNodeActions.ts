@@ -19,6 +19,7 @@ import {
 } from '@/page/sidebar/components/smart-folder';
 import { useNode, useSidebarStore } from '@/page/sidebar/store';
 import type { TreeNode } from '@/page/sidebar/store/types';
+import { isManagedChildrenNode } from '@/page/sidebar/store/utils';
 import {
   locateSidebarResource,
   triggerGlobalFileUpload,
@@ -100,9 +101,7 @@ export function useNodeActions(
     ? getSmartFolderSourceParentId(getNodeResource(node))
     : undefined;
 
-  const isNoContainerFolder =
-    node?.resourceType === 'smart_folder' ||
-    node?.resourceType === 'rss_folder';
+  const isNoContainerFolder = isManagedChildrenNode(node);
 
   const handleCreateFile = () => {
     if (isNoContainerFolder || isSmartFolderChild) {

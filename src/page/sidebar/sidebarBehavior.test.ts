@@ -1,10 +1,10 @@
 import type { SpaceType } from '@/interface';
 import { fetchChildren, fetchSmartFolderChildren } from '@/service/resource';
+import { RSS_ITEM_SORT } from '@/service/resourceSort';
 
 import {
   fetchChildrenForSidebarRefresh,
   getExpandedNodeIdsForSidebarRefresh,
-  isCurrentRssItemRoute,
 } from './sidebarBehavior';
 import type { TreeNode } from './store';
 
@@ -24,6 +24,8 @@ function node(resourceType: TreeNode['resourceType']): TreeNode {
     name: 'RSS folder',
     resourceType,
     hasChildren: true,
+    readOnly: false,
+    manualSortInitializedAt: null,
     createdAt: '',
     updatedAt: '',
     children: [],
@@ -34,17 +36,39 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-it('does not request resource children when refreshing an RSS folder', async () => {
+it('refreshes RSS folder children newest-published first', async () => {
+  const children = [{ id: 'item-1' }];
+  mockedFetchChildren.mockResolvedValue(children as never);
+
   await expect(
-    fetchChildrenForSidebarRefresh('namespace', node('rss_folder'))
-  ).resolves.toBeNull();
-  expect(mockedFetchChildren).not.toHaveBeenCalled();
+    fetchChildrenForSidebarRefresh('namespace', node('rss_folder'), {
+      sort_by: 'title',
+      sort_order: 'asc',
+    })
+  ).resolves.toEqual(children);
+  expect(mockedFetchChildren).toHaveBeenCalledWith(
+    'namespace',
+    'rss-folder',
+    RSS_ITEM_SORT
+  );
   expect(mockedFetchSmartFolderChildren).not.toHaveBeenCalled();
 });
 
-it('keeps an expanded RSS folder in consecutive refresh snapshots', () => {
+it('keeps the space sort for regular folders', async () => {
+  mockedFetchChildren.mockResolvedValue([] as never);
+  const sort = { sort_by: 'title', sort_order: 'asc' } as const;
+
+  await fetchChildrenForSidebarRefresh('namespace', node('folder'), sort);
+
+  expect(mockedFetchChildren).toHaveBeenCalledWith(
+    'namespace',
+    'rss-folder',
+    sort
+  );
+});
+
+it('includes an expanded RSS folder in the refresh snapshot', () => {
   const rssFolder = node('rss_folder');
-  rssFolder.hasChildren = false;
   const nodes = { [rssFolder.id]: rssFolder };
   const rootIds = { private: 'private', teamspace: '' };
   const ui = {
@@ -54,23 +78,4 @@ it('keeps an expanded RSS folder in consecutive refresh snapshots', () => {
   expect(getExpandedNodeIdsForSidebarRefresh(nodes, ui, rootIds)).toEqual([
     rssFolder.id,
   ]);
-
-  ui[rssFolder.id].loaded = false;
-
-  expect(getExpandedNodeIdsForSidebarRefresh(nodes, ui, rootIds)).toEqual([
-    rssFolder.id,
-  ]);
-});
-
-it('recognizes the current RSS item route for locate', () => {
-  expect(
-    isCurrentRssItemRoute(
-      '/namespace/rss-folder/rss-items/item',
-      'namespace',
-      'rss-folder'
-    )
-  ).toBe(true);
-  expect(
-    isCurrentRssItemRoute('/namespace/rss-folder', 'namespace', 'rss-folder')
-  ).toBe(false);
 });
