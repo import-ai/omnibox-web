@@ -13,6 +13,8 @@ import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { useRssItemAutoScroll } from '@/page/sidebar/hooks/useRssItemAutoScroll';
 import { fetchRssItem, fetchRssItems } from '@/service/resource';
 
+import FolderEmptyState from './FolderEmptyState';
+
 interface IProps {
   folderId: string;
   namespaceId: string;
@@ -141,16 +143,7 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
   }
 
   if (displayedItems.length === 0) {
-    return (
-      <SidebarMenuItem>
-        <div
-          className="py-1.5 text-sm text-muted-foreground"
-          style={{ paddingLeft }}
-        >
-          {t('rss_folder.empty')}
-        </div>
-      </SidebarMenuItem>
-    );
+    return <FolderEmptyState depth={depth} type="rss_folder" />;
   }
 
   return (

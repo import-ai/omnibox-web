@@ -34,6 +34,7 @@ import {
 } from '@/page/sidebar/store';
 import { isBatchSelectableNode } from '@/page/sidebar/store/utils';
 
+import FolderEmptyState from './FolderEmptyState';
 import Action from './NodeActions';
 import ContextMenuMain from './NodeContextMenu';
 import ResourceNode from './ResourceNode';
@@ -393,6 +394,11 @@ export function ResourceNodeContent({
                 depth={depth + 1}
               />
             )}
+            {isExpanded &&
+              node.resourceType === 'smart_folder' &&
+              node.children.length === 0 && (
+                <FolderEmptyState depth={depth + 1} type="smart_folder" />
+              )}
           </SidebarMenuSub>
         </CollapsibleContent>
       </Collapsible>

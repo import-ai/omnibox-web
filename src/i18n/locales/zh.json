@@ -1218,7 +1218,7 @@
       "name_too_long": "名称不能超过128个字符。",
       "condition_incomplete": "请完善该行条件信息"
     },
-    "empty": "暂无匹配的资源，可修改筛选条件。",
+    "empty": "空空如也",
     "edit": {
       "title": "编辑智能文件夹",
       "submit": "保存",
@@ -1231,7 +1231,7 @@
     }
   },
   "rss_folder": {
-    "empty": "暂无内容",
+    "empty": "空空如也",
     "reader": {
       "back": "返回订阅",
       "open_original": "查看原文",
