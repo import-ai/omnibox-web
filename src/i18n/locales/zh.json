@@ -1232,6 +1232,7 @@
   },
   "rss_folder": {
     "empty": "暂无内容",
+    "loading": "正在加载…",
     "reader": {
       "back": "返回订阅",
       "open_original": "查看原文",

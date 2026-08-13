@@ -131,10 +131,11 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
     return (
       <SidebarMenuItem>
         <div
-          className="flex items-center py-1.5 text-neutral-400"
+          className="flex items-center gap-2 py-1.5 text-sm text-muted-foreground"
           style={{ paddingLeft }}
         >
           <Spinner />
+          <span>{t('rss_folder.loading')}</span>
         </div>
       </SidebarMenuItem>
     );

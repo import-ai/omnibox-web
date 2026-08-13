@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import ResourceIcon from '@/assets/icons/ResourceIcon';
-import Loading from '@/components/loading';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
+import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { Resource, RssItem } from '@/interface';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
@@ -138,7 +138,12 @@ export default function RssItems(props: IProps) {
   }, [app, resourceId, reload]);
 
   if (loading) {
-    return <Loading />;
+    return (
+      <div className="mt-12 flex items-center justify-center gap-2 text-muted-foreground">
+        <Spinner className="size-5" />
+        <span>{t('rss_folder.loading')}</span>
+      </div>
+    );
   }
 
   return (

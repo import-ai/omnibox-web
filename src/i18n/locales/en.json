@@ -1231,6 +1231,7 @@
   },
   "rss_folder": {
     "empty": "No items yet",
+    "loading": "Loading...",
     "reader": {
       "back": "Back to feed",
       "open_original": "Open original",

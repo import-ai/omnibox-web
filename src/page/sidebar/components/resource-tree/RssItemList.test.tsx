@@ -149,6 +149,27 @@ describe('RssItemList', () => {
     expect(container.textContent).toContain('New item');
   });
 
+  it('shows loading copy before rendering the empty state', async () => {
+    const request = deferred<RssItem[]>();
+    mockedFetchRssItems.mockReturnValue(request.promise);
+
+    await act(async () => {
+      root.render(
+        <RssItemList folderId="folder" namespaceId="namespace" depth={1} />
+      );
+    });
+
+    expect(container.textContent).toContain('rss_folder.loading');
+    expect(container.textContent).not.toContain('rss_folder.empty');
+
+    await act(async () => {
+      request.resolve([]);
+    });
+
+    expect(container.textContent).not.toContain('rss_folder.loading');
+    expect(container.textContent).toContain('rss_folder.empty');
+  });
+
   it('marks item navigation as originating from the sidebar', async () => {
     await act(async () => {
       root.render(

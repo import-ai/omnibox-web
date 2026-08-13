@@ -53,6 +53,14 @@ function item(id: string, overrides: Partial<RssItem> = {}): RssItem {
   };
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>(res => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
+
 describe('RssItems', () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -71,9 +79,15 @@ describe('RssItems', () => {
     jest.useRealTimers();
   });
 
-  async function render() {
+  async function render(emptyText?: string) {
     await act(async () => {
-      root.render(<RssItems resourceId="folder-1" namespaceId="namespace-1" />);
+      root.render(
+        <RssItems
+          resourceId="folder-1"
+          namespaceId="namespace-1"
+          emptyText={emptyText}
+        />
+      );
     });
   }
 
@@ -92,6 +106,23 @@ describe('RssItems', () => {
     expect(headers).toEqual(['date.today', 'February 2026', 'January 2026']);
     expect(container.textContent).toContain('Title a');
     expect(container.textContent).toContain('2026-02-20 09:00:00');
+  });
+
+  it('shows loading copy before rendering the empty state', async () => {
+    const request = deferred<RssItem[]>();
+    mockedFetchRssItems.mockReturnValue(request.promise);
+
+    await render('rss_folder.empty');
+
+    expect(container.textContent).toContain('rss_folder.loading');
+    expect(container.textContent).not.toContain('rss_folder.empty');
+
+    await act(async () => {
+      request.resolve([]);
+    });
+
+    expect(container.textContent).not.toContain('rss_folder.loading');
+    expect(container.textContent).toContain('rss_folder.empty');
   });
 
   it('falls back to the item creation date when there is no published date', async () => {
