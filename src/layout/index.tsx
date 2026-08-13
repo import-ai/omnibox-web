@@ -1,13 +1,19 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { TouchBackend } from 'react-dnd-touch-backend';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Toaster } from '@/components/ui/Toaster';
+import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
 import { track } from '@/lib/sendTrackEvent';
 import { useChatStore } from '@/page/chat/chatStore';
+import { clearConversationCache } from '@/page/chat/conversation/conversationCache';
+import { useCopilotStore } from '@/page/copilot/copilotStore';
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
 
@@ -16,6 +22,14 @@ import {
   isAuthStorageKey,
   shouldSyncUserOptions,
 } from './authStorage';
+
+function clearUserWorkspaceState() {
+  clearConversationCache();
+  useResourceStore.getState().resetFeaturePreviews();
+  useChatStore.getState().clearContext();
+  useSidebarStore.getState().clear();
+  useCopilotStore.getState().clearAll();
+}
 
 export default function Layout() {
   const loc = useLocation();
@@ -26,6 +40,7 @@ export default function Layout() {
   const namespaceId = params.namespace_id;
   const shareId = params.share_id;
   const [uid, setUid] = useState(localStorage.getItem('uid'));
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -40,11 +55,9 @@ export default function Layout() {
       } else if (isAuthStorageKey(event.key)) {
         const storedUid = localStorage.getItem('uid');
         if (storedUid !== uid) {
-          useResourceStore.getState().resetFeaturePreviews();
+          clearUserWorkspaceState();
         }
         setUid(storedUid);
-        useChatStore.getState().clearContext();
-        useSidebarStore.getState().clear();
         const redirectPath = getAuthChangeRedirectPath(
           window.location.pathname,
           uid,
@@ -64,7 +77,7 @@ export default function Layout() {
   useEffect(() => {
     const storedUid = localStorage.getItem('uid');
     if (storedUid !== uid) {
-      useResourceStore.getState().resetFeaturePreviews();
+      clearUserWorkspaceState();
       setUid(storedUid);
     }
   }, [loc]);
@@ -94,6 +107,7 @@ export default function Layout() {
       searchParams.get('from') === 'extension_login' &&
       uid
     ) {
+      clearConversationCache();
       localStorage.removeItem('uid');
       localStorage.removeItem('token');
       return;
@@ -184,9 +198,9 @@ export default function Layout() {
   }, [loc.search, uid, shareId, i18n]);
 
   return (
-    <>
+    <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
       <Toaster />
       <Outlet />
-    </>
+    </DndProvider>
   );
 }

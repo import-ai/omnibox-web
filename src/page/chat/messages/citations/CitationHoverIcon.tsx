@@ -1,3 +1,5 @@
+import { type MouseEvent, useState } from 'react';
+
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import {
@@ -5,8 +7,11 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/HoverCard';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import type { Citation } from '@/page/chat/core/types/chatResponse';
 import { formatCitation } from '@/page/chat/messages/citations/utils';
+import { useChatResourceNavigation } from '@/page/chat/useChatResourceNavigation';
+import { resolveCitationTarget } from '@/page/copilot/citationTarget';
 
 export interface CitationIconProps {
   index: number;
@@ -16,8 +21,25 @@ export interface CitationIconProps {
 export function CitationHoverIcon(props: CitationIconProps) {
   const { citation, index } = props;
   const { name, link } = formatCitation(citation);
+  const { namespaceId } = useChatRouteParams();
+  const { openResource } = useChatResourceNavigation();
+  const [hoverCardOpen, setHoverCardOpen] = useState(false);
+
+  const openCitation = (event: MouseEvent<HTMLElement>) => {
+    const target = resolveCitationTarget(citation.link, namespaceId);
+    if (
+      target.kind === 'resource' &&
+      namespaceId &&
+      openResource(event, target.resourceId)
+    ) {
+      return;
+    }
+    if (target.kind !== 'unavailable' && link) {
+      window.open(link, '_blank', 'noopener,noreferrer');
+    }
+  };
   return (
-    <HoverCard>
+    <HoverCard open={hoverCardOpen} onOpenChange={setHoverCardOpen}>
       <HoverCardTrigger asChild>
         <Button
           variant="link"
@@ -25,7 +47,9 @@ export function CitationHoverIcon(props: CitationIconProps) {
           onClick={e => {
             e.preventDefault();
             e.stopPropagation();
-            if (link) window.open(link, '_blank', 'noopener,noreferrer');
+            e.currentTarget.blur();
+            setHoverCardOpen(false);
+            openCitation(e);
           }}
         >
           <Badge

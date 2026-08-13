@@ -1,4 +1,5 @@
 import { SelectValue } from '@radix-ui/react-select';
+import { addDays, startOfDay } from 'date-fns';
 import { t } from 'i18next';
 import { useState } from 'react';
 
@@ -149,7 +150,7 @@ export function Expire(props: ExpireProps) {
               selected={selectedDate}
               onSelect={setSelectedDate}
               className="rounded-md border shadow-sm w-full"
-              disabled={{ before: new Date() }}
+              disabled={{ before: addDays(startOfDay(new Date()), 1) }}
             />
             <Button className="w-full" onClick={handleSaveDate}>
               {t('share.share.save')}

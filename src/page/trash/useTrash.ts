@@ -100,6 +100,9 @@ export function useTrash() {
         if (response?.resource_type === 'smart_folder') {
           useSidebarStore.getState().refetchSmartFolderEntitlements();
         }
+        if (response?.resource_type === 'rss_folder') {
+          useSidebarStore.getState().refetchRssFolderLimits();
+        }
 
         onSuccess?.();
       } catch {

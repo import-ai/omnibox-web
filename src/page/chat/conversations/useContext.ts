@@ -3,12 +3,14 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { http } from '@/lib/request';
+import { isConversationAccessDenied } from '@/page/chat/conversation/conversationLoadPolicy';
 import { ConversationSummary } from '@/page/chat/core/types/conversation';
 
-export default function useContext() {
+export default function useContext(namespaceIdOverride?: string) {
   const params = useParams();
-  const namespaceId = params.namespace_id || '';
+  const namespaceId = namespaceIdOverride || params.namespace_id || '';
   const [loading, onLoading] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [current, onCurrent] = useState(1);
   const [pageSize] = useState(10);
   const [data, onData] = useState<{
@@ -40,11 +42,24 @@ export default function useContext() {
     showLoading && onLoading(true);
     const source = axios.CancelToken.source();
     http
-      .get(
-        `/namespaces/${namespaceId}/conversations?offset=${(current - 1) * pageSize}&limit=${pageSize}&order=desc`,
-        { cancelToken: source.token }
+      .get(`/namespaces/${namespaceId}/me`, { cancelToken: source.token })
+      .then(() =>
+        http.get(
+          `/namespaces/${namespaceId}/conversations?offset=${(current - 1) * pageSize}&limit=${pageSize}&order=desc`,
+          { cancelToken: source.token }
+        )
       )
-      .then(onData)
+      .then(response => {
+        setAccessDenied(false);
+        onData(response);
+      })
+      .catch(error => {
+        if (axios.isCancel(error)) return;
+        if (isConversationAccessDenied(error)) {
+          onData({ total: 0, data: [] });
+          setAccessDenied(true);
+        }
+      })
       .finally(() => {
         showLoading && onLoading(false);
       });
@@ -71,7 +86,8 @@ export default function useContext() {
   };
 
   useEffect(() => {
-    refetch(true);
+    setAccessDenied(false);
+    return refetch(true);
   }, [namespaceId, current, pageSize]);
 
   return {
@@ -79,6 +95,7 @@ export default function useContext() {
     edit,
     current,
     loading,
+    accessDenied,
     pageSize,
     onEdit,
     remove,

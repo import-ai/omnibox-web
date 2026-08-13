@@ -11,6 +11,7 @@ import {
   MoveHorizontal,
   Pencil,
   PencilOff,
+  RefreshCw,
   Save,
   Trash2,
 } from 'lucide-react';
@@ -20,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { useResourceTasks } from '@/components/attributes/resource-tasks/ResourceTasksContext';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
@@ -66,6 +68,7 @@ import { syncSingleMoveResult } from '@/page/sidebar/hooks/batchMoveSync';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { fetchRssItem, renameResource } from '@/service/resource';
 
+import CloseCurrentResource from './CloseCurrentResource';
 import { copyContentToClipboard } from './copyContent';
 import MoveTo from './move';
 import ShareAction from './share';
@@ -105,6 +108,7 @@ function downloadMarkdownFile(fileName: string, content: string) {
 const hasTeamspaceCache = new Map<string, boolean>();
 
 export interface IActionProps extends IUseResource {
+  rssItemId?: string | null;
   wide: boolean;
   onWide: (wide: boolean) => void;
   rssItemCopyContent?: {
@@ -123,12 +127,18 @@ export default function Actions(props: IActionProps) {
     resourceId,
     editPage,
     namespaceId,
+    rssItemId: explicitRssItemId,
     rssItemCopyContent,
   } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const loc = useLocation();
-  const { rss_item_id: rssItemId } = useParams();
+  const { rss_item_id: routeRssItemId, resource_id: routeResourceId } =
+    useParams();
+  const rssItemId =
+    explicitRssItemId === undefined
+      ? routeRssItemId
+      : explicitRssItemId || undefined;
   const isMobile = useIsMobile();
   const { deleteResource } = useDeleteResource();
   const { config, loading: configLoading } = useConfig();
@@ -179,6 +189,18 @@ export default function Actions(props: IActionProps) {
   // move, and trash.
   const canUseFileLikeActions = !isFolder && !isSmartFolder && !isRssFolderView;
   const canUseRegularResourceActions = !isSmartFolder && !isRssFolder;
+  // Shared with the related-tasks panel so a failure discovered by polling
+  // lights the toolbar retry without a page reload.
+  const {
+    hasRetryable,
+    retrying: tasksRetrying,
+    retry: retryTasks,
+  } = useResourceTasks();
+  const showToolbarRetry =
+    hasRetryable &&
+    canModifyResource &&
+    !isRssItemView &&
+    (resource?.resource_type === 'file' || resource?.resource_type === 'link');
 
   useEffect(() => {
     if (!namespaceId) return;
@@ -323,7 +345,13 @@ export default function Actions(props: IActionProps) {
       return;
     }
     if (id === 'copy_link') {
-      const returnValue = copy(location.href);
+      // Citation preview keeps the chat route, so build a resource URL when the
+      // open resource is not the current route target.
+      const resourceUrl =
+        resource && routeResourceId !== resource.id
+          ? `${window.location.origin}/${namespaceId}/${resource.id}`
+          : location.href;
+      const returnValue = copy(resourceUrl);
       toast(t(returnValue ? 'actions.copy_link_success' : 'copy.fail'), {
         position: 'bottom-right',
       });
@@ -360,6 +388,17 @@ export default function Actions(props: IActionProps) {
     if (id === 'download') {
       onLoading(id);
       downloadFile(namespaceId, resource.id, resource.attrs?.original_name)
+        .then(() => {
+          setOpen(false);
+        })
+        .finally(() => {
+          onLoading('');
+        });
+      return;
+    }
+    if (id === 'retry') {
+      onLoading('retry');
+      retryTasks()
         .then(() => {
           setOpen(false);
         })
@@ -758,6 +797,23 @@ export default function Actions(props: IActionProps) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           )}
+          {showToolbarRetry && (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              disabled={loading === 'retry' || tasksRetrying}
+              onSelect={event => {
+                event.preventDefault();
+                handleAction('retry');
+              }}
+            >
+              {loading === 'retry' || tasksRetrying ? (
+                <Spinner />
+              ) : (
+                <RefreshCw className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              )}
+              <span>{t('actions.retry')}</span>
+            </DropdownMenuItem>
+          )}
           {canUseRegularResourceActions && (
             <DropdownMenuItem
               className="cursor-pointer gap-2"
@@ -770,6 +826,9 @@ export default function Actions(props: IActionProps) {
               )}
               <span>{t('actions.move_to')}</span>
             </DropdownMenuItem>
+          )}
+          {resource && !editPage && (
+            <CloseCurrentResource namespaceId={namespaceId} />
           )}
           {!isRssItemView && (
             <DropdownMenuItem

@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/Separator';
 import useApp from '@/hooks/useApp';
 import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
 import { getSmartFolderChildSidebarKey } from '@/page/sidebar/components/smart-folder';
 
@@ -221,21 +222,26 @@ export default function Folder(props: IProps) {
                     className="cursor-pointer group"
                     key={item.id}
                     onClick={() => {
-                      navigate(`${navigationPrefix}/${item.id}`, {
-                        state: smartFolderParentId
-                          ? navigationPrefix.startsWith('/s/')
-                            ? getShareSmartFolderChildNavigationState(
-                                smartFolderParentId,
-                                item.id
-                              )
-                            : {
-                                sidebarActiveKey: getSmartFolderChildSidebarKey(
+                      navigateToResource(
+                        navigate,
+                        `${navigationPrefix}/${item.id}`,
+                        {
+                          state: smartFolderParentId
+                            ? navigationPrefix.startsWith('/s/')
+                              ? getShareSmartFolderChildNavigationState(
                                   smartFolderParentId,
                                   item.id
-                                ),
-                              }
-                          : undefined,
-                      });
+                                )
+                              : {
+                                  sidebarActiveKey:
+                                    getSmartFolderChildSidebarKey(
+                                      smartFolderParentId,
+                                      item.id
+                                    ),
+                                }
+                            : undefined,
+                        }
+                      );
                     }}
                   >
                     <div className="flex items-center justify-between mb-2">

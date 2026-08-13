@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ChevronRight, File, MessageCircle } from 'lucide-react';
+import { ChevronRight, FileUp, MessageCircle } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -28,6 +28,7 @@ import { IResourceData, Resource, ResourceMeta } from '@/interface';
 import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { getTime } from '@/page/resource/utils';
 
 export default function FeatureCards() {
@@ -100,7 +101,7 @@ export default function FeatureCards() {
 
       if (results.length > 0) {
         const lastUploadedFile = results[results.length - 1];
-        navigate(`/${namespaceId}/${lastUploadedFile.id}`);
+        navigateToResource(navigate, `/${namespaceId}/${lastUploadedFile.id}`);
       }
     } catch (error: any) {
       const errorMessage = error?.message || 'Upload failed';
@@ -179,7 +180,7 @@ export default function FeatureCards() {
                       className="w-24"
                       onClick={() => openFilePicker(fileInputRef.current)}
                     >
-                      <File className="size-4 text-red-500" />
+                      <FileUp className="size-4 text-red-500" />
                       {t('chat.home.upload.local')}
                     </Button>
                   </TooltipTrigger>
@@ -259,7 +260,9 @@ export default function FeatureCards() {
                   <div
                     key={item.id}
                     className="group flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors hover:bg-accent/50"
-                    onClick={() => navigate(`/${namespaceId}/${item.id}`)}
+                    onClick={() =>
+                      navigateToResource(navigate, `/${namespaceId}/${item.id}`)
+                    }
                   >
                     <div className="flex min-w-0 items-center gap-2">
                       <div className="[&>svg]:size-4">

@@ -49,7 +49,37 @@
   },
   "sidebar": {
     "expand": "Expand Sidebar",
-    "collapse": "Collapse Sidebar"
+    "collapse": "Collapse Sidebar",
+    "sort": {
+      "tooltip": "Sort resources",
+      "menu": "Sort",
+      "updated_at": "Update time",
+      "created_at": "Creation time",
+      "title": "Resource name",
+      "manual": "Manual sort",
+      "confirm_title": "Switch to manual sorting?",
+      "confirm_initial_description": "After switching, resources in “{{space}}” will follow the order you just arranged.",
+      "confirm_description": "You have sorted manually before. This will overwrite your previous manual order in “{{space}}”.",
+      "confirm_action": "Switch",
+      "sync_failed": "The move succeeded, but the manual order could not be saved.",
+      "private": "Personal",
+      "teamspace": "Team",
+      "order": {
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "az": "A-Z",
+        "za": "Z-A"
+      }
+    }
+  },
+  "copilot": {
+    "title": "Copilot",
+    "description": "Continue the AI conversation in this workspace",
+    "expand": "Expand Copilot",
+    "collapse": "Collapse Copilot",
+    "preview": "Citation preview",
+    "close_preview": "Close citation preview",
+    "preview_error": "Unable to load this resource. Please try again."
   },
   "resource_picker": {
     "expand_resource": "Expand {{name}}",
@@ -68,6 +98,7 @@
   },
   "resource": {
     "name": "Resource",
+    "close_current": "Close current resource",
     "title": "Title",
     "title_placeholder": "Enter title",
     "folder": {
@@ -146,7 +177,10 @@
     "locate_resource": "Locate",
     "locate_resource_unavailable": "No resource to locate",
     "locate_resource_success": "Located the target resource.",
-    "locate_source_resource": "Locate Source File"
+    "locate_source_resource": "Locate Source File",
+    "retry": "Retry",
+    "retry_success": "Unfinished tasks resubmitted",
+    "retry_error": "Retry failed"
   },
   "form": {
     "or": "or",
@@ -214,9 +248,9 @@
     "member_count": "{{ size }} members",
     "conflict": "There's already a namespace with the same name",
     "no_special_chars": "Special characters are not allowed in namespace name",
-    "quota_exceeded": "Quota Exceeded",
-    "quota_exceeded_desc": "Current space quota is exhausted, please expand",
-    "quota_expand_button": "Expand",
+    "quota_exceeded": "Free Space Creation Limit Reached",
+    "quota_exceeded_desc": "Each account can create one space for free. Additional spaces must be purchased.",
+    "quota_expand_button": "Purchase and Create",
     "usage": "Usage",
     "leave": {
       "title": "Leave Space",
@@ -443,11 +477,13 @@
     "app_names": {
       "wechat_bot": "WeChat Assistant",
       "qq_bot": "QQ Assistant",
+      "telegram_bot": "Telegram Assistant",
       "wechat_clawbot": "WeChat ClawBot"
     },
     "scan_via": {
       "wechat_bot": "WeChat",
       "qq_bot": "QQ",
+      "telegram_bot": "Telegram",
       "wechat_clawbot": "WeChat"
     },
     "unsupported_app": "Unsupported application type: {{ app_id }}",
@@ -467,8 +503,13 @@
       "description": "Follow these steps to connect your application",
       "step1": "Step 1: Add {{ platform_name }}",
       "step2": "Step 2: Send Code to {{ platform_name }}",
+      "telegram_step1": "Step 1: Open Telegram or scan the QR code",
+      "telegram_step2": "Step 2: Confirm the binding",
+      "open_telegram": "Open Telegram",
       "code_label": "Binding Code:",
+      "copy_code": "Copy binding code",
       "code_instruction": "Send this code to {{ platform_name }} to complete the binding",
+      "telegram_code_instruction": "If Telegram does not open automatically, send /start {{ code }} to @omnibox_tg_bot.",
       "initiated": "Binding process initiated",
       "continue": "Continuing binding process",
       "error": "Failed to initiate binding",
@@ -583,7 +624,7 @@
     "owner_full_access_required": "The owner must retain full access",
     "edit_required": "You only have view permission and cannot edit this resource.",
     "delete_required": "You only have view permission and cannot delete this resource.",
-    "you": "You"
+    "you": "(You)"
   },
   "copy": {
     "title": "Copy",
@@ -880,6 +921,8 @@
     "status_label_pending": "Pending",
     "status_label_running": "Running",
     "status_label_finished": "Finished",
+    "status_label_failed": "Failed",
+    "status_label_canceled": "Canceled",
     "confirm_cancel_title": "Confirm Cancel",
     "confirm_cancel_description": "The task will be stopped immediately. This action cannot be undone.",
     "continue_running": "Continue Running",
@@ -953,6 +996,13 @@
       "save": "Save",
       "current_file_only": "Current file only",
       "current_file_only_tooltip": "When enabled, only shares the current file.\nWhen disabled, shares with all sub-files.",
+      "sort": {
+        "label": "Sort order",
+        "tooltip": "Manual sorting on shared pages follows changes made in the resource list.\nOther sorting methods are independent from the resource list.",
+        "manual_unavailable": "Sort manually in the sidebar first.",
+        "smart_folder_unsupported": "Smart folders do not support this action.",
+        "rss_folder_unsupported": "RSS folders do not support this action."
+      },
       "folder_current_file_unsupported": "Folders do not support this option.",
       "folder_share_update_failed": "Failed to include all folder resources. Retry before copying the share link.",
       "require_login": "Require login to view",
@@ -997,6 +1047,8 @@
     "discord": "Discord",
     "wechat": "QR Code",
     "feedback": "Feedback",
+    "upgrade": "Upgrade",
+    "renew": "Renew",
     "join": "Scan with WeChat to join the group"
   },
   "trash": {
@@ -1197,6 +1249,9 @@
       "add_link": "Add link",
       "remaining_links": "Feed links remaining: {{remaining}} / {{total}}",
       "link_limit_tooltip": "Pro supports up to 10 feed links",
+      "personal_quota_exhausted": "Personal quota is exhausted. Upgrade for unlimited creation.",
+      "team_quota_exhausted": "Team quota is exhausted. Upgrade for unlimited creation.",
+      "all_quota_exhausted": "All quotas are exhausted. Upgrade for unlimited creation.",
       "limit_reached_basic": "Link limit reached ({{limit}}). Upgrade to unlock 10 links.",
       "limit_reached_premium": "Link limit reached ({{limit}}).",
       "unsaved_title": "Your RSS folder settings are unsaved. Exit anyway?",

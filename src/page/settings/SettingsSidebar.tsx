@@ -19,21 +19,18 @@ interface SettingsSidebarProps {
   value: string;
   onChange: (value: string) => void;
   username: string;
-  userIsOwnerOrAdmin: boolean;
 }
 
 interface MenuItem {
   label: string;
   value: string;
   icon: React.ReactNode;
-  requireOwner?: boolean;
 }
 
 export function SettingsSidebar({
   value,
   onChange,
   username,
-  userIsOwnerOrAdmin,
 }: SettingsSidebarProps) {
   const { t } = useTranslation();
   const { config } = useConfig();
@@ -68,7 +65,6 @@ export function SettingsSidebar({
       label: t('setting.members'),
       value: 'people',
       icon: <Users className="size-4" />,
-      requireOwner: true,
     },
     {
       label: t('setting.tasks'),
@@ -86,10 +82,6 @@ export function SettingsSidebar({
       icon: <KeyRound className="size-4" />,
     },
   ];
-
-  const filteredSpaceItems = spaceItems.filter(
-    item => !item.requireOwner || userIsOwnerOrAdmin
-  );
 
   // About section item
   const aboutItem: MenuItem = {
@@ -183,7 +175,7 @@ export function SettingsSidebar({
             </div>
 
             <div className="flex w-full flex-row flex-wrap gap-1 lg:flex-col lg:gap-0.5">
-              {filteredSpaceItems.map(item => {
+              {spaceItems.map(item => {
                 const isSelected = value === item.value;
 
                 return (

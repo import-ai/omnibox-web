@@ -116,6 +116,7 @@ export interface Resource extends IBase {
   global_permission?: Permission;
 
   path?: PathItem[];
+  manual_sort_initialized_at?: string | null;
 }
 
 export interface IResourceData extends Resource {
@@ -236,12 +237,18 @@ export interface ShareInfo {
   password_enabled: boolean;
   share_type: ShareType;
   expires_at: Date | null;
+  sort_by: import('@/service/resource').ResourceSortBy;
+  sort_order: import('@/service/resource').ResourceSortOrder;
+  manual_sort_available: boolean;
 }
 
 export function parseShareInfo(data: any): ShareInfo {
   return {
     ...data,
     expires_at: data.expires_at ? new Date(data.expires_at) : null,
+    sort_by: data.sort_by ?? 'updated_at',
+    sort_order: data.sort_order ?? 'desc',
+    manual_sort_available: data.manual_sort_available ?? false,
   };
 }
 
@@ -253,6 +260,8 @@ export interface UpdateShareInfoReq {
   share_type?: ShareType;
   expires_at?: Date | null;
   expires_seconds?: number;
+  sort_by?: import('@/service/resource').ResourceSortBy;
+  sort_order?: import('@/service/resource').ResourceSortOrder;
 }
 
 export interface ResourceMeta {
@@ -347,6 +356,9 @@ export interface Task {
   started_at: string | null;
   ended_at: string | null;
   canceled_at: string | null;
+  // Set when this task was emitted to replace a failed one: the id of that
+  // failure, which the UI then stops showing.
+  retried_from_task_id: string | null;
   can_cancel?: boolean;
   can_rerun?: boolean;
   can_redirect?: boolean;

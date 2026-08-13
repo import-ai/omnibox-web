@@ -7,7 +7,7 @@ import { useSidebar } from '@/components/ui/Sidebar';
 import useApp from '@/hooks/useApp';
 import { useIsMobile } from '@/hooks/useMobile';
 import type { Resource } from '@/interface';
-import { addToChatContext } from '@/lib/chatBridge';
+import { addToChatContext, openCopilotForChatContext } from '@/lib/chatBridge';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
 import type { RssFolderResponse } from '@/page/sidebar/components/rss-folder';
@@ -19,7 +19,10 @@ import {
 } from '@/page/sidebar/components/smart-folder';
 import { useNode, useSidebarStore } from '@/page/sidebar/store';
 import type { TreeNode } from '@/page/sidebar/store/types';
-import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
+import {
+  locateSidebarResource,
+  triggerGlobalFileUpload,
+} from '@/page/sidebar/utils';
 
 import { getCurrentResourceId, syncSingleMoveResult } from './batchMoveSync';
 
@@ -109,11 +112,11 @@ export function useNodeActions(
     useSidebarStore
       .getState()
       .create(nodeId, 'doc')
-      .then(id => {
-        useSidebarStore.getState().activate(id);
+      .then(async id => {
         navigate(`/${namespaceId}/${id}/edit`, {
           state: { fromSidebar: true },
         });
+        await locateSidebarResource(id);
         if (isMobile) setOpenMobile(false);
       })
       .catch(() => {
@@ -129,7 +132,8 @@ export function useNodeActions(
     useSidebarStore
       .getState()
       .create(nodeId, 'folder')
-      .then(() => {
+      .then(async id => {
+        await locateSidebarResource(id);
         if (isMobile) setOpenMobile(false);
       })
       .catch(() => {
@@ -238,9 +242,11 @@ export function useNodeActions(
     if (loc.pathname.includes('/chat')) {
       doAdd();
     } else {
-      navigate(`/${namespaceId}/chat`);
-      setTimeout(doAdd, 100);
+      // Stay on the resource page and surface Copilot with the new context.
+      openCopilotForChatContext(namespaceId);
+      doAdd();
     }
+    if (isMobile) setOpenMobile(false);
   };
 
   const handleAddToChat = () => addToContext('resource');
@@ -294,7 +300,8 @@ export function useNodeActions(
     await useSidebarStore
       .getState()
       .move(resourceId, targetId)
-      .then(() => {
+      .then(async () => {
+        await locateSidebarResource(resourceId);
         syncSingleMoveResult({
           app,
           currentResourceId: getCurrentResourceId(loc.pathname, namespaceId),

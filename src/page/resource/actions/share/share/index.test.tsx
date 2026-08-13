@@ -4,6 +4,7 @@ import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
 import { ResourceType } from '@/interface';
+import type { ResourceSortOptions } from '@/service/resource';
 
 import ShareTabs from '../ShareTabs';
 import { ShareTabContent } from '.';
@@ -91,6 +92,22 @@ jest.mock('../permissions/table', () => ({
 }));
 jest.mock('./Expire', () => ({ Expire: () => null }));
 jest.mock('./Password', () => ({ Password: () => null }));
+jest.mock('./ShareSortSelector', () => ({
+  ShareSortSelector: ({
+    disabled,
+    onChange,
+  }: {
+    disabled: boolean;
+    onChange: (sort: ResourceSortOptions) => void;
+  }) => (
+    <button
+      type="button"
+      data-testid="share-sort-selector"
+      disabled={disabled}
+      onClick={() => onChange({ sort_by: 'title', sort_order: 'asc' })}
+    />
+  ),
+}));
 jest.mock('./ShareTypeSelector', () => ({ ShareTypeSelector: () => null }));
 
 (
@@ -150,6 +167,51 @@ describe('ShareTabContent', () => {
       ).toBe('share.share.folder_current_file_unsupported');
     }
   );
+
+  it.each([
+    ['smart_folder', 'share.share.sort.smart_folder_unsupported'],
+    ['rss_folder', 'share.share.sort.rss_folder_unsupported'],
+  ] as const)(
+    'disables share sorting for %s',
+    async (resourceType, tooltipKey) => {
+      await act(async () => {
+        root.render(
+          <ShareTabContent
+            namespace_id="namespace-1"
+            resource_id="resource-1"
+            resourceType={resourceType}
+          />
+        );
+      });
+
+      const sortSelector = container.querySelector(
+        '[data-testid="share-sort-selector"]'
+      ) as HTMLButtonElement;
+      expect(sortSelector.disabled).toBe(true);
+      expect(
+        Array.from(
+          container.querySelectorAll('[data-testid="tooltip-content"]')
+        ).some(tooltip => tooltip.textContent === tooltipKey)
+      ).toBe(true);
+    }
+  );
+
+  it('keeps share sorting available for a regular folder', async () => {
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-1"
+          resourceType="folder"
+        />
+      );
+    });
+
+    const sortSelector = container.querySelector(
+      '[data-testid="share-sort-selector"]'
+    ) as HTMLButtonElement;
+    expect(sortSelector.disabled).toBe(false);
+  });
 
   it('does not normalize a disabled folder share', async () => {
     mockGet.mockResolvedValueOnce({ ...shareInfo, enabled: false });

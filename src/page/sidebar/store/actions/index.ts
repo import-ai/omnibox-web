@@ -2,6 +2,7 @@ import type { SidebarActions, SidebarGet, SidebarSet } from '../types';
 import { buildBaseActions } from './base';
 import { buildBatchActions } from './batch';
 import { buildCRUDActions } from './crud';
+import { buildManualSortActions } from './manualSort';
 import { buildNavigationActions } from './navigation';
 import { buildUploadActions } from './upload';
 
@@ -10,6 +11,7 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
     ...buildBaseActions(set),
     ...buildCRUDActions(set, get),
     ...buildNavigationActions(set, get),
+    ...buildManualSortActions(set, get),
     ...buildUploadActions(set, get),
     ...buildBatchActions(set, get),
 
@@ -116,6 +118,12 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
     refetchSmartFolderEntitlements: () => {
       set(s => {
         s.smartFolderEntitlementsVersion += 1;
+      });
+    },
+
+    refetchRssFolderLimits: () => {
+      set(s => {
+        s.rssFolderLimitsVersion += 1;
       });
     },
   };

@@ -1,6 +1,13 @@
 import { Namespace, SpaceType } from '@/interface';
 import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
-import { useIsSpaceExpanded, useNode, useRootId } from '@/page/sidebar/store';
+import type { RssFolderQuotaExhausted } from '@/page/sidebar/rssFolderQuota';
+import {
+  useIsSpaceExpanded,
+  useNode,
+  useRootId,
+  useSidebarStore,
+} from '@/page/sidebar/store';
+import type { ResourceSortOptions } from '@/service/resource';
 
 import { SpaceSectionContent } from './SpaceSectionContent';
 
@@ -16,6 +23,12 @@ interface SpaceSectionProps {
   onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
   onCreateRssFolder: (spaceType: SpaceType) => void;
   smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
+  rssFolderQuotaExhausted: RssFolderQuotaExhausted;
+  sortingSpace: SpaceType | null;
+  onResourceSortChange: (
+    spaceType: SpaceType,
+    sort: ResourceSortOptions
+  ) => void;
 }
 
 export default function SpaceSection({
@@ -30,10 +43,14 @@ export default function SpaceSection({
   onCreateSmartFolder,
   onCreateRssFolder,
   smartFolderQuotaExhausted,
+  rssFolderQuotaExhausted,
+  sortingSpace,
+  onResourceSortChange,
 }: SpaceSectionProps) {
   const rootId = useRootId(spaceType);
   const rootNode = useNode(rootId);
   const isOpen = useIsSpaceExpanded(spaceType);
+  const resourceSort = useSidebarStore(state => state.resourceSorts[spaceType]);
 
   if (!rootNode) {
     return null;
@@ -55,6 +72,10 @@ export default function SpaceSection({
       onCreateSmartFolder={onCreateSmartFolder}
       onCreateRssFolder={onCreateRssFolder}
       smartFolderQuotaExhausted={smartFolderQuotaExhausted}
+      rssFolderQuotaExhausted={rssFolderQuotaExhausted}
+      resourceSort={resourceSort}
+      sorting={sortingSpace !== null}
+      onResourceSortChange={sort => onResourceSortChange(spaceType, sort)}
     />
   );
 }

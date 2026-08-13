@@ -21,6 +21,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme.ts';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
+import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 import Save from '@/page/chat/components/SaveMain';
 import { Citation, MessageStatus } from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
@@ -34,6 +36,7 @@ import {
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
+import { resolveCitationTarget } from '@/page/copilot/citationTarget';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const resourceLinkRegex = /^#resource-([\w-]+)$/;
@@ -78,10 +81,12 @@ export function CitationMarkdown(props: IProps) {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
   const params = useParams();
+  const { namespaceId: routeNamespaceId } = useChatRouteParams();
+  const namespaceId = routeNamespaceId || params.namespace_id || '';
   const resourceLinkPrefix = params.share_id
     ? `/s/${params.share_id}`
-    : params.namespace_id
-      ? `/${params.namespace_id}`
+    : namespaceId
+      ? `/${namespaceId}`
       : '';
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
@@ -99,16 +104,20 @@ export function CitationMarkdown(props: IProps) {
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
       const { node } = props;
       const resourceMatch = href?.match(resourceLinkRegex);
-      const resourceId = resourceMatch?.[1] ?? getResourceIdFromHash(href);
-      if (resourceId && resourceLinkPrefix) {
+      let resolvedResource =
+        resourceMatch?.[1] ?? getResourceIdFromHash(href) ?? undefined;
+      if (!resolvedResource && href && namespaceId) {
+        const target = resolveCitationTarget(href, namespaceId);
+        if (target.kind === 'resource') {
+          resolvedResource = target.resourceId;
+        }
+      }
+      if (resolvedResource && resourceLinkPrefix) {
+        const resourceHref = `${resourceLinkPrefix}/${resolvedResource}`;
         return (
-          <a
-            href={`${resourceLinkPrefix}/${resourceId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <ChatResourceLink href={resourceHref} resourceId={resolvedResource}>
             {children}
-          </a>
+          </ChatResourceLink>
         );
       }
       const citeMatch = href?.match(citeLinkRegex);

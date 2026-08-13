@@ -1,7 +1,10 @@
 import { type ReactNode, useCallback, useState } from 'react';
+import { useDrop } from 'react-dnd';
 
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import type { ResourceMeta } from '@/interface';
+import { normalizeResourceMeta } from '@/lib/resourceMeta';
+import { cn } from '@/lib/utils';
 import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ApprovalMode,
@@ -11,6 +14,7 @@ import {
 } from '@/page/chat/chat-input/types';
 import { MessageDetail } from '@/page/chat/core/types/conversation.ts';
 import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
+import type { TreeNode } from '@/page/sidebar/store';
 
 import ApprovalModeSelect from './ApprovalModeSelect';
 import ChatAction from './ChatAction';
@@ -87,6 +91,25 @@ export default function ChatArea(props: IProps) {
     initialQuery,
   });
   const contextCompactCapacity = getLatestContextCompactCapacity(messages);
+  const [{ isResourceOver }, connectResourceDrop] = useDrop<
+    TreeNode,
+    void,
+    { isResourceOver: boolean }
+  >({
+    accept: 'card',
+    drop: resource => {
+      inputRef.current?.insertResource(normalizeResourceMeta(resource));
+    },
+    collect: monitor => ({
+      isResourceOver: monitor.isOver() && monitor.canDrop(),
+    }),
+  });
+  const resourceDropRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      connectResourceDrop(node);
+    },
+    [connectResourceDrop]
+  );
   const defaultResourcePicker = namespaceId
     ? (onSelect: (resource: ResourceMeta) => void) => (
         <WorkspaceResourcePicker
@@ -139,7 +162,13 @@ export default function ChatArea(props: IProps) {
       sendMessage={sendMessage}
     />
   ) : (
-    <div className="max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]">
+    <div
+      ref={resourceDropRef}
+      className={cn(
+        'max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]',
+        isResourceOver && 'ring-2 ring-blue-300'
+      )}
+    >
       <ChatInput
         ref={inputRef}
         value={query}

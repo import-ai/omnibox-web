@@ -1,8 +1,8 @@
 import {
   ChevronRight,
   FilePlus,
+  FileUp,
   FolderPlus,
-  MonitorUp,
   MoreHorizontal,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -43,12 +43,21 @@ import { SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
 import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
 import { useSpaceDrop } from '@/page/sidebar/hooks/useSpaceDrop';
+import {
+  getRssFolderQuotaTooltipKey,
+  type RssFolderQuotaExhausted,
+} from '@/page/sidebar/rssFolderQuota';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { triggerGlobalFileUpload } from '@/page/sidebar/utils';
+import {
+  locateSidebarResource,
+  triggerGlobalFileUpload,
+} from '@/page/sidebar/utils';
+import type { ResourceSortOptions } from '@/service/resource';
 
 import { DisabledMenuTooltip } from './DisabledMenuTooltip';
 import ResourceNode from './ResourceNode';
+import { ResourceSortMenu } from './ResourceSortMenu';
 import { menuIconClass, menuItemClass } from './shared';
 
 interface SpaceSectionContentProps {
@@ -66,6 +75,10 @@ interface SpaceSectionContentProps {
   onCreateSmartFolder: (ownerScope: SmartFolderOwnerScope) => void;
   onCreateRssFolder: (spaceType: SpaceType) => void;
   smartFolderQuotaExhausted: Partial<Record<SmartFolderOwnerScope, boolean>>;
+  rssFolderQuotaExhausted: RssFolderQuotaExhausted;
+  resourceSort: ResourceSortOptions;
+  sorting: boolean;
+  onResourceSortChange: (sort: ResourceSortOptions) => void;
 }
 
 export function SpaceSectionContent({
@@ -83,6 +96,10 @@ export function SpaceSectionContent({
   onCreateSmartFolder,
   onCreateRssFolder,
   smartFolderQuotaExhausted,
+  rssFolderQuotaExhausted,
+  resourceSort,
+  sorting,
+  onResourceSortChange,
 }: SpaceSectionContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -101,6 +118,16 @@ export function SpaceSectionContent({
           ? 'smart_folder.create.team_quota_exhausted'
           : 'smart_folder.create.personal_quota_exhausted'
       )
+    : undefined;
+
+  const rssFolderDisabled = rssFolderQuotaExhausted[spaceType] === true;
+  const rssFolderTooltipKey = getRssFolderQuotaTooltipKey(
+    hasTeamspace,
+    rssFolderQuotaExhausted,
+    spaceType
+  );
+  const rssFolderDisabledTip = rssFolderTooltipKey
+    ? t(rssFolderTooltipKey)
     : undefined;
 
   const {
@@ -125,11 +152,11 @@ export function SpaceSectionContent({
     useSidebarStore
       .getState()
       .create(rootId, 'doc')
-      .then(id => {
-        useSidebarStore.getState().activate(id);
+      .then(async id => {
         navigate(`/${namespaceId}/${id}/edit`, {
           state: { fromSidebar: true },
         });
+        await locateSidebarResource(id);
       })
       .catch(() => {
         // request.ts handles backend error toasts.
@@ -223,13 +250,27 @@ export function SpaceSectionContent({
                     <FolderPlus className={menuIconClass} />
                     {t('actions.create_folder')}
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className={menuItemClass}
-                    onClick={handleCreateRssFolder}
-                  >
-                    <RssFolderDefaultIcon className={menuIconClass} />
-                    {t('actions.create_rss_folder')}
-                  </DropdownMenuItem>
+                  <DisabledMenuTooltip content={rssFolderDisabledTip}>
+                    <DropdownMenuItem
+                      className={cn(
+                        menuItemClass,
+                        rssFolderDisabled &&
+                          'cursor-not-allowed text-muted-foreground opacity-50'
+                      )}
+                      onClick={
+                        rssFolderDisabled ? undefined : handleCreateRssFolder
+                      }
+                      onSelect={event => {
+                        if (rssFolderDisabled) {
+                          event.preventDefault();
+                        }
+                      }}
+                      aria-disabled={rssFolderDisabled}
+                    >
+                      <RssFolderDefaultIcon className={menuIconClass} />
+                      {t('actions.create_rss_folder')}
+                    </DropdownMenuItem>
+                  </DisabledMenuTooltip>
                   <DisabledMenuTooltip content={smartFolderDisabledTip}>
                     <DropdownMenuItem
                       className={cn(
@@ -257,9 +298,14 @@ export function SpaceSectionContent({
                     className={menuItemClass}
                     onClick={handleUploadClick}
                   >
-                    <MonitorUp className={menuIconClass} />
+                    <FileUp className={menuIconClass} />
                     {t('actions.upload_file')}
                   </DropdownMenuItem>
+                  <ResourceSortMenu
+                    value={resourceSort}
+                    disabled={sorting}
+                    onChange={onResourceSortChange}
+                  />
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -277,13 +323,25 @@ export function SpaceSectionContent({
             <FolderPlus className={menuIconClass} />
             {t('actions.create_folder')}
           </ContextMenuItem>
-          <ContextMenuItem
-            className={menuItemClass}
-            onClick={handleCreateRssFolder}
-          >
-            <RssFolderDefaultIcon className={menuIconClass} />
-            {t('actions.create_rss_folder')}
-          </ContextMenuItem>
+          <DisabledMenuTooltip content={rssFolderDisabledTip}>
+            <ContextMenuItem
+              className={cn(
+                menuItemClass,
+                rssFolderDisabled &&
+                  'cursor-not-allowed text-muted-foreground opacity-50'
+              )}
+              onClick={rssFolderDisabled ? undefined : handleCreateRssFolder}
+              onSelect={event => {
+                if (rssFolderDisabled) {
+                  event.preventDefault();
+                }
+              }}
+              aria-disabled={rssFolderDisabled}
+            >
+              <RssFolderDefaultIcon className={menuIconClass} />
+              {t('actions.create_rss_folder')}
+            </ContextMenuItem>
+          </DisabledMenuTooltip>
           <DisabledMenuTooltip content={smartFolderDisabledTip}>
             <ContextMenuItem
               className={cn(
@@ -309,9 +367,15 @@ export function SpaceSectionContent({
             className={menuItemClass}
             onClick={handleUploadClick}
           >
-            <MonitorUp className={menuIconClass} />
+            <FileUp className={menuIconClass} />
             {t('actions.upload_file')}
           </ContextMenuItem>
+          <ResourceSortMenu
+            variant="context"
+            value={resourceSort}
+            disabled={sorting}
+            onChange={onResourceSortChange}
+          />
         </ContextMenuContent>
       </ContextMenu>
       {isOpen && (

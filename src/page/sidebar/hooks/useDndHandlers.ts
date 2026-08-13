@@ -5,12 +5,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import useApp from '@/hooks/useApp';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 
 import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
 import { getTopLevelSelectedIds, isDescendant } from '../store/utils';
-import { isValidFileType } from '../utils';
+import { isValidFileType, locateSidebarResource } from '../utils';
 import {
   getCurrentResourceId,
   getPreviousParentIds,
@@ -45,6 +46,7 @@ export interface DndItem {
   id?: string;
   ids?: string[];
   disabledTargetIds?: string[];
+  disabledTargetIdSet?: Set<string>;
   count?: number;
   preview?: TreeNode;
   resourceType?: string;
@@ -130,9 +132,12 @@ export function useDndHandlers({
     return useSidebarStore
       .getState()
       .uploadFiles(targetId, fileList.files)
-      .then(id => {
+      .then(async id => {
         useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        navigateToResource(navigate, `/${namespaceId}/${id}`, {
+          state: { fromSidebar: true },
+        });
+        await locateSidebarResource(id);
         toast.success(t('upload.success', { count: fileList.files.length }), {
           position: 'bottom-right',
         });

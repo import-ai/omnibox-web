@@ -42,6 +42,7 @@ function validateAppId(appId: string): void {
   if (
     appId !== 'wechat_bot' &&
     appId !== 'qq_bot' &&
+    appId !== 'telegram_bot' &&
     appId !== 'wechat_clawbot'
   ) {
     throw new Error(`Unsupported application type: ${appId}`);
@@ -284,7 +285,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                   <span className="truncate text-base font-semibold text-foreground">
                     {appDisplayName}
                   </span>
-                  {!hasError && (
+                  {!hasError && application.app_id !== 'telegram_bot' && (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button

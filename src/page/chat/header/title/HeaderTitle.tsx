@@ -30,7 +30,7 @@ export default function HeaderTitle(props: IProps) {
     open: false,
   });
   const onEditDone = (val: string) => {
-    app.fire('chat:title:update', val);
+    app.fire('chat:title:update', { conversationId, title: val });
     onEdit({ id: '', title: '', open: false });
   };
   const onEditChange = (open: boolean) => {
