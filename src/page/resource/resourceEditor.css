@@ -95,7 +95,8 @@
   display: flex !important;
   align-items: center !important;
   align-content: center !important;
-  z-index: 200 !important;
+  /* Stay below app overlays such as the sidebar context menu (z-50). */
+  z-index: 20 !important;
   pointer-events: none !important;
   box-sizing: border-box;
 }
@@ -119,7 +120,8 @@
   /* Do not set overflow here: a non-visible axis forces the other to auto and
    * clips the absolutely positioned popover that opens to the right. */
   pointer-events: auto !important;
-  z-index: 200 !important;
+  /* Stay below app overlays such as the sidebar context menu (z-50). */
+  z-index: 20 !important;
 }
 
 .resource-readonly-editor .toc-sidebar-wrapper,
