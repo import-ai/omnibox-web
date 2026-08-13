@@ -14,7 +14,6 @@ export type {
   ResourceSortOptions,
   ResourceSortOrder,
 } from './resourceSort';
-export { RSS_ITEM_SORT } from './resourceSort';
 
 export interface ManualResourceOrder {
   parent_id: string;
@@ -69,6 +68,7 @@ interface IndexedResourceSearchResult {
   title: string;
   attrs?: Record<string, any>;
   resource_type: ResourceType;
+  read_only?: boolean;
 }
 
 export function fetchChildren(
@@ -123,6 +123,10 @@ export function searchResources(
         parent_id: null,
         resource_type: resource.resource_type,
         attrs: resource.attrs,
+        // The pickers offer search hits as destinations, so a hit needs the
+        // same gate a folder listing carries; without it a read-only resource
+        // found by search looked selectable and the move then 422'd.
+        read_only: resource.read_only,
       }))
     );
 }

@@ -19,9 +19,10 @@ export default function Attributes(props: IProps) {
   const shouldRenderResourceTasks =
     !!onResource && resource.resource_type !== 'smart_folder';
 
-  // RSS items are read-only: only the feed metadata carried in attrs is shown.
-  // Link to the article itself when the feed entry carries its own url.
-  if (resource.resource_type === 'rss_item') {
+  // A read-only resource carries no user-owned attributes: no tags to edit, no
+  // tasks to run. Show only the metadata the feed itself supplied, and link to
+  // the article when the entry carries its own url.
+  if (resource.read_only) {
     const url = resource.attrs?.article_url || resource.attrs?.url;
     const publishedAt = resource.attrs?.published_at;
 
