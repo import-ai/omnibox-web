@@ -25,6 +25,9 @@ jest.mock('react-router-dom', () => ({
     conversation_id: 'conversation-a',
     namespace_id: 'namespace-a',
   }),
+  useLocation: () => ({
+    pathname: '/namespace-a/chat/conversation-a',
+  }),
 }));
 
 jest.mock('react-i18next', () => ({

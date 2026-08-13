@@ -19,6 +19,13 @@ let routeParams: {
 
 jest.mock('react-router-dom', () => ({
   useParams: () => routeParams,
+  useLocation: () => ({
+    pathname: routeParams.share_id
+      ? `/s/${routeParams.share_id}`
+      : routeParams.conversation_id
+        ? `/${routeParams.namespace_id}/chat/${routeParams.conversation_id}`
+        : `/${routeParams.namespace_id}`,
+  }),
 }));
 
 const RESOURCE_ID = 'Abcd1234Efgh5678';

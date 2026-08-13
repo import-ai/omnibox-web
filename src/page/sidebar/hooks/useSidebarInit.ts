@@ -4,21 +4,27 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { getSmartFolderParentIdFromChildKey } from '@/page/sidebar/components/smart-folder';
 import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
+import {
+  clearSidebarActiveKeyFromState,
+  locateSidebarResource,
+} from '@/page/sidebar/utils';
 import { fetchRootResources } from '@/service/resource';
 
 interface IProps {
+  previewResourceId: string | null;
   resourceId: string;
   namespaceId: string;
 }
 
 export function useSidebarInit(props: IProps) {
-  const { namespaceId, resourceId } = props;
+  const { namespaceId, previewResourceId, resourceId } = props;
   const navigate = useNavigate();
   const location = useLocation();
   // Auto-navigate to first resource when no resourceId and not on chat page
   const hasAutoNavigatedRef = useRef(false);
   const chatPage = location.pathname.includes('/chat');
   const rssItemPage = location.pathname.includes('/rss-items/');
+  const currentResourceId = previewResourceId || resourceId;
 
   // Derive initialization state from rootIds.
   // setNamespaceId() clears rootIds when namespace switches, so this is reliable.
@@ -69,9 +75,22 @@ export function useSidebarInit(props: IProps) {
     };
   }, [namespaceId]);
 
-  // Auto-expand path when resourceId changes (only after roots are loaded)
+  // Auto-expand path when the visible resource changes (only after roots load).
   useEffect(() => {
-    if (!initialized || !resourceId || chatPage) return;
+    if (!initialized || !currentResourceId) return;
+    if (chatPage && !previewResourceId) return;
+
+    if (previewResourceId) {
+      const controller = new AbortController();
+      const targetId = previewResourceId;
+      void locateSidebarResource(targetId, {
+        signal: controller.signal,
+        shouldApply: () => !controller.signal.aborted,
+      });
+      return () => {
+        controller.abort();
+      };
+    }
 
     const isFromSidebar = location.state?.fromSidebar === true;
     if (isFromSidebar) {
@@ -87,11 +106,16 @@ export function useSidebarInit(props: IProps) {
     const persistedActiveKey = location.state?.sidebarActiveKey;
     const smartFolderParentId =
       typeof persistedActiveKey === 'string'
-        ? getSmartFolderParentIdFromChildKey(persistedActiveKey, resourceId)
+        ? getSmartFolderParentIdFromChildKey(
+            persistedActiveKey,
+            currentResourceId
+          )
         : null;
-    const expandId = smartFolderParentId ?? resourceId;
+    const expandId = smartFolderParentId ?? currentResourceId;
     const scrollTargetId =
-      typeof persistedActiveKey === 'string' ? persistedActiveKey : resourceId;
+      typeof persistedActiveKey === 'string'
+        ? persistedActiveKey
+        : currentResourceId;
 
     store.expandPathTo(expandId, { expandTarget: true }).then(() => {
       if (cancelled || rssItemPage) return;
@@ -101,7 +125,7 @@ export function useSidebarInit(props: IProps) {
           `[data-resource-id="${scrollTargetId}"]`
         );
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.scrollIntoView({ behavior: 'auto', block: 'center' });
         }
       });
     });
@@ -109,7 +133,14 @@ export function useSidebarInit(props: IProps) {
     return () => {
       cancelled = true;
     };
-  }, [initialized, resourceId, chatPage, location.pathname, navigate]);
+  }, [
+    initialized,
+    currentResourceId,
+    chatPage,
+    location.pathname,
+    navigate,
+    previewResourceId,
+  ]);
 
   useEffect(() => {
     if (!initialized || resourceId || chatPage) return;
@@ -130,9 +161,21 @@ export function useSidebarInit(props: IProps) {
     }
   }, [initialized, resourceId, chatPage, namespaceId, navigate]);
 
-  // Sync activeId from URL (only when URL changes, not when store.activeId changes)
+  // Sync activeId from the resource currently visible in the workspace.
   useEffect(() => {
     const store = useSidebarStore.getState();
+    if (previewResourceId) {
+      const { changed, nextState } = clearSidebarActiveKeyFromState(
+        location.state
+      );
+      if (changed) {
+        navigate(location.pathname, { replace: true, state: nextState });
+      }
+      if (store.activeId !== previewResourceId) {
+        store.activate(previewResourceId);
+      }
+      return;
+    }
     const sidebarActiveKey =
       typeof location.state?.sidebarActiveKey === 'string'
         ? location.state.sidebarActiveKey
@@ -146,8 +189,15 @@ export function useSidebarInit(props: IProps) {
     if (sidebarActiveKey && store.activeId !== sidebarActiveKey) {
       store.activate(sidebarActiveKey);
     }
-    // Only depend on resourceId to avoid racing with internal store navigation
-  }, [resourceId, chatPage, location.state]);
+    // Avoid depending on activeId so internal tree navigation cannot race here.
+  }, [
+    resourceId,
+    previewResourceId,
+    chatPage,
+    location.pathname,
+    location.state,
+    navigate,
+  ]);
 
-  return { namespaceId, resourceId };
+  return { namespaceId, resourceId: currentResourceId };
 }

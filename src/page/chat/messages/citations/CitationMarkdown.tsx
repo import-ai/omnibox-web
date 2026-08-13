@@ -36,6 +36,7 @@ import {
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
+import { resolveCitationTarget } from '@/page/copilot/citationTarget';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const resourceLinkRegex = /^#resource-([\w-]+)$/;
@@ -103,11 +104,18 @@ export function CitationMarkdown(props: IProps) {
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
       const { node } = props;
       const resourceMatch = href?.match(resourceLinkRegex);
-      const resourceId = resourceMatch?.[1] ?? getResourceIdFromHash(href);
-      if (resourceId && resourceLinkPrefix) {
-        const resourceHref = `${resourceLinkPrefix}/${resourceId}`;
+      let resolvedResource =
+        resourceMatch?.[1] ?? getResourceIdFromHash(href) ?? undefined;
+      if (!resolvedResource && href && namespaceId) {
+        const target = resolveCitationTarget(href, namespaceId);
+        if (target.kind === 'resource') {
+          resolvedResource = target.resourceId;
+        }
+      }
+      if (resolvedResource && resourceLinkPrefix) {
+        const resourceHref = `${resourceLinkPrefix}/${resolvedResource}`;
         return (
-          <ChatResourceLink href={resourceHref} resourceId={resourceId}>
+          <ChatResourceLink href={resourceHref} resourceId={resolvedResource}>
             {children}
           </ChatResourceLink>
         );
