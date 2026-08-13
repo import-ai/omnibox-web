@@ -143,7 +143,7 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
   }
 
   if (displayedItems.length === 0) {
-    return <FolderEmptyState depth={depth} type="rss_folder" />;
+    return <FolderEmptyState depth={depth} />;
   }
 
   return (

@@ -34,18 +34,15 @@ describe('FolderEmptyState', () => {
     container.remove();
   });
 
-  it.each(['smart_folder', 'rss_folder'] as const)(
-    'shows the shared empty state for %s',
-    async type => {
-      await act(async () => {
-        root.render(<FolderEmptyState depth={1} type={type} />);
-      });
+  it('shows the shared folder empty state', async () => {
+    await act(async () => {
+      root.render(<FolderEmptyState depth={1} />);
+    });
 
-      expect(container.textContent).toBe('空空如也');
-      expect(
-        (container.firstElementChild?.firstElementChild as HTMLElement).style
-          .paddingLeft
-      ).toBe('48px');
-    }
-  );
+    expect(container.textContent).toBe('空空如也');
+    expect(
+      (container.firstElementChild?.firstElementChild as HTMLElement).style
+        .paddingLeft
+    ).toBe('48px');
+  });
 });

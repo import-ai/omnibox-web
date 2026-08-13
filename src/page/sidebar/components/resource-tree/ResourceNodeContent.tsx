@@ -397,7 +397,7 @@ export function ResourceNodeContent({
             {isExpanded &&
               node.resourceType === 'smart_folder' &&
               node.children.length === 0 && (
-                <FolderEmptyState depth={depth + 1} type="smart_folder" />
+                <FolderEmptyState depth={depth + 1} />
               )}
           </SidebarMenuSub>
         </CollapsibleContent>

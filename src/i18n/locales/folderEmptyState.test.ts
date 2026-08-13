@@ -1,10 +1,14 @@
+import * as en from './en.json';
 import * as zh from './zh.json';
 
 describe('folder empty state translations', () => {
-  it.each(['smart_folder', 'rss_folder'] as const)(
-    'uses the shared empty copy for %s',
-    folderType => {
-      expect(zh[folderType].empty).toBe('空空如也');
-    }
-  );
+  it('uses dedicated localized sidebar copy', () => {
+    expect(zh.sidebar.folder_empty).toBe('空空如也');
+    expect(en.sidebar.folder_empty).toBe('Nothing here');
+  });
+
+  it('preserves the smart folder detail guidance', () => {
+    expect(zh.smart_folder.empty).toBe('暂无匹配的资源，可修改筛选条件。');
+    expect(zh.rss_folder.empty).toBe('暂无内容');
+  });
 });
