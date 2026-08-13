@@ -40,7 +40,7 @@ export default function RssItemList({ folderId, namespaceId, depth }: IProps) {
       : items;
   useRssItemAutoScroll(
     activeItemId,
-    displayedItems.some(item => item.id === activeItemId)
+    !loading && displayedItems.some(item => item.id === activeItemId)
   );
   // Match the indent of a leaf resource node at this depth.
   const paddingLeft = depth * 20 + 28;

@@ -1,8 +1,11 @@
 import { type AnchorHTMLAttributes, type MouseEvent, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
-import { useCopilotStore } from '@/page/copilot/copilotStore';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
 
 type ResourceLinkProps = Pick<
   AnchorHTMLAttributes<HTMLAnchorElement>,
@@ -22,9 +25,29 @@ function isPlainClick(event: MouseEvent<HTMLElement>) {
 /** Opens authenticated chat resources beside the active Copilot conversation. */
 export function useChatResourceNavigation() {
   const params = useParams();
-  const { conversationId, namespaceId } = useChatRouteParams();
+  const location = useLocation();
+  const { conversationId: routeConversationId, namespaceId: routeNamespaceId } =
+    useChatRouteParams();
+  const namespaceId = routeNamespaceId || params.namespace_id || '';
+  const copilotWorkspace = useCopilotStore(state =>
+    getCopilotWorkspace(state, namespaceId)
+  );
+  const conversationId =
+    routeConversationId ||
+    (copilotWorkspace.view === 'conversation'
+      ? copilotWorkspace.conversationId || ''
+      : '');
+  const chatRoot = namespaceId ? `/${namespaceId}/chat` : '';
+  const isChatRoute =
+    Boolean(chatRoot) &&
+    (location.pathname === chatRoot ||
+      location.pathname.startsWith(`${chatRoot}/`));
+  // Prefer an in-pane preview when Copilot already owns a conversation, or when
+  // Copilot is open beside a resource page (URL has no conversation_id).
   const canOpenInCopilot = Boolean(
-    !params.share_id && namespaceId && conversationId
+    !params.share_id &&
+    namespaceId &&
+    (conversationId || (copilotWorkspace.open && !isChatRoute))
   );
 
   const openResource = useCallback(
@@ -32,13 +55,16 @@ export function useChatResourceNavigation() {
       if (!canOpenInCopilot || !isPlainClick(event)) return false;
 
       event.preventDefault();
-      useCopilotStore
-        .getState()
-        .showResourceBesideConversation(
+      const store = useCopilotStore.getState();
+      if (conversationId) {
+        store.showResourceBesideConversation(
           namespaceId,
           conversationId,
           resourceId
         );
+      } else {
+        store.previewResource(namespaceId, resourceId);
+      }
       return true;
     },
     [canOpenInCopilot, conversationId, namespaceId]

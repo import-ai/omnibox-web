@@ -119,7 +119,7 @@ describe('ShareRssItemList', () => {
     });
 
     expect(scrollIntoView).toHaveBeenCalledWith({
-      behavior: 'smooth',
+      behavior: 'auto',
       block: 'center',
     });
   });
@@ -174,7 +174,7 @@ describe('ShareRssItemList', () => {
       container.querySelector('[data-rss-item-id="item-51"]')
     ).not.toBeNull();
     expect(scrollIntoView).toHaveBeenCalledWith({
-      behavior: 'smooth',
+      behavior: 'auto',
       block: 'center',
     });
   });

@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { FolderNameDialog } from '@/components/FolderNameDialog';
@@ -51,10 +51,11 @@ import {
 } from './sidebarBehavior';
 import { TreeNode, useSidebarStore } from './store';
 import { getBatchSelectionSummary, getNodeResourceSort } from './store/utils';
-import { locateSidebarResource } from './utils';
+import { locateSidebarResource, locateSidebarRssItem } from './utils';
 
 interface IProps {
   currentNamespace?: Namespace;
+  previewResourceId: string | null;
   resourceId: string;
   namespaceId: string;
 }
@@ -139,12 +140,14 @@ function getLocateSnapshot(
 }
 
 export function BodyForSidebar(props: IProps) {
-  const { currentNamespace, namespaceId, resourceId } = props;
+  const { currentNamespace, namespaceId, previewResourceId, resourceId } =
+    props;
   const app = useApp();
-  useSidebarInit({ namespaceId, resourceId });
+  useSidebarInit({ namespaceId, previewResourceId, resourceId });
   useSidebarEvents(namespaceId);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { rss_item_id: rssItemId } = useParams();
   const globalFileInputRef = useRef<HTMLInputElement>(null);
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
   const [defaultSmartFolderOwnerScope, setDefaultSmartFolderOwnerScope] =
@@ -221,7 +224,7 @@ export function BodyForSidebar(props: IProps) {
     () => getBatchSelectionSummary(nodes, batch.selectedIds),
     [batch.selectedIds, nodes]
   );
-  const locateResourceId = activeId || resourceId;
+  const locateResourceId = previewResourceId || activeId || resourceId;
   const canLocateCurrentResource =
     !!locateResourceId && locateResourceId !== 'chat';
   const smartFolderQuotaExhausted = useMemo(() => {
@@ -265,7 +268,15 @@ export function BodyForSidebar(props: IProps) {
   const handleLocateResource = () => {
     if (!canLocateCurrentResource) return;
 
-    const targetId = useSidebarStore.getState().activeId || resourceId;
+    // RSS item pages keep resourceId as the folder id. Locate the history row
+    // itself instead of only scrolling to the folder node.
+    if (rssItemId && resourceId) {
+      void locateSidebarRssItem(resourceId, rssItemId);
+      return;
+    }
+
+    const targetId =
+      previewResourceId || useSidebarStore.getState().activeId || resourceId;
     if (!targetId || targetId === 'chat') return;
 
     const store = useSidebarStore.getState();
@@ -334,7 +345,7 @@ export function BodyForSidebar(props: IProps) {
 
     const locateSnapshot = getLocateSnapshot(
       state.nodes,
-      state.activeId || resourceId
+      previewResourceId || state.activeId || resourceId
     );
 
     setRefreshingResources(true);
@@ -345,7 +356,11 @@ export function BodyForSidebar(props: IProps) {
         )
       );
 
-      if (locateSnapshot) {
+      // Expand/activate first so collapsed folders recover. History rows may
+      // also remount via refresh_rss_items and re-locate through auto-scroll.
+      if (rssItemId && resourceId) {
+        await locateSidebarRssItem(resourceId, rssItemId);
+      } else if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
@@ -366,7 +381,7 @@ export function BodyForSidebar(props: IProps) {
     if (!rootId) return;
     const locateSnapshot = getLocateSnapshot(
       store.nodes,
-      store.activeId || resourceId
+      previewResourceId || store.activeId || resourceId
     );
 
     store.setResourceSort(spaceType, sort);
@@ -383,7 +398,9 @@ export function BodyForSidebar(props: IProps) {
         });
       }
       await refreshSpaceResources(spaceType, sort);
-      if (locateSnapshot) {
+      if (rssItemId && resourceId) {
+        await locateSidebarRssItem(resourceId, rssItemId);
+      } else if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
