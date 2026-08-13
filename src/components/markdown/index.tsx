@@ -11,6 +11,8 @@ import useTheme from '@/hooks/useTheme';
 import { Theme } from '@/interface';
 import { addReferrerPolicyForString } from '@/lib/addReferrerPolicy';
 
+import { normalizeListIndentForLute } from './normalizeListIndent';
+
 interface IProps {
   content: string;
   linkBase?: string;
@@ -74,7 +76,9 @@ export function Markdown(props: IProps) {
 
   useEffect(() => {
     if (element.current) {
-      Vditor.preview(element.current, content, {
+      // Lute flattens 2-space nested lists from TipTap; expand before preview.
+      const previewContent = normalizeListIndentForLute(content);
+      Vditor.preview(element.current, previewContent, {
         ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
         ...markdownPreviewConfig(theme),
         theme: {
