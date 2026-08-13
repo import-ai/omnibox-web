@@ -685,6 +685,7 @@
           "write_file": "创建资源",
           "create_resource": "创建资源",
           "create_smart_folder": "创建智能文件夹",
+          "create_rss_folder": "创建 RSS 文件夹",
           "glob": "Glob",
           "grep": "Grep",
           "task": "子任务",
@@ -711,6 +712,8 @@
           "frontend_operations": "前端操作",
           "get_smart_folder_config": "查看智能文件夹配置",
           "update_smart_folder_config": "修改智能文件夹配置",
+          "get_rss_folder_config": "查看 RSS 文件夹配置",
+          "update_rss_folder_config": "修改 RSS 文件夹配置",
           "unknown": "未知工具"
         },
         "function_args": {

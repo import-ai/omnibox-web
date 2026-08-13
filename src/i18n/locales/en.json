@@ -684,6 +684,7 @@
           "write_file": "Create Resource",
           "create_resource": "Create Resource",
           "create_smart_folder": "Create Smart Folder",
+          "create_rss_folder": "Create RSS Folder",
           "glob": "Glob",
           "grep": "Grep",
           "task": "Task",
@@ -710,6 +711,8 @@
           "frontend_operations": "Frontend Operating",
           "get_smart_folder_config": "Get Smart Folder Config",
           "update_smart_folder_config": "Update Smart Folder Config",
+          "get_rss_folder_config": "Get RSS Folder Config",
+          "update_rss_folder_config": "Update RSS Folder Config",
           "unknown": "Unknown"
         },
         "function_args": {
