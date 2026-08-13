@@ -51,11 +51,9 @@ import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
-import {
-  CreateRssFolderPayload,
-  RssFolderResponse,
-} from '@/page/sidebar/components/rss-folder';
+import { CreateRssFolderPayload } from '@/page/sidebar/components/rss-folder';
 import { CreateRssFolderDialog } from '@/page/sidebar/components/rss-folder/CreateRssFolderDialog';
+import { useRssFolderConfig } from '@/page/sidebar/components/rss-folder/useRssFolderConfig';
 import {
   CreateSmartFolderPayload,
   CreateSmartFolderRequest,
@@ -150,6 +148,8 @@ export default function Actions(props: IActionProps) {
   const [smartFolderTrashOpen, setSmartFolderTrashOpen] = useState(false);
   const [smartFolderInitial, setSmartFolderInitial] =
     useState<CreateSmartFolderPayload | null>(null);
+  const { loadRssFolderConfig, updateRssFolderConfig } =
+    useRssFolderConfig(namespaceId);
   const [rssFolderOpen, setRssFolderOpen] = useState(false);
   const [rssFolderInitial, setRssFolderInitial] =
     useState<CreateRssFolderPayload | null>(null);
@@ -236,18 +236,10 @@ export default function Actions(props: IActionProps) {
         toast.error(t('permission.edit_required'));
         return;
       }
-      http
-        .get(`/namespaces/${namespaceId}/rss-folders/${resource.id}/config`)
-        .then((response: RssFolderResponse) => {
-          setRssFolderInitial({
-            name: response.resource.name || '',
-            links: (response.links || []).map(link => ({
-              url: link.url,
-              name: link.name,
-            })),
-          });
-          setRssFolderOpen(true);
-        });
+      loadRssFolderConfig(resource.id).then(initial => {
+        setRssFolderInitial(initial);
+        setRssFolderOpen(true);
+      });
       return;
     }
     navigate(`/${namespaceId}/${resource.id}/edit`, {
@@ -291,19 +283,7 @@ export default function Actions(props: IActionProps) {
   const handleUpdateRssFolder = (payload: CreateRssFolderPayload) => {
     if (!resource) return Promise.reject();
 
-    return http
-      .patch(
-        `/namespaces/${namespaceId}/rss-folders/${resource.id}/config`,
-        payload,
-        { muteCodes: ['rss_feed_invalid'] }
-      )
-      .then((response: RssFolderResponse) => {
-        useSidebarStore
-          .getState()
-          .patch(resource.id, { name: response.resource.name });
-        app.fire('update_resource', response.resource);
-        toast.success(t('rss_folder.edit.success'));
-      });
+    return updateRssFolderConfig(resource.id, payload);
   };
   const handleExitEdit = () => {
     if (!resource) {

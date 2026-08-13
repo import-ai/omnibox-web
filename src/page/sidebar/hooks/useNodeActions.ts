@@ -10,7 +10,7 @@ import type { Resource } from '@/interface';
 import { addToChatContext, openCopilotForChatContext } from '@/lib/chatBridge';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
-import type { RssFolderResponse } from '@/page/sidebar/components/rss-folder';
+import { useRssFolderConfig } from '@/page/sidebar/components/rss-folder/useRssFolderConfig';
 import {
   getSmartFolderSourceParentId,
   getSmartFolderSourceResourceId,
@@ -90,6 +90,7 @@ export function useNodeActions(
 
   const [moveTo, setMoveTo] = useState(false);
   const [folderEditOpen, setFolderEditOpen] = useState(false);
+  const { loadRssFolderConfig } = useRssFolderConfig(namespaceId);
   const isSmartFolderChild = node ? isSmartFolderChildResource(node) : false;
   const canModifyNode =
     (node?.currentPermission || 'full_access') === 'can_edit' ||
@@ -101,10 +102,10 @@ export function useNodeActions(
     ? getSmartFolderSourceParentId(getNodeResource(node))
     : undefined;
 
-  const isNoContainerFolder = isManagedChildrenNode(node);
+  const hasManagedChildren = isManagedChildrenNode(node);
 
   const handleCreateFile = () => {
-    if (isNoContainerFolder || isSmartFolderChild) {
+    if (hasManagedChildren || isSmartFolderChild) {
       return;
     }
 
@@ -124,7 +125,7 @@ export function useNodeActions(
   };
 
   const handleCreateFolderDirect = () => {
-    if (isNoContainerFolder || isSmartFolderChild) {
+    if (hasManagedChildren || isSmartFolderChild) {
       return;
     }
 
@@ -141,7 +142,7 @@ export function useNodeActions(
   };
 
   const handleCreateFolderWithDialog = () => {
-    if (isNoContainerFolder || isSmartFolderChild) {
+    if (hasManagedChildren || isSmartFolderChild) {
       return;
     }
 
@@ -149,7 +150,7 @@ export function useNodeActions(
   };
 
   const handleCreateRssFolder = () => {
-    if (isNoContainerFolder || isSmartFolderChild) {
+    if (hasManagedChildren || isSmartFolderChild) {
       return;
     }
 
@@ -186,17 +187,9 @@ export function useNodeActions(
         toast.error(t('permission.edit_required'));
         return;
       }
-      http
-        .get(`/namespaces/${namespaceId}/rss-folders/${nodeId}/config`)
-        .then((response: RssFolderResponse) => {
-          useSidebarStore.getState().openEditRssFolderDialog(nodeId, {
-            name: response.resource.name || '',
-            links: (response.links || []).map(link => ({
-              url: link.url,
-              name: link.name,
-            })),
-          });
-        });
+      loadRssFolderConfig(nodeId).then(initial => {
+        useSidebarStore.getState().openEditRssFolderDialog(nodeId, initial);
+      });
       return;
     }
 
@@ -279,7 +272,7 @@ export function useNodeActions(
   };
 
   const handleUpload = () => {
-    if (isNoContainerFolder || isSmartFolderChild) {
+    if (hasManagedChildren || isSmartFolderChild) {
       return;
     }
 

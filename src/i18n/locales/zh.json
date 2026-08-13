@@ -1233,9 +1233,7 @@
   },
   "rss_folder": {
     "empty": "暂无内容",
-    "reader": {
-      "published_at": "发布时间"
-    },
+    "published_at": "发布时间",
     "create": {
       "title": "创建订阅文件夹",
       "name": "名称",

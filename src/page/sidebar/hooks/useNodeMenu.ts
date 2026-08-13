@@ -16,17 +16,13 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
-import useRssFolderLimits from '@/hooks/useRssFolderLimits';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
-import {
-  countRssFoldersBySpace,
-  getRssFolderQuotaExhausted,
-  getRssFolderQuotaTooltipKey,
-} from '@/page/sidebar/rssFolderQuota';
+import { getRssFolderQuotaTooltipKey } from '@/page/sidebar/rssFolderQuota';
 
 import { useSidebarStore } from '../store';
 import { getBatchSelectionSummary } from '../store/utils';
 import type { UseNodeActionsReturn } from './useNodeActions';
+import { useRssFolderQuotaExhausted } from './useRssFolderQuotaExhausted';
 
 export type CreateFolderMode = 'direct' | 'dialog';
 
@@ -75,17 +71,9 @@ export function useNodeMenu(
   const nodes = useSidebarStore(state => state.nodes);
   const namespaceId = useSidebarStore(state => state.namespaceId);
   const rootIds = useSidebarStore(state => state.rootIds);
-  const { data: rssFolderLimits } = useRssFolderLimits({
-    namespaceId: namespaceId || undefined,
-  });
   const hasTeamspace = !!(rootIds.teamspace && nodes[rootIds.teamspace]);
-  const rssFolderLocalCounts = useMemo(
-    () => countRssFoldersBySpace(nodes),
-    [nodes]
-  );
-  const rssFolderQuotaExhausted = useMemo(
-    () => getRssFolderQuotaExhausted(rssFolderLimits, rssFolderLocalCounts),
-    [rssFolderLimits, rssFolderLocalCounts]
+  const rssFolderQuotaExhausted = useRssFolderQuotaExhausted(
+    namespaceId || undefined
   );
 
   return useMemo<{

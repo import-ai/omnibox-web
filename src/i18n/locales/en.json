@@ -1232,9 +1232,7 @@
   },
   "rss_folder": {
     "empty": "No items yet",
-    "reader": {
-      "published_at": "Published"
-    },
+    "published_at": "Published",
     "create": {
       "title": "Create RSS Folder",
       "name": "Name",

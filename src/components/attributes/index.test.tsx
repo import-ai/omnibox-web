@@ -78,7 +78,7 @@ describe('Attributes', () => {
     const link = container.querySelector('a');
     // The article's own url wins over the feed url it came from.
     expect(link?.getAttribute('href')).toBe('https://example.com/article');
-    expect(container.textContent).toContain('rss_folder.reader.published_at');
+    expect(container.textContent).toContain('rss_folder.published_at');
     // Read-only resources never expose tag editing or task retries.
     expect(container.querySelector('[data-testid="tags"]')).toBeNull();
     expect(

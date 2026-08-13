@@ -7,7 +7,6 @@ import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
-import useRssFolderLimits from '@/hooks/useRssFolderLimits';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { type Namespace, ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
@@ -18,6 +17,7 @@ import type {
   RssFolderResponse,
 } from '@/page/sidebar/components/rss-folder';
 import { CreateRssFolderDialog } from '@/page/sidebar/components/rss-folder/CreateRssFolderDialog';
+import { useRssFolderConfig } from '@/page/sidebar/components/rss-folder/useRssFolderConfig';
 import {
   CreateSmartFolderRequest,
   getSmartFolderSourceParentId,
@@ -39,12 +39,9 @@ import { ManualSortConfirmDialog } from './components/ManualSortConfirmDialog';
 import ResourceTree from './components/resource-tree';
 import { Toolbar } from './components/toolbar';
 import { useBatchOperations } from './hooks/useBatchOperations';
+import { useRssFolderQuotaExhausted } from './hooks/useRssFolderQuotaExhausted';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
-import {
-  countRssFoldersBySpace,
-  getRssFolderQuotaExhausted,
-} from './rssFolderQuota';
 import {
   fetchChildrenForSidebarRefresh,
   getExpandedNodeIdsForSidebarRefresh,
@@ -156,7 +153,6 @@ export function BodyForSidebar(props: IProps) {
   const [sortingSpace, setSortingSpace] = useState<SpaceType | null>(null);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
-  const { data: rssFolderLimits } = useRssFolderLimits({ namespaceId });
   const roots = useSidebarStore(state => state.rootIds);
   const nodes = useSidebarStore(state => state.nodes);
   const activeId = useSidebarStore(state => state.activeId);
@@ -243,14 +239,8 @@ export function BodyForSidebar(props: IProps) {
     smartFolderCounts.privateCount,
     smartFolderCounts.teamCount,
   ]);
-  const rssFolderLocalCounts = useMemo(
-    () => countRssFoldersBySpace(nodes),
-    [nodes]
-  );
-  const rssFolderQuotaExhausted = useMemo(
-    () => getRssFolderQuotaExhausted(rssFolderLimits, rssFolderLocalCounts),
-    [rssFolderLimits, rssFolderLocalCounts]
-  );
+  const { updateRssFolderConfig } = useRssFolderConfig(namespaceId);
+  const rssFolderQuotaExhausted = useRssFolderQuotaExhausted(namespaceId);
 
   const handleCreateSmartFolder = (ownerScope: SmartFolderOwnerScope) => {
     setDefaultSmartFolderOwnerScope(ownerScope);
@@ -539,20 +529,7 @@ export function BodyForSidebar(props: IProps) {
       return Promise.reject();
     }
 
-    return http
-      .patch(
-        `/namespaces/${namespaceId}/rss-folders/${nodeId}/config`,
-        payload,
-        {
-          muteCodes: ['rss_feed_invalid'],
-        }
-      )
-      .then((response: RssFolderResponse) => {
-        const store = useSidebarStore.getState();
-        store.patch(nodeId, { name: response.resource.name });
-        app.fire('update_resource', response.resource);
-        toast.success(t('rss_folder.edit.success'));
-      });
+    return updateRssFolderConfig(nodeId, payload);
   };
 
   const handleUpdateSmartFolder = (

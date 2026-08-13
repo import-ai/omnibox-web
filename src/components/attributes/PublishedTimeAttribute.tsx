@@ -6,12 +6,10 @@ import { ATTRIBUTE_STYLES } from './constants';
 
 interface PublishedTimeAttributeProps {
   publishedAt: string;
-  label?: string;
 }
 
 export function PublishedTimeAttribute({
   publishedAt,
-  label,
 }: PublishedTimeAttributeProps) {
   const { t } = useTranslation();
   const parsed = toDate(publishedAt);
@@ -25,7 +23,7 @@ export function PublishedTimeAttribute({
       <div className={ATTRIBUTE_STYLES.containerLabel}>
         <Clock className={ATTRIBUTE_STYLES.icon} />
         <span className={ATTRIBUTE_STYLES.label}>
-          {label ?? t('rss_folder.reader.published_at')}
+          {t('rss_folder.published_at')}
         </span>
       </div>
       <span className={ATTRIBUTE_STYLES.value}>
