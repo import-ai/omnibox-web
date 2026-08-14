@@ -208,8 +208,25 @@ describe('rss folder feed names', () => {
     ).not.toBeNull();
   });
 
+  // charAt(0) would hand back half of a surrogate pair.
+  it('keeps an astral first character whole', async () => {
+    mockGet.mockResolvedValue(
+      configResponse([{ id: FEED_A, name: '🚀 Daily Rocket' }])
+    );
+
+    await render(<ItemRow attrs={{ link_id: FEED_A }} />);
+
+    expect(badges()).toEqual(['🚀']);
+  });
+
+  function httpError(status: number) {
+    return Object.assign(new Error(`request failed with ${status}`), {
+      response: { status },
+    });
+  }
+
   it('falls back to the resource icon when the config cannot be read', async () => {
-    mockGet.mockRejectedValue(new Error('forbidden'));
+    mockGet.mockRejectedValue(httpError(403));
 
     await render(
       <>
@@ -222,8 +239,50 @@ describe('rss folder feed names', () => {
     expect(
       container.querySelectorAll('[data-testid="resource-icon"]')
     ).toHaveLength(2);
-    // The failure is memoised too, so a broken folder is not retried per row.
+    // Rows in flight together share the one request whatever it answers.
     expect(mockGet).toHaveBeenCalledTimes(1);
+  });
+
+  // A refusal is the folder's settled answer: there is nothing to retry.
+  it.each([[401], [403], [404]])(
+    'does not ask again after a %i',
+    async status => {
+      mockGet.mockRejectedValue(httpError(status));
+      await render(<ItemRow key="first" attrs={{ link_id: FEED_A }} />);
+      expect(mockGet).toHaveBeenCalledTimes(1);
+
+      mockGet.mockResolvedValue(
+        configResponse([{ id: FEED_A, name: 'Alpha Weekly' }])
+      );
+      // A fresh row, as after navigating away and back.
+      await render(<ItemRow key="second" attrs={{ link_id: FEED_A }} />);
+
+      expect(mockGet).toHaveBeenCalledTimes(1);
+      expect(badges()).toEqual([]);
+    }
+  );
+
+  // A blip is about the attempt, not the folder. Memoising the empty result
+  // left every badge in the session missing until a hard reload.
+  it.each([
+    ['a gateway failure', httpError(502)],
+    ['a server error', httpError(500)],
+    ['an offline request', new Error('Network Error')],
+  ])('retries after %s on the next mount', async (_label, error) => {
+    mockGet.mockRejectedValue(error);
+    await render(<ItemRow key="first" attrs={{ link_id: FEED_A }} />);
+    expect(badges()).toEqual([]);
+    expect(mockGet).toHaveBeenCalledTimes(1);
+
+    mockGet.mockResolvedValue(
+      configResponse([{ id: FEED_A, name: 'Alpha Weekly' }])
+    );
+    // Navigating away and back, scrolling the row back into view, re-expanding
+    // the folder: a fresh row asks again rather than reusing the failure.
+    await render(<ItemRow key="second" attrs={{ link_id: FEED_A }} />);
+
+    expect(mockGet).toHaveBeenCalledTimes(2);
+    expect(badges()).toEqual(['A']);
   });
 
   it('does not ask for a config for a non-rss row or outside a namespace', async () => {

@@ -12,6 +12,7 @@ import { ResourceNodeContent } from './ResourceNodeContent';
 
 const NAMESPACE_ID = 'ns-1';
 const FOLDER_ID = 'rss-folder-1';
+const SMART_FOLDER_ID = 'smart-folder-1';
 const CONFIG_URL = `/namespaces/${NAMESPACE_ID}/rss-folders/${FOLDER_ID}/config`;
 const FEED_A = 'link-a';
 const FEED_B = 'link-b';
@@ -100,8 +101,28 @@ jest.mock('@/page/sidebar/hooks/useResourceNodeRename', () => ({
     startRename: jest.fn(),
   }),
 }));
+// A row reads its parent out of the tree to know what kind of folder it sits
+// in, so the store has to hold the parent node the row claims.
+const mockSidebarState: {
+  activeId: string | null;
+  dialogs: { upload: Record<string, string> };
+  nodes: Record<string, { id: string; resourceType: string }>;
+  renamingId: string | null;
+  ui: Record<string, unknown>;
+} = {
+  activeId: null,
+  dialogs: { upload: {} },
+  nodes: {},
+  renamingId: null,
+  ui: {},
+};
+
 jest.mock('@/page/sidebar/store', () => ({
-  useSidebarStore: Object.assign(() => undefined, { getState: () => ({}) }),
+  useSidebarStore: Object.assign(
+    (selector: (state: typeof mockSidebarState) => unknown) =>
+      selector(mockSidebarState),
+    { getState: () => mockSidebarState }
+  ),
   useSelectionState: () => ({
     selectionMode: false,
     lastSelectedId: null,
@@ -157,6 +178,10 @@ describe('ResourceNodeContent rss item rows', () => {
   beforeEach(() => {
     clearRssFolderLinkNamesCache();
     mockGet.mockReset();
+    mockSidebarState.nodes = {
+      [FOLDER_ID]: { id: FOLDER_ID, resourceType: 'rss_folder' },
+      [SMART_FOLDER_ID]: { id: SMART_FOLDER_ID, resourceType: 'smart_folder' },
+    };
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -263,5 +288,46 @@ describe('ResourceNodeContent rss item rows', () => {
     expect(badges()).toEqual([]);
     expect(icons()).toHaveLength(1);
     expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  // A smart folder that collects rss items re-parents them to itself, so the
+  // row's parent is not the feed folder. There is no feed config to read there:
+  // asking for one 404s, and the miss is memoised for the session.
+  it('asks for no config for an item a smart folder collected', async () => {
+    mockConfig([{ id: FEED_A, name: 'Alpha Weekly' }]);
+    const collected = {
+      ...itemNode('item-1', { link_id: FEED_A }),
+      parentId: SMART_FOLDER_ID,
+    } as TreeNode;
+
+    await renderNodes([collected]);
+
+    expect(mockGet).not.toHaveBeenCalled();
+    // Still a usable row: it falls back to the resource icon.
+    expect(badges()).toEqual([]);
+    expect(icons()).toHaveLength(1);
+  });
+
+  // ...and the miss must not have poisoned the folder that does have a config.
+  it('still badges the same item under its own rss folder', async () => {
+    mockConfig([{ id: FEED_A, name: 'Alpha Weekly' }]);
+
+    await renderNodes([
+      {
+        ...itemNode('collected-1', { link_id: FEED_A }),
+        parentId: SMART_FOLDER_ID,
+      } as TreeNode,
+      itemNode('item-1', { link_id: FEED_A }),
+    ]);
+
+    expect(badges()).toEqual(['A']);
+    expect(
+      mockGet.mock.calls.filter(([url]) => url === CONFIG_URL)
+    ).toHaveLength(1);
+    expect(
+      mockGet.mock.calls.filter(([url]: [string]) =>
+        url.includes(SMART_FOLDER_ID)
+      )
+    ).toHaveLength(0);
   });
 });

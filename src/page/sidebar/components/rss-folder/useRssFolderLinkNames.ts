@@ -56,6 +56,22 @@ export function clearRssFolderLinkNamesCache() {
   publishLinkNamesChange();
 }
 
+/**
+ * A refusal — no permission, no such folder — is the folder's settled answer
+ * and stays memoised. Anything else (offline, a gateway blip, a 500) is about
+ * this attempt, not this folder, so it must not silence the badge for the rest
+ * of the session.
+ */
+const SETTLED_FAILURE_STATUSES = [401, 403, 404];
+
+function isSettledFailure(error: unknown): boolean {
+  const status = (error as { response?: { status?: number }; status?: number })
+    ?.response?.status;
+  return (
+    typeof status === 'number' && SETTLED_FAILURE_STATUSES.includes(status)
+  );
+}
+
 export function loadRssFolderLinkNames(
   namespaceId: string,
   resourceId: string
@@ -66,11 +82,15 @@ export function loadRssFolderLinkNames(
     return cached;
   }
 
-  const pending = fetchRssFolderConfig(namespaceId, resourceId, {
-    // The name is decorative; a folder whose config we cannot read should not
-    // raise an error toast behind the list it decorates.
-    mute: true,
-  })
+  const pending: Promise<RssFolderLinkNames> = fetchRssFolderConfig(
+    namespaceId,
+    resourceId,
+    {
+      // The name is decorative; a folder whose config we cannot read should not
+      // raise an error toast behind the list it decorates.
+      mute: true,
+    }
+  )
     .then((response: RssFolderResponse) => {
       const names: RssFolderLinkNames = {};
       for (const link of response?.links || []) {
@@ -82,9 +102,14 @@ export function loadRssFolderLinkNames(
       }
       return names;
     })
-    .catch(() => {
-      // No permission, deleted folder, offline: fall back to plain rows. The
-      // empty result stays memoised so one failure is not retried per item.
+    .catch((error: unknown) => {
+      // Either way this attempt falls back to plain rows; the question is only
+      // whether the next reader gets to ask again. Dropping the key rather than
+      // memoising the empty result is what lets it — rows in flight together
+      // still share this one request, so a retry is per mount, not per item.
+      if (!isSettledFailure(error) && linkNamesCache.get(key) === pending) {
+        linkNamesCache.delete(key);
+      }
       return {} as RssFolderLinkNames;
     });
   linkNamesCache.set(key, pending);

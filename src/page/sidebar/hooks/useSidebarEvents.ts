@@ -6,6 +6,7 @@ import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/useApp';
 import { Resource, ResourceType } from '@/interface';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
+import { invalidateRssFolderLinkNames } from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import { useSidebarStore } from '@/page/sidebar/store';
 import {
@@ -152,6 +153,13 @@ export function useSidebarEvents(namespaceId: string) {
         content: resource.content,
         hasChildren: resource.has_children,
       });
+      // The agent renames feeds too, and its update arrives here rather than
+      // through the config dialog. The folder's name is patched above, but the
+      // feed names its item rows show are memoised per folder and would keep
+      // the old badge until a reload.
+      if (resource.resource_type === 'rss_folder') {
+        invalidateRssFolderLinkNames(namespaceId, resource.id);
+      }
       const store = useSidebarStore.getState();
       const parentId = resource.parent_id || store.nodes[resource.id]?.parentId;
       if (parentId && store.nodes[parentId]?.resourceType !== 'smart_folder') {

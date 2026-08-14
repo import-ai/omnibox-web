@@ -71,11 +71,20 @@ export function ResourceNodeContent({
   const isDimmedBySelection = useNodeIsDimmedBySelection(nodeId);
 
   const clickTimeoutRef = useRef<number | null>(null);
+  // The config endpoint only exists for an rss folder, and a row's parent is
+  // not always the feed folder the item lives in: a smart folder collecting rss
+  // items re-parents them to itself. Asking that folder for a feed config 404s,
+  // and the miss is memoised, so every badge in the session goes missing.
+  const parentResourceType = useSidebarStore(s =>
+    node.parentId ? s.nodes[node.parentId]?.resourceType : undefined
+  );
+  const rssFolderId =
+    parentResourceType === 'rss_folder' ? node.parentId : null;
 
   // Only resolves for an rss item, and only to a named feed of its folder.
   const feedName = useRssItemFeedName(namespaceId, {
     resourceType: node.resourceType,
-    folderId: node.parentId,
+    folderId: rssFolderId,
     attrs: node.attrs,
   });
 

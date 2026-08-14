@@ -17,7 +17,9 @@ interface IProps {
  * normal resource icon instead, so the row never shows an empty box.
  */
 export function RssItemFeedBadge({ name, size, fallback }: IProps) {
-  const initial = name?.trim().charAt(0).toUpperCase();
+  // Iterated rather than indexed: charAt(0) would cut an emoji or any other
+  // astral character in half and render a lone surrogate.
+  const initial = [...(name?.trim() || '')][0]?.toUpperCase();
   if (!initial) {
     return <>{fallback}</>;
   }
