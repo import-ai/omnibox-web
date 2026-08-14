@@ -99,6 +99,7 @@ export default function Page(props: IProps) {
           emptyText={t('rss_folder.empty')}
           navigationPrefix={`/${namespaceId}`}
           sort={RSS_ITEM_SORT}
+          rssFeedNames
         />
       ) : resource.resource_type === 'folder' ? (
         <Folder

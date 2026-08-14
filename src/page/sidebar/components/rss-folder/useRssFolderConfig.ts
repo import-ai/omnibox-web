@@ -7,6 +7,8 @@ import { http } from '@/lib/request';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 import type { CreateRssFolderPayload, RssFolderResponse } from './index';
+import { fetchRssFolderConfig, rssFolderConfigUrl } from './rssFolderConfigApi';
+import { invalidateRssFolderLinkNames } from './useRssFolderLinkNames';
 
 /**
  * The read/write half of the rss folder config dialog, shared by the sidebar
@@ -18,18 +20,19 @@ export function useRssFolderConfig(namespaceId: string) {
   const app = useApp();
   const { t } = useTranslation();
 
-  // The initial values for the edit dialog.
+  // The initial values for the edit dialog. Read fresh rather than from the
+  // item rows' memoised copy: the dialog is about to write these values back.
   const loadRssFolderConfig = useCallback(
     (resourceId: string): Promise<CreateRssFolderPayload> =>
-      http
-        .get(`/namespaces/${namespaceId}/rss-folders/${resourceId}/config`)
-        .then((response: RssFolderResponse) => ({
+      fetchRssFolderConfig(namespaceId, resourceId).then(
+        (response: RssFolderResponse) => ({
           name: response.resource.name || '',
           links: (response.links || []).map(link => ({
             url: link.url,
             name: link.name,
           })),
-        })),
+        })
+      ),
     [namespaceId]
   );
 
@@ -37,13 +40,15 @@ export function useRssFolderConfig(namespaceId: string) {
     (resourceId: string, payload: CreateRssFolderPayload): Promise<void> =>
       http
         .patch(
-          `/namespaces/${namespaceId}/rss-folders/${resourceId}/config`,
+          rssFolderConfigUrl(namespaceId, resourceId),
           payload,
           // The dialog renders a per-link error for an unreachable feed, so the
           // generic error toast would be a duplicate.
           { muteCodes: ['rss_feed_invalid'] }
         )
         .then((response: RssFolderResponse) => {
+          // Renaming or dropping a feed changes what its items show.
+          invalidateRssFolderLinkNames(namespaceId, resourceId);
           useSidebarStore
             .getState()
             .patch(resourceId, { name: response.resource.name });

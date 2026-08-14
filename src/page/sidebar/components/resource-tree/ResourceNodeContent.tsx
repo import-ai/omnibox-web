@@ -22,6 +22,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useIsMobile } from '@/hooks/useMobile';
 import { cn } from '@/lib/utils';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
+import { RssItemFeedBadge } from '@/page/sidebar/components/rss-folder/RssItemFeedBadge';
+import { useRssItemFeedName } from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
 import { getSmartFolderSourceResourceId } from '@/page/sidebar/components/smart-folder';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/useResourceNodeDnd';
 import { useResourceNodeRename } from '@/page/sidebar/hooks/useResourceNodeRename';
@@ -69,6 +71,13 @@ export function ResourceNodeContent({
   const isDimmedBySelection = useNodeIsDimmedBySelection(nodeId);
 
   const clickTimeoutRef = useRef<number | null>(null);
+
+  // Only resolves for an rss item, and only to a named feed of its folder.
+  const feedName = useRssItemFeedName(namespaceId, {
+    resourceType: node.resourceType,
+    folderId: node.parentId,
+    attrs: node.attrs,
+  });
 
   const smartFolderSourceResourceId = getSmartFolderSourceResourceId({
     id: node.id,
@@ -308,16 +317,22 @@ export function ResourceNodeContent({
                             <Arrow className="transition-transform" />
                           </Button>
                         ))}
-                      <ResourceTypeIcon
-                        expand={isExpanded}
-                        resource={{
-                          id: node.id,
-                          name: node.name,
-                          parentId: node.parentId,
-                          resourceType: node.resourceType,
-                          hasChildren: node.hasChildren,
-                          attrs: node.attrs,
-                        }}
+                      <RssItemFeedBadge
+                        name={feedName}
+                        size="sidebar"
+                        fallback={
+                          <ResourceTypeIcon
+                            expand={isExpanded}
+                            resource={{
+                              id: node.id,
+                              name: node.name,
+                              parentId: node.parentId,
+                              resourceType: node.resourceType,
+                              hasChildren: node.hasChildren,
+                              attrs: node.attrs,
+                            }}
+                          />
+                        }
                       />
                       {isEditing ? (
                         <input

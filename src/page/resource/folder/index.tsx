@@ -13,6 +13,8 @@ import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
+import { RssItemFeedBadge } from '@/page/sidebar/components/rss-folder/RssItemFeedBadge';
+import { useRssFolderLinkNames } from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
 import { getSmartFolderChildSidebarKey } from '@/page/sidebar/components/smart-folder';
 import type { ResourceSortOptions } from '@/service/resourceSort';
 
@@ -29,6 +31,13 @@ interface IProps {
   smartFolderParentId?: string;
   /** Overrides the backend's default child ordering (e.g. rss items). */
   sort?: ResourceSortOptions;
+  /**
+   * Set for an rss folder inside its own namespace: each item row is then shown
+   * under the feed it came from (initial badge plus the feed's name), resolved
+   * from the folder's config. Left off everywhere the config endpoint is not
+   * reachable or would not describe these children — shares and smart folders.
+   */
+  rssFeedNames?: boolean;
 }
 
 const PAGE_SIZE = 10;
@@ -43,6 +52,7 @@ export default function Folder(props: IProps) {
     loadAll,
     smartFolderParentId,
     sort,
+    rssFeedNames,
   } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -53,6 +63,12 @@ export default function Folder(props: IProps) {
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const isSmartFolder = !!smartFolderParentId;
+  // One config request for the whole listing, not one per item row.
+  const feedNames = useRssFolderLinkNames(
+    namespaceId,
+    resourceId,
+    rssFeedNames
+  );
   const sortQuery = sort
     ? `&sort_by=${sort.sort_by}&sort_order=${sort.sort_order}`
     : '';
@@ -225,6 +241,12 @@ export default function Folder(props: IProps) {
                     has_children: !!item.has_children,
                     attrs: (item as any).attrs || {},
                   } as unknown as Resource;
+                  const linkId = item.attrs?.link_id;
+                  const feedName =
+                    item.resource_type === 'rss_item' &&
+                    typeof linkId === 'string'
+                      ? feedNames[linkId]
+                      : undefined;
                   return (
                     <div
                       className="cursor-pointer group"
@@ -254,12 +276,18 @@ export default function Folder(props: IProps) {
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className="[&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
-                            <ResourceIcon
-                              expand={false}
-                              resource={iconResource}
-                            />
-                          </div>
+                          <RssItemFeedBadge
+                            name={feedName}
+                            size="page"
+                            fallback={
+                              <div className="[&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
+                                <ResourceIcon
+                                  expand={false}
+                                  resource={iconResource}
+                                />
+                              </div>
+                            }
+                          />
                           <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500 truncate">
                             {item.name || t('untitled')}
                           </h3>
@@ -279,6 +307,14 @@ export default function Folder(props: IProps) {
                                 'yyyy-MM-dd HH:mm:ss'
                               )
                             : ''}
+                          {feedName && (
+                            <span
+                              className="ml-1.5"
+                              data-testid="rss-feed-name"
+                            >
+                              {feedName}
+                            </span>
+                          )}
                         </p>
                       )}
                       {index < items.length - 1 && (
