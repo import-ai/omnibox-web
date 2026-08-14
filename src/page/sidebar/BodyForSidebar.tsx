@@ -52,6 +52,7 @@ import { locateSidebarResource } from './utils';
 
 interface IProps {
   currentNamespace?: Namespace;
+  previewResourceId: string | null;
   resourceId: string;
   namespaceId: string;
 }
@@ -136,9 +137,10 @@ function getLocateSnapshot(
 }
 
 export function BodyForSidebar(props: IProps) {
-  const { currentNamespace, namespaceId, resourceId } = props;
+  const { currentNamespace, namespaceId, previewResourceId, resourceId } =
+    props;
   const app = useApp();
-  useSidebarInit({ namespaceId, resourceId });
+  useSidebarInit({ namespaceId, previewResourceId, resourceId });
   useSidebarEvents(namespaceId);
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -217,7 +219,7 @@ export function BodyForSidebar(props: IProps) {
     () => getBatchSelectionSummary(nodes, batch.selectedIds),
     [batch.selectedIds, nodes]
   );
-  const locateResourceId = activeId || resourceId;
+  const locateResourceId = previewResourceId || activeId || resourceId;
   const canLocateCurrentResource =
     !!locateResourceId && locateResourceId !== 'chat';
   const smartFolderQuotaExhausted = useMemo(() => {
@@ -255,7 +257,10 @@ export function BodyForSidebar(props: IProps) {
   const handleLocateResource = () => {
     if (!canLocateCurrentResource) return;
 
-    const targetId = useSidebarStore.getState().activeId || resourceId;
+    // An rss item is an ordinary tree node now, so it needs no locate path of
+    // its own; the generic one below reaches it.
+    const targetId =
+      previewResourceId || useSidebarStore.getState().activeId || resourceId;
     if (!targetId || targetId === 'chat') return;
 
     const store = useSidebarStore.getState();
@@ -320,7 +325,7 @@ export function BodyForSidebar(props: IProps) {
 
     const locateSnapshot = getLocateSnapshot(
       state.nodes,
-      state.activeId || resourceId
+      previewResourceId || state.activeId || resourceId
     );
 
     setRefreshingResources(true);
@@ -353,7 +358,7 @@ export function BodyForSidebar(props: IProps) {
     if (!rootId) return;
     const locateSnapshot = getLocateSnapshot(
       store.nodes,
-      store.activeId || resourceId
+      previewResourceId || store.activeId || resourceId
     );
 
     store.setResourceSort(spaceType, sort);

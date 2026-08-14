@@ -87,6 +87,35 @@ describe('locateSidebarResource', () => {
     expect(mockActivate).toHaveBeenCalledWith('target');
     expect(container.scrollTop).toBe(160);
   });
+
+  it('skips activate and scroll when the locate is aborted', async () => {
+    const frames: FrameRequestCallback[] = [];
+    jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      frames.push(callback);
+      return frames.length;
+    });
+    let resolveExpand: (() => void) | undefined;
+    mockExpandPathTo.mockImplementation(
+      () =>
+        new Promise<void>(resolve => {
+          resolveExpand = resolve;
+        })
+    );
+    mockToggleSpace.mockClear();
+    mockActivate.mockClear();
+
+    const controller = new AbortController();
+    const locating = locateSidebarResource('target', {
+      signal: controller.signal,
+    });
+    controller.abort();
+    resolveExpand?.();
+    await locating;
+
+    expect(mockToggleSpace).not.toHaveBeenCalled();
+    expect(mockActivate).not.toHaveBeenCalled();
+    expect(frames).toHaveLength(0);
+  });
 });
 
 describe('clearSidebarActiveKeyFromState', () => {
