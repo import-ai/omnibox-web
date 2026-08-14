@@ -1057,7 +1057,7 @@
     "title": "回收站",
     "system": "系统",
     "search_placeholder": "搜索被移入回收站的资源",
-    "empty": "暂无匹配的资源，可修改筛选条件。",
+    "empty": "空空如也",
     "loading": "加载中",
     "auto_delete_notice": "回收站中超过 {{days}} 天的资源将自动删除",
     "restore": "恢复",

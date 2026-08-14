@@ -11,4 +11,8 @@ describe('folder empty state translations', () => {
     expect(zh.smart_folder.empty).toBe('暂无匹配的资源，可修改筛选条件。');
     expect(zh.rss_folder.empty).toBe('暂无内容');
   });
+
+  it('does not change unrelated empty states', () => {
+    expect(zh.trash.empty).toBe('空空如也');
+  });
 });
