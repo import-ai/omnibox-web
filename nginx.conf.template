@@ -56,7 +56,7 @@ server {
     listen 80;
 
     server_name _;
-    client_max_body_size 128M;
+    client_max_body_size 256M;
 
     set $req_id $http_x_request_id;
     if ($req_id = "") {

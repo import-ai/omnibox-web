@@ -78,9 +78,7 @@ jobs:
           build-args: |
             VITE_CHAT_HOME_DEFAULT_INPUT_ZH=${{ vars.VITE_CHAT_HOME_DEFAULT_INPUT_ZH }}
             VITE_CHAT_HOME_DEFAULT_INPUT_EN=${{ vars.VITE_CHAT_HOME_DEFAULT_INPUT_EN }}
-          platforms: |
-            linux/amd64
-            linux/arm64
+          platforms: ${{ startsWith(github.ref, 'refs/tags/') && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
 
   webhook:
     runs-on: ubuntu-latest

@@ -1,16 +1,18 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
+import useRssFolderLimits from '@/hooks/useRssFolderLimits';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { type Namespace, ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import type {
   CreateRssFolderPayload,
   RssFolderResponse,
@@ -41,15 +43,20 @@ import { useBatchOperations } from './hooks/useBatchOperations';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
 import {
+  countRssFoldersBySpace,
+  getRssFolderQuotaExhausted,
+} from './rssFolderQuota';
+import {
   fetchChildrenForSidebarRefresh,
   getExpandedNodeIdsForSidebarRefresh,
 } from './sidebarBehavior';
 import { TreeNode, useSidebarStore } from './store';
 import { getBatchSelectionSummary, getNodeResourceSort } from './store/utils';
-import { locateSidebarResource } from './utils';
+import { locateSidebarResource, locateSidebarRssItem } from './utils';
 
 interface IProps {
   currentNamespace?: Namespace;
+  previewResourceId: string | null;
   resourceId: string;
   namespaceId: string;
 }
@@ -134,12 +141,14 @@ function getLocateSnapshot(
 }
 
 export function BodyForSidebar(props: IProps) {
-  const { currentNamespace, namespaceId, resourceId } = props;
+  const { currentNamespace, namespaceId, previewResourceId, resourceId } =
+    props;
   const app = useApp();
-  useSidebarInit({ namespaceId, resourceId });
+  useSidebarInit({ namespaceId, previewResourceId, resourceId });
   useSidebarEvents(namespaceId);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { rss_item_id: rssItemId } = useParams();
   const globalFileInputRef = useRef<HTMLInputElement>(null);
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
   const [defaultSmartFolderOwnerScope, setDefaultSmartFolderOwnerScope] =
@@ -151,6 +160,7 @@ export function BodyForSidebar(props: IProps) {
   const [sortingSpace, setSortingSpace] = useState<SpaceType | null>(null);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
+  const { data: rssFolderLimits } = useRssFolderLimits({ namespaceId });
   const roots = useSidebarStore(state => state.rootIds);
   const nodes = useSidebarStore(state => state.nodes);
   const activeId = useSidebarStore(state => state.activeId);
@@ -215,7 +225,7 @@ export function BodyForSidebar(props: IProps) {
     () => getBatchSelectionSummary(nodes, batch.selectedIds),
     [batch.selectedIds, nodes]
   );
-  const locateResourceId = activeId || resourceId;
+  const locateResourceId = previewResourceId || activeId || resourceId;
   const canLocateCurrentResource =
     !!locateResourceId && locateResourceId !== 'chat';
   const smartFolderQuotaExhausted = useMemo(() => {
@@ -237,6 +247,14 @@ export function BodyForSidebar(props: IProps) {
     smartFolderCounts.privateCount,
     smartFolderCounts.teamCount,
   ]);
+  const rssFolderLocalCounts = useMemo(
+    () => countRssFoldersBySpace(nodes),
+    [nodes]
+  );
+  const rssFolderQuotaExhausted = useMemo(
+    () => getRssFolderQuotaExhausted(rssFolderLimits, rssFolderLocalCounts),
+    [rssFolderLimits, rssFolderLocalCounts]
+  );
 
   const handleCreateSmartFolder = (ownerScope: SmartFolderOwnerScope) => {
     setDefaultSmartFolderOwnerScope(ownerScope);
@@ -251,7 +269,15 @@ export function BodyForSidebar(props: IProps) {
   const handleLocateResource = () => {
     if (!canLocateCurrentResource) return;
 
-    const targetId = useSidebarStore.getState().activeId || resourceId;
+    // RSS item pages keep resourceId as the folder id. Locate the history row
+    // itself instead of only scrolling to the folder node.
+    if (rssItemId && resourceId) {
+      void locateSidebarRssItem(resourceId, rssItemId);
+      return;
+    }
+
+    const targetId =
+      previewResourceId || useSidebarStore.getState().activeId || resourceId;
     if (!targetId || targetId === 'chat') return;
 
     const store = useSidebarStore.getState();
@@ -320,7 +346,7 @@ export function BodyForSidebar(props: IProps) {
 
     const locateSnapshot = getLocateSnapshot(
       state.nodes,
-      state.activeId || resourceId
+      previewResourceId || state.activeId || resourceId
     );
 
     setRefreshingResources(true);
@@ -331,7 +357,11 @@ export function BodyForSidebar(props: IProps) {
         )
       );
 
-      if (locateSnapshot) {
+      // Expand/activate first so collapsed folders recover. History rows may
+      // also remount via refresh_rss_items and re-locate through auto-scroll.
+      if (rssItemId && resourceId) {
+        await locateSidebarRssItem(resourceId, rssItemId);
+      } else if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
@@ -352,7 +382,7 @@ export function BodyForSidebar(props: IProps) {
     if (!rootId) return;
     const locateSnapshot = getLocateSnapshot(
       store.nodes,
-      store.activeId || resourceId
+      previewResourceId || store.activeId || resourceId
     );
 
     store.setResourceSort(spaceType, sort);
@@ -370,7 +400,9 @@ export function BodyForSidebar(props: IProps) {
       }
       await updateResourceSortPreference(namespaceId, spaceType, sort);
       await refreshSpaceResources(spaceType, sort);
-      if (locateSnapshot) {
+      if (rssItemId && resourceId) {
+        await locateSidebarRssItem(resourceId, rssItemId);
+      } else if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
@@ -453,7 +485,9 @@ export function BodyForSidebar(props: IProps) {
       })
       .then(id => {
         useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        navigateToResource(navigate, `/${namespaceId}/${id}`, {
+          state: { fromSidebar: true },
+        });
         window.setTimeout(() => {
           scrollToResource(id);
         }, 0);
@@ -494,10 +528,13 @@ export function BodyForSidebar(props: IProps) {
       })
       .then(id => {
         useSidebarStore.getState().activate(id);
-        navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+        navigateToResource(navigate, `/${namespaceId}/${id}`, {
+          state: { fromSidebar: true },
+        });
         window.setTimeout(() => {
           scrollToResource(id);
         }, 0);
+        useSidebarStore.getState().refetchRssFolderLimits();
         toast.success(t('rss_folder.create.success'));
       });
   };
@@ -616,7 +653,9 @@ export function BodyForSidebar(props: IProps) {
       const id = await useSidebarStore
         .getState()
         .uploadFiles(currentUploadTargetId, files);
-      navigate(`/${namespaceId}/${id}`, { state: { fromSidebar: true } });
+      navigateToResource(navigate, `/${namespaceId}/${id}`, {
+        state: { fromSidebar: true },
+      });
       await locateSidebarResource(id);
       toast.success(t('upload.success', { count: files.length }));
     } catch (err) {
@@ -660,6 +699,7 @@ export function BodyForSidebar(props: IProps) {
         onCreateSmartFolder={handleCreateSmartFolder}
         onCreateRssFolder={handleCreateRssFolder}
         smartFolderQuotaExhausted={smartFolderQuotaExhausted}
+        rssFolderQuotaExhausted={rssFolderQuotaExhausted}
         sortingSpace={sortingSpace}
         onResourceSortChange={handleResourceSortChange}
       />
@@ -792,7 +832,7 @@ export function BodyForSidebar(props: IProps) {
           );
           store.activate(id);
           store.closeCreateFolderDialog();
-          navigate(`/${namespaceId}/${id}`, {
+          navigateToResource(navigate, `/${namespaceId}/${id}`, {
             state: { fromSidebar: true },
           });
           await locateSidebarResource(id);

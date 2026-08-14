@@ -37,7 +37,7 @@ export default function ShareRssItemList({ folderId, shareId }: IProps) {
       : items;
   useRssItemAutoScroll(
     activeItemId,
-    displayedItems.some(item => item.id === activeItemId)
+    !loading && displayedItems.some(item => item.id === activeItemId)
   );
   // Align item rows with leaf resource nodes in the shared sidebar.
   const paddingLeft = 28;
@@ -148,7 +148,7 @@ export default function ShareRssItemList({ folderId, shareId }: IProps) {
                       style={{ paddingLeft }}
                     >
                       {item.link_name ? (
-                        <span className="flex size-4 shrink-0 items-center justify-center rounded-[3px] border text-[9px] font-normal leading-none">
+                        <span className="flex size-4 shrink-0 items-center justify-center rounded-[3px] border border-muted-foreground/60 text-[10px] font-medium leading-none">
                           {item.link_name.charAt(0).toUpperCase()}
                         </span>
                       ) : (

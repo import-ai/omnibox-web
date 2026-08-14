@@ -22,6 +22,7 @@ import Vditor from 'vditor';
 
 import { Input } from '@/components/input';
 import { markdownPreviewConfig } from '@/components/markdown';
+import { normalizeListIndentForLute } from '@/components/markdown/normalizeListIndent';
 import { VDITOR_CDN } from '@/const';
 import useTheme from '@/hooks/useTheme';
 import type { Member, Resource } from '@/interface';
@@ -488,8 +489,10 @@ function VditorResourceEditor(props: IEditorProps) {
         updateCacheContent(resource.id, value);
       },
       after: () => {
-        vditor.setValue(cachedContent);
-        contentRef.current = cachedContent;
+        // Expand TipTap-style 2-space nests so Lute/WYSIWYG keeps hierarchy.
+        const editorValue = normalizeListIndentForLute(cachedContent);
+        contentRef.current = editorValue;
+        vditor.setValue(editorValue);
         vditor.setTheme(
           theme.content === 'dark' ? 'dark' : 'classic',
           theme.content,

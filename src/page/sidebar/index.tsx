@@ -11,6 +11,11 @@ import useConfig from '@/hooks/useConfig';
 import { useIsMobile } from '@/hooks/useMobile';
 import useNamespaces from '@/hooks/useNamespaces';
 import useProNamespaces from '@/hooks/useProNamespaces';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import SettingModal from '@/page/settings';
 
 import { BodyForSidebar } from './BodyForSidebar';
@@ -24,7 +29,11 @@ export default function MainSidebar() {
   const isMobile = useIsMobile();
   const resourceId = params.resource_id || '';
   const namespaceId = params.namespace_id || '';
+  const previewResourceId = useCopilotStore(
+    state => getCopilotWorkspace(state, namespaceId).previewResourceId
+  );
   const { setOpenMobile } = useSidebar();
+  const resetCopilot = useCopilotStore(state => state.reset);
   const { config, loading: configLoading } = useConfig();
   const openSourceNamespaces = useNamespaces({
     disabled: configLoading || config.commercial,
@@ -39,10 +48,14 @@ export default function MainSidebar() {
     item => item.id === namespaceId
   );
   const handleActiveKey = (id: string) => {
+    if (id === 'chat' || id === 'chat/conversations') {
+      // Leave any citation/resource Copilot split and show the full chat page.
+      resetCopilot(namespaceId);
+    }
     if (id === 'chat') {
       navigate(`/${namespaceId}/chat`);
     } else {
-      navigate(`/${namespaceId}/${id}`);
+      navigateToResource(navigate, `/${namespaceId}/${id}`);
     }
     if (isMobile) {
       setOpenMobile(false);
@@ -58,6 +71,7 @@ export default function MainSidebar() {
         </SidebarHeader>
         <BodyForSidebar
           currentNamespace={currentProNamespace}
+          previewResourceId={previewResourceId}
           resourceId={resourceId}
           namespaceId={namespaceId}
         />

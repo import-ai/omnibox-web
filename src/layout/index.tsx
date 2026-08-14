@@ -12,6 +12,8 @@ import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
 import { track } from '@/lib/sendTrackEvent';
 import { useChatStore } from '@/page/chat/chatStore';
+import { clearConversationCache } from '@/page/chat/conversation/conversationCache';
+import { useCopilotStore } from '@/page/copilot/copilotStore';
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
 
@@ -20,6 +22,14 @@ import {
   isAuthStorageKey,
   shouldSyncUserOptions,
 } from './authStorage';
+
+function clearUserWorkspaceState() {
+  clearConversationCache();
+  useResourceStore.getState().resetFeaturePreviews();
+  useChatStore.getState().clearContext();
+  useSidebarStore.getState().clear();
+  useCopilotStore.getState().clearAll();
+}
 
 export default function Layout() {
   const loc = useLocation();
@@ -45,11 +55,9 @@ export default function Layout() {
       } else if (isAuthStorageKey(event.key)) {
         const storedUid = localStorage.getItem('uid');
         if (storedUid !== uid) {
-          useResourceStore.getState().resetFeaturePreviews();
+          clearUserWorkspaceState();
         }
         setUid(storedUid);
-        useChatStore.getState().clearContext();
-        useSidebarStore.getState().clear();
         const redirectPath = getAuthChangeRedirectPath(
           window.location.pathname,
           uid,
@@ -69,7 +77,7 @@ export default function Layout() {
   useEffect(() => {
     const storedUid = localStorage.getItem('uid');
     if (storedUid !== uid) {
-      useResourceStore.getState().resetFeaturePreviews();
+      clearUserWorkspaceState();
       setUid(storedUid);
     }
   }, [loc]);
@@ -99,6 +107,7 @@ export default function Layout() {
       searchParams.get('from') === 'extension_login' &&
       uid
     ) {
+      clearConversationCache();
       localStorage.removeItem('uid');
       localStorage.removeItem('token');
       return;
