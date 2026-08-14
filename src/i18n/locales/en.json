@@ -1272,8 +1272,7 @@
     "move": {
       "unsupported_target": "Can't move to RSS folders."
     },
-    "cannot_be_parent": "Resources can't be created inside RSS folders.",
-    "unsupported_operation": "RSS folders don't support this operation yet."
+    "cannot_be_parent": "Resources can't be created inside RSS folders."
   },
   "download": {
     "failed": "Download failed, please try again later"

@@ -14,11 +14,11 @@ import { useResourcePickerController } from './useResourcePickerController';
 const NO_ROOT_IDS: string[] = [];
 const NO_SEARCH = {};
 
-const rssFolder: ResourcePickerResource = {
-  id: 'rss-folder',
-  name: 'Feed',
+const disabledFolder: ResourcePickerResource = {
+  id: 'disabled-folder',
+  name: 'Disabled',
   parent_id: null,
-  resource_type: 'rss_folder',
+  resource_type: 'folder',
   has_children: true,
   disabled: true,
 };
@@ -65,17 +65,17 @@ describe('useResourcePickerController', () => {
   };
 
   it('does not expand — or load the children of — a disabled resource', async () => {
-    await render([rssFolder]);
+    await render([disabledFolder]);
     loadChildren.mockClear();
 
     await act(async () => {
-      await controller.toggleExpand(rssFolder);
+      await controller.toggleExpand(disabledFolder);
     });
 
-    // An rss folder the picker greys out holds thousands of poller-owned rows
-    // and none of them is a destination: expanding it fetches nothing.
+    // Nothing under a greyed-out node is a valid pick, so expanding it would
+    // only fetch rows the user cannot choose.
     expect(loadChildren).not.toHaveBeenCalled();
-    expect(controller.expandedIds.has(rssFolder.id)).toBe(false);
+    expect(controller.expandedIds.has(disabledFolder.id)).toBe(false);
   });
 
   it('still collapses a disabled resource that is already expanded', async () => {

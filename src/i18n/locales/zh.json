@@ -1273,8 +1273,7 @@
     "move": {
       "unsupported_target": "不支持移动到订阅文件夹"
     },
-    "cannot_be_parent": "订阅文件夹内不能创建资源",
-    "unsupported_operation": "订阅文件夹暂不支持该操作"
+    "cannot_be_parent": "订阅文件夹内不能创建资源"
   },
   "download": {
     "failed": "下载失败，请稍后重试"

@@ -49,31 +49,13 @@ export function WorkspaceResourcePicker({
   const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
   const resourceSorts = useSidebarStore(state => state.resourceSorts);
 
-  // Subscription (RSS) folders can't be picked as chat context, so we surface
-  // them as disabled with an explanatory tooltip instead of a silent no-op.
-  const decorateResource = useCallback(
-    (resource: ResourcePickerResource): ResourcePickerResource => {
-      const rssFolderDisabled = resource.resource_type === 'rss_folder';
-      return {
-        ...resource,
-        children: resource.children?.map(decorateResource),
-        disabled: rssFolderDisabled || resource.disabled,
-        disabledTooltip: rssFolderDisabled
-          ? t('rss_folder.unsupported_operation')
-          : resource.disabledTooltip,
-      };
-    },
-    [t]
-  );
-
+  // Every container is pickable as chat context, rss folders included: an rss
+  // folder attaches its articles the same way a plain folder attaches its docs.
   useEffect(() => {
     let cancelled = false;
     fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
       .then(response => {
-        if (!cancelled)
-          setRoots(
-            workspaceRootsToPickerResources(response, t).map(decorateResource)
-          );
+        if (!cancelled) setRoots(workspaceRootsToPickerResources(response, t));
       })
       .catch(error => {
         if (!cancelled) {
@@ -84,7 +66,7 @@ export function WorkspaceResourcePicker({
     return () => {
       cancelled = true;
     };
-  }, [decorateResource, namespaceId, resourceSorts, t]);
+  }, [namespaceId, resourceSorts, t]);
 
   const loadChildren = useCallback(
     (resource: ResourcePickerResource) => {
@@ -99,19 +81,14 @@ export function WorkspaceResourcePicker({
               { params: rssTreeChildrenParams(resource.resource_type) }
             )
       ).then(resources =>
-        resources.map(child =>
-          decorateResource(setWorkspacePickerSpace(child, spaceType))
-        )
+        resources.map(child => setWorkspacePickerSpace(child, spaceType))
       );
     },
-    [decorateResource, namespaceId, resourceSorts]
+    [namespaceId, resourceSorts]
   );
   const searchResources = useCallback(
-    (query: string) =>
-      searchWorkspaceResources(namespaceId, query).then(resources =>
-        resources.map(decorateResource)
-      ),
-    [decorateResource, namespaceId]
+    (query: string) => searchWorkspaceResources(namespaceId, query),
+    [namespaceId]
   );
 
   return (

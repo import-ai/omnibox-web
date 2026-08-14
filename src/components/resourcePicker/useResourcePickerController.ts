@@ -199,10 +199,9 @@ function useResourceTreeState(params: ResourceTreeParams) {
         return;
       }
       // A row the picker greys out is not a destination, and nothing under it
-      // is offered as one either — an rss folder holds only its poller's
-      // read-only items — so it is not browsable: expanding it would only
-      // fetch children that cannot be picked. Collapsing one stays possible
-      // (the path to a selection may have opened it).
+      // is offered as one either, so it is not browsable: expanding it would
+      // only fetch children that cannot be picked. Collapsing one stays
+      // possible (the path to a selection may have opened it).
       if (resource.disabled) return;
       if (!childrenById[resource.id]) {
         setLoadingIds(current => new Set(current).add(resource.id));
