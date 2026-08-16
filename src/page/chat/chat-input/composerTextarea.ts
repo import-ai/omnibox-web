@@ -37,6 +37,7 @@ export function syncOverlayScroll(
   overlay: HTMLDivElement | null
 ) {
   if (!textarea || !overlay) return;
+  overlay.style.right = `${textarea.offsetWidth - textarea.clientWidth}px`;
   overlay.scrollTop = textarea.scrollTop;
   overlay.scrollLeft = textarea.scrollLeft;
 }
