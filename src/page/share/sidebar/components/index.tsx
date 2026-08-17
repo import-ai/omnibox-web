@@ -10,12 +10,14 @@ interface ResourceTreeProps {
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
   canBrowseResources: boolean;
+  showResources?: boolean;
 }
 
 export default function ResourceTree(props: ResourceTreeProps) {
+  const { showResources = true } = props;
   return (
     <SidebarContent className="no-scrollbar gap-0">
-      <SpaceSection {...props} />
+      {showResources && <SpaceSection {...props} />}
     </SidebarContent>
   );
 }

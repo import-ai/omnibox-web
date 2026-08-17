@@ -72,7 +72,7 @@ export default function SharedChatHomePage() {
           selectedResources={selectedResources}
           setSelectedResources={setSelectedResources}
           renderResourcePicker={
-            shareInfo
+            shareInfo && shareInfo.share_type !== 'chat_only'
               ? onSelect => (
                   <ShareResourcePicker
                     shareId={shareId}

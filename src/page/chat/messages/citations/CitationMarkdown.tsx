@@ -37,6 +37,7 @@ import {
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
 import { resolveCitationTarget } from '@/page/copilot/citationTarget';
+import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const resourceLinkRegex = /^#resource-([\w-]+)$/;
@@ -82,6 +83,7 @@ export function CitationMarkdown(props: IProps) {
   const { t } = useTranslation();
   const params = useParams();
   const { namespaceId: routeNamespaceId } = useChatRouteParams();
+  const chatOnly = useShareChatOnly();
   const namespaceId = routeNamespaceId || params.namespace_id || '';
   const resourceLinkPrefix = params.share_id
     ? `/s/${params.share_id}`
@@ -111,6 +113,10 @@ export function CitationMarkdown(props: IProps) {
         if (target.kind === 'resource') {
           resolvedResource = target.resourceId;
         }
+      }
+      // A chat-only share serves no resource page, so its sources stay text.
+      if (resolvedResource && chatOnly) {
+        return <>{children}</>;
       }
       if (resolvedResource && resourceLinkPrefix) {
         const resourceHref = `${resourceLinkPrefix}/${resolvedResource}`;
