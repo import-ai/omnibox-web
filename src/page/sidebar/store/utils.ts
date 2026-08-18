@@ -273,7 +273,16 @@ export function collapseEmptyNode(
 }
 
 export function isBatchSelectableNode(node?: TreeNode | null): boolean {
-  return !isSmartFolderChildResource(node) && node?.readOnly !== true;
+  if (isSmartFolderChildResource(node)) {
+    return false;
+  }
+  // Rss items are read-only, but they still take a checkbox: a batch of them
+  // is worth sending to chat. The actions they cannot support are disabled
+  // with an explanation rather than hidden behind a missing checkbox.
+  if (node?.resourceType === 'rss_item') {
+    return true;
+  }
+  return node?.readOnly !== true;
 }
 
 export function getSelectedAncestorId(
@@ -399,8 +408,37 @@ export function getTopLevelSelectedIds(
 export interface BatchSelectionSummary {
   selectedCount: number;
   hasSmartFolder: boolean;
+  hasRssItem: boolean;
   hasOnlySmartFolders: boolean;
   isMixed: boolean;
+}
+
+/**
+ * Batch actions that reshape the tree. Sending a selection to chat is not one
+ * of them, so it stays enabled for every selection.
+ */
+export type BatchMutatingAction = 'create' | 'move' | 'delete';
+
+/**
+ * The string explaining why a batch action refuses this selection, or
+ * undefined when it accepts it. The three surfaces offering batch actions
+ * (toolbar, node menu, keyboard) share this so they cannot drift apart.
+ */
+export function getBatchUnsupportedTipKey(
+  selection: BatchSelectionSummary,
+  action: BatchMutatingAction
+): string | undefined {
+  // An rss item is owned by its feed: it cannot be moved out, deleted on its
+  // own, or swept into a new folder. Only the feed folder itself can.
+  if (selection.hasRssItem) {
+    return 'batch.rss_item_unsupported_action';
+  }
+  // A smart folder is a saved query. It can be deleted, but it has no place
+  // in the tree to move to and no contents to gather into a new folder.
+  if (selection.hasSmartFolder && action !== 'delete') {
+    return 'batch.smart_folder_unsupported_action';
+  }
+  return undefined;
 }
 
 export function getBatchSelectionSummary(
@@ -413,12 +451,16 @@ export function getBatchSelectionSummary(
   const topLevelIds = getTopLevelSelectedIds(nodes, ids);
   let smartFolderCount = 0;
   let regularCount = 0;
+  let rssItemCount = 0;
 
   for (const id of topLevelIds) {
     if (nodes[id]?.resourceType === 'smart_folder') {
       smartFolderCount += 1;
     } else {
       regularCount += 1;
+      if (nodes[id]?.resourceType === 'rss_item') {
+        rssItemCount += 1;
+      }
     }
   }
 
@@ -429,6 +471,7 @@ export function getBatchSelectionSummary(
   return {
     selectedCount,
     hasSmartFolder,
+    hasRssItem: rssItemCount > 0,
     hasOnlySmartFolders: hasSmartFolder && !hasRegularResource,
     isMixed: hasSmartFolder && hasRegularResource,
   };

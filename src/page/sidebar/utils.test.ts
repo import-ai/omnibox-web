@@ -173,12 +173,14 @@ describe('rss item nodes', () => {
     read_only: true,
   } as unknown as Resource;
 
-  it('marks rss items read-only and keeps them out of batch selection', () => {
+  it('marks rss items read-only but still batch-selectable', () => {
     const node = createNode(rssItem, 'rss-folder', 'private');
 
     expect(node.readOnly).toBe(true);
     expect(node.hasChildren).toBe(false);
-    expect(isBatchSelectableNode(node)).toBe(false);
+    // Read-only governs what a batch may do with them, not whether they can
+    // be picked: see getBatchUnsupportedTipKey.
+    expect(isBatchSelectableNode(node)).toBe(true);
   });
 
   it('keeps ordinary resources selectable', () => {

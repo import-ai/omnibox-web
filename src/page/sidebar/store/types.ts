@@ -81,7 +81,8 @@ export interface BatchOperationResult {
   success: string[];
   failed: Array<{ id: string; error: Error }>;
   nameConflictIds?: string[];
-  smartFolderUnsupported?: boolean;
+  /** i18n key explaining why the selection was refused, if it was. */
+  unsupportedTipKey?: string;
   resourceId?: string;
   nextId?: string | null;
   navigateToChat?: boolean;

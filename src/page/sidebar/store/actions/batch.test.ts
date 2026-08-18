@@ -199,3 +199,62 @@ it('refreshes a batch-created folder using the current automatic sort', async ()
   );
   expect(state.nodes.private.children).toEqual(['new-folder', 'existing']);
 });
+
+describe('rss items in a batch selection', () => {
+  function rssStore() {
+    return createStore({
+      private: node('private', null, ['feed', 'doc-a']),
+      feed: node('feed', 'private', ['item-a', 'item-b'], 'rss_folder'),
+      'item-a': node('item-a', 'feed', [], 'rss_item'),
+      'item-b': node('item-b', 'feed', [], 'rss_item'),
+      'doc-a': node('doc-a', 'private', [], 'doc'),
+    });
+  }
+
+  it('refuses to move them out of their feed', async () => {
+    const state = rssStore();
+
+    const result = await actionsFor(state).batchMove(['item-a'], 'private');
+
+    expect(result.unsupportedTipKey).toBe('batch.rss_item_unsupported_action');
+    expect(result.success).toEqual([]);
+    expect(mockedBatchMoveResources).not.toHaveBeenCalled();
+  });
+
+  it('refuses to gather them into a new folder', async () => {
+    const state = rssStore();
+    state.selectedIds = { 'item-a': true, 'doc-a': true };
+
+    const result = await actionsFor(state).batchCreate('Gathered', 'private');
+
+    expect(result.unsupportedTipKey).toBe('batch.rss_item_unsupported_action');
+    expect(mockedBatchCreateFolderFromResources).not.toHaveBeenCalled();
+  });
+
+  it('refuses to delete them on their own', async () => {
+    const state = rssStore();
+
+    const result = await actionsFor(state).batchRemove(['item-a', 'item-b']);
+
+    expect(result.unsupportedTipKey).toBe('batch.rss_item_unsupported_action');
+    expect(result.success).toEqual([]);
+  });
+
+  it('still moves and deletes the feed folder itself', async () => {
+    const state = rssStore();
+    mockedBatchMoveResources.mockResolvedValue({
+      success_ids: ['feed'],
+      failed_ids: [],
+    });
+
+    // Selecting the folder implies its items, but they are not top-level:
+    // the operation is about the folder, which owns them.
+    const result = await actionsFor(state).batchMove(
+      ['feed', 'item-a', 'item-b'],
+      'private'
+    );
+
+    expect(result.unsupportedTipKey).toBeUndefined();
+    expect(mockedBatchMoveResources).toHaveBeenCalled();
+  });
+});

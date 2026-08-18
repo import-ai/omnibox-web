@@ -1179,6 +1179,7 @@
     "name_too_long": "名称不能超过 {{max}} 个字符",
     "add_to_chat_success": "已成功添加 {{count}} 项资源到对话框",
     "select_required": "请选择资源后操作",
+    "rss_item_unsupported_action": "订阅文件夹里的子文件不支持该操作",
     "smart_folder_unsupported_action": "智能文件夹不支持此操作",
     "smart_folder_child_unselectable": "智能文件夹子项不可选择",
     "all_forbidden": "所选资源均无操作权限，批量操作失败",

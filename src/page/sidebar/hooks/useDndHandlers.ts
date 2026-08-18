@@ -220,8 +220,8 @@ export function useDndHandlers({
         const nameConflictCount = result.nameConflictIds?.length ?? 0;
         if (result.failed.length > 0) {
           if (result.success.length === 0) {
-            const errorKey = result.smartFolderUnsupported
-              ? 'batch.smart_folder_unsupported_action'
+            const errorKey = result.unsupportedTipKey
+              ? result.unsupportedTipKey
               : nameConflictCount > 0
                 ? 'batch.move_name_conflict_failed'
                 : 'batch.all_forbidden';

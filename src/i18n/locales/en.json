@@ -1178,6 +1178,7 @@
     "name_too_long": "Name cannot exceed {{max}} characters",
     "add_to_chat_success": "Successfully added {{count}} resources to chat",
     "select_required": "Select resources before operating",
+    "rss_item_unsupported_action": "Files in a subscription folder do not support this operation.",
     "smart_folder_unsupported_action": "Smart folders do not support this operation.",
     "smart_folder_child_unselectable": "Smart folder child items cannot be selected",
     "all_forbidden": "None of the selected resources are authorized. Batch operation failed",

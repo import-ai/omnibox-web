@@ -19,6 +19,7 @@ import {
   ensureUI,
   findNextActiveId,
   getBatchSelectionSummary,
+  getBatchUnsupportedTipKey,
   getDescendantIds,
   getIdsInVisibleRange,
   getSelectedAncestorId,
@@ -165,6 +166,18 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
 
     batchRemove: async (ids: string[], currentResourceId?: string) => {
       const requestedIds = getTopLevelSelectedIds(get().nodes, ids);
+      const selection = getBatchSelectionSummary(get().nodes, requestedIds);
+      const unsupportedTipKey = getBatchUnsupportedTipKey(selection, 'delete');
+      if (unsupportedTipKey) {
+        return {
+          success: [],
+          failed: requestedIds.map(id => ({
+            id,
+            error: new Error('This selection does not support deletion'),
+          })),
+          unsupportedTipKey,
+        };
+      }
       const result: BatchOperationResult = { success: [], failed: [] };
 
       const response = await batchDeleteResources(
@@ -233,15 +246,16 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
     batchMove: async (ids: string[], targetId: string) => {
       const requestedIds = getTopLevelSelectedIds(get().nodes, ids);
       const selection = getBatchSelectionSummary(get().nodes, requestedIds);
-      if (selection.hasSmartFolder) {
+      const unsupportedTipKey = getBatchUnsupportedTipKey(selection, 'move');
+      if (unsupportedTipKey) {
         return {
           success: [],
           failed: requestedIds.map(id => ({
             id,
-            error: new Error('Smart folders do not support this operation'),
+            error: new Error('This selection does not support moving'),
           })),
           nameConflictIds: [],
-          smartFolderUnsupported: true,
+          unsupportedTipKey,
         };
       }
       const result: BatchOperationResult = {
@@ -454,13 +468,15 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
       const target = get().nodes[parentId];
       const requestedIds = getTopLevelSelectedIds(get().nodes, selectedIds);
       const selection = getBatchSelectionSummary(get().nodes, requestedIds);
-      if (selection.hasSmartFolder) {
+      const unsupportedTipKey = getBatchUnsupportedTipKey(selection, 'create');
+      if (unsupportedTipKey) {
         return {
           success: [],
           failed: requestedIds.map(id => ({
             id,
-            error: new Error('Smart folders do not support this operation'),
+            error: new Error('This selection cannot be gathered into a folder'),
           })),
+          unsupportedTipKey,
         };
       }
       const folder = await batchCreateFolderFromResources(get().namespaceId, {

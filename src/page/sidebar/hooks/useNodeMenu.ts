@@ -20,7 +20,11 @@ import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-fold
 import { getRssFolderQuotaTooltipKey } from '@/page/sidebar/rssFolderQuota';
 
 import { useSidebarStore } from '../store';
-import { getBatchSelectionSummary } from '../store/utils';
+import {
+  type BatchMutatingAction,
+  getBatchSelectionSummary,
+  getBatchUnsupportedTipKey,
+} from '../store/utils';
 import type { UseNodeActionsReturn } from './useNodeActions';
 import { useRssFolderQuotaExhausted } from './useRssFolderQuotaExhausted';
 
@@ -91,14 +95,14 @@ export function useNodeMenu(
     if (selectionMode) {
       const batchSelection = getBatchSelectionSummary(nodes, selectedIds);
       const disabled = batchSelection.selectedCount === 0;
-      const smartFolderUnsupported = batchSelection.hasSmartFolder;
-      const smartFolderUnsupportedTip = t(
-        'batch.smart_folder_unsupported_action'
-      );
       const disabledTip = disabled ? t('batch.select_required') : undefined;
-      const smartFolderDisabledTip = smartFolderUnsupported
-        ? smartFolderUnsupportedTip
-        : disabledTip;
+      const unsupported = (action: BatchMutatingAction) => {
+        const tipKey = getBatchUnsupportedTipKey(batchSelection, action);
+        return {
+          disabled: disabled || !!tipKey,
+          disabledTip: disabled ? undefined : tipKey ? t(tipKey) : undefined,
+        };
+      };
 
       return {
         disabled,
@@ -108,8 +112,7 @@ export function useNodeMenu(
             key: 'batch_create',
             icon: FolderPlus,
             label: t('batch.create_tooltip'),
-            disabled: disabled || smartFolderUnsupported,
-            disabledTip: disabled ? undefined : smartFolderDisabledTip,
+            ...unsupported('create'),
             onClick: batchActions?.onCreate,
           },
           { key: 'batch_1', separator: true },
@@ -117,8 +120,7 @@ export function useNodeMenu(
             key: 'batch_move',
             icon: Move,
             label: t('batch.move_tooltip'),
-            disabled: disabled || smartFolderUnsupported,
-            disabledTip: disabled ? undefined : smartFolderDisabledTip,
+            ...unsupported('move'),
             onClick: batchActions?.onMove,
           },
           { key: 'batch_2', separator: true },
@@ -135,7 +137,7 @@ export function useNodeMenu(
             icon: Trash2,
             label: t('batch.delete_tooltip'),
             destructive: true,
-            disabled,
+            ...unsupported('delete'),
             onClick: batchActions?.onDelete,
           },
         ],

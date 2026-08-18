@@ -32,16 +32,20 @@ jest.mock('./useRssFolderQuotaExhausted', () => ({
   useRssFolderQuotaExhausted: () => ({}),
 }));
 
+let storeNodes: Record<string, TreeNode> = {};
+let selectedIds: string[] = [];
+let selectionMode = false;
+
 jest.mock('@/page/sidebar/store', () => ({
   useSidebarStore: (
     selector: (state: Record<string, unknown>) => unknown
   ): unknown =>
     selector({
       namespaceId: 'namespace',
-      nodes: node ? { [node.id]: node } : {},
+      nodes: storeNodes,
       rootIds: { private: 'private' },
-      selectedIds: [],
-      selectionMode: false,
+      selectedIds,
+      selectionMode,
     }),
 }));
 
@@ -85,6 +89,9 @@ describe('useNodeMenu', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     node = { ...rssFolder };
+    storeNodes = { [rssFolder.id]: rssFolder };
+    selectedIds = [];
+    selectionMode = false;
     jest.mocked(isSmartFolderChildResource).mockReturnValue(false);
     container = document.createElement('div');
     root = createRoot(container);
@@ -120,5 +127,53 @@ describe('useNodeMenu', () => {
       'separator_2',
       'delete',
     ]);
+  });
+
+  describe('with rss items in the batch selection', () => {
+    const rssItem: TreeNode = {
+      ...rssFolder,
+      id: 'rss-item',
+      parentId: 'rss-folder',
+      name: 'Article',
+      resourceType: 'rss_item',
+      hasChildren: false,
+      readOnly: true,
+    };
+
+    beforeEach(() => {
+      selectionMode = true;
+      storeNodes = { [rssFolder.id]: rssFolder, [rssItem.id]: rssItem };
+      selectedIds = [rssItem.id];
+    });
+
+    it('disables the actions a feed item cannot support, and says why', async () => {
+      await act(async () => root.render(<Probe />));
+
+      const byKey = Object.fromEntries(items.map(item => [item.key, item]));
+      for (const key of ['batch_create', 'batch_move', 'batch_delete']) {
+        expect(byKey[key]).toMatchObject({
+          disabled: true,
+          disabledTip: 'batch.rss_item_unsupported_action',
+        });
+      }
+    });
+
+    it('still lets the selection go to chat', async () => {
+      await act(async () => root.render(<Probe />));
+
+      const addToChat = items.find(item => item.key === 'batch_add_to_chat');
+      expect(addToChat).toMatchObject({ disabled: false });
+    });
+
+    it('leaves the feed folder itself fully actionable', async () => {
+      selectedIds = [rssFolder.id];
+
+      await act(async () => root.render(<Probe />));
+
+      const byKey = Object.fromEntries(items.map(item => [item.key, item]));
+      for (const key of ['batch_create', 'batch_move', 'batch_delete']) {
+        expect(byKey[key]).toMatchObject({ disabled: false });
+      }
+    });
   });
 });
