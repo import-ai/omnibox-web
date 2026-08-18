@@ -231,6 +231,8 @@ export function useNodeMenu(
             onClick: actions.handleMoveTo,
           },
           { key: 'separator_1', separator: true },
+          ...buildAddToChatItems(actions, t),
+          { key: 'separator_2', separator: true },
           {
             key: 'delete',
             icon: Trash2,
@@ -335,7 +337,11 @@ function buildAddToChatItems(
 
   if (!node) return [];
 
-  if (node.resourceType === 'folder' || node.resourceType === 'smart_folder') {
+  if (
+    node.resourceType === 'folder' ||
+    node.resourceType === 'smart_folder' ||
+    node.resourceType === 'rss_folder'
+  ) {
     return [
       {
         key: 'add_all_to_context',
