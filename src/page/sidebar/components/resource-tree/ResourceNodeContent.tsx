@@ -34,8 +34,12 @@ import {
   useSelectionState,
   useSidebarStore,
 } from '@/page/sidebar/store';
-import { isBatchSelectableNode } from '@/page/sidebar/store/utils';
+import {
+  isBatchSelectableNode,
+  isManagedChildrenNode,
+} from '@/page/sidebar/store/utils';
 
+import FolderEmptyState from './FolderEmptyState';
 import Action from './NodeActions';
 import ContextMenuMain from './NodeContextMenu';
 import ResourceNode from './ResourceNode';
@@ -405,6 +409,14 @@ export function ResourceNodeContent({
                   onAddToChat={onAddToChat}
                 />
               ))}
+            {/* A folder the backend fills — a smart folder or a feed — reads as
+                broken when it expands to nothing, so it says so. An empty
+                plain folder is the user's own doing and stays silent. */}
+            {isExpanded &&
+              isManagedChildrenNode(node) &&
+              node.children.length === 0 && (
+                <FolderEmptyState depth={depth + 1} />
+              )}
           </SidebarMenuSub>
         </CollapsibleContent>
       </Collapsible>

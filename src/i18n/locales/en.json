@@ -50,6 +50,7 @@
   "sidebar": {
     "expand": "Expand Sidebar",
     "collapse": "Collapse Sidebar",
+    "folder_empty": "Nothing here",
     "sort": {
       "tooltip": "Sort resources",
       "menu": "Sort",

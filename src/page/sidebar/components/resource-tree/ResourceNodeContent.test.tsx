@@ -331,3 +331,75 @@ describe('ResourceNodeContent rss item rows', () => {
     ).toHaveLength(0);
   });
 });
+
+describe('ResourceNodeContent empty folders', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  function folderNode(
+    id: string,
+    resourceType: TreeNode['resourceType']
+  ): TreeNode {
+    return {
+      id,
+      parentId: null,
+      spaceType: 'private',
+      name: id,
+      resourceType,
+      hasChildren: false,
+      readOnly: false,
+      createdAt: '',
+      updatedAt: '',
+      manualSortInitializedAt: null,
+      children: [],
+    } as unknown as TreeNode;
+  }
+
+  beforeEach(() => {
+    clearRssFolderLinkNamesCache();
+    mockGet.mockReset();
+    mockGet.mockResolvedValue({ resource: {}, links: [] });
+    mockSidebarState.nodes = {};
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(async () => {
+    await act(async () => root.unmount());
+    container.remove();
+  });
+
+  async function renderExpanded(node: TreeNode) {
+    mockSidebarState.ui = { [node.id]: { expanded: true } };
+    await act(async () => {
+      root.render(
+        <ResourceNodeContent
+          node={node}
+          nodeId={node.id}
+          depth={0}
+          hasTeamspace={false}
+          onBatchDelete={jest.fn()}
+          onBatchMove={jest.fn()}
+          onBatchCreate={jest.fn()}
+          onAddToChat={jest.fn()}
+        />
+      );
+    });
+  }
+
+  it.each(['rss_folder', 'smart_folder'] as const)(
+    'tells the user a %s the backend fills is empty',
+    async resourceType => {
+      await renderExpanded(folderNode('empty', resourceType));
+
+      expect(container.textContent).toContain('sidebar.folder_empty');
+    }
+  );
+
+  it('stays silent for an empty plain folder', async () => {
+    await renderExpanded(folderNode('plain', 'folder'));
+
+    expect(container.textContent).not.toContain('sidebar.folder_empty');
+  });
+});

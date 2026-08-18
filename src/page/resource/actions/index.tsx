@@ -49,6 +49,7 @@ import { downloadFile } from '@/lib/downloadFile';
 import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
+import { clearCache } from '@/page/resource/editor/cache';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
 import { CreateRssFolderPayload } from '@/page/sidebar/components/rss-folder';
@@ -289,8 +290,7 @@ export default function Actions(props: IActionProps) {
     if (!resource) {
       return;
     }
-    // Keep the local draft (same as production Vditor). Discard only leaves
-    // edit mode without a server save; the next Edit restores last draft.
+    clearCache(resource.id);
     navigate(`/${namespaceId}/${resource.id}`, {
       state: loc.state,
     });
