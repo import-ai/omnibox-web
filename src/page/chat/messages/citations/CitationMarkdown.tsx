@@ -118,6 +118,16 @@ export function CitationMarkdown(props: IProps) {
       if (resolvedResource && chatOnly) {
         return <>{children}</>;
       }
+      // Citation markers are pure references: the badge only opens a card
+      // naming the resource the share is meant to keep out of sight.
+      if (
+        chatOnly &&
+        (href?.match(citeLinkRegex) ||
+          findCitationById(citations, href) ||
+          isCitationId(href))
+      ) {
+        return null;
+      }
       if (resolvedResource && resourceLinkPrefix) {
         const resourceHref = `${resourceLinkPrefix}/${resolvedResource}`;
         return (
