@@ -19,6 +19,7 @@ interface IProps {
   editPage: boolean;
   resource: Resource;
   namespaceId: string;
+  showToc: boolean;
   wide: boolean;
   onResource: (resource: Resource) => void;
   rssItemId?: string | null;
@@ -34,6 +35,7 @@ export default function Page(props: IProps) {
     resource,
     onResource,
     namespaceId,
+    showToc,
     wide,
     rssItemId: explicitRssItemId,
     onRssItemCopyContentChange,
@@ -64,6 +66,7 @@ export default function Page(props: IProps) {
         resource={resource}
         onResource={onResource}
         namespaceId={namespaceId}
+        showToc={showToc}
         wide={wide}
       />
     );
@@ -137,6 +140,7 @@ export default function Page(props: IProps) {
       ) : (
         <Render
           resource={resource}
+          showToc={showToc}
           wide={wide}
           linkBase={`/${namespaceId}/${resource.id}`}
           style={{ overflow: 'inherit' }}
