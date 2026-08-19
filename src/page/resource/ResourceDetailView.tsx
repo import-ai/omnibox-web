@@ -20,6 +20,8 @@ import { useResourceBodyDragAutoScroll } from '@/page/resource/useResourceBodyDr
 import Header from './header';
 import Wrapper from './Wrapper';
 
+const COMPACT_RESOURCE_PANE_WIDTH = 768;
+
 interface ResourceDetailViewProps extends IUseResource {
   error?: boolean;
   flush?: boolean;
@@ -63,6 +65,7 @@ export default function ResourceDetailView({
   );
   const [copilotLayoutOpen, setCopilotLayoutOpen] = useState(copilotOpen);
   const [large, setLarge] = useState(window.innerWidth > 1500);
+  const [compactResourcePane, setCompactResourcePane] = useState(false);
   const [rssItemCopyContent, setRssItemCopyContent] = useState<{
     itemId: string;
     content: string | null | undefined;
@@ -102,6 +105,26 @@ export default function ResourceDetailView({
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
 
+    const updateCompactLayout = () =>
+      setCompactResourcePane(
+        scrollContainer.clientWidth <= COMPACT_RESOURCE_PANE_WIDTH
+      );
+    updateCompactLayout();
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateCompactLayout);
+      return () => window.removeEventListener('resize', updateCompactLayout);
+    }
+
+    const observer = new ResizeObserver(updateCompactLayout);
+    observer.observe(scrollContainer);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
       if (scrollHeight - scrollTop - clientHeight < 100) {
@@ -125,6 +148,7 @@ export default function ResourceDetailView({
       <SidebarInset
         className={cn(
           'h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-white dark:bg-background md:h-[calc(100svh-16px)]',
+          compactResourcePane && 'resource-detail-view--compact',
           flushLayout ? 'm-0 md:h-full' : 'm-[8px]'
         )}
         style={
@@ -162,6 +186,7 @@ export default function ResourceDetailView({
               error={error}
               onRssItemCopyContentChange={setRssItemCopyContent}
               rssItemId={rssItemId}
+              showToc={!compactResourcePane}
               wide={wide}
             />
           </div>
