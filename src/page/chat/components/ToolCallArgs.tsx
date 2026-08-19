@@ -7,6 +7,7 @@ import type { ProcessedArg } from '@/lib/toolArgs';
 import { trimMiddle } from '@/lib/toolArgs';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
+import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 import { useRootId } from '@/page/sidebar/store';
 import { fetchResourcesByIds } from '@/service/resource';
 import { fetchShareResource } from '@/service/share';
@@ -18,12 +19,14 @@ interface IProps {
 /**
  * Renders a tool call's args as chips. Resource-id args resolve to the resource
  * name and become a clickable link; space-root ids render as a non-clickable
- * "Private"/"Teamspace" label. Returns a fragment so callers control the wrapper.
+ * "Private"/"Teamspace" label. On a chat-only share every arg stays a plain
+ * chip. Returns a fragment so callers control the wrapper.
  */
 export function ToolCallArgs({ args }: IProps) {
   const { t } = useTranslation();
   const params = useParams();
   const { namespaceId } = useChatRouteParams();
+  const chatOnly = useShareChatOnly();
 
   // Resolved resource names for resource-id args (id -> name).
   const [resourceNames, setResourceNames] = useState<Record<string, string>>(
@@ -48,7 +51,9 @@ export function ToolCallArgs({ args }: IProps) {
 
   useEffect(() => {
     const ids = resourceIdsKey ? resourceIdsKey.split(',') : [];
-    if (ids.length === 0) return;
+    // A chat-only share refuses these reads, so resolving names would only
+    // trade a round of 403s for the same unresolved ids.
+    if (ids.length === 0 || chatOnly) return;
     let cancelled = false;
     void (async () => {
       let entries: [string, string][] = [];
@@ -82,7 +87,7 @@ export function ToolCallArgs({ args }: IProps) {
     return () => {
       cancelled = true;
     };
-  }, [resourceIdsKey, params.namespace_id, params.share_id, t]);
+  }, [resourceIdsKey, params.namespace_id, params.share_id, chatOnly, t]);
 
   return (
     <>
@@ -105,7 +110,7 @@ export function ToolCallArgs({ args }: IProps) {
             );
           }
         }
-        if (arg.resourceId && resourceLinkPrefix) {
+        if (arg.resourceId && resourceLinkPrefix && !chatOnly) {
           const fullName = resourceNames[arg.resourceId];
           return (
             <ChatResourceLink

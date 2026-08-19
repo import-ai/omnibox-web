@@ -28,6 +28,7 @@ interface IProps {
   wide?: boolean;
   onWide?: (wide: boolean) => void;
   showSidebar?: boolean;
+  chatOnly?: boolean;
 }
 
 export function ShareLayout(props: IProps) {
@@ -43,6 +44,7 @@ export function ShareLayout(props: IProps) {
     wide,
     onWide,
     showSidebar = true,
+    chatOnly = false,
   } = props;
   const location = useLocation();
   const sidebarActiveKey =
@@ -66,10 +68,11 @@ export function ShareLayout(props: IProps) {
           }
           onAddToContext={handleAddToContext}
           canBrowseResources={shareInfo.all_resources}
+          showResources={!chatOnly}
         />
       )}
       <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)]">
-        {!isChatActive && (
+        {!isChatActive && !chatOnly && (
           <>
             <Header
               resource={resource}
