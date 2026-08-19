@@ -63,6 +63,7 @@
   "sidebar": {
     "expand": "Expand Sidebar",
     "collapse": "Collapse Sidebar",
+    "folder_empty": "Nothing here",
     "sort": {
       "tooltip": "Sort resources",
       "menu": "Sort",
@@ -98,6 +99,7 @@
     "expand_resource": "Expand {{name}}",
     "collapse_resource": "Collapse {{name}}",
     "empty": "No resources available",
+    "load_failed": "Unable to load resources",
     "no_results": "No matching resources",
     "search_failed": "Unable to load search results"
   },
@@ -121,6 +123,7 @@
     "deleted_description": "This resource has been deleted",
     "moved_to_trash": "Moved to trash",
     "no_content": "Resource has no content to download",
+    "read_only_target": "Read-only resources can't contain other resources.",
     "untitled": "Untitled",
     "attrs": {
       "tag": "Tag",
@@ -696,6 +699,7 @@
           "write_file": "Create Resource",
           "create_resource": "Create Resource",
           "create_smart_folder": "Create Smart Folder",
+          "create_rss_folder": "Create RSS Folder",
           "glob": "Glob",
           "grep": "Grep",
           "task": "Task",
@@ -722,6 +726,8 @@
           "frontend_operations": "Frontend Operating",
           "get_smart_folder_config": "Get Smart Folder Config",
           "update_smart_folder_config": "Update Smart Folder Config",
+          "get_rss_folder_config": "Get RSS Folder Config",
+          "update_rss_folder_config": "Update RSS Folder Config",
           "unknown": "Unknown"
         },
         "function_args": {
@@ -1187,6 +1193,7 @@
     "name_too_long": "Name cannot exceed {{max}} characters",
     "add_to_chat_success": "Successfully added {{count}} resources to chat",
     "select_required": "Select resources before operating",
+    "rss_item_unsupported_action": "Files in a subscription folder do not support this operation.",
     "smart_folder_unsupported_action": "Smart folders do not support this operation.",
     "smart_folder_child_unselectable": "Smart folder child items cannot be selected",
     "all_forbidden": "None of the selected resources are authorized. Batch operation failed",
@@ -1244,13 +1251,7 @@
   },
   "rss_folder": {
     "empty": "No items yet",
-    "reader": {
-      "back": "Back to feed",
-      "open_original": "Open original",
-      "not_ready": "This article is still being processed. Please try again later.",
-      "not_found": "This RSS item is no longer available.",
-      "published_at": "Published"
-    },
+    "published_at": "Published",
     "create": {
       "title": "Create RSS Folder",
       "name": "Name",
@@ -1287,8 +1288,7 @@
     "move": {
       "unsupported_target": "Can't move to RSS folders."
     },
-    "cannot_be_parent": "Resources can't be created inside RSS folders.",
-    "unsupported_operation": "RSS folders don't support this operation yet."
+    "cannot_be_parent": "Resources can't be created inside RSS folders."
   },
   "download": {
     "failed": "Download failed, please try again later"

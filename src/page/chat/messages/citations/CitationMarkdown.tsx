@@ -37,6 +37,7 @@ import {
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
 import { resolveCitationTarget } from '@/page/copilot/citationTarget';
+import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 const citeLinkRegex = /^#cite-(\d+)$/;
 const resourceLinkRegex = /^#resource-([\w-]+)$/;
@@ -82,6 +83,7 @@ export function CitationMarkdown(props: IProps) {
   const { t } = useTranslation();
   const params = useParams();
   const { namespaceId: routeNamespaceId } = useChatRouteParams();
+  const chatOnly = useShareChatOnly();
   const namespaceId = routeNamespaceId || params.namespace_id || '';
   const resourceLinkPrefix = params.share_id
     ? `/s/${params.share_id}`
@@ -96,6 +98,10 @@ export function CitationMarkdown(props: IProps) {
     removeGeneratedCite,
     citations.length
   );
+  // Copying and saving must match what the page shows: a chat-only share
+  // renders no citation, so the markdown carries neither the footnote markers
+  // nor the "[n]: url" footer that would name the hidden resources.
+  const copyContent = copyPreprocess(content, chatOnly ? [] : citations);
   const createdAtLabel = createdAt
     ? format(new Date(createdAt), 'yyyy-MM-dd HH:mm:ss')
     : null;
@@ -111,6 +117,20 @@ export function CitationMarkdown(props: IProps) {
         if (target.kind === 'resource') {
           resolvedResource = target.resourceId;
         }
+      }
+      // A chat-only share serves no resource page, so its sources stay text.
+      if (resolvedResource && chatOnly) {
+        return <>{children}</>;
+      }
+      // Citation markers are pure references: the badge only opens a card
+      // naming the resource the share is meant to keep out of sight.
+      if (
+        chatOnly &&
+        (href?.match(citeLinkRegex) ||
+          findCitationById(citations, href) ||
+          isCitationId(href))
+      ) {
+        return null;
       }
       if (resolvedResource && resourceLinkPrefix) {
         const resourceHref = `${resourceLinkPrefix}/${resolvedResource}`;
@@ -257,11 +277,8 @@ export function CitationMarkdown(props: IProps) {
               <p>{t('chat.messages.actions.regenerate')}</p>
             </TooltipContent>
           </Tooltip>
-          <Copy content={copyPreprocess(content, citations)} />
-          <Save
-            conversation={conversation}
-            content={copyPreprocess(content, citations)}
-          />
+          <Copy content={copyContent} />
+          <Save conversation={conversation} content={copyContent} />
           {createdAtLabel && (
             <span className="text-xs text-muted-foreground opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100">
               {createdAtLabel}

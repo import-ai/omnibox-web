@@ -16,6 +16,7 @@ const ChatConversationsPage = lazy(() => import('@/page/chat/conversations'));
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/InvitePage'));
 const ResourcePage = lazy(() => import('@/page/resource'));
+const RssItemRedirect = lazy(() => import('@/page/resource/RssItemRedirect'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const VerifyOtpPage = lazy(() => import('@/page/user/VerifyOtpPage'));
 const AcceptInvitePage = lazy(() => import('@/page/user/AcceptInvitePage'));
@@ -112,8 +113,9 @@ const router = createBrowserRouter([
             element: <ResourcePage />,
           },
           {
+            // Legacy rss item links, now ordinary resources.
             path: ':resource_id/rss-items/:rss_item_id',
-            element: <ResourcePage />,
+            element: <RssItemRedirect />,
           },
           {
             path: ':resource_id/edit',
@@ -156,8 +158,9 @@ const router = createBrowserRouter([
             element: <SharedResourcePage />,
           },
           {
+            // Legacy shared rss item links, now ordinary resources.
             path: ':resource_id/rss-items/:rss_item_id',
-            element: <SharedResourcePage />,
+            element: <RssItemRedirect />,
           },
           {
             path: 'chat',

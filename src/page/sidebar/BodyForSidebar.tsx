@@ -1,13 +1,12 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
-import useRssFolderLimits from '@/hooks/useRssFolderLimits';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { type Namespace, ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
@@ -18,6 +17,7 @@ import type {
   RssFolderResponse,
 } from '@/page/sidebar/components/rss-folder';
 import { CreateRssFolderDialog } from '@/page/sidebar/components/rss-folder/CreateRssFolderDialog';
+import { useRssFolderConfig } from '@/page/sidebar/components/rss-folder/useRssFolderConfig';
 import {
   CreateSmartFolderRequest,
   getSmartFolderSourceParentId,
@@ -39,19 +39,16 @@ import { ManualSortConfirmDialog } from './components/ManualSortConfirmDialog';
 import ResourceTree from './components/resource-tree';
 import { Toolbar } from './components/toolbar';
 import { useBatchOperations } from './hooks/useBatchOperations';
+import { useRssFolderQuotaExhausted } from './hooks/useRssFolderQuotaExhausted';
 import { useSidebarEvents } from './hooks/useSidebarEvents';
 import { useSidebarInit } from './hooks/useSidebarInit';
-import {
-  countRssFoldersBySpace,
-  getRssFolderQuotaExhausted,
-} from './rssFolderQuota';
 import {
   fetchChildrenForSidebarRefresh,
   getExpandedNodeIdsForSidebarRefresh,
 } from './sidebarBehavior';
 import { TreeNode, useSidebarStore } from './store';
 import { getBatchSelectionSummary, getNodeResourceSort } from './store/utils';
-import { locateSidebarResource, locateSidebarRssItem } from './utils';
+import { locateSidebarResource } from './utils';
 
 interface IProps {
   currentNamespace?: Namespace;
@@ -147,7 +144,6 @@ export function BodyForSidebar(props: IProps) {
   useSidebarEvents(namespaceId);
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { rss_item_id: rssItemId } = useParams();
   const globalFileInputRef = useRef<HTMLInputElement>(null);
   const [createSmartFolderOpen, setCreateSmartFolderOpen] = useState(false);
   const [defaultSmartFolderOwnerScope, setDefaultSmartFolderOwnerScope] =
@@ -159,7 +155,6 @@ export function BodyForSidebar(props: IProps) {
   const [sortingSpace, setSortingSpace] = useState<SpaceType | null>(null);
   const batch = useBatchOperations({ namespaceId });
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
-  const { data: rssFolderLimits } = useRssFolderLimits({ namespaceId });
   const roots = useSidebarStore(state => state.rootIds);
   const nodes = useSidebarStore(state => state.nodes);
   const activeId = useSidebarStore(state => state.activeId);
@@ -246,14 +241,8 @@ export function BodyForSidebar(props: IProps) {
     smartFolderCounts.privateCount,
     smartFolderCounts.teamCount,
   ]);
-  const rssFolderLocalCounts = useMemo(
-    () => countRssFoldersBySpace(nodes),
-    [nodes]
-  );
-  const rssFolderQuotaExhausted = useMemo(
-    () => getRssFolderQuotaExhausted(rssFolderLimits, rssFolderLocalCounts),
-    [rssFolderLimits, rssFolderLocalCounts]
-  );
+  const { updateRssFolderConfig } = useRssFolderConfig(namespaceId);
+  const rssFolderQuotaExhausted = useRssFolderQuotaExhausted(namespaceId);
 
   const handleCreateSmartFolder = (ownerScope: SmartFolderOwnerScope) => {
     setDefaultSmartFolderOwnerScope(ownerScope);
@@ -268,13 +257,8 @@ export function BodyForSidebar(props: IProps) {
   const handleLocateResource = () => {
     if (!canLocateCurrentResource) return;
 
-    // RSS item pages keep resourceId as the folder id. Locate the history row
-    // itself instead of only scrolling to the folder node.
-    if (rssItemId && resourceId) {
-      void locateSidebarRssItem(resourceId, rssItemId);
-      return;
-    }
-
+    // An rss item is an ordinary tree node now, so it needs no locate path of
+    // its own; the generic one below reaches it.
     const targetId =
       previewResourceId || useSidebarStore.getState().activeId || resourceId;
     if (!targetId || targetId === 'chat') return;
@@ -330,10 +314,6 @@ export function BodyForSidebar(props: IProps) {
         node,
         sort
       );
-      if (!children) {
-        app.fire('refresh_rss_items', id);
-        continue;
-      }
       store.refreshChildren(id, children);
     }
   };
@@ -356,11 +336,8 @@ export function BodyForSidebar(props: IProps) {
         )
       );
 
-      // Expand/activate first so collapsed folders recover. History rows may
-      // also remount via refresh_rss_items and re-locate through auto-scroll.
-      if (rssItemId && resourceId) {
-        await locateSidebarRssItem(resourceId, rssItemId);
-      } else if (locateSnapshot) {
+      // Expand/activate first so collapsed folders recover.
+      if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
@@ -398,9 +375,7 @@ export function BodyForSidebar(props: IProps) {
         });
       }
       await refreshSpaceResources(spaceType, sort);
-      if (rssItemId && resourceId) {
-        await locateSidebarRssItem(resourceId, rssItemId);
-      } else if (locateSnapshot) {
+      if (locateSnapshot) {
         await locateSidebarResource(locateSnapshot.id);
       }
     } catch {
@@ -559,20 +534,7 @@ export function BodyForSidebar(props: IProps) {
       return Promise.reject();
     }
 
-    return http
-      .patch(
-        `/namespaces/${namespaceId}/rss-folders/${nodeId}/config`,
-        payload,
-        {
-          muteCodes: ['rss_feed_invalid'],
-        }
-      )
-      .then((response: RssFolderResponse) => {
-        const store = useSidebarStore.getState();
-        store.patch(nodeId, { name: response.resource.name });
-        app.fire('update_resource', response.resource);
-        toast.success(t('rss_folder.edit.success'));
-      });
+    return updateRssFolderConfig(nodeId, payload);
   };
 
   const handleUpdateSmartFolder = (

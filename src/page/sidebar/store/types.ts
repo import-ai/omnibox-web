@@ -36,6 +36,8 @@ export interface TreeNode {
   tags?: TagDto[];
   path?: PathItem[];
   hasChildren: boolean;
+  /** Backend-managed resource (rss item): no rename, move, delete or drag. */
+  readOnly: boolean;
   currentPermission?: Permission;
   globalPermission?: Permission;
   createdAt: string;
@@ -79,7 +81,8 @@ export interface BatchOperationResult {
   success: string[];
   failed: Array<{ id: string; error: Error }>;
   nameConflictIds?: string[];
-  smartFolderUnsupported?: boolean;
+  /** i18n key explaining why the selection was refused, if it was. */
+  unsupportedTipKey?: string;
   resourceId?: string;
   nextId?: string | null;
   navigateToChat?: boolean;

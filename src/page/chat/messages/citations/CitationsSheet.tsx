@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/Sheet';
 import { type Citation } from '@/page/chat/core/types/chatResponse';
 import { CitationCard } from '@/page/chat/messages/citations/CitationCard';
+import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 interface IProps {
   index: number;
@@ -24,11 +25,14 @@ interface IProps {
 export function CitationsSheet(props: IProps) {
   const { index, citations } = props;
   const { t, i18n } = useTranslation();
+  const chatOnly = useShareChatOnly();
   const [open, setOpen] = useState(false);
   const isEnglish = i18n.language === 'en-US';
   const plural = isEnglish && citations.length > 1 ? 's' : '';
 
-  if (citations.length === 0) {
+  // The trigger only exists to open the cited resources, which a chat-only
+  // share does not surface.
+  if (citations.length === 0 || chatOnly) {
     return null;
   }
 

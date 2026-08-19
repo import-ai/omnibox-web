@@ -3,12 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { Separator } from '@/components/ui/Separator';
 import { SidebarInset } from '@/components/ui/Sidebar';
-import {
-  PublicShareInfo,
-  ResourceMeta,
-  RssItemBreadcrumb,
-  SharedResource,
-} from '@/interface';
+import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 
 import Header from './header';
 import ShareSidebar from './sidebar/index';
@@ -24,10 +19,10 @@ interface IProps {
   isChatActive: boolean;
   shareInfo: PublicShareInfo;
   resource?: SharedResource | null;
-  rssItem?: RssItemBreadcrumb | null;
   wide?: boolean;
   onWide?: (wide: boolean) => void;
   showSidebar?: boolean;
+  chatOnly?: boolean;
 }
 
 export function ShareLayout(props: IProps) {
@@ -39,10 +34,10 @@ export function ShareLayout(props: IProps) {
     currentResourcePath,
     handleAddToContext,
     resource,
-    rssItem,
     wide,
     onWide,
     showSidebar = true,
+    chatOnly = false,
   } = props;
   const location = useLocation();
   const sidebarActiveKey =
@@ -66,14 +61,14 @@ export function ShareLayout(props: IProps) {
           }
           onAddToContext={handleAddToContext}
           canBrowseResources={shareInfo.all_resources}
+          showResources={!chatOnly}
         />
       )}
       <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)]">
-        {!isChatActive && (
+        {!isChatActive && !chatOnly && (
           <>
             <Header
               resource={resource}
-              rssItem={rssItem}
               wide={wide}
               onWide={onWide}
               showSidebarTrigger={showSidebar}

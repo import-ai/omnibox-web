@@ -17,7 +17,7 @@ export interface ShareTypeProps {
 
 export function ShareTypeSelector(props: ShareTypeProps) {
   const { disabled, shareType, onChange } = props;
-  const shareTypes = ['doc_only' as ShareType, 'all' as ShareType];
+  const shareTypes: ShareType[] = ['doc_only', 'chat_only', 'all'];
 
   return (
     <Select disabled={disabled} value={shareType} onValueChange={onChange}>

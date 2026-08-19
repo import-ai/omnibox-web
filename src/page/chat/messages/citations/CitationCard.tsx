@@ -5,6 +5,7 @@ import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 import { type CitationIconProps } from '@/page/chat/messages/citations/CitationHoverIcon';
 import { resolveCitationTarget } from '@/page/copilot/citationTarget';
+import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import { extractDomain } from './utils';
 
@@ -16,6 +17,7 @@ export function CitationCard(props: CitationCardProps) {
   const { citation, index } = props;
   const params = useParams();
   const { namespaceId } = useChatRouteParams();
+  const chatOnly = useShareChatOnly();
   const target = resolveCitationTarget(citation.link, namespaceId);
   const resourcePrefix = params.share_id
     ? `/s/${params.share_id}`
@@ -48,7 +50,8 @@ export function CitationCard(props: CitationCardProps) {
 
   return (
     <div className="p-2">
-      {target.kind === 'resource' ? (
+      {/* A chat-only share serves no resource page, so its sources stay text. */}
+      {target.kind === 'resource' && !chatOnly ? (
         <ChatResourceLink
           className={className}
           href={`${resourcePrefix}/${target.resourceId}`}

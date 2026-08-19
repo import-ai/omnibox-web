@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { Arrow } from '@/assets/icons/Arrow';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
@@ -27,7 +27,6 @@ import Action from './NodeActions';
 import ContextMenuMain from './NodeContextMenu';
 import ResourceNode from './ResourceNode';
 import { ResourceTreeProps } from './ResourceNode';
-import ShareRssItemList from './ShareRssItemList';
 
 interface ResourceNodeContentProps extends ResourceTreeProps {
   node: TreeNode;
@@ -46,22 +45,14 @@ export function ResourceNodeContent({
 }: ResourceNodeContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const params = useParams();
   const isMobile = useIsMobile();
   const { setOpenMobile } = useSidebar();
 
   const nodeUI = useSidebarStore(s => s.ui[nodeId]);
-  const isRssFolder = node.resourceType === 'rss_folder';
   const canRenderChildren = canBrowseResources && node.children.length > 0;
-  // RSS items are the folder's content (not sub-resources), so an rss folder is
-  // expandable even when this isn't an all-resources share.
-  const canExpand = node.hasChildren && (canBrowseResources || isRssFolder);
+  const canExpand = node.hasChildren && canBrowseResources;
   const isExpanded = canExpand && nodeUI?.expanded === true;
-  // While reading an item, its folder stays the active sidebar key; keep the
-  // highlight on the item row, not the folder.
-  const isViewingItemOfThisFolder =
-    Boolean(params.rss_item_id) && params.resource_id === node.id;
-  const isActive = isResourceActive(nodeId) && !isViewingItemOfThisFolder;
+  const isActive = isResourceActive(nodeId);
   const navigationTarget = getShareResourceNavigationTarget({
     id: node.id,
     parentId: node.parentId,
@@ -228,9 +219,6 @@ export function ResourceNodeContent({
                   canBrowseResources={canBrowseResources}
                 />
               ))}
-            {isRssFolder && isExpanded && (
-              <ShareRssItemList folderId={node.id} shareId={shareId} />
-            )}
           </SidebarMenuSub>
         </CollapsibleContent>
       </Collapsible>
