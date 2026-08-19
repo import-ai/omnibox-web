@@ -308,7 +308,8 @@ export interface PublicShareInfo {
   all_resources: boolean;
   share_type: ShareType;
   username: string;
-  resource: ResourceMeta;
+  // Absent on a chat-only share, which serves no resource metadata.
+  resource?: ResourceMeta;
 }
 
 export type TaskStatus =

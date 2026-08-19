@@ -26,7 +26,7 @@ import { useSidebarInit } from './hooks/useSidebarInit';
 
 interface IProps {
   shareId: string;
-  rootResource: ResourceMeta;
+  rootResource?: ResourceMeta;
   username: string;
   showChat: boolean;
   isChatActive: boolean;

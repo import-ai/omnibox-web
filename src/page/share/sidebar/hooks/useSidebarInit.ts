@@ -7,7 +7,7 @@ import { getSmartFolderParentIdFromChildKey } from '@/page/sidebar/components/sm
 
 interface IProps {
   shareId: string;
-  rootResource: ResourceMeta;
+  rootResource?: ResourceMeta;
   currentResourceId?: string;
   currentResourcePath?: Array<{ id: string }>;
   canBrowseResources: boolean;
@@ -44,7 +44,8 @@ export function useSidebarInit(props: IProps) {
 
   // Initialize the existing tree store with the public share root.
   useEffect(() => {
-    if (!shareId) return;
+    // A chat-only share sends no root resource, so there is no tree to seed.
+    if (!shareId || !rootResource) return;
     const virtualRootId = `share-root-${rootResource.id}`;
     useSidebarStore.getState().init({
       share: {
@@ -166,6 +167,7 @@ export function useSidebarInit(props: IProps) {
   useEffect(() => {
     // Auto-expand the shared subtree (all-resources shares), or just the root
     // RSS folder so its items show inline even in a single-folder share.
+    if (!rootResource) return;
     const isRssFolderRoot = rootResource.resource_type === 'rss_folder';
     if (!initialized || !showResources) return;
     if (!canBrowseResources && !isRssFolderRoot) return;
@@ -177,8 +179,8 @@ export function useSidebarInit(props: IProps) {
   }, [
     initialized,
     canBrowseResources,
-    rootResource.id,
-    rootResource.resource_type,
+    rootResource?.id,
+    rootResource?.resource_type,
     shareId,
     showResources,
   ]);
