@@ -44,6 +44,7 @@ const SharedChatHomePage = lazy(
 const SharedChatConversationPage = lazy(
   () => import('@/page/shared-chat/SharedChatConversationPage')
 );
+const ConversationSharePage = lazy(() => import('@/page/conversation-share'));
 
 const WelcomePage = lazy(() => import('@/page/welcome'));
 
@@ -137,6 +138,10 @@ const router = createBrowserRouter([
             ],
           },
         ],
+      },
+      {
+        path: 'conversation-shares/:share_id',
+        element: <ConversationSharePage />,
       },
       {
         path: 's/:share_id',

@@ -14,6 +14,19 @@
   "teamspace": "团队",
   "toggle_language": "切换语言",
   "toggle_theme": "切换外观",
+  "conversation_share": {
+    "brand": "小黑 OmniBox",
+    "ai_disclaimer": "内容由小黑 AI 生成，仅供参考",
+    "close_guide": "关闭提示",
+    "invalid": "分享内容已失效",
+    "loading": "正在加载分享内容",
+    "open_app": "打开 APP",
+    "open_app_cta": "打开小黑 OmniBox",
+    "open_app_subtitle_dark": "将万物变成记忆，将记忆变成万物",
+    "answer_author": "小黑",
+    "title": "来自分享的对话",
+    "wechat_guide": "请点击右上角，在浏览器中打开后继续"
+  },
   "notification": "通知",
   "notification_modal": {
     "title": "通知",
