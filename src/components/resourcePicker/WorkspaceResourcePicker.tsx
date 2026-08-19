@@ -45,6 +45,7 @@ export function WorkspaceResourcePicker({
   onSelect: (resource: ResourcePickerResource) => void;
 }) {
   const { t } = useTranslation();
+  const [loading, setLoading] = useState(true);
   const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
   const resourceSorts = useSidebarStore(state => state.resourceSorts);
 
@@ -67,6 +68,7 @@ export function WorkspaceResourcePicker({
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
       .then(response => {
         if (!cancelled)
@@ -79,6 +81,9 @@ export function WorkspaceResourcePicker({
           setRoots([]);
           console.error('Failed to load resource picker roots', error);
         }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
@@ -114,6 +119,7 @@ export function WorkspaceResourcePicker({
 
   return (
     <ResourcePicker
+      loading={loading}
       roots={roots}
       loadChildren={loadChildren}
       searchResources={searchResources}
