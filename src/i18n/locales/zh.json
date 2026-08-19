@@ -254,6 +254,8 @@
     "quota_expand_button": "购买并创建",
     "usage": "用量",
     "auto_renewal": {
+      "tier_basic": "基础版",
+      "tier_premium": "高级版",
       "loading": "正在查询自动续费状态",
       "enabled": "自动续费：已开启连续包月。",
       "next_billing": "预计下次扣费日期：{{date}}。",

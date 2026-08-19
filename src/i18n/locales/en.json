@@ -253,6 +253,8 @@
     "quota_expand_button": "Purchase and Create",
     "usage": "Usage",
     "auto_renewal": {
+      "tier_basic": "Basic",
+      "tier_premium": "Premium",
       "loading": "Checking automatic renewal status",
       "enabled": "Automatic renewal: Monthly plan enabled.",
       "next_billing": "Next billing date: {{date}}.",

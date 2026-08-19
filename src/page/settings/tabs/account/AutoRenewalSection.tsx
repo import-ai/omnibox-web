@@ -33,6 +33,7 @@ interface EnabledRenewalProps {
   isProcessing: boolean;
   nextBilling: string;
   onCancel: () => void;
+  tierLabel: string;
 }
 
 function EnabledRenewal({
@@ -40,13 +41,14 @@ function EnabledRenewal({
   isProcessing,
   nextBilling,
   onCancel,
+  tierLabel,
 }: EnabledRenewalProps) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 space-y-1">
         <AlertTitle className="mb-1 text-sm leading-normal tracking-normal">
-          {t('namespace.auto_renewal.enabled')}
+          {tierLabel} · {t('namespace.auto_renewal.enabled')}
         </AlertTitle>
         <AlertDescription className="text-muted-foreground">
           {nextBilling
@@ -73,12 +75,18 @@ function EnabledRenewal({
   );
 }
 
-function DisabledRenewal({ periodEnd }: { periodEnd: string }) {
+function DisabledRenewal({
+  periodEnd,
+  tierLabel,
+}: {
+  periodEnd: string;
+  tierLabel: string;
+}) {
   const { t } = useTranslation();
   return (
     <div className="space-y-1">
       <AlertTitle className="mb-1 text-sm leading-normal tracking-normal">
-        {t('namespace.auto_renewal.disabled')}
+        {tierLabel} · {t('namespace.auto_renewal.disabled')}
       </AlertTitle>
       <AlertDescription className="text-muted-foreground">
         {t('namespace.auto_renewal.available_until', { date: periodEnd })}
@@ -151,6 +159,7 @@ export function AutoRenewalSection({
     tier
   );
   const view = getAutoRenewalView(renewal);
+  const tierLabel = t(`namespace.auto_renewal.tier_${tier}`);
 
   if (loading) {
     return (
@@ -184,9 +193,10 @@ export function AutoRenewalSection({
           isProcessing={canceling || polling}
           nextBilling={nextBilling}
           onCancel={() => setDialogOpen(true)}
+          tierLabel={tierLabel}
         />
       ) : (
-        <DisabledRenewal periodEnd={periodEnd} />
+        <DisabledRenewal periodEnd={periodEnd} tierLabel={tierLabel} />
       )}
       <CancelDialog
         canceling={canceling}
