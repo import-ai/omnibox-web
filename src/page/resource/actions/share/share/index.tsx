@@ -207,9 +207,13 @@ export function ShareTabContent(props: ShareTabContentProps) {
       onCheckedChange={handleOnlyCurrent}
     />
   );
+  // A chat-only share never lists resources, so its ordering is meaningless.
+  const isChatOnly = shareInfo?.share_type === 'chat_only';
   const shareSortSelector = shareInfo?.enabled ? (
     <ShareSortSelector
-      disabled={!shareInfo.all_resources || !!sortUnsupportedTooltipKey}
+      disabled={
+        !shareInfo.all_resources || !!sortUnsupportedTooltipKey || isChatOnly
+      }
       manualSortAvailable={shareInfo.manual_sort_available}
       sort={{
         sort_by: shareInfo.sort_by,

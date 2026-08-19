@@ -7,15 +7,21 @@ import { getSmartFolderParentIdFromChildKey } from '@/page/sidebar/components/sm
 
 interface IProps {
   shareId: string;
-  rootResource: ResourceMeta;
+  rootResource?: ResourceMeta;
   currentResourceId?: string;
   currentResourcePath?: Array<{ id: string }>;
   canBrowseResources: boolean;
+  showResources?: boolean;
 }
 
 export function useSidebarInit(props: IProps) {
-  const { shareId, rootResource, currentResourceId, canBrowseResources } =
-    props;
+  const {
+    shareId,
+    rootResource,
+    currentResourceId,
+    canBrowseResources,
+    showResources = true,
+  } = props;
   const navigate = useNavigate();
   const location = useLocation();
   // Auto-navigate to first resource when no resourceId and not on chat page
@@ -37,7 +43,8 @@ export function useSidebarInit(props: IProps) {
 
   // Initialize the existing tree store with the public share root.
   useEffect(() => {
-    if (!shareId) return;
+    // A chat-only share sends no root resource, so there is no tree to seed.
+    if (!shareId || !rootResource) return;
     const virtualRootId = `share-root-${rootResource.id}`;
     useSidebarStore.getState().init({
       share: {
@@ -62,7 +69,8 @@ export function useSidebarInit(props: IProps) {
 
   // Auto-expand path when resourceId changes (only after roots are loaded)
   useEffect(() => {
-    if (!initialized || !currentResourceId || chatPage) return;
+    if (!initialized || !currentResourceId || chatPage || !showResources)
+      return;
 
     const isFromSidebar = location.state?.fromSidebar === true;
     const shouldSkipPathExpand =
@@ -147,20 +155,30 @@ export function useSidebarInit(props: IProps) {
     canBrowseResources,
     location.pathname,
     navigate,
+    showResources,
   ]);
 
   useEffect(() => {
     // Auto-expand the shared subtree (all-resources shares only).
-    if (!initialized || !canBrowseResources) return;
+    if (!rootResource) return;
+    if (!initialized || !showResources) return;
+    if (!canBrowseResources) return;
     const key = `${shareId}:${rootResource.id}`;
     if (autoExpandedAllKeyRef.current === key) return;
 
     autoExpandedAllKeyRef.current = key;
     useSidebarStore.getState().expandAllFrom(rootResource.id);
-  }, [initialized, canBrowseResources, rootResource.id, shareId]);
+  }, [
+    initialized,
+    canBrowseResources,
+    rootResource?.id,
+    shareId,
+    showResources,
+  ]);
 
   useEffect(() => {
-    if (!initialized || currentResourceId || chatPage) return;
+    // A chat-only share has no resource page to fall back to.
+    if (!initialized || currentResourceId || chatPage || !showResources) return;
     if (hasAutoNavigatedRef.current) return;
 
     const store = useSidebarStore.getState();
@@ -176,7 +194,14 @@ export function useSidebarInit(props: IProps) {
       hasAutoNavigatedRef.current = true;
       navigate(`/s/${shareId}/${firstNode.id}`);
     }
-  }, [initialized, currentResourceId, chatPage, shareId, navigate]);
+  }, [
+    initialized,
+    currentResourceId,
+    chatPage,
+    shareId,
+    navigate,
+    showResources,
+  ]);
 
   // Sync activeId from URL (only when URL changes, not when store.activeId changes)
   useEffect(() => {

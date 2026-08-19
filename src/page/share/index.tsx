@@ -25,6 +25,7 @@ import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/na
 import { getSmartFolderSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 
 import { Password } from './Password';
+import { ShareChatOnlyProvider } from './ShareChatOnlyContext';
 import { ShareLayout } from './ShareLayout';
 
 const SHARE_PASSWORD_COOKIE = 'share-password';
@@ -81,6 +82,7 @@ export default function SharePage() {
   const currentResourceId = params.resource_id || shareInfo?.resource?.id;
   const isChatActive = location.pathname.includes('/chat');
   const showChat = shareInfo && shareInfo.share_type !== 'doc_only';
+  const isChatOnly = shareInfo?.share_type === 'chat_only';
 
   const handleAddToContext = (
     resource: ResourceMeta,
@@ -181,11 +183,19 @@ export default function SharePage() {
     return () => source.cancel();
   }, [shareId]);
 
+  // A chat-only share serves no resource pages, so every entry lands on chat.
+  useEffect(() => {
+    if (!isChatOnly || isChatActive) {
+      return;
+    }
+    navigate(`/s/${shareId}/chat`, { replace: true });
+  }, [isChatOnly, isChatActive, shareId, navigate]);
+
   // Get resource info
   useEffect(() => {
     setResource(null);
     setNotFound(false);
-    if (!shareInfo || !currentResourceId) {
+    if (!shareInfo || !currentResourceId || isChatOnly) {
       return;
     }
     const source = axios.CancelToken.source();
@@ -212,7 +222,7 @@ export default function SharePage() {
         }
       });
     return () => source.cancel();
-  }, [shareInfo, currentResourceId, shareId, navigate]);
+  }, [shareInfo, currentResourceId, shareId, navigate, isChatOnly]);
 
   if (requirePassword) {
     return (
@@ -247,7 +257,9 @@ export default function SharePage() {
     );
   }
   if (shareInfo) {
-    const showSidebar = (shareInfo.all_resources || showChat) ?? true;
+    // Chat-only keeps the sidebar for its chat entry, but drops the tree.
+    const showSidebar =
+      isChatOnly || ((shareInfo.all_resources || showChat) ?? true);
     return (
       <ShareContext.Provider
         value={{
@@ -265,20 +277,23 @@ export default function SharePage() {
           onWide: setWide,
         }}
       >
-        <SidebarProvider>
-          <ShareLayout
-            shareInfo={shareInfo}
-            isChatActive={isChatActive}
-            showChat={showChat}
-            currentResourceId={currentResourceId}
-            currentResourcePath={resource?.path}
-            handleAddToContext={handleAddToContext}
-            resource={resource}
-            wide={wide}
-            onWide={setWide}
-            showSidebar={showSidebar}
-          />
-        </SidebarProvider>
+        <ShareChatOnlyProvider chatOnly={isChatOnly}>
+          <SidebarProvider>
+            <ShareLayout
+              shareInfo={shareInfo}
+              isChatActive={isChatActive}
+              showChat={showChat}
+              currentResourceId={currentResourceId}
+              currentResourcePath={resource?.path}
+              handleAddToContext={handleAddToContext}
+              resource={resource}
+              wide={wide}
+              onWide={setWide}
+              showSidebar={showSidebar}
+              chatOnly={isChatOnly}
+            />
+          </SidebarProvider>
+        </ShareChatOnlyProvider>
       </ShareContext.Provider>
     );
   }
