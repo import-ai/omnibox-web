@@ -18,12 +18,13 @@ interface IProps {
   editPage: boolean;
   resource: Resource;
   namespaceId: string;
+  showToc: boolean;
   wide: boolean;
   onResource: (resource: Resource) => void;
 }
 
 export default function Page(props: IProps) {
-  const { editPage, resource, onResource, namespaceId, wide } = props;
+  const { editPage, resource, onResource, namespaceId, showToc, wide } = props;
   const { t } = useTranslation();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const constrainHeader =
@@ -46,6 +47,7 @@ export default function Page(props: IProps) {
         resource={resource}
         onResource={onResource}
         namespaceId={namespaceId}
+        showToc={showToc}
         wide={wide}
       />
     );
@@ -111,6 +113,7 @@ export default function Page(props: IProps) {
       ) : (
         <Render
           resource={resource}
+          showToc={showToc}
           wide={wide}
           linkBase={`/${namespaceId}/${resource.id}`}
           style={{ overflow: 'inherit' }}

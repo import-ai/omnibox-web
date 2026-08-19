@@ -7,6 +7,14 @@ import type { Resource } from '@/interface';
 
 import ResourceDetailView from './ResourceDetailView';
 
+let resizeCallback: ResizeObserverCallback;
+
+jest.mock(
+  '@/components/attributes/resource-tasks/ResourceTasksContext',
+  () => ({
+    ResourceTasksProvider: ({ children }: React.PropsWithChildren) => children,
+  })
+);
 jest.mock('@/components/ui/Separator', () => ({
   Separator: () => <div data-testid="separator" />,
 }));
@@ -51,15 +59,18 @@ jest.mock('./Wrapper', () => ({
   default: ({
     resource,
     loading,
+    showToc,
     wide,
   }: {
     loading: boolean;
     resource: Resource | null;
+    showToc: boolean;
     wide: boolean;
   }) => (
     <div
       data-resource-id={resource?.id}
       data-loading={String(loading)}
+      data-show-toc={String(showToc)}
       data-testid="resource-wrapper"
       data-wide={String(wide)}
     />
@@ -73,26 +84,17 @@ jest.mock('./Wrapper', () => ({
 describe('ResourceDetailView', () => {
   let container: HTMLDivElement;
   let root: Root;
+  let originalResizeObserver: typeof ResizeObserver | undefined;
+  const resource = {
+    id: 'resource-a',
+    name: 'Resource A',
+    resource_type: 'resource',
+  } as Resource;
 
-  beforeEach(() => {
-    container = document.createElement('div');
-    document.body.appendChild(container);
-    root = createRoot(container);
-  });
-
-  afterEach(async () => {
-    await act(async () => root.unmount());
-    container.remove();
-    jest.clearAllMocks();
-  });
-
-  it('owns the complete resource header, separator, sizing, and content wrapper', async () => {
-    const resource = {
-      id: 'resource-a',
-      name: 'Resource A',
-      resource_type: 'resource',
-    } as Resource;
-
+  async function renderResource(
+    currentResource = resource,
+    resourceId = currentResource.id
+  ) {
     await act(async () => {
       root.render(
         <ResourceDetailView
@@ -103,11 +105,38 @@ describe('ResourceDetailView', () => {
           namespaceId="namespace-a"
           notFound={false}
           onResource={jest.fn()}
-          resource={resource}
-          resourceId={resource.id}
+          resource={currentResource}
+          resourceId={resourceId}
         />
       );
     });
+  }
+
+  beforeEach(() => {
+    originalResizeObserver = global.ResizeObserver;
+    global.ResizeObserver = class implements ResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        resizeCallback = callback;
+      }
+
+      disconnect() {}
+      observe() {}
+      unobserve() {}
+    };
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(async () => {
+    await act(async () => root.unmount());
+    container.remove();
+    global.ResizeObserver = originalResizeObserver as typeof ResizeObserver;
+    jest.clearAllMocks();
+  });
+
+  it('owns the complete resource header, separator, sizing, and content wrapper', async () => {
+    await renderResource();
 
     expect(
       container.querySelector('[data-testid="resource-header"]')
@@ -124,32 +153,75 @@ describe('ResourceDetailView', () => {
   });
 
   it('does not render a stale resource title while the next resource is loading', async () => {
-    const staleResource = {
-      id: 'resource-a',
-      name: 'Resource A',
-      resource_type: 'resource',
-    } as Resource;
-
-    await act(async () => {
-      root.render(
-        <ResourceDetailView
-          app={{ fire: jest.fn(), on: jest.fn() } as never}
-          editPage={false}
-          forbidden={false}
-          loading={false}
-          namespaceId="namespace-a"
-          notFound={false}
-          onResource={jest.fn()}
-          resource={staleResource}
-          resourceId="resource-b"
-        />
-      );
-    });
+    await renderResource(resource, 'resource-b');
 
     const header = container.querySelector('[data-testid="resource-header"]');
     const wrapper = container.querySelector('[data-testid="resource-wrapper"]');
     expect(header?.getAttribute('data-resource-id')).toBe('none');
     expect(wrapper?.getAttribute('data-resource-id')).toBeNull();
     expect(wrapper?.getAttribute('data-loading')).toBe('true');
+  });
+
+  it('uses compact layout when the resource pane becomes narrow', async () => {
+    await renderResource();
+
+    const resourceView = container.querySelector('main');
+    const scrollContainer = resourceView?.querySelector(
+      '.overflow-y-auto'
+    ) as HTMLDivElement;
+    Object.defineProperty(scrollContainer, 'clientWidth', {
+      configurable: true,
+      value: 900,
+    });
+    await act(async () => {
+      resizeCallback([], {} as ResizeObserver);
+    });
+    expect(resourceView?.classList).not.toContain(
+      'resource-detail-view--compact'
+    );
+    expect(
+      container
+        .querySelector('[data-testid="resource-wrapper"]')
+        ?.getAttribute('data-show-toc')
+    ).toBe('true');
+
+    Object.defineProperty(scrollContainer, 'clientWidth', {
+      configurable: true,
+      value: 700,
+    });
+    await act(async () => {
+      resizeCallback([], {} as ResizeObserver);
+    });
+    expect(resourceView?.classList).toContain('resource-detail-view--compact');
+    expect(
+      container
+        .querySelector('[data-testid="resource-wrapper"]')
+        ?.getAttribute('data-show-toc')
+    ).toBe('false');
+  });
+
+  it('falls back to window resize when ResizeObserver is unavailable', async () => {
+    global.ResizeObserver = undefined as unknown as typeof ResizeObserver;
+    await renderResource();
+
+    const resourceView = container.querySelector('main');
+    const scrollContainer = resourceView?.querySelector(
+      '.overflow-y-auto'
+    ) as HTMLDivElement;
+    Object.defineProperty(scrollContainer, 'clientWidth', {
+      configurable: true,
+      value: 900,
+    });
+    await act(async () => window.dispatchEvent(new Event('resize')));
+    expect(resourceView?.classList).not.toContain(
+      'resource-detail-view--compact'
+    );
+
+    Object.defineProperty(scrollContainer, 'clientWidth', {
+      configurable: true,
+      value: 700,
+    });
+    await act(async () => window.dispatchEvent(new Event('resize')));
+    expect(resourceView?.classList).toContain('resource-detail-view--compact');
   });
 });

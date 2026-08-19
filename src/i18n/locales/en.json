@@ -86,6 +86,7 @@
     "expand_resource": "Expand {{name}}",
     "collapse_resource": "Collapse {{name}}",
     "empty": "No resources available",
+    "load_failed": "Unable to load resources",
     "no_results": "No matching resources",
     "search_failed": "Unable to load search results"
   },
