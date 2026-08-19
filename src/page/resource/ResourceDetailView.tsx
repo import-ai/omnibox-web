@@ -109,9 +109,14 @@ export default function ResourceDetailView({
       setCompactResourcePane(
         scrollContainer.clientWidth <= COMPACT_RESOURCE_PANE_WIDTH
       );
-    const observer = new ResizeObserver(updateCompactLayout);
-
     updateCompactLayout();
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateCompactLayout);
+      return () => window.removeEventListener('resize', updateCompactLayout);
+    }
+
+    const observer = new ResizeObserver(updateCompactLayout);
     observer.observe(scrollContainer);
     return () => observer.disconnect();
   }, []);
