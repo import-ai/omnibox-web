@@ -222,4 +222,21 @@ describe('copyPreprocess', () => {
       'Answer. [^1][1] next\n\n[1]: https://omnibox.test/namespace-id/resource-id "Resource"\n[2]: https://example.com "Web"\n'
     );
   });
+
+  // A chat-only share copies with no citations, so the markdown must lose both
+  // the footnote markers and the footer naming the hidden resources.
+  it.each([
+    ['a linked marker', 'Answer. [[1]](C2-web-title) next'],
+    ['a legacy marker', 'Answer. [[1]] next'],
+  ])(
+    'strips %s and the footer when there are no citations',
+    (_label, input) => {
+      const copied = copyPreprocess(input, []);
+
+      expect(copied).toBe('Answer.  next');
+      expect(copied).not.toContain('omnibox.test');
+      expect(copied).not.toContain('Resource');
+      expect(copied).not.toContain('[^');
+    }
+  );
 });

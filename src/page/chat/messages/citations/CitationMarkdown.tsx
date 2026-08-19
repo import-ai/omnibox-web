@@ -98,6 +98,10 @@ export function CitationMarkdown(props: IProps) {
     removeGeneratedCite,
     citations.length
   );
+  // Copying and saving must match what the page shows: a chat-only share
+  // renders no citation, so the markdown carries neither the footnote markers
+  // nor the "[n]: url" footer that would name the hidden resources.
+  const copyContent = copyPreprocess(content, chatOnly ? [] : citations);
   const createdAtLabel = createdAt
     ? format(new Date(createdAt), 'yyyy-MM-dd HH:mm:ss')
     : null;
@@ -273,11 +277,8 @@ export function CitationMarkdown(props: IProps) {
               <p>{t('chat.messages.actions.regenerate')}</p>
             </TooltipContent>
           </Tooltip>
-          <Copy content={copyPreprocess(content, citations)} />
-          <Save
-            conversation={conversation}
-            content={copyPreprocess(content, citations)}
-          />
+          <Copy content={copyContent} />
+          <Save conversation={conversation} content={copyContent} />
           {createdAtLabel && (
             <span className="text-xs text-muted-foreground opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100">
               {createdAtLabel}
