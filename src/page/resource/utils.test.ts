@@ -1,6 +1,6 @@
 import type { i18n as I18nType } from 'i18next';
 
-import { groupItemsByTimestamp } from './utils';
+import { groupItemsByTimestamp, itemTimestamp } from './utils';
 
 function i18nMock(language: string): I18nType {
   return {
@@ -82,5 +82,31 @@ describe('groupItemsByTimestamp', () => {
       ['date.today', ['published']],
       ['February 2026', ['fallback']],
     ]);
+  });
+});
+
+describe('itemTimestamp', () => {
+  it('files an rss item under its publish date', () => {
+    // The poller rewrites an item's body whenever it re-parses the article, so
+    // updated_at says when the copy was refreshed, not when it was published.
+    expect(
+      itemTimestamp({
+        resource_type: 'rss_item',
+        created_at: '2019-05-01T00:00:00.000Z',
+        updated_at: '2026-08-12T00:00:00.000Z',
+      })
+    ).toBe('2019-05-01T00:00:00.000Z');
+  });
+
+  it('files everything else under its last edit', () => {
+    for (const resource_type of ['doc', 'folder', 'link']) {
+      expect(
+        itemTimestamp({
+          resource_type,
+          created_at: '2019-05-01T00:00:00.000Z',
+          updated_at: '2026-08-12T00:00:00.000Z',
+        })
+      ).toBe('2026-08-12T00:00:00.000Z');
+    }
   });
 });

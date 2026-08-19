@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import type { ResourceMeta } from '@/interface';
 import { useSidebarStore } from '@/page/share/sidebar/store';
+import { rssTreeChildrenParams } from '@/service/resourceSort';
 import { fetchShareChildren } from '@/service/share';
 
 import { ResourcePicker } from './ResourcePicker';
@@ -51,7 +52,9 @@ export function ShareResourcePicker({
       );
       if (cached) return cached;
 
-      return fetchShareChildren(shareId, resource.id);
+      return fetchShareChildren(shareId, resource.id, {
+        params: rssTreeChildrenParams(resource.resource_type),
+      });
     },
     [canBrowseResources, shareId]
   );

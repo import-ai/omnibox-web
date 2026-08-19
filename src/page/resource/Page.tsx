@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import Attributes from '@/components/attributes';
 import { Resource } from '@/interface';
@@ -11,33 +11,20 @@ import {
   selectUseOmniboxEditor,
   useResourceStore,
 } from '@/page/resource/resourceStore';
-import RssItems from '@/page/resource/rss';
-import RssItemReader from '@/page/resource/rss/RssItemReader';
 import { splitSearchText } from '@/page/resource/searchHighlight';
+import { RSS_ITEM_SORT } from '@/service/resourceSort';
 
 interface IProps {
   editPage: boolean;
   resource: Resource;
   namespaceId: string;
+  showToc: boolean;
   wide: boolean;
   onResource: (resource: Resource) => void;
-  rssItemId?: string | null;
-  onRssItemCopyContentChange?: (value: {
-    itemId: string;
-    content: string | null | undefined;
-  }) => void;
 }
 
 export default function Page(props: IProps) {
-  const {
-    editPage,
-    resource,
-    onResource,
-    namespaceId,
-    wide,
-    rssItemId: explicitRssItemId,
-    onRssItemCopyContentChange,
-  } = props;
+  const { editPage, resource, onResource, namespaceId, showToc, wide } = props;
   const { t } = useTranslation();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const constrainHeader =
@@ -49,34 +36,19 @@ export default function Page(props: IProps) {
     resource.resource_type === 'folder' ||
     resource.resource_type === 'smart_folder' ||
     resource.resource_type === 'rss_folder';
-  const { rss_item_id: routeRssItemId } = useParams();
-  const rssItemId =
-    explicitRssItemId === undefined
-      ? routeRssItemId
-      : explicitRssItemId || undefined;
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query') ?? '';
   const title = resource.name || t('untitled');
 
-  if (editPage) {
+  // Read-only resources (rss items) have no editor, even on the /edit route.
+  if (editPage && !resource.read_only) {
     return (
       <Editor
         resource={resource}
         onResource={onResource}
         namespaceId={namespaceId}
+        showToc={showToc}
         wide={wide}
-      />
-    );
-  }
-
-  if (resource.resource_type === 'rss_folder' && rssItemId) {
-    return (
-      <RssItemReader
-        namespaceId={namespaceId}
-        resourceId={resource.id}
-        itemId={rssItemId}
-        notifyItemLoaded
-        onCopyContentChange={onRssItemCopyContentChange}
       />
     );
   }
@@ -122,10 +94,14 @@ export default function Page(props: IProps) {
           smartFolderParentId={resource.id}
         />
       ) : resource.resource_type === 'rss_folder' ? (
-        <RssItems
+        <Folder
           resourceId={resource.id}
+          apiPrefix={`/namespaces/${namespaceId}/resources`}
           namespaceId={namespaceId}
           emptyText={t('rss_folder.empty')}
+          navigationPrefix={`/${namespaceId}`}
+          sort={RSS_ITEM_SORT}
+          rssFeedNames
         />
       ) : resource.resource_type === 'folder' ? (
         <Folder
@@ -137,6 +113,7 @@ export default function Page(props: IProps) {
       ) : (
         <Render
           resource={resource}
+          showToc={showToc}
           wide={wide}
           linkBase={`/${namespaceId}/${resource.id}`}
           style={{ overflow: 'inherit' }}

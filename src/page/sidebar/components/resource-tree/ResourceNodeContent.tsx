@@ -22,6 +22,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useIsMobile } from '@/hooks/useMobile';
 import { cn } from '@/lib/utils';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
+import { RssItemFeedBadge } from '@/page/sidebar/components/rss-folder/RssItemFeedBadge';
+import { useRssItemFeedName } from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
 import { getSmartFolderSourceResourceId } from '@/page/sidebar/components/smart-folder';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/useResourceNodeDnd';
 import { useResourceNodeRename } from '@/page/sidebar/hooks/useResourceNodeRename';
@@ -32,14 +34,16 @@ import {
   useSelectionState,
   useSidebarStore,
 } from '@/page/sidebar/store';
-import { isBatchSelectableNode } from '@/page/sidebar/store/utils';
+import {
+  isBatchSelectableNode,
+  isManagedChildrenNode,
+} from '@/page/sidebar/store/utils';
 
 import FolderEmptyState from './FolderEmptyState';
 import Action from './NodeActions';
 import ContextMenuMain from './NodeContextMenu';
 import ResourceNode from './ResourceNode';
 import type { ResourceNodeContentProps } from './resourceNodeTypes';
-import RssItemList from './RssItemList';
 
 const CLICK_DEBOUNCE_DELAY = 250;
 
@@ -71,6 +75,22 @@ export function ResourceNodeContent({
   const isDimmedBySelection = useNodeIsDimmedBySelection(nodeId);
 
   const clickTimeoutRef = useRef<number | null>(null);
+  // The config endpoint only exists for an rss folder, and a row's parent is
+  // not always the feed folder the item lives in: a smart folder collecting rss
+  // items re-parents them to itself. Asking that folder for a feed config 404s,
+  // and the miss is memoised, so every badge in the session goes missing.
+  const parentResourceType = useSidebarStore(s =>
+    node.parentId ? s.nodes[node.parentId]?.resourceType : undefined
+  );
+  const rssFolderId =
+    parentResourceType === 'rss_folder' ? node.parentId : null;
+
+  // Only resolves for an rss item, and only to a named feed of its folder.
+  const feedName = useRssItemFeedName(namespaceId, {
+    resourceType: node.resourceType,
+    folderId: rssFolderId,
+    attrs: node.attrs,
+  });
 
   const smartFolderSourceResourceId = getSmartFolderSourceResourceId({
     id: node.id,
@@ -85,11 +105,7 @@ export function ResourceNodeContent({
     typeof location.state?.sidebarActiveKey === 'string'
       ? location.state.sidebarActiveKey
       : activeId;
-  // While reading an RSS item, its folder is still the active sidebar key, but
-  // the highlight should belong to the item row, not the folder.
-  const isViewingRssItemOfThisFolder =
-    Boolean(params.rss_item_id) && params.resource_id === nodeId;
-  const isActive = nodeId === activeSidebarKey && !isViewingRssItemOfThisFolder;
+  const isActive = nodeId === activeSidebarKey;
   const isEditing = nodeId === renamingId;
   const isSelectionHighlighted = isSelected || isFullySelected;
   const isExpanded = nodeUI?.expanded === true;
@@ -158,8 +174,8 @@ export function ResourceNodeContent({
     if (node.hasChildren) {
       if (isActive) {
         // When the folder is active but we've navigated into one of its
-        // sub-pages (e.g. an RSS item reader), a click should jump back to the
-        // folder's own detail page rather than just toggling the tree.
+        // sub-pages, a click should jump back to the folder's own detail page
+        // rather than just toggling the tree.
         if (location.pathname === `/${namespaceId}/${targetId}`) {
           handleExpand();
         } else {
@@ -197,7 +213,7 @@ export function ResourceNodeContent({
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (selectionMode) return;
+    if (selectionMode || node.readOnly) return;
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
@@ -314,16 +330,22 @@ export function ResourceNodeContent({
                             <Arrow className="transition-transform" />
                           </Button>
                         ))}
-                      <ResourceTypeIcon
-                        expand={isExpanded}
-                        resource={{
-                          id: node.id,
-                          name: node.name,
-                          parentId: node.parentId,
-                          resourceType: node.resourceType,
-                          hasChildren: node.hasChildren,
-                          attrs: node.attrs,
-                        }}
+                      <RssItemFeedBadge
+                        name={feedName}
+                        size="sidebar"
+                        fallback={
+                          <ResourceTypeIcon
+                            expand={isExpanded}
+                            resource={{
+                              id: node.id,
+                              name: node.name,
+                              parentId: node.parentId,
+                              resourceType: node.resourceType,
+                              hasChildren: node.hasChildren,
+                              attrs: node.attrs,
+                            }}
+                          />
+                        }
                       />
                       {isEditing ? (
                         <input
@@ -387,15 +409,11 @@ export function ResourceNodeContent({
                   onAddToChat={onAddToChat}
                 />
               ))}
-            {isExpanded && node.resourceType === 'rss_folder' && (
-              <RssItemList
-                folderId={nodeId}
-                namespaceId={namespaceId}
-                depth={depth + 1}
-              />
-            )}
+            {/* A folder the backend fills — a smart folder or a feed — reads as
+                broken when it expands to nothing, so it says so. An empty
+                plain folder is the user's own doing and stays silent. */}
             {isExpanded &&
-              node.resourceType === 'smart_folder' &&
+              isManagedChildrenNode(node) &&
               node.children.length === 0 && (
                 <FolderEmptyState depth={depth + 1} />
               )}

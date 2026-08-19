@@ -10,7 +10,11 @@ import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-fold
 
 import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
-import { getTopLevelSelectedIds, isDescendant } from '../store/utils';
+import {
+  getTopLevelSelectedIds,
+  isDescendant,
+  isManagedChildrenNode,
+} from '../store/utils';
 import { isValidFileType, locateSidebarResource } from '../utils';
 import {
   getCurrentResourceId,
@@ -112,8 +116,7 @@ export function useDndHandlers({
   const handleFileUpload = (files: File[]) => {
     const targetNode = useSidebarStore.getState().nodes[targetId];
     if (
-      targetNode?.resourceType === 'smart_folder' ||
-      targetNode?.resourceType === 'rss_folder' ||
+      isManagedChildrenNode(targetNode) ||
       isSmartFolderChildResource(targetNode)
     ) {
       return;
@@ -157,7 +160,9 @@ export function useDndHandlers({
     const dragNode = nodes[dragId];
     const targetNode = nodes[targetId];
     if (dragNode?.parentId === targetId) return;
-    if (targetNode?.resourceType === 'rss_folder') return;
+    // Read-only resources can't be moved, and managed folders take no children.
+    if (dragNode?.readOnly || targetNode?.readOnly) return;
+    if (isManagedChildrenNode(targetNode)) return;
     if (
       isSmartFolderChildResource(dragNode) ||
       isSmartFolderChildResource(targetNode)
@@ -215,8 +220,8 @@ export function useDndHandlers({
         const nameConflictCount = result.nameConflictIds?.length ?? 0;
         if (result.failed.length > 0) {
           if (result.success.length === 0) {
-            const errorKey = result.smartFolderUnsupported
-              ? 'batch.smart_folder_unsupported_action'
+            const errorKey = result.unsupportedTipKey
+              ? result.unsupportedTipKey
               : nameConflictCount > 0
                 ? 'batch.move_name_conflict_failed'
                 : 'batch.all_forbidden';

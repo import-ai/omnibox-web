@@ -56,6 +56,7 @@ interface IEditorProps {
   namespaceId: string;
   resource: Resource;
   onResource: (resource: Resource) => void;
+  showToc: boolean;
   wide: boolean;
 }
 
@@ -120,7 +121,7 @@ function format(_files: File[], responseText: string): string {
 }
 
 function OmniboxResourceEditor(props: IEditorProps) {
-  const { resource, onResource, namespaceId, wide } = props;
+  const { resource, onResource, namespaceId, showToc, wide } = props;
   const { i18n, t } = useTranslation();
   const markdownRef = useRef('');
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
@@ -134,7 +135,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
   );
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
-  const cachedTitle = cache?.title || resource.name || '';
+  const cachedTitle = cache?.title ?? resource.name ?? '';
   const isFolder = resource.resource_type === 'folder';
   const linkBase = useMemo(
     () => `/${namespaceId}/${resource.id}`,
@@ -142,7 +143,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
   );
 
   const initialContent = useMemo(
-    () => cache?.content || resource.content || '',
+    () => cache?.content ?? resource.content ?? '',
     [resource.id]
   );
   const editorContent = useMemo(
@@ -364,7 +365,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
                 : OMNIBOX_EDITOR_CONTENT_WIDTH
             }
             showHeader={false}
-            showToc={true}
+            showToc={showToc}
             tocColors={{
               inactive: theme.content === 'dark' ? '#ffffff' : '#000000',
             }}
@@ -450,8 +451,8 @@ function VditorResourceEditor(props: IEditorProps) {
 
   useEffect(() => {
     const token = localStorage.getItem('token') || '';
-    const cachedTitle = initialCache?.title || resource.name || '';
-    const cachedContent = initialCache?.content || resource.content || '';
+    const cachedTitle = initialCache?.title ?? resource.name ?? '';
+    const cachedContent = initialCache?.content ?? resource.content ?? '';
 
     onTitle(cachedTitle);
 

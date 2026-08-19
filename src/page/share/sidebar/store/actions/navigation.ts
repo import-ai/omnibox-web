@@ -4,6 +4,7 @@ import {
   isSmartFolderChildResource,
   withSmartFolderChildSidebarAttrs,
 } from '@/page/sidebar/components/smart-folder';
+import { rssTreeChildrenParams } from '@/service/resourceSort';
 import { fetchShareChildren, fetchShareResource } from '@/service/share';
 
 import type { SidebarGet, SidebarSet, SpaceType, TreeNode } from '../types';
@@ -71,21 +72,6 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
       const nodeUI = get().ui[id];
       if (!node || nodeUI?.loading) return;
 
-      // RSS folders have no resource children; their polled items are rendered
-      // inline by ShareRssItemList. Expanding just opens the node — there are no
-      // child resources to fetch (fetchShareChildren would return none and clear
-      // hasChildren).
-      if (node.resourceType === 'rss_folder') {
-        set(s => {
-          const ui = ensureUI(s, id);
-          ui.loading = false;
-          ui.loaded = true;
-          ui.expanded = true;
-          s.autoExpandedKeys[`${s.namespaceId}:${id}`] = true;
-        });
-        return;
-      }
-
       const promise = (async () => {
         set(s => {
           const ui = ensureUI(s, id);
@@ -95,7 +81,11 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         try {
           const children = normalizeShareChildren(
             node,
-            await fetchShareChildren(get().namespaceId, id)
+            // Same cap as the workspace tree: a shared rss folder can hold
+            // thousands of articles and the tree renders every row it is given.
+            await fetchShareChildren(get().namespaceId, id, {
+              params: rssTreeChildrenParams(node.resourceType),
+            })
           );
 
           set(s => {

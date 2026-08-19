@@ -2,7 +2,12 @@ import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import type { ResourcePickerResource } from '@/components/resourcePicker';
-import { fetchSmartFolderChildren, searchResources } from '@/service/resource';
+import {
+  fetchChildren,
+  fetchSmartFolderChildren,
+  searchResources,
+} from '@/service/resource';
+import { RSS_ITEM_TREE_LIMIT } from '@/service/resourceSort';
 
 import { ChooseResourceTree } from './ChooseResourceTree';
 
@@ -86,6 +91,38 @@ describe('ChooseResourceTree', () => {
     });
     expect(decoratedChild.disabled).toBe(false);
     expect(decoratedChild.disabledTooltip).toBeUndefined();
+  });
+
+  it('bounds the children it loads for an rss folder', async () => {
+    renderTree();
+    jest.mocked(fetchChildren).mockResolvedValue([]);
+
+    await mockResourcePickerProps.loadChildren({
+      id: 'rss-folder',
+      name: 'Feed',
+      parent_id: null,
+      resource_type: 'rss_folder',
+    });
+    // A feed's branch shows its newest page, not its whole archive.
+    expect(fetchChildren).toHaveBeenCalledWith(
+      'namespace',
+      'rss-folder',
+      expect.anything(),
+      { params: { limit: RSS_ITEM_TREE_LIMIT } }
+    );
+
+    await mockResourcePickerProps.loadChildren({
+      id: 'folder',
+      name: 'Folder',
+      parent_id: null,
+      resource_type: 'folder',
+    });
+    expect(fetchChildren).toHaveBeenLastCalledWith(
+      'namespace',
+      'folder',
+      expect.anything(),
+      { params: undefined }
+    );
   });
 
   it('still disables lazy-loaded descendants of an operating resource', async () => {

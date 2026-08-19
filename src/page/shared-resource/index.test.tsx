@@ -1,23 +1,19 @@
 /** @jest-environment jsdom */
 
-import { act, useState } from 'react';
+import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-
-import { RssItemBreadcrumb } from '@/interface';
-import { fetchShareRssItem } from '@/service/share';
 
 import SharedResourcePage from '.';
 
 let mockShareContext: Record<string, unknown>;
-let mockShouldReportLoadedItem = true;
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
-jest.mock('react-router-dom', () => ({
-  useParams: () => ({ rss_item_id: 'item-1' }),
+jest.mock('@/components/attributes', () => ({
+  __esModule: true,
+  default: () => <div data-testid="attributes" />,
 }));
-jest.mock('@/components/attributes', () => 'div');
 jest.mock('@/components/loading', () => 'div');
 jest.mock('@/components/ui/Sidebar', () => ({
   useSidebar: () => ({ open: false }),
@@ -27,41 +23,21 @@ jest.mock('@/lib/utils', () => ({
   setDocumentTitle: jest.fn(),
 }));
 jest.mock('@/page/auth/DeletedResourcePage', () => 'div');
-jest.mock('@/service/share', () => ({
-  fetchShareRssItem: jest.fn(),
-  fetchShareRssItems: jest.fn(),
+jest.mock('../resource/folder', () => ({
+  __esModule: true,
+  default: ({ resourceId }: { resourceId: string }) => (
+    <div data-testid="folder" data-resource-id={resourceId} />
+  ),
 }));
-jest.mock('../resource/folder', () => 'div');
-jest.mock('../resource/Render', () => 'div');
-jest.mock('../resource/rss', () => 'div');
-jest.mock('../resource/rss/RssItemReader', () => {
-  const { useEffect } = jest.requireActual('react') as typeof import('react');
-  return {
-    __esModule: true,
-    default: function MockRssItemReader({
-      fetchItem,
-      onItemLoaded,
-    }: {
-      fetchItem: () => Promise<RssItemBreadcrumb>;
-      onItemLoaded: (item: RssItemBreadcrumb) => void;
-    }) {
-      useEffect(() => {
-        void fetchItem().then(item => {
-          if (mockShouldReportLoadedItem) {
-            mockShouldReportLoadedItem = false;
-            onItemLoaded(item);
-          }
-        });
-      }, [fetchItem, onItemLoaded]);
-      return null;
-    },
-  };
-});
+jest.mock('../resource/Render', () => ({
+  __esModule: true,
+  default: ({ resource }: { resource: { id: string } }) => (
+    <div data-testid="render" data-resource-id={resource.id} />
+  ),
+}));
 jest.mock('../share', () => ({
   useShareContext: () => mockShareContext,
 }));
-
-const mockedFetchShareRssItem = jest.mocked(fetchShareRssItem);
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -73,11 +49,6 @@ describe('SharedResourcePage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockShouldReportLoadedItem = true;
-    mockedFetchShareRssItem.mockResolvedValue({
-      id: 'item-1',
-      title: 'Article',
-    } as never);
     container = document.createElement('div');
     root = createRoot(container);
   });
@@ -86,28 +57,46 @@ describe('SharedResourcePage', () => {
     await act(async () => root.unmount());
   });
 
-  it('does not refetch after the loaded item updates share context', async () => {
-    function Harness() {
-      const [rssItem, setRssItem] = useState<RssItemBreadcrumb | null>(null);
-      mockShareContext = {
-        notFound: false,
-        shareInfo: { id: 'share-1' },
-        resource: {
-          id: 'folder-1',
-          name: 'RSS Folder',
-          resource_type: 'rss_folder',
-        },
-        rssItem,
-        setRssItem,
-        wide: false,
-      };
-      return <SharedResourcePage />;
-    }
+  it('lists a shared rss folder through the generic children view', async () => {
+    mockShareContext = {
+      notFound: false,
+      shareInfo: { id: 'share-1' },
+      resource: {
+        id: 'folder-1',
+        name: 'RSS Folder',
+        resource_type: 'rss_folder',
+      },
+      wide: false,
+    };
 
     await act(async () => {
-      root.render(<Harness />);
+      root.render(<SharedResourcePage />);
     });
 
-    expect(mockedFetchShareRssItem).toHaveBeenCalledTimes(1);
+    const folder = container.querySelector('[data-testid="folder"]');
+    expect(folder?.getAttribute('data-resource-id')).toBe('folder-1');
+  });
+
+  it('renders a shared rss item through the generic markdown view', async () => {
+    mockShareContext = {
+      notFound: false,
+      shareInfo: { id: 'share-1' },
+      resource: {
+        id: 'item-1',
+        name: 'Article',
+        resource_type: 'rss_item',
+        read_only: true,
+        content: '# Article',
+      },
+      wide: false,
+    };
+
+    await act(async () => {
+      root.render(<SharedResourcePage />);
+    });
+
+    const render = container.querySelector('[data-testid="render"]');
+    expect(render?.getAttribute('data-resource-id')).toBe('item-1');
+    expect(container.querySelector('[data-testid="folder"]')).toBeNull();
   });
 });

@@ -1,26 +1,19 @@
-import {
-  Resource,
-  ResourceMeta,
-  ResourceType,
-  RssItem,
-  RssItemDetail,
-  Task,
-} from '@/interface';
+import { Resource, ResourceMeta, ResourceType, Task } from '@/interface';
 import { http, type RequestConfig } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
+
+import type { ResourceSortOptions } from './resourceSort';
 
 export type RootResourcesResponse = Record<
   string,
   Resource & { children?: Resource[] }
 >;
 
-export type ResourceSortBy = 'updated_at' | 'created_at' | 'title' | 'manual';
-export type ResourceSortOrder = 'asc' | 'desc';
-
-export interface ResourceSortOptions {
-  sort_by: ResourceSortBy;
-  sort_order: ResourceSortOrder;
-}
+export type {
+  ResourceSortBy,
+  ResourceSortOptions,
+  ResourceSortOrder,
+} from './resourceSort';
 
 export interface ManualResourceOrder {
   parent_id: string;
@@ -75,6 +68,7 @@ interface IndexedResourceSearchResult {
   title: string;
   attrs?: Record<string, any>;
   resource_type: ResourceType;
+  read_only?: boolean;
 }
 
 export function fetchChildren(
@@ -109,37 +103,6 @@ export function fetchSmartFolderChildren(
   );
 }
 
-export function fetchRssItems(
-  namespaceId: string,
-  id: string,
-  options?: { limit?: number; offset?: number; signal?: AbortSignal }
-): Promise<RssItem[]> {
-  const params = new URLSearchParams();
-  if (options?.limit !== undefined) {
-    params.set('limit', String(options.limit));
-  }
-  if (options?.offset !== undefined) {
-    params.set('offset', String(options.offset));
-  }
-  const query = params.toString() ? `?${params}` : '';
-  return http.get<RssItem[]>(
-    `/namespaces/${namespaceId}/rss-folders/${id}/items${query}`,
-    { signal: options?.signal }
-  );
-}
-
-export function fetchRssItem(
-  namespaceId: string,
-  folderId: string,
-  itemId: string,
-  signal?: AbortSignal
-): Promise<RssItemDetail> {
-  return http.get<RssItemDetail>(
-    `/namespaces/${namespaceId}/rss-folders/${folderId}/items/${itemId}`,
-    { signal }
-  );
-}
-
 export function searchResources(
   namespaceId: string,
   query: string
@@ -160,6 +123,10 @@ export function searchResources(
         parent_id: null,
         resource_type: resource.resource_type,
         attrs: resource.attrs,
+        // The pickers offer search hits as destinations, so a hit needs the
+        // same gate a folder listing carries; without it a read-only resource
+        // found by search looked selectable and the move then 422'd.
+        read_only: resource.read_only,
       }))
     );
 }

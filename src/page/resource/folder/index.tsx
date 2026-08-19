@@ -13,9 +13,12 @@ import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
+import { RssItemFeedBadge } from '@/page/sidebar/components/rss-folder/RssItemFeedBadge';
+import { useRssFolderLinkNames } from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
 import { getSmartFolderChildSidebarKey } from '@/page/sidebar/components/smart-folder';
+import type { ResourceSortOptions } from '@/service/resourceSort';
 
-import { groupTimestampedItemsByTimestamp } from '../utils';
+import { groupTimestampedItemsByTimestamp, itemTimestamp } from '../utils';
 import { FolderContent } from './FolderContent';
 
 interface IProps {
@@ -26,6 +29,15 @@ interface IProps {
   navigationPrefix: string;
   loadAll?: boolean;
   smartFolderParentId?: string;
+  /** Overrides the backend's default child ordering (e.g. rss items). */
+  sort?: ResourceSortOptions;
+  /**
+   * Set for an rss folder inside its own namespace: each item row is then shown
+   * under the feed it came from (initial badge plus the feed's name), resolved
+   * from the folder's config. Left off everywhere the config endpoint is not
+   * reachable or would not describe these children — shares and smart folders.
+   */
+  rssFeedNames?: boolean;
 }
 
 const PAGE_SIZE = 10;
@@ -39,6 +51,8 @@ export default function Folder(props: IProps) {
     navigationPrefix,
     loadAll,
     smartFolderParentId,
+    sort,
+    rssFeedNames,
   } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -49,6 +63,15 @@ export default function Folder(props: IProps) {
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const isSmartFolder = !!smartFolderParentId;
+  // One config request for the whole listing, not one per item row.
+  const feedNames = useRssFolderLinkNames(
+    namespaceId,
+    resourceId,
+    rssFeedNames
+  );
+  const sortQuery = sort
+    ? `&sort_by=${sort.sort_by}&sort_order=${sort.sort_order}`
+    : '';
   const folderContentApiPrefix = apiPrefix.includes('/smart-folders')
     ? `/namespaces/${namespaceId}/resources`
     : apiPrefix;
@@ -60,8 +83,8 @@ export default function Folder(props: IProps) {
       setOffset(0);
       setHasMore(true);
       const requestUrl = loadAll
-        ? `${apiPrefix}/${resourceId}/children?summary=true`
-        : `${apiPrefix}/${resourceId}/children?summary=true&offset=0&limit=${PAGE_SIZE}`;
+        ? `${apiPrefix}/${resourceId}/children?summary=true${sortQuery}`
+        : `${apiPrefix}/${resourceId}/children?summary=true&offset=0&limit=${PAGE_SIZE}${sortQuery}`;
 
       return http
         .get(requestUrl, {
@@ -82,7 +105,7 @@ export default function Folder(props: IProps) {
           onLoading(false);
         });
     },
-    [apiPrefix, isSmartFolder, loadAll, resourceId]
+    [apiPrefix, isSmartFolder, loadAll, resourceId, sortQuery]
   );
 
   const reloadSmartFolderChildren = useCallback(() => {
@@ -125,7 +148,7 @@ export default function Folder(props: IProps) {
     const newOffset = offset + PAGE_SIZE;
     http
       .get(
-        `${apiPrefix}/${resourceId}/children?summary=true&offset=${newOffset}&limit=${PAGE_SIZE}`
+        `${apiPrefix}/${resourceId}/children?summary=true&offset=${newOffset}&limit=${PAGE_SIZE}${sortQuery}`
       )
       .then((res: Array<ResourceSummary>) => {
         onData(prevData => [...prevData, ...res]);
@@ -135,7 +158,7 @@ export default function Folder(props: IProps) {
       .finally(() => {
         onLoadingMore(false);
       });
-  }, [loadAll, loadingMore, hasMore, offset, apiPrefix, resourceId]);
+  }, [loadAll, loadingMore, hasMore, offset, apiPrefix, resourceId, sortQuery]);
 
   useEffect(() => {
     if (!smartFolderParentId) return;
@@ -200,82 +223,109 @@ export default function Folder(props: IProps) {
     <div className="space-y-6 pb-[30vh]">
       {data.length > 0 ? (
         <>
-          {groupTimestampedItemsByTimestamp(data, i18n).map(([key, items]) => (
-            <div key={key}>
-              <div className="pb-4">
-                <p className="text-sm text-muted-foreground font-light ml-0.5">
-                  {key}
-                </p>
-              </div>
-              {items.map((item, index) => {
-                const iconResource = {
-                  id: item.id,
-                  name: item.name,
-                  resource_type: item.resource_type,
-                  parent_id: '',
-                  space_type: 'private',
-                  has_children: !!item.has_children,
-                  attrs: (item as any).attrs || {},
-                } as unknown as Resource;
-                return (
-                  <div
-                    className="cursor-pointer group"
-                    key={item.id}
-                    onClick={() => {
-                      navigateToResource(
-                        navigate,
-                        `${navigationPrefix}/${item.id}`,
-                        {
-                          state: smartFolderParentId
-                            ? navigationPrefix.startsWith('/s/')
-                              ? getShareSmartFolderChildNavigationState(
-                                  smartFolderParentId,
-                                  item.id
-                                )
-                              : {
-                                  sidebarActiveKey:
-                                    getSmartFolderChildSidebarKey(
-                                      smartFolderParentId,
-                                      item.id
-                                    ),
-                                }
-                            : undefined,
-                        }
-                      );
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="[&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
-                          <ResourceIcon
-                            expand={false}
-                            resource={iconResource}
+          {groupTimestampedItemsByTimestamp(data, i18n, itemTimestamp).map(
+            ([key, items]) => (
+              <div key={key}>
+                <div className="pb-4">
+                  <p className="text-sm text-muted-foreground font-light ml-0.5">
+                    {key}
+                  </p>
+                </div>
+                {items.map((item, index) => {
+                  const iconResource = {
+                    id: item.id,
+                    name: item.name,
+                    resource_type: item.resource_type,
+                    parent_id: '',
+                    space_type: 'private',
+                    has_children: !!item.has_children,
+                    attrs: (item as any).attrs || {},
+                  } as unknown as Resource;
+                  const linkId = item.attrs?.link_id;
+                  const feedName =
+                    item.resource_type === 'rss_item' &&
+                    typeof linkId === 'string'
+                      ? feedNames[linkId]
+                      : undefined;
+                  return (
+                    <div
+                      className="cursor-pointer group"
+                      key={item.id}
+                      onClick={() => {
+                        navigateToResource(
+                          navigate,
+                          `${navigationPrefix}/${item.id}`,
+                          {
+                            state: smartFolderParentId
+                              ? navigationPrefix.startsWith('/s/')
+                                ? getShareSmartFolderChildNavigationState(
+                                    smartFolderParentId,
+                                    item.id
+                                  )
+                                : {
+                                    sidebarActiveKey:
+                                      getSmartFolderChildSidebarKey(
+                                        smartFolderParentId,
+                                        item.id
+                                      ),
+                                  }
+                              : undefined,
+                          }
+                        );
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <RssItemFeedBadge
+                            name={feedName}
+                            size="page"
+                            fallback={
+                              <div className="[&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
+                                <ResourceIcon
+                                  expand={false}
+                                  resource={iconResource}
+                                />
+                              </div>
+                            }
                           />
+                          <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500 truncate">
+                            {item.name || t('untitled')}
+                          </h3>
                         </div>
-                        <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500 truncate">
-                          {item.name || t('untitled')}
-                        </h3>
                       </div>
+                      {item.resource_type === 'folder' ? (
+                        <FolderContent
+                          resource={item}
+                          apiPrefix={folderContentApiPrefix}
+                          namespaceId={namespaceId}
+                        />
+                      ) : (
+                        <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+                          {itemTimestamp(item)
+                            ? format(
+                                itemTimestamp(item)!,
+                                'yyyy-MM-dd HH:mm:ss'
+                              )
+                            : ''}
+                          {feedName && (
+                            <span
+                              className="ml-1.5"
+                              data-testid="rss-feed-name"
+                            >
+                              {feedName}
+                            </span>
+                          )}
+                        </p>
+                      )}
+                      {index < items.length - 1 && (
+                        <Separator className="my-4" />
+                      )}
                     </div>
-                    {item.resource_type === 'folder' ? (
-                      <FolderContent
-                        resource={item}
-                        apiPrefix={folderContentApiPrefix}
-                        namespaceId={namespaceId}
-                      />
-                    ) : (
-                      <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
-                        {item.updated_at
-                          ? format(item.updated_at, 'yyyy-MM-dd HH:mm:ss')
-                          : ''}
-                      </p>
-                    )}
-                    {index < items.length - 1 && <Separator className="my-4" />}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                  );
+                })}
+              </div>
+            )
+          )}
           {!loadAll && hasMore && (
             <div className="pb-4 flex justify-center">
               <Button

@@ -15,7 +15,11 @@ import { Checkbox } from '@/components/Checkbox';
 import { Separator } from '@/components/ui/Separator';
 import { cn } from '@/lib/utils';
 import { useSelectedCount, useSidebarStore } from '@/page/sidebar/store';
-import { getBatchSelectionSummary } from '@/page/sidebar/store/utils';
+import {
+  type BatchMutatingAction,
+  getBatchSelectionSummary,
+  getBatchUnsupportedTipKey,
+} from '@/page/sidebar/store/utils';
 
 import { ToolbarButton } from './Tooltip';
 
@@ -66,9 +70,10 @@ export function Toolbar({
   const disabledLabel =
     selectedCount <= 0 ? t('batch.select_required') : undefined;
   const batchSelection = getBatchSelectionSummary(nodes, selectedIds);
-  const smartFolderUnsupportedLabel = batchSelection.hasSmartFolder
-    ? t('batch.smart_folder_unsupported_action')
-    : undefined;
+  const unsupportedLabel = (action: BatchMutatingAction) => {
+    const tipKey = getBatchUnsupportedTipKey(batchSelection, action);
+    return tipKey ? t(tipKey) : undefined;
+  };
 
   const handleCheckAll = () => {
     const store = useSidebarStore.getState();
@@ -111,13 +116,13 @@ export function Toolbar({
               icon={FolderPlus}
               onClick={onBatchCreate}
               label={t('batch.create_tooltip')}
-              disabledLabel={disabledLabel || smartFolderUnsupportedLabel}
+              disabledLabel={disabledLabel || unsupportedLabel('create')}
             />
             <ToolbarButton
               icon={Move}
               onClick={onBatchMove}
               label={t('batch.move_tooltip')}
-              disabledLabel={disabledLabel || smartFolderUnsupportedLabel}
+              disabledLabel={disabledLabel || unsupportedLabel('move')}
             />
             <ToolbarButton
               icon={MessageSquarePlus}
@@ -129,7 +134,7 @@ export function Toolbar({
               icon={Trash2}
               onClick={onBatchDelete}
               label={t('batch.delete_tooltip')}
-              disabledLabel={disabledLabel}
+              disabledLabel={disabledLabel || unsupportedLabel('delete')}
             />
             <Separator
               orientation="vertical"

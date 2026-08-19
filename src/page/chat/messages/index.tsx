@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import { ChevronRight, ScrollText } from 'lucide-react';
-import React from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Separator } from '@/components/ui/Separator';
@@ -18,6 +18,7 @@ import type {
 import { AssistantMessage } from '@/page/chat/messages/role/AssistantMessage';
 import { ToolMessage } from '@/page/chat/messages/role/ToolMessage';
 import { UserMessage } from '@/page/chat/messages/role/UserMessage';
+import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import {
   buildMessageDisplayItems,
@@ -101,7 +102,7 @@ function formatProcessDuration(seconds: number, t: TFunction) {
   return parts.join(' ');
 }
 
-function hasVisibleMessageContent(message: MessageDetail) {
+function hasVisibleMessageContent(message: MessageDetail, chatOnly = false) {
   const openAIMessage = message.message;
 
   if (message.attrs?.compact || message.attrs?.error_message) {
@@ -125,7 +126,9 @@ function hasVisibleMessageContent(message: MessageDetail) {
     );
   }
   if (openAIMessage.role === OpenAIMessageRole.TOOL) {
-    return Boolean(message.attrs?.citations?.length);
+    // A tool message is nothing but its citations, which a chat-only share
+    // withholds; counting it visible would leave an empty, spaced-out block.
+    return !chatOnly && Boolean(message.attrs?.citations?.length);
   }
   return false;
 }
@@ -158,6 +161,7 @@ function ContextCompactedDivider({
 
 export function Messages(props: IProps) {
   const { t } = useTranslation();
+  const chatOnly = useShareChatOnly();
   const {
     messages,
     conversation,
@@ -166,7 +170,7 @@ export function Messages(props: IProps) {
     onEdit,
     regeneratingParentId = null,
   } = props;
-  const citations = React.useMemo((): Citation[] => {
+  const citations = useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
       if (message.attrs?.citations && message.attrs.citations.length > 0) {
@@ -190,7 +194,7 @@ export function Messages(props: IProps) {
   }, '');
 
   function renderMessageBlock(message: MessageDetail, isLastInList: boolean) {
-    if (!hasVisibleMessageContent(message)) {
+    if (!hasVisibleMessageContent(message, chatOnly)) {
       return null;
     }
 
@@ -239,8 +243,8 @@ export function Messages(props: IProps) {
     <div className="space-y-4">
       {displayItems.map((item, index) => {
         if (item.type === 'collapsed_process') {
-          const visibleProcessMessages = item.messages.filter(
-            hasVisibleMessageContent
+          const visibleProcessMessages = item.messages.filter(message =>
+            hasVisibleMessageContent(message, chatOnly)
           );
 
           return (
