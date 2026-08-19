@@ -14,14 +14,17 @@ const root = {
 };
 
 function renderPicker({
+  loadFailed = false,
   loading = false,
   roots = [],
 }: {
+  loadFailed?: boolean;
   loading?: boolean;
   roots?: (typeof root)[];
 } = {}) {
   return renderToStaticMarkup(
     <ResourcePicker
+      loadFailed={loadFailed}
       loading={loading}
       roots={roots}
       loadChildren={jest.fn().mockResolvedValue([])}
@@ -43,6 +46,13 @@ describe('ResourcePicker', () => {
 
     expect(html).toContain('resource_picker.empty');
     expect(html).not.toContain('loading');
+  });
+
+  it('shows an error instead of the empty state when roots fail to load', () => {
+    const html = renderPicker({ loadFailed: true });
+
+    expect(html).toContain('resource_picker.load_failed');
+    expect(html).not.toContain('resource_picker.empty');
   });
 
   it('shows the resource tree after roots load', () => {
