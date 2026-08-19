@@ -20,6 +20,8 @@ interface ResourcePickerProps {
   defaultExpandedRootIds?: string[];
   expandAllInitially?: boolean;
   initialChildrenById?: Record<string, ResourcePickerResource[]>;
+  loadFailed?: boolean;
+  loading?: boolean;
   roots: ResourcePickerResource[];
   loadChildren: (
     resource: ResourcePickerResource
@@ -41,6 +43,8 @@ export function ResourcePicker({
   defaultExpandedRootIds = emptyDefaultExpandedRootIds,
   expandAllInitially = false,
   initialChildrenById,
+  loadFailed = false,
+  loading = false,
   roots,
   loadChildren,
   searchResources,
@@ -129,6 +133,18 @@ export function ResourcePicker({
         ) : controller.searchLoading && visibleResources.length === 0 ? (
           <div className="flex h-24 items-center justify-center">
             <Spinner />
+          </div>
+        ) : loadFailed && !controller.search ? (
+          <div
+            role="alert"
+            className="flex h-24 items-center justify-center text-sm text-muted-foreground"
+          >
+            {t('resource_picker.load_failed')}
+          </div>
+        ) : loading && !controller.search ? (
+          <div className="flex h-24 items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Spinner />
+            <span>{t('loading')}</span>
           </div>
         ) : visibleResources.length === 0 ? (
           <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
