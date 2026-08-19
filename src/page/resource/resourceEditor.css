@@ -153,6 +153,13 @@
   }
 }
 
+.resource-detail-view--compact .resource-editable-page,
+.resource-detail-view--compact .resource-editable-page--wide,
+.resource-detail-view--compact .resource-readonly-editor--wide,
+.resource-detail-view--compact .resource-readonly-page-header--wide {
+  padding-left: 0;
+}
+
 .resource-readonly-editor
   .omnibox-editor-content
   .tiptap.ProseMirror.omnibox-editor,

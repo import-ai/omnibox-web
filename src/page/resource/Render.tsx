@@ -32,6 +32,7 @@ import { embedImage } from './utils';
 
 interface IProps {
   resource: Resource | SharedResource;
+  showToc?: boolean;
   wide?: boolean;
   linkBase?: string;
   style?: React.CSSProperties;
@@ -154,7 +155,7 @@ function MarkdownRender(props: IProps) {
 }
 
 function OmniboxRender(props: IProps) {
-  const { resource, linkBase, style, wide = false } = props;
+  const { resource, linkBase, showToc = true, style, wide = false } = props;
   const { i18n } = useTranslation();
   const { theme } = useTheme();
   const [searchParams] = useSearchParams();
@@ -189,7 +190,7 @@ function OmniboxRender(props: IProps) {
             : OMNIBOX_EDITOR_CONTENT_WIDTH
         }
         showHeader={false}
-        showToc={true}
+        showToc={showToc}
         searchTerm={search ?? undefined}
         scrollToLine={scrollToLine}
       />

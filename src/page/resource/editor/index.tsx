@@ -56,6 +56,7 @@ interface IEditorProps {
   namespaceId: string;
   resource: Resource;
   onResource: (resource: Resource) => void;
+  showToc: boolean;
   wide: boolean;
 }
 
@@ -120,7 +121,7 @@ function format(_files: File[], responseText: string): string {
 }
 
 function OmniboxResourceEditor(props: IEditorProps) {
-  const { resource, onResource, namespaceId, wide } = props;
+  const { resource, onResource, namespaceId, showToc, wide } = props;
   const { i18n, t } = useTranslation();
   const markdownRef = useRef('');
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
@@ -364,7 +365,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
                 : OMNIBOX_EDITOR_CONTENT_WIDTH
             }
             showHeader={false}
-            showToc={true}
+            showToc={showToc}
             tocColors={{
               inactive: theme.content === 'dark' ? '#ffffff' : '#000000',
             }}
