@@ -1,7 +1,7 @@
 import { fetchChildren } from '@/service/resource';
 
 import type { SidebarGet } from './types';
-import { getNodeResourceSort } from './utils';
+import { getNodeChildrenParams, getNodeResourceSort } from './utils';
 
 export async function refreshSortedChildren(
   get: SidebarGet,
@@ -13,7 +13,7 @@ export async function refreshSortedChildren(
       state.namespaceId,
       parentId,
       getNodeResourceSort(state, parentId),
-      { mute: true }
+      { mute: true, params: getNodeChildrenParams(state, parentId) }
     );
     get().refreshChildren(parentId, children);
   } catch {

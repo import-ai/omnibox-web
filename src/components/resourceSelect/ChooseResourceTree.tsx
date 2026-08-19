@@ -19,6 +19,7 @@ import {
   fetchSmartFolderChildren,
   searchResources,
 } from '@/service/resource';
+import { rssTreeChildrenParams } from '@/service/resourceSort';
 
 interface ChooseResourceTreeProps {
   namespaceId: string;
@@ -65,6 +66,8 @@ export function ChooseResourceTree({
         disableSmartFolders && resource.resource_type === 'smart_folder';
       const rssFolderDisabled =
         disableSmartFolders && resource.resource_type === 'rss_folder';
+      // Backend-managed resources (rss items) can't contain other resources.
+      const readOnlyDisabled = resource.read_only === true;
       const children = resource.children
         ?.map(child => decorateResource(child, operatingResource))
         .filter(Boolean) as ResourcePickerResource[] | undefined;
@@ -72,15 +75,21 @@ export function ChooseResourceTree({
       return {
         ...resource,
         children,
-        disabled: operatingResource || smartFolderDisabled || rssFolderDisabled,
+        disabled:
+          operatingResource ||
+          smartFolderDisabled ||
+          rssFolderDisabled ||
+          readOnlyDisabled,
         descendantsDisabled: operatingResource,
         disabledTooltip: rssFolderDisabled
           ? t('rss_folder.cannot_be_parent')
-          : smartFolderDisabled
-            ? smartFolderDisabledTooltip
-            : operatingResource
-              ? disabledTooltip
-              : undefined,
+          : readOnlyDisabled
+            ? t('resource.read_only_target')
+            : smartFolderDisabled
+              ? smartFolderDisabledTooltip
+              : operatingResource
+                ? disabledTooltip
+                : undefined,
       };
     },
     [
@@ -147,7 +156,8 @@ export function ChooseResourceTree({
           : fetchChildren(
               namespaceId,
               resource.id,
-              getWorkspacePickerSort(resource, resourceSorts)
+              getWorkspacePickerSort(resource, resourceSorts),
+              { params: rssTreeChildrenParams(resource.resource_type) }
             )
       ).then(
         resources =>

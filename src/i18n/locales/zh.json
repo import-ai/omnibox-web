@@ -110,6 +110,7 @@
     "deleted_description": "此资源已被删除",
     "moved_to_trash": "已移动到回收站",
     "no_content": "资源没有内容可下载",
+    "read_only_target": "只读资源不能包含其他资源",
     "untitled": "未命名",
     "attrs": {
       "tag": "标签",
@@ -686,6 +687,7 @@
           "write_file": "创建资源",
           "create_resource": "创建资源",
           "create_smart_folder": "创建智能文件夹",
+          "create_rss_folder": "创建 RSS 文件夹",
           "glob": "Glob",
           "grep": "Grep",
           "task": "子任务",
@@ -712,6 +714,8 @@
           "frontend_operations": "前端操作",
           "get_smart_folder_config": "查看智能文件夹配置",
           "update_smart_folder_config": "修改智能文件夹配置",
+          "get_rss_folder_config": "查看 RSS 文件夹配置",
+          "update_rss_folder_config": "修改 RSS 文件夹配置",
           "unknown": "未知工具"
         },
         "function_args": {
@@ -1177,6 +1181,7 @@
     "name_too_long": "名称不能超过 {{max}} 个字符",
     "add_to_chat_success": "已成功添加 {{count}} 项资源到对话框",
     "select_required": "请选择资源后操作",
+    "rss_item_unsupported_action": "订阅文件夹里的子文件不支持该操作",
     "smart_folder_unsupported_action": "智能文件夹不支持此操作",
     "smart_folder_child_unselectable": "智能文件夹子项不可选择",
     "all_forbidden": "所选资源均无操作权限，批量操作失败",
@@ -1234,13 +1239,7 @@
   },
   "rss_folder": {
     "empty": "暂无内容",
-    "reader": {
-      "back": "返回订阅",
-      "open_original": "查看原文",
-      "not_ready": "内容正在处理中，请稍后再试。",
-      "not_found": "该订阅内容已不可用。",
-      "published_at": "发布时间"
-    },
+    "published_at": "发布时间",
     "create": {
       "title": "创建订阅文件夹",
       "name": "名称",
@@ -1277,8 +1276,7 @@
     "move": {
       "unsupported_target": "不支持移动到订阅文件夹"
     },
-    "cannot_be_parent": "订阅文件夹内不能创建资源",
-    "unsupported_operation": "订阅文件夹暂不支持该操作"
+    "cannot_be_parent": "订阅文件夹内不能创建资源"
   },
   "download": {
     "failed": "下载失败，请稍后重试"

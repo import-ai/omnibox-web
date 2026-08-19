@@ -13,12 +13,7 @@ import {
   EmptyMedia,
 } from '@/components/ui/Empty';
 import { SidebarProvider } from '@/components/ui/Sidebar';
-import {
-  PublicShareInfo,
-  ResourceMeta,
-  RssItemBreadcrumb,
-  SharedResource,
-} from '@/interface';
+import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { http } from '@/lib/request';
 import { normalizeResourceMeta } from '@/lib/resourceMeta';
 import {
@@ -45,8 +40,6 @@ interface ShareContextValue {
   tools: Array<ToolType>;
   setTools: (tools: Array<ToolType>) => void;
   password: string | null;
-  rssItem: RssItemBreadcrumb | null;
-  setRssItem: (item: RssItemBreadcrumb | null) => void;
   wide: boolean;
   onWide: (wide: boolean) => void;
   notFound: boolean;
@@ -84,17 +77,12 @@ export default function SharePage() {
   const [password, setPassword] = useState<string | null>(
     Cookies.get(SHARE_PASSWORD_COOKIE) ?? null
   );
-  const [rssItem, setRssItem] = useState<RssItemBreadcrumb | null>(null);
   const [wide, setWide] = useState(false);
   const shareId = params.share_id;
   const currentResourceId = params.resource_id || shareInfo?.resource?.id;
   const isChatActive = location.pathname.includes('/chat');
   const showChat = shareInfo && shareInfo.share_type !== 'doc_only';
   const isChatOnly = shareInfo?.share_type === 'chat_only';
-
-  useEffect(() => {
-    setRssItem(null);
-  }, [currentResourceId, params.rss_item_id]);
 
   const handleAddToContext = (
     resource: ResourceMeta,
@@ -269,13 +257,9 @@ export default function SharePage() {
     );
   }
   if (shareInfo) {
-    // RSS folders host their items inside the sidebar, so an rss-folder share
-    // always shows the sidebar even when it isn't an all-resources share.
-    const isRssFolderShare = shareInfo.resource?.resource_type === 'rss_folder';
     // Chat-only keeps the sidebar for its chat entry, but drops the tree.
     const showSidebar =
-      isChatOnly ||
-      ((shareInfo.all_resources || showChat || isRssFolderShare) ?? true);
+      isChatOnly || ((shareInfo.all_resources || showChat) ?? true);
     return (
       <ShareContext.Provider
         value={{
@@ -289,8 +273,6 @@ export default function SharePage() {
           tools,
           setTools,
           password,
-          rssItem,
-          setRssItem,
           wide,
           onWide: setWide,
         }}
@@ -305,7 +287,6 @@ export default function SharePage() {
               currentResourcePath={resource?.path}
               handleAddToContext={handleAddToContext}
               resource={resource}
-              rssItem={rssItem}
               wide={wide}
               onWide={setWide}
               showSidebar={showSidebar}

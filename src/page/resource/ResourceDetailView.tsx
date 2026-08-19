@@ -25,14 +25,12 @@ const COMPACT_RESOURCE_PANE_WIDTH = 768;
 interface ResourceDetailViewProps extends IUseResource {
   error?: boolean;
   flush?: boolean;
-  rssItemId: string | null;
 }
 
 /** Shared visual shell for routed resources and in-place Copilot previews. */
 export default function ResourceDetailView({
   error = false,
   flush = false,
-  rssItemId,
   ...resourceProps
 }: ResourceDetailViewProps) {
   const { wide, onWide } = useWide();
@@ -66,10 +64,6 @@ export default function ResourceDetailView({
   const [copilotLayoutOpen, setCopilotLayoutOpen] = useState(copilotOpen);
   const [large, setLarge] = useState(window.innerWidth > 1500);
   const [compactResourcePane, setCompactResourcePane] = useState(false);
-  const [rssItemCopyContent, setRssItemCopyContent] = useState<{
-    itemId: string;
-    content: string | null | undefined;
-  }>();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const useFullWidth =
@@ -157,13 +151,7 @@ export default function ResourceDetailView({
           } as CSSProperties
         }
       >
-        <Header
-          {...currentResourceProps}
-          onWide={onWide}
-          rssItemCopyContent={rssItemCopyContent}
-          rssItemId={rssItemId}
-          wide={wide}
-        />
+        <Header {...currentResourceProps} onWide={onWide} wide={wide} />
         <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
         <div
           className={cn(
@@ -184,8 +172,6 @@ export default function ResourceDetailView({
             <Wrapper
               {...currentResourceProps}
               error={error}
-              onRssItemCopyContentChange={setRssItemCopyContent}
-              rssItemId={rssItemId}
               showToc={!compactResourcePane}
               wide={wide}
             />

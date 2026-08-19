@@ -28,7 +28,6 @@ export function useSidebarInit(props: IProps) {
   const hasAutoNavigatedRef = useRef(false);
   const autoExpandedAllKeyRef = useRef<string | null>(null);
   const chatPage = location.pathname.includes('/chat');
-  const rssItemPage = location.pathname.includes('/rss-items/');
 
   // Derive initialization state from rootIds.
   // setNamespaceId() clears rootIds when namespace switches, so this is reliable.
@@ -57,14 +56,9 @@ export function useSidebarInit(props: IProps) {
         children: [
           {
             ...rootResource,
-            // RSS folders host their items in the sidebar, so keep the root
-            // expandable even when this isn't an all-resources share.
-            has_children:
-              rootResource.resource_type === 'rss_folder'
-                ? true
-                : canBrowseResources
-                  ? rootResource.has_children
-                  : false,
+            has_children: canBrowseResources
+              ? rootResource.has_children
+              : false,
             space_type: 'share',
             parent_id: virtualRootId,
           } as unknown as Resource,
@@ -139,7 +133,7 @@ export function useSidebarInit(props: IProps) {
     const scrollTargetId = persistedActiveKey ?? currentResourceId;
 
     store.expandPathTo(expandId, { expandTarget }).then(() => {
-      if (cancelled || rssItemPage) return;
+      if (cancelled) return;
       requestAnimationFrame(() => {
         if (cancelled) return;
         const element = document.querySelector(
@@ -165,12 +159,10 @@ export function useSidebarInit(props: IProps) {
   ]);
 
   useEffect(() => {
-    // Auto-expand the shared subtree (all-resources shares), or just the root
-    // RSS folder so its items show inline even in a single-folder share.
+    // Auto-expand the shared subtree (all-resources shares only).
     if (!rootResource) return;
-    const isRssFolderRoot = rootResource.resource_type === 'rss_folder';
     if (!initialized || !showResources) return;
-    if (!canBrowseResources && !isRssFolderRoot) return;
+    if (!canBrowseResources) return;
     const key = `${shareId}:${rootResource.id}`;
     if (autoExpandedAllKeyRef.current === key) return;
 
@@ -180,7 +172,6 @@ export function useSidebarInit(props: IProps) {
     initialized,
     canBrowseResources,
     rootResource?.id,
-    rootResource?.resource_type,
     shareId,
     showResources,
   ]);

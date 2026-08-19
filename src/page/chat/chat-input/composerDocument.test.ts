@@ -33,6 +33,28 @@ describe('composer document', () => {
     ).toBe('folder');
   });
 
+  // Attaching a feed folder means attaching the articles inside it, so it goes
+  // to the backend as a folder context even before its children are known.
+  it('treats an rss folder as folder context and an article as resource context', () => {
+    expect(
+      getResourceContextType({
+        id: 'r1',
+        name: 'Morning Feeds',
+        parent_id: null,
+        resource_type: 'rss_folder',
+      })
+    ).toBe('folder');
+    expect(
+      getResourceContextType({
+        id: 'r2',
+        name: 'An article',
+        parent_id: 'r1',
+        resource_type: 'rss_item',
+        has_children: false,
+      })
+    ).toBe('resource');
+  });
+
   it('treats leaf resources without children as resource context', () => {
     expect(
       getResourceContextType({

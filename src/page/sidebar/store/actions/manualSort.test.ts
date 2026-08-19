@@ -9,6 +9,7 @@ import {
   moveResource,
   updateManualSort,
 } from '@/service/resource';
+import { RSS_ITEM_TREE_LIMIT } from '@/service/resourceSort';
 
 import type { SidebarStore, TreeNode } from '../types';
 import { buildManualOrder, buildManualSortActions } from './manualSort';
@@ -31,6 +32,7 @@ function node(
     name: id,
     resourceType,
     hasChildren: children.length > 0,
+    readOnly: false,
     createdAt: '',
     updatedAt: '',
     manualSortInitializedAt: null,
@@ -162,5 +164,46 @@ it('does not overwrite historical source order when its current sort is automati
       orders: [{ parent_id: 'target', resource_ids: ['existing', 'drag'] }],
     },
     { mute: true }
+  );
+});
+
+it('bounds the children it loads for an unopened rss folder drop target', async () => {
+  const state = {
+    namespaceId: 'namespace',
+    nodes: {
+      private: node('private', null, 'private', ['source', 'feed']),
+      source: node('source', 'private', 'private', ['drag']),
+      feed: node('feed', 'private', 'private', [], 'rss_folder'),
+      drag: node('drag', 'source', 'private', [], 'doc'),
+    },
+    ui: {},
+    rootIds: { private: 'private', teamspace: '' },
+    resourceSorts: {
+      private: { sort_by: 'manual', sort_order: 'asc' },
+      teamspace: { sort_by: 'manual', sort_order: 'asc' },
+    },
+  } as unknown as SidebarStore;
+  const actions = buildManualSortActions(
+    update => update(state),
+    () => state
+  );
+  state.refreshChildren = jest.fn();
+  mockedFetchChildren.mockResolvedValue([]);
+  mockedMoveResource.mockResolvedValue(undefined);
+  mockedUpdateManualSort.mockResolvedValue(undefined);
+
+  await actions.applyManualDrop({
+    dragId: 'drag',
+    targetId: 'feed',
+    position: 'inside',
+  });
+
+  // A feed holds thousands of poller-owned rows; loading them all to work out
+  // an order would stall the drop.
+  expect(mockedFetchChildren).toHaveBeenCalledWith(
+    'namespace',
+    'feed',
+    { sort_by: 'manual', sort_order: 'asc' },
+    { params: { limit: RSS_ITEM_TREE_LIMIT } }
   );
 });

@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Breadcrumb,
@@ -19,8 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
-import useApp from '@/hooks/useApp';
-import { PathItem, RssItemBreadcrumb } from '@/interface';
+import { PathItem } from '@/interface';
 import { cn } from '@/lib/utils';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 
@@ -28,42 +26,17 @@ interface IProps {
   className?: string;
   namespaceId: string;
   path?: PathItem[];
-  rssItemId?: string | null;
 }
 
 export default function BreadcrumbMain(props: IProps) {
-  const {
-    className,
-    namespaceId,
-    path = [],
-    rssItemId: explicitRssItemId,
-  } = props;
-  const app = useApp();
+  const { className, namespaceId, path = [] } = props;
   const navigate = useNavigate();
-  const { rss_item_id: routeRssItemId } = useParams();
-  const rssItemId =
-    explicitRssItemId === undefined
-      ? routeRssItemId
-      : explicitRssItemId || undefined;
   const { t } = useTranslation();
-  const [rssItem, setRssItem] = useState<RssItemBreadcrumb | null>(null);
-
-  useEffect(() => {
-    return app.on('rss_item_loaded', (item: RssItemBreadcrumb) => {
-      if (item.id === rssItemId) {
-        setRssItem(item);
-      }
-    });
-  }, [app, rssItemId]);
 
   if (path.length <= 1) {
     return null;
   }
-  const hasLoadedRssItem = Boolean(rssItemId && rssItem?.id === rssItemId);
-  const activePath = hasLoadedRssItem
-    ? [...path, { id: rssItem.id, name: rssItem.title || '' }]
-    : path;
-  const data = activePath.slice(1); // Remove first item (root)
+  const data = path.slice(1); // Remove first item (root)
 
   // If 3 or fewer items, display all normally
   if (data.length <= 3) {
@@ -74,7 +47,7 @@ export default function BreadcrumbMain(props: IProps) {
           {data.map((item, index) => (
             <React.Fragment key={item.id}>
               {index > 0 && <BreadcrumbSeparator />}
-              {index >= size && (!rssItemId || hasLoadedRssItem) ? (
+              {index >= size ? (
                 <BreadcrumbItem>
                   <BreadcrumbPage
                     title={item.name || t('untitled')}
@@ -156,35 +129,14 @@ export default function BreadcrumbMain(props: IProps) {
           </DropdownMenu>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
-        {rssItemId && !hasLoadedRssItem ? (
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Button
-                variant="ghost"
-                className="h-6 max-w-[240px] justify-start overflow-hidden px-2 py-0 font-normal text-foreground"
-                onClick={() => {
-                  navigateToResource(
-                    navigate,
-                    `/${namespaceId}/${currentItem.id}`
-                  );
-                }}
-              >
-                <span className="min-w-0 truncate text-left">
-                  {currentItem.name || t('untitled')}
-                </span>
-              </Button>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-        ) : (
-          <BreadcrumbItem>
-            <BreadcrumbPage
-              title={currentItem.name || t('untitled')}
-              className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
-            >
-              {currentItem.name || t('untitled')}
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-        )}
+        <BreadcrumbItem>
+          <BreadcrumbPage
+            title={currentItem.name || t('untitled')}
+            className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+          >
+            {currentItem.name || t('untitled')}
+          </BreadcrumbPage>
+        </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
   );

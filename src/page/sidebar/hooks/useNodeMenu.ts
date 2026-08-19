@@ -16,17 +16,17 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
-import useRssFolderLimits from '@/hooks/useRssFolderLimits';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
-import {
-  countRssFoldersBySpace,
-  getRssFolderQuotaExhausted,
-  getRssFolderQuotaTooltipKey,
-} from '@/page/sidebar/rssFolderQuota';
+import { getRssFolderQuotaTooltipKey } from '@/page/sidebar/rssFolderQuota';
 
 import { useSidebarStore } from '../store';
-import { getBatchSelectionSummary } from '../store/utils';
+import {
+  type BatchMutatingAction,
+  getBatchSelectionSummary,
+  getBatchUnsupportedTipKey,
+} from '../store/utils';
 import type { UseNodeActionsReturn } from './useNodeActions';
+import { useRssFolderQuotaExhausted } from './useRssFolderQuotaExhausted';
 
 export type CreateFolderMode = 'direct' | 'dialog';
 
@@ -75,17 +75,9 @@ export function useNodeMenu(
   const nodes = useSidebarStore(state => state.nodes);
   const namespaceId = useSidebarStore(state => state.namespaceId);
   const rootIds = useSidebarStore(state => state.rootIds);
-  const { data: rssFolderLimits } = useRssFolderLimits({
-    namespaceId: namespaceId || undefined,
-  });
   const hasTeamspace = !!(rootIds.teamspace && nodes[rootIds.teamspace]);
-  const rssFolderLocalCounts = useMemo(
-    () => countRssFoldersBySpace(nodes),
-    [nodes]
-  );
-  const rssFolderQuotaExhausted = useMemo(
-    () => getRssFolderQuotaExhausted(rssFolderLimits, rssFolderLocalCounts),
-    [rssFolderLimits, rssFolderLocalCounts]
+  const rssFolderQuotaExhausted = useRssFolderQuotaExhausted(
+    namespaceId || undefined
   );
 
   return useMemo<{
@@ -103,14 +95,14 @@ export function useNodeMenu(
     if (selectionMode) {
       const batchSelection = getBatchSelectionSummary(nodes, selectedIds);
       const disabled = batchSelection.selectedCount === 0;
-      const smartFolderUnsupported = batchSelection.hasSmartFolder;
-      const smartFolderUnsupportedTip = t(
-        'batch.smart_folder_unsupported_action'
-      );
       const disabledTip = disabled ? t('batch.select_required') : undefined;
-      const smartFolderDisabledTip = smartFolderUnsupported
-        ? smartFolderUnsupportedTip
-        : disabledTip;
+      const unsupported = (action: BatchMutatingAction) => {
+        const tipKey = getBatchUnsupportedTipKey(batchSelection, action);
+        return {
+          disabled: disabled || !!tipKey,
+          disabledTip: disabled ? undefined : tipKey ? t(tipKey) : undefined,
+        };
+      };
 
       return {
         disabled,
@@ -120,8 +112,7 @@ export function useNodeMenu(
             key: 'batch_create',
             icon: FolderPlus,
             label: t('batch.create_tooltip'),
-            disabled: disabled || smartFolderUnsupported,
-            disabledTip: disabled ? undefined : smartFolderDisabledTip,
+            ...unsupported('create'),
             onClick: batchActions?.onCreate,
           },
           { key: 'batch_1', separator: true },
@@ -129,8 +120,7 @@ export function useNodeMenu(
             key: 'batch_move',
             icon: Move,
             label: t('batch.move_tooltip'),
-            disabled: disabled || smartFolderUnsupported,
-            disabledTip: disabled ? undefined : smartFolderDisabledTip,
+            ...unsupported('move'),
             onClick: batchActions?.onMove,
           },
           { key: 'batch_2', separator: true },
@@ -147,10 +137,18 @@ export function useNodeMenu(
             icon: Trash2,
             label: t('batch.delete_tooltip'),
             destructive: true,
-            disabled,
+            ...unsupported('delete'),
             onClick: batchActions?.onDelete,
           },
         ],
+      };
+    }
+
+    // Backend-managed resources (rss items) offer no mutating actions.
+    if (node.readOnly) {
+      return {
+        disabled: false,
+        items: buildAddToChatItems(actions, t),
       };
     }
 
@@ -235,6 +233,8 @@ export function useNodeMenu(
             onClick: actions.handleMoveTo,
           },
           { key: 'separator_1', separator: true },
+          ...buildAddToChatItems(actions, t),
+          { key: 'separator_2', separator: true },
           {
             key: 'delete',
             icon: Trash2,
@@ -339,7 +339,11 @@ function buildAddToChatItems(
 
   if (!node) return [];
 
-  if (node.resourceType === 'folder' || node.resourceType === 'smart_folder') {
+  if (
+    node.resourceType === 'folder' ||
+    node.resourceType === 'smart_folder' ||
+    node.resourceType === 'rss_folder'
+  ) {
     return [
       {
         key: 'add_all_to_context',

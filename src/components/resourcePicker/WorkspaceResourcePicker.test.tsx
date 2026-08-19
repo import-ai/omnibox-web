@@ -1,109 +1,146 @@
 /** @jest-environment jsdom */
 
-import { act } from 'react';
+import { act, type ReactNode } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
 import { WorkspaceResourcePicker } from './WorkspaceResourcePicker';
 
-const mockFetchRoots = jest.fn();
-const mockResourceSorts = {};
-const mockT = (key: string) => key;
-
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: mockT }),
-}));
-
-jest.mock('@/page/sidebar/store', () => ({
-  useSidebarStore: (selector: (state: object) => unknown) =>
-    selector({ resourceSorts: mockResourceSorts }),
-}));
-
-jest.mock('@/service/resource', () => ({
-  fetchChildren: jest.fn(),
-  fetchRootResources: jest.fn(),
-  fetchSmartFolderChildren: jest.fn(),
-  searchResources: jest.fn(),
-}));
-
-jest.mock('./workspaceResourcePickerSort', () => ({
-  ...jest.requireActual('./workspaceResourcePickerSort'),
-  fetchSortedWorkspaceRootResources: (...args: unknown[]) =>
-    mockFetchRoots(...args),
-}));
-
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
+// t and the sort map must keep a stable identity across renders, as the real
+// ones do: the picker's effects depend on them.
+jest.mock('react-i18next', () => {
+  const t = (key: string) => key;
+  return { useTranslation: () => ({ t }) };
+});
+
+const fetchChildren = jest.fn();
+const fetchSmartFolderChildren = jest.fn();
+const searchResources = jest.fn();
+
+jest.mock('@/service/resource', () => ({
+  fetchChildren: (...args: unknown[]) => fetchChildren(...args),
+  fetchSmartFolderChildren: (...args: unknown[]) =>
+    fetchSmartFolderChildren(...args),
+  searchResources: (...args: unknown[]) => searchResources(...args),
+}));
+
+jest.mock('@/service/resourceSort', () => ({
+  rssTreeChildrenParams: () => undefined,
+}));
+
+jest.mock('@/page/sidebar/store', () => {
+  const state = {
+    resourceSorts: { private: undefined, teamspace: undefined },
+  };
+  return {
+    useSidebarStore: (selector: (value: typeof state) => unknown) =>
+      selector(state),
+  };
+});
+
+const fetchSortedWorkspaceRootResources = jest.fn();
+
+jest.mock('./workspaceResourcePickerSort', () => ({
+  fetchSortedWorkspaceRootResources: (...args: unknown[]) =>
+    fetchSortedWorkspaceRootResources(...args),
+  getWorkspacePickerSort: () => undefined,
+  setWorkspacePickerSpace: (resource: unknown) => resource,
+}));
+
+const rssFolder = {
+  id: 'rss-folder-id',
+  name: 'Morning Feeds',
+  parent_id: 'private-root',
+  resource_type: 'rss_folder',
+  has_children: true,
+};
+
 describe('WorkspaceResourcePicker', () => {
   let container: HTMLDivElement;
   let root: Root;
+  const onSelect = jest.fn();
 
-  beforeEach(() => {
-    mockFetchRoots.mockReset();
+  beforeEach(async () => {
+    onSelect.mockReset();
+    fetchChildren.mockReset();
+    fetchChildren.mockResolvedValue([]);
+    fetchSortedWorkspaceRootResources.mockReset();
+    fetchSortedWorkspaceRootResources.mockResolvedValue({
+      private: {
+        id: 'private-root',
+        name: 'Private',
+        parent_id: null,
+        resource_type: 'folder',
+        children: [rssFolder],
+      },
+    });
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
+    await act(async () => {
+      root.render(
+        (
+          <WorkspaceResourcePicker
+            namespaceId="namespace-id"
+            onSelect={onSelect}
+          />
+        ) as ReactNode
+      );
+    });
   });
 
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
-    jest.restoreAllMocks();
   });
 
-  it('shows loading until workspace roots resolve', async () => {
-    let resolveRoots!: (value: object) => void;
-    mockFetchRoots.mockReturnValue(
-      new Promise(resolve => {
-        resolveRoots = resolve;
-      })
+  const rowFor = (name: string) =>
+    [...container.querySelectorAll<HTMLButtonElement>('button')].find(
+      button => button.textContent?.trim() === name
     );
 
-    await act(async () => {
-      root.render(
-        <WorkspaceResourcePicker namespaceId="namespace" onSelect={jest.fn()} />
-      );
-    });
-    expect(container.textContent).toContain('loading');
-    expect(container.textContent).not.toContain('resource_picker.empty');
+  // A feed folder is chat context like any other folder: attaching it attaches
+  // the articles inside it.
+  it('offers an rss folder as a selectable chat context', async () => {
+    const row = rowFor(rssFolder.name);
+    expect(row).toBeDefined();
+    expect(row!.disabled).toBe(false);
 
     await act(async () => {
-      resolveRoots({
-        private: {
-          id: 'root',
-          name: 'Root',
-          parent_id: null,
-          resource_type: 'folder',
-          children: [],
-        },
-      });
-      await Promise.resolve();
+      row!.click();
     });
-    expect(container.textContent).toContain('private');
-    expect(container.textContent).not.toContain('loading');
+
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({ id: rssFolder.id })
+    );
   });
 
-  it('shows an error instead of an empty state when roots fail to load', async () => {
-    const error = new Error('load failed');
-    mockFetchRoots.mockRejectedValue(error);
-    const consoleError = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => undefined);
+  it('expands an rss folder to its articles', async () => {
+    fetchChildren.mockResolvedValue([
+      {
+        id: 'rss-item-id',
+        name: 'An article',
+        parent_id: rssFolder.id,
+        resource_type: 'rss_item',
+      },
+    ]);
+    const expand = [
+      ...container.querySelectorAll<HTMLButtonElement>('button'),
+    ].find(
+      button =>
+        button.getAttribute('aria-label') === 'resource_picker.expand_resource'
+    );
+    expect(expand).toBeDefined();
 
     await act(async () => {
-      root.render(
-        <WorkspaceResourcePicker namespaceId="namespace" onSelect={jest.fn()} />
-      );
-      await Promise.resolve();
+      expand!.click();
     });
 
-    expect(container.textContent).toContain('resource_picker.load_failed');
-    expect(container.textContent).not.toContain('resource_picker.empty');
-    expect(consoleError).toHaveBeenCalledWith(
-      'Failed to load resource picker roots',
-      error
-    );
+    expect(fetchChildren).toHaveBeenCalled();
+    expect(rowFor('An article')).toBeDefined();
   });
 });

@@ -31,6 +31,28 @@ describe('InlineChatToken', () => {
     expect(html).toContain('lucide-folder');
   });
 
+  it('keeps the feed icon when an rss folder is attached to the chat', () => {
+    const html = renderToStaticMarkup(
+      <InlineChatToken
+        icon="resource"
+        resource={{
+          id: 'feed',
+          name: 'HN Private',
+          parent_id: null,
+          resource_type: 'rss_folder',
+        }}
+        contextType="folder"
+        spacer={resourceTokenSpacer}
+      >
+        HN Private
+      </InlineChatToken>
+    );
+
+    // The rss waves, which the plain folder icon does not draw.
+    expect(html).toContain('M15 13a8 8 0 0 1 8 8');
+    expect(html).not.toContain('lucide-folder');
+  });
+
   it('keeps the original file icon when a resource token represents the file itself', () => {
     const html = renderToStaticMarkup(
       <InlineChatToken

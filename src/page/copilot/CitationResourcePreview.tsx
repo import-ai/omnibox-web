@@ -95,7 +95,6 @@ export default function CitationResourcePreview({
       }
       resource={currentState.resource}
       resourceId={resourceId}
-      rssItemId={null}
     />
   );
 }

@@ -47,16 +47,9 @@ jest.mock('@/page/resource/useResourceBodyDragAutoScroll', () => ({
 }));
 jest.mock('./header', () => ({
   __esModule: true,
-  default: ({
-    resource,
-    rssItemId,
-  }: {
-    resource: Resource | null;
-    rssItemId: string | null;
-  }) => (
+  default: ({ resource }: { resource: Resource | null }) => (
     <div
       data-resource-id={resource?.id ?? 'none'}
-      data-rss-item-id={rssItemId ?? 'none'}
       data-testid="resource-header"
     />
   ),
@@ -66,20 +59,17 @@ jest.mock('./Wrapper', () => ({
   default: ({
     resource,
     loading,
-    rssItemId,
     showToc,
     wide,
   }: {
     loading: boolean;
     resource: Resource | null;
-    rssItemId: string | null;
     showToc: boolean;
     wide: boolean;
   }) => (
     <div
       data-resource-id={resource?.id}
       data-loading={String(loading)}
-      data-rss-item-id={rssItemId ?? 'none'}
       data-show-toc={String(showToc)}
       data-testid="resource-wrapper"
       data-wide={String(wide)}
@@ -117,7 +107,6 @@ describe('ResourceDetailView', () => {
           onResource={jest.fn()}
           resource={currentResource}
           resourceId={resourceId}
-          rssItemId={null}
         />
       );
     });
@@ -161,11 +150,6 @@ describe('ResourceDetailView', () => {
         .querySelector('[data-testid="resource-wrapper"]')
         ?.getAttribute('data-resource-id')
     ).toBe('resource-a');
-    expect(
-      container
-        .querySelector('[data-testid="resource-header"]')
-        ?.getAttribute('data-rss-item-id')
-    ).toBe('none');
   });
 
   it('does not render a stale resource title while the next resource is loading', async () => {

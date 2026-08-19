@@ -13,6 +13,7 @@ import {
   getDescendantIds,
   getTopLevelSelectedIds,
   isDescendant,
+  isManagedChildrenNode,
 } from '../store/utils';
 import {
   DndItem,
@@ -125,10 +126,7 @@ export function useResourceNodeDnd(
     }
 
     if (item.ids?.length) {
-      if (
-        targetNode?.resourceType === 'smart_folder' ||
-        targetNode?.resourceType === 'rss_folder'
-      ) {
+      if (isManagedChildrenNode(targetNode)) {
         return false;
       }
       if (isDisabledBatchDropTarget(nodes, item, nodeId)) {
@@ -140,10 +138,7 @@ export function useResourceNodeDnd(
       );
     }
 
-    return (
-      targetNode?.resourceType !== 'smart_folder' &&
-      targetNode?.resourceType !== 'rss_folder'
-    );
+    return !isManagedChildrenNode(targetNode);
   };
 
   const updateDropPosition = (
@@ -165,8 +160,7 @@ export function useResourceNodeDnd(
     }
     const ratio = (clientOffset.y - rect.top) / rect.height;
     const canContain =
-      targetNode.resourceType !== 'smart_folder' &&
-      targetNode.resourceType !== 'rss_folder' &&
+      !isManagedChildrenNode(targetNode) &&
       dragNode.resourceType !== 'smart_folder';
     const position: ManualDropPosition =
       canContain && ratio >= 0.25 && ratio <= 0.75
@@ -180,6 +174,11 @@ export function useResourceNodeDnd(
         : targetNode.parentId
           ? nodes[targetNode.parentId]
           : undefined;
+    // Reordering inside a managed folder (rss items) is not allowed.
+    if (position !== 'inside' && isManagedChildrenNode(parent)) {
+      setCurrentDropPosition(null);
+      return;
+    }
     const permission = parent?.currentPermission || 'full_access';
     if (permission !== 'can_edit' && permission !== 'full_access') {
       setCurrentDropPosition(null);
@@ -244,6 +243,7 @@ export function useResourceNodeDnd(
       canDrag: () =>
         !isEditing &&
         (!selectionMode || isSelected) &&
+        !node.readOnly &&
         !isSmartFolderChildResource(node),
       collect: monitor => ({
         opacity: monitor.isDragging() ? 0.5 : 1,

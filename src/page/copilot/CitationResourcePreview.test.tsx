@@ -28,14 +28,12 @@ jest.mock('@/page/resource/ResourceDetailView', () => ({
     loading,
     notFound,
     resource,
-    rssItemId,
   }: {
     error: boolean;
     forbidden: boolean;
     loading: boolean;
     notFound: boolean;
     resource: Resource | null;
-    rssItemId: string | null;
   }) => (
     <div
       data-error={String(error)}
@@ -43,7 +41,6 @@ jest.mock('@/page/resource/ResourceDetailView', () => ({
       data-loading={String(loading)}
       data-not-found={String(notFound)}
       data-resource-id={resource?.id ?? 'none'}
-      data-rss-item-id={rssItemId ?? 'none'}
       data-testid="resource-detail-view"
     />
   ),
@@ -89,7 +86,7 @@ describe('CitationResourcePreview', () => {
     expect(view?.getAttribute('data-loading')).toBe('true');
   });
 
-  it('loads a cited resource into the shared detail view without route RSS context', async () => {
+  it('loads a cited resource into the shared detail view', async () => {
     const resource = {
       id: 'resource-a',
       name: 'Resource A',
@@ -111,7 +108,6 @@ describe('CitationResourcePreview', () => {
       '[data-testid="resource-detail-view"]'
     );
     expect(view?.getAttribute('data-resource-id')).toBe('resource-a');
-    expect(view?.getAttribute('data-rss-item-id')).toBe('none');
     expect(view?.getAttribute('data-loading')).toBe('false');
     expect(view?.getAttribute('data-forbidden')).toBe('false');
     expect(view?.getAttribute('data-not-found')).toBe('false');
