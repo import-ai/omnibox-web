@@ -1,7 +1,7 @@
 import type { Resource, SpaceType } from '@/interface';
 import type { ResourceSortOptions } from '@/service/resource';
 
-import { parseResourceSorts } from '../resourceSort';
+import { parseResourceSorts, type ResourceSorts } from '../resourceSort';
 import type { ManualDropIndicator, RootResource, SidebarSet } from '../types';
 import { initialDialogsState } from '../types';
 import {
@@ -45,6 +45,21 @@ export function buildBaseActions(set: SidebarSet) {
     ) => {
       set(s => {
         s.resourceSorts[spaceType] = resourceSort;
+        if (s.namespaceId) {
+          localStorage.setItem(
+            storageKey(s.namespaceId),
+            JSON.stringify(s.resourceSorts)
+          );
+        }
+      });
+    },
+
+    setResourceSorts: (resourceSorts: ResourceSorts) => {
+      set(s => {
+        s.resourceSorts = {
+          private: { ...resourceSorts.private },
+          teamspace: { ...resourceSorts.teamspace },
+        };
         if (s.namespaceId) {
           localStorage.setItem(
             storageKey(s.namespaceId),
