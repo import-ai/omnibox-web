@@ -5,6 +5,7 @@
   "delete": "Delete",
   "rename": "Rename",
   "cancel": "Cancel",
+  "close": "Close",
   "ok": "OK",
   "undo": "Undo",
   "no_pages_inside": "No pages inside",
@@ -730,6 +731,12 @@
       "new_chat": "New Chat",
       "empty": "No conversation yet",
       "history": "Chat History",
+      "search": "Search chat history",
+      "recent": "Recent conversations",
+      "messages": "Messages",
+      "roles": {
+        "assistant": "OmniBox AI"
+      },
       "deleted": "Deleted Conversations",
       "deleted_description": "This conversation has been deleted",
       "delete": {

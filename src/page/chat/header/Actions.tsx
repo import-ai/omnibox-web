@@ -1,4 +1,11 @@
-import { Edit2, History, MoreHorizontal, Plus, Trash2 } from 'lucide-react';
+import {
+  Edit2,
+  History,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +35,7 @@ interface IProps {
   namespaceId: string;
   onChatCreate?: () => void;
   onChatHistory?: () => void;
+  onChatSearch?: () => void;
 }
 
 export default function Actions(props: IProps) {
@@ -40,6 +48,7 @@ export default function Actions(props: IProps) {
     namespaceId,
     onChatCreate: onChatCreateOverride,
     onChatHistory: onChatHistoryOverride,
+    onChatSearch,
   } = props;
   const app = useApp();
   const { t } = useTranslation();
@@ -82,6 +91,21 @@ export default function Actions(props: IProps) {
 
   return (
     <div className="flex items-center gap-1 text-sm">
+      {conversationsPage && onChatSearch && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="size-[28px]"
+              onClick={onChatSearch}
+            >
+              <Search />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t('chat.conversations.search')}</TooltipContent>
+        </Tooltip>
+      )}
       {!homePage && (
         <Tooltip>
           <TooltipTrigger asChild>
