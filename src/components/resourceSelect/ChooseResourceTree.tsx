@@ -48,6 +48,8 @@ export function ChooseResourceTree({
   onChange,
 }: ChooseResourceTreeProps) {
   const { t } = useTranslation();
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [roots, setRoots] = useState<ChooseResourceTreeResource[]>([]);
   const resourceSorts = useSidebarStore(state => state.resourceSorts);
   const disabledResourceIds = useMemo(
@@ -103,6 +105,8 @@ export function ChooseResourceTree({
 
   useEffect(() => {
     let cancelled = false;
+    setLoadFailed(false);
+    setLoading(true);
     fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
       .then(response => {
         if (cancelled) return;
@@ -127,8 +131,12 @@ export function ChooseResourceTree({
       .catch(error => {
         if (!cancelled) {
           setRoots([]);
+          setLoadFailed(true);
           console.error('Failed to load resource select roots', error);
         }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
@@ -189,6 +197,8 @@ export function ChooseResourceTree({
 
   return (
     <ResourcePicker
+      loadFailed={loadFailed}
+      loading={loading}
       roots={roots}
       defaultExpandedIds={defaultExpandedIds}
       defaultExpandedRootIds={defaultExpandedRootIds}
