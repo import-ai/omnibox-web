@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import { ChevronRight, ScrollText } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Separator } from '@/components/ui/Separator';
@@ -162,6 +162,7 @@ function ContextCompactedDivider({
 export function Messages(props: IProps) {
   const { t } = useTranslation();
   const chatOnly = useShareChatOnly();
+  const lastScrolledMessageRef = useRef<string | null>(null);
   const {
     messages,
     conversation,
@@ -170,6 +171,29 @@ export function Messages(props: IProps) {
     onEdit,
     regeneratingParentId = null,
   } = props;
+
+  useEffect(() => {
+    function scrollToLinkedMessage() {
+      const targetId = window.location.hash.slice(1);
+      if (!targetId.startsWith('message-')) return;
+
+      const scrollKey = `${conversation.id}:${targetId}`;
+      if (lastScrolledMessageRef.current === scrollKey) return;
+
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      lastScrolledMessageRef.current = scrollKey;
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    scrollToLinkedMessage();
+    window.addEventListener('hashchange', scrollToLinkedMessage);
+    return () => {
+      window.removeEventListener('hashchange', scrollToLinkedMessage);
+    };
+  }, [conversation.id, messages.length]);
+
   const citations = useMemo((): Citation[] => {
     const result: Citation[] = [];
     for (const message of messages) {
