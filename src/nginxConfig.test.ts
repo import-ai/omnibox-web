@@ -36,6 +36,7 @@ describe('nginx routes', () => {
       '/s/Ab3xYz90Qw/0123456789AbCdEf',
       '/s/Ab3xYz90Qw/chat',
       '/s/Ab3xYz90Qw/chat/550e8400-e29b-41d4-a716-446655440000',
+      '/conversation-shares/Ab3xYz90Qw12',
     ];
 
     expect(
