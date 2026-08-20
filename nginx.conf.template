@@ -33,6 +33,7 @@ map $uri $is_spa_route {
     "~*^/invite/[0-9A-Za-z]{6}/[0-9A-Za-z]{6}/?$" 1;
     "~*^/[0-9A-Za-z]{6}(?:/[0-9A-Za-z]{16}(?:/edit|/rss-items/[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12})?|/chat(?:/conversations|/[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12})?)?/?$" 1;
     "~*^/s/[0-9A-Za-z]{10}(?:/[0-9A-Za-z]{16}(?:/rss-items/[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12})?|/chat(?:/[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12})?)?/?$" 1;
+    "~*^/conversation-shares/[0-9A-Za-z]{12}/?$" 1;
 }
 
 # Rules for WeCom (Enterprise WeChat) crawling: User-Agent must contain "wxwork", URL must not include "wework_cfm_code", and Referer must be empty
@@ -78,6 +79,10 @@ server {
         add_header Cache-Control "no-store, no-cache, must-revalidate" always;
         add_header Pragma "no-cache" always;
         add_header Expires 0 always;
+    }
+
+    location ~ "^/conversation-shares/([0-9A-Za-z]{12})/?$" {
+        return 301 https://www.omnibox.pro/zh-cn/conversation-share/?share_id=$1;
     }
 
     location ~* "^/s/([0-9A-Za-z]{10})(/([0-9A-Za-z]{16}))?/?$" {

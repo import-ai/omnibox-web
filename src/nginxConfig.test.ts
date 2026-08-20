@@ -36,6 +36,7 @@ describe('nginx routes', () => {
       '/s/Ab3xYz90Qw/0123456789AbCdEf',
       '/s/Ab3xYz90Qw/chat',
       '/s/Ab3xYz90Qw/chat/550e8400-e29b-41d4-a716-446655440000',
+      '/conversation-shares/Ab3xYz90Qw12',
     ];
 
     expect(
@@ -53,6 +54,12 @@ describe('nginx routes', () => {
     expect(
       seoRoutes.some(pattern => pattern.test('/Ab3xYz/0123456789AbCdEf/'))
     ).toBe(true);
+  });
+
+  it('redirects legacy conversation links to the public product page', () => {
+    expect(config).toContain(
+      'return 301 https://www.omnibox.pro/zh-cn/conversation-share/?share_id=$1;'
+    );
   });
 
   it('rejects unknown URL shapes', () => {
