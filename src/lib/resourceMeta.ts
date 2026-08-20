@@ -13,6 +13,16 @@ interface NormalizeResourceMetaOptions {
   contextType?: PrivateSearchResourceType;
 }
 
+const CONTAINER_RESOURCE_TYPES: ResourceType[] = [
+  'folder',
+  'smart_folder',
+  'rss_folder',
+];
+
+export function isContainerResourceType(type: ResourceType): boolean {
+  return CONTAINER_RESOURCE_TYPES.includes(type);
+}
+
 export function normalizeResourceMeta(
   resource: ResourceMetaLike,
   options: NormalizeResourceMetaOptions = {}
@@ -22,8 +32,10 @@ export function normalizeResourceMeta(
     resource.resourceType ??
     options.fallbackType ??
     'doc';
+  // Attaching a resource as "all files in it" draws a folder — unless it is
+  // already a container, which has an icon of its own to keep.
   const resourceType =
-    options.contextType === 'folder' && actualType !== 'smart_folder'
+    options.contextType === 'folder' && !isContainerResourceType(actualType)
       ? 'folder'
       : actualType;
 

@@ -16,12 +16,6 @@ export interface CreateRssFolderPayload {
   links: RssFolderLink[];
 }
 
-export interface CreateRssFolderRequest {
-  name?: string;
-  links: RssFolderLink[];
-  parent_id?: string;
-}
-
 export interface RssFolderConfigLink {
   id: string;
   index: number;

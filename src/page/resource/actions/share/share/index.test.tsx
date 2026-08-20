@@ -213,6 +213,34 @@ describe('ShareTabContent', () => {
     expect(sortSelector.disabled).toBe(false);
   });
 
+  it('disables share sorting for a chat-only share', async () => {
+    mockGet.mockResolvedValue({
+      ...shareInfo,
+      all_resources: true,
+      share_type: 'chat_only',
+    });
+
+    await act(async () => {
+      root.render(
+        <ShareTabContent
+          namespace_id="namespace-1"
+          resource_id="resource-1"
+          resourceType="folder"
+        />
+      );
+    });
+
+    const sortSelector = container.querySelector(
+      '[data-testid="share-sort-selector"]'
+    ) as HTMLButtonElement;
+    expect(sortSelector.disabled).toBe(true);
+    // Sharing child resources still decides what the assistant can read.
+    const switches = container.querySelectorAll('[role="switch"]');
+    expect(
+      (switches[1] as HTMLButtonElement).getAttribute('aria-checked')
+    ).toBe('false');
+  });
+
   it('does not normalize a disabled folder share', async () => {
     mockGet.mockResolvedValueOnce({ ...shareInfo, enabled: false });
 

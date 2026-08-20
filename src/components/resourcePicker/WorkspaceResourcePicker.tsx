@@ -8,6 +8,7 @@ import {
   fetchSmartFolderChildren,
   searchResources as searchWorkspaceResources,
 } from '@/service/resource';
+import { rssTreeChildrenParams } from '@/service/resourceSort';
 
 import { ResourcePicker } from './ResourcePicker';
 import type { ResourcePickerResource } from './resourcePickerTypes';
@@ -45,45 +46,35 @@ export function WorkspaceResourcePicker({
   onSelect: (resource: ResourcePickerResource) => void;
 }) {
   const { t } = useTranslation();
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
   const resourceSorts = useSidebarStore(state => state.resourceSorts);
 
-  // Subscription (RSS) folders can't be picked as chat context, so we surface
-  // them as disabled with an explanatory tooltip instead of a silent no-op.
-  const decorateResource = useCallback(
-    (resource: ResourcePickerResource): ResourcePickerResource => {
-      const rssFolderDisabled = resource.resource_type === 'rss_folder';
-      return {
-        ...resource,
-        children: resource.children?.map(decorateResource),
-        disabled: rssFolderDisabled || resource.disabled,
-        disabledTooltip: rssFolderDisabled
-          ? t('rss_folder.unsupported_operation')
-          : resource.disabledTooltip,
-      };
-    },
-    [t]
-  );
-
+  // Every container is pickable as chat context, rss folders included: an rss
+  // folder attaches its articles the same way a plain folder attaches its docs.
   useEffect(() => {
     let cancelled = false;
+    setLoadFailed(false);
+    setLoading(true);
     fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
       .then(response => {
-        if (!cancelled)
-          setRoots(
-            workspaceRootsToPickerResources(response, t).map(decorateResource)
-          );
+        if (!cancelled) setRoots(workspaceRootsToPickerResources(response, t));
       })
       .catch(error => {
         if (!cancelled) {
           setRoots([]);
+          setLoadFailed(true);
           console.error('Failed to load resource picker roots', error);
         }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [decorateResource, namespaceId, resourceSorts, t]);
+  }, [namespaceId, resourceSorts, t]);
 
   const loadChildren = useCallback(
     (resource: ResourcePickerResource) => {
@@ -94,26 +85,24 @@ export function WorkspaceResourcePicker({
           : fetchChildren(
               namespaceId,
               resource.id,
-              getWorkspacePickerSort(resource, resourceSorts)
+              getWorkspacePickerSort(resource, resourceSorts),
+              { params: rssTreeChildrenParams(resource.resource_type) }
             )
       ).then(resources =>
-        resources.map(child =>
-          decorateResource(setWorkspacePickerSpace(child, spaceType))
-        )
+        resources.map(child => setWorkspacePickerSpace(child, spaceType))
       );
     },
-    [decorateResource, namespaceId, resourceSorts]
+    [namespaceId, resourceSorts]
   );
   const searchResources = useCallback(
-    (query: string) =>
-      searchWorkspaceResources(namespaceId, query).then(resources =>
-        resources.map(decorateResource)
-      ),
-    [decorateResource, namespaceId]
+    (query: string) => searchWorkspaceResources(namespaceId, query),
+    [namespaceId]
   );
 
   return (
     <ResourcePicker
+      loadFailed={loadFailed}
+      loading={loading}
       roots={roots}
       loadChildren={loadChildren}
       searchResources={searchResources}

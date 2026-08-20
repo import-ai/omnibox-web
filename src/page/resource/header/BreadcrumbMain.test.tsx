@@ -6,24 +6,12 @@ import { createRoot, type Root } from 'react-dom/client';
 import BreadcrumbMain from './BreadcrumbMain';
 
 const navigate = jest.fn();
-const unsubscribe = jest.fn();
-type RssItemBreadcrumb = { id: string; title: string };
-let onRssItemLoaded: ((item: RssItemBreadcrumb) => void) | undefined;
-const mockApp = {
-  on: (event: string, callback: (item: RssItemBreadcrumb) => void) => {
-    if (event === 'rss_item_loaded') {
-      onRssItemLoaded = callback;
-    }
-    return unsubscribe;
-  },
-};
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 jest.mock('react-router-dom', () => ({
   useNavigate: () => navigate,
-  useParams: () => ({ rss_item_id: 'item-1' }),
 }));
 jest.mock('@/components/ui/Breadcrumb', () => ({
   Breadcrumb: 'nav',
@@ -40,10 +28,6 @@ jest.mock('@/components/ui/DropdownMenu', () => ({
   DropdownMenuItem: 'button',
   DropdownMenuTrigger: 'button',
 }));
-jest.mock('@/hooks/useApp', () => ({
-  __esModule: true,
-  default: () => mockApp,
-}));
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -55,7 +39,6 @@ describe('BreadcrumbMain', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    onRssItemLoaded = undefined;
     container = document.createElement('div');
     root = createRoot(container);
   });
@@ -64,7 +47,7 @@ describe('BreadcrumbMain', () => {
     await act(async () => root.unmount());
   });
 
-  it('keeps the RSS folder clickable while the current item loads', async () => {
+  it('renders an rss item path with its folder still clickable', async () => {
     await act(async () => {
       root.render(
         <BreadcrumbMain
@@ -72,29 +55,16 @@ describe('BreadcrumbMain', () => {
           path={[
             { id: 'root-1', name: 'Root' },
             { id: 'folder-1', name: 'RSS Folder' },
+            { id: 'item-1', name: 'Article' },
           ]}
         />
       );
     });
 
-    let folderButton = Array.from(container.querySelectorAll('button')).find(
-      button => button.textContent === 'RSS Folder'
-    );
-    folderButton?.click();
-
-    expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1', {
-      flushSync: true,
-    });
-    navigate.mockClear();
-
-    await act(async () => {
-      onRssItemLoaded?.({ id: 'item-1', title: 'Article' });
-    });
-
     expect(container.textContent).toContain('RSS Folder');
     expect(container.textContent).toContain('Article');
 
-    folderButton = Array.from(container.querySelectorAll('button')).find(
+    const folderButton = Array.from(container.querySelectorAll('button')).find(
       button => button.textContent === 'RSS Folder'
     );
     folderButton?.click();
@@ -102,9 +72,15 @@ describe('BreadcrumbMain', () => {
     expect(navigate).toHaveBeenCalledWith('/namespace-1/folder-1', {
       flushSync: true,
     });
+    // The item itself is the current page, so it is not a link.
+    expect(
+      Array.from(container.querySelectorAll('button')).some(
+        button => button.textContent === 'Article'
+      )
+    ).toBe(false);
   });
 
-  it('keeps a deeply nested RSS folder clickable while the item loads', async () => {
+  it('keeps a deeply nested folder clickable', async () => {
     await act(async () => {
       root.render(
         <BreadcrumbMain
@@ -113,8 +89,8 @@ describe('BreadcrumbMain', () => {
             { id: 'root-1', name: 'Root' },
             { id: 'folder-1', name: 'Folder 1' },
             { id: 'folder-2', name: 'Folder 2' },
-            { id: 'folder-3', name: 'Folder 3' },
             { id: 'rss-folder', name: 'RSS Folder' },
+            { id: 'item-1', name: 'Article' },
           ]}
         />
       );

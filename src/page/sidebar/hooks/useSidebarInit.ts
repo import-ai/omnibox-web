@@ -23,7 +23,8 @@ export function useSidebarInit(props: IProps) {
   // Auto-navigate to first resource when no resourceId and not on chat page
   const hasAutoNavigatedRef = useRef(false);
   const chatPage = location.pathname.includes('/chat');
-  const rssItemPage = location.pathname.includes('/rss-items/');
+  // An rss item is an ordinary resource now, so no rss-item route is special
+  // cased here any more.
   const currentResourceId = previewResourceId || resourceId;
 
   // Derive initialization state from rootIds.
@@ -118,7 +119,7 @@ export function useSidebarInit(props: IProps) {
         : currentResourceId;
 
     store.expandPathTo(expandId, { expandTarget: true }).then(() => {
-      if (cancelled || rssItemPage) return;
+      if (cancelled) return;
       requestAnimationFrame(() => {
         if (cancelled) return;
         const element = document.querySelector(

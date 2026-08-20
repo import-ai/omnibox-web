@@ -22,8 +22,9 @@ import {
   fetchSmartFolderChildren,
   searchResources,
 } from '@/service/resource';
+import { rssTreeChildrenParams } from '@/service/resourceSort';
 
-import { isRssFolderResource, shouldDisableMoveTarget } from './utils';
+import { isManagedChildrenFolder, shouldDisableMoveTarget } from './utils';
 
 export interface IFormProps {
   resourceIds: string[];
@@ -51,6 +52,8 @@ export default function MoveToForm(props: IFormProps) {
     onFinished,
   } = props;
   const { t } = useTranslation();
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
   const resourceSorts = useSidebarStore(state => state.resourceSorts);
   const disabledResourceIds = useMemo(
@@ -66,11 +69,11 @@ export default function MoveToForm(props: IFormProps) {
         parentDisabled || disabledResourceIds.has(resource.id);
       if (operatingResource && !showDisabledTargets) return null;
 
-      const mixedSmartFolder = shouldDisableMoveTarget(
-        sourceResourceType,
-        resource.resource_type
-      );
-      const disabled = operatingResource || mixedSmartFolder;
+      const unsupportedTarget =
+        shouldDisableMoveTarget(sourceResourceType, resource.resource_type) ||
+        // Backend-managed resources (rss items) hold no user resources.
+        resource.read_only === true;
+      const disabled = operatingResource || unsupportedTarget;
       const children = resource.children
         ?.map(child => decorateResource(child, operatingResource))
         .filter(Boolean) as ResourcePickerResource[] | undefined;
@@ -79,10 +82,12 @@ export default function MoveToForm(props: IFormProps) {
         ...resource,
         children,
         disabled,
-        disabledTooltip: mixedSmartFolder
-          ? isRssFolderResource(resource.resource_type)
+        disabledTooltip: unsupportedTarget
+          ? isManagedChildrenFolder(resource.resource_type)
             ? t('rss_folder.move.unsupported_target')
-            : t('smart_folder.move.unsupported_mixed_target')
+            : resource.read_only
+              ? t('resource.read_only_target')
+              : t('smart_folder.move.unsupported_mixed_target')
           : operatingResource
             ? disabledTargetTooltip
             : undefined,
@@ -99,8 +104,10 @@ export default function MoveToForm(props: IFormProps) {
 
   useEffect(() => {
     let cancelled = false;
-    fetchSortedWorkspaceRootResources(namespaceId, resourceSorts).then(
-      response => {
+    setLoadFailed(false);
+    setLoading(true);
+    fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
+      .then(response => {
         if (cancelled) return;
         setRoots(
           (Object.keys(response) as SpaceType[]).flatMap(spaceType => {
@@ -119,8 +126,17 @@ export default function MoveToForm(props: IFormProps) {
             return decorated ? [decorated] : [];
           })
         );
-      }
-    );
+      })
+      .catch(error => {
+        if (!cancelled) {
+          setRoots([]);
+          setLoadFailed(true);
+          console.error('Failed to load move target roots', error);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -135,7 +151,8 @@ export default function MoveToForm(props: IFormProps) {
           : fetchChildren(
               namespaceId,
               resource.id,
-              getWorkspacePickerSort(resource, resourceSorts)
+              getWorkspacePickerSort(resource, resourceSorts),
+              { params: rssTreeChildrenParams(resource.resource_type) }
             )
       ).then(
         resources =>
@@ -167,6 +184,8 @@ export default function MoveToForm(props: IFormProps) {
 
   return (
     <ResourcePicker
+      loadFailed={loadFailed}
+      loading={loading}
       roots={roots}
       loadChildren={loadChildren}
       searchResources={search}

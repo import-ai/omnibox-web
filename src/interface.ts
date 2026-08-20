@@ -81,7 +81,13 @@ export interface TagDto {
 
 export type SpaceType = 'private' | 'teamspace';
 export type ResourceType =
-  'doc' | 'file' | 'link' | 'folder' | 'smart_folder' | 'rss_folder';
+  | 'doc'
+  | 'file'
+  | 'link'
+  | 'folder'
+  | 'smart_folder'
+  | 'rss_folder'
+  | 'rss_item';
 
 export interface PathItem {
   id: string;
@@ -104,6 +110,13 @@ export interface Resource extends IBase {
   resource_type: ResourceType;
   space_type: SpaceType;
   owner_scope?: 'private' | 'teamspace';
+
+  /**
+   * Backend-derived: the resource's content and placement are managed by the
+   * system (e.g. rss items), so edit / rename / move / delete / duplicate and
+   * drag affordances must be hidden.
+   */
+  read_only?: boolean;
 
   parent_id: string;
 
@@ -273,6 +286,7 @@ export interface ResourceMeta {
   updated_at?: string;
   attrs?: Record<string, any>;
   has_children?: boolean;
+  read_only?: boolean;
 }
 
 export interface ResourceSummary {
@@ -286,29 +300,13 @@ export interface ResourceSummary {
   updated_at: string;
 }
 
-export interface RssItem {
-  id: string;
-  link_id: string;
-  link_name: string | null;
-  title: string;
-  url: string | null;
-  summary: string | null;
-  published_at: string | null;
-  created_at: string;
-}
-
-export interface RssItemDetail extends RssItem {
-  parsed_content: string | null;
-}
-
-export type RssItemBreadcrumb = Pick<RssItemDetail, 'id' | 'title'>;
-
 export interface PublicShareInfo {
   id: string;
   all_resources: boolean;
   share_type: ShareType;
   username: string;
-  resource: ResourceMeta;
+  // Absent on a chat-only share, which serves no resource metadata.
+  resource?: ResourceMeta;
 }
 
 export type TaskStatus =

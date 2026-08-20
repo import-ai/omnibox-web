@@ -26,7 +26,7 @@ import { useSidebarInit } from './hooks/useSidebarInit';
 
 interface IProps {
   shareId: string;
-  rootResource: ResourceMeta;
+  rootResource?: ResourceMeta;
   username: string;
   showChat: boolean;
   isChatActive: boolean;
@@ -35,6 +35,7 @@ interface IProps {
   isResourceActive: (resourceId: string) => boolean;
   onAddToContext: (resource: ResourceMeta, type: 'resource' | 'folder') => void;
   canBrowseResources: boolean;
+  showResources?: boolean;
 }
 
 export default function ShareSidebar(props: IProps) {
@@ -49,6 +50,7 @@ export default function ShareSidebar(props: IProps) {
     isResourceActive,
     onAddToContext,
     canBrowseResources,
+    showResources = true,
   } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -60,6 +62,7 @@ export default function ShareSidebar(props: IProps) {
     currentResourceId,
     currentResourcePath,
     canBrowseResources,
+    showResources,
   });
 
   return (
@@ -118,6 +121,7 @@ export default function ShareSidebar(props: IProps) {
         isResourceActive={isResourceActive}
         onAddToContext={onAddToContext}
         canBrowseResources={canBrowseResources}
+        showResources={showResources}
       />
       <SidebarRail className="opacity-0" />
     </Sidebar>

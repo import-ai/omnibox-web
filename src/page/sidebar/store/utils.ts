@@ -1,17 +1,15 @@
 import { PathItem, Resource, SpaceType } from '@/interface';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
+import { RSS_ITEM_SORT, rssTreeChildrenParams } from '@/service/resourceSort';
 
 import type { SidebarState, TreeNode } from './types';
 
 type ResourceWithChildrenState = Resource & { hasChildren?: boolean };
 
 function getResourceHasChildren(resource: ResourceWithChildrenState): boolean {
-  // Smart and RSS folders have virtual children (matched resources / polled
-  // items), so they always render as expandable regardless of the backend flag.
-  if (
-    resource.resource_type === 'smart_folder' ||
-    resource.resource_type === 'rss_folder'
-  ) {
+  // Smart folders have virtual children (matched resources), so they always
+  // render as expandable regardless of the backend flag.
+  if (resource.resource_type === 'smart_folder') {
     return true;
   }
 
@@ -35,6 +33,7 @@ export function createNode(
     tags: resource.tags,
     path: resource.path,
     hasChildren: getResourceHasChildren(resourceWithChildrenState),
+    readOnly: resource.read_only === true,
     currentPermission: resource.current_permission,
     globalPermission: resource.global_permission,
     createdAt: resource.created_at || '',
@@ -42,6 +41,18 @@ export function createNode(
     manualSortInitializedAt: resource.manual_sort_initialized_at ?? null,
     children: [],
   };
+}
+
+/**
+ * Folders whose children are produced by the backend (smart folders match
+ * resources, rss folders own their items) never accept user-placed children.
+ */
+export function isManagedChildrenNode(
+  node?: Pick<TreeNode, 'resourceType'> | null
+): boolean {
+  return (
+    node?.resourceType === 'smart_folder' || node?.resourceType === 'rss_folder'
+  );
 }
 
 export function insertUnspecifiedChild(
@@ -57,8 +68,21 @@ export function getNodeResourceSort(
   state: Pick<SidebarState, 'nodes' | 'resourceSorts'>,
   nodeId: string
 ) {
+  // RSS items are ordered by their feed publish date, not by the space sort.
+  if (state.nodes[nodeId]?.resourceType === 'rss_folder') {
+    return RSS_ITEM_SORT;
+  }
   const spaceType = state.nodes[nodeId]?.spaceType ?? 'private';
   return state.resourceSorts[spaceType];
+}
+
+// Request params for loading a node's children into the tree: an rss folder is
+// capped, everything else is listed in full.
+export function getNodeChildrenParams(
+  state: Pick<SidebarState, 'nodes'>,
+  nodeId: string
+) {
+  return rssTreeChildrenParams(state.nodes[nodeId]?.resourceType);
 }
 
 export function collectParentIds(
@@ -187,6 +211,7 @@ export function patchNodeFromResource(
   const resourceWithChildrenState = resource as ResourceWithChildrenState;
   node.name = resource.name || '';
   node.hasChildren = getResourceHasChildren(resourceWithChildrenState);
+  node.readOnly = resource.read_only ?? node.readOnly;
   node.updatedAt = resource.updated_at || '';
   node.manualSortInitializedAt =
     resource.manual_sort_initialized_at ?? node.manualSortInitializedAt;
@@ -248,7 +273,16 @@ export function collapseEmptyNode(
 }
 
 export function isBatchSelectableNode(node?: TreeNode | null): boolean {
-  return !isSmartFolderChildResource(node);
+  if (isSmartFolderChildResource(node)) {
+    return false;
+  }
+  // Rss items are read-only, but they still take a checkbox: a batch of them
+  // is worth sending to chat. The actions they cannot support are disabled
+  // with an explanation rather than hidden behind a missing checkbox.
+  if (node?.resourceType === 'rss_item') {
+    return true;
+  }
+  return node?.readOnly !== true;
 }
 
 export function getSelectedAncestorId(
@@ -374,8 +408,37 @@ export function getTopLevelSelectedIds(
 export interface BatchSelectionSummary {
   selectedCount: number;
   hasSmartFolder: boolean;
+  hasRssItem: boolean;
   hasOnlySmartFolders: boolean;
   isMixed: boolean;
+}
+
+/**
+ * Batch actions that reshape the tree. Sending a selection to chat is not one
+ * of them, so it stays enabled for every selection.
+ */
+export type BatchMutatingAction = 'create' | 'move' | 'delete';
+
+/**
+ * The string explaining why a batch action refuses this selection, or
+ * undefined when it accepts it. The three surfaces offering batch actions
+ * (toolbar, node menu, keyboard) share this so they cannot drift apart.
+ */
+export function getBatchUnsupportedTipKey(
+  selection: BatchSelectionSummary,
+  action: BatchMutatingAction
+): string | undefined {
+  // An rss item is owned by its feed: it cannot be moved out, deleted on its
+  // own, or swept into a new folder. Only the feed folder itself can.
+  if (selection.hasRssItem) {
+    return 'batch.rss_item_unsupported_action';
+  }
+  // A smart folder is a saved query. It can be deleted, but it has no place
+  // in the tree to move to and no contents to gather into a new folder.
+  if (selection.hasSmartFolder && action !== 'delete') {
+    return 'batch.smart_folder_unsupported_action';
+  }
+  return undefined;
 }
 
 export function getBatchSelectionSummary(
@@ -388,12 +451,16 @@ export function getBatchSelectionSummary(
   const topLevelIds = getTopLevelSelectedIds(nodes, ids);
   let smartFolderCount = 0;
   let regularCount = 0;
+  let rssItemCount = 0;
 
   for (const id of topLevelIds) {
     if (nodes[id]?.resourceType === 'smart_folder') {
       smartFolderCount += 1;
     } else {
       regularCount += 1;
+      if (nodes[id]?.resourceType === 'rss_item') {
+        rssItemCount += 1;
+      }
     }
   }
 
@@ -404,6 +471,7 @@ export function getBatchSelectionSummary(
   return {
     selectedCount,
     hasSmartFolder,
+    hasRssItem: rssItemCount > 0,
     hasOnlySmartFolders: hasSmartFolder && !hasRegularResource,
     isMixed: hasSmartFolder && hasRegularResource,
   };

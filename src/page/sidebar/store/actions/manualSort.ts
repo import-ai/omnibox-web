@@ -11,7 +11,11 @@ import type {
   SidebarSet,
   TreeNode,
 } from '../types';
-import { collapseEmptyNode, traverseDescendants } from '../utils';
+import {
+  collapseEmptyNode,
+  getNodeChildrenParams,
+  traverseDescendants,
+} from '../utils';
 
 function getRootId(node: TreeNode, rootIds: ReturnType<SidebarGet>['rootIds']) {
   return rootIds[node.spaceType];
@@ -48,10 +52,12 @@ export function buildManualSortActions(set: SidebarSet, get: SidebarGet) {
       if (!dragNode || !targetNode || !dragNode.parentId) return;
 
       if (drop.position === 'inside' && !state.ui[targetNode.id]?.loaded) {
-        const children = await fetchChildren(state.namespaceId, targetNode.id, {
-          sort_by: 'manual',
-          sort_order: 'asc',
-        });
+        const children = await fetchChildren(
+          state.namespaceId,
+          targetNode.id,
+          { sort_by: 'manual', sort_order: 'asc' },
+          { params: getNodeChildrenParams(state, targetNode.id) }
+        );
         get().refreshChildren(targetNode.id, children);
         state = get();
       }
