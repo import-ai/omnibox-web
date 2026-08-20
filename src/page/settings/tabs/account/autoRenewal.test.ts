@@ -17,6 +17,7 @@ function renewal(
     price_id: 'price-id',
     tier: 'basic',
     status,
+    contract_active: false,
     channel: 'wechat',
     amount: 500,
     currency: 'CNY',
@@ -40,6 +41,12 @@ describe('auto-renewal view', () => {
     expect(
       getAutoRenewalView(renewal('canceled', '2026-07-22T12:00:01.000Z'), NOW)
     ).toBe('disabled');
+  });
+
+  it('shows a failed renewal while its provider contract remains active', () => {
+    expect(
+      getAutoRenewalView({ ...renewal('failed'), contract_active: true }, NOW)
+    ).toBe('failed');
   });
 
   it.each([

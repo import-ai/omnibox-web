@@ -258,6 +258,8 @@
       "tier_premium": "高级版",
       "loading": "正在查询自动续费状态",
       "enabled": "自动续费：已开启连续包月。",
+      "failed": "自动续费异常，微信合同仍有效。",
+      "failed_description": "后续仍可能自动扣费，请关闭自动续费后再重新开启。",
       "next_billing": "预计下次扣费日期：{{date}}。",
       "amount": "后续自动续费金额：{{amount}} / 月。",
       "cancel": "关闭自动续费",

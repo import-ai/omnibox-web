@@ -7,6 +7,7 @@ export interface AutoRenewal {
   price_id: string;
   tier: 'basic' | 'premium';
   status: AutoRenewalStatus;
+  contract_active: boolean;
   channel: 'wechat';
   amount: number;
   currency: string;
@@ -17,7 +18,7 @@ export interface AutoRenewal {
   canceled_at: string | null;
 }
 
-export type AutoRenewalView = 'enabled' | 'disabled';
+export type AutoRenewalView = 'enabled' | 'disabled' | 'failed';
 
 export function getAutoRenewalView(
   renewal: AutoRenewal | null,
@@ -26,6 +27,7 @@ export function getAutoRenewalView(
   if (renewal && ['active', 'past_due', 'canceling'].includes(renewal.status)) {
     return 'enabled';
   }
+  if (renewal?.status === 'failed' && renewal.contract_active) return 'failed';
   if (
     renewal?.status === 'canceled' &&
     renewal.current_period_end &&

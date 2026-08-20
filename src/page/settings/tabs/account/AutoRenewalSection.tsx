@@ -33,6 +33,7 @@ interface EnabledRenewalProps {
   isProcessing: boolean;
   nextBilling: string;
   onCancel: () => void;
+  status: 'enabled' | 'failed';
   tierLabel: string;
 }
 
@@ -41,6 +42,7 @@ function EnabledRenewal({
   isProcessing,
   nextBilling,
   onCancel,
+  status,
   tierLabel,
 }: EnabledRenewalProps) {
   const { t } = useTranslation();
@@ -48,14 +50,16 @@ function EnabledRenewal({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 space-y-1">
         <AlertTitle className="mb-1 text-sm leading-normal tracking-normal">
-          {tierLabel} · {t('namespace.auto_renewal.enabled')}
+          {tierLabel} · {t(`namespace.auto_renewal.${status}`)}
         </AlertTitle>
         <AlertDescription className="text-muted-foreground">
-          {nextBilling
-            ? `${t('namespace.auto_renewal.next_billing', {
-                date: nextBilling,
-              })} ${t('namespace.auto_renewal.amount', { amount })}`
-            : t('namespace.auto_renewal.amount', { amount })}
+          {status === 'failed'
+            ? t('namespace.auto_renewal.failed_description')
+            : nextBilling
+              ? `${t('namespace.auto_renewal.next_billing', {
+                  date: nextBilling,
+                })} ${t('namespace.auto_renewal.amount', { amount })}`
+              : t('namespace.auto_renewal.amount', { amount })}
         </AlertDescription>
       </div>
       <Button
@@ -187,12 +191,13 @@ export function AutoRenewalSection({
 
   return (
     <Alert className="mt-4 p-3">
-      {view === 'enabled' ? (
+      {view !== 'disabled' ? (
         <EnabledRenewal
           amount={amount}
           isProcessing={canceling || polling}
           nextBilling={nextBilling}
           onCancel={() => setDialogOpen(true)}
+          status={view}
           tierLabel={tierLabel}
         />
       ) : (

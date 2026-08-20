@@ -257,6 +257,8 @@
       "tier_premium": "Premium",
       "loading": "Checking automatic renewal status",
       "enabled": "Automatic renewal: Monthly plan enabled.",
+      "failed": "Automatic renewal failed, but the WeChat contract is still active.",
+      "failed_description": "Automatic charges may continue. Turn off automatic renewal before signing again.",
       "next_billing": "Next billing date: {{date}}.",
       "amount": "Recurring amount: {{amount}} / month.",
       "cancel": "Turn Off Automatic Renewal",
