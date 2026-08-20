@@ -56,6 +56,12 @@ describe('nginx routes', () => {
     ).toBe(true);
   });
 
+  it('redirects legacy conversation links to the public product page', () => {
+    expect(config).toContain(
+      'return 301 https://www.omnibox.pro/zh-cn/conversation-share/?share_id=$1;'
+    );
+  });
+
   it('rejects unknown URL shapes', () => {
     expect(
       spaRoutes.some(pattern => pattern.test('/not-a-browser-route'))

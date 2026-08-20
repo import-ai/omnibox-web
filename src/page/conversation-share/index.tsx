@@ -198,7 +198,7 @@ export default function ConversationSharePage() {
   if (isInvalid) return <InvalidSharePage />;
 
   return (
-    <main className="min-h-svh bg-white pb-40 text-neutral-900 dark:bg-[#262626] dark:text-white">
+    <main className="h-full min-h-0 overflow-y-auto overscroll-y-contain bg-white pb-40 text-neutral-900 [-webkit-overflow-scrolling:touch] dark:bg-[#262626] dark:text-white">
       <header
         className={`mx-auto flex h-20 w-full max-w-[760px] items-center px-5 ${
           isDarkTheme ? 'justify-end' : 'justify-between'

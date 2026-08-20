@@ -81,6 +81,10 @@ server {
         add_header Expires 0 always;
     }
 
+    location ~ "^/conversation-shares/([0-9A-Za-z]{12})/?$" {
+        return 301 https://www.omnibox.pro/zh-cn/conversation-share/?share_id=$1;
+    }
+
     location ~* "^/s/([0-9A-Za-z]{10})(/([0-9A-Za-z]{16}))?/?$" {
         set $share_id $1;
         set $resource_id $3;
