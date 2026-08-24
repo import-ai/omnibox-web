@@ -76,6 +76,9 @@ describe('LoginPage authenticated redirect', () => {
 
     expect(container.querySelector('[data-testid="login-form"]')).toBeNull();
     expect(container.querySelector('[role="status"]')).not.toBeNull();
+    expect(mockGetAuthSuccessRedirect).toHaveBeenCalledWith(
+      '/s/share-1/resource-1'
+    );
     expect(navigate).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -92,6 +95,7 @@ describe('LoginPage authenticated redirect', () => {
 
     expect(container.querySelector('[data-testid="login-form"]')).toBeNull();
     expect(container.querySelector('[role="status"]')).not.toBeNull();
+    expect(mockGetAuthSuccessRedirect).toHaveBeenCalledWith(null);
     expect(navigate).toHaveBeenCalledWith('/', { replace: true });
   });
 
