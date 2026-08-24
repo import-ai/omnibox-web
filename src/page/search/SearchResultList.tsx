@@ -83,14 +83,14 @@ function SearchEmptyIcon() {
   );
 }
 
-export function SearchNoResults() {
+export function SearchNoResults({ label }: { label?: string }) {
   const { t } = useTranslation();
 
   return (
     <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6 text-center">
       <SearchEmptyIcon />
       <p className="text-lg font-normal leading-normal text-muted-foreground">
-        {t('search.no_results')}
+        {label || t('search.no_results')}
       </p>
     </div>
   );

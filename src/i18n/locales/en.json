@@ -731,9 +731,10 @@
       "new_chat": "New Chat",
       "empty": "No conversation yet",
       "history": "Chat History",
-      "search": "Search chat history",
+      "search": "Search messages",
       "recent": "Recent conversations",
       "messages": "Messages",
+      "noResults": "No matching messages",
       "roles": {
         "assistant": "OmniBox AI"
       },

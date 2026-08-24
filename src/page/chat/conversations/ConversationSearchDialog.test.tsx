@@ -19,6 +19,8 @@ jest.mock('react-i18next', () => ({
     i18n: { language: 'zh' },
     t: (key: string) =>
       ({
+        'chat.conversations.noResults': '暂无匹配的消息',
+        'chat.conversations.search': '搜索消息',
         'chat.conversations.messages': '消息',
         'chat.conversations.recent': '最近对话',
         'chat.conversations.roles.assistant': '小黑',
@@ -42,15 +44,18 @@ jest.mock('@/components/search/SearchDialog', () => ({
   SearchDialog: ({
     children,
     onValueChange,
+    placeholder,
     value,
   }: {
     children: React.ReactNode;
     onValueChange: (value: string) => void;
+    placeholder: string;
     value: string;
   }) => (
     <div>
       <input
         aria-label="search"
+        placeholder={placeholder}
         value={value}
         onChange={event => onValueChange(event.target.value)}
       />
@@ -109,7 +114,9 @@ jest.mock('@/page/search/SearchResultItem', () => ({
 }));
 
 jest.mock('@/page/search/SearchResultList', () => ({
-  SearchNoResults: () => <div>no results</div>,
+  SearchNoResults: ({ label }: { label?: string }) => (
+    <div>{label || 'no results'}</div>
+  ),
 }));
 
 describe('ConversationSearchDialog', () => {
@@ -163,6 +170,42 @@ describe('ConversationSearchDialog', () => {
     expect(container.textContent).toContain('最近对话');
     expect(container.textContent).toContain('最近的对话');
     expect(container.textContent).toContain('小黑：最后一条回复');
+    expect(
+      container.querySelector('.min-h-0.flex-1')?.classList.contains('pt-2')
+    ).toBe(false);
+    expect(container.querySelector('input')?.getAttribute('placeholder')).toBe(
+      '搜索消息'
+    );
+  });
+
+  it('shows the message-specific empty state after searching', async () => {
+    jest.mocked(http.get).mockResolvedValue({ data: [] });
+    jest.mocked(http.post).mockResolvedValue({ items: [] });
+
+    await act(async () => {
+      root.render(
+        <ConversationSearchDialog
+          namespaceId="namespace"
+          open
+          onOpenChange={jest.fn()}
+        />
+      );
+    });
+
+    const input = container.querySelector('input')!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value'
+      )?.set?.call(input, '不存在');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(300);
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain('暂无匹配的消息');
   });
 
   it('opens the selected message result inside Copilot', async () => {

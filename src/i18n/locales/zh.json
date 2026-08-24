@@ -732,9 +732,10 @@
       "new_chat": "新建对话",
       "empty": "暂无对话",
       "history": "聊天历史",
-      "search": "搜索聊天记录",
+      "search": "搜索消息",
       "recent": "最近对话",
       "messages": "消息",
+      "noResults": "暂无匹配的消息",
       "roles": {
         "assistant": "小黑"
       },

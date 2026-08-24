@@ -196,7 +196,7 @@ export default function ConversationSearchDialog({
       closeLabel={t('close')}
       contentClassName="max-w-[920px]"
     >
-      <div className="min-h-0 flex-1 pt-2">
+      <div className="min-h-0 flex-1">
         <CommandList className={searchResultListClassName}>
           {loading ? (
             <div className={searchResultLoadingClassName}>
@@ -205,7 +205,7 @@ export default function ConversationSearchDialog({
           ) : null}
 
           {!loading && !showRecents && results.length === 0 ? (
-            <SearchNoResults />
+            <SearchNoResults label={t('chat.conversations.noResults')} />
           ) : null}
 
           {showRecents ? (
