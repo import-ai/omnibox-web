@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
+
 import Apple from '../apple';
 import { Available } from '../available';
 import Email from '../email';
@@ -47,7 +49,9 @@ export default function LoginPage() {
   useEffect(() => {
     const uid = localStorage.getItem('uid');
     if (uid) {
-      navigate('/', { replace: true });
+      void getAuthSuccessRedirect(params.get('redirect')).then(target => {
+        navigate(target, { replace: true });
+      });
     }
   }, [navigate, params]);
 
