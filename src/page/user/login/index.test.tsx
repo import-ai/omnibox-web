@@ -3,6 +3,8 @@
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
+
 import LoginPage from './index';
 
 const navigate = jest.fn();
@@ -14,6 +16,9 @@ jest.mock('react-i18next', () => ({
 jest.mock('react-router-dom', () => ({
   useNavigate: () => navigate,
   useSearchParams: () => [searchParams],
+}));
+jest.mock('@/page/user/authRedirect', () => ({
+  getAuthSuccessRedirect: jest.fn(),
 }));
 jest.mock('../apple', () => () => null);
 jest.mock('../available', () => ({ Available: () => null }));
@@ -31,8 +36,10 @@ jest.mock('../WrapperPage', () => ({
   default: ({ children }: { children?: ReactNode }) => children,
 }));
 jest.mock('./LoginForm', () => ({
-  LoginForm: () => null,
+  LoginForm: () => <div data-testid="login-form" />,
 }));
+
+const mockGetAuthSuccessRedirect = jest.mocked(getAuthSuccessRedirect);
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -46,6 +53,7 @@ describe('LoginPage authenticated redirect', () => {
     jest.clearAllMocks();
     localStorage.clear();
     localStorage.setItem('uid', 'user-1');
+    mockGetAuthSuccessRedirect.mockResolvedValue('/');
     searchParams = new URLSearchParams();
     container = document.createElement('div');
     root = createRoot(container);
@@ -55,10 +63,24 @@ describe('LoginPage authenticated redirect', () => {
     await act(async () => root.unmount());
   });
 
-  it('opens the shared resource from the login redirect', async () => {
+  it('hides the login form while opening the shared resource', async () => {
+    let resolveRedirect: (target: string) => void = () => undefined;
+    mockGetAuthSuccessRedirect.mockReturnValue(
+      new Promise(resolve => {
+        resolveRedirect = resolve;
+      })
+    );
     searchParams = new URLSearchParams('redirect=%2Fs%2Fshare-1%2Fresource-1');
 
     await act(async () => root.render(<LoginPage />));
+
+    expect(container.querySelector('[data-testid="login-form"]')).toBeNull();
+    expect(container.querySelector('[role="status"]')).not.toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveRedirect('/s/share-1/resource-1');
+    });
 
     expect(navigate).toHaveBeenCalledWith('/s/share-1/resource-1', {
       replace: true,
@@ -68,6 +90,21 @@ describe('LoginPage authenticated redirect', () => {
   it('keeps the home fallback when no redirect is provided', async () => {
     await act(async () => root.render(<LoginPage />));
 
+    expect(container.querySelector('[data-testid="login-form"]')).toBeNull();
+    expect(container.querySelector('[role="status"]')).not.toBeNull();
     expect(navigate).toHaveBeenCalledWith('/', { replace: true });
+  });
+
+  it('shows the login form when there is no existing session', async () => {
+    localStorage.clear();
+
+    await act(async () => root.render(<LoginPage />));
+
+    expect(
+      container.querySelector('[data-testid="login-form"]')
+    ).not.toBeNull();
+    expect(container.querySelector('[role="status"]')).toBeNull();
+    expect(mockGetAuthSuccessRedirect).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
   });
 });
