@@ -1,5 +1,9 @@
-import type { ReactNode } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
+/** @jest-environment jsdom */
+
+import { act, type ReactNode } from 'react';
+import type { Root } from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
+import { renderToStaticMarkup } from 'react-dom/server.node';
 
 import type { ResourcePickerResource } from '@/components/resourcePicker';
 import {
@@ -11,7 +15,14 @@ import { RSS_ITEM_TREE_LIMIT } from '@/service/resourceSort';
 
 import { ChooseResourceTree } from './ChooseResourceTree';
 
+(
+  globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
+
 interface MockResourcePickerProps {
+  loadFailed?: boolean;
+  loading?: boolean;
+  roots: ResourcePickerResource[];
   loadChildren: (
     resource: ResourcePickerResource
   ) => Promise<ResourcePickerResource[]>;
@@ -33,7 +44,19 @@ jest.mock('@/components/ui/DropdownMenu', () => ({
 }));
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({ t: mockTranslate }),
+}));
+
+const mockTranslate = (key: string) => key;
+
+const fetchSortedWorkspaceRootResources = jest.fn();
+
+jest.mock('@/components/resourcePicker/workspaceResourcePickerSort', () => ({
+  ...jest.requireActual(
+    '@/components/resourcePicker/workspaceResourcePickerSort'
+  ),
+  fetchSortedWorkspaceRootResources: (...args: unknown[]) =>
+    fetchSortedWorkspaceRootResources(...args),
 }));
 
 jest.mock('@/service/resource', () => ({
@@ -73,6 +96,7 @@ function renderTree(disabledIds?: string[]) {
 describe('ChooseResourceTree', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    fetchSortedWorkspaceRootResources.mockResolvedValue({});
     jest.mocked(searchResources).mockResolvedValue([smartFolder]);
     jest.mocked(fetchSmartFolderChildren).mockResolvedValue([childFolder]);
   });
@@ -137,5 +161,71 @@ describe('ChooseResourceTree', () => {
       disabled: true,
       disabledTooltip: 'Operating resource',
     });
+  });
+
+  it('tracks root loading until an empty response succeeds', async () => {
+    let resolveRoots!: (value: object) => void;
+    fetchSortedWorkspaceRootResources.mockReturnValue(
+      new Promise(resolve => {
+        resolveRoots = resolve;
+      })
+    );
+    const container = document.createElement('div');
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(
+        <ChooseResourceTree
+          namespaceId="namespace"
+          resourceId="root"
+          onChange={jest.fn()}
+        />
+      );
+    });
+    expect(mockResourcePickerProps).toMatchObject({
+      loadFailed: false,
+      loading: true,
+      roots: [],
+    });
+
+    await act(async () => resolveRoots({}));
+    expect(mockResourcePickerProps).toMatchObject({
+      loadFailed: false,
+      loading: false,
+      roots: [],
+    });
+
+    await act(async () => root.unmount());
+  });
+
+  it('reports root loading failures', async () => {
+    const error = new Error('network');
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    fetchSortedWorkspaceRootResources.mockRejectedValue(error);
+    const container = document.createElement('div');
+    const root: Root = createRoot(container);
+
+    await act(async () => {
+      root.render(
+        <ChooseResourceTree
+          namespaceId="namespace"
+          resourceId="root"
+          onChange={jest.fn()}
+        />
+      );
+    });
+
+    expect(mockResourcePickerProps).toMatchObject({
+      loadFailed: true,
+      loading: false,
+      roots: [],
+    });
+    expect(consoleError).toHaveBeenCalledWith(
+      'Failed to load resource select roots',
+      error
+    );
+
+    await act(async () => root.unmount());
+    consoleError.mockRestore();
   });
 });

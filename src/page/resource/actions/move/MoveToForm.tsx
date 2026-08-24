@@ -52,6 +52,8 @@ export default function MoveToForm(props: IFormProps) {
     onFinished,
   } = props;
   const { t } = useTranslation();
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
   const resourceSorts = useSidebarStore(state => state.resourceSorts);
   const disabledResourceIds = useMemo(
@@ -102,8 +104,10 @@ export default function MoveToForm(props: IFormProps) {
 
   useEffect(() => {
     let cancelled = false;
-    fetchSortedWorkspaceRootResources(namespaceId, resourceSorts).then(
-      response => {
+    setLoadFailed(false);
+    setLoading(true);
+    fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
+      .then(response => {
         if (cancelled) return;
         setRoots(
           (Object.keys(response) as SpaceType[]).flatMap(spaceType => {
@@ -122,8 +126,17 @@ export default function MoveToForm(props: IFormProps) {
             return decorated ? [decorated] : [];
           })
         );
-      }
-    );
+      })
+      .catch(error => {
+        if (!cancelled) {
+          setRoots([]);
+          setLoadFailed(true);
+          console.error('Failed to load move target roots', error);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -171,6 +184,8 @@ export default function MoveToForm(props: IFormProps) {
 
   return (
     <ResourcePicker
+      loadFailed={loadFailed}
+      loading={loading}
       roots={roots}
       loadChildren={loadChildren}
       searchResources={search}

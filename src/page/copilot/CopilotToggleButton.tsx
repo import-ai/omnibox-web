@@ -1,6 +1,7 @@
 import { PanelRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { ChatIcon } from '@/assets/icons/ChatIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
@@ -36,7 +37,7 @@ export default function CopilotToggleButton({
           type="button"
           variant="ghost"
         >
-          <PanelRight />
+          {open ? <PanelRight /> : <ChatIcon className="size-4" />}
         </Button>
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
