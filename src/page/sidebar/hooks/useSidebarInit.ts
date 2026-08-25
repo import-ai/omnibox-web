@@ -47,25 +47,9 @@ export function useSidebarInit(props: IProps) {
 
     const controller = new AbortController();
     const sorts = useSidebarStore.getState().resourceSorts;
-    Promise.all([
-      fetchRootResources(
-        namespaceId,
-        { signal: controller.signal },
-        sorts.private
-      ),
-      fetchRootResources(
-        namespaceId,
-        { signal: controller.signal },
-        sorts.teamspace
-      ),
-    ])
-      .then(([privateRoots, teamspaceRoots]) => {
-        useSidebarStore.getState().init({
-          ...privateRoots,
-          ...(teamspaceRoots.teamspace
-            ? { teamspace: teamspaceRoots.teamspace }
-            : {}),
-        });
+    fetchRootResources(namespaceId, { signal: controller.signal }, sorts)
+      .then(roots => {
+        useSidebarStore.getState().init(roots);
       })
       .catch(err => {
         console.error('[sidebar] failed to fetch root resources:', err);

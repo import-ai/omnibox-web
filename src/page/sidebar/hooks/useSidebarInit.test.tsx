@@ -4,6 +4,8 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { fetchRootResources } from '@/service/resource';
+
 import { useSidebarInit } from './useSidebarInit';
 
 const navigate = jest.fn();
@@ -13,10 +15,12 @@ const activate = jest.fn((id: string | null) => {
 const expandPathTo = jest.fn().mockResolvedValue(undefined);
 const locateSidebarResource = jest.fn(() => Promise.resolve(undefined));
 const setNamespaceId = jest.fn();
+const init = jest.fn();
 const mockSidebarState = {
   activeId: null as string | null,
   activate,
   expandPathTo,
+  init,
   nodes: {},
   resourceSorts: { private: {}, teamspace: {} },
   rootIds: { private: 'private-root', teamspace: '' },
@@ -111,6 +115,28 @@ describe('useSidebarInit Copilot resource sync', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     jest.restoreAllMocks();
+  });
+
+  it('loads both workspace roots with one request', async () => {
+    const roots = {
+      private: { id: 'private-root' },
+      teamspace: { id: 'teamspace-root' },
+    };
+    localStorage.setItem('uid', 'user-1');
+    jest.mocked(fetchRootResources).mockResolvedValue(roots as never);
+
+    await act(async () => {
+      root.render(<Probe />);
+      await Promise.resolve();
+    });
+
+    expect(fetchRootResources).toHaveBeenCalledTimes(1);
+    expect(fetchRootResources).toHaveBeenCalledWith(
+      'namespace',
+      { signal: expect.any(AbortSignal) },
+      mockSidebarState.resourceSorts
+    );
+    expect(init).toHaveBeenCalledWith(roots);
   });
 
   it('locates and activates a Copilot preview from a chat route', async () => {
