@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { Spinner } from '@/components/ui/Spinner';
+import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
+
 import Apple from '../apple';
 import { Available } from '../available';
 import Email from '../email';
@@ -22,6 +25,9 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const [hasExistingSession] = useState(() =>
+    Boolean(localStorage.getItem('uid'))
+  );
   const phoneParam = params.get('phone');
   const modeParam = params.get('mode');
 
@@ -45,11 +51,25 @@ export default function LoginPage() {
   useH5WechatAuthPoll();
 
   useEffect(() => {
-    const uid = localStorage.getItem('uid');
-    if (uid) {
-      navigate('/', { replace: true });
+    if (!hasExistingSession) {
+      return;
     }
-  }, [navigate, params]);
+
+    void getAuthSuccessRedirect(params.get('redirect')).then(target => {
+      navigate(target, { replace: true });
+    });
+  }, [hasExistingSession, navigate, params]);
+
+  if (hasExistingSession) {
+    return (
+      <WrapperPage useCard={false}>
+        <div className="flex font-bold gap-2 justify-center items-center">
+          <Spinner />
+          {t('login.authorizing')}
+        </div>
+      </WrapperPage>
+    );
+  }
 
   return (
     <WrapperPage extra={<MetaPage />}>
