@@ -33,6 +33,10 @@ import {
   isTerminalToolCallStatus,
   resolveToolCallStatus,
 } from './assistantMessageUtils';
+import {
+  collectStreamingToolCallOperations,
+  resourceIdFromProcessedArgs,
+} from './toolCallOperations';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -50,8 +54,10 @@ interface IToolCall {
   toolCallId: string;
   toolMessageId?: string;
   inStreaming?: boolean;
+  functionName: string;
   name: string;
   args: ProcessedArg[];
+  resourceId?: string;
   status: ToolCallStatus;
   joinedArgs: string;
   operations?: ToolCallFrontendOperation[];
@@ -159,8 +165,10 @@ export function AssistantMessage(props: IProps) {
         toolMessageId: toolMessage?.id,
         inStreaming: toolMessage?.attrs?.tool_call?.in_streaming,
         operations: toolMessage?.attrs?.tool_call?.operations,
+        functionName: toolCall.function.name,
         name: functionName,
         args,
+        resourceId: resourceIdFromProcessedArgs(args),
         status: functionStatus,
         joinedArgs: joinArgs(args),
       });
@@ -193,35 +201,11 @@ export function AssistantMessage(props: IProps) {
 
   useEffect(() => {
     if (toolCalls.length === 0 || hasPendingToolCalls) return;
-    const operations: ToolCallFrontendOperation[] = [];
-    for (const toolCall of toolCalls) {
-      if (
-        toolCall.inStreaming &&
-        toolCall.toolMessageId &&
-        toolCall.operations &&
-        toolCall.operations.length > 0 &&
-        !processedToolMessageIds.current.has(toolCall.toolMessageId)
-      ) {
-        for (const operation of toolCall.operations) {
-          operations.push(operation);
-          processedToolMessageIds.current.add(toolCall.toolMessageId);
-        }
-      }
-    }
-    if (operations.length === 0) return;
-    const deduplicatedOperations: ToolCallFrontendOperation[] = [];
+    const operations = collectStreamingToolCallOperations(
+      toolCalls,
+      processedToolMessageIds.current
+    );
     for (const operation of operations) {
-      if (
-        !deduplicatedOperations.some(
-          o =>
-            o.name === operation.name &&
-            o.args?.resource_id === operation.args?.resource_id
-        )
-      ) {
-        deduplicatedOperations.push(operation);
-      }
-    }
-    for (const operation of deduplicatedOperations) {
       app.fire(operation.name, operation.args?.resource_id);
     }
   }, [toolCalls, hasPendingToolCalls]);

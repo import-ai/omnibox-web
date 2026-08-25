@@ -1,10 +1,18 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
+import {
+  applyResourceUpdateDelta,
+  isCurrentResourceDeleted,
+  isNotFoundResourceError,
+  RESOURCE_CONTENT_UPDATE_EVENTS,
+  shouldRefetchResourceContent,
+} from '@/hooks/resourceUpdateEvent';
 import useApp from '@/hooks/useApp';
 import { Resource } from '@/interface';
 import { http } from '@/lib/request';
 import ResourceDetailView from '@/page/resource/ResourceDetailView';
+import { fetchResource } from '@/service/resource';
 
 interface CitationResourcePreviewProps {
   namespaceId: string;
@@ -70,15 +78,76 @@ export default function CitationResourcePreview({
   }, [namespaceId, resourceId]);
 
   useEffect(() => {
-    return app.on('update_resource', (delta: Resource) => {
-      if (delta.id !== resourceId) return;
+    let cancelled = false;
+    let currentResourceDeleted = false;
+
+    const handleResourceEvent = (delta: Resource | string) => {
+      if (currentResourceDeleted) return;
+      if (shouldRefetchResourceContent(delta, resourceId)) {
+        fetchResource(namespaceId, resourceId)
+          .then(updated => {
+            if (cancelled || currentResourceDeleted) return;
+            setPreviewState(current =>
+              current.resourceId === resourceId && current.status !== 'notFound'
+                ? { resource: updated, resourceId, status: 'ready' }
+                : current
+            );
+          })
+          .catch(error => {
+            if (cancelled || currentResourceDeleted) return;
+            if (isNotFoundResourceError(error)) {
+              setPreviewState(current =>
+                current.resourceId === resourceId
+                  ? { resource: null, resourceId, status: 'notFound' }
+                  : current
+              );
+            }
+          });
+        return;
+      }
+
+      if (typeof delta === 'string') return;
+      setPreviewState(current => {
+        if (
+          current.resourceId !== resourceId ||
+          !current.resource ||
+          current.status === 'notFound'
+        ) {
+          return current;
+        }
+        const next = applyResourceUpdateDelta(
+          current.resource,
+          delta,
+          resourceId
+        );
+        return next === current.resource
+          ? current
+          : { ...current, resource: next };
+      });
+    };
+
+    const handleDeletedResource = (id: string) => {
+      if (!isCurrentResourceDeleted(id, resourceId)) return;
+      currentResourceDeleted = true;
       setPreviewState(current =>
-        current.resourceId === resourceId && current.resource
-          ? { ...current, resource: { ...current.resource, ...delta } }
+        current.resourceId === resourceId
+          ? { resource: null, resourceId, status: 'notFound' }
           : current
       );
-    });
-  }, [app, resourceId]);
+    };
+
+    const unbind = [
+      ...RESOURCE_CONTENT_UPDATE_EVENTS.map(event =>
+        app.on(event, handleResourceEvent)
+      ),
+      app.on('delete_resource', handleDeletedResource),
+    ];
+
+    return () => {
+      cancelled = true;
+      unbind.forEach(off => off());
+    };
+  }, [app, namespaceId, resourceId]);
 
   return (
     <ResourceDetailView

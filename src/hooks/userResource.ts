@@ -8,7 +8,15 @@ import type App from '@/hooks/app.class';
 import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
+import { fetchResource } from '@/service/resource';
 
+import {
+  applyResourceUpdateDelta,
+  isCurrentResourceDeleted,
+  isNotFoundResourceError,
+  RESOURCE_CONTENT_UPDATE_EVENTS,
+  shouldRefetchResourceContent,
+} from './resourceUpdateEvent';
 import useApp from './useApp';
 
 export interface IUseResource {
@@ -86,43 +94,53 @@ export default function useResource() {
     if (title !== null) setDocumentTitle(title);
   }, [resource, resourceId, t]);
 
-  // Monitor the update_resource event and synchronize the update of the resource name on the current page
+  // Copilot/agent operations announce an id; local editors send a resource delta.
   useEffect(() => {
-    return app.on('update_resource', (delta: Resource) => {
-      if (!resource) return;
+    let cancelled = false;
+    let currentResourceDeleted = false;
 
-      const isCurrentResource = delta.id === resourceId;
-      const isInPath = resource.path?.some(item => item.id === delta.id);
+    const handleResourceEvent = (delta: Resource | string) => {
+      if (currentResourceDeleted) return;
+      if (shouldRefetchResourceContent(delta, resourceId, !editPage)) {
+        fetchResource(namespaceId, resourceId)
+          .then(updated => {
+            if (cancelled || currentResourceDeleted) return;
+            onNotFound(false);
+            onResource(updated);
+          })
+          .catch(error => {
+            if (cancelled || currentResourceDeleted) return;
+            if (isNotFoundResourceError(error)) {
+              onNotFound(true);
+            }
+          });
+        return;
+      }
 
-      if (!isCurrentResource && !isInPath) return;
+      if (typeof delta === 'string' || !resource) return;
 
-      const updatedPath =
-        isCurrentResource && delta.path !== undefined
-          ? delta.path
-          : delta.name !== undefined
-            ? resource.path?.map(item =>
-                item.id === delta.id
-                  ? { ...item, name: delta.name || '' }
-                  : item
-              )
-            : resource.path;
+      const next = applyResourceUpdateDelta(resource, delta, resourceId);
+      if (next !== resource) onResource(next);
+    };
 
-      onResource({
-        ...resource,
-        ...(isCurrentResource && {
-          ...(delta.name !== undefined && { name: delta.name }),
-          ...(delta.content !== undefined && { content: delta.content }),
-          ...(delta.tags !== undefined && { tags: delta.tags }),
-          ...(delta.attrs !== undefined && { attrs: delta.attrs }),
-          ...(delta.parent_id !== undefined && { parent_id: delta.parent_id }),
-          ...(delta.space_type !== undefined && {
-            space_type: delta.space_type,
-          }),
-        }),
-        path: updatedPath,
-      });
-    });
-  }, [app, resourceId, resource]);
+    const handleDeletedResource = (id: string) => {
+      if (!isCurrentResourceDeleted(id, resourceId)) return;
+      currentResourceDeleted = true;
+      onNotFound(true);
+    };
+
+    const unbind = [
+      ...RESOURCE_CONTENT_UPDATE_EVENTS.map(event =>
+        app.on(event, handleResourceEvent)
+      ),
+      app.on('delete_resource', handleDeletedResource),
+    ];
+
+    return () => {
+      cancelled = true;
+      unbind.forEach(off => off());
+    };
+  }, [app, editPage, namespaceId, resource, resourceId]);
 
   // Monitor the restore_resource event to reload the resource when it's restored from trash
   useEffect(() => {
