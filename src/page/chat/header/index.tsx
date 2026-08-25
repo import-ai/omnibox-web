@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useParams } from 'react-router-dom';
 
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/Breadcrumb';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { setDocumentTitle } from '@/lib/utils';
+import ConversationSearchDialog from '@/page/chat/conversations/ConversationSearchDialog';
 import {
   getCopilotWorkspace,
   useCopilotStore,
@@ -52,6 +53,10 @@ export default function ChatHeader() {
     : routeConversationId;
   const showCopilotHome = useCopilotStore(state => state.showHome);
   const showCopilotHistory = useCopilotStore(state => state.showHistory);
+  const showCopilotConversation = useCopilotStore(
+    state => state.showConversation
+  );
+  const [searchOpen, setSearchOpen] = useState(false);
   const { chatTitle } = useChatTitle(namespaceId, titleConversationId);
 
   useEffect(() => {
@@ -65,50 +70,64 @@ export default function ChatHeader() {
   }, [chatTitle, routeConversationsPage, routeHomePage, t]);
 
   return (
-    <header className="rounded-2xl sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
-      <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
-        {previewingCitation ? (
-          <CopilotToggleButton namespaceId={namespaceId} />
-        ) : (
-          <SidebarTriggerButton collapse />
-        )}
-        {titleConversationId && (
-          <Breadcrumb className="min-w-0">
-            <BreadcrumbList>
-              <BreadcrumbItem className="min-w-0">
-                <Title
-                  data={chatTitle}
-                  namespaceId={namespaceId}
-                  conversationId={titleConversationId}
-                />
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        )}
-      </div>
-      <div className="ml-auto shrink-0 pr-3">
-        <Actions
-          compact={previewingCitation}
-          homePage={homePage}
-          chatTitle={chatTitle}
-          namespaceId={namespaceId}
-          onChatCreate={
-            previewingCitation
-              ? () => {
-                  resetChatForNamespaceSwitch(namespaceId);
-                  showCopilotHome(namespaceId);
-                }
-              : undefined
-          }
-          onChatHistory={
-            previewingCitation
-              ? () => showCopilotHistory(namespaceId)
-              : undefined
-          }
-          conversationId={titleConversationId}
-          conversationsPage={conversationsPage}
-        />
-      </div>
-    </header>
+    <>
+      <header className="rounded-2xl sticky z-[30] top-0 bg-white flex flex-wrap min-h-12 shrink-0 items-center gap-2 dark:bg-background">
+        <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
+          {previewingCitation ? (
+            <CopilotToggleButton namespaceId={namespaceId} />
+          ) : (
+            <SidebarTriggerButton collapse />
+          )}
+          {titleConversationId && (
+            <Breadcrumb className="min-w-0">
+              <BreadcrumbList>
+                <BreadcrumbItem className="min-w-0">
+                  <Title
+                    data={chatTitle}
+                    namespaceId={namespaceId}
+                    conversationId={titleConversationId}
+                  />
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
+        </div>
+        <div className="ml-auto shrink-0 pr-3">
+          <Actions
+            compact={previewingCitation}
+            homePage={homePage}
+            chatTitle={chatTitle}
+            namespaceId={namespaceId}
+            onChatCreate={
+              previewingCitation
+                ? () => {
+                    resetChatForNamespaceSwitch(namespaceId);
+                    showCopilotHome(namespaceId);
+                  }
+                : undefined
+            }
+            onChatHistory={
+              previewingCitation
+                ? () => showCopilotHistory(namespaceId)
+                : undefined
+            }
+            onChatSearch={() => setSearchOpen(true)}
+            conversationId={titleConversationId}
+            conversationsPage={conversationsPage}
+          />
+        </div>
+      </header>
+      <ConversationSearchDialog
+        namespaceId={namespaceId}
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        onConversationSelect={
+          previewingCitation
+            ? conversationId =>
+                showCopilotConversation(namespaceId, conversationId)
+            : undefined
+        }
+      />
+    </>
   );
 }
