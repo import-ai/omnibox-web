@@ -19,6 +19,11 @@ jest.mock('@/page/chat/header/Actions', () => ({
   default: () => <button type="button">actions</button>,
 }));
 
+jest.mock('@/page/chat/conversations/ConversationSearchDialog', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('@/page/chat/header/title', () => ({
   __esModule: true,
   default: ({ data }: { data: string }) => (

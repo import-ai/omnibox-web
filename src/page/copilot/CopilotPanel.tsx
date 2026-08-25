@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/Breadcrumb';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { cn } from '@/lib/utils';
+import ConversationSearchDialog from '@/page/chat/conversations/ConversationSearchDialog';
 import Actions from '@/page/chat/header/Actions';
 import Title from '@/page/chat/header/title';
 import { useChatTitle } from '@/page/chat/header/useChatTitle';
@@ -39,6 +40,8 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   );
   const showHome = useCopilotStore(state => state.showHome);
   const showHistory = useCopilotStore(state => state.showHistory);
+  const showConversation = useCopilotStore(state => state.showConversation);
+  const [searchOpen, setSearchOpen] = useState(false);
   const homePage = workspace.view === 'home';
   const conversationsPage = workspace.view === 'history';
   const conversationId =
@@ -46,44 +49,55 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   const { chatTitle } = useChatTitle(namespaceId, conversationId);
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-white dark:bg-background">
-      <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 flex-wrap items-center gap-2 rounded-2xl bg-white dark:bg-background">
-        <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
-          <CopilotToggleButton namespaceId={namespaceId} />
-          {conversationId && (
-            <Breadcrumb className="min-w-0">
-              <BreadcrumbList>
-                <BreadcrumbItem className="min-w-0">
-                  <Title
-                    data={chatTitle}
-                    namespaceId={namespaceId}
-                    conversationId={conversationId}
-                  />
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          )}
+    <>
+      <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-white dark:bg-background">
+        <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 flex-wrap items-center gap-2 rounded-2xl bg-white dark:bg-background">
+          <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
+            <CopilotToggleButton namespaceId={namespaceId} />
+            {conversationId && (
+              <Breadcrumb className="min-w-0">
+                <BreadcrumbList>
+                  <BreadcrumbItem className="min-w-0">
+                    <Title
+                      data={chatTitle}
+                      namespaceId={namespaceId}
+                      conversationId={conversationId}
+                    />
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            )}
+          </div>
+          <div className="ml-auto shrink-0 pr-3">
+            <Actions
+              compact
+              homePage={homePage}
+              chatTitle={chatTitle}
+              namespaceId={namespaceId}
+              conversationId={conversationId}
+              conversationsPage={conversationsPage}
+              onChatCreate={() => {
+                resetChatForNamespaceSwitch(namespaceId);
+                showHome(namespaceId);
+              }}
+              onChatHistory={() => showHistory(namespaceId)}
+              onChatSearch={() => setSearchOpen(true)}
+            />
+          </div>
+        </header>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <CopilotView namespaceId={namespaceId} />
         </div>
-        <div className="ml-auto shrink-0 pr-3">
-          <Actions
-            compact
-            homePage={homePage}
-            chatTitle={chatTitle}
-            namespaceId={namespaceId}
-            conversationId={conversationId}
-            conversationsPage={conversationsPage}
-            onChatCreate={() => {
-              resetChatForNamespaceSwitch(namespaceId);
-              showHome(namespaceId);
-            }}
-            onChatHistory={() => showHistory(namespaceId)}
-          />
-        </div>
-      </header>
-      <div className="flex min-h-0 flex-1 flex-col">
-        <CopilotView namespaceId={namespaceId} />
       </div>
-    </div>
+      <ConversationSearchDialog
+        namespaceId={namespaceId}
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        onConversationSelect={conversationId =>
+          showConversation(namespaceId, conversationId)
+        }
+      />
+    </>
   );
 }
 

@@ -15,6 +15,10 @@ export interface ConversationSummary extends IBase {
   title: string;
   user_content?: string;
   assistant_content?: string;
+  last_message?: {
+    role: 'user' | 'assistant';
+    content: string;
+  };
 }
 
 export interface ToolCallFrontendOperation {

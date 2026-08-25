@@ -1,18 +1,14 @@
 import axios from 'axios';
-import { X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { Button } from '@/components/button';
-import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
-import { CommandDialog, CommandInput } from '@/components/ui/Command';
+import { SearchDialog } from '@/components/search/SearchDialog';
 import useConfig from '@/hooks/useConfig';
 import useProNamespaces from '@/hooks/useProNamespaces';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { NamespaceTier, type ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
-import { cn } from '@/lib/utils';
 import type { ResourceConditionMatchMode } from '@/page/resource/conditions';
 import { getConditionLimitValue } from '@/page/resource/conditions/resourceConditionUtils';
 import { useResourceConditions } from '@/page/resource/conditions/useResourceConditions';
@@ -24,7 +20,6 @@ import {
   searchLayoutSeparatorClassName,
 } from './searchLayout';
 import {
-  SearchMessageResult,
   SearchRecentResource,
   SearchResourceResult,
   SearchResultList,
@@ -161,17 +156,6 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
         })),
     [items, t]
   );
-  const messages = useMemo<SearchMessageResult[]>(
-    () =>
-      items
-        .filter(item => item.type === 'message')
-        .map(item => ({
-          ...item,
-          content: item.content || '',
-        })),
-    [items]
-  );
-
   useEffect(() => {
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
@@ -290,93 +274,53 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   };
 
   return (
-    <CommandDialog
+    <SearchDialog
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="w-[calc(100vw-32px)] max-w-[1040px] rounded-2xl border-none bg-white shadow-xl dark:bg-neutral-900 [&>button]:hidden"
-      className="h-[min(640px,calc(100vh-32px))] rounded-2xl bg-white px-5 py-4 text-foreground dark:bg-neutral-900"
+      value={keywords}
+      onValueChange={setKeywords}
+      onClear={handleClear}
+      placeholder={t('search.placeholder')}
+      clearLabel={t('search.clear')}
+      closeLabel={t('close')}
     >
-      <div className="relative flex h-full flex-col gap-2">
-        <div className="flex h-7 items-center gap-3 border-b border-slate-200 pb-3 dark:border-neutral-800">
-          <CommandInput
-            placeholder={t('search.placeholder')}
-            value={keywords}
-            onValueChange={setKeywords}
-            wrapperClassName="h-7 flex-1 border-b-0 px-0"
-            iconClassName="mr-1 size-4 opacity-70"
-            className="h-7 py-0 text-sm"
+      <div className={searchDialogBodyClassName}>
+        <div className="min-h-0 min-w-0">
+          <SearchResultList
+            keywords={keywords}
+            loadingInitial={loadingInitial}
+            loadingRecents={loadingRecents}
+            namespaceId={namespaceId}
+            loadingMore={loadingMore}
+            onLoadMore={handleLoadMore}
+            onAnchorClick={onSearchResultAnchorClick}
+            onNavigate={handleNavigate}
+            recents={recents}
+            resources={resources}
+            showRecents={showRecents}
+            shouldSkipNavigate={shouldSkipNavigate}
           />
-          <div className="flex shrink-0 items-center justify-end gap-3">
-            <div
-              className={cn(
-                'flex items-center gap-3',
-                !keywords && 'invisible'
-              )}
-            >
-              <Button
-                type="button"
-                variant="ghost"
-                className={searchFieldClearButtonClassName}
-                onClick={handleClear}
-              >
-                {t('search.clear')}
-              </Button>
-              <span
-                aria-hidden="true"
-                className="h-4 w-px bg-slate-200 dark:bg-neutral-700"
-              />
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-4 rounded-none p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
-              onClick={() => onOpenChange(false)}
-            >
-              <X className="size-4" />
-            </Button>
-          </div>
         </div>
-
-        <div className={searchDialogBodyClassName}>
-          <div className="min-h-0 min-w-0">
-            <SearchResultList
-              keywords={keywords}
-              loadingInitial={loadingInitial}
-              loadingRecents={loadingRecents}
-              messages={messages}
-              namespaceId={namespaceId}
-              loadingMore={loadingMore}
-              onLoadMore={handleLoadMore}
-              onAnchorClick={onSearchResultAnchorClick}
-              onNavigate={handleNavigate}
-              recents={recents}
-              resources={resources}
-              showRecents={showRecents}
-              shouldSkipNavigate={shouldSkipNavigate}
-            />
-          </div>
-          <div className={searchLayoutSeparatorClassName} />
-          <div className="min-w-0">
-            <SearchFilterPanel
-              canAddCondition={canAddCondition}
-              conditionListRef={conditionListRef}
-              conditions={conditions}
-              currentNamespace={currentNamespace}
-              matchMode={matchMode}
-              maxConditionCount={maxConditionCount}
-              namespaceId={namespaceId}
-              onAddCondition={() => addCondition(conditions.length - 1)}
-              onFieldChange={handleFieldChange}
-              onMatchModeChange={setMatchMode}
-              onOperatorChange={handleOperatorChange}
-              onRemoveCondition={removeCondition}
-              onValueChange={handleValueChange}
-              remainingConditionCount={remainingConditionCount}
-            />
-          </div>
+        <div className={searchLayoutSeparatorClassName} />
+        <div className="min-w-0">
+          <SearchFilterPanel
+            canAddCondition={canAddCondition}
+            conditionListRef={conditionListRef}
+            conditions={conditions}
+            currentNamespace={currentNamespace}
+            matchMode={matchMode}
+            maxConditionCount={maxConditionCount}
+            namespaceId={namespaceId}
+            onAddCondition={() => addCondition(conditions.length - 1)}
+            onFieldChange={handleFieldChange}
+            onMatchModeChange={setMatchMode}
+            onOperatorChange={handleOperatorChange}
+            onRemoveCondition={removeCondition}
+            onValueChange={handleValueChange}
+            remainingConditionCount={remainingConditionCount}
+          />
         </div>
       </div>
-    </CommandDialog>
+    </SearchDialog>
   );
 }
