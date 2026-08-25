@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   applyResourceUpdateDelta,
@@ -10,7 +9,6 @@ import {
 } from '@/hooks/resourceUpdateEvent';
 import useApp from '@/hooks/useApp';
 import { Resource } from '@/interface';
-import { http } from '@/lib/request';
 import ResourceDetailView from '@/page/resource/ResourceDetailView';
 import { fetchResource } from '@/service/resource';
 
@@ -42,27 +40,25 @@ export default function CitationResourcePreview({
   const [previewState, setPreviewState] = useState<PreviewState>(() =>
     createLoadingState(resourceId)
   );
+  const resourceRequest = useRef<AbortController | null>(null);
   const currentState =
     previewState.resourceId === resourceId
       ? previewState
       : createLoadingState(resourceId);
 
   useEffect(() => {
-    let active = true;
-    const source = axios.CancelToken.source();
+    resourceRequest.current?.abort();
+    const controller = new AbortController();
+    resourceRequest.current = controller;
     setPreviewState(createLoadingState(resourceId));
-    http
-      .get(`/namespaces/${namespaceId}/resources/${resourceId}`, {
-        cancelToken: source.token,
-        mute: true,
-      })
+    fetchResource(namespaceId, resourceId, controller.signal)
       .then((response: Resource) => {
-        if (active) {
+        if (!controller.signal.aborted) {
           setPreviewState({ resource: response, resourceId, status: 'ready' });
         }
       })
       .catch(requestError => {
-        if (!active || axios.isCancel(requestError)) return;
+        if (controller.signal.aborted) return;
         if (requestError?.response?.status === 404) {
           setPreviewState({ resource: null, resourceId, status: 'notFound' });
         } else if (requestError?.response?.data?.code === 'not_authorized') {
@@ -70,23 +66,29 @@ export default function CitationResourcePreview({
         } else {
           setPreviewState({ resource: null, resourceId, status: 'error' });
         }
+      })
+      .finally(() => {
+        if (resourceRequest.current === controller) {
+          resourceRequest.current = null;
+        }
       });
     return () => {
-      active = false;
-      source.cancel();
+      controller.abort();
+      if (resourceRequest.current === controller) {
+        resourceRequest.current = null;
+      }
     };
   }, [namespaceId, resourceId]);
 
   useEffect(() => {
-    let cancelled = false;
-    let currentResourceDeleted = false;
-
     const handleResourceEvent = (delta: Resource | string) => {
-      if (currentResourceDeleted) return;
       if (shouldRefetchResourceContent(delta, resourceId)) {
-        fetchResource(namespaceId, resourceId)
+        resourceRequest.current?.abort();
+        const controller = new AbortController();
+        resourceRequest.current = controller;
+        fetchResource(namespaceId, resourceId, controller.signal)
           .then(updated => {
-            if (cancelled || currentResourceDeleted) return;
+            if (controller.signal.aborted) return;
             setPreviewState(current =>
               current.resourceId === resourceId && current.status !== 'notFound'
                 ? { resource: updated, resourceId, status: 'ready' }
@@ -94,13 +96,18 @@ export default function CitationResourcePreview({
             );
           })
           .catch(error => {
-            if (cancelled || currentResourceDeleted) return;
+            if (controller.signal.aborted) return;
             if (isNotFoundResourceError(error)) {
               setPreviewState(current =>
                 current.resourceId === resourceId
                   ? { resource: null, resourceId, status: 'notFound' }
                   : current
               );
+            }
+          })
+          .finally(() => {
+            if (resourceRequest.current === controller) {
+              resourceRequest.current = null;
             }
           });
         return;
@@ -128,7 +135,7 @@ export default function CitationResourcePreview({
 
     const handleDeletedResource = (id: string) => {
       if (!isCurrentResourceDeleted(id, resourceId)) return;
-      currentResourceDeleted = true;
+      resourceRequest.current?.abort();
       setPreviewState(current =>
         current.resourceId === resourceId
           ? { resource: null, resourceId, status: 'notFound' }
@@ -144,7 +151,7 @@ export default function CitationResourcePreview({
     ];
 
     return () => {
-      cancelled = true;
+      resourceRequest.current?.abort();
       unbind.forEach(off => off());
     };
   }, [app, namespaceId, resourceId]);
@@ -159,9 +166,10 @@ export default function CitationResourcePreview({
       loading={currentState.status === 'loading'}
       namespaceId={namespaceId}
       notFound={currentState.status === 'notFound'}
-      onResource={resource =>
-        setPreviewState({ resource, resourceId, status: 'ready' })
-      }
+      onResource={resource => {
+        resourceRequest.current?.abort();
+        setPreviewState({ resource, resourceId, status: 'ready' });
+      }}
       resource={currentState.resource}
       resourceId={resourceId}
     />

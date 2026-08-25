@@ -99,6 +99,41 @@ describe('collectStreamingToolCallOperations', () => {
     ).toEqual([]);
   });
 
+  it('processes a completed call without waiting for other calls', () => {
+    const processed = new Set<string>();
+
+    expect(
+      collectStreamingToolCallOperations(
+        [
+          {
+            functionName: 'edit_resource',
+            inStreaming: true,
+            resourceId: 'resource-a',
+            status: ToolCallStatus.SUCCESS,
+            toolMessageId: 'tool-message-a',
+          },
+          {
+            functionName: 'delete_resource',
+            inStreaming: true,
+            operations: [
+              {
+                name: 'delete_resource',
+                args: { resource_id: 'resource-b' },
+              },
+            ],
+            resourceId: 'resource-b',
+            status: ToolCallStatus.RUNNING,
+            toolMessageId: 'tool-message-b',
+          },
+        ],
+        processed
+      )
+    ).toEqual([
+      { name: 'update_resource', args: { resource_id: 'resource-a' } },
+    ]);
+    expect(processed).toEqual(new Set(['tool-message-a']));
+  });
+
   it('dedupes backend operations with the fallback', () => {
     expect(
       collectStreamingToolCallOperations(

@@ -440,4 +440,62 @@ describe('CitationResourcePreview', () => {
     expect(view?.getAttribute('data-not-found')).toBe('true');
     expect(view?.getAttribute('data-content')).toBe('');
   });
+
+  it('keeps the latest result when consecutive refetches finish out of order', async () => {
+    let resolveFirstRefetch: (resource: Resource) => void = () => undefined;
+    let resolveSecondRefetch: (resource: Resource) => void = () => undefined;
+    mockedGet
+      .mockResolvedValueOnce({
+        id: 'resource-a',
+        name: 'Resource A',
+        content: 'initial body',
+        resource_type: 'resource',
+      } as Resource)
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveFirstRefetch = resolve;
+        })
+      )
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveSecondRefetch = resolve;
+        })
+      );
+
+    await act(async () => {
+      root.render(
+        <CitationResourcePreview
+          namespaceId="namespace-a"
+          resourceId="resource-a"
+        />
+      );
+    });
+    await act(async () => {
+      fireApp('update_resource', 'resource-a');
+      fireApp('refresh_resource', 'resource-a');
+    });
+
+    await act(async () => {
+      resolveSecondRefetch({
+        id: 'resource-a',
+        name: 'Resource A',
+        content: 'latest body',
+        resource_type: 'resource',
+      } as Resource);
+    });
+    await act(async () => {
+      resolveFirstRefetch({
+        id: 'resource-a',
+        name: 'Resource A',
+        content: 'stale body',
+        resource_type: 'resource',
+      } as Resource);
+    });
+
+    expect(
+      container
+        .querySelector('[data-testid="resource-detail-view"]')
+        ?.getAttribute('data-content')
+    ).toBe('latest body');
+  });
 });

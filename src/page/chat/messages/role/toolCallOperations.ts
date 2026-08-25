@@ -72,6 +72,11 @@ export function collectStreamingToolCallOperations(
 ): ToolCallFrontendOperation[] {
   const operations: ToolCallFrontendOperation[] = [];
   for (const toolCall of toolCalls) {
+    const completed =
+      toolCall.status === ToolCallStatus.SUCCESS ||
+      toolCall.status === ToolCallStatus.FAILED ||
+      toolCall.status === ToolCallStatus.REJECTED;
+    if (!completed) continue;
     if (!toolCall.inStreaming || !toolCall.toolMessageId) continue;
     if (processedToolMessageIds.has(toolCall.toolMessageId)) continue;
     const nextOperations = [

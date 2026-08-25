@@ -1,12 +1,10 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { SITE_NAME } from '@/const';
 import type App from '@/hooks/app.class';
 import { Resource, ResourceSummary } from '@/interface';
-import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import { fetchResource } from '@/service/resource';
 
@@ -55,6 +53,7 @@ export default function useResource() {
   const [forbidden, onForbidden] = useState(false);
   const [notFound, onNotFound] = useState(false);
   const [resource, onResource] = useState<Resource | null>(null);
+  const resourceRequest = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!resourceId) {
@@ -63,14 +62,15 @@ export default function useResource() {
     onLoading(true);
     onForbidden(false);
     onNotFound(false);
-    const source = axios.CancelToken.source();
-    http
-      .get(`/namespaces/${namespaceId}/resources/${resourceId}`, {
-        mute: true,
-        cancelToken: source.token,
+    resourceRequest.current?.abort();
+    const controller = new AbortController();
+    resourceRequest.current = controller;
+    fetchResource(namespaceId, resourceId, controller.signal)
+      .then(updated => {
+        if (!controller.signal.aborted) onResource(updated);
       })
-      .then(onResource)
       .catch(err => {
+        if (controller.signal.aborted) return;
         if (err.response?.status === 404) {
           onNotFound(true);
         } else if (err.response?.data?.code === 'not_authorized') {
@@ -78,12 +78,18 @@ export default function useResource() {
         }
       })
       .finally(() => {
-        onLoading(false);
+        if (!controller.signal.aborted) onLoading(false);
+        if (resourceRequest.current === controller) {
+          resourceRequest.current = null;
+        }
       });
     return () => {
-      source.cancel();
+      controller.abort();
+      if (resourceRequest.current === controller) {
+        resourceRequest.current = null;
+      }
     };
-  }, [resourceId]);
+  }, [namespaceId, resourceId]);
 
   useEffect(() => {
     const title = resolveResourceDocumentTitle(
@@ -96,36 +102,42 @@ export default function useResource() {
 
   // Copilot/agent operations announce an id; local editors send a resource delta.
   useEffect(() => {
-    let cancelled = false;
-    let currentResourceDeleted = false;
-
     const handleResourceEvent = (delta: Resource | string) => {
-      if (currentResourceDeleted) return;
       if (shouldRefetchResourceContent(delta, resourceId, !editPage)) {
-        fetchResource(namespaceId, resourceId)
+        resourceRequest.current?.abort();
+        const controller = new AbortController();
+        resourceRequest.current = controller;
+        fetchResource(namespaceId, resourceId, controller.signal)
           .then(updated => {
-            if (cancelled || currentResourceDeleted) return;
+            if (controller.signal.aborted) return;
             onNotFound(false);
             onResource(updated);
           })
           .catch(error => {
-            if (cancelled || currentResourceDeleted) return;
+            if (controller.signal.aborted) return;
             if (isNotFoundResourceError(error)) {
               onNotFound(true);
+            }
+          })
+          .finally(() => {
+            if (!controller.signal.aborted) onLoading(false);
+            if (resourceRequest.current === controller) {
+              resourceRequest.current = null;
             }
           });
         return;
       }
 
-      if (typeof delta === 'string' || !resource) return;
-
-      const next = applyResourceUpdateDelta(resource, delta, resourceId);
-      if (next !== resource) onResource(next);
+      if (typeof delta === 'string') return;
+      onResource(current =>
+        current ? applyResourceUpdateDelta(current, delta, resourceId) : current
+      );
     };
 
     const handleDeletedResource = (id: string) => {
       if (!isCurrentResourceDeleted(id, resourceId)) return;
-      currentResourceDeleted = true;
+      resourceRequest.current?.abort();
+      onLoading(false);
       onNotFound(true);
     };
 
@@ -137,15 +149,17 @@ export default function useResource() {
     ];
 
     return () => {
-      cancelled = true;
+      resourceRequest.current?.abort();
       unbind.forEach(off => off());
     };
-  }, [app, editPage, namespaceId, resource, resourceId]);
+  }, [app, editPage, namespaceId, resourceId]);
 
   // Monitor the restore_resource event to reload the resource when it's restored from trash
   useEffect(() => {
     return app.on('restore_resource', (restored: Resource) => {
       if (restored.id === resourceId && notFound) {
+        resourceRequest.current?.abort();
+        onLoading(false);
         onNotFound(false);
         onResource(restored);
       }

@@ -200,7 +200,7 @@ export function AssistantMessage(props: IProps) {
     toolCalls.some(toolCall => !isTerminalToolCallStatus(toolCall.status));
 
   useEffect(() => {
-    if (toolCalls.length === 0 || hasPendingToolCalls) return;
+    if (toolCalls.length === 0) return;
     const operations = collectStreamingToolCallOperations(
       toolCalls,
       processedToolMessageIds.current
@@ -208,7 +208,7 @@ export function AssistantMessage(props: IProps) {
     for (const operation of operations) {
       app.fire(operation.name, operation.args?.resource_id);
     }
-  }, [toolCalls, hasPendingToolCalls]);
+  }, [app, toolCalls]);
 
   if (toolCalls.length > 0) {
     domList.push(
