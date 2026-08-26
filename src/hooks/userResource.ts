@@ -53,7 +53,8 @@ export default function useResource() {
   const [forbidden, onForbidden] = useState(false);
   const [notFound, onNotFound] = useState(false);
   const [resource, onResource] = useState<Resource | null>(null);
-  const resourceRequest = useRef<AbortController | null>(null);
+  const initialResourceRequest = useRef<AbortController | null>(null);
+  const resourceEventRequest = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!resourceId) {
@@ -62,9 +63,10 @@ export default function useResource() {
     onLoading(true);
     onForbidden(false);
     onNotFound(false);
-    resourceRequest.current?.abort();
+    initialResourceRequest.current?.abort();
+    resourceEventRequest.current?.abort();
     const controller = new AbortController();
-    resourceRequest.current = controller;
+    initialResourceRequest.current = controller;
     fetchResource(namespaceId, resourceId, controller.signal)
       .then(updated => {
         if (!controller.signal.aborted) onResource(updated);
@@ -79,14 +81,14 @@ export default function useResource() {
       })
       .finally(() => {
         if (!controller.signal.aborted) onLoading(false);
-        if (resourceRequest.current === controller) {
-          resourceRequest.current = null;
+        if (initialResourceRequest.current === controller) {
+          initialResourceRequest.current = null;
         }
       });
     return () => {
       controller.abort();
-      if (resourceRequest.current === controller) {
-        resourceRequest.current = null;
+      if (initialResourceRequest.current === controller) {
+        initialResourceRequest.current = null;
       }
     };
   }, [namespaceId, resourceId]);
@@ -104,9 +106,10 @@ export default function useResource() {
   useEffect(() => {
     const handleResourceEvent = (delta: Resource | string) => {
       if (shouldRefetchResourceContent(delta, resourceId, !editPage)) {
-        resourceRequest.current?.abort();
+        initialResourceRequest.current?.abort();
+        resourceEventRequest.current?.abort();
         const controller = new AbortController();
-        resourceRequest.current = controller;
+        resourceEventRequest.current = controller;
         fetchResource(namespaceId, resourceId, controller.signal)
           .then(updated => {
             if (controller.signal.aborted) return;
@@ -121,8 +124,8 @@ export default function useResource() {
           })
           .finally(() => {
             if (!controller.signal.aborted) onLoading(false);
-            if (resourceRequest.current === controller) {
-              resourceRequest.current = null;
+            if (resourceEventRequest.current === controller) {
+              resourceEventRequest.current = null;
             }
           });
         return;
@@ -136,7 +139,8 @@ export default function useResource() {
 
     const handleDeletedResource = (id: string) => {
       if (!isCurrentResourceDeleted(id, resourceId)) return;
-      resourceRequest.current?.abort();
+      initialResourceRequest.current?.abort();
+      resourceEventRequest.current?.abort();
       onLoading(false);
       onNotFound(true);
     };
@@ -149,7 +153,7 @@ export default function useResource() {
     ];
 
     return () => {
-      resourceRequest.current?.abort();
+      resourceEventRequest.current?.abort();
       unbind.forEach(off => off());
     };
   }, [app, editPage, namespaceId, resourceId]);
@@ -158,7 +162,8 @@ export default function useResource() {
   useEffect(() => {
     return app.on('restore_resource', (restored: Resource) => {
       if (restored.id === resourceId && notFound) {
-        resourceRequest.current?.abort();
+        initialResourceRequest.current?.abort();
+        resourceEventRequest.current?.abort();
         onLoading(false);
         onNotFound(false);
         onResource(restored);

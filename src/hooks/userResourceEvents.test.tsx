@@ -20,6 +20,7 @@ const mockApp = {
     };
   }),
 };
+let mockPathname = '/namespace-a/resource-a';
 
 jest.mock('./useApp', () => ({
   __esModule: true,
@@ -32,7 +33,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 jest.mock('react-router-dom', () => ({
-  useLocation: () => ({ pathname: '/namespace-a/resource-a', state: null }),
+  useLocation: () => ({ pathname: mockPathname, state: null }),
   useNavigate: () => jest.fn(),
   useParams: () => ({
     namespace_id: 'namespace-a',
@@ -72,6 +73,7 @@ describe('useResource resource events', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
+    mockPathname = '/namespace-a/resource-a';
     Object.keys(listeners).forEach(key => delete listeners[key]);
   });
 
@@ -149,6 +151,42 @@ describe('useResource resource events', () => {
         .querySelector('[data-testid="resource-state"]')
         ?.getAttribute('data-content')
     ).toBe('latest body');
+    expect(
+      container
+        .querySelector('[data-testid="resource-state"]')
+        ?.getAttribute('data-loading')
+    ).toBe('false');
+  });
+
+  it('keeps the initial request active when switching to the edit route', async () => {
+    let resolveResource: (resource: Resource) => void = () => undefined;
+    mockedGet.mockReturnValueOnce(
+      new Promise(resolve => {
+        resolveResource = resolve;
+      })
+    );
+
+    await act(async () => root.render(<ResourceHarness />));
+    const signal = mockedGet.mock.calls[0]?.[1]?.signal;
+
+    mockPathname = '/namespace-a/resource-a/edit';
+    await act(async () => root.render(<ResourceHarness />));
+
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+    expect(signal?.aborted).toBe(false);
+
+    await act(async () => {
+      resolveResource({
+        id: 'resource-a',
+        content: 'loaded body',
+      } as Resource);
+    });
+
+    expect(
+      container
+        .querySelector('[data-testid="resource-state"]')
+        ?.getAttribute('data-content')
+    ).toBe('loaded body');
     expect(
       container
         .querySelector('[data-testid="resource-state"]')
