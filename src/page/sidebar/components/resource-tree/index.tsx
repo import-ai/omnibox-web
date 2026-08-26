@@ -59,7 +59,7 @@ function ManualDropLine() {
         />
       )}
       <span
-        className="absolute -top-1 size-0 border-y-4 border-l-[6px] border-y-transparent border-l-blue-500"
+        className="absolute -top-[3px] size-0 border-y-4 border-l-[6px] border-y-transparent border-l-blue-500"
         style={{ left: arrowOffset }}
       />
       <span
