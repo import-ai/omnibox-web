@@ -5,6 +5,7 @@
   "delete": "删除",
   "rename": "重命名",
   "cancel": "取消",
+  "close": "关闭",
   "ok": "确定",
   "undo": "撤销",
   "no_pages_inside": "内无页面",
@@ -753,6 +754,13 @@
       "new_chat": "新建对话",
       "empty": "暂无对话",
       "history": "聊天历史",
+      "search": "搜索消息",
+      "recent": "最近对话",
+      "messages": "消息",
+      "noResults": "暂无匹配的消息",
+      "roles": {
+        "assistant": "小黑"
+      },
       "deleted": "已删除对话",
       "deleted_description": "此对话已被删除",
       "delete": {

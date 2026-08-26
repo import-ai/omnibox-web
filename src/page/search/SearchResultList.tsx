@@ -1,5 +1,5 @@
-import { Loader2, MessageCircle } from 'lucide-react';
-import type { MouseEventHandler, ReactNode, UIEvent } from 'react';
+import { Loader2 } from 'lucide-react';
+import type { MouseEventHandler, UIEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import ResourceIcon from '@/assets/icons/ResourceIcon';
@@ -11,15 +11,13 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import type { Resource, ResourceMeta } from '@/interface';
 
+import { SearchResultAnchor, SearchResultContent } from './SearchResultItem';
 import {
   searchResultEmptyItemClassName,
   searchResultGroupClassName,
-  searchResultInlineRowClassName,
   searchResultItemClassName,
   searchResultListClassName,
   searchResultLoadingClassName,
-  searchResultRowWithoutPreviewClassName,
-  searchResultRowWithPreviewClassName,
 } from './searchResultLayout';
 import {
   buildSearchPreview,
@@ -29,18 +27,10 @@ import {
   shouldShowSearchNoResults,
 } from './searchUtils';
 
-interface SearchResultAnchorProps {
-  children: ReactNode;
-  className: string;
-  onClick: MouseEventHandler<HTMLAnchorElement>;
-  path: string;
-}
-
 interface SearchResultListProps {
   keywords: string;
   loadingInitial: boolean;
   loadingRecents: boolean;
-  messages: SearchMessageResult[];
   namespaceId?: string;
   loadingMore: boolean;
   onAnchorClick: MouseEventHandler<HTMLAnchorElement>;
@@ -50,12 +40,6 @@ interface SearchResultListProps {
   resources: SearchResourceResult[];
   showRecents: boolean;
   shouldSkipNavigate: () => boolean;
-}
-
-export interface SearchMessageResult {
-  content: string;
-  conversation_id: string;
-  id: string;
 }
 
 export interface SearchRecentResource extends ResourceMeta {
@@ -99,40 +83,16 @@ function SearchEmptyIcon() {
   );
 }
 
-function SearchNoResults() {
+export function SearchNoResults({ label }: { label?: string }) {
   const { t } = useTranslation();
 
   return (
     <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6 text-center">
       <SearchEmptyIcon />
       <p className="text-lg font-normal leading-normal text-muted-foreground">
-        {t('search.no_results')}
+        {label || t('search.no_results')}
       </p>
     </div>
-  );
-}
-
-function appAbsoluteUrl(path: string): string {
-  const normalized = path.startsWith('/') ? path : `/${path}`;
-  return `${window.location.origin}${normalized}`;
-}
-
-function SearchResultAnchor({
-  children,
-  className,
-  onClick,
-  path,
-}: SearchResultAnchorProps) {
-  return (
-    <a
-      href={appAbsoluteUrl(path)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={className}
-      onClick={onClick}
-    >
-      {children}
-    </a>
   );
 }
 
@@ -146,21 +106,11 @@ function ResourceResultContent({
   title: string;
 }) {
   return (
-    <>
-      <div className="flex w-full items-center gap-2">
-        <div className="flex size-4 shrink-0 items-center justify-center text-muted-foreground [&>svg]:size-4">
-          <ResourceIcon expand={false} resource={resource} />
-        </div>
-        <div className="min-w-0 flex-1 truncate text-base font-medium leading-6 text-foreground">
-          {title}
-        </div>
-      </div>
-      {preview ? (
-        <div className="ml-6 line-clamp-2 text-sm leading-[22px] text-[rgba(26,26,26,0.36)] dark:text-neutral-500">
-          {preview}
-        </div>
-      ) : null}
-    </>
+    <SearchResultContent
+      icon={<ResourceIcon expand={false} resource={resource} />}
+      title={title}
+      preview={preview}
+    />
   );
 }
 
@@ -168,7 +118,6 @@ export function SearchResultList({
   keywords,
   loadingInitial,
   loadingRecents,
-  messages,
   namespaceId,
   loadingMore,
   onAnchorClick,
@@ -183,13 +132,13 @@ export function SearchResultList({
   const showNoResults = shouldShowSearchNoResults(
     showRecents,
     resources.length,
-    messages.length,
+    0,
     loadingInitial
   );
   const showLoading = shouldShowSearchLoading(
     !showRecents,
     loadingInitial,
-    resources.length + messages.length
+    resources.length
   );
   const showRecentResourcesLoading = shouldShowRecentResourcesLoading(
     showRecents,
@@ -274,11 +223,7 @@ export function SearchResultList({
                   >
                     <SearchResultAnchor
                       path={recentPath}
-                      className={
-                        preview
-                          ? searchResultRowWithPreviewClassName
-                          : searchResultRowWithoutPreviewClassName
-                      }
+                      preview={!!preview}
                       onClick={onAnchorClick}
                     >
                       <ResourceResultContent
@@ -328,11 +273,7 @@ export function SearchResultList({
               >
                 <SearchResultAnchor
                   path={resourcePath}
-                  className={
-                    preview
-                      ? searchResultRowWithPreviewClassName
-                      : searchResultRowWithoutPreviewClassName
-                  }
+                  preview={!!preview}
                   onClick={onAnchorClick}
                 >
                   <ResourceResultContent
@@ -340,39 +281,6 @@ export function SearchResultList({
                     title={resourceItem.title}
                     preview={preview}
                   />
-                </SearchResultAnchor>
-              </CommandItem>
-            );
-          })}
-        </CommandGroup>
-      )}
-
-      {messages.length > 0 && (
-        <CommandGroup
-          className={searchResultGroupClassName}
-          heading={t('search.chats')}
-        >
-          {messages.map(message => {
-            const chatPath = `/${namespaceId}/chat/${message.conversation_id}`;
-            return (
-              <CommandItem
-                key={message.id}
-                value={message.id}
-                className={searchResultItemClassName}
-                onSelect={() => {
-                  if (shouldSkipNavigate()) {
-                    return;
-                  }
-                  onNavigate(chatPath, 'chat');
-                }}
-              >
-                <SearchResultAnchor
-                  path={chatPath}
-                  className={searchResultInlineRowClassName}
-                  onClick={onAnchorClick}
-                >
-                  <MessageCircle className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{message.content}</span>
                 </SearchResultAnchor>
               </CommandItem>
             );
