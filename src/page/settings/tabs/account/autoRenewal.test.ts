@@ -18,6 +18,7 @@ function renewal(
     tier: 'basic',
     status,
     contract_active: false,
+    can_cancel: true,
     channel: 'wechat',
     amount: 500,
     currency: 'CNY',

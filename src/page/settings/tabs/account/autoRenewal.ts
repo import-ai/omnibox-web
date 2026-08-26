@@ -8,6 +8,7 @@ export interface AutoRenewal {
   tier: 'basic' | 'premium';
   status: AutoRenewalStatus;
   contract_active: boolean;
+  can_cancel: boolean;
   channel: 'wechat';
   amount: number;
   currency: string;

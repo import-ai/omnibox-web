@@ -212,7 +212,7 @@ export default function SettingForm({
           <h3 className="text-base font-semibold">{t('namespace.usage')}</h3>
           <Separator className="my-2 border-t" />
           <RemainQuota namespaceId={namespaceId} />
-          {userIsOwner && (
+          {userIsOwnerOrAdmin && (
             <>
               <AutoRenewalSection namespaceId={namespaceId} tier="basic" />
               <AutoRenewalSection namespaceId={namespaceId} tier="premium" />

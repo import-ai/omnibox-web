@@ -258,6 +258,7 @@
     "auto_renewal": {
       "tier_basic": "Basic",
       "tier_premium": "Premium",
+      "space": "Space {{id}}",
       "loading": "Checking automatic renewal status",
       "enabled": "Automatic renewal: Monthly plan enabled.",
       "failed": "Automatic renewal failed, but the WeChat contract is still active.",
@@ -438,6 +439,7 @@
     "feature_management": "Feature Management",
     "feature_previews": "Feature Previews",
     "account": "Account",
+    "auto_renewal_management": "Automatic Renewal",
     "space": "Space",
     "general": "General",
     "binding": "Sign-in Methods",

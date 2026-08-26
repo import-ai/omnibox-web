@@ -28,8 +28,17 @@ interface AutoRenewalSectionProps {
   tier: AutoRenewal['tier'];
 }
 
+interface AutoRenewalCardProps {
+  cancel: (renewal: AutoRenewal) => Promise<boolean>;
+  canceling: boolean;
+  contextLabel?: string;
+  polling: boolean;
+  renewal: AutoRenewal;
+}
+
 interface EnabledRenewalProps {
   amount: string;
+  canCancel: boolean;
   isProcessing: boolean;
   nextBilling: string;
   onCancel: () => void;
@@ -39,6 +48,7 @@ interface EnabledRenewalProps {
 
 function EnabledRenewal({
   amount,
+  canCancel,
   isProcessing,
   nextBilling,
   onCancel,
@@ -62,19 +72,21 @@ function EnabledRenewal({
               : t('namespace.auto_renewal.amount', { amount })}
         </AlertDescription>
       </div>
-      <Button
-        variant="destructive"
-        className="shrink-0 self-start sm:self-center"
-        disabled={isProcessing}
-        onClick={onCancel}
-      >
-        {isProcessing && <Spinner className="mr-2" />}
-        {t(
-          isProcessing
-            ? 'namespace.auto_renewal.canceling'
-            : 'namespace.auto_renewal.cancel'
-        )}
-      </Button>
+      {canCancel && (
+        <Button
+          variant="destructive"
+          className="shrink-0 self-start sm:self-center"
+          disabled={isProcessing}
+          onClick={onCancel}
+        >
+          {isProcessing && <Spinner className="mr-2" />}
+          {t(
+            isProcessing
+              ? 'namespace.auto_renewal.canceling'
+              : 'namespace.auto_renewal.cancel'
+          )}
+        </Button>
+      )}
     </div>
   );
 }
@@ -156,14 +168,11 @@ export function AutoRenewalSection({
   namespaceId,
   tier,
 }: AutoRenewalSectionProps) {
-  const { t, i18n } = useTranslation();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const { t } = useTranslation();
   const { cancel, canceling, loading, polling, renewal } = useAutoRenewal(
     namespaceId,
     tier
   );
-  const view = getAutoRenewalView(renewal);
-  const tierLabel = t(`namespace.auto_renewal.tier_${tier}`);
 
   if (loading) {
     return (
@@ -175,7 +184,32 @@ export function AutoRenewalSection({
       </Alert>
     );
   }
-  if (!renewal || !view) return null;
+  if (!renewal) return null;
+
+  return (
+    <AutoRenewalCard
+      cancel={cancel}
+      canceling={canceling}
+      polling={polling}
+      renewal={renewal}
+    />
+  );
+}
+
+export function AutoRenewalCard({
+  cancel,
+  canceling,
+  contextLabel,
+  polling,
+  renewal,
+}: AutoRenewalCardProps) {
+  const { t, i18n } = useTranslation();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const view = getAutoRenewalView(renewal);
+  if (!view) return null;
+
+  const tier = t(`namespace.auto_renewal.tier_${renewal.tier}`);
+  const tierLabel = contextLabel ? `${contextLabel} · ${tier}` : tier;
 
   const periodEnd = renewal.current_period_end
     ? formatAutoRenewalDate(renewal.current_period_end)
@@ -194,6 +228,7 @@ export function AutoRenewalSection({
       {view !== 'disabled' ? (
         <EnabledRenewal
           amount={amount}
+          canCancel={renewal.can_cancel}
           isProcessing={canceling || polling}
           nextBilling={nextBilling}
           onCancel={() => setDialogOpen(true)}
@@ -203,13 +238,15 @@ export function AutoRenewalSection({
       ) : (
         <DisabledRenewal periodEnd={periodEnd} tierLabel={tierLabel} />
       )}
-      <CancelDialog
-        canceling={canceling}
-        onCancel={() => cancel(renewal)}
-        onOpenChange={setDialogOpen}
-        open={dialogOpen}
-        periodEnd={periodEnd}
-      />
+      {renewal.can_cancel && (
+        <CancelDialog
+          canceling={canceling}
+          onCancel={() => cancel(renewal)}
+          onOpenChange={setDialogOpen}
+          open={dialogOpen}
+          periodEnd={periodEnd}
+        />
+      )}
     </Alert>
   );
 }

@@ -259,6 +259,7 @@
     "auto_renewal": {
       "tier_basic": "基础版",
       "tier_premium": "高级版",
+      "space": "空间 {{id}}",
       "loading": "正在查询自动续费状态",
       "enabled": "自动续费：已开启连续包月。",
       "failed": "自动续费异常，微信合同仍有效。",
@@ -439,6 +440,7 @@
     "feature_management": "功能管理",
     "feature_previews": "新功能尝鲜",
     "account": "账号",
+    "auto_renewal_management": "自动续费",
     "space": "空间",
     "general": "通用",
     "binding": "登录方式",
