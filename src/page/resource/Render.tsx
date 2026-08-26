@@ -28,7 +28,7 @@ import {
   findFirstSearchMatchElement,
   highlightSearchText,
 } from './searchHighlight';
-import { embedImage } from './utils';
+import { embedImage, getReadonlyResourceEditorKey } from './utils';
 
 interface IProps {
   resource: Resource | SharedResource;
@@ -177,7 +177,7 @@ function OmniboxRender(props: IProps) {
       )}
     >
       <ResourceOmniboxEditor
-        key={resource.id}
+        key={getReadonlyResourceEditorKey(resource)}
         editable={false}
         content={content}
         linkBase={linkBase}

@@ -1,6 +1,10 @@
 import type { i18n as I18nType } from 'i18next';
 
-import { groupItemsByTimestamp, itemTimestamp } from './utils';
+import {
+  getReadonlyResourceEditorKey,
+  groupItemsByTimestamp,
+  itemTimestamp,
+} from './utils';
 
 function i18nMock(language: string): I18nType {
   return {
@@ -108,5 +112,35 @@ describe('itemTimestamp', () => {
         })
       ).toBe('2026-08-12T00:00:00.000Z');
     }
+  });
+});
+
+describe('getReadonlyResourceEditorKey', () => {
+  it('changes when remote content or updated_at changes', () => {
+    const original = getReadonlyResourceEditorKey({
+      id: 'resource-a',
+      content: 'old body',
+      updated_at: '2026-08-24T00:00:00.000Z',
+    });
+    const afterContent = getReadonlyResourceEditorKey({
+      id: 'resource-a',
+      content: 'new body',
+      updated_at: '2026-08-24T00:00:00.000Z',
+    });
+    const afterSameLength = getReadonlyResourceEditorKey({
+      id: 'resource-a',
+      content: 'new text',
+      updated_at: '2026-08-24T00:00:00.000Z',
+    });
+    const afterTimestamp = getReadonlyResourceEditorKey({
+      id: 'resource-a',
+      content: 'old body',
+      updated_at: '2026-08-24T01:00:00.000Z',
+    });
+
+    expect(afterContent).not.toBe(original);
+    expect(afterSameLength).not.toBe(original);
+    expect(afterTimestamp).not.toBe(original);
+    expect(original.includes('old body')).toBe(false);
   });
 });
