@@ -55,6 +55,8 @@ export default function useResource() {
   const [resource, onResource] = useState<Resource | null>(null);
   const initialResourceRequest = useRef<AbortController | null>(null);
   const resourceEventRequest = useRef<AbortController | null>(null);
+  const editPageRef = useRef(editPage);
+  editPageRef.current = editPage;
 
   useEffect(() => {
     if (!resourceId) {
@@ -105,7 +107,9 @@ export default function useResource() {
   // Copilot/agent operations announce an id; local editors send a resource delta.
   useEffect(() => {
     const handleResourceEvent = (delta: Resource | string) => {
-      if (shouldRefetchResourceContent(delta, resourceId, !editPage)) {
+      if (
+        shouldRefetchResourceContent(delta, resourceId, !editPageRef.current)
+      ) {
         initialResourceRequest.current?.abort();
         resourceEventRequest.current?.abort();
         const controller = new AbortController();
@@ -156,7 +160,7 @@ export default function useResource() {
       resourceEventRequest.current?.abort();
       unbind.forEach(off => off());
     };
-  }, [app, editPage, namespaceId, resourceId]);
+  }, [app, namespaceId, resourceId]);
 
   // Monitor the restore_resource event to reload the resource when it's restored from trash
   useEffect(() => {

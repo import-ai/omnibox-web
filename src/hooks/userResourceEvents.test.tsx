@@ -193,4 +193,54 @@ describe('useResource resource events', () => {
         ?.getAttribute('data-loading')
     ).toBe('false');
   });
+
+  it('keeps an event refetch active when switching to the edit route', async () => {
+    let resolveInitial: (resource: Resource) => void = () => undefined;
+    let resolveRefetch: (resource: Resource) => void = () => undefined;
+    mockedGet
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveInitial = resolve;
+        })
+      )
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveRefetch = resolve;
+        })
+      );
+
+    await act(async () => root.render(<ResourceHarness />));
+    await act(async () => fireApp('update_resource', 'resource-a'));
+    const initialSignal = mockedGet.mock.calls[0]?.[1]?.signal;
+    const refetchSignal = mockedGet.mock.calls[1]?.[1]?.signal;
+
+    mockPathname = '/namespace-a/resource-a/edit';
+    await act(async () => root.render(<ResourceHarness />));
+
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+    expect(initialSignal?.aborted).toBe(true);
+    expect(refetchSignal?.aborted).toBe(false);
+
+    await act(async () => {
+      resolveInitial({
+        id: 'resource-a',
+        content: 'stale body',
+      } as Resource);
+      resolveRefetch({
+        id: 'resource-a',
+        content: 'latest body',
+      } as Resource);
+    });
+
+    expect(
+      container
+        .querySelector('[data-testid="resource-state"]')
+        ?.getAttribute('data-content')
+    ).toBe('latest body');
+    expect(
+      container
+        .querySelector('[data-testid="resource-state"]')
+        ?.getAttribute('data-loading')
+    ).toBe('false');
+  });
 });
