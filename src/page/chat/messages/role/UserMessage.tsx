@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { ShareIcon } from '@/assets/icons/ShareIcon';
 import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
@@ -32,13 +33,21 @@ import {
 } from './userMessageTokens';
 
 interface IProps {
+  hideActions?: boolean;
   message: MessageDetail;
   messageOperator: MessageOperator;
   onEdit: (messageId: string, newContent: string) => void;
+  onShare?: (messageId: string) => void;
 }
 
 export function UserMessage(props: IProps) {
-  const { message, messageOperator, onEdit } = props;
+  const {
+    hideActions = false,
+    message,
+    messageOperator,
+    onEdit,
+    onShare,
+  } = props;
   const { t } = useTranslation();
   const params = useParams();
   const resourceLinkPrefix = params.share_id
@@ -289,58 +298,77 @@ export function UserMessage(props: IProps) {
           </TooltipContent>
         </Tooltip>
       )}
-      <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
-        {createdAt && (
-          <span className="text-xs text-muted-foreground">{createdAt}</span>
-        )}
-        {!isEditing && (
-          <Tooltip>
-            <TooltipTrigger asChild>
+      {!hideActions && (
+        <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
+          {createdAt && (
+            <span className="text-xs text-muted-foreground">{createdAt}</span>
+          )}
+          {!isEditing && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="p-0 w-7 h-7"
+                  onClick={handleEditClick}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('chat.messages.actions.edit')}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          <Copy
+            content={openAIMessage.content || ''}
+            htmlContent={copyHtml}
+            tooltip={t('chat.messages.actions.copy_simple')}
+          />
+          {onShare && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  aria-label={t('chat.share.action')}
+                  className="h-7 w-7 p-0"
+                  onClick={() => onShare(message.id)}
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                >
+                  <ShareIcon className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('chat.share.action')}</TooltipContent>
+            </Tooltip>
+          )}
+          {hasSiblings && (
+            <>
               <Button
                 size="icon"
                 variant="ghost"
-                className="p-0 w-7 h-7"
-                onClick={handleEditClick}
+                className="p-0 w-4 h-7"
+                onClick={handlePrevious}
+                disabled={currentIndex === 0}
               >
-                <Pencil className="w-4 h-4" />
+                <ChevronLeft className="w-4 h-4" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{t('chat.messages.actions.edit')}</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-        <Copy
-          content={openAIMessage.content || ''}
-          htmlContent={copyHtml}
-          tooltip={t('chat.messages.actions.copy_simple')}
-        />
-        {hasSiblings && (
-          <>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="p-0 w-4 h-7"
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
-              {currentIndex + 1}/{siblings.length}
-            </span>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="p-0 w-4 h-7"
-              onClick={handleNext}
-              disabled={currentIndex === siblings.length - 1}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </>
-        )}
-      </div>
+              <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
+                {currentIndex + 1}/{siblings.length}
+              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="p-0 w-4 h-7"
+                onClick={handleNext}
+                disabled={currentIndex === siblings.length - 1}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

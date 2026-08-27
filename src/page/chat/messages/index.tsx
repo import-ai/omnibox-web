@@ -18,6 +18,7 @@ import type {
 import { AssistantMessage } from '@/page/chat/messages/role/AssistantMessage';
 import { ToolMessage } from '@/page/chat/messages/role/ToolMessage';
 import { UserMessage } from '@/page/chat/messages/role/UserMessage';
+import { ConversationShareMessageRow } from '@/page/chat/share/ConversationShareMessageRow';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import {
@@ -32,6 +33,13 @@ interface IProps {
   onRegenerate: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
   regeneratingParentId?: string | null;
+  onShareMessage?: (messageId: string) => void;
+  shareSelection?: {
+    isSelecting: boolean;
+    messageGroupIds: ReadonlyMap<string, string>;
+    selectedGroupIds: ReadonlySet<string>;
+    onToggleGroup: (groupId: string) => void;
+  };
 }
 
 function renderMessage(
@@ -43,7 +51,9 @@ function renderMessage(
   onRegenerate: (messageId: string) => void,
   onEdit: (messageId: string, newContent: string) => void,
   isLastMessage: boolean,
-  regeneratingParentId: string | null
+  regeneratingParentId: string | null,
+  hideActions: boolean,
+  onShareMessage?: (messageId: string) => void
 ) {
   const openAIMessage = message.message;
 
@@ -56,6 +66,8 @@ function renderMessage(
         message={message}
         messageOperator={messageOperator}
         onEdit={onEdit}
+        hideActions={hideActions}
+        onShare={onShareMessage}
       />
     );
   }
@@ -72,6 +84,8 @@ function renderMessage(
         isLastMessage={isLastMessage}
         regenerateDisabled={Boolean(regeneratingParentId)}
         regenerating={regeneratingParentId === parentId}
+        hideActions={hideActions}
+        onShare={onShareMessage}
       />
     );
   }
@@ -170,6 +184,8 @@ export function Messages(props: IProps) {
     onRegenerate,
     onEdit,
     regeneratingParentId = null,
+    onShareMessage,
+    shareSelection,
   } = props;
 
   useEffect(() => {
@@ -238,17 +254,33 @@ export function Messages(props: IProps) {
           <ContextCompactedDivider status={message.attrs.compact.status} />
         )}
         {shouldRenderMessage &&
-          renderMessage(
-            message,
-            messages,
-            citations,
-            conversation,
-            messageOperator,
-            onRegenerate,
-            onEdit,
-            isLastAssistantMessage,
-            regeneratingParentId
-          )}
+          (() => {
+            const content = renderMessage(
+              message,
+              messages,
+              citations,
+              conversation,
+              messageOperator,
+              onRegenerate,
+              onEdit,
+              isLastAssistantMessage,
+              regeneratingParentId,
+              Boolean(shareSelection?.isSelecting),
+              onShareMessage
+            );
+            const groupId = shareSelection?.messageGroupIds.get(message.id);
+
+            if (!shareSelection?.isSelecting || !groupId) return content;
+            return (
+              <ConversationShareMessageRow
+                groupId={groupId}
+                onToggle={shareSelection.onToggleGroup}
+                selected={shareSelection.selectedGroupIds.has(groupId)}
+              >
+                {content}
+              </ConversationShareMessageRow>
+            );
+          })()}
         {message.status === MessageStatus.FAILED &&
           message.attrs?.error_message && (
             <div className="text-destructive mt-2">
