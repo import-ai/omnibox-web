@@ -9,6 +9,11 @@ export type RootResourcesResponse = Record<
   Resource & { children?: Resource[] }
 >;
 
+export interface RootResourceSortOptions {
+  private: ResourceSortOptions;
+  teamspace: ResourceSortOptions;
+}
+
 export type {
   ResourceSortBy,
   ResourceSortOptions,
@@ -86,11 +91,19 @@ export function fetchChildren(
 export function fetchRootResources(
   namespaceId: string,
   config?: RequestConfig,
-  sort?: ResourceSortOptions
+  sorts?: RootResourceSortOptions
 ): Promise<RootResourcesResponse> {
+  const params = sorts
+    ? {
+        private_sort_by: sorts.private.sort_by,
+        private_sort_order: sorts.private.sort_order,
+        teamspace_sort_by: sorts.teamspace.sort_by,
+        teamspace_sort_order: sorts.teamspace.sort_order,
+      }
+    : undefined;
   return http.get<RootResourcesResponse>(
     `/namespaces/${namespaceId}/root`,
-    sort ? { ...config, params: { ...config?.params, ...sort } } : config
+    params ? { ...config, params: { ...config?.params, ...params } } : config
   );
 }
 

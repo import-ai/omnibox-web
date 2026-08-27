@@ -26,31 +26,19 @@ describe('workspaceResourcePickerSort', () => {
 
   it('loads and merges roots using each space sort', async () => {
     const privateRoot = { id: 'private-root' };
-    const incorrectlySortedTeamRoot = { id: 'team-from-private-request' };
     const teamRoot = { id: 'team-root' };
-    jest
-      .mocked(fetchRootResources)
-      .mockResolvedValueOnce({
-        private: privateRoot,
-        teamspace: incorrectlySortedTeamRoot,
-      } as RootResourcesResponse)
-      .mockResolvedValueOnce({
-        teamspace: teamRoot,
-      } as RootResourcesResponse);
+    jest.mocked(fetchRootResources).mockResolvedValueOnce({
+      private: privateRoot,
+      teamspace: teamRoot,
+    } as RootResourcesResponse);
 
     const roots = await fetchSortedWorkspaceRootResources('namespace', sorts);
 
-    expect(fetchRootResources).toHaveBeenNthCalledWith(
-      1,
+    expect(fetchRootResources).toHaveBeenCalledTimes(1);
+    expect(fetchRootResources).toHaveBeenCalledWith(
       'namespace',
       undefined,
-      sorts.private
-    );
-    expect(fetchRootResources).toHaveBeenNthCalledWith(
-      2,
-      'namespace',
-      undefined,
-      sorts.teamspace
+      sorts
     );
     expect(roots).toEqual({ private: privateRoot, teamspace: teamRoot });
   });

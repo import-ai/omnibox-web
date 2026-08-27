@@ -2,16 +2,12 @@ import type { PathItem, SpaceType } from '@/interface';
 import { Permission, Resource, ResourceType, TagDto } from '@/interface';
 import type { CreateRssFolderPayload } from '@/page/sidebar/components/rss-folder';
 import type { CreateSmartFolderPayload } from '@/page/sidebar/components/smart-folder';
-import type {
-  ManualDropLine,
-  ManualDropPosition,
-} from '@/page/sidebar/manualDropIndicator';
 import type { ResourceSortOptions } from '@/service/resource';
 
 import type { ResourceSorts } from './resourceSort';
 
 export type RootResource = Resource & { children?: Resource[] };
-export type { ManualDropPosition };
+export type ManualDropPosition = 'before' | 'inside' | 'after';
 
 export interface PendingManualDrop {
   dragId: string;
@@ -22,7 +18,11 @@ export interface PendingManualDrop {
 export interface ManualDropIndicator {
   targetId: string;
   position: ManualDropPosition;
-  line: ManualDropLine | null;
+  line: {
+    left: number;
+    top: number;
+    width: number;
+  } | null;
 }
 
 export interface TreeNode {

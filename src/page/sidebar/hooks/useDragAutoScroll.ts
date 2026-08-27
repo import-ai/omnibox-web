@@ -17,7 +17,6 @@ export function useDragAutoScroll(ref: React.RefObject<HTMLElement | null>) {
     let lastFrameTime = 0;
     let lastScrollDirection = 0;
     let prevClientY: number | null = null;
-    let containerRect: DOMRect | null = null;
 
     const stopAutoScroll = () => {
       if (scrollAnimId !== null) {
@@ -42,11 +41,6 @@ export function useDragAutoScroll(ref: React.RefObject<HTMLElement | null>) {
       stopAutoScroll();
       lastScrollDirection = 0;
       prevClientY = null;
-      containerRect = null;
-    };
-
-    const resetContainerRect = () => {
-      containerRect = null;
     };
 
     const handleWindowBlur = () => {
@@ -61,8 +55,7 @@ export function useDragAutoScroll(ref: React.RefObject<HTMLElement | null>) {
 
     const handleDragOver = (e: DragEvent) => {
       if (!element) return;
-      const rect = containerRect ?? element.getBoundingClientRect();
-      containerRect = rect;
+      const rect = element.getBoundingClientRect();
       const clientY = e.clientY;
       const clientX = e.clientX;
 
@@ -115,22 +108,18 @@ export function useDragAutoScroll(ref: React.RefObject<HTMLElement | null>) {
     };
 
     document.addEventListener('dragover', handleDragOver);
-    document.addEventListener('dragstart', resetContainerRect);
     document.addEventListener('dragleave', handleDragLeave);
     document.addEventListener('dragend', handleDragEnd);
     document.addEventListener('drop', handleDragEnd);
     window.addEventListener('blur', handleWindowBlur);
-    window.addEventListener('resize', resetContainerRect);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       document.removeEventListener('dragover', handleDragOver);
-      document.removeEventListener('dragstart', resetContainerRect);
       document.removeEventListener('dragleave', handleDragLeave);
       document.removeEventListener('dragend', handleDragEnd);
       document.removeEventListener('drop', handleDragEnd);
       window.removeEventListener('blur', handleWindowBlur);
-      window.removeEventListener('resize', resetContainerRect);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       stopAutoScroll();
     };

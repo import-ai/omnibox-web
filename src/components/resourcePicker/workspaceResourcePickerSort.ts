@@ -13,17 +13,7 @@ export async function fetchSortedWorkspaceRootResources(
   namespaceId: string,
   sorts: WorkspaceResourceSorts
 ): Promise<RootResourcesResponse> {
-  const [privateRoots, teamspaceRoots] = await Promise.all([
-    fetchRootResources(namespaceId, undefined, sorts.private),
-    fetchRootResources(namespaceId, undefined, sorts.teamspace),
-  ]);
-
-  return {
-    ...privateRoots,
-    ...(teamspaceRoots.teamspace
-      ? { teamspace: teamspaceRoots.teamspace }
-      : {}),
-  };
+  return fetchRootResources(namespaceId, undefined, sorts);
 }
 
 export function setWorkspacePickerSpace(
