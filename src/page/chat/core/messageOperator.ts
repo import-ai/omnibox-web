@@ -168,9 +168,14 @@ export function createMessageOperator(
         }
         message.status = MessageStatus.SUCCESS;
         if (message.message.role === OpenAIMessageRole.TOOL) {
-          if (message.attrs?.tool_call) {
-            message.attrs.tool_call.in_streaming = true;
-          }
+          message.attrs = {
+            ...(message.attrs || {}),
+            tool_call: {
+              ...(message.attrs?.tool_call || {}),
+              in_streaming: true,
+              status: message.attrs?.tool_call?.status || 'success',
+            },
+          };
         }
         return {
           ...prev,

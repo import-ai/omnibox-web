@@ -55,6 +55,7 @@ export interface DndItem {
   preview?: TreeNode;
   resourceType?: string;
   attrs?: Record<string, unknown>;
+  depth?: number;
 }
 
 export function isBatchDropOnDraggedResource(

@@ -8,9 +8,19 @@ import { http } from '@/lib/request';
 
 import CitationResourcePreview from './CitationResourcePreview';
 
+const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+
 const mockApp = {
   fire: jest.fn(),
-  on: jest.fn(() => jest.fn()),
+  on: jest.fn((event: string, cb: (...args: unknown[]) => void) => {
+    listeners[event] = listeners[event] || [];
+    listeners[event].push(cb);
+    return () => {
+      listeners[event] = (listeners[event] || []).filter(
+        listener => listener !== cb
+      );
+    };
+  }),
 };
 
 jest.mock('@/hooks/useApp', () => ({
@@ -36,9 +46,11 @@ jest.mock('@/page/resource/ResourceDetailView', () => ({
     resource: Resource | null;
   }) => (
     <div
+      data-content={resource?.content ?? ''}
       data-error={String(error)}
       data-forbidden={String(forbidden)}
       data-loading={String(loading)}
+      data-name={resource?.name ?? ''}
       data-not-found={String(notFound)}
       data-resource-id={resource?.id ?? 'none'}
       data-testid="resource-detail-view"
@@ -60,6 +72,9 @@ describe('CitationResourcePreview', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
+    Object.keys(listeners).forEach(key => {
+      delete listeners[key];
+    });
   });
 
   afterEach(async () => {
@@ -195,5 +210,292 @@ describe('CitationResourcePreview', () => {
     expect(view?.getAttribute('data-loading')).toBe('false');
     expect(view?.getAttribute('data-error')).toBe('true');
     expect(view?.getAttribute('data-resource-id')).toBe('none');
+  });
+
+  function fireApp(event: string, ...args: unknown[]) {
+    for (const listener of listeners[event] || []) {
+      listener(...args);
+    }
+  }
+
+  it.each(['update_resource', 'refresh_resource'])(
+    'refetches the cited resource when %s announces it by id',
+    async event => {
+      mockedGet
+        .mockResolvedValueOnce({
+          id: 'resource-a',
+          name: 'Resource A',
+          content: 'old body',
+          resource_type: 'resource',
+        } as Resource)
+        .mockResolvedValueOnce({
+          id: 'resource-a',
+          name: 'Resource A',
+          content: 'new body',
+          resource_type: 'resource',
+        } as Resource);
+
+      await act(async () => {
+        root.render(
+          <CitationResourcePreview
+            namespaceId="namespace-a"
+            resourceId="resource-a"
+          />
+        );
+      });
+
+      expect(
+        container
+          .querySelector('[data-testid="resource-detail-view"]')
+          ?.getAttribute('data-content')
+      ).toBe('old body');
+
+      await act(async () => {
+        fireApp(event, 'resource-a');
+      });
+
+      const view = container.querySelector(
+        '[data-testid="resource-detail-view"]'
+      );
+      expect(mockedGet).toHaveBeenCalledTimes(2);
+      expect(view?.getAttribute('data-content')).toBe('new body');
+      expect(view?.getAttribute('data-loading')).toBe('false');
+    }
+  );
+
+  it('merges object deltas without refetching', async () => {
+    mockedGet.mockResolvedValue({
+      id: 'resource-a',
+      name: 'Resource A',
+      content: 'old body',
+      resource_type: 'resource',
+    } as Resource);
+
+    await act(async () => {
+      root.render(
+        <CitationResourcePreview
+          namespaceId="namespace-a"
+          resourceId="resource-a"
+        />
+      );
+    });
+
+    await act(async () => {
+      fireApp('update_resource', {
+        id: 'resource-a',
+        name: 'Resource A renamed',
+      });
+    });
+
+    const view = container.querySelector(
+      '[data-testid="resource-detail-view"]'
+    );
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+    expect(view?.getAttribute('data-name')).toBe('Resource A renamed');
+    expect(view?.getAttribute('data-content')).toBe('old body');
+  });
+
+  it('ignores id announcements for a different resource', async () => {
+    mockedGet.mockResolvedValue({
+      id: 'resource-a',
+      name: 'Resource A',
+      content: 'old body',
+      resource_type: 'resource',
+    } as Resource);
+
+    await act(async () => {
+      root.render(
+        <CitationResourcePreview
+          namespaceId="namespace-a"
+          resourceId="resource-a"
+        />
+      );
+    });
+
+    await act(async () => {
+      fireApp('update_resource', 'resource-b');
+    });
+
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+    expect(
+      container
+        .querySelector('[data-testid="resource-detail-view"]')
+        ?.getAttribute('data-content')
+    ).toBe('old body');
+  });
+
+  it('shows not found when copilot deletes the cited resource', async () => {
+    mockedGet.mockResolvedValue({
+      id: 'resource-a',
+      name: 'Resource A',
+      content: 'old body',
+      resource_type: 'resource',
+    } as Resource);
+
+    await act(async () => {
+      root.render(
+        <CitationResourcePreview
+          namespaceId="namespace-a"
+          resourceId="resource-a"
+        />
+      );
+    });
+
+    await act(async () => {
+      fireApp('delete_resource', 'resource-a');
+    });
+
+    const view = container.querySelector(
+      '[data-testid="resource-detail-view"]'
+    );
+    expect(view?.getAttribute('data-not-found')).toBe('true');
+    expect(view?.getAttribute('data-resource-id')).toBe('none');
+    expect(view?.getAttribute('data-content')).toBe('');
+  });
+
+  it('refetches emptied content without leaving the previous body on screen', async () => {
+    mockedGet
+      .mockResolvedValueOnce({
+        id: 'resource-a',
+        name: 'Resource A',
+        content: 'old body',
+        resource_type: 'resource',
+      } as Resource)
+      .mockResolvedValueOnce({
+        id: 'resource-a',
+        name: 'Resource A',
+        content: '',
+        resource_type: 'resource',
+      } as Resource);
+
+    await act(async () => {
+      root.render(
+        <CitationResourcePreview
+          namespaceId="namespace-a"
+          resourceId="resource-a"
+        />
+      );
+    });
+
+    await act(async () => {
+      fireApp('update_resource', 'resource-a');
+    });
+
+    expect(
+      container
+        .querySelector('[data-testid="resource-detail-view"]')
+        ?.getAttribute('data-content')
+    ).toBe('');
+  });
+
+  it('does not restore content from a refetch that finishes after delete', async () => {
+    let resolveRefetch: (resource: Resource) => void = () => undefined;
+    mockedGet
+      .mockResolvedValueOnce({
+        id: 'resource-a',
+        name: 'Resource A',
+        content: 'old body',
+        resource_type: 'resource',
+      } as Resource)
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveRefetch = resolve;
+        })
+      );
+
+    await act(async () => {
+      root.render(
+        <CitationResourcePreview
+          namespaceId="namespace-a"
+          resourceId="resource-a"
+        />
+      );
+    });
+
+    await act(async () => {
+      fireApp('update_resource', 'resource-a');
+    });
+    await act(async () => {
+      fireApp('delete_resource', 'resource-a');
+    });
+
+    expect(
+      container
+        .querySelector('[data-testid="resource-detail-view"]')
+        ?.getAttribute('data-not-found')
+    ).toBe('true');
+
+    await act(async () => {
+      resolveRefetch({
+        id: 'resource-a',
+        name: 'Resource A',
+        content: 'stale body',
+        resource_type: 'resource',
+      } as Resource);
+    });
+
+    const view = container.querySelector(
+      '[data-testid="resource-detail-view"]'
+    );
+    expect(view?.getAttribute('data-not-found')).toBe('true');
+    expect(view?.getAttribute('data-content')).toBe('');
+  });
+
+  it('keeps the latest result when consecutive refetches finish out of order', async () => {
+    let resolveFirstRefetch: (resource: Resource) => void = () => undefined;
+    let resolveSecondRefetch: (resource: Resource) => void = () => undefined;
+    mockedGet
+      .mockResolvedValueOnce({
+        id: 'resource-a',
+        name: 'Resource A',
+        content: 'initial body',
+        resource_type: 'resource',
+      } as Resource)
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveFirstRefetch = resolve;
+        })
+      )
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveSecondRefetch = resolve;
+        })
+      );
+
+    await act(async () => {
+      root.render(
+        <CitationResourcePreview
+          namespaceId="namespace-a"
+          resourceId="resource-a"
+        />
+      );
+    });
+    await act(async () => {
+      fireApp('update_resource', 'resource-a');
+      fireApp('refresh_resource', 'resource-a');
+    });
+
+    await act(async () => {
+      resolveSecondRefetch({
+        id: 'resource-a',
+        name: 'Resource A',
+        content: 'latest body',
+        resource_type: 'resource',
+      } as Resource);
+    });
+    await act(async () => {
+      resolveFirstRefetch({
+        id: 'resource-a',
+        name: 'Resource A',
+        content: 'stale body',
+        resource_type: 'resource',
+      } as Resource);
+    });
+
+    expect(
+      container
+        .querySelector('[data-testid="resource-detail-view"]')
+        ?.getAttribute('data-content')
+    ).toBe('latest body');
   });
 });
