@@ -5,6 +5,7 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
 import { fetchRootResources } from '@/service/resource';
+import { fetchResourceSortPreferences } from '@/service/resourceSortPreference';
 
 import { useSidebarInit } from './useSidebarInit';
 
@@ -15,6 +16,7 @@ const activate = jest.fn((id: string | null) => {
 const expandPathTo = jest.fn().mockResolvedValue(undefined);
 const locateSidebarResource = jest.fn(() => Promise.resolve(undefined));
 const setNamespaceId = jest.fn();
+const setResourceSorts = jest.fn();
 const init = jest.fn();
 const mockSidebarState = {
   activeId: null as string | null,
@@ -25,6 +27,7 @@ const mockSidebarState = {
   resourceSorts: { private: {}, teamspace: {} },
   rootIds: { private: 'private-root', teamspace: '' },
   setNamespaceId,
+  setResourceSorts,
 };
 let location = {
   pathname: '/namespace/chat/conversation',
@@ -69,6 +72,10 @@ jest.mock('@/page/sidebar/utils', () => ({
 
 jest.mock('@/service/resource', () => ({
   fetchRootResources: jest.fn(),
+}));
+
+jest.mock('@/service/resourceSortPreference', () => ({
+  fetchResourceSortPreferences: jest.fn(),
 }));
 
 (
@@ -122,7 +129,15 @@ describe('useSidebarInit Copilot resource sync', () => {
       private: { id: 'private-root' },
       teamspace: { id: 'teamspace-root' },
     };
+    const sorts = {
+      private: { sort_by: 'title', sort_order: 'asc' },
+      teamspace: { sort_by: 'updated_at', sort_order: 'desc' },
+    } as const;
     localStorage.setItem('uid', 'user-1');
+    jest.mocked(fetchResourceSortPreferences).mockResolvedValue({
+      private: { space_type: 'private', ...sorts.private },
+      teamspace: { space_type: 'teamspace', ...sorts.teamspace },
+    });
     jest.mocked(fetchRootResources).mockResolvedValue(roots as never);
 
     await act(async () => {
@@ -134,8 +149,9 @@ describe('useSidebarInit Copilot resource sync', () => {
     expect(fetchRootResources).toHaveBeenCalledWith(
       'namespace',
       { signal: expect.any(AbortSignal) },
-      mockSidebarState.resourceSorts
+      sorts
     );
+    expect(setResourceSorts).toHaveBeenCalledWith(sorts);
     expect(init).toHaveBeenCalledWith(roots);
   });
 
