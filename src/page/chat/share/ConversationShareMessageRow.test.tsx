@@ -54,8 +54,8 @@ describe('ConversationShareMessageRow', () => {
     });
     const stickyControl = container.querySelector('.sticky');
     expect(stickyControl).not.toBeNull();
-    expect(stickyControl?.classList.contains('top-0')).toBe(true);
-    expect(stickyControl?.classList.contains('top-2')).toBe(false);
+    expect(stickyControl?.classList.contains('top-2')).toBe(true);
+    expect(stickyControl?.classList.contains('top-0')).toBe(false);
   });
 
   it('toggles the complete group when the message row is clicked', () => {

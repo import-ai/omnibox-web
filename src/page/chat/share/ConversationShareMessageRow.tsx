@@ -43,8 +43,8 @@ export function ConversationShareMessageRow({
       <div className="relative self-stretch">
         <div
           className={cn(
-            'flex h-8 items-start justify-center pt-2',
-            selected && 'sticky top-0'
+            'flex h-10 items-center justify-center',
+            selected && 'sticky top-2'
           )}
         >
           <ConversationShareSelectionControl
