@@ -36,37 +36,15 @@ function ManualDropLine() {
   const line = useSidebarStore(state => state.manualDropIndicator?.line);
   if (!line) return null;
 
-  const arrowOffset = Math.min(line.arrowOffset, Math.max(0, line.width - 6));
-  const guideWidth =
-    line.guideOffset === null
-      ? 0
-      : Math.max(0, arrowOffset - line.guideOffset - 4);
-
   return createPortal(
     <span
-      aria-hidden="true"
-      className="pointer-events-none fixed z-[9998] h-0.5"
+      className="pointer-events-none fixed z-[9998] h-1 bg-blue-300"
       style={{
         left: line.left,
         top: line.top,
         width: line.width,
       }}
-    >
-      {line.guideOffset !== null && (
-        <span
-          className="absolute top-0 h-0.5 bg-blue-200 before:absolute before:-top-[3px] before:left-0 before:h-2 before:w-0.5 before:bg-blue-200"
-          style={{ left: line.guideOffset, width: guideWidth }}
-        />
-      )}
-      <span
-        className="absolute -top-[3px] size-0 border-y-4 border-l-[6px] border-y-transparent border-l-blue-500"
-        style={{ left: arrowOffset }}
-      />
-      <span
-        className="absolute right-0 top-0 h-0.5 bg-blue-500"
-        style={{ left: arrowOffset + 6 }}
-      />
-    </span>,
+    />,
     document.body
   );
 }
