@@ -7,9 +7,12 @@ import type { SidebarState, TreeNode } from './types';
 type ResourceWithChildrenState = Resource & { hasChildren?: boolean };
 
 function getResourceHasChildren(resource: ResourceWithChildrenState): boolean {
-  // Smart folders have virtual children (matched resources), so they always
-  // render as expandable regardless of the backend flag.
-  if (resource.resource_type === 'smart_folder') {
+  // Backend-managed folders remain browsable even when their current result is
+  // empty; expanding them is how the UI can show that empty state.
+  if (
+    resource.resource_type === 'smart_folder' ||
+    resource.resource_type === 'rss_folder'
+  ) {
     return true;
   }
 
@@ -263,6 +266,10 @@ export function collapseEmptyNode(
 ): void {
   const node = state.nodes[id];
   if (!node || node.children.length > 0) {
+    return;
+  }
+  if (isManagedChildrenNode(node)) {
+    node.hasChildren = true;
     return;
   }
   node.hasChildren = false;

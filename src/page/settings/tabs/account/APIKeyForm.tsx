@@ -533,6 +533,7 @@ export function APIKeyForm() {
                   </Tooltip>
                 </div>
                 <ResourceSelect
+                  enableManagedFolders
                   namespaceId={namespaceId}
                   resourceId={formData.root_resource_id}
                   loading={creating}
@@ -606,6 +607,7 @@ export function APIKeyForm() {
                   </Tooltip>
                 </div>
                 <ResourceSelect
+                  enableManagedFolders
                   namespaceId={namespaceId}
                   resourceId={formData.root_resource_id}
                   loading={updating}

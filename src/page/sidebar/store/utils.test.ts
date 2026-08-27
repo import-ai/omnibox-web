@@ -1,5 +1,9 @@
+import type { Resource } from '@/interface';
+
 import type { TreeNode } from './types';
 import {
+  collapseEmptyNode,
+  createNode,
   getBatchSelectionSummary,
   getBatchUnsupportedTipKey,
   isBatchSelectableNode,
@@ -39,6 +43,36 @@ const nodes: Record<string, TreeNode> = {
   'doc-a': node('doc-a', 'private', 'doc'),
   smart: node('smart', 'private', 'smart_folder'),
 };
+
+describe('managed folder expansion', () => {
+  it.each(['rss_folder', 'smart_folder'] as const)(
+    'keeps an empty %s expandable',
+    resourceType => {
+      const managed = createNode(
+        {
+          id: resourceType,
+          name: resourceType,
+          parent_id: null,
+          resource_type: resourceType,
+          has_children: false,
+        } as Resource,
+        null,
+        'private'
+      );
+      const state = {
+        nodes: { [managed.id]: managed },
+        ui: {
+          [managed.id]: { expanded: true, loaded: true, loading: false },
+        },
+      };
+
+      collapseEmptyNode(state, managed.id);
+
+      expect(managed.hasChildren).toBe(true);
+      expect(state.ui[managed.id].expanded).toBe(true);
+    }
+  );
+});
 
 describe('isBatchSelectableNode', () => {
   it('gives an rss item a checkbox despite it being read-only', () => {

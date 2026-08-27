@@ -8,6 +8,7 @@ import {
   collapseEmptyNode,
   createNode,
   ensureUI,
+  isManagedChildrenNode,
   patchNodeFromResource,
   traverseDescendants,
 } from '../utils';
@@ -163,7 +164,7 @@ export function buildBaseActions(set: SidebarSet) {
         if (updates.name !== undefined) node.name = updates.name;
         if (updates.content !== undefined) node.content = updates.content;
         if (updates.hasChildren !== undefined) {
-          node.hasChildren = updates.hasChildren;
+          node.hasChildren = isManagedChildrenNode(node) || updates.hasChildren;
         }
         if (updates.manualSortInitializedAt !== undefined) {
           node.manualSortInitializedAt = updates.manualSortInitializedAt;
@@ -229,7 +230,8 @@ export function buildBaseActions(set: SidebarSet) {
         }
 
         parent.children = resources.map(r => (r as { id: string }).id);
-        parent.hasChildren = resources.length > 0;
+        parent.hasChildren =
+          isManagedChildrenNode(parent) || resources.length > 0;
         const pui = ensureUI(s, parentId);
         pui.loaded = true;
         pui.expanded = true;

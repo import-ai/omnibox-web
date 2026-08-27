@@ -47,3 +47,28 @@ it('keeps a moved node when the old parent refresh finishes last', () => {
   expect(state.nodes.teamspace.children).toEqual(['smart-folder']);
   expect(state.nodes.private.children).toEqual([]);
 });
+
+it.each(['rss_folder', 'smart_folder'] as const)(
+  'keeps an empty %s expandable after patch and refresh',
+  resourceType => {
+    const managed = node('managed', 'private', 'private');
+    managed.resourceType = resourceType;
+    const state = {
+      nodes: {
+        private: node('private', null, 'private', ['managed']),
+        managed,
+      },
+      ui: {
+        managed: { expanded: true, loaded: true, loading: false },
+      },
+      activeId: null,
+    } as unknown as SidebarStore;
+    const actions = buildBaseActions(update => update(state));
+
+    actions.patch('managed', { hasChildren: false });
+    actions.refreshChildren('managed', []);
+
+    expect(state.nodes.managed.hasChildren).toBe(true);
+    expect(state.ui.managed.expanded).toBe(true);
+  }
+);

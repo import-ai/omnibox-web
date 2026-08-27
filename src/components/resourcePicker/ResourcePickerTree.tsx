@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next';
+
 import { ResourcePickerRow } from './ResourcePickerRow';
 import type { ResourcePickerResource } from './resourcePickerTypes';
 
 interface ResourcePickerTreeProps {
   childrenById: Record<string, ResourcePickerResource[]>;
   depth?: number;
+  enableManagedFolders: boolean;
   expandedIds: Set<string>;
   loadingIds: Set<string>;
   onSelect: (resource: ResourcePickerResource) => void;
@@ -16,6 +19,7 @@ interface ResourcePickerTreeProps {
 export function ResourcePickerTree({
   childrenById,
   depth = 0,
+  enableManagedFolders,
   expandedIds,
   loadingIds,
   onSelect,
@@ -24,15 +28,27 @@ export function ResourcePickerTree({
   selectedResourceId,
   toggleExpand,
 }: ResourcePickerTreeProps) {
+  const { t } = useTranslation();
+
   return resources.map(resource => {
     const children = childrenById[resource.id] ?? resource.children ?? [];
     const expanded = expandedIds.has(resource.id);
+    const managedFolder =
+      resource.resource_type === 'smart_folder' ||
+      resource.resource_type === 'rss_folder';
+    const canBrowseManagedFolder = !managedFolder || enableManagedFolders;
+    const childrenLoaded =
+      Object.prototype.hasOwnProperty.call(childrenById, resource.id) ||
+      resource.children !== undefined;
     return (
       <div key={resource.id} className="min-w-0 max-w-full overflow-hidden">
         <ResourcePickerRow
           canExpand={Boolean(
+            canBrowseManagedFolder &&
             (!resource.disabled || expanded) &&
-            (resource.has_children || children.length > 0)
+            ((enableManagedFolders && managedFolder) ||
+              resource.has_children ||
+              children.length > 0)
           )}
           depth={depth}
           expanded={expanded}
@@ -44,10 +60,11 @@ export function ResourcePickerTree({
           }}
           onToggle={() => void toggleExpand(resource)}
         />
-        {!searchActive && expanded && (
+        {!searchActive && canBrowseManagedFolder && expanded && (
           <ResourcePickerTree
             childrenById={childrenById}
             depth={depth + 1}
+            enableManagedFolders={enableManagedFolders}
             expandedIds={expandedIds}
             loadingIds={loadingIds}
             onSelect={onSelect}
@@ -57,6 +74,20 @@ export function ResourcePickerTree({
             toggleExpand={toggleExpand}
           />
         )}
+        {!searchActive &&
+          enableManagedFolders &&
+          managedFolder &&
+          expanded &&
+          childrenLoaded &&
+          !loadingIds.has(resource.id) &&
+          children.length === 0 && (
+            <div
+              className="py-2 text-sm text-muted-foreground"
+              style={{ paddingLeft: (depth + 1) * 16 + 39 }}
+            >
+              {t('sidebar.folder_empty')}
+            </div>
+          )}
       </div>
     );
   });
