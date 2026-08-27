@@ -5,6 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
+import {
+  getManualDropLine,
+  getProjectedDropDepth,
+  type ManualDropTarget,
+  resolveBoundaryDropTarget,
+  type VisibleDropItem,
+} from '@/page/sidebar/manualDropIndicator';
 
 import { useSidebarStore } from '../store';
 import type { ManualDropPosition, TreeNode } from '../store/types';
@@ -23,6 +30,7 @@ import {
 
 interface UseResourceNodeDndOptions {
   namespaceId: string;
+  depth: number;
   onNodeDrop?: (dragId: string, dropId: string) => void;
   selectionMode?: boolean;
   isSelected?: boolean;
@@ -36,7 +44,54 @@ interface UseResourceNodeDndReturn {
   isOver: boolean;
   isDisabledOver: boolean;
   isFileDragOver: boolean;
-  dropPosition: ManualDropPosition | null;
+  isInsideDrop: boolean;
+}
+
+const visibleDropItemsCache = new WeakMap<
+  DndItem,
+  Map<TreeNode['spaceType'], VisibleDropItem[]>
+>();
+
+function getVisibleDropItems(
+  item: DndItem,
+  nodes: Record<string, TreeNode>,
+  spaceType: TreeNode['spaceType'],
+  targetId: string
+) {
+  let itemsBySpace = visibleDropItemsCache.get(item);
+  const cachedItems = itemsBySpace?.get(spaceType);
+  if (cachedItems?.some(visibleItem => visibleItem.id === targetId)) {
+    return cachedItems;
+  }
+
+  const visibleItems = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-resource-drop-id]')
+  )
+    .filter(visibleElement => {
+      const visibleId = visibleElement.dataset.resourceDropId ?? '';
+      return (
+        nodes[visibleId]?.spaceType === spaceType &&
+        !item.disabledTargetIdSet?.has(visibleId)
+      );
+    })
+    .map(visibleElement => {
+      const id = visibleElement.dataset.resourceDropId ?? '';
+      const treeElement = visibleElement.closest<HTMLElement>(
+        '[data-resource-tree-id]'
+      );
+      return {
+        id,
+        depth: Number(treeElement?.dataset.resourceDepth ?? 0),
+      } satisfies VisibleDropItem;
+    })
+    .filter(visibleItem => visibleItem.id);
+
+  if (!itemsBySpace) {
+    itemsBySpace = new Map();
+    visibleDropItemsCache.set(item, itemsBySpace);
+  }
+  itemsBySpace.set(spaceType, visibleItems);
+  return visibleItems;
 }
 
 export function useResourceNodeDnd(
@@ -48,6 +103,7 @@ export function useResourceNodeDnd(
   const { t } = useTranslation();
   const {
     namespaceId,
+    depth,
     onNodeDrop,
     selectionMode = false,
     isSelected = false,
@@ -56,15 +112,16 @@ export function useResourceNodeDnd(
 
   const dragRef = useRef<HTMLDivElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
-  const dropPositionRef = useRef<ManualDropPosition | null>(null);
+  const dropTargetRef = useRef<ManualDropTarget | null>(null);
   const targetRectRef = useRef<DOMRect | null>(null);
-  const lineRef = useRef<{ left: number; top: number; width: number } | null>(
-    null
-  );
-  const dropPosition = useSidebarStore(state =>
-    state.manualDropIndicator?.targetId === nodeId
-      ? state.manualDropIndicator.position
-      : null
+  const targetRectScrollTopRef = useRef<number | null>(null);
+  const dropProjectionKeyRef = useRef<string | null>(null);
+  const lineRef = useRef<ReturnType<typeof getManualDropLine> | null>(null);
+  const isInsideDrop = useSidebarStore(
+    state =>
+      state.manualDropIndicator?.targetId === nodeId &&
+      state.manualDropIndicator.position === 'inside' &&
+      state.manualDropIndicator.line === null
   );
   const nodes = useSidebarStore(state => state.nodes);
   const selectedMap = useSidebarStore(state => state.selectedIds);
@@ -87,16 +144,28 @@ export function useResourceNodeDnd(
     }
     return Array.from(ids);
   }, [batchIds, nodes]);
-  const setCurrentDropPosition = useCallback(
-    (position: ManualDropPosition | null) => {
-      if (dropPositionRef.current === position) return;
-      dropPositionRef.current = position;
+  const setCurrentDropTarget = useCallback(
+    (target: ManualDropTarget | null) => {
+      dropTargetRef.current = target;
       const store = useSidebarStore.getState();
-      if (position) {
+      if (target) {
+        const currentIndicator = store.manualDropIndicator;
+        const nextLine = lineRef.current;
+        if (
+          currentIndicator?.targetId === nodeId &&
+          currentIndicator.position === target.position &&
+          currentIndicator.line?.left === nextLine?.left &&
+          currentIndicator.line?.top === nextLine?.top &&
+          currentIndicator.line?.width === nextLine?.width &&
+          currentIndicator.line?.arrowOffset === nextLine?.arrowOffset &&
+          currentIndicator.line?.guideOffset === nextLine?.guideOffset
+        ) {
+          return;
+        }
         store.setManualDropIndicator({
           targetId: nodeId,
-          position,
-          line: position === 'inside' ? null : lineRef.current,
+          position: target.position,
+          line: nextLine,
         });
       } else if (store.manualDropIndicator?.targetId === nodeId) {
         store.setManualDropIndicator(null);
@@ -143,20 +212,25 @@ export function useResourceNodeDnd(
 
   const updateDropPosition = (
     item: DndItem,
-    clientOffset: { x: number; y: number } | null
+    clientOffset: { x: number; y: number } | null,
+    horizontalOffset: number
   ) => {
     const element = dropRef.current;
     const dragNode = item.id ? nodes[item.id] : undefined;
     const targetNode = nodes[nodeId];
     if (!element || !clientOffset || !dragNode || !targetNode) {
-      setCurrentDropPosition(null);
+      dropProjectionKeyRef.current = null;
+      setCurrentDropTarget(null);
       return;
     }
 
+    const scrollTop =
+      element.closest<HTMLElement>('[data-sidebar="content"]')?.scrollTop ?? 0;
     let rect = targetRectRef.current;
-    if (!rect) {
+    if (!rect || targetRectScrollTopRef.current !== scrollTop) {
       rect = element.getBoundingClientRect();
       targetRectRef.current = rect;
+      targetRectScrollTopRef.current = scrollTop;
     }
     const ratio = (clientOffset.y - rect.top) / rect.height;
     const canContain =
@@ -168,46 +242,100 @@ export function useResourceNodeDnd(
         : ratio < 0.5
           ? 'before'
           : 'after';
-    const parent =
+    const projectedDepth = getProjectedDropDepth(
+      item.depth ?? depth,
+      horizontalOffset
+    );
+    const visibleItems = getVisibleDropItems(
+      item,
+      nodes,
+      targetNode.spaceType,
+      nodeId
+    );
+    const dropTarget =
       position === 'inside'
-        ? targetNode
-        : targetNode.parentId
-          ? nodes[targetNode.parentId]
+        ? {
+            targetId: nodeId,
+            position,
+            depth: depth + 1,
+          }
+        : resolveBoundaryDropTarget(
+            visibleItems,
+            nodeId,
+            projectedDepth,
+            position
+          );
+    const resolvedTargetNode = nodes[dropTarget.targetId];
+    const resolvedParent =
+      dropTarget.position === 'inside'
+        ? resolvedTargetNode
+        : resolvedTargetNode?.parentId
+          ? nodes[resolvedTargetNode.parentId]
           : undefined;
-    // Reordering inside a managed folder (rss items) is not allowed.
-    if (position !== 'inside' && isManagedChildrenNode(parent)) {
-      setCurrentDropPosition(null);
+    if (
+      !resolvedTargetNode ||
+      isManagedChildrenNode(resolvedParent) ||
+      (dragNode.resourceType === 'smart_folder' &&
+        dragNode.parentId !== resolvedParent?.id)
+    ) {
+      dropProjectionKeyRef.current = null;
+      setCurrentDropTarget(null);
       return;
     }
-    const permission = parent?.currentPermission || 'full_access';
+    const permission = resolvedParent?.currentPermission || 'full_access';
     if (permission !== 'can_edit' && permission !== 'full_access') {
-      setCurrentDropPosition(null);
+      dropProjectionKeyRef.current = null;
+      setCurrentDropTarget(null);
       return;
     }
-    if (dropPositionRef.current === position) return;
-
     if (position === 'inside') {
+      const projectionKey = `${nodeId}:inside:${dropTarget.targetId}:${dropTarget.depth}`;
+      if (dropProjectionKeyRef.current === projectionKey) return;
+      dropProjectionKeyRef.current = projectionKey;
       lineRef.current = null;
-    } else if (position === 'before') {
-      lineRef.current = { left: rect.left, top: rect.top, width: rect.width };
-    } else {
-      const siblings = targetNode.parentId
-        ? (nodes[targetNode.parentId]?.children ?? [])
-        : [];
-      const nextId = siblings[siblings.indexOf(targetNode.id) + 1];
-      const nextElement = nextId
-        ? document.querySelector<HTMLElement>(
+      setCurrentDropTarget(dropTarget);
+      return;
+    }
+
+    const projectionKey = `${nodeId}:${dropTarget.position}:${dropTarget.targetId}:${dropTarget.depth}:${scrollTop}`;
+    if (dropProjectionKeyRef.current === projectionKey) return;
+    dropProjectionKeyRef.current = projectionKey;
+
+    const resolvedElement =
+      dropTarget.targetId === nodeId
+        ? element
+        : document.querySelector<HTMLElement>(
+            `[data-resource-drop-id="${CSS.escape(dropTarget.targetId)}"]`
+          );
+    if (!resolvedElement) {
+      dropProjectionKeyRef.current = null;
+      setCurrentDropTarget(null);
+      return;
+    }
+    const resolvedRect = resolvedElement.getBoundingClientRect();
+    const treeRect =
+      resolvedElement
+        .closest<HTMLElement>('[data-resource-tree-id]')
+        ?.getBoundingClientRect() ?? resolvedRect;
+    const siblings = resolvedTargetNode.parentId
+      ? (nodes[resolvedTargetNode.parentId]?.children ?? [])
+      : [];
+    const nextId = siblings[siblings.indexOf(dropTarget.targetId) + 1];
+    const nextRect = nextId
+      ? document
+          .querySelector<HTMLElement>(
             `[data-resource-drop-id="${CSS.escape(nextId)}"]`
           )
-        : null;
-      const nextRect = nextElement?.getBoundingClientRect();
-      lineRef.current = {
-        left: nextRect?.left ?? rect.left,
-        top: nextRect?.top ?? rect.bottom,
-        width: nextRect?.width ?? rect.width,
-      };
-    }
-    setCurrentDropPosition(position);
+          ?.getBoundingClientRect()
+      : undefined;
+    lineRef.current = getManualDropLine({
+      position: dropTarget.position,
+      rowRect: resolvedRect,
+      treeRect,
+      nextRowRect: nextRect,
+      depth: dropTarget.depth,
+    });
+    setCurrentDropTarget(dropTarget);
   };
 
   const { handleDrop, handleHover, isFileDragOver, clearFileDragTarget } =
@@ -225,6 +353,7 @@ export function useResourceNodeDnd(
           const currentNodes = useSidebarStore.getState().nodes;
           return {
             ...node,
+            depth,
             type: 'card' as const,
             disabledTargetIdSet: new Set([
               nodeId,
@@ -257,6 +386,7 @@ export function useResourceNodeDnd(
       isSelected,
       node,
       nodeId,
+      depth,
       selectionMode,
     ]
   );
@@ -288,28 +418,35 @@ export function useResourceNodeDnd(
       if (!dropRef.current) return;
       if (!canDropItem(item)) return;
       if (item.id && monitor.isOver({ shallow: true })) {
-        updateDropPosition(item, monitor.getClientOffset());
+        updateDropPosition(
+          item,
+          monitor.getClientOffset(),
+          monitor.getDifferenceFromInitialOffset()?.x ?? 0
+        );
       }
       handleHover(item, monitor);
     },
     drop: (item, monitor) => {
       if (!canDropItem(item)) return;
-      if (item.id && dropPositionRef.current) {
+      if (item.id && dropTargetRef.current) {
         const store = useSidebarStore.getState();
         if (
-          dropPositionRef.current === 'inside' &&
+          dropTargetRef.current.position === 'inside' &&
+          lineRef.current === null &&
           store.resourceSorts[node.spaceType].sort_by !== 'manual'
         ) {
           targetRectRef.current = null;
+          targetRectScrollTopRef.current = null;
+          dropProjectionKeyRef.current = null;
           lineRef.current = null;
-          setCurrentDropPosition(null);
+          setCurrentDropTarget(null);
           handleDrop(item, monitor);
           return;
         }
         const pendingDrop = {
           dragId: item.id,
-          targetId: nodeId,
-          position: dropPositionRef.current,
+          targetId: dropTargetRef.current.targetId,
+          position: dropTargetRef.current.position,
         };
         if (store.resourceSorts[node.spaceType].sort_by === 'manual') {
           void store
@@ -325,8 +462,10 @@ export function useResourceNodeDnd(
           store.setPendingManualDrop(pendingDrop);
         }
         targetRectRef.current = null;
+        targetRectScrollTopRef.current = null;
+        dropProjectionKeyRef.current = null;
         lineRef.current = null;
-        setCurrentDropPosition(null);
+        setCurrentDropTarget(null);
         return;
       }
       if (item.id) return;
@@ -352,10 +491,12 @@ export function useResourceNodeDnd(
     }
     if (!isOver) {
       targetRectRef.current = null;
+      targetRectScrollTopRef.current = null;
+      dropProjectionKeyRef.current = null;
       lineRef.current = null;
-      setCurrentDropPosition(null);
+      setCurrentDropTarget(null);
     }
-  }, [isOver, isFileDragOver, clearFileDragTarget, setCurrentDropPosition]);
+  }, [isOver, isFileDragOver, clearFileDragTarget, setCurrentDropTarget]);
 
   return {
     dragRef,
@@ -364,6 +505,6 @@ export function useResourceNodeDnd(
     isOver,
     isDisabledOver: isDisabledOver || isBatchDisabledOver,
     isFileDragOver,
-    dropPosition,
+    isInsideDrop,
   };
 }
