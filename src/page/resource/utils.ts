@@ -126,6 +126,23 @@ interface Image {
   mimetype: string;
 }
 
+function contentRevision(content: string | undefined): string {
+  const value = content ?? '';
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (Math.imul(31, hash) + value.charCodeAt(i)) | 0;
+  }
+  return `${value.length}:${hash}`;
+}
+
+/** Remount the read-only editor when remote content changes. */
+export function getReadonlyResourceEditorKey(
+  resource: Pick<Resource, 'id'> &
+    Partial<Pick<Resource, 'content' | 'updated_at'>>
+): string {
+  return `${resource.id}:${resource.updated_at ?? ''}:${contentRevision(resource.content)}`;
+}
+
 export function embedImage(resource: Resource | SharedResource): string {
   let content: string = resource.content || '';
   if (resource.attrs?.images) {
