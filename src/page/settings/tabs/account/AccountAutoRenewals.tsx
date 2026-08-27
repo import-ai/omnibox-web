@@ -8,6 +8,9 @@ import { http } from '@/lib/request';
 import { type AutoRenewal, getAutoRenewalView } from './autoRenewal';
 import { AutoRenewalCard } from './AutoRenewalSection';
 
+const POLL_INTERVAL_MS = 2000;
+const MAX_POLL_ATTEMPTS = 30;
+
 function CommercialAutoRenewals() {
   const { t } = useTranslation();
   const [renewals, setRenewals] = useState<AutoRenewal[]>([]);
@@ -22,6 +25,38 @@ function CommercialAutoRenewals() {
       .finally(() => setLoading(false));
     return () => source.cancel();
   }, []);
+
+  const polling = renewals.some(renewal => renewal.status === 'canceling');
+  useEffect(() => {
+    if (!polling) return;
+
+    const source = axios.CancelToken.source();
+    let attempts = 0;
+    let timeout: number | undefined;
+    const poll = async () => {
+      attempts += 1;
+      try {
+        const data: AutoRenewal[] = await http.get('/auto-renewals', {
+          cancelToken: source.token,
+          mute: true,
+        });
+        setRenewals(data);
+        if (!data.some(renewal => renewal.status === 'canceling')) return;
+      } catch (error) {
+        if (axios.isCancel(error)) return;
+      }
+
+      if (attempts < MAX_POLL_ATTEMPTS) {
+        timeout = window.setTimeout(poll, POLL_INTERVAL_MS);
+      }
+    };
+    timeout = window.setTimeout(poll, POLL_INTERVAL_MS);
+
+    return () => {
+      window.clearTimeout(timeout);
+      source.cancel();
+    };
+  }, [polling]);
 
   const cancel = async (renewal: AutoRenewal) => {
     setCancelingId(renewal.id);
