@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import useConfig from '@/hooks/useConfig';
 import { http } from '@/lib/request';
+import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { type AutoRenewal, getAutoRenewalView } from './autoRenewal';
 import { AutoRenewalCard } from './AutoRenewalSection';
@@ -13,20 +14,24 @@ const MAX_POLL_ATTEMPTS = 30;
 
 function CommercialAutoRenewals() {
   const { t } = useTranslation();
+  const { showToast } = useSettingsToast();
   const [renewals, setRenewals] = useState<AutoRenewal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [polling, setPolling] = useState(false);
   const [cancelingId, setCancelingId] = useState<string>();
 
   useEffect(() => {
     const source = axios.CancelToken.source();
     http
       .get<AutoRenewal[]>('/auto-renewals', { cancelToken: source.token })
-      .then(setRenewals)
+      .then(data => {
+        setRenewals(data);
+        setPolling(data.some(renewal => renewal.status === 'canceling'));
+      })
       .finally(() => setLoading(false));
     return () => source.cancel();
   }, []);
 
-  const polling = renewals.some(renewal => renewal.status === 'canceling');
   useEffect(() => {
     if (!polling) return;
 
@@ -41,14 +46,23 @@ function CommercialAutoRenewals() {
           mute: true,
         });
         setRenewals(data);
-        if (!data.some(renewal => renewal.status === 'canceling')) return;
+        if (!data.some(renewal => renewal.status === 'canceling')) {
+          setPolling(false);
+          return;
+        }
       } catch (error) {
         if (axios.isCancel(error)) return;
+        setPolling(false);
+        showToast(t('namespace.auto_renewal.cancel_failed'), 'error');
+        return;
       }
 
-      if (attempts < MAX_POLL_ATTEMPTS) {
-        timeout = window.setTimeout(poll, POLL_INTERVAL_MS);
+      if (attempts >= MAX_POLL_ATTEMPTS) {
+        setPolling(false);
+        showToast(t('namespace.auto_renewal.cancel_timeout'), 'error');
+        return;
       }
+      timeout = window.setTimeout(poll, POLL_INTERVAL_MS);
     };
     timeout = window.setTimeout(poll, POLL_INTERVAL_MS);
 
@@ -56,7 +70,7 @@ function CommercialAutoRenewals() {
       window.clearTimeout(timeout);
       source.cancel();
     };
-  }, [polling]);
+  }, [polling, showToast, t]);
 
   const cancel = async (renewal: AutoRenewal) => {
     setCancelingId(renewal.id);
@@ -67,6 +81,7 @@ function CommercialAutoRenewals() {
       setRenewals(current =>
         current.map(item => (item.id === updated.id ? updated : item))
       );
+      if (updated.status === 'canceling') setPolling(true);
       return true;
     } catch {
       return false;
@@ -94,7 +109,7 @@ function CommercialAutoRenewals() {
             contextLabel={t('namespace.auto_renewal.space', {
               id: renewal.namespace_id || '-',
             })}
-            polling={renewal.status === 'canceling'}
+            polling={polling && renewal.status === 'canceling'}
             renewal={renewal}
           />
         ))

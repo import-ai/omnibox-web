@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 
 import useConfig from '@/hooks/useConfig';
 import { http } from '@/lib/request';
+import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AccountAutoRenewals } from './AccountAutoRenewals';
 import type { AutoRenewal } from './autoRenewal';
@@ -17,6 +18,7 @@ jest.mock('@/lib/request', () => ({
     post: jest.fn(),
   },
 }));
+jest.mock('@/page/settings/SettingsToastProvider');
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
@@ -67,11 +69,13 @@ function renewal(status: AutoRenewal['status']): AutoRenewal {
 describe('AccountAutoRenewals', () => {
   let container: HTMLDivElement;
   let root: Root;
+  const showToast = jest.fn();
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     (useConfig as jest.Mock).mockReturnValue({ config: { commercial: true } });
+    (useSettingsToast as jest.Mock).mockReturnValue({ showToast });
     container = document.createElement('div');
     root = createRoot(container);
   });
@@ -109,5 +113,53 @@ describe('AccountAutoRenewals', () => {
 
     await act(async () => jest.advanceTimersByTime(2000));
     expect(get).toHaveBeenCalledTimes(2);
+  });
+
+  it('stops polling and reports when cancellation remains pending', async () => {
+    const get = http.get as jest.Mock;
+    get.mockResolvedValue([renewal('canceling')]);
+
+    await act(async () => {
+      root.render(<AccountAutoRenewals />);
+      await Promise.resolve();
+    });
+
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+    }
+
+    expect(get).toHaveBeenCalledTimes(31);
+    expect(container.querySelector('button')?.dataset.polling).toBe('false');
+    expect(showToast).toHaveBeenCalledWith(
+      'namespace.auto_renewal.cancel_timeout',
+      'error'
+    );
+  });
+
+  it('stops polling and reports when the status request fails', async () => {
+    const get = http.get as jest.Mock;
+    get
+      .mockResolvedValueOnce([renewal('canceling')])
+      .mockRejectedValueOnce(new Error('network error'));
+
+    await act(async () => {
+      root.render(<AccountAutoRenewals />);
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+      await Promise.resolve();
+    });
+
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(container.querySelector('button')?.dataset.polling).toBe('false');
+    expect(showToast).toHaveBeenCalledWith(
+      'namespace.auto_renewal.cancel_failed',
+      'error'
+    );
   });
 });
