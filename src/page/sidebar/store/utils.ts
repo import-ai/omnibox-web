@@ -7,6 +7,10 @@ import type { SidebarState, TreeNode } from './types';
 type ResourceWithChildrenState = Resource & { hasChildren?: boolean };
 
 function getResourceHasChildren(resource: ResourceWithChildrenState): boolean {
+  if (isSmartFolderChildResource(resource)) {
+    return false;
+  }
+
   // Backend-managed folders remain browsable even when their current result is
   // empty; expanding them is how the UI can show that empty state.
   if (
@@ -51,10 +55,12 @@ export function createNode(
  * resources, rss folders own their items) never accept user-placed children.
  */
 export function isManagedChildrenNode(
-  node?: Pick<TreeNode, 'resourceType'> | null
+  node?: Pick<TreeNode, 'attrs' | 'resourceType'> | null
 ): boolean {
   return (
-    node?.resourceType === 'smart_folder' || node?.resourceType === 'rss_folder'
+    !isSmartFolderChildResource(node) &&
+    (node?.resourceType === 'smart_folder' ||
+      node?.resourceType === 'rss_folder')
   );
 }
 
@@ -213,7 +219,9 @@ export function patchNodeFromResource(
 ): void {
   const resourceWithChildrenState = resource as ResourceWithChildrenState;
   node.name = resource.name || '';
-  node.hasChildren = getResourceHasChildren(resourceWithChildrenState);
+  node.hasChildren = isSmartFolderChildResource(node)
+    ? false
+    : getResourceHasChildren(resourceWithChildrenState);
   node.readOnly = resource.read_only ?? node.readOnly;
   node.updatedAt = resource.updated_at || '';
   node.manualSortInitializedAt =

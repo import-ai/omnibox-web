@@ -1,5 +1,8 @@
 import type { Resource, SpaceType } from '@/interface';
-import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
+import {
+  isSmartFolderChildResource,
+  withSmartFolderChildSidebarAttrs,
+} from '@/page/sidebar/components/smart-folder';
 import type { NodeUI, TreeNode } from '@/page/sidebar/store';
 import { fetchChildren, fetchSmartFolderChildren } from '@/service/resource';
 import type { ResourceSortOptions } from '@/service/resourceSort';
@@ -17,6 +20,7 @@ export function getExpandedNodeIdsForSidebarRefresh(
       const node = nodes[id];
       return (
         !!node &&
+        !isSmartFolderChildResource(node) &&
         nodeUI.expanded &&
         nodeUI.loaded &&
         (node.hasChildren ||

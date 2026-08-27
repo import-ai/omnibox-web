@@ -171,4 +171,32 @@ describe('WorkspaceResourcePicker', () => {
     expect(fetchChildren).toHaveBeenCalled();
     expect(rowFor('An article')).toBeDefined();
   });
+
+  it('shows folder results from a smart folder without an expand button', async () => {
+    fetchSmartFolderChildren.mockResolvedValue([
+      {
+        id: 'result-folder-id',
+        name: 'Matching folder',
+        parent_id: smartFolder.id,
+        resource_type: 'folder',
+        has_children: true,
+      },
+      {
+        id: 'result-rss-folder-id',
+        name: 'Matching feed',
+        parent_id: smartFolder.id,
+        resource_type: 'rss_folder',
+        has_children: true,
+      },
+    ]);
+
+    await act(async () => {
+      expandFor(smartFolder.name)!.click();
+    });
+
+    expect(rowFor('Matching folder')).toBeDefined();
+    expect(expandFor('Matching folder')).toBeNull();
+    expect(rowFor('Matching feed')).toBeDefined();
+    expect(expandFor('Matching feed')).toBeNull();
+  });
 });

@@ -72,3 +72,30 @@ it.each(['rss_folder', 'smart_folder'] as const)(
     expect(state.ui.managed.expanded).toBe(true);
   }
 );
+
+it('does not restore expansion for an rss folder returned by a smart folder', () => {
+  const result = node(
+    'smart-folder-child-rss-folder',
+    'smart-folder',
+    'private'
+  );
+  result.resourceType = 'rss_folder';
+  result.attrs = { sidebar: { smart_folder_child: true } };
+  result.hasChildren = true;
+  const state = {
+    nodes: {
+      result,
+    },
+    ui: {
+      result: { expanded: true, loaded: true, loading: false },
+    },
+    activeId: null,
+  } as unknown as SidebarStore;
+  const actions = buildBaseActions(update => update(state));
+
+  actions.patch('result', { hasChildren: false });
+  actions.refreshChildren('result', []);
+
+  expect(state.nodes.result.hasChildren).toBe(false);
+  expect(state.ui.result.expanded).toBe(false);
+});

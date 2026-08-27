@@ -11,6 +11,7 @@ interface ResourcePickerTreeProps {
   loadingIds: Set<string>;
   onSelect: (resource: ResourcePickerResource) => void;
   resources: ResourcePickerResource[];
+  resourcesAreSmartFolderResults?: boolean;
   searchActive: boolean;
   selectedResourceId?: string;
   toggleExpand: (resource: ResourcePickerResource) => Promise<void>;
@@ -24,6 +25,7 @@ export function ResourcePickerTree({
   loadingIds,
   onSelect,
   resources,
+  resourcesAreSmartFolderResults = false,
   searchActive,
   selectedResourceId,
   toggleExpand,
@@ -44,6 +46,7 @@ export function ResourcePickerTree({
       <div key={resource.id} className="min-w-0 max-w-full overflow-hidden">
         <ResourcePickerRow
           canExpand={Boolean(
+            !resourcesAreSmartFolderResults &&
             canBrowseManagedFolder &&
             (!resource.disabled || expanded) &&
             ((enableManagedFolders && managedFolder) ||
@@ -60,20 +63,26 @@ export function ResourcePickerTree({
           }}
           onToggle={() => void toggleExpand(resource)}
         />
-        {!searchActive && canBrowseManagedFolder && expanded && (
-          <ResourcePickerTree
-            childrenById={childrenById}
-            depth={depth + 1}
-            enableManagedFolders={enableManagedFolders}
-            expandedIds={expandedIds}
-            loadingIds={loadingIds}
-            onSelect={onSelect}
-            resources={children}
-            searchActive={searchActive}
-            selectedResourceId={selectedResourceId}
-            toggleExpand={toggleExpand}
-          />
-        )}
+        {!searchActive &&
+          !resourcesAreSmartFolderResults &&
+          canBrowseManagedFolder &&
+          expanded && (
+            <ResourcePickerTree
+              childrenById={childrenById}
+              depth={depth + 1}
+              enableManagedFolders={enableManagedFolders}
+              expandedIds={expandedIds}
+              loadingIds={loadingIds}
+              onSelect={onSelect}
+              resources={children}
+              resourcesAreSmartFolderResults={
+                resource.resource_type === 'smart_folder'
+              }
+              searchActive={searchActive}
+              selectedResourceId={selectedResourceId}
+              toggleExpand={toggleExpand}
+            />
+          )}
         {!searchActive &&
           enableManagedFolders &&
           managedFolder &&

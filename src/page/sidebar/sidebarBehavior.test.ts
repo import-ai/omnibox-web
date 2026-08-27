@@ -82,3 +82,15 @@ it('includes an expanded RSS folder in the refresh snapshot', () => {
     rssFolder.id,
   ]);
 });
+
+it('excludes a folder returned by a smart folder from the refresh snapshot', () => {
+  const result = node('folder');
+  result.attrs = { sidebar: { smart_folder_child: true } };
+  const nodes = { [result.id]: result };
+  const rootIds = { private: 'private', teamspace: '' };
+  const ui = {
+    [result.id]: { expanded: true, loading: false, loaded: true },
+  };
+
+  expect(getExpandedNodeIdsForSidebarRefresh(nodes, ui, rootIds)).toEqual([]);
+});

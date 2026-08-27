@@ -1,4 +1,5 @@
 import type { Resource, SpaceType } from '@/interface';
+import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 import type { ResourceSortOptions } from '@/service/resource';
 
 import { parseResourceSorts, type ResourceSorts } from '../resourceSort';
@@ -234,7 +235,7 @@ export function buildBaseActions(set: SidebarSet) {
           isManagedChildrenNode(parent) || resources.length > 0;
         const pui = ensureUI(s, parentId);
         pui.loaded = true;
-        pui.expanded = true;
+        pui.expanded = !isSmartFolderChildResource(parent);
 
         if (s.activeId && deletedIds.has(s.activeId)) {
           s.activeId = null;
