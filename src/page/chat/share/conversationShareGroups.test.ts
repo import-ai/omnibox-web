@@ -8,6 +8,7 @@ import {
   areAllConversationShareGroupsSelected,
   buildConversationShareGroups,
   createConversationShareSelection,
+  getConversationShareAnswerIds,
   getConversationShareGroupForMessage,
   selectAllConversationShareGroups,
   toggleConversationShareGroup,
@@ -138,6 +139,15 @@ describe('conversationShareGroups', () => {
       new Set()
     );
     expect(getConversationShareGroupForMessage(groups, 'a2')?.id).toBe('q2');
+  });
+
+  it('maps selected groups to their exact answer IDs', () => {
+    const groups = buildConversationShareGroups([
+      message('q1', OpenAIMessageRole.USER, 'First'),
+      message('answer-selected', OpenAIMessageRole.ASSISTANT, 'Answer', 'q1'),
+    ]);
+
+    expect(getConversationShareAnswerIds(groups)).toEqual(['answer-selected']);
   });
 
   it('supports latest, all, toggle, and cancel-all selection rules', () => {

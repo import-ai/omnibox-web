@@ -11,7 +11,7 @@ const post = http.post as jest.MockedFunction<typeof http.post>;
 describe('createConversationShare', () => {
   beforeEach(() => post.mockReset());
 
-  it('posts the selected groups to the namespace endpoint', async () => {
+  it('posts the selected answers to the namespace endpoint', async () => {
     post.mockResolvedValue({
       id: 'share-1',
       url: 'https://www.omnibox.pro/conversation-share/?share_id=share-1',
@@ -23,12 +23,12 @@ describe('createConversationShare', () => {
       createConversationShare('namespace-1', {
         channel: 'copy_link',
         conversation_id: 'conversation-1',
-        group_ids: ['question-1', 'question-2'],
+        answer_ids: ['answer-1', 'answer-2'],
       })
     ).resolves.toEqual(expect.objectContaining({ id: 'share-1' }));
     expect(post).toHaveBeenCalledWith(
       '/namespaces/namespace-1/conversation-shares',
-      expect.objectContaining({ group_ids: ['question-1', 'question-2'] }),
+      expect.objectContaining({ answer_ids: ['answer-1', 'answer-2'] }),
       { mute: true }
     );
   });
@@ -40,7 +40,7 @@ describe('createConversationShare', () => {
       createConversationShare('namespace-1', {
         channel: 'wechat_session',
         conversation_id: 'conversation-1',
-        group_ids: ['question-1'],
+        answer_ids: ['answer-1'],
       })
     ).rejects.toThrow('incomplete');
   });

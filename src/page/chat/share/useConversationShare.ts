@@ -19,6 +19,7 @@ import {
   buildConversationShareGroups,
   type ConversationShareInitialSelection,
   createConversationShareSelection,
+  getConversationShareAnswerIds,
   getConversationShareGroupForMessage,
   selectAllConversationShareGroups,
   toggleConversationShareGroup,
@@ -150,7 +151,7 @@ export function useConversationShare({
         const snapshot = await createConversationShare(namespaceId, {
           channel,
           conversation_id: conversation.id,
-          group_ids: selectedGroups.map(group => group.id),
+          answer_ids: getConversationShareAnswerIds(selectedGroups),
         });
         const result = await deliverSnapshot(snapshot, channel, t);
         toast.success(

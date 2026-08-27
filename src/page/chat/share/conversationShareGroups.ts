@@ -97,6 +97,12 @@ export function getConversationShareGroupForMessage(
   return groups.find(group => group.messageIds.includes(messageId));
 }
 
+export function getConversationShareAnswerIds(
+  groups: readonly ConversationShareGroup[]
+) {
+  return groups.map(group => group.answer.id);
+}
+
 export function selectAllConversationShareGroups(
   groups: readonly ConversationShareGroup[]
 ) {

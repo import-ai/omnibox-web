@@ -28,7 +28,7 @@ export function ConversationShareMessageRow({
       aria-checked={selected}
       aria-label={t('chat.share.toggleGroup')}
       className={cn(
-        '-mx-2 grid cursor-pointer grid-cols-[32px_minmax(0,1fr)] rounded-md py-1 pr-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
+        '-mx-2 grid cursor-pointer grid-cols-[32px_minmax(0,1fr)] rounded-md py-2 pr-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring',
         selected && 'bg-slate-50 dark:bg-neutral-800/70'
       )}
       onClick={toggle}
