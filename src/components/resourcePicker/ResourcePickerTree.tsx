@@ -34,7 +34,8 @@ export function ResourcePickerTree({
 
   return resources.map(resource => {
     const children = childrenById[resource.id] ?? resource.children ?? [];
-    const expanded = expandedIds.has(resource.id);
+    const terminalResult = searchActive || resourcesAreSmartFolderResults;
+    const expanded = !terminalResult && expandedIds.has(resource.id);
     const managedFolder =
       resource.resource_type === 'smart_folder' ||
       resource.resource_type === 'rss_folder';
@@ -46,7 +47,7 @@ export function ResourcePickerTree({
       <div key={resource.id} className="min-w-0 max-w-full overflow-hidden">
         <ResourcePickerRow
           canExpand={Boolean(
-            !resourcesAreSmartFolderResults &&
+            !terminalResult &&
             canBrowseManagedFolder &&
             (!resource.disabled || expanded) &&
             ((enableManagedFolders && managedFolder) ||
@@ -63,27 +64,24 @@ export function ResourcePickerTree({
           }}
           onToggle={() => void toggleExpand(resource)}
         />
-        {!searchActive &&
-          !resourcesAreSmartFolderResults &&
-          canBrowseManagedFolder &&
-          expanded && (
-            <ResourcePickerTree
-              childrenById={childrenById}
-              depth={depth + 1}
-              enableManagedFolders={enableManagedFolders}
-              expandedIds={expandedIds}
-              loadingIds={loadingIds}
-              onSelect={onSelect}
-              resources={children}
-              resourcesAreSmartFolderResults={
-                resource.resource_type === 'smart_folder'
-              }
-              searchActive={searchActive}
-              selectedResourceId={selectedResourceId}
-              toggleExpand={toggleExpand}
-            />
-          )}
-        {!searchActive &&
+        {!terminalResult && canBrowseManagedFolder && expanded && (
+          <ResourcePickerTree
+            childrenById={childrenById}
+            depth={depth + 1}
+            enableManagedFolders={enableManagedFolders}
+            expandedIds={expandedIds}
+            loadingIds={loadingIds}
+            onSelect={onSelect}
+            resources={children}
+            resourcesAreSmartFolderResults={
+              resource.resource_type === 'smart_folder'
+            }
+            searchActive={searchActive}
+            selectedResourceId={selectedResourceId}
+            toggleExpand={toggleExpand}
+          />
+        )}
+        {!terminalResult &&
           enableManagedFolders &&
           managedFolder &&
           expanded &&
