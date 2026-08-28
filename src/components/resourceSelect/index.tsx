@@ -24,6 +24,7 @@ interface IProps {
   disabledIds?: string[];
   disabledTooltip?: string;
   disableSmartFolders?: boolean;
+  enableManagedFolders?: boolean;
   smartFolderDisabledTooltip?: string;
   onChange: (val: string, key?: string) => void;
 }
@@ -40,6 +41,7 @@ export function ResourceSelect(props: IProps) {
     disabledIds,
     disabledTooltip,
     disableSmartFolders,
+    enableManagedFolders,
     smartFolderDisabledTooltip,
     onChange,
   } = props;
@@ -182,6 +184,7 @@ export function ResourceSelect(props: IProps) {
             disabledIds={disabledIds}
             disabledTooltip={disabledTooltip}
             disableSmartFolders={disableSmartFolders}
+            enableManagedFolders={enableManagedFolders}
             smartFolderDisabledTooltip={smartFolderDisabledTooltip}
             onChange={handleChange}
           />
