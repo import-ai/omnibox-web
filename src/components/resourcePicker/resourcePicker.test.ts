@@ -75,6 +75,23 @@ describe('resource picker defaults', () => {
     expect(loadChildren).toHaveBeenCalledTimes(2);
   });
 
+  it('does not expand folder results returned by a smart folder', async () => {
+    const loadChildren = jest.fn(async (node: ReturnType<typeof resource>) => {
+      if (node.id === 'smart') {
+        return [resource('result-folder', 'folder', true)];
+      }
+      return [resource('nested', 'doc')];
+    });
+
+    const result = await expandAllResourceNodes(
+      [resource('smart', 'smart_folder', true)],
+      loadChildren
+    );
+
+    expect(Array.from(result.expandedIds)).toEqual(['smart']);
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+  });
+
   it('reuses provided children cache instead of refetching loaded nodes', async () => {
     const loadChildren = jest.fn(async () => [
       resource('should-not-load', 'file'),

@@ -28,6 +28,7 @@ interface ChooseResourceTreeProps {
   disabledIds?: string[];
   disabledTooltip?: string;
   disableSmartFolders?: boolean;
+  enableManagedFolders?: boolean;
   smartFolderDisabledTooltip?: string;
   onChange: (resource: ResourcePickerResource) => void;
 }
@@ -44,6 +45,7 @@ export function ChooseResourceTree({
   disabledIds,
   disabledTooltip,
   disableSmartFolders,
+  enableManagedFolders,
   smartFolderDisabledTooltip,
   onChange,
 }: ChooseResourceTreeProps) {
@@ -197,6 +199,7 @@ export function ChooseResourceTree({
 
   return (
     <ResourcePicker
+      enableManagedFolders={enableManagedFolders}
       loadFailed={loadFailed}
       loading={loading}
       roots={roots}

@@ -22,6 +22,7 @@ import { ChooseResourceTree } from './ChooseResourceTree';
 interface MockResourcePickerProps {
   loadFailed?: boolean;
   loading?: boolean;
+  enableManagedFolders?: boolean;
   roots: ResourcePickerResource[];
   loadChildren: (
     resource: ResourcePickerResource
@@ -72,6 +73,12 @@ const smartFolder = {
   parent_id: null,
   resource_type: 'smart_folder' as const,
 };
+const rssFolder = {
+  id: 'rss-folder',
+  name: 'RSS folder',
+  parent_id: null,
+  resource_type: 'rss_folder' as const,
+};
 const childFolder = {
   id: 'child-folder',
   name: 'Child folder',
@@ -117,6 +124,23 @@ describe('ChooseResourceTree', () => {
     expect(decoratedChild.disabledTooltip).toBeUndefined();
   });
 
+  it('disables both managed folder types when the caller opts out', async () => {
+    jest.mocked(searchResources).mockResolvedValue([smartFolder, rssFolder]);
+    renderTree();
+
+    const [decoratedSmartFolder, decoratedRssFolder] =
+      await mockResourcePickerProps.searchResources!('folder');
+
+    expect(decoratedSmartFolder).toMatchObject({
+      disabled: true,
+      disabledTooltip: 'Smart folder unsupported',
+    });
+    expect(decoratedRssFolder).toMatchObject({
+      disabled: true,
+      disabledTooltip: 'rss_folder.cannot_be_parent',
+    });
+  });
+
   it('bounds the children it loads for an rss folder', async () => {
     renderTree();
     jest.mocked(fetchChildren).mockResolvedValue([]);
@@ -147,6 +171,19 @@ describe('ChooseResourceTree', () => {
       expect.anything(),
       { params: undefined }
     );
+  });
+
+  it('enables managed folders only when the caller opts in', () => {
+    renderToStaticMarkup(
+      <ChooseResourceTree
+        enableManagedFolders
+        namespaceId="namespace"
+        resourceId="root"
+        onChange={jest.fn()}
+      />
+    );
+
+    expect(mockResourcePickerProps.enableManagedFolders).toBe(true);
   });
 
   it('still disables lazy-loaded descendants of an operating resource', async () => {
