@@ -93,6 +93,10 @@ export function useResourceNodeDnd(
     }
 
     if (item.id) {
+      if (item.id === nodeId) {
+        return true;
+      }
+
       const dragNode = nodes[item.id];
       if (isSmartFolderChildResource(dragNode)) {
         return false;
@@ -206,6 +210,10 @@ export function useResourceNodeDnd(
         useSidebarStore.getState().setManualDropIndicator(null);
         return;
       }
+      if (item.id === nodeId) {
+        resetDropState();
+        return;
+      }
       if (item.id && monitor.isOver({ shallow: true })) {
         updateDropPosition(
           item,
@@ -217,6 +225,10 @@ export function useResourceNodeDnd(
     },
     drop: (item, monitor) => {
       if (!canDropItem(item)) {
+        return;
+      }
+      if (item.id === nodeId) {
+        resetDropState();
         return;
       }
       const dropState = getDropState();
