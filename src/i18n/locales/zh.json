@@ -644,6 +644,21 @@
     "citations_results": "搜索结果",
     "searching": "搜索中...",
     "disclaimer": "内容由小黑 AI 生成，仅供参考",
+    "share": {
+      "action": "分享",
+      "selectAll": "全选",
+      "selectionSummary": "选择了 {{count}} 组对话",
+      "toggleGroup": "选择或取消选择该组对话",
+      "copyLink": "复制链接",
+      "generating": "内容生成中，请稍后再分享",
+      "noCompletedGroup": "暂无可分享的完整对话",
+      "createFailed": "创建分享失败，请稍后重试",
+      "copySuccess": "分享链接已复制",
+      "copyFailed": "复制失败，请稍后重试",
+      "copiedForWechat": "分享链接已复制，请打开微信粘贴分享",
+      "shareSuccess": "分享成功",
+      "wechatCardTitle": "来自小黑 OmniBox 的对话"
+    },
     "messages": {
       "context_compacting": "正在压缩上下文...",
       "context_compacted": "上下文已自动压缩",

@@ -48,6 +48,8 @@ interface IProps {
   isLastMessage: boolean;
   regenerateDisabled?: boolean;
   regenerating?: boolean;
+  hideActions?: boolean;
+  onShare?: (messageId: string) => void;
 }
 
 interface IToolCall {
@@ -93,6 +95,8 @@ export function AssistantMessage(props: IProps) {
     isLastMessage,
     regenerateDisabled = false,
     regenerating = false,
+    hideActions = false,
+    onShare,
   } = props;
   const { t } = useTranslation();
   const app = useApp();
@@ -141,6 +145,8 @@ export function AssistantMessage(props: IProps) {
         onPrevious={handlePrevious}
         onNext={handleNext}
         isLastMessage={isLastMessage}
+        hideActions={hideActions}
+        onShare={onShare}
       />
     );
   }
