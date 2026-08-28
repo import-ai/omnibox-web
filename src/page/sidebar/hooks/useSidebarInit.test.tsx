@@ -4,6 +4,9 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { fetchRootResources } from '@/service/resource';
+import { fetchResourceSortPreferences } from '@/service/resourceSortPreference';
+
 import { useSidebarInit } from './useSidebarInit';
 
 const navigate = jest.fn();
@@ -13,14 +16,18 @@ const activate = jest.fn((id: string | null) => {
 const expandPathTo = jest.fn().mockResolvedValue(undefined);
 const locateSidebarResource = jest.fn(() => Promise.resolve(undefined));
 const setNamespaceId = jest.fn();
+const setResourceSorts = jest.fn();
+const init = jest.fn();
 const mockSidebarState = {
   activeId: null as string | null,
   activate,
   expandPathTo,
+  init,
   nodes: {},
   resourceSorts: { private: {}, teamspace: {} },
   rootIds: { private: 'private-root', teamspace: '' },
   setNamespaceId,
+  setResourceSorts,
 };
 let location = {
   pathname: '/namespace/chat/conversation',
@@ -67,6 +74,10 @@ jest.mock('@/service/resource', () => ({
   fetchRootResources: jest.fn(),
 }));
 
+jest.mock('@/service/resourceSortPreference', () => ({
+  fetchResourceSortPreferences: jest.fn(),
+}));
+
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -111,6 +122,37 @@ describe('useSidebarInit Copilot resource sync', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     jest.restoreAllMocks();
+  });
+
+  it('loads both workspace roots with one request', async () => {
+    const roots = {
+      private: { id: 'private-root' },
+      teamspace: { id: 'teamspace-root' },
+    };
+    const sorts = {
+      private: { sort_by: 'title', sort_order: 'asc' },
+      teamspace: { sort_by: 'updated_at', sort_order: 'desc' },
+    } as const;
+    localStorage.setItem('uid', 'user-1');
+    jest.mocked(fetchResourceSortPreferences).mockResolvedValue({
+      private: { space_type: 'private', ...sorts.private },
+      teamspace: { space_type: 'teamspace', ...sorts.teamspace },
+    });
+    jest.mocked(fetchRootResources).mockResolvedValue(roots as never);
+
+    await act(async () => {
+      root.render(<Probe />);
+      await Promise.resolve();
+    });
+
+    expect(fetchRootResources).toHaveBeenCalledTimes(1);
+    expect(fetchRootResources).toHaveBeenCalledWith(
+      'namespace',
+      { signal: expect.any(AbortSignal) },
+      sorts
+    );
+    expect(setResourceSorts).toHaveBeenCalledWith(sorts);
+    expect(init).toHaveBeenCalledWith(roots);
   });
 
   it('locates and activates a Copilot preview from a chat route', async () => {

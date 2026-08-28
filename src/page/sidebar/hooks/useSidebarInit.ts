@@ -79,28 +79,15 @@ export function useSidebarInit(props: IProps) {
             sort_order: sorts.teamspace.sort_order,
           },
         });
-        return Promise.all([
-          fetchRootResources(
-            namespaceId,
-            { signal: controller.signal },
-            sorts.private
-          ),
-          fetchRootResources(
-            namespaceId,
-            { signal: controller.signal },
-            sorts.teamspace
-          ),
-        ]);
+        return fetchRootResources(
+          namespaceId,
+          { signal: controller.signal },
+          sorts
+        );
       })
-      .then(result => {
-        if (!result || controller.signal.aborted) return;
-        const [privateRoots, teamspaceRoots] = result;
-        useSidebarStore.getState().init({
-          ...privateRoots,
-          ...(teamspaceRoots.teamspace
-            ? { teamspace: teamspaceRoots.teamspace }
-            : {}),
-        });
+      .then(roots => {
+        if (!roots || controller.signal.aborted) return;
+        useSidebarStore.getState().init(roots);
       })
       .catch(err => {
         console.error('[sidebar] failed to fetch root resources:', err);

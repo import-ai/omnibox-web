@@ -62,13 +62,22 @@ it('initializes and updates manual resource sorting', async () => {
 it('sends resource sorting to root and children endpoints', async () => {
   get.mockResolvedValue({});
   const sort = { sort_by: 'title', sort_order: 'asc' } as const;
+  const rootSorts = {
+    private: sort,
+    teamspace: { sort_by: 'manual', sort_order: 'asc' } as const,
+  };
 
-  await fetchRootResources('namespace', { mute: true }, sort);
+  await fetchRootResources('namespace', { mute: true }, rootSorts);
   await fetchChildren('namespace', 'folder', sort, { mute: true });
 
   expect(get).toHaveBeenNthCalledWith(1, '/namespaces/namespace/root', {
     mute: true,
-    params: sort,
+    params: {
+      private_sort_by: 'title',
+      private_sort_order: 'asc',
+      teamspace_sort_by: 'manual',
+      teamspace_sort_order: 'asc',
+    },
   });
   expect(get).toHaveBeenNthCalledWith(
     2,

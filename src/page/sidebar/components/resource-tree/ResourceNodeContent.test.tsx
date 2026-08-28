@@ -389,7 +389,9 @@ describe('ResourceNodeContent empty folders', () => {
   });
 
   async function renderExpanded(node: TreeNode) {
-    mockSidebarState.ui = { [node.id]: { expanded: true } };
+    mockSidebarState.ui = {
+      [node.id]: { expanded: true, loaded: true, loading: false },
+    };
     await act(async () => {
       root.render(
         <ResourceNodeContent

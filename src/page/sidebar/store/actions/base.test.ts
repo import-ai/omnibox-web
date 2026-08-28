@@ -47,3 +47,55 @@ it('keeps a moved node when the old parent refresh finishes last', () => {
   expect(state.nodes.teamspace.children).toEqual(['smart-folder']);
   expect(state.nodes.private.children).toEqual([]);
 });
+
+it.each(['rss_folder', 'smart_folder'] as const)(
+  'keeps an empty %s expandable after patch and refresh',
+  resourceType => {
+    const managed = node('managed', 'private', 'private');
+    managed.resourceType = resourceType;
+    const state = {
+      nodes: {
+        private: node('private', null, 'private', ['managed']),
+        managed,
+      },
+      ui: {
+        managed: { expanded: true, loaded: true, loading: false },
+      },
+      activeId: null,
+    } as unknown as SidebarStore;
+    const actions = buildBaseActions(update => update(state));
+
+    actions.patch('managed', { hasChildren: false });
+    actions.refreshChildren('managed', []);
+
+    expect(state.nodes.managed.hasChildren).toBe(true);
+    expect(state.ui.managed.expanded).toBe(true);
+  }
+);
+
+it('does not restore expansion for an rss folder returned by a smart folder', () => {
+  const result = node(
+    'smart-folder-child-rss-folder',
+    'smart-folder',
+    'private'
+  );
+  result.resourceType = 'rss_folder';
+  result.attrs = { sidebar: { smart_folder_child: true } };
+  result.hasChildren = true;
+  const state = {
+    nodes: {
+      result,
+    },
+    ui: {
+      result: { expanded: true, loaded: true, loading: false },
+    },
+    activeId: null,
+  } as unknown as SidebarStore;
+  const actions = buildBaseActions(update => update(state));
+
+  actions.patch('result', { hasChildren: false });
+  actions.refreshChildren('result', []);
+
+  expect(state.nodes.result.hasChildren).toBe(false);
+  expect(state.ui.result.expanded).toBe(false);
+});

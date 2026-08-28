@@ -84,7 +84,11 @@ export async function expandResourceNodesByIds<T extends ExpandableResource>(
     });
   };
 
-  const expandRecursive = async (resource: T): Promise<void> => {
+  const expandRecursive = async (
+    resource: T,
+    isSmartFolderResult = false
+  ): Promise<void> => {
+    if (isSmartFolderResult) return;
     if (!targetIds.has(resource.id)) return;
 
     if (!childrenById[resource.id]) {
@@ -103,7 +107,9 @@ export async function expandResourceNodesByIds<T extends ExpandableResource>(
     publish();
 
     await Promise.allSettled(
-      (childrenById[resource.id] ?? []).map(expandRecursive)
+      (childrenById[resource.id] ?? []).map(child =>
+        expandRecursive(child, resource.resource_type === 'smart_folder')
+      )
     );
   };
 
@@ -133,7 +139,11 @@ export async function expandAllResourceNodes<T extends ExpandableResource>(
     });
   };
 
-  const expandRecursive = async (resource: T): Promise<void> => {
+  const expandRecursive = async (
+    resource: T,
+    isSmartFolderResult = false
+  ): Promise<void> => {
+    if (isSmartFolderResult) return;
     if (visited.has(resource.id)) return;
     visited.add(resource.id);
     if (!shouldExpandResourceNode(resource)) return;
@@ -156,7 +166,9 @@ export async function expandAllResourceNodes<T extends ExpandableResource>(
     await Promise.allSettled(
       (childrenById[resource.id] ?? [])
         .filter(shouldExpandResourceNode)
-        .map(child => expandRecursive(child))
+        .map(child =>
+          expandRecursive(child, resource.resource_type === 'smart_folder')
+        )
     );
   };
 

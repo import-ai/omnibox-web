@@ -417,6 +417,8 @@ export function ResourceNodeContent({
                 broken when it expands to nothing, so it says so. An empty
                 plain folder is the user's own doing and stays silent. */}
             {isExpanded &&
+              nodeUI?.loaded &&
+              !nodeUI.loading &&
               isManagedChildrenNode(node) &&
               node.children.length === 0 && (
                 <FolderEmptyState depth={depth + 1} />
