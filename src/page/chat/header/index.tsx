@@ -8,9 +8,14 @@ import {
   BreadcrumbItem,
   BreadcrumbList,
 } from '@/components/ui/Breadcrumb';
+import useApp from '@/hooks/useApp';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { setDocumentTitle } from '@/lib/utils';
 import ConversationSearchDialog from '@/page/chat/conversations/ConversationSearchDialog';
+import {
+  CONVERSATION_SHARE_STATE_EVENT,
+  type ConversationShareViewState,
+} from '@/page/chat/share/conversationShareEvents';
 import {
   getCopilotWorkspace,
   useCopilotStore,
@@ -23,6 +28,7 @@ import { useChatTitle } from './useChatTitle';
 
 export default function ChatHeader() {
   const loc = useLocation();
+  const app = useApp();
   const params = useParams();
   const { t } = useTranslation();
   const namespaceId = params.namespace_id || '';
@@ -58,6 +64,20 @@ export default function ChatHeader() {
   );
   const [searchOpen, setSearchOpen] = useState(false);
   const { chatTitle } = useChatTitle(namespaceId, titleConversationId);
+  const [shareState, setShareState] =
+    useState<ConversationShareViewState | null>(null);
+
+  useEffect(() => {
+    setShareState(null);
+    return app.on(
+      CONVERSATION_SHARE_STATE_EVENT,
+      (nextState: ConversationShareViewState) => {
+        if (nextState.conversationId === titleConversationId) {
+          setShareState(nextState.isSelecting ? nextState : null);
+        }
+      }
+    );
+  }, [app, titleConversationId]);
 
   useEffect(() => {
     if (routeConversationsPage) {
@@ -92,30 +112,32 @@ export default function ChatHeader() {
             </Breadcrumb>
           )}
         </div>
-        <div className="ml-auto shrink-0 pr-3">
-          <Actions
-            compact={previewingCitation}
-            homePage={homePage}
-            chatTitle={chatTitle}
-            namespaceId={namespaceId}
-            onChatCreate={
-              previewingCitation
-                ? () => {
-                    resetChatForNamespaceSwitch(namespaceId);
-                    showCopilotHome(namespaceId);
-                  }
-                : undefined
-            }
-            onChatHistory={
-              previewingCitation
-                ? () => showCopilotHistory(namespaceId)
-                : undefined
-            }
-            onChatSearch={() => setSearchOpen(true)}
-            conversationId={titleConversationId}
-            conversationsPage={conversationsPage}
-          />
-        </div>
+        {!shareState?.isSelecting && (
+          <div className="ml-auto shrink-0 pr-3">
+            <Actions
+              compact={previewingCitation}
+              homePage={homePage}
+              chatTitle={chatTitle}
+              namespaceId={namespaceId}
+              onChatCreate={
+                previewingCitation
+                  ? () => {
+                      resetChatForNamespaceSwitch(namespaceId);
+                      showCopilotHome(namespaceId);
+                    }
+                  : undefined
+              }
+              onChatHistory={
+                previewingCitation
+                  ? () => showCopilotHistory(namespaceId)
+                  : undefined
+              }
+              onChatSearch={() => setSearchOpen(true)}
+              conversationId={titleConversationId}
+              conversationsPage={conversationsPage}
+            />
+          </div>
+        )}
       </header>
       <ConversationSearchDialog
         namespaceId={namespaceId}

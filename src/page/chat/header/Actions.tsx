@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { ShareIcon } from '@/assets/icons/ShareIcon';
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
@@ -23,6 +24,7 @@ import {
 import useApp from '@/hooks/useApp';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
+import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
 
 import { PlusIcon } from './PlusIcon';
 
@@ -104,6 +106,28 @@ export default function Actions(props: IProps) {
             </Button>
           </TooltipTrigger>
           <TooltipContent>{t('chat.conversations.search')}</TooltipContent>
+        </Tooltip>
+      )}
+      {conversationId && !compact && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              aria-label={t('chat.share.action')}
+              className="size-7"
+              onClick={() =>
+                app.fire(CONVERSATION_SHARE_OPEN_EVENT, {
+                  conversationId,
+                  initialSelection: 'all',
+                })
+              }
+              size="icon"
+              type="button"
+              variant="ghost"
+            >
+              <ShareIcon className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t('chat.share.action')}</TooltipContent>
         </Tooltip>
       )}
       {!homePage && (

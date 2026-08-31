@@ -16,6 +16,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
+import { ShareIcon } from '@/assets/icons/ShareIcon';
 import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
@@ -58,6 +59,8 @@ interface IProps {
   onNext?: () => void;
   createdAt?: string;
   isLastMessage: boolean;
+  hideActions?: boolean;
+  onShare?: (messageId: string) => void;
 }
 
 export function CitationMarkdown(props: IProps) {
@@ -77,6 +80,8 @@ export function CitationMarkdown(props: IProps) {
     onNext,
     createdAt,
     isLastMessage,
+    hideActions = false,
+    onShare,
   } = props;
   const { theme } = useTheme();
   const isMobile = useIsMobile();
@@ -226,66 +231,84 @@ export function CitationMarkdown(props: IProps) {
       >
         {replacedContent}
       </Markdown>
-      {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
-        <div
-          className={`flex items-center gap-1 ml-[-6px] mt-[-10px] ${
-            isLastMessage
-              ? ''
-              : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
-          }`}
-        >
-          {hasSiblings && (
-            <>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="p-0 w-4 h-7"
-                onClick={onPrevious}
-                disabled={currentIndex === 0}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
-                {(currentIndex ?? 0) + 1}/{siblingsLength}
+      {!hideActions &&
+        ![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
+          <div
+            className={`flex items-center gap-1 ml-[-6px] mt-[-10px] ${
+              isLastMessage
+                ? ''
+                : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
+            }`}
+          >
+            {hasSiblings && (
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="p-0 w-4 h-7"
+                  onClick={onPrevious}
+                  disabled={currentIndex === 0}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
+                  {(currentIndex ?? 0) + 1}/{siblingsLength}
+                </span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="p-0 w-4 h-7"
+                  onClick={onNext}
+                  disabled={currentIndex === (siblingsLength ?? 1) - 1}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="p-0 w-7 h-7"
+                  disabled={regenerateDisabled}
+                  onClick={() => onRegenerate(messageId)}
+                >
+                  <RefreshCw
+                    className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`}
+                  />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('chat.messages.actions.regenerate')}</p>
+              </TooltipContent>
+            </Tooltip>
+            <Copy content={copyContent} />
+            <Save conversation={conversation} content={copyContent} />
+            {onShare && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    aria-label={t('chat.share.action')}
+                    className="h-7 w-7 p-0"
+                    onClick={() => onShare(messageId)}
+                    size="icon"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <ShareIcon className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('chat.share.action')}</TooltipContent>
+              </Tooltip>
+            )}
+            {createdAtLabel && (
+              <span className="text-xs text-muted-foreground opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100">
+                {createdAtLabel}
               </span>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="p-0 w-4 h-7"
-                onClick={onNext}
-                disabled={currentIndex === (siblingsLength ?? 1) - 1}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </>
-          )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="p-0 w-7 h-7"
-                disabled={regenerateDisabled}
-                onClick={() => onRegenerate(messageId)}
-              >
-                <RefreshCw
-                  className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`}
-                />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{t('chat.messages.actions.regenerate')}</p>
-            </TooltipContent>
-          </Tooltip>
-          <Copy content={copyContent} />
-          <Save conversation={conversation} content={copyContent} />
-          {createdAtLabel && (
-            <span className="text-xs text-muted-foreground opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100">
-              {createdAtLabel}
-            </span>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
     </div>
   );
 }
