@@ -31,12 +31,13 @@ function renewal(
 }
 
 describe('auto-renewal view', () => {
-  it.each(['active', 'past_due', 'canceling'] as const)(
-    'shows %s as enabled',
-    status => {
-      expect(getAutoRenewalView(renewal(status), NOW)).toBe('enabled');
-    }
-  );
+  it.each(['active', 'past_due'] as const)('shows %s as enabled', status => {
+    expect(getAutoRenewalView(renewal(status), NOW)).toBe('enabled');
+  });
+
+  it('shows canceling as awaiting provider confirmation', () => {
+    expect(getAutoRenewalView(renewal('canceling'), NOW)).toBe('canceling');
+  });
 
   it('shows an unexpired canceled renewal as disabled', () => {
     expect(

@@ -269,6 +269,8 @@
       "amount": "后续自动续费金额：{{amount}} / 月。",
       "cancel": "关闭自动续费",
       "canceling": "正在关闭自动续费",
+      "cancel_pending": "自动续费：关闭结果待确认。",
+      "cancel_pending_description": "微信正在确认解约结果，确认期间不会发起新的自动扣款，请稍后查看。",
       "disabled": "自动续费：已关闭。",
       "available_until": "当前权益可用至：{{date}}。到期后不再自动续费。",
       "confirm_title": "确认关闭自动续费吗？",

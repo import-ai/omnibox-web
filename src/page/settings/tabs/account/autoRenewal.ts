@@ -19,13 +19,14 @@ export interface AutoRenewal {
   canceled_at: string | null;
 }
 
-export type AutoRenewalView = 'enabled' | 'disabled' | 'failed';
+export type AutoRenewalView = 'enabled' | 'canceling' | 'disabled' | 'failed';
 
 export function getAutoRenewalView(
   renewal: AutoRenewal | null,
   now = new Date()
 ): AutoRenewalView | null {
-  if (renewal && ['active', 'past_due', 'canceling'].includes(renewal.status)) {
+  if (renewal?.status === 'canceling') return 'canceling';
+  if (renewal && ['active', 'past_due'].includes(renewal.status)) {
     return 'enabled';
   }
   if (renewal?.status === 'failed' && renewal.contract_active) return 'failed';

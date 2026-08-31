@@ -42,7 +42,7 @@ interface EnabledRenewalProps {
   isProcessing: boolean;
   nextBilling: string;
   onCancel: () => void;
-  status: 'enabled' | 'failed';
+  status: 'canceling' | 'enabled' | 'failed';
   tierLabel: string;
 }
 
@@ -60,16 +60,21 @@ function EnabledRenewal({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 space-y-1">
         <AlertTitle className="mb-1 text-sm leading-normal tracking-normal">
-          {tierLabel} · {t(`namespace.auto_renewal.${status}`)}
+          {tierLabel} ·{' '}
+          {t(
+            `namespace.auto_renewal.${status === 'canceling' ? 'cancel_pending' : status}`
+          )}
         </AlertTitle>
         <AlertDescription className="text-muted-foreground">
-          {status === 'failed'
-            ? t('namespace.auto_renewal.failed_description')
-            : nextBilling
-              ? `${t('namespace.auto_renewal.next_billing', {
-                  date: nextBilling,
-                })} ${t('namespace.auto_renewal.amount', { amount })}`
-              : t('namespace.auto_renewal.amount', { amount })}
+          {status === 'canceling'
+            ? t('namespace.auto_renewal.cancel_pending_description')
+            : status === 'failed'
+              ? t('namespace.auto_renewal.failed_description')
+              : nextBilling
+                ? `${t('namespace.auto_renewal.next_billing', {
+                    date: nextBilling,
+                  })} ${t('namespace.auto_renewal.amount', { amount })}`
+                : t('namespace.auto_renewal.amount', { amount })}
         </AlertDescription>
       </div>
       {canCancel && (
@@ -228,7 +233,7 @@ export function AutoRenewalCard({
       {view !== 'disabled' ? (
         <EnabledRenewal
           amount={amount}
-          canCancel={renewal.can_cancel}
+          canCancel={renewal.can_cancel && view !== 'canceling'}
           isProcessing={canceling || polling}
           nextBilling={nextBilling}
           onCancel={() => setDialogOpen(true)}
@@ -238,7 +243,7 @@ export function AutoRenewalCard({
       ) : (
         <DisabledRenewal periodEnd={periodEnd} tierLabel={tierLabel} />
       )}
-      {renewal.can_cancel && (
+      {renewal.can_cancel && view !== 'canceling' && (
         <CancelDialog
           canceling={canceling}
           onCancel={() => cancel(renewal)}
