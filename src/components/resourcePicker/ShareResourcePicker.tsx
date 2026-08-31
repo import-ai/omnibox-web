@@ -61,6 +61,7 @@ export function ShareResourcePicker({
 
   return (
     <ResourcePicker
+      enableManagedFolders={canBrowseResources}
       expandAllInitially={canBrowseResources}
       initialChildrenById={initialChildrenById}
       roots={roots}

@@ -101,6 +101,7 @@ export function WorkspaceResourcePicker({
 
   return (
     <ResourcePicker
+      enableManagedFolders
       loadFailed={loadFailed}
       loading={loading}
       roots={roots}

@@ -24,7 +24,7 @@ import {
 } from '@/service/resource';
 import { rssTreeChildrenParams } from '@/service/resourceSort';
 
-import { isManagedChildrenFolder, shouldDisableMoveTarget } from './utils';
+import { shouldDisableMoveTarget } from './utils';
 
 export interface IFormProps {
   resourceIds: string[];
@@ -83,11 +83,13 @@ export default function MoveToForm(props: IFormProps) {
         children,
         disabled,
         disabledTooltip: unsupportedTarget
-          ? isManagedChildrenFolder(resource.resource_type)
+          ? resource.resource_type === 'rss_folder'
             ? t('rss_folder.move.unsupported_target')
-            : resource.read_only
-              ? t('resource.read_only_target')
-              : t('smart_folder.move.unsupported_mixed_target')
+            : resource.resource_type === 'smart_folder'
+              ? t('smart_folder.move.unsupported_mixed_target')
+              : resource.read_only
+                ? t('resource.read_only_target')
+                : undefined
           : operatingResource
             ? disabledTargetTooltip
             : undefined,

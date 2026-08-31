@@ -56,7 +56,14 @@ const rssFolder = {
   name: 'Morning Feeds',
   parent_id: 'private-root',
   resource_type: 'rss_folder',
-  has_children: true,
+  has_children: false,
+};
+const smartFolder = {
+  id: 'smart-folder-id',
+  name: 'Saved Search',
+  parent_id: 'private-root',
+  resource_type: 'smart_folder',
+  has_children: false,
 };
 
 describe('WorkspaceResourcePicker', () => {
@@ -68,6 +75,8 @@ describe('WorkspaceResourcePicker', () => {
     onSelect.mockReset();
     fetchChildren.mockReset();
     fetchChildren.mockResolvedValue([]);
+    fetchSmartFolderChildren.mockReset();
+    fetchSmartFolderChildren.mockResolvedValue([]);
     fetchSortedWorkspaceRootResources.mockReset();
     fetchSortedWorkspaceRootResources.mockResolvedValue({
       private: {
@@ -75,7 +84,7 @@ describe('WorkspaceResourcePicker', () => {
         name: 'Private',
         parent_id: null,
         resource_type: 'folder',
-        children: [rssFolder],
+        children: [rssFolder, smartFolder],
       },
     });
     container = document.createElement('div');
@@ -103,21 +112,45 @@ describe('WorkspaceResourcePicker', () => {
       button => button.textContent?.trim() === name
     );
 
+  const expandFor = (name: string) =>
+    rowFor(
+      name
+    )?.parentElement?.parentElement?.querySelector<HTMLButtonElement>(
+      'button[aria-label]'
+    );
+
   // A feed folder is chat context like any other folder: attaching it attaches
   // the articles inside it.
-  it('offers an rss folder as a selectable chat context', async () => {
-    const row = rowFor(rssFolder.name);
-    expect(row).toBeDefined();
-    expect(row!.disabled).toBe(false);
+  it.each([rssFolder, smartFolder])(
+    'offers $resource_type as a selectable chat context',
+    async folder => {
+      const row = rowFor(folder.name);
+      expect(row).toBeDefined();
+      expect(row!.disabled).toBe(false);
 
-    await act(async () => {
-      row!.click();
-    });
+      await act(async () => {
+        row!.click();
+      });
 
-    expect(onSelect).toHaveBeenCalledWith(
-      expect.objectContaining({ id: rssFolder.id })
-    );
-  });
+      expect(onSelect).toHaveBeenCalledWith(
+        expect.objectContaining({ id: folder.id })
+      );
+    }
+  );
+
+  it.each([rssFolder, smartFolder])(
+    'keeps an empty $resource_type expandable and shows its empty state',
+    async folder => {
+      const expand = expandFor(folder.name);
+      expect(expand).toBeDefined();
+
+      await act(async () => {
+        expand!.click();
+      });
+
+      expect(container.textContent).toContain('sidebar.folder_empty');
+    }
+  );
 
   it('expands an rss folder to its articles', async () => {
     fetchChildren.mockResolvedValue([
@@ -128,12 +161,7 @@ describe('WorkspaceResourcePicker', () => {
         resource_type: 'rss_item',
       },
     ]);
-    const expand = [
-      ...container.querySelectorAll<HTMLButtonElement>('button'),
-    ].find(
-      button =>
-        button.getAttribute('aria-label') === 'resource_picker.expand_resource'
-    );
+    const expand = expandFor(rssFolder.name);
     expect(expand).toBeDefined();
 
     await act(async () => {
@@ -142,5 +170,33 @@ describe('WorkspaceResourcePicker', () => {
 
     expect(fetchChildren).toHaveBeenCalled();
     expect(rowFor('An article')).toBeDefined();
+  });
+
+  it('shows folder results from a smart folder without an expand button', async () => {
+    fetchSmartFolderChildren.mockResolvedValue([
+      {
+        id: 'result-folder-id',
+        name: 'Matching folder',
+        parent_id: smartFolder.id,
+        resource_type: 'folder',
+        has_children: true,
+      },
+      {
+        id: 'result-rss-folder-id',
+        name: 'Matching feed',
+        parent_id: smartFolder.id,
+        resource_type: 'rss_folder',
+        has_children: true,
+      },
+    ]);
+
+    await act(async () => {
+      expandFor(smartFolder.name)!.click();
+    });
+
+    expect(rowFor('Matching folder')).toBeDefined();
+    expect(expandFor('Matching folder')).toBeNull();
+    expect(rowFor('Matching feed')).toBeDefined();
+    expect(expandFor('Matching feed')).toBeNull();
   });
 });

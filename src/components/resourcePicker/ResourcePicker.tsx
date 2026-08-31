@@ -33,6 +33,7 @@ interface ResourcePickerProps {
   searchOnKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   beforeList?: ReactNode;
   listClassName?: string;
+  enableManagedFolders?: boolean;
   selectedResourceId?: string;
   onSelect: (resource: ResourcePickerResource) => void;
 }
@@ -54,6 +55,7 @@ export function ResourcePicker({
   searchOnKeyDown,
   beforeList,
   listClassName,
+  enableManagedFolders = false,
   selectedResourceId,
   onSelect,
 }: ResourcePickerProps) {
@@ -157,6 +159,7 @@ export function ResourcePicker({
         ) : (
           <ResourcePickerTree
             childrenById={controller.childrenById}
+            enableManagedFolders={enableManagedFolders}
             expandedIds={controller.expandedIds}
             loadingIds={controller.loadingIds}
             onSelect={onSelect}
