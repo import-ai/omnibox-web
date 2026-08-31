@@ -275,11 +275,13 @@ export function useResourceNodeDnd(
     batchDragging && isDisabledOver && disabledBatchTargetIds.includes(nodeId);
 
   useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: false });
+  }, [preview]);
+
+  useEffect(() => {
     drag(dragRef);
     drop(dropRef);
-    // Reconnecting the drag source clears its preview, so attach this last.
-    preview(getEmptyImage(), { captureDraggingState: true });
-  }, [drag, drop, preview]);
+  }, [drag, drop]);
 
   useEffect(() => {
     if (!isOver && isFileDragOver) {
