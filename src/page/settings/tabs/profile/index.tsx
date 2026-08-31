@@ -54,7 +54,6 @@ import { http } from '@/lib/request';
 import { cn } from '@/lib/utils.ts';
 import { optionalPasswordSchema } from '@/lib/validationSchemas';
 
-import { AccountAutoRenewals } from '../account/AccountAutoRenewals';
 import { DeleteAccountDialog } from '../account/DeleteAccountDialog';
 import EmailValidate from '../account/EmailValidate';
 import PhoneValidate from '../account/PhoneValidate';
@@ -728,8 +727,6 @@ export default function ProfileForm() {
           </div>
         </DialogContent>
       </Dialog>
-
-      <AccountAutoRenewals />
 
       {/* Danger Zone Section */}
       <SectionHeader

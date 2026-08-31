@@ -51,10 +51,16 @@ describe('auto-renewal view', () => {
     ).toBe('failed');
   });
 
+  it('shows a signed contract before the initial payment', () => {
+    expect(
+      getAutoRenewalView({ ...renewal('signing'), contract_active: true }, NOW)
+    ).toBe('signing');
+  });
+
   it.each([
     ['at the expiry boundary', 'canceled', '2026-07-22T12:00:00.000Z'],
     ['after expiry', 'canceled', '2026-07-22T11:59:59.000Z'],
-    ['while signing', 'signing', null],
+    ['while the provider contract is unconfirmed', 'signing', null],
     ['after failure', 'failed', null],
   ] as const)('hides a renewal %s', (_name, status, currentPeriodEnd) => {
     expect(

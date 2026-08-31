@@ -76,4 +76,23 @@ describe('AutoRenewalCard', () => {
     expect(container.querySelector('button')).toBeNull();
     expect(container.querySelector('[role="status"]')).toBeNull();
   });
+
+  it('shows and allows canceling a signed contract before payment', async () => {
+    await act(async () => {
+      root.render(
+        <AutoRenewalCard
+          cancel={jest.fn()}
+          canceling={false}
+          polling={false}
+          renewal={{ ...renewal, status: 'signing' }}
+        />
+      );
+    });
+
+    expect(container.textContent).toContain('namespace.auto_renewal.signing');
+    expect(container.textContent).toContain(
+      'namespace.auto_renewal.signing_description'
+    );
+    expect(container.querySelector('button')).not.toBeNull();
+  });
 });

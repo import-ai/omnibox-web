@@ -42,7 +42,7 @@ interface EnabledRenewalProps {
   isProcessing: boolean;
   nextBilling: string;
   onCancel: () => void;
-  status: 'canceling' | 'enabled' | 'failed';
+  status: 'signing' | 'canceling' | 'enabled' | 'failed';
   tierLabel: string;
 }
 
@@ -68,13 +68,15 @@ function EnabledRenewal({
         <AlertDescription className="text-muted-foreground">
           {status === 'canceling'
             ? t('namespace.auto_renewal.cancel_pending_description')
-            : status === 'failed'
-              ? t('namespace.auto_renewal.failed_description')
-              : nextBilling
-                ? `${t('namespace.auto_renewal.next_billing', {
-                    date: nextBilling,
-                  })} ${t('namespace.auto_renewal.amount', { amount })}`
-                : t('namespace.auto_renewal.amount', { amount })}
+            : status === 'signing'
+              ? t('namespace.auto_renewal.signing_description')
+              : status === 'failed'
+                ? t('namespace.auto_renewal.failed_description')
+                : nextBilling
+                  ? `${t('namespace.auto_renewal.next_billing', {
+                      date: nextBilling,
+                    })} ${t('namespace.auto_renewal.amount', { amount })}`
+                  : t('namespace.auto_renewal.amount', { amount })}
         </AlertDescription>
       </div>
       {canCancel && (
@@ -122,6 +124,7 @@ interface CancelDialogProps {
   onOpenChange: (open: boolean) => void;
   open: boolean;
   periodEnd: string;
+  signing: boolean;
 }
 
 function CancelDialog({
@@ -130,6 +133,7 @@ function CancelDialog({
   onOpenChange,
   open,
   periodEnd,
+  signing,
 }: CancelDialogProps) {
   const { t } = useTranslation();
   const handleCancel = async () => {
@@ -143,9 +147,11 @@ function CancelDialog({
             {t('namespace.auto_renewal.confirm_title')}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            {t('namespace.auto_renewal.confirm_description', {
-              date: periodEnd,
-            })}
+            {signing
+              ? t('namespace.auto_renewal.confirm_signing_description')
+              : t('namespace.auto_renewal.confirm_description', {
+                  date: periodEnd,
+                })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -250,6 +256,7 @@ export function AutoRenewalCard({
           onOpenChange={setDialogOpen}
           open={dialogOpen}
           periodEnd={periodEnd}
+          signing={view === 'signing'}
         />
       )}
     </Alert>
