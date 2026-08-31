@@ -36,8 +36,8 @@ export function buildBaseActions(set: SidebarSet) {
           s.manualDropIndicator?.line?.width === indicator?.line?.width &&
           s.manualDropIndicator?.line?.arrowOffset ===
             indicator?.line?.arrowOffset &&
-          s.manualDropIndicator?.line?.guideOffset ===
-            indicator?.line?.guideOffset
+          s.manualDropIndicator?.line?.guideCount ===
+            indicator?.line?.guideCount
         ) {
           return;
         }

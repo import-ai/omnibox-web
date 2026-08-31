@@ -7,7 +7,7 @@ export interface ManualDropLine {
   top: number;
   width: number;
   arrowOffset: number;
-  guideOffset: number | null;
+  guideCount: number;
 }
 
 interface DropIndicatorRect {
@@ -21,6 +21,7 @@ interface GetManualDropLineOptions {
   position: ManualDropPosition;
   rowRect: DropIndicatorRect;
   depth: number;
+  guideCount: number;
 }
 
 export interface VisibleDropItem {
@@ -34,6 +35,11 @@ export interface ManualDropTarget {
   depth: number;
 }
 
+interface DropBoundary {
+  targetId: string;
+  position: 'before' | 'after';
+}
+
 export function getProjectedDropDepth(
   sourceDepth: number,
   horizontalOffset: number
@@ -42,6 +48,20 @@ export function getProjectedDropDepth(
     0,
     sourceDepth + Math.round(horizontalOffset / RESOURCE_TREE_INDENT)
   );
+}
+
+export function getDragAwareDropBoundary(
+  items: VisibleDropItem[],
+  targetId: string,
+  position: 'before' | 'after',
+  dragId: string
+): DropBoundary {
+  const targetIndex = items.findIndex(item => item.id === targetId);
+  const boundaryIndex = targetIndex + (position === 'after' ? 1 : 0);
+  if (targetIndex >= 0 && items[boundaryIndex]?.id === dragId) {
+    return { targetId: dragId, position: 'after' };
+  }
+  return { targetId, position };
 }
 
 export function resolveBoundaryDropTarget(
@@ -58,8 +78,9 @@ export function resolveBoundaryDropTarget(
   const boundaryIndex = targetIndex + (boundary === 'after' ? 1 : 0);
   const previous = items[boundaryIndex - 1];
   const next = items[boundaryIndex];
+  const minimumDepth = next?.depth ?? 0;
   const maximumDepth = Math.max(previous?.depth ?? 0, next?.depth ?? 0);
-  const depth = Math.min(maximumDepth, Math.max(0, projectedDepth));
+  const depth = Math.min(maximumDepth, Math.max(minimumDepth, projectedDepth));
 
   // Map a visual boundary in the flattened tree back to the relative target
   // expected by the manual-sort API at the projected depth.
@@ -87,19 +108,46 @@ export function resolveBoundaryDropTarget(
   return { targetId, position: boundary, depth };
 }
 
+export function getHierarchyGuideCount(
+  items: VisibleDropItem[],
+  targetId: string,
+  targetDepth: number,
+  boundary: 'before' | 'after'
+) {
+  if (items.length === 0) return 0;
+
+  const topLevelDepth = Math.min(...items.map(item => item.depth));
+  if (targetDepth <= topLevelDepth) return 0;
+
+  const targetIndex = items.findIndex(item => item.id === targetId);
+  if (targetIndex < 0) return 0;
+
+  const boundaryIndex = targetIndex + (boundary === 'after' ? 1 : 0);
+  const previous = items[boundaryIndex - 1];
+  const nextDepth = items[boundaryIndex]?.depth ?? topLevelDepth;
+  if (
+    !previous ||
+    previous.depth <= nextDepth ||
+    targetDepth > previous.depth
+  ) {
+    return 0;
+  }
+  return Math.max(0, targetDepth - nextDepth);
+}
+
 export function getManualDropLine({
   position,
   rowRect,
   depth,
+  guideCount,
 }: GetManualDropLineOptions): ManualDropLine {
   const arrowOffset = depth * RESOURCE_TREE_INDENT;
-  const guideOffset = depth > 0 ? (depth - 1) * RESOURCE_TREE_INDENT : null;
 
   return {
     left: rowRect.left,
     top: position === 'before' ? rowRect.top : rowRect.bottom,
     width: rowRect.width,
     arrowOffset,
-    guideOffset,
+    guideCount: Math.min(depth, Math.max(0, guideCount)),
   };
 }

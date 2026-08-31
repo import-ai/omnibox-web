@@ -1,6 +1,8 @@
 import { type RefObject, useCallback, useRef } from 'react';
 
 import {
+  getDragAwareDropBoundary,
+  getHierarchyGuideCount,
   getManualDropLine,
   getProjectedDropDepth,
   type ManualDropTarget,
@@ -60,7 +62,7 @@ function getVisibleDropItems(
       const visibleId = visibleElement.dataset.resourceDropId ?? '';
       return (
         nodes[visibleId]?.spaceType === spaceType &&
-        !item.disabledTargetIdSet?.has(visibleId)
+        (visibleId === item.id || !item.disabledTargetIdSet?.has(visibleId))
       );
     })
     .map(visibleElement => {
@@ -113,7 +115,7 @@ export function useManualResourceDrop({
           currentIndicator.line?.top === nextLine?.top &&
           currentIndicator.line?.width === nextLine?.width &&
           currentIndicator.line?.arrowOffset === nextLine?.arrowOffset &&
-          currentIndicator.line?.guideOffset === nextLine?.guideOffset
+          currentIndicator.line?.guideCount === nextLine?.guideCount
         ) {
           return;
         }
@@ -157,7 +159,7 @@ export function useManualResourceDrop({
       !isManagedChildrenNode(targetNode) &&
       dragNode.resourceType !== 'smart_folder';
     const position: ManualDropPosition =
-      canContain && ratio >= 0.25 && ratio <= 0.75
+      canContain && ratio >= 0.3 && ratio <= 0.7
         ? 'inside'
         : ratio < 0.5
           ? 'before'
@@ -172,6 +174,10 @@ export function useManualResourceDrop({
       targetNode.spaceType,
       nodeId
     );
+    const dropBoundary =
+      position === 'inside'
+        ? null
+        : getDragAwareDropBoundary(visibleItems, nodeId, position, dragNode.id);
     const dropTarget =
       position === 'inside'
         ? {
@@ -181,9 +187,9 @@ export function useManualResourceDrop({
           }
         : resolveBoundaryDropTarget(
             visibleItems,
-            nodeId,
+            dropBoundary.targetId,
             projectedDepth,
-            position
+            dropBoundary.position
           );
     const resolvedTargetNode = nodes[dropTarget.targetId];
     const resolvedParent =
@@ -229,6 +235,12 @@ export function useManualResourceDrop({
       position,
       rowRect: rect,
       depth: dropTarget.depth,
+      guideCount: getHierarchyGuideCount(
+        visibleItems,
+        dropBoundary.targetId,
+        dropTarget.depth,
+        dropBoundary.position
+      ),
     });
     setCurrentDropTarget(dropTarget);
   };

@@ -6,6 +6,7 @@ import { Namespace, SpaceType } from '@/interface';
 import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
 import { SidebarDragLayer } from '@/page/sidebar/hooks/UseBatchDrag';
 import { useDragAutoScroll } from '@/page/sidebar/hooks/useDragAutoScroll';
+import { RESOURCE_TREE_INDENT } from '@/page/sidebar/manualDropIndicator';
 import type { RssFolderQuotaExhausted } from '@/page/sidebar/rssFolderQuota';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { TrashPanel } from '@/page/trash';
@@ -37,10 +38,6 @@ function ManualDropLine() {
   if (!line) return null;
 
   const arrowOffset = Math.min(line.arrowOffset, Math.max(0, line.width - 6));
-  const guideWidth =
-    line.guideOffset === null
-      ? 0
-      : Math.max(0, arrowOffset - line.guideOffset - 4);
 
   return createPortal(
     <span
@@ -52,12 +49,22 @@ function ManualDropLine() {
         width: line.width,
       }}
     >
-      {line.guideOffset !== null && (
-        <span
-          className="absolute top-0 h-0.5 bg-blue-200 before:absolute before:-top-[3px] before:left-0 before:h-2 before:w-0.5 before:bg-blue-200"
-          style={{ left: line.guideOffset, width: guideWidth }}
-        />
-      )}
+      {Array.from({ length: line.guideCount }, (_, index) => {
+        const guideOffset = Math.max(
+          0,
+          arrowOffset - (index + 1) * RESOURCE_TREE_INDENT
+        );
+        return (
+          <span
+            key={index}
+            className="absolute top-0 h-0.5 bg-blue-200 before:absolute before:-top-[3px] before:left-0 before:h-2 before:w-0.5 before:bg-blue-200"
+            style={{
+              left: guideOffset,
+              width: Math.max(0, arrowOffset - guideOffset - 4),
+            }}
+          />
+        );
+      })}
       <span
         className="absolute -top-[3px] size-0 border-y-4 border-l-[6px] border-y-transparent border-l-blue-500"
         style={{ left: arrowOffset }}
