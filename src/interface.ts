@@ -364,6 +364,7 @@ export interface Task {
 
 export interface ApplicationAttrs {
   key?: string;
+  url_link?: string;
   session_key?: string;
   qrcode_content?: string;
   account_id?: string;
