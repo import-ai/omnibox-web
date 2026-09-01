@@ -31,7 +31,10 @@ import {
 import { getSmartFolderSourceResourceId } from '@/page/sidebar/components/smart-folder';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/useResourceNodeDnd';
 import { useResourceNodeRename } from '@/page/sidebar/hooks/useResourceNodeRename';
-import { RESOURCE_TREE_INDENT } from '@/page/sidebar/manualDropIndicator';
+import {
+  RESOURCE_TREE_ICON_OFFSET,
+  RESOURCE_TREE_INDENT,
+} from '@/page/sidebar/manualDropIndicator';
 import {
   useIsSelected,
   useNodeIsDimmedBySelection,
@@ -145,7 +148,7 @@ export function ResourceNodeContent({
   }, [app, initialSyncLoading, initialSyncStatus, nodeId]);
   const selectedIdList = useMemo(() => Object.keys(selectedIds), [selectedIds]);
   const contentIndent = depth * RESOURCE_TREE_INDENT;
-  const nodeIndent = node.hasChildren ? 4 : 28;
+  const nodeIndent = node.hasChildren ? 4 : RESOURCE_TREE_ICON_OFFSET;
   const isSelectable = isBatchSelectableNode(node);
   const {
     editName,

@@ -20,7 +20,7 @@ it('keeps the indicator on the hovered row boundary', () => {
     left: 72,
     top: 112,
     width: 240,
-    arrowOffset: 40,
+    arrowOffset: 68,
     guideCount: 0,
   });
 });
@@ -37,7 +37,7 @@ it('keeps sibling indicators at the target level', () => {
     left: 72,
     top: 80,
     width: 240,
-    arrowOffset: 20,
+    arrowOffset: 48,
     guideCount: 0,
   });
 
@@ -52,7 +52,7 @@ it('keeps sibling indicators at the target level', () => {
     left: 72,
     top: 112,
     width: 240,
-    arrowOffset: 20,
+    arrowOffset: 48,
     guideCount: 0,
   });
 });
@@ -69,7 +69,7 @@ it('keeps the available hierarchy guide count', () => {
     left: 72,
     top: 112,
     width: 240,
-    arrowOffset: 60,
+    arrowOffset: 88,
     guideCount: 2,
   });
 });
