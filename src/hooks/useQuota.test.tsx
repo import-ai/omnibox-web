@@ -54,6 +54,13 @@ function usage(total: number): UsageData {
       subscription_total: 0,
       onetime_total: 0,
     },
+    agent_credits: {
+      self: 0,
+      other_users: 0,
+      total: 0,
+      subscription_total: 0,
+      onetime_total: 0,
+    },
     basic: { expired: false, expire_date: null },
     show_members_usage: false,
   };

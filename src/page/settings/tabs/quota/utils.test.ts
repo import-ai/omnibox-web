@@ -1,4 +1,13 @@
-import { formatExpiration, getSubscriptionPlanLabelKey } from './utils';
+import {
+  formatCredits,
+  formatExpiration,
+  getSubscriptionPlanLabelKey,
+} from './utils';
+
+jest.mock('i18next', () => ({
+  __esModule: true,
+  default: { t: (key: string) => key },
+}));
 
 const t = (key: string, opts?: Record<string, unknown>) => {
   if (key === 'quota.days_remaining') {
@@ -32,5 +41,15 @@ describe('formatExpiration', () => {
 
   it('shows forever for an active plan without a date', () => {
     expect(formatExpiration(false, null, t)).toBe('namespace.tier.forever');
+  });
+});
+
+describe('formatCredits', () => {
+  it('groups thousands and appends the credit unit', () => {
+    expect(formatCredits(6800000)).toBe('6,800,000 quota.credit_unit');
+  });
+
+  it('renders a zero balance without a separator', () => {
+    expect(formatCredits(0)).toBe('0 quota.credit_unit');
   });
 });
