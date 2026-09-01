@@ -187,4 +187,14 @@ describe('useNodeActions', () => {
     await act(async () => current.handleMoveFinished(['folder'], 'target'));
     expect(locateSidebarResource).toHaveBeenLastCalledWith('folder');
   });
+
+  it('does not move or locate a resource when it targets itself', async () => {
+    await act(async () => root.render(<Probe />));
+
+    await act(async () => current.handleMoveFinished(['folder'], 'folder'));
+
+    expect(move).not.toHaveBeenCalled();
+    expect(locateSidebarResource).not.toHaveBeenCalled();
+    expect(fire).not.toHaveBeenCalled();
+  });
 });

@@ -46,6 +46,10 @@ export function buildManualSortActions(set: SidebarSet, get: SidebarGet) {
       drop: PendingManualDrop,
       onSortSyncFailure?: () => void
     ) => {
+      if (drop.dragId === drop.targetId) {
+        return;
+      }
+
       let state = get();
       const dragNode = state.nodes[drop.dragId];
       const targetNode = state.nodes[drop.targetId];
