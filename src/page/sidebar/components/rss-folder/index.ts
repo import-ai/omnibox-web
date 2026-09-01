@@ -26,7 +26,11 @@ export interface RssFolderConfigLink {
 export interface RssFolderResponse {
   resource: Resource;
   links: RssFolderConfigLink[];
+  initial_sync_status: RssFolderInitialSyncStatus;
 }
+
+export type RssFolderInitialSyncStatus =
+  'pending' | 'polling' | 'succeeded' | 'failed';
 
 export interface CreateRssFolderDialogProps {
   open: boolean;

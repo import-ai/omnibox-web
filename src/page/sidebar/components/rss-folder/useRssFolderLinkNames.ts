@@ -1,6 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 
-import type { RssFolderResponse } from './index';
+import type { RssFolderInitialSyncStatus, RssFolderResponse } from './index';
 import { fetchRssFolderConfig } from './rssFolderConfigApi';
 
 /** `rss_links.id` -> the feed's display name, for the links that have one. */
@@ -12,7 +12,14 @@ export type RssFolderLinkNames = Record<string, string>;
  * holds hundreds), so the request is memoised per folder and every row of that
  * folder shares it instead of asking for the config itself.
  */
-const linkNamesCache = new Map<string, Promise<RssFolderLinkNames>>();
+const RSS_SYNC_POLL_INTERVAL = 2000;
+const configCache = new Map<
+  string,
+  {
+    requestedAt: number;
+    promise: Promise<RssFolderResponse | null | undefined>;
+  }
+>();
 
 // Rows already on screen when a feed is renamed have to re-read, so an
 // invalidation is published rather than just dropped from the map.
@@ -46,13 +53,13 @@ export function invalidateRssFolderLinkNames(
   namespaceId: string,
   resourceId: string
 ) {
-  linkNamesCache.delete(linkNamesKey(namespaceId, resourceId));
+  configCache.delete(linkNamesKey(namespaceId, resourceId));
   publishLinkNamesChange();
 }
 
 /** Test seam: forget every memoised folder. */
 export function clearRssFolderLinkNamesCache() {
-  linkNamesCache.clear();
+  configCache.clear();
   publishLinkNamesChange();
 }
 
@@ -72,48 +79,97 @@ function isSettledFailure(error: unknown): boolean {
   );
 }
 
+function loadRssFolderConfigResponse(
+  namespaceId: string,
+  resourceId: string,
+  refresh = false
+): Promise<RssFolderResponse | null | undefined> {
+  const key = linkNamesKey(namespaceId, resourceId);
+  const cached = configCache.get(key);
+  if (
+    cached &&
+    (!refresh || Date.now() - cached.requestedAt < RSS_SYNC_POLL_INTERVAL)
+  ) {
+    return cached.promise;
+  }
+
+  const pending = fetchRssFolderConfig(namespaceId, resourceId, {
+    mute: true,
+  }).catch((error: unknown) => {
+    const retryable = !isSettledFailure(error);
+    if (retryable && configCache.get(key)?.promise === pending) {
+      configCache.delete(key);
+    }
+    return retryable ? undefined : null;
+  });
+  configCache.set(key, { requestedAt: Date.now(), promise: pending });
+  return pending;
+}
+
 export function loadRssFolderLinkNames(
   namespaceId: string,
   resourceId: string
 ): Promise<RssFolderLinkNames> {
-  const key = linkNamesKey(namespaceId, resourceId);
-  const cached = linkNamesCache.get(key);
-  if (cached) {
-    return cached;
-  }
-
-  const pending: Promise<RssFolderLinkNames> = fetchRssFolderConfig(
-    namespaceId,
-    resourceId,
-    {
-      // The name is decorative; a folder whose config we cannot read should not
-      // raise an error toast behind the list it decorates.
-      mute: true,
+  return loadRssFolderConfigResponse(namespaceId, resourceId).then(response => {
+    const names: RssFolderLinkNames = {};
+    for (const link of response?.links || []) {
+      // An unnamed feed has nothing to show, so it stays unresolved and its
+      // items keep the normal resource icon.
+      if (link?.id && link.name?.trim()) {
+        names[link.id] = link.name;
+      }
     }
-  )
-    .then((response: RssFolderResponse) => {
-      const names: RssFolderLinkNames = {};
-      for (const link of response?.links || []) {
-        // An unnamed feed has nothing to show, so it stays unresolved and its
-        // items keep the normal resource icon.
-        if (link?.id && link.name?.trim()) {
-          names[link.id] = link.name;
+    return names;
+  });
+}
+
+export function useRssFolderInitialSyncStatus(
+  namespaceId: string | undefined,
+  resourceId: string | undefined | null,
+  enabled = true
+): RssFolderInitialSyncStatus | undefined {
+  const [status, setStatus] = useState<RssFolderInitialSyncStatus>();
+  const canLoad = enabled && !!namespaceId && !!resourceId;
+  const version = useSyncExternalStore(
+    subscribeToLinkNames,
+    getLinkNamesVersion,
+    getLinkNamesVersion
+  );
+
+  useEffect(() => {
+    if (!canLoad) {
+      setStatus(undefined);
+      return;
+    }
+
+    setStatus(undefined);
+    let active = true;
+    let timer: number | undefined;
+    const load = (refresh = false) => {
+      loadRssFolderConfigResponse(namespaceId, resourceId, refresh).then(
+        response => {
+          if (!active) return;
+          if (response === undefined) {
+            timer = window.setTimeout(() => load(true), RSS_SYNC_POLL_INTERVAL);
+            return;
+          }
+          const nextStatus = response?.initial_sync_status ?? 'failed';
+          setStatus(nextStatus);
+          if (nextStatus === 'pending' || nextStatus === 'polling') {
+            timer = window.setTimeout(() => load(true), RSS_SYNC_POLL_INTERVAL);
+          }
         }
-      }
-      return names;
-    })
-    .catch((error: unknown) => {
-      // Either way this attempt falls back to plain rows; the question is only
-      // whether the next reader gets to ask again. Dropping the key rather than
-      // memoising the empty result is what lets it — rows in flight together
-      // still share this one request, so a retry is per mount, not per item.
-      if (!isSettledFailure(error) && linkNamesCache.get(key) === pending) {
-        linkNamesCache.delete(key);
-      }
-      return {} as RssFolderLinkNames;
-    });
-  linkNamesCache.set(key, pending);
-  return pending;
+      );
+    };
+    load();
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [canLoad, namespaceId, resourceId, version]);
+
+  return status;
 }
 
 /**

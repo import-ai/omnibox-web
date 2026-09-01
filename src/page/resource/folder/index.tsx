@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { format } from 'date-fns';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,7 +14,10 @@ import { http } from '@/lib/request';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
 import { RssItemFeedBadge } from '@/page/sidebar/components/rss-folder/RssItemFeedBadge';
-import { useRssFolderLinkNames } from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
+import {
+  useRssFolderInitialSyncStatus,
+  useRssFolderLinkNames,
+} from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
 import { getSmartFolderChildSidebarKey } from '@/page/sidebar/components/smart-folder';
 import type { ResourceSortOptions } from '@/service/resourceSort';
 
@@ -69,6 +72,18 @@ export default function Folder(props: IProps) {
     resourceId,
     rssFeedNames
   );
+  const initialSyncStatus = useRssFolderInitialSyncStatus(
+    namespaceId,
+    resourceId,
+    rssFeedNames
+  );
+  const initialSyncLoading =
+    !!rssFeedNames &&
+    (initialSyncStatus === undefined ||
+      initialSyncStatus === 'pending' ||
+      initialSyncStatus === 'polling');
+  const initialSyncFailed = !!rssFeedNames && initialSyncStatus === 'failed';
+  const wasInitialSyncLoading = useRef(false);
   const sortQuery = sort
     ? `&sort_by=${sort.sort_by}&sort_order=${sort.sort_order}`
     : '';
@@ -215,8 +230,21 @@ export default function Folder(props: IProps) {
     });
   }, [hasMore, loadingMore, loadMore]);
 
+  useEffect(() => {
+    if (initialSyncLoading) {
+      wasInitialSyncLoading.current = true;
+      return;
+    }
+    if (wasInitialSyncLoading.current && initialSyncStatus && !loading) {
+      wasInitialSyncLoading.current = false;
+      reloadChildren();
+    }
+  }, [initialSyncLoading, initialSyncStatus, loading, reloadChildren]);
+
   if (loading) {
-    return <Loading />;
+    return (
+      <Loading label={rssFeedNames ? t('rss_folder.loading') : undefined} />
+    );
   }
 
   return (
@@ -339,6 +367,14 @@ export default function Folder(props: IProps) {
             </div>
           )}
         </>
+      ) : initialSyncLoading ? (
+        <div className="mt-12">
+          <Loading label={t('rss_folder.loading')} />
+        </div>
+      ) : initialSyncFailed ? (
+        <div className="mt-12 text-center text-muted-foreground">
+          {t('rss_folder.load_failed')}
+        </div>
       ) : (
         <div className="mt-12 text-center text-muted-foreground">
           {emptyText || t('no_pages_inside')}

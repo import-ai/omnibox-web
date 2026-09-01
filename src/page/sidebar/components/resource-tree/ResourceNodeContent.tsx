@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -19,11 +19,15 @@ import {
   useSidebar,
 } from '@/components/ui/Sidebar';
 import { Spinner } from '@/components/ui/Spinner';
+import useApp from '@/hooks/useApp';
 import { useIsMobile } from '@/hooks/useMobile';
 import { cn } from '@/lib/utils';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { RssItemFeedBadge } from '@/page/sidebar/components/rss-folder/RssItemFeedBadge';
-import { useRssItemFeedName } from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
+import {
+  useRssFolderInitialSyncStatus,
+  useRssItemFeedName,
+} from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
 import { getSmartFolderSourceResourceId } from '@/page/sidebar/components/smart-folder';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/useResourceNodeDnd';
 import { useResourceNodeRename } from '@/page/sidebar/hooks/useResourceNodeRename';
@@ -59,6 +63,7 @@ export function ResourceNodeContent({
   onAddToChat,
 }: ResourceNodeContentProps) {
   const { t } = useTranslation();
+  const app = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -109,6 +114,34 @@ export function ResourceNodeContent({
   const isEditing = nodeId === renamingId;
   const isSelectionHighlighted = isSelected || isFullySelected;
   const isExpanded = nodeUI?.expanded === true;
+  const shouldLoadRssInitialSync =
+    node.resourceType === 'rss_folder' &&
+    isExpanded &&
+    nodeUI?.loaded === true &&
+    nodeUI.loading === false &&
+    node.children.length === 0;
+  const initialSyncStatus = useRssFolderInitialSyncStatus(
+    namespaceId,
+    nodeId,
+    shouldLoadRssInitialSync
+  );
+  const initialSyncLoading =
+    shouldLoadRssInitialSync &&
+    (initialSyncStatus === undefined ||
+      initialSyncStatus === 'pending' ||
+      initialSyncStatus === 'polling');
+  const wasInitialSyncLoading = useRef(false);
+
+  useEffect(() => {
+    if (initialSyncLoading) {
+      wasInitialSyncLoading.current = true;
+      return;
+    }
+    if (wasInitialSyncLoading.current && initialSyncStatus) {
+      wasInitialSyncLoading.current = false;
+      app.fire('refresh_resource_children', nodeId);
+    }
+  }, [app, initialSyncLoading, initialSyncStatus, nodeId]);
   const selectedIdList = useMemo(() => Object.keys(selectedIds), [selectedIds]);
   const contentIndent = depth * 20;
   const nodeIndent = node.hasChildren ? 4 : 28;
@@ -417,7 +450,11 @@ export function ResourceNodeContent({
               !nodeUI.loading &&
               isManagedChildrenNode(node) &&
               node.children.length === 0 && (
-                <FolderEmptyState depth={depth + 1} />
+                <FolderEmptyState
+                  depth={depth + 1}
+                  loading={initialSyncLoading}
+                  failed={initialSyncStatus === 'failed'}
+                />
               )}
           </SidebarMenuSub>
         </CollapsibleContent>

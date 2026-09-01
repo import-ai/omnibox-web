@@ -31,7 +31,9 @@ jest.mock('@/assets/icons/ResourceIcon', () => ({
 }));
 jest.mock('@/components/loading', () => ({
   __esModule: true,
-  default: () => <div data-testid="loading" />,
+  default: ({ label }: { label?: string }) => (
+    <div data-testid="loading">{label}</div>
+  ),
 }));
 
 (
@@ -99,7 +101,7 @@ describe('Folder rss item rows', () => {
     container.remove();
   });
 
-  async function renderFolder(rssFeedNames = true) {
+  async function renderFolder(rssFeedNames = true, emptyText?: string) {
     await act(async () => {
       root.render(
         <Folder
@@ -108,6 +110,7 @@ describe('Folder rss item rows', () => {
           namespaceId={NAMESPACE_ID}
           navigationPrefix={`/${NAMESPACE_ID}`}
           rssFeedNames={rssFeedNames}
+          emptyText={emptyText}
         />
       );
     });
@@ -212,5 +215,39 @@ describe('Folder rss item rows', () => {
     expect(
       container.querySelector('[data-testid="resource-icon"]')
     ).not.toBeNull();
+  });
+
+  it('keeps the empty state hidden until the initial sync settles', async () => {
+    jest.useFakeTimers();
+    let configCalls = 0;
+    let childrenCalls = 0;
+    mockGet.mockImplementation((url: string) => {
+      if (url === CONFIG_URL) {
+        configCalls += 1;
+        return Promise.resolve({
+          resource: { id: FOLDER_ID, name: 'Feeds' },
+          links: [],
+          initial_sync_status: configCalls === 1 ? 'pending' : 'succeeded',
+        });
+      }
+      childrenCalls += 1;
+      return Promise.resolve([]);
+    });
+
+    await renderFolder(true, 'rss_folder.empty');
+
+    expect(container.textContent).toContain('rss_folder.loading');
+    expect(container.textContent).not.toContain('rss_folder.empty');
+
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+      await Promise.resolve();
+    });
+    await act(async () => undefined);
+
+    expect(container.textContent).not.toContain('rss_folder.loading');
+    expect(container.textContent).toContain('rss_folder.empty');
+    expect(childrenCalls).toBe(2);
+    jest.useRealTimers();
   });
 });

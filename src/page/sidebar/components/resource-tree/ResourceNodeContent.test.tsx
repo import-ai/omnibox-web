@@ -16,6 +16,7 @@ const SMART_FOLDER_ID = 'smart-folder-1';
 const CONFIG_URL = `/namespaces/${NAMESPACE_ID}/rss-folders/${FOLDER_ID}/config`;
 const FEED_A = 'link-a';
 const FEED_B = 'link-b';
+const mockFire = jest.fn();
 
 jest.mock('@/lib/request', () => ({
   http: { get: jest.fn() },
@@ -30,6 +31,10 @@ jest.mock('react-router-dom', () => ({
 }));
 jest.mock('@/hooks/useMobile', () => ({
   useIsMobile: () => false,
+}));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ fire: mockFire }),
 }));
 jest.mock('@/components/Checkbox', () => ({
   Checkbox: () => null,
@@ -156,7 +161,10 @@ function itemNode(id: string, attrs: Record<string, unknown>): TreeNode {
   } as unknown as TreeNode;
 }
 
-function mockConfig(links: Array<{ id: string; name: string }>) {
+function mockConfig(
+  links: Array<{ id: string; name: string }>,
+  initialSyncStatus = 'failed'
+) {
   mockGet.mockImplementation((url: string) =>
     url === CONFIG_URL
       ? Promise.resolve({
@@ -166,6 +174,7 @@ function mockConfig(links: Array<{ id: string; name: string }>) {
             index,
             url: `https://example.com/${link.id}`,
           })),
+          initial_sync_status: initialSyncStatus,
         })
       : Promise.reject(new Error(`unexpected request: ${url}`))
   );
@@ -178,6 +187,7 @@ describe('ResourceNodeContent rss item rows', () => {
   beforeEach(() => {
     clearRssFolderLinkNamesCache();
     mockGet.mockReset();
+    mockFire.mockReset();
     mockSidebarState.nodes = {
       [FOLDER_ID]: { id: FOLDER_ID, resourceType: 'rss_folder' },
       [SMART_FOLDER_ID]: { id: SMART_FOLDER_ID, resourceType: 'smart_folder' },
@@ -358,7 +368,12 @@ describe('ResourceNodeContent empty folders', () => {
   beforeEach(() => {
     clearRssFolderLinkNamesCache();
     mockGet.mockReset();
-    mockGet.mockResolvedValue({ resource: {}, links: [] });
+    mockFire.mockReset();
+    mockGet.mockResolvedValue({
+      resource: {},
+      links: [],
+      initial_sync_status: 'succeeded',
+    });
     mockSidebarState.nodes = {};
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -402,6 +417,19 @@ describe('ResourceNodeContent empty folders', () => {
   it('stays silent for an empty plain folder', async () => {
     await renderExpanded(folderNode('plain', 'folder'));
 
+    expect(container.textContent).not.toContain('sidebar.folder_empty');
+  });
+
+  it('shows loading instead of empty while an rss folder is syncing', async () => {
+    mockGet.mockResolvedValue({
+      resource: {},
+      links: [],
+      initial_sync_status: 'pending',
+    });
+
+    await renderExpanded(folderNode(FOLDER_ID, 'rss_folder'));
+
+    expect(container.textContent).toContain('rss_folder.loading');
     expect(container.textContent).not.toContain('sidebar.folder_empty');
   });
 });
