@@ -440,6 +440,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         open={bindDialogOpen}
         onOpenChange={setBindDialogOpen}
         bindingCode={bindingCode}
+        urlLink={currentBindingApplication?.attrs?.url_link}
         applicationId={currentBindingApplication?.id || ''}
         appId={currentAppId}
         checkApplicationStatus={checkApplicationStatus}

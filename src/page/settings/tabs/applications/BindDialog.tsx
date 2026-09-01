@@ -21,6 +21,7 @@ interface BindDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bindingCode: string;
+  urlLink?: string;
   applicationId: string;
   appId: string;
   checkApplicationStatus: (applicationId: string) => Promise<any>;
@@ -31,6 +32,7 @@ export function BindDialog({
   open,
   onOpenChange,
   bindingCode,
+  urlLink,
   applicationId,
   appId,
   checkApplicationStatus,
@@ -42,7 +44,7 @@ export function BindDialog({
 
   const POLLING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
-  const qrCodeUrl = getQrCodeUrl(appId, bindingCode);
+  const qrCodeUrl = getQrCodeUrl(appId, bindingCode, urlLink);
   const isTelegram = appId === 'telegram_bot';
   const platformName = t(`applications.app_names.${appId}`, {
     defaultValue: appId,
