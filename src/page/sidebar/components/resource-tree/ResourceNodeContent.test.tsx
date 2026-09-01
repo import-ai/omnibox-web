@@ -16,6 +16,7 @@ const SMART_FOLDER_ID = 'smart-folder-1';
 const CONFIG_URL = `/namespaces/${NAMESPACE_ID}/rss-folders/${FOLDER_ID}/config`;
 const FEED_A = 'link-a';
 const FEED_B = 'link-b';
+let mockIsInsideDrop = false;
 
 jest.mock('@/lib/request', () => ({
   http: { get: jest.fn() },
@@ -88,7 +89,7 @@ jest.mock('@/page/sidebar/hooks/useResourceNodeDnd', () => ({
     dragStyle: {},
     isDisabledOver: false,
     isFileDragOver: false,
-    dropPosition: null,
+    isInsideDrop: mockIsInsideDrop,
   }),
 }));
 jest.mock('@/page/sidebar/hooks/useResourceNodeRename', () => ({
@@ -171,13 +172,14 @@ function mockConfig(links: Array<{ id: string; name: string }>) {
   );
 }
 
-describe('ResourceNodeContent rss item rows', () => {
+describe('ResourceNodeContent', () => {
   let container: HTMLDivElement;
   let root: Root;
 
   beforeEach(() => {
     clearRssFolderLinkNamesCache();
     mockGet.mockReset();
+    mockIsInsideDrop = false;
     mockSidebarState.nodes = {
       [FOLDER_ID]: { id: FOLDER_ID, resourceType: 'rss_folder' },
       [SMART_FOLDER_ID]: { id: SMART_FOLDER_ID, resourceType: 'smart_folder' },
@@ -213,6 +215,22 @@ describe('ResourceNodeContent rss item rows', () => {
       );
     });
   }
+
+  describe('drag target styling', () => {
+    it('outlines a resource when the drag target is inside it', async () => {
+      mockIsInsideDrop = true;
+      mockConfig([]);
+
+      await renderNodes([itemNode('item-a', {})]);
+
+      const dropTarget = container.querySelector(
+        '[data-resource-drop-id="item-a"]'
+      );
+      expect(dropTarget?.classList.contains('ring-2')).toBe(true);
+      expect(dropTarget?.classList.contains('ring-inset')).toBe(true);
+      expect(dropTarget?.classList.contains('ring-blue-500')).toBe(true);
+    });
+  });
 
   function badges() {
     return Array.from(

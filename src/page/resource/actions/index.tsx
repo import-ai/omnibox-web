@@ -526,7 +526,9 @@ export default function Actions(props: IActionProps) {
   ) => {
     setMoveTo(false);
     const [resourceId] = resourceIds;
-    if (!resourceId) return;
+    if (!resourceId || resourceId === targetId) {
+      return;
+    }
     const previousParentId =
       resource?.id === resourceId
         ? resource.parent_id || null

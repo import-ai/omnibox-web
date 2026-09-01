@@ -1,4 +1,4 @@
-import { type RefObject, useCallback, useEffect, useMemo, useRef } from 'react';
+import { type RefObject, useEffect, useMemo, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { getEmptyImage, NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 
 import { useSidebarStore } from '../store';
-import type { ManualDropPosition, TreeNode } from '../store/types';
+import type { TreeNode } from '../store/types';
 import {
   calculateSelectedCount,
   getDescendantIds,
@@ -16,13 +16,15 @@ import {
   isManagedChildrenNode,
 } from '../store/utils';
 import {
-  DndItem,
+  type DndItem,
   isDisabledBatchDropTarget,
   useDndHandlers,
 } from './useDndHandlers';
+import { useManualResourceDrop } from './useManualResourceDrop';
 
 interface UseResourceNodeDndOptions {
   namespaceId: string;
+  depth: number;
   onNodeDrop?: (dragId: string, dropId: string) => void;
   selectionMode?: boolean;
   isSelected?: boolean;
@@ -36,7 +38,7 @@ interface UseResourceNodeDndReturn {
   isOver: boolean;
   isDisabledOver: boolean;
   isFileDragOver: boolean;
-  dropPosition: ManualDropPosition | null;
+  isInsideDrop: boolean;
 }
 
 export function useResourceNodeDnd(
@@ -48,6 +50,7 @@ export function useResourceNodeDnd(
   const { t } = useTranslation();
   const {
     namespaceId,
+    depth,
     onNodeDrop,
     selectionMode = false,
     isSelected = false,
@@ -55,20 +58,16 @@ export function useResourceNodeDnd(
   } = options;
 
   const dragRef = useRef<HTMLDivElement>(null);
-  const dropRef = useRef<HTMLDivElement>(null);
-  const dropPositionRef = useRef<ManualDropPosition | null>(null);
-  const targetRectRef = useRef<DOMRect | null>(null);
-  const lineRef = useRef<{ left: number; top: number; width: number } | null>(
-    null
-  );
-  const dropPosition = useSidebarStore(state =>
-    state.manualDropIndicator?.targetId === nodeId
-      ? state.manualDropIndicator.position
-      : null
-  );
   const nodes = useSidebarStore(state => state.nodes);
   const selectedMap = useSidebarStore(state => state.selectedIds);
   const batchDragging = useSidebarStore(state => state.batchDragging);
+  const {
+    dropRef,
+    isInsideDrop,
+    updateDropPosition,
+    getDropState,
+    resetDropState,
+  } = useManualResourceDrop({ depth, nodeId, nodes });
   const batchIds = useMemo(
     () => getTopLevelSelectedIds(nodes, selectedIds),
     [nodes, selectedIds]
@@ -87,24 +86,6 @@ export function useResourceNodeDnd(
     }
     return Array.from(ids);
   }, [batchIds, nodes]);
-  const setCurrentDropPosition = useCallback(
-    (position: ManualDropPosition | null) => {
-      if (dropPositionRef.current === position) return;
-      dropPositionRef.current = position;
-      const store = useSidebarStore.getState();
-      if (position) {
-        store.setManualDropIndicator({
-          targetId: nodeId,
-          position,
-          line: position === 'inside' ? null : lineRef.current,
-        });
-      } else if (store.manualDropIndicator?.targetId === nodeId) {
-        store.setManualDropIndicator(null);
-      }
-    },
-    [nodeId]
-  );
-
   const canDropItem = (item: DndItem) => {
     const targetNode = nodes[nodeId];
     if (isSmartFolderChildResource(targetNode)) {
@@ -112,6 +93,10 @@ export function useResourceNodeDnd(
     }
 
     if (item.id) {
+      if (item.id === nodeId) {
+        return true;
+      }
+
       const dragNode = nodes[item.id];
       if (isSmartFolderChildResource(dragNode)) {
         return false;
@@ -141,75 +126,6 @@ export function useResourceNodeDnd(
     return !isManagedChildrenNode(targetNode);
   };
 
-  const updateDropPosition = (
-    item: DndItem,
-    clientOffset: { x: number; y: number } | null
-  ) => {
-    const element = dropRef.current;
-    const dragNode = item.id ? nodes[item.id] : undefined;
-    const targetNode = nodes[nodeId];
-    if (!element || !clientOffset || !dragNode || !targetNode) {
-      setCurrentDropPosition(null);
-      return;
-    }
-
-    let rect = targetRectRef.current;
-    if (!rect) {
-      rect = element.getBoundingClientRect();
-      targetRectRef.current = rect;
-    }
-    const ratio = (clientOffset.y - rect.top) / rect.height;
-    const canContain =
-      !isManagedChildrenNode(targetNode) &&
-      dragNode.resourceType !== 'smart_folder';
-    const position: ManualDropPosition =
-      canContain && ratio >= 0.25 && ratio <= 0.75
-        ? 'inside'
-        : ratio < 0.5
-          ? 'before'
-          : 'after';
-    const parent =
-      position === 'inside'
-        ? targetNode
-        : targetNode.parentId
-          ? nodes[targetNode.parentId]
-          : undefined;
-    // Reordering inside a managed folder (rss items) is not allowed.
-    if (position !== 'inside' && isManagedChildrenNode(parent)) {
-      setCurrentDropPosition(null);
-      return;
-    }
-    const permission = parent?.currentPermission || 'full_access';
-    if (permission !== 'can_edit' && permission !== 'full_access') {
-      setCurrentDropPosition(null);
-      return;
-    }
-    if (dropPositionRef.current === position) return;
-
-    if (position === 'inside') {
-      lineRef.current = null;
-    } else if (position === 'before') {
-      lineRef.current = { left: rect.left, top: rect.top, width: rect.width };
-    } else {
-      const siblings = targetNode.parentId
-        ? (nodes[targetNode.parentId]?.children ?? [])
-        : [];
-      const nextId = siblings[siblings.indexOf(targetNode.id) + 1];
-      const nextElement = nextId
-        ? document.querySelector<HTMLElement>(
-            `[data-resource-drop-id="${CSS.escape(nextId)}"]`
-          )
-        : null;
-      const nextRect = nextElement?.getBoundingClientRect();
-      lineRef.current = {
-        left: nextRect?.left ?? rect.left,
-        top: nextRect?.top ?? rect.bottom,
-        width: nextRect?.width ?? rect.width,
-      };
-    }
-    setCurrentDropPosition(position);
-  };
-
   const { handleDrop, handleHover, isFileDragOver, clearFileDragTarget } =
     useDndHandlers({
       targetId: nodeId,
@@ -225,6 +141,7 @@ export function useResourceNodeDnd(
           const currentNodes = useSidebarStore.getState().nodes;
           return {
             ...node,
+            depth,
             type: 'card' as const,
             disabledTargetIdSet: new Set([
               nodeId,
@@ -257,6 +174,7 @@ export function useResourceNodeDnd(
       isSelected,
       node,
       nodeId,
+      depth,
       selectionMode,
     ]
   );
@@ -285,34 +203,53 @@ export function useResourceNodeDnd(
       };
     },
     hover: (item, monitor) => {
-      if (!dropRef.current) return;
-      if (!canDropItem(item)) return;
+      if (!dropRef.current) {
+        return;
+      }
+      if (!canDropItem(item)) {
+        useSidebarStore.getState().setManualDropIndicator(null);
+        return;
+      }
+      if (item.id === nodeId) {
+        resetDropState();
+        return;
+      }
       if (item.id && monitor.isOver({ shallow: true })) {
-        updateDropPosition(item, monitor.getClientOffset());
+        updateDropPosition(
+          item,
+          monitor.getClientOffset(),
+          monitor.getDifferenceFromInitialOffset()?.x ?? 0
+        );
       }
       handleHover(item, monitor);
     },
     drop: (item, monitor) => {
-      if (!canDropItem(item)) return;
-      if (item.id && dropPositionRef.current) {
+      if (!canDropItem(item)) {
+        return;
+      }
+      if (item.id === nodeId) {
+        resetDropState();
+        return;
+      }
+      const dropState = getDropState();
+      if (item.id && dropState) {
         const store = useSidebarStore.getState();
         if (
-          dropPositionRef.current === 'inside' &&
+          dropState.target.position === 'inside' &&
+          dropState.isDirectInside &&
           store.resourceSorts[node.spaceType].sort_by !== 'manual'
         ) {
-          targetRectRef.current = null;
-          lineRef.current = null;
-          setCurrentDropPosition(null);
+          resetDropState();
           handleDrop(item, monitor);
           return;
         }
         const pendingDrop = {
           dragId: item.id,
-          targetId: nodeId,
-          position: dropPositionRef.current,
+          targetId: dropState.target.targetId,
+          position: dropState.target.position,
         };
         if (store.resourceSorts[node.spaceType].sort_by === 'manual') {
-          void store
+          store
             .applyManualDrop(pendingDrop, () => {
               toast.error(t('sidebar.sort.sync_failed'), {
                 position: 'bottom-right',
@@ -324,19 +261,15 @@ export function useResourceNodeDnd(
         } else {
           store.setPendingManualDrop(pendingDrop);
         }
-        targetRectRef.current = null;
-        lineRef.current = null;
-        setCurrentDropPosition(null);
+        resetDropState();
         return;
       }
-      if (item.id) return;
+      if (item.id) {
+        return;
+      }
       handleDrop(item, monitor);
     },
   });
-
-  useEffect(() => {
-    preview(getEmptyImage(), { captureDraggingState: false });
-  }, [preview]);
 
   const isBatchDisabledOver =
     batchDragging && isDisabledOver && disabledBatchTargetIds.includes(nodeId);
@@ -344,18 +277,18 @@ export function useResourceNodeDnd(
   useEffect(() => {
     drag(dragRef);
     drop(dropRef);
-  }, [drag, drop]);
+    // Reconnecting the drag source clears its preview, so attach this last.
+    preview(getEmptyImage(), { captureDraggingState: false });
+  }, [drag, drop, preview]);
 
   useEffect(() => {
     if (!isOver && isFileDragOver) {
       clearFileDragTarget();
     }
     if (!isOver) {
-      targetRectRef.current = null;
-      lineRef.current = null;
-      setCurrentDropPosition(null);
+      resetDropState();
     }
-  }, [isOver, isFileDragOver, clearFileDragTarget, setCurrentDropPosition]);
+  }, [isOver, isFileDragOver, clearFileDragTarget, resetDropState]);
 
   return {
     dragRef,
@@ -364,6 +297,6 @@ export function useResourceNodeDnd(
     isOver,
     isDisabledOver: isDisabledOver || isBatchDisabledOver,
     isFileDragOver,
-    dropPosition,
+    isInsideDrop,
   };
 }

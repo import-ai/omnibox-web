@@ -111,6 +111,10 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
     },
 
     move: async (dragId: string, dropId: string, localOnly?: boolean) => {
+      if (dragId === dropId) {
+        return;
+      }
+
       const drag = get().nodes[dragId];
       const drop = get().nodes[dropId];
       if (!drag || !drop) return;
