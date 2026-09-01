@@ -460,6 +460,27 @@ describe('ResourceNodeContent empty folders', () => {
     expect(container.textContent).not.toContain('sidebar.folder_empty');
   });
 
+  it.each([
+    ['pending', 'rss_folder.loading'],
+    ['failed', 'rss_folder.load_failed'],
+  ])(
+    'shows %s sync status while the rss folder already has children',
+    async (status, message) => {
+      mockGet.mockResolvedValue({
+        resource: {},
+        links: [],
+        initial_sync_status: status,
+      });
+      const node = folderNode(FOLDER_ID, 'rss_folder');
+      node.hasChildren = true;
+      node.children = ['item-1'];
+
+      await renderExpanded(node);
+
+      expect(container.textContent).toContain(message);
+    }
+  );
+
   it('refreshes children when a failed rss sync later succeeds', async () => {
     jest.useFakeTimers();
     mockGet

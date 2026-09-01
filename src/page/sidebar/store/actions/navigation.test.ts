@@ -67,4 +67,31 @@ describe('sidebar navigation actions', () => {
       loaded: true,
     });
   });
+
+  it('reopens a collapsed folder without starting a second request', async () => {
+    let finishLoading: (children: Resource[]) => void = () => undefined;
+    mockFetchChildren.mockReturnValue(
+      new Promise<Resource[]>(resolve => {
+        finishLoading = resolve;
+      })
+    );
+
+    const loading = useSidebarStore.getState().expand(FOLDER_ID);
+    useSidebarStore.getState().collapse(FOLDER_ID);
+    const reopened = useSidebarStore.getState().expand(FOLDER_ID);
+
+    expect(useSidebarStore.getState().ui[FOLDER_ID]).toMatchObject({
+      expanded: true,
+      loading: true,
+    });
+    expect(mockFetchChildren).toHaveBeenCalledTimes(1);
+
+    finishLoading([]);
+    await Promise.all([loading, reopened]);
+    expect(useSidebarStore.getState().ui[FOLDER_ID]).toMatchObject({
+      expanded: true,
+      loading: false,
+      loaded: true,
+    });
+  });
 });

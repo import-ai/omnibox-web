@@ -8,6 +8,7 @@ import ResourceIcon from '@/assets/icons/ResourceIcon';
 import Loading from '@/components/loading';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
+import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { Resource, ResourceSummary } from '@/interface';
 import { http } from '@/lib/request';
@@ -253,6 +254,14 @@ export default function Folder(props: IProps) {
 
   return (
     <div className="space-y-6 pb-[30vh]">
+      {data.length > 0 && (initialSyncLoading || initialSyncFailed) && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {initialSyncLoading && <Spinner className="size-4" />}
+          {t(
+            initialSyncLoading ? 'rss_folder.loading' : 'rss_folder.load_failed'
+          )}
+        </div>
+      )}
       {data.length > 0 ? (
         <>
           {groupTimestampedItemsByTimestamp(data, i18n, itemTimestamp).map(

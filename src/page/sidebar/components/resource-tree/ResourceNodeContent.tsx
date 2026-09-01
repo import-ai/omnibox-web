@@ -122,8 +122,7 @@ export function ResourceNodeContent({
     node.resourceType === 'rss_folder' &&
     isExpanded &&
     nodeUI?.loaded === true &&
-    nodeUI.loading === false &&
-    node.children.length === 0;
+    nodeUI.loading === false;
   const initialSyncStatus = useRssFolderInitialSyncStatus(
     namespaceId,
     nodeId,
@@ -461,13 +460,15 @@ export function ResourceNodeContent({
               nodeUI?.loaded &&
               !nodeUI.loading &&
               isManagedChildrenNode(node) &&
-              node.children.length === 0 && (
+              (initialSyncLoading || initialSyncStatus === 'failed' ? (
                 <FolderEmptyState
                   depth={depth + 1}
                   loading={initialSyncLoading}
                   failed={initialSyncStatus === 'failed'}
                 />
-              )}
+              ) : node.children.length === 0 ? (
+                <FolderEmptyState depth={depth + 1} />
+              ) : null)}
           </SidebarMenuSub>
         </CollapsibleContent>
       </Collapsible>

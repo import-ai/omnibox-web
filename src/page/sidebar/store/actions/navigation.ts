@@ -29,11 +29,23 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
     },
 
     expand: async (id: string) => {
-      if (expandPromises.has(id)) return expandPromises.get(id)!;
+      const existingPromise = expandPromises.get(id);
+      if (existingPromise) {
+        set(s => {
+          ensureUI(s, id).expanded = true;
+        });
+        return existingPromise;
+      }
 
       const node = get().nodes[id];
       const nodeUI = get().ui[id];
-      if (!node || nodeUI?.loading) return;
+      if (!node) return;
+      if (nodeUI?.loading) {
+        set(s => {
+          ensureUI(s, id).expanded = true;
+        });
+        return;
+      }
 
       const promise = (async () => {
         set(s => {

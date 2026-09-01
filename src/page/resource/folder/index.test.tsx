@@ -281,4 +281,29 @@ describe('Folder rss item rows', () => {
     expect(container.textContent).toContain('rss_folder.empty');
     expect(childrenCalls).toBe(2);
   });
+
+  it.each([
+    ['pending', 'rss_folder.loading'],
+    ['failed', 'rss_folder.load_failed'],
+  ])(
+    'shows %s sync status without hiding items that already loaded',
+    async (status, message) => {
+      mockGet.mockImplementation((url: string) =>
+        Promise.resolve(
+          url === CONFIG_URL
+            ? {
+                resource: { id: FOLDER_ID, name: 'Feeds' },
+                links: [{ id: FEED_A, name: 'Alpha Weekly' }],
+                initial_sync_status: status,
+              }
+            : [rssItem('item-1', 'Already synced', { link_id: FEED_A })]
+        )
+      );
+
+      await renderFolder();
+
+      expect(container.textContent).toContain('Already synced');
+      expect(container.textContent).toContain(message);
+    }
+  );
 });
