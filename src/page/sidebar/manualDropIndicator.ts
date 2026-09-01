@@ -1,6 +1,7 @@
 export type ManualDropPosition = 'before' | 'inside' | 'after';
 
 export const RESOURCE_TREE_INDENT = 20;
+export const RESOURCE_TREE_ICON_OFFSET = 28;
 
 export interface ManualDropLine {
   left: number;
@@ -141,7 +142,7 @@ export function getManualDropLine({
   depth,
   guideCount,
 }: GetManualDropLineOptions): ManualDropLine {
-  const arrowOffset = depth * RESOURCE_TREE_INDENT;
+  const arrowOffset = RESOURCE_TREE_ICON_OFFSET + depth * RESOURCE_TREE_INDENT;
 
   return {
     left: rowRect.left,
