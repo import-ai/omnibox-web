@@ -285,7 +285,9 @@ export function useNodeActions(
   ) => {
     setMoveTo(false);
     const [resourceId] = resourceIds;
-    if (!resourceId) return;
+    if (!resourceId || resourceId === targetId) {
+      return;
+    }
 
     const previousParentId =
       useSidebarStore.getState().nodes[resourceId]?.parentId ?? null;

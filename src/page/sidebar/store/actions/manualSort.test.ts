@@ -61,6 +61,39 @@ it('moves a resource before or after a sibling without duplicating it', () => {
   ]);
 });
 
+it('ignores a manual drop that moves a resource inside itself', async () => {
+  const state = {
+    namespaceId: 'namespace',
+    nodes: {
+      private: node('private', null, 'private', ['resource']),
+      resource: node('resource', 'private', 'private'),
+    },
+    ui: {},
+    rootIds: { private: 'private', teamspace: '' },
+    resourceSorts: {
+      private: { sort_by: 'manual', sort_order: 'asc' },
+      teamspace: { sort_by: 'manual', sort_order: 'asc' },
+    },
+  } as unknown as SidebarStore;
+  state.refreshChildren = jest.fn();
+  const actions = buildManualSortActions(
+    update => update(state),
+    () => state
+  );
+
+  await actions.applyManualDrop({
+    dragId: 'resource',
+    targetId: 'resource',
+    position: 'inside',
+  });
+
+  expect(state.nodes.private.children).toEqual(['resource']);
+  expect(state.nodes.resource.parentId).toBe('private');
+  expect(mockedFetchChildren).not.toHaveBeenCalled();
+  expect(mockedMoveResource).not.toHaveBeenCalled();
+  expect(mockedUpdateManualSort).not.toHaveBeenCalled();
+});
+
 it('keeps a successful cross-space move when manual sort syncing fails', async () => {
   const state = {
     namespaceId: 'namespace',

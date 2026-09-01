@@ -33,7 +33,11 @@ export function buildBaseActions(set: SidebarSet) {
           s.manualDropIndicator?.position === indicator?.position &&
           s.manualDropIndicator?.line?.left === indicator?.line?.left &&
           s.manualDropIndicator?.line?.top === indicator?.line?.top &&
-          s.manualDropIndicator?.line?.width === indicator?.line?.width
+          s.manualDropIndicator?.line?.width === indicator?.line?.width &&
+          s.manualDropIndicator?.line?.arrowOffset ===
+            indicator?.line?.arrowOffset &&
+          s.manualDropIndicator?.line?.guideCount ===
+            indicator?.line?.guideCount
         ) {
           return;
         }

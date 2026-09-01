@@ -27,6 +27,7 @@ import { useRssItemFeedName } from '@/page/sidebar/components/rss-folder/useRssF
 import { getSmartFolderSourceResourceId } from '@/page/sidebar/components/smart-folder';
 import { useResourceNodeDnd } from '@/page/sidebar/hooks/useResourceNodeDnd';
 import { useResourceNodeRename } from '@/page/sidebar/hooks/useResourceNodeRename';
+import { RESOURCE_TREE_INDENT } from '@/page/sidebar/manualDropIndicator';
 import {
   useIsSelected,
   useNodeIsDimmedBySelection,
@@ -110,7 +111,7 @@ export function ResourceNodeContent({
   const isSelectionHighlighted = isSelected || isFullySelected;
   const isExpanded = nodeUI?.expanded === true;
   const selectedIdList = useMemo(() => Object.keys(selectedIds), [selectedIds]);
-  const contentIndent = depth * 20;
+  const contentIndent = depth * RESOURCE_TREE_INDENT;
   const nodeIndent = node.hasChildren ? 4 : 28;
   const isSelectable = isBatchSelectableNode(node);
   const {
@@ -133,9 +134,10 @@ export function ResourceNodeContent({
     dragStyle,
     isDisabledOver,
     isFileDragOver,
-    dropPosition,
+    isInsideDrop,
   } = useResourceNodeDnd(nodeId, node, isEditing, {
     namespaceId,
+    depth,
     selectionMode,
     isSelected,
     selectedIds: selectedIdList,
@@ -235,7 +237,7 @@ export function ResourceNodeContent({
   const upload = useSidebarStore(s => s.dialogs.upload[nodeId]);
 
   return (
-    <SidebarMenuItem>
+    <SidebarMenuItem data-resource-tree-id={nodeId} data-resource-depth={depth}>
       <Collapsible
         open={isExpanded}
         className={cn('group/collapsible', {
@@ -269,8 +271,10 @@ export function ResourceNodeContent({
                 selectionMode && 'pl-2',
                 isSelectionHighlighted &&
                   'bg-[#E2E2E6] dark:bg-[#363637] hover:bg-[#E2E2E6]',
-                (isFileDragOver || dropPosition === 'inside') &&
+                isFileDragOver &&
                   'bg-sidebar-accent text-sidebar-accent-foreground',
+                isInsideDrop &&
+                  'bg-sidebar-accent text-sidebar-accent-foreground ring-2 ring-inset ring-blue-500',
                 isDisabledOver && 'cursor-not-allowed [&_*]:cursor-not-allowed'
               )}
             >
