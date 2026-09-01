@@ -13,6 +13,7 @@ export type RssFolderLinkNames = Record<string, string>;
  * folder shares it instead of asking for the config itself.
  */
 const RSS_SYNC_POLL_INTERVAL = 2000;
+const RSS_SYNC_FAILED_RETRY_INTERVAL = 30_000;
 const configCache = new Map<
   string,
   {
@@ -153,10 +154,20 @@ export function useRssFolderInitialSyncStatus(
             timer = window.setTimeout(() => load(true), RSS_SYNC_POLL_INTERVAL);
             return;
           }
-          const nextStatus = response?.initial_sync_status ?? 'failed';
+          if (response === null) {
+            setStatus('failed');
+            return;
+          }
+          const nextStatus = response.initial_sync_status ?? 'succeeded';
           setStatus(nextStatus);
-          if (nextStatus === 'pending' || nextStatus === 'polling') {
-            timer = window.setTimeout(() => load(true), RSS_SYNC_POLL_INTERVAL);
+          const retryInterval =
+            nextStatus === 'failed'
+              ? RSS_SYNC_FAILED_RETRY_INTERVAL
+              : nextStatus === 'pending' || nextStatus === 'polling'
+                ? RSS_SYNC_POLL_INTERVAL
+                : undefined;
+          if (retryInterval !== undefined) {
+            timer = window.setTimeout(() => load(true), retryInterval);
           }
         }
       );

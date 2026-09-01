@@ -26,7 +26,7 @@ export interface RssFolderConfigLink {
 export interface RssFolderResponse {
   resource: Resource;
   links: RssFolderConfigLink[];
-  initial_sync_status: RssFolderInitialSyncStatus;
+  initial_sync_status?: RssFolderInitialSyncStatus;
 }
 
 export type RssFolderInitialSyncStatus =

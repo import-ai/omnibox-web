@@ -138,7 +138,7 @@ export function ResourceNodeContent({
       wasInitialSyncLoading.current = true;
       return;
     }
-    if (wasInitialSyncLoading.current && initialSyncStatus) {
+    if (wasInitialSyncLoading.current && initialSyncStatus === 'succeeded') {
       wasInitialSyncLoading.current = false;
       app.fire('refresh_resource_children', nodeId);
     }
@@ -350,6 +350,11 @@ export function ResourceNodeContent({
                             size="icon"
                             variant="outline"
                             className="size-5 border-none bg-transparent shadow-none hover:bg-transparent"
+                            onClick={event => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              handleExpand();
+                            }}
                           >
                             <Spinner />
                           </Button>

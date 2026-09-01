@@ -39,6 +39,7 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
         set(s => {
           const ui = ensureUI(s, id);
           ui.loading = true;
+          ui.expanded = true;
         });
 
         try {
@@ -61,7 +62,6 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
             const ui = ensureUI(s, id);
             ui.loading = false;
             ui.loaded = true;
-            ui.expanded = true;
 
             const n = s.nodes[id];
             const backendIds = new Set(
@@ -110,7 +110,10 @@ export function buildNavigationActions(set: SidebarSet, get: SidebarGet) {
           console.error('[sidebar] expand failed:', err);
           set(s => {
             const ui = s.ui[id];
-            if (ui) ui.loading = false;
+            if (ui) {
+              ui.loading = false;
+              ui.expanded = false;
+            }
           });
         } finally {
           expandPromises.delete(id);

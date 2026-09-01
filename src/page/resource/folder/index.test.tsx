@@ -99,6 +99,7 @@ describe('Folder rss item rows', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+    jest.useRealTimers();
   });
 
   async function renderFolder(rssFeedNames = true, emptyText?: string) {
@@ -248,6 +249,36 @@ describe('Folder rss item rows', () => {
     expect(container.textContent).not.toContain('rss_folder.loading');
     expect(container.textContent).toContain('rss_folder.empty');
     expect(childrenCalls).toBe(2);
-    jest.useRealTimers();
+  });
+
+  it('refreshes children when a failed sync later succeeds', async () => {
+    jest.useFakeTimers();
+    let configCalls = 0;
+    let childrenCalls = 0;
+    mockGet.mockImplementation((url: string) => {
+      if (url === CONFIG_URL) {
+        configCalls += 1;
+        return Promise.resolve({
+          resource: { id: FOLDER_ID, name: 'Feeds' },
+          links: [],
+          initial_sync_status: configCalls === 1 ? 'failed' : 'succeeded',
+        });
+      }
+      childrenCalls += 1;
+      return Promise.resolve([]);
+    });
+
+    await renderFolder(true, 'rss_folder.empty');
+
+    expect(container.textContent).toContain('rss_folder.load_failed');
+
+    await act(async () => {
+      jest.advanceTimersByTime(30_000);
+      await Promise.resolve();
+    });
+    await act(async () => undefined);
+
+    expect(container.textContent).toContain('rss_folder.empty');
+    expect(childrenCalls).toBe(2);
   });
 });

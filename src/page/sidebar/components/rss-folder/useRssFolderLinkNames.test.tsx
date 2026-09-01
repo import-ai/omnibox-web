@@ -10,6 +10,7 @@ import { RssItemFeedBadge } from './RssItemFeedBadge';
 import {
   clearRssFolderLinkNamesCache,
   invalidateRssFolderLinkNames,
+  useRssFolderInitialSyncStatus,
   useRssItemFeedName,
 } from './useRssFolderLinkNames';
 
@@ -64,6 +65,11 @@ function ItemRow({
   );
 }
 
+function SyncStatus() {
+  const status = useRssFolderInitialSyncStatus('ns-1', 'folder-1');
+  return <span data-testid="sync-status">{status}</span>;
+}
+
 describe('rss folder feed names', () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -79,6 +85,7 @@ describe('rss folder feed names', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+    jest.useRealTimers();
   });
 
   async function render(children: React.ReactNode) {
@@ -157,6 +164,45 @@ describe('rss folder feed names', () => {
     );
 
     expect(mockGet).toHaveBeenCalledTimes(2);
+  });
+
+  it('treats a response without sync status as a settled legacy response', async () => {
+    mockGet.mockResolvedValue(configResponse([]));
+
+    await render(<SyncStatus />);
+
+    expect(
+      container.querySelector('[data-testid="sync-status"]')?.textContent
+    ).toBe('succeeded');
+    expect(mockGet).toHaveBeenCalledTimes(1);
+  });
+
+  it('rechecks a failed sync and recovers when it later succeeds', async () => {
+    jest.useFakeTimers();
+    mockGet
+      .mockResolvedValueOnce({
+        ...configResponse([]),
+        initial_sync_status: 'failed',
+      })
+      .mockResolvedValueOnce({
+        ...configResponse([]),
+        initial_sync_status: 'succeeded',
+      });
+
+    await render(<SyncStatus />);
+    expect(
+      container.querySelector('[data-testid="sync-status"]')?.textContent
+    ).toBe('failed');
+
+    await act(async () => {
+      jest.advanceTimersByTime(30_000);
+      await Promise.resolve();
+    });
+
+    expect(mockGet).toHaveBeenCalledTimes(2);
+    expect(
+      container.querySelector('[data-testid="sync-status"]')?.textContent
+    ).toBe('succeeded');
   });
 
   it('refetches a folder after its config is saved', async () => {

@@ -235,7 +235,11 @@ export default function Folder(props: IProps) {
       wasInitialSyncLoading.current = true;
       return;
     }
-    if (wasInitialSyncLoading.current && initialSyncStatus && !loading) {
+    if (
+      wasInitialSyncLoading.current &&
+      initialSyncStatus === 'succeeded' &&
+      !loading
+    ) {
       wasInitialSyncLoading.current = false;
       reloadChildren();
     }
