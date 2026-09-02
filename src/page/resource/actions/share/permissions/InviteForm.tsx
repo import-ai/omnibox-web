@@ -99,7 +99,7 @@ export default function InviteForm(props: InviteFormProps) {
         loading={loading}
         disabled={!visible}
         onClick={handleSubmit}
-        className="bg-blue-500 hover:bg-blue-600 text-white px-6"
+        className="bg-blue-500 px-6 text-white hover:bg-blue-600 active:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 dark:active:bg-blue-700"
       >
         {t('share.permissions.invite')}
       </Button>
