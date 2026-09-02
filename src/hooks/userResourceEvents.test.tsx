@@ -109,6 +109,31 @@ describe('useResource resource events', () => {
     }
   );
 
+  it('keeps the current resource when revalidation fails unexpectedly', async () => {
+    mockedGet
+      .mockResolvedValueOnce({
+        id: 'resource-a',
+        content: 'current body',
+      } as Resource)
+      .mockRejectedValueOnce(new Error('network failure'));
+
+    await act(async () => root.render(<ResourceHarness />));
+    await act(async () => {
+      window.dispatchEvent(new Event('focus'));
+    });
+
+    expect(
+      container
+        .querySelector('[data-testid="resource-state"]')
+        ?.getAttribute('data-content')
+    ).toBe('current body');
+    expect(
+      container
+        .querySelector('[data-testid="resource-state"]')
+        ?.getAttribute('data-loading')
+    ).toBe('false');
+  });
+
   it('keeps the latest result when consecutive refetches finish out of order', async () => {
     let resolveFirstRefetch: (resource: Resource) => void = () => undefined;
     let resolveSecondRefetch: (resource: Resource) => void = () => undefined;

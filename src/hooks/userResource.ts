@@ -193,7 +193,6 @@ export default function useResource() {
       onLoading(true);
       onForbidden(false);
       onNotFound(false);
-      onResource(null);
       fetchResource(namespaceId, resourceId, controller.signal)
         .then(updated => {
           if (controller.signal.aborted) return;
@@ -203,8 +202,10 @@ export default function useResource() {
           if (controller.signal.aborted) return;
           if (isNotFoundResourceError(error)) {
             onNotFound(true);
+            onResource(null);
           } else if (isForbiddenResourceError(error)) {
             onForbidden(true);
+            onResource(null);
           }
         })
         .finally(() => {
