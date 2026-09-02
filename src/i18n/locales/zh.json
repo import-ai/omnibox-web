@@ -841,13 +841,14 @@
         "write": "写作"
       }
     },
-    "trial": {
-      "text": "Agent 2.1 试用次数暂时用尽，已切换至 Agent 1.1，{{related_time}}后可继续试用 Agent 2.1",
+    "agent_credits": {
+      "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1",
       "compact_text": "当前已切换至 Agent 1.1",
       "tooltip": {
-        "base": "系统会统计过去 24 小时内的使用次数",
-        "recovery": "{{related_time}}后可继续试用 Agent 2.1"
-      },
+        "base": "Agent 2.1 消耗积分额度，购买或升级后可继续使用"
+      }
+    },
+    "trial": {
       "not_owner": "请联系空间所有者进行升级"
     },
     "decision": {

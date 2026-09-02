@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 type I18nValues = Record<string, unknown>;
 type TooltipSide = ComponentPropsWithoutRef<typeof TooltipContent>['side'];
 
-interface UpgradeTrialUsageTooltipProps {
+interface UpgradeUsageTooltipProps {
   textKey: string;
   textValues?: I18nValues;
   tooltipItems: string[];
@@ -24,13 +24,13 @@ interface UpgradeActionButtonProps {
   className?: string;
 }
 
-export function UpgradeTrialUsageTooltip({
+export function UpgradeUsageTooltip({
   textKey,
   textValues,
   tooltipItems,
   tooltipSide = 'left',
   triggerClassName = 'text-muted-foreground cursor-default',
-}: UpgradeTrialUsageTooltipProps) {
+}: UpgradeUsageTooltipProps) {
   const { t } = useTranslation();
 
   return (

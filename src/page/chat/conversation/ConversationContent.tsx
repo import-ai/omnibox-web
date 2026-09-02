@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
+import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import ChatArea from '@/page/chat/chat-input';
 import type useContext from '@/page/chat/conversation/useContext';
 import { Messages } from '@/page/chat/messages';
@@ -89,7 +89,7 @@ export function ConversationFooter({
     <div className="flex min-w-0 justify-center px-4">
       <div className="min-w-0 w-full max-w-3xl">
         {commercial && (
-          <AgentTrial
+          <AgentCredits
             namespaceId={context.namespaceId}
             messages={context.messages}
           />

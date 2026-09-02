@@ -840,13 +840,14 @@
         "write": "Write"
       }
     },
-    "trial": {
-      "text": "Agent 2.1 trial limit reached. Using Agent 1.1. Try Agent 2.1 again in {{related_time}}.",
+    "agent_credits": {
+      "text": "Agent credits used up. Using Agent 1.1.",
       "compact_text": "Switched to Agent 1.1",
       "tooltip": {
-        "base": "Usage is calculated over a rolling 24-hour window",
-        "recovery": "Try Agent 2.1 again in {{related_time}}"
-      },
+        "base": "Agent 2.1 runs on agent credits; buy more or upgrade to continue"
+      }
+    },
+    "trial": {
       "not_owner": "Please contact space owner to upgrade"
     },
     "decision": {
