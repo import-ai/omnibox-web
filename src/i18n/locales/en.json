@@ -1288,7 +1288,9 @@
     }
   },
   "rss_folder": {
-    "empty": "No items yet",
+    "empty": "Nothing here",
+    "loading": "Loading...",
+    "load_failed": "Failed to load. Please try again later.",
     "published_at": "Published",
     "create": {
       "title": "Create RSS Folder",

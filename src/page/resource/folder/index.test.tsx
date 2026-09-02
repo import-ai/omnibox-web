@@ -31,7 +31,9 @@ jest.mock('@/assets/icons/ResourceIcon', () => ({
 }));
 jest.mock('@/components/loading', () => ({
   __esModule: true,
-  default: () => <div data-testid="loading" />,
+  default: ({ label }: { label?: string }) => (
+    <div data-testid="loading">{label}</div>
+  ),
 }));
 
 (
@@ -97,9 +99,10 @@ describe('Folder rss item rows', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+    jest.useRealTimers();
   });
 
-  async function renderFolder(rssFeedNames = true) {
+  async function renderFolder(rssFeedNames = true, emptyText?: string) {
     await act(async () => {
       root.render(
         <Folder
@@ -108,6 +111,7 @@ describe('Folder rss item rows', () => {
           namespaceId={NAMESPACE_ID}
           navigationPrefix={`/${NAMESPACE_ID}`}
           rssFeedNames={rssFeedNames}
+          emptyText={emptyText}
         />
       );
     });
@@ -213,4 +217,93 @@ describe('Folder rss item rows', () => {
       container.querySelector('[data-testid="resource-icon"]')
     ).not.toBeNull();
   });
+
+  it('keeps the empty state hidden until the initial sync settles', async () => {
+    jest.useFakeTimers();
+    let configCalls = 0;
+    let childrenCalls = 0;
+    mockGet.mockImplementation((url: string) => {
+      if (url === CONFIG_URL) {
+        configCalls += 1;
+        return Promise.resolve({
+          resource: { id: FOLDER_ID, name: 'Feeds' },
+          links: [],
+          initial_sync_status: configCalls === 1 ? 'pending' : 'succeeded',
+        });
+      }
+      childrenCalls += 1;
+      return Promise.resolve([]);
+    });
+
+    await renderFolder(true, 'rss_folder.empty');
+
+    expect(container.textContent).toContain('rss_folder.loading');
+    expect(container.textContent).not.toContain('rss_folder.empty');
+
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+      await Promise.resolve();
+    });
+    await act(async () => undefined);
+
+    expect(container.textContent).not.toContain('rss_folder.loading');
+    expect(container.textContent).toContain('rss_folder.empty');
+    expect(childrenCalls).toBe(2);
+  });
+
+  it('refreshes children when a failed sync later succeeds', async () => {
+    jest.useFakeTimers();
+    let configCalls = 0;
+    let childrenCalls = 0;
+    mockGet.mockImplementation((url: string) => {
+      if (url === CONFIG_URL) {
+        configCalls += 1;
+        return Promise.resolve({
+          resource: { id: FOLDER_ID, name: 'Feeds' },
+          links: [],
+          initial_sync_status: configCalls === 1 ? 'failed' : 'succeeded',
+        });
+      }
+      childrenCalls += 1;
+      return Promise.resolve([]);
+    });
+
+    await renderFolder(true, 'rss_folder.empty');
+
+    expect(container.textContent).toContain('rss_folder.load_failed');
+
+    await act(async () => {
+      jest.advanceTimersByTime(30_000);
+      await Promise.resolve();
+    });
+    await act(async () => undefined);
+
+    expect(container.textContent).toContain('rss_folder.empty');
+    expect(childrenCalls).toBe(2);
+  });
+
+  it.each([
+    ['pending', 'rss_folder.loading'],
+    ['failed', 'rss_folder.load_failed'],
+  ])(
+    'shows %s sync status without hiding items that already loaded',
+    async (status, message) => {
+      mockGet.mockImplementation((url: string) =>
+        Promise.resolve(
+          url === CONFIG_URL
+            ? {
+                resource: { id: FOLDER_ID, name: 'Feeds' },
+                links: [{ id: FEED_A, name: 'Alpha Weekly' }],
+                initial_sync_status: status,
+              }
+            : [rssItem('item-1', 'Already synced', { link_id: FEED_A })]
+        )
+      );
+
+      await renderFolder();
+
+      expect(container.textContent).toContain('Already synced');
+      expect(container.textContent).toContain(message);
+    }
+  );
 });
