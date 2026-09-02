@@ -1047,7 +1047,11 @@
       "title": "Permissions",
       "invite": "Invite",
       "invite_success": "Invitation successful",
-      "invite_placeholder": "Email address or group, separated by commas"
+      "invite_partial_failure": "Some members or groups could not be added",
+      "invite_placeholder": "Email address or group, separated by commas",
+      "no_recipients": "No members or groups available",
+      "recipients_load_failed": "Failed to load members or groups",
+      "permissions_load_failed": "Failed to load resource permissions"
     },
     "share": {
       "title": "Share",

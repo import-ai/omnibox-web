@@ -5,6 +5,7 @@ import { ResourceType } from '@/interface';
 
 import Invite from './permissions/InviteForm';
 import Table from './permissions/table';
+import useResourcePermissions from './permissions/useResourcePermissions';
 import { ShareTabContent } from './share';
 
 export interface ShareTabsProps {
@@ -17,6 +18,11 @@ export interface ShareTabsProps {
 export default function ShareTabs(props: ShareTabsProps) {
   const { namespaceId, resourceId, showPermissions, resourceType } = props;
   const { t } = useTranslation();
+  const permissions = useResourcePermissions(
+    namespaceId,
+    resourceId,
+    Boolean(showPermissions)
+  );
 
   return (
     <Tabs defaultValue={showPermissions ? 'permissions' : 'share'}>
@@ -37,8 +43,21 @@ export default function ShareTabs(props: ShareTabsProps) {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="permissions" className="px-4 pt-4 pb-2">
-        <Invite resource_id={resourceId} namespace_id={namespaceId} />
-        <Table resource_id={resourceId} namespace_id={namespaceId} />
+        <Invite
+          resource_id={resourceId}
+          namespace_id={namespaceId}
+          permissions={permissions.data}
+          permissionsLoading={permissions.loading}
+          permissionsReady={permissions.ready}
+          permissionsError={permissions.error}
+          refetch={permissions.refetch}
+        />
+        <Table
+          resource_id={resourceId}
+          namespace_id={namespaceId}
+          data={permissions.data}
+          refetch={permissions.refetch}
+        />
       </TabsContent>
       <TabsContent value="share" className="px-4 pt-4 pb-2">
         <ShareTabContent

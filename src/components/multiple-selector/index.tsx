@@ -74,6 +74,12 @@ interface MultipleSelectorProps {
   /** Allow user to create option when there is no option matched. */
   creatable?: boolean;
   onCreate?: (option: Option) => Promise<Option>;
+  /** Clear the search input after selecting an option. */
+  clearInputOnSelect?: boolean;
+  /** Keep the component in input mode after notifying the parent. */
+  resetOnSelect?: boolean;
+  /** Use a native input for text editing while keeping cmdk for filtering. */
+  nativeInput?: boolean;
   /** Props of `Command` */
   commandProps?: React.ComponentPropsWithoutRef<typeof Command>;
   /** Props of `CommandInput` */
@@ -205,6 +211,9 @@ const MultipleSelector = React.forwardRef<
       selectFirstItem = true,
       onCreate,
       creatable = false,
+      clearInputOnSelect = true,
+      resetOnSelect = false,
+      nativeInput = false,
       triggerSearchOnFocus = false,
       commandProps,
       inputProps,
@@ -217,6 +226,7 @@ const MultipleSelector = React.forwardRef<
     const [onScrollbar, setOnScrollbar] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     const dropdownRef = React.useRef<HTMLDivElement>(null); // Added this
+    const [listId, setListId] = React.useState<string>();
 
     const [selected, setSelected] = React.useState<Option[]>(value || []);
     const [options, setOptions] = React.useState<GroupOption>(
@@ -385,7 +395,9 @@ const MultipleSelector = React.forwardRef<
               onMaxSelected?.(selected.length);
               return;
             }
-            setInputValue('');
+            if (clearInputOnSelect) {
+              setInputValue('');
+            }
             const newOptions = [...selected];
             if (onCreate) {
               const newOption = await onCreate({ value, label: value });
@@ -393,8 +405,8 @@ const MultipleSelector = React.forwardRef<
             } else {
               newOptions.push({ value, label: value });
             }
-            setSelected(newOptions);
             onChange?.(newOptions);
+            setSelected(resetOnSelect ? [] : newOptions);
           }}
         >
           {createText || 'Create'} "{inputValue}"
@@ -433,6 +445,43 @@ const MultipleSelector = React.forwardRef<
       () => removePickedOption(options, selected),
       [options, selected]
     );
+
+    const { onValueChange: inputOnValueChange, ...restInputProps } =
+      inputProps || {};
+    const handleInputValueChange = (nextValue: string) => {
+      setInputValue(nextValue);
+      inputOnValueChange?.(nextValue);
+    };
+    const handleInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+      if (!onScrollbar) {
+        setOpen(false);
+      }
+      inputProps?.onBlur?.(event);
+    };
+    const handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+      setOpen(true);
+      inputProps?.onFocus?.(event);
+    };
+    const handleInputPointerDown = (
+      event: React.PointerEvent<HTMLInputElement>
+    ) => {
+      // Keep a drag that starts in the input targeted to it when it crosses
+      // the dialog boundary, so the browser can finish the text selection.
+      event.currentTarget.setPointerCapture(event.pointerId);
+      inputProps?.onPointerDown?.(event);
+    };
+    const handleInputPointerUp = (
+      event: React.PointerEvent<HTMLInputElement>
+    ) => {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      inputProps?.onPointerUp?.(event);
+    };
+    const handleListRef = React.useCallback((node: HTMLDivElement | null) => {
+      const nextId = node?.id;
+      setListId(currentId => (currentId === nextId ? currentId : nextId));
+    }, []);
 
     /** Avoid Creatable Selector freezing or lagging when paste a long string. */
     const commandFilter = React.useCallback(() => {
@@ -476,8 +525,8 @@ const MultipleSelector = React.forwardRef<
             },
             className
           )}
-          onClick={() => {
-            if (disabled) return;
+          onMouseDown={event => {
+            if (disabled || event.target === inputRef.current) return;
             inputRef?.current?.focus();
           }}
         >
@@ -518,40 +567,69 @@ const MultipleSelector = React.forwardRef<
               );
             })}
             {/* Avoid having the "Search" Icon */}
-            <CommandPrimitive.Input
-              {...inputProps}
-              ref={inputRef}
-              value={inputValue}
-              disabled={disabled}
-              onValueChange={value => {
-                setInputValue(value);
-                inputProps?.onValueChange?.(value);
-              }}
-              onBlur={event => {
-                if (!onScrollbar) {
-                  setOpen(false);
+            {nativeInput ? (
+              <>
+                <input
+                  {...restInputProps}
+                  ref={inputRef}
+                  value={inputValue}
+                  disabled={disabled}
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-expanded={open}
+                  aria-controls={listId}
+                  onChange={event => handleInputValueChange(event.target.value)}
+                  onBlur={handleInputBlur}
+                  onFocus={handleInputFocus}
+                  onPointerDown={handleInputPointerDown}
+                  onPointerUp={handleInputPointerUp}
+                  placeholder={
+                    hidePlaceholderWhenSelected && selected.length !== 0
+                      ? ''
+                      : placeholder
+                  }
+                  className={cn(
+                    'flex-1 bg-transparent outline-none placeholder:text-muted-foreground',
+                    {
+                      'w-full': hidePlaceholderWhenSelected,
+                      'px-3 py-2': selected.length === 0,
+                      'ml-1': selected.length !== 0,
+                    },
+                    inputProps?.className
+                  )}
+                />
+                <CommandPrimitive.Input
+                  tabIndex={-1}
+                  aria-hidden
+                  value={inputValue}
+                  className="hidden"
+                />
+              </>
+            ) : (
+              <CommandPrimitive.Input
+                {...inputProps}
+                ref={inputRef}
+                value={inputValue}
+                disabled={disabled}
+                onValueChange={handleInputValueChange}
+                onBlur={handleInputBlur}
+                onFocus={handleInputFocus}
+                placeholder={
+                  hidePlaceholderWhenSelected && selected.length !== 0
+                    ? ''
+                    : placeholder
                 }
-                inputProps?.onBlur?.(event);
-              }}
-              onFocus={event => {
-                setOpen(true);
-                inputProps?.onFocus?.(event);
-              }}
-              placeholder={
-                hidePlaceholderWhenSelected && selected.length !== 0
-                  ? ''
-                  : placeholder
-              }
-              className={cn(
-                'flex-1 bg-transparent outline-none placeholder:text-muted-foreground',
-                {
-                  'w-full': hidePlaceholderWhenSelected,
-                  'px-3 py-2': selected.length === 0,
-                  'ml-1': selected.length !== 0,
-                },
-                inputProps?.className
-              )}
-            />
+                className={cn(
+                  'flex-1 bg-transparent outline-none placeholder:text-muted-foreground',
+                  {
+                    'w-full': hidePlaceholderWhenSelected,
+                    'px-3 py-2': selected.length === 0,
+                    'ml-1': selected.length !== 0,
+                  },
+                  inputProps?.className
+                )}
+              />
+            )}
             <button
               type="button"
               onClick={() => {
@@ -575,6 +653,7 @@ const MultipleSelector = React.forwardRef<
         <div className="relative">
           {open && (
             <CommandList
+              ref={handleListRef}
               className="absolute top-1 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in"
               onMouseLeave={() => {
                 setOnScrollbar(false);
@@ -617,10 +696,12 @@ const MultipleSelector = React.forwardRef<
                                   onMaxSelected?.(selected.length);
                                   return;
                                 }
-                                setInputValue('');
+                                if (clearInputOnSelect) {
+                                  setInputValue('');
+                                }
                                 const newOptions = [...selected, option];
-                                setSelected(newOptions);
                                 onChange?.(newOptions);
+                                setSelected(resetOnSelect ? [] : newOptions);
                               }}
                               className={cn(
                                 'cursor-pointer',
