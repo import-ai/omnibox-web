@@ -58,6 +58,7 @@ export default function Wrapper(props: UserFormProps) {
         resource_id={resource_id}
         namespace_id={namespace_id}
         current_permission={data.current_permission}
+        current_role={data.current_role}
       />
     </div>
   );

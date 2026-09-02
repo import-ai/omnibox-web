@@ -11,6 +11,7 @@ import { fetchResource } from '@/service/resource';
 import {
   applyResourceUpdateDelta,
   isCurrentResourceDeleted,
+  isForbiddenResourceError,
   isNotFoundResourceError,
   RESOURCE_CONTENT_UPDATE_EVENTS,
   shouldRefetchResourceContent,
@@ -71,14 +72,22 @@ export default function useResource() {
     initialResourceRequest.current = controller;
     fetchResource(namespaceId, resourceId, controller.signal)
       .then(updated => {
-        if (!controller.signal.aborted) onResource(updated);
+        if (!controller.signal.aborted) {
+          onForbidden(false);
+          onNotFound(false);
+          onResource(updated);
+        }
       })
       .catch(err => {
         if (controller.signal.aborted) return;
-        if (err.response?.status === 404) {
+        if (isNotFoundResourceError(err)) {
           onNotFound(true);
-        } else if (err.response?.data?.code === 'not_authorized') {
+          onForbidden(false);
+          onResource(null);
+        } else if (isForbiddenResourceError(err)) {
           onForbidden(true);
+          onNotFound(false);
+          onResource(null);
         }
       })
       .finally(() => {
@@ -118,12 +127,19 @@ export default function useResource() {
           .then(updated => {
             if (controller.signal.aborted) return;
             onNotFound(false);
+            onForbidden(false);
             onResource(updated);
           })
           .catch(error => {
             if (controller.signal.aborted) return;
             if (isNotFoundResourceError(error)) {
               onNotFound(true);
+              onForbidden(false);
+              onResource(null);
+            } else if (isForbiddenResourceError(error)) {
+              onForbidden(true);
+              onNotFound(false);
+              onResource(null);
             }
           })
           .finally(() => {
@@ -161,6 +177,52 @@ export default function useResource() {
       unbind.forEach(off => off());
     };
   }, [app, namespaceId, resourceId]);
+
+  // Permission changes made in another session are picked up when the user
+  // returns to the tab or window. The loading state prevents stale content
+  // from remaining visible while access is revalidated.
+  useEffect(() => {
+    if (!resourceId) return;
+
+    const revalidate = () => {
+      if (document.visibilityState === 'hidden') return;
+      initialResourceRequest.current?.abort();
+      resourceEventRequest.current?.abort();
+      const controller = new AbortController();
+      resourceEventRequest.current = controller;
+      onLoading(true);
+      onForbidden(false);
+      onNotFound(false);
+      fetchResource(namespaceId, resourceId, controller.signal)
+        .then(updated => {
+          if (controller.signal.aborted) return;
+          onResource(updated);
+        })
+        .catch(error => {
+          if (controller.signal.aborted) return;
+          if (isNotFoundResourceError(error)) {
+            onNotFound(true);
+            onResource(null);
+          } else if (isForbiddenResourceError(error)) {
+            onForbidden(true);
+            onResource(null);
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) onLoading(false);
+          if (resourceEventRequest.current === controller) {
+            resourceEventRequest.current = null;
+          }
+        });
+    };
+
+    window.addEventListener('focus', revalidate);
+    document.addEventListener('visibilitychange', revalidate);
+    return () => {
+      window.removeEventListener('focus', revalidate);
+      document.removeEventListener('visibilitychange', revalidate);
+    };
+  }, [namespaceId, resourceId]);
 
   // Monitor the restore_resource event to reload the resource when it's restored from trash
   useEffect(() => {
