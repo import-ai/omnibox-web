@@ -83,7 +83,9 @@ request.interceptors.response.use(
     );
     if ((isUndefined(config.mute) || !config.mute) && !mutedByCode) {
       let errorMessage = i18next.t('request.failed');
-      if (
+      if (errorCode === 'user_not_owner_or_admin') {
+        errorMessage = i18next.t('permission.invite_owner_or_admin_required');
+      } else if (
         err.response &&
         err.response.data &&
         // @ts-ignore

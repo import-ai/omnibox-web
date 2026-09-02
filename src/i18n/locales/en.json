@@ -654,6 +654,7 @@
     "remove_self": "Are you sure you want to remove your own access?",
     "grant_permission": "Before removing this permission, please grant 'Full Access' to someone else.",
     "owner_full_access_required": "The owner must retain full access",
+    "invite_owner_or_admin_required": "Only the workspace owner or admin can invite users",
     "edit_required": "You only have view permission and cannot edit this resource.",
     "delete_required": "You only have view permission and cannot delete this resource.",
     "you": "(You)"
