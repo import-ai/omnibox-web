@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import GroupAction from '@/components/permission-action/GroupAction';
 import UserCard from '@/components/user-card';
-import { GroupPermission, Permission } from '@/interface';
+import { GroupPermission, Permission, Role } from '@/interface';
 
 interface IProps {
   resource_id: string;
@@ -10,13 +10,22 @@ interface IProps {
   refetch: () => void;
   data: Array<GroupPermission>;
   current_permission: Permission;
+  current_role: Role;
 }
 
 export default function Group(props: IProps) {
-  const { data, resource_id, namespace_id, refetch, current_permission } =
-    props;
+  const {
+    data,
+    resource_id,
+    namespace_id,
+    refetch,
+    current_permission,
+    current_role,
+  } = props;
   const { t } = useTranslation();
-  const canModify = current_permission === 'full_access';
+  const canModify =
+    current_permission === 'full_access' &&
+    (current_role === 'owner' || current_role === 'admin');
 
   return (
     <>

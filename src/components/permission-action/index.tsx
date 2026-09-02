@@ -139,6 +139,13 @@ export default function PermissionAction(props: IProps) {
       });
   };
 
+  const removeLabel = t(
+    resource_id ? 'permission.remove_resource' : 'permission.remove'
+  );
+  const removeSelfLabel = t(
+    resource_id ? 'permission.remove_self_resource' : 'permission.remove_self'
+  );
+
   return (
     <>
       <Action
@@ -157,7 +164,7 @@ export default function PermissionAction(props: IProps) {
                 className="text-red-500 cursor-pointer justify-between hover:bg-gray-100 dark:hover:bg-gray-400"
               >
                 {removeing && <Spinner />}
-                {t('permission.remove')}
+                {removeLabel}
               </DropdownMenuItem>
             </>
           )
@@ -182,7 +189,7 @@ export default function PermissionAction(props: IProps) {
       <AlertDialog open={remove}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('permission.remove_self')}</AlertDialogTitle>
+            <AlertDialogTitle>{removeSelfLabel}</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleRemoveCancel}>

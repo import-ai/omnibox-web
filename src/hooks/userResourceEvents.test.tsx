@@ -52,6 +52,7 @@ function ResourceHarness() {
   return (
     <div
       data-content={state.resource?.content ?? ''}
+      data-forbidden={String(state.forbidden)}
       data-loading={String(state.loading)}
       data-not-found={String(state.notFound)}
       data-testid="resource-state"
@@ -242,5 +243,22 @@ describe('useResource resource events', () => {
         .querySelector('[data-testid="resource-state"]')
         ?.getAttribute('data-loading')
     ).toBe('false');
+  });
+
+  it('revalidates access when the window regains focus', async () => {
+    mockedGet
+      .mockResolvedValueOnce({
+        id: 'resource-a',
+        content: 'initial body',
+      } as Resource)
+      .mockRejectedValueOnce({ response: { status: 403 } });
+
+    await act(async () => root.render(<ResourceHarness />));
+    await act(async () => window.dispatchEvent(new Event('focus')));
+
+    const state = container.querySelector('[data-testid="resource-state"]');
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+    expect(state?.getAttribute('data-forbidden')).toBe('true');
+    expect(state?.getAttribute('data-content')).toBe('');
   });
 });
