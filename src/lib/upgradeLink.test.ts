@@ -10,4 +10,12 @@ describe('getUpgradeLink', () => {
       '/zh-cn/pricing?namespace=namespace-1'
     );
   });
+
+  it('marks pricing links opened from the app', () => {
+    const i18nInstance = { language: 'en' } as i18n;
+
+    expect(getUpgradeLink(i18nInstance, 'namespace-1', true)).toBe(
+      '/en/pricing?namespace=namespace-1&source=app'
+    );
+  });
 });
