@@ -66,7 +66,11 @@ export default function MainSidebar() {
     <React.Fragment>
       <Sidebar className="border-none">
         <SidebarHeader className="gap-2.5 pr-0 pt-4">
-          <Switcher namespaceId={namespaceId} namespaces={namespaces} />
+          <Switcher
+            commercial={configLoading ? undefined : config.commercial}
+            namespaceId={namespaceId}
+            namespaces={namespaces}
+          />
           <Header onActiveKey={handleActiveKey} />
         </SidebarHeader>
         <BodyForSidebar

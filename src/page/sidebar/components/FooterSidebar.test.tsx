@@ -43,7 +43,7 @@ describe('FooterSidebar', () => {
     mockTranslate.mockClear();
   });
 
-  it('renders the neutral crown and renew copy for expired premium spaces', () => {
+  it('renders the blue upgrade entry for expired premium spaces', () => {
     const html = renderFooter({
       commercial: true,
       currentNamespace: {
@@ -56,11 +56,28 @@ describe('FooterSidebar', () => {
     });
 
     expect(html).toContain('href="/zh-cn/pricing?namespace=namespace-1"');
+    expect(html).toContain('text-blue-500');
+    expect(mockTranslate).toHaveBeenCalledWith('footer.upgrade');
+    expect(html).not.toContain('href="/community/"');
+  });
+
+  it('renders the neutral crown and renew copy for active premium spaces', () => {
+    const html = renderFooter({
+      commercial: true,
+      currentNamespace: {
+        id: 'namespace-1',
+        name: 'Premium space',
+        tier: NamespaceTier.PREMIUM,
+        expired: false,
+      },
+      namespaceId: 'namespace-1',
+    });
+
+    expect(html).toContain('href="/zh-cn/pricing?namespace=namespace-1"');
     expect(html).toContain('viewBox="0 0 24 24"');
     expect(html).toContain('stroke="currentColor"');
     expect(html).not.toContain('text-blue-500');
     expect(mockTranslate).toHaveBeenCalledWith('footer.renew');
-    expect(html).not.toContain('href="/community/"');
   });
 
   it('renders the blue upgrade icon and upgrade copy for basic spaces', () => {
