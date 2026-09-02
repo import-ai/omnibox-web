@@ -245,6 +245,7 @@
       "expired": "Expired"
     },
     "upgrade": "Upgrade",
+    "renew": "Renew",
     "min": "Namespace name must be at least 2 characters",
     "max": "Namespace name must be at most 64 characters",
     "submit": "Save",
@@ -1103,7 +1104,7 @@
     "discord": "Discord",
     "wechat": "QR Code",
     "feedback": "Feedback",
-    "upgrade": "Upgrade",
+    "upgrade": "Upgrade to Pro",
     "renew": "Renew",
     "join": "Scan with WeChat to join the group"
   },

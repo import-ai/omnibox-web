@@ -246,6 +246,7 @@
       "expired": "已过期"
     },
     "upgrade": "升级",
+    "renew": "续费",
     "min": "空间名称至少 2 个字符",
     "max": "空间名称最多 64 个字符",
     "submit": "保存",
@@ -1104,7 +1105,7 @@
     "discord": "Discord",
     "wechat": "二维码",
     "feedback": "意见反馈",
-    "upgrade": "升级",
+    "upgrade": "升级至高级版",
     "renew": "续费",
     "join": "微信扫码加入社群"
   },
