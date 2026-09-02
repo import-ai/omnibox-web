@@ -1048,7 +1048,6 @@
       "title": "权限",
       "invite": "邀请",
       "invite_success": "邀请成功",
-      "invite_partial_failure": "部分成员或群组添加失败",
       "invite_placeholder": "邮件地址或群组，以逗号分隔",
       "no_recipients": "暂无可添加的成员或群组",
       "recipients_load_failed": "成员或群组加载失败",

@@ -219,9 +219,6 @@ export default function InviteForm(props: InviteFormProps) {
       const results = await Promise.allSettled(requests);
       await refetch();
       if (results.some(result => result.status === 'rejected')) {
-        toast.error(t('share.permissions.invite_partial_failure'), {
-          position: 'bottom-right',
-        });
         return;
       }
       setInputValue('');
