@@ -112,6 +112,7 @@ export default function Page(props: IProps) {
         />
       ) : (
         <Render
+          namespaceId={namespaceId}
           resource={resource}
           showToc={showToc}
           wide={wide}

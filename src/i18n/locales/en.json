@@ -126,6 +126,37 @@
       "filename": "File"
     }
   },
+  "resource_comments": {
+    "title": "Comments",
+    "all_title": "All comments",
+    "open_all": "View all comments",
+    "close": "Close comments",
+    "quote_label": "Quoted text",
+    "thread_count": "{{count}} discussions",
+    "cancel": "Cancel",
+    "write_comment": "Write a comment",
+    "content_conflict": "This resource changed while you were commenting. Save or reload it, then try again.",
+    "comment": "Publish",
+    "original_text_removed": "The original text was removed",
+    "thread_actions": "Discussion actions",
+    "more_actions": "More actions",
+    "reopen": "Reopen",
+    "resolve": "Resolve",
+    "delete_thread": "Delete discussion",
+    "deleted_user": "Deleted user",
+    "comment_actions": "Comment actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "reply_placeholder": "Reply to this discussion",
+    "reply": "Reply",
+    "resolved": "Resolved",
+    "open": "Open",
+    "save_before_commenting": "Save your content changes before starting a new discussion.",
+    "no_resolved_threads": "No resolved discussions",
+    "no_open_threads": "No open discussions",
+    "load_more": "Load more"
+  },
   "folder": {
     "create_dialog": {
       "title": "New Folder",

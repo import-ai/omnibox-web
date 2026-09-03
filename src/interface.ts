@@ -101,6 +101,39 @@ export interface SharedResource extends ResourceMeta {
   path?: PathItem[];
 }
 
+export type ResourceCommentAnchorStatus = 'active' | 'orphaned';
+
+export interface ResourceCommentAuthor {
+  id: string | null;
+  username: string | null;
+}
+
+export interface ResourceComment {
+  id: string;
+  content: string;
+  author: ResourceCommentAuthor;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ResourceCommentThread {
+  id: string;
+  quoted_text: string;
+  anchor: {
+    from: number;
+    to: number;
+    prefix: string;
+    suffix: string;
+    content_hash: string;
+    status: ResourceCommentAnchorStatus;
+  };
+  resolved: boolean;
+  creator: ResourceCommentAuthor;
+  comments: ResourceComment[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Resource extends IBase {
   id: string;
   current_permission?: Permission;
@@ -122,6 +155,8 @@ export interface Resource extends IBase {
 
   name?: string;
   content?: string;
+  content_hash?: string;
+  comment_threads?: ResourceCommentThread[];
 
   tags?: TagDto[];
   attrs?: Record<string, any>;
