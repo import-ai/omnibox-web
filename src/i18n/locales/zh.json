@@ -1048,7 +1048,10 @@
       "title": "权限",
       "invite": "邀请",
       "invite_success": "邀请成功",
-      "invite_placeholder": "邮件地址或群组，以逗号分隔"
+      "invite_placeholder": "邮件地址或群组，以逗号分隔",
+      "no_recipients": "暂无可添加的成员或群组",
+      "recipients_load_failed": "成员或群组加载失败",
+      "permissions_load_failed": "资源权限加载失败"
     },
     "share": {
       "title": "分享",

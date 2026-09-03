@@ -32,7 +32,7 @@ export default function Group(props: IProps) {
       {data.map((item: GroupPermission) => (
         <div
           key={item.group.id}
-          className="flex items-center p-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
+          className="flex items-center p-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900"
         >
           <UserCard email={t('manage.group')} username={item.group.title} />
           <GroupAction
