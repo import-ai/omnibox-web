@@ -256,6 +256,7 @@ export default function ChatArea(props: IProps) {
             onResourceSelect={resource =>
               inputRef.current?.insertResource(resource)
             }
+            onImageSelect={handleImageSelect}
           />
           <ApprovalModeSelect
             approvalMode={approvalMode}
