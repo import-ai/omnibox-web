@@ -1,5 +1,5 @@
-import { ImagePlus, X } from 'lucide-react';
-import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
+import { X } from 'lucide-react';
+import { forwardRef, useCallback, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
@@ -27,14 +27,12 @@ interface IProps {
   onSelectedResourcesChange: (value: IResTypeContext[]) => void;
   onSend: () => void;
   images: ChatImageInput[];
-  onImageSelect: (file: File) => void;
   onImageRemove: (attachmentId: string) => void;
 }
 
 const ChatInput = forwardRef<ChatInputHandle, IProps>(
   function ChatInput(props, ref) {
     const { t } = useTranslation();
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const getToolLabel = useCallback(
       (tool: Exclude<ToolType, ToolType.PRIVATE_SEARCH>) =>
         t(`chat.tools.${tool}`),
@@ -97,25 +95,6 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           onScroll={composer.handleScroll}
           onSelect={composer.rememberSelection}
         />
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/gif"
-          className="hidden"
-          onChange={event => {
-            const file = event.target.files?.[0];
-            if (file) props.onImageSelect(file);
-            event.target.value = '';
-          }}
-        />
-        <button
-          type="button"
-          aria-label={t('chat.image.add')}
-          className="absolute bottom-1 left-0 rounded-md p-1 text-muted-foreground hover:text-foreground"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <ImagePlus className="size-4" />
-        </button>
       </div>
     );
   }
