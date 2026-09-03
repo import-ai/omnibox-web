@@ -3,12 +3,15 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { CrownIcon } from '@/assets/icons/CrownIcon';
+import { UpgradeIcon } from '@/assets/icons/UpgradeIcon';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import Space from '@/components/space';
 import { Avatar } from '@/components/ui/Avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -22,11 +25,13 @@ import {
 import useFeaturePreviews from '@/hooks/useFeaturePreviews';
 import { Namespace } from '@/interface';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
+import { getUpgradeLink } from '@/lib/upgradeLink';
 import { cn } from '@/lib/utils';
 import { SettingButton } from '@/page/settings/SettingButton';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { Logout } from '@/page/user/Logout';
 
+import { getPricingEntryVariant } from '../pricingEntry';
 import Generate from './Generate';
 import { InviteButton } from './InviteButton';
 import { NamespaceList } from './NamespaceList';
@@ -34,14 +39,15 @@ import NamespaceMember from './NamespaceMember';
 import { NamespaceTierBadge } from './NamespaceTierBadge';
 
 interface IProps {
+  commercial?: boolean;
   namespaceId: string;
   namespaces: Namespace[];
 }
 
 export function Switcher(props: IProps) {
-  const { namespaceId, namespaces } = props;
+  const { commercial, namespaceId, namespaces } = props;
   const { open } = useSidebar();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   useFeaturePreviews();
@@ -50,6 +56,9 @@ export function Switcher(props: IProps) {
     const found = namespaces.find(item => item.id === namespaceId);
     return found || { name: 'Unknown', id: '' };
   }, [namespaceId, namespaces]);
+  const pricingEntryVariant = commercial
+    ? getPricingEntryVariant(current)
+    : undefined;
   const handleNamespaceSelect = (item: Namespace) => {
     if (item.id === namespaceId) {
       return;
@@ -96,6 +105,29 @@ export function Switcher(props: IProps) {
                 </div>
               </div>
             </DropdownMenuLabel>
+            {pricingEntryVariant && (
+              <DropdownMenuItem
+                asChild
+                className={cn(
+                  'h-8 cursor-pointer gap-1 px-2 py-0 text-xs font-medium',
+                  'text-blue-500 hover:text-blue-500 focus:text-blue-500',
+                  'active:text-blue-500 data-[highlighted]:text-blue-500'
+                )}
+              >
+                <a
+                  href={getUpgradeLink(i18n, namespaceId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {pricingEntryVariant === 'upgrade' ? (
+                    <UpgradeIcon className="size-4 shrink-0 text-blue-500 hover:text-blue-500 focus:text-blue-500 active:text-blue-500" />
+                  ) : (
+                    <CrownIcon className="size-4 shrink-0 text-blue-500 hover:text-blue-500 focus:text-blue-500 active:text-blue-500" />
+                  )}
+                  <span>{t(`namespace.${pricingEntryVariant}`)}</span>
+                </a>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuLabel className="p-0">
               <Space className="flex-col items-stretch gap-1">
                 <SettingButton />

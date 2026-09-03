@@ -7,7 +7,10 @@ import { createRoot } from 'react-dom/client';
 import FolderEmptyState from './FolderEmptyState';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: () => '空空如也' }),
+  useTranslation: () => ({
+    t: (key: string) =>
+      key === 'rss_folder.loading' ? '正在加载…' : '空空如也',
+  }),
 }));
 jest.mock('@/components/ui/Sidebar', () => ({
   SidebarMenuItem: ({ children }: { children: React.ReactNode }) => (
@@ -44,5 +47,14 @@ describe('FolderEmptyState', () => {
       (container.firstElementChild?.firstElementChild as HTMLElement).style
         .paddingLeft
     ).toBe('48px');
+  });
+
+  it('shows the rss loading state', async () => {
+    await act(async () => {
+      root.render(<FolderEmptyState depth={1} loading />);
+    });
+
+    expect(container.textContent).toBe('正在加载…');
+    expect(container.querySelector('svg')).not.toBeNull();
   });
 });

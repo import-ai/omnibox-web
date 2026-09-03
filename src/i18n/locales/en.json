@@ -276,6 +276,7 @@
       "expired": "Expired"
     },
     "upgrade": "Upgrade",
+    "renew": "Renew",
     "min": "Namespace name must be at least 2 characters",
     "max": "Namespace name must be at most 64 characters",
     "submit": "Save",
@@ -678,12 +679,15 @@
     "can_view": "Can View",
     "no_access": "No Access",
     "remove": "Remove",
+    "remove_resource": "Remove access from this resource",
     "demote": "Are you sure you want to demote your own access?",
     "cancel": "Cancel",
     "ok": "OK",
     "remove_self": "Are you sure you want to remove your own access?",
+    "remove_self_resource": "Are you sure you want to remove your access from this resource?",
     "grant_permission": "Before removing this permission, please grant 'Full Access' to someone else.",
     "owner_full_access_required": "The owner must retain full access",
+    "invite_owner_or_admin_required": "Only the workspace owner or admin can invite users",
     "edit_required": "You only have view permission and cannot edit this resource.",
     "delete_required": "You only have view permission and cannot delete this resource.",
     "you": "(You)"
@@ -1074,7 +1078,10 @@
       "title": "Permissions",
       "invite": "Invite",
       "invite_success": "Invitation successful",
-      "invite_placeholder": "Email address or group, separated by commas"
+      "invite_placeholder": "Email address or group, separated by commas",
+      "no_recipients": "No members or groups available",
+      "recipients_load_failed": "Failed to load members or groups",
+      "permissions_load_failed": "Failed to load resource permissions"
     },
     "share": {
       "title": "Share",
@@ -1134,7 +1141,7 @@
     "discord": "Discord",
     "wechat": "QR Code",
     "feedback": "Feedback",
-    "upgrade": "Upgrade",
+    "upgrade": "Upgrade to Pro",
     "renew": "Renew",
     "join": "Scan with WeChat to join the group"
   },
@@ -1318,7 +1325,9 @@
     }
   },
   "rss_folder": {
-    "empty": "No items yet",
+    "empty": "Nothing here",
+    "loading": "Loading...",
+    "load_failed": "Failed to load. Please try again later.",
     "published_at": "Published",
     "create": {
       "title": "Create RSS Folder",

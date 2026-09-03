@@ -277,6 +277,7 @@
       "expired": "已过期"
     },
     "upgrade": "升级",
+    "renew": "续费",
     "min": "空间名称至少 2 个字符",
     "max": "空间名称最多 64 个字符",
     "submit": "保存",
@@ -679,12 +680,15 @@
     "can_view": "可以查看",
     "no_access": "无访问权限",
     "remove": "移除",
+    "remove_resource": "移除当前资源访问权限",
     "demote": "确定要降级自己的访问权限吗？",
     "cancel": "取消",
     "ok": "确认",
     "remove_self": "确定要删除自己的访问权限吗？",
+    "remove_self_resource": "确定要移除自己对当前资源的访问权限吗？",
     "grant_permission": "在移除此权限之前，请向其他人授予“全部权限”。",
     "owner_full_access_required": "所有者需要拥有全部权限",
+    "invite_owner_or_admin_required": "仅空间所有者或管理员可以邀请用户",
     "edit_required": "您只有查看权限，无法编辑此资源。",
     "delete_required": "您只有查看权限，无法删除此资源。",
     "you": "（你）"
@@ -1075,7 +1079,10 @@
       "title": "权限",
       "invite": "邀请",
       "invite_success": "邀请成功",
-      "invite_placeholder": "邮件地址或群组，以逗号分隔"
+      "invite_placeholder": "邮件地址或群组，以逗号分隔",
+      "no_recipients": "暂无可添加的成员或群组",
+      "recipients_load_failed": "成员或群组加载失败",
+      "permissions_load_failed": "资源权限加载失败"
     },
     "share": {
       "title": "分享",
@@ -1135,7 +1142,7 @@
     "discord": "Discord",
     "wechat": "二维码",
     "feedback": "意见反馈",
-    "upgrade": "升级",
+    "upgrade": "升级至高级版",
     "renew": "续费",
     "join": "微信扫码加入社群"
   },
@@ -1319,7 +1326,9 @@
     }
   },
   "rss_folder": {
-    "empty": "暂无内容",
+    "empty": "空空如也",
+    "loading": "正在加载…",
+    "load_failed": "加载失败，请稍后重试",
     "published_at": "发布时间",
     "create": {
       "title": "创建订阅文件夹",

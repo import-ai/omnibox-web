@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import GroupAction from '@/components/permission-action/GroupAction';
 import UserCard from '@/components/user-card';
-import { GroupPermission, Permission } from '@/interface';
+import { GroupPermission, Permission, Role } from '@/interface';
 
 interface IProps {
   resource_id: string;
@@ -10,20 +10,29 @@ interface IProps {
   refetch: () => void;
   data: Array<GroupPermission>;
   current_permission: Permission;
+  current_role: Role;
 }
 
 export default function Group(props: IProps) {
-  const { data, resource_id, namespace_id, refetch, current_permission } =
-    props;
+  const {
+    data,
+    resource_id,
+    namespace_id,
+    refetch,
+    current_permission,
+    current_role,
+  } = props;
   const { t } = useTranslation();
-  const canModify = current_permission === 'full_access';
+  const canModify =
+    current_permission === 'full_access' &&
+    (current_role === 'owner' || current_role === 'admin');
 
   return (
     <>
       {data.map((item: GroupPermission) => (
         <div
           key={item.group.id}
-          className="flex items-center p-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
+          className="flex items-center p-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900"
         >
           <UserCard email={t('manage.group')} username={item.group.title} />
           <GroupAction

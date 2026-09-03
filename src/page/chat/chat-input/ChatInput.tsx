@@ -44,7 +44,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
     useImperativeHandle(ref, () => composer.handle, [composer.handle]);
 
     return (
-      <div className="relative mb-[2px] min-h-[60px]">
+      <div className="relative mb-[2px] min-h-[60px] min-w-0">
         <ComposerOverlay
           text={composer.displayText}
           mentions={composer.mentions}
@@ -57,7 +57,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           rows={1}
           placeholder={t('chat.textarea.placeholder')}
           className={cn(
-            'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent p-0 text-transparent outline-none',
+            'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent text-transparent outline-none',
             composerTextLayoutClassName,
             'caret-foreground placeholder:text-[#9CA3AF] selection:bg-[#117bfa]/20 selection:text-transparent dark:placeholder:text-gray-400'
           )}

@@ -1,46 +1,16 @@
-import { useEffect, useState } from 'react';
-
-import useApp from '@/hooks/useApp';
-import { GroupPermission, Permission, Role, UserPermission } from '@/interface';
-import { http } from '@/lib/request';
-
+import type { ResourcePermissionsData } from '../useResourcePermissions';
 import Group from './Group';
 import User from './User';
 
 interface UserFormProps {
   resource_id: string;
   namespace_id: string;
+  data: ResourcePermissionsData;
+  refetch: () => Promise<void>;
 }
 
 export default function Wrapper(props: UserFormProps) {
-  const { resource_id, namespace_id } = props;
-  const app = useApp();
-  const [data, onData] = useState<{
-    global_permission: Permission;
-    users: Array<UserPermission>;
-    groups: Array<GroupPermission>;
-    current_permission: Permission;
-    current_role: Role;
-  }>({
-    users: [],
-    groups: [],
-    global_permission: 'full_access',
-    current_permission: 'full_access',
-    current_role: 'member',
-  });
-  const refetch = () => {
-    if (!namespace_id || !resource_id) {
-      return;
-    }
-    http
-      .get(`namespaces/${namespace_id}/resources/${resource_id}/permissions`)
-      .then(onData);
-  };
-
-  useEffect(() => {
-    refetch();
-    return app.on('user_permission_refetch', refetch);
-  }, [namespace_id, resource_id]);
+  const { resource_id, namespace_id, data, refetch } = props;
 
   return (
     <div className="space-y-2 text-sm max-h-[60vh] sm:max-h-[60vh] overflow-y-auto overflow-x-hidden pr-3">
@@ -58,6 +28,7 @@ export default function Wrapper(props: UserFormProps) {
         resource_id={resource_id}
         namespace_id={namespace_id}
         current_permission={data.current_permission}
+        current_role={data.current_role}
       />
     </div>
   );

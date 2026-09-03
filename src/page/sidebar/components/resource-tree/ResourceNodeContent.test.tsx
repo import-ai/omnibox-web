@@ -16,6 +16,9 @@ const SMART_FOLDER_ID = 'smart-folder-1';
 const CONFIG_URL = `/namespaces/${NAMESPACE_ID}/rss-folders/${FOLDER_ID}/config`;
 const FEED_A = 'link-a';
 const FEED_B = 'link-b';
+const mockFire = jest.fn();
+const mockCollapse = jest.fn();
+const mockExpand = jest.fn();
 let mockIsInsideDrop = false;
 
 jest.mock('@/lib/request', () => ({
@@ -31,6 +34,10 @@ jest.mock('react-router-dom', () => ({
 }));
 jest.mock('@/hooks/useMobile', () => ({
   useIsMobile: () => false,
+}));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ fire: mockFire }),
 }));
 jest.mock('@/components/Checkbox', () => ({
   Checkbox: () => null,
@@ -110,12 +117,16 @@ const mockSidebarState: {
   nodes: Record<string, { id: string; resourceType: string }>;
   renamingId: string | null;
   ui: Record<string, unknown>;
+  collapse: jest.Mock;
+  expand: jest.Mock;
 } = {
   activeId: null,
   dialogs: { upload: {} },
   nodes: {},
   renamingId: null,
   ui: {},
+  collapse: mockCollapse,
+  expand: mockExpand,
 };
 
 jest.mock('@/page/sidebar/store', () => ({
@@ -157,7 +168,10 @@ function itemNode(id: string, attrs: Record<string, unknown>): TreeNode {
   } as unknown as TreeNode;
 }
 
-function mockConfig(links: Array<{ id: string; name: string }>) {
+function mockConfig(
+  links: Array<{ id: string; name: string }>,
+  initialSyncStatus = 'failed'
+) {
   mockGet.mockImplementation((url: string) =>
     url === CONFIG_URL
       ? Promise.resolve({
@@ -167,6 +181,7 @@ function mockConfig(links: Array<{ id: string; name: string }>) {
             index,
             url: `https://example.com/${link.id}`,
           })),
+          initial_sync_status: initialSyncStatus,
         })
       : Promise.reject(new Error(`unexpected request: ${url}`))
   );
@@ -179,6 +194,9 @@ describe('ResourceNodeContent', () => {
   beforeEach(() => {
     clearRssFolderLinkNamesCache();
     mockGet.mockReset();
+    mockFire.mockReset();
+    mockCollapse.mockReset();
+    mockExpand.mockReset();
     mockIsInsideDrop = false;
     mockSidebarState.nodes = {
       [FOLDER_ID]: { id: FOLDER_ID, resourceType: 'rss_folder' },
@@ -192,6 +210,7 @@ describe('ResourceNodeContent', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+    jest.useRealTimers();
   });
 
   async function renderNodes(nodes: TreeNode[]) {
@@ -376,7 +395,12 @@ describe('ResourceNodeContent empty folders', () => {
   beforeEach(() => {
     clearRssFolderLinkNamesCache();
     mockGet.mockReset();
-    mockGet.mockResolvedValue({ resource: {}, links: [] });
+    mockFire.mockReset();
+    mockGet.mockResolvedValue({
+      resource: {},
+      links: [],
+      initial_sync_status: 'succeeded',
+    });
     mockSidebarState.nodes = {};
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -421,5 +445,98 @@ describe('ResourceNodeContent empty folders', () => {
     await renderExpanded(folderNode('plain', 'folder'));
 
     expect(container.textContent).not.toContain('sidebar.folder_empty');
+  });
+
+  it('shows loading instead of empty while an rss folder is syncing', async () => {
+    mockGet.mockResolvedValue({
+      resource: {},
+      links: [],
+      initial_sync_status: 'pending',
+    });
+
+    await renderExpanded(folderNode(FOLDER_ID, 'rss_folder'));
+
+    expect(container.textContent).toContain('rss_folder.loading');
+    expect(container.textContent).not.toContain('sidebar.folder_empty');
+  });
+
+  it.each([
+    ['pending', 'rss_folder.loading'],
+    ['failed', 'rss_folder.load_failed'],
+  ])(
+    'shows %s sync status while the rss folder already has children',
+    async (status, message) => {
+      mockGet.mockResolvedValue({
+        resource: {},
+        links: [],
+        initial_sync_status: status,
+      });
+      const node = folderNode(FOLDER_ID, 'rss_folder');
+      node.hasChildren = true;
+      node.children = ['item-1'];
+
+      await renderExpanded(node);
+
+      expect(container.textContent).toContain(message);
+    }
+  );
+
+  it('refreshes children when a failed rss sync later succeeds', async () => {
+    jest.useFakeTimers();
+    mockGet
+      .mockResolvedValueOnce({
+        resource: {},
+        links: [],
+        initial_sync_status: 'failed',
+      })
+      .mockResolvedValueOnce({
+        resource: {},
+        links: [],
+        initial_sync_status: 'succeeded',
+      });
+
+    await renderExpanded(folderNode(FOLDER_ID, 'rss_folder'));
+    expect(mockFire).not.toHaveBeenCalled();
+
+    await act(async () => {
+      jest.advanceTimersByTime(30_000);
+      await Promise.resolve();
+    });
+
+    expect(mockFire).toHaveBeenCalledWith(
+      'refresh_resource_children',
+      FOLDER_ID
+    );
+  });
+
+  it('allows a loading folder to be collapsed', async () => {
+    const node = folderNode(FOLDER_ID, 'rss_folder');
+    node.hasChildren = true;
+    mockSidebarState.ui = {
+      [node.id]: { expanded: true, loaded: false, loading: true },
+    };
+
+    await act(async () => {
+      root.render(
+        <ResourceNodeContent
+          node={node}
+          nodeId={node.id}
+          depth={0}
+          hasTeamspace={false}
+          onBatchDelete={jest.fn()}
+          onBatchMove={jest.fn()}
+          onBatchCreate={jest.fn()}
+          onAddToChat={jest.fn()}
+        />
+      );
+    });
+
+    const loadingButton = container.querySelector('button');
+    await act(async () => {
+      loadingButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(mockCollapse).toHaveBeenCalledWith(FOLDER_ID);
+    expect(mockExpand).not.toHaveBeenCalled();
   });
 });

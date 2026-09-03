@@ -84,6 +84,7 @@ export interface ChatRequestBody {
   enable_thinking: boolean;
   lang?: '简体中文' | 'English';
   namespace_id?: string;
+  current_resource_id?: string;
   share_id?: string;
   share_password?: string;
   tool_call?: {
