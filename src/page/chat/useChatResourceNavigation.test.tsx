@@ -30,7 +30,13 @@ const RESOURCE_ID = 'Abcd1234Efgh5678';
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
-function ResourceLink({ onOpened }: { onOpened?: () => void }) {
+function ResourceLink({
+  lineNumber,
+  onOpened,
+}: {
+  lineNumber?: number;
+  onOpened?: () => void;
+}) {
   const { canOpenInCopilot, getResourceLinkProps } =
     useChatResourceNavigation();
 
@@ -38,7 +44,7 @@ function ResourceLink({ onOpened }: { onOpened?: () => void }) {
     <a
       data-can-open={canOpenInCopilot}
       href={`#resource-${RESOURCE_ID}`}
-      {...getResourceLinkProps(RESOURCE_ID, onOpened)}
+      {...getResourceLinkProps(RESOURCE_ID, onOpened, lineNumber)}
     >
       Resource
     </a>
@@ -67,14 +73,16 @@ describe('useChatResourceNavigation', () => {
     container.remove();
   });
 
-  async function renderLink(onOpened?: () => void) {
-    await act(async () => root.render(<ResourceLink onOpened={onOpened} />));
+  async function renderLink(onOpened?: () => void, lineNumber?: number) {
+    await act(async () =>
+      root.render(<ResourceLink lineNumber={lineNumber} onOpened={onOpened} />)
+    );
     return container.querySelector('a')!;
   }
 
   it('opens an authenticated internal resource beside the current conversation', async () => {
     const onOpened = jest.fn();
-    const link = await renderLink(onOpened);
+    const link = await renderLink(onOpened, 12);
     const click = new MouseEvent('click', { bubbles: true, cancelable: true });
 
     await act(async () => link.dispatchEvent(click));
@@ -89,6 +97,7 @@ describe('useChatResourceNavigation', () => {
       view: 'conversation',
       conversationId: 'conversation-a',
       previewResourceId: RESOURCE_ID,
+      previewLineNumber: 12,
     });
   });
 

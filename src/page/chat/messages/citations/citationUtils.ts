@@ -78,6 +78,24 @@ export function isCitationId(value: string | undefined): value is string {
   return Boolean(value && citationIdPattern.test(value));
 }
 
+export function getCitationLineNumber(citationId: string) {
+  const match = citationId.match(/-L(\d+)(?:-\d+)?$/);
+  if (!match) return undefined;
+
+  const lineNumber = Number(match[1]);
+  return Number.isSafeInteger(lineNumber) && lineNumber > 0
+    ? lineNumber
+    : undefined;
+}
+
+export function appendLineNumber(href: string, lineNumber?: number) {
+  if (!lineNumber) return href;
+
+  const [path, hash] = href.split('#', 2);
+  const nextHref = `${path}${path.includes('?') ? '&' : '?'}line=${lineNumber}`;
+  return hash ? `${nextHref}#${hash}` : nextHref;
+}
+
 function decodeCitationId(citationId: string): string {
   try {
     return decodeURIComponent(citationId);

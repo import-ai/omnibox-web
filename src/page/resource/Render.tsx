@@ -33,6 +33,7 @@ import { embedImage, getReadonlyResourceEditorKey } from './utils';
 interface IProps {
   resource: Resource | SharedResource;
   showToc?: boolean;
+  scrollToLine?: number;
   wide?: boolean;
   linkBase?: string;
   style?: React.CSSProperties;
@@ -116,10 +117,11 @@ function useSearchHighlight(
 }
 
 function MarkdownRender(props: IProps) {
-  const { resource, linkBase, style } = props;
+  const { resource, linkBase, scrollToLine: requestedLine, style } = props;
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
-  const scrollToLine = parseScrollToLine(searchParams.get('line'));
+  const scrollToLine =
+    requestedLine ?? parseScrollToLine(searchParams.get('line'));
   const containerRef = useRef<HTMLDivElement>(null);
   const contentKey = embedImage(resource);
   const applySearchHighlight = useSearchHighlight(
@@ -155,12 +157,20 @@ function MarkdownRender(props: IProps) {
 }
 
 function OmniboxRender(props: IProps) {
-  const { resource, linkBase, showToc = true, style, wide = false } = props;
+  const {
+    resource,
+    linkBase,
+    scrollToLine: requestedLine,
+    showToc = true,
+    style,
+    wide = false,
+  } = props;
   const { i18n } = useTranslation();
   const { theme } = useTheme();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
-  const scrollToLine = parseScrollToLine(searchParams.get('line'));
+  const scrollToLine =
+    requestedLine ?? parseScrollToLine(searchParams.get('line'));
   const containerRef = useRef<HTMLDivElement>(null);
   const content = useMemo(
     () => getResourceEditorContent(resource, linkBase),
