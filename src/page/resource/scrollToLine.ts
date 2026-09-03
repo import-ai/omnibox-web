@@ -1,7 +1,8 @@
 export function parseScrollToLine(value: string | null): number | undefined {
-  if (!value || !/^\d+$/.test(value)) return undefined;
+  const match = value?.match(/^#?L(\d+)$/);
+  if (!match) return undefined;
 
-  const lineNumber = Number(value);
+  const lineNumber = Number(match[1]);
   return Number.isSafeInteger(lineNumber) && lineNumber > 0
     ? lineNumber
     : undefined;

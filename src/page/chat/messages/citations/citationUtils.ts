@@ -91,9 +91,8 @@ export function getCitationLineNumber(citationId: string) {
 export function appendLineNumber(href: string, lineNumber?: number) {
   if (!lineNumber) return href;
 
-  const [path, hash] = href.split('#', 2);
-  const nextHref = `${path}${path.includes('?') ? '&' : '?'}line=${lineNumber}`;
-  return hash ? `${nextHref}#${hash}` : nextHref;
+  const [path] = href.split('#', 2);
+  return `${path}#L${lineNumber}`;
 }
 
 function decodeCitationId(citationId: string): string {

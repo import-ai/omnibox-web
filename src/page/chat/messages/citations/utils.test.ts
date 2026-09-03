@@ -117,9 +117,9 @@ describe('citation id helpers', () => {
     expect(getCitationLineNumber(citationId)).toBe(expected);
   });
 
-  it('appends the line before a URL fragment', () => {
+  it('uses a line anchor instead of a URL fragment', () => {
     expect(appendLineNumber('../resource?view=compact#body', 12)).toBe(
-      '../resource?view=compact&line=12#body'
+      '../resource?view=compact#L12'
     );
     expect(appendLineNumber('../resource')).toBe('../resource');
   });

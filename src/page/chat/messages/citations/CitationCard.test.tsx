@@ -100,7 +100,7 @@ describe('CitationCard', () => {
 
     const { link, onOpenResource } = await renderCard();
 
-    expect(link.getAttribute('href')).toBe(`/s/share-a/${RESOURCE_ID}?line=12`);
+    expect(link.getAttribute('href')).toBe(`/s/share-a/${RESOURCE_ID}#L12`);
     expect(link.getAttribute('target')).toBe('_blank');
     expect(onOpenResource).not.toHaveBeenCalled();
   });

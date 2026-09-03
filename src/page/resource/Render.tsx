@@ -6,9 +6,9 @@ import {
   OmniboxEditor,
   type TiptapJsonContent,
 } from '@import-ai/omnibox-editor';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 
 import { Markdown } from '@/components/markdown';
 import useTheme from '@/hooks/useTheme';
@@ -118,10 +118,10 @@ function useSearchHighlight(
 
 function MarkdownRender(props: IProps) {
   const { resource, linkBase, scrollToLine: requestedLine, style } = props;
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
-  const scrollToLine =
-    requestedLine ?? parseScrollToLine(searchParams.get('line'));
+  const scrollToLine = requestedLine ?? parseScrollToLine(location.hash);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentKey = embedImage(resource);
   const applySearchHighlight = useSearchHighlight(
@@ -167,15 +167,54 @@ function OmniboxRender(props: IProps) {
   } = props;
   const { i18n } = useTranslation();
   const { theme } = useTheme();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
-  const scrollToLine =
-    requestedLine ?? parseScrollToLine(searchParams.get('line'));
+  const [isScrollLineVisible, setIsScrollLineVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const content = useMemo(
     () => getResourceEditorContent(resource, linkBase),
     [linkBase, resource]
   );
+  const targetScrollToLine = requestedLine ?? parseScrollToLine(location.hash);
+  const scrollToLine = isScrollLineVisible ? targetScrollToLine : undefined;
+
+  useEffect(() => {
+    setIsScrollLineVisible(true);
+  }, [targetScrollToLine]);
+
+  useEffect(() => {
+    if (!isScrollLineVisible) {
+      return;
+    }
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+
+      const highlightedElement = containerRef.current?.querySelector(
+        '[data-scroll-line-highlight="true"]'
+      );
+      if (!highlightedElement) {
+        return;
+      }
+
+      const highlightedBlock = highlightedElement.closest(
+        '.tiptap.ProseMirror > *'
+      );
+      if (highlightedBlock?.contains(event.target)) {
+        return;
+      }
+
+      setIsScrollLineVisible(false);
+    };
+
+    document.addEventListener('click', handleDocumentClick, true);
+    return () => {
+      document.removeEventListener('click', handleDocumentClick, true);
+    };
+  }, [isScrollLineVisible]);
 
   return (
     <div
@@ -183,6 +222,8 @@ function OmniboxRender(props: IProps) {
       style={style}
       className={cn(
         'resource-readonly-editor pb-[30vh]',
+        !isScrollLineVisible &&
+          'resource-readonly-editor--scroll-line-dismissed',
         wide && 'resource-readonly-editor--wide'
       )}
     >
