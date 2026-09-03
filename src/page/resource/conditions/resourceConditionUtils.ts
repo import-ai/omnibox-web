@@ -38,6 +38,7 @@ const FIELD_DEFINITIONS: Record<
   ResourceConditionField,
   ResourceConditionFieldDefinition
 > = {
+  expression: { type: 'text', operators: [] },
   title: { type: 'text', operators: TEXT_OPERATORS },
   tags: { type: 'text', operators: TEXT_OPERATORS },
   content: { type: 'text', operators: TEXT_OPERATORS },
@@ -190,6 +191,9 @@ export function createDefaultResourceConditionValue(
 export function getInitialResourceConditionForField(
   field: ResourceConditionField
 ): ResourceCondition {
+  if (field === 'expression') {
+    return { field, value: '' };
+  }
   const operator = getDefaultResourceConditionOperator(field);
 
   return {
@@ -228,6 +232,9 @@ export function normalizeResourceConditionValue(
   operator?: ResourceCondition['operator'],
   value?: ResourceCondition['value']
 ): ResourceConditionValue | undefined {
+  if (field === 'expression') {
+    return undefined;
+  }
   if (!field || !operator) {
     return undefined;
   }
@@ -294,6 +301,11 @@ export function normalizeRelativeDateAmount(value?: string | number) {
 }
 
 export function isResourceConditionComplete(condition: ResourceCondition) {
+  if (condition.field === 'expression') {
+    return (
+      typeof condition.value === 'string' && condition.value.trim().length > 0
+    );
+  }
   if (!condition.field || !condition.operator) {
     return false;
   }
@@ -356,6 +368,13 @@ export function normalizeResourceCondition(
     return null;
   }
 
+  if (condition.field === 'expression') {
+    return {
+      field: condition.field,
+      value: typeof condition.value === 'string' ? condition.value.trim() : '',
+    };
+  }
+
   const operator =
     condition.operator || getDefaultResourceConditionOperator(condition.field);
   const nextValue = normalizeResourceConditionValue(
@@ -375,6 +394,13 @@ export function fromResourceConditionApiCondition(
   condition: ResourceConditionApiCondition | ResourceCondition
 ): ResourceCondition {
   const operator = fromApiOperator(condition.operator);
+
+  if (condition.field === 'expression') {
+    return {
+      field: condition.field,
+      value: typeof condition.value === 'string' ? condition.value : '',
+    };
+  }
 
   if (!condition.field || !operator) {
     return {};

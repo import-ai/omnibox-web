@@ -1168,10 +1168,12 @@
     "select_field": "选择属性",
     "select_operator": "选择关系",
     "value_placeholder": "请输入关键词",
+    "expression_placeholder": "示例：title = 'foo' or (tags includes 'bar')",
     "relative_value_placeholder": "请输入数值",
     "pick_date": "选择日期",
     "add_condition": "添加条件",
     "fields": {
+      "expression": "条件表达式",
       "title": "标题",
       "tags": "标签",
       "content": "正文",

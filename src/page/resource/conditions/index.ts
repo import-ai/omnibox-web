@@ -1,6 +1,7 @@
 export type ResourceConditionMatchMode = 'all' | 'any';
 
 export type ResourceConditionField =
+  | 'expression'
   | 'title'
   | 'tags'
   | 'url'

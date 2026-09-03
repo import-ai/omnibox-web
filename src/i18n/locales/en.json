@@ -1167,10 +1167,12 @@
     "select_field": "Select field",
     "select_operator": "Select operator",
     "value_placeholder": "Enter keyword",
+    "expression_placeholder": "Example: title = 'foo' or (tags includes 'bar')",
     "relative_value_placeholder": "Enter value",
     "pick_date": "Pick a date",
     "add_condition": "Add condition",
     "fields": {
+      "expression": "Condition expression",
       "title": "Title",
       "tags": "Tags",
       "content": "Content",
