@@ -203,6 +203,7 @@ function OmniboxRender(props: IProps) {
         showToc={showToc}
         searchTerm={search ?? undefined}
         scrollToLine={scrollToLine}
+        scrollToLineContent={embedImage(resource)}
       />
     </div>
   );
