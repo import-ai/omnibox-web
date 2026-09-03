@@ -669,6 +669,10 @@
   },
   "chat": {
     "tips": "Enter a message",
+    "image": {
+      "add": "Add image",
+      "remove": "Remove image"
+    },
     "title": "OmniBox AI",
     "page_title": "OmniBox",
     "citations": "Paragraph",
@@ -729,6 +733,7 @@
           "list_resource_attachments": "List Resource Attachments",
           "get_resource_attachment": "Get Resource Attachment",
           "upload_resource_attachment": "Upload Resource Attachment",
+          "insert_image_into_resource": "Insert Image Into Resource",
           "delete_resource_attachment": "Delete Resource Attachment",
           "read_file": "Read Resource",
           "read_resource": "Read Resource",

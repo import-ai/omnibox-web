@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ApprovalMode,
+  ChatImageInput,
   ChatMode,
   IResTypeContext,
   SendMessageParams,
@@ -67,6 +68,7 @@ export default function ChatArea(props: IProps) {
   } = props;
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
+  const [images, setImages] = useState<ChatImageInput[]>([]);
   const {
     approvalMode,
     clearComposerAfterSend,
@@ -124,6 +126,47 @@ export default function ChatArea(props: IProps) {
     loading ||
     (interrupts.length === 0 && (!query || query.trim().length === 0));
 
+  const handleImageSelect = useCallback(
+    async (file: File) => {
+      const target = selectedResources[0]?.resource;
+      if (!namespaceId || !target?.id || target.resource_type === 'folder') {
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file[]', file);
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `/api/v1/namespaces/${namespaceId}/resources/${target.id}/attachments`,
+        {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          body: formData,
+        }
+      );
+      if (!response.ok) return;
+      const data = (await response.json()) as {
+        uploaded?: Array<{ link: string; name: string }>;
+      };
+      const uploaded = data.uploaded?.[0];
+      if (!uploaded) return;
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      setImages(current => [
+        ...current,
+        {
+          attachment_id: uploaded.link,
+          data_url: dataUrl,
+          name: uploaded.name,
+        },
+      ]);
+    },
+    [namespaceId, selectedResources]
+  );
+
   const handleSend = useCallback(() => {
     const v = query.trim();
     if (v) {
@@ -140,8 +183,18 @@ export default function ChatArea(props: IProps) {
         tools: localTools,
         mode,
         approvalMode,
-        displayParts: localDisplayParts,
+        displayParts: [
+          ...(localDisplayParts ?? []),
+          ...images.map(image => ({
+            type: 'image' as const,
+            attachment_id: image.attachment_id,
+            name: image.name,
+            preview_url: image.data_url,
+          })),
+        ],
+        images,
       });
+      setImages([]);
     }
   }, [
     approvalMode,
@@ -152,6 +205,7 @@ export default function ChatArea(props: IProps) {
     selectedResources,
     sendMessage,
     tools,
+    images,
   ]);
 
   return interrupts.length > 0 ? (
@@ -180,6 +234,13 @@ export default function ChatArea(props: IProps) {
         onToolsChange={handleToolsChange}
         onSelectedResourcesChange={setSelectedResources}
         onSend={handleSend}
+        images={images}
+        onImageSelect={handleImageSelect}
+        onImageRemove={attachmentId =>
+          setImages(current =>
+            current.filter(image => image.attachment_id !== attachmentId)
+          )
+        }
         disabled={disabled}
       />
       <div className="flex items-center justify-between">

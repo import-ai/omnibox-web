@@ -3,7 +3,10 @@ import { ResourceMeta } from '@/interface.ts';
 import { http } from '@/lib/request';
 import { createStreamTransport } from '@/lib/streamTransport';
 import { WizardLang } from '@/lib/wizardLang';
-import type { ChatMessageDisplayPart } from '@/page/chat/chat-input/types';
+import type {
+  ChatImageInput,
+  ChatMessageDisplayPart,
+} from '@/page/chat/chat-input/types';
 import {
   AgentRequestChannel,
   ChatRequestBody,
@@ -177,7 +180,8 @@ export function ask(
   tool_call?: ChatRequestBody['tool_call'],
   displayParts?: ChatMessageDisplayPart[],
   recommendedQuestionId?: string,
-  currentResourceId?: string
+  currentResourceId?: string,
+  images?: ChatImageInput[]
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -198,6 +202,9 @@ export function ask(
   }
   if (recommendedQuestionId) {
     chatReq.recommended_question_id = recommendedQuestionId;
+  }
+  if (images?.length) {
+    chatReq.images = images;
   }
   let pendingDisplayParts = displayParts?.length ? displayParts : undefined;
 

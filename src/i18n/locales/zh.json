@@ -670,6 +670,10 @@
   },
   "chat": {
     "tips": "请输入消息",
+    "image": {
+      "add": "添加图片",
+      "remove": "移除图片"
+    },
     "title": "小黑",
     "page_title": "小黑",
     "citations": "段落",
@@ -730,6 +734,7 @@
           "list_resource_attachments": "浏览资源附件",
           "get_resource_attachment": "读取资源附件",
           "upload_resource_attachment": "上传资源附件",
+          "insert_image_into_resource": "插入图片到资源",
           "delete_resource_attachment": "删除资源附件",
           "read_file": "读取资源",
           "read_resource": "读取资源",

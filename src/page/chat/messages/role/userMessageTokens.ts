@@ -278,6 +278,9 @@ function displayPartHtml(
 ) {
   if (part.type === 'text') return escapeHtml(part.text).replace(/\n/g, '<br>');
   if (part.type === 'resource') return resourceTokenHtml(part.resource);
+  if (part.type === 'image') {
+    return `<img src="${escapeHtml(part.preview_url)}" alt="${escapeHtml(part.name)}" class="max-h-40 max-w-40 rounded-md object-contain" />`;
+  }
   return toolTokenHtml(part.tool, getToolLabel);
 }
 

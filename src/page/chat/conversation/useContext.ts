@@ -105,6 +105,7 @@ export default function useContext() {
     displayParts,
     decisions,
     recommendedQuestionId,
+    images,
   }: SendMessageParams) => {
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
@@ -132,7 +133,8 @@ export default function useContext() {
           decisions ? { decisions } : undefined,
           displayParts,
           recommendedQuestionId,
-          currentResourceId
+          currentResourceId,
+          images
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();

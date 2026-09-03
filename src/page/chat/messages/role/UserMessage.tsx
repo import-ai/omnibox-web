@@ -213,6 +213,16 @@ export function UserMessage(props: IProps) {
                     </InlineChatToken>
                   );
                 }
+                if (part.type === 'image') {
+                  return (
+                    <img
+                      key={partIndex}
+                      src={part.preview_url}
+                      alt={part.name}
+                      className="max-h-40 max-w-40 rounded-md object-contain"
+                    />
+                  );
+                }
 
                 const tokenResource =
                   resourceMetaById[part.resource.id] ??
