@@ -57,8 +57,6 @@ export default function useResource() {
   const initialResourceRequest = useRef<AbortController | null>(null);
   const resourceEventRequest = useRef<AbortController | null>(null);
   const editPageRef = useRef(editPage);
-  const windowWasBlurred = useRef(false);
-  const documentWasHidden = useRef(document.visibilityState === 'hidden');
   editPageRef.current = editPage;
 
   useEffect(() => {
@@ -179,76 +177,6 @@ export default function useResource() {
       unbind.forEach(off => off());
     };
   }, [app, namespaceId, resourceId]);
-
-  // Permission changes made in another session are picked up when the user
-  // returns to the tab or window without unmounting the current resource page.
-  useEffect(() => {
-    if (!resourceId) return;
-
-    const revalidate = () => {
-      if (document.visibilityState === 'hidden') return;
-      if (initialResourceRequest.current) return;
-      resourceEventRequest.current?.abort();
-      const controller = new AbortController();
-      resourceEventRequest.current = controller;
-      fetchResource(namespaceId, resourceId, controller.signal)
-        .then(updated => {
-          if (controller.signal.aborted) return;
-          onForbidden(false);
-          onNotFound(false);
-          onResource(updated);
-        })
-        .catch(error => {
-          if (controller.signal.aborted) return;
-          if (isNotFoundResourceError(error)) {
-            onNotFound(true);
-            onResource(null);
-          } else if (isForbiddenResourceError(error)) {
-            onForbidden(true);
-            onResource(null);
-          }
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) onLoading(false);
-          if (resourceEventRequest.current === controller) {
-            resourceEventRequest.current = null;
-          }
-        });
-    };
-
-    const handleBlur = () => {
-      windowWasBlurred.current = true;
-    };
-
-    const handleFocus = () => {
-      if (!windowWasBlurred.current) return;
-      windowWasBlurred.current = false;
-      revalidate();
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        documentWasHidden.current = true;
-        return;
-      }
-
-      if (!documentWasHidden.current) return;
-      documentWasHidden.current = false;
-      // A tab switch can emit both visibilitychange and focus. The visible
-      // transition owns the revalidation so the same return does one request.
-      windowWasBlurred.current = false;
-      revalidate();
-    };
-
-    window.addEventListener('blur', handleBlur);
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      window.removeEventListener('blur', handleBlur);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [namespaceId, resourceId]);
 
   // Monitor the restore_resource event to reload the resource when it's restored from trash
   useEffect(() => {
