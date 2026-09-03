@@ -120,6 +120,25 @@ describe('chat request body tools', () => {
     ]);
   });
 
+  it('includes the current resource without changing selected resources', () => {
+    expect(
+      prepareBody(
+        'c1',
+        '总结当前资源',
+        [],
+        [selectedResource()],
+        AgentRequestChannel.WEB,
+        undefined,
+        '简体中文',
+        false,
+        'current-resource'
+      )
+    ).toMatchObject({
+      current_resource_id: 'current-resource',
+      tools: [{ name: ToolType.PRIVATE_SEARCH }],
+    });
+  });
+
   it('keeps composer display parts in frontend attrs and the refresh cache', async () => {
     const displayParts: ChatMessageDisplayPart[] = [
       { type: 'tool', tool: ToolType.WEB_SEARCH },

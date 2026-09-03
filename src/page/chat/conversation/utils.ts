@@ -117,7 +117,8 @@ export function prepareBody(
   channel: AgentRequestChannel,
   parent_message_id: string | undefined,
   lang: WizardLang | undefined,
-  enable_thinking?: boolean
+  enable_thinking?: boolean,
+  currentResourceId?: string
 ): ChatRequestBody {
   const body: ChatRequestBody = {
     conversation_id: conversationId,
@@ -126,6 +127,9 @@ export function prepareBody(
     lang,
     channel,
   };
+  if (currentResourceId) {
+    body.current_resource_id = currentResourceId;
+  }
   if (context.length > 0 && !tools.includes(ToolType.PRIVATE_SEARCH)) {
     tools = [ToolType.PRIVATE_SEARCH, ...tools];
   }
@@ -172,7 +176,8 @@ export function ask(
   enable_thinking?: boolean,
   tool_call?: ChatRequestBody['tool_call'],
   displayParts?: ChatMessageDisplayPart[],
-  recommendedQuestionId?: string
+  recommendedQuestionId?: string,
+  currentResourceId?: string
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -182,7 +187,8 @@ export function ask(
     channel,
     parent_message_id,
     lang,
-    enable_thinking
+    enable_thinking,
+    currentResourceId
   );
   chatReq.namespace_id = namespaceId;
   chatReq.share_id = shareId;
