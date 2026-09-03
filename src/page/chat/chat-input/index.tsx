@@ -135,7 +135,10 @@ export default function ChatArea(props: IProps) {
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
-      let attachmentId = `pending-${crypto.randomUUID()}`;
+      const randomId =
+        globalThis.crypto?.randomUUID?.() ??
+        `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      let attachmentId = `pending-${randomId}`;
       let name = file.name;
       if (namespaceId && target?.id && target.resource_type !== 'folder') {
         const formData = new FormData();
