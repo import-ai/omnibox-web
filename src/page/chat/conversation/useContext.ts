@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
@@ -28,6 +29,10 @@ import {
 } from '@/page/chat/core/types/chatResponse.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 import useGlobalContext from '@/page/chat/useSelectedResources.ts';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
 
 import {
   type ConversationCacheScope,
@@ -44,6 +49,11 @@ export default function useContext() {
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
   const regeneratingRef = useRef(false);
   const { conversationId, namespaceId } = useChatRouteParams();
+  const { resource_id: routeResourceId } = useParams();
+  const previewResourceId = useCopilotStore(
+    state => getCopilotWorkspace(state, namespaceId).previewResourceId
+  );
+  const currentResourceId = previewResourceId || routeResourceId;
   const userId = getCurrentUserId();
   const cacheScope = useMemo<ConversationCacheScope>(
     () => ({ userId, namespaceId }),
@@ -121,7 +131,8 @@ export default function useContext() {
           undefined,
           decisions ? { decisions } : undefined,
           displayParts,
-          recommendedQuestionId
+          recommendedQuestionId,
+          currentResourceId
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();
@@ -200,7 +211,11 @@ export default function useContext() {
         namespaceId,
         undefined,
         undefined,
-        originalEnableThinking
+        originalEnableThinking,
+        undefined,
+        undefined,
+        undefined,
+        currentResourceId
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();
@@ -238,7 +253,11 @@ export default function useContext() {
         namespaceId,
         undefined,
         undefined,
-        originalEnableThinking
+        originalEnableThinking,
+        undefined,
+        undefined,
+        undefined,
+        currentResourceId
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();
