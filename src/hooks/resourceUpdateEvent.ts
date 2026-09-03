@@ -44,6 +44,21 @@ export function isNotFoundResourceError(error: unknown): boolean {
   );
 }
 
+export function isForbiddenResourceError(error: unknown): boolean {
+  if (!error || typeof error !== 'object' || !('response' in error)) {
+    return false;
+  }
+  const response = (
+    error as {
+      response?: { status?: number; data?: { code?: string } };
+    }
+  ).response;
+  return (
+    response?.status === 403 ||
+    response?.data?.code?.toLowerCase() === 'not_authorized'
+  );
+}
+
 export function applyResourceUpdateDelta(
   resource: Resource,
   delta: Resource,
