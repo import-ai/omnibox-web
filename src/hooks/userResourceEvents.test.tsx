@@ -75,6 +75,10 @@ describe('useResource resource events', () => {
     document.body.appendChild(container);
     root = createRoot(container);
     mockPathname = '/namespace-a/resource-a';
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    });
     Object.keys(listeners).forEach(key => delete listeners[key]);
   });
 
@@ -119,6 +123,7 @@ describe('useResource resource events', () => {
 
     await act(async () => root.render(<ResourceHarness />));
     await act(async () => {
+      window.dispatchEvent(new Event('blur'));
       window.dispatchEvent(new Event('focus'));
     });
 
@@ -279,11 +284,95 @@ describe('useResource resource events', () => {
       .mockRejectedValueOnce({ response: { status: 403 } });
 
     await act(async () => root.render(<ResourceHarness />));
-    await act(async () => window.dispatchEvent(new Event('focus')));
+    await act(async () => {
+      window.dispatchEvent(new Event('blur'));
+      window.dispatchEvent(new Event('focus'));
+    });
 
     const state = container.querySelector('[data-testid="resource-state"]');
     expect(mockedGet).toHaveBeenCalledTimes(2);
     expect(state?.getAttribute('data-forbidden')).toBe('true');
     expect(state?.getAttribute('data-content')).toBe('');
+  });
+
+  it('does not revalidate on an unrelated focus event', async () => {
+    mockedGet.mockResolvedValueOnce({
+      id: 'resource-a',
+      content: 'initial body',
+    } as Resource);
+
+    await act(async () => root.render(<ResourceHarness />));
+    await act(async () => window.dispatchEvent(new Event('focus')));
+
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+  });
+
+  it('revalidates once when the document returns from hidden', async () => {
+    mockedGet
+      .mockResolvedValueOnce({
+        id: 'resource-a',
+        content: 'initial body',
+      } as Resource)
+      .mockResolvedValueOnce({
+        id: 'resource-a',
+        content: 'updated body',
+      } as Resource);
+
+    await act(async () => root.render(<ResourceHarness />));
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'hidden',
+    });
+    await act(async () =>
+      document.dispatchEvent(new Event('visibilitychange'))
+    );
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    });
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'));
+      window.dispatchEvent(new Event('focus'));
+    });
+
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+    expect(
+      container
+        .querySelector('[data-testid="resource-state"]')
+        ?.getAttribute('data-content')
+    ).toBe('updated body');
+  });
+
+  it('keeps the resource page mounted during background revalidation', async () => {
+    let resolveRevalidation: (resource: Resource) => void = () => undefined;
+    mockedGet
+      .mockResolvedValueOnce({
+        id: 'resource-a',
+        content: 'initial body',
+      } as Resource)
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveRevalidation = resolve;
+        })
+      );
+
+    await act(async () => root.render(<ResourceHarness />));
+    await act(async () => {
+      window.dispatchEvent(new Event('blur'));
+      window.dispatchEvent(new Event('focus'));
+    });
+
+    const state = container.querySelector('[data-testid="resource-state"]');
+    expect(state?.getAttribute('data-loading')).toBe('false');
+    expect(state?.getAttribute('data-content')).toBe('initial body');
+
+    await act(async () => {
+      resolveRevalidation({
+        id: 'resource-a',
+        content: 'updated body',
+      } as Resource);
+    });
   });
 });
