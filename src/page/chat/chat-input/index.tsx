@@ -129,38 +129,41 @@ export default function ChatArea(props: IProps) {
   const handleImageSelect = useCallback(
     async (file: File) => {
       const target = selectedResources[0]?.resource;
-      if (!namespaceId || !target?.id || target.resource_type === 'folder') {
-        return;
-      }
-      const formData = new FormData();
-      formData.append('file[]', file);
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `/api/v1/namespaces/${namespaceId}/resources/${target.id}/attachments`,
-        {
-          method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          body: formData,
-        }
-      );
-      if (!response.ok) return;
-      const data = (await response.json()) as {
-        uploaded?: Array<{ link: string; name: string }>;
-      };
-      const uploaded = data.uploaded?.[0];
-      if (!uploaded) return;
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result));
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
+      let attachmentId = `pending-${crypto.randomUUID()}`;
+      let name = file.name;
+      if (namespaceId && target?.id && target.resource_type !== 'folder') {
+        const formData = new FormData();
+        formData.append('file[]', file);
+        const token = localStorage.getItem('token');
+        const response = await fetch(
+          `/api/v1/namespaces/${namespaceId}/resources/${target.id}/attachments`,
+          {
+            method: 'POST',
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+            body: formData,
+          }
+        );
+        if (!response.ok) return;
+        const data = (await response.json()) as {
+          uploaded?: Array<{ link: string; name: string }>;
+        };
+        const uploaded = data.uploaded?.[0];
+        if (!uploaded) return;
+        attachmentId = uploaded.link;
+        name = uploaded.name;
+      }
       setImages(current => [
         ...current,
         {
-          attachment_id: uploaded.link,
+          attachment_id: attachmentId,
           data_url: dataUrl,
-          name: uploaded.name,
+          name,
         },
       ]);
     },
