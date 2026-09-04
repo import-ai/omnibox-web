@@ -6,6 +6,7 @@ import {
   getManualDropLine,
   getProjectedDropDepth,
   type ManualDropTarget,
+  normalizeAdjacentDropBoundary,
   resolveBoundaryDropTarget,
   type VisibleDropItem,
 } from '@/page/sidebar/manualDropIndicator';
@@ -174,23 +175,59 @@ export function useManualResourceDrop({
       targetNode.spaceType,
       nodeId
     );
-    const dropBoundary =
-      position === 'inside'
-        ? null
-        : getDragAwareDropBoundary(visibleItems, nodeId, position, dragNode.id);
-    const dropTarget =
-      position === 'inside'
-        ? {
-            targetId: nodeId,
-            position,
-            depth: depth + 1,
-          }
-        : resolveBoundaryDropTarget(
-            visibleItems,
-            dropBoundary.targetId,
-            projectedDepth,
-            dropBoundary.position
-          );
+    if (position === 'inside') {
+      const dropTarget = {
+        targetId: nodeId,
+        position,
+        depth: depth + 1,
+      } satisfies ManualDropTarget;
+      const resolvedTargetNode = nodes[dropTarget.targetId];
+      if (
+        !resolvedTargetNode ||
+        isManagedChildrenNode(resolvedTargetNode) ||
+        (dragNode.resourceType === 'smart_folder' &&
+          dragNode.parentId !== resolvedTargetNode.id)
+      ) {
+        dropProjectionKeyRef.current = null;
+        setCurrentDropTarget(null);
+        return;
+      }
+      const permission = resolvedTargetNode.currentPermission || 'full_access';
+      if (permission !== 'can_edit' && permission !== 'full_access') {
+        dropProjectionKeyRef.current = null;
+        setCurrentDropTarget(null);
+        return;
+      }
+      const projectionKey = `${nodeId}:inside:${dropTarget.targetId}:${dropTarget.depth}`;
+      if (
+        dropProjectionKeyRef.current === projectionKey &&
+        useSidebarStore.getState().manualDropIndicator?.targetId === nodeId
+      ) {
+        return;
+      }
+      dropProjectionKeyRef.current = projectionKey;
+      lineRef.current = null;
+      setCurrentDropTarget(dropTarget);
+      return;
+    }
+
+    const dragAwareBoundary = getDragAwareDropBoundary(
+      visibleItems,
+      nodeId,
+      position,
+      dragNode.id
+    );
+    const dropBoundary = normalizeAdjacentDropBoundary(
+      visibleItems,
+      dragAwareBoundary.targetId,
+      dragAwareBoundary.position
+    );
+    const dropTarget = resolveBoundaryDropTarget(
+      visibleItems,
+      dropBoundary.targetId,
+      projectedDepth,
+      dropBoundary.position
+    );
     const resolvedTargetNode = nodes[dropTarget.targetId];
     const resolvedParent =
       dropTarget.position === 'inside'
@@ -215,25 +252,44 @@ export function useManualResourceDrop({
       setCurrentDropTarget(null);
       return;
     }
-    if (position === 'inside') {
-      const projectionKey = `${nodeId}:inside:${dropTarget.targetId}:${dropTarget.depth}`;
-      if (
-        dropProjectionKeyRef.current === projectionKey &&
-        useSidebarStore.getState().manualDropIndicator?.targetId === nodeId
-      ) {
-        return;
-      }
-      dropProjectionKeyRef.current = projectionKey;
-      lineRef.current = null;
-      setCurrentDropTarget(dropTarget);
-      return;
-    }
 
     dropProjectionKeyRef.current = null;
 
+    let lineRowRect = rect;
+    if (dropBoundary.targetId !== nodeId) {
+      const lineElement = document.querySelector<HTMLElement>(
+        `[data-resource-drop-id="${dropBoundary.targetId}"]`
+      );
+      if (lineElement) {
+        lineRowRect = lineElement.getBoundingClientRect();
+      }
+    }
+
+    const lineTargetIndex = visibleItems.findIndex(
+      visibleItem => visibleItem.id === dropBoundary.targetId
+    );
+    const adjacentItem =
+      lineTargetIndex >= 0
+        ? dropBoundary.position === 'before'
+          ? visibleItems[lineTargetIndex - 1]
+          : visibleItems[lineTargetIndex + 1]
+        : undefined;
+    let adjacentRowRect: DOMRect | null = null;
+    if (adjacentItem) {
+      if (adjacentItem.id === nodeId) {
+        adjacentRowRect = rect;
+      } else {
+        const adjacentElement = document.querySelector<HTMLElement>(
+          `[data-resource-drop-id="${adjacentItem.id}"]`
+        );
+        adjacentRowRect = adjacentElement?.getBoundingClientRect() ?? null;
+      }
+    }
+
     lineRef.current = getManualDropLine({
-      position,
-      rowRect: rect,
+      position: dropBoundary.position,
+      rowRect: lineRowRect,
+      adjacentRowRect,
       depth: dropTarget.depth,
       guideCount: getHierarchyGuideCount(
         visibleItems,
