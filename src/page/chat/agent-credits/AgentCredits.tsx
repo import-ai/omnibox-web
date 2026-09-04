@@ -29,7 +29,7 @@ export function AgentCredits({
       <div className="min-w-0 flex-1 text-right sm:hidden">
         <UpgradeUsageTooltip
           textKey="chat.agent_credits.compact_text"
-          tooltipItems={[t('chat.agent_credits.tooltip.base')]}
+          tooltipItems={[t('chat.agent_credits.compact_tooltip')]}
           tooltipSide="top"
           triggerClassName="inline-block max-w-full truncate text-muted-foreground cursor-pointer align-middle"
         />

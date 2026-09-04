@@ -841,8 +841,9 @@
       }
     },
     "agent_credits": {
-      "text": "Agent credits used up. Using Agent 1.1.",
+      "text": "Agent credits used up. Using Agent 1.1. Upgrade to restore.",
       "compact_text": "Switched to Agent 1.1",
+      "compact_tooltip": "Agent 2.1 credits used up",
       "tooltip": {
         "base": "Agent 2.1 runs on agent credits; buy more or upgrade to continue"
       }

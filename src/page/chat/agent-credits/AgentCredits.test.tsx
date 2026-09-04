@@ -98,6 +98,23 @@ describe('AgentCredits', () => {
     expect(container.textContent).toContain('upgrade');
   });
 
+  it('reveals the exhausted-credits line from the compact prompt', async () => {
+    mockUseAgentCredits.mockReturnValue({
+      agentCredits: {
+        agent_credits_total: 100000,
+        agent_credits_remain: 0,
+      },
+    });
+
+    await act(async () =>
+      root.render(<AgentCredits namespaceId="namespace-a" />)
+    );
+
+    expect(container.textContent).toContain(
+      'chat.agent_credits.compact_text:chat.agent_credits.compact_tooltip'
+    );
+  });
+
   it('shows the prompt when the credits are overdrawn', async () => {
     mockUseAgentCredits.mockReturnValue({
       agentCredits: {

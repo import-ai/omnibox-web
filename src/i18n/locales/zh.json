@@ -842,8 +842,9 @@
       }
     },
     "agent_credits": {
-      "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1",
+      "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1，扩容后可恢复",
       "compact_text": "当前已切换至 Agent 1.1",
+      "compact_tooltip": "Agent 2.1 积分已用尽",
       "tooltip": {
         "base": "Agent 2.1 消耗积分额度，购买或升级后可继续使用"
       }
