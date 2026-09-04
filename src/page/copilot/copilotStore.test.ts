@@ -43,7 +43,7 @@ describe('copilot store', () => {
     const store = useCopilotStore.getState();
 
     store.showConversation('namespace-a', 'conversation-1');
-    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678', 12);
 
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
@@ -53,6 +53,7 @@ describe('copilot store', () => {
         view: 'conversation',
         conversationId: 'conversation-1',
         previewResourceId: 'Abcd1234Efgh5678',
+        previewLineNumber: 12,
       })
     );
   });
@@ -79,6 +80,7 @@ describe('copilot store', () => {
       view: 'conversation',
       conversationId: 'conversation-1',
       previewResourceId: 'Abcd1234Efgh5678',
+      previewLineNumber: null,
     });
   });
 

@@ -59,17 +59,20 @@ jest.mock('./Wrapper', () => ({
   default: ({
     resource,
     loading,
+    scrollToLine,
     showToc,
     wide,
   }: {
     loading: boolean;
     resource: Resource | null;
+    scrollToLine?: number;
     showToc: boolean;
     wide: boolean;
   }) => (
     <div
       data-resource-id={resource?.id}
       data-loading={String(loading)}
+      data-scroll-to-line={scrollToLine ?? ''}
       data-show-toc={String(showToc)}
       data-testid="resource-wrapper"
       data-wide={String(wide)}
@@ -93,7 +96,8 @@ describe('ResourceDetailView', () => {
 
   async function renderResource(
     currentResource = resource,
-    resourceId = currentResource.id
+    resourceId = currentResource.id,
+    scrollToLine?: number
   ) {
     await act(async () => {
       root.render(
@@ -107,6 +111,7 @@ describe('ResourceDetailView', () => {
           onResource={jest.fn()}
           resource={currentResource}
           resourceId={resourceId}
+          scrollToLine={scrollToLine}
         />
       );
     });
@@ -136,7 +141,7 @@ describe('ResourceDetailView', () => {
   });
 
   it('owns the complete resource header, separator, sizing, and content wrapper', async () => {
-    await renderResource();
+    await renderResource(resource, resource.id, 12);
 
     expect(
       container.querySelector('[data-testid="resource-header"]')
@@ -145,6 +150,11 @@ describe('ResourceDetailView', () => {
     expect(
       container.querySelector('[data-testid="resource-wrapper"]')
     ).not.toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="resource-wrapper"]')
+        ?.getAttribute('data-scroll-to-line')
+    ).toBe('12');
     expect(
       container
         .querySelector('[data-testid="resource-wrapper"]')

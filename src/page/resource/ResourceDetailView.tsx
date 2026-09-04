@@ -25,6 +25,7 @@ const COMPACT_RESOURCE_PANE_WIDTH = 768;
 interface ResourceDetailViewProps extends IUseResource {
   error?: boolean;
   flush?: boolean;
+  scrollToLine?: number;
 }
 
 /** Shared visual shell for routed resources and in-place Copilot previews. */

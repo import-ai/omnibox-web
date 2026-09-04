@@ -68,6 +68,7 @@ interface WorkspaceContentProps {
   keepCopilotMounted: boolean;
   namespaceId: string;
   previewReplacesResource: boolean;
+  previewLineNumber: number | null;
   previewResourceId: string | null;
   setChatRouteElement: (element: HTMLDivElement | null) => void;
   sideBySide: boolean;
@@ -169,6 +170,7 @@ function WorkspaceContent({
   keepCopilotMounted,
   namespaceId,
   previewReplacesResource,
+  previewLineNumber,
   previewResourceId,
   setChatRouteElement,
   sideBySide,
@@ -186,6 +188,7 @@ function WorkspaceContent({
           <CitationResourcePreview
             namespaceId={namespaceId}
             resourceId={previewResourceId}
+            lineNumber={previewLineNumber ?? undefined}
             flush={sideBySide}
           />
         </Suspense>
@@ -338,6 +341,7 @@ export default function Workspace() {
       keepCopilotMounted={keepCopilotMounted}
       namespaceId={namespaceId}
       previewReplacesResource={previewReplacesResource}
+      previewLineNumber={renderWorkspace.previewLineNumber}
       previewResourceId={visiblePreviewResourceId}
       setChatRouteElement={setChatRouteElement}
       sideBySide={sideBySide}
