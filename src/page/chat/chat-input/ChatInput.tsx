@@ -53,7 +53,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
             {props.images.map(image => (
               <div key={image.attachment_id} className="relative">
                 <img
-                  src={image.data_url}
+                  src={image.url}
                   alt={image.name}
                   className="size-16 rounded-md object-cover"
                 />

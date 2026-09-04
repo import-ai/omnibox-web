@@ -26,6 +26,7 @@ import { useChatAreaDraftLifecycle } from './useChatAreaDraftLifecycle';
 
 interface IProps {
   messages: MessageDetail[];
+  conversationId?: string;
   namespaceId?: string;
   navigatePrefix: string;
   selectedResources: IResTypeContext[];
@@ -47,11 +48,13 @@ interface IProps {
     decisions,
   }: SendMessageParams) => void;
   onStop?: () => void;
+  onImageSelect?: (file: File) => Promise<ChatImageInput | void>;
 }
 
 export default function ChatArea(props: IProps) {
   const {
     messages,
+    conversationId,
     namespaceId,
     navigatePrefix,
     selectedResources,
@@ -65,6 +68,7 @@ export default function ChatArea(props: IProps) {
     initialQuery,
     sendMessage,
     onStop,
+    onImageSelect,
   } = props;
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
@@ -128,49 +132,39 @@ export default function ChatArea(props: IProps) {
 
   const handleImageSelect = useCallback(
     async (file: File) => {
-      const target = selectedResources[0]?.resource;
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      const randomId =
-        globalThis.crypto?.randomUUID?.() ??
-        `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      let attachmentId = `pending-${randomId}`;
-      let name = file.name;
-      if (namespaceId && target?.id && target.resource_type !== 'folder') {
-        const formData = new FormData();
-        formData.append('file[]', file);
-        const token = localStorage.getItem('token');
-        const response = await fetch(
-          `/api/v1/namespaces/${namespaceId}/resources/${target.id}/attachments`,
-          {
-            method: 'POST',
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-            body: formData,
-          }
-        );
-        if (!response.ok) return;
-        const data = (await response.json()) as {
-          uploaded?: Array<{ link: string; name: string }>;
-        };
-        const uploaded = data.uploaded?.[0];
-        if (!uploaded) return;
-        attachmentId = uploaded.link;
-        name = uploaded.name;
+      if (onImageSelect) {
+        const image = await onImageSelect(file);
+        if (image) setImages(current => [...current, image]);
+        return;
       }
+      if (!namespaceId || !conversationId) return;
+      const formData = new FormData();
+      formData.append('file[]', file);
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `/api/v1/namespaces/${namespaceId}/conversations/${conversationId}/attachments`,
+        {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          body: formData,
+        }
+      );
+      if (!response.ok) return;
+      const data = (await response.json()) as {
+        attachment_id: string;
+        name: string;
+        preview_url: string;
+      };
       setImages(current => [
         ...current,
         {
-          attachment_id: attachmentId,
-          data_url: dataUrl,
-          name,
+          attachment_id: data.attachment_id,
+          url: data.preview_url,
+          name: data.name,
         },
       ]);
     },
-    [namespaceId, selectedResources]
+    [conversationId, namespaceId, onImageSelect]
   );
 
   const handleSend = useCallback(() => {
@@ -195,7 +189,7 @@ export default function ChatArea(props: IProps) {
             type: 'image' as const,
             attachment_id: image.attachment_id,
             name: image.name,
-            preview_url: image.data_url,
+            preview_url: image.url,
           })),
         ],
         images,

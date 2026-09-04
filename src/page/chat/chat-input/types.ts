@@ -60,7 +60,7 @@ export type ChatMessageDisplayPart =
 
 export interface ChatImageInput {
   attachment_id: string;
-  data_url: string;
+  url: string;
   name: string;
 }
 
