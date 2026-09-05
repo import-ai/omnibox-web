@@ -23,7 +23,11 @@ interface GetManualDropLineOptions {
   rowRect: DropIndicatorRect;
   depth: number;
   guideCount: number;
+  adjacentRowRect?: DropIndicatorRect | null;
 }
+
+export const MANUAL_DROP_LINE_THICKNESS = 2;
+const MANUAL_DROP_LINE_GAP_NUDGE = 2;
 
 export interface VisibleDropItem {
   id: string;
@@ -63,6 +67,22 @@ export function getDragAwareDropBoundary(
     return { targetId: dragId, position: 'after' };
   }
   return { targetId, position };
+}
+
+export function normalizeAdjacentDropBoundary(
+  items: VisibleDropItem[],
+  targetId: string,
+  position: 'before' | 'after'
+): DropBoundary {
+  if (position !== 'after') {
+    return { targetId, position };
+  }
+  const targetIndex = items.findIndex(item => item.id === targetId);
+  const next = targetIndex >= 0 ? items[targetIndex + 1] : undefined;
+  if (!next) {
+    return { targetId, position: 'after' };
+  }
+  return { targetId: next.id, position: 'before' };
 }
 
 export function resolveBoundaryDropTarget(
@@ -141,12 +161,26 @@ export function getManualDropLine({
   rowRect,
   depth,
   guideCount,
+  adjacentRowRect,
 }: GetManualDropLineOptions): ManualDropLine {
   const arrowOffset = RESOURCE_TREE_ICON_OFFSET + depth * RESOURCE_TREE_INDENT;
+  const halfLine = MANUAL_DROP_LINE_THICKNESS / 2;
+  let top: number;
+  if (position === 'before' && adjacentRowRect) {
+    top = (adjacentRowRect.bottom + rowRect.top) / 2 - halfLine;
+  } else if (position === 'after' && adjacentRowRect) {
+    top = (rowRect.bottom + adjacentRowRect.top) / 2 - halfLine;
+  } else if (position === 'before') {
+    top = rowRect.top - MANUAL_DROP_LINE_GAP_NUDGE - halfLine;
+  } else if (position === 'after') {
+    top = rowRect.bottom + MANUAL_DROP_LINE_GAP_NUDGE - halfLine;
+  } else {
+    top = rowRect.bottom - halfLine;
+  }
 
   return {
     left: rowRect.left,
-    top: position === 'before' ? rowRect.top : rowRect.bottom,
+    top,
     width: rowRect.width,
     arrowOffset,
     guideCount: Math.min(depth, Math.max(0, guideCount)),

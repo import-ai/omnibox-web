@@ -8,6 +8,7 @@ export interface CopilotWorkspaceState {
   view: CopilotView;
   conversationId: string | null;
   previewResourceId: string | null;
+  previewLineNumber: number | null;
 }
 
 interface CopilotState {
@@ -27,9 +28,14 @@ interface CopilotState {
   showResourceBesideConversation: (
     namespaceId: string,
     conversationId: string,
-    resourceId: string
+    resourceId: string,
+    lineNumber?: number
   ) => void;
-  previewResource: (namespaceId: string, resourceId: string) => void;
+  previewResource: (
+    namespaceId: string,
+    resourceId: string,
+    lineNumber?: number
+  ) => void;
   closePreview: (namespaceId: string) => void;
   requestExpandFromResource: (namespaceId: string) => void;
   clearPendingExpandFromResource: (namespaceId: string) => void;
@@ -42,6 +48,7 @@ export const defaultCopilotWorkspace: CopilotWorkspaceState = {
   view: 'home',
   conversationId: null,
   previewResourceId: null,
+  previewLineNumber: null,
 };
 
 export function getCopilotWorkspace(
@@ -139,7 +146,8 @@ export const useCopilotStore = create<CopilotState>()(
       showResourceBesideConversation: (
         namespaceId,
         conversationId,
-        resourceId
+        resourceId,
+        lineNumber
       ) =>
         set(state => ({
           workspaces: patchWorkspace(state, namespaceId, {
@@ -147,19 +155,22 @@ export const useCopilotStore = create<CopilotState>()(
             view: 'conversation',
             conversationId,
             previewResourceId: resourceId,
+            previewLineNumber: lineNumber ?? null,
           }),
         })),
-      previewResource: (namespaceId, resourceId) =>
+      previewResource: (namespaceId, resourceId, lineNumber) =>
         set(state => ({
           workspaces: patchWorkspace(state, namespaceId, {
             open: true,
             previewResourceId: resourceId,
+            previewLineNumber: lineNumber ?? null,
           }),
         })),
       closePreview: namespaceId =>
         set(state => ({
           workspaces: patchWorkspace(state, namespaceId, {
             previewResourceId: null,
+            previewLineNumber: null,
           }),
         })),
       requestExpandFromResource: namespaceId =>

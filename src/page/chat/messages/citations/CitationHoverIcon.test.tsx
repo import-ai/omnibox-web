@@ -34,7 +34,7 @@ describe('CitationHoverIcon', () => {
         <CitationHoverIcon
           index={0}
           citation={{
-            id: 'citation-a',
+            id: 'C1-resource-L12-18',
             title: 'Citation title',
             snippet: 'Citation hover content',
             link: 'Abcd1234Efgh5678',
@@ -80,6 +80,7 @@ describe('CitationHoverIcon', () => {
       conversationId: 'conversation-a',
       open: true,
       previewResourceId: 'Abcd1234Efgh5678',
+      previewLineNumber: 12,
       view: 'conversation',
     });
   });
@@ -135,6 +136,7 @@ describe('CitationHoverIcon', () => {
       conversationId: 'conversation-a',
       open: true,
       previewResourceId: 'Abcd1234Efgh5678',
+      previewLineNumber: 12,
       view: 'conversation',
     });
   });

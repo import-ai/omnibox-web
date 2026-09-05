@@ -4,6 +4,10 @@ import { Badge } from '@/components/ui/Badge';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 import { type CitationIconProps } from '@/page/chat/messages/citations/CitationHoverIcon';
+import {
+  appendLineNumber,
+  getCitationLineNumber,
+} from '@/page/chat/messages/citations/citationUtils';
 import { resolveCitationTarget } from '@/page/copilot/citationTarget';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
@@ -19,6 +23,7 @@ export function CitationCard(props: CitationCardProps) {
   const { namespaceId } = useChatRouteParams();
   const chatOnly = useShareChatOnly();
   const target = resolveCitationTarget(citation.link, namespaceId);
+  const lineNumber = getCitationLineNumber(citation.id);
   const resourcePrefix = params.share_id
     ? `/s/${params.share_id}`
     : namespaceId
@@ -54,7 +59,11 @@ export function CitationCard(props: CitationCardProps) {
       {target.kind === 'resource' && !chatOnly ? (
         <ChatResourceLink
           className={className}
-          href={`${resourcePrefix}/${target.resourceId}`}
+          href={appendLineNumber(
+            `${resourcePrefix}/${target.resourceId}`,
+            lineNumber
+          )}
+          lineNumber={lineNumber}
           onOpened={props.onOpenResource}
           resourceId={target.resourceId}
         >
