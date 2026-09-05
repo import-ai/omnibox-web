@@ -22,6 +22,7 @@ interface UpgradeActionButtonProps {
   hasPermission?: boolean;
   disabledReason?: string;
   className?: string;
+  labelKey?: string;
 }
 
 export function UpgradeUsageTooltip({
@@ -54,6 +55,7 @@ export function UpgradeActionButton({
   hasPermission = true,
   disabledReason,
   className = 'text-sm h-5',
+  labelKey = 'namespace.upgrade',
 }: UpgradeActionButtonProps) {
   const { t, i18n } = useTranslation();
 
@@ -74,7 +76,7 @@ export function UpgradeActionButton({
       onClick={handleClick}
       disabled={!hasPermission}
     >
-      {t('namespace.upgrade')}
+      {t(labelKey)}
     </Button>
   );
 

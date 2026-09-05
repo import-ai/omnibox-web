@@ -45,6 +45,7 @@ export function AgentCredits({
         hasPermission={hasUpgradePermission}
         disabledReason={t('chat.trial.not_owner')}
         className="h-5 shrink-0 text-sm"
+        labelKey="chat.agent_credits.expand_button"
       />
     </div>
   );

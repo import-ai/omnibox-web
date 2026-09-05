@@ -23,7 +23,9 @@ jest.mock('@/components/upgrade-action-button', () => ({
     textKey: string;
     tooltipItems: string[];
   }) => <span>{`${textKey}:${tooltipItems.join('|')}`}</span>,
-  UpgradeActionButton: () => <button>upgrade</button>,
+  UpgradeActionButton: ({ labelKey }: { labelKey?: string }) => (
+    <button>{labelKey ?? 'namespace.upgrade'}</button>
+  ),
 }));
 
 jest.mock('@/lib/useNamespaceRole.ts', () => ({
@@ -80,7 +82,7 @@ describe('AgentCredits', () => {
     expect(container.innerHTML).toBe('');
   });
 
-  it('shows the prompt and upgrade button when credits are exhausted', async () => {
+  it('shows the prompt and expand button when credits are exhausted', async () => {
     mockUseAgentCredits.mockReturnValue({
       agentCredits: {
         agent_credits_total: 100000,
@@ -95,7 +97,7 @@ describe('AgentCredits', () => {
     expect(container.textContent).toContain('chat.agent_credits.compact_text');
     expect(container.textContent).toContain('chat.agent_credits.text');
     expect(container.textContent).toContain('chat.agent_credits.tooltip.base');
-    expect(container.textContent).toContain('upgrade');
+    expect(container.textContent).toContain('chat.agent_credits.expand_button');
   });
 
   it('reveals the exhausted-credits line from the compact prompt', async () => {
