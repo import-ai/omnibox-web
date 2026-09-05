@@ -126,6 +126,37 @@
       "filename": "文件"
     }
   },
+  "resource_comments": {
+    "title": "评论",
+    "all_title": "全部评论",
+    "open_all": "查看全部评论",
+    "close": "关闭评论",
+    "quote_label": "引用内容",
+    "thread_count": "{{count}} 个讨论",
+    "cancel": "取消",
+    "write_comment": "输入评论",
+    "content_conflict": "评论期间资源内容已发生变化，请保存或重新加载后重试。",
+    "comment": "发表",
+    "original_text_removed": "原文已被删除",
+    "thread_actions": "讨论操作",
+    "more_actions": "更多操作",
+    "reopen": "重新打开",
+    "resolve": "解决",
+    "delete_thread": "删除讨论",
+    "deleted_user": "已删除用户",
+    "comment_actions": "评论操作",
+    "edit": "编辑",
+    "delete": "删除",
+    "save": "保存",
+    "reply_placeholder": "回复这个讨论",
+    "reply": "回复",
+    "resolved": "已解决",
+    "open": "未解决",
+    "save_before_commenting": "请先保存正文修改，再发起新的划线评论。",
+    "no_resolved_threads": "暂无已解决的讨论",
+    "no_open_threads": "暂无未解决的讨论",
+    "load_more": "加载更多"
+  },
   "folder": {
     "create_dialog": {
       "title": "新建文件夹",
