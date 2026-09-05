@@ -7,6 +7,7 @@ import { ExpandButton } from './ExpandButton';
 import { Expiration } from './Expiration';
 import { StorageSection } from './StorageSection';
 import {
+  formatCredits,
   formatStorage,
   formatTime,
   formatTimeAsMinutes,
@@ -417,6 +418,87 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
               tooltip: segTooltip(
                 t('quota.image'),
                 pageVal(data.doc_parse.image)
+              ),
+            },
+          ],
+    },
+    {
+      title: t('quota.agent_credits_usage'),
+      current: `${formatCredits(data.agent_credits.self + data.agent_credits.other_users)} / ${formatCredits(data.agent_credits.total)}`,
+      currentTooltip: buildTotalTooltip(
+        data.agent_credits.subscription_total,
+        data.agent_credits.onetime_total,
+        formatCredits
+      ),
+      items: showOtherMembersUsage
+        ? [
+            {
+              label: t('quota.my_usage'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.my_usage'),
+                formatCredits(data.agent_credits.self)
+              ),
+            },
+            {
+              label: t('quota.other_users'),
+              color: 'bg-gray-300',
+              tooltip: segTooltip(
+                t('quota.other_users'),
+                formatCredits(data.agent_credits.other_users)
+              ),
+            },
+          ]
+        : [
+            {
+              label: t('quota.my_usage'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.my_usage'),
+                formatCredits(data.agent_credits.self)
+              ),
+            },
+          ],
+      segments: showOtherMembersUsage
+        ? [
+            {
+              label: t('quota.my_usage'),
+              color: 'bg-blue-500',
+              percentage:
+                data.agent_credits.total > 0
+                  ? (data.agent_credits.self / data.agent_credits.total) * 100
+                  : 0,
+              tooltip: segTooltip(
+                t('quota.my_usage'),
+                formatCredits(data.agent_credits.self)
+              ),
+            },
+            {
+              label: t('quota.other'),
+              color: 'bg-gray-300',
+              percentage:
+                data.agent_credits.total > 0
+                  ? (data.agent_credits.other_users /
+                      data.agent_credits.total) *
+                    100
+                  : 0,
+              tooltip: segTooltip(
+                t('quota.other_users'),
+                formatCredits(data.agent_credits.other_users)
+              ),
+            },
+          ]
+        : [
+            {
+              label: t('quota.my_usage'),
+              color: 'bg-blue-500',
+              percentage:
+                data.agent_credits.total > 0
+                  ? (data.agent_credits.self / data.agent_credits.total) * 100
+                  : 0,
+              tooltip: segTooltip(
+                t('quota.my_usage'),
+                formatCredits(data.agent_credits.self)
               ),
             },
           ],

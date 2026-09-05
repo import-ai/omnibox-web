@@ -840,13 +840,15 @@
         "write": "Write"
       }
     },
-    "trial": {
-      "text": "Agent 2.1 trial limit reached. Using Agent 1.1. Try Agent 2.1 again in {{related_time}}.",
+    "agent_credits": {
+      "text": "Agent credits used up. Using Agent 1.1. Upgrade to restore.",
       "compact_text": "Switched to Agent 1.1",
+      "compact_tooltip": "Agent 2.1 credits used up",
       "tooltip": {
-        "base": "Usage is calculated over a rolling 24-hour window",
-        "recovery": "Try Agent 2.1 again in {{related_time}}"
-      },
+        "base": "Agent 2.1 runs on agent credits; buy more or upgrade to continue"
+      }
+    },
+    "trial": {
       "not_owner": "Please contact space owner to upgrade"
     },
     "decision": {
@@ -1135,14 +1137,16 @@
     "clear_success": "Trash emptied"
   },
   "quota": {
-    "storage_usage": "Storage Usage",
+    "storage_usage": "Storage",
     "upload": "Upload",
     "file": "File",
     "other_users": "Other Users in Space",
-    "audio_video_parse_usage": "Audio / Video Parse Quota",
+    "my_usage": "My Usage",
+    "audio_video_parse_usage": "Audio / Video Parse",
     "audio": "Audio",
     "video": "Video",
-    "doc_parse_usage": "PDF / Image Parse Quota",
+    "doc_parse_usage": "PDF / Image Parse",
+    "agent_credits_usage": "Agent 2.1 Credits",
     "pdf": "PDF",
     "image": "Image",
     "other": "Other",
@@ -1151,6 +1155,7 @@
     "premium_period": "Pro validity period: ",
     "days_remaining": "{{days}} days remaining (expires {{date}})",
     "page_unit": "pages",
+    "credit_unit": "credits",
     "tooltip_format": "{{label}}: {{value}}",
     "basic_plan": "Basic: ",
     "premium_plan": "Pro: ",

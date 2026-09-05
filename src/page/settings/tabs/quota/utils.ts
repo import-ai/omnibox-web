@@ -45,6 +45,11 @@ export function formatTimeAsMinutes(seconds: number) {
   return `${minutes} ${i18next.t('quota.time.minutes')}`;
 }
 
+// Helper function to format agent credits (thousands separated + unit)
+export function formatCredits(credits: number) {
+  return `${credits.toLocaleString()} ${i18next.t('quota.credit_unit')}`;
+}
+
 export function getSubscriptionPlanLabelKey(premium?: UsageExpirationLike) {
   return premium && !premium.expired
     ? 'quota.premium_plan'
