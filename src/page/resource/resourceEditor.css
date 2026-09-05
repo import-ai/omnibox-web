@@ -129,15 +129,6 @@
   transform: translate(-0.5rem, -50%) !important;
 }
 
-.shared-resource-page .resource-readonly-editor .toc-sidebar-wrapper,
-.shared-resource-page
-  .resource-readonly-editor
-  .omnibox-editor-root
-  .toc-sidebar-wrapper {
-  left: 1.5rem !important;
-  transform: translateY(-50%) !important;
-}
-
 .resource-readonly-editor--wide .toc-sidebar-wrapper,
 .resource-readonly-editor--wide .omnibox-editor-root .toc-sidebar-wrapper,
 .resource-editable-page--wide .toc-sidebar-wrapper,

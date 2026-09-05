@@ -35,7 +35,6 @@ interface IProps {
   showToc?: boolean;
   scrollToLine?: number;
   wide?: boolean;
-  forceOmniboxEditor?: boolean;
   linkBase?: string;
   style?: React.CSSProperties;
 }
