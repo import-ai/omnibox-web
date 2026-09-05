@@ -96,10 +96,7 @@ export function useResourceComments({
   anchorThreadsRef.current = anchorThreads;
 
   const permission = resource.current_permission ?? 'full_access';
-  const canComment =
-    enabled &&
-    hasPermission(permission, 'can_comment') &&
-    Boolean(resource.content_hash);
+  const canComment = enabled && hasPermission(permission, 'can_comment');
   const canEditResource = hasPermission(permission, 'can_edit');
 
   const mergeAnchorThreads = useCallback(

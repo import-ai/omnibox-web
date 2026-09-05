@@ -181,10 +181,7 @@ function OmniboxRender(props: IProps) {
     () => getResourceEditorContent(resource, linkBase),
     [linkBase, resource]
   );
-  const commentsEnabled =
-    Boolean(namespaceId) &&
-    'content_hash' in resource &&
-    Boolean(resource.content_hash);
+  const commentsEnabled = Boolean(namespaceId);
   const comments = useResourceComments({
     namespaceId,
     resource,
