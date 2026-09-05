@@ -3,6 +3,8 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { TooltipProvider } from '@/components/tooltip';
+
 import SharedResourcePage from '.';
 
 let mockShareContext: Record<string, unknown>;
@@ -70,7 +72,11 @@ describe('SharedResourcePage', () => {
     };
 
     await act(async () => {
-      root.render(<SharedResourcePage />);
+      root.render(
+        <TooltipProvider>
+          <SharedResourcePage />
+        </TooltipProvider>
+      );
     });
 
     const folder = container.querySelector('[data-testid="folder"]');
@@ -92,7 +98,11 @@ describe('SharedResourcePage', () => {
     };
 
     await act(async () => {
-      root.render(<SharedResourcePage />);
+      root.render(
+        <TooltipProvider>
+          <SharedResourcePage />
+        </TooltipProvider>
+      );
     });
 
     const render = container.querySelector('[data-testid="render"]');

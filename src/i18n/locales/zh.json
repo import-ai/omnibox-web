@@ -127,8 +127,11 @@
     }
   },
   "resource_comments": {
+    "collapse": "收起评论",
+    "panel_title": "评论（{{count}}）",
+    "no_threads": "暂无评论",
     "title": "评论",
-    "all_title": "全部评论",
+    "all_title": "所有评论",
     "open_all": "查看全部评论",
     "close": "关闭评论",
     "quote_label": "引用内容",

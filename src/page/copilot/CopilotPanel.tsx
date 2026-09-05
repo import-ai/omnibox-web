@@ -19,6 +19,8 @@ import ConversationSearchDialog from '@/page/chat/conversations/ConversationSear
 import Actions from '@/page/chat/header/Actions';
 import Title from '@/page/chat/header/title';
 import { useChatTitle } from '@/page/chat/header/useChatTitle';
+import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
+import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceCommentsToggleButton';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 import CopilotToggleButton from './CopilotToggleButton';
@@ -35,6 +37,7 @@ interface CopilotPanelProps {
 }
 
 function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
+  const commentsPanel = useResourceCommentsPanel();
   const workspace = useCopilotStore(state =>
     getCopilotWorkspace(state, namespaceId)
   );
@@ -48,12 +51,22 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
     workspace.view === 'conversation' ? (workspace.conversationId ?? '') : '';
   const { chatTitle } = useChatTitle(namespaceId, conversationId);
 
+  if (commentsPanel?.panelOpen) {
+    return (
+      <div
+        ref={commentsPanel.setPanelElement}
+        className="resource-comments-panel flex h-full min-h-0 flex-col border-l bg-white text-foreground dark:bg-background"
+      />
+    );
+  }
+
   return (
     <>
       <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-white dark:bg-background">
         <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 flex-wrap items-center gap-2 rounded-2xl bg-white dark:bg-background">
           <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
             <CopilotToggleButton namespaceId={namespaceId} />
+            <ResourceCommentsToggleButton />
             {conversationId && (
               <Breadcrumb className="min-w-0">
                 <BreadcrumbList>

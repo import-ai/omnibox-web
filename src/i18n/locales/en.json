@@ -127,6 +127,9 @@
     }
   },
   "resource_comments": {
+    "collapse": "Collapse comments",
+    "panel_title": "Comments ({{count}})",
+    "no_threads": "No comments yet",
     "title": "Comments",
     "all_title": "All comments",
     "open_all": "View all comments",

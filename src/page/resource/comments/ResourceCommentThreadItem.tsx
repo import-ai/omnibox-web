@@ -46,6 +46,7 @@ export function ResourceCommentThreadItem({
   return (
     <article
       className="omnibox-comment-thread"
+      data-thread-id={thread.id}
       data-selected={active || undefined}
       data-resolved={thread.resolved || undefined}
     >
@@ -131,6 +132,7 @@ export function ResourceCommentThreadItem({
             <>
               <button
                 type="button"
+                disabled={controller.submitting}
                 onClick={() => {
                   controller
                     .setThreadResolved(thread.id, !thread.resolved)
@@ -143,6 +145,7 @@ export function ResourceCommentThreadItem({
               </button>
               <button
                 type="button"
+                disabled={controller.submitting}
                 onClick={() => {
                   controller.removeThread(thread.id).catch(() => undefined);
                 }}
@@ -244,28 +247,37 @@ function CommentItem({
               {formatRelativeTime(comment.updated_at, i18n.language)}
             </time>
           </div>
-          {controller.canEditComment(comment) ? (
+          {controller.canEditComment(comment) ||
+          controller.canDeleteComment(comment) ? (
             <div className="omnibox-comment-message__meta">
-              <button
-                type="button"
-                className="omnibox-comment-message__action"
-                title={t('resource_comments.edit')}
-                onClick={() => setEditing(true)}
-              >
-                <Pencil aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className="omnibox-comment-message__action"
-                title={t('resource_comments.delete')}
-                onClick={() => {
-                  controller
-                    .removeComment(threadId, comment.id)
-                    .catch(() => undefined);
-                }}
-              >
-                <Trash2 aria-hidden="true" />
-              </button>
+              {controller.canEditComment(comment) && (
+                <button
+                  type="button"
+                  className="omnibox-comment-message__action"
+                  title={t('resource_comments.edit')}
+                  aria-label={t('resource_comments.edit')}
+                  disabled={controller.submitting}
+                  onClick={() => setEditing(true)}
+                >
+                  <Pencil aria-hidden="true" />
+                </button>
+              )}
+              {controller.canDeleteComment(comment) && (
+                <button
+                  type="button"
+                  className="omnibox-comment-message__action"
+                  title={t('resource_comments.delete')}
+                  aria-label={t('resource_comments.delete')}
+                  disabled={controller.submitting}
+                  onClick={() => {
+                    controller
+                      .removeComment(threadId, comment.id)
+                      .catch(() => undefined);
+                  }}
+                >
+                  <Trash2 aria-hidden="true" />
+                </button>
+              )}
             </div>
           ) : null}
         </div>
@@ -281,6 +293,7 @@ function CommentItem({
             <div>
               <button
                 type="button"
+                disabled={controller.submitting}
                 onClick={() => {
                   setContent(comment.content);
                   setEditing(false);

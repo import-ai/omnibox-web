@@ -7,6 +7,8 @@ import { useSidebar } from '@/components/ui/Sidebar';
 import { cn, setDocumentTitle } from '@/lib/utils';
 import DeletedResourcePage from '@/page/auth/DeletedResourcePage';
 
+import { ResourceCommentsProvider } from '../resource/comments/ResourceCommentsContext';
+import { ResourceCommentsToggleButton } from '../resource/comments/ResourceCommentsToggleButton';
 import Folder from '../resource/folder';
 import Render from '../resource/Render';
 import { useShareContext } from '../share';
@@ -42,64 +44,76 @@ export default function SharedResourcePage() {
   }
 
   return (
-    <div className="shared-resource-page flex h-full w-full min-w-0 justify-center overflow-y-auto overflow-x-hidden p-4">
+    <ResourceCommentsProvider
+      key={resource.id}
+      namespaceId={`share:${shareInfo.id}`}
+    >
       <div
-        className={cn(
-          'shared-resource-content flex min-w-0 w-full max-w-full flex-col',
-          {
-            'max-w-[680px]': !wide && (open || !large),
-            'max-w-[800px]': !wide && (!open || large),
-            'max-w-7xl': wide,
-          }
-        )}
+        data-resource-scroll
+        className="shared-resource-page flex h-full w-full min-w-0 justify-center overflow-y-auto overflow-x-hidden p-4"
       >
-        <div className="shared-resource-header">
-          <h1 className="mb-4 min-w-0 max-w-full text-[34px] font-bold break-all">
-            {resource.name || t('untitled')}
-          </h1>
-          <Attributes
-            resource={resource as any}
-            namespaceId={shareInfo.id}
-            readOnly
-          />
+        <div
+          className={cn(
+            'shared-resource-content flex min-w-0 w-full max-w-full flex-col',
+            {
+              'max-w-[680px]': !wide && (open || !large),
+              'max-w-[800px]': !wide && (!open || large),
+              'max-w-7xl': wide,
+            }
+          )}
+        >
+          <div className="shared-resource-header">
+            {!['folder', 'smart_folder', 'rss_folder'].includes(
+              resource.resource_type
+            ) &&
+              resource.content_hash && <ResourceCommentsToggleButton />}
+            <h1 className="mb-4 min-w-0 max-w-full text-[34px] font-bold break-all">
+              {resource.name || t('untitled')}
+            </h1>
+            <Attributes
+              resource={resource as any}
+              namespaceId={shareInfo.id}
+              readOnly
+            />
+          </div>
+          {resource.resource_type === 'smart_folder' ? (
+            <Folder
+              resourceId={resource.id}
+              apiPrefix={`/shares/${shareInfo.id}/resources`}
+              namespaceId={shareInfo.id}
+              emptyText={t('smart_folder.empty')}
+              navigationPrefix={`/s/${shareInfo.id}`}
+              loadAll
+              smartFolderParentId={resource.id}
+            />
+          ) : resource.resource_type === 'rss_folder' ? (
+            <Folder
+              resourceId={resource.id}
+              apiPrefix={`/shares/${shareInfo.id}/resources`}
+              namespaceId={shareInfo.id}
+              emptyText={t('rss_folder.empty')}
+              navigationPrefix={`/s/${shareInfo.id}`}
+              // Paged like the workspace folder view: a shared feed can hold
+              // thousands of articles. The share endpoint already orders an rss
+              // folder newest-published first, so no sort override is needed.
+            />
+          ) : resource.resource_type === 'folder' ? (
+            <Folder
+              resourceId={resource.id}
+              apiPrefix={`/shares/${shareInfo.id}/resources`}
+              namespaceId={shareInfo.id}
+              navigationPrefix={`/s/${shareInfo.id}`}
+            />
+          ) : (
+            <Render
+              resource={resource}
+              forceOmniboxEditor
+              namespaceId={`share:${shareInfo.id}`}
+              linkBase={`/s/${shareInfo.id}/${resource.id}`}
+            />
+          )}
         </div>
-        {resource.resource_type === 'smart_folder' ? (
-          <Folder
-            resourceId={resource.id}
-            apiPrefix={`/shares/${shareInfo.id}/resources`}
-            namespaceId={shareInfo.id}
-            emptyText={t('smart_folder.empty')}
-            navigationPrefix={`/s/${shareInfo.id}`}
-            loadAll
-            smartFolderParentId={resource.id}
-          />
-        ) : resource.resource_type === 'rss_folder' ? (
-          <Folder
-            resourceId={resource.id}
-            apiPrefix={`/shares/${shareInfo.id}/resources`}
-            namespaceId={shareInfo.id}
-            emptyText={t('rss_folder.empty')}
-            navigationPrefix={`/s/${shareInfo.id}`}
-            // Paged like the workspace folder view: a shared feed can hold
-            // thousands of articles. The share endpoint already orders an rss
-            // folder newest-published first, so no sort override is needed.
-          />
-        ) : resource.resource_type === 'folder' ? (
-          <Folder
-            resourceId={resource.id}
-            apiPrefix={`/shares/${shareInfo.id}/resources`}
-            namespaceId={shareInfo.id}
-            navigationPrefix={`/s/${shareInfo.id}`}
-          />
-        ) : (
-          <Render
-            resource={resource}
-            forceOmniboxEditor
-            namespaceId={`share:${shareInfo.id}`}
-            linkBase={`/s/${shareInfo.id}/${resource.id}`}
-          />
-        )}
       </div>
-    </div>
+    </ResourceCommentsProvider>
   );
 }

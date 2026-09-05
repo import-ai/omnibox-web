@@ -1,5 +1,4 @@
 import {
-  findResourceCommentRange,
   type OmniboxEditorCommentsConfig,
   type OmniboxEditorCommentSelection,
   selectResourceComment,
@@ -29,14 +28,9 @@ import {
   type ResourceCommentEditor,
   restoreResourceCommentAnchors,
 } from './commentAnchors';
+import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
 const PAGE_SIZE = 20;
-const THREAD_SURFACE_HEIGHT = 440;
-const SURFACE_WIDTH = 320;
-const SURFACE_MARGIN = 12;
-const SURFACE_OFFSET = 12;
-const SURFACE_MIN_TOP = 56;
-const THREAD_SURFACE_SELECTOR = '.omnibox-comment-surface[data-mode="thread"]';
 const PERMISSIONS: Permission[] = [
   'no_access',
   'can_view',
@@ -80,12 +74,11 @@ export function useResourceComments({
   const [pendingSelection, setPendingSelection] =
     useState<OmniboxEditorCommentSelection | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [surfacePosition, setSurfacePosition] = useState<{
-    left: number;
-    top: number;
-  } | null>(null);
-  const [resolved, setResolved] = useState(false);
+  const panel = useResourceCommentsPanel();
+  const [fallbackPanelOpen, setFallbackPanelOpen] = useState(false);
+  const panelOpen = panel?.panelOpen ?? fallbackPanelOpen;
+  const setPanelOpen = panel?.setPanelOpen ?? setFallbackPanelOpen;
+  const [resolved, setResolved] = useState<boolean | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -95,9 +88,13 @@ export function useResourceComments({
 
   anchorThreadsRef.current = anchorThreads;
 
-  const permission = resource.current_permission ?? 'full_access';
-  const canComment = enabled && hasPermission(permission, 'can_comment');
-  const canEditResource = hasPermission(permission, 'can_edit');
+  const isShared = namespaceId.startsWith('share:');
+  const permission = resource.current_permission ?? 'can_view';
+  const canComment =
+    enabled && !isShared && hasPermission(permission, 'can_comment');
+  const canEditResource =
+    enabled && !isShared && hasPermission(permission, 'can_edit');
+  const canModerateComments = enabled && !isShared;
 
   const mergeAnchorThreads = useCallback(
     (incoming: ResourceCommentThread[]) => {
@@ -151,8 +148,7 @@ export function useResourceComments({
     setPendingSelection(null);
     setActiveThreadId(null);
     setPanelOpen(false);
-    setSurfacePosition(null);
-    setResolved(false);
+    setResolved(undefined);
     setTotal(0);
     setHasMore(false);
     setCreateConflict(false);
@@ -179,34 +175,20 @@ export function useResourceComments({
     restoreResourceCommentAnchors(editor, anchorThreadsRef.current);
   }, []);
 
-  const updateSurfacePosition = useCallback((threadId: string) => {
-    const editor = editorRef.current;
-    if (!editor || editor.isDestroyed) {
-      return;
-    }
-    const range = findResourceCommentRange(editor, threadId);
-    if (!range) {
-      setSurfacePosition(getFallbackThreadSurfacePosition());
-      return;
-    }
-    setSurfacePosition(getThreadSurfacePosition(editor, range));
-  }, []);
-
   const openThread = useCallback(
     (threadId: string) => {
       setPendingSelection(null);
       setActiveThreadId(threadId);
       setPanelOpen(true);
-      updateSurfacePosition(threadId);
       const thread = anchorThreadsRef.current.find(
         item => item.id === threadId
       );
-      if (thread && !thread.resolved) {
-        setResolved(false);
+      if (thread) {
+        setResolved(undefined);
         setThreads(current => mergeThreads(current, [thread]));
       }
     },
-    [updateSurfacePosition]
+    [setPanelOpen]
   );
 
   const focusThread = useCallback(
@@ -219,35 +201,6 @@ export function useResourceComments({
     },
     [openThread]
   );
-
-  useEffect(() => {
-    if (!panelOpen || !activeThreadId) {
-      return;
-    }
-    let animationFrame = 0;
-    const update = () => {
-      cancelAnimationFrame(animationFrame);
-      animationFrame = window.requestAnimationFrame(() => {
-        updateSurfacePosition(activeThreadId);
-      });
-    };
-    const surface = document.querySelector<HTMLElement>(
-      THREAD_SURFACE_SELECTOR
-    );
-    const resizeObserver = surface ? new ResizeObserver(update) : null;
-    if (surface) {
-      resizeObserver?.observe(surface);
-    }
-    update();
-    window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
-    return () => {
-      cancelAnimationFrame(animationFrame);
-      resizeObserver?.disconnect();
-      window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
-    };
-  }, [activeThreadId, panelOpen, updateSurfacePosition]);
 
   const commentsConfig = useMemo<OmniboxEditorCommentsConfig>(
     () => ({
@@ -301,16 +254,10 @@ export function useResourceComments({
           labels: getThreadCommentLabels(response.thread),
         });
         mergeAnchorThreads([response.thread]);
-        setResolved(false);
+        setResolved(undefined);
         setThreads(current => mergeThreads([response.thread], current));
         setTotal(current => current + (response.thread_created ? 1 : 0));
         setActiveThreadId(response.thread.id);
-        setSurfacePosition(
-          getThreadSurfacePosition(selection.editor, {
-            from: selection.from,
-            to: selection.to,
-          })
-        );
         setPendingSelection(null);
         setPanelOpen(true);
         return true;
@@ -339,7 +286,7 @@ export function useResourceComments({
     (updated: ResourceCommentThread) => {
       mergeAnchorThreads([updated]);
       setThreads(current => {
-        if (updated.resolved !== resolved) {
+        if (resolved !== undefined && updated.resolved !== resolved) {
           return current.filter(thread => thread.id !== updated.id);
         }
         return mergeThreads(current, [updated]);
@@ -460,7 +407,9 @@ export function useResourceComments({
           nextResolved
         );
         applyThreadUpdate(updated);
-        setTotal(current => Math.max(0, current - 1));
+        if (resolved !== undefined) {
+          setTotal(current => Math.max(0, current - 1));
+        }
         const editor = editorRef.current;
         if (editor && !editor.isDestroyed) {
           restoreResourceCommentAnchors(editor, [updated]);
@@ -469,7 +418,7 @@ export function useResourceComments({
         setSubmitting(false);
       }
     },
-    [applyThreadUpdate, namespaceId, resource.id]
+    [applyThreadUpdate, namespaceId, resolved, resource.id]
   );
 
   const getAnchorSync = useCallback((): ResourceCommentAnchorSync => {
@@ -493,9 +442,13 @@ export function useResourceComments({
     activeThreadId,
     canComment,
     canEditComment: (comment: ResourceComment) =>
-      canEditResource || comment.author.id === currentUserId,
+      canModerateComments && comment.author.id === currentUserId,
+    canDeleteComment: (comment: ResourceComment) =>
+      canModerateComments &&
+      (canEditResource || comment.author.id === currentUserId),
     canModerateThread: (thread: ResourceCommentThread) =>
-      canEditResource || thread.creator.id === currentUserId,
+      canModerateComments &&
+      (canEditResource || thread.creator.id === currentUserId),
     commentsConfig,
     contentDirty,
     createConflict,
@@ -523,66 +476,9 @@ export function useResourceComments({
     setResolved,
     setThreadResolved,
     submitting,
-    surfacePosition,
     threads,
     total,
   };
-}
-
-function getThreadSurfacePosition(
-  editor: ResourceCommentEditor,
-  range: { from: number; to: number }
-) {
-  const start = editor.view.coordsAtPos(range.from);
-  const end = editor.view.coordsAtPos(range.to);
-  const surfaceWidth = Math.min(
-    SURFACE_WIDTH,
-    window.innerWidth - SURFACE_MARGIN * 2
-  );
-  const anchorCenter = (start.left + end.right) / 2;
-  const left = Math.min(
-    Math.max(SURFACE_MARGIN, anchorCenter - surfaceWidth / 2),
-    window.innerWidth - surfaceWidth - SURFACE_MARGIN
-  );
-  const surfaceHeight = getThreadSurfaceHeight();
-  const belowTop = end.bottom + SURFACE_OFFSET;
-  const aboveTop = start.top - surfaceHeight - SURFACE_OFFSET;
-  const fitsBelow =
-    belowTop + surfaceHeight <= window.innerHeight - SURFACE_MARGIN;
-  const fitsAbove = aboveTop >= SURFACE_MIN_TOP;
-  const preferredTop = fitsBelow || !fitsAbove ? belowTop : aboveTop;
-  const maxTop = Math.max(
-    SURFACE_MIN_TOP,
-    window.innerHeight - surfaceHeight - SURFACE_MARGIN
-  );
-  return {
-    left,
-    top: Math.min(Math.max(SURFACE_MIN_TOP, preferredTop), maxTop),
-  };
-}
-
-function getFallbackThreadSurfacePosition() {
-  const surfaceWidth = Math.min(
-    SURFACE_WIDTH,
-    window.innerWidth - SURFACE_MARGIN * 2
-  );
-  return {
-    left: Math.max(SURFACE_MARGIN, (window.innerWidth - surfaceWidth) / 2),
-    top: Math.max(
-      SURFACE_MIN_TOP,
-      (window.innerHeight - getThreadSurfaceHeight()) / 2
-    ),
-  };
-}
-
-function getThreadSurfaceHeight() {
-  const measuredHeight = document
-    .querySelector<HTMLElement>(THREAD_SURFACE_SELECTOR)
-    ?.getBoundingClientRect().height;
-  return Math.min(
-    measuredHeight || THREAD_SURFACE_HEIGHT,
-    window.innerHeight - SURFACE_MARGIN * 2
-  );
 }
 
 export type ResourceCommentsController = ReturnType<typeof useResourceComments>;
