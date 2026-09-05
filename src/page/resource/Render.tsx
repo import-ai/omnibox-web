@@ -252,10 +252,9 @@ function OmniboxRender(props: IProps) {
 }
 
 export default function Render(props: IProps) {
-  const { forceOmniboxEditor } = props;
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
 
-  return forceOmniboxEditor || useOmniboxEditor ? (
+  return useOmniboxEditor ? (
     <OmniboxRender {...props} />
   ) : (
     <MarkdownRender {...props} />
