@@ -31,8 +31,21 @@ jest.mock('../resource/folder', () => ({
 }));
 jest.mock('../resource/Render', () => ({
   __esModule: true,
-  default: ({ resource }: { resource: { id: string } }) => (
-    <div data-testid="render" data-resource-id={resource.id} />
+  default: ({
+    resource,
+    forceOmniboxEditor,
+    wide,
+  }: {
+    resource: { id: string };
+    forceOmniboxEditor?: boolean;
+    wide?: boolean;
+  }) => (
+    <div
+      data-testid="render"
+      data-resource-id={resource.id}
+      data-force-omnibox-editor={forceOmniboxEditor ? 'true' : 'false'}
+      data-wide={wide ? 'true' : 'false'}
+    />
   ),
 }));
 jest.mock('../share', () => ({
@@ -96,7 +109,14 @@ describe('SharedResourcePage', () => {
     });
 
     const render = container.querySelector('[data-testid="render"]');
+    const titleContainer = container.querySelector('h1')?.parentElement;
+    expect(container.firstElementChild?.classList).toContain(
+      'shared-resource-page'
+    );
     expect(render?.getAttribute('data-resource-id')).toBe('item-1');
+    expect(render?.getAttribute('data-force-omnibox-editor')).toBe('true');
+    expect(render?.getAttribute('data-wide')).toBe('false');
+    expect(titleContainer?.classList.contains('max-w-[680px]')).toBe(true);
     expect(container.querySelector('[data-testid="folder"]')).toBeNull();
   });
 });

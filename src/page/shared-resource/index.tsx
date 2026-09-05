@@ -42,7 +42,7 @@ export default function SharedResourcePage() {
   }
 
   return (
-    <div className="flex h-full w-full min-w-0 justify-center overflow-y-auto overflow-x-hidden p-4">
+    <div className="shared-resource-page flex h-full w-full min-w-0 justify-center overflow-y-auto overflow-x-hidden p-4">
       <div
         className={cn('flex min-w-0 w-full max-w-full flex-col', {
           'max-w-[680px]': !wide && (open || !large),
@@ -50,14 +50,21 @@ export default function SharedResourcePage() {
           'max-w-7xl': wide,
         })}
       >
-        <h1 className="mb-4 min-w-0 max-w-full text-[34px] font-bold break-all">
-          {resource.name || t('untitled')}
-        </h1>
-        <Attributes
-          resource={resource as any}
-          namespaceId={shareInfo.id}
-          readOnly
-        />
+        <div
+          className={cn(
+            'mx-auto w-full min-w-0',
+            wide ? 'max-w-7xl' : 'max-w-[680px]'
+          )}
+        >
+          <h1 className="mb-4 min-w-0 max-w-full text-[34px] font-bold break-all">
+            {resource.name || t('untitled')}
+          </h1>
+          <Attributes
+            resource={resource as any}
+            namespaceId={shareInfo.id}
+            readOnly
+          />
+        </div>
         {resource.resource_type === 'smart_folder' ? (
           <Folder
             resourceId={resource.id}
@@ -90,6 +97,8 @@ export default function SharedResourcePage() {
           <Render
             resource={resource}
             linkBase={`/s/${shareInfo.id}/${resource.id}`}
+            forceOmniboxEditor
+            wide={wide}
           />
         )}
       </div>

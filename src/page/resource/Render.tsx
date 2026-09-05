@@ -35,6 +35,7 @@ interface IProps {
   showToc?: boolean;
   scrollToLine?: number;
   wide?: boolean;
+  forceOmniboxEditor?: boolean;
   linkBase?: string;
   style?: React.CSSProperties;
 }
@@ -251,9 +252,10 @@ function OmniboxRender(props: IProps) {
 }
 
 export default function Render(props: IProps) {
+  const { forceOmniboxEditor } = props;
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
 
-  return useOmniboxEditor ? (
+  return forceOmniboxEditor || useOmniboxEditor ? (
     <OmniboxRender {...props} />
   ) : (
     <MarkdownRender {...props} />
