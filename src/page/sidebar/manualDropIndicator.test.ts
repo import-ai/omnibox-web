@@ -3,10 +3,32 @@ import {
   getHierarchyGuideCount,
   getManualDropLine,
   getProjectedDropDepth,
+  normalizeAdjacentDropBoundary,
   resolveBoundaryDropTarget,
 } from './manualDropIndicator';
 
 const rowRect = { left: 72, top: 80, bottom: 112, width: 240 };
+
+it('remaps a non-last after boundary onto the next row before', () => {
+  const items = [
+    { id: 'first', depth: 0 },
+    { id: 'second', depth: 0 },
+    { id: 'third', depth: 0 },
+  ];
+
+  expect(normalizeAdjacentDropBoundary(items, 'first', 'after')).toEqual({
+    targetId: 'second',
+    position: 'before',
+  });
+  expect(normalizeAdjacentDropBoundary(items, 'second', 'before')).toEqual({
+    targetId: 'second',
+    position: 'before',
+  });
+  expect(normalizeAdjacentDropBoundary(items, 'third', 'after')).toEqual({
+    targetId: 'third',
+    position: 'after',
+  });
+});
 
 it('keeps the indicator on the hovered row boundary', () => {
   expect(
@@ -18,7 +40,7 @@ it('keeps the indicator on the hovered row boundary', () => {
     })
   ).toEqual({
     left: 72,
-    top: 112,
+    top: 111,
     width: 240,
     arrowOffset: 68,
     guideCount: 0,
@@ -35,7 +57,7 @@ it('keeps sibling indicators at the target level', () => {
     })
   ).toEqual({
     left: 72,
-    top: 80,
+    top: 77,
     width: 240,
     arrowOffset: 48,
     guideCount: 0,
@@ -50,7 +72,44 @@ it('keeps sibling indicators at the target level', () => {
     })
   ).toEqual({
     left: 72,
-    top: 112,
+    top: 113,
+    width: 240,
+    arrowOffset: 48,
+    guideCount: 0,
+  });
+});
+
+it('centers the indicator between adjacent row edges', () => {
+  const previousRowRect = { left: 72, top: 40, bottom: 76, width: 240 };
+  const nextRowRect = { left: 72, top: 116, bottom: 148, width: 240 };
+
+  expect(
+    getManualDropLine({
+      position: 'before',
+      rowRect,
+      adjacentRowRect: previousRowRect,
+      depth: 1,
+      guideCount: 0,
+    })
+  ).toEqual({
+    left: 72,
+    top: 77,
+    width: 240,
+    arrowOffset: 48,
+    guideCount: 0,
+  });
+
+  expect(
+    getManualDropLine({
+      position: 'after',
+      rowRect,
+      adjacentRowRect: nextRowRect,
+      depth: 1,
+      guideCount: 0,
+    })
+  ).toEqual({
+    left: 72,
+    top: 113,
     width: 240,
     arrowOffset: 48,
     guideCount: 0,
@@ -67,7 +126,7 @@ it('keeps the available hierarchy guide count', () => {
     })
   ).toEqual({
     left: 72,
-    top: 112,
+    top: 113,
     width: 240,
     arrowOffset: 88,
     guideCount: 2,

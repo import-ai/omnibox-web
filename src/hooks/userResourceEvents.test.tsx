@@ -109,16 +109,15 @@ describe('useResource resource events', () => {
     }
   );
 
-  it('keeps the current resource when revalidation fails unexpectedly', async () => {
-    mockedGet
-      .mockResolvedValueOnce({
-        id: 'resource-a',
-        content: 'current body',
-      } as Resource)
-      .mockRejectedValueOnce(new Error('network failure'));
+  it('keeps the current resource when the window regains focus', async () => {
+    mockedGet.mockResolvedValueOnce({
+      id: 'resource-a',
+      content: 'current body',
+    } as Resource);
 
     await act(async () => root.render(<ResourceHarness />));
     await act(async () => {
+      window.dispatchEvent(new Event('blur'));
       window.dispatchEvent(new Event('focus'));
     });
 
@@ -270,20 +269,43 @@ describe('useResource resource events', () => {
     ).toBe('false');
   });
 
-  it('revalidates access when the window regains focus', async () => {
-    mockedGet
-      .mockResolvedValueOnce({
-        id: 'resource-a',
-        content: 'initial body',
-      } as Resource)
-      .mockRejectedValueOnce({ response: { status: 403 } });
+  it('does not revalidate when the window regains focus', async () => {
+    mockedGet.mockResolvedValueOnce({
+      id: 'resource-a',
+      content: 'initial body',
+    } as Resource);
 
     await act(async () => root.render(<ResourceHarness />));
     await act(async () => window.dispatchEvent(new Event('focus')));
 
-    const state = container.querySelector('[data-testid="resource-state"]');
-    expect(mockedGet).toHaveBeenCalledTimes(2);
-    expect(state?.getAttribute('data-forbidden')).toBe('true');
-    expect(state?.getAttribute('data-content')).toBe('');
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not revalidate when the document returns from hidden', async () => {
+    mockedGet.mockResolvedValueOnce({
+      id: 'resource-a',
+      content: 'initial body',
+    } as Resource);
+
+    await act(async () => root.render(<ResourceHarness />));
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'hidden',
+    });
+    await act(async () =>
+      document.dispatchEvent(new Event('visibilitychange'))
+    );
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    });
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'));
+      window.dispatchEvent(new Event('focus'));
+    });
+
+    expect(mockedGet).toHaveBeenCalledTimes(1);
   });
 });

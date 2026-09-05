@@ -266,6 +266,41 @@
   text-align: center;
 }
 
+.resource-readonly-editor .omnibox-scroll-line-highlight {
+  background-color: transparent;
+}
+
+.resource-readonly-editor
+  .tiptap.ProseMirror
+  > *:has(.omnibox-scroll-line-highlight) {
+  border-radius: var(--tt-radius-md, 0.5rem);
+  background-color: var(--tt-selection-color, rgba(0, 144, 255, 0.2));
+}
+
+.dark .resource-readonly-editor .omnibox-scroll-line-highlight,
+.resource-readonly-editor
+  .omnibox-editor-root.dark
+  .omnibox-scroll-line-highlight {
+  background-color: transparent;
+}
+
+.dark
+  .resource-readonly-editor
+  .tiptap.ProseMirror
+  > *:has(.omnibox-scroll-line-highlight),
+.resource-readonly-editor
+  .omnibox-editor-root.dark
+  .tiptap.ProseMirror
+  > *:has(.omnibox-scroll-line-highlight) {
+  background-color: var(--tt-selection-color, rgba(61, 168, 255, 0.2));
+}
+
+.resource-readonly-editor.resource-readonly-editor--scroll-line-dismissed
+  .tiptap.ProseMirror
+  > *:has(.omnibox-scroll-line-highlight) {
+  background-color: transparent;
+}
+
 .resource-readonly-editor mark.search-query-mark,
 .resource-editable-editor mark.search-query-mark,
 .resource-search-title mark.search-query-mark,

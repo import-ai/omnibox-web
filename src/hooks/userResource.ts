@@ -178,52 +178,6 @@ export default function useResource() {
     };
   }, [app, namespaceId, resourceId]);
 
-  // Permission changes made in another session are picked up when the user
-  // returns to the tab or window. The loading state prevents stale content
-  // from remaining visible while access is revalidated.
-  useEffect(() => {
-    if (!resourceId) return;
-
-    const revalidate = () => {
-      if (document.visibilityState === 'hidden') return;
-      initialResourceRequest.current?.abort();
-      resourceEventRequest.current?.abort();
-      const controller = new AbortController();
-      resourceEventRequest.current = controller;
-      onLoading(true);
-      onForbidden(false);
-      onNotFound(false);
-      fetchResource(namespaceId, resourceId, controller.signal)
-        .then(updated => {
-          if (controller.signal.aborted) return;
-          onResource(updated);
-        })
-        .catch(error => {
-          if (controller.signal.aborted) return;
-          if (isNotFoundResourceError(error)) {
-            onNotFound(true);
-            onResource(null);
-          } else if (isForbiddenResourceError(error)) {
-            onForbidden(true);
-            onResource(null);
-          }
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) onLoading(false);
-          if (resourceEventRequest.current === controller) {
-            resourceEventRequest.current = null;
-          }
-        });
-    };
-
-    window.addEventListener('focus', revalidate);
-    document.addEventListener('visibilitychange', revalidate);
-    return () => {
-      window.removeEventListener('focus', revalidate);
-      document.removeEventListener('visibilitychange', revalidate);
-    };
-  }, [namespaceId, resourceId]);
-
   // Monitor the restore_resource event to reload the resource when it's restored from trash
   useEffect(() => {
     return app.on('restore_resource', (restored: Resource) => {

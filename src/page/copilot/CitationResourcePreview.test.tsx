@@ -38,12 +38,14 @@ jest.mock('@/page/resource/ResourceDetailView', () => ({
     loading,
     notFound,
     resource,
+    scrollToLine,
   }: {
     error: boolean;
     forbidden: boolean;
     loading: boolean;
     notFound: boolean;
     resource: Resource | null;
+    scrollToLine?: number;
   }) => (
     <div
       data-content={resource?.content ?? ''}
@@ -53,6 +55,7 @@ jest.mock('@/page/resource/ResourceDetailView', () => ({
       data-name={resource?.name ?? ''}
       data-not-found={String(notFound)}
       data-resource-id={resource?.id ?? 'none'}
+      data-scroll-to-line={scrollToLine ?? ''}
       data-testid="resource-detail-view"
     />
   ),
@@ -113,6 +116,7 @@ describe('CitationResourcePreview', () => {
       root.render(
         <CitationResourcePreview
           flush
+          lineNumber={12}
           namespaceId="namespace-a"
           resourceId="resource-a"
         />
@@ -126,6 +130,7 @@ describe('CitationResourcePreview', () => {
     expect(view?.getAttribute('data-loading')).toBe('false');
     expect(view?.getAttribute('data-forbidden')).toBe('false');
     expect(view?.getAttribute('data-not-found')).toBe('false');
+    expect(view?.getAttribute('data-scroll-to-line')).toBe('12');
   });
 
   it('returns to loading without showing the previous resource after the id changes', async () => {

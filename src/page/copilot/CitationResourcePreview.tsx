@@ -15,6 +15,7 @@ import { fetchResource } from '@/service/resource';
 interface CitationResourcePreviewProps {
   namespaceId: string;
   resourceId: string;
+  lineNumber?: number;
   /** Parent Workspace already provides page padding + gutter. */
   flush?: boolean;
 }
@@ -34,6 +35,7 @@ function createLoadingState(resourceId: string): PreviewState {
 export default function CitationResourcePreview({
   namespaceId,
   resourceId,
+  lineNumber,
   flush = false,
 }: CitationResourcePreviewProps) {
   const app = useApp();
@@ -172,6 +174,7 @@ export default function CitationResourcePreview({
       }}
       resource={currentState.resource}
       resourceId={resourceId}
+      scrollToLine={lineNumber}
     />
   );
 }
