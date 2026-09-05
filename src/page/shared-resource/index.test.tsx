@@ -96,9 +96,7 @@ describe('SharedResourcePage', () => {
     });
 
     const render = container.querySelector('[data-testid="render"]');
-
     expect(render?.getAttribute('data-resource-id')).toBe('item-1');
-
     expect(container.querySelector('[data-testid="folder"]')).toBeNull();
   });
 });

@@ -90,8 +90,6 @@ export default function SharedResourcePage() {
           <Render
             resource={resource}
             linkBase={`/s/${shareInfo.id}/${resource.id}`}
-
-            wide={wide}
           />
         )}
       </div>
