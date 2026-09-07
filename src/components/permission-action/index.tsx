@@ -19,7 +19,7 @@ import { Permission } from '@/interface';
 import { http } from '@/lib/request';
 
 import Action, { ActionProps } from './Action';
-import { getData } from './data';
+import { getData, getDisabledPermissions } from './data';
 
 interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   user_id: string;
@@ -29,6 +29,7 @@ interface IProps extends Omit<ActionProps, 'afterAddon' | 'data' | 'onChange'> {
   refetch: () => void;
   canNoAccess?: boolean;
   alertWhenDelete?: boolean;
+  isOwner?: boolean;
 }
 
 export default function PermissionAction(props: IProps) {
@@ -43,11 +44,15 @@ export default function PermissionAction(props: IProps) {
     alertWhenDelete,
     canNoAccess = true,
     canRemove = true,
+    isOwner = false,
   } = props;
   const data = getData(!canNoAccess);
   const { t } = useTranslation();
   const uid = localStorage.getItem('uid');
   const me = uid === user_id;
+  const ownerSelf = me && isOwner;
+  const currentPermissionIndex = data.findIndex(item => item.value === value);
+  const disabledPermissions = getDisabledPermissions(data, value, ownerSelf);
   const [grant, onGrant] = useState(false);
   const [remove, onRemove] = useState(false);
   const [ownerOnly, setOwnerOnly] = useState(false);
@@ -78,8 +83,14 @@ export default function PermissionAction(props: IProps) {
     return http.delete(basePath).then(refetch);
   };
   const handleChange = (permission: Permission) => {
+    if (ownerSelf) {
+      const newIndex = data.findIndex(item => item.value === permission);
+      if (newIndex > currentPermissionIndex) {
+        return;
+      }
+    }
     if (me) {
-      const oldIndex = data.findIndex(item => item.value === value);
+      const oldIndex = currentPermissionIndex;
       const newIndex = data.findIndex(item => item.value === permission);
       if (oldIndex < newIndex) {
         onPermission(permission);
@@ -152,6 +163,7 @@ export default function PermissionAction(props: IProps) {
         data={data}
         value={value}
         disabled={disabled}
+        disabledValues={disabledPermissions}
         className={className}
         onChange={handleChange}
         afterAddon={
@@ -161,7 +173,7 @@ export default function PermissionAction(props: IProps) {
               <DropdownMenuItem
                 onClick={handleRemove}
                 disabled={removeing}
-                className="text-red-500 cursor-pointer justify-between hover:bg-gray-100"
+                className="cursor-pointer justify-between hover:bg-gray-100 hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
               >
                 {removeing && <Spinner />}
                 {removeLabel}
