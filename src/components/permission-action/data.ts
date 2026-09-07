@@ -2,6 +2,21 @@ import i18next from 'i18next';
 
 import { Permission } from '@/interface';
 
+export function getDisabledPermissions(
+  data: Array<{ value: Permission }>,
+  value: Permission,
+  restricted: boolean
+): Permission[] {
+  if (!restricted) {
+    return [];
+  }
+
+  const currentIndex = data.findIndex(item => item.value === value);
+  return currentIndex < 0
+    ? []
+    : data.slice(currentIndex + 1).map(item => item.value);
+}
+
 export function getData(removeNoAccess?: boolean): Array<{
   value: Permission;
   label: string;
