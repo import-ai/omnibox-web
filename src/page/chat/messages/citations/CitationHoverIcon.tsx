@@ -9,6 +9,10 @@ import {
 } from '@/components/ui/HoverCard';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import type { Citation } from '@/page/chat/core/types/chatResponse';
+import {
+  appendLineNumber,
+  getCitationLineNumber,
+} from '@/page/chat/messages/citations/citationUtils';
 import { formatCitation } from '@/page/chat/messages/citations/utils';
 import { useChatResourceNavigation } from '@/page/chat/useChatResourceNavigation';
 import { resolveCitationTarget } from '@/page/copilot/citationTarget';
@@ -21,6 +25,7 @@ export interface CitationIconProps {
 export function CitationHoverIcon(props: CitationIconProps) {
   const { citation, index } = props;
   const { name, link } = formatCitation(citation);
+  const lineNumber = getCitationLineNumber(citation.id);
   const { namespaceId } = useChatRouteParams();
   const { openResource } = useChatResourceNavigation();
   const [hoverCardOpen, setHoverCardOpen] = useState(false);
@@ -30,12 +35,16 @@ export function CitationHoverIcon(props: CitationIconProps) {
     if (
       target.kind === 'resource' &&
       namespaceId &&
-      openResource(event, target.resourceId)
+      openResource(event, target.resourceId, lineNumber)
     ) {
       return;
     }
     if (target.kind !== 'unavailable' && link) {
-      window.open(link, '_blank', 'noopener,noreferrer');
+      window.open(
+        target.kind === 'resource' ? appendLineNumber(link, lineNumber) : link,
+        '_blank',
+        'noopener,noreferrer'
+      );
     }
   };
   return (

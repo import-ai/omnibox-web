@@ -8,6 +8,7 @@ import Page from './Page';
 
 interface IProps extends IUseResource {
   error?: boolean;
+  scrollToLine?: number;
   showToc: boolean;
   wide: boolean;
 }
@@ -23,6 +24,7 @@ export default function Wrapper(props: IProps) {
     namespaceId,
     error,
     showToc,
+    scrollToLine,
     wide,
   } = props;
 
@@ -43,6 +45,7 @@ export default function Wrapper(props: IProps) {
           onResource={onResource}
           namespaceId={namespaceId}
           showToc={showToc}
+          scrollToLine={scrollToLine}
           wide={wide}
         />
       )}

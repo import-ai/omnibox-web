@@ -30,7 +30,7 @@ jest.mock('react-router-dom', () => ({
 
 const RESOURCE_ID = 'Abcd1234Efgh5678';
 const citation = {
-  id: 'citation-a',
+  id: 'C1-resource-L12-18',
   title: 'Resource citation',
   snippet: 'Citation content',
   link: RESOURCE_ID,
@@ -88,6 +88,7 @@ describe('CitationCard', () => {
       view: 'conversation',
       conversationId: 'conversation-a',
       previewResourceId: RESOURCE_ID,
+      previewLineNumber: 12,
     });
   });
 
@@ -99,7 +100,7 @@ describe('CitationCard', () => {
 
     const { link, onOpenResource } = await renderCard();
 
-    expect(link.getAttribute('href')).toBe(`/s/share-a/${RESOURCE_ID}`);
+    expect(link.getAttribute('href')).toBe(`/s/share-a/${RESOURCE_ID}#L12`);
     expect(link.getAttribute('target')).toBe('_blank');
     expect(onOpenResource).not.toHaveBeenCalled();
   });

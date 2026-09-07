@@ -1,7 +1,9 @@
 import {
+  appendLineNumber,
   citationUrlTransform,
   copyPreprocess,
   findCitationById,
+  getCitationLineNumber,
   getResourceIdFromHash,
   isCitationId,
   replaceCiteTag,
@@ -103,6 +105,23 @@ describe('citation id helpers', () => {
       'C1-resource-lines-L2-3'
     );
     expect(citationUrlTransform('C2-web-title')).toBe('C2-web-title');
+  });
+
+  it.each([
+    ['C1-resource-lines-L2-3', 2],
+    ['C4-咖啡做法-L16', 16],
+    ['C2-web-title', undefined],
+    ['C3-resource-L0-3', undefined],
+    ['C3-resource-L9007199254740992', undefined],
+  ])('extracts the cited start line from %s', (citationId, expected) => {
+    expect(getCitationLineNumber(citationId)).toBe(expected);
+  });
+
+  it('uses a line anchor instead of a URL fragment', () => {
+    expect(appendLineNumber('../resource?view=compact#body', 12)).toBe(
+      '../resource?view=compact#L12'
+    );
+    expect(appendLineNumber('../resource')).toBe('../resource');
   });
 
   it('keeps normal url sanitization for non-citation links', () => {

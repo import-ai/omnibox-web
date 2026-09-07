@@ -51,7 +51,11 @@ export function useChatResourceNavigation() {
   );
 
   const openResource = useCallback(
-    (event: MouseEvent<HTMLElement>, resourceId: string) => {
+    (
+      event: MouseEvent<HTMLElement>,
+      resourceId: string,
+      lineNumber?: number
+    ) => {
       if (!canOpenInCopilot || !isPlainClick(event)) return false;
 
       event.preventDefault();
@@ -60,10 +64,11 @@ export function useChatResourceNavigation() {
         store.showResourceBesideConversation(
           namespaceId,
           conversationId,
-          resourceId
+          resourceId,
+          lineNumber
         );
       } else {
-        store.previewResource(namespaceId, resourceId);
+        store.previewResource(namespaceId, resourceId, lineNumber);
       }
       return true;
     },
@@ -71,9 +76,13 @@ export function useChatResourceNavigation() {
   );
 
   const getResourceLinkProps = useCallback(
-    (resourceId: string, onOpened?: () => void): ResourceLinkProps => ({
+    (
+      resourceId: string,
+      onOpened?: () => void,
+      lineNumber?: number
+    ): ResourceLinkProps => ({
       onClick: event => {
-        if (openResource(event, resourceId)) onOpened?.();
+        if (openResource(event, resourceId, lineNumber)) onOpened?.();
       },
       rel: 'noopener noreferrer',
       target: canOpenInCopilot ? undefined : '_blank',

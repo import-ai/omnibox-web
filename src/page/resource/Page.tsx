@@ -19,12 +19,21 @@ interface IProps {
   resource: Resource;
   namespaceId: string;
   showToc: boolean;
+  scrollToLine?: number;
   wide: boolean;
   onResource: (resource: Resource) => void;
 }
 
 export default function Page(props: IProps) {
-  const { editPage, resource, onResource, namespaceId, showToc, wide } = props;
+  const {
+    editPage,
+    resource,
+    onResource,
+    namespaceId,
+    showToc,
+    scrollToLine,
+    wide,
+  } = props;
   const { t } = useTranslation();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const constrainHeader =
@@ -114,6 +123,7 @@ export default function Page(props: IProps) {
         <Render
           resource={resource}
           showToc={showToc}
+          scrollToLine={scrollToLine}
           wide={wide}
           linkBase={`/${namespaceId}/${resource.id}`}
           style={{ overflow: 'inherit' }}
