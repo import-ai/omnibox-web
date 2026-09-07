@@ -68,6 +68,7 @@ export default function User(props: IProps) {
                 resource_id={resource_id}
                 namespace_id={namespace_id}
                 canNoAccess={item.permission === 'no_access'}
+                isOwner={item.role === 'owner'}
                 disabled={!canModifyUser(item.role)}
                 canRemove={canModifyUser(item.role) && item.user.id !== uid}
                 alertWhenDelete={
