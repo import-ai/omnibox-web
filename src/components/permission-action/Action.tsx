@@ -54,7 +54,7 @@ export default function Action(props: ActionProps) {
           <DropdownMenuItem
             key={item.value}
             onClick={() => onChange(item.value)}
-            className="cursor-pointer justify-between hover:bg-gray-100 dark:hover:bg-gray-400"
+            className="cursor-pointer justify-between hover:bg-gray-100"
           >
             <div>
               {item.description ? (
