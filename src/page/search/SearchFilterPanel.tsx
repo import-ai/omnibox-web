@@ -26,6 +26,7 @@ import type {
 import {
   getAvailableResourceConditionOperators,
   getConditionLimitValue,
+  getResourceConditionExpressionText,
   getResourceConditionFieldType,
   normalizeResourceConditionValue,
   RESOURCE_CONDITION_FIELD_OPTIONS,
@@ -92,6 +93,7 @@ function SearchFilterConditionRow({
   const { t } = useTranslation();
   const fieldType = getResourceConditionFieldType(condition.field);
   const operators = getAvailableResourceConditionOperators(condition.field);
+  const isExpression = condition.field === 'expression';
   const normalizedValue = normalizeResourceConditionValue(
     condition.field,
     condition.operator,
@@ -159,7 +161,7 @@ function SearchFilterConditionRow({
           </SelectContent>
         </Select>
 
-        {condition.field ? (
+        {condition.field && !isExpression ? (
           <Select
             value={condition.operator || ''}
             onValueChange={value =>
@@ -182,9 +184,20 @@ function SearchFilterConditionRow({
         ) : null}
       </div>
 
-      {condition.field &&
-      condition.operator &&
-      shouldShowResourceConditionValueInput(condition.operator) ? (
+      {isExpression ? (
+        <Input
+          value={getResourceConditionExpressionText(condition.value)}
+          autoComplete="off"
+          onChange={event => onValueChange(index, event.target.value)}
+          placeholder={t('resource_conditions.expression_placeholder')}
+          className={cn(
+            compactControlClass,
+            'font-mono focus-visible:ring-0 focus-visible:ring-transparent'
+          )}
+        />
+      ) : condition.field &&
+        condition.operator &&
+        shouldShowResourceConditionValueInput(condition.operator) ? (
         fieldType === 'text' && normalizedValue?.kind === 'text' ? (
           <Input
             value={normalizedValue.text}

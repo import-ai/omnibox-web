@@ -1,14 +1,14 @@
 export type ResourceConditionMatchMode = 'all' | 'any';
 
 export type ResourceConditionField =
-  | 'expression'
   | 'title'
   | 'tags'
   | 'url'
   | 'file_name'
   | 'content'
   | 'created_at'
-  | 'updated_at';
+  | 'updated_at'
+  | 'expression';
 
 export type ResourceConditionFieldType = 'text' | 'date';
 

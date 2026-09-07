@@ -38,7 +38,6 @@ const FIELD_DEFINITIONS: Record<
   ResourceConditionField,
   ResourceConditionFieldDefinition
 > = {
-  expression: { type: 'text', operators: [] },
   title: { type: 'text', operators: TEXT_OPERATORS },
   tags: { type: 'text', operators: TEXT_OPERATORS },
   content: { type: 'text', operators: TEXT_OPERATORS },
@@ -46,6 +45,7 @@ const FIELD_DEFINITIONS: Record<
   file_name: { type: 'text', operators: TEXT_OPERATORS },
   created_at: { type: 'date', operators: DATE_OPERATORS },
   updated_at: { type: 'date', operators: DATE_OPERATORS },
+  expression: { type: 'text', operators: [] },
 };
 
 export const VALUE_LESS_OPERATORS = new Set<ResourceConditionOperator>([
@@ -186,6 +186,20 @@ export function createDefaultResourceConditionValue(
     kind: 'text',
     text: '',
   };
+}
+
+export function getResourceConditionExpressionText(
+  value?: ResourceCondition['value']
+) {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value?.kind === 'text') {
+    return value.text;
+  }
+
+  return '';
 }
 
 export function getInitialResourceConditionForField(
