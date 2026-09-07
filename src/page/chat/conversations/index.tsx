@@ -135,7 +135,7 @@ export default function ChatConversationsPage({
                                   {t('rename')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="cursor-pointer text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
+                                  className="cursor-pointer hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
                                   onClick={event => {
                                     event.stopPropagation();
                                     onRemove({
