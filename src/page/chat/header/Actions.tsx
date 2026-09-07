@@ -195,10 +195,10 @@ export default function Actions(props: IProps) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="cursor-pointer gap-2"
+              className="group cursor-pointer gap-2 hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
               onClick={() => handleAction('delete')}
             >
-              <Trash2 className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <Trash2 className="size-4 text-neutral-500 group-hover:text-red-500 group-focus:text-red-500 group-data-[highlighted]:text-red-500 dark:text-[#a1a1a1]" />
               <span>{t('chat.conversations.delete.option')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
